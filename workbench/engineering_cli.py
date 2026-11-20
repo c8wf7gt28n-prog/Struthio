@@ -109,6 +109,7 @@ def schemas():
     from .page_marks import FIELDS as PENCIL_FIELDS  # 0.8.7 C2 (pages in pencil)
     from .library_service import FIELDS as LIBRARY_FIELDS  # 0.8.7 C3 (Ask the Library)
     from .tables import FIELDS as TABLE_FIELDS  # 0.8.7 C6a (tables that check themselves)
+    from .crossrefs import FIELDS as CROSSREF_FIELDS  # 0.8.7 C6b (cross-references)
     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
@@ -220,6 +221,7 @@ def schemas():
         **PENCIL_FIELDS,  # 0.8.7 C2 (pages in pencil)
         **LIBRARY_FIELDS,  # 0.8.7 C3 (Ask the Library)
         **TABLE_FIELDS,  # 0.8.7 C6a (tables that check themselves)
+        **CROSSREF_FIELDS,  # 0.8.7 C6b (cross-references)
         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},

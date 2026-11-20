@@ -1,0 +1,55 @@
+{
+  "item": "C6b",
+  "status": "DONE",
+  "base_commit": "47b5805b81c19e83b0b91bb7533ad85748503fd9",
+  "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C6b.patch",
+  "patch_applies_clean": true,
+  "notes": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C6b.progress.md",
+  "files": {
+    "new": ["workbench/crossrefs.py"],
+    "changed": [
+      "workbench/engineering_kernel.py (0.8.7 C6b block: import, CAPABILITIES entry library.links read, dispatch line)",
+      "workbench/engineering_cli.py (0.8.7 C6b: CROSSREF_FIELDS)",
+      "workbench/mind_words.py (one line: MODULES + workbench.crossrefs, so her cross-reference words are swept by check())",
+      "workbench/library_service.py (C3's file, small edit: a docstring line; ask() gains 'links' and adds crossrefs.into lines under the place it lit, in both the model-answer path and the desk-fallback path, through a guarded _wired helper)",
+      "docs/GRAPHITE_0.1_REGISTRY.json (regenerated in the throwaway copy with the three commands, copied back; the coordinator regenerates at merge)"
+    ]
+  },
+  "built": [
+    "crossrefs.find(rows) is pure. It reads the references in each place of a file (library_service.source_rows rows) with a fixed pattern: subsection, paragraph or clause (x); lists and ranges ('(b) to (d)', 'sections 3 and 12'); section N; section N(x); § N(x); §§. 'subsection (a)' inside § 12 resolves to § 12(a), and 'section 3' to § 3 as a whole. A section carries over a page break. A place's own leading mark is never read as a reference, and a place referring to itself is not a link. A bare number followed by a time or unit word ('21 days') is not read as a section. A reference followed by 'of the <Name> Act' (or Regulations, Code, Law) is listed as pointing into another text and is not followed. 'of this Act' stays internal.",
+    "Each link holds: the source and target, the words as on the page with their line and offsets (lit), and a kind (EXCEPTION, CONSEQUENCE or REFERS) taken from fixed words. The kind is data only and is never said. The link also holds the desk's own quote of both ends and a sha256 of each end's words, with spaces as one.",
+    "A missing target is said plainly: '§ 12(c) refers to subsection (d), which is not in Demoland_Tenancy_Act.pdf.' (state MISSING).",
+    "Revisions are compared on read and nothing is stored, as with 0.8.6's pinned quotes. The earlier revision is the item of the same name in the same collection, with other bytes, whose latest ACCEPTED decision came before the current one's (by catalog_generation). Its places are cut from its own bytes by the reference extractor (document_extract.bounded, then library_service.source_rows) and cached in the process per (sha256, extractor hash). compare() gives each link a state. CURRENT: the same (source, target) wire existed and the words of both ends are unchanged; moving on the page does not count. RECHECK, with reasons NEW, FROM_CHANGED, TARGET_CHANGED or TARGET_NEW. MISSING: the target is not in the file. Wires the revision no longer has are listed as gone (NO_LONGER_REFERS or PLACE_GONE). With no earlier revision she says 'No earlier revision of X is on the desk, so there was nothing to compare.' If the earlier revision cannot be read she says 'cannot be read, so no link was compared with it.'",
+    "Kernel operation library.links {namespace, item?, label?}, read scope. It refreshes the Library's rebuildable index (library_service.refresh) and writes nothing else. No model (model_calls 0).",
+    "Ask the Library now adds up to 3 places of the same file that refer to the place it lit. The lit place is the model's checked hit or, with no model, the top place. Each is said as '§ 12(b) refers to § 12(a): “Subsection (a) does not apply if ...”' (crossrefs.into). The result also carries them as 'links'."
+  ],
+  "smoke": {
+    "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C6b/smoke.py",
+    "output": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C6b/smoke.log",
+    "result": "22 OK, 0 FAIL on the final run, on a throwaway copy that was deleted after. No model was loaded and no fake worker was needed. The run before it failed 1 check, because the smoke script's own text replacement missed a wrapped line; only the script was fixed.",
+    "printed": [
+      "On the Home Demo act page the wires are [('§ 12(b)','§ 12(a)','EXCEPTION','Subsection (a)'), ('§ 12(c)','§ 12(a)','CONSEQUENCE','subsection (a)')] and nothing else. The wire lights 'Subsection (a)' on line 12.",
+      "Missing target: '§ 12(c) refers to subsection (d), which is not in Demoland_Tenancy_Act.pdf.'",
+      "8 reference examples give the expected targets: ranges; lists; §; 'Section 5 of the Housing Act 1988' as another text; 'of this Act' as internal; 'section 12 and 21 days' gives only § 12; 'within 21 days' gives no reference; the place's own mark is skipped. With the section split over a page break, § 12(c) on page 2 is wired to § 12(a) on page 1.",
+      "Revisions, pure functions only. Same text: both CURRENT. Places moved down the page: both CURRENT. § 12(b) reworded: (b)->(a) is RECHECK FROM_CHANGED and (c)->(a) stays CURRENT. § 12(a) changed from 21 to 14 days: both wires are RECHECK TARGET_CHANGED. (b) no longer says 'Subsection (a)': that wire is listed as gone, NO_LONGER_REFERS. A new 'unless section 3 applies' in (c): (c)->§ 3 is RECHECK NEW.",
+      "mind_words.check() finds no problems in the 16 crossrefs templates. crossrefs.py has no float and no model import. library.links has scope 'read' in CAPABILITIES.",
+      "Kernel with Home Demo (built in 8.3 s): library.links gives the two wires as CURRENT, earlier None, in 104 ms, model_calls 0. The label filter § 12(c) gives only its own wire.",
+      "library.ask 'how long does the landlord have to give the deposit back?' with no model (NOT_SENT) lists the places, then '§ 12(b) refers to § 12(a): “Subsection (a) does not apply if the tenant has not given the landlord a forwarding address in writing.”', then the § 12(c) line, then the footer.",
+      "A real revision through the Kernel: the act was revoked, a revised act ('... in writing or by email.') was admitted under the same name, and references.index was run again. library.links finds the earlier revision (COMPARED). (b)->(a) is RECHECK FROM_CHANGED, said as 'goes to recheck: the words of § 12(b) changed.' (c)->(a) is CURRENT. The desk_records count is unchanged, so no record was written."
+    ]
+  },
+  "decisions_where_design_silent": [
+    "Her line quotes the referring place word for word ('§ 12(b) refers to § 12(a): “...”'). The design shows a paraphrase ('§ 12(b) says (a) does not apply if no forwarding address was given in writing'). With no model the desk does not paraphrase, and a quote cannot misstate the text.",
+    "The earlier revision is found by the pinned-quote rule: the same file name in the same collection, admitted before the one admitted now. It is compared against its own bytes, on read. Nothing new is stored and no new record kind is added. One consequence: if an older revision is admitted again, it is compared with the revision just before it, so wires that differ go to recheck.",
+    "A wire is identified by (source label, target label). It stays CURRENT only while the words of both ends are unchanged, spaces normalised. Any change of words in either end, even outside the reference, sends it to recheck. A new wire also goes to recheck.",
+    "When a whole section is the target ('section 3'), it is compared using the words of all its places, joined. References into another named text are listed but not followed, and the desk is not searched for that text.",
+    "Nested marks such as (b)(i) are not modelled. places.split gives them flat labels, so 'paragraph (i)' resolves to § N(i), and when that place is not there it is said as missing."
+  ],
+  "not_done": [
+    "No wire is drawn on the page view on screen: reference_qt.py and her column belong to other builders. library.page does not carry the links yet. The data comes from library.links and from library.ask's 'links'.",
+    "References between different files (for example to another Act on the desk) are not resolved.",
+    "Links are not tied to pinned quotes or rules: a rule resting on § 12(a) is not told that § 12(b) refers to it.",
+    "No tests were written and the suite was not run. Nothing was tested in the owner's sense, nothing ran on the owner's ThinkPad, and no model was loaded."
+  ],
+  "existing_tests_changed": "none"
+}

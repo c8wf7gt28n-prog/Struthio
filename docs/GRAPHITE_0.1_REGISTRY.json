@@ -410,6 +410,7 @@
    "library.ask": "workbench/library_service.py#dispatch",
    "library.doorway": "workbench/doorway.py#dispatch",
    "library.keep": "workbench/page_marks.py#dispatch",
+   "library.links": "workbench/crossrefs.py#dispatch",
    "library.marks": "workbench/page_marks.py#dispatch",
    "library.page": "workbench/library_service.py#dispatch",
    "library.read": "workbench/page_marks.py#dispatch",
@@ -1025,9 +1026,9 @@
   }
  },
  "counts": {
-  "adapters": 827,
+  "adapters": 828,
   "job_tools": 113,
-  "operations": 827,
+  "operations": 828,
   "settings": 48
  },
  "formulas": {
@@ -4708,6 +4709,15 @@
    },
    "scope": "approve"
   },
+  "library.links": {
+   "arguments": "959d60e41964d51c205e1a915523ce0ab1639fee99b402a8ec8e3fcfdcb1e62b",
+   "properties": {
+    "item": "423010dfd115daf3",
+    "label": "7c2c69742619ef58",
+    "namespace": "423010dfd115daf3"
+   },
+   "scope": "read"
+  },
   "library.marks": {
    "arguments": "7e59c7bd4f7130d12b631b22b44c9271257812ea4bf7c8481df0515bd62527e0",
    "properties": {
@@ -8138,7 +8148,7 @@
  },
  "release": "Graphite 0.8.6",
  "schema": "graphite.registry-record/1",
- "schema_digest": "005fb29d35da3137c132951a3940c3b085c863b9e1b008de3c9751ab84a04a93",
+ "schema_digest": "e8472d72066237ebb71dbba45e41c16d159666b00a432a08ed2c8cb63b20e46b",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

@@ -34,7 +34,7 @@ Kernel operations (one block in engineering_kernel.py and engineering_cli.py, co
   library.ask     {query, namespace?}                     read   Ask the Library: the places, then at most one ASK turn
                                                                  per page (the request's ceiling: 3); its only effect
                                                                  is the turn record
-(library.links, the cross-references, is C6b "if room" and is not built here.)
+(library.links, the cross-references, is 0.8.7 C6b, crossrefs.py: ask() adds the places that refer to the place it lit.)
 
 Pure where it can be: no floating point, no clock in what is ranked or checked. Model words are held as
 model_words.ModelSaid and never become her words: the quote is the desk's own cut.
@@ -593,13 +593,21 @@ def _say_hit(hit, page_label, name):
     return WORDS['says_unlabelled'].format(name=name or 'an admitted file', page=page_label, quote=hit['quote'])
 
 
+def _wired(kernel, principal, place):
+    """0.8.7 C6b: her lines for the places of the same file that refer to this place (crossrefs.into), or []."""
+    try:from . import crossrefs
+    except ImportError:return []
+    try:return crossrefs.into(kernel, principal, place['namespace'], place['item'], place.get('label'))
+    except (ValueError, OSError, KeyError):return []
+
+
 def ask(kernel, principal, query, namespace=None, request=None, limit=LIMIT):
     """Ask the Library. Returns {'query', 'decline', 'places' (search), 'answer' (the hits the desk checked and cut, or
     None), 'pages' (each page asked: outcome, why, turn), 'looked', 'said' (her lines, in order), 'footer', 'legal',
     'model_calls'}. Nothing is written but the turn records and the rebuildable index."""
     from . import mind_words
     out = {'query': str(query), 'decline': None, 'answer': None, 'pages': [], 'looked': 0, 'said': [], 'footer': '',
-           'legal': False, 'model_calls': 0}
+           'legal': False, 'links': [], 'model_calls': 0}
     declined = decline(query)
     found = search(kernel, principal, (declined['rest'] or query) if declined else query, limit, namespace)
     out['places'] = found
@@ -642,6 +650,7 @@ def ask(kernel, principal, query, namespace=None, request=None, limit=LIMIT):
                 page_marks.NOT_ASKED_WORDS.get(answer.why, (answer.why or 'not needed').replace('_', ' ').lower())
             out['said'].append((WORDS['not_used'] if sent else WORDS['by_desk']).format(why=words))
             out['said'] += found['lines']
+            out['links'] = _wired(kernel, principal, found['places'][0]);out['said'] += out['links']   # 0.8.7 C6b
             stopped = ('FALLBACK', number)
             break
         if answer.value['hits']:
@@ -651,6 +660,7 @@ def ask(kernel, principal, query, namespace=None, request=None, limit=LIMIT):
             for hit in hits:
                 out['said'].append(_say_hit(hit, head['page_label'], head['name']))
                 out['said'].append(WORDS['pointed'].format(line=hit['line'], words=hit['value']))
+            out['links'] = _wired(kernel, principal, {**head, 'label': hits[0]['label']});out['said'] += out['links']   # 0.8.7 C6b
             break
         out['looked'] += len(its)                  # NONE: the next page of places
     else:

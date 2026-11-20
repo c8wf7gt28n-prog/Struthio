@@ -1,0 +1,613 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index b0eb1dc..5b5ab8a 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -410,6 +410,7 @@
+    "library.ask": "workbench/library_service.py#dispatch",
+    "library.doorway": "workbench/doorway.py#dispatch",
+    "library.keep": "workbench/page_marks.py#dispatch",
++   "library.links": "workbench/crossrefs.py#dispatch",
+    "library.marks": "workbench/page_marks.py#dispatch",
+    "library.page": "workbench/library_service.py#dispatch",
+    "library.read": "workbench/page_marks.py#dispatch",
+@@ -1025,9 +1026,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 827,
++  "adapters": 828,
+   "job_tools": 113,
+-  "operations": 827,
++  "operations": 828,
+   "settings": 48
+  },
+  "formulas": {
+@@ -4708,6 +4709,15 @@
+    },
+    "scope": "approve"
+   },
++  "library.links": {
++   "arguments": "959d60e41964d51c205e1a915523ce0ab1639fee99b402a8ec8e3fcfdcb1e62b",
++   "properties": {
++    "item": "423010dfd115daf3",
++    "label": "7c2c69742619ef58",
++    "namespace": "423010dfd115daf3"
++   },
++   "scope": "read"
++  },
+   "library.marks": {
+    "arguments": "7e59c7bd4f7130d12b631b22b44c9271257812ea4bf7c8481df0515bd62527e0",
+    "properties": {
+@@ -8138,7 +8148,7 @@
+  },
+  "release": "Graphite 0.8.6",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "005fb29d35da3137c132951a3940c3b085c863b9e1b008de3c9751ab84a04a93",
++ "schema_digest": "e8472d72066237ebb71dbba45e41c16d159666b00a432a08ed2c8cb63b20e46b",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/crossrefs.py b/workbench/crossrefs.py
+new file mode 100644
+index 0000000..4e3a93c
+--- /dev/null
++++ b/workbench/crossrefs.py
+@@ -0,0 +1,446 @@
++"""Cross-references (0.8.7 C6b, "if there is room", lane C): where a place on a page refers to another place, found by the
++desk with no model, and checked again when a revision is admitted.
++
++Home Demo's invented act says, in § 12(b), "Subsection (a) does not apply if ..." and, in § 12(c), "A landlord who does
++not comply with subsection (a) ...". The desk reads those words, resolves "subsection (a)" inside § 12 to § 12(a), and a
++wire joins each to (a):
++
++    § 12(b) refers to § 12(a): “Subsection (a) does not apply if the tenant has not given the landlord a forwarding
++    address in writing.”
++
++The quote is the place's own words, cut by the desk (the Library's index of places, library_service), never a paraphrase.
++
++What is read as a reference (REF, fixed and short; anything else is never guessed):
++    subsection (a)   subsections (a) and (b)   subsections (a) to (c)   paragraph (c)   clause (d)
++    section 12   section 12(a)   sections 3 and 12   § 12   § 12(a)   §§ 3 and 12
++"subsection (a)" in a place of § 12 means § 12(a); "section 3" means § 3 as a whole. A section carries over a page break
++within one file. A reference followed by "of the <Name> Act" (or Regulations, Code, Law) points into another text: it is
++said, and not followed. A mark at the start of a place ("(b) ...") is the place's own label, never a reference to it.
++
++A target that is not in the file is said plainly: *§ 12(c) refers to subsection (d), which is not in
++Demoland_Tenancy_Act.pdf.* (state MISSING).
++
++Against revisions (computed on read, never stored, like 0.8.6's pinned quotes): the earlier revision of a file is the file
++of the same name admitted in the same collection before the one admitted now (the latest such acceptance, by the
++collection's catalog generation). Its places are cut from its own bytes, the same extractor as the reference index. Each
++link of the file admitted now is then
++
++    CURRENT  the same wire was in the earlier revision, and the words of both its ends are unchanged (a place that only
++             moved on the page is unchanged);
++    RECHECK  the wire is new in this revision, or the words of either end changed, or its target is new (a reason each);
++    MISSING  its target is not in the file admitted now.
++
++A wire of the earlier revision that the file admitted now no longer has is listed as gone. With no earlier revision on the
++desk every found link is CURRENT, and she says there was nothing to compare.
++
++Kernel operation (one block in engineering_kernel.py and engineering_cli.py, commented 0.8.7 C6b):
++    library.links  {namespace, item?, label?}   read   the cross-references of the files admitted now (or one file, or
++                                                       those touching one place), each with its state against the
++                                                       earlier revision; nothing is written but the Library's
++                                                       rebuildable index; no model
++Ask the Library (library_service.ask) adds the places that refer to the place it lit, in these words.
++
++Pure where it can be (find, compare): no Kernel, no model, no clock, no floating point. A page's words are data: they are
++matched, never followed.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import re
++
++VERSION = 'crossrefs/1'
++CURRENT, RECHECK, MISSING = 'CURRENT', 'RECHECK', 'MISSING'
++STATES = (CURRENT, RECHECK, MISSING)
++REFERS, EXCEPTION, CONSEQUENCE = 'REFERS', 'EXCEPTION', 'CONSEQUENCE'
++# reasons a link goes to recheck
++NEW, FROM_CHANGED, TARGET_CHANGED, TARGET_NEW = 'NEW', 'FROM_CHANGED', 'TARGET_CHANGED', 'TARGET_NEW'
++# reasons a wire of the earlier revision is gone
++PLACE_GONE, NO_LONGER_REFERS = 'PLACE_GONE', 'NO_LONGER_REFERS'
++INTO_MOST = 3                  # wires Ask the Library adds under the place it lit
++SPAN = 40                      # a range "(a) to (z)" opens at most this many targets
++
++# ---- what is read as a reference --------------------------------------------------------------------------------------------
++_NUM = r'\d{1,4}[A-Za-z]?(?![\w(])(?!\s+(?:days?|weeks?|months?|years?|hours?|minutes?|per\b|percent\b|times\b))|\d{1,4}[A-Za-z]?(?=\s*\()'
++_ITEM = r'(?:(?:%s)(?:\s*\(\s*[a-z0-9]{1,4}\s*\))*|(?:\(\s*[a-z0-9]{1,4}\s*\))+)' % _NUM
++_JOIN = r'(?:\s*,\s*(?:and\s+|or\s+)?|\s+and\s+|\s+or\s+|\s+to\s+|\s*[–-]\s*)'
++REF = re.compile(r'(?<![\w§])(?P<head>sub-?sections?|paragraphs?|clauses?|sections?|§§?)\s*(?P<items>%s(?:%s%s)*)' % (_ITEM, _JOIN, _ITEM), re.I)
++_ONE = re.compile(r'(?P<num>\d{1,4}[A-Za-z]?)?(?P<subs>(?:\s*\(\s*[a-z0-9]{1,4}\s*\))*)')
++_SUB = re.compile(r'\(\s*([a-z0-9]{1,4})\s*\)')
++_SPLIT = re.compile(r'(%s)' % _JOIN)
++OUTSIDE = re.compile(r'\s+of\s+(?!this\b)(?:the\s+)?(?P<other>[A-Z][\w-]*(?:\s+[A-Z][\w-]*){0,5}\s+(?:Act|Acts|Regulations?|Code|Law|Ordinance)(?:\s+\d{4})?)')
++THIS_TEXT = re.compile(r'\s+of\s+this\s+(?:Act|Part|Chapter|Schedule|Regulations?|Code|Law|Ordinance|agreement|lease|contract)\b', re.I)
++# the kind of a wire, from fixed words of the referring place (data only: her line never says it)
++KINDS = ((EXCEPTION, re.compile(r'\bdoes\s+not\s+apply\b|\bdo\s+not\s+apply\b|\bunless\b|\bexcept\b|\bsubject\s+to\b|\bnotwithstanding\b', re.I)),
++         (CONSEQUENCE, re.compile(r'\bdoes\s+not\s+comply\b|\bfails?\s+to\s+comply\b|\bcontravenes?\b|\bin\s+breach\s+of\b', re.I)))
++MARK = re.compile(r'^\s*(§\s*\d+[A-Za-z]?\.?|\(\s*[a-z0-9]{1,4}\s*\)|\d{1,3}\.(?=\s)|[a-z]\)(?=\s))\s*')   # places.MARK
++
++
++# ---- her words (scanned by mind_words.check) ----------------------------------------------------------------------------------
++WORDS = {
++    'title': 'Places that refer to each other',
++    'refers': '{source} refers to {target}: “{quote}”',
++    'missing': '{source} refers to {said}, which is not in {name}.',
++    'outside': '{source} refers to {said} of {other}, another text; I do not follow it here.',
++    'current': '{source} to {target}: both ends read as in the earlier revision.',
++    'recheck': '{source} to {target} goes to recheck: {why}.',
++    'why_new': 'it is new in this revision',
++    'why_from': 'the words of {source} changed',
++    'why_target': 'the words of {target} changed',
++    'why_target_new': '{target} is new in this revision',
++    'gone_place': '{source} is not in this revision, so its reference to {target} is gone.',
++    'gone': '{source} no longer refers to {target} in this revision.',
++    'no_earlier': 'No earlier revision of {name} is on the desk, so there was nothing to compare.',
++    'earlier_unread': 'The earlier revision of {name} cannot be read, so no link was compared with it.',
++    'none': 'No place in {name} refers to another place.',
++    'summary': 'In {name}, links read as before: {current}; to recheck: {recheck}; with a target not in the file: {missing}.',
++    'summary_found': 'In {name}, links found: {found}; with a target not in the file: {missing}.',
++}
++NUMBERS = {'summary': {'current': 'library.links: links CURRENT against the earlier revision',
++                       'recheck': 'library.links: links RECHECK against the earlier revision',
++                       'missing': 'library.links: links whose target is not in the file'},
++           'summary_found': {'found': 'library.links: links whose target is in the file',
++                             'missing': 'library.links: links whose target is not in the file'}}
++
++
++def _register_words():
++    from . import mind_words
++    mind_words.register('crossrefs', {'title': WORDS['title']}, kind='title')
++    mind_words.register('crossrefs', {k: v for k, v in WORDS.items() if k != 'title'}, numbers=NUMBERS)
++
++
++_register_words()
++
++
++# ============================================================================================================ finding (pure)
++def _norm(text):
++    return ' '.join(str(text).split())
++
++
++def _sha(text):
++    return hashlib.sha256(_norm(text).encode('utf-8')).hexdigest()
++
++
++def section_of(label):
++    """'§ 12' of '§ 12(a)', '' when the label has no section."""
++    m = re.match(r'§ \d+[A-Za-z]?', str(label or ''))
++    return m.group(0) if m else ''
++
++
++def labelled(rows):
++    """The places of one file in reading order, each with 'full': its label with the section carried over a page break
++    ('(d)' at the top of page 2 under § 12 is '§ 12(d)'). rows: library_service.source_rows (or entries) of one file."""
++    out, section, page = [], '', None
++    for row in rows:
++        label = row.get('label') or ''
++        if label.startswith('§'):section = section_of(label)
++        elif label.startswith('(') and section:label = section + label
++        out.append({**row, 'full': label})
++    return out
++
++
++def _expand(first, last):
++    """The targets a range opens: '(a) to (c)' gives a, b, c (single letters or numbers only, at most SPAN)."""
++    if len(first) == 1 and len(last) == 1 and first.isalpha() and last.isalpha() and first <= last:
++        return [chr(c) for c in range(ord(first), min(ord(last), ord(first) + SPAN - 1) + 1)]
++    if first.isdigit() and last.isdigit() and int(first) <= int(last):
++        return [str(n) for n in range(int(first), min(int(last), int(first) + SPAN - 1) + 1)]
++    return [first, last]
++
++
++def _targets(head, items, section):
++    """[(label, said)] of one reference: head 'subsection', items '(a) and (b)'; section the referring place's '§ 12'."""
++    head = head.lower()
++    is_section = head.startswith('section') or head.startswith('§')
++    parts = [p for p in _SPLIT.split(items) if p is not None]
++    out, prev = [], None
++    pieces = [(parts[i], parts[i - 1] if i else '') for i in range(0, len(parts), 2)]
++    for text, join in pieces:
++        m = _ONE.fullmatch(text.strip())
++        if not m:continue
++        num, subs = m.group('num'), [s for s in _SUB.findall(m.group('subs') or '')]
++        if num:base = '§ ' + num
++        elif is_section:continue                       # "section (a)": not a reference we read
++        else:base = section
++        labels = [base + ''.join('(%s)' % s for s in subs)] if (num or subs) else []
++        if prev is not None and re.fullmatch(r'\s+to\s+|\s*[–-]\s*', join or '') and labels:
++            pb, pl = prev
++            if num and pb.get('num') and not subs and not pb.get('subs'):
++                labels = ['§ ' + n for n in _expand(pb['num'], num)[1:]]
++            elif subs and len(subs) == 1 and pb.get('subs') and len(pb['subs']) == 1 and base == pb['base']:
++                labels = [base + '(%s)' % s for s in _expand(pb['subs'][0], subs[0])[1:]]
++        for label in labels:
++            if label and label not in [o[0] for o in out]:out.append((label, ''))
++        prev = ({'num': num, 'subs': subs, 'base': base}, labels)
++    return out
++
++
++def _kind(text):
++    for kind, pattern in KINDS:
++        if pattern.search(text):return kind
++    return REFERS
++
++
++def _span(lines, start, end, first):
++    """(line number, start, end) on the page of a match at [start, end) in '\\n'.join(lines)."""
++    before = '\n'.join(lines)[:start]
++    k = before.count('\n');at = start - (len(before) - len(before.split('\n')[-1]))
++    line = lines[k] if k < len(lines) else ''
++    return first + k if isinstance(first, int) else None, at, min(len(line), at + (end - start))
++
++
++def references(place):
++    """Every reference a place makes, in order: [{'said' (the words as on the page, spaces as one), 'targets': [labels],
++    'outside' (the other text named, or ''), 'line', 'start', 'end'}]. place: a row with 'lines', 'first', 'full' (or
++    'label'). The place's own mark is never read as a reference."""
++    lines = list(place.get('lines') or [place.get('text') or ''])
++    joined = '\n'.join(lines)
++    mark = MARK.match(lines[0]) if lines else None
++    skip = mark.end() if mark else 0
++    section = section_of(place.get('full', place.get('label')))
++    out = []
++    for m in REF.finditer(joined):
++        if m.start() < skip:continue
++        rest = joined[m.end():]
++        other = OUTSIDE.match(rest)
++        targets = _targets(m.group('head'), m.group('items'), section)
++        if not targets:continue
++        line, start, end = _span(lines, m.start(), m.end(), place.get('first'))
++        out.append({'said': _norm(m.group(0)), 'targets': [t for t, _ in targets],
++                    'outside': _norm(other.group('other')) if other and not THIS_TEXT.match(rest) else '',
++                    'line': line, 'start': start, 'end': end})
++    return out
++
++
++def _target_text(full, label):
++    """The words a target stands on: the place of that label, or every place of a section, joined; None when not there."""
++    if label in full:return full[label]
++    if re.fullmatch(r'§ \d+[A-Za-z]?', label):
++        parts = [text for name, text in full.items() if name == label or name.startswith(label + '(')]
++        if parts:return ' '.join(parts)
++    return None
++
++
++def find(rows, name=''):
++    """The cross-references of one file. rows: its places in reading order (library_service.source_rows, or its entries).
++    Returns {'links': [...], 'outside': [...]}: each link {'key' [source, target], 'source', 'target', 'said', 'kind',
++    'found', 'line', 'start', 'end', 'page', 'page_label', 'quote' (the source place's own words), 'source_sha256',
++    'target_sha256' (None when not found), 'target_quote'}; each outside reference {'source', 'said', 'other', 'line',
++    'page_label'}. A place referring to itself is not a link; one wire per (source, target), at its first words. Pure."""
++    places = labelled(rows)
++    full = {}
++    for p in places:
++        if p['full'] and p['full'] not in full:full[p['full']] = p.get('text') or ''
++    links, outside, seen = [], [], set()
++    for p in places:
++        if not p['full']:continue
++        for ref in references(p):
++            if ref['outside']:
++                outside.append({'source': p['full'], 'said': ref['said'], 'other': ref['outside'], 'line': ref['line'],
++                                'page_label': p.get('page_label')})
++                continue
++            for target in ref['targets']:
++                if target == p['full'] or (p['full'], target) in seen:continue
++                seen.add((p['full'], target))
++                text = _target_text(full, target)
++                links.append({'key': [p['full'], target], 'source': p['full'], 'target': target, 'said': ref['said'],
++                              'kind': _kind(p.get('text') or ''), 'found': text is not None, 'line': ref['line'],
++                              'start': ref['start'], 'end': ref['end'], 'page': p.get('page'), 'page_label': p.get('page_label'),
++                              'quote': _norm(p.get('text') or ''), 'source_sha256': _sha(p.get('text') or ''),
++                              'target_sha256': _sha(text) if text is not None else None,
++                              'target_quote': _norm(text) if text is not None else None, 'name': name})
++    return {'links': links, 'outside': outside}
++
++
++# ============================================================================================================ revisions (pure)
++def compare(now, earlier=None):
++    """Each link of the file admitted now with its state against the earlier revision's links (None: no earlier revision).
++    Returns {'links': now's links each with 'state' and 'why' [reasons], 'gone': [{'source', 'target', 'why'}],
++    'counts': {state: n}, 'compared': bool}."""
++    before = {tuple(l['key']): l for l in (earlier or {}).get('links', ())} if earlier is not None else None
++    sources_now = {l['source'] for l in now['links']}
++    out = []
++    for link in now['links']:
++        state, why = CURRENT, []
++        if not link['found']:state = MISSING
++        elif before is not None:
++            was = before.get(tuple(link['key']))
++            if was is None:why.append(NEW)
++            else:
++                if was['source_sha256'] != link['source_sha256']:why.append(FROM_CHANGED)
++                if not was['found']:why.append(TARGET_NEW)
++                elif was['target_sha256'] != link['target_sha256']:why.append(TARGET_CHANGED)
++            if why:state = RECHECK
++        out.append({**link, 'state': state, 'why': why})
++    gone = []
++    if before is not None:
++        here = {tuple(l['key']) for l in now['links']}
++        for key, was in before.items():
++            if key in here:continue
++            gone.append({'source': was['source'], 'target': was['target'], 'said': was['said'],
++                         'why': NO_LONGER_REFERS if was['source'] in sources_now or _has_place(now, was['source']) else PLACE_GONE})
++    counts = {s: sum(1 for l in out if l['state'] == s) for s in STATES}
++    return {'links': out, 'gone': gone, 'counts': counts, 'compared': before is not None}
++
++
++def _has_place(found, label):
++    return label in set(found.get('places') or ())
++
++
++def said(compared, name, earlier_state='COMPARED'):
++    """Her lines for one file: each link, then what is gone, then the summary. earlier_state: COMPARED, NONE or UNREAD."""
++    lines = []
++    for link in compared['links']:
++        if link['state'] == MISSING:
++            lines.append(WORDS['missing'].format(source=link['source'], said=link['said'], name=name or 'this file'));continue
++        lines.append(WORDS['refers'].format(source=link['source'], target=link['target'], quote=link['quote']))
++        if link['state'] == RECHECK:
++            whys = [_why(r, link) for r in link['why']]
++            lines.append(WORDS['recheck'].format(source=link['source'], target=link['target'], why='; '.join(whys)))
++        elif compared['compared']:
++            lines.append(WORDS['current'].format(source=link['source'], target=link['target']))
++    for ref in compared.get('outside') or ():
++        lines.append(WORDS['outside'].format(source=ref['source'], said=ref['said'], other=ref['other']))
++    for g in compared['gone']:
++        lines.append(WORDS['gone_place' if g['why'] == PLACE_GONE else 'gone'].format(source=g['source'], target=g['target']))
++    if not compared['links'] and not compared.get('outside'):lines.append(WORDS['none'].format(name=name or 'this file'))
++    if earlier_state == 'NONE':lines.append(WORDS['no_earlier'].format(name=name or 'this file'))
++    elif earlier_state == 'UNREAD':lines.append(WORDS['earlier_unread'].format(name=name or 'this file'))
++    c = compared['counts']
++    if compared['links'] and compared['compared']:
++        lines.append(WORDS['summary'].format(name=name or 'this file', current=c[CURRENT], recheck=c[RECHECK], missing=c[MISSING]))
++    elif compared['links']:
++        lines.append(WORDS['summary_found'].format(name=name or 'this file', found=c[CURRENT], missing=c[MISSING]))
++    return lines
++
++
++def _why(reason, link):
++    if reason == NEW:return WORDS['why_new']
++    if reason == FROM_CHANGED:return WORDS['why_from'].format(source=link['source'])
++    if reason == TARGET_CHANGED:return WORDS['why_target'].format(target=link['target'])
++    return WORDS['why_target_new'].format(target=link['target'])
++
++
++def of_file(rows, name='', earlier_rows=None):
++    """find() on the file admitted now and on its earlier revision (rows, or None), compared. Pure."""
++    now = find(rows, name);now['places'] = [p['full'] for p in labelled(rows) if p['full']]
++    earlier = find(earlier_rows, name) if earlier_rows is not None else None
++    compared = compare(now, earlier)
++    compared['outside'] = now['outside']
++    return compared
++
++
++# ============================================================================================================ the desk
++_EARLIER = {}                  # (sha256, extractor hash) -> rows: a file never changes under its SHA-256
++
++
++def _decision(db, ident):
++    from . import intake_service as intake
++    try:return intake.load(db, 'decisions', ident)
++    except ValueError:return None
++
++
++def earlier_item(db, nsid, item):
++    """The earlier revision of an item admitted now: the item of the same name in the same collection whose latest
++    acceptance came before the one admitted now (by the collection's catalog generation), with other bytes. None when the
++    desk holds none."""
++    from . import intake_service as intake
++    now = intake.load(db, 'items', item)
++    mine = _decision(db, now.get('decision_id') or '')
++    if not mine:return None
++    at = int(mine.get('catalog_generation') or 0)
++    best, best_at = None, -1
++    for (payload,) in db.execute('SELECT payload FROM intake_items WHERE ns=? AND name=?', (nsid, now['name'])).fetchall():
++        other = json.loads(payload)
++        if other['id'] == now['id'] or other.get('sha256') == now.get('sha256'):continue
++        for (raw,) in db.execute('SELECT payload FROM intake_decisions WHERE item=? AND ns=?', (other['id'], nsid)).fetchall():
++            d = json.loads(raw)
++            g = int(d.get('catalog_generation') or 0)
++            if d.get('decision') == 'ACCEPTED' and g < at and g > best_at:best, best_at = other, g
++    return best
++
++
++def earlier_rows(db, nsid, earlier, owner):
++    """The places of an earlier revision, cut from its own bytes by the reference index's extractor (library_service
++    .source_rows). Raises ValueError when its bytes cannot be read."""
++    from . import intake_service as intake, library_service as lib, reference_service as refs
++    from sdk.cli.arc1cli import document_extract as extract
++    key = (earlier['sha256'], refs.fingerprint())
++    if key in _EARLIER:return _EARLIER[key]
++    ns = intake.namespace(db, nsid, owner)
++    try:result = extract.bounded(earlier['name'], intake.vault(ns).path(earlier['sha256']), earlier['sha256'])
++    except OSError as exc:raise ValueError('CROSSREFS_EARLIER_UNREADABLE: %s' % str(exc)[:120]) from None
++    pages = [{'segment': s.get('id'), 'locator': s.get('locator'), 'text': s.get('text') or ''} for s in result.get('segments') or ()]
++    rows = lib.source_rows(key, pages)
++    if len(_EARLIER) > 64:_EARLIER.clear()
++    _EARLIER[key] = rows
++    return rows
++
++
++def _files(kernel, principal, namespace=None, item=None):
++    """[(namespace, item, name, rows)] of the files admitted now (the Library's index, brought up to date first)."""
++    from . import library_service as lib
++    spaces, _counts, _digest = lib.refresh(kernel, principal, namespace)
++    with kernel.db() as db:rows = lib.entries(lib.DbStore(db), spaces, spaces)
++    files, order = {}, []
++    for row in rows:
++        key = (row['namespace'], row['item'])
++        if item and row['item'] != item:continue
++        if key not in files:files[key] = [];order.append(key)
++        files[key].append(row)
++    return [(k[0], k[1], files[k][0].get('name', ''), files[k]) for k in order]
++
++
++def links(kernel, principal, namespace=None, item=None, label=None):
++    """library.links: {'files': [{'namespace', 'item', 'name', 'earlier' ({item, sha256} or None), 'earlier_state',
++    'links', 'gone', 'outside', 'counts', 'said'}], 'said', 'counts', 'model_calls': 0}. label: only the wires touching
++    that place. Nothing is written but the Library's rebuildable index."""
++    out, said_all = [], []
++    totals = {s: 0 for s in STATES}
++    for nsid, ident, name, rows in _files(kernel, principal, namespace, item):
++        with kernel.db() as db:
++            try:before = earlier_item(db, nsid, ident)
++            except ValueError:before = None
++            earlier_state, previous = ('NONE', None) if before is None else ('COMPARED', None)
++            if before is not None:
++                try:previous = earlier_rows(db, nsid, before, principal.identity)
++                except (ValueError, KeyError):earlier_state = 'UNREAD'
++        compared = of_file(rows, name, previous)
++        if label:
++            compared['links'] = [l for l in compared['links'] if label in (l['source'], l['target'])]
++            compared['gone'] = [g for g in compared['gone'] if label in (g['source'], g['target'])]
++            compared['outside'] = [o for o in compared['outside'] if o['source'] == label]
++            compared['counts'] = {s: sum(1 for l in compared['links'] if l['state'] == s) for s in STATES}
++            if not compared['links'] and not compared['gone'] and not compared['outside']:continue
++        lines = said(compared, name, earlier_state)
++        for s in STATES:totals[s] += compared['counts'][s]
++        out.append({'namespace': nsid, 'item': ident, 'name': name,
++                    'earlier': {'item': before['id'], 'sha256': before['sha256']} if before else None, 'earlier_state': earlier_state,
++                    'links': compared['links'], 'gone': compared['gone'], 'outside': compared['outside'], 'counts': compared['counts'],
++                    'said': lines})
++        said_all += lines
++    return {'title': WORDS['title'], 'files': out, 'said': said_all, 'counts': totals, 'version': VERSION, 'model_calls': 0}
++
++
++def into(kernel, principal, namespace, item, label, most=INTO_MOST):
++    """Her lines for the places of one file that refer to `label` (Ask the Library adds them under the place it lit): at
++    most `most`, in reading order, each '§ 12(b) refers to § 12(a): “...”'. Only wires whose target is found. No model."""
++    from . import library_service as lib
++    if not label:return []
++    with kernel.db() as db:rows = [r for r in lib.entries(lib.DbStore(db), {namespace: ''}) if r['item'] == item]
++    found = find(rows)
++    return [WORDS['refers'].format(source=l['source'], target=l['target'], quote=l['quote'])
++            for l in found['links'] if l['found'] and l['target'] == label][:most]
++
++
++# ============================================================================================================ the Kernel
++_ID = {'type': 'string', 'pattern': '^[a-f0-9]{32}$'}
++FIELDS = {
++    'library.links': ({'namespace': _ID, 'item': _ID, 'label': {'type': 'string', 'minLength': 1, 'maxLength': 80}}, ['namespace']),
++}
++SCOPES = {op: 'read' for op in FIELDS}
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'library.links':return links(kernel, principal, args['namespace'], args.get('item'), args.get('label'))
++    raise ValueError('Unknown cross-reference operation')
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 1f62c91..383e29b 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -109,6 +109,7 @@ def schemas():
+     from .page_marks import FIELDS as PENCIL_FIELDS  # 0.8.7 C2 (pages in pencil)
+     from .library_service import FIELDS as LIBRARY_FIELDS  # 0.8.7 C3 (Ask the Library)
+     from .tables import FIELDS as TABLE_FIELDS  # 0.8.7 C6a (tables that check themselves)
++    from .crossrefs import FIELDS as CROSSREF_FIELDS  # 0.8.7 C6b (cross-references)
+     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
+     from .stac_words import FIELDS as WORD_FIELDS
+     from .agent_operations import FIELDS
+@@ -220,6 +221,7 @@ def schemas():
+         **PENCIL_FIELDS,  # 0.8.7 C2 (pages in pencil)
+         **LIBRARY_FIELDS,  # 0.8.7 C3 (Ask the Library)
+         **TABLE_FIELDS,  # 0.8.7 C6a (tables that check themselves)
++        **CROSSREF_FIELDS,  # 0.8.7 C6b (cross-references)
+         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
+         **WORD_FIELDS,
+         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index ff16b37..268c9a7 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -71,6 +71,7 @@ from . import doorway  # 0.8.7 C1 (the doorway): every line of a page checked be
+ from . import model_account  # 0.8.7 A4 (the ledger, the marks and the account): brain.account (read), brain.turn.forget (approve; always asks) (recorded additions)
+ from . import page_marks  # 0.8.7 C2 (pages in pencil): ledger.pencil/1 and the MARKS turn: library.read (execute), library.marks (read), library.rubout (execute, with Undo), library.keep (approve) (recorded additions)
+ from . import library_service  # 0.8.7 C3 (Ask the Library): the Library's index of places and the ASK turn: library.search, library.page, library.ask (read; recorded additions)
++from . import crossrefs  # 0.8.7 C6b (cross-references): where a place refers to another, against revisions: library.links (read; recorded addition)
+ from . import tables  # 0.8.7 C6a (tables that check themselves): the COLUMNS turn: library.table (read; its only effect a turn record) (recorded addition)
+ from . import stac_words  # Graphite 0.4.3: the owner's own staC words (words.list, words.keep, words.forget: recorded additions)
+ from . import program_mail, program_build, program_transfer, program_cartridge
+@@ -256,6 +257,7 @@ CAPABILITIES = {
+     **model_account.SCOPES,  # 0.8.7 A4 (the ledger, the marks and the account)
+     **page_marks.SCOPES,  # 0.8.7 C2 (pages in pencil): library.read writes only pencil records; library.keep approve
+     **library_service.SCOPES,  # 0.8.7 C3 (Ask the Library): three reads; library.ask's only effect is a turn record
++    **crossrefs.SCOPES,  # 0.8.7 C6b (cross-references): library.links, a read; nothing written but the Library's rebuildable index
+     **tables.SCOPES,  # 0.8.7 C6a (tables that check themselves): library.table, a read whose only effect is a turn record
+     **voice_character.SCOPES,  # 0.8.7 C5 (her character file)
+     **stac_words.SCOPES,
+@@ -688,6 +690,7 @@ class Kernel:
+         if op in model_account.FIELDS:return model_account.dispatch(self,op,a,p)   # 0.8.7 A4 (the ledger, the marks and the account): the account; Forget a turn
+         if op in page_marks.FIELDS:return page_marks.dispatch(self,op,a,p)   # 0.8.7 C2 (pages in pencil): read a page in pencil, its marks, Rub out, Keep
+         if op in library_service.FIELDS:return library_service.dispatch(self,op,a,p)   # 0.8.7 C3 (Ask the Library): places at once, then the model points at lines and the desk cuts the quote
++        if op in crossrefs.FIELDS:return crossrefs.dispatch(self,op,a,p)   # 0.8.7 C6b (cross-references): wires between places, CURRENT, RECHECK or MISSING against the earlier revision
+         if op in tables.FIELDS:return tables.dispatch(self,op,a,p)   # 0.8.7 C6a (tables that check themselves): a page's tables cut, named and checked to the cent
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+diff --git a/workbench/library_service.py b/workbench/library_service.py
+index 451286b..7c8ca00 100644
+--- a/workbench/library_service.py
++++ b/workbench/library_service.py
+@@ -34,7 +34,7 @@ Kernel operations (one block in engineering_kernel.py and engineering_cli.py, co
+   library.ask     {query, namespace?}                     read   Ask the Library: the places, then at most one ASK turn
+                                                                  per page (the request's ceiling: 3); its only effect
+                                                                  is the turn record
+-(library.links, the cross-references, is C6b "if room" and is not built here.)
++(library.links, the cross-references, is 0.8.7 C6b, crossrefs.py: ask() adds the places that refer to the place it lit.)
+ 
+ Pure where it can be: no floating point, no clock in what is ranked or checked. Model words are held as
+ model_words.ModelSaid and never become her words: the quote is the desk's own cut.
+@@ -593,13 +593,21 @@ def _say_hit(hit, page_label, name):
+     return WORDS['says_unlabelled'].format(name=name or 'an admitted file', page=page_label, quote=hit['quote'])
+ 
+ 
++def _wired(kernel, principal, place):
++    """0.8.7 C6b: her lines for the places of the same file that refer to this place (crossrefs.into), or []."""
++    try:from . import crossrefs
++    except ImportError:return []
++    try:return crossrefs.into(kernel, principal, place['namespace'], place['item'], place.get('label'))
++    except (ValueError, OSError, KeyError):return []
++
++
+ def ask(kernel, principal, query, namespace=None, request=None, limit=LIMIT):
+     """Ask the Library. Returns {'query', 'decline', 'places' (search), 'answer' (the hits the desk checked and cut, or
+     None), 'pages' (each page asked: outcome, why, turn), 'looked', 'said' (her lines, in order), 'footer', 'legal',
+     'model_calls'}. Nothing is written but the turn records and the rebuildable index."""
+     from . import mind_words
+     out = {'query': str(query), 'decline': None, 'answer': None, 'pages': [], 'looked': 0, 'said': [], 'footer': '',
+-           'legal': False, 'model_calls': 0}
++           'legal': False, 'links': [], 'model_calls': 0}
+     declined = decline(query)
+     found = search(kernel, principal, (declined['rest'] or query) if declined else query, limit, namespace)
+     out['places'] = found
+@@ -642,6 +650,7 @@ def ask(kernel, principal, query, namespace=None, request=None, limit=LIMIT):
+                 page_marks.NOT_ASKED_WORDS.get(answer.why, (answer.why or 'not needed').replace('_', ' ').lower())
+             out['said'].append((WORDS['not_used'] if sent else WORDS['by_desk']).format(why=words))
+             out['said'] += found['lines']
++            out['links'] = _wired(kernel, principal, found['places'][0]);out['said'] += out['links']   # 0.8.7 C6b
+             stopped = ('FALLBACK', number)
+             break
+         if answer.value['hits']:
+@@ -651,6 +660,7 @@ def ask(kernel, principal, query, namespace=None, request=None, limit=LIMIT):
+             for hit in hits:
+                 out['said'].append(_say_hit(hit, head['page_label'], head['name']))
+                 out['said'].append(WORDS['pointed'].format(line=hit['line'], words=hit['value']))
++            out['links'] = _wired(kernel, principal, {**head, 'label': hits[0]['label']});out['said'] += out['links']   # 0.8.7 C6b
+             break
+         out['looked'] += len(its)                  # NONE: the next page of places
+     else:
+diff --git a/workbench/mind_words.py b/workbench/mind_words.py
+index 83823a0..b1dcb8a 100644
+--- a/workbench/mind_words.py
++++ b/workbench/mind_words.py
+@@ -196,6 +196,7 @@ KINDS = KINDS + ('frame',)
+ MODULES = MODULES + ('workbench.voice_lexicon', 'workbench.voice_facts')
+ MODULES = MODULES + ('workbench.model_account', 'workbench.model_marks_qt')      # 0.8.7 A4: the account's and the fold's words
+ MODULES = MODULES + ('workbench.tables',)      # 0.8.7 C6a: tables that check themselves
++MODULES = MODULES + ('workbench.crossrefs',)   # 0.8.7 C6b: cross-references
+ 
+ 
+ def frames(module=None):
