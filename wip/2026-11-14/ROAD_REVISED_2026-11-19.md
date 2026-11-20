@@ -24,12 +24,14 @@ words behind every change are in `NOTES.md` under "Directions since the specific
 
 ## Changed on 20 November by the owner
 
-"Let's do maths, then join floor/door/hand into one complex but united pass. Then add programs like web, librra, gadot
-and so on." So after 0.8.4: **0.8.5** maths in lines; **0.8.6** one united pass: the floor (split, drills, budgets), her
-door on the Field with its goals, and changes through her hand; **0.8.7 on** programs, one per pass: the web (quarantine
-first), LibreOffice, Godot, GIMP. The day look, her question and 0.9.0's gates come after. New tests and reviews only for
-the safety rules, and the maths' own vectors. `wip/BUILD_STATE.md` has the details. The table below is the order of
-19 November, kept for its descriptions.
+The road to 1.0, as the owner set it on 20 November: **0.8.5** maths in lines; **0.8.6** Kas's mind with no model (and the
+ThinkPad check); **0.8.7** the model interwoven into her mind; **0.8.8** one united pass: the floor (split, drills,
+budgets), the door's mechanics and changes through her hand. "88 will bring us do major to 90. 90 beyond will add
+programs until 1.0": **0.9.0** is the day the ThinkPad agrees (the six gates; gate 2 now her hand on the desk with no
+program required; gate 6 the two looks settled on his panel); **0.9.x** adds one program per release (the web with
+quarantine first, then LibreOffice, Godot, GIMP and more) and the day look and skins, **until 1.0**. New tests and
+reviews where they guard the owner (the safety rules, the maths and the logic core). `wip/BUILD_STATE.md` has the
+details. The table below is the order of 19 November, kept for its descriptions.
 
 ## The releases
 

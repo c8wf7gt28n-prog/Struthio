@@ -234,6 +234,13 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 07:40 UTC: the owner: "88 will bring us do major to 90. 90 beyond will add programs until 1.0". So the road is:
+  0.8.5 maths; 0.8.6 Kas's mind, no model (with the ThinkPad check, which the spec already placed early); 0.8.7 the
+  model interwoven; 0.8.8 the united pass (floor, door mechanics, hand), the last 0.8; **0.9.0** the gates on the
+  ThinkPad; **0.9.x** one program per release (the web with quarantine, LibreOffice, Godot, GIMP, ...) and the day look
+  and skins, **until 1.0**. 0.9.0's gates, adjusted to match (default, owner may change): gate 2 is her hand on the
+  desk (door, maths, goals, changes, her question; P01 to P07; I05 with the 35B), with no program required; gate 6 is
+  the two existing looks settled on his panel, skins after.
 - 20 Nov 07:30 UTC: the owner, asked whether to build 0.8.6 and 0.8.7 together or overlapped: "It's probably best to do
   separately." So: 0.8.6 is built, checked and shipped on its own; 0.8.7 starts after it. The one-command model-check
   kit (no model needed to build it) ships with 0.8.6 so the owner can measure the 35B before 0.8.7 is tuned.
