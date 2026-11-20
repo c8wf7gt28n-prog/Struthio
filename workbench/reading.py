@@ -883,6 +883,11 @@ def _key(found):
     return hashlib.sha256(json.dumps(keep, sort_keys=True, ensure_ascii=False, default=str).encode('utf-8')).hexdigest()
 
 
+def said_key(text):
+    """The key a kept phrase is found by (S7's phrasebook): the stems of the request's words that carry meaning, in order."""
+    return ' '.join(t.stem for t in tokens(plain(text)[:TEXT]) if t.low not in STOP)
+
+
 def read(text, lex, today=None, kept=(), model_loaded=False):
     """One reading of the owner's request over the desk's vocabulary `lex` (see the module's words). `today` is the day the
     request is said on (calendar words and an allowance's as-of day); `kept` the phrases the owner kept (S7's phrasebook:
@@ -898,6 +903,9 @@ def read(text, lex, today=None, kept=(), model_loaded=False):
         if k.get('words') == said:
             out.update(route='KEPT', readings=[k['reading']], understood=WORDS['kept'].format(understood=k['reading'].get('understood', '')))
             out['words'] = [{'word': t.text, 'at': list(t.at), 'used': True, 'meant': 'a phrase you kept'} for t in toks]
+            if k['reading'].get('frame') == 'DESK' and k['reading'].get('goals'):out['acts'] = 'navigates'     # S7: a phrase moves the window at most
+            if k.get('id'):out['phrase'] = {'id': k['id'], 'follows': k.get('follows'), 'moved': k.get('moved') or [], 'note': k.get('note') or ''}
+            out['card'] = WORDS['card']
             out['key'] = _key(out);return out
     declined = _decline(text, toks, lex, today)
     if declined:
@@ -1149,7 +1157,8 @@ def dispatch(kernel, op, args, principal, today=None):
     owner(principal)                 # the sheets live in the owner's profile, as for office.get and goals.*
     day = date.fromisoformat(args['today']) if args.get('today') else (today or date.today())
     lex = lexicon(kernel, principal)
-    found = read(args['text'], lex, today=day, model_loaded=bool(args.get('model_loaded')))
+    from . import phrases          # 0.8.6 S7: the phrasebook first (only what the owner kept, pointed at the current revision)
+    found = read(args['text'], lex, today=day, kept=phrases.kept(kernel, principal, lex.world), model_loaded=bool(args.get('model_loaded')))
     if args.get('work') and found['acts'] == 'read' and found['route'] in READS + ('COMPOUND',) and found['complete']:
         found['answers'] = work(kernel, principal, found, day)
     return found

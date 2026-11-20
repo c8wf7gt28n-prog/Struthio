@@ -43,6 +43,8 @@ def schemas():
     from .rules import FIELDS as RULE_FIELDS  # 0.8.6 S6: rule cards
     from .either_way import FIELDS as EITHER_WAY_FIELDS  # 0.8.6 S5: either way
     from .settle import FIELDS as SETTLE_FIELDS  # 0.8.6 S5: what would settle it
+    from .phrases import FIELDS as PHRASE_FIELDS  # 0.8.6 S7: the phrasebook
+    from .answer_check import FIELDS as PAGE_CHECK_FIELDS  # 0.8.6 S7: the page check
     from .lab_service import FIELDS as LAB_FIELDS, OPTIONS as LAB_OPTIONS
     from .reason_service import FIELDS as REASON_FIELDS
     from .math_service import FIELDS as MATH_FIELDS, OPTIONS as MATH_OPTIONS
@@ -159,6 +161,7 @@ def schemas():
         **TURN_FIELDS,  # 0.8.7 E0 (the turn contract)
         **QUOTE_FIELDS, **RULE_FIELDS,  # 0.8.6 S6: pinned quotes and rule cards
         **EITHER_WAY_FIELDS, **SETTLE_FIELDS,  # 0.8.6 S5: either way and what would settle it
+        **PHRASE_FIELDS, **PAGE_CHECK_FIELDS,  # 0.8.6 S7: the phrasebook and the page check
         **REASON_FIELDS,
         **SLATE_CONTEXT_FIELDS,
         **SLATE_REASONING_FIELDS,

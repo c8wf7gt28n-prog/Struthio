@@ -61,6 +61,31 @@ def end(token):
     if token is not None:_OUTER.reset(token)
 LINK_SECONDS = 86400
 WORD = re.compile(r'[a-z0-9]{3,}')
+# 0.8.6 S7 (the phrasebook, phrases.py): the owner's kept phrases are rows here of the observed kind `reading`, told apart by
+# their shape. They are his words: no example for a model, no pattern, no row of the training-set export (the kit cutter)
+# carries them, and forgetting one leaves a tombstone (its date and a digest, never its words).
+PHRASE_SHAPE = 'phrase:'
+NOT_PHRASES = " AND shape NOT LIKE 'phrase:%'"
+
+
+def mine_only(found):
+    """The rows that are not the owner's phrasebook (the kit cutter's rule, for any list of rows read here)."""
+    return [r for r in found if not str(r.get('shape') or '').startswith(PHRASE_SHAPE)]
+
+
+def forget_phrases(db, owner, ident=None):
+    """Remove phrasebook rows (one by id, or all), each leaving a tombstone. Returns how many were removed."""
+    import hashlib
+    ensure(db)
+    if ident:found = db.execute("SELECT id,program FROM instruction_matrix WHERE owner=? AND id=? AND shape LIKE 'phrase:%' AND shape!='phrase:forgotten'", (owner, ident)).fetchall()
+    else:found = db.execute("SELECT id,program FROM instruction_matrix WHERE owner=? AND shape LIKE 'phrase:%' AND shape!='phrase:forgotten'", (owner,)).fetchall()
+    now = time.time()
+    for row_id, program in found:
+        db.execute('DELETE FROM instruction_matrix WHERE owner=? AND id=?', (owner, row_id))
+        db.execute('INSERT INTO instruction_matrix VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                   (uuid.uuid4().hex, owner, now, now, None, '', PHRASE_SHAPE + 'forgotten', 'phrases.forget', 'SUCCESS', 'forgotten by the owner', 'NONE', None,
+                    json.dumps({'kind': 'phrase-tombstone', 'digest': hashlib.sha256(str(program).encode('utf-8')).hexdigest()})))
+    return len(found)
 
 
 def ensure(db):
@@ -179,7 +204,7 @@ def rows(db, owner, where='', args=(), limit=200):
 
 def patterns(db, owner, limit=30):
     table = {}
-    for row in rows(db, owner, " AND outcome!='PROPOSED' AND shape!=''", limit=5000):
+    for row in rows(db, owner, " AND outcome!='PROPOSED' AND shape!=''" + NOT_PHRASES, limit=5000):
         entry = table.setdefault(row['shape'], {'shape': row['shape'], 'tries': 0, 'success': 0, 'empty': 0, 'blocked': 0, 'failed': 0,
                                                'reasons': {}, 'example_program': row['program'], 'example_intent': None, 'last': row['created']})
         outcome = effective(row);entry['tries'] += 1;entry[outcome.lower()] += 1
@@ -201,7 +226,7 @@ def examples(db, owner, text, successes=3, failures=2):
     """The past outcomes most similar to an instruction, for the model to learn from."""
     wanted = words(text)
     scored = []
-    for row in rows(db, owner, " AND outcome!='PROPOSED'", limit=2000):
+    for row in rows(db, owner, " AND outcome!='PROPOSED'" + NOT_PHRASES, limit=2000):
         have = words(row['intent']) | words(row['program'])
         if not wanted or not have:continue
         score = len(wanted & have) / len(wanted | have)
@@ -219,12 +244,13 @@ def examples(db, owner, text, successes=3, failures=2):
 
 def status(db, owner):
     ensure(db)
-    counts = dict(db.execute('SELECT outcome,COUNT(*) FROM instruction_matrix WHERE owner=? GROUP BY outcome', (owner,)).fetchall())
+    counts = dict(db.execute('SELECT outcome,COUNT(*) FROM instruction_matrix WHERE owner=?' + NOT_PHRASES + ' GROUP BY outcome', (owner,)).fetchall())
+    phrases = db.execute("SELECT COUNT(*) FROM instruction_matrix WHERE owner=? AND shape LIKE 'phrase:%' AND shape!='phrase:forgotten'", (owner,)).fetchone()[0]
     marked = db.execute("SELECT COUNT(*) FROM instruction_matrix WHERE owner=? AND mark!='NONE'", (owner,)).fetchone()[0]
     with_intent = db.execute("SELECT COUNT(*) FROM instruction_matrix WHERE owner=? AND intent IS NOT NULL AND outcome NOT IN ('PROPOSED')", (owner,)).fetchone()[0]
     return {'schema': 'arc.instruction-matrix/1', 'counts': {k: counts.get(k, 0) for k in OUTCOMES}, 'owner_marked': marked,
             'instructions_with_outcomes': with_intent, 'learning': 'IN_CONTEXT_EXAMPLES', 'weight_training': False,
-            'cloud_disclosure': 'NOT_GRANTED'}
+            'cloud_disclosure': 'NOT_GRANTED', 'phrasebook_rows': phrases}
 
 
 def dispatch(kernel, op, args, principal):
@@ -246,8 +272,12 @@ def dispatch(kernel, op, args, principal):
             return rows(db, owner, ' AND id=?', (args['id'],), 1)[0]
         if op == 'matrix.forget':
             ensure(db)
-            if args.get('all'):count = db.execute('DELETE FROM instruction_matrix WHERE owner=?', (owner,)).rowcount
-            elif args.get('id'):count = db.execute('DELETE FROM instruction_matrix WHERE owner=? AND id=?', (owner, args['id'])).rowcount
+            if args.get('all'):
+                count = forget_phrases(db, owner)          # 0.8.6 S7: each phrase leaves a tombstone, kept below
+                count += db.execute("DELETE FROM instruction_matrix WHERE owner=? AND shape!='phrase:forgotten'", (owner,)).rowcount
+            elif args.get('id'):
+                count = forget_phrases(db, owner, args['id'])
+                if not count:count = db.execute('DELETE FROM instruction_matrix WHERE owner=? AND id=?', (owner, args['id'])).rowcount
             else:raise ValueError('MATRIX_FORGET_NEEDS_ID_OR_ALL')
             return {'state': 'FORGOTTEN', 'rows': count}
         if op == 'matrix.promote':
@@ -266,7 +296,7 @@ def dispatch(kernel, op, args, principal):
         from . import memory_service as memory
         path = memory.fresh_destination(kernel, args['destination'], '.jsonl')
         with kernel.db() as db:
-            found = [r for r in rows(db, owner, " AND outcome!='PROPOSED'", limit=100000)]
+            found = [r for r in rows(db, owner, " AND outcome!='PROPOSED'" + NOT_PHRASES, limit=100000)]   # the kit cutter: no phrasebook row
         lines = [json.dumps({'instruction': r['intent'], 'program': r['program'], 'shape': r['shape'], 'operation': r['operation'],
                              'outcome': effective(r), 'automatic_outcome': r['outcome'], 'owner_mark': r['mark'], 'reason': r['reason'],
                              'model': r['model'], 'created': r['created']}, ensure_ascii=False, sort_keys=True) for r in reversed(found)]

@@ -534,6 +534,11 @@
    "office.operation.run": "workbench/office_service.py#dispatch",
    "office.output.copy": "workbench/office_service.py#dispatch",
    "office.save": "workbench/office_service.py#dispatch",
+   "pages.marks": "workbench/answer_check.py#dispatch",
+   "phrases.forget": "workbench/phrases.py#dispatch",
+   "phrases.keep": "workbench/phrases.py#dispatch",
+   "phrases.list": "workbench/phrases.py#dispatch",
+   "phrases.strike": "workbench/phrases.py#dispatch",
    "pills.accept": "workbench/pills.py#dispatch",
    "pills.fetch": "workbench/pills.py#dispatch",
    "pills.identity": "workbench/pills.py#dispatch",
@@ -1007,9 +1012,9 @@
   }
  },
  "counts": {
-  "adapters": 809,
+  "adapters": 814,
   "job_tools": 113,
-  "operations": 809,
+  "operations": 814,
   "settings": 48
  },
  "formulas": {
@@ -5735,6 +5740,42 @@
    },
    "scope": "approve"
   },
+  "pages.marks": {
+   "arguments": "22b4acb69cf21d52705d398dce2321580b1b0664dece0372471501a698bfbd76",
+   "properties": {
+    "id": "7c2c69742619ef58"
+   },
+   "scope": "read"
+  },
+  "phrases.forget": {
+   "arguments": "7692bd7a403eb8792fc6597f4e24c491dcd8e19d77d50a5b92b831ead7258cd1",
+   "properties": {
+    "id": "d76a3cd568c70cee"
+   },
+   "scope": "approve"
+  },
+  "phrases.keep": {
+   "arguments": "ae5edbd690adf4b19b80be89bd9f7ce7a7107b620384c1c52eec65cc80923e71",
+   "properties": {
+    "chosen": "e125542e407ccc75",
+    "follows": "8e382dc82c83aa4d",
+    "shown": "603c6e9671b08d8c",
+    "text": "d11c7080fc8c95d5"
+   },
+   "scope": "approve"
+  },
+  "phrases.list": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "phrases.strike": {
+   "arguments": "7692bd7a403eb8792fc6597f4e24c491dcd8e19d77d50a5b92b831ead7258cd1",
+   "properties": {
+    "id": "d76a3cd568c70cee"
+   },
+   "scope": "approve"
+  },
   "pills.accept": {
    "arguments": "dfbcb06412835dfa68d3d79882a31cbd5abad4ea19c573320a697c19a144e5b5",
    "properties": {
@@ -7978,7 +8019,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "541d44299d86e303c62d783fc619d4cd0af4a48ebf18cceb34bac73470fee693",
+ "schema_digest": "a0f3e9959e98eb4d74a536270a502c91c5279f704007d55ef51ff1851a282f25",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

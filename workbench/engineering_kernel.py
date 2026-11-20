@@ -50,6 +50,7 @@ from . import reasons, your_word  # 0.8.6 S3 (your word and her reasons): field.
 from . import reading  # 0.8.6 S4 (her dictionary): requests.read, the owner's words read from the desk's own vocabulary with no model (recorded addition)
 from . import turns  # 0.8.7 E0 (the turn contract): the turn ledger, brain.turns and brain.turn.get (read; recorded additions)
 from . import quotes, rules  # 0.8.6 S6 (pinned quotes and rule cards): ledger.quote/1: quotes.pin, quotes.list, quotes.get, quotes.check, quotes.rebind; ledger.rule/1: rules.list, rules.get, rules.check, rules.set (recorded additions)
+from . import phrases, answer_check  # 0.8.6 S7 (the phrasebook and the checker): phrases.list, phrases.keep, phrases.strike, phrases.forget; pages.marks (recorded additions)
 from . import either_way, settle  # 0.8.6 S5 (either way and what would settle it): field.either, field.settle, reads (recorded additions)
 from . import joined_work,typed_artifacts,checked_methods,native_sessions
 from . import slate_context, slate_reasoning
@@ -192,6 +193,7 @@ CAPABILITIES = {
     **turns.SCOPES,  # 0.8.7 E0 (the turn contract)
     **quotes.SCOPES, **rules.SCOPES,  # 0.8.6 S6: pinned quotes and rule cards (rules.set and quotes.rebind approve, ALWAYS_ASKS)
     **either_way.SCOPES, **settle.SCOPES,  # 0.8.6 S5: either way and what would settle it (reads)
+    **phrases.SCOPES, **answer_check.SCOPES,  # 0.8.6 S7: the phrasebook (keep, strike, forget: approve, the owner's press) and the page check (read)
     **joined_work.SCOPES, **typed_artifacts.SCOPES, **checked_methods.SCOPES, **native_sessions.SCOPES,
     **office_service.SCOPES,
     **notebook_service.SCOPES,
@@ -607,6 +609,8 @@ class Kernel:
         if op in rules.FIELDS:return rules.dispatch(self,op,a,p)   # 0.8.6 S6: rule cards (ledger.rule/1)
         if op in either_way.FIELDS:return either_way.dispatch(self,op,a,p)   # 0.8.6 S5: either way (a read)
         if op in settle.FIELDS:return settle.dispatch(self,op,a,p)   # 0.8.6 S5: what would settle it (a read)
+        if op in phrases.FIELDS:return phrases.dispatch(self,op,a,p)   # 0.8.6 S7: the phrasebook (rows of the instruction matrix)
+        if op in answer_check.FIELDS:return answer_check.dispatch(self,op,a,p)   # 0.8.6 S7: the page check (a read)
         if op in lab_service.FIELDS:return lab_service.dispatch(self,op,a,p)
         if op in reason_service.FIELDS:return reason_service.dispatch(self,op,a,p)
         if op in math_service.FIELDS:return math_service.dispatch(self,op,a,p)

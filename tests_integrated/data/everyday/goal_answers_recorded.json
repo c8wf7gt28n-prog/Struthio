@@ -1,0 +1,1307 @@
+{
+ "schema": "kas.goal-recordings/1",
+ "about": "The half-build's GOAL check (hand_model_checks), recorded on 14 Nov 2026 on this container's CPU, 4 threads, 4,096-token context: what each model picked from the numbered goals it was shown. The sheet titles are written as Rail Demo's (the recording used the same three sheets under shorter names). pick: the option numbers, [] for none of these.",
+ "files": [
+  {
+   "name": "4b_try1",
+   "model": "Qwen3.5-4B-Q4_K_M.gguf",
+   "state": "FAILED",
+   "runs": [
+    {
+     "run": 1,
+     "turns": [
+      {
+       "name": "trace",
+       "text": "show me where the bench readings come from",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1
+       ],
+       "prompt_tokens": 261,
+       "output_tokens": 7,
+       "seconds": 4.62
+      },
+      {
+       "name": "trace_and_side",
+       "text": "where do the bench readings come from, and put the limits side by side",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2,
+        5
+       ],
+       "prompt_tokens": 268,
+       "output_tokens": 13,
+       "seconds": 5.809
+      },
+      {
+       "name": "none",
+       "text": "what's for dinner",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [],
+       "prompt_tokens": 257,
+       "output_tokens": 7,
+       "seconds": 4.514
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "4b_run3",
+   "model": "Qwen3.5-4B-Q4_K_M.gguf",
+   "state": "PASSED",
+   "runs": [
+    {
+     "run": 1,
+     "turns": [
+      {
+       "name": "trace",
+       "text": "show me where the bench readings come from",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1
+       ],
+       "prompt_tokens": 279,
+       "output_tokens": 7,
+       "seconds": 5.469
+      },
+      {
+       "name": "trace_and_side",
+       "text": "where do the bench readings come from, and put the limits side by side",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2
+       ],
+       "prompt_tokens": 286,
+       "output_tokens": 10,
+       "seconds": 6.044
+      },
+      {
+       "name": "none",
+       "text": "what's for dinner",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [],
+       "prompt_tokens": 275,
+       "output_tokens": 7,
+       "seconds": 4.834
+      }
+     ]
+    },
+    {
+     "run": 2,
+     "turns": [
+      {
+       "name": "trace",
+       "text": "show me where the bench readings come from",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1
+       ],
+       "prompt_tokens": 279,
+       "output_tokens": 7,
+       "seconds": 4.775
+      },
+      {
+       "name": "trace_and_side",
+       "text": "where do the bench readings come from, and put the limits side by side",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2
+       ],
+       "prompt_tokens": 286,
+       "output_tokens": 10,
+       "seconds": 5.534
+      },
+      {
+       "name": "none",
+       "text": "what's for dinner",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [],
+       "prompt_tokens": 275,
+       "output_tokens": 7,
+       "seconds": 5.065
+      }
+     ]
+    },
+    {
+     "run": 3,
+     "turns": [
+      {
+       "name": "trace",
+       "text": "show me where the bench readings come from",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1
+       ],
+       "prompt_tokens": 279,
+       "output_tokens": 7,
+       "seconds": 4.638
+      },
+      {
+       "name": "trace_and_side",
+       "text": "where do the bench readings come from, and put the limits side by side",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2
+       ],
+       "prompt_tokens": 286,
+       "output_tokens": 10,
+       "seconds": 5.326
+      },
+      {
+       "name": "none",
+       "text": "what's for dinner",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [],
+       "prompt_tokens": 275,
+       "output_tokens": 7,
+       "seconds": 4.845
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "2b_run3",
+   "model": "Qwen3.5-2B-Q4_K_M.gguf",
+   "state": "FAILED",
+   "runs": [
+    {
+     "run": 1,
+     "turns": [
+      {
+       "name": "trace",
+       "text": "show me where the bench readings come from",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1
+       ],
+       "prompt_tokens": 279,
+       "output_tokens": 7,
+       "seconds": 2.34
+      },
+      {
+       "name": "trace_and_side",
+       "text": "where do the bench readings come from, and put the limits side by side",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2
+       ],
+       "prompt_tokens": 286,
+       "output_tokens": 10,
+       "seconds": 2.503
+      },
+      {
+       "name": "none",
+       "text": "what's for dinner",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2,
+        3
+       ],
+       "prompt_tokens": 275,
+       "output_tokens": 13,
+       "seconds": 3.135
+      }
+     ]
+    },
+    {
+     "run": 2,
+     "turns": [
+      {
+       "name": "trace",
+       "text": "show me where the bench readings come from",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1
+       ],
+       "prompt_tokens": 279,
+       "output_tokens": 7,
+       "seconds": 2.509
+      },
+      {
+       "name": "trace_and_side",
+       "text": "where do the bench readings come from, and put the limits side by side",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2
+       ],
+       "prompt_tokens": 286,
+       "output_tokens": 10,
+       "seconds": 2.562
+      },
+      {
+       "name": "none",
+       "text": "what's for dinner",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2,
+        3
+       ],
+       "prompt_tokens": 275,
+       "output_tokens": 13,
+       "seconds": 2.841
+      }
+     ]
+    },
+    {
+     "run": 3,
+     "turns": [
+      {
+       "name": "trace",
+       "text": "show me where the bench readings come from",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1
+       ],
+       "prompt_tokens": 279,
+       "output_tokens": 7,
+       "seconds": 2.337
+      },
+      {
+       "name": "trace_and_side",
+       "text": "where do the bench readings come from, and put the limits side by side",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2
+       ],
+       "prompt_tokens": 286,
+       "output_tokens": 10,
+       "seconds": 2.602
+      },
+      {
+       "name": "none",
+       "text": "what's for dinner",
+       "candidates": [
+        [
+         "traced",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "traced",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "side_by_side",
+         {
+          "a": "Rail Demo limits Rev A ARCHIVED",
+          "b": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo bench readings"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev A ARCHIVED"
+         }
+        ],
+        [
+         "shown",
+         {
+          "s": "Rail Demo limits Rev B CURRENT"
+         }
+        ],
+        [
+         "tidy",
+         {}
+        ]
+       ],
+       "pick": [
+        1,
+        2,
+        3
+       ],
+       "prompt_tokens": 275,
+       "output_tokens": 13,
+       "seconds": 2.647
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

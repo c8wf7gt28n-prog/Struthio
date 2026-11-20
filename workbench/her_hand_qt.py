@@ -26,10 +26,19 @@ What the owner sees and keeps in hand:
   the hologram  state_changed says idle, thinking, acting, waits, stopped or finished; her picture shows them as at work,
                 waits for you, stopped and done (kasandra_art).
 
+Words she cannot settle alone (0.8.6 S7): her dictionary reads them over the Field's sheets, a phrase the owner kept first
+(read as he kept it, no question, model calls: 0). Otherwise the licensed options make one brief (brief.py). With a model,
+the brief is its one GOAL question through the turn contract (turns.ask, its deadline and record), and the answer is used
+only when answer_check takes or trims it; her card then says "The model's pick, checked against your words · model calls:
+1", with a fold of what was asked. With no model, a late answer (past the deadline, the top option is taken by default only
+when it moves the window and the dial lets her) or a refused one, the same options are the owner's buttons, and his press
+is his own approval. After either, she offers once to keep his words (phrases.py): only his press keeps them.
+
 Budgets for a turn: 24 acts, 120 s not counting the owner's own time, 6 plans, 2 surprises in a row. A repeated move from
 the same window stops the turn, with words. Changes are not hers in this slice: her door refuses them.
 """
 import json
+import threading
 import time
 import uuid
 
@@ -37,7 +46,7 @@ from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRectF, Qt, QTimer,
 from PySide6.QtGui import QColor, QPainter, QPen, QWindow
 from PySide6.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
 
-from . import desk_ops, goals as G, hand_words, planner, stacy_hand
+from . import brief, desk_ops, goals as G, hand_words, phrases, planner, stacy_hand, turns
 from .assistant_identity import named
 
 PACE_MS = 300               # between two acts of hers, at least
@@ -571,84 +580,178 @@ class HerHand(QObject):
         if snap.surface != 'field':return {'home': 'Today in front', 'workspace': 'your work in front'}.get(snap.surface, 'as it was')
         return 'the Field in front' + (', “%s” selected' % snap.sel if snap.sel else '') + (', nothing over the work' if not snap.over else '')
 
-    # -- the GOAL turn: which goals did the owner mean ----------------------------------------------------------------------------
+    # -- the GOAL turn: which goals did the owner mean (0.8.6 S7: the brief, the checker and the buttons) ------------------------
+    def _kernel(self):
+        from .engine import engineering
+        from .engineering_kernel import operator
+        return engineering(self.host.root), operator()
+
+    def _kept(self, world):
+        """The owner's kept phrases, pointed at the current revision where they follow it ([] when they cannot be read)."""
+        try:
+            kernel, p = self._kernel()
+            return phrases.kept(kernel, p, world)
+        except Exception:  # noqa: BLE001 - no phrasebook is read as an empty one: she asks, as before
+            return []
+
     def ask_goal(self, text, word=''):
-        """No single full match: the model is asked one small question (pick mode), or, with no model, the owner is shown
-        the goals as words he can choose. No act runs on an answer that is not valid."""
-        world = self.world();cands = hand_words.candidates(text, world)
-        if not cands:return False
-        t = Turn(text, [], word);t.model = {'asked': False, 'candidates': [hand_words.ask_words(*c) for c in cands]}
-        t.cands = cands;self.turn = t;self.snapshot = None
-        from .shell2 import call
-        brain = call(self.host, 'brain.status') or {}
-        if brain.get('state') != 'READY':
-            self._choose_in_words(t, 'No model is loaded, so I cannot settle which you meant. Choose one:');return True
-        r = self.ask_model({'message': hand_words.pick_message(text, cands), 'mode': 'pick', 'picks': len(cands) + 1})
-        if not r.get('ok'):
-            self._choose_in_words(t, 'I could not ask my model (%s). Choose one:' % str((r.get('error') or {}).get('message'))[:120]);return True
-        t.model.update(asked=True, job=r['result']['id'], started=time.monotonic())
-        self.set_state('thinking');self.say(named('I am asking my model which of my goals on the desk you meant.'))
+        """No single full match. Her dictionary reads the words over the Field's sheets: a phrase the owner kept is read as he
+        kept it (no question, no model); otherwise the licensed options of the MEANING point make one brief. With a model
+        loaded, the brief is its one GOAL question (turns.ask), and the answer is used only after answer_check takes it; with
+        no model, or a late or refused answer, the very same options are the owner's buttons. No act runs on an answer that
+        is not taken."""
+        world = self.world()
+        found, b = brief.desk(text, world, kept=self._kept(world))
+        if found.get('route') == 'KEPT':
+            goals = (found['readings'][0] or {}).get('goals') or ()
+            pairs = [(g['template'], dict(g['params'])) for g in goals]
+            if not pairs:return False
+            note = (found.get('phrase') or {}).get('note')
+            if note:self.say(note)
+            nt = self.start(text, pairs, word, origin='OWNER')
+            nt.model = {'asked': False, 'kept': True, 'calls': 0}
+            self.say('Read as you kept it · model calls: 0')
+            return True
+        if b is None:return False
+        t = Turn(text, [], word);t.brief = b;t.found = found
+        t.cands = [o.goals() for o in b.options]
+        t.model = {'asked': False, 'calls': 0, 'options': [o.words for o in b.options], 'brief': b.as_record()}
+        self.turn = t;self.snapshot = None
+        try:
+            kernel, p = self._kernel()
+            request = turns.request_for(kernel, p)
+        except Exception:  # noqa: BLE001 - no model to reach is the no-model case
+            request = None
+        if request is None or request.port is None:
+            return self._choose_in_words(t, 'No model is loaded, so which of these you meant is yours to choose:')
+        t.model.update(asked=True, started=time.monotonic(), calls=1)
+        holder = {}
+
+        def run():
+            try:holder['answer'] = turns.ask(brief.GOAL, b, request)
+            except Exception as exc:  # noqa: BLE001 - a failed turn gives the buttons
+                holder['error'] = str(exc)[:200]
+        thread = threading.Thread(target=run, name='her-goal-turn', daemon=True);thread.start()
+        t.model['holder'] = holder;t.model['thread'] = thread
+        self.set_state('thinking');self.say(named('I am asking my model which of these you meant: %s.') % '; '.join(o.words for o in b.options))
         QTimer.singleShot(POLL_MS, self.poll_goal)
         return True
 
     def ask_model(self, args):
-        """brain.ask through the Kernel, with the owner's principal (the job's answer is read by poll_goal)."""
-        from .engine import engineering
-        from .engineering_kernel import operator
-        return engineering(self.host.root).dispatch('brain.ask', {**args, 'request_key': uuid.uuid4().hex}, operator())
+        """brain.ask through the Kernel, with the owner's principal (kept for the half-build's own check)."""
+        kernel, p = self._kernel()
+        return kernel.dispatch('brain.ask', {**args, 'request_key': uuid.uuid4().hex}, p)
 
     def poll_goal(self):
         t = self.turn
-        if t is None or not t.model or not t.model.get('job') or t.goals:return
-        from .shell2 import call
-        job = call(self.host, 'jobs.get', {'id': t.model['job']}) or {}
-        elapsed = time.monotonic() - t.model['started']
-        if job.get('state') not in ('Completed', 'Failed', 'Cancelled', 'Interrupted'):
-            if elapsed > MODEL_SECONDS:return self._late(t, elapsed)
+        if t is None or not t.model or not t.model.get('thread') or t.goals:return
+        if t.model['thread'].is_alive():
             QTimer.singleShot(POLL_MS, self.poll_goal);return
-        result = (call(self.host, 'brain.result', {'id': t.model['job']}) or {}).get('result') or {}
-        metrics = result.get('metrics') or {}
-        t.model.update(seconds=round(elapsed, 3), prompt_tokens=(metrics.get('usage') or {}).get('prompt_tokens') or metrics.get('prompt_tokens_measured'),
-                       output_tokens=(metrics.get('usage') or {}).get('completion_tokens'), state=job.get('state'))
-        proposal = result.get('proposal') or {}
-        if job.get('state') != 'Completed' or 'pick' not in proposal:
-            t.model['valid'] = False
-            return self._choose_in_words(t, 'I could not settle what you meant: my model did not answer with goals I offered. Choose one:')
-        t.model.update(valid=True, pick=list(proposal['pick']))
-        if not proposal['pick']:
-            t.state = 'finished';t.closing = 'None of my goals on the desk fits that, so I leave the window as it is.'
+        holder = t.model.pop('holder');t.model.pop('thread')
+        answer = holder.get('answer');elapsed = time.monotonic() - t.model['started']
+        t.model.update(seconds=round(elapsed, 3))
+        if answer is None:
+            t.model['outcome'] = 'FAILED'
+            return self._choose_in_words(t, 'I could not ask my model (%s), so which of these you meant is yours to choose:' % holder.get('error', 'no answer'))
+        verdict = answer.verdict
+        t.model.update(outcome=answer.outcome, why=answer.why, price_ms=answer.price_ms, deadline_ms=answer.deadline_ms,
+                       raw=answer.said.for_check() if answer.said is not None else None, turn=answer.turn,
+                       check=[list(c) for c in (verdict.checks if verdict is not None else ())])
+        if answer.outcome == 'LATE':return self._late(t, elapsed)
+        if answer.outcome not in ('TAKEN', 'TRIMMED') or not answer.by_model:
+            lead = {'UNSETTLED': 'My model’s pick did not cover everything you asked, so which of these you meant is yours to choose:',
+                    'NOT_SENT': 'I did not ask my model, so which of these you meant is yours to choose:'}.get(
+                answer.outcome, 'My model’s answer did not fit your words, so I did not use it. Which of these did you mean?')
+            return self._choose_in_words(t, lead)
+        picks = list(answer.value or ())
+        if not picks:
+            t.state = 'finished';t.closing = 'None of these fits your words, so I leave the window as it is.'
             self.say(t.closing);self.set_state('finished');return
-        self._begin_from(t, [t.cands[n - 1] for n in proposal['pick']], 'HER')
+        pairs = [pair for n in picks for pair in t.cands[n - 1]]
+        self._begin_from(t, pairs, 'HER')
+        self.say('The model’s pick, checked against your words · model calls: 1')
+        self._fold(t)
+        self._offer_keep(t, [t.brief.option(n) for n in picks])
+
+    def _fold(self, t):
+        """'What I asked the model': the exact words sent, their size, the seconds, the raw answer and her check."""
+        m = t.model;card = self.say('What I asked the model:') if getattr(t, 'brief', None) is not None else None
+        if card is None:return
+        said = 'Sent: %s\n%s · about %d tokens · %s s · its answer, as it gave it: %s · my check: %s' % (
+            brief.FIXED[:80] + '…', t.brief.last(), t.brief.size(), m.get('seconds'), m.get('raw'),
+            '; '.join('%s %s' % (c[0], 'passed' if c[1] else 'did not pass') for c in m.get('check') or ()))
+        label = QLabel(said);label.setWordWrap(True);label.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(label)
 
     def _late(self, t, elapsed):
-        """Past the deadline: the top goal is taken by default when it only reads or moves the window and the move is hers
-        now; a change never is. Otherwise the goals are shown as words to choose."""
-        from .shell2 import call
-        try:call(self.host, 'jobs.cancel', {'id': t.model['job']})
-        except Exception:  # noqa: BLE001
-            pass
+        """Past the deadline: the top option is taken by default only when it is a read or a move of the window (a change
+        never is) and the move is hers now; otherwise the options are the owner's buttons."""
         t.model.update(seconds=round(elapsed, 3), late=True)
-        top = t.cands[0]
-        if stacy_hand.level(self.host) in ('show', 'free') and top[0] in ('traced', 'shown', 'side_by_side', 'tidy'):
-            t.model['default'] = hand_words.ask_words(*top)
-            return self._begin_from(t, [top], 'DEDUCED', default=True)
-        self._choose_in_words(t, 'I could not settle what you meant in time. Choose one:')
+        top = t.brief.options[0] if t.brief is not None and t.brief.options else None
+        if top is not None and top.acts in ('read', 'navigates') and stacy_hand.level(self.host) in ('show', 'free') and top.goals():
+            t.model['default'] = top.words
+            return self._begin_from(t, top.goals(), 'DEDUCED', default=True)
+        self._choose_in_words(t, 'My model did not answer in time, so which of these you meant is yours to choose:')
 
     def _begin_from(self, t, pairs, origin, default=False):
         model = t.model
         nt = self.start(t.text, pairs, t.word, origin=origin)
-        nt.model = model
-        if default:self.say('My model did not answer in time, so I took the first of my goals: %s.' % model.get('default'))
+        nt.model = model;nt.brief = getattr(t, 'brief', None);nt.found = getattr(t, 'found', None)
+        if default:self.say('My model did not answer in time, so I took the first of these, which only moves the window: %s.' % model.get('default'))
+        return nt
 
     def _choose_in_words(self, t, lead):
-        """The deterministic goals, as words the owner can choose; nothing runs until he does."""
+        """The brief's options as the owner's buttons, exactly (and "None of these"); nothing runs until he presses one. His
+        press is his own approval; she then offers to keep his words."""
         from .shell2 import sentence
         card = self.say(lead)
-        for n, pair in enumerate(t.cands[:8], 1):
-            label = sentence('{go}', {'go': ('%d  %s' % (n, hand_words.ask_words(*pair)), lambda pair=pair: self.start(t.text, [pair], t.word))})
+        options = brief.buttons(t.brief) if getattr(t, 'brief', None) is not None else []
+        t.buttons = options
+        for n, words in options:
+            if n:
+                label = sentence('{go}', {'go': ('%d  %s' % (n, words), lambda n=n: self.choose(t, n))})
+            else:
+                label = sentence('{go}', {'go': (words, lambda: self.choose(t, 0))})
             if card is not None:card.box.addWidget(label)
         t.state = 'idle';self.set_state('idle')
         return True
+
+    def choose(self, t, n):
+        """The owner's press on one of the buttons (0: none of these)."""
+        if n == 0:
+            t.state = 'finished';t.closing = 'None of these, so I leave the window as it is.'
+            self.say(t.closing);self.set_state('finished');return None
+        option = t.brief.option(n)
+        nt = self.start(t.text, option.goals(), t.word, origin='OWNER')
+        nt.model = dict(t.model or {}, chosen=n, by='owner');nt.brief = t.brief;nt.found = t.found
+        self._offer_keep(nt, [option])
+        return nt
+
+    def _offer_keep(self, t, options):
+        """'Keep “pop … up” as trace?': once, after a pick the owner pressed or the checker took. A phrase is kept only by his
+        press (phrases.keep, approve scope); it is never offered again once struck, nor when kept already."""
+        options = [o for o in options if o is not None]
+        if not options or getattr(t, 'found', None) is None:return None
+        chosen = {'words': '; '.join(o.words for o in options),
+                  'reading': {'frame': 'DESK', 'goals': [g for o in options for g in (o.reading.get('goals') or ())]}}
+        try:
+            kernel, p = self._kernel()
+            offer = phrases.offer(kernel, p, t.text, chosen, t.found)
+        except Exception:  # noqa: BLE001 - no offer is better than a broken card
+            return None
+        if offer is None:return None
+        from .shell2 import sentence
+
+        def keep(follows):
+            got = kernel.dispatch('phrases.keep', {'text': t.text, 'chosen': chosen, 'follows': follows, 'shown': offer['words']}, p)
+            self.say(got['result']['words'] if got.get('ok') else 'I did not keep it: %s' % str((got.get('error') or {}).get('message'))[:160])
+        actions = {'keep': ('Keep it', lambda: keep('CURRENT'))};words = '{keep}'
+        if offer['revision_titles']:
+            actions = {'keep': ('Follow the current revision', lambda: keep('CURRENT')), 'stay': ('Stay on this one', lambda: keep('THIS_REVISION'))}
+            words = '{keep} · {stay}'
+        t.keep_offer = offer
+        card = self.say(offer['question'])
+        if card is not None:card.box.addWidget(sentence(words, actions))
+        return offer
 
     # -- where a press lands --------------------------------------------------------------------------------------------------
     def still(self):
