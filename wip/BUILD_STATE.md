@@ -189,6 +189,13 @@ switched the session's model.
   places (prompt box, then the room button, then send, which ends exactly at the middle column's right edge); and the
   four meters (CPU, GPU, RAM, TXT) centred and evenly spaced under the right column. Final mockup:
   `work/head_mock/mock3_*`. With 0.8.6.
+- 20 Nov 08:30 UTC: "Now just work the upper left equalizer to be radical". Four styles drawn as pictures and sent
+  (`wip/2026-11-20_head_footer_mockup/equalizer/`): A hi-fi deck (segmented lamps, peak caps, a reflection), B neon
+  tubes (glowing rounded bars, floating peak dots, a synthwave grid floor), C scope and bars (the last two minutes of all
+  activity as a glowing trace behind the bars), D neon tubes over a scope (B and C together). With room upper left,
+  every processor thread gets its own bar (16 on the ThinkPad) beside the kernel, memory, disks, network and graphics
+  pairs. Recommended D. Waiting for his pick; default D. With 0.8.6. Rules kept: every height means one thing; the top
+  colour (near the limit) is also said in words on its card; reduce motion holds it still; cheap to draw.
 
 - 19 Nov 22:15 UTC: "Discussion on what we did after the stuff finishes". When part B has finished and is merged (before
   cutting the 0.8.4 kit), stop and talk it through with the owner in plain words: what was built today and why, what the
