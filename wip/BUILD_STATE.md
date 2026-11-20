@@ -196,6 +196,11 @@ switched the session's model.
   every processor thread gets its own bar (16 on the ThinkPad) beside the kernel, memory, disks, network and graphics
   pairs. Recommended D. Waiting for his pick; default D. With 0.8.6. Rules kept: every height means one thing; the top
   colour (near the limit) is also said in words on its card; reduce motion holds it still; cheap to draw.
+- 20 Nov 08:45 UTC: "Work the bottom right 4 display a lot more kewl like that". Four styles for the CPU, GPU, RAM and
+  TXT meters drawn and sent (`wip/2026-11-20_head_footer_mockup/meters/`): E neon rings (270-degree glowing arcs, the
+  number inside), F neon tubes, G VU needles, H a ring with a minute of history beside it. Each shown with a model at
+  work and as today with no model ("—" stays an honest dim "no reading"). Recommended H, which pairs with equalizer D's
+  trace. Default H. Still doors: a click opens the same cards. With 0.8.6.
 
 - 19 Nov 22:15 UTC: "Discussion on what we did after the stuff finishes". When part B has finished and is merged (before
   cutting the 0.8.4 kit), stop and talk it through with the owner in plain words: what was built today and why, what the
