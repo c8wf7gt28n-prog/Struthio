@@ -194,6 +194,7 @@ register('mind_words', {'footer': FOOTER, 'intro': INTRO}, kind='footer')
 # which checks every word of a frame before it is filled (one store, not a parallel one).
 KINDS = KINDS + ('frame',)
 MODULES = MODULES + ('workbench.voice_lexicon', 'workbench.voice_facts')
+MODULES = MODULES + ('workbench.model_account', 'workbench.model_marks_qt')      # 0.8.7 A4: the account's and the fold's words
 
 
 def frames(module=None):

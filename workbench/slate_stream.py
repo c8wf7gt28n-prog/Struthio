@@ -96,6 +96,9 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
              seconds=120, measured_prompt=None, *, kernel, cache_key=None, on_progress=None):
     # 0.8.7 A3: on_progress(tokens_written, elapsed_ms) is called as each piece of the answer streams in (her clock's line).
     if not brain.worker_live(worker): raise ValueError('MODEL_WORKER_NOT_LIVE')
+    from .turns import withhold_messages       # 0.8.7 A4: secret-shaped text never reaches the model
+    held = withhold_messages(messages)
+    if held is not messages: messages, measured_prompt = held, None
     measured_prompt = prompt_size(worker, messages) if measured_prompt is None else measured_prompt
     if measured_prompt + max_tokens + 32 > worker['context']: raise ValueError('CONTEXT_BUDGET_EXCEEDED: reduce context or output tokens')
     # Every resident generation consumes the previous slot claim. Only a

@@ -2061,7 +2061,9 @@ class ClipOverlay(QWidget):
             self.bubble('Local evidence · %d\n\n' % len(observations)
                         + '\n\n'.join(map(program_observation_text,observations)),False,plain=True)
         if not actions:
-            self.history.append((history_role,text));self.bubble(text or 'No action proposed.',False);self._save();return
+            self.history.append((history_role,text));box=self.bubble(text or 'No action proposed.',False)
+            if not private_local and text:self._outside(box)   # 0.8.7 A4: Google's model wrote it (clip.OUTSIDE_MARK)
+            self._save();return
         from .stacy_control import validate_actions
         from .engineering_kernel import Principal
         try:
@@ -2074,8 +2076,9 @@ class ClipOverlay(QWidget):
             self.bubble('Proposal not executable: '+str(exc),False,error=True);return
         summary='Proposed commands · awaiting your review\n'+json.dumps(actions,indent=2)
         self.history.append((history_role,(text+'\n'+summary).strip()))
-        self.bubble((text+'\n\n'+summary).strip(),False,
+        box=self.bubble((text+'\n\n'+summary).strip(),False,
                     action=('Run listed commands',lambda:self._run_plan(epoch,actions,private_local,review_epoch)))
+        if not private_local:self._outside(box)   # 0.8.7 A4: Google's model wrote it (clip.OUTSIDE_MARK)
         self._save()
 
     def _run_plan(self,epoch,actions,private_local=False,review_epoch=None):
@@ -2102,6 +2105,13 @@ class ClipOverlay(QWidget):
             bridge.run(actions,provider=True,private_local=True,when_done=observed)
         else:
             bridge.run(actions,provider=True)
+
+    def _outside(self, box):
+        """0.8.7 A4 (design 5.1): the outside-model mark under a reply from Google's model, in words (clip.OUTSIDE_MARK)."""
+        mark=QLabel(clip.OUTSIDE_MARK);mark.setObjectName('ClipOutsideMark');mark.setWordWrap(True);mark.setTextFormat(Qt.PlainText)
+        mark.setStyleSheet('font-style: italic; font-size: 11px;');mark.setAccessibleName(clip.OUTSIDE_MARK)
+        box.layout().addWidget(mark);box.outside_mark=mark
+        return mark
 
     def _drop_status(self):
         if self.status_bubble is not None:
@@ -2138,7 +2148,8 @@ class ClipOverlay(QWidget):
         else:
             role='local-assistant' if epoch==getattr(self,'_local_turn',None) else 'assistant'
             self.history.append((role, text))
-            self.bubble(text, False)
+            box=self.bubble(text, False)
+            if role=='assistant':self._outside(box)   # 0.8.7 A4: Google's model wrote it (clip.OUTSIDE_MARK)
             self._save()                           # remembers the model that answered
         self.refresh()
         self.input.setFocus()

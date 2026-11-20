@@ -105,6 +105,7 @@ def schemas():
     from .network_watch import FIELDS as NETWORK_FIELDS
     from .field_service import FIELDS as FIELD_FIELDS
     from .doorway import FIELDS as DOORWAY_FIELDS  # 0.8.7 C1 (the doorway)
+    from .model_account import FIELDS as ACCOUNT_FIELDS  # 0.8.7 A4 (the ledger, the marks and the account)
     from .page_marks import FIELDS as PENCIL_FIELDS  # 0.8.7 C2 (pages in pencil)
     from .library_service import FIELDS as LIBRARY_FIELDS  # 0.8.7 C3 (Ask the Library)
     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
@@ -214,6 +215,7 @@ def schemas():
         **NETWORK_FIELDS,
         **FIELD_FIELDS,
         **DOORWAY_FIELDS,  # 0.8.7 C1 (the doorway)
+        **ACCOUNT_FIELDS,  # 0.8.7 A4 (the ledger, the marks and the account)
         **PENCIL_FIELDS,  # 0.8.7 C2 (pages in pencil)
         **LIBRARY_FIELDS,  # 0.8.7 C3 (Ask the Library)
         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)

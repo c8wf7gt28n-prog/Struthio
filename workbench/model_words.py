@@ -12,6 +12,7 @@ The marks (design 5.1), one quiet line per reply, in words, never an icon alone:
   KEPT     worded by the model, kept by you
   YOURS    your wording
   OWN      the model's own words, from its memory, not from your files      (Talk only)
+  RAW      the model's answer, exactly as it gave it                         (0.8.7 A4: in the fold only)
 Her plain words carry no mark at all.
 
 The strict parsers below read the terse answer lines the kinds' grammars allow (no free whitespace); anything else is
@@ -32,6 +33,8 @@ MARKS = {
     'KEPT': 'worded by the model, kept by you',
     'YOURS': 'your wording',
     'OWN': "the model's own words, from its memory, not from your files",
+    # 0.8.7 A4: the raw answer inside the fold "What I asked the model", shown exactly as stored, before and apart from her check
+    'RAW': "the model's answer, exactly as it gave it",
 }
 MOST = 32000          # characters: local_brain.completion refuses a longer answer before it is wrapped
 

@@ -52,6 +52,7 @@
    "boot.inspect": "workbench/boot_loading.py#dispatch",
    "brain.acceleration": "workbench/local_brain.py#dispatch",
    "brain.acceleration.probe": "workbench/local_brain.py#dispatch",
+   "brain.account": "workbench/model_account.py#dispatch",
    "brain.ask": "workbench/local_brain.py#dispatch",
    "brain.help.set": "workbench/turns.py#dispatch",
    "brain.host": "workbench/local_brain.py#dispatch",
@@ -66,6 +67,7 @@
    "brain.runtime": "workbench/local_brain.py#dispatch",
    "brain.status": "workbench/local_brain.py#dispatch",
    "brain.stop": "workbench/local_brain.py#dispatch",
+   "brain.turn.forget": "workbench/model_account.py#dispatch",
    "brain.turn.get": "workbench/turns.py#dispatch",
    "brain.turns": "workbench/turns.py#dispatch",
    "cad.inspect": "workbench/kicad_tools.py#dispatch",
@@ -1020,9 +1022,9 @@
   }
  },
  "counts": {
-  "adapters": 822,
+  "adapters": 824,
   "job_tools": 113,
-  "operations": 822,
+  "operations": 824,
   "settings": 48
  },
  "formulas": {
@@ -1894,6 +1896,13 @@
    "properties": {},
    "scope": "execute"
   },
+  "brain.account": {
+   "arguments": "110aa251f9f0da71426b25c82e3e569b6ae6c64a5d41da983274f0b4c6772dc5",
+   "properties": {
+    "period": "14654dd092999e74"
+   },
+   "scope": "read"
+  },
   "brain.ask": {
    "arguments": "3a7232612e20ebfb3620a9c34a726d8bb03295927e551eed1707e0a7f3e8c6b2",
    "properties": {
@@ -1913,8 +1922,9 @@
    "scope": "execute"
   },
   "brain.help.set": {
-   "arguments": "22f2cecce589b1e469279dd21d3c1929f07f85973000370ba541a96f8648e032",
+   "arguments": "a4a4f2e1ec9e9042628bff0beec7e2e3ad716b96d7d571cbda8efa4be4b66b3c",
    "properties": {
+    "ask_again": "df06bab3db37e6ee",
     "switches": "1bcd205f137986e7",
     "undo": "7cb541e84f226754"
    },
@@ -2002,6 +2012,13 @@
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
    "scope": "execute"
+  },
+  "brain.turn.forget": {
+   "arguments": "2919b0ae60fccf396bb31ec42b0b49d30e549db4e90dab97af88aaa60c71e7fa",
+   "properties": {
+    "id": "5ebb95812def9056"
+   },
+   "scope": "approve"
   },
   "brain.turn.get": {
    "arguments": "2919b0ae60fccf396bb31ec42b0b49d30e549db4e90dab97af88aaa60c71e7fa",
@@ -8091,7 +8108,7 @@
  },
  "release": "Graphite 0.8.6",
  "schema": "graphite.registry-record/1",
- "schema_digest": "0c1a8a790581150e0effeeb2b7696875c4d96a30ae11fe52f01f57b7ac3b2763",
+ "schema_digest": "2e10135acc3a85a89def8df995602841e75f919abddeafb690933e581c630f35",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

@@ -560,6 +560,11 @@ def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,ti
     # 0.8.7 E0: besides the ready probe, only turns.ask calls this (the turn contract). Its keywords: the kind's GBNF grammar
     # (never with a JSON schema), the deadline (the HTTP timeout, and t_max_predict_ms to bound writing), the alternatives
     # per answer token to record (odds), and the prompt's token count when the caller has just measured it.
+    # 0.8.7 A4: secret-shaped text (the doorway's rule) never reaches the model; turns.layout has withheld it already, so
+    # a turn's messages pass unchanged and its measured count stands.
+    from .turns import withhold_messages
+    held=withhold_messages(messages)
+    if held is not messages:messages=held;prompt_tokens=None
     if prompt_tokens is None:
         prompt=request(worker,'/apply-template',{'messages':messages,'add_generation_prompt':True,'chat_template_kwargs':TEMPLATE_OPTIONS},timeout=10)['prompt']
         tokens=request(worker,'/tokenize',{'content':prompt,'add_special':False},timeout=10)['tokens'];prompt_tokens=len(tokens)
@@ -1017,6 +1022,8 @@ def run_reply(kernel,job):
     output_tokens=options.get('max_tokens',24 if mode=='choice' else 384 if mode=='plan' or reference_packet is not None else 256)
     if mode=='pick':output_tokens=min(int(options.get('max_tokens') or PICK_OUTPUT),PICK_OUTPUT)
     def generate(prompt, schema):
+        from .turns import withhold_messages
+        prompt=withhold_messages(prompt)   # 0.8.7 A4: secret-shaped text in a file, a record or a pasted line is withheld
         selected,measured=slate_stream.fit_history(worker,prompt,output_tokens)
         if mode=='pick' and measured>PICK_PROMPT:raise ValueError('PICK_PROMPT_TOO_LONG: %d tokens, the bound is %d'%(measured,PICK_PROMPT))
         limits={'seconds':PICK_SECONDS} if mode=='pick' else {}

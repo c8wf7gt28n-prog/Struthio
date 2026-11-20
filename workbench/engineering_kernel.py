@@ -68,6 +68,7 @@ from . import network_watch, network_capture  # HATCH DESK D5: network.observe a
 from . import field_service  # Graphite 0.4.1: the desk as something staC can read (field.read, field.trace, field.whatif: three reads, recorded additions)
 from . import voice_character  # 0.8.7 C5 (her character file): voice.character (read), voice.character.start (execute), voice.character.admit (approve) (recorded additions)
 from . import doorway  # 0.8.7 C1 (the doorway): every line of a page checked before any model reads it: library.doorway (read; recorded addition)
+from . import model_account  # 0.8.7 A4 (the ledger, the marks and the account): brain.account (read), brain.turn.forget (approve; always asks) (recorded additions)
 from . import page_marks  # 0.8.7 C2 (pages in pencil): ledger.pencil/1 and the MARKS turn: library.read (execute), library.marks (read), library.rubout (execute, with Undo), library.keep (approve) (recorded additions)
 from . import library_service  # 0.8.7 C3 (Ask the Library): the Library's index of places and the ASK turn: library.search, library.page, library.ask (read; recorded additions)
 from . import stac_words  # Graphite 0.4.3: the owner's own staC words (words.list, words.keep, words.forget: recorded additions)
@@ -251,6 +252,7 @@ CAPABILITIES = {
     **network_watch.SCOPES,
     **field_service.SCOPES,
     **doorway.SCOPES,  # 0.8.7 C1 (the doorway)
+    **model_account.SCOPES,  # 0.8.7 A4 (the ledger, the marks and the account)
     **page_marks.SCOPES,  # 0.8.7 C2 (pages in pencil): library.read writes only pencil records; library.keep approve
     **library_service.SCOPES,  # 0.8.7 C3 (Ask the Library): three reads; library.ask's only effect is a turn record
     **voice_character.SCOPES,  # 0.8.7 C5 (her character file)
@@ -681,6 +683,7 @@ class Kernel:
         if op in field_service.FIELDS:return field_service.dispatch(self,op,a,p)
         if op in voice_character.FIELDS:return voice_character.dispatch(self,op,a,p)   # 0.8.7 C5 (her character file): kasandra/character.md, admitted with revisions
         if op in doorway.FIELDS:return doorway.dispatch(self,op,a,p)   # 0.8.7 C1 (the doorway): a page checked at the door, read, no model
+        if op in model_account.FIELDS:return model_account.dispatch(self,op,a,p)   # 0.8.7 A4 (the ledger, the marks and the account): the account; Forget a turn
         if op in page_marks.FIELDS:return page_marks.dispatch(self,op,a,p)   # 0.8.7 C2 (pages in pencil): read a page in pencil, its marks, Rub out, Keep
         if op in library_service.FIELDS:return library_service.dispatch(self,op,a,p)   # 0.8.7 C3 (Ask the Library): places at once, then the model points at lines and the desk cuts the quote
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)

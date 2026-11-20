@@ -50,6 +50,16 @@ SYSTEM_PROMPT = (
     'Native graphics are diagnostic and audio rendering remains unfinished.')
 
 
+# 0.8.7 A4 (design 5.1): every reply from an outside model carries this line, in words, under its text. It is the mark
+# only: what is sent and how is unchanged.
+OUTSIDE_MARK = "Google's model wrote this; your message left this computer."
+
+
+def outside_reply(text):
+    """An outside model's reply with its mark: {'text': its words, 'mark': OUTSIDE_MARK}. The window shows both."""
+    return {'text': text, 'mark': OUTSIDE_MARK}
+
+
 class ClipError(Exception):
     """A problem explained in plain words. ``kind``: key, quota, model, network, blocked, other."""
     def __init__(self, text, kind='other'):

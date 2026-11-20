@@ -109,8 +109,13 @@ class Line(QFrame):
     def __init__(self, panel, line):
         super().__init__();self.panel = panel;self.line = line;self.setObjectName('KasMindLine')
         box = QVBoxLayout(self);box.setContentsMargins(8, 3, 4, 3);box.setSpacing(1)
-        self.text = words_label(line.get('text', ''))
-        self.text.setTextInteractionFlags(Qt.NoTextInteraction)
+        from .model_words import is_model      # 0.8.7 A4: a line that is model words shows with its mark (model_marks_qt)
+        if is_model(line.get('text')):
+            from .model_marks_qt import ModelWords
+            self.text = ModelWords(line['text'], line.get('mark') or 'CHECKED')
+        else:
+            self.text = words_label(line.get('text', ''))
+        if isinstance(self.text, QLabel):self.text.setTextInteractionFlags(Qt.NoTextInteraction)
         meta = ' · '.join(x for x in (line.get('state') or '', self._from(line)) if x)
         self.meta = words_label(meta, quiet=True) if meta else None
         self.text.setAttribute(Qt.WA_TransparentForMouseEvents)
@@ -132,7 +137,9 @@ class Line(QFrame):
         self.chosen = chosen
         edge = bt.AMBER_EDGE if chosen else 'transparent'
         self.setStyleSheet('QFrame#KasMindLine {border:0; border-left:3px solid %s;}' % edge)
-        self.setAccessibleName(('Chosen: ' if chosen else '') + str(self.line.get('text', ''))[:200])
+        from .model_words import is_model      # 0.8.7 A4: model words are named by their mark, never as her words
+        said = self.text.line.text() if is_model(self.line.get('text')) else str(self.line.get('text', ''))
+        self.setAccessibleName(('Chosen: ' if chosen else '') + said[:200])
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton and (self.card or self.line.get('leaf')):
@@ -221,6 +228,13 @@ class MindPanel(QFrame):
         if shown:self.said_walk()
 
     def fill(self, name):
+        self._fill(name)
+        found = self.answers.get(name)      # 0.8.7 A4: the model's part of a read, with its mark line and its fold
+        if isinstance(found, dict):
+            from . import model_marks_qt
+            model_marks_qt.place(self, self.pages[name][1], found)
+
+    def _fill(self, name):
         lay = self.pages[name][1]
         if name == 'why':
             found, why = self.read('field.why', {'id': self.ident});self.answers[name] = found

@@ -2865,7 +2865,10 @@ class SlateFace(QWidget):
         if not job:return
         if job.get('state') not in ('Completed', 'Failed', 'Cancelled', 'Interrupted'):
             progress = call(self.host, 'slate.progress', {'job': self.job})
-            if progress and progress.get('display_text'):self.pending.set_text('Draft · checking…\n' + progress['display_text'])
+            if progress and progress.get('display_text'):      # 0.8.7 A4: the model's draft, with its mark, never as hers
+                from .model_marks_qt import show_in
+                from .model_words import ModelSaid
+                show_in(self.pending, ModelSaid(str(progress['display_text'])[:32000], 'TALK'), 'OWN', lead='Draft · checking…')
             return
         ident = self.job;self.job = None;self.timer.stop()
         if job['state'] != 'Completed':
@@ -2875,10 +2878,15 @@ class SlateFace(QWidget):
             self.pending.set_text('I stopped: ' + (job.get('error') or job['state']) + '. This is recorded so I learn from it.');return
         result = (call(self.host, 'brain.result', {'id': ident}) or {}).get('result') or {}
         proposal = result.get('proposal') or {}
-        self.pending.set_text(proposal.get('text') or result.get('text') or 'Done.')
+        said = proposal.get('text') or result.get('text')
+        if said:      # 0.8.7 A4: Talk is the model's own words: shown with its mark line, never in her column as hers
+            from .model_marks_qt import show_in
+            from .model_words import ModelSaid
+            show_in(self.pending, ModelSaid(str(said)[:32000], 'TALK'), 'OWN')
+        else:self.pending.set_text('Done.')
         if getattr(self, 'grounded', False):  # her words about rows she has just shown: nothing is proposed, and the words are the model's
             self.grounded = False
-            note = QLabel('From the rows above · the words are the model’s and are not checked');note.setWordWrap(True);note.setStyleSheet('color:%s' % FAINT)
+            note = QLabel('It was shown the rows above; its words are not checked against them.');note.setWordWrap(True);note.setStyleSheet('color:%s' % FAINT)
             note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);self.pending.box.addWidget(note)
             QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
             return

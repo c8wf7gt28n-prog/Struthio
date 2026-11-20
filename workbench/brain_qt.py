@@ -90,8 +90,9 @@ class BrainTab(ServiceTab):
         row=QHBoxLayout();self.help_undo=QPushButton('Undo');self.help_undo.setAccessibleName('Undo the last switch')
         self.help_undo.clicked.connect(lambda:self.help_set(None,undo=True));row.addWidget(self.help_undo);row.addStretch(1);help_layout.addLayout(row)
         self.help_note=QLabel('');self.help_note.setWordWrap(True);self.help_note.setAccessibleName('What the model may do');help_layout.addWidget(self.help_note)
+        self.account_area(help_layout)   # 0.8.7 A4: what the model did for you, and its turns, each with its fold
         help_layout.addStretch(1);self.pages.addTab(self.help_page,'What the model may do')
-        self.show_help(turns.stored_switches(self.kernel))
+        self.show_help(turns.stored_switches(self.kernel));self.show_account()
         self.outer.addWidget(self.pages,1)
         self.launch_edited('context')
         self.show_acceleration(local_brain.acceleration(self.kernel))
@@ -104,6 +105,49 @@ class BrainTab(ServiceTab):
         elif off:text='Off: '+', '.join(off)+'. The rest are on.'
         else:text='Every switch is on.'
         self.help_note.setText(text)
+    # ---- 0.8.7 A4: the account (model_account) and the ledger, each turn with its fold (model_marks_qt) ----------------------
+    def account_area(self,layout):
+        from PySide6.QtWidgets import QListWidget
+        from . import model_account
+        head=QLabel('What the model did for you');head.setStyleSheet('font-weight:600;');layout.addWidget(head)
+        self.account_words=QLabel('');self.account_words.setWordWrap(True);self.account_words.setAccessibleName('What the model did for you')
+        layout.addWidget(self.account_words)
+        self.account_row=QHBoxLayout();self.account_count=QPushButton(model_account.BUTTONS['count'])
+        self.account_count.clicked.connect(self.show_account);self.account_row.addWidget(self.account_count);self.account_row.addStretch(1)
+        layout.addLayout(self.account_row);self.account_again=[]
+        self.turn_list=QListWidget();self.turn_list.setAccessibleName('The questions she put to the model');self.turn_list.setMaximumHeight(140)
+        self.turn_list.currentRowChanged.connect(self.show_turn);layout.addWidget(self.turn_list)
+        self.turn_holder=QVBoxLayout();layout.addLayout(self.turn_holder);self.turn_fold=None;self.turn_ids=[]
+    def show_account(self):
+        from . import model_account, model_marks_qt
+        got=self.kernel.dispatch('brain.account',{'period':'week'},self.principal)
+        value=got.get('result') if got.get('ok') else None
+        self.account_words.setText(value['text'] if value else 'The account could not be read.')
+        for b in self.account_again:b.hide();b.deleteLater()
+        self.account_again=[]
+        for row in (value or {}).get('nulls') or ():
+            b=QPushButton(model_account.BUTTONS['ask_again']);b.setToolTip(model_account.say('asked_again',thing=row['thing']))
+            b.setAccessibleName(model_account.BUTTONS['ask_again']+': '+row['thing'])
+            b.clicked.connect(lambda checked=False,kind=row['kind']:self.ask_again(kind));self.account_row.insertWidget(1,b);self.account_again.append(b)
+        listed=self.kernel.dispatch('brain.turns',{'limit':30},self.principal)
+        rows=listed['result']['turns'] if listed.get('ok') else []
+        with QSignalBlocker(self.turn_list):
+            self.turn_list.clear();self.turn_ids=[]
+            for r in rows:
+                state='forgotten' if r.get('state')=='FORGOTTEN' else model_marks_qt.OUTCOME_WORDS.get(r.get('outcome'),r.get('outcome',''))
+                self.turn_list.addItem('%s · %s · %s'%(r.get('kind',''),state,model_marks_qt._seconds(r.get('elapsed_ms'))));self.turn_ids.append(r['id'])
+    def ask_again(self,kind):
+        got=self.kernel.dispatch('brain.help.set',{'ask_again':kind},self.principal)
+        self.show_account()
+        if got.get('ok'):
+            from . import model_account
+            self.help_note.setText(model_account.say('asked_again',thing=model_account.THINGS.get(kind,kind.lower())))
+    def show_turn(self,row):
+        from . import model_marks_qt
+        if self.turn_fold is not None:self.turn_fold.hide();self.turn_fold.deleteLater();self.turn_fold=None
+        if not 0<=row<len(self.turn_ids):return
+        self.turn_fold=model_marks_qt.Fold.for_turn(self.host,self.turn_ids[row],self.kernel,self.principal)
+        self.turn_holder.addWidget(self.turn_fold);self.turn_fold.toggle.setChecked(True)
     def help_set(self,changes,undo=False):
         result=self.kernel.dispatch('brain.help.set',{'undo':True} if undo else {'switches':changes},self.principal)
         if result.get('ok'):self.show_help(result['result']['switches']);return

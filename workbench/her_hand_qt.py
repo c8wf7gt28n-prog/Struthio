@@ -678,18 +678,22 @@ class HerHand(QObject):
             return self.ask_one(t.text, t.word, one_question.of_revision_open(opened, t.text), t=t)
         pairs = [pair for n in picks for pair in t.cands[n - 1]]
         self._begin_from(t, pairs, 'HER')
-        self.say('The model’s pick, checked against your words · model calls: 1')
-        self._fold(t)
+        self._fold(t, self.say('The model’s pick, checked against your words · model calls: 1'))
         self._offer_keep(t, [t.brief.option(n) for n in picks])
 
-    def _fold(self, t):
-        """'What I asked the model': the exact words sent, their size, the seconds, the raw answer and her check."""
-        m = t.model;card = self.say('What I asked the model:') if getattr(t, 'brief', None) is not None else None
+    def _fold(self, t, card=None):
+        """'What I asked the model': 0.8.7 A4, the mark line and the fold (model_marks_qt) of the stored turn, exactly: what
+        she sent, what it answered (model-marked), what she checked, how long it took; and Forget this turn."""
+        m = t.model or {}
+        if getattr(t, 'brief', None) is None or not m.get('turn'):return
+        from . import model_marks_qt
         if card is None:return
-        said = 'Sent: %s\n%s · about %d tokens · %s s · its answer, as it gave it: %s · my check: %s' % (
-            brief.FIXED[:80] + '…', t.brief.last(), t.brief.size(), m.get('seconds'), m.get('raw'),
-            '; '.join('%s %s' % (c[0], 'passed' if c[1] else 'did not pass') for c in m.get('check') or ()))
-        label = QLabel(said);label.setWordWrap(True);label.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(label)
+        model_marks_qt.mark_card(card, 'CHECKED')
+        try:
+            kernel, p = self._kernel()
+            card.box.addWidget(model_marks_qt.Fold.for_turn(self.host, m['turn'], kernel, p))
+        except Exception:  # noqa: BLE001 - a fold that cannot be read never takes her card down
+            card.box.addWidget(model_marks_qt.Fold(None, None, 'it could not be read'))
 
     def _late(self, t, elapsed):
         """Past the deadline: the top option is taken by default only when it is a read or a move of the window (a change

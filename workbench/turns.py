@@ -69,6 +69,17 @@ Added by A3 (backward compatible: new names only, nothing above changed meaning)
                .now_asking ({kind, price_ms, deadline_ms, began_ms} while a turn runs: brain_clock.asking_now's line)
     set_switches(kernel, changes, undo) and the operation brain.help.set (execute, with Undo): the owner's switch per
     kind; with every switch off no turn is sent, no record is written, and every answer is the kind's 0.8.6 fallback.
+Added by A4 (the ledger, the marks and the account; backward compatible: new names and fields only):
+    NOT_SENT also NO_HELP: the honest null (model_account.stopped_kinds) stopped asking this kind, because 20 turns of it
+             this month changed nothing she did; brain.help.set's ask_again (with Undo) starts asking it again
+    TurnRequest.stopped (frozenset of kind names), set by request_for
+    withhold(text), withhold_messages(messages): secret-shaped text (the doorway's SECRET_SHAPED rule: Luhn and IBAN
+             numbers, labelled account numbers, key-shaped text) replaced by "[account number withheld]" or "[secret
+             withheld]" in every message laid out (layout), so a secret in a source is never in a sent prompt; the whole
+             record is passed through it too, so it is never in a stored turn
+    the record also holds 'without' (the code of the no-model answer this turn was asked against) and 'differs' (True
+             when the value used differs from that answer: what the account counts as help); a tombstone keeps those two,
+             the switch and the deadline (counts only, never words), so the account stays exact after Forget
 ====================================================================================================================
 
 Only this module calls local_brain.completion (local_brain's own ready probe excepted). This module, model_words.py and
@@ -107,7 +118,8 @@ USED = ('TAKEN', 'TRIMMED', 'UNSETTLED')         # verdicts whose value the call
 FALLBACKS = ('ASK_OWNER', 'DEFAULT_READ', 'PLAIN_WORDS', 'CANNOT_TELL', 'NOT_OFFERED', 'PATTERNS', 'PLACES')
 NOT_SENT = ('SWITCH_OFF', 'AI_OFF', 'NO_MODEL', 'STOPPED', 'CEILING_TURNS', 'CEILING_TIME', 'OVER_CAP', 'OVER_CONTEXT',
             'RECEIPT_FIRST',     # A3: a wording turn waits for her receipt sentence on screen
-            'FORGETTING')        # A2: the worker holds something forgotten and waits for its restart
+            'FORGETTING',        # A2: the worker holds something forgotten and waits for its restart
+            'NO_HELP')           # A4: the honest null stopped asking this kind (model_account.stopped_kinds)
 RECEIPT_FIRST_SWITCHES = ('wording',)   # A3: kinds of these switches are sent only after request.receipt_on_screen()
 BASES = ('owner_words', 'owner_click', 'deduction', 'model_pick')
 FOREGROUND_TURNS = 3                     # at most 3 foreground model turns per request (design 4.4)
@@ -298,8 +310,51 @@ def layout(kind, inputs):
     if not isinstance(stable, str) or not isinstance(last, str):
         raise TypeError('TURN_MESSAGE_TEXT: a message is plain text the desk built (never model words)')
     if not last.strip():raise ValueError('TURN_LAST_EMPTY: message 4 holds the question')
-    return [{'role': 'system', 'content': brief}, {'role': 'user', 'content': stable if stable.strip() else STABLE_EMPTY},
-            {'role': 'assistant', 'content': READY}, {'role': 'user', 'content': last}]
+    # A4: secret-shaped text in what varies (a source's words, the owner's request) is withheld before anything is sent
+    return [{'role': 'system', 'content': brief},
+            {'role': 'user', 'content': withhold(stable) if stable.strip() else STABLE_EMPTY},
+            {'role': 'assistant', 'content': READY}, {'role': 'user', 'content': withhold(last)}]
+
+
+# -- 0.8.7 A4: secrets never reach the model or the ledger ----------------------------------------------------------------------
+def withhold(text):
+    """The text with every secret-shaped span replaced as the doorway replaces it for the model (doorway.SECRET_SHAPED:
+    Luhn and IBAN numbers, labelled account numbers, key-shaped text): "[account number withheld]" or "[secret withheld]".
+    Line by line; a line with no digit and nothing key-like is passed as it is. Text that is not a str is returned as is."""
+    if not isinstance(text, str) or not text:return text
+    from . import doorway
+    out = []
+    for line in text.split('\n'):
+        spans = doorway._secrets(line) if line.strip() else []
+        for s, e, kind in sorted(spans, reverse=True):
+            line = line[:s] + (doorway.ACCOUNT_WITHHELD if kind == 'ACCOUNT' else doorway.SECRET_WITHHELD) + line[e:]
+        out.append(line)
+    return '\n'.join(out)
+
+
+def withhold_messages(messages):
+    """Chat messages with withhold() applied to every text content (a list of parts too); the same list when nothing changed."""
+    changed = False;out = []
+    for m in messages or ():
+        content = m.get('content') if isinstance(m, dict) else None
+        if isinstance(content, str):
+            new = withhold(content)
+        elif isinstance(content, list):
+            new = [dict(p, text=withhold(p['text'])) if isinstance(p, dict) and isinstance(p.get('text'), str) else p for p in content]
+        else:
+            new = content
+        if new != content:changed = True;m = dict(m, content=new)
+        out.append(m)
+    return out if changed else messages
+
+
+def _withheld_all(value):
+    """Every string in a record passed through withhold(), ids and digests aside (they hold no words)."""
+    if isinstance(value, dict):
+        return {k: (v if k in ('id', 'owner', 'request', 'brief_sha256', 'grammar_sha256', 'key') else _withheld_all(v))
+                for k, v in value.items()}
+    if isinstance(value, list):return [_withheld_all(v) for v in value]
+    return withhold(value) if isinstance(value, str) else value
 
 
 # -- her clock until brain_clock.py --------------------------------------------------------------------------------------------
@@ -354,6 +409,7 @@ class TurnRequest:
         self.cards_used = 0
         self.receipt_shown = False          # A3: her receipt sentence is on screen (a wording turn waits for it)
         self.now_asking = None              # A3: {kind, price_ms, deadline_ms, began_ms} while a turn runs
+        self.stopped = frozenset()          # A4: kinds the honest null stopped asking (request_for reads them)
 
     def switch_on(self, name):return bool(self.switches.get(name, False))
 
@@ -421,8 +477,15 @@ def request_for(kernel, principal, **options):
                     from . import brain_briefs
                     if brain_briefs.forget_pending(kernel, worker):port = None;off = 'FORGETTING'
     options.setdefault('clock', default_clock(kernel))
-    return TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
-                       **options)
+    request = TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
+                          **options)
+    if port is not None:      # A4: the honest null, read once per request
+        try:
+            from . import model_account
+            request.stopped = frozenset(model_account.stopped_kinds(kernel, principal.identity))
+        except Exception:  # noqa: BLE001 - an unreadable ledger stops nothing
+            request.stopped = frozenset()
+    return request
 
 
 # -- the local worker port: the only caller of local_brain.completion -----------------------------------------------------------
@@ -546,6 +609,7 @@ def ask(kind, inputs, request):
     caps = kind.caps
     # 1 · the switch and the per-request ceiling
     if not request.switch_on(kind.switch):return _without(kind, inputs, 'SWITCH_OFF')
+    if kind.name in getattr(request, 'stopped', ()):return _without(kind, inputs, 'NO_HELP')      # A4: the honest null
     if kind.switch in RECEIPT_FIRST_SWITCHES and not request.receipt_shown:return _without(kind, inputs, 'RECEIPT_FIRST')
     port = request.port
     if port is None or not port.live():
@@ -619,6 +683,16 @@ def ask(kind, inputs, request):
     use = outcome in USED
     fb = None if use else kind.fallback(inputs)
     if fb is not None and not isinstance(fb, Fallback):raise TypeError('TURN_FALLBACK: a kind returns a Fallback')
+    # A4: what she would have done without it, and whether the value used differs from that (the account's "help")
+    without = fb
+    if use:
+        try:
+            without = kind.fallback(inputs)
+            if not isinstance(without, Fallback):without = None
+        except Exception:  # noqa: BLE001 - a fallback that cannot be worked out: the difference is unknown
+            without = None
+    differs = bool(use and without is not None and (without.code == 'ASK_OWNER' or
+                                                    _canonical(_jsonable(verdict.value)) != _canonical(_jsonable(without.value))))
     why = failed or ('LATE' if late else (verdict.why[0] if verdict and verdict.why else ''))
     # 5b · the reuse watchdog (A2): cache_n against what was expected kept; two misses in a row re-prime the kind
     reuse = None
@@ -631,7 +705,7 @@ def ask(kind, inputs, request):
     value = record(kind=kind, request=request, messages=messages, grammar=grammar, said=said, finish=finish, odds=odds,
                    verdict=verdict, outcome=outcome, fallback=None if fb is None else fb.code, why=why, price=price,
                    deadline=deadline, elapsed=elapsed, timings=timings, prompt=prompt, kept=kept, key=key, model=port.model(),
-                   reuse=reuse)
+                   reuse=reuse, without=None if without is None else without.code, differs=differs)
     ident = request.ledger.write(value)
     if reuse and reuse.get('reprime') and hasattr(port, 'reprime'):
         try:
@@ -674,10 +748,11 @@ def _timings(timings):
 
 
 def record(*, kind, request, messages, grammar, said, finish, odds, verdict, outcome, fallback, why, price, deadline,
-           elapsed, timings, prompt, kept, key, model, reuse=None):
-    """One brain.turn/1 record (design 3.5)."""
+           elapsed, timings, prompt, kept, key, model, reuse=None, without=None, differs=False):
+    """One brain.turn/1 record (design 3.5). A4: every string in it passes withhold(), so a secret-shaped text from a
+    source is never stored; 'without' and 'differs' feed the account (model_account)."""
     if outcome not in OUTCOMES:raise ValueError('TURN_OUTCOME: %s' % outcome)
-    return {
+    return _withheld_all({
         'schema': SCHEMA, 'id': uuid.uuid4().hex, 'owner': request.owner, 'at': time.time(), 'state': 'KEPT',
         'request': request.id, 'kind': kind.name, 'version': kind.version, 'brief_sha256': _DIGESTS[kind.name],
         'switch': kind.switch, 'foreground': kind.caps.foreground, 'paper': kind.paper,
@@ -696,14 +771,22 @@ def record(*, kind, request, messages, grammar, said, finish, odds, verdict, out
         'timings': _timings(timings), 'key': key, 'model': model,
         # A2: the watchdog's view of this turn (None when the port keeps no briefs): a miss counts here, never as an error
         'reuse': _jsonable(reuse) if reuse is not None else None,
-    }
+        # A4: the no-model answer's code this turn was asked against, and whether the value used differs from it
+        'without': without if without in FALLBACKS else None, 'differs': bool(differs),
+    })
+
+
+TOMBSTONE_KEEPS = ('switch', 'differs', 'without', 'deadline_ms')     # A4: counts only, for the account; never words
 
 
 def tombstone(value, at=None):
     """What Forget leaves: that a turn of this kind was asked and how it ended; no messages, answer, checks or views."""
-    return {'schema': SCHEMA, 'id': value['id'], 'owner': value['owner'], 'at': value['at'], 'state': 'FORGOTTEN',
-            'forgotten_at': at or time.time(), 'kind': value['kind'], 'version': value['version'],
-            'outcome': value['outcome'], 'elapsed_ms': value['elapsed_ms'], 'foreground': value['foreground']}
+    stone = {'schema': SCHEMA, 'id': value['id'], 'owner': value['owner'], 'at': value['at'], 'state': 'FORGOTTEN',
+             'forgotten_at': at or time.time(), 'kind': value['kind'], 'version': value['version'],
+             'outcome': value['outcome'], 'elapsed_ms': value['elapsed_ms'], 'foreground': value['foreground']}
+    for name in TOMBSTONE_KEEPS:      # A4
+        if name in value:stone[name] = value[name] if name != 'without' or value[name] in FALLBACKS else None
+    return stone
 
 
 def said_of(value):
@@ -805,7 +888,7 @@ def listing(kernel, owner, kind=None, limit=50, before=None):
         ensure(db)
         rows = [json.loads(r[0]) for r in db.execute(query, params)]
     keep = ('id', 'at', 'state', 'kind', 'version', 'outcome', 'fallback', 'why', 'elapsed_ms', 'price_ms', 'deadline_ms',
-            'foreground', 'model')
+            'foreground', 'model', 'switch', 'without', 'differs')      # A4: the last three, for the account
     return [{k: r.get(k) for k in keep if k in r} for r in rows]
 
 
@@ -819,7 +902,9 @@ FIELDS = {
     # 0.8.7 A3: the owner's switch per kind (execute, with Undo)
     'brain.help.set': ({'switches': {'type': 'object', 'additionalProperties': False,
                                      'properties': {name: {'type': 'boolean'} for name in SWITCHES}},
-                        'undo': {'type': 'boolean'}}, []),
+                        'undo': {'type': 'boolean'},
+                        # 0.8.7 A4: ask the model again for a kind the honest null stopped (model_account)
+                        'ask_again': {'type': 'string', 'pattern': '^[A-Z_]{2,16}$', 'maxLength': 16}}, []),
 }
 SCOPES = {op: 'execute' if op == 'brain.help.set' else 'read' for op in FIELDS}
 
@@ -831,7 +916,7 @@ def dispatch(kernel, op, args, principal):
     if op == 'brain.turn.get':
         return {'turn': get(kernel, principal.identity, args['id'])}
     if op == 'brain.help.set':
-        return set_switches(kernel, args.get('switches'), bool(args.get('undo')))
+        return set_switches(kernel, args.get('switches'), bool(args.get('undo')), args.get('ask_again'))
     raise ValueError('Unknown turn operation')
 
 
@@ -842,27 +927,51 @@ SWITCH_WORDS = {'understanding': 'Understanding your requests', 'reading': 'Read
                 'choosing': 'Choosing between next steps', 'talk': 'Talk'}
 
 
-def set_switches(kernel, changes=None, undo=False):
+HELP_AGAIN = 'brain.help.again'                    # A4: {kind: since}: the honest null counts only turns after `since`
+HELP_AGAIN_PREVIOUS = 'brain.help.again.previous'
+
+
+def asked_again(kernel):
+    """{kind: since (seconds)}: the kinds the owner asked the model again for after the honest null stopped them (A4)."""
+    try:
+        with kernel.db() as db:row = db.execute('SELECT value FROM settings WHERE key=?', (HELP_AGAIN,)).fetchone()
+        stored = json.loads(row[0]) if row else {}
+    except Exception:  # noqa: BLE001
+        stored = {}
+    return {str(k): float(v) for k, v in stored.items() if isinstance(v, (int, float)) and not isinstance(v, bool)}
+
+
+def set_switches(kernel, changes=None, undo=False, ask_again=None):
     """Set the owner's switches (changes: {switch: bool}), or Undo the last setting. With every switch off, Kas is exactly
-    0.8.6: no turn is sent, no record written, and every answer is the kind's no-model fallback."""
-    if undo and changes:raise ValueError('BRAIN_HELP_ONE_THING: switches or undo, not both')
-    if not undo and not changes:raise ValueError('BRAIN_HELP_NOTHING: name a switch to set')
+    0.8.6: no turn is sent, no record written, and every answer is the kind's no-model fallback. A4: ask_again (a kind's
+    name) asks the model again for a kind the honest null stopped; Undo puts back the switches and the asked-again kinds
+    exactly as they were before the last setting."""
+    if sum(bool(x) for x in (changes, undo, ask_again)) > 1:raise ValueError('BRAIN_HELP_ONE_THING: switches, ask_again or undo, one at a time')
+    if not undo and not changes and not ask_again:raise ValueError('BRAIN_HELP_NOTHING: name a switch to set')
     if changes:
         unknown = sorted(set(changes) - set(SWITCHES))
         if unknown:raise ValueError('BRAIN_HELP_SWITCH: no switch named %s' % unknown[0])
         if any(not isinstance(v, bool) for v in changes.values()):raise ValueError('BRAIN_HELP_SWITCH: on or off')
+    if ask_again and ask_again not in KNOWN_KINDS:raise ValueError('BRAIN_HELP_KIND: no kind of question named %s' % ask_again)
     with kernel.db() as db:
         db.execute('BEGIN IMMEDIATE')
         row = db.execute('SELECT value FROM settings WHERE key=?', (HELP_KEY,)).fetchone()
         current = {name: bool((json.loads(row[0]) if row else {}).get(name, on)) for name, on in SWITCHES.items()}
+        row = db.execute('SELECT value FROM settings WHERE key=?', (HELP_AGAIN,)).fetchone()
+        again = json.loads(row[0]) if row else {}
         if undo:
             prev = db.execute('SELECT value FROM settings WHERE key=?', (HELP_PREVIOUS,)).fetchone()
             if not prev:raise ValueError('BRAIN_HELP_NOTHING_TO_UNDO')
             new = {name: bool(json.loads(prev[0]).get(name, on)) for name, on in SWITCHES.items()}
+            prev_again = db.execute('SELECT value FROM settings WHERE key=?', (HELP_AGAIN_PREVIOUS,)).fetchone()
+            new_again = json.loads(prev_again[0]) if prev_again else again
         else:
-            new = {**current, **{name: bool(v) for name, v in changes.items()}}
+            new = {**current, **{name: bool(v) for name, v in (changes or {}).items()}}
+            new_again = {**again, ask_again: time.time()} if ask_again else again
         db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_KEY, json.dumps(new, sort_keys=True)))
         db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_PREVIOUS, json.dumps(current, sort_keys=True)))
-    return {'switches': new, 'previous': current, 'all_off': not any(new.values()),
+        db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_AGAIN, json.dumps(new_again, sort_keys=True)))
+        db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_AGAIN_PREVIOUS, json.dumps(again, sort_keys=True)))
+    return {'switches': new, 'previous': current, 'all_off': not any(new.values()), 'asked_again': sorted(new_again),
             'words': {name: '%s: %s' % (SWITCH_WORDS[name], 'on' if on else 'off') for name, on in new.items()},
             'undo': {'op': 'brain.help.set', 'args': {'undo': True}}}

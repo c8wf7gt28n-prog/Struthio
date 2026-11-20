@@ -1,0 +1,1408 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 8cbfaa4..5b74586 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -52,6 +52,7 @@
+    "boot.inspect": "workbench/boot_loading.py#dispatch",
+    "brain.acceleration": "workbench/local_brain.py#dispatch",
+    "brain.acceleration.probe": "workbench/local_brain.py#dispatch",
++   "brain.account": "workbench/model_account.py#dispatch",
+    "brain.ask": "workbench/local_brain.py#dispatch",
+    "brain.help.set": "workbench/turns.py#dispatch",
+    "brain.host": "workbench/local_brain.py#dispatch",
+@@ -66,6 +67,7 @@
+    "brain.runtime": "workbench/local_brain.py#dispatch",
+    "brain.status": "workbench/local_brain.py#dispatch",
+    "brain.stop": "workbench/local_brain.py#dispatch",
++   "brain.turn.forget": "workbench/model_account.py#dispatch",
+    "brain.turn.get": "workbench/turns.py#dispatch",
+    "brain.turns": "workbench/turns.py#dispatch",
+    "cad.inspect": "workbench/kicad_tools.py#dispatch",
+@@ -1017,9 +1019,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 819,
++  "adapters": 821,
+   "job_tools": 113,
+-  "operations": 819,
++  "operations": 821,
+   "settings": 48
+  },
+  "formulas": {
+@@ -1891,6 +1893,13 @@
+    "properties": {},
+    "scope": "execute"
+   },
++  "brain.account": {
++   "arguments": "110aa251f9f0da71426b25c82e3e569b6ae6c64a5d41da983274f0b4c6772dc5",
++   "properties": {
++    "period": "14654dd092999e74"
++   },
++   "scope": "read"
++  },
+   "brain.ask": {
+    "arguments": "3a7232612e20ebfb3620a9c34a726d8bb03295927e551eed1707e0a7f3e8c6b2",
+    "properties": {
+@@ -1910,8 +1919,9 @@
+    "scope": "execute"
+   },
+   "brain.help.set": {
+-   "arguments": "22f2cecce589b1e469279dd21d3c1929f07f85973000370ba541a96f8648e032",
++   "arguments": "a4a4f2e1ec9e9042628bff0beec7e2e3ad716b96d7d571cbda8efa4be4b66b3c",
+    "properties": {
++    "ask_again": "df06bab3db37e6ee",
+     "switches": "1bcd205f137986e7",
+     "undo": "7cb541e84f226754"
+    },
+@@ -2000,6 +2010,13 @@
+    "properties": {},
+    "scope": "execute"
+   },
++  "brain.turn.forget": {
++   "arguments": "2919b0ae60fccf396bb31ec42b0b49d30e549db4e90dab97af88aaa60c71e7fa",
++   "properties": {
++    "id": "5ebb95812def9056"
++   },
++   "scope": "approve"
++  },
+   "brain.turn.get": {
+    "arguments": "2919b0ae60fccf396bb31ec42b0b49d30e549db4e90dab97af88aaa60c71e7fa",
+    "properties": {
+@@ -8060,7 +8077,7 @@
+  },
+  "release": "Graphite 0.8.5",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "6c3e5a6ed158d2c7033c96bb038db467ed005069e3d0cfb978afcf0c9311a4eb",
++ "schema_digest": "06d8346e7c77b58eea1fc525338e442e10aa68370e308f9de93fefe47063d5d3",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/brain_qt.py b/workbench/brain_qt.py
+index 7f3ff18..b4ca30f 100644
+--- a/workbench/brain_qt.py
++++ b/workbench/brain_qt.py
+@@ -90,8 +90,9 @@ class BrainTab(ServiceTab):
+         row=QHBoxLayout();self.help_undo=QPushButton('Undo');self.help_undo.setAccessibleName('Undo the last switch')
+         self.help_undo.clicked.connect(lambda:self.help_set(None,undo=True));row.addWidget(self.help_undo);row.addStretch(1);help_layout.addLayout(row)
+         self.help_note=QLabel('');self.help_note.setWordWrap(True);self.help_note.setAccessibleName('What the model may do');help_layout.addWidget(self.help_note)
++        self.account_area(help_layout)   # 0.8.7 A4: what the model did for you, and its turns, each with its fold
+         help_layout.addStretch(1);self.pages.addTab(self.help_page,'What the model may do')
+-        self.show_help(turns.stored_switches(self.kernel))
++        self.show_help(turns.stored_switches(self.kernel));self.show_account()
+         self.outer.addWidget(self.pages,1)
+         self.launch_edited('context')
+         self.show_acceleration(local_brain.acceleration(self.kernel))
+@@ -104,6 +105,49 @@ class BrainTab(ServiceTab):
+         elif off:text='Off: '+', '.join(off)+'. The rest are on.'
+         else:text='Every switch is on.'
+         self.help_note.setText(text)
++    # ---- 0.8.7 A4: the account (model_account) and the ledger, each turn with its fold (model_marks_qt) ----------------------
++    def account_area(self,layout):
++        from PySide6.QtWidgets import QListWidget
++        from . import model_account
++        head=QLabel('What the model did for you');head.setStyleSheet('font-weight:600;');layout.addWidget(head)
++        self.account_words=QLabel('');self.account_words.setWordWrap(True);self.account_words.setAccessibleName('What the model did for you')
++        layout.addWidget(self.account_words)
++        self.account_row=QHBoxLayout();self.account_count=QPushButton(model_account.BUTTONS['count'])
++        self.account_count.clicked.connect(self.show_account);self.account_row.addWidget(self.account_count);self.account_row.addStretch(1)
++        layout.addLayout(self.account_row);self.account_again=[]
++        self.turn_list=QListWidget();self.turn_list.setAccessibleName('The questions she put to the model');self.turn_list.setMaximumHeight(140)
++        self.turn_list.currentRowChanged.connect(self.show_turn);layout.addWidget(self.turn_list)
++        self.turn_holder=QVBoxLayout();layout.addLayout(self.turn_holder);self.turn_fold=None;self.turn_ids=[]
++    def show_account(self):
++        from . import model_account, model_marks_qt
++        got=self.kernel.dispatch('brain.account',{'period':'week'},self.principal)
++        value=got.get('result') if got.get('ok') else None
++        self.account_words.setText(value['text'] if value else 'The account could not be read.')
++        for b in self.account_again:b.hide();b.deleteLater()
++        self.account_again=[]
++        for row in (value or {}).get('nulls') or ():
++            b=QPushButton(model_account.BUTTONS['ask_again']);b.setToolTip(model_account.say('asked_again',thing=row['thing']))
++            b.setAccessibleName(model_account.BUTTONS['ask_again']+': '+row['thing'])
++            b.clicked.connect(lambda checked=False,kind=row['kind']:self.ask_again(kind));self.account_row.insertWidget(1,b);self.account_again.append(b)
++        listed=self.kernel.dispatch('brain.turns',{'limit':30},self.principal)
++        rows=listed['result']['turns'] if listed.get('ok') else []
++        with QSignalBlocker(self.turn_list):
++            self.turn_list.clear();self.turn_ids=[]
++            for r in rows:
++                state='forgotten' if r.get('state')=='FORGOTTEN' else model_marks_qt.OUTCOME_WORDS.get(r.get('outcome'),r.get('outcome',''))
++                self.turn_list.addItem('%s · %s · %s'%(r.get('kind',''),state,model_marks_qt._seconds(r.get('elapsed_ms'))));self.turn_ids.append(r['id'])
++    def ask_again(self,kind):
++        got=self.kernel.dispatch('brain.help.set',{'ask_again':kind},self.principal)
++        self.show_account()
++        if got.get('ok'):
++            from . import model_account
++            self.help_note.setText(model_account.say('asked_again',thing=model_account.THINGS.get(kind,kind.lower())))
++    def show_turn(self,row):
++        from . import model_marks_qt
++        if self.turn_fold is not None:self.turn_fold.hide();self.turn_fold.deleteLater();self.turn_fold=None
++        if not 0<=row<len(self.turn_ids):return
++        self.turn_fold=model_marks_qt.Fold.for_turn(self.host,self.turn_ids[row],self.kernel,self.principal)
++        self.turn_holder.addWidget(self.turn_fold);self.turn_fold.toggle.setChecked(True)
+     def help_set(self,changes,undo=False):
+         result=self.kernel.dispatch('brain.help.set',{'undo':True} if undo else {'switches':changes},self.principal)
+         if result.get('ok'):self.show_help(result['result']['switches']);return
+diff --git a/workbench/clip.py b/workbench/clip.py
+index 2e44000..e16270c 100644
+--- a/workbench/clip.py
++++ b/workbench/clip.py
+@@ -50,6 +50,16 @@ SYSTEM_PROMPT = (
+     'Native graphics are diagnostic and audio rendering remains unfinished.')
+ 
+ 
++# 0.8.7 A4 (design 5.1): every reply from an outside model carries this line, in words, under its text. It is the mark
++# only: what is sent and how is unchanged.
++OUTSIDE_MARK = "Google's model wrote this; your message left this computer."
++
++
++def outside_reply(text):
++    """An outside model's reply with its mark: {'text': its words, 'mark': OUTSIDE_MARK}. The window shows both."""
++    return {'text': text, 'mark': OUTSIDE_MARK}
++
++
+ class ClipError(Exception):
+     """A problem explained in plain words. ``kind``: key, quota, model, network, blocked, other."""
+     def __init__(self, text, kind='other'):
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 07698ee..143b4ee 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -105,6 +105,7 @@ def schemas():
+     from .network_watch import FIELDS as NETWORK_FIELDS
+     from .field_service import FIELDS as FIELD_FIELDS
+     from .doorway import FIELDS as DOORWAY_FIELDS  # 0.8.7 C1 (the doorway)
++    from .model_account import FIELDS as ACCOUNT_FIELDS  # 0.8.7 A4 (the ledger, the marks and the account)
+     from .page_marks import FIELDS as PENCIL_FIELDS  # 0.8.7 C2 (pages in pencil)
+     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
+     from .stac_words import FIELDS as WORD_FIELDS
+@@ -213,6 +214,7 @@ def schemas():
+         **NETWORK_FIELDS,
+         **FIELD_FIELDS,
+         **DOORWAY_FIELDS,  # 0.8.7 C1 (the doorway)
++        **ACCOUNT_FIELDS,  # 0.8.7 A4 (the ledger, the marks and the account)
+         **PENCIL_FIELDS,  # 0.8.7 C2 (pages in pencil)
+         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
+         **WORD_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 8cdc778..b1398f9 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -68,6 +68,7 @@ from . import network_watch, network_capture  # HATCH DESK D5: network.observe a
+ from . import field_service  # Graphite 0.4.1: the desk as something staC can read (field.read, field.trace, field.whatif: three reads, recorded additions)
+ from . import voice_character  # 0.8.7 C5 (her character file): voice.character (read), voice.character.start (execute), voice.character.admit (approve) (recorded additions)
+ from . import doorway  # 0.8.7 C1 (the doorway): every line of a page checked before any model reads it: library.doorway (read; recorded addition)
++from . import model_account  # 0.8.7 A4 (the ledger, the marks and the account): brain.account (read), brain.turn.forget (approve; always asks) (recorded additions)
+ from . import page_marks  # 0.8.7 C2 (pages in pencil): ledger.pencil/1 and the MARKS turn: library.read (execute), library.marks (read), library.rubout (execute, with Undo), library.keep (approve) (recorded additions)
+ from . import stac_words  # Graphite 0.4.3: the owner's own staC words (words.list, words.keep, words.forget: recorded additions)
+ from . import program_mail, program_build, program_transfer, program_cartridge
+@@ -250,6 +251,7 @@ CAPABILITIES = {
+     **network_watch.SCOPES,
+     **field_service.SCOPES,
+     **doorway.SCOPES,  # 0.8.7 C1 (the doorway)
++    **model_account.SCOPES,  # 0.8.7 A4 (the ledger, the marks and the account)
+     **page_marks.SCOPES,  # 0.8.7 C2 (pages in pencil): library.read writes only pencil records; library.keep approve
+     **voice_character.SCOPES,  # 0.8.7 C5 (her character file)
+     **stac_words.SCOPES,
+@@ -679,6 +681,7 @@ class Kernel:
+         if op in field_service.FIELDS:return field_service.dispatch(self,op,a,p)
+         if op in voice_character.FIELDS:return voice_character.dispatch(self,op,a,p)   # 0.8.7 C5 (her character file): kasandra/character.md, admitted with revisions
+         if op in doorway.FIELDS:return doorway.dispatch(self,op,a,p)   # 0.8.7 C1 (the doorway): a page checked at the door, read, no model
++        if op in model_account.FIELDS:return model_account.dispatch(self,op,a,p)   # 0.8.7 A4 (the ledger, the marks and the account): the account; Forget a turn
+         if op in page_marks.FIELDS:return page_marks.dispatch(self,op,a,p)   # 0.8.7 C2 (pages in pencil): read a page in pencil, its marks, Rub out, Keep
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+diff --git a/workbench/her_hand_qt.py b/workbench/her_hand_qt.py
+index 1f8f72d..71183a2 100644
+--- a/workbench/her_hand_qt.py
++++ b/workbench/her_hand_qt.py
+@@ -670,18 +670,22 @@ class HerHand(QObject):
+             self.say(t.closing);self.set_state('finished');return
+         pairs = [pair for n in picks for pair in t.cands[n - 1]]
+         self._begin_from(t, pairs, 'HER')
+-        self.say('The model’s pick, checked against your words · model calls: 1')
+-        self._fold(t)
++        self._fold(t, self.say('The model’s pick, checked against your words · model calls: 1'))
+         self._offer_keep(t, [t.brief.option(n) for n in picks])
+ 
+-    def _fold(self, t):
+-        """'What I asked the model': the exact words sent, their size, the seconds, the raw answer and her check."""
+-        m = t.model;card = self.say('What I asked the model:') if getattr(t, 'brief', None) is not None else None
++    def _fold(self, t, card=None):
++        """'What I asked the model': 0.8.7 A4, the mark line and the fold (model_marks_qt) of the stored turn, exactly: what
++        she sent, what it answered (model-marked), what she checked, how long it took; and Forget this turn."""
++        m = t.model or {}
++        if getattr(t, 'brief', None) is None or not m.get('turn'):return
++        from . import model_marks_qt
+         if card is None:return
+-        said = 'Sent: %s\n%s · about %d tokens · %s s · its answer, as it gave it: %s · my check: %s' % (
+-            brief.FIXED[:80] + '…', t.brief.last(), t.brief.size(), m.get('seconds'), m.get('raw'),
+-            '; '.join('%s %s' % (c[0], 'passed' if c[1] else 'did not pass') for c in m.get('check') or ()))
+-        label = QLabel(said);label.setWordWrap(True);label.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(label)
++        model_marks_qt.mark_card(card, 'CHECKED')
++        try:
++            kernel, p = self._kernel()
++            card.box.addWidget(model_marks_qt.Fold.for_turn(self.host, m['turn'], kernel, p))
++        except Exception:  # noqa: BLE001 - a fold that cannot be read never takes her card down
++            card.box.addWidget(model_marks_qt.Fold(None, None, 'it could not be read'))
+ 
+     def _late(self, t, elapsed):
+         """Past the deadline: the top option is taken by default only when it is a read or a move of the window (a change
+diff --git a/workbench/local_brain.py b/workbench/local_brain.py
+index a575bf0..0da63f9 100644
+--- a/workbench/local_brain.py
++++ b/workbench/local_brain.py
+@@ -560,6 +560,11 @@ def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,ti
+     # 0.8.7 E0: besides the ready probe, only turns.ask calls this (the turn contract). Its keywords: the kind's GBNF grammar
+     # (never with a JSON schema), the deadline (the HTTP timeout, and t_max_predict_ms to bound writing), the alternatives
+     # per answer token to record (odds), and the prompt's token count when the caller has just measured it.
++    # 0.8.7 A4: secret-shaped text (the doorway's rule) never reaches the model; turns.layout has withheld it already, so
++    # a turn's messages pass unchanged and its measured count stands.
++    from .turns import withhold_messages
++    held=withhold_messages(messages)
++    if held is not messages:messages=held;prompt_tokens=None
+     if prompt_tokens is None:
+         prompt=request(worker,'/apply-template',{'messages':messages,'add_generation_prompt':True,'chat_template_kwargs':TEMPLATE_OPTIONS},timeout=10)['prompt']
+         tokens=request(worker,'/tokenize',{'content':prompt,'add_special':False},timeout=10)['tokens'];prompt_tokens=len(tokens)
+@@ -1017,6 +1022,8 @@ def run_reply(kernel,job):
+     output_tokens=options.get('max_tokens',24 if mode=='choice' else 384 if mode=='plan' or reference_packet is not None else 256)
+     if mode=='pick':output_tokens=min(int(options.get('max_tokens') or PICK_OUTPUT),PICK_OUTPUT)
+     def generate(prompt, schema):
++        from .turns import withhold_messages
++        prompt=withhold_messages(prompt)   # 0.8.7 A4: secret-shaped text in a file, a record or a pasted line is withheld
+         selected,measured=slate_stream.fit_history(worker,prompt,output_tokens)
+         if mode=='pick' and measured>PICK_PROMPT:raise ValueError('PICK_PROMPT_TOO_LONG: %d tokens, the bound is %d'%(measured,PICK_PROMPT))
+         limits={'seconds':PICK_SECONDS} if mode=='pick' else {}
+diff --git a/workbench/mind_panel_qt.py b/workbench/mind_panel_qt.py
+index 8f92bbd..ddf0075 100644
+--- a/workbench/mind_panel_qt.py
++++ b/workbench/mind_panel_qt.py
+@@ -109,8 +109,13 @@ class Line(QFrame):
+     def __init__(self, panel, line):
+         super().__init__();self.panel = panel;self.line = line;self.setObjectName('KasMindLine')
+         box = QVBoxLayout(self);box.setContentsMargins(8, 3, 4, 3);box.setSpacing(1)
+-        self.text = words_label(line.get('text', ''))
+-        self.text.setTextInteractionFlags(Qt.NoTextInteraction)
++        from .model_words import is_model      # 0.8.7 A4: a line that is model words shows with its mark (model_marks_qt)
++        if is_model(line.get('text')):
++            from .model_marks_qt import ModelWords
++            self.text = ModelWords(line['text'], line.get('mark') or 'CHECKED')
++        else:
++            self.text = words_label(line.get('text', ''))
++        if isinstance(self.text, QLabel):self.text.setTextInteractionFlags(Qt.NoTextInteraction)
+         meta = ' · '.join(x for x in (line.get('state') or '', self._from(line)) if x)
+         self.meta = words_label(meta, quiet=True) if meta else None
+         self.text.setAttribute(Qt.WA_TransparentForMouseEvents)
+@@ -132,7 +137,9 @@ class Line(QFrame):
+         self.chosen = chosen
+         edge = bt.AMBER_EDGE if chosen else 'transparent'
+         self.setStyleSheet('QFrame#KasMindLine {border:0; border-left:3px solid %s;}' % edge)
+-        self.setAccessibleName(('Chosen: ' if chosen else '') + str(self.line.get('text', ''))[:200])
++        from .model_words import is_model      # 0.8.7 A4: model words are named by their mark, never as her words
++        said = self.text.line.text() if is_model(self.line.get('text')) else str(self.line.get('text', ''))
++        self.setAccessibleName(('Chosen: ' if chosen else '') + said[:200])
+ 
+     def mousePressEvent(self, event):
+         if event.button() == Qt.LeftButton and (self.card or self.line.get('leaf')):
+@@ -221,6 +228,13 @@ class MindPanel(QFrame):
+         if shown:self.said_walk()
+ 
+     def fill(self, name):
++        self._fill(name)
++        found = self.answers.get(name)      # 0.8.7 A4: the model's part of a read, with its mark line and its fold
++        if isinstance(found, dict):
++            from . import model_marks_qt
++            model_marks_qt.place(self, self.pages[name][1], found)
++
++    def _fill(self, name):
+         lay = self.pages[name][1]
+         if name == 'why':
+             found, why = self.read('field.why', {'id': self.ident});self.answers[name] = found
+diff --git a/workbench/mind_words.py b/workbench/mind_words.py
+index 7fb10e0..e5abc7b 100644
+--- a/workbench/mind_words.py
++++ b/workbench/mind_words.py
+@@ -193,6 +193,7 @@ register('mind_words', {'footer': FOOTER, 'intro': INTRO}, kind='footer')
+ # which checks every word of a frame before it is filled (one store, not a parallel one).
+ KINDS = KINDS + ('frame',)
+ MODULES = MODULES + ('workbench.voice_lexicon', 'workbench.voice_facts')
++MODULES = MODULES + ('workbench.model_account', 'workbench.model_marks_qt')      # 0.8.7 A4: the account's and the fold's words
+ 
+ 
+ def frames(module=None):
+diff --git a/workbench/model_account.py b/workbench/model_account.py
+new file mode 100644
+index 0000000..41a33da
+--- /dev/null
++++ b/workbench/model_account.py
+@@ -0,0 +1,266 @@
++"""What the model did for you, and what it cost (0.8.7, "Kas's mind with the model, interwoven"; slice A4, lane A).
++
++A fixed account, a view over the turn ledger (brain.turn/1, turns.py) and nothing else, so it is exact by construction:
++every model turn sits inside a checked question that has a deterministic no-model answer, and turns.ask records, for every
++turn, the code of that answer ('without') and whether the value used differs from it ('differs'). Help is a used outcome
++(TAKEN, TRIMMED, UNSETTLED) that differs; it counts differences, not their worth, and the account says so.
++
++  "This week the model answered 41 of my questions. 29 changed what I did: you were asked 12 fewer questions, 9 answers
++   were worded by the model, 8 places were found. 8 were refused by my checks. 4 were late, so I did what I do without
++   it. It cost: you waited 3 min 40 s in all. I count what changed, not what it was worth."
++
++  - answered:   every turn of hers that reached the model and did not fail (Talk is yours, not hers: counted apart)
++  - changed:    differs; split by what it changed: a question you were not asked (the no-model answer was ASK_OWNER),
++                wording (FRAME), places (MARKS, ASK, COLUMNS: the reading switch), a choice of next step (NEXT, ORDER),
++                a reading of your words (READ, GOAL, PICK, BIND when they did not spare you a question)
++  - the same:   used, but what she would have done without it
++  - refused:    REFUSED or TRIPPED by her checks
++  - late:       LATE: past the deadline, so she did what she does without it (the design's "the safe read"; "safe" is a
++                banned word in her templates, mind_words.BANNED, so the sentence says what she did instead)
++  - wait:       the seconds a foreground turn ran while you waited, each capped at its deadline
++A forgotten turn's tombstone keeps its kind, outcome, switch, deadline, 'without' and 'differs' (counts, never words), so
++Forget does not change the account.
++
++The honest null (design 5.6): after NULL_TURNS answered turns of a kind this month (KEEP_DAYS) with none that differs,
++she stops asking the model for that kind (turns.ask gives NOT_SENT, NO_HELP) and says so: "The model hasn't changed a
++single choice of next step this month; I'll stop asking it for those." brain.help.set's ask_again (with Undo) asks again:
++from then on only later turns count. ORDER (the tripwire's second asking) and TALK are never stopped this way: the one is a
++check, not help; the other is yours.
++
++With local_brain not importable at all, the account is the exact no-model sentence (design 4.7): "No model this week.
++Everything I did, I did without it."
++
++Operations (0.8.7 A4): brain.account (read): the account; brain.turn.forget (approve, and always asked: stacy_hand's
++ALWAYS_ASKS covers '*.forget'): Forget one turn, which leaves only its tombstone (turns.forget).
++
++Pure Python: no Qt, no model, no float in any count (seconds are whole numbers from whole milliseconds). Never imports
++clip or gemini_engineer.
++"""
++from __future__ import annotations
++
++import json
++import time
++
++from . import mind_words, turns
++
++SCHEMA = 'brain.account/1'
++NULL_TURNS = 20                      # answered turns of a kind this month with none that differs: she stops asking
++NULL_DAYS = turns.KEEP_DAYS          # "this month": the ledger's own bound
++PERIODS = {'week': 7, 'month': 30}
++NEVER_STOPPED = ('ORDER', 'TALK')    # a check, not help; and yours
++USED = turns.USED
++REFUSED = ('REFUSED', 'TRIPPED')
++
++# What a changed answer changed, in the order the account says them.
++PARTS = ('fewer', 'worded', 'places', 'choices', 'readings')
++# What the honest null names, per kind: "hasn't changed a single {thing}".
++THINGS = {'NEXT': 'choice of next step', 'GOAL': 'pick between readings of your words', 'READ': 'reading of your words',
++          'PICK': 'placing of your typed answer', 'BIND': 'match of your words to a value', 'MARKS': 'pencil mark on a page',
++          'ASK': 'place found in your Library', 'COLUMNS': 'mapping of a table’s columns', 'FRAME': 'wording of an answer'}
++
++NO_MODEL = 'No model this week. Everything I did, I did without it.'      # design 4.7, exactly
++
++# Her words here: fixed templates, scanned with the rest of hers (mind_words.check). Every number arrives through a slot
++# that names its record (NUMBERS); none of them carries a model mark (model_words.MARKS).
++WORDS = {
++    'no_model': NO_MODEL,
++    'nothing_asked': 'I asked the model nothing this {period}. Everything I did, I did without it.',
++    'answered': 'This {period} the model answered {answered} of my questions.',
++    'changed': '{changed} changed what I did: {parts}.',
++    'changed_more': 'And {parts}.',
++    'changed_none': 'None of them changed what I did.',
++    'fewer': 'you were asked {fewer} fewer questions',
++    'fewer_one': 'you were asked one question fewer',
++    'worded': '{worded} answers were worded by the model',
++    'worded_one': 'one answer was worded by the model',
++    'places': '{places} places were found',
++    'places_one': 'one place was found',
++    'choices': '{choices} choices of next step were the model’s',
++    'choices_one': 'one choice of next step was the model’s',
++    'readings': '{readings} readings of your words were the model’s',
++    'readings_one': 'one reading of your words was the model’s',
++    'same': '{same} gave what I would have done without it.',
++    'same_one': 'One gave what I would have done without it.',
++    'refused': '{refused} were refused by my checks.',
++    'refused_one': 'One was refused by my checks.',
++    'late': '{late} were late, so I did what I do without it.',
++    'late_one': 'One was late, so I did what I do without it.',
++    'failed': '{failed} got no answer from the model.',
++    'failed_one': 'One got no answer from the model.',
++    'cost': 'It cost: you waited {wait} in all.',
++    'worth': 'I count what changed, not what it was worth.',
++    'talk': 'You also talked with it {talk} times, and it answered in its own words, from its memory.',
++    'talk_one': 'You also talked with it once, and it answered in its own words, from its memory.',
++    'null': "The model hasn't changed a single {thing} this month; I'll stop asking it for those.",      # design 2.12, exactly
++    'asked_again': 'I will ask the model for each {thing} again, and count afresh from now.',
++}
++_LEDGER = 'brain.turn/1 records of this period (model_account.tally)'
++NUMBERS = {key: {slot: _LEDGER for slot in mind_words.slots(text) if slot not in ('period', 'thing')}
++           for key, text in WORDS.items()}
++mind_words.register('model_account', WORDS, kind='sentence', numbers=NUMBERS)
++BUTTONS = {'ask_again': 'Ask it again', 'count': 'Count again'}
++mind_words.register('model_account_buttons', BUTTONS, kind='button')
++
++
++def say(key, **slots):
++    return WORDS[key].format(**slots)
++
++
++def duration(ms):
++    """Whole milliseconds as her words: '40 s', '3 min 40 s', '3 min', '1 h 5 min' (rounded to the second, half up)."""
++    s = (max(0, int(ms)) + 500) // 1000
++    if s < 60:return '%d s' % s
++    if s < 3600:
++        m, s = divmod(s, 60)
++        return '%d min %d s' % (m, s) if s else '%d min' % m
++    h, rest = divmod(s, 3600)
++    m = rest // 60
++    return '%d h %d min' % (h, m) if m else '%d h' % h
++
++
++# -- reading the ledger -------------------------------------------------------------------------------------------------------
++def rows(kernel, owner, since):
++    """Every turn record (kept or a tombstone) of this owner since `since` (seconds), oldest first."""
++    with kernel.db() as db:
++        turns.ensure(db)
++        found = db.execute('SELECT payload FROM brain_turns WHERE owner=? AND at>=? ORDER BY at, rowid', (owner, since)).fetchall()
++    out = []
++    for (payload,) in found:
++        try:out.append(json.loads(payload))
++        except ValueError:continue
++    return out
++
++
++def _switch(row):
++    return row.get('switch') or turns.SWITCH_OF.get(row.get('kind'), '')
++
++
++def part_of(row):
++    """What a changed answer changed (one of PARTS)."""
++    if row.get('without') == 'ASK_OWNER':return 'fewer'
++    switch = _switch(row)
++    return {'wording': 'worded', 'reading': 'places', 'choosing': 'choices'}.get(switch, 'readings')
++
++
++def tally(records):
++    """Exact counts over turn records (kept or tombstones): asked, answered, changed and its parts, same, refused, late,
++    failed, wait_ms, talk."""
++    c = {'asked': 0, 'answered': 0, 'changed': 0, 'same': 0, 'refused': 0, 'late': 0, 'failed': 0, 'wait_ms': 0, 'talk': 0,
++         **{p: 0 for p in PARTS}}
++    for row in records:
++        if row.get('kind') == 'TALK':
++            c['talk'] += 1;continue
++        c['asked'] += 1
++        outcome = row.get('outcome')
++        if outcome == 'FAILED':
++            c['failed'] += 1
++        else:
++            c['answered'] += 1
++            if outcome == 'LATE':c['late'] += 1
++            elif outcome in REFUSED:c['refused'] += 1
++            elif outcome in USED and row.get('differs'):
++                c['changed'] += 1;c[part_of(row)] += 1
++            else:c['same'] += 1
++        if row.get('foreground'):
++            elapsed = int(row.get('elapsed_ms') or 0);deadline = int(row.get('deadline_ms') or 0)
++            c['wait_ms'] += min(elapsed, deadline) if deadline else elapsed
++    return c
++
++
++def nulls(records, again=None):
++    """{kind: answered turns} for every kind the honest null stops: at least NULL_TURNS answered turns (after the owner's
++    ask_again for it, if any) and not one that differs."""
++    again = again or {}
++    seen = {};helped = set()
++    for row in records:
++        kind = row.get('kind')
++        if kind in NEVER_STOPPED or kind not in turns.KNOWN_KINDS or row.get('outcome') == 'FAILED':continue
++        if float(row.get('at') or 0) < again.get(kind, 0):continue
++        seen[kind] = seen.get(kind, 0) + 1
++        if row.get('outcome') in USED and row.get('differs'):helped.add(kind)
++    return {kind: n for kind, n in sorted(seen.items()) if n >= NULL_TURNS and kind not in helped}
++
++
++def stopped_kinds(kernel, owner, now=None):
++    """The kinds she no longer asks the model about this month (turns.request_for reads this once per request)."""
++    now = time.time() if now is None else now
++    return sorted(nulls(rows(kernel, owner, now - NULL_DAYS * 86400), turns.asked_again(kernel)))
++
++
++# -- the account ------------------------------------------------------------------------------------------------------------
++def model_available():
++    """Whether Graphite's local model code can be loaded at all (not whether a model is loaded)."""
++    try:
++        from . import local_brain  # noqa: F401
++    except ImportError:
++        return False
++    return True
++
++
++def _part(name, n):
++    return say(name + '_one') if n == 1 else say(name, **{name: n})
++
++
++def words_for(c, period='week', stopped=()):
++    """The account's sentences for counts `c` (tally) and the kinds the honest null stopped."""
++    if not c['asked'] and not c['talk']:
++        out = [say('nothing_asked', period=period)]
++    else:
++        out = []
++        if c['asked']:
++            out.append(say('answered', period=period, answered=c['answered']))
++            if c['answered']:
++                parts = [_part(p, c[p]) for p in PARTS if c[p]]
++                if parts:
++                    out.append(say('changed', changed=c['changed'], parts=', '.join(parts[:3])))
++                    if parts[3:]:out.append(say('changed_more', parts=', '.join(parts[3:])))
++                else:
++                    out.append(say('changed_none'))
++                for name in ('same', 'refused', 'late'):
++                    if c[name]:out.append(_part(name, c[name]))
++            if c['failed']:out.append(_part('failed', c['failed']))
++        if c['talk']:out.append(say('talk_one') if c['talk'] == 1 else say('talk', talk=c['talk']))
++        if c['wait_ms']:out.append(say('cost', wait=duration(c['wait_ms'])))
++        if c['changed']:out.append(say('worth'))
++    things = []
++    for kind in stopped:
++        thing = THINGS.get(kind)
++        if thing and thing not in things:things.append(thing)
++    out += [say('null', thing=t) for t in things]
++    return out
++
++
++def account(kernel, owner, period='week', now=None):
++    """The account for this period: {'schema', 'period', 'since', 'no_model', 'words', 'text', 'counts', 'nulls'}."""
++    if period not in PERIODS:raise ValueError('BRAIN_ACCOUNT_PERIOD: week or month')
++    now = time.time() if now is None else now
++    since = now - PERIODS[period] * 86400
++    if not model_available():
++        return {'schema': SCHEMA, 'period': period, 'since': since, 'no_model': True, 'words': [NO_MODEL], 'text': NO_MODEL,
++                'counts': None, 'nulls': []}
++    c = tally(rows(kernel, owner, since))
++    stopped = nulls(rows(kernel, owner, now - NULL_DAYS * 86400), turns.asked_again(kernel))
++    words = words_for(c, period, sorted(stopped))
++    return {'schema': SCHEMA, 'period': period, 'since': since, 'no_model': False, 'words': words, 'text': ' '.join(words),
++            'counts': c, 'nulls': [{'kind': k, 'turns': n, 'thing': THINGS.get(k, k.lower()),
++                                    'words': say('null', thing=THINGS.get(k, k.lower())),
++                                    'again': {'op': 'brain.help.set', 'args': {'ask_again': k}}} for k, n in sorted(stopped.items())]}
++
++
++# -- the Kernel's operations (0.8.7 A4) ---------------------------------------------------------------------------------------
++FIELDS = {
++    'brain.account': ({'period': {'type': 'string', 'enum': list(PERIODS)}}, []),
++    'brain.turn.forget': ({'id': turns.TURN_ID}, ['id']),
++}
++SCOPES = {'brain.account': 'read', 'brain.turn.forget': 'approve'}
++FORGOTTEN = 'Forgotten. Only this is kept: a question of this kind was asked, and how it ended.'
++mind_words.register('model_account_forget', {'forgotten': FORGOTTEN}, kind='sentence')
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'brain.account':
++        return account(kernel, principal.identity, args.get('period', 'week'))
++    if op == 'brain.turn.forget':
++        stone = turns.forget(kernel, principal.identity, args['id'], principal)
++        return {'turn': stone, 'words': FORGOTTEN}
++    raise ValueError('Unknown account operation')
+diff --git a/workbench/model_marks_qt.py b/workbench/model_marks_qt.py
+new file mode 100644
+index 0000000..c70848d
+--- /dev/null
++++ b/workbench/model_marks_qt.py
+@@ -0,0 +1,404 @@
++"""The mark line and the fold (0.8.7, "Kas's mind with the model, interwoven"; slice A4, lane A).
++
++Whose words, on screen (design 5.1). Model words reach her column only here, never through her plain renderer (shell2's
++leaded and Bubble, mind_panel_qt.put refuse them: model_words.plain_only):
++
++  ModelWords     the model's words with one quiet mark line above them, in words, never an icon alone (model_words.MARKS):
++                 read by the model, checked against your desk · worded by the model · every fact from the receipt ·
++                 worded by the model, kept by you · your wording · the model's own words, from its memory, not from your
++                 files (Talk) · the model's answer, exactly as it gave it (in the fold). The words stand inside a frame with
++                 a dotted rule at its left (a shape, not only a colour); the frame and its words carry the property
++                 'modelMarked', so a sweep can tell every model-marked span on screen. In Talk, numbers in the model's
++                 words are underlined and one quiet line says they are not on the desk.
++  Fold           "What I asked the model": exactly the stored turn (brain.turn/1, read with brain.turn.get), never the
++                 model's account of itself: what she sent (the four messages as stored, withheld lines shown as withheld),
++                 what it answered (the raw answer, model-marked), what she checked (her verdict and each check), two views
++                 when hers and the model's differ, how long it took (the time, her price and deadline, the tokens read,
++                 re-read and written) and the model's key; and Forget this turn (brain.turn.forget, approve: your press is
++                 the approval), after which only the tombstone is shown.
++  MarkLine       the mark line alone, for a card of hers that carries model words placed elsewhere on it.
++
++Placed in her column by mind_panel_qt (place(), and Line for a line that is model words), her_hand_qt (the GOAL turn's
++mark and fold), shell2 (Talk: show_in()) and brain_qt (the ledger and the account in the Brain room).
++
++Every word of hers here is a template registered with mind_words (WORDS); no template carries a mark's words. A string in
++the fold that echoes the model's answer (a check's detail, a second view) is shown model-marked, not as hers.
++"""
++from __future__ import annotations
++
++import html
++import json
++import re
++
++from PySide6.QtCore import Qt
++from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QPlainTextEdit, QPushButton, QSizePolicy, QVBoxLayout,
++                               QWidget)
++
++from . import boss_theme as bt
++from . import mind_words, model_words
++from .model_words import MARKS, Marked, ModelSaid
++
++WORDS = {
++    'fold': 'What I asked the model',
++    'sent': 'What I sent',
++    'answered': 'What it answered',
++    'checked': 'What I checked',
++    'views': 'Two views',
++    'took': 'How long it took',
++    'model': 'The model',
++    'forget': 'Forget this turn',
++    'role_system': 'My fixed rules for this kind of question',
++    'role_stable': 'What I kept for it',
++    'role_ready': 'Its line before the question',
++    'role_last': 'The question',
++    'no_answer': 'It gave no answer.',
++    'verdict': 'My check: {state}.',
++    'outcome': 'How it ended: {outcome}.',
++    'instead': 'What I did instead: {fallback}.',
++    'why': 'The reason, as recorded: {why}.',
++    'passed': '{name}: passed.',
++    'not_passed': '{name}: did not pass.',
++    'detail': 'Detail: {detail}',
++    'hers': 'Mine: {view}',
++    'its': 'The model’s: {view}',
++    'views_why': 'Why they differ: {why}',
++    'time': 'It took {elapsed}. I had priced it at {price}, with a deadline of {deadline}.',
++    'time_stop': 'It took {elapsed}. It had no deadline; Stop was yours.',
++    'tokens': 'Tokens read: {prompt}, of which {kept} were kept from before and {new} were new. At most {cap} to write.',
++    'timings': 'The worker counted {read} read, {reused} re-used and {written} written.',
++    'key': 'Model {model}, key {key}.',
++    'forgotten': 'Forgotten. Only this is kept: a {kind} question was asked, and how it ended: {outcome}.',
++    'could_not': 'I could not read that turn: {why}',
++    'not_forgotten': 'I did not forget it: {why}',
++    'numbers': 'Numbers in its words are not on the desk.',
++    'forget_tip': 'Forget this turn: its messages, its answer and my checks go; only that it was asked, and how it ended, stays',
++}
++_TURN = 'the stored turn (brain.turn/1, brain.turn.get)'
++NUMBERS = {key: {slot: _TURN for slot in mind_words.slots(text)} for key, text in WORDS.items()}
++mind_words.register('model_marks_qt', WORDS, kind='sentence', numbers=NUMBERS)
++
++STATE_WORDS = {'TAKEN': 'taken', 'TRIMMED': 'taken in part', 'REFUSED': 'refused', 'UNSETTLED': 'not settled, so it was yours to say',
++               'TRIPPED': 'refused: asked the other way round, it answered differently'}
++OUTCOME_WORDS = {**STATE_WORDS, 'LATE': 'late, past its deadline', 'FAILED': 'no answer came from the model'}
++FALLBACK_WORDS = {'ASK_OWNER': 'I asked you', 'DEFAULT_READ': 'I took the read I take without it',
++                  'PLAIN_WORDS': 'I said it in my plain words', 'CANNOT_TELL': 'I said I cannot tell',
++                  'NOT_OFFERED': 'I did not offer it', 'PATTERNS': 'I read the page by its patterns',
++                  'PLACES': 'I showed the places'}
++ROLE_KEYS = ('role_system', 'role_stable', 'role_ready', 'role_last')
++NUMBER = re.compile(r'\d[\d,.:/-]*\d|\d')
++TOKEN = re.compile(r'[A-Za-z0-9][A-Za-z0-9_-]{3,}')
++PIECE = re.compile(r'[A-Za-z0-9]{4,}')
++TURN_ID = re.compile(r'[0-9a-f]{32}')
++
++
++def say(which, /, **slots):
++    return WORDS[which].format(**slots)
++
++
++def _colour(name, default):
++    return getattr(bt, name, default)
++
++
++def _seconds(ms):
++    """Whole milliseconds as '1.4 s' (tenths, integer arithmetic, rounded half up)."""
++    tenths = (max(0, int(ms or 0)) + 50) // 100
++    return '%d.%d s' % divmod(tenths, 10)
++
++
++def plain_label(text, quiet=False):
++    """Her words in a label (through plain_only: model words are refused here)."""
++    label = QLabel();label.setWordWrap(True);label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++    label.setTextInteractionFlags(Qt.TextSelectableByMouse);label.setTextFormat(Qt.PlainText)
++    text = model_words.plain_only(text)
++    label.setProperty('plain', str(text));label.setText(str(text))
++    if quiet:label.setStyleSheet('color:%s;' % _colour('QUIET', '#8a8a8a'))
++    return label
++
++
++# -- the mark line ------------------------------------------------------------------------------------------------------------
++class MarkLine(QLabel):
++    """One quiet line naming whose words follow (model_words.MARKS), in words."""
++
++    def __init__(self, mark='CHECKED'):
++        if mark not in MARKS:raise ValueError('MARK_UNKNOWN: %s' % mark)
++        super().__init__(MARKS[mark]);self.mark = mark
++        self.setObjectName('KasModelMark');self.setProperty('modelMark', mark);self.setWordWrap(True)
++        self.setTextFormat(Qt.PlainText);self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++        self.setStyleSheet('color:%s; font-style:italic;' % _colour('QUIET', '#8a8a8a'))
++        self.setAccessibleName('Whose words: ' + MARKS[mark])
++
++
++def _as_marked(value, mark):
++    if isinstance(value, Marked):
++        key = next((k for k, words in MARKS.items() if words == value.mark), mark)
++        return value.text, key
++    if isinstance(value, ModelSaid):return model_words.marked(value, mark).text, mark
++    raise TypeError('MODEL_WORDS_ONLY: ModelWords shows model words (ModelSaid or Marked), never her own')
++
++
++class ModelWords(QFrame):
++    """Model words with their mark line, in a frame with a dotted rule at its left. Not her words: the frame and the
++    words carry 'modelMarked', and the words are never put in a label's 'plain' property (what reads her words back)."""
++
++    def __init__(self, said, mark='CHECKED'):
++        super().__init__();self.setObjectName('KasModelSaid');self.setProperty('modelMarked', True)
++        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
++        self.setStyleSheet('QFrame#KasModelSaid {border:0; border-left:2px dotted %s; background:transparent;}'
++                           % _colour('LINE_STRONG', '#999999'))
++        box = self.box = QVBoxLayout(self);box.setContentsMargins(8, 2, 2, 2);box.setSpacing(2)
++        self.line = None;self.body = QLabel();self.note = None
++        self.body.setObjectName('KasModelWords');self.body.setProperty('modelMarked', True);self.body.setWordWrap(True)
++        self.body.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);self.body.setTextInteractionFlags(Qt.TextSelectableByMouse)
++        self.body.setTextFormat(Qt.RichText)        # rich text: her column's folding leaves it as it is
++        box.addWidget(self.body)
++        self.set_said(said, mark)
++
++    def set_said(self, said, mark='CHECKED'):
++        text, key = _as_marked(said, mark)
++        if self.line is None or self.line.mark != key:
++            if self.line is not None:self.line.deleteLater()
++            self.line = MarkLine(key);self.line.setProperty('modelMarked', True);self.box.insertWidget(0, self.line)
++        self.text = text;self.mark = key
++        self.body.setProperty('model', text)
++        numbers = key == 'OWN' and bool(NUMBER.search(text))
++        self.body.setText(self.rich(text, underline=numbers))
++        self.body.setAccessibleName(MARKS[key])
++        if numbers and self.note is None:
++            self.note = plain_label(say('numbers'), quiet=True);self.note.setProperty('modelMarked', True);self.box.addWidget(self.note)
++        elif not numbers and self.note is not None:
++            self.note.deleteLater();self.note = None
++        return self
++
++    @staticmethod
++    def rich(text, underline=False):
++        """The words escaped as they are (line breaks kept); with underline, each number underlined (a shape: they are
++        not on the desk)."""
++        out = [];at = 0
++        for m in (NUMBER.finditer(text) if underline else ()):
++            out.append(html.escape(text[at:m.start()], quote=False))
++            out.append('<span style="text-decoration:underline">%s</span>' % html.escape(m.group(), quote=False));at = m.end()
++        out.append(html.escape(text[at:], quote=False))
++        return '<p style="margin:0;white-space:pre-wrap">' + ''.join(out).replace('\n', '<br>') + '</p>'
++
++
++def show_in(bubble, said, mark='OWN', lead=None):
++    """Model words into one of her column's bubbles (shell2.Bubble): her own line (lead, her plain words) stays in the
++    bubble's text, or is hidden when there is none, and the model's words go under it with their mark. Called again with
++    more words (a streamed draft), the same ModelWords is updated."""
++    found = getattr(bubble, 'model_words', None)
++    if lead:
++        bubble.set_text(lead);bubble.text.show()
++    else:
++        bubble.text.setProperty('plain', '');bubble.text.setText('');bubble.text.hide()
++    if found is not None:
++        try:return found.set_said(said, mark)
++        except RuntimeError:  # it left with Talk's earlier exchanges
++            pass
++    words = ModelWords(said, mark);bubble.model_words = words
++    bubble.box.insertWidget(bubble.box.indexOf(bubble.text) + 1, words)
++    return words
++
++
++def mark_card(card, mark='CHECKED'):
++    """The mark line on a card of hers (a her_hand_qt card): the model's part in what the card says, in words."""
++    line = MarkLine(mark)
++    box = getattr(card, 'box', None) or card.layout()
++    if box is not None:box.addWidget(line)
++    return line
++
++
++# -- the fold: what I asked the model -----------------------------------------------------------------------------------------
++def _echoes(text, answer):
++    """Whether `text` repeats words of the model's raw answer (a token of four or more letters or digits)."""
++    if not answer or not text:return False
++    tokens = set(TOKEN.findall(answer)) | set(PIECE.findall(answer))
++    return any(t in text for t in tokens)
++
++
++def _view(value):
++    """A desk object as text for the fold (a stored ModelSaid shows as model words elsewhere, never here)."""
++    if isinstance(value, str):return value
++    try:return json.dumps(value, ensure_ascii=False, sort_keys=True)
++    except (TypeError, ValueError):return str(type(value).__name__)
++
++
++def _has_model(value):
++    if isinstance(value, dict):
++        return 'model_said' in value or any(_has_model(v) for v in value.values())
++    if isinstance(value, list):return any(_has_model(v) for v in value)
++    return False
++
++
++def kernel_of(host):
++    """The window's Kernel and the operator principal (as mind_panel_qt reads)."""
++    from .engineering_kernel import operator
++    kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++    if kernel is None:
++        from .engine import engineering
++        kernel = engineering(host.root)
++    return kernel, operator()
++
++
++class Fold(QFrame):
++    """'What I asked the model' for one stored turn: closed at first; opened, it shows the turn exactly as stored."""
++
++    def __init__(self, record=None, dispatch=None, error=''):
++        super().__init__();self.setObjectName('KasModelFold');self.record = record;self.dispatch = dispatch
++        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
++        box = self.box = QVBoxLayout(self);box.setContentsMargins(0, 2, 0, 2);box.setSpacing(3)
++        self.toggle = QPushButton('› ' + say('fold'));self.toggle.setObjectName('KasModelFoldToggle')
++        self.toggle.setCheckable(True);self.toggle.setProperty('arcButton', 'quiet');self.toggle.setCursor(Qt.PointingHandCursor)
++        self.toggle.toggled.connect(self.open);box.addWidget(self.toggle, 0, Qt.AlignLeft)
++        self.inner = QWidget();self.lay = QVBoxLayout(self.inner);self.lay.setContentsMargins(10, 0, 0, 0);self.lay.setSpacing(4)
++        self.inner.hide();box.addWidget(self.inner)
++        self.error = error;self.built = False
++
++    @classmethod
++    def for_turn(cls, host, ident, kernel=None, principal=None):
++        """The fold for a turn by its id, read with brain.turn.get (a read: asking is not an event)."""
++        try:
++            if kernel is None:kernel, principal = kernel_of(host)
++        except Exception as exc:  # noqa: BLE001 - no Kernel to read: the fold says so
++            return cls(None, None, str(exc)[:200])
++
++        def dispatch(op, args):
++            return kernel.dispatch(op, args, principal)
++        got = dispatch('brain.turn.get', {'id': ident}) if ident else {'ok': False, 'error': {'message': 'no turn was recorded'}}
++        if not got.get('ok'):
++            return cls(None, dispatch, str((got.get('error') or {}).get('message') or 'it could not be read')[:200])
++        return cls(got['result']['turn'], dispatch)
++
++    def open(self, shown):
++        self.toggle.setText(('⌄ ' if shown else '› ') + say('fold'))
++        if shown and not self.built:self.build()
++        self.inner.setVisible(shown);self.adjustSize()
++
++    def clear(self):
++        while self.lay.count():
++            item = self.lay.takeAt(0);w = item.widget()
++            if w is not None:w.hide();w.setParent(None);w.deleteLater()
++
++    def heading(self, key):
++        label = plain_label(say(key));label.setStyleSheet('font-weight:600;');self.lay.addWidget(label)
++
++    def words(self, text, quiet=False):
++        self.lay.addWidget(plain_label(text, quiet));return text
++
++    def exact(self, text, name):
++        """Stored text shown exactly as stored, in a box that keeps every character."""
++        box = QPlainTextEdit();box.setReadOnly(True);box.setPlainText(text);box.setObjectName('KasModelFoldText')
++        box.setAccessibleName(name);box.setLineWrapMode(QPlainTextEdit.WidgetWidth)
++        lines = max(1, min(10, text.count('\n') + 1 + len(text) // 70))
++        box.setFixedHeight(box.fontMetrics().lineSpacing() * lines + 12);self.lay.addWidget(box)
++        return box
++
++    def piece(self, key, slot, value, answer, quiet=True):
++        """Her line with a stored string in its slot; when the string echoes the model's answer (or holds stored model
++        words), her line names it and the string itself is shown model-marked under it, never as her words."""
++        text = _view(value)
++        if _has_model(value) or _echoes(text, answer):
++            self.words(say(key, **{slot: '(its words, below)'}), quiet)
++            self.lay.addWidget(ModelWords(ModelSaid(text, 'RAW'), 'RAW'))
++        else:
++            self.words(say(key, **{slot: text}), quiet)
++
++    def build(self):
++        self.built = True;self.clear();r = self.record
++        if r is None:
++            self.words(say('could_not', why=self.error or 'nothing was recorded'));return
++        if r.get('state') == 'FORGOTTEN':
++            self.words(say('forgotten', kind=r.get('kind', ''), outcome=OUTCOME_WORDS.get(r.get('outcome'), r.get('outcome', ''))));return
++        from . import turns
++        said = turns.said_of(r);answer = said.for_check() if said is not None else ''
++        self.heading('sent')
++        for n, m in enumerate(r.get('messages') or ()):
++            self.words(say(ROLE_KEYS[n]) if n < len(ROLE_KEYS) else m.get('role', ''), quiet=True)
++            self.exact(m.get('content', ''), say(ROLE_KEYS[n]) if n < len(ROLE_KEYS) else m.get('role', ''))
++        self.heading('answered')
++        if said is not None:self.lay.addWidget(ModelWords(said, 'RAW'))
++        else:self.words(say('no_answer'), quiet=True)
++        self.heading('checked')
++        verdict = r.get('verdict') or {}
++        if verdict:self.words(say('verdict', state=STATE_WORDS.get(verdict.get('state'), verdict.get('state', ''))))
++        for check in verdict.get('checks') or ():
++            name, passed = (list(check) + [None, None])[:2] if isinstance(check, (list, tuple)) else (str(check), None)
++            detail = check[2] if isinstance(check, (list, tuple)) and len(check) > 2 else None
++            self.piece('passed' if passed else 'not_passed', 'name', str(name), answer)
++            if detail not in (None, '', [], {}):self.piece('detail', 'detail', detail, answer)
++        self.words(say('outcome', outcome=OUTCOME_WORDS.get(r.get('outcome'), r.get('outcome', ''))))
++        if r.get('fallback'):self.words(say('instead', fallback=FALLBACK_WORDS.get(r['fallback'], r['fallback'])))
++        if r.get('why'):self.piece('why', 'why', r['why'], answer)
++        views = r.get('second_view')
++        if isinstance(views, dict) and views:
++            self.heading('views')
++            for key, name, slot in (('hers', 'hers', 'view'), ('model', 'its', 'view'), ('why', 'views_why', 'why')):
++                if key in views:self.piece(name, slot, views[key], answer)
++        self.heading('took')
++        if r.get('deadline_ms'):
++            self.words(say('time', elapsed=_seconds(r.get('elapsed_ms')), price=_seconds(r.get('price_ms')), deadline=_seconds(r.get('deadline_ms'))))
++        else:
++            self.words(say('time_stop', elapsed=_seconds(r.get('elapsed_ms'))))
++        t = r.get('tokens') or {}
++        if t:self.words(say('tokens', prompt=t.get('prompt', 0), kept=t.get('kept_expected', 0), new=t.get('new', 0), cap=t.get('answer_cap', 0)), quiet=True)
++        timings = r.get('timings') or {}
++        if timings:
++            self.words(say('timings', read=timings.get('prompt_n', 0), reused=timings.get('cache_n', 0), written=timings.get('predicted_n', 0)), quiet=True)
++        self.heading('model')
++        self.words(say('key', model=r.get('model') or '', key=str(r.get('key') or '')[:12]), quiet=True)
++        if self.dispatch is not None:
++            row = QHBoxLayout();row.setContentsMargins(0, 0, 0, 0)
++            forget = QPushButton(say('forget'));forget.setObjectName('KasModelForget');forget.setProperty('arcButton', 'quiet')
++            forget.setToolTip(WORDS['forget_tip']);forget.clicked.connect(self.forget);row.addWidget(forget);row.addStretch(1)
++            holder = QWidget();holder.setLayout(row);self.lay.addWidget(holder)
++
++    def forget(self):
++        """Your press is the approval (brain.turn.forget is approve scope and always asks): the turn becomes a tombstone."""
++        got = self.dispatch('brain.turn.forget', {'id': self.record['id']})
++        if not got.get('ok'):
++            self.words(say('not_forgotten', why=str((got.get('error') or {}).get('message') or '')[:200]));return None
++        self.record = got['result']['turn'];self.build();self.adjustSize()
++        return self.record
++
++
++# -- placing them in her column -----------------------------------------------------------------------------------------------
++def _model_items(found):
++    """(text-or-said, mark, turn) for every piece of model words in a read's result: a Marked or ModelSaid value, or a stored
++    {'model_said': ...} beside an optional 'mark' (a MARKS key) and 'turn' id."""
++    out = []
++
++    def walk(value, mark='CHECKED', turn=''):
++        if isinstance(value, (Marked, ModelSaid)):
++            out.append((value, mark, turn));return
++        if isinstance(value, dict):
++            if 'model_said' in value and set(value) <= {'model_said', 'kind'}:
++                out.append((ModelSaid.from_record(value), mark, turn));return
++            here_mark = value.get('mark') if value.get('mark') in MARKS else mark
++            here_turn = value.get('turn') if isinstance(value.get('turn'), str) else turn
++            for k, v in value.items():
++                if k not in ('mark', 'turn'):walk(v, here_mark, here_turn)
++        elif isinstance(value, (list, tuple)):
++            for v in value:walk(v, mark, turn)
++    walk(found)
++    return out
++
++
++def place(panel, lay, found):
++    """Her column panel (mind_panel_qt): the model's part of a read's result, each piece with its mark line, and a fold for
++    every turn it names (its 'turns' ids and each piece's 'turn'). Returns the number of pieces placed."""
++    if not isinstance(found, dict):return 0
++    items = _model_items({k: v for k, v in found.items() if k not in ('turns', 'lines')})      # a line shows its own (Line)
++    turns_named = [t for t in (found.get('turns') or ()) if isinstance(t, str)]
++    for line in found.get('lines') or ():
++        if isinstance(line, dict) and isinstance(line.get('turn'), str) and line['turn'] not in turns_named:
++            turns_named.append(line['turn'])
++    for said, mark, turn in items:
++        lay.addWidget(ModelWords(said, mark))
++        if turn and turn not in turns_named:turns_named.append(turn)
++    host = getattr(panel, 'host', None)
++    for ident in [t for t in turns_named if TURN_ID.fullmatch(t)]:
++        try:
++            kernel, principal = panel.kernel()
++            lay.addWidget(Fold.for_turn(host, ident, kernel, principal))
++        except Exception:  # noqa: BLE001 - a fold that cannot be read never takes the panel down
++            lay.addWidget(Fold(None, None, 'it could not be read'))
++    return len(items) + len([t for t in turns_named if TURN_ID.fullmatch(t)])
+diff --git a/workbench/model_words.py b/workbench/model_words.py
+index 352e69a..97e2901 100644
+--- a/workbench/model_words.py
++++ b/workbench/model_words.py
+@@ -12,6 +12,7 @@ The marks (design 5.1), one quiet line per reply, in words, never an icon alone:
+   KEPT     worded by the model, kept by you
+   YOURS    your wording
+   OWN      the model's own words, from its memory, not from your files      (Talk only)
++  RAW      the model's answer, exactly as it gave it                         (0.8.7 A4: in the fold only)
+ Her plain words carry no mark at all.
+ 
+ The strict parsers below read the terse answer lines the kinds' grammars allow (no free whitespace); anything else is
+@@ -32,6 +33,8 @@ MARKS = {
+     'KEPT': 'worded by the model, kept by you',
+     'YOURS': 'your wording',
+     'OWN': "the model's own words, from its memory, not from your files",
++    # 0.8.7 A4: the raw answer inside the fold "What I asked the model", shown exactly as stored, before and apart from her check
++    'RAW': "the model's answer, exactly as it gave it",
+ }
+ MOST = 32000          # characters: local_brain.completion refuses a longer answer before it is wrapped
+ 
+diff --git a/workbench/qt_app.py b/workbench/qt_app.py
+index 32723b7..313513b 100644
+--- a/workbench/qt_app.py
++++ b/workbench/qt_app.py
+@@ -2061,7 +2061,9 @@ class ClipOverlay(QWidget):
+             self.bubble('Local evidence · %d\n\n' % len(observations)
+                         + '\n\n'.join(map(program_observation_text,observations)),False,plain=True)
+         if not actions:
+-            self.history.append((history_role,text));self.bubble(text or 'No action proposed.',False);self._save();return
++            self.history.append((history_role,text));box=self.bubble(text or 'No action proposed.',False)
++            if not private_local and text:self._outside(box)   # 0.8.7 A4: Google's model wrote it (clip.OUTSIDE_MARK)
++            self._save();return
+         from .stacy_control import validate_actions
+         from .engineering_kernel import Principal
+         try:
+@@ -2074,8 +2076,9 @@ class ClipOverlay(QWidget):
+             self.bubble('Proposal not executable: '+str(exc),False,error=True);return
+         summary='Proposed commands · awaiting your review\n'+json.dumps(actions,indent=2)
+         self.history.append((history_role,(text+'\n'+summary).strip()))
+-        self.bubble((text+'\n\n'+summary).strip(),False,
++        box=self.bubble((text+'\n\n'+summary).strip(),False,
+                     action=('Run listed commands',lambda:self._run_plan(epoch,actions,private_local,review_epoch)))
++        if not private_local:self._outside(box)   # 0.8.7 A4: Google's model wrote it (clip.OUTSIDE_MARK)
+         self._save()
+ 
+     def _run_plan(self,epoch,actions,private_local=False,review_epoch=None):
+@@ -2103,6 +2106,13 @@ class ClipOverlay(QWidget):
+         else:
+             bridge.run(actions,provider=True)
+ 
++    def _outside(self, box):
++        """0.8.7 A4 (design 5.1): the outside-model mark under a reply from Google's model, in words (clip.OUTSIDE_MARK)."""
++        mark=QLabel(clip.OUTSIDE_MARK);mark.setObjectName('ClipOutsideMark');mark.setWordWrap(True);mark.setTextFormat(Qt.PlainText)
++        mark.setStyleSheet('font-style: italic; font-size: 11px;');mark.setAccessibleName(clip.OUTSIDE_MARK)
++        box.layout().addWidget(mark);box.outside_mark=mark
++        return mark
++
+     def _drop_status(self):
+         if self.status_bubble is not None:
+             try:
+@@ -2138,7 +2148,8 @@ class ClipOverlay(QWidget):
+         else:
+             role='local-assistant' if epoch==getattr(self,'_local_turn',None) else 'assistant'
+             self.history.append((role, text))
+-            self.bubble(text, False)
++            box=self.bubble(text, False)
++            if role=='assistant':self._outside(box)   # 0.8.7 A4: Google's model wrote it (clip.OUTSIDE_MARK)
+             self._save()                           # remembers the model that answered
+         self.refresh()
+         self.input.setFocus()
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 6c5f088..a576e4a 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -2865,7 +2865,10 @@ class SlateFace(QWidget):
+         if not job:return
+         if job.get('state') not in ('Completed', 'Failed', 'Cancelled', 'Interrupted'):
+             progress = call(self.host, 'slate.progress', {'job': self.job})
+-            if progress and progress.get('display_text'):self.pending.set_text('Draft · checking…\n' + progress['display_text'])
++            if progress and progress.get('display_text'):      # 0.8.7 A4: the model's draft, with its mark, never as hers
++                from .model_marks_qt import show_in
++                from .model_words import ModelSaid
++                show_in(self.pending, ModelSaid(str(progress['display_text'])[:32000], 'TALK'), 'OWN', lead='Draft · checking…')
+             return
+         ident = self.job;self.job = None;self.timer.stop()
+         if job['state'] != 'Completed':
+@@ -2875,10 +2878,15 @@ class SlateFace(QWidget):
+             self.pending.set_text('I stopped: ' + (job.get('error') or job['state']) + '. This is recorded so I learn from it.');return
+         result = (call(self.host, 'brain.result', {'id': ident}) or {}).get('result') or {}
+         proposal = result.get('proposal') or {}
+-        self.pending.set_text(proposal.get('text') or result.get('text') or 'Done.')
++        said = proposal.get('text') or result.get('text')
++        if said:      # 0.8.7 A4: Talk is the model's own words: shown with its mark line, never in her column as hers
++            from .model_marks_qt import show_in
++            from .model_words import ModelSaid
++            show_in(self.pending, ModelSaid(str(said)[:32000], 'TALK'), 'OWN')
++        else:self.pending.set_text('Done.')
+         if getattr(self, 'grounded', False):  # her words about rows she has just shown: nothing is proposed, and the words are the model's
+             self.grounded = False
+-            note = QLabel('From the rows above · the words are the model’s and are not checked');note.setWordWrap(True);note.setStyleSheet('color:%s' % FAINT)
++            note = QLabel('It was shown the rows above; its words are not checked against them.');note.setWordWrap(True);note.setStyleSheet('color:%s' % FAINT)
+             note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);self.pending.box.addWidget(note)
+             QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
+             return
+diff --git a/workbench/slate_stream.py b/workbench/slate_stream.py
+index 8b769f6..0854751 100644
+--- a/workbench/slate_stream.py
++++ b/workbench/slate_stream.py
+@@ -96,6 +96,9 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
+              seconds=120, measured_prompt=None, *, kernel, cache_key=None, on_progress=None):
+     # 0.8.7 A3: on_progress(tokens_written, elapsed_ms) is called as each piece of the answer streams in (her clock's line).
+     if not brain.worker_live(worker): raise ValueError('MODEL_WORKER_NOT_LIVE')
++    from .turns import withhold_messages       # 0.8.7 A4: secret-shaped text never reaches the model
++    held = withhold_messages(messages)
++    if held is not messages: messages, measured_prompt = held, None
+     measured_prompt = prompt_size(worker, messages) if measured_prompt is None else measured_prompt
+     if measured_prompt + max_tokens + 32 > worker['context']: raise ValueError('CONTEXT_BUDGET_EXCEEDED: reduce context or output tokens')
+     # Every resident generation consumes the previous slot claim. Only a
+diff --git a/workbench/turns.py b/workbench/turns.py
+index 17116d6..3863089 100644
+--- a/workbench/turns.py
++++ b/workbench/turns.py
+@@ -69,6 +69,17 @@ Added by A3 (backward compatible: new names only, nothing above changed meaning)
+                .now_asking ({kind, price_ms, deadline_ms, began_ms} while a turn runs: brain_clock.asking_now's line)
+     set_switches(kernel, changes, undo) and the operation brain.help.set (execute, with Undo): the owner's switch per
+     kind; with every switch off no turn is sent, no record is written, and every answer is the kind's 0.8.6 fallback.
++Added by A4 (the ledger, the marks and the account; backward compatible: new names and fields only):
++    NOT_SENT also NO_HELP: the honest null (model_account.stopped_kinds) stopped asking this kind, because 20 turns of it
++             this month changed nothing she did; brain.help.set's ask_again (with Undo) starts asking it again
++    TurnRequest.stopped (frozenset of kind names), set by request_for
++    withhold(text), withhold_messages(messages): secret-shaped text (the doorway's SECRET_SHAPED rule: Luhn and IBAN
++             numbers, labelled account numbers, key-shaped text) replaced by "[account number withheld]" or "[secret
++             withheld]" in every message laid out (layout), so a secret in a source is never in a sent prompt; the whole
++             record is passed through it too, so it is never in a stored turn
++    the record also holds 'without' (the code of the no-model answer this turn was asked against) and 'differs' (True
++             when the value used differs from that answer: what the account counts as help); a tombstone keeps those two,
++             the switch and the deadline (counts only, never words), so the account stays exact after Forget
+ ====================================================================================================================
+ 
+ Only this module calls local_brain.completion (local_brain's own ready probe excepted). This module, model_words.py and
+@@ -107,7 +118,8 @@ USED = ('TAKEN', 'TRIMMED', 'UNSETTLED')         # verdicts whose value the call
+ FALLBACKS = ('ASK_OWNER', 'DEFAULT_READ', 'PLAIN_WORDS', 'CANNOT_TELL', 'NOT_OFFERED', 'PATTERNS', 'PLACES')
+ NOT_SENT = ('SWITCH_OFF', 'AI_OFF', 'NO_MODEL', 'STOPPED', 'CEILING_TURNS', 'CEILING_TIME', 'OVER_CAP', 'OVER_CONTEXT',
+             'RECEIPT_FIRST',     # A3: a wording turn waits for her receipt sentence on screen
+-            'FORGETTING')        # A2: the worker holds something forgotten and waits for its restart
++            'FORGETTING',        # A2: the worker holds something forgotten and waits for its restart
++            'NO_HELP')           # A4: the honest null stopped asking this kind (model_account.stopped_kinds)
+ RECEIPT_FIRST_SWITCHES = ('wording',)   # A3: kinds of these switches are sent only after request.receipt_on_screen()
+ BASES = ('owner_words', 'owner_click', 'deduction', 'model_pick')
+ FOREGROUND_TURNS = 3                     # at most 3 foreground model turns per request (design 4.4)
+@@ -298,8 +310,51 @@ def layout(kind, inputs):
+     if not isinstance(stable, str) or not isinstance(last, str):
+         raise TypeError('TURN_MESSAGE_TEXT: a message is plain text the desk built (never model words)')
+     if not last.strip():raise ValueError('TURN_LAST_EMPTY: message 4 holds the question')
+-    return [{'role': 'system', 'content': brief}, {'role': 'user', 'content': stable if stable.strip() else STABLE_EMPTY},
+-            {'role': 'assistant', 'content': READY}, {'role': 'user', 'content': last}]
++    # A4: secret-shaped text in what varies (a source's words, the owner's request) is withheld before anything is sent
++    return [{'role': 'system', 'content': brief},
++            {'role': 'user', 'content': withhold(stable) if stable.strip() else STABLE_EMPTY},
++            {'role': 'assistant', 'content': READY}, {'role': 'user', 'content': withhold(last)}]
++
++
++# -- 0.8.7 A4: secrets never reach the model or the ledger ----------------------------------------------------------------------
++def withhold(text):
++    """The text with every secret-shaped span replaced as the doorway replaces it for the model (doorway.SECRET_SHAPED:
++    Luhn and IBAN numbers, labelled account numbers, key-shaped text): "[account number withheld]" or "[secret withheld]".
++    Line by line; a line with no digit and nothing key-like is passed as it is. Text that is not a str is returned as is."""
++    if not isinstance(text, str) or not text:return text
++    from . import doorway
++    out = []
++    for line in text.split('\n'):
++        spans = doorway._secrets(line) if line.strip() else []
++        for s, e, kind in sorted(spans, reverse=True):
++            line = line[:s] + (doorway.ACCOUNT_WITHHELD if kind == 'ACCOUNT' else doorway.SECRET_WITHHELD) + line[e:]
++        out.append(line)
++    return '\n'.join(out)
++
++
++def withhold_messages(messages):
++    """Chat messages with withhold() applied to every text content (a list of parts too); the same list when nothing changed."""
++    changed = False;out = []
++    for m in messages or ():
++        content = m.get('content') if isinstance(m, dict) else None
++        if isinstance(content, str):
++            new = withhold(content)
++        elif isinstance(content, list):
++            new = [dict(p, text=withhold(p['text'])) if isinstance(p, dict) and isinstance(p.get('text'), str) else p for p in content]
++        else:
++            new = content
++        if new != content:changed = True;m = dict(m, content=new)
++        out.append(m)
++    return out if changed else messages
++
++
++def _withheld_all(value):
++    """Every string in a record passed through withhold(), ids and digests aside (they hold no words)."""
++    if isinstance(value, dict):
++        return {k: (v if k in ('id', 'owner', 'request', 'brief_sha256', 'grammar_sha256', 'key') else _withheld_all(v))
++                for k, v in value.items()}
++    if isinstance(value, list):return [_withheld_all(v) for v in value]
++    return withhold(value) if isinstance(value, str) else value
+ 
+ 
+ # -- her clock until brain_clock.py --------------------------------------------------------------------------------------------
+@@ -354,6 +409,7 @@ class TurnRequest:
+         self.cards_used = 0
+         self.receipt_shown = False          # A3: her receipt sentence is on screen (a wording turn waits for it)
+         self.now_asking = None              # A3: {kind, price_ms, deadline_ms, began_ms} while a turn runs
++        self.stopped = frozenset()          # A4: kinds the honest null stopped asking (request_for reads them)
+ 
+     def switch_on(self, name):return bool(self.switches.get(name, False))
+ 
+@@ -421,8 +477,15 @@ def request_for(kernel, principal, **options):
+                     from . import brain_briefs
+                     if brain_briefs.forget_pending(kernel, worker):port = None;off = 'FORGETTING'
+     options.setdefault('clock', default_clock(kernel))
+-    return TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
+-                       **options)
++    request = TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
++                          **options)
++    if port is not None:      # A4: the honest null, read once per request
++        try:
++            from . import model_account
++            request.stopped = frozenset(model_account.stopped_kinds(kernel, principal.identity))
++        except Exception:  # noqa: BLE001 - an unreadable ledger stops nothing
++            request.stopped = frozenset()
++    return request
+ 
+ 
+ # -- the local worker port: the only caller of local_brain.completion -----------------------------------------------------------
+@@ -546,6 +609,7 @@ def ask(kind, inputs, request):
+     caps = kind.caps
+     # 1 · the switch and the per-request ceiling
+     if not request.switch_on(kind.switch):return _without(kind, inputs, 'SWITCH_OFF')
++    if kind.name in getattr(request, 'stopped', ()):return _without(kind, inputs, 'NO_HELP')      # A4: the honest null
+     if kind.switch in RECEIPT_FIRST_SWITCHES and not request.receipt_shown:return _without(kind, inputs, 'RECEIPT_FIRST')
+     port = request.port
+     if port is None or not port.live():
+@@ -619,6 +683,16 @@ def ask(kind, inputs, request):
+     use = outcome in USED
+     fb = None if use else kind.fallback(inputs)
+     if fb is not None and not isinstance(fb, Fallback):raise TypeError('TURN_FALLBACK: a kind returns a Fallback')
++    # A4: what she would have done without it, and whether the value used differs from that (the account's "help")
++    without = fb
++    if use:
++        try:
++            without = kind.fallback(inputs)
++            if not isinstance(without, Fallback):without = None
++        except Exception:  # noqa: BLE001 - a fallback that cannot be worked out: the difference is unknown
++            without = None
++    differs = bool(use and without is not None and (without.code == 'ASK_OWNER' or
++                                                    _canonical(_jsonable(verdict.value)) != _canonical(_jsonable(without.value))))
+     why = failed or ('LATE' if late else (verdict.why[0] if verdict and verdict.why else ''))
+     # 5b · the reuse watchdog (A2): cache_n against what was expected kept; two misses in a row re-prime the kind
+     reuse = None
+@@ -631,7 +705,7 @@ def ask(kind, inputs, request):
+     value = record(kind=kind, request=request, messages=messages, grammar=grammar, said=said, finish=finish, odds=odds,
+                    verdict=verdict, outcome=outcome, fallback=None if fb is None else fb.code, why=why, price=price,
+                    deadline=deadline, elapsed=elapsed, timings=timings, prompt=prompt, kept=kept, key=key, model=port.model(),
+-                   reuse=reuse)
++                   reuse=reuse, without=None if without is None else without.code, differs=differs)
+     ident = request.ledger.write(value)
+     if reuse and reuse.get('reprime') and hasattr(port, 'reprime'):
+         try:
+@@ -674,10 +748,11 @@ def _timings(timings):
+ 
+ 
+ def record(*, kind, request, messages, grammar, said, finish, odds, verdict, outcome, fallback, why, price, deadline,
+-           elapsed, timings, prompt, kept, key, model, reuse=None):
+-    """One brain.turn/1 record (design 3.5)."""
++           elapsed, timings, prompt, kept, key, model, reuse=None, without=None, differs=False):
++    """One brain.turn/1 record (design 3.5). A4: every string in it passes withhold(), so a secret-shaped text from a
++    source is never stored; 'without' and 'differs' feed the account (model_account)."""
+     if outcome not in OUTCOMES:raise ValueError('TURN_OUTCOME: %s' % outcome)
+-    return {
++    return _withheld_all({
+         'schema': SCHEMA, 'id': uuid.uuid4().hex, 'owner': request.owner, 'at': time.time(), 'state': 'KEPT',
+         'request': request.id, 'kind': kind.name, 'version': kind.version, 'brief_sha256': _DIGESTS[kind.name],
+         'switch': kind.switch, 'foreground': kind.caps.foreground, 'paper': kind.paper,
+@@ -696,14 +771,22 @@ def record(*, kind, request, messages, grammar, said, finish, odds, verdict, out
+         'timings': _timings(timings), 'key': key, 'model': model,
+         # A2: the watchdog's view of this turn (None when the port keeps no briefs): a miss counts here, never as an error
+         'reuse': _jsonable(reuse) if reuse is not None else None,
+-    }
++        # A4: the no-model answer's code this turn was asked against, and whether the value used differs from it
++        'without': without if without in FALLBACKS else None, 'differs': bool(differs),
++    })
++
++
++TOMBSTONE_KEEPS = ('switch', 'differs', 'without', 'deadline_ms')     # A4: counts only, for the account; never words
+ 
+ 
+ def tombstone(value, at=None):
+     """What Forget leaves: that a turn of this kind was asked and how it ended; no messages, answer, checks or views."""
+-    return {'schema': SCHEMA, 'id': value['id'], 'owner': value['owner'], 'at': value['at'], 'state': 'FORGOTTEN',
+-            'forgotten_at': at or time.time(), 'kind': value['kind'], 'version': value['version'],
+-            'outcome': value['outcome'], 'elapsed_ms': value['elapsed_ms'], 'foreground': value['foreground']}
++    stone = {'schema': SCHEMA, 'id': value['id'], 'owner': value['owner'], 'at': value['at'], 'state': 'FORGOTTEN',
++             'forgotten_at': at or time.time(), 'kind': value['kind'], 'version': value['version'],
++             'outcome': value['outcome'], 'elapsed_ms': value['elapsed_ms'], 'foreground': value['foreground']}
++    for name in TOMBSTONE_KEEPS:      # A4
++        if name in value:stone[name] = value[name] if name != 'without' or value[name] in FALLBACKS else None
++    return stone
+ 
+ 
+ def said_of(value):
+@@ -805,7 +888,7 @@ def listing(kernel, owner, kind=None, limit=50, before=None):
+         ensure(db)
+         rows = [json.loads(r[0]) for r in db.execute(query, params)]
+     keep = ('id', 'at', 'state', 'kind', 'version', 'outcome', 'fallback', 'why', 'elapsed_ms', 'price_ms', 'deadline_ms',
+-            'foreground', 'model')
++            'foreground', 'model', 'switch', 'without', 'differs')      # A4: the last three, for the account
+     return [{k: r.get(k) for k in keep if k in r} for r in rows]
+ 
+ 
+@@ -819,7 +902,9 @@ FIELDS = {
+     # 0.8.7 A3: the owner's switch per kind (execute, with Undo)
+     'brain.help.set': ({'switches': {'type': 'object', 'additionalProperties': False,
+                                      'properties': {name: {'type': 'boolean'} for name in SWITCHES}},
+-                        'undo': {'type': 'boolean'}}, []),
++                        'undo': {'type': 'boolean'},
++                        # 0.8.7 A4: ask the model again for a kind the honest null stopped (model_account)
++                        'ask_again': {'type': 'string', 'pattern': '^[A-Z_]{2,16}$', 'maxLength': 16}}, []),
+ }
+ SCOPES = {op: 'execute' if op == 'brain.help.set' else 'read' for op in FIELDS}
+ 
+@@ -831,7 +916,7 @@ def dispatch(kernel, op, args, principal):
+     if op == 'brain.turn.get':
+         return {'turn': get(kernel, principal.identity, args['id'])}
+     if op == 'brain.help.set':
+-        return set_switches(kernel, args.get('switches'), bool(args.get('undo')))
++        return set_switches(kernel, args.get('switches'), bool(args.get('undo')), args.get('ask_again'))
+     raise ValueError('Unknown turn operation')
+ 
+ 
+@@ -842,27 +927,51 @@ SWITCH_WORDS = {'understanding': 'Understanding your requests', 'reading': 'Read
+                 'choosing': 'Choosing between next steps', 'talk': 'Talk'}
+ 
+ 
+-def set_switches(kernel, changes=None, undo=False):
++HELP_AGAIN = 'brain.help.again'                    # A4: {kind: since}: the honest null counts only turns after `since`
++HELP_AGAIN_PREVIOUS = 'brain.help.again.previous'
++
++
++def asked_again(kernel):
++    """{kind: since (seconds)}: the kinds the owner asked the model again for after the honest null stopped them (A4)."""
++    try:
++        with kernel.db() as db:row = db.execute('SELECT value FROM settings WHERE key=?', (HELP_AGAIN,)).fetchone()
++        stored = json.loads(row[0]) if row else {}
++    except Exception:  # noqa: BLE001
++        stored = {}
++    return {str(k): float(v) for k, v in stored.items() if isinstance(v, (int, float)) and not isinstance(v, bool)}
++
++
++def set_switches(kernel, changes=None, undo=False, ask_again=None):
+     """Set the owner's switches (changes: {switch: bool}), or Undo the last setting. With every switch off, Kas is exactly
+-    0.8.6: no turn is sent, no record written, and every answer is the kind's no-model fallback."""
+-    if undo and changes:raise ValueError('BRAIN_HELP_ONE_THING: switches or undo, not both')
+-    if not undo and not changes:raise ValueError('BRAIN_HELP_NOTHING: name a switch to set')
++    0.8.6: no turn is sent, no record written, and every answer is the kind's no-model fallback. A4: ask_again (a kind's
++    name) asks the model again for a kind the honest null stopped; Undo puts back the switches and the asked-again kinds
++    exactly as they were before the last setting."""
++    if sum(bool(x) for x in (changes, undo, ask_again)) > 1:raise ValueError('BRAIN_HELP_ONE_THING: switches, ask_again or undo, one at a time')
++    if not undo and not changes and not ask_again:raise ValueError('BRAIN_HELP_NOTHING: name a switch to set')
+     if changes:
+         unknown = sorted(set(changes) - set(SWITCHES))
+         if unknown:raise ValueError('BRAIN_HELP_SWITCH: no switch named %s' % unknown[0])
+         if any(not isinstance(v, bool) for v in changes.values()):raise ValueError('BRAIN_HELP_SWITCH: on or off')
++    if ask_again and ask_again not in KNOWN_KINDS:raise ValueError('BRAIN_HELP_KIND: no kind of question named %s' % ask_again)
+     with kernel.db() as db:
+         db.execute('BEGIN IMMEDIATE')
+         row = db.execute('SELECT value FROM settings WHERE key=?', (HELP_KEY,)).fetchone()
+         current = {name: bool((json.loads(row[0]) if row else {}).get(name, on)) for name, on in SWITCHES.items()}
++        row = db.execute('SELECT value FROM settings WHERE key=?', (HELP_AGAIN,)).fetchone()
++        again = json.loads(row[0]) if row else {}
+         if undo:
+             prev = db.execute('SELECT value FROM settings WHERE key=?', (HELP_PREVIOUS,)).fetchone()
+             if not prev:raise ValueError('BRAIN_HELP_NOTHING_TO_UNDO')
+             new = {name: bool(json.loads(prev[0]).get(name, on)) for name, on in SWITCHES.items()}
++            prev_again = db.execute('SELECT value FROM settings WHERE key=?', (HELP_AGAIN_PREVIOUS,)).fetchone()
++            new_again = json.loads(prev_again[0]) if prev_again else again
+         else:
+-            new = {**current, **{name: bool(v) for name, v in changes.items()}}
++            new = {**current, **{name: bool(v) for name, v in (changes or {}).items()}}
++            new_again = {**again, ask_again: time.time()} if ask_again else again
+         db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_KEY, json.dumps(new, sort_keys=True)))
+         db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_PREVIOUS, json.dumps(current, sort_keys=True)))
+-    return {'switches': new, 'previous': current, 'all_off': not any(new.values()),
++        db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_AGAIN, json.dumps(new_again, sort_keys=True)))
++        db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_AGAIN_PREVIOUS, json.dumps(again, sort_keys=True)))
++    return {'switches': new, 'previous': current, 'all_off': not any(new.values()), 'asked_again': sorted(new_again),
+             'words': {name: '%s: %s' % (SWITCH_WORDS[name], 'on' if on else 'off') for name, on in new.items()},
+             'undo': {'op': 'brain.help.set', 'args': {'undo': True}}}
