@@ -80,6 +80,8 @@ const ITEMS = [
   { key: 'B8', task: `IF THERE IS ROOM IN 0.8.7, ITEM 4: QUESTIONS OVER YOUR SHEETS WITH BIND (lane B). Read the design ${D} section 7.3 item 4 and section 2.5. The Household November example of 2.5 (139.10 to 197.55); a value not in the column gives one question; half-matching values are exact or asked, never quietly matched. Exact decimals. Fake worker only.` },
   { key: 'C6b', task: `IF THERE IS ROOM IN 0.8.7, ITEM 5: CROSS-REFERENCES (lane C). Read the design ${D} section 7.3 item 5. Build crossrefs.py: Home Demo's § 12(b) and (c) wired to (a); a missing target said plainly; after a revision, unchanged links stay current and changed ones go to recheck. No model.` },
   { key: 'C6c', task: `IF THERE IS ROOM IN 0.8.7, ITEM 6: HER PHRASINGS, WRITTEN BY THE MODEL IN THE BACKGROUND (lane C). Read the design ${D} section 7.3 item 6, section 2.8 and open question 3's default (live wording off; in quiet moments the model drafts her phrasings, shown marked for the owner to keep or strike). Build voice_frame.py, phrasings.py and ledger.phrasing/1: spine level only; never during a hold, never on battery, never while the owner is working at the desk; a struck phrasing never shows; the same receipt gives the same words across a restart; every fact still through C4's gate. Fake worker only.` },
+  { key: 'C6d', task: `IF THERE IS ROOM IN 0.8.7, ITEM 7: THE SITTING FOR HER CHARACTER FILE (lane C). Read the design ${D} section 7.3 item 7, section 2.8 and open question 3's default. Build the sitting of about twenty minutes, split over two evenings if wanted: the owner's own draft kept word for word; eight answers from the owner's own desk in her plain words and in model wordings, two registers; the owner picks, edits or writes their own while the gate (C4) explains in plain words what it refuses; the result goes into the character file (C5) as a new revision, never anywhere else. With no model loaded, the sitting offers her plain words only and says why. Fake worker only.` },
+  { key: 'A6', task: `IF THERE IS ROOM IN 0.8.7, ITEM 8: CHECK IT IN YOUR LIBRARY, FROM TALK (lane A). Read the design ${D} section 7.3 item 8 and sections 2.6 and 2.11. Beside a Talk answer (marked 'the model's own words, from its memory, not from your files'), one button 'Check it in your Library' runs Ask the Library (C3) on the answer's claim and shows, marked, what the owner's own pages say and where, or 'the N places I looked at do not say'; it never turns the model's memory into a fact and never writes a record. Fake worker only.` },
 ]
 
 const PHASES = {
@@ -88,7 +90,7 @@ const PHASES = {
   3: ['B1', 'B2', 'C4'],
   4: ['B3', 'B4', 'B5', 'C3', 'A4'],
   5: ['A5', 'A5P', 'B6', 'C6a'],
-  6: ['B7', 'B8', 'C6b', 'C6c'],
+  6: ['B7', 'B8', 'C6b', 'C6c', 'C6d', 'A6'],
 }
 
 const F = it => `${OUT}/${it.key}.build.result.json`

@@ -268,6 +268,15 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 09:49 UTC: **The talk "between 0.8.7 and 0.8.8"** written and checked (`wip/2026-11-20_TALK_between_087_and_088.md`).
+  It found gaps no build task covered; closed now in the build scripts: **0.8.6 gains slice W** (phase 6, beside S8):
+  her column panel (Why, Rests on, Either way, What would settle it), Why in every card's right-click, the card kinds
+  goal, rule and word, Guide → "Try Rail Demo" / "Try Home Demo", and the Guide page if missing. **0.8.7 phase 6 gains
+  C6d** (the sitting) **and A6** (Check it in your Library). Left for the conversation before 0.8.8 (the talk's ten
+  questions, each with a default): what the test pass covers (default: the road's words, new tests and one review for
+  the safety rules, the maths and the logic core), the ThinkPad window check (default: with the floor in 0.8.8), "held"
+  for a kit already shipped (default: a tested 0.8.7.1 before 0.8.8), the blind sets, and the rest. The 0.8.6 and 0.8.7
+  release notes must correct four promises the talk lists (section 6), and say a guarded plug can fall back quietly.
 - 20 Nov 09:38 UTC: **0.8.6 phase 3 merged**: S3 (your word, her reasons; its smoke 45/45) and S4 (her dictionary,
   requests.read). The kernel and CLI registrations conflicted only by adding beside each other: both kept (merge helper
   scripts now in scratch `work/merge_phase.sh` and `work/finish_merge.sh`). Seed rebuilt; the window opened in both looks.
