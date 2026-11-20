@@ -172,6 +172,15 @@ switched the session's model.
 
 ## Asked by the owner, to do
 
+- 20 Nov 07:50 UTC, a small layout change ("not important"), with his own picture of a Struthio (an ostrich drawn with
+  circuit traces; kept in scratch `in/struthio_icon/struthio.png` until it goes into `branding/` with the RIGHTS note
+  his other art has): the Struthio icon upper right as the Apps button ("like a windows start menu"); the head's menus
+  moved right so Work lines up with the middle column; the 16-bar equalizer moved into the freed space upper left. A
+  mockup cut from the 0.8.4 screenshots was sent (scratch `work/head_mock/`). Default placement: with 0.8.6 (not the
+  0.8.5 kit, which is being cut). Asked: whether the Struthio also replaces the kp logo in the Kasandra look (default:
+  both looks, the kp logo kept in the Guide and the window icon) and where the equalizer sits in its space (default:
+  centred over the left column).
+
 - 19 Nov 22:15 UTC: "Discussion on what we did after the stuff finishes". When part B has finished and is merged (before
   cutting the 0.8.4 kit), stop and talk it through with the owner in plain words: what was built today and why, what the
   reviews caught, what is still open, what needs the owner's eye or decision, and what comes next. Then go on.
