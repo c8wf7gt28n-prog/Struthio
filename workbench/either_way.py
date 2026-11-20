@@ -208,6 +208,18 @@ def combine(choices, ways, budget=BUDGET):
     return {**out, 'state': DEPENDS, 'form': 'DEPENDS'}
 
 
+def worth_asking(found, choices, model_loaded=False):
+    """0.8.7 B2: whether asking anyone pays, for the fold "How I chose" (judgment.ways_route): every way agrees, so no one is
+    asked (EITHER_WAY); the one choice that matters is yours to say (OWNER: a revision, a counting rule, a sheet's
+    completeness); it is which numbered thing your words meant and a model is loaded (NEXT: its GOAL turn); or nothing is
+    asked (NONE). Never asks a model."""
+    from .judgment import ways_route
+    premise = None
+    if found.get('form') == 'DEPENDS_ON_ONE' and found.get('relevant'):
+        premise = next((c.premise for c in choices if c.name == found['relevant'][0]), None)
+    return ways_route(found.get('form'), premise, model_loaded)
+
+
 def question(about, choice, ways, model_loaded=False, proof=''):
     """The one question of a DEPENDS_ON_ONE: an OpenPoint whose outcomes are the buttons, one per value of the choice,
     each with the exact state and room of its way. Who asks it comes from the closed table (mind_types.who)."""
@@ -450,7 +462,8 @@ def judge_goal(kernel, principal, goal, *, choose=(), readings=None, at=None, un
                           open_points=(asked_q,) if asked_q else (), proof=proof, rests_on=tuple(rests), budget=found['budget'])
     public = [{k: v for k, v in w.items() if k != 'record'} for w in found['ways']]
     return {**base, **found, 'ways': public, 'records': [w['record'] for w in found['ways']], 'question': asked_q.as_record() if asked_q else None,
-            'words': lines, 'receipt': receipt, 'judgement': judgement.as_record(), 'proof': proof}
+            'words': lines, 'receipt': receipt, 'judgement': judgement.as_record(), 'proof': proof,
+            'worth_asking': worth_asking(found, choices, model_loaded)}
 
 
 # =========================================================================================================================
@@ -566,7 +579,8 @@ def period_ways(kernel, principal, clause=None, *, on=None, sheet=None, amount=N
                           ways=tuple(Way(choices=(('event', w['choice']['event']),), state=w['state'], room=w['room'], unit=w['unit'], answer=w['answer'],
                                          words=w['words']) for w in found['ways']), budget=found['budget'])
     return {**found, 'period': {k: period[k] for k in ('clause', 'words', 'count', 'event', 'source')}, 'question': asked_q.as_record() if asked_q else None,
-            'words': lines, 'receipt': receipt, 'judgement': judgement.as_record(), 'proof': proof, 'model_calls': 0}
+            'words': lines, 'receipt': receipt, 'judgement': judgement.as_record(), 'proof': proof, 'model_calls': 0,
+            'worth_asking': worth_asking(found, [choice], model_loaded)}
 
 
 # =========================================================================================================================

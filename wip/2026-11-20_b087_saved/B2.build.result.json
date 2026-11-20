@@ -1,0 +1,55 @@
+{
+  "item": "B2",
+  "slice": "0.8.7 B2: worth asking, and late (lane B)",
+  "status": "built",
+  "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/B2.patch",
+  "notes": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/B2.progress.md",
+  "patch_check": "985 lines; git apply --check passes on a clean extract of HEAD",
+  "files": {
+    "workbench/judgment.py": "new. Option with the five exact measures (settles as a Fraction, ms, undo class READ 0 / NAVIGATION 1 / CHANGE 2 / ASKS 3, licensed, unblocks; None means unknown), dominates (only when all five measures of both are known), front, default (lowest undo, most settled, fewest ms, then key: a total order on the options, so it never depends on input order), gate (1 FORCED, 2 EITHER_WAY, 3 BOTH_READ: at most 3 reads and 5 s, 4 DEFAULT: reads or navigation whose worst loss is at most the cost of asking, 5 OWNER: buttons and Leave it, never the model, 6 NEXT), late (a read or navigation with a known put-back time taken; otherwise BUTTONS), is_late (late exactly at the deadline), late_answer (AGREED, OFFER, UNUSABLE), next_price_ms, next_deadline_ms and asking_cost_ms over brain_clock (A3), ways_route for either way, and brute-force self-checks.",
+    "workbench/agent_loop.py": "choose_next runs the gate first. FORCED, EITHER_WAY and DEFAULT take one step and BOTH_READ takes every read, each with one line and no model. OWNER makes the assignment WAIT with buttons. NEXT asks the model as before, over the front. MODEL_PATIENCE and the 180 s wait are removed: a pending choice records asked_ms and deadline_ms from her clock. resolve_choice applies the late rule at the deadline exactly (late_choice). watch_late checks a late job's answer: if it agrees it adds a quiet note; if it differs it records an OFFER (or the model's lean beside the buttons) and inserts nothing. agent.resume gains an optional choose (a button key, the offer's key, or 'leave'), and resume without choose is Leave it. The plan JSON keeps question, late and offer only while they are open. A profile's measures can raise an undo class but never lower it. undo_class, needs_authority, scored, now_ms, model_clock, open_choices and choose_open are new.",
+    "workbench/settle.py": "next_step runs judgment.gate over the tied leaves before any brain. A tie holding a step that only you can settle gives BUTTONS with model_calls 0 and the brain is never called. One step left is DEDUCED. Otherwise NEXT goes to the brain as before. The result carries 'gate'. New template tie_yours.",
+    "workbench/either_way.py": "worth_asking(found, choices, model_loaded) adds a 'worth_asking' route to the judge_goal and period_ways results: EITHER_WAY, OWNER, NEXT (WHICH_GOAL with a model loaded), or NONE.",
+    "docs/GRAPHITE_0.1_REGISTRY.json": "regenerated in the copy with the three commands: agent.resume's argument digest changed and 'choose' was added; schema_digest changed"
+  },
+  "smoke": {
+    "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/B2/smoke_b2.py",
+    "output": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/B2/smoke.out",
+    "ran_on": "a throwaway copy, under nice/unshare with HOME in a temp dir. No model was loaded: model_answer and ask_model were patched as the fake worker, and agent_loop.now_ms and model_clock were patched as the fake clock. Kernel.launch and Kernel.submit were held.",
+    "printed": "SUMMARY 37 of 37 passed",
+    "highlights": [
+      "Gate vectors gave forced (FORCED, b removed by a), either way ('Either would do; I took the read (2 seconds).'), covering reads ('Both are quick reads, so I did both (2 seconds).') and not covering above 5 s.",
+      "Loss vectors: cost 6001 ms gave DEFAULT, 6000 gave DEFAULT, 5999 gave NEXT, and an unknown cost gave NEXT. An authority gave OWNER with buttons a, c, b, leave, and the model was not asked.",
+      "Brute force: over 3000 random sets of up to 8 options, the front never held a dominated option. Over 7560 permutations of up to 5 options, the gate, the default and the late rule never changed. The gate on 8 options took 0.12 ms.",
+      "Her clock on stand-in rates gives a NEXT price of 6650 ms and a deadline of 6000 ms. After three session lates, the cost of asking rose to the measured median of 40000 ms.",
+      "agent_loop with the fake clock: 1 ms before the deadline it was still waiting. At the deadline exactly, the read default was taken and ran: 'The model is late. I took the read by default: Look at memory'.",
+      "A late answer that differed gave an OFFER ('The model answered late: it would have taken “Look at storage”. Shall I?') and no storage step ran. The step was inserted only when agent.resume chose it. A late answer that agreed gave LATE_AGREED: 'The model answered late and agreed.'",
+      "A change default (documents.create) gave WAITING, 'The model is late. This needs you: ...', and buttons page, memory, Leave it. The trail was only [STEP, MODEL_CHOICE LATE], the plan was unchanged and the document count was unchanged. Leave it took nothing.",
+      "Regression: a choice pending the old way (only 'asked', 200 s ago) with a change default gave WAITING and buttons, never the change. MODEL_PATIENCE is gone.",
+      "In agent_loop, measured quick reads were both done without asking the model. An authority option went to you and the model was not called. With no measures and no model, the profile default was taken as before.",
+      "In settle, a tie between two YOU leaves gave BUTTONS with model_calls 0 (the brain raises if called). A tie between two MODEL leaves went to the brain, model_calls 1. either_way's worth_asking gave OWNER for a revision, EITHER_WAY when the ways agree, and NEXT or OWNER for WHICH_GOAL with or without a model."
+    ]
+  },
+  "decisions_where_design_was_silent_or_split": [
+    "Late with a change among the options: section 2.9 says 'if any option is a change', while 4.4, J6's worked example and the brief say the default decides. I followed 4.4 and J6: the default is taken if it is a read (or navigation with a known put-back time); otherwise buttons.",
+    "Loss bound: 3.4 says 'under' the cost of asking and J1 says 'at most'. I used at most, so a loss at the bound takes the default.",
+    "The worst loss is taken as the largest loss over the front, not only the default's loss, to be conservative.",
+    "An unknown measure is never assumed good. An option missing any measure is never dominated, never counts as quick, and never gives a bounded loss. So the existing agent profiles, which give no measures, are asked about exactly as before, and the existing agent_loop and profile_files test expectations still hold (not run, by the owner's rule).",
+    "agent_loop with NEXT and no model loaded still takes the profile's default (its first acceptable option), as today. J1 says buttons unless every option is a read, but profile_files' 'write the page' default and its test rely on this, and the assignment is the owner's own licence. The late rule does give buttons for a change, as the design requires.",
+    "In agent_loop the default stays the profile's first acceptable option unless every acceptable option carries measures. Then judgment.default applies, which is order-free.",
+    "Undo classes without measures: Kernel scope read 0. An execute operation is 2, or 3 if stacy_hand.ALWAYS_ASKS covers it. Approve or an unknown operation is 3. A profile's helpers: step is 2. Authority means the measures say so, or ALWAYS_ASKS gives 'yours to say' (tolerances, your word, rules, quotes). Measures may raise a Kernel operation's class but never lower it.",
+    "The late brain.ask job is not cancelled, so a late answer can still be checked and offered (J6). The design's cancel-at-deadline applies to turns.ask turns, which belong to lane A.",
+    "Buttons in agent_loop are needs_you entries of kind CHOICE (each with a key, Leave it last), MODEL_LEAN or OFFER. They are taken through agent.resume {id, choose}, an extension like AGENT-02's driver on agent.step, rather than a new operation, so no new operation had to be registered in the kernel, CLI, tool groups or cloud-private lists.",
+    "A late offer still open when the assignment finishes is dropped from the status. It stays on the record as a LATE_OFFER row in the investigation's steps.",
+    "In settle, tied leaves get settles from the existing _cover, undo READ for her own records or maths, and ASKS for a question to you or a new reading. Time is unknown, so nothing is dominated there: settle gains only the authority gate and FORCED."
+  ],
+  "not_done": [
+    "No window part: agent_qt shows the new needs_you entries as plain text. Clickable buttons and the 'How I chose' fold are not drawn. her_hand_qt.py is S7's and was not touched.",
+    "NEXT itself is not moved onto turns.ask, and the reason check and the order test are not built. That is B6 ('if room'). agent_loop still asks through brain.ask's choice mode, now with her deadline.",
+    "Two lates in a row narrowing the question (J4 ladder) is not built. Her clock records each agent_loop late (clock.observe LATE), so three lates in a session raise the cost of asking.",
+    "No new test files and no test suite, tiers or window checks were run (the owner's rule). Nothing was tested in the owner's sense, and nothing ran on the owner's ThinkPad.",
+    "No existing test was changed. I believe tests_integrated/test_agent_loop.py and test_profile_files.py still hold, because unmeasured options follow the old path, but they were not run."
+  ],
+  "s7_interfaces": "Not needed: the gate sits on agent_loop, settle and either_way only. brief.py, answer_check.py, phrases.py and her_hand_qt.py were not edited or imported.",
+  "registrations": "No new operation. agent.resume gained the optional 'choose' argument in agent_loop.FIELDS. The registry JSON was regenerated in the copy and copied back. MANIFEST.json and the seed are excluded from the patch."
+}

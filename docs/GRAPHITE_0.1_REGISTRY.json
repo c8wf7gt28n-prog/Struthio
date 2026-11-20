@@ -1619,8 +1619,9 @@
    "scope": "execute"
   },
   "agent.resume": {
-   "arguments": "7692bd7a403eb8792fc6597f4e24c491dcd8e19d77d50a5b92b831ead7258cd1",
+   "arguments": "54d890ac6d6f4876c051fa8330677b7fcd7173c5bfb35e630f06538e6a30e43c",
    "properties": {
+    "choose": "52ba84a4bbf396ba",
     "id": "d76a3cd568c70cee"
    },
    "scope": "execute"
@@ -8040,7 +8041,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "2dc10c47325e22fea362367bb899f3284ead0935b57114b2a4cacf7df2d312b1",
+ "schema_digest": "85f9e799ab6009570e4445878a8cd4a811b307f4f2598c3a61ee29f337207410",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

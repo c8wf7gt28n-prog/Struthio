@@ -1,0 +1,985 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 70777fd..4d4602a 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -1607,8 +1607,9 @@
+    "scope": "execute"
+   },
+   "agent.resume": {
+-   "arguments": "7692bd7a403eb8792fc6597f4e24c491dcd8e19d77d50a5b92b831ead7258cd1",
++   "arguments": "54d890ac6d6f4876c051fa8330677b7fcd7173c5bfb35e630f06538e6a30e43c",
+    "properties": {
++    "choose": "52ba84a4bbf396ba",
+     "id": "d76a3cd568c70cee"
+    },
+    "scope": "execute"
+@@ -7927,7 +7928,7 @@
+  },
+  "release": "Graphite 0.8.5",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "fade09b9d80d77810bddb75ad436b2a01c8d803c26c023d35f774a9976a79dd2",
++ "schema_digest": "1f3e452a4297e7b143f2bf4340a188dc857a58d89b409b8cb3d1eb2df866d8b6",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/agent_loop.py b/workbench/agent_loop.py
+index f9cb3e4..6c4a014 100644
+--- a/workbench/agent_loop.py
++++ b/workbench/agent_loop.py
+@@ -81,6 +81,26 @@ the resident Ledger service's existing 5 s tick (host_service.Coordinator.tick_a
+     all three are checked again under the guard before every single step, so Master Stop (which holds work before it takes
+     the dispatch lock), the setting turned off and the service's shutdown end a batch at the step in flight. It never raises.
+     pause_all(kernel, reason) pauses every READY and RUNNING assignment of any owner (the service side of Master Stop).
++
++Worth asking, and late (0.8.7 slice B2, judgment.py). The gate stands in front of the model question here:
++  - choose_next scores the acceptable options (judgment.Option: settles, ms, undo class, licensed, unblocks; a profile
++    may give them as the option's 'measures'; the undo class is otherwise read from the operation: a read 0, a change
++    with Undo 2, one that always asks, is approved or is not known 3, a profile's local helper 2), removes the dominated
++    ones and runs judgment.gate: FORCED, EITHER_WAY and DEFAULT take one step and BOTH_READ takes every read, each said in
++    one line ("Either would do; I took the read (2 seconds)."), with no model; OWNER (an option needs your authority)
++    asks you with buttons and never the model; NEXT asks the model as before, over the front. Options without measures
++    are never dominated and never assumed quick, so a profile that gives none is asked about exactly as before, and with
++    no model loaded the profile's default (its first acceptable option) is still taken: the assignment is yours, and its
++    profile's rule is the deduction.
++  - Late, by her clock (brain_clock): the old fixed 180 s wait is gone. A pending choice records asked_ms and its
++    deadline (judgment.next_deadline_ms: max(3 s, 2 x price + 1 s), capped by the kind); at the deadline exactly, the
++    default is taken only when it is a read or navigation that can be put back ("The model is late. I took the read by
++    default: ..."); otherwise nothing is taken, the assignment WAITS with "The model is late. This needs you:" and the
++    options as buttons (plan 'question'). The late job is still watched (plan 'late'): an answer that agrees is a quiet
++    note; one that differs is an offer (plan 'offer', or the model's lean beside the buttons) and changes nothing.
++  - agent.resume {id, choose?}: choose names a button of the open question (or the open offer, or 'leave' for Leave
++    it); the option is taken as your click. resume without choose leaves an open question unanswered (Leave it).
++  - now_ms() and model_clock() are module-level so a smoke script can drive them with a fake clock.
+ """
+ from __future__ import annotations
+ import contextlib
+@@ -110,7 +130,7 @@ FIELDS = {
+     'agent.step': ({'id': ID, 'driver': {'type': 'string', 'enum': ['desktop', 'service']}}, ['id']),  # AGENT-02: driver (recorded extension)
+     'agent.run': ({'id': ID, 'max_steps': {'type': 'integer', 'minimum': 1, 'maximum': 200}, 'max_seconds': {'type': 'number', 'minimum': 0.1, 'maximum': 28800}}, ['id']),
+     'agent.pause': ({'id': ID, 'reason': {'type': 'string', 'maxLength': 300}}, ['id']),
+-    'agent.resume': ({'id': ID}, ['id']),
++    'agent.resume': ({'id': ID, 'choose': {'type': 'string', 'minLength': 1, 'maxLength': 200}}, ['id']),   # 0.8.7 B2: choose (a button)
+     'agent.stop': ({'id': ID, 'reason': {'type': 'string', 'maxLength': 300}}, ['id']),
+     'agent.status': ({'id': ID}, []),
+     'agent.list': ({}, []),
+@@ -125,7 +145,6 @@ NOT_STEPPING = ('PAUSED', 'STOPPED', 'DONE', 'FAILED', 'WAITING')
+ FINISHED = ('DONE', 'STOPPED', 'FAILED')
+ SECRET = re.compile(r'(password|passphrase|secret|token|api_key|apikey|credential|private_key)', re.I)
+ PROGRAM_LIMIT = 8192        # the recorded program text stays within investigation.step's own bound
+-MODEL_PATIENCE = 180.0      # seconds a pending model choice may stay unanswered before the default is taken
+ MODEL_PROMPT_LIMIT = 600
+ CHOICE_OPERATION = 'agent:choose_next'
+ LEASE_SECONDS = 20          # AGENT-02: a driver's lease, renewed by every step it takes
+@@ -133,6 +152,7 @@ DRIVERS = ('desktop', 'service')
+ SETTING = 'agent.continue_when_closed'   # AGENT-02: the owner's setting (settings_registry; Kernel settings ledger.agent.continue_when_closed)
+ DRIVEN_BY_DESKTOP = 'ASSIGNMENT_DRIVEN_BY_DESKTOP'
+ STEPPABLE = ('READY', 'RUNNING')
++OPEN_KEYS = ('question', 'late', 'offer')   # 0.8.7 B2: kept in plan JSON while open
+ 
+ # request_profile: the words an owner uses for "numbers on the page" (owner decision 8). All three groups must be present.
+ _VERB = re.compile(r'\b(add(?:s|ed|ing)?\s+up|total(?:s|led|ling)?|sum(?:s|med|ming)?(?:\s+up)?|how\s+much|count(?:s|ed|ing)?|tally|tot\s+up)\b')
+@@ -187,6 +207,7 @@ def unpack(row):
+     plan = json.loads(state.get('plan') or '{}')
+     state['plan'] = list(plan.get('steps') or []); state['used'] = int(plan.get('used') or 0); state['seconds'] = float(plan.get('seconds') or 0.0)
+     state['model_turns'] = int(plan.get('model_turns') or 0); state['pending'] = plan.get('pending')
++    for name in OPEN_KEYS: state[name] = plan.get(name)   # 0.8.7 B2: the open question, the late job watched, the offer
+     state['budget'] = json.loads(state.get('budget') or '{}')
+     state['cursor'] = int(state.get('cursor') or 0)
+     state['driver'] = state.get('driver') if state.get('driver') in DRIVERS else None
+@@ -199,8 +220,11 @@ def unpack(row):
+ 
+ 
+ def plan_json(state):
+-    return json.dumps({'steps': state['plan'], 'used': state['used'], 'seconds': round(state['seconds'], 3), 'model_turns': state['model_turns'],
+-                       'pending': state.get('pending')}, sort_keys=True, default=str)
++    plan = {'steps': state['plan'], 'used': state['used'], 'seconds': round(state['seconds'], 3), 'model_turns': state['model_turns'],
++            'pending': state.get('pending')}
++    for name in OPEN_KEYS:
++        if state.get(name) is not None: plan[name] = state[name]   # 0.8.7 B2: kept only while open
++    return json.dumps(plan, sort_keys=True, default=str)
+ 
+ 
+ def load(db, ident, owner):
+@@ -280,6 +304,7 @@ def status_row(db, state, profile=None):
+     found = [{'id': c['id'], 'text': c['text'], 'evidence_state': c['evidence_state']} for c in claims if c['role'] == 'FINDING']
+     needs = [{'id': c['id'], 'text': c['text'], 'kind': 'QUESTION'} for c in claims if c['role'] == 'QUESTION']
+     if state['state'] == 'WAITING' and state.get('reason'): needs.append({'id': None, 'text': state['reason'], 'kind': 'WAITING'})
++    needs.extend(open_choices(state))   # 0.8.7 B2: her buttons, the model's late lean, its late offer
+     context = state['context'] or {}
+     inspect = [{'label': 'Investigation', 'kind': 'investigation', 'id': state['investigation']}]
+     documents = [d for d in [context.get('document')] + list(context.get('documents') or []) if isinstance(d, str)]
+@@ -396,7 +421,8 @@ def stop_investigation(kernel, state, reason):
+ 
+ 
+ def complete(kernel, state, reason=None):
+-    state.update(state='DONE', reason=reason or ('Finished: %d step%s ran' % (state['used'], '' if state['used'] == 1 else 's')), pending=None, model_job=None)
++    state.update(state='DONE', reason=reason or ('Finished: %d step%s ran' % (state['used'], '' if state['used'] == 1 else 's')), pending=None, model_job=None,
++                 question=None, late=None, offer=None)   # 0.8.7 B2: nothing stays open on a finished assignment
+     with opened(kernel) as db: investigations.settle(db, state['investigation'])
+ 
+ 
+@@ -448,9 +474,11 @@ def _step_once(kernel, ident, principal, driver='desktop'):
+         return report(kernel, state, None, words)
+     if state['state'] == 'READY': state.update(state='RUNNING', reason='')
+     bounded = bound(principal, budget)
++    if state.get('late'): watch_late(kernel, principal, state)   # 0.8.7 B2: a late answer is checked and offered, never taken
+     if state.get('pending'):
+         if resolve_choice(kernel, principal, state) is None:
+             return report(kernel, state, None, 'Waiting for the model to answer which step comes next')
++        if state['state'] == 'WAITING': return report(kernel, state, None, state['reason'])   # late, and the default is a change
+     try: current = profile.next(state)
+     except Exception as exc:
+         state.update(state='FAILED', reason='The procedure could not say what comes next: ' + words_of(exc))
+@@ -492,6 +520,7 @@ def _step_once(kernel, ident, principal, driver='desktop'):
+         return report(kernel, state, step_row, state['reason'])
+     words = None
+     if out.get('options'): words = choose_next(kernel, principal, state, out['options'], out.get('situation'))
++    if state['state'] == 'WAITING': return report(kernel, state, step_row, words or state['reason'])   # 0.8.7 B2: yours to say
+     if words is None:
+         following = profile.next(state)
+         words = 'Next: ' + following['purpose'] if following else 'Nothing further planned'
+@@ -501,21 +530,99 @@ def _step_once(kernel, ident, principal, driver='desktop'):
+ # -- choosing among options (the only place a model is consulted) --------------------------------------------------------------
+ 
+ def normalise_options(options):
+-    """At most four {key, purpose, step, acceptable}; 'acceptable' (default True) is the profile's mark for the current state."""
++    """At most four {key, purpose, step, acceptable[, measures]}; 'acceptable' (default True) is the profile's mark for the current
++    state; 'measures' (0.8.7 B2, optional) are what the gate weighs (judgment.Option's fields: settles, ms, undo, licensed,
++    unblocks, verdict, authority, put_back_ms)."""
+     out = []
+     for row in options or []:
+         if not isinstance(row, dict) or not isinstance(row.get('step'), dict): continue
+         step = normalise(row['step'])
+-        out.append({'key': str(row.get('key') or step['key']), 'purpose': str(row.get('purpose') or step['purpose'])[:300], 'step': step,
+-                    'acceptable': bool(row.get('acceptable', True))})
++        option = {'key': str(row.get('key') or step['key']), 'purpose': str(row.get('purpose') or step['purpose'])[:300], 'step': step,
++                  'acceptable': bool(row.get('acceptable', True))}
++        if isinstance(row.get('measures'), dict): option['measures'] = dict(row['measures'])
++        out.append(option)
+     return out[:4]
+ 
+ 
+ def default_of(options):
+-    """The profile's rule default: the first acceptable option (the first option when none is marked)."""
++    """The default: the profile's rule, its first acceptable option (the first option when none is marked); when every
++    acceptable option carries the gate's measures, the rule's default instead (judgment.default: the lowest undo class,
++    the most settled, the fewest ms, the key), which never depends on the order the options came in."""
++    acceptable = [o for o in options if o['acceptable']]
++    if acceptable and all(o.get('measures') for o in acceptable):
++        try:
++            from . import judgment
++            best = judgment.default(scored(None, acceptable))
++            if best is not None: return next(o for o in acceptable if o['key'] == best.key)
++        except (ValueError, TypeError, StopIteration): pass
+     return next((o for o in options if o['acceptable']), options[0])
+ 
+ 
++def undo_class(option):
++    """The option's undo class (judgment.READ 0, NAVIGATION 1, CHANGE 2, ASKS 3): its measures' when given, else from its
++    operation: a read 0; an execute operation 2, or 3 when stacy_hand.ALWAYS_ASKS covers it; approve, or an operation the
++    Kernel does not list, 3; a profile's local helper 2 (not known to be a read, so never taken as one), unless the
++    profile's measures say otherwise. A profile's measures may raise a Kernel operation's class, never lower it, so a
++    change can never be passed off as a read to the late rule."""
++    from . import judgment, stacy_hand
++    given = (option.get('measures') or {}).get('undo')
++    given = given if given in judgment.UNDO_CLASSES and not isinstance(given, bool) else None
++    step = option.get('step') or {}; operation = str(step.get('operation') or '')
++    if operation.startswith('helpers:'): return judgment.CHANGE if given is None else given
++    try:
++        from .engineering_kernel import CAPABILITIES
++        scope = CAPABILITIES.get(operation)
++    except Exception: scope = None
++    if scope == 'read': derived = judgment.READ
++    elif scope == 'execute': derived = judgment.ASKS if stacy_hand.why_asks(operation, step.get('arguments') or {}) else judgment.CHANGE
++    else: derived = judgment.ASKS
++    return derived if given is None else max(given, derived)
++
++
++def needs_authority(option):
++    """True when the option needs your authority: its measures say so, or its operation is one stacy_hand.ALWAYS_ASKS keeps
++    for you to say (a tolerance, your word, a rule, a quote's binding)."""
++    from . import stacy_hand
++    if (option.get('measures') or {}).get('authority') is True: return True
++    step = option.get('step') or {}
++    return 'yours to say' in stacy_hand.why_asks(str(step.get('operation') or ''), step.get('arguments') or {})
++
++
++def scored(kernel, options):
++    """The options as judgment.Option: their measures, their undo class and whether they need your authority."""
++    from . import judgment
++    out = []
++    for o in options:
++        m = dict(o.get('measures') or {})
++        out.append(judgment.option_of({'key': o['key'], 'words': o['purpose'], 'settles': m.get('settles'), 'ms': m.get('ms'), 'undo': undo_class(o),
++                                       'licensed': m.get('licensed'), 'unblocks': m.get('unblocks'), 'verdict': m.get('verdict'),
++                                       'authority': needs_authority(o), 'put_back_ms': m.get('put_back_ms'), 'acceptable': o['acceptable']}))
++    return out
++
++
++def now_ms():
++    """Wall-clock milliseconds (a pending choice outlives the process). Smoke scripts patch this with a fake clock."""
++    return time.time_ns() // 1000000
++
++
++def model_key(kernel):
++    """The selected local model's key as her clock files it (turns.LocalPort.key), or None when none is known."""
++    try:
++        from . import local_brain, turns
++        worker = local_brain.get(kernel, 'worker', {})
++        if not isinstance(worker, dict) or not worker.get('model_id'): return None
++        return turns.LocalPort(worker, kernel).key()
++    except Exception: return None
++
++
++def model_clock(kernel):
++    """(her clock, the model's key) for the deadline and the cost of asking. Smoke scripts patch this with a fake clock."""
++    from . import brain_clock
++    try: clock = brain_clock.clock(kernel)
++    except Exception: clock = brain_clock.Clock()
++    return clock, model_key(kernel)
++
++
+ def option_keys(options):
+     return [{'key': o['key'], 'purpose': o['purpose'], 'acceptable': o['acceptable']} for o in options]
+ 
+@@ -574,9 +681,9 @@ def model_answer(kernel, principal, job):
+     return {'choice': choice if isinstance(choice, int) and not isinstance(choice, bool) else None, 'text': str(value.get('text') or ''), 'state': state}
+ 
+ 
+-def take(state, option):
+-    """Insert the chosen option's step at the cursor (it runs next) and close the open choice."""
+-    state['plan'].insert(state['cursor'], normalise(option['step']))
++def take(state, option, at=0):
++    """Insert the chosen option's step at the cursor (it runs next; `at` places further steps after it) and close the open choice."""
++    state['plan'].insert(state['cursor'] + at, normalise(option['step']))
+     state['pending'] = None; state['model_job'] = None
+ 
+ 
+@@ -587,30 +694,154 @@ def record_choice(kernel, state, principal, kind, operation, arguments, outcome,
+                                       note + ': ' + chosen['purpose'], {'chosen': chosen['key'], 'decision': note, **(result or {})}, inputs, kind=kind)
+ 
+ 
++def record_open(kernel, state, principal, kind, operation, arguments, outcome, words, result=None):
++    """A choice row where nothing was taken (0.8.7 B2: a question, a late model with a change default, a late answer)."""
++    inputs = {'job': arguments['job']} if arguments.get('job') else {}
++    return investigations.record_step(kernel, state['investigation'], operation, arguments, principal, 'Choose the next step', outcome,
++                                      words, {'chosen': None, 'decision': words, **(result or {})}, inputs, kind=kind)
++
++
++def ask_you(state, options, words, route):
++    """The one question (0.8.7 B2): the assignment waits with her words and the options as buttons, then Leave it. Nothing is taken."""
++    from . import judgment
++    state['question'] = {'route': route, 'words': words, 'options': options, 'leave': judgment.LEAVE}
++    state.update(state='WAITING', reason=(words + ' ' + '; '.join(o['purpose'] for o in options) + '; or ' + judgment.LEAVE_WORDS)[:600],
++                 pending=None, model_job=None)
++
++
++def open_choices(state):
++    """The status row's buttons (kind CHOICE, each with its key, Leave it last), the model's late lean beside them (kind
++    MODEL_LEAN), and an open late offer (kind OFFER)."""
++    from . import judgment
++    out = []; question = state.get('question') or {}
++    for o in question.get('options') or ():
++        out.append({'id': None, 'text': o['purpose'], 'kind': 'CHOICE', 'key': o['key']})
++    if question:
++        out.append({'id': None, 'text': judgment.LEAVE_WORDS, 'kind': 'CHOICE', 'key': judgment.LEAVE})
++        lean = question.get('model_lean')
++        if lean: out.append({'id': None, 'text': lean['words'], 'kind': 'MODEL_LEAN', 'key': lean['key']})
++    offer = state.get('offer')
++    if offer: out.append({'id': None, 'text': offer['words'], 'kind': 'OFFER', 'key': offer['option']['key']})
++    return out
++
++
+ def choose_next(kernel, principal, state, options, situation=None):
+-    """At most four candidate next steps. The default is the first acceptable option. The model is asked only when more than one
+-    option is acceptable and one is READY (ask_model); otherwise, or when asking fails, the default is taken and the record says
+-    why. Returns words for the caller; a pending model answer is resolved by the next agent.step."""
++    """At most four candidate next steps. Worth asking? (0.8.7 B2) first: the gate takes the forced, either-way, covering-read and
++    bounded-loss cases itself, and puts a choice that needs your authority to you, never to the model; only a real tie goes to
++    the model, over the front. The default is the profile's rule (default_of). The model is asked only when more than one
++    option is acceptable and one is READY (ask_model); otherwise, or when asking fails, the default is taken and the record
++    says why. Returns words for the caller; a pending model answer is resolved by the next agent.step."""
++    from . import judgment
+     options = normalise_options(options)
+     if not options: return None
+     default = default_of(options); acceptable = [o for o in options if o['acceptable']]
+     note = 'no model loaded; default taken'
+     if len(acceptable) > 1:
+-        prompt = choice_prompt(situation or state['request'], options)
+-        try: job = ask_model(kernel, principal, prompt, len(options))
++        deadline = None
++        try:
++            clock, key = model_clock(kernel)
++            cost = judgment.asking_cost_ms(clock, key); deadline = judgment.next_deadline_ms(clock, key)
++            decision = judgment.gate(scored(kernel, acceptable), cost_ms=cost, model_ready=True)
++        except (ValueError, TypeError) as exc:     # measures the gate cannot read: asked as before, and the record says so
++            decision = None; note = 'the options could not be weighed (%s); no model loaded; default taken' % words_of(exc)
++        by = {o['key']: o for o in acceptable}
++        record = {'options': option_keys(options)}
++        if decision is not None: record['gate'] = decision.as_record()
++        if decision is not None and decision.route in ('FORCED', 'EITHER_WAY', 'DEFAULT', 'BOTH_READ'):
++            chosen = [by[k] for k in decision.take]
++            for n, option in enumerate(chosen): take(state, option, n)
++            record['chosen'] = chosen[0]['key']
++            record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, record, 'DONE', decision.words + ' (' + decision.fold + ')', chosen[0])
++            return decision.words + ' Next: ' + chosen[0]['purpose']
++        if decision is not None and decision.route == 'OWNER':
++            ask_you(state, [by[k] for k in decision.buttons if k in by], decision.words, 'OWNER')
++            record_open(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, record, 'ASKED', decision.words + ' (' + decision.fold + '); nothing taken')
++            return state['reason']
++        # NEXT: over the front when the gate removed dominated options, else over the options as the profile gave them
++        front = [by[k] for k in decision.front] if decision is not None and decision.removed else options
++        prompt = choice_prompt(situation or state['request'], front)
++        try: job = ask_model(kernel, principal, prompt, len(front))
+         except Exception as exc: job, note = None, 'the model could not be asked (%s); default taken' % words_of(exc)
+         if job:
+-            state['pending'] = {'job': str(job), 'options': options, 'asked': time.time(), 'prompt': prompt}; state['model_job'] = str(job)
+-            return 'Asked the model to pick among %d steps' % len(options)
++            if deadline is None:
++                clock, key = model_clock(kernel); deadline = judgment.next_deadline_ms(clock, key)
++            state['pending'] = {'job': str(job), 'options': front, 'asked': time.time(), 'asked_ms': now_ms(), 'deadline_ms': int(deadline),
++                                'prompt': prompt}
++            state['model_job'] = str(job)
++            return 'Asked the model to pick among %d steps' % len(front)
+     else: note = 'one acceptable option; taken' if acceptable else 'no option marked acceptable; the first taken'
+     take(state, default)
+     record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(options), 'chosen': default['key']}, 'DONE', note, default)
+     return 'Next: ' + default['purpose']
+ 
+ 
++def pending_deadline(kernel, pending):
++    """(asked_ms, deadline_ms) of a pending choice. A choice recorded before 0.8.7 (only 'asked', in seconds) is timed from then,
++    with the deadline her clock gives now."""
++    from . import judgment
++    asked_ms = pending.get('asked_ms')
++    if not isinstance(asked_ms, int) or isinstance(asked_ms, bool): asked_ms = int(float(pending.get('asked') or 0) * 1000)
++    deadline = pending.get('deadline_ms')
++    if not isinstance(deadline, int) or isinstance(deadline, bool) or deadline <= 0:
++        clock, key = model_clock(kernel); deadline = judgment.next_deadline_ms(clock, key)
++    return asked_ms, deadline
++
++
++def late_choice(kernel, principal, state, pending, options, asked_ms, deadline):
++    """The model is late (0.8.7 B2, design 4.4): the default only when it is a read or navigation that can be put back; otherwise
++    nothing is taken and the buttons are shown. The job is watched for a late answer (watch_late)."""
++    from . import judgment
++    job = pending.get('job'); default = default_of(options)
++    verdict = judgment.late(scored(kernel, options), default['key'])
++    try:
++        clock, key = model_clock(kernel)
++        clock.observe(key, 'NEXT', {'outcome': 'LATE', 'elapsed_ms': int(deadline), 'timings': {}})
++    except Exception: pass
++    arguments = {'job': job, 'mode': 'choice', 'choices': len(options), 'message': pending.get('prompt'), 'options': option_keys(options),
++                 'deadline_ms': int(deadline)}
++    state['late'] = {'job': job, 'options': options, 'taken': verdict.key, 'asked_ms': int(asked_ms)}
++    if verdict.action == 'TAKE':
++        chosen = next(o for o in options if o['key'] == verdict.key)
++        take(state, chosen)
++        record_choice(kernel, state, principal, 'MODEL_CHOICE', 'brain.ask', arguments, 'LATE', verdict.words.rsplit(':', 1)[0], chosen,
++                      {'job': job, 'pick': None, 'late': True})
++        return chosen
++    by = {o['key']: o for o in options}
++    ask_you(state, [by[k] for k in verdict.buttons if k in by], verdict.words, 'LATE')
++    record_open(kernel, state, principal, 'MODEL_CHOICE', 'brain.ask', arguments, 'LATE', verdict.words + ' nothing taken', {'job': job, 'pick': None, 'late': True})
++    return {'key': None}
++
++
++def watch_late(kernel, principal, state):
++    """A late job's answer, when it has come (0.8.7 B2): checked, recorded, and never taken. It agrees: a quiet note. It differs:
++    an offer beside hers (plan 'offer'), or the model's lean beside her buttons; no step is inserted, nothing runs."""
++    from . import judgment
++    late = state.get('late')
++    if not late: return None
++    try: answer = model_answer(kernel, principal, late['job'])
++    except Exception as exc: answer = {'choice': None, 'text': '', 'state': 'UNREADABLE: ' + words_of(exc)}
++    if answer is None: return None
++    if not isinstance(answer, dict): answer = {'choice': None, 'text': str(answer or ''), 'state': 'Completed'}
++    options = normalise_options(late.get('options'))
++    answered = bool(answer.get('text')) or answer.get('choice') is not None
++    if answered: state['model_turns'] += 1
++    number = pick(answer, len(options)); picked = options[number - 1]['key'] if number else None
++    outcome, words = judgment.late_answer(scored(kernel, options), late.get('taken'), picked)
++    if outcome == 'OFFER':
++        option = options[number - 1]
++        if state.get('question'): state['question']['model_lean'] = {'key': option['key'], 'words': words}
++        else: state['offer'] = {'option': option, 'words': words}
++    record_open(kernel, state, principal, 'MODEL_CHOICE', 'brain.ask', {'job': late['job'], 'mode': 'choice', 'choices': len(options),
++                'options': option_keys(options), 'late_answer': True}, 'LATE_' + outcome, words, {'job': late['job'], 'pick': number, 'answer': answer})
++    state['late'] = None
++    return outcome
++
++
+ def resolve_choice(kernel, principal, state):
+-    """Poll the open model choice. None while the answer is pending; otherwise the option taken (the model's when acceptable,
+-    else the default), after the MODEL_CHOICE row is recorded."""
++    """Poll the open model choice. None while the answer is pending and her clock's deadline has not come; at the deadline the
++    late rule (late_choice); otherwise the option taken (the model's when acceptable, else the default), after the MODEL_CHOICE
++    row is recorded."""
++    from . import judgment
+     pending = state.get('pending') or {}; options = normalise_options(pending.get('options')); job = pending.get('job')
+     if not options or not job:
+         state['pending'] = None; state['model_job'] = None; return {'key': None}
+@@ -618,8 +849,9 @@ def resolve_choice(kernel, principal, state):
+     try: answer = model_answer(kernel, principal, job)
+     except Exception as exc: answer, failure = {'choice': None, 'text': '', 'state': 'UNREADABLE'}, 'the model answer could not be read (%s)' % words_of(exc)
+     if answer is None:
+-        if time.time() - float(pending.get('asked') or 0) < MODEL_PATIENCE: return None
+-        answer, failure = {'choice': None, 'text': '', 'state': 'TIMED_OUT'}, 'the model did not answer in time'
++        asked_ms, deadline = pending_deadline(kernel, pending)
++        if not judgment.is_late(asked_ms, now_ms(), deadline): return None
++        return late_choice(kernel, principal, state, pending, options, asked_ms, deadline)
+     if not isinstance(answer, dict): answer = {'choice': None, 'text': str(answer or ''), 'state': 'Completed'}
+     answered = bool(answer.get('text')) or answer.get('choice') is not None
+     if answered: state['model_turns'] += 1
+@@ -638,6 +870,34 @@ def resolve_choice(kernel, principal, state):
+     return chosen
+ 
+ 
++def choose_open(kernel, principal, state, choose):
++    """agent.resume {id, choose} (0.8.7 B2): a button of the open question, the open offer, or Leave it ('leave'). The option is
++    taken as your click; Leave it takes nothing. Returns the words."""
++    from . import judgment
++    if state['state'] in FINISHED: raise ValueError('ASSIGNMENT_FINISHED: it is ' + state['state'])
++    watch_late(kernel, principal, state)
++    question = state.get('question'); offer = state.get('offer')
++    asked = normalise_options((question or {}).get('options'))
++    found = next((o for o in asked if o['key'] == choose), None)
++    if choose == judgment.LEAVE and (question or offer):
++        words = 'Left it: nothing taken'
++        record_open(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(asked), 'chosen': None}, 'LEFT', words)
++        if question: state['question'] = None
++        else: state['offer'] = None
++    elif found is not None:
++        take(state, found); state['question'] = None; words = 'You chose: ' + found['purpose']
++        record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(asked), 'chosen': found['key'], 'basis': 'owner_click'},
++                      'DONE', 'you chose', found)
++    elif offer and offer['option']['key'] == choose:
++        option = normalise_options([offer['option']])[0]
++        take(state, option); state['offer'] = None; words = 'You took the model’s late offer: ' + option['purpose']
++        record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys([option]), 'chosen': option['key'], 'basis': 'owner_click'},
++                      'DONE', 'you took the model’s late offer', option)
++    else: raise ValueError('ASSIGNMENT_NO_SUCH_CHOICE: nothing open is called ' + str(choose)[:60])
++    if state['state'] in ('PAUSED', 'WAITING'): state.update(state='READY', paused_reason=None, reason='')
++    return words
++
++
+ # -- run, pause, resume, stop, status, list ------------------------------------------------------------------------------------
+ 
+ def run(kernel, args, principal):
+@@ -663,8 +923,17 @@ def pause(kernel, args, principal):
+ 
+ 
+ def resume(kernel, args, principal):
++    """agent.resume: PAUSED and WAITING become READY. 0.8.7 B2: with choose, a button of the open question (or the open late
++    offer, or 'leave') is taken as your click (choose_open); without it, an open question is left (Leave it)."""
+     with opened(kernel) as db: ensure(db); state = load(db, args['id'], principal.identity)
++    if args.get('choose') is not None:
++        words = choose_open(kernel, principal, state, str(args['choose']))
++        return {'assignment': report(kernel, state, None, words)['assignment'], 'next': words}
+     if state['state'] not in ('PAUSED', 'WAITING'): raise ValueError('ASSIGNMENT_NOT_RESUMABLE: it is ' + state['state'])
++    if state.get('question'):
++        record_open(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(normalise_options(state['question'].get('options'))),
++                    'chosen': None}, 'LEFT', 'Left it: nothing taken')
++        state['question'] = None
+     state.update(state='READY', paused_reason=None, reason='')
+     return {'assignment': report(kernel, state)['assignment']}
+ 
+@@ -680,7 +949,7 @@ def stop(kernel, args, principal):
+                                    'message': pending.get('prompt'), 'options': option_keys(normalise_options(pending.get('options')))}, principal, 'Choose the next step',
+                                    'DROPPED', 'stopped before the model answered; nothing taken', {'job': pending['job'], 'decision': 'dropped'}, {'job': pending['job']}, kind='MODEL_CHOICE')
+         dropped = ' · the open model choice was dropped'
+-    state.update(state='STOPPED', reason='By you: ' + reason + dropped, pending=None, model_job=None, paused_reason=None)
++    state.update(state='STOPPED', reason='By you: ' + reason + dropped, pending=None, model_job=None, paused_reason=None, question=None, late=None, offer=None)
+     investigations.dispatch(kernel, 'investigation.stop', {'id': state['investigation'], 'reason': reason[:4000]}, principal)
+     return {'assignment': report(kernel, state)['assignment']}
+ 
+diff --git a/workbench/either_way.py b/workbench/either_way.py
+index 0e948d1..874198e 100644
+--- a/workbench/either_way.py
++++ b/workbench/either_way.py
+@@ -208,6 +208,18 @@ def combine(choices, ways, budget=BUDGET):
+     return {**out, 'state': DEPENDS, 'form': 'DEPENDS'}
+ 
+ 
++def worth_asking(found, choices, model_loaded=False):
++    """0.8.7 B2: whether asking anyone pays, for the fold "How I chose" (judgment.ways_route): every way agrees, so no one is
++    asked (EITHER_WAY); the one choice that matters is yours to say (OWNER: a revision, a counting rule, a sheet's
++    completeness); it is which numbered thing your words meant and a model is loaded (NEXT: its GOAL turn); or nothing is
++    asked (NONE). Never asks a model."""
++    from .judgment import ways_route
++    premise = None
++    if found.get('form') == 'DEPENDS_ON_ONE' and found.get('relevant'):
++        premise = next((c.premise for c in choices if c.name == found['relevant'][0]), None)
++    return ways_route(found.get('form'), premise, model_loaded)
++
++
+ def question(about, choice, ways, model_loaded=False, proof=''):
+     """The one question of a DEPENDS_ON_ONE: an OpenPoint whose outcomes are the buttons, one per value of the choice,
+     each with the exact state and room of its way. Who asks it comes from the closed table (mind_types.who)."""
+@@ -450,7 +462,8 @@ def judge_goal(kernel, principal, goal, *, choose=(), readings=None, at=None, un
+                           open_points=(asked_q,) if asked_q else (), proof=proof, rests_on=tuple(rests), budget=found['budget'])
+     public = [{k: v for k, v in w.items() if k != 'record'} for w in found['ways']]
+     return {**base, **found, 'ways': public, 'records': [w['record'] for w in found['ways']], 'question': asked_q.as_record() if asked_q else None,
+-            'words': lines, 'receipt': receipt, 'judgement': judgement.as_record(), 'proof': proof}
++            'words': lines, 'receipt': receipt, 'judgement': judgement.as_record(), 'proof': proof,
++            'worth_asking': worth_asking(found, choices, model_loaded)}
+ 
+ 
+ # =========================================================================================================================
+@@ -566,7 +579,8 @@ def period_ways(kernel, principal, clause=None, *, on=None, sheet=None, amount=N
+                           ways=tuple(Way(choices=(('event', w['choice']['event']),), state=w['state'], room=w['room'], unit=w['unit'], answer=w['answer'],
+                                          words=w['words']) for w in found['ways']), budget=found['budget'])
+     return {**found, 'period': {k: period[k] for k in ('clause', 'words', 'count', 'event', 'source')}, 'question': asked_q.as_record() if asked_q else None,
+-            'words': lines, 'receipt': receipt, 'judgement': judgement.as_record(), 'proof': proof, 'model_calls': 0}
++            'words': lines, 'receipt': receipt, 'judgement': judgement.as_record(), 'proof': proof, 'model_calls': 0,
++            'worth_asking': worth_asking(found, [choice], model_loaded)}
+ 
+ 
+ # =========================================================================================================================
+diff --git a/workbench/judgment.py b/workbench/judgment.py
+new file mode 100644
+index 0000000..695c4c8
+--- /dev/null
++++ b/workbench/judgment.py
+@@ -0,0 +1,380 @@
++"""Worth asking? The gate in front of every model question, and the late rule (0.8.7, "Kas's mind with the model,
++interwoven"; slice B2, lane B).
++
++Her rule is "the model proposes; the system disposes", and asking must pay (design 3.1, rule 3). Before a model is asked
++which of several next steps comes first, the desk asks itself whether asking pays. It scores each option on five exact
++measures from 0.8.5 and 0.8.6 and removes the options another one dominates (the front), then, in order (design 3.4,
++judgment lens J1):
++
++  1  FORCED      one option is left: "the only way"
++  2  EITHER_WAY  every option left gives the same verdict: the rule's default, "either way"
++  3  BOTH_READ   only reads, at most 3, at most 5 s together: do them all
++  4  DEFAULT     only reads or navigation that can be put back, and the worst loss is at most the cost of asking: the
++                 rule's default, said as such
++  5  OWNER       an option needs an authority (which revision, a tolerance, a counting rule, any permission): you, through
++                 her one question; the model never sees it
++  6  NEXT        otherwise the model is asked (when one is loaded); with none, the caller's no-model answer
++
++When she decides without the model she says so in one line ("Either would do; I took the read (2 seconds)."), and the
++fold "How I chose" names the route: the only way · either way · both read · the rule's default · yours to say · asked the
++model.
++
++The five measures (all exact, never a float; None where the desk does not know it, and an unknown measure is never
++assumed to be good):
++  settles    the exact share of the open outcomes the option would move out of "cannot tell" (a Fraction, higher better)
++  ms         its predicted time in whole milliseconds (lower better)
++  undo       its undo class: READ 0, NAVIGATION 1 (can be put back), CHANGE 2 (a change with Undo), ASKS 3 (a change that
++             always asks or cannot be undone) (lower better)
++  licensed   the owner's words back it (True better)
++  unblocks   how many open goals have a precondition it meets (higher better)
++An option dominates another when every measure of both is known, it is at least as good on all five and better on one.
++An option with any unknown measure is never dominated and dominates nothing: the gate is only as good as its inputs, and
++it never hides a choice it cannot weigh.
++
++The rule's default (no model, and the late default): the lowest undo class, then the most settled, then the fewest
++milliseconds, then the option's key (the planner's fixed name order). It is a total order on the options themselves, so
++it never depends on the order they came in.
++
++Late (design 4.4, J6): past the deadline of her clock the rule's default is taken only if it is a read, or navigation that
++can be put back; otherwise the buttons ("The model is late. This needs you:"). A late answer is still checked: when it
++agrees she says so quietly; when it differs it is offered beside hers and changes nothing.
++
++Pure Python: no Qt, no Kernel, no model (the deadline helpers take her clock and only read it). At most a few hundred
++comparisons per decision (at most 8 options, 5 measures), well inside the 5 ms the design allows.
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass
++from fractions import Fraction
++from itertools import permutations
++
++READ, NAVIGATION, CHANGE, ASKS = 0, 1, 2, 3
++UNDO_CLASSES = (READ, NAVIGATION, CHANGE, ASKS)
++UNDO_WORDS = {READ: 'a read', NAVIGATION: 'navigation that can be put back', CHANGE: 'a change with Undo', ASKS: 'a change that always asks'}
++MEASURES = ('settles', 'ms', 'undo', 'licensed', 'unblocks')
++ROUTES = ('NONE', 'FORCED', 'EITHER_WAY', 'BOTH_READ', 'DEFAULT', 'OWNER', 'NEXT')
++FOLD = {'NONE': 'nothing to choose', 'FORCED': 'the only way', 'EITHER_WAY': 'either way', 'BOTH_READ': 'both read',
++        'DEFAULT': "the rule's default", 'OWNER': 'yours to say', 'NEXT': 'asked the model'}
++COVERING_READS = 3                 # rung 3: at most this many reads ...
++COVERING_MS = 5000                 # ... at most this long together
++OPTIONS_MOST = 8                   # the gate weighs at most 8 options (NEXT itself shows at most 4)
++LEAVE = 'leave'                    # the last button of every question: Leave it
++LEAVE_WORDS = 'Leave it'
++
++WORDS = {
++    'forced': 'Only one way is left: {what}.',
++    'either_read': 'Either would do; I took the read ({time}).',
++    'either_other': 'Either would do; I took {what}.',
++    'both': 'Both are quick reads, so I did both ({time}).',
++    'all': 'These are quick reads, so I did all {n} ({time}).',
++    'default_read': 'Either would do; I took the read ({time}).',
++    'default_nav': 'Either would do; I took {what}, which can be put back.',
++    'owner': 'This is yours to say:',
++    'next': 'Each of these wins on something, so the model is asked which comes first.',
++    'next_no_model': 'Each of these wins on something, and no model is asked, so it is yours to say:',
++    'none': 'There is nothing to choose between.',
++    'late_read': 'The model is late. I took the read by default: {what}.',
++    'late_nav': 'The model is late. I took the default, which can be put back: {what}.',
++    'late_buttons': 'The model is late. This needs you:',
++    'late_agreed': 'The model answered late and agreed.',
++    'late_offer': 'The model answered late: it would have taken “{what}”. Shall I?',
++    'late_unusable': 'The model answered late, and its answer could not be used.',
++}
++
++
++# =========================================================================================================================
++# The options and their measures
++# =========================================================================================================================
++
++def _fraction(value):
++    if value is None:return None
++    if isinstance(value, bool):raise ValueError('JUDGMENT_MEASURE: settles is a share, not a yes or no')
++    if isinstance(value, float):raise ValueError('JUDGMENT_MEASURE: no floating point; give settles as a fraction')
++    found = Fraction(value) if not isinstance(value, Fraction) else value
++    if not 0 <= found <= 1:raise ValueError('JUDGMENT_MEASURE: settles is a share from 0 to 1')
++    return found
++
++
++def _whole(value, name, most=None):
++    if value is None:return None
++    if isinstance(value, bool) or not isinstance(value, int) or value < 0:raise ValueError('JUDGMENT_MEASURE: %s is a whole number' % name)
++    if most is not None and value > most:raise ValueError('JUDGMENT_MEASURE: %s is at most %d' % (name, most))
++    return value
++
++
++@dataclass(frozen=True)
++class Option:
++    """One next step the desk built, with its five measures (None where unknown) and what the gate needs besides."""
++    key: str
++    words: str = ''
++    settles: Fraction | None = None
++    ms: int | None = None
++    undo: int | None = None
++    licensed: bool | None = None
++    unblocks: int | None = None
++    verdict: str | None = None         # the verdict the desk reaches after it, when known (rung 2: either way)
++    authority: bool = False            # it needs the owner's authority (rung 5)
++    put_back_ms: int | None = None     # navigation: the time to put it back if it was the wrong one (a read needs none)
++    acceptable: bool = True
++
++    def __post_init__(self):
++        if not isinstance(self.key, str) or not self.key or len(self.key) > 200:raise ValueError('JUDGMENT_OPTION_KEY')
++        object.__setattr__(self, 'settles', _fraction(self.settles))
++        _whole(self.ms, 'ms');_whole(self.undo, 'undo', ASKS);_whole(self.unblocks, 'unblocks');_whole(self.put_back_ms, 'put_back_ms')
++        if self.licensed is not None and not isinstance(self.licensed, bool):raise ValueError('JUDGMENT_MEASURE: licensed is yes or no')
++
++    def measured(self):
++        """True when all five measures are known (only then can it dominate or be dominated)."""
++        return all(getattr(self, name) is not None for name in MEASURES)
++
++    def loss_ms(self):
++        """Its worst loss if it was the wrong pick: its time, plus putting it back (a read puts nothing back); None when
++        that is not known, or when it is a change (a change is never a bounded loss)."""
++        if self.ms is None or self.undo is None or self.undo > NAVIGATION:return None
++        if self.undo == READ:return self.ms
++        return None if self.put_back_ms is None else self.ms + self.put_back_ms
++
++    def as_record(self):
++        return {'key': self.key, 'words': self.words, 'settles': None if self.settles is None else str(self.settles), 'ms': self.ms,
++                'undo': self.undo, 'licensed': self.licensed, 'unblocks': self.unblocks, 'verdict': self.verdict, 'authority': self.authority,
++                'put_back_ms': self.put_back_ms, 'acceptable': self.acceptable}
++
++
++def option_of(row):
++    """An Option from a plain row ({'key', 'words' or 'purpose', and any of the measures; settles as an int or 'n/d'})."""
++    if isinstance(row, Option):return row
++    settles = row.get('settles')
++    if isinstance(settles, str):settles = Fraction(settles)
++    return Option(key=str(row.get('key') or ''), words=str(row.get('words') or row.get('purpose') or ''), settles=settles,
++                  ms=row.get('ms'), undo=row.get('undo'), licensed=row.get('licensed'), unblocks=row.get('unblocks'),
++                  verdict=row.get('verdict'), authority=bool(row.get('authority', False)), put_back_ms=row.get('put_back_ms'),
++                  acceptable=bool(row.get('acceptable', True)))
++
++
++def dominates(a, b):
++    """True when a dominates b: every measure of both known, a at least as good on all five and better on one."""
++    if not (a.measured() and b.measured()):return False
++    at_least = (a.settles >= b.settles and a.ms <= b.ms and a.undo <= b.undo and a.licensed >= b.licensed and a.unblocks >= b.unblocks)
++    better = (a.settles > b.settles or a.ms < b.ms or a.undo < b.undo or a.licensed > b.licensed or a.unblocks > b.unblocks)
++    return at_least and better
++
++
++def rank(option):
++    """The rule's default order: the lowest undo class, the most settled, the fewest ms, then the key. Unknown sorts last."""
++    return (option.undo is None, option.undo if option.undo is not None else 0,
++            option.settles is None, -(option.settles or 0),
++            option.ms is None, option.ms if option.ms is not None else 0,
++            option.key)
++
++
++def _checked(options):
++    found = [option_of(o) for o in options]
++    keys = [o.key for o in found]
++    if len(set(keys)) != len(keys):raise ValueError('JUDGMENT_OPTION_KEY: two options share a key')
++    if len(found) > OPTIONS_MOST:raise ValueError('JUDGMENT_OPTIONS: the gate weighs at most %d options' % OPTIONS_MOST)
++    return found
++
++
++def front(options):
++    """The acceptable options no other acceptable option dominates, in the rule's default order; and what was removed,
++    as ((key, the key of an option that dominates it), ...)."""
++    found = [o for o in _checked(options) if o.acceptable]
++    kept = [];removed = []
++    for o in found:
++        by = sorted((p for p in found if p is not o and dominates(p, o)), key=rank)
++        if by:removed.append((o.key, by[0].key))
++        else:kept.append(o)
++    return sorted(kept, key=rank), tuple(sorted(removed))
++
++
++def default(options):
++    """The rule's default among the acceptable options (None when none is acceptable): it never depends on their order."""
++    found = sorted((o for o in _checked(options) if o.acceptable), key=rank)
++    return found[0] if found else None
++
++
++# =========================================================================================================================
++# The gate
++# =========================================================================================================================
++
++def time_words(ms):
++    """'2 seconds' (whole seconds, rounded up), '1 second', or 'under a second'."""
++    if ms is None:return 'time not known'
++    whole = -(-int(ms) // 1000)
++    if whole <= 0:return 'under a second'
++    return '%d second%s' % (whole, '' if whole == 1 else 's')
++
++
++@dataclass(frozen=True)
++class Decision:
++    """What the gate decided: the route, the keys taken now (in order), the default, the front, what was removed, her one
++    line, whether the model is asked, and the buttons (keys, then Leave it) when it is yours to say."""
++    route: str
++    take: tuple = ()
++    default: str | None = None
++    front: tuple = ()
++    removed: tuple = ()
++    words: str = ''
++    ask: bool = False
++    buttons: tuple = ()
++    fold: str = ''
++    model_calls: int = 0
++
++    def as_record(self):
++        return {'route': self.route, 'take': list(self.take), 'default': self.default, 'front': list(self.front),
++                'removed': [list(r) for r in self.removed], 'words': self.words, 'ask': self.ask, 'buttons': list(self.buttons),
++                'fold': self.fold, 'model_calls': 0}
++
++
++def gate(options, cost_ms=None, model_ready=False):
++    """Worth asking? options: Options or rows (at most 8). cost_ms: the cost of asking the model a NEXT question on this
++    machine, in whole ms (her clock: asking_cost_ms), or None when not known (rung 4 then never applies). model_ready:
++    a model is loaded and its choosing switch is on. Never calls a model."""
++    kept, removed = front(options)
++    keys = tuple(o.key for o in kept)
++
++    def made(route, take=(), words='', buttons=()):
++        return Decision(route=route, take=tuple(take), default=kept[0].key if kept else None, front=keys, removed=removed, words=words,
++                        ask=route == 'NEXT' and model_ready, buttons=tuple(buttons), fold=FOLD[route])
++    if not kept:return made('NONE', words=WORDS['none'])
++    first = kept[0]
++    # 1 · forced
++    if len(kept) == 1:return made('FORCED', (first.key,), WORDS['forced'].format(what=first.words or first.key))
++    # 2 · either way: every option left gives the same verdict
++    verdicts = {o.verdict for o in kept}
++    if None not in verdicts and len(verdicts) == 1:
++        if first.undo == READ and first.ms is not None:said = WORDS['either_read'].format(time=time_words(first.ms))
++        else:said = WORDS['either_other'].format(what=first.words or first.key)
++        return made('EITHER_WAY', (first.key,), said)
++    # 3 · covering reads: only reads, at most 3, at most 5 s together: do them all
++    if len(kept) <= COVERING_READS and all(o.undo == READ and o.ms is not None for o in kept):
++        total = sum(o.ms for o in kept)
++        if total <= COVERING_MS:
++            said = WORDS['both'].format(time=time_words(total)) if len(kept) == 2 else WORDS['all'].format(n=len(kept), time=time_words(total))
++            return made('BOTH_READ', keys, said)
++    # 4 · only reads or navigation, and the worst loss is at most the cost of asking: the rule's default
++    losses = [o.loss_ms() for o in kept]
++    if cost_ms is not None and all(o.undo in (READ, NAVIGATION) for o in kept) and None not in losses and max(losses) <= int(cost_ms):
++        if first.undo == READ:said = WORDS['default_read'].format(time=time_words(first.ms))
++        else:said = WORDS['default_nav'].format(what=first.words or first.key)
++        return made('DEFAULT', (first.key,), said)
++    # 5 · an authority: you, through her one question (the model never sees it)
++    if any(o.authority for o in kept):return made('OWNER', (), WORDS['owner'], keys + (LEAVE,))
++    # 6 · otherwise the model, when one is ready; else the caller's no-model answer (the buttons by default)
++    if model_ready:return made('NEXT', (), WORDS['next'])
++    return made('NEXT', (), WORDS['next_no_model'], keys + (LEAVE,))
++
++
++# =========================================================================================================================
++# Late: a read by default, a change never
++# =========================================================================================================================
++
++@dataclass(frozen=True)
++class Late:
++    """What she does when the model is late: TAKE the default (a read, or navigation that can be put back) or BUTTONS."""
++    action: str
++    key: str | None
++    words: str
++    buttons: tuple = ()
++
++
++def is_late(asked_ms, now_ms, deadline_ms):
++    """Late exactly at the deadline: True when now - asked >= deadline (a deadline of 0 is Stop only: never late)."""
++    return bool(deadline_ms) and int(now_ms) - int(asked_ms) >= int(deadline_ms)
++
++
++def late(options, default_key=None):
++    """The late rule over the options the model was asked about: the default (the rule's default, or default_key when the
++    caller's own rule names it, as a profile's first acceptable option does) is taken when it is a read or navigation
++    that can be put back (its put-back time known); otherwise the buttons (the default first, then the rule's order, then
++    Leave it), and nothing is done."""
++    found = sorted((o for o in _checked(options) if o.acceptable), key=rank)
++    pick = next((o for o in found if o.key == default_key), None) if default_key is not None else None
++    pick = pick or (found[0] if found else None)
++    buttons = ((pick.key,) if pick else ()) + tuple(o.key for o in found if o is not pick) + (LEAVE,)
++    if pick is not None and pick.undo == READ:
++        return Late('TAKE', pick.key, WORDS['late_read'].format(what=pick.words or pick.key))
++    if pick is not None and pick.undo == NAVIGATION and pick.put_back_ms is not None:
++        return Late('TAKE', pick.key, WORDS['late_nav'].format(what=pick.words or pick.key))
++    return Late('BUTTONS', None, WORDS['late_buttons'], buttons)
++
++
++def late_answer(options, taken, picked):
++    """A late answer, checked: ('AGREED', words) when the model picked what was taken; ('OFFER', words) when it picked
++    another acceptable option (offered beside hers, nothing done); ('UNUSABLE', words) otherwise. taken may be None
++    (the buttons were shown): then any usable pick is an OFFER beside the buttons."""
++    by = {o.key: o for o in _checked(options)}
++    chosen = by.get(picked) if picked is not None else None
++    if chosen is None or not chosen.acceptable:return 'UNUSABLE', WORDS['late_unusable']
++    if taken is not None and chosen.key == taken:return 'AGREED', WORDS['late_agreed']
++    return 'OFFER', WORDS['late_offer'].format(what=chosen.words or chosen.key)
++
++
++# =========================================================================================================================
++# Her clock: the deadline of a NEXT question and the cost of asking it (brain_clock, lane A)
++# =========================================================================================================================
++
++def next_price_ms(clock, key):
++    """The price of a NEXT question on this key: her clock's price for the kind's typical new tokens and answer cap."""
++    from .brain_clock import BUDGETS
++    b = BUDGETS['NEXT']
++    return int(clock.price_ms(key, 'NEXT', b['new_typical'], b['answer'], 50))
++
++
++def next_deadline_ms(clock, key):
++    """max(3 s, 2 x price + 1 s), capped by the kind (turns.standard_deadline over brain_clock.caps('NEXT'))."""
++    from . import brain_clock
++    return int(brain_clock.deadline_ms(next_price_ms(clock, key), brain_clock.caps('NEXT')))
++
++
++def asking_cost_ms(clock, key):
++    """The cost of asking a NEXT question here: the measured median NEXT time on this key when there is one, else the
++    price (the specification's estimate); after three lates in a session her clock raises it to the measured median."""
++    measured = clock.measured_ms(key, 'NEXT') if hasattr(clock, 'measured_ms') else None
++    rule = int(measured) if measured is not None else next_price_ms(clock, key)
++    return int(clock.asking_cost_ms(key, 'NEXT', rule)) if hasattr(clock, 'asking_cost_ms') else rule
++
++
++# =========================================================================================================================
++# 0.8.6's either way: who a question of the ways goes to
++# =========================================================================================================================
++
++def ways_route(form, premise=None, model_loaded=False):
++    """How a judgement of every way was settled, for the fold "How I chose": EITHER_WAY (no one asked), OWNER (a choice
++    that is yours to say: which revision, a counting rule, whether a sheet is complete), NEXT (which numbered thing your
++    words meant, with a model loaded: its GOAL turn), or NONE (nothing is asked: the answer depends on more than one
++    thing, or the ways could not be combined). Never calls a model."""
++    from .mind_types import AUTHORITY, MODEL, who
++    if form == 'EITHER_WAY':return {'route': 'EITHER_WAY', 'fold': FOLD['EITHER_WAY'], 'model_calls': 0}
++    if form != 'DEPENDS_ON_ONE' or premise is None:return {'route': 'NONE', 'fold': FOLD['NONE'], 'model_calls': 0}
++    found_who, kind = who(premise, model_loaded)
++    if found_who == MODEL and kind != AUTHORITY:return {'route': 'NEXT', 'fold': 'which one your words meant: the model', 'model_calls': 0}
++    return {'route': 'OWNER', 'fold': FOLD['OWNER'], 'model_calls': 0}
++
++
++# =========================================================================================================================
++# Self-checks the smoke script calls (brute force; no test file, by the owner's rule for 0.8.6 and 0.8.7)
++# =========================================================================================================================
++
++def front_is_undominated(options):
++    """Brute force: no option in the front is dominated by any acceptable option, and every removed one is."""
++    kept, removed = front(options)
++    found = [o for o in _checked(options) if o.acceptable]
++    by = {o.key: o for o in found}
++    if any(dominates(p, o) for o in kept for p in found):return False
++    return all(dominates(by[b], by[r]) for r, b in removed)
++
++
++def order_free(options, cost_ms=None, model_ready=False):
++    """Every order of the options gives the same default and the same decision (checked over all permutations)."""
++    found = _checked(options)
++    first = None
++    for order in permutations(found):
++        d = gate(order, cost_ms, model_ready);here = (d.route, d.take, d.default, d.front, d.removed, d.buttons, getattr(default(order), 'key', None))
++        if first is None:first = here
++        elif here != first:return False
++    return True
++
++
++__all__ = ['Option', 'Decision', 'Late', 'option_of', 'dominates', 'rank', 'front', 'default', 'gate', 'late', 'late_answer', 'is_late',
++           'next_price_ms', 'next_deadline_ms', 'asking_cost_ms', 'ways_route', 'time_words', 'READ', 'NAVIGATION', 'CHANGE', 'ASKS']
+diff --git a/workbench/settle.py b/workbench/settle.py
+index 21ad565..77daf06 100644
+--- a/workbench/settle.py
++++ b/workbench/settle.py
+@@ -30,6 +30,11 @@ next_step(points, brain=None) is what she does next. When exactly one decisive l
+ is not needed: she says what she will read, works it out, or asks the one question, and no model is called. Where the best
+ steps truly tie, the NEXT options are the tied steps (at most three) and "none of these": at most four, put to the model
+ only when one is loaded and a brain is given, otherwise as buttons for you. A brain's answer is checked before it is used.
++0.8.7 B2: worth asking? (judgment.gate) stands in front of the brain. The tied steps are weighed (settles: the share a step
++decides; undo class: her own read or working out 0, a question to you or a new reading 3, neither being a step she can take
++back; authority: anything only you can settle), and a tie that holds a step only you can settle goes to you as buttons,
++never to the model; a step the others dominate is dropped, and one step left is taken. The result carries the gate's
++decision ('gate') and, as before, model_calls.
+ 
+ Kasandra writes nothing here: every operation is a read. No model is imported; a brain is only ever a callable passed in.
+ No float: shares and ends are exact Fractions.
+@@ -76,6 +81,7 @@ WORDS = {
+     'tie': 'These steps weigh the same, so I put them to you: {options}.',
+     'tie_model': 'These steps weigh the same, so the model was asked which comes first, and its pick was checked.',
+     'one_step': 'One thing is open, so I ask nothing else: {step}',
++    'tie_yours': 'These steps weigh the same, and settling one of them is yours to say, so I put them to you: {options}.',   # 0.8.7 B2
+     'complete': 'whether “{title}” is complete from {start} to the last day',
+     'credit': 'a credit of {amount} dated by the last day, from a statement not yet on the desk',
+ }
+@@ -317,6 +323,16 @@ def _pick(answer, count):
+     return answer if 1 <= answer <= count + 1 else None
+ 
+ 
++def _option(leaf):
++    """0.8.7 B2: a tied leaf as a step the gate weighs. settles: the share it decides (_cover); undo: her own read or working
++    out 0, a question to you or a new reading 3 (neither is a step she can take back); authority: anything only you can
++    settle (who YOU). Time is not known here, so no step is assumed quick and none is dominated."""
++    from . import judgment
++    own = leaf.who in (RECORDS, MATHS)
++    return judgment.Option(key=leaf.id, words=step_words(leaf), settles=min(Fraction(1), max(Fraction(0), _cover(leaf))),
++                           undo=judgment.READ if own else judgment.ASKS, authority=leaf.who == YOU)
++
++
+ def next_step(points, brain=None, model_loaded=False):
+     """What she does next over a question's open points: {'route', 'step', 'options', 'words', 'model_calls'}.
+     DEDUCED: exactly one decisive leaf is open, or one step weighs most; no one is asked anything that is not needed, and
+@@ -340,7 +356,18 @@ def next_step(points, brain=None, model_loaded=False):
+     top = [l for l in ranked if key(l) == key(ranked[0])]
+     if len(top) == 1 or WHO_RANK.get(top[0].who, 1) == 0:
+         return {'route': 'DEDUCED', 'step': shown(top[0]), 'options': [shown(top[0])], 'words': step_words(top[0]), 'model_calls': 0}
+-    options = [shown(l) for l in top[:NEXT_OPTIONS]] + [{'leaf': '', 'who': YOU, 'who_words': WHO_WORDS[YOU], 'decisive': '', 'words': NONE_OF_THESE}]
++    # 0.8.7 B2: worth asking? The tied steps are weighed before any model is asked.
++    from . import judgment
++    tied = top[:NEXT_OPTIONS]
++    decision = judgment.gate([_option(l) for l in tied], cost_ms=None, model_ready=brain is not None and model_loaded)
++    by = {l.id: l for l in tied}
++    if decision.route == 'FORCED':
++        leaf = by[decision.take[0]]
++        return {'route': 'DEDUCED', 'step': shown(leaf), 'options': [shown(leaf)], 'words': step_words(leaf), 'model_calls': 0, 'gate': decision.as_record()}
++    options = [shown(by[k]) for k in decision.front] + [{'leaf': '', 'who': YOU, 'who_words': WHO_WORDS[YOU], 'decisive': '', 'words': NONE_OF_THESE}]
++    if decision.route == 'OWNER':
++        return {'route': 'BUTTONS', 'step': None, 'options': options, 'words': WORDS['tie_yours'].format(options='; '.join(o['words'].rstrip('.') for o in options)),
++                'model_calls': 0, 'gate': decision.as_record()}
+     if brain is not None and model_loaded:
+         asked = {'turn': 'NEXT/1', 'options': ['%d. %s' % (n + 1, o['words']) for n, o in enumerate(options)]}
+         pick = _pick(brain(asked), len(options) - 1)

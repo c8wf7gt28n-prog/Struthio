@@ -30,6 +30,11 @@ next_step(points, brain=None) is what she does next. When exactly one decisive l
 is not needed: she says what she will read, works it out, or asks the one question, and no model is called. Where the best
 steps truly tie, the NEXT options are the tied steps (at most three) and "none of these": at most four, put to the model
 only when one is loaded and a brain is given, otherwise as buttons for you. A brain's answer is checked before it is used.
+0.8.7 B2: worth asking? (judgment.gate) stands in front of the brain. The tied steps are weighed (settles: the share a step
+decides; undo class: her own read or working out 0, a question to you or a new reading 3, neither being a step she can take
+back; authority: anything only you can settle), and a tie that holds a step only you can settle goes to you as buttons,
+never to the model; a step the others dominate is dropped, and one step left is taken. The result carries the gate's
+decision ('gate') and, as before, model_calls.
 
 Kasandra writes nothing here: every operation is a read. No model is imported; a brain is only ever a callable passed in.
 No float: shares and ends are exact Fractions.
@@ -76,6 +81,7 @@ WORDS = {
     'tie': 'These steps weigh the same, so I put them to you: {options}.',
     'tie_model': 'These steps weigh the same, so the model was asked which comes first, and its pick was checked.',
     'one_step': 'One thing is open, so I ask nothing else: {step}',
+    'tie_yours': 'These steps weigh the same, and settling one of them is yours to say, so I put them to you: {options}.',   # 0.8.7 B2
     'complete': 'whether “{title}” is complete from {start} to the last day',
     'credit': 'a credit of {amount} dated by the last day, from a statement not yet on the desk',
 }
@@ -317,6 +323,16 @@ def _pick(answer, count):
     return answer if 1 <= answer <= count + 1 else None
 
 
+def _option(leaf):
+    """0.8.7 B2: a tied leaf as a step the gate weighs. settles: the share it decides (_cover); undo: her own read or working
+    out 0, a question to you or a new reading 3 (neither is a step she can take back); authority: anything only you can
+    settle (who YOU). Time is not known here, so no step is assumed quick and none is dominated."""
+    from . import judgment
+    own = leaf.who in (RECORDS, MATHS)
+    return judgment.Option(key=leaf.id, words=step_words(leaf), settles=min(Fraction(1), max(Fraction(0), _cover(leaf))),
+                           undo=judgment.READ if own else judgment.ASKS, authority=leaf.who == YOU)
+
+
 def next_step(points, brain=None, model_loaded=False):
     """What she does next over a question's open points: {'route', 'step', 'options', 'words', 'model_calls'}.
     DEDUCED: exactly one decisive leaf is open, or one step weighs most; no one is asked anything that is not needed, and
@@ -340,7 +356,18 @@ def next_step(points, brain=None, model_loaded=False):
     top = [l for l in ranked if key(l) == key(ranked[0])]
     if len(top) == 1 or WHO_RANK.get(top[0].who, 1) == 0:
         return {'route': 'DEDUCED', 'step': shown(top[0]), 'options': [shown(top[0])], 'words': step_words(top[0]), 'model_calls': 0}
-    options = [shown(l) for l in top[:NEXT_OPTIONS]] + [{'leaf': '', 'who': YOU, 'who_words': WHO_WORDS[YOU], 'decisive': '', 'words': NONE_OF_THESE}]
+    # 0.8.7 B2: worth asking? The tied steps are weighed before any model is asked.
+    from . import judgment
+    tied = top[:NEXT_OPTIONS]
+    decision = judgment.gate([_option(l) for l in tied], cost_ms=None, model_ready=brain is not None and model_loaded)
+    by = {l.id: l for l in tied}
+    if decision.route == 'FORCED':
+        leaf = by[decision.take[0]]
+        return {'route': 'DEDUCED', 'step': shown(leaf), 'options': [shown(leaf)], 'words': step_words(leaf), 'model_calls': 0, 'gate': decision.as_record()}
+    options = [shown(by[k]) for k in decision.front] + [{'leaf': '', 'who': YOU, 'who_words': WHO_WORDS[YOU], 'decisive': '', 'words': NONE_OF_THESE}]
+    if decision.route == 'OWNER':
+        return {'route': 'BUTTONS', 'step': None, 'options': options, 'words': WORDS['tie_yours'].format(options='; '.join(o['words'].rstrip('.') for o in options)),
+                'model_calls': 0, 'gate': decision.as_record()}
     if brain is not None and model_loaded:
         asked = {'turn': 'NEXT/1', 'options': ['%d. %s' % (n + 1, o['words']) for n, o in enumerate(options)]}
         pick = _pick(brain(asked), len(options) - 1)

@@ -81,6 +81,26 @@ the resident Ledger service's existing 5 s tick (host_service.Coordinator.tick_a
     all three are checked again under the guard before every single step, so Master Stop (which holds work before it takes
     the dispatch lock), the setting turned off and the service's shutdown end a batch at the step in flight. It never raises.
     pause_all(kernel, reason) pauses every READY and RUNNING assignment of any owner (the service side of Master Stop).
+
+Worth asking, and late (0.8.7 slice B2, judgment.py). The gate stands in front of the model question here:
+  - choose_next scores the acceptable options (judgment.Option: settles, ms, undo class, licensed, unblocks; a profile
+    may give them as the option's 'measures'; the undo class is otherwise read from the operation: a read 0, a change
+    with Undo 2, one that always asks, is approved or is not known 3, a profile's local helper 2), removes the dominated
+    ones and runs judgment.gate: FORCED, EITHER_WAY and DEFAULT take one step and BOTH_READ takes every read, each said in
+    one line ("Either would do; I took the read (2 seconds)."), with no model; OWNER (an option needs your authority)
+    asks you with buttons and never the model; NEXT asks the model as before, over the front. Options without measures
+    are never dominated and never assumed quick, so a profile that gives none is asked about exactly as before, and with
+    no model loaded the profile's default (its first acceptable option) is still taken: the assignment is yours, and its
+    profile's rule is the deduction.
+  - Late, by her clock (brain_clock): the old fixed 180 s wait is gone. A pending choice records asked_ms and its
+    deadline (judgment.next_deadline_ms: max(3 s, 2 x price + 1 s), capped by the kind); at the deadline exactly, the
+    default is taken only when it is a read or navigation that can be put back ("The model is late. I took the read by
+    default: ..."); otherwise nothing is taken, the assignment WAITS with "The model is late. This needs you:" and the
+    options as buttons (plan 'question'). The late job is still watched (plan 'late'): an answer that agrees is a quiet
+    note; one that differs is an offer (plan 'offer', or the model's lean beside the buttons) and changes nothing.
+  - agent.resume {id, choose?}: choose names a button of the open question (or the open offer, or 'leave' for Leave
+    it); the option is taken as your click. resume without choose leaves an open question unanswered (Leave it).
+  - now_ms() and model_clock() are module-level so a smoke script can drive them with a fake clock.
 """
 from __future__ import annotations
 import contextlib
@@ -110,7 +130,7 @@ FIELDS = {
     'agent.step': ({'id': ID, 'driver': {'type': 'string', 'enum': ['desktop', 'service']}}, ['id']),  # AGENT-02: driver (recorded extension)
     'agent.run': ({'id': ID, 'max_steps': {'type': 'integer', 'minimum': 1, 'maximum': 200}, 'max_seconds': {'type': 'number', 'minimum': 0.1, 'maximum': 28800}}, ['id']),
     'agent.pause': ({'id': ID, 'reason': {'type': 'string', 'maxLength': 300}}, ['id']),
-    'agent.resume': ({'id': ID}, ['id']),
+    'agent.resume': ({'id': ID, 'choose': {'type': 'string', 'minLength': 1, 'maxLength': 200}}, ['id']),   # 0.8.7 B2: choose (a button)
     'agent.stop': ({'id': ID, 'reason': {'type': 'string', 'maxLength': 300}}, ['id']),
     'agent.status': ({'id': ID}, []),
     'agent.list': ({}, []),
@@ -125,7 +145,6 @@ NOT_STEPPING = ('PAUSED', 'STOPPED', 'DONE', 'FAILED', 'WAITING')
 FINISHED = ('DONE', 'STOPPED', 'FAILED')
 SECRET = re.compile(r'(password|passphrase|secret|token|api_key|apikey|credential|private_key)', re.I)
 PROGRAM_LIMIT = 8192        # the recorded program text stays within investigation.step's own bound
-MODEL_PATIENCE = 180.0      # seconds a pending model choice may stay unanswered before the default is taken
 MODEL_PROMPT_LIMIT = 600
 CHOICE_OPERATION = 'agent:choose_next'
 LEASE_SECONDS = 20          # AGENT-02: a driver's lease, renewed by every step it takes
@@ -133,6 +152,7 @@ DRIVERS = ('desktop', 'service')
 SETTING = 'agent.continue_when_closed'   # AGENT-02: the owner's setting (settings_registry; Kernel settings ledger.agent.continue_when_closed)
 DRIVEN_BY_DESKTOP = 'ASSIGNMENT_DRIVEN_BY_DESKTOP'
 STEPPABLE = ('READY', 'RUNNING')
+OPEN_KEYS = ('question', 'late', 'offer')   # 0.8.7 B2: kept in plan JSON while open
 
 # request_profile: the words an owner uses for "numbers on the page" (owner decision 8). All three groups must be present.
 _VERB = re.compile(r'\b(add(?:s|ed|ing)?\s+up|total(?:s|led|ling)?|sum(?:s|med|ming)?(?:\s+up)?|how\s+much|count(?:s|ed|ing)?|tally|tot\s+up)\b')
@@ -187,6 +207,7 @@ def unpack(row):
     plan = json.loads(state.get('plan') or '{}')
     state['plan'] = list(plan.get('steps') or []); state['used'] = int(plan.get('used') or 0); state['seconds'] = float(plan.get('seconds') or 0.0)
     state['model_turns'] = int(plan.get('model_turns') or 0); state['pending'] = plan.get('pending')
+    for name in OPEN_KEYS: state[name] = plan.get(name)   # 0.8.7 B2: the open question, the late job watched, the offer
     state['budget'] = json.loads(state.get('budget') or '{}')
     state['cursor'] = int(state.get('cursor') or 0)
     state['driver'] = state.get('driver') if state.get('driver') in DRIVERS else None
@@ -199,8 +220,11 @@ def unpack(row):
 
 
 def plan_json(state):
-    return json.dumps({'steps': state['plan'], 'used': state['used'], 'seconds': round(state['seconds'], 3), 'model_turns': state['model_turns'],
-                       'pending': state.get('pending')}, sort_keys=True, default=str)
+    plan = {'steps': state['plan'], 'used': state['used'], 'seconds': round(state['seconds'], 3), 'model_turns': state['model_turns'],
+            'pending': state.get('pending')}
+    for name in OPEN_KEYS:
+        if state.get(name) is not None: plan[name] = state[name]   # 0.8.7 B2: kept only while open
+    return json.dumps(plan, sort_keys=True, default=str)
 
 
 def load(db, ident, owner):
@@ -280,6 +304,7 @@ def status_row(db, state, profile=None):
     found = [{'id': c['id'], 'text': c['text'], 'evidence_state': c['evidence_state']} for c in claims if c['role'] == 'FINDING']
     needs = [{'id': c['id'], 'text': c['text'], 'kind': 'QUESTION'} for c in claims if c['role'] == 'QUESTION']
     if state['state'] == 'WAITING' and state.get('reason'): needs.append({'id': None, 'text': state['reason'], 'kind': 'WAITING'})
+    needs.extend(open_choices(state))   # 0.8.7 B2: her buttons, the model's late lean, its late offer
     context = state['context'] or {}
     inspect = [{'label': 'Investigation', 'kind': 'investigation', 'id': state['investigation']}]
     documents = [d for d in [context.get('document')] + list(context.get('documents') or []) if isinstance(d, str)]
@@ -396,7 +421,8 @@ def stop_investigation(kernel, state, reason):
 
 
 def complete(kernel, state, reason=None):
-    state.update(state='DONE', reason=reason or ('Finished: %d step%s ran' % (state['used'], '' if state['used'] == 1 else 's')), pending=None, model_job=None)
+    state.update(state='DONE', reason=reason or ('Finished: %d step%s ran' % (state['used'], '' if state['used'] == 1 else 's')), pending=None, model_job=None,
+                 question=None, late=None, offer=None)   # 0.8.7 B2: nothing stays open on a finished assignment
     with opened(kernel) as db: investigations.settle(db, state['investigation'])
 
 
@@ -448,9 +474,11 @@ def _step_once(kernel, ident, principal, driver='desktop'):
         return report(kernel, state, None, words)
     if state['state'] == 'READY': state.update(state='RUNNING', reason='')
     bounded = bound(principal, budget)
+    if state.get('late'): watch_late(kernel, principal, state)   # 0.8.7 B2: a late answer is checked and offered, never taken
     if state.get('pending'):
         if resolve_choice(kernel, principal, state) is None:
             return report(kernel, state, None, 'Waiting for the model to answer which step comes next')
+        if state['state'] == 'WAITING': return report(kernel, state, None, state['reason'])   # late, and the default is a change
     try: current = profile.next(state)
     except Exception as exc:
         state.update(state='FAILED', reason='The procedure could not say what comes next: ' + words_of(exc))
@@ -492,6 +520,7 @@ def _step_once(kernel, ident, principal, driver='desktop'):
         return report(kernel, state, step_row, state['reason'])
     words = None
     if out.get('options'): words = choose_next(kernel, principal, state, out['options'], out.get('situation'))
+    if state['state'] == 'WAITING': return report(kernel, state, step_row, words or state['reason'])   # 0.8.7 B2: yours to say
     if words is None:
         following = profile.next(state)
         words = 'Next: ' + following['purpose'] if following else 'Nothing further planned'
@@ -501,19 +530,97 @@ def _step_once(kernel, ident, principal, driver='desktop'):
 # -- choosing among options (the only place a model is consulted) --------------------------------------------------------------
 
 def normalise_options(options):
-    """At most four {key, purpose, step, acceptable}; 'acceptable' (default True) is the profile's mark for the current state."""
+    """At most four {key, purpose, step, acceptable[, measures]}; 'acceptable' (default True) is the profile's mark for the current
+    state; 'measures' (0.8.7 B2, optional) are what the gate weighs (judgment.Option's fields: settles, ms, undo, licensed,
+    unblocks, verdict, authority, put_back_ms)."""
     out = []
     for row in options or []:
         if not isinstance(row, dict) or not isinstance(row.get('step'), dict): continue
         step = normalise(row['step'])
-        out.append({'key': str(row.get('key') or step['key']), 'purpose': str(row.get('purpose') or step['purpose'])[:300], 'step': step,
-                    'acceptable': bool(row.get('acceptable', True))})
+        option = {'key': str(row.get('key') or step['key']), 'purpose': str(row.get('purpose') or step['purpose'])[:300], 'step': step,
+                  'acceptable': bool(row.get('acceptable', True))}
+        if isinstance(row.get('measures'), dict): option['measures'] = dict(row['measures'])
+        out.append(option)
     return out[:4]
 
 
 def default_of(options):
-    """The profile's rule default: the first acceptable option (the first option when none is marked)."""
+    """The default: the profile's rule, its first acceptable option (the first option when none is marked); when every
+    acceptable option carries the gate's measures, the rule's default instead (judgment.default: the lowest undo class,
+    the most settled, the fewest ms, the key), which never depends on the order the options came in."""
+    acceptable = [o for o in options if o['acceptable']]
+    if acceptable and all(o.get('measures') for o in acceptable):
+        try:
+            from . import judgment
+            best = judgment.default(scored(None, acceptable))
+            if best is not None: return next(o for o in acceptable if o['key'] == best.key)
+        except (ValueError, TypeError, StopIteration): pass
     return next((o for o in options if o['acceptable']), options[0])
+
+
+def undo_class(option):
+    """The option's undo class (judgment.READ 0, NAVIGATION 1, CHANGE 2, ASKS 3): its measures' when given, else from its
+    operation: a read 0; an execute operation 2, or 3 when stacy_hand.ALWAYS_ASKS covers it; approve, or an operation the
+    Kernel does not list, 3; a profile's local helper 2 (not known to be a read, so never taken as one), unless the
+    profile's measures say otherwise. A profile's measures may raise a Kernel operation's class, never lower it, so a
+    change can never be passed off as a read to the late rule."""
+    from . import judgment, stacy_hand
+    given = (option.get('measures') or {}).get('undo')
+    given = given if given in judgment.UNDO_CLASSES and not isinstance(given, bool) else None
+    step = option.get('step') or {}; operation = str(step.get('operation') or '')
+    if operation.startswith('helpers:'): return judgment.CHANGE if given is None else given
+    try:
+        from .engineering_kernel import CAPABILITIES
+        scope = CAPABILITIES.get(operation)
+    except Exception: scope = None
+    if scope == 'read': derived = judgment.READ
+    elif scope == 'execute': derived = judgment.ASKS if stacy_hand.why_asks(operation, step.get('arguments') or {}) else judgment.CHANGE
+    else: derived = judgment.ASKS
+    return derived if given is None else max(given, derived)
+
+
+def needs_authority(option):
+    """True when the option needs your authority: its measures say so, or its operation is one stacy_hand.ALWAYS_ASKS keeps
+    for you to say (a tolerance, your word, a rule, a quote's binding)."""
+    from . import stacy_hand
+    if (option.get('measures') or {}).get('authority') is True: return True
+    step = option.get('step') or {}
+    return 'yours to say' in stacy_hand.why_asks(str(step.get('operation') or ''), step.get('arguments') or {})
+
+
+def scored(kernel, options):
+    """The options as judgment.Option: their measures, their undo class and whether they need your authority."""
+    from . import judgment
+    out = []
+    for o in options:
+        m = dict(o.get('measures') or {})
+        out.append(judgment.option_of({'key': o['key'], 'words': o['purpose'], 'settles': m.get('settles'), 'ms': m.get('ms'), 'undo': undo_class(o),
+                                       'licensed': m.get('licensed'), 'unblocks': m.get('unblocks'), 'verdict': m.get('verdict'),
+                                       'authority': needs_authority(o), 'put_back_ms': m.get('put_back_ms'), 'acceptable': o['acceptable']}))
+    return out
+
+
+def now_ms():
+    """Wall-clock milliseconds (a pending choice outlives the process). Smoke scripts patch this with a fake clock."""
+    return time.time_ns() // 1000000
+
+
+def model_key(kernel):
+    """The selected local model's key as her clock files it (turns.LocalPort.key), or None when none is known."""
+    try:
+        from . import local_brain, turns
+        worker = local_brain.get(kernel, 'worker', {})
+        if not isinstance(worker, dict) or not worker.get('model_id'): return None
+        return turns.LocalPort(worker, kernel).key()
+    except Exception: return None
+
+
+def model_clock(kernel):
+    """(her clock, the model's key) for the deadline and the cost of asking. Smoke scripts patch this with a fake clock."""
+    from . import brain_clock
+    try: clock = brain_clock.clock(kernel)
+    except Exception: clock = brain_clock.Clock()
+    return clock, model_key(kernel)
 
 
 def option_keys(options):
@@ -574,9 +681,9 @@ def model_answer(kernel, principal, job):
     return {'choice': choice if isinstance(choice, int) and not isinstance(choice, bool) else None, 'text': str(value.get('text') or ''), 'state': state}
 
 
-def take(state, option):
-    """Insert the chosen option's step at the cursor (it runs next) and close the open choice."""
-    state['plan'].insert(state['cursor'], normalise(option['step']))
+def take(state, option, at=0):
+    """Insert the chosen option's step at the cursor (it runs next; `at` places further steps after it) and close the open choice."""
+    state['plan'].insert(state['cursor'] + at, normalise(option['step']))
     state['pending'] = None; state['model_job'] = None
 
 
@@ -587,30 +694,154 @@ def record_choice(kernel, state, principal, kind, operation, arguments, outcome,
                                       note + ': ' + chosen['purpose'], {'chosen': chosen['key'], 'decision': note, **(result or {})}, inputs, kind=kind)
 
 
+def record_open(kernel, state, principal, kind, operation, arguments, outcome, words, result=None):
+    """A choice row where nothing was taken (0.8.7 B2: a question, a late model with a change default, a late answer)."""
+    inputs = {'job': arguments['job']} if arguments.get('job') else {}
+    return investigations.record_step(kernel, state['investigation'], operation, arguments, principal, 'Choose the next step', outcome,
+                                      words, {'chosen': None, 'decision': words, **(result or {})}, inputs, kind=kind)
+
+
+def ask_you(state, options, words, route):
+    """The one question (0.8.7 B2): the assignment waits with her words and the options as buttons, then Leave it. Nothing is taken."""
+    from . import judgment
+    state['question'] = {'route': route, 'words': words, 'options': options, 'leave': judgment.LEAVE}
+    state.update(state='WAITING', reason=(words + ' ' + '; '.join(o['purpose'] for o in options) + '; or ' + judgment.LEAVE_WORDS)[:600],
+                 pending=None, model_job=None)
+
+
+def open_choices(state):
+    """The status row's buttons (kind CHOICE, each with its key, Leave it last), the model's late lean beside them (kind
+    MODEL_LEAN), and an open late offer (kind OFFER)."""
+    from . import judgment
+    out = []; question = state.get('question') or {}
+    for o in question.get('options') or ():
+        out.append({'id': None, 'text': o['purpose'], 'kind': 'CHOICE', 'key': o['key']})
+    if question:
+        out.append({'id': None, 'text': judgment.LEAVE_WORDS, 'kind': 'CHOICE', 'key': judgment.LEAVE})
+        lean = question.get('model_lean')
+        if lean: out.append({'id': None, 'text': lean['words'], 'kind': 'MODEL_LEAN', 'key': lean['key']})
+    offer = state.get('offer')
+    if offer: out.append({'id': None, 'text': offer['words'], 'kind': 'OFFER', 'key': offer['option']['key']})
+    return out
+
+
 def choose_next(kernel, principal, state, options, situation=None):
-    """At most four candidate next steps. The default is the first acceptable option. The model is asked only when more than one
-    option is acceptable and one is READY (ask_model); otherwise, or when asking fails, the default is taken and the record says
-    why. Returns words for the caller; a pending model answer is resolved by the next agent.step."""
+    """At most four candidate next steps. Worth asking? (0.8.7 B2) first: the gate takes the forced, either-way, covering-read and
+    bounded-loss cases itself, and puts a choice that needs your authority to you, never to the model; only a real tie goes to
+    the model, over the front. The default is the profile's rule (default_of). The model is asked only when more than one
+    option is acceptable and one is READY (ask_model); otherwise, or when asking fails, the default is taken and the record
+    says why. Returns words for the caller; a pending model answer is resolved by the next agent.step."""
+    from . import judgment
     options = normalise_options(options)
     if not options: return None
     default = default_of(options); acceptable = [o for o in options if o['acceptable']]
     note = 'no model loaded; default taken'
     if len(acceptable) > 1:
-        prompt = choice_prompt(situation or state['request'], options)
-        try: job = ask_model(kernel, principal, prompt, len(options))
+        deadline = None
+        try:
+            clock, key = model_clock(kernel)
+            cost = judgment.asking_cost_ms(clock, key); deadline = judgment.next_deadline_ms(clock, key)
+            decision = judgment.gate(scored(kernel, acceptable), cost_ms=cost, model_ready=True)
+        except (ValueError, TypeError) as exc:     # measures the gate cannot read: asked as before, and the record says so
+            decision = None; note = 'the options could not be weighed (%s); no model loaded; default taken' % words_of(exc)
+        by = {o['key']: o for o in acceptable}
+        record = {'options': option_keys(options)}
+        if decision is not None: record['gate'] = decision.as_record()
+        if decision is not None and decision.route in ('FORCED', 'EITHER_WAY', 'DEFAULT', 'BOTH_READ'):
+            chosen = [by[k] for k in decision.take]
+            for n, option in enumerate(chosen): take(state, option, n)
+            record['chosen'] = chosen[0]['key']
+            record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, record, 'DONE', decision.words + ' (' + decision.fold + ')', chosen[0])
+            return decision.words + ' Next: ' + chosen[0]['purpose']
+        if decision is not None and decision.route == 'OWNER':
+            ask_you(state, [by[k] for k in decision.buttons if k in by], decision.words, 'OWNER')
+            record_open(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, record, 'ASKED', decision.words + ' (' + decision.fold + '); nothing taken')
+            return state['reason']
+        # NEXT: over the front when the gate removed dominated options, else over the options as the profile gave them
+        front = [by[k] for k in decision.front] if decision is not None and decision.removed else options
+        prompt = choice_prompt(situation or state['request'], front)
+        try: job = ask_model(kernel, principal, prompt, len(front))
         except Exception as exc: job, note = None, 'the model could not be asked (%s); default taken' % words_of(exc)
         if job:
-            state['pending'] = {'job': str(job), 'options': options, 'asked': time.time(), 'prompt': prompt}; state['model_job'] = str(job)
-            return 'Asked the model to pick among %d steps' % len(options)
+            if deadline is None:
+                clock, key = model_clock(kernel); deadline = judgment.next_deadline_ms(clock, key)
+            state['pending'] = {'job': str(job), 'options': front, 'asked': time.time(), 'asked_ms': now_ms(), 'deadline_ms': int(deadline),
+                                'prompt': prompt}
+            state['model_job'] = str(job)
+            return 'Asked the model to pick among %d steps' % len(front)
     else: note = 'one acceptable option; taken' if acceptable else 'no option marked acceptable; the first taken'
     take(state, default)
     record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(options), 'chosen': default['key']}, 'DONE', note, default)
     return 'Next: ' + default['purpose']
 
 
+def pending_deadline(kernel, pending):
+    """(asked_ms, deadline_ms) of a pending choice. A choice recorded before 0.8.7 (only 'asked', in seconds) is timed from then,
+    with the deadline her clock gives now."""
+    from . import judgment
+    asked_ms = pending.get('asked_ms')
+    if not isinstance(asked_ms, int) or isinstance(asked_ms, bool): asked_ms = int(float(pending.get('asked') or 0) * 1000)
+    deadline = pending.get('deadline_ms')
+    if not isinstance(deadline, int) or isinstance(deadline, bool) or deadline <= 0:
+        clock, key = model_clock(kernel); deadline = judgment.next_deadline_ms(clock, key)
+    return asked_ms, deadline
+
+
+def late_choice(kernel, principal, state, pending, options, asked_ms, deadline):
+    """The model is late (0.8.7 B2, design 4.4): the default only when it is a read or navigation that can be put back; otherwise
+    nothing is taken and the buttons are shown. The job is watched for a late answer (watch_late)."""
+    from . import judgment
+    job = pending.get('job'); default = default_of(options)
+    verdict = judgment.late(scored(kernel, options), default['key'])
+    try:
+        clock, key = model_clock(kernel)
+        clock.observe(key, 'NEXT', {'outcome': 'LATE', 'elapsed_ms': int(deadline), 'timings': {}})
+    except Exception: pass
+    arguments = {'job': job, 'mode': 'choice', 'choices': len(options), 'message': pending.get('prompt'), 'options': option_keys(options),
+                 'deadline_ms': int(deadline)}
+    state['late'] = {'job': job, 'options': options, 'taken': verdict.key, 'asked_ms': int(asked_ms)}
+    if verdict.action == 'TAKE':
+        chosen = next(o for o in options if o['key'] == verdict.key)
+        take(state, chosen)
+        record_choice(kernel, state, principal, 'MODEL_CHOICE', 'brain.ask', arguments, 'LATE', verdict.words.rsplit(':', 1)[0], chosen,
+                      {'job': job, 'pick': None, 'late': True})
+        return chosen
+    by = {o['key']: o for o in options}
+    ask_you(state, [by[k] for k in verdict.buttons if k in by], verdict.words, 'LATE')
+    record_open(kernel, state, principal, 'MODEL_CHOICE', 'brain.ask', arguments, 'LATE', verdict.words + ' nothing taken', {'job': job, 'pick': None, 'late': True})
+    return {'key': None}
+
+
+def watch_late(kernel, principal, state):
+    """A late job's answer, when it has come (0.8.7 B2): checked, recorded, and never taken. It agrees: a quiet note. It differs:
+    an offer beside hers (plan 'offer'), or the model's lean beside her buttons; no step is inserted, nothing runs."""
+    from . import judgment
+    late = state.get('late')
+    if not late: return None
+    try: answer = model_answer(kernel, principal, late['job'])
+    except Exception as exc: answer = {'choice': None, 'text': '', 'state': 'UNREADABLE: ' + words_of(exc)}
+    if answer is None: return None
+    if not isinstance(answer, dict): answer = {'choice': None, 'text': str(answer or ''), 'state': 'Completed'}
+    options = normalise_options(late.get('options'))
+    answered = bool(answer.get('text')) or answer.get('choice') is not None
+    if answered: state['model_turns'] += 1
+    number = pick(answer, len(options)); picked = options[number - 1]['key'] if number else None
+    outcome, words = judgment.late_answer(scored(kernel, options), late.get('taken'), picked)
+    if outcome == 'OFFER':
+        option = options[number - 1]
+        if state.get('question'): state['question']['model_lean'] = {'key': option['key'], 'words': words}
+        else: state['offer'] = {'option': option, 'words': words}
+    record_open(kernel, state, principal, 'MODEL_CHOICE', 'brain.ask', {'job': late['job'], 'mode': 'choice', 'choices': len(options),
+                'options': option_keys(options), 'late_answer': True}, 'LATE_' + outcome, words, {'job': late['job'], 'pick': number, 'answer': answer})
+    state['late'] = None
+    return outcome
+
+
 def resolve_choice(kernel, principal, state):
-    """Poll the open model choice. None while the answer is pending; otherwise the option taken (the model's when acceptable,
-    else the default), after the MODEL_CHOICE row is recorded."""
+    """Poll the open model choice. None while the answer is pending and her clock's deadline has not come; at the deadline the
+    late rule (late_choice); otherwise the option taken (the model's when acceptable, else the default), after the MODEL_CHOICE
+    row is recorded."""
+    from . import judgment
     pending = state.get('pending') or {}; options = normalise_options(pending.get('options')); job = pending.get('job')
     if not options or not job:
         state['pending'] = None; state['model_job'] = None; return {'key': None}
@@ -618,8 +849,9 @@ def resolve_choice(kernel, principal, state):
     try: answer = model_answer(kernel, principal, job)
     except Exception as exc: answer, failure = {'choice': None, 'text': '', 'state': 'UNREADABLE'}, 'the model answer could not be read (%s)' % words_of(exc)
     if answer is None:
-        if time.time() - float(pending.get('asked') or 0) < MODEL_PATIENCE: return None
-        answer, failure = {'choice': None, 'text': '', 'state': 'TIMED_OUT'}, 'the model did not answer in time'
+        asked_ms, deadline = pending_deadline(kernel, pending)
+        if not judgment.is_late(asked_ms, now_ms(), deadline): return None
+        return late_choice(kernel, principal, state, pending, options, asked_ms, deadline)
     if not isinstance(answer, dict): answer = {'choice': None, 'text': str(answer or ''), 'state': 'Completed'}
     answered = bool(answer.get('text')) or answer.get('choice') is not None
     if answered: state['model_turns'] += 1
@@ -636,6 +868,34 @@ def resolve_choice(kernel, principal, state):
                   {'job': job, 'mode': 'choice', 'choices': len(options), 'message': pending.get('prompt'), 'options': option_keys(options)},
                   outcome, note, chosen, {'job': job, 'pick': number, 'answer': answer})
     return chosen
+
+
+def choose_open(kernel, principal, state, choose):
+    """agent.resume {id, choose} (0.8.7 B2): a button of the open question, the open offer, or Leave it ('leave'). The option is
+    taken as your click; Leave it takes nothing. Returns the words."""
+    from . import judgment
+    if state['state'] in FINISHED: raise ValueError('ASSIGNMENT_FINISHED: it is ' + state['state'])
+    watch_late(kernel, principal, state)
+    question = state.get('question'); offer = state.get('offer')
+    asked = normalise_options((question or {}).get('options'))
+    found = next((o for o in asked if o['key'] == choose), None)
+    if choose == judgment.LEAVE and (question or offer):
+        words = 'Left it: nothing taken'
+        record_open(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(asked), 'chosen': None}, 'LEFT', words)
+        if question: state['question'] = None
+        else: state['offer'] = None
+    elif found is not None:
+        take(state, found); state['question'] = None; words = 'You chose: ' + found['purpose']
+        record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(asked), 'chosen': found['key'], 'basis': 'owner_click'},
+                      'DONE', 'you chose', found)
+    elif offer and offer['option']['key'] == choose:
+        option = normalise_options([offer['option']])[0]
+        take(state, option); state['offer'] = None; words = 'You took the model’s late offer: ' + option['purpose']
+        record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys([option]), 'chosen': option['key'], 'basis': 'owner_click'},
+                      'DONE', 'you took the model’s late offer', option)
+    else: raise ValueError('ASSIGNMENT_NO_SUCH_CHOICE: nothing open is called ' + str(choose)[:60])
+    if state['state'] in ('PAUSED', 'WAITING'): state.update(state='READY', paused_reason=None, reason='')
+    return words
 
 
 # -- run, pause, resume, stop, status, list ------------------------------------------------------------------------------------
@@ -663,8 +923,17 @@ def pause(kernel, args, principal):
 
 
 def resume(kernel, args, principal):
+    """agent.resume: PAUSED and WAITING become READY. 0.8.7 B2: with choose, a button of the open question (or the open late
+    offer, or 'leave') is taken as your click (choose_open); without it, an open question is left (Leave it)."""
     with opened(kernel) as db: ensure(db); state = load(db, args['id'], principal.identity)
+    if args.get('choose') is not None:
+        words = choose_open(kernel, principal, state, str(args['choose']))
+        return {'assignment': report(kernel, state, None, words)['assignment'], 'next': words}
     if state['state'] not in ('PAUSED', 'WAITING'): raise ValueError('ASSIGNMENT_NOT_RESUMABLE: it is ' + state['state'])
+    if state.get('question'):
+        record_open(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(normalise_options(state['question'].get('options'))),
+                    'chosen': None}, 'LEFT', 'Left it: nothing taken')
+        state['question'] = None
     state.update(state='READY', paused_reason=None, reason='')
     return {'assignment': report(kernel, state)['assignment']}
 
@@ -680,7 +949,7 @@ def stop(kernel, args, principal):
                                    'message': pending.get('prompt'), 'options': option_keys(normalise_options(pending.get('options')))}, principal, 'Choose the next step',
                                    'DROPPED', 'stopped before the model answered; nothing taken', {'job': pending['job'], 'decision': 'dropped'}, {'job': pending['job']}, kind='MODEL_CHOICE')
         dropped = ' · the open model choice was dropped'
-    state.update(state='STOPPED', reason='By you: ' + reason + dropped, pending=None, model_job=None, paused_reason=None)
+    state.update(state='STOPPED', reason='By you: ' + reason + dropped, pending=None, model_job=None, paused_reason=None, question=None, late=None, offer=None)
     investigations.dispatch(kernel, 'investigation.stop', {'id': state['investigation'], 'reason': reason[:4000]}, principal)
     return {'assignment': report(kernel, state)['assignment']}
 
