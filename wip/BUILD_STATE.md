@@ -268,6 +268,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 14:12 UTC: Workflow launches now stop at an approval prompt that no one answers during wake-ups (twice
+  interrupted, 12:20 and 13:12). So builders now run as **single background agents** (Agent tool, worktree isolation),
+  each given the exact builder prompt the workflow would have sent, written to scratch `work/briefs/<release>_<KEY>.md`
+  by `work/briefs/extract.js SCRIPT KEY...` (it runs the workflow script with a stub agent()). Running now: 0.8.6 S5
+  and S6 (from their saved patches), 0.8.7 C1 (from its saved patch) and A2. Next when a slot frees: 0.8.7 A3 and C5;
+  merges as before (`work/merge_phase.sh`, `work/finish_merge.sh`).
 - 20 Nov 13:11 UTC: A 5-hour usage limit stopped everything at about 09:56 (reset 12:10), then the container restarted.
   **0.8.7 E0 and A1 merged** as a3dc57e (the turn contract; the sealed room, one real 4B start here passed every wall).
   Cut off and saved as patches with restart notes (the worktree diffs at the stop): 0.8.7 C1 (`work/b087/C1.patch`),
