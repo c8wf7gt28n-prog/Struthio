@@ -213,7 +213,7 @@ class Page(unittest.TestCase):
         host.tabs=type('Tabs',(),{'currentWidget':lambda _self:tab})()
         face=type('Face',(),{})();face.host=host
         def run(actions):
-            chain={};return [SlateFace.apply_on_page(face,a,'m','r',chain) for a in actions]   # one proposal: one chain
+            chain={};return [SlateFace.apply_on_page(face,a,'m','change the page',chain) for a in actions]   # one proposal: one chain (0.8.7 B1: a request that asks for a change)
         def act(revision,selection,change):return {'operation':'documents.edit','arguments':{'id':tab.document_id,'expected_revision':revision,'selection':selection,'change':change}}
         # append, then a paragraph style written for revision 2's paragraph 2: stale, not moved, the page keeps the heading off
         first,second=run([act(2,{'block':0,'start':0,'end':0},{'append':'Inserted line.'}),act(2,{'block':1,'start':0,'end':0},{'style':'Heading2'})])

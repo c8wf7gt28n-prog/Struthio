@@ -2994,6 +2994,9 @@ class SlateFace(QWidget):
         with that reason: a stale revision is refused, never rebased."""
         if not isinstance(action, dict) or action.get('operation') != 'documents.edit' or not isinstance(action.get('arguments'), dict):return None
         from .model_turn import not_applied_words, keeps_places
+        from . import stacy_hand      # 0.8.7 B1: an edit your words do not ask for is the model's pick alone: a card, at every dial
+        if stacy_hand.page_edit_basis(request) == stacy_hand.MODEL_PICK:
+            return {'applied': False, 'tab': None, 'words': stacy_hand.MODEL_PICK_CARD}
         tab = self.host.tabs.currentWidget()
         if not hasattr(tab, 'apply_model_edit'):
             return {'applied': False, 'tab': None, 'words': not_applied_words({'reason': 'no document page is open in the centre'})}

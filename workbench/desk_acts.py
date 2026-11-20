@@ -307,7 +307,59 @@ def said(envelope):
 
 # -- her hand's rule for acts (her door, desk_doers.run(door='her'), rules with it) ----------------------------------------
 
-def desk_hers(place, name, args=None, line=None):
+# == 0.8.7 B1 · the table a model's reading may name (design 3.4, READ step 2; 5.2) =======================================================
+# A view over ACTS: the acts a reading the model made (READ, or the goals of its GOAL pick) may lead to, each with its
+# verb in the owner's words. Nothing owner-only, no delete, no rename, no write, and no App verb: opening an App is not in
+# this pass's table at all (programs.*.open is in stacy_hand.HERS_FREE today, so a model's reading must never reach it).
+# A change in the table (set) still asks at every dial: its basis is the model's pick (stacy_hand.MODEL_PICK).
+MODEL_VERBS = {
+    'show': ('go.field', 'go.open', 'point.sheet', 'point.move', 'point.zoom', 'read.desk'),
+    'card': ('sheet.steps',),
+    'trace': ('sheet.trace',),
+    'compare': ('sheet.compare',),
+    'doubt': ('sheet.doubt',),
+    'what if': ('sheet.whatif',),
+    'set': ('hand.cell',),
+    'count': ('then.keep', 'then.count', 'then.back', 'then.end'),
+    'tidy': ('menu.close', 'sheet.close', 'go.back'),
+}
+MODEL_ACTS = tuple(dict.fromkeys(a for acts in MODEL_VERBS.values() for a in acts))
+# What is never in the table, and why (in words; the first that fits is said).
+NOT_FOR_A_MODEL = (
+    (('go.app',), 'opening an App is not something a reading of the model may do; it stays yours'),
+    (('head.open',), 'opening the Apps list or a head menu is not something a reading of the model may do'),
+    (('hand.trash',), 'deleting is never in a reading the model made'),
+    (('hand.rename',), 'renaming is never in a reading the model made'),
+    (('hand.write',), 'writing a file is never in a reading the model made'),
+)
+APP_VERBS = ('go.app',)     # and any Kernel operation programs.*: an App verb
+
+
+def model_may(name, args=None):
+    """(whether a reading the model made may name this act, why not in words). Only the acts of MODEL_VERBS; never an App
+    verb, never owner-only, never a delete, a rename or a write; head.open of the Apps list is an App verb too."""
+    name = str(name or '')
+    if name.startswith('programs.') or name in APP_VERBS or (name == 'head.open' and isinstance(args, dict) and args.get('menu') == 'Apps'):
+        return False, NOT_FOR_A_MODEL[0][1]
+    if name in ACTS and ACTS[name].owner_only:return False, 'only you do this'
+    for names, why in NOT_FOR_A_MODEL:
+        if name in names:return False, why
+    if name not in MODEL_ACTS:return False, 'it is not in the table of what a reading of the model may do'
+    return True, ''
+
+
+def reading_refused(acts):
+    """A reading (its acts, as names or (name, args) pairs) checked against the table: '' when every act is in it, else the
+    words of the first that is not (an App verb first)."""
+    for item in acts or ():
+        name, args = (item, None) if isinstance(item, str) else (item[0], item[1] if len(item) > 1 else None)
+        ok, why = model_may(name, args)
+        if not ok:return why
+    return ''
+# == end 0.8.7 B1 ===============================================================================================================
+
+
+def desk_hers(place, name, args=None, line=None, basis=None):
     """(whether this act is hers to do now without asking, why not in words). A read never asks. An act that navigates moves
     the owner's window: at Ask first it is offered, not done; at Do and show and Free hand it is done. A change is her
     hand's rule on its own Kernel operation (stacy_hand.hers), so what always asks still asks; for hand.step the step's line
@@ -316,10 +368,17 @@ def desk_hers(place, name, args=None, line=None):
     Given its arguments (`args` not None), the act's own rules come first: arguments its check refuses are never hers (a
     line break for type.put), and a right-click row is hers only by its key and only when it is on MENU_ROWS or PANEL_ROWS
     (its words could name any row). What this rule cannot see from the arguments alone, the doer sees on the window: that a
-    file hand.write names is already there (it then waits), or that opening Documents would start a document (refused)."""
+    file hand.write names is already there (it then waits), or that opening Documents would start a document (refused).
+
+    0.8.7 B1: `basis` is why the act is on the table (stacy_hand.BASES). On the model's pick alone ('model_pick'), an act
+    outside MODEL_VERBS is refused first (an App verb above all), and a change is never hers at any dial; reads and
+    navigation in the table are as before."""
     if name not in ACTS:return False, 'there is no act by that name'
     act = ACTS[name]
     if act.owner_only:return False, 'only you do this'
+    if basis == stacy_hand.MODEL_PICK:      # 0.8.7 B1
+        ok, why = model_may(name, args)
+        if not ok:return False, why
     if args is not None:
         try:args = check(name, args)
         except Refusal as refusal:return False, refusal.words
@@ -347,8 +406,8 @@ def desk_hers(place, name, args=None, line=None):
             return False, 'the step has no line to read'
     from .engineering_kernel import CAPABILITIES
     scope = CAPABILITIES.get(operation, 'approve')
-    if stacy_hand.hers(place, scope, operation, arguments):return True, ''
-    return False, stacy_hand.why_waits(place, scope, operation, arguments)
+    if stacy_hand.hers(place, scope, operation, arguments, basis):return True, ''
+    return False, stacy_hand.why_waits(place, scope, operation, arguments, basis)
 
 
 # -- the export, for later: what her model would be offered (nothing offers it now) -----------------------------------------

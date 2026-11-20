@@ -358,6 +358,7 @@ class HerHand(QObject):
         for g in goal_list:      # a desk-only turn runs without a word of agreement at Do and show and Free hand (it can be put back)
             g.agreed = place in ('show', 'free');g.agreed_by = 'shown' if g.agreed else ''
         t = Turn(text, goal_list, word)
+        t.basis = stacy_hand.basis_of(origin)       # 0.8.7 B1: goals the model picked (HER) carry basis model_pick to her door
         desk, state, world = self.read()
         t.world = world if (world.sheets and state.face == 'work') else self.world()
         t.snapshot = state;t.snapshot_digest = G.digest(desk)

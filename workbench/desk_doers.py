@@ -1556,7 +1556,7 @@ def her_door(host, name, args, turn):
     act = ACTS[name]
     if act.mark == 'changes':raise Refusal('NOT_OFFERED', REFUSALS['NOT_YET'])      # this slice: navigation and reads only
     place = stacy_hand.level(host)
-    hers, why = desk_acts.desk_hers(place, name, clean)
+    hers, why = desk_acts.desk_hers(place, name, clean, basis=getattr(turn, 'basis', None))   # 0.8.7 B1: a turn the model picked
     if not hers and not hand.authorised(turn, name, clean):
         if act.mark == 'navigates' and place == 'ask' and why == 'it moves your window, and my hand is at Ask first':
             raise Refusal('OFFERED', REFUSALS['OFFERED'])

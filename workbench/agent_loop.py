@@ -101,6 +101,15 @@ Worth asking, and late (0.8.7 slice B2, judgment.py). The gate stands in front o
   - agent.resume {id, choose?}: choose names a button of the open question (or the open offer, or 'leave' for Leave
     it); the option is taken as your click. resume without choose leaves an open question unanswered (Leave it).
   - now_ms() and model_clock() are module-level so a smoke script can drive them with a fake clock.
+
+Pick, never write (0.8.7 slice B1, stacy_hand's basis rule). The model's answer is a pick among the steps the procedure
+built; it never writes a step. A pick of a read is taken. A pick of the step the procedure's own rule takes with no model
+(the default) is taken on that rule (basis 'deduction'). Any other pick of a change (a step that is not a read, a local
+helper, an operation the Kernel does not list) is never taken on the pick alone, whatever the dial: the assignment WAITS
+with the card "The model suggests this. Nothing you said asks for it, so it's yours to say." (plan 'question', route
+MODEL_PICK, the model's pick first, then the other acceptable steps, then Leave it), its proposal carrying an origin on
+every argument (the procedure's deduction; never the model). Your press takes it, recorded "picked by the model, approved
+by you".
 """
 from __future__ import annotations
 import contextlib
@@ -862,12 +871,63 @@ def resolve_choice(kernel, principal, state):
         if answered: note = 'model answer unusable, default taken'
         else: note, outcome = 'the model job ended without an answer; default taken', 'FAILED'
     elif not options[number - 1]['acceptable']: chosen, note = default, 'model chose %d, not acceptable here, default taken' % number
-    else: chosen, note = options[number - 1], 'model chose option %d' % number
+    else:
+        chosen, note = options[number - 1], 'model chose option %d' % number
+        if pick_basis(chosen, default) == 'model_pick' and not pick_is_hers(chosen):   # 0.8.7 B1: a change on the model's pick alone
+            return model_pick_card(kernel, principal, state, pending, options, chosen, number, answer)
     take(state, chosen)
     record_choice(kernel, state, principal, 'MODEL_CHOICE', 'brain.ask',
                   {'job': job, 'mode': 'choice', 'choices': len(options), 'message': pending.get('prompt'), 'options': option_keys(options)},
                   outcome, note, chosen, {'job': job, 'pick': number, 'answer': answer})
     return chosen
+
+
+# -- 0.8.7 B1 · pick, never write: a change the model alone chose is a card, at every dial -------------------------------------------
+
+def pick_basis(option, default):
+    """The basis of the model's pick: 'deduction' when it is the step the desk's own rule takes with no model (the default),
+    else 'model_pick' (stacy_hand.BASES)."""
+    from . import stacy_hand
+    return stacy_hand.DEDUCTION if default is not None and option['key'] == default['key'] else stacy_hand.MODEL_PICK
+
+
+def pick_is_hers(option):
+    """Whether the model's pick of this option may be taken on the pick alone: only a read (stacy_hand.hers with basis
+    model_pick, at the freest place of the dial). A change, a local helper or an operation the Kernel does not list is not."""
+    from . import judgment, stacy_hand
+    step = option.get('step') or {}
+    scope = 'read' if undo_class(option) == judgment.READ else 'execute'
+    return stacy_hand.hers('free', scope, str(step.get('operation') or ''), step.get('arguments') or {}, stacy_hand.MODEL_PICK)
+
+
+def pick_proposal(state, option):
+    """The model's pick of a change as the owner's card proposal (stacy_hand.proposal): every argument with its origin. The
+    arguments are the step the procedure built from the assignment, never words of the model, so each one's origin is the
+    procedure's deduction; None if it cannot be put so (then nothing is offered but the buttons)."""
+    from . import stacy_hand
+    step = option.get('step') or {}
+    how = {'kind': 'DEDUCTION', 'proof': 'step %s of the %s procedure, built from your assignment' % (option['key'], state.get('profile') or 'assigned')}
+    try:
+        return stacy_hand.proposal(str(step.get('operation') or ''), {str(k): {'value': v, 'origin': how} for k, v in (step.get('arguments') or {}).items()},
+                                   stacy_hand.MODEL_PICK, option.get('purpose') or '')
+    except stacy_hand.NoOrigin:
+        return None
+
+
+def model_pick_card(kernel, principal, state, pending, options, chosen, number, answer):
+    """The model picked a change the desk's own rule would not take: nothing is taken. The assignment waits with the card
+    "The model suggests this. Nothing you said asks for it, so it's yours to say.", the model's pick first, the other
+    acceptable steps after it, then Leave it; the MODEL_CHOICE row says so."""
+    from . import stacy_hand
+    job = pending.get('job')
+    others = [o for o in options if o['acceptable'] and o['key'] != chosen['key']]
+    ask_you(state, [chosen] + others, stacy_hand.MODEL_PICK_CARD, 'MODEL_PICK')
+    state['question'].update(model_pick=chosen['key'], proposal=pick_proposal(state, chosen))
+    record_open(kernel, state, principal, 'MODEL_CHOICE', 'brain.ask',
+                {'job': job, 'mode': 'choice', 'choices': len(options), 'message': pending.get('prompt'), 'options': option_keys(options)},
+                'ASKED', stacy_hand.MODEL_PICK_CARD + ' (model chose option %d; nothing taken)' % number,
+                {'job': job, 'pick': number, 'answer': answer, 'basis': stacy_hand.MODEL_PICK, 'offered': chosen['key']})
+    return {'key': None}
 
 
 def choose_open(kernel, principal, state, choose):
@@ -885,9 +945,10 @@ def choose_open(kernel, principal, state, choose):
         if question: state['question'] = None
         else: state['offer'] = None
     elif found is not None:
+        picked = (question or {}).get('model_pick') == found['key']   # 0.8.7 B1: the model's pick, approved by you
         take(state, found); state['question'] = None; words = 'You chose: ' + found['purpose']
-        record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(asked), 'chosen': found['key'], 'basis': 'owner_click'},
-                      'DONE', 'you chose', found)
+        record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(asked), 'chosen': found['key'], 'basis': 'owner_click',
+                      **({'picked_by': 'model'} if picked else {})}, 'DONE', 'picked by the model, approved by you' if picked else 'you chose', found)
     elif offer and offer['option']['key'] == choose:
         option = normalise_options([offer['option']])[0]
         take(state, option); state['offer'] = None; words = 'You took the model’s late offer: ' + option['purpose']

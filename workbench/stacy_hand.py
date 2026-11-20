@@ -20,6 +20,11 @@ added to the program later asks until someone puts it on a list. ALWAYS_ASKS is 
 cannot be undone, or leaves the computer, asks even if it were ever named. A read never asks. Nothing here runs
 anything: it answers "is this hers to do now", "why does it ask" and "what line takes it back"; the window does the
 rest (shell2.SlateFace.stage).
+
+0.8.7 B1, pick, never write: hers() and why_waits() take the change's basis (owner_words, owner_click, deduction,
+model_pick); a change whose only basis is the model's pick is never hers at any place of the dial and comes as a card,
+"The model suggests this. Nothing you said asks for it, so it's yours to say."; a change put to the owner carries an
+origin on every argument (proposal(), origin()), and none is the model. See the block marked 0.8.7 B1 below.
 """
 import fnmatch
 import json
@@ -153,24 +158,181 @@ def why_asks(operation, arguments=None):
     return ''
 
 
-def hers(place, scope, operation, arguments=None):
+def hers(place, scope, operation, arguments=None, basis=None):
     """Whether, with the dial at `place`, an operation of this Kernel scope is hers to do now without asking: a read
     always; otherwise only an operation named on the list for that place, at the scope that place takes, and never one
-    that ALWAYS_ASKS covers."""
+    that ALWAYS_ASKS covers. 0.8.7 B1: `basis` is why the change is on the table (BASES); a change whose only basis is
+    the model's pick ('model_pick') is never hers, at any place of the dial. A read is unaffected."""
     if scope == 'read':return True               # a read never asks
+    if basis is not None and basis not in BASES:return False      # a basis no one knows is never taken as a good one
+    if basis == MODEL_PICK:return False          # 0.8.7 B1: pick, never write
     name = str(operation or '')
     if place not in ('show', 'free') or why_asks(name, arguments):return False
     if place == 'show':return scope == 'execute' and name in HERS_SHOW
     return scope in ('execute', 'approve') and name in HERS_FREE
 
 
-def why_waits(place, scope, operation, arguments=None):
-    """In words, why an operation that is not hers now waits for the owner: what always asks, the records' approval, the
-    dial (at Ask first, an operation she does by herself at another place), or the lists."""
+def why_waits(place, scope, operation, arguments=None, basis=None):
+    """In words, why an operation that is not hers now waits for the owner: what always asks, the model's pick alone
+    (0.8.7 B1), the records' approval, the dial (at Ask first, an operation she does by herself at another place), or the
+    lists."""
     if why_asks(operation, arguments):return why_asks(operation, arguments)
+    if scope != 'read' and (basis == MODEL_PICK or (basis is not None and basis not in BASES)):return MODEL_PICK_WHY
     if scope == 'approve' and str(operation or '') in HERS_FREE:return 'the records mark it for your approval'
     if place == 'ask' and hers('free', scope, operation, arguments):return 'my hand is at Ask first'
     return 'it is not among the things I do by myself'
+
+
+# == 0.8.7 B1 · Pick, never write (design 0.8.7, 5.2 and 3.5) ==========================================================================
+# The model proposes; the system disposes. Two rules live here, beside the dial they bind:
+#
+# THE BASIS RULE. Every change put to her hand says why it is on the table: the owner's words ('owner_words', a change word
+# of his outside quotes), his click ('owner_click', a button he pressed), a deduction of the desk's own rule ('deduction',
+# what she would have done with no model), or the model's pick ('model_pick'). A change whose only basis is the model's pick
+# is never hers at any place of the dial (hers() is False, why_waits() says MODEL_PICK_WHY); it comes as a card with
+# MODEL_PICK_CARD, and when the owner takes it the trail says APPROVED_PICK. Reads and navigation are unaffected.
+#
+# EVERY ARGUMENT SAYS WHERE IT CAME FROM. A change proposed to the owner carries each argument as {value, origin}; the
+# origin is one of ORIGINS: OWNER_WORDS (a span of his request), RECORD (a record at a revision, and a cell), SOURCE (a
+# source at a revision, a line, and whether the doorway flagged it), DEDUCTION (the proof). There is no MODEL origin:
+# arguments come from the option the desk built, never from the model's text, so a destination that appears only in the
+# model's words can never be offered. proposal() refuses any argument without an origin, and any origin that is not one of
+# the four (MODEL first among them). A destination taken from a file shows that line on the card (card()).
+OWNER_WORDS, OWNER_CLICK, DEDUCTION, MODEL_PICK = 'owner_words', 'owner_click', 'deduction', 'model_pick'
+BASES = (OWNER_WORDS, OWNER_CLICK, DEDUCTION, MODEL_PICK)
+MODEL_PICK_WHY = 'the model suggested this; nothing you said asks for it, so it is yours to say'
+MODEL_PICK_CARD = "The model suggests this. Nothing you said asks for it, so it's yours to say."
+APPROVED_PICK = 'picked by the model, approved by you'
+ORIGINS = ('OWNER_WORDS', 'RECORD', 'SOURCE', 'DEDUCTION')
+NEVER_AN_ORIGIN = 'MODEL'
+ORIGIN_NEEDS = {'OWNER_WORDS': ('start', 'end'), 'RECORD': ('id', 'rev'), 'SOURCE': ('id', 'rev', 'line', 'flagged'), 'DEDUCTION': ('proof',)}
+ORIGIN_MAY = {'OWNER_WORDS': ('text',), 'RECORD': ('cell',), 'SOURCE': ('text',), 'DEDUCTION': ()}
+
+
+class NoOrigin(ValueError):
+    """A change proposed with an argument that does not say where it came from, or says the model."""
+
+
+def basis_of(origin):
+    """The basis of a turn from the origin of its goals (her hand's 0.8.6 words: OWNER, HER, DEDUCED, WORK_ORDER): the goals
+    the model picked (HER, after a GOAL turn) are 'model_pick'; the late default is a deduction; the owner's own are his."""
+    return {'OWNER': OWNER_WORDS, 'HER': MODEL_PICK, 'DEDUCED': DEDUCTION, 'WORK_ORDER': OWNER_WORDS}.get(str(origin or ''), MODEL_PICK)
+
+
+def origin(kind, **where):
+    """One argument's origin, checked: {'kind': kind, ...where}. OWNER_WORDS {start, end[, text]} (a span of his request,
+    whole-number offsets); RECORD {id, rev[, cell]}; SOURCE {id, rev, line, flagged[, text]}; DEDUCTION {proof}. MODEL, or
+    any other kind, raises NoOrigin."""
+    if kind == NEVER_AN_ORIGIN:raise NoOrigin('ORIGIN_MODEL: no argument of a change comes from the model’s words')
+    if kind not in ORIGINS:raise NoOrigin('ORIGIN_UNKNOWN: %s is not where an argument can come from' % str(kind)[:40])
+    missing = [k for k in ORIGIN_NEEDS[kind] if k not in where]
+    extra = [k for k in where if k not in ORIGIN_NEEDS[kind] + ORIGIN_MAY[kind]]
+    if missing or extra:raise NoOrigin('ORIGIN_SHAPE: %s takes %s' % (kind, ', '.join(ORIGIN_NEEDS[kind] + ORIGIN_MAY[kind])))
+    if kind == 'OWNER_WORDS':
+        if not all(type(where[k]) is int and where[k] >= 0 for k in ('start', 'end')) or where['start'] >= where['end']:
+            raise NoOrigin('ORIGIN_SPAN: a span of your words is two whole-number offsets, the start before the end')
+    if kind == 'SOURCE':
+        if type(where['line']) is not int or where['line'] < 1 or type(where['flagged']) is not bool:
+            raise NoOrigin('ORIGIN_LINE: a source line is a whole number from 1, and whether it was flagged is yes or no')
+    if kind == 'DEDUCTION' and not (isinstance(where['proof'], str) and where['proof'].strip()):
+        raise NoOrigin('ORIGIN_PROOF: a deduction says its proof')
+    for k in ('id', 'rev'):
+        if k in where and not (isinstance(where[k], (str, int)) and not isinstance(where[k], bool) and str(where[k]).strip()):
+            raise NoOrigin('ORIGIN_RECORD: a record or a source is named by its id and its revision')
+    return {'kind': kind, **where}
+
+
+def argued(value, how):
+    """One argument with its origin: {'value': value, 'origin': origin(...)} (how: an origin dict, re-checked)."""
+    if not isinstance(how, dict):raise NoOrigin('ORIGIN_MISSING: the argument does not say where it came from')
+    return {'value': value, 'origin': origin(how.get('kind'), **{k: v for k, v in how.items() if k != 'kind'})}
+
+
+def proposal(operation, arguments, basis, words=''):
+    """A change put to the owner, checked: {'operation', 'arguments': {name: {value, origin}}, 'basis', 'words', 'hers_at'}.
+    Every argument must carry an origin from ORIGINS (NoOrigin otherwise, MODEL first); the basis must be one of BASES.
+    `hers_at` is the places of the dial where it is hers now, by the operation's Kernel scope (none for a model_pick)."""
+    name = str(operation or '')
+    if not name:raise NoOrigin('PROPOSAL_OPERATION: a change names its operation')
+    if basis not in BASES:raise NoOrigin('PROPOSAL_BASIS: %s is not a basis' % str(basis)[:40])
+    if not isinstance(arguments, dict):raise NoOrigin('PROPOSAL_ARGUMENTS: arguments are named')
+    checked = {}
+    for key, given in arguments.items():
+        if not isinstance(given, dict) or set(given) != {'value', 'origin'}:raise NoOrigin('ORIGIN_MISSING: %s does not say where it came from' % str(key)[:60])
+        checked[str(key)] = argued(given['value'], given['origin'])
+    scope = _scope(name)
+    return {'operation': name, 'arguments': checked, 'basis': basis, 'words': str(words)[:300],
+            'hers_at': [p for p, _ in LEVELS if hers(p, scope, name, values(checked), basis)]}
+
+
+def values(arguments):
+    """The plain arguments of a proposal's {value, origin} arguments, as the Kernel takes them."""
+    return {k: (v['value'] if isinstance(v, dict) and 'value' in v else v) for k, v in (arguments or {}).items()}
+
+
+def origins_of(found):
+    """Every argument's origin kind of a proposal (a dict as proposal() returns it); None where one has none."""
+    return {k: ((v.get('origin') or {}).get('kind') if isinstance(v, dict) else None) for k, v in ((found or {}).get('arguments') or {}).items()}
+
+
+def _scope(operation):
+    try:
+        from .engineering_kernel import CAPABILITIES
+        return CAPABILITIES.get(operation, 'approve')
+    except Exception:  # noqa: BLE001 - an operation the registry cannot say is not a read
+        return 'approve'
+
+
+def card(found):
+    """A model's pick of a change, as the owner's card: {'lead': MODEL_PICK_CARD, 'what', 'lines': [the source lines its
+    destinations were taken from], 'basis', 'buttons'}. The lead is said only for a model_pick; otherwise the dial's words."""
+    lines = []
+    for key, given in (found.get('arguments') or {}).items():
+        where = given.get('origin') or {}
+        if where.get('kind') == 'SOURCE':
+            lines.append('%s, from line %d of %s%s%s' % (key, where['line'], where['id'], (': “%s”' % where['text']) if where.get('text') else '',
+                                                        ' (a line the doorway flagged)' if where['flagged'] else ''))
+    lead = MODEL_PICK_CARD if found.get('basis') == MODEL_PICK else ''
+    return {'lead': lead, 'what': found.get('words') or found.get('operation'), 'lines': lines, 'basis': found.get('basis'),
+            'buttons': ('Do it', 'Leave it')}
+
+
+# The owner's change words for a page: a request of his that holds one (outside quotes) asks for a change to the page he has
+# open, so a page edit the model wrote for it has his words as its basis; a request with none (a question, a summary) does
+# not, and the model's edit is a card (design 5.2, App plans pass through the basis rule).
+# Verbs only: a word that is also a question's noun (title, heading, style, format, type) or an adjective (bold, clear,
+# plain) is left out, so "what is the title?" asks for no change.
+CHANGE_WORDS = frozenset((
+    'make', 'change', 'set', 'turn', 'put', 'give', 'add', 'append', 'insert', 'write', 'replace', 'swap', 'rewrite', 'reword',
+    'rephrase', 'fix', 'correct', 'edit', 'embolden', 'italicise', 'italicize', 'underline', 'highlight', 'emphasise', 'emphasize',
+    'restyle', 'reformat', 'remove', 'strip', 'draw', 'move', 'capitalise', 'capitalize', 'shorten', 'lengthen', 'unbold', 'convert'))
+
+
+def outside_quotes(text):
+    """The request without what stands in quotes (straight or curly) or after a colon that starts a pasted block."""
+    text = re.sub(r'“[^”]*”|"[^"]*"|‘[^’]*’', ' ', str(text or ''))
+    return text.split('\n\n', 1)[0]
+
+
+def asks_for_change(request):
+    """Whether the owner's request holds a change word of his, outside quotes."""
+    words = re.findall(r"[a-z]+", outside_quotes(request).casefold())
+    return any(w in CHANGE_WORDS for w in words)
+
+
+def page_edit_basis(request):
+    """The basis of a page edit the model wrote for the owner's request: 'owner_words' when his request asks for a change
+    (asks_for_change), else 'model_pick' (the edit then waits on its card, at every place of the dial)."""
+    return OWNER_WORDS if asks_for_change(request) else MODEL_PICK
+
+
+def model_pick_sweep(operations, places=('ask', 'show', 'free')):
+    """The basis rule over a registry ({operation: scope}): the (place, operation) pairs where a change on the model's pick
+    alone would be hers. It must be empty; the reads, hers at every place on any basis, are counted beside it."""
+    hers_on_pick = [(p, op) for op, scope in sorted(operations.items()) for p in places if scope != 'read' and hers(p, scope, op, None, MODEL_PICK)]
+    reads = sum(1 for op, scope in operations.items() for p in places if scope == 'read' and hers(p, scope, op, None, MODEL_PICK))
+    return {'hers_on_pick': hers_on_pick, 'reads_hers': reads}
+# == end 0.8.7 B1 ===============================================================================================================
 
 
 MAKE = re.compile(r'^\s*(?:please\s+)?(?:make|create|start|write|save|keep)\s+(?:me\s+)?(?:a|an)\s+(?:new\s+)?(?P<kind>folder|file|page|document|note)\s+(?:called|named)\s+'
@@ -247,10 +409,12 @@ def clean_guard(value):
     return out[:64]
 
 
-def record(state, words, line, undo='', word='', ok=True, now=None, guards=None):
+def record(state, words, line, undo='', word='', ok=True, now=None, guards=None, basis=None):
     """Add one act of hers to the trail kept in the session's state. Returns the entry. An Undo line is kept only if it is
-    one an Undo may run (undo_allowed)."""
+    one an Undo may run (undo_allowed). 0.8.7 B1: an act the model picked and the owner approved (basis 'model_pick',
+    run only after his press) says so in its words: "picked by the model, approved by you"."""
     guards = clean_guard(guards)
+    if basis == MODEL_PICK and APPROVED_PICK not in str(words):words = '%s · %s' % (str(words)[:200 - len(APPROVED_PICK) - 3], APPROVED_PICK)
     entry = {'at': time.strftime('%Y-%m-%d %H:%M', time.localtime(now)), 'words': str(words)[:200], 'line': str(line)[:1200],
              'undo': str(undo)[:1200] if undo_allowed(undo, guards) else '', 'word': str(word)[:200], 'state': 'done' if ok else 'refused', 'guard': guards}
     trail = [e for e in (state.get(TRAIL) or []) if isinstance(e, dict)]
