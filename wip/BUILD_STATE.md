@@ -209,6 +209,10 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 20 Nov 08:00: business-day holidays in 0.8.5 come only from a list typed in the line itself (the builder's reading of
+  "a list the owner admits as a source"); none are counted otherwise, and the receipt says "no holidays counted". An
+  admitted holiday calendar can come with 0.8.6's rule cards. The release notes say exactly this.
+
 - 19 Nov 23:10, asked of the owner, my recommendation taken unless the owner answers before the release pass:
   (a) replace the values from After Hours 07 that the shared files have held since 0.8.2 (record ids and a PDF hash in
   `tools/campaign_lib/fixture.py`, the settled current and powers in `cases_anchor.py` and `docs/CAMPAIGN.md`, the CSV
@@ -234,6 +238,8 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 08:00 UTC: money and dates merged (f9fffa8), reviewed and fixed (the first fix run was cut by the limit and
+  finished from its saved patch). Full suite on the whole of 0.8.5 running in both looks; then the 0.8.5 release.
 - 20 Nov 07:50 UTC: a goal for starting 0.8.8 was proposed to the owner (her mind finished and measured; the ThinkPad
   check run; reference frames and tests around the giant window files; a workspace backup for the drills; 0.8.8 designed
   by a group). **Not adopted.** The owner: "Not yet. We wait until after I run 87." So 0.8.8's goal is settled with him
