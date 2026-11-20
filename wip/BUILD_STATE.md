@@ -268,6 +268,16 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 08:30 UTC: **0.8.6 build started**, one phase per run of `wip/2026-11-14/workflow_scripts/graphite-086-kas-mind.js`
+  (Workflow with `scriptPath` and `args: {phase: N}`; scratch `work/b086/`). Phases from the design's section 6.2:
+  1 = S0 (the half-build of her door, merged) and S2 (dates delta, Home Demo); 2 = S1 (mind_types and the exact goal
+  face) and L (the owner's head and footer layout, Struthio icon, equalizer D, meters H); 3 = S3 (your word, her
+  reasons) and S4 (her dictionary); 4 = S5 (either way, settle) and S6 (quotes, rule cards); 5 = S7 (brief, checker,
+  phrasebook, buttons) and R (if room: what this change did, where does my desk say it); 6 = S8 (the everyday score and
+  I05; its sealed sets need a separate agent). Reviews on every slice that touches the logic core or a safety rule (all
+  but L, R and S8). After each phase: copy its files to `wip/2026-11-20_b086_saved/`, merge its patches with
+  `git apply -3` one at a time, rebuild the seed, run tier 1 or the suite, commit, push, launch the next phase. Design
+  questions at their defaults (design section 8).
 - 20 Nov 08:10 UTC: the owner: "Let's build 86 and 87. Then I will have download a model and can test and I can provide
   results before we build 88". So: 0.8.5 released now; then 0.8.6 built and shipped; then 0.8.7 built and shipped (it
   carries "Check her model on this machine", designed in its section 6, so the owner's first model evening measures
