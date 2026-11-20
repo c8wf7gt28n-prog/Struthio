@@ -1,5 +1,5 @@
 diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
-index 29d18fe..1703c3f 100644
+index 29d18fe..c1dc693 100644
 --- a/docs/GRAPHITE_0.1_REGISTRY.json
 +++ b/docs/GRAPHITE_0.1_REGISTRY.json
 @@ -397,9 +397,11 @@
@@ -56,13 +56,13 @@ index 29d18fe..1703c3f 100644
     "scope": "read"
    },
 +  "math.money": {
-+   "arguments": "2712143bba3380624abdb4c3705ddf182ad0167eba034affaa948675be786eff",
++   "arguments": "4dabdb4d942c31e957cfa7036861720760371c94a7e283f9b93669e87e9feb93",
 +   "properties": {
 +    "expression": "2b1e00f7cfc18abe",
 +    "for": "520c691f88f728d6",
 +    "given": "8b4fd80d6947110f",
 +    "rates": "9d1da40b77f8ca81",
-+    "round": "0eb2e3b6e08c031d",
++    "round": "d195b4a7baac396c",
 +    "stage": "aea3acbb559fd74b",
 +    "step": "0eb2e3b6e08c031d",
 +    "within": "1c1c26f0c5a206b8"
@@ -77,15 +77,15 @@ index 29d18fe..1703c3f 100644
   "release": "Graphite 0.8.4",
   "schema": "graphite.registry-record/1",
 - "schema_digest": "6e45cec22314610d375f6e5c0113c5b9c6fac32ecdcd5bd4df9720aadb19b088",
-+ "schema_digest": "ea78acc0d331277293364f7f0586517dcb9c3090e399344a89b6baed53acd11f",
++ "schema_digest": "71ea5d325837ff35881949cf7b14d87dc8b4224db1abe796d0e48fd56e1f79ee",
   "settings": {
    "agent.continue_when_closed": {
     "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
 diff --git a/docs/INTEGRATED_I02.md b/docs/INTEGRATED_I02.md
-index d8e8421..90aabcf 100644
+index d8e8421..c6b1e39 100644
 --- a/docs/INTEGRATED_I02.md
 +++ b/docs/INTEGRATED_I02.md
-@@ -98,6 +98,84 @@ Holds
+@@ -98,6 +98,93 @@ Holds
  rail_voltage * settled_current <= settled_power_limit: it holds for every value in the ranges, with 0.875 to 1.125 W to spare.
  ```
  
@@ -105,9 +105,9 @@ index d8e8421..90aabcf 100644
 +
 +Where it fits. The sheet's line keeps its grammar and the hashed core files are unchanged: a currency or a date cannot be a unit of the existing unit algebra without changing it, so the kind of every value is checked first, in its own module, and the expression then goes to the core as plain exact fractions; the answer comes back set in the kinds. The owner learns no new verbs for the arithmetic: the same calculate, solve, range and check, with amounts and dates written inside the expression. Only the two calendar rules that are not arithmetic get a verb of their own: a deadline and a count of business days. `given` takes one value or a range; a range, an exchange rate and a list of holidays are the owner's to write, and a line Kasandra proposes never carries one.
 +
-+Money. An amount is a number with the ISO 4217 code after it, `1200 USD`, `212.50 EUR`; a `given` without a code is a plain number. Amounts are exact decimals, exact fractions inside, never floating point. Two currencies are never added or compared: the line is refused in words, unless the owner gives the rate (`| rate EUR USD 1.08`, one EUR is 1.08 USD), and then every EUR amount is converted at it and the receipt names it. An amount times or over a plain number is an amount; an amount over an amount of the same currency is a plain number; an amount times an amount is refused. Nothing is rounded unless the line asks (`| round 0.01`), and then by one rule only, half away from zero, the way bills, bank statements and the euro conversion rules round, so a rounded amount matches the owner's papers; the exact value stands beside it. In solve, `| step 0.01` rounds an allowance inward to whole cents, never up.
++Money. An amount is a number with the ISO 4217 code after it, `1200 USD`, `212.50 EUR`; a `given` without a code is a plain number. Amounts are exact decimals, exact fractions inside, never floating point. Two currencies are never added or compared: the line is refused in words, unless the owner gives the rate (`| rate EUR USD 1.08`, one EUR is 1.08 USD), and then every EUR amount is converted at it and the receipt names it. An amount times or over a plain number is an amount; an amount over an amount of the same currency is a plain number; an amount times an amount is refused. An amount is written as a plain decimal with its code: not `1,200 USD`, `$10`, `10 usd` or `1e3 USD`, each refused with the way to write it. Nothing is rounded unless the line asks (`| round 0.01`: the number is the step, so 0.01 is whole cents and 1 whole units), and then by one rule only, half away from zero, the way bills, bank statements and the euro conversion rules round, so a rounded amount matches the owner's papers; the exact value stands beside it. In solve, `| step 0.01` rounds an allowance inward to whole cents, never up.
 +
-+Dates. A date is a calendar day written year-month-day, with no time of day and no time zone, and it is shown with its weekday. Lengths are written with their unit: `30 days`, `2 weeks`. The days between two dates are a subtraction; a date plus a date, or a date plus a bare number, is refused. Months and years are counted the calendar's way, on a date written just before them (or a name given one date): the same day of the month, and when the month has no such day (31 January plus one month) its last day; the receipt says when that clamping applied. Business days are Monday to Friday, less the holidays the owner lists in the line; none by default, and the receipt then says no holidays were counted. A deadline counts from the day after its date (the date is day 0); whether the end day itself is inside the period is the owner's rule, `end included` or `end excluded`, and when the line does not say, both dates are shown.
++Dates. A date is a calendar day written year-month-day, with no time of day and no time zone, and it is shown with its weekday. Lengths are written with their unit: `30 days`, `2 weeks`. The days between two dates are a subtraction; a date plus a date, or a date plus a bare number, is refused. Months, years and business days are counted the calendar's way on the date that starts a sum, written there or a name given one date (`service + 1 month`), left to right through the lengths after it: the same day of the month, and when the month has no such day (31 January plus one month) its last day; the receipt says when that clamping applied. A month or a business day anywhere else (after a minus or a times, or with no date before it) is refused, so the order of operations is never bent. Business days are Monday to Friday, less the holidays the owner lists in the line (a holiday on a weekend takes nothing away); none by default, and the receipt then says no holidays were counted. A deadline counts from the day after its date (the date is day 0), so its count is at least 1; whether the end day itself is inside the period is the owner's rule, `end included` or `end excluded`, and when the line does not say, both dates are shown. With the end excluded, the last day inside is the day before the end (for business days, the business day before it), and a period that leaves no day inside is refused. A date outside the years 1 to 9999 is refused.
 +
 +This works out what the owner asks from his numbers and the rules he states or admits; it gives no financial or legal advice.
 +
@@ -151,6 +151,15 @@ index d8e8421..90aabcf 100644
 +The end day is included, as you said: the last day inside the period is Sunday 2026-12-20.
 +```
 +
++Whether a reply sent on 2026-12-19 falls within a notice period of one month after service on 2026-11-20, the month counted on the date given to the name:
++
++```text
++math dates | check "2026-12-19 <= service + 1 month" | given service 2026-11-20
++Holds
++2026-12-19 <= service + 1 month: it holds, with 1 day to spare.
++The left side, 2026-12-19, comes to Saturday 2026-12-19; the right side, service + 1 month, to Sunday 2026-12-20.
++```
++
 +A payment due 10 business days after an invoice dated 2026-11-20, with one holiday the owner lists:
 +
 +```text
@@ -172,16 +181,17 @@ index d8e8421..90aabcf 100644
  The unmodified, hash-pinned LibreOffice UNO Java API JAR 25.2.0 is included with its MPL license and upstream POM/source reference. A fixed Java client receives data fields, not model-generated Java. The running native LibreOffice and Java versions are recorded per action. Documents load in an isolated profile with source document macros disabled and external updates disabled. This is a new generated-cell/paragraph/table profile; legacy Office adapters retain their existing interfaces and document-loss reports.
 diff --git a/tests_integrated/test_math_money_dates.py b/tests_integrated/test_math_money_dates.py
 new file mode 100644
-index 0000000..8f0089f
+index 0000000..b121248
 --- /dev/null
 +++ b/tests_integrated/test_math_money_dates.py
-@@ -0,0 +1,299 @@
+@@ -0,0 +1,409 @@
 +"""Money and dates, exactly, on the one maths core (0.8.5, "Maths in lines", the second maths item): amounts in a currency
 +as exact decimals, refused across currencies unless the owner gives a rate, rounded only when asked and by one named rule;
 +calendar dates, the days between them, months the calendar's way, business days, deadlines with the end day stated, and
 +dates inside solve, range and check. Every vector is exact and invented. The lines run through the line compiler as the
 +owner types them; the worked examples of docs/INTEGRATED_I02.md run in a Kernel word for word. No model and no window."""
 +import ast
++import json
 +import os
 +import random
 +import re
@@ -191,7 +201,7 @@ index 0000000..8f0089f
 +from fractions import Fraction as F
 +from pathlib import Path
 +from unittest.mock import patch
-+from workbench import locations, math_answers, math_dates as md, math_money as mm, stacy_control
++from workbench import local_brain, locations, math_answers, math_dates as md, math_money as mm, stacy_control
 +from workbench.baseline import environment
 +from workbench.engineering_kernel import CAPABILITIES, Kernel, operator
 +from workbench.office_building_qt import readable_result
@@ -259,6 +269,27 @@ index 0000000..8f0089f
 +        self.assertEqual([rec(x) for x in span['result']['range']], [400, F(1250, 3)])
 +        self.assertEqual([rec(x) for x in span['result']['rounded']['range']], [400, F('416.67')])
 +
++    def test_a_rounded_split_shows_the_exact_value_once(self):
++        said = ask('math money | calculate "10 USD / 3" | round 0.01')
++        self.assertEqual(said['words']['answer'], '10 USD / 3 = 3.33 USD, rounded to 0.01 USD half away from zero (exact 10/3 USD).')
++
++    def test_a_bad_rounding_step_or_a_broken_question_is_a_refusal_never_an_exception(self):
++        for args in ({'stage': 'calculate', 'expression': '1 USD', 'round': '0'}, {'stage': 'calculate', 'expression': '1 USD', 'round': '-1'},
++                     {'stage': 'calculate', 'expression': '1 USD', 'round': '1/3'}, {'stage': 'calculate'}, {'expression': '1 USD'},
++                     {'stage': 'solve', 'expression': '4 * weekly <= 1200 USD'}, {'stage': 'calculate', 'expression': 'x', 'given': [{'lo': '1'}]}):
++            said = mm.answer(args)
++            self.assertIn(said['state'], math_answers.ERRORS, args);self.assertIsNone(said['result'], args)
++            self.assertTrue(said['words']['answer'].startswith('Cannot work it out: '), args)
++
++    def test_amounts_written_another_way_are_refused_with_how_to_write_them(self):
++        for program, word in (('math money | calculate "1,200 USD"', 'comma'), ('math money | calculate "10 usd"', 'capitals'),
++                              ('math money | calculate "$10"', 'three letters'), ('math money | calculate "1e3 USD"', 'plain decimal')):
++            said = ask(program)
++            self.assertEqual(said['state'], 'UNSUPPORTED', program);self.assertIn(word, said['words']['answer'], program)
++        both = ask('math money | solve "x * x <= 100 USD" for x')          # each kind x could be, with its own reason
++        self.assertEqual(both['state'], 'DIMENSION_MISMATCH')
++        for said in ('If x is a plain number', 'If x is an amount in USD', 'not money'):self.assertIn(said, both['words']['answer'])
++
 +    def test_a_budget_solve_and_a_budget_range(self):
 +        said = ask('math money | solve "4 * weekly <= 1200 USD" for weekly')
 +        found = said['result']['allowed']
@@ -296,6 +327,42 @@ index 0000000..8f0089f
 +                             ('"2026-01-15 + 1 month"', '2026-02-15'), ('"2026-11-20 + 2 weeks"', '2026-12-04'), ('"2026-10-31 + 4 months"', '2027-02-28')):
 +            self.assertEqual(ask('math dates | calculate ' + program)['result']['value']['iso'], iso, program)
 +
++    def test_the_receipt_says_when_the_month_end_rule_applied_and_only_then(self):
++        clamped, plain = ask('math dates | calculate "2026-01-31 + 1 month"'), ask('math dates | calculate "2026-01-15 + 1 month"')
++        self.assertEqual((clamped['calendar']['steps'][0]['clamped'], plain['calendar']['steps'][0]['clamped']), (True, False))
++        self.assertIn('February 2026 has only 28 days', text(clamped));self.assertNotIn('has only', text(plain))
++        self.assertIn('since that month has no such day', text(ask('math dates | deadline 1 month after 2026-01-31 | end included')))
++        self.assertNotIn('since that month has no such day', text(ask('math dates | deadline 1 month after 2026-01-15 | end included')))
++
++    def test_a_name_given_one_date_counts_months_years_and_business_days(self):
++        said = ask('math dates | calculate "d + 1 month" | given d 2026-01-31')
++        self.assertEqual((said['state'], said['result']['value']['iso'], said['calendar']['steps'][0]['clamped']), ('ANSWERED', '2026-02-28', True))
++        self.assertIn('Saturday 2026-02-28', said['words']['answer']);self.assertIn('d (Saturday 2026-01-31) + 1 month is Saturday 2026-02-28', text(said))
++        self.assertEqual(ask('math dates | calculate "service + 10 business days" | given service 2026-11-20')['result']['value']['iso'], '2026-12-04')
++        self.assertEqual(ask('math dates | calculate "service + 1 year - 1 day" | given service 2028-02-29')['result']['value']['iso'], '2029-02-27')
++        holds = ask('math dates | check "2026-12-19 <= service + 1 month" | given service 2026-11-20')
++        fails = ask('math dates | check "2026-12-21 <= service + 1 month" | given service 2026-11-20')
++        self.assertEqual((holds['state'], rec(holds['result']['slack'][0]), fails['state'], rec(fails['result']['slack'][0])), ('HOLDS', 1, 'FAILS', -1))
++        ranged = ask('math dates | calculate "d + 1 month" | given d 2026-01-30 2026-01-31')         # a range has no one day to count from
++        self.assertEqual(ranged['state'], 'UNSUPPORTED');self.assertIn('one date', ranged['words']['answer'])
++
++    def test_a_month_or_business_day_anywhere_but_on_the_date_that_starts_a_sum_is_refused(self):
++        for program in ('"2026-12-01 - 2026-01-31 + 1 month"', '"30 days + 2026-01-31 + 1 month"', '"2026-01-31 + 1 month * 2"', '"2 * 2026-01-31 + 1 month"'):
++            said = ask('math dates | calculate ' + program)
++            self.assertEqual((said['state'], said['result']), ('UNSUPPORTED', None), program);self.assertIn('starts a sum', said['words']['answer'], program)
++        self.assertEqual(ask('math dates | calculate "2026-01-31 + 1 month + 2 days"')['result']['value']['iso'], '2026-03-02')     # left to right
++        self.assertEqual(rec(ask('math dates | calculate "(2026-01-31 + 1 month) - 2026-01-31"')['result']['value']), 28)
++        for program, word in (('"20.11.2026 + 30 days"', 'year-month-day'), ('"2026-11-20 + 1 Month"', 'small letters'),
++                              ('"2026-11-20 + 1 businessday"', 'two words')):
++            said = ask('math dates | calculate ' + program)
++            self.assertEqual(said['state'], 'UNSUPPORTED', program);self.assertIn(word, said['words']['answer'], program)
++
++    def test_a_date_outside_the_years_1_to_9999_is_refused(self):
++        for program in ('"9999-12-31 + 1 day"', '"0001-01-01 - 1 day"', '"9999-12-31 + 1 month"', '"9999-12-31 + 1 business day"'):
++            self.assertEqual(ask('math dates | calculate ' + program)['state'], 'DOMAIN_ERROR', program)
++        self.assertEqual(ask('math dates | deadline 1 day after 9999-12-31')['state'], 'DOMAIN_ERROR')
++        self.assertEqual(ask('math dates | calculate "9999-12-30 + 1 day"')['result']['value']['iso'], '9999-12-31')
++
 +    def test_the_weekday_of_a_date(self):
 +        said = ask('math dates | calculate "2026-11-20"')
 +        self.assertEqual((said['result']['value']['iso'], said['words']['answer']), ('2026-11-20', '2026-11-20 = Friday 2026-11-20.'))
@@ -312,6 +379,11 @@ index 0000000..8f0089f
 +        self.assertIn('2026-11-23', '\n'.join(held['words']['receipt']));self.assertIn('your list', '\n'.join(held['words']['receipt']))
 +        self.assertEqual(rec(ask('math dates | business days 2026-11-20 2026-11-24 | holidays 2026-11-23')['result']['value']), 1)
 +
++    def test_a_holiday_on_a_weekend_takes_no_business_day_away(self):
++        self.assertEqual(rec(ask('math dates | business days 2026-11-20 2026-11-23 | holidays 2026-11-21')['result']['value']), 1)
++        self.assertEqual(ask('math dates | calculate "2026-11-20 + 1 business day" | holidays 2026-11-22')['result']['value']['iso'], '2026-11-23')
++        self.assertEqual(ask('math dates | calculate "2026-11-20 + 30 business days" | holidays 2026-11-28 2026-12-25')['result']['value']['iso'], '2027-01-04')
++
 +    def test_a_deadline_with_the_end_day_included_and_excluded(self):
 +        included = ask('math dates | deadline 30 days after 2026-11-20 | end included')['result']['deadline']
 +        excluded = ask('math dates | deadline 30 days after 2026-11-20 | end excluded')['result']['deadline']
@@ -326,6 +398,23 @@ index 0000000..8f0089f
 +        self.assertEqual(month['end']['iso'], '2026-02-28')
 +        business = ask('math dates | deadline 10 business days after 2026-11-20 | end included')['result']['deadline']
 +        self.assertEqual(business['end']['iso'], '2026-12-04')
++
++    def test_end_excluded_at_its_edges(self):
++        for program in ('deadline 0 days after 2026-11-20', 'deadline 1 day after 2026-11-20 | end excluded', 'deadline 1 business day after 2026-11-20 | end excluded'):
++            said = ask('math dates | ' + program)
++            self.assertEqual((said['state'], said['result']), ('UNSUPPORTED', None), program)
++        two = ask('math dates | deadline 2 business days after 2026-11-20 | end excluded')['result']['deadline']
++        self.assertEqual((two['end']['iso'], two['last_day']['iso']), ('2026-11-24', '2026-11-23'))
++        monday = ask('math dates | deadline 2 business days after 2026-11-19 | end excluded')['result']['deadline']
++        self.assertEqual((monday['end']['iso'], monday['last_day']['iso']), ('2026-11-23', '2026-11-20'))      # the business day before, not Sunday
++        unsaid = ask('math dates | deadline 1 day after 2026-11-20')
++        self.assertEqual((unsaid['state'], unsaid['result']['deadline']['last_day_if_excluded']), ('ANSWERED', None))
++        self.assertIn('no day is left inside it', unsaid['words']['answer'])
++        for args in ({'stage': 'deadline'}, {'stage': 'deadline', 'count': '-30', 'unit': 'days', 'after': '2026-11-20'},
++                     {'stage': 'deadline', 'count': '30', 'unit': 'fortnights', 'after': '2026-11-20'}, {'stage': 'business', 'from': '2026-11-20'},
++                     {'stage': 'solve', 'expression': 'd - 2026-11-20 <= 30 days'}, {'stage': 'later'}, {'stage': 'calculate', 'expression': 'd', 'given': [{'lo': '2026-11-20'}]}):
++            said = md.answer(args)
++            self.assertIn(said['state'], math_answers.ERRORS, args);self.assertTrue(said['words']['answer'].startswith('Cannot work it out: '), args)
 +
 +    def test_a_date_check_holding_and_failing(self):
 +        late = ask('math dates | check "2026-12-21 <= deadline" | given deadline 2026-12-20')
@@ -375,10 +464,20 @@ index 0000000..8f0089f
 +
 +    def test_business_day_steps_and_counts_agree(self):
 +        rng = random.Random(1120)
-+        for _ in range(40):
-+            day = date(2026, 1, 1) + timedelta(days=rng.randint(0, 700));n = rng.randint(0, 60)
-+            later = md.step_business(day, n, ())
-+            self.assertEqual(md.count_business(day, later, ()), n);self.assertLess(later.weekday(), 5) if n else None
++        for _ in range(80):
++            day = date(2026, 1, 1) + timedelta(days=rng.randint(0, 700));n = rng.randint(0, 400)
++            held = [day + timedelta(days=rng.randint(-20, 600)) for _ in range(rng.randint(0, 8))]
++            later = md.step_business(day, n, held)
++            self.assertEqual(md.count_business(day, later, held), n)
++            if n:self.assertLess(later.weekday(), 5);self.assertNotIn(later, held)
++            earlier = md.step_business(later, -n, held)                     # and back: never past the start, on the n-th business day before
++            self.assertLessEqual(earlier, day);self.assertEqual(md.count_business(earlier, later, held), n)
++
++    def test_a_long_business_day_count_takes_whole_weeks_at_once(self):
++        with patch.object(md, 'step_days', wraps=md.step_days) as stepped:
++            later = md.step_business(date(2026, 11, 20), 2000000, [date(2026, 12, 25)])
++        self.assertLess(stepped.call_count, 100)
++        self.assertEqual(md.count_business(date(2026, 11, 20), later, [date(2026, 12, 25)]), 2000000)
 +
 +
 +class Exactness(unittest.TestCase):
@@ -424,9 +523,15 @@ index 0000000..8f0089f
 +        for word in ('math money', 'math dates', 'round', 'rate', 'deadline', 'business days', 'holidays'):self.assertIn(word, grammar)
 +        for program in ('math money | calculate "10 USD + 5 EUR"', 'math money | calculate "10.125 USD" | round 0.01',
 +                        'math dates | deadline 30 days after 2026-11-20', 'math dates | check "2026-12-21 <= deadline" | given deadline 2026-12-20',
-+                        'math money | range "(2200 USD - rent) / 4" | given rent 950 1000 USD'):
++                        'math money | range "(2200 USD - rent) / 4" | given rent 950 1000 USD',
++                        'math dates | calculate "service + 10 business days" | given service 2026-11-20',
++                        'math money | calculate "10 USD / 3" | round 0.01'):
 +            out = self.run_line(program)
 +            for said in (readable_result(out), math_answers.receipt_text(out)):self.assertIsNone(HIDDEN.search(said), said)
++        for op, args in (('math.money', {'stage': 'calculate', 'expression': '1 USD', 'round': '0'}), ('math.dates', {'stage': 'deadline'}),
++                         ('math.dates', {'stage': 'deadline', 'count': '-30', 'unit': 'days', 'after': '2026-11-20'})):
++            response = self.kernel.dispatch(op, args, self.p)       # a refusal in words, never an exception or a bare error
++            self.assertTrue(response['ok'], (op, args, response));self.assertIn(response['result']['state'], math_answers.ERRORS, args)
 +
 +    def test_grammar(self):
 +        for program, code in (('math money | solve "4 * weekly <= 1200 USD"', 'STAC_MATH_SYNTAX'),
@@ -459,10 +564,24 @@ index 0000000..8f0089f
 +    def test_kasandra_is_offered_money_and_dates_for_a_budget_or_a_deadline_and_not_for_a_plot(self):
 +        from workbench.engineering_cli import schemas
 +        from workbench.tool_selection import relevant
-+        def offered(text):return [row['operation'] for row in relevant(text, CAPABILITIES, schemas())]
++        def offered(text, limit=6):return [row['operation'] for row in relevant(text, CAPABILITIES, schemas(), limit)]
 +        self.assertIn('math.money', offered('what can I spend each week and stay under the monthly budget'))
 +        self.assertIn('math.dates', offered('when does the notice period end, 30 days after service'))
 +        self.assertFalse({'math.money', 'math.dates'} & set(offered('plot the voltage against time from the csv')))
++        self.assertNotIn('math.dates', offered('what can I spend each week and stay under the monthly budget'))       # one schema, not both
++        self.assertNotIn('math.money', offered('when does the notice period end, 30 days after service'))
++        self.assertIn('math.dates', offered('when is a payment due 10 business days after the invoice'))
++        budget = 'what can I spend each week and stay under the monthly budget'      # not also the sheet's maths for the shared word
++        self.assertFalse({'math.answer', 'math.calculate'} & set(offered(budget)))
++        power = offered('check the power budget of the board', 50)          # an engineering budget is the calculator's, not money
++        self.assertIn('math.answer', power);self.assertNotIn('math.money', power)
++        self.assertLess(len(json.dumps(local_brain.proposal_profile(budget)[1], separators=(',', ':'))), 5000)
++        # everyday words (a price, a cost, a day, a month, a payment) do not bring them in: each schema is over a thousand characters,
++        # and the plan for one message stays under the bound the smallest model's context sets (test_tool_selection)
++        for message in ('open the price list sheet', 'list the documents due this month', 'how much did the parts cost in total',
++                        'what files did I edit in the last 3 days', 'what was the payment for the invoice', 'show the network traffic rate today'):
++            self.assertFalse({'math.money', 'math.dates'} & set(offered(message)), message)
++            self.assertLess(len(json.dumps(local_brain.proposal_profile(message)[1], separators=(',', ':'))), 5000, message)
 +
 +    def test_the_worked_examples_on_the_lines_page_are_true_word_for_word(self):
 +        page = DOC.read_text();part = page[page.index(SECTION):]
@@ -542,10 +661,10 @@ index d324b51..d9a457c 100644
          if op in math_service.FIELDS:return math_service.dispatch(self,op,a,p)
 diff --git a/workbench/math_dates.py b/workbench/math_dates.py
 new file mode 100644
-index 0000000..563c416
+index 0000000..e2884c9
 --- /dev/null
 +++ b/workbench/math_dates.py
-@@ -0,0 +1,427 @@
+@@ -0,0 +1,506 @@
 +"""Dates in lines (0.8.5, "Maths in lines"): calendar dates, exactly, on the one maths core (math_typed is the frame).
 +
 +    math dates | calculate "2028-03-01 - 2028-02-28"                     the days between two dates: 2 days
@@ -563,14 +682,18 @@ index 0000000..563c416
 +written with its unit: 30 days, 2 weeks (14 days). A date plus a date, a date times a number, or a plain number added to
 +a date is refused in words.
 +
-+Months and years are not a fixed number of days, so they are counted the calendar's way, on a date written just before
-+them (or a name given one date), before the core sees the expression: the same day of the month N months on, and when the
-+month has no such day (31 January plus one month), the month's last day. That is the one month-end rule, clamping, and
-+the receipt says when it applied. Business days are Monday to Friday, less the holidays the owner lists in the line
-+(| holidays ...); there are none by default, and the receipt then says no holidays were counted. A deadline from a rule
-+("30 days after 2026-11-20") counts from the day after the date: the date is day 0 and the end is day 30. Whether the end
++Months and years are not a fixed number of days, so they are counted the calendar's way, before the core sees the
++expression, on the date that starts a sum (written there, or a name given one date) and left to right through the lengths
++after it: the same day of the month N months on, and when the month has no such day (31 January plus one month), the
++month's last day. That is the one month-end rule, clamping, and the receipt says when it applied. A month or a business
++day anywhere else (after a minus, a times or another length, or before a times) is refused, so the order of operations is
++never bent. Business days are Monday to Friday, less the holidays the owner lists in the line (| holidays ...); there are
++none by default, and the receipt then says no holidays were counted. A deadline from a rule ("30 days after 2026-11-20")
++counts from the day after the date: the date is day 0 and the end is day 30, so the count is at least 1. Whether the end
 +day itself is inside the period is the owner's rule to say (| end included, | end excluded); when he does not say, both
-+are shown, so no convention is hidden. This works out what the owner asks; it gives no legal advice.
++are shown, so no convention is hidden. With the end excluded, the last day inside is the day before the end (for business
++days, the business day before it), and a period left with no day inside is refused. A date that falls outside the years
++1 to 9999 is refused. This works out what the owner asks; it gives no legal advice.
 +"""
 +from __future__ import annotations
 +import ast
@@ -588,11 +711,14 @@ index 0000000..563c416
 +ISO = re.compile(r'\d{4}-\d{2}-\d{2}')
 +UNITS = {'day': 'days', 'days': 'days', 'week': 'weeks', 'weeks': 'weeks', 'month': 'months', 'months': 'months', 'year': 'years',
 +         'years': 'years', 'business day': 'business days', 'business days': 'business days'}
-+CALENDAR = re.compile(r'(?P<date>\b\d{4}-\d{2}-\d{2}\b|\b[A-Za-z][A-Za-z0-9_]*\b)\s*(?P<sign>[+-])\s*(?P<n>\d+)\s*(?P<unit>business\s+days?|months?|years?)\b')
++UNIT = r'business\s+days?|days?|weeks?|months?|years?'
++CHAIN = re.compile(r'(?P<date>\b\d{4}-\d{2}-\d{2}\b|\b[A-Za-z][A-Za-z0-9_]*\b)(?P<lengths>(?:\s*[+-]\s*\d+\s*(?:%s)\b)+)' % UNIT)
++TERM = re.compile(r'\s*(?P<sign>[+-])\s*(?P<n>\d+)\s*(?P<unit>%s)\b' % UNIT)
 +LEFT_OVER = re.compile(r'\d+\s*(business\s+days?|months?|years?)\b')
 +TOKEN = re.compile(r'(?P<date>(?<![\w.])\d{4}-\d{2}-\d{2}(?![\w.]))|(?<![\w.])(?P<n>\d+)\s*(?P<unit>days?|weeks?)\b')
 +ORDER = {'calculate': ('given', 'holidays'), 'solve': ('within', 'given', 'holidays'), 'range': ('given', 'holidays'), 'check': ('given', 'holidays')}
 +GIVENS, HOLIDAYS, LONGEST = 8, 30, 3660000
++LAST = date.max.toordinal()
 +NAME = {'type': 'string', 'minLength': 1, 'maxLength': 64}
 +DAY = {'type': 'string', 'minLength': 10, 'maxLength': 10}
 +GIVEN = {'type': 'object', 'additionalProperties': False, 'properties': {'name': NAME, 'lo': NUMBER, 'hi': NUMBER, 'unit': {'type': 'string', 'enum': ['days', 'weeks']}},
@@ -633,9 +759,14 @@ index 0000000..563c416
 +
 +
 +def step_business(day, n, holidays):
-+    """The date `n` business days after `day` (before, when negative): Monday to Friday, less the listed holidays."""
-+    sign, left, held = (1 if n >= 0 else -1), abs(n), set(holidays)
++    """The date `n` business days after `day` (before, when negative): Monday to Friday, less the listed holidays. Whole
++    weeks go at once (any seven days in a row hold five weekdays), so a long count takes a few steps, not one a day."""
++    sign, left, held = (1 if n >= 0 else -1), abs(n), {h for h in holidays if h.weekday() < 5}
 +    if left > LONGEST:_beyond()
++    while left > 5:
++        weeks = (left - 1) // 5;later = step_days(day, sign * 7 * weeks)
++        lo, hi = (day, later) if sign > 0 else (later, day)
++        day, left = later, left - 5 * weeks + sum(1 for h in held if (lo < h <= hi if sign > 0 else lo <= h < hi))
 +    while left:
 +        day = step_days(day, sign)
 +        if day.weekday() < 5 and day not in held:left -= 1
@@ -738,29 +869,52 @@ index 0000000..563c416
 +    typed.refuse('DIMENSION_MISMATCH', 'a plain number cannot be %s %s: say what it counts, such as 30 days or 2 weeks' % ('added to' if op == 'add' else 'subtracted from', KINDS[plain]))
 +
 +
++def _starts_sum(head):
++    """Whether what comes before a date begins a sum there: nothing, an opening bracket or a comparison."""
++    return head[-1:] in ('', '(', '<', '>', '=')
++
++
 +def _calendar(text, singles, holidays, block, before):
-+    """Months, years and business days counted the calendar's way on a date written just before them (or a name given
-+    one date), left to right, before the core sees the expression; each count is a step of the receipt."""
++    """Months, years and business days counted the calendar's way, before the core sees the expression, on the date that
++    starts a sum (written there, or a name given one date) and left to right through the lengths after it; each length is
++    a step of the receipt. A written date becomes the date reached; a name stays, plus the days reached, so the core
++    still reads it."""
 +    for _ in range(16):
-+        for found in CALENDAR.finditer(text):
++        for found in CHAIN.finditer(text):
++            lengths = list(TERM.finditer(found.group('lengths')))
++            if not any(t.group('unit').startswith(('business', 'month', 'year')) for t in lengths):continue
 +            head, tail = text[:found.start()].rstrip(), text[found.end():].lstrip()
-+            if head[-1:] in ('-', '*', '/') or tail[:1] in ('*', '/'):continue
-+            what = found.group('date')
-+            day = day_of(what) if ISO.fullmatch(what) else singles.get(what)
++            if not _starts_sum(head) or tail[:1] in ('*', '/'):continue
++            what = found.group('date');named = not ISO.fullmatch(what)
++            first = day = singles.get(what) if named else day_of(what)
 +            if day is None:continue
-+            n = int(found.group('n')) * (1 if found.group('sign') == '+' else -1);unit = UNITS[' '.join(found.group('unit').split())]
-+            if unit == 'business days':end, clamped = step_business(day, n, holidays), False;block['business'] = True
-+            else:end, clamped = add_months(day, n * (12 if unit == 'years' else 1))
-+            said = '%s %s %d %s is %s' % (words_of(day), found.group('sign'), abs(n), unit[:-1] if abs(n) == 1 else unit, words_of(end))
-+            if clamped:said += ': %s %d has only %d days, so the date is the month\'s last day' % (MONTHS[end.month - 1], end.year, end.day)
-+            before.append(said[0].upper() + said[1:] + '.')
-+            block['steps'].append({'from': day.isoformat(), 'count': n, 'unit': unit, 'to': end.isoformat(), 'clamped': clamped})
-+            text = text[:found.start()] + end.isoformat() + text[found.end():]
++            for term in lengths:
++                n = int(term.group('n')) * (1 if term.group('sign') == '+' else -1);unit = UNITS[' '.join(term.group('unit').split())]
++                if unit == 'business days':end, clamped = step_business(day, n, holidays), False;block['business'] = True
++                elif unit in ('days', 'weeks'):end, clamped = step_days(day, n * (7 if unit == 'weeks' else 1)), False
++                else:end, clamped = add_months(day, n * (12 if unit == 'years' else 1))
++                said = '%s %s %d %s is %s' % ('%s (%s)' % (what, words_of(day)) if named and day == first else words_of(day), term.group('sign'), abs(n),
++                                              unit[:-1] if abs(n) == 1 else unit, words_of(end))
++                if clamped:said += ': %s %d has only %d days, so the date is the month\'s last day' % (MONTHS[end.month - 1], end.year, end.day)
++                before.append(said + '.')       # a date's words begin with its weekday; a name keeps the owner's spelling
++                block['steps'].append({'from': day.isoformat(), 'count': n, 'unit': unit, 'to': end.isoformat(), 'clamped': clamped})
++                day = end
++            moved = (day - first).days
++            text = text[:found.start()] + ('(%s %s %d days)' % (what, '-' if moved < 0 else '+', abs(moved)) if named else day.isoformat()) + text[found.end():]
 +            break
 +        else:break
 +    if LEFT_OVER.search(text):
-+        typed.refuse('UNSUPPORTED', 'months, years and business days are counted on a date written just before them, or a name given one date, such as 2026-01-31 + 1 month')
++        typed.refuse('UNSUPPORTED', 'months, years and business days are counted on the date that starts a sum, written there or given to a name as one date, '
++                                    'and left to right through the lengths after it, such as 2026-01-31 + 1 month + 2 days')
 +    return text
++
++
++def _written(text):
++    """A length or a date written in a way the line does not read, said in words before anything is worked out."""
++    if re.search(r'(?<![\w.])\d{1,4}[/.]\d{1,2}[/.]\d{1,4}(?![\w.])', text):typed.refuse('UNSUPPORTED', 'write a date as year-month-day, such as 2026-11-20')
++    if re.search(r'\d\s*businessdays?\b', text, re.I):typed.refuse('UNSUPPORTED', 'write business days as two words, such as 10 business days')
++    for found in re.finditer(r'\d\s*(business|days?|weeks?|months?|years?)\b', text, re.I):
++        if found.group(1) != found.group(1).lower():typed.refuse('UNSUPPORTED', 'write a length in small letters, such as 30 days or 1 month')
 +
 +
 +def _dates(text):
@@ -798,7 +952,34 @@ index 0000000..563c416
 +    return named, variables, inputs, singles
 +
 +
++def _checked(args):
++    """What a dates question must carry, in words, before anything is worked out."""
++    stage = args.get('stage')
++    if stage not in ORDER and stage not in ('deadline', 'business'):
++        typed.refuse('UNSUPPORTED', 'ask to calculate, solve, range or check, or for a deadline or a count of business days')
++    if len(args.get('holidays') or ()) > HOLIDAYS:typed.refuse('UNSUPPORTED', 'list at most %d holidays in a line' % HOLIDAYS)
++    if stage == 'deadline':
++        if not re.fullmatch(r'\d{1,7}', str(args.get('count', ''))) or int(args['count']) < 1:
++            typed.refuse('UNSUPPORTED', 'count a period in whole days, weeks, months, years or business days, at least 1, such as 30 days after 2026-11-20')
++        if args.get('unit') not in UNITS.values():typed.refuse('UNSUPPORTED', 'say what the count counts: days, weeks, months, years or business days')
++        if not args.get('after'):typed.refuse('UNSUPPORTED', 'say the date the period runs after, such as 30 days after 2026-11-20')
++        if args.get('end') not in (None, 'included', 'excluded'):typed.refuse('UNSUPPORTED', 'say end included or end excluded')
++    elif stage == 'business':
++        if not args.get('from') or not args.get('to'):typed.refuse('UNSUPPORTED', 'give the two dates to count business days between, such as 2026-11-20 2026-12-04')
++    else:
++        if not isinstance(args.get('expression'), str) or not args['expression'].strip():typed.refuse('UNSUPPORTED', 'write the expression to work out')
++        if stage == 'solve' and not args.get('for'):typed.refuse('MISSING_INPUT', 'say which name to solve for')
++
++
++def _excluded(start, end, unit, holidays):
++    """The last day inside a period whose end day is excluded: the day before the end (for business days, the business
++    day before it); None when that leaves no day after the start inside the period."""
++    last = step_business(end, -1, holidays) if unit == 'business days' else step_days(end, -1)
++    return last if last > start else None
++
++
 +def _spec(args, block):
++    _checked(args)
 +    stage = args['stage'];holidays = sorted({day_of(h) for h in args.get('holidays') or ()})
 +    block['holidays'] = [h.isoformat() for h in holidays];before = []
 +    named, variables, inputs, singles = _given(args.get('given'))
@@ -811,17 +992,21 @@ index 0000000..563c416
 +        else:end, clamped = add_months(start, n * (12 if unit == 'years' else 1))
 +        block['steps'].append({'from': start.isoformat(), 'count': n, 'unit': unit, 'to': end.isoformat(), 'clamped': clamped})
 +        asked = {**asked, 'rule': 'deadline', 'expression': '%d %s after %s' % (n, unit[:-1] if n == 1 else unit, args['after'])}
++        last = _excluded(start, end, unit, holidays)
++        if last is None and args.get('end') == 'excluded':
++            typed.refuse('UNSUPPORTED', 'with the end day excluded, %s leaves no day inside the period: the start is day 0, and the first day after it is the end' % asked['expression'])
 +        core = '%d + %d' % (start.toordinal(), end.toordinal() - start.toordinal()) if unit in ('days', 'weeks') else str(end.toordinal())
 +        literals = _places(core, ('date', 'days'))
-+        out, after = 'date', _deadline(start, end, clamped, args.get('end'))
++        out, after = 'date', _deadline(start, end, clamped, args.get('end'), last)
 +    elif stage == 'business':
 +        start, end = day_of(args['from']), day_of(args['to'])
 +        if end < start:typed.refuse('UNSUPPORTED', 'count business days from the earlier date to the later one')
 +        block['business'] = True;core, literals, out, after = str(count_business(start, end, holidays)), {}, None, None
 +        asked = {**asked, 'rule': 'business', 'expression': 'business days from %s to %s' % (args['from'], args['to'])}
 +    else:
-+        expression = args.get('expression') or '';solved = args.get('for')
++        expression = args['expression'];solved = args.get('for')
 +        if solved in named:typed.refuse('UNSUPPORTED', '%s is what is solved for, so it cannot also be given' % solved)
++        _written(expression)
 +        core, literals = _dates(_calendar(expression, singles, holidays, block, before))
 +        names = _names(core)
 +        if names is not None:
@@ -831,10 +1016,10 @@ index 0000000..563c416
 +            if solved and solved not in names:typed.refuse('MISSING_INPUT', 'The relation does not use ' + solved)
 +        kind = None
 +        if solved:
-+            kind = typed.infer(core, literals, named, combine, solved, ['date', 'days', None]);named[solved] = kind
++            kind = typed.infer(core, literals, named, combine, solved, ['date', 'days', None], KINDS.get);named[solved] = kind
 +            variables[solved] = {'unit': '1', **({'domain': 'integer'} if kind else {})}
 +            if args.get('within'):core_asked['within'] = [str(day_of(w).toordinal()) if ISO.fullmatch(w) else w for w in args['within']]
-+        out, after = typed.kinds(core, literals, named, combine), _whole_dates
++        out, after = typed.kinds(core, literals, named, combine), _on_calendar
 +        block['solved'] = kind
 +    block.update(kinds=dict(named), result=out)
 +    return {'stage': 'calculate' if stage in ('deadline', 'business') else stage, 'expression': asked.get('expression', ''), 'core': core,
@@ -849,20 +1034,32 @@ index 0000000..563c416
 +    return literals
 +
 +
-+def _whole_dates(record):
-+    """A date worked out is a whole day; one that falls partway through a day is refused."""
++def _dated(value):
++    """Every date of a result, as its day number."""
++    if isinstance(value, list):
++        for v in value:yield from _dated(v)
++    elif isinstance(value, dict):
++        if value.get('unit') == 'date' and 'rational' in value:yield rational(value['rational'])
++        for v in value.values():
++            if isinstance(v, (list, dict)):yield from _dated(v)
++
++
++def _on_calendar(record):
++    """A date worked out is a whole day of the calendar Graphite reads, the years 1 to 9999: one that falls partway
++    through a day, or outside those years, is refused."""
 +    value = (record.get('result') or {}).get('value')
 +    if isinstance(value, dict) and value.get('unit') == 'date' and rational(value['rational']).denominator != 1:
 +        typed.refuse('DOMAIN_ERROR', 'a date is a whole day, and this one falls partway through one')
++    if any(not 1 <= day <= LAST for day in _dated(record.get('result'))):_beyond()
 +
 +
-+def _deadline(start, end, clamped, said):
++def _deadline(start, end, clamped, said, excluded):
++    def day(d):return None if d is None else mark({**number_record(Fraction(d.toordinal()))}, 'date')
 +    def after(record):
-+        last = end if said != 'excluded' else step_days(end, -1)
++        last = end if said == 'included' else excluded if said == 'excluded' else None
 +        record['result']['deadline'] = {'rule': record['asked']['expression'], 'count': int(record['asked']['count']), 'unit': record['asked']['unit'],
-+                                        'start': mark({**number_record(Fraction(start.toordinal()))}, 'date'), 'end': mark({**number_record(Fraction(end.toordinal()))}, 'date'),
-+                                        'end_day': said, 'last_day': None if said is None else mark({**number_record(Fraction(last.toordinal()))}, 'date'),
-+                                        'clamped': clamped}
++                                        'start': day(start), 'end': day(end), 'end_day': said, 'last_day': day(last),
++                                        'last_day_if_excluded': day(excluded), 'clamped': clamped}
 +    return after
 +
 +
@@ -916,8 +1113,9 @@ index 0000000..563c416
 +        said = '%s ends on %s, the end day (%s) excluded.' % (rule, show(_r(d['last_day']), 'date'), show(_r(end), 'date'))
 +        lines.append('The end day is excluded, as you said: the last day inside the period is %s.' % show(_r(d['last_day']), 'date'))
 +    else:
-+        before = show(_r(end) - 1, 'date')
-+        said = '%s is %s: with the end day included the period ends on %s; with it excluded, on %s.' % (rule, show(_r(end), 'date'), show(_r(end), 'date'), before)
++        excluded = d['last_day_if_excluded']
++        before = 'on ' + show(_r(excluded), 'date') if excluded else 'no day is left inside it, since the first day after the start is the end'
++        said = '%s is %s: with the end day included the period ends on %s; with it excluded, %s.' % (rule, show(_r(end), 'date'), show(_r(end), 'date'), before)
 +        lines.append('Your rule says which: add end included or end excluded to the line.')
 +    return said[0].upper() + said[1:], lines
 +
@@ -965,20 +1163,20 @@ index 0000000..563c416
 +    args = dict(args or {});block = {'kinds': {}, 'result': None, 'steps': [], 'month_end': MONTH_END, 'business_days': 'MONDAY_TO_FRIDAY',
 +                                     'holidays': [], 'holiday_source': 'LISTED_IN_LINE' if args.get('holidays') else None, 'day_numbers': 'PROLEPTIC_GREGORIAN'}
 +    asked = {k: args[k] for k in ('expression', 'for', 'within', 'given', 'holidays', 'count', 'unit', 'after', 'from', 'to', 'end') if k in args}
-+    stage = args.get('stage', 'calculate')
-+    try:spec = _spec(args, block)
++    stage = args['stage'] if isinstance(args.get('stage'), str) and args['stage'] in (*ORDER, 'deadline', 'business') else 'calculate'
++    try:spec = _spec(args, block);return typed.answer(spec, KIT)
 +    except typed.Refused as exc:return typed.refused(stage, asked, ('calendar', block), KIT, exc)
 +    except (ValueError, ZeroDivisionError, OverflowError):return typed.refused(stage, asked, ('calendar', block), KIT, typed.Refused('UNSUPPORTED', typed.NUMBERS))
-+    return typed.answer(spec, KIT)
++    except (KeyError, TypeError, AttributeError):return typed.refused(stage, asked, ('calendar', block), KIT, typed.Refused('UNSUPPORTED', typed.SHAPE))
 +
 +
 +def dispatch(kernel, op, args, p):return answer(args)
 diff --git a/workbench/math_money.py b/workbench/math_money.py
 new file mode 100644
-index 0000000..6302784
+index 0000000..7013a16
 --- /dev/null
 +++ b/workbench/math_money.py
-@@ -0,0 +1,275 @@
+@@ -0,0 +1,306 @@
 +"""Money in lines (0.8.5, "Maths in lines"): amounts in a currency, exactly, on the one maths core (math_typed is the frame).
 +
 +    math money | calculate "12 * rent + 4 * 80 USD" | given rent 950 USD
@@ -991,9 +1189,11 @@ index 0000000..6302784
 +decimal written, an exact fraction inside, never floating point. Two currencies are never added or compared, unless the
 +owner gives the rate in the line (| rate EUR USD 1.08: one EUR is 1.08 USD); then every EUR amount is converted at it
 +before anything is worked out, and the receipt names the rate. An amount times or over a plain number is an amount; an
-+amount over an amount of the same currency is a plain number; an amount times an amount is refused.
++amount over an amount of the same currency is a plain number; an amount times an amount is refused. An amount written
++another way (1,200 USD, $10, 10 usd, 1e3 USD) is refused with the way to write it.
 +
-+Rounding happens only when the line asks for it (| round 0.01 in calculate and range), by one rule only: half away from
++Rounding happens only when the line asks for it (| round 0.01 in calculate and range: the number is the step, a positive
++decimal, so 0.01 is whole cents and 1 whole units; any other step is refused), by one rule only: half away from
 +zero. An amount exactly halfway between two steps goes to the one further from zero, which is how bills, bank statements
 +and the euro conversion rules round, so a rounded amount here matches the one on the owner's papers; half to even would
 +be unbiased over many sums, but it would differ from them by a cent at every even half. The exact value always stands
@@ -1034,7 +1234,7 @@ index 0000000..6302784
 +                          'expression': {'type': 'string', 'minLength': 1, 'maxLength': 1000}, 'for': NAME,
 +                          'within': {'type': 'array', 'minItems': 2, 'maxItems': 2, 'items': NUMBER}, 'step': NUMBER,
 +                          'given': {'type': 'array', 'maxItems': GIVENS, 'items': GIVEN}, 'rates': {'type': 'array', 'maxItems': RATES, 'items': RATE},
-+                          'round': NUMBER}, ['stage', 'expression'])}
++                          'round': {**NUMBER, 'description': 'the step to round to, as a decimal: 0.01 is whole cents, 1 is whole units'}}, ['stage', 'expression'])}
 +SCOPES = {'math.money': 'read'}
 +
 +
@@ -1156,8 +1356,29 @@ index 0000000..6302784
 +    except (SyntaxError, RecursionError, ValueError):return None
 +
 +
++def _written(expression):
++    """An amount written in a way the line does not read, said in words before anything is worked out."""
++    if re.search(r'[$€£¥]', expression):typed.refuse('UNSUPPORTED', 'write the currency as its three letters after the amount, such as 10 USD')
++    if re.search(r'\d,\d{3}', expression):typed.refuse('UNSUPPORTED', 'write an amount without a thousands comma, such as 1200 USD')
++    if re.search(r'(?<![\w.])\d+(?:\.\d+)?[eE][+-]?\d', expression):typed.refuse('UNSUPPORTED', 'write an amount as a plain decimal, such as 1000 USD')
++    for found in re.finditer(r'(?<![\w.])\d+(?:\.\d+)?\s*([A-Za-z]{3})\b', expression):
++        if found.group(1) != found.group(1).upper() and found.group(1).upper() in CODES:
++            typed.refuse('UNSUPPORTED', 'write the currency code in capitals, such as 10 %s' % found.group(1).upper())
++
++
++def _checked(args):
++    """What a money question must carry, in words: its stage and expression, what solve is for, a rounding step."""
++    if args.get('stage') not in ORDER:typed.refuse('UNSUPPORTED', 'ask to calculate, solve, range or check')
++    if not isinstance(args.get('expression'), str) or not args['expression'].strip():typed.refuse('UNSUPPORTED', 'write the expression to work out')
++    if args['stage'] == 'solve' and not args.get('for'):typed.refuse('MISSING_INPUT', 'say which name to solve for')
++    if 'round' in args and (not isinstance(args['round'], str) or not re.fullmatch(r'\d+(?:\.\d+)?', args['round']) or rational(args['round']) <= 0):
++        typed.refuse('UNSUPPORTED', 'round to a step written as a positive decimal, such as 0.01 for whole cents')
++
++
 +def _spec(args, block):
++    _checked(args)
 +    stage, expression, solved = args['stage'], args['expression'], args.get('for')
++    _written(expression)
 +    rates = _rates(args.get('rates'));core, literals = _amounts(expression, rates, block)
 +    named, variables, inputs = {}, {}, {}
 +    for row in args.get('given') or ():
@@ -1182,7 +1403,8 @@ index 0000000..6302784
 +    kind = None
 +    if solved:
 +        seen = sorted({c for c in literals.values() if c} | {c for c in named.values() if c})
-+        kind = typed.infer(core, literals, named, combine, solved, [None, *seen]);named[solved] = kind;variables[solved] = {'unit': '1'}
++        kind = typed.infer(core, literals, named, combine, solved, [None, *seen], lambda code:'an amount in ' + code if code else 'a plain number')
++        named[solved] = kind;variables[solved] = {'unit': '1'}
 +    out = typed.kinds(core, literals, named, combine)
 +    block.update(currencies=dict(named), amounts=sorted(set(literals.values())), result=out)
 +    if args.get('round'):block['rounding'] = {'step': {**number_record(rational(args['round'])), 'unit': label(out)}, 'rule': RULE}
@@ -1209,13 +1431,20 @@ index 0000000..6302784
 +def _r(record):return rational(record['rational'])
 +
 +
++def exactly(value, unit):
++    """An amount as it is exactly: its decimal when it has one, otherwise its fraction, with its currency."""
++    exact = number_record(Fraction(value))
++    if unit in ('1', '', None):return exact['decimal'] if exact['decimal_exact'] else exact['rational']
++    return '%s %s' % (_places(exact['decimal'], unit) if exact['decimal_exact'] else exact['rational'], unit)
++
++
 +def said(record):
 +    """A calculation rounded as asked: the rounded amount, the rule and the exact value, in one sentence."""
 +    rounded = (record.get('result') or {}).get('rounded')
 +    if not rounded or 'value' not in rounded:return None
 +    exact, near, step = record['result']['value'], rounded['value'], rounded['step']
 +    return ('%s = %s, rounded to %s %s (exact %s).' % (record['asked']['expression'], show(_r(near), near['unit']), show(_r(step), step['unit']), RULE_WORDS,
-+                                                       show(_r(exact), exact['unit']))), []
++                                                       exactly(_r(exact), exact['unit']))), []
 +
 +
 +def notes(record):
@@ -1246,20 +1475,20 @@ index 0000000..6302784
 +    and what they converted, and the rounding asked for. Never raises: a refusal is the record's state."""
 +    args = dict(args or {});block = {'currencies': {}, 'amounts': [], 'result': None, 'rates': [dict(row) for row in args.get('rates') or ()], 'converted': [], 'rounding': None}
 +    asked = {k: args[k] for k in ('expression', 'for', 'within', 'step', 'given', 'rates', 'round') if k in args}
-+    try:spec = _spec(args, block)
-+    except typed.Refused as exc:return typed.refused(args.get('stage', 'calculate'), asked, ('money', block), KIT, exc)
-+    except (ValueError, ZeroDivisionError):
-+        return typed.refused(args.get('stage', 'calculate'), asked, ('money', block), KIT, typed.Refused('UNSUPPORTED', typed.NUMBERS))
-+    return typed.answer(spec, KIT)
++    stage = args['stage'] if isinstance(args.get('stage'), str) and args['stage'] in ORDER else 'calculate'
++    try:spec = _spec(args, block);return typed.answer(spec, KIT)
++    except typed.Refused as exc:return typed.refused(stage, asked, ('money', block), KIT, exc)
++    except (ValueError, ZeroDivisionError, OverflowError):return typed.refused(stage, asked, ('money', block), KIT, typed.Refused('UNSUPPORTED', typed.NUMBERS))
++    except (KeyError, TypeError, AttributeError):return typed.refused(stage, asked, ('money', block), KIT, typed.Refused('UNSUPPORTED', typed.SHAPE))
 +
 +
 +def dispatch(kernel, op, args, p):return answer(args)
 diff --git a/workbench/math_typed.py b/workbench/math_typed.py
 new file mode 100644
-index 0000000..6ea65c8
+index 0000000..d43684b
 --- /dev/null
 +++ b/workbench/math_typed.py
-@@ -0,0 +1,355 @@
+@@ -0,0 +1,361 @@
 +"""Typed lines over the one maths core (0.8.5, "Maths in lines"): amounts of money and calendar dates, exactly.
 +
 +A money line or a dates line carries the owner's own numbers, so it needs no problem sheet (docs/INTEGRATED_I02.md):
@@ -1294,7 +1523,8 @@ index 0000000..6ea65c8
 +RELATION = re.compile(r'(<=|>=|==|!=|<|>)')
 +PREFIXES = {'upper': 'Up to', 'lower': 'At least', 'below': 'Below', 'above': 'Above'}
 +NUMBERS = 'write each number as an exact decimal or fraction, such as 950.50 or 1/3, in at most 100 characters'
-+NOT_ADVICE = 'It works out what you asked, from your numbers and the rules you state; it is not financial or legal advice.'
++SHAPE = 'the question is missing a part, or a part is not written as the line writes it'
++NOT_ADVICE ='It works out what you asked, from your numbers and the rules you state; it is not financial or legal advice.'
 +KEEP = ('The question:', 'Worked out', 'Interval arithmetic', 'The range from its exact form', 'Solved ', 'Its end')
 +
 +
@@ -1368,13 +1598,18 @@ index 0000000..6ea65c8
 +    return visit(tree.body)
 +
 +
-+def infer(expression, literals, names, combine, solved, candidates):
-+    """The kind of the quantity solved for: the first candidate under which the kinds of the line fit together."""
-+    first = None
++def infer(expression, literals, names, combine, solved, candidates, describe=None):
++    """The kind of the quantity solved for: the first candidate under which the kinds of the line fit together. When none
++    fits, the refusal gives each candidate's reason, `describe`(kind) naming the kind, so no one reason stands for all."""
++    reasons = []
 +    for kind in candidates:
 +        try:kinds(expression, literals, {**names, solved: kind}, combine);return kind
-+        except Refused as exc:first = first or exc
-+    raise first
++        except Refused as exc:reasons.append((kind, exc))
++    said, seen = [], set()
++    for kind, exc in reasons:
++        if describe and str(exc) not in seen:seen.add(str(exc));said.append('If %s is %s, %s.' % (solved, describe(kind), str(exc).rstrip('.')))
++    if len(said) < 2:raise reasons[0][1]
++    refuse(reasons[0][1].code, 'no kind of value for %s fits this line. %s' % (solved, ' '.join(said)))
 +
 +
 +def is_relation(expression):
@@ -1705,19 +1940,30 @@ index a4b9cf4..276d517 100644
          validate(args, schemas()[op])
  
 diff --git a/workbench/tool_selection.py b/workbench/tool_selection.py
-index 3b39047..989659a 100644
+index 3b39047..dd72909 100644
 --- a/workbench/tool_selection.py
 +++ b/workbench/tool_selection.py
-@@ -79,11 +79,17 @@ EXTRA_FAMILIES = [{'key': 'machine', 'title': 'Machine', 'prefixes': ('ledger.ma
+@@ -79,11 +79,28 @@ EXTRA_FAMILIES = [{'key': 'machine', 'title': 'Machine', 'prefixes': ('ledger.ma
                    {'key': 'network', 'title': 'Network', 'prefixes': ('network.',), 'order': ('network.observe', 'network.capture.read', 'network.capture.start'),
                     'words': 'network traffic connection connections connected port ports packet packets bandwidth listening listen socket sockets '
                              'interface interfaces internet sniff sniffer capture talking upload download rate rates tcp udp'}]
-+# 0.8.5: the owner's own money and dates (math_money, math_dates) are a family of their own, read before the calculator's
-+# 'math.', so a request about a budget or a deadline is offered them and one about plotting a voltage is not.
-+FIRST_FAMILIES = [{'key': 'money_dates', 'title': 'Money and dates', 'prefixes': ('math.money', 'math.dates'),
-+                   'words': 'money amount amounts currency budget spend spending allowance weekly monthly loan loans repaid repay rent price '
-+                            'cost costs cent cents rounding exchange date dates day days calendar deadline notice period business weekday '
-+                            'week weeks month months year years holiday holidays due payment invoice'}]
++# 0.8.5: the owner's own money and dates (math_money, math_dates) are two families of their own, read before the calculator's
++# 'math.', so a request about a budget or a deadline is offered the one it needs and one about plotting a voltage is not.
++# Their words are only those an everyday or engineering request does not use ('day', 'month', 'price', 'cost', 'due', 'rate',
++# 'budget' and 'allowance' are not among them: a power budget is the calculator's), and a few two-word phrases ('business
++# days', 'monthly budget') stand for what one word alone would match too widely; each schema is over a thousand characters,
++# and a plan must stay small. When one of them matches by more words than the sheet's maths ('calculate') does, that family
++# is offered only by name: its operations need a problem sheet, and five of their schemas beside the money one would not fit
++# the smallest model's plan.
++FIRST_FAMILIES = [{'key': 'money', 'title': 'Money', 'prefixes': ('math.money',), 'displaces': ('calculate',),
++                   'words': 'money currency currencies loan loans repaid repay repayment rent spend spending afford salary income expenses '
++                            'savings mortgage',
++                   'phrases': ('exchange rate', 'each week', 'per week', 'each month', 'per month', 'to the cent', 'in cents', 'monthly budget',
++                               'weekly budget', 'yearly budget', 'month s budget', 'week s budget', 'household budget', 'my budget')},
++                  {'key': 'dates', 'title': 'Dates', 'prefixes': ('math.dates',), 'displaces': ('calculate',),
++                   'words': 'deadline deadlines weekday weekdays holiday holidays',
++                   'phrases': ('business day', 'notice period', 'days after', 'days before', 'days between', 'weeks after', 'months after',
++                               'years after', 'day of the week')}]
  
  
  def families():
@@ -1727,3 +1973,44 @@ index 3b39047..989659a 100644
      for row in explore.VIEWS:
          words = tokens(row[1] + ' ' + row[2] + ' ' + row[8] + ' ' + EXTRA_WORDS.get(row[0], ''))
          rows.append({'key': row[0], 'title': row[1], 'prefixes': tuple(row[7]), 'words': words})
+@@ -96,7 +113,7 @@ def relevant(text, capabilities, definitions, limit=6, exclude=(), *, review_act
+     words = tokens(text)
+     program_tools = program_tools or {}
+     if not (words or program_tools) or limit <= 0: return []
+-    raw_words = set(re.findall(r'[a-z]+', str(text or '').casefold()))
++    raw_words = set(re.findall(r'[a-z]+', str(text or '').casefold())); said = ' %s ' % ' '.join(re.findall(r'[a-z0-9]+', str(text or '').casefold()))
+     rows = families(); excluded = set(exclude) | DENY; chosen = []
+     for op, scope in capabilities.items():
+         if op in excluded or (scope not in ('read', 'execute') and
+@@ -105,7 +122,7 @@ def relevant(text, capabilities, definitions, limit=6, exclude=(), *, review_act
+         parts = {form for p in re.split(r'[._]', op.casefold()) if p and p not in STOP for form in forms(p)}
+         by_name = sorted(words & parts - GENERIC); generic_name = bool(words & parts & GENERIC)
+         family = next((row for row in rows if op.startswith(row['prefixes'])), None)
+-        by_family = sorted(words & family['words']) if family else []
++        by_family = sorted(words & family['words']) + sorted(p for p in family.get('phrases', ()) if ' %s ' % p in said or ' %ss ' % p in said) if family else []
+         argument_names = {form for k in (definitions.get(op) or {}).get('properties', {}) for form in forms(k.casefold())}
+         by_args = sorted(words & argument_names - GENERIC)
+         score = 3 * len(by_name) + 2 * len(by_family) + len(by_args) + (1 if generic_name and (by_name or by_family) else 0)
+@@ -122,7 +139,12 @@ def relevant(text, capabilities, definitions, limit=6, exclude=(), *, review_act
+                                          'requires owner review' if scope == 'approve' else '']))
+         order = tuple((family or {}).get('order') or ())   # a family may say which of its operations come first (the reads)
+         rank = (order.index(op) if op in order else len(order)) if order else None
+-        chosen.append({'operation': op, 'scope': scope, 'score': score, 'reason': reason, 'family': family['key'] if family else None, 'rank': rank})
++        chosen.append({'operation': op, 'scope': scope, 'score': score, 'reason': reason, 'family': family['key'] if family else None, 'rank': rank,
++                       'named': bool(by_name), 'matched': len(by_family)})
++    keys, stronger = {row['key']: row for row in rows}, {}
++    for row in chosen:
++        for key in (keys.get(row['family']) or {}).get('displaces', ()):stronger[key] = max(stronger.get(key, 0), row['matched'])
++    chosen = [row for row in chosen if row['named'] or row['matched'] >= stronger.get(row['family'], 0)]
+     # A family with its own order (the network's: its reads before its controls) ranks its operations together at the family's
+     # best score, so an argument name shared with one control never puts that control before the reads.
+     best = {}
+@@ -137,7 +159,7 @@ def relevant(text, capabilities, definitions, limit=6, exclude=(), *, review_act
+         key = row['family'] or row['operation'].split('.')[0]; seen[key] = seen.get(key, 0) + 1
+         (first if seen[key] <= 2 else rest).append(row)
+     picked = (first + rest)[:limit]
+-    return [{**{k: v for k, v in row.items() if k != 'rank'}, 'arguments': definitions.get(row['operation'], {})} for row in picked]
++    return [{**{k: v for k, v in row.items() if k not in ('rank', 'named', 'matched')}, 'arguments': definitions.get(row['operation'], {})} for row in picked]
+ 
+ 
+ def describe(rows):

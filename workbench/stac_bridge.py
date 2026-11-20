@@ -78,6 +78,10 @@ def math_ir(program):
       math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] (up to four) [| unit U]
       math problem:ID | range "EXPR" [| given NAME LO HI] (up to four) [| unit U]
       math problem:ID | check "REL" [| given NAME LO HI] (up to four)                               -> math.answer
+      math money | calculate|solve|range|check ... [| given NAME A [B] [CODE]] [| rate FROM TO R] [| round S] -> math.money
+      math dates | calculate|solve|range|check ... [| given NAME D1 [D2]] [| holidays D ...]         -> math.dates
+      math dates | deadline N UNIT after DATE [| end included|excluded] [| holidays D ...]           -> math.dates
+      math dates | business days FROM TO [| holidays D ...]                                          -> math.dates
     The quoted expression is data for the typed compiler; LO, HI and S are in that quantity's declared unit."""
     try:tokens=shlex.split(program)
     except ValueError:raise ValueError('STAC_MATH_SYNTAX') from None
@@ -87,6 +91,11 @@ def math_ir(program):
         if token=='|':stages.append([])
         else:stages[-1].append(token)
     if len(stages)<2 or len(stages[0])!=2 or stages[0][0]!='math' or not stages[1]:raise ValueError('STAC_MATH_SYNTAX')
+    if stages[0][1] in ('money','dates'):   # 0.8.5: the owner's own amounts and dates, no sheet (math_typed, math_money, math_dates)
+        from . import math_money,math_dates
+        line=math_money if stages[0][1]=='money' else math_dates
+        body={'schema':'arc.stac.math-ir/1','operation':'math.'+stages[0][1],'arguments':line.line_args(stages[1],stages[2:]),'effects':['read'],'result_type':'ExactMathematicalAnswer'}
+        return {**body,'program_id':c.digest(body)}
     ident=stages[0][1].removeprefix('problem:')
     if not re.fullmatch('[0-9a-f]{32}',ident):raise ValueError('STAC_MATH_PROBLEM_ID')
     verb,rest=stages[1],stages[2:]
@@ -120,7 +129,7 @@ def math_ir(program):
     return {**body,'program_id':c.digest(body)}
 
 
-MATH_GRAMMAR='math problem:ID | calculate "EXPR" [| unit U]; math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] [| unit U]; math problem:ID | range "EXPR" [| given NAME LO HI] [| unit U]; math problem:ID | check "REL" [| given NAME LO HI]; at most four given, each typed by the owner'
+MATH_GRAMMAR='math problem:ID | calculate "EXPR" [| unit U]; math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] [| unit U]; math problem:ID | range "EXPR" [| given NAME LO HI] [| unit U]; math problem:ID | check "REL" [| given NAME LO HI]; at most four given, each typed by the owner; math money | calculate, solve, range or check "EXPR" with amounts such as 1200 USD [| given NAME A [B] [CODE]] [| rate FROM TO R] [| round STEP]; math dates | calculate, solve, range or check "EXPR" with dates such as 2026-11-20 and lengths such as 30 days or 1 month [| given NAME D1 [D2]] [| holidays D ...]; math dates | deadline N days after DATE [| end included or excluded]; math dates | business days FROM TO [| holidays D ...]'
 
 
 def gives_ranges(program):
@@ -130,8 +139,20 @@ def gives_ranges(program):
     text=str(program or '').replace('\u200b','').strip();first=text.split(maxsplit=1)
     if first and first[0].lower()=='explain':text=first[1].strip() if len(first)>1 else ''
     if text.split(maxsplit=1)[:1]!=['math']:return False
-    try:return bool(math_ir(text)['arguments'].get('given'))
+    try:ir=math_ir(text)
     except ValueError:return False
+    return owners_only(ir['operation'],ir['arguments'])
+
+
+def owners_only(op,args):
+    """Whether a maths call carries what only the owner gives: a range on a sheet's line; in a money or dates line a
+    range, an exchange rate or a list of holidays (a single amount or date is the question itself)."""
+    if not isinstance(args,dict):return False
+    if op=='math.answer':return bool(args.get('given'))
+    if op in ('math.money','math.dates'):
+        from . import math_money,math_dates
+        return (math_money if op=='math.money' else math_dates).owners(args)
+    return False
 
 
 def _freshness(kernel,principal,result,ident):
@@ -187,7 +208,7 @@ def run(kernel,principal,program):
         if compiled['kind']=='WORKBENCH' and ir.get('presentation')=='gaps':
             value=r['result'];r['result']={k:value[k] for k in ('id','state','sha256','encryption','issues','transport','rules_current')}
         out={'schema':'arc.stac-kernel-result/1','program_id':ir['program_id'],'invocation_id':uuid.uuid4().hex,'result_type':ir.get('result_type','SourceBoundEngineeringRelationships'),'result':r['result'],'effects':['read'],'engineering_qualification':False}
-        if compiled['kind']=='MATH':out['freshness']=_freshness(kernel,principal,r['result'],ir['arguments']['id'])
+        if compiled['kind']=='MATH':out['freshness']=_freshness(kernel,principal,r['result'],ir['arguments'].get('id'))
         return out
     if compiled['presentation_io_requested']:raise ValueError('EMBEDDED_IO_REQUIRES_OWNER_STAC_EXPORT_ACTION')
     from .stac.runtime import evaluate,RunError

@@ -98,6 +98,93 @@ Holds
 rail_voltage * settled_current <= settled_power_limit: it holds for every value in the ranges, with 0.875 to 1.125 W to spare.
 ```
 
+## Money and dates in lines (0.8.5)
+
+Two more kinds of line work on the same maths core, for managing life and money as well as engineering: amounts in a currency, and calendar dates. They carry the owner's own numbers, so they need no problem sheet. Each is the read operation `math.money` or `math.dates` (workbench/math_money.py and workbench/math_dates.py, over the frame workbench/math_typed.py), and each answer is the same record, `ledger.math-answer/1`, with the same states (Holds, Does not hold, Cannot tell), guarantee, steps and receipt one word away; a `money` or `calendar` field adds what the kinds need.
+
+```
+math money | calculate "EXPR" [| given NAME A [B] [CODE]] ... [| rate FROM TO R] ... [| round STEP]
+math money | solve "REL" for NAME [| within LO HI] [| step S] [| given ...] ... [| rate ...] ...
+math money | range "EXPR" [| given ...] ... [| rate ...] ... [| round STEP]
+math money | check "REL" [| given ...] ... [| rate ...] ...
+math dates | calculate "EXPR", solve "REL" for NAME [| within D1 D2], range "EXPR" or check "REL" [| given NAME D1 [D2]] ... [| holidays D ...]
+math dates | deadline N UNIT after DATE [| end included|excluded] [| holidays D ...]
+math dates | business days FROM TO [| holidays D ...]
+```
+
+Where it fits. The sheet's line keeps its grammar and the hashed core files are unchanged: a currency or a date cannot be a unit of the existing unit algebra without changing it, so the kind of every value is checked first, in its own module, and the expression then goes to the core as plain exact fractions; the answer comes back set in the kinds. The owner learns no new verbs for the arithmetic: the same calculate, solve, range and check, with amounts and dates written inside the expression. Only the two calendar rules that are not arithmetic get a verb of their own: a deadline and a count of business days. `given` takes one value or a range; a range, an exchange rate and a list of holidays are the owner's to write, and a line Kasandra proposes never carries one.
+
+Money. An amount is a number with the ISO 4217 code after it, `1200 USD`, `212.50 EUR`; a `given` without a code is a plain number. Amounts are exact decimals, exact fractions inside, never floating point. Two currencies are never added or compared: the line is refused in words, unless the owner gives the rate (`| rate EUR USD 1.08`, one EUR is 1.08 USD), and then every EUR amount is converted at it and the receipt names it. An amount times or over a plain number is an amount; an amount over an amount of the same currency is a plain number; an amount times an amount is refused. An amount is written as a plain decimal with its code: not `1,200 USD`, `$10`, `10 usd` or `1e3 USD`, each refused with the way to write it. Nothing is rounded unless the line asks (`| round 0.01`: the number is the step, so 0.01 is whole cents and 1 whole units), and then by one rule only, half away from zero, the way bills, bank statements and the euro conversion rules round, so a rounded amount matches the owner's papers; the exact value stands beside it. In solve, `| step 0.01` rounds an allowance inward to whole cents, never up.
+
+Dates. A date is a calendar day written year-month-day, with no time of day and no time zone, and it is shown with its weekday. Lengths are written with their unit: `30 days`, `2 weeks`. The days between two dates are a subtraction; a date plus a date, or a date plus a bare number, is refused. Months, years and business days are counted the calendar's way on the date that starts a sum, written there or a name given one date (`service + 1 month`), left to right through the lengths after it: the same day of the month, and when the month has no such day (31 January plus one month) its last day; the receipt says when that clamping applied. A month or a business day anywhere else (after a minus or a times, or with no date before it) is refused, so the order of operations is never bent. Business days are Monday to Friday, less the holidays the owner lists in the line (a holiday on a weekend takes nothing away); none by default, and the receipt then says no holidays were counted. A deadline counts from the day after its date (the date is day 0), so its count is at least 1; whether the end day itself is inside the period is the owner's rule, `end included` or `end excluded`, and when the line does not say, both dates are shown. With the end excluded, the last day inside is the day before the end (for business days, the business day before it), and a period that leaves no day inside is refused. A date outside the years 1 to 9999 is refused.
+
+This works out what the owner asks from his numbers and the rules he states or admits; it gives no financial or legal advice.
+
+### Worked examples: a budget, two loans, a notice period, a payment
+
+tests_integrated/test_math_money_dates.py runs each line below and compares what the window shows with the lines under it, word for word. All the numbers are invented.
+
+What can be spent each week and stay under a month's budget of 2200 USD, with rent somewhere between 950 and 1000 USD and the month counted as four weeks, in whole cents:
+
+```text
+math money | solve "rent + 4 * weekly <= 2200 USD" for weekly | within 0 2200 | step 0.01 | given rent 950 1000 USD
+Solve for weekly
+Up to 300.00 USD, at rent 950.00 to 1000.00 USD.
+300.00 USD holds (2200.00 USD); 300.01 USD does not (2200.04 USD), at rent 1000.00 USD.
+```
+
+The weekly allowance for each rent in that range is itself a range:
+
+```text
+math money | range "(2200 USD - rent) / 4" | given rent 950 1000 USD
+Range
+(2200 USD - rent) / 4: 300.00 to 312.50 USD, over rent 950.00 to 1000.00 USD.
+```
+
+Two loans compared by the total repaid: 24 payments of 212.50 EUR, against 36 payments of 148.90 EUR and a 150 EUR fee:
+
+```text
+math money | check "24 * 212.50 EUR <= 36 * 148.90 EUR + 150 EUR"
+Holds
+24 * 212.50 EUR <= 36 * 148.90 EUR + 150 EUR: it holds, with 410.40 EUR to spare.
+The left side, 24 * 212.50 EUR, comes to 5100.00 EUR; the right side, 36 * 148.90 EUR + 150 EUR, to 5510.40 EUR.
+```
+
+When a notice period of 30 days after service on 2026-11-20 actually ends, under a rule that counts the end day in:
+
+```text
+math dates | deadline 30 days after 2026-11-20 | end included
+Deadline
+30 days after Friday 2026-11-20 ends on Sunday 2026-12-20, the end day included.
+Friday 2026-11-20 is day 0 and counting starts the day after it; the end, Sunday 2026-12-20, is day 30.
+The end day is included, as you said: the last day inside the period is Sunday 2026-12-20.
+```
+
+Whether a reply sent on 2026-12-19 falls within a notice period of one month after service on 2026-11-20, the month counted on the date given to the name:
+
+```text
+math dates | check "2026-12-19 <= service + 1 month" | given service 2026-11-20
+Holds
+2026-12-19 <= service + 1 month: it holds, with 1 day to spare.
+The left side, 2026-12-19, comes to Saturday 2026-12-19; the right side, service + 1 month, to Sunday 2026-12-20.
+```
+
+A payment due 10 business days after an invoice dated 2026-11-20, with one holiday the owner lists:
+
+```text
+math dates | calculate "2026-11-20 + 10 business days" | holidays 2026-11-26
+Worked out
+2026-11-20 + 10 business days = Monday 2026-12-07.
+```
+
+And the calendar's own way with months, where 31 January plus one month is the last day of February:
+
+```text
+math dates | calculate "2026-01-31 + 1 month"
+Worked out
+2026-01-31 + 1 month = Saturday 2026-02-28.
+```
+
 ## Office profile and precision
 
 The unmodified, hash-pinned LibreOffice UNO Java API JAR 25.2.0 is included with its MPL license and upstream POM/source reference. A fixed Java client receives data fields, not model-generated Java. The running native LibreOffice and Java versions are recorded per action. Documents load in an isolated profile with source document macros disabled and external updates disabled. This is a new generated-cell/paragraph/table profile; legacy Office adapters retain their existing interfaces and document-loss reports.

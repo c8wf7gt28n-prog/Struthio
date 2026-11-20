@@ -79,11 +79,28 @@ EXTRA_FAMILIES = [{'key': 'machine', 'title': 'Machine', 'prefixes': ('ledger.ma
                   {'key': 'network', 'title': 'Network', 'prefixes': ('network.',), 'order': ('network.observe', 'network.capture.read', 'network.capture.start'),
                    'words': 'network traffic connection connections connected port ports packet packets bandwidth listening listen socket sockets '
                             'interface interfaces internet sniff sniffer capture talking upload download rate rates tcp udp'}]
+# 0.8.5: the owner's own money and dates (math_money, math_dates) are two families of their own, read before the calculator's
+# 'math.', so a request about a budget or a deadline is offered the one it needs and one about plotting a voltage is not.
+# Their words are only those an everyday or engineering request does not use ('day', 'month', 'price', 'cost', 'due', 'rate',
+# 'budget' and 'allowance' are not among them: a power budget is the calculator's), and a few two-word phrases ('business
+# days', 'monthly budget') stand for what one word alone would match too widely; each schema is over a thousand characters,
+# and a plan must stay small. When one of them matches by more words than the sheet's maths ('calculate') does, that family
+# is offered only by name: its operations need a problem sheet, and five of their schemas beside the money one would not fit
+# the smallest model's plan.
+FIRST_FAMILIES = [{'key': 'money', 'title': 'Money', 'prefixes': ('math.money',), 'displaces': ('calculate',),
+                   'words': 'money currency currencies loan loans repaid repay repayment rent spend spending afford salary income expenses '
+                            'savings mortgage',
+                   'phrases': ('exchange rate', 'each week', 'per week', 'each month', 'per month', 'to the cent', 'in cents', 'monthly budget',
+                               'weekly budget', 'yearly budget', 'month s budget', 'week s budget', 'household budget', 'my budget')},
+                  {'key': 'dates', 'title': 'Dates', 'prefixes': ('math.dates',), 'displaces': ('calculate',),
+                   'words': 'deadline deadlines weekday weekdays holiday holidays',
+                   'phrases': ('business day', 'notice period', 'days after', 'days before', 'days between', 'weeks after', 'months after',
+                               'years after', 'day of the week')}]
 
 
 def families():
     """One row per adapter (plus the families above): its operation prefixes and the words of its title, description and keywords."""
-    rows = []
+    rows = [{**first, 'words': tokens(first['words'])} for first in FIRST_FAMILIES]
     for row in explore.VIEWS:
         words = tokens(row[1] + ' ' + row[2] + ' ' + row[8] + ' ' + EXTRA_WORDS.get(row[0], ''))
         rows.append({'key': row[0], 'title': row[1], 'prefixes': tuple(row[7]), 'words': words})
@@ -96,7 +113,7 @@ def relevant(text, capabilities, definitions, limit=6, exclude=(), *, review_act
     words = tokens(text)
     program_tools = program_tools or {}
     if not (words or program_tools) or limit <= 0: return []
-    raw_words = set(re.findall(r'[a-z]+', str(text or '').casefold()))
+    raw_words = set(re.findall(r'[a-z]+', str(text or '').casefold())); said = ' %s ' % ' '.join(re.findall(r'[a-z0-9]+', str(text or '').casefold()))
     rows = families(); excluded = set(exclude) | DENY; chosen = []
     for op, scope in capabilities.items():
         if op in excluded or (scope not in ('read', 'execute') and
@@ -105,7 +122,7 @@ def relevant(text, capabilities, definitions, limit=6, exclude=(), *, review_act
         parts = {form for p in re.split(r'[._]', op.casefold()) if p and p not in STOP for form in forms(p)}
         by_name = sorted(words & parts - GENERIC); generic_name = bool(words & parts & GENERIC)
         family = next((row for row in rows if op.startswith(row['prefixes'])), None)
-        by_family = sorted(words & family['words']) if family else []
+        by_family = sorted(words & family['words']) + sorted(p for p in family.get('phrases', ()) if ' %s ' % p in said or ' %ss ' % p in said) if family else []
         argument_names = {form for k in (definitions.get(op) or {}).get('properties', {}) for form in forms(k.casefold())}
         by_args = sorted(words & argument_names - GENERIC)
         score = 3 * len(by_name) + 2 * len(by_family) + len(by_args) + (1 if generic_name and (by_name or by_family) else 0)
@@ -122,7 +139,12 @@ def relevant(text, capabilities, definitions, limit=6, exclude=(), *, review_act
                                          'requires owner review' if scope == 'approve' else '']))
         order = tuple((family or {}).get('order') or ())   # a family may say which of its operations come first (the reads)
         rank = (order.index(op) if op in order else len(order)) if order else None
-        chosen.append({'operation': op, 'scope': scope, 'score': score, 'reason': reason, 'family': family['key'] if family else None, 'rank': rank})
+        chosen.append({'operation': op, 'scope': scope, 'score': score, 'reason': reason, 'family': family['key'] if family else None, 'rank': rank,
+                       'named': bool(by_name), 'matched': len(by_family)})
+    keys, stronger = {row['key']: row for row in rows}, {}
+    for row in chosen:
+        for key in (keys.get(row['family']) or {}).get('displaces', ()):stronger[key] = max(stronger.get(key, 0), row['matched'])
+    chosen = [row for row in chosen if row['named'] or row['matched'] >= stronger.get(row['family'], 0)]
     # A family with its own order (the network's: its reads before its controls) ranks its operations together at the family's
     # best score, so an argument name shared with one control never puts that control before the reads.
     best = {}
@@ -137,7 +159,7 @@ def relevant(text, capabilities, definitions, limit=6, exclude=(), *, review_act
         key = row['family'] or row['operation'].split('.')[0]; seen[key] = seen.get(key, 0) + 1
         (first if seen[key] <= 2 else rest).append(row)
     picked = (first + rest)[:limit]
-    return [{**{k: v for k, v in row.items() if k != 'rank'}, 'arguments': definitions.get(row['operation'], {})} for row in picked]
+    return [{**{k: v for k, v in row.items() if k not in ('rank', 'named', 'matched')}, 'arguments': definitions.get(row['operation'], {})} for row in picked]
 
 
 def describe(rows):

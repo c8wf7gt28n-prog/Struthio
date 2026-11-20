@@ -94,6 +94,9 @@ FOCUSED_MODULES=(
  # 0.8.5: the one maths core (math_ranges, math_answers, tolerances) and its lines: solve, range and check, exact, with receipts
  'test_math_core','test_math_lines',
 
+ # 0.8.5: money and dates exactly on the same core (math_typed, math_money, math_dates): amounts, rates, rounding, calendar
+ 'test_math_money_dates',
+
  # backup and restore, the Project Desk, slate reasoning, change sets, continuing work, exchange and updates
  'test_workspace_backup','test_project_desk','test_slate_reasoning','test_change_sets','test_continuing_work','test_deployment')
 # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.

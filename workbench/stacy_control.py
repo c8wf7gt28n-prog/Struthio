@@ -285,7 +285,7 @@ def validate_actions(actions, principal, *, provider=False, private_local=False)
     from .engineering_kernel import CAPABILITIES
     from .engineering_cli import schemas
     from .agent_operations import validate
-    from .stac_bridge import gives_ranges
+    from .stac_bridge import gives_ranges, owners_only
     if not isinstance(actions,list) or not 1<=len(actions)<=3:raise ValueError('Choose one to three commands')
     for action in actions:
         if not isinstance(action,dict) or set(action)!={'operation','arguments'}:raise ValueError('Invalid command proposal')
@@ -304,7 +304,7 @@ def validate_actions(actions, principal, *, provider=False, private_local=False)
             raise ValueError('This command requires a direct owner action')
         # a line Kasandra proposes never carries a range, whatever runs or keeps it (stac.*, investigation.step and .check,
         # agenda.add and .suggest, or any later one): every string argument is read as a line
-        if provider and (op == 'math.answer' and isinstance(args, dict) and args.get('given') or any(gives_ranges(text) for text in _texts(args))):
+        if provider and (owners_only(op, args) or any(gives_ranges(text) for text in _texts(args))):
             raise ValueError(GIVEN_IS_THE_OWNERS)
         validate(args, schemas()[op])
 

@@ -44,6 +44,7 @@ from . import lab_service
 from . import reason_service
 from . import adaptive_work,schedule_math,slate_action
 from . import math_answers, tolerances  # 0.8.5: the one maths core in lines: math.answer, and the owner's tolerances (recorded additions)
+from . import math_money, math_dates  # 0.8.5: money and dates exactly, on the same core: math.money and math.dates (recorded additions)
 from . import joined_work,typed_artifacts,checked_methods,native_sessions
 from . import slate_context, slate_reasoning
 from . import edit_storage, import_profiles, change_sets
@@ -176,6 +177,7 @@ CAPABILITIES = {
     **adaptive_work.SCOPES,
     **schedule_math.SCOPES,
     **math_answers.SCOPES, **tolerances.SCOPES,
+    **math_money.SCOPES, **math_dates.SCOPES,
     **joined_work.SCOPES, **typed_artifacts.SCOPES, **checked_methods.SCOPES, **native_sessions.SCOPES,
     **office_service.SCOPES,
     **notebook_service.SCOPES,
@@ -570,6 +572,8 @@ class Kernel:
         if op in schedule_math.FIELDS:return schedule_math.dispatch(self,op,a,p)
         if op in math_answers.FIELDS:return math_answers.dispatch(self,op,a,p)
         if op in tolerances.FIELDS:return tolerances.dispatch(self,op,a,p)
+        if op in math_money.FIELDS:return math_money.dispatch(self,op,a,p)
+        if op in math_dates.FIELDS:return math_dates.dispatch(self,op,a,p)
         if op in lab_service.FIELDS:return lab_service.dispatch(self,op,a,p)
         if op in reason_service.FIELDS:return reason_service.dispatch(self,op,a,p)
         if op in math_service.FIELDS:return math_service.dispatch(self,op,a,p)
