@@ -510,11 +510,15 @@ class LocalPort:
     def model(self):return self.worker.get('model_id', '')
 
     def key(self):
-        """The qualification key until A5's seven-part exam key: model file, runtime, backend, context, template options."""
-        from . import local_brain, record_io
-        return record_io.digest({'model': self.worker.get('model_id'), 'runtime': self.worker.get('runtime'),
-                                 'backend': self.worker.get('backend'), 'context': self.worker.get('context'),
-                                 'template': local_brain.TEMPLATE_OPTIONS})
+        """The model key (A5, model_exam.key): the file set, the runtime pin, the device, the context, the seal digest,
+        the template-rendering digest and the exam version. Computed once per worker process."""
+        from . import model_exam
+        return model_exam.key_for(self.worker)['key']
+
+    def exam_off(self, key):
+        """A5: the kinds the exam switched off on this model key (harm above 0, or below the floor)."""
+        from . import model_exam
+        return model_exam.exam_off(self.kernel, key)
 
     def tokens(self, messages):
         """The prompt's tokens as the worker renders and counts them (its own template and vocabulary)."""
@@ -631,6 +635,7 @@ def ask(kind, inputs, request):
     kept = max(0, min(int(port.kept(messages)), prompt));new = prompt - kept
     if new > caps.new_tokens:return _without(kind, inputs, 'OVER_CAP')
     key = port.key()
+    if kind.name in (getattr(port, 'exam_off', None) or (lambda k: ()))(key):return _without(kind, inputs, 'EXAM_OFF')   # A5
     price = int(request.clock.price_ms(key, kind.name, new, caps.answer_tokens, caps.desk_ms))
     deadline = int(kind.deadline(price, caps))
     if caps.foreground and not caps.stop_only:

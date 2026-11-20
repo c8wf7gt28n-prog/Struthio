@@ -1,0 +1,39 @@
+Graphite 0.8.6 · the model check · 2026-11-20
+Model: Qwen3.5-4B-Q4_K_M.gguf (a hybrid)
+
+S0  the machine, no model                         passed
+S1  first load and the seal                       passed
+S2  speeds                                        passed (contended)
+S3  reuse and Stop                                passed (contended)
+S4  the desk (from the Brain room)                not run: from the Brain room only: the console has no desk to watch
+S5  the short exam                                passed (contended)
+S6  optional: another model                       not run: optional, and not asked (--also FILE)
+S7  optional, overnight, on mains: the full exam  not run: optional, overnight, and not asked (--overnight)
+
+Predictions (written before the run):
+K1   not measured: the GTT window is at least 28 GiB (no amdgpu memory window here)
+K2   did not hold: first load 20 to 60 s; a warm load 8 to 25 s
+K3   did not hold: a 1,200-token read at 150 to 400 tokens a second
+K4   did not hold: writing 15 to 25 a second, at least 12 after 60 s of heat
+K5   not measured: batch 512 reads at least twice as fast as 64 on Vulkan (batches are measured on Vulkan only)
+K6   held: a kept choose turn under 1.6 s, every second-round cache_n at least the brief minus 4
+K7   did not hold: one checkpoint 55 to 75 MiB, if the model is a hybrid
+K8   held: Stop answers within 2 s
+K9   not measured: the full seal works on Vulkan (the model ran on the processor)
+K10  not measured: the short exam: READ at least 22 of 24 single-step, CHOOSE clear cases right on turn 1 at least 7 of 8, STEER harm 0 (the papers it needs were not sat)
+K11  not measured: no desk stall over 50 ms during a 3,000-token read (from the Brain room only)
+K12  held: grammar overhead at most 15 % of the writing rate
+
+The short exam:
+  Understanding: not asked here (50 kind not in this build).
+  Choosing: not asked here (24 kind not in this build).
+  Planted text: not asked here (16 kind not in this build, 8 kind refused its inputs).
+  Reading pages: 2 of 11, no mark kept on a flagged line.
+    9 of them late: the safe answer was given.
+    6 not sent by the desk (over cap); not counted.
+  Wording: not asked here (12 kind not in this build).
+
+What it found:
+  Reads are under 100 tokens a second (54): pages are read only when you ask, and long questions are cut.
+
+Her model on this machine: loads in 4 s; reads 54 a second; writes 5 a second; a question she has seen before: 1.2 s; no change suggested.

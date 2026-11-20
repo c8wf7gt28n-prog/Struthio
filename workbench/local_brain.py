@@ -21,6 +21,8 @@ OPTIONS={'type':'object','additionalProperties':False,'properties':{
  'threads':{'type':'integer','minimum':1,'maximum':32},'memory_mb':{'type':'integer','minimum':512,'maximum':262144},
  'backend':{'type':'string','enum':['AUTO','CPU','VULKAN']},'gpu_layers':{'type':'integer','minimum':-1,'maximum':512},
  'cpu_fallback':{'type':'boolean'},
+ # 0.8.7 A5 (the model check): reuse off for I05 arm A as registered (A+R has it on); reading batch 64, 256 or 512
+ 'reuse':{'type':'boolean'},'batch':{'type':'integer','enum':[64,256,512]},
  'message':{'type':'string','maxLength':8000},'max_tokens':{'type':'integer','minimum':1,'maximum':512},
  'mode':{'type':'string','enum':['chat','plan']},'conversation':{'type':'string','pattern':'^[0-9a-f]{32}$','maxLength':32}}}
 OPTIONS['properties']['reference_packet']={'type':'string','pattern':'^[0-9a-f]{32}$','maxLength':32}
@@ -238,6 +240,7 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
     # rule admits is taken. A dense model has one rung, today's estimate to the byte.
     from .resource_control import KEYS,MIB,budget_room,reserve_bytes,reuse_ladder
     ladder=reuse_ladder(value['inspection'],value['total_bytes'],context)
+    if options.get('reuse') is False:ladder=ladder[-1:]   # 0.8.7 A5: reuse off, today's launch (I05 arm A as registered)
     available=host['available_ram_bytes']
     if not available:raise ValueError('HOST_MEMORY_COULD_NOT_BE_MEASURED')
     reserve=reserve_bytes(KEYS['reserve_mb'] if reserve_mb is None else reserve_mb,host.get('total_ram_bytes'))
@@ -291,6 +294,7 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
             'checkpoints':chosen['checkpoints'],'prompt_cache_mb':chosen['cache_mb'],
             'memory_sum':{k:v for k,v in chosen.items() if k!='estimate'},'backend':backend,
             'requested_backend':requested,'gpu_layers':layers,'cpu_fallback':fallback,'fallback_reason':reason,
+            **({'batch':options['batch']} if options.get('batch') in (64,256,512) else {}),   # 0.8.7 A5: the model check's batches
             'host':host,'reclaimable_private_bytes':reclaimable_bytes,'resource_guard':resource_guard(backend),
             **({'headroom_mb':headroom_mb} if headroom_mb else {})}
 
@@ -425,6 +429,11 @@ def seal_check(worker,log,backend):
     campaign's simulated worker can answer it (tools/campaign_lib/sim.py); a real start always runs the real check."""
     return brain_seal.check(worker,log,backend)
 
+def _batch(config):
+    """0.8.7 A5: the reading batch (--ubatch-size): 64 as before unless the launch asks for 256 or 512 (the model check's
+    S2 measures each; 'Use the measured settings?' may propose one)."""
+    return config.get('batch') if config.get('batch') in (64,256,512) else 64
+
 def launch_arguments(weights,sock,port,key_file,config,backend):
     """The runtime's launch line (0.8.7 A2, design 4.2). One slot (--parallel 1); prompt reuse through context
     checkpoints with no minimum step (the default 8,192 gives none for short prompts) and a bounded RAM prompt cache, both
@@ -436,7 +445,7 @@ def launch_arguments(weights,sock,port,key_file,config,backend):
           '--api-key-file',key_file,
           '--ctx-size',str(config['context']),'--threads',str(config['threads']),'-ngl',
           ('auto' if gpu_layers==-1 else str(gpu_layers)) if backend=='VULKAN' else '0','--parallel','1',
-          '--threads-http','2','--batch-size','256','--ubatch-size','64',
+          '--threads-http','2','--batch-size',str(max(256,_batch(config))),'--ubatch-size',str(_batch(config)),
           '--cache-ram',str(int(config.get('prompt_cache_mb') or 0)),'--ctx-checkpoints',str(int(config.get('checkpoints') or 0)),
           '--checkpoint-min-step','0','--no-cache-idle-slots',
           '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode','none',
@@ -489,7 +498,7 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
                     'job_id':ident,'started':time.time(),'backend':backend,'requested_backend':config.get('requested_backend','CPU'),
                     'device':config.get('device'),'fallback_reason':config.get('fallback_reason'),
                     'resource_guard':config.get('resource_guard',resource_guard(backend)),
-                    'verified_files':verified,'batch_size':256,'microbatch_size':64,
+                    'verified_files':verified,'batch_size':max(256,_batch(config)),'microbatch_size':_batch(config),
                     'context_basis':'REQUESTED_LIMIT','context_reuse':'PINNED_SINGLE_SLOT',
                     # 0.8.7 A2: kept briefs (brain_briefs) over one slot, its checkpoints and its RAM prompt cache
                     'reuse':{'checkpoints':int(config.get('checkpoints') or 0),'prompt_cache_mb':int(config.get('prompt_cache_mb') or 0)},

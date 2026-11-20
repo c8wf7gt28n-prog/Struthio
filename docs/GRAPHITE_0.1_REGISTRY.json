@@ -54,6 +54,7 @@
    "brain.acceleration.probe": "workbench/local_brain.py#dispatch",
    "brain.account": "workbench/model_account.py#dispatch",
    "brain.ask": "workbench/local_brain.py#dispatch",
+   "brain.exam": "workbench/model_exam.py#dispatch",
    "brain.help.set": "workbench/turns.py#dispatch",
    "brain.host": "workbench/local_brain.py#dispatch",
    "brain.model.add": "workbench/local_brain.py#dispatch",
@@ -1026,9 +1027,9 @@
   }
  },
  "counts": {
-  "adapters": 828,
+  "adapters": 829,
   "job_tools": 113,
-  "operations": 828,
+  "operations": 829,
   "settings": 48
  },
  "formulas": {
@@ -1925,6 +1926,11 @@
    },
    "scope": "execute"
   },
+  "brain.exam": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
   "brain.help.set": {
    "arguments": "a4a4f2e1ec9e9042628bff0beec7e2e3ad716b96d7d571cbda8efa4be4b66b3c",
    "properties": {
@@ -1966,19 +1972,19 @@
    "scope": "approve"
   },
   "brain.model.qualify": {
-   "arguments": "39cf5ffa07e7d415ac82f2fd5427653df8dabb32a90489d17692aef909b564b6",
+   "arguments": "16f034058582a591477ccd841fc4d00f2f0990fe02034ad300eb1c35594ea3a6",
    "properties": {
     "id": "f4618f4ae4b25223",
-    "options": "998b7a40f1ba10e8",
+    "options": "211c73b4a8457197",
     "request_key": "66f34441032fb10a"
    },
    "scope": "approve"
   },
   "brain.model.use": {
-   "arguments": "39cf5ffa07e7d415ac82f2fd5427653df8dabb32a90489d17692aef909b564b6",
+   "arguments": "16f034058582a591477ccd841fc4d00f2f0990fe02034ad300eb1c35594ea3a6",
    "properties": {
     "id": "f4618f4ae4b25223",
-    "options": "998b7a40f1ba10e8",
+    "options": "211c73b4a8457197",
     "request_key": "66f34441032fb10a"
    },
    "scope": "approve"
@@ -3851,9 +3857,9 @@
    "scope": "execute"
   },
   "jobs.submit": {
-   "arguments": "f146ae23b03b39fd98f98085f2edd34e5ba14a65cd90e22c7457c9966b2d540d",
+   "arguments": "af62bda6b515020634f129baa37ea20bc8dc474704c361b95c130692e49f001f",
    "properties": {
-    "brain": "998b7a40f1ba10e8",
+    "brain": "211c73b4a8457197",
     "calculation": "e00b3a826e999365",
     "candidate": "00404e686415370f",
     "goal": "00404e686415370f",
@@ -8148,7 +8154,7 @@
  },
  "release": "Graphite 0.8.6",
  "schema": "graphite.registry-record/1",
- "schema_digest": "e8472d72066237ebb71dbba45e41c16d159666b00a432a08ed2c8cb63b20e46b",
+ "schema_digest": "82eca81c52f96b829d9a23546fdd6f55a676aeffd04878dab9ad146fe1485cd1",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
