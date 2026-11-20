@@ -273,6 +273,16 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 20:58 UTC: The owner said "Continue", then asked for a detailed discussion of 0.8.7 (written:
+  `wip/2026-11-20_TALK_087_where_we_are.md`). The resumed builders ran: **A5 merged** (96be9df: the exam, the model key,
+  the kit "Check her model on this machine"; its 4B dry run passed S0 to S3 and S5, card kept in
+  `wip/2026-11-20_b087_saved/A5_dry_run/`) and **B8 merged** (1393468). B6 still running. Two gaps found and given
+  slices on the talk's defaults: **X7** (exam inputs for READ, GOAL, FRAME, NEXT with B6, and the 6 page-mark items over
+  cap: 110 of 127 short items were NOT RUN in the dry run) and **W7** (window wiring: voice floor into her column, Ask
+  the Library and Read this table in the window, cross-refs drawn, Leave it fixed, B5 buttons and her clock line).
+  Briefs `work/briefs/087_X7.md`, `087_W7.md` (copies in wip/.../partial_at_weekly_limit/briefs/). Defaults taken
+  (talk section 9): release as soon as X7, W7 and the release work land; C6c, B7, C6d, A6 after, only if the
+  allowance leaves room; A7 dropped; sealed and full-size exam sets to the test pass.
 - 20 Nov 20:49 UTC: **Stopped by the weekly usage limit** (about 16:00; it resets **26 Nov 01:00 UTC**). Merged before it:
   0.8.7 C6b cross-references (ee2faa1). Cut off mid-build, their worktree diffs saved as patches in
   `wip/2026-11-20_b087_saved/partial_at_weekly_limit/` (with the briefs and the merge helpers, since scratch may be
