@@ -65,7 +65,7 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 
 | Release | State |
 |---|---|
-| 0.8.4 · Tests you can believe | **in progress** (steps below) |
+| 0.8.4 · Tests you can believe | **DELIVERED 20 Nov 03:35 UTC** (commit b6bdb50; kit sent; `wip/2026-11-20_release_084/`) |
 | 0.8.5 · Skins, and Kas by day | not started |
 | 0.8.6 · Her door on the Field | not started (half-build saved: `wip/2026-11-14/hand_s1/`) |
 | 0.8.7 · Her hand in a program (LibreOffice) | not started |
@@ -94,7 +94,7 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
    planted bugs again; target 75% caught there (`wip/2026-11-14/tests_measure/mutants.md`).
 8. **MERGED (0ca267a), reviewed and fixed.** The tiered runner (tier 0 under a minute) and the slimmed release checks (`tests_measure/release-checks.md`).
 9. **MERGED (a737d20), reviewed and fixed.** The yellow leftovers and the colour-vision check (`wip/2026-11-14/yellow_review/`, spec section 7).
-10. Release 0.8.4: version, notes, checks on the exact commit, kit, send to the owner.
+10. **DONE.** Release 0.8.4: version, notes, checks on the exact commit, kit, send to the owner.
 
 **State at 16:20 UTC, 19 Nov: part A is merged** (four commits, c47a9ba to dd2c2db, each built, independently reviewed
 and fixed; all four patches applied without conflict; seed current). The reviews and notes are kept in
@@ -224,6 +224,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 03:35 UTC: **0.8.4 delivered.** Commit b6bdb50. Tier 2 on that exact commit: 202 runs, 2,368 tests, 0 failing,
+  both looks, 26 min 45 s (10 skipped: the start scripts' tests that need an ordinary user on a Debian host). Kit cut,
+  restored with INSTALL_LS (the restored tree equals the commit except `wip/` and `tools/planted_bugs/`, left out on
+  purpose), release check PASSED on it, 1,321 files; START_HERE plus nine parts sent to the owner, with screenshots.
+  Held for the next release: `wip/2026-11-20_for_085/` (the dead setting; the owner's own values).
 - 20 Nov 03:40 UTC: the owner: 0.8.5 is the maths alone; the order after it is being discussed.
 - 20 Nov 03:30 UTC: the owner set a new order after 0.8.4 (above): maths first, with the day look; then the door, goals and the web.
 - 20 Nov 02:45 UTC: **the full suite on everything merged (28e99db): 78 modules, 1,204 tests, 0 failing in BOTH looks.**
