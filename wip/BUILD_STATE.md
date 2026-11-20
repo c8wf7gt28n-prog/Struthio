@@ -66,7 +66,7 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 | Release | State |
 |---|---|
 | 0.8.4 · Tests you can believe | **DELIVERED 20 Nov 03:35 UTC** (commit b6bdb50; kit sent; `wip/2026-11-20_release_084/`) |
-| 0.8.5 · Skins, and Kas by day | not started |
+| 0.8.5 · Maths in lines (the owner's new order) | **in progress** (see the log) |
 | 0.8.6 · Her door on the Field | not started (half-build saved: `wip/2026-11-14/hand_s1/`) |
 | 0.8.7 · Her hand in a program (LibreOffice) | not started |
 | 0.8.8 · Maths in lines | not started (design: `wip/2026-11-14/pal/judge_one-math-core.md`) |
@@ -226,6 +226,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 04:00 UTC: **0.8.5 started**: workflow `graphite-085-maths` (run id `wf_9807ad9e-481`, task `wncvmyr1a`; script
+  `wip/2026-11-14/workflow_scripts/graphite-085-maths.js`; scratch `work/b085/`). Lane 1: maths (the one maths core from
+  `wip/2026-11-14/pal/judge_one-math-core.md` PART 2, vectors 1 to 26; build, review, fix). Lane 2: setting (finish, no
+  review), then private (finish, review, fix). Money and dates are a second maths item after the core is merged. If cut
+  off: relaunch the same script with `resumeFromRunId`; agents pick up from their notes.
 - 20 Nov 03:50 UTC: the owner settled the order: maths; one united pass of floor, door and hand; then programs.
 - 20 Nov 03:35 UTC: **0.8.4 delivered.** Commit b6bdb50. Tier 2 on that exact commit: 202 runs, 2,368 tests, 0 failing,
   both looks, 26 min 45 s (10 skipped: the start scripts' tests that need an ordinary user on a Debian host). Kit cut,
