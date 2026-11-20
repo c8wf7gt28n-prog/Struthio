@@ -234,6 +234,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 06:30 UTC: **the 0.8.6 design is written**: `wip/2026-11-20_kas_mind/DESIGN_0.8.6_kas_mind.md` (about 13,000
+  words: the open point; your word; either way; what would settle it; why with the wires lit; rule cards from pinned
+  quotes; absent is not false; one small question or buttons; Home Demo with an invented statute; the everyday score and
+  the I05 arms with predictions) and its talk `TALK_0.8.6_kas_mind.md`, sent to the owner. Its five questions and the
+  defaults taken if unanswered are in its section 8.
 - 20 Nov 06:15 UTC: full suite on e1cf56d: 80 modules, 1,261 tests per look; default 0 failing, Kasandra 1: the start
   scripts' session test, a race in its stand-ins (failed 2 runs in 5, either look in principle). Fixed in the test
   (the stand-ins wait for each other); 24 of 24 runs pass.
