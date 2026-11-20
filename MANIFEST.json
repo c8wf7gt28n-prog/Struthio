@@ -4038,8 +4038,8 @@
       "sha256": "4aa7dc81d054e14e4c9ea1156645e3d89d6c2cee286017a69c20d5c9dfae2928"
     },
     "workbench/her_hand_qt.py": {
-      "bytes": 56179,
-      "sha256": "45c641f4070b740253f4aa72dbaac34a466aff006ede724095d545d5c0fae644"
+      "bytes": 63955,
+      "sha256": "834be1fec67e77bdb6d6a69f286422c14f8bb7975c200a7c7217eee1e2e96b99"
     },
     "workbench/hologram.py": {
       "bytes": 12467,
@@ -4918,8 +4918,8 @@
       "sha256": "47d382c121dc7559f7e7c66d915741edb4d5c6f591effc123243831b2922e07b"
     },
     "workbench/reading.py": {
-      "bytes": 78785,
-      "sha256": "5c4ecb85c5aa0f0516e450c8faaa6d243b4bee436e0d9cbbfd8eb4b3f8cd67ff"
+      "bytes": 79364,
+      "sha256": "ddf44dba230daa888f14f13685ac3b5c51631c527bf8d15ad9f315e6434184d3"
     },
     "workbench/reading_preferences.py": {
       "bytes": 17134,
@@ -5424,6 +5424,14 @@
     "workbench/typed_artifacts.py": {
       "bytes": 5393,
       "sha256": "b99633601211b4335483dc8872150341828b2031fad40f4868e95c292f056586"
+    },
+    "workbench/understand.py": {
+      "bytes": 41272,
+      "sha256": "724b0e0d1f9f4746326da5bbf569981ad546411701757b1974a40de7bbe4d470"
+    },
+    "workbench/understand_check.py": {
+      "bytes": 25769,
+      "sha256": "941fb35a01095339abad582095997c83cec04b3e994f76404174bbfbf1d41910"
     },
     "workbench/universal_view.py": {
       "bytes": 48107,

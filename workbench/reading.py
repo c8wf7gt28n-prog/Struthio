@@ -1178,6 +1178,14 @@ def dispatch(kernel, op, args, principal, today=None):
     lex = lexicon(kernel, principal)
     from . import phrases          # 0.8.6 S7: the phrasebook first (only what the owner kept, pointed at the current revision)
     found = read(args['text'], lex, today=day, kept=phrases.kept(kernel, principal, lex.world), model_loaded=bool(args.get('model_loaded')))
+    # == 0.8.7 B3 · read your words: with a model loaded, what the dictionary left unread (NONE, or a clause of a partial
+    # reading) is read by the model (understand.READ), checked, and added beside the dictionary's readings, each labelled
+    # with its origin. With the understanding switch off, or nothing unread, nothing is added: 0.8.6 exactly.
+    if args.get('model_loaded'):
+        from . import understand
+        got = understand.request(kernel, principal, found, lex, day)
+        if got is not None:found = understand.merge(found, got)
+    # == end 0.8.7 B3 ==
     if args.get('work') and found['acts'] == 'read' and found['route'] in READS + ('COMPOUND',) and found['complete']:
         found['answers'] = work(kernel, principal, found, day)
     return found

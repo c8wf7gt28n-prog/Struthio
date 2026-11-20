@@ -616,7 +616,7 @@ class HerHand(QObject):
             nt.model = {'asked': False, 'kept': True, 'calls': 0}
             self.say('Read as you kept it · model calls: 0')
             return True
-        if b is None:return False
+        if b is None:return self.read_words(text, word, found, world)       # 0.8.7 B3: the words her dictionary left unread
         t = Turn(text, [], word);t.brief = b;t.found = found
         t.cands = [o.goals() for o in b.options]
         t.model = {'asked': False, 'calls': 0, 'options': [o.words for o in b.options], 'brief': b.as_record()}
@@ -641,6 +641,121 @@ class HerHand(QObject):
         self.set_state('thinking');self.say(named('I am asking my model which of these you meant: %s.') % '; '.join(o.words for o in b.options))
         QTimer.singleShot(POLL_MS, self.poll_goal)
         return True
+
+    # == 0.8.7 B3 · read your words ===========================================================================================
+    # Her dictionary read nothing of these words (or not a clause of them). With the owner's understanding switch on, the
+    # model reads them once (understand.READ through turns.ask), the desk checks the reading part by part (understand_check),
+    # and her card says "I took it as: ...", his words underlined and joined to what they were read as, with Do and Not that.
+    # Her three guesses show at once, quietly, while it reads. Do starts the steps that are desk goals as his own (his press);
+    # the other steps' acts go through the owner's door on his press, so a change still goes through her hand and asks.
+    # Not that is remembered for these words (rule 8): the same reading becomes her question. Switched off: 0.8.6 exactly.
+    def read_words(self, text, word, found, world):
+        from . import reading, understand
+        if not hasattr(self, 'not_that'):self.not_that = []
+        if not understand.needed(found):return False
+        try:
+            kernel, p = self._kernel();request = turns.request_for(kernel, p)
+        except Exception:  # noqa: BLE001 - no Kernel to reach: 0.8.6's way
+            return False
+        if not request.switch_on('understanding'):return False
+        try:lex = reading.lexicon(kernel, p, world)
+        except Exception:  # noqa: BLE001 - the desk's rows unreadable: the Field's titles alone
+            lex = reading.Lexicon.of(world=world)
+        _, state, _ = self.read()
+        i = understand.inputs(text, lex, found=found, selected=state.sel or '', refused=tuple(self.not_that))
+        t = Turn(text, [], word);t.found = found;t.reading_inputs = i;t.model = {'asked': False, 'calls': 0, 'kind': 'READ'}
+        self.turn = t;self.snapshot = None
+        if request.port is None or i.grammar is None:
+            return self._read_card(t, {**understand._empty(i), 'fallback': understand.without_model(i)})
+        holder = {}
+
+        def run():
+            try:holder['got'] = understand.ask(i, request)
+            except Exception as exc:  # noqa: BLE001 - a failed turn gives her guesses
+                holder['error'] = str(exc)[:200]
+        thread = threading.Thread(target=run, name='her-read-turn', daemon=True);thread.start()
+        t.model.update(asked=True, calls=1, started=time.monotonic(), holder=holder, thread=thread)
+        self.set_state('thinking')
+        self._read_buttons(t, 'I am asking my model how to read your words. Meanwhile, my own guesses:', understand.guesses(i))
+        QTimer.singleShot(POLL_MS, self.poll_read)
+        return True
+
+    def poll_read(self):
+        from . import understand
+        t = self.turn
+        if t is None or not t.model or not t.model.get('thread'):return
+        if t.model['thread'].is_alive():
+            QTimer.singleShot(POLL_MS, self.poll_read);return
+        holder = t.model.pop('holder');t.model.pop('thread')
+        got = holder.get('got') or {**understand._empty(t.reading_inputs), 'fallback': understand.without_model(
+            t.reading_inputs, 'I could not ask my model (%s). Did you mean one of these?' % holder.get('error', 'no answer'))}
+        t.model.update(outcome=got.get('outcome'), why=got.get('why'), turn=got.get('turn'), seconds=round(time.monotonic() - t.model['started'], 3))
+        self._read_card(t, got)
+
+    def _read_buttons(self, t, lead, options):
+        from .shell2 import sentence
+        card = self.say(lead)
+        for n, words, found in options:
+            pairs = [(g['template'], dict(g['params'])) for g in (found or {}).get('goals') or ()]
+            label = sentence('{go}', {'go': ('%d  %s' % (n, words), lambda pairs=pairs: self.start(t.text, pairs, t.word, origin='OWNER'))})
+            if card is not None:card.box.addWidget(label)
+        return card
+
+    def _read_card(self, t, got):
+        """The READ card: "I took it as ..." with Do and Not that; or the one question; or her guesses with the reason."""
+        from .shell2 import sentence
+        from . import places
+        t.understood = {k: got.get(k) for k in ('outcome', 'state', 'readings', 'question', 'refused', 'card')}
+        if got.get('talk'):self.say(got['talk']);t.state = 'idle';self.set_state('idle');return False
+        question = got.get('question')
+        if question:
+            card = self.say(question['words'])
+            for o in question['options']:
+                pairs = [(g['template'], dict(g['params'])) for g in (o.get('reading') or {}).get('goals') or ()]
+                if card is not None and pairs:
+                    card.box.addWidget(sentence('{go}', {'go': ('%d  %s' % (o['n'], o['words']), lambda pairs=pairs: self.start(t.text, pairs, t.word, origin='OWNER'))}))
+        elif got.get('card'):
+            c = got['card'];card = self.say(c['text'])
+            if card is not None:
+                said = QLabel(c['html']);said.setTextFormat(Qt.RichText);said.setWordWrap(True);card.box.addWidget(said)
+                mark = QLabel(c['mark']);mark.setWordWrap(True);card.box.addWidget(mark)
+            readings = got.get('readings') or ()
+            if not c['asks'] and readings and all(r.get('frame') == 'DESK' for r in readings) and stacy_hand.level(self.host) in ('show', 'free'):
+                # a reading that only moves the window is done at Do and show (basis model_pick: B1's rule lets navigation
+                # in the table run there, never a change); Not that puts the window back
+                if card is not None:
+                    card.box.addWidget(sentence('{not}', {'not': ('Not that', lambda: (self.put_back(), self._read_not(t, got)))}))
+                return self._read_do(t, got, origin='HER') is not None
+            if card is not None:
+                card.box.addWidget(sentence('{do} · {not}', {'do': ('Do', lambda: self._read_do(t, got)), 'not': ('Not that', lambda: self._read_not(t, got))}))
+        else:
+            fb = got.get('fallback') or {}
+            card = self._read_buttons(t, fb.get('lead') or '', fb.get('buttons') or ())
+            if card is not None and fb.get('find'):
+                def find():
+                    kernel, p = self._kernel()
+                    self.say(' '.join(places.find(kernel, p, fb['find'])['lines']))
+                card.box.addWidget(sentence('{find}', {'find': (fb['find_words'], find)}))
+        t.state = 'idle';self.set_state('idle')
+        return True
+
+    def _read_do(self, t, got, origin='OWNER'):
+        """His press on Do (origin OWNER): the desk-goal steps start as his own; the other steps' acts go through the owner's
+        door. At Do and show, a navigation-only reading starts at once on the model's reading (origin HER: model_pick)."""
+        from .desk_doers import run
+        pairs = [(g['template'], dict(g['params'])) for r in got.get('readings') or () if r.get('frame') == 'DESK' for g in r.get('goals') or ()]
+        if origin == 'OWNER':
+            for r in got.get('readings') or ():
+                for name, args in r.get('acts') or ():run(self.host, name, args, door='owner', word=t.text)
+        if pairs:return self.start(t.text, pairs, t.word, origin=origin)
+        return None
+
+    def _read_not(self, t, got):
+        from . import reading
+        key = reading.said_key(t.text)
+        self.not_that += [(key, s['verb'], s['thing']) for s in got.get('steps') or () if s.get('state') == 'OK' and s.get('thing')]
+        self.say('Not that: I will not read these words this way again.')
+    # == end 0.8.7 B3 =========================================================================================================
 
     def ask_model(self, args):
         """brain.ask through the Kernel, with the owner's principal (kept for the half-build's own check)."""
