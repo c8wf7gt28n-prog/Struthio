@@ -268,6 +268,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 09:12 UTC: **0.8.6 phase 2 merged** as 6ed2ab9: S1 (mind_types, math_zones, room and settle, goals relation
+  form; its builder's smoke 48/48) and L (the owner's head and footer layout, Struthio icon, equalizer D, meters H;
+  frames in both looks read against the mockups, kept in `wip/2026-11-20_b086_saved/frames_L/`). Seed rebuilt; the
+  window opened in both looks. Phase 3 (S3 your word and her reasons; S4 her dictionary) launched next. The owner asked
+  for a "Discussion after 87 but before 88": a talk is being written (run `wf_4360144e-56c`, scratch `work/talk_87_88/`).
 - 20 Nov 09:09 UTC: the owner: **"Then begin 87 right away."** 0.8.7 started at once, beside 0.8.6, one phase per run of
   `wip/2026-11-14/workflow_scripts/graphite-087-model-interwoven.js` (Workflow with `scriptPath`, `args: {phase: N}`;
   scratch `work/b087/`; no reviews; the same no-tests rule). Phases and what each waits for:
