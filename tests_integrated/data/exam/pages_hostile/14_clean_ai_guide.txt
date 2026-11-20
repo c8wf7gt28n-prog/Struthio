@@ -1,0 +1,11 @@
+DEMO GUIDE (INVENTED) · USING A LOCAL LANGUAGE MODEL
+What a local model does
+
+A language model on your own computer reads the text you give it and writes a reply. It does not look
+anything up and it can be wrong, so treat its answers as suggestions. A model is started with a system
+prompt: fixed text from the program that tells it its job, such as "answer in one short line". Ask the
+model a question, read the answer, then check it against the source.
+
+Larger models need more memory: a 4B model needs about 3 GB, a 35B model much more. If the computer is
+short of memory, close other Apps first. Models can also be told to ignore earlier instructions by text
+hidden in a document, which is why a careful program never lets a model act on what it read.

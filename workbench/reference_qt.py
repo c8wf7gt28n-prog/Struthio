@@ -9,6 +9,7 @@ from .register_tabs import ServiceTab
 from . import reference_service as refs,local_brain
 from sdk.cli.arc1cli import record_store as records
 from . import locations,page_light
+from . import doorway  # 0.8.7 C1 (the doorway)
 
 def esc(value):return html.escape(str(value))
 
@@ -44,6 +45,8 @@ class ReferenceTab(ServiceTab):
         self.detail=QTabWidget();self.excerpt=QPlainTextEdit();self.excerpt.setReadOnly(True);self.detail.addTab(self.excerpt,'Verified excerpt')
         self.image_label=QLabel('Choose a PDF passage, then Open original location.');self.image_label.setAlignment(Qt.AlignCenter);self.image_label.setWordWrap(True);self.image_scroll=QScrollArea();self.image_scroll.setWidgetResizable(True);self.image_scroll.setWidget(self.image_label);self.detail.addTab(self.image_scroll,'Original page')
         self.proof=QPlainTextEdit();self.proof.setReadOnly(True);self.detail.addTab(self.proof,'Provenance')
+        # 0.8.7 C1 (the doorway): the passage as it stands at the door, lines written to an assistant outlined with the reason in words
+        self.door_view=QTextBrowser();self.door_view.setOpenLinks(False);self.door_view.setAccessibleName('At the door');self.detail.addTab(self.door_view,'At the door')
         split=QSplitter(Qt.Vertical);split.addWidget(self.pages);split.addWidget(self.detail);split.setSizes([340,250]);self.outer.addWidget(split,1)
         self.unavailable_sources=0;self.reference_font_id=-1
         font_path=locations.program(host.root)/'branding/fonts/NotoSansCJKsc-Regular.otf'
@@ -58,7 +61,7 @@ class ReferenceTab(ServiceTab):
     def info(self):return 'Exact references · %d current sources · reference generation %d · source records only'%(self.current_sources,self.generation)
     def ns(self):return self.namespaces.currentData()
     def clear_location(self):
-        self.citation=None;self.requested=None;self.excerpt.clear();self.proof.clear();self.image_label.clear();self.image_label.setText('Choose a PDF passage, then Open original location.');self.update_inspector()
+        self.citation=None;self.requested=None;self.excerpt.clear();self.proof.clear();self.door_view.clear();self.image_label.clear();self.image_label.setText('Choose a PDF passage, then Open original location.');self.update_inspector()
     def load_namespaces(self):self.call('intake.namespaces',{},self.loaded_namespaces)
     def open_collection(self, namespace, project):
         self.project_collection=(namespace,project)
@@ -134,7 +137,11 @@ class ReferenceTab(ServiceTab):
         self.clear_location();self.requested=row['id'];nsid=self.ns();self.excerpt.setPlainText('Checking the current original and exact location…')
         def loaded(value):
             if self.ns()!=nsid or self.requested!=row['id']:return
-            self.citation=value if value['state']=='CURRENT' else None;self.excerpt.setPlainText(value.get('text') or 'Original unavailable. Cached text is not supplied.\n'+ '\n'.join(value.get('gaps',[])));self.proof.setPlainText(json.dumps({k:v for k,v in value.items() if k!='text'},indent=2,ensure_ascii=False));self.update_inspector()
+            self.citation=value if value['state']=='CURRENT' else None;self.excerpt.setPlainText(value.get('text') or 'Original unavailable. Cached text is not supplied.\n'+ '\n'.join(value.get('gaps',[])));self.proof.setPlainText(json.dumps({k:v for k,v in value.items() if k!='text'},indent=2,ensure_ascii=False))
+            if value.get('text'):  # 0.8.7 C1: checked at the door, no model; a page with lines aimed at an assistant opens on this view
+                door=doorway.scan(value['text']);self.door_view.setHtml(doorway.owner_html(door))
+                if door.withheld():self.detail.setCurrentWidget(self.door_view)
+            self.update_inspector()
         self.call('references.resolve',{'namespace':nsid,**row},loaded)
     def launch(self,op,args):
         if self.job:self.note.setText('Finish or cancel the current reference job first.');return

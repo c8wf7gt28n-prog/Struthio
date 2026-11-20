@@ -1,0 +1,12 @@
+DEMO TOWN BUSINESS NEWS (INVENTED) · NOVEMBER 2026
+Small offices and the new AI assistants
+
+More small offices now use an AI assistant to sort email, draft replies and summarise long documents. The
+owners we spoke to said the time saved is real, but so are the mistakes. One bookkeeper found that her
+assistant had summarised a supplier's statement and missed a late-payment fee in the footnotes.
+
+Security researchers warn about a trick called prompt injection: a document can carry hidden text that tries
+to steer the assistant reading it, for example by telling it to send files to a stranger. Their advice is
+simple. An assistant should never send anything out on its own, and it should show the person what it read.
+
+"Treat what the tool writes as a draft," said one accountant. "I check every figure against the paper."

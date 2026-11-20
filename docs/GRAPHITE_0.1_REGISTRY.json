@@ -401,6 +401,7 @@
    "ledger.work.resume": "workbench/work_trail.py#dispatch",
    "ledger.work.status": "workbench/work_trail.py#dispatch",
    "ledger.workflow.describe": "workbench/stacy_awareness.py#dispatch",
+   "library.doorway": "workbench/doorway.py#dispatch",
    "links.catalog": "workbench/brain_link.py#dispatch",
    "links.inspect": "workbench/brain_link.py#dispatch",
    "links.trace": "workbench/brain_link.py#dispatch",
@@ -990,9 +991,9 @@
   }
  },
  "counts": {
-  "adapters": 792,
+  "adapters": 793,
   "job_tools": 113,
-  "operations": 792,
+  "operations": 793,
   "settings": 48
  },
  "formulas": {
@@ -4577,6 +4578,14 @@
    },
    "scope": "read"
   },
+  "library.doorway": {
+   "arguments": "ce8c57f941f415709bf4ab48827df450c14a4bb8c0f560d2c5aa19fc617df89e",
+   "properties": {
+    "text": "cc9d277adc8a2ee7",
+    "title": "3e79622dec12ac17"
+   },
+   "scope": "read"
+  },
   "links.catalog": {
    "arguments": "fba82810a14481f27f7525ff46a94435414fbcbeb1ad75abc17c64fbafeadf13",
    "properties": {
@@ -7788,7 +7797,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "f5d256ba5bf30822f5ab9834b6a0e33a591c942851974fcc786e110cfa63f037",
+ "schema_digest": "a1a066792b1f3b8eb3bcb46a272feed0573c3091d95a14c020492d680d856ba0",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

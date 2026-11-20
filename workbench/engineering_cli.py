@@ -96,6 +96,7 @@ def schemas():
     from .browse import FIELDS as BROWSE_FIELDS
     from .network_watch import FIELDS as NETWORK_FIELDS
     from .field_service import FIELDS as FIELD_FIELDS
+    from .doorway import FIELDS as DOORWAY_FIELDS  # 0.8.7 C1 (the doorway)
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -197,6 +198,7 @@ def schemas():
         **BROWSE_FIELDS,
         **NETWORK_FIELDS,
         **FIELD_FIELDS,
+        **DOORWAY_FIELDS,  # 0.8.7 C1 (the doorway)
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,
