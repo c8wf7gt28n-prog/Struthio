@@ -355,16 +355,11 @@ def _last(inputs):
 
 def page_words(page):
     """The page's own words as the model sees them on its open lines (the grammar's words), in order, at most
-    GRAMMAR_WORDS distinct, none longer than WORD_CHARS."""
-    out = {}
-    for row in doorway.model_lines(page.door):
-        n, _, text = row.partition('| ')
-        if int(n) in page.withheld:continue
-        for w in text.split():
-            if len(w) <= WORD_CHARS and w not in out:
-                out[w] = True
-                if len(out) >= GRAMMAR_WORDS:return list(out)
-    return list(out)
+    GRAMMAR_WORDS distinct, none longer than WORD_CHARS. 0.8.7 X7: the same words as MARKS's grammar
+    (page_marks.page_words): a run of leader dots or a rule, never part of a value, is left out (by the cap's estimate one
+    such word cost up to 30 tokens, which cut every value on a datasheet to one word: "6.0" with no "V"), and a word is
+    also offered without the punctuation that closes it ("December." also as "December")."""
+    return page_marks.page_words(page)
 
 
 def grammar_for(page):

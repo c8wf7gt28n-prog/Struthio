@@ -54,10 +54,17 @@ One item (one line):
   inputs: the kind's inputs object comes from (1) paper.json builders[kind], "module:function" in workbench, called
   (inputs_json, item); else (2) exam_inputs(inputs_json, item) in the module of the kind's check(); else (3) this
   runner's BUILDERS (MARKS and ASK: inputs.page's text through the doorway as page_marks.Page, titled by
-  inputs.source, with inputs.pack when it is a pack); else (4) the JSON itself (a dict). READ (understand), GOAL
-  (brief), NEXT and FRAME need their lane's exam_inputs: until a build has one, their items are NOT RUN
-  (KIND_REFUSED_ITS_INPUTS or KIND_NOT_IN_THIS_BUILD), never counted. An item whose kind is not registered in this build, or whose builder raises,
-  is NOT RUN, with why; it is never counted right or wrong.
+  inputs.source, with inputs.pack when it is a pack; FRAME: the WORDS item's receipt as a voice_facts fact sheet);
+  else (4) the JSON itself (a dict). 0.8.7 X7 gave READ (understand.exam_inputs: the paper's desk with its own
+  handles), GOAL (brief.exam_inputs: the paper's readings, numbered as the paper numbers them) and NEXT
+  (judgment.exam_inputs) theirs. An item whose kind is not registered in this build (FRAME until the model's wording
+  is built), or whose builder raises, is NOT RUN, with why; it is never counted right or wrong.
+  A builder that finds the desk itself would send no question (READ: the "should I" decline runs before any READ turn)
+  raises DeskSendsNothing(why, inputs): the item is answered as turns.ask answers a question it does not send (NOT_SENT,
+  with why and the kind's fallback), so an item that expects NOT_SENT is marked on it.
+  value: what "expect" and the matchers compare is turns._jsonable(Answer.value), or, when the kind's module offers
+  exam_value(value, item), that view of it (NEXT: its checked pick {key, shown, why, ...}, its default and its buttons,
+  as the paper's option numbers).
 
   expect (every field given must hold; then the item is RIGHT):
     "outcome": [...]     Answer.outcome is one of these (TAKEN TRIMMED REFUSED UNSETTLED TRIPPED LATE FAILED NOT_SENT);
@@ -135,6 +142,7 @@ No floating point: counts are whole numbers, shares are "x of y", times are whol
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import hashlib
 import importlib
 import json
@@ -635,6 +643,67 @@ def builder_for(kind, head):
     return fn or BUILDERS.get(kind.name) or (lambda inputs, item: inputs)
 
 
+# -- 0.8.7 X7: the desk sends nothing; the value as the paper numbers it; FRAME's receipt -------------------------------------
+class DeskSendsNothing(Exception):
+    """A builder's word that the desk itself sends no question for this item (READ: a "should I" request is declined
+    before any READ turn). `inputs` are the kind's inputs, for its fallback."""
+
+    def __init__(self, why, inputs):
+        super().__init__(why);self.why = str(why);self.inputs = inputs
+
+
+def viewer_for(kind):
+    """exam_value(value, item) in the module of the kind's check(), or None (the value is compared as it is)."""
+    module = sys.modules.get(getattr(kind.check, '__module__', '') or '')
+    return getattr(module, 'exam_value', None) if module is not None else None
+
+
+def as_marked(answer, kind, item):
+    """The Answer as the paper's matchers read it: its value through the kind's exam_value when it has one."""
+    view = viewer_for(kind)
+    if view is None:return answer
+    return dataclasses.replace(answer, value=view(answer.value, item))
+
+
+WORDS_STATES = {'YES': 'HOLDS', 'NO': 'FAILS', 'CANNOT_TELL': 'UNDECIDED', 'VALUE': 'VALUE'}
+UNIT_AFTER = re.compile(r'\s?([A-Za-zµΩ°%][A-Za-zµΩ°%]{0,5})(?![A-Za-z])')
+NOT_UNITS = frozenset(('to', 'at', 'and', 'or', 'of', 'is', 'a', 'an', 'by', 'in', 'on', 'the', 'per', 'if', 'it', 'was', 'over',
+                       'under', 'more', 'left', 'gives', 'were', 'would', 'with', 'from', 'up'))
+
+
+def receipt_sheet(inputs):
+    """A WORDS item's receipt ({question, register, state, slots: [{name, text, must}]}) as a voice_facts.Sheet: each slot
+    with its text (a closing full stop left to the frame) and its numbers as facts (with the unit written beside one), so
+    the voice gate's second net knows which numbers each slot declares and the WORDS check has them as desk values. YES,
+    NO and CANNOT_TELL are the sheet's HOLDS, FAILS and UNDECIDED, with their headings; VALUE (an answer that is a value)
+    has no state or heading in voice_facts, so it stays VALUE, with none."""
+    from . import voice_facts, voice_gate, voice_lexicon
+    state = WORDS_STATES.get(str(inputs.get('state') or ''))
+    if state is None:raise ValueError('FRAME_EXAM_STATE: %s' % inputs.get('state'))
+    slots = []
+    for row in inputs.get('slots') or ():
+        name = str(row.get('name') or '')
+        if not voice_gate.SLOT.fullmatch('{%s}' % name):raise ValueError('FRAME_EXAM_SLOT: %s' % name)
+        text = str(row.get('text') or '').strip()
+        text = text[:-1] if text.endswith('.') and not text.endswith('..') else text
+        facts = []
+        for m in voice_gate.NUMBER.finditer(text):
+            u = UNIT_AFTER.match(text, m.end());unit = u.group(1) if u and u.group(1).lower() not in NOT_UNITS else ''
+            facts.append(voice_facts.Fact('%s %s' % (m.group(0), unit) if unit else m.group(0), 'quantity', m.group(0).replace(',', ''), unit))
+        facts += [voice_facts.Fact(said, 'count', said) for said, _ in voice_lexicon.number_words(text)]
+        slots.append(voice_facts.Slot(name, text, bool(row.get('must', True)), tuple(facts), state if name == 'ANSWER' else ''))
+    if not slots or slots[0].name != 'ANSWER':raise ValueError('FRAME_EXAM_ANSWER_FIRST')
+    register = str(inputs.get('register') or 'plain')
+    return voice_facts.Sheet('exam', state, voice_facts.HEADINGS.get(state), tuple(slots), register,
+                             sha256_bytes(canonical(inputs).encode('utf-8'))[:16])
+
+
+def _receipt_inputs(inputs, item):
+    """FRAME (WORDS): the question fenced as data, the register, and the receipt's fact sheet, which the gate fills."""
+    return {'question': str(inputs.get('question') or ''), 'register': str(inputs.get('register') or 'plain'),
+            'sheet': receipt_sheet(inputs)}
+
+
 def _page_inputs(inputs, item):
     """MARKS and ASK (the runner's own builder, as PAPERS.md describes their inputs): the page's text through the doorway
     as page_marks.Page (its title the item's "source", its pack when it is one of mark_kinds' packs)."""
@@ -645,7 +714,8 @@ def _page_inputs(inputs, item):
     return out
 
 
-BUILDERS = {'MARKS': _page_inputs, 'ASK': _page_inputs}     # used when neither paper.json nor the kind's module gives one
+BUILDERS = {'MARKS': _page_inputs, 'ASK': _page_inputs,      # used when neither paper.json nor the kind's module gives one
+            'FRAME': _receipt_inputs}                       # X7: ready for the FRAME kind (the model's wording, if room)
 
 
 def inputs_for(item, kind, head, root=None):
@@ -712,8 +782,11 @@ def sit(papers, port, *, short=True, clock=None, on_item=None, paused=None, root
                 row.update(state='NOT_RUN', why=room);results.append(row)
                 if on_item:on_item(row)
                 continue
+            unsent = None
             try:
                 inputs = inputs_for(item, kind, paper.head, root)
+            except DeskSendsNothing as held:          # X7: the desk itself asks nothing here (READ's "should I" decline)
+                unsent = held
             except Exception as exc:  # noqa: BLE001 - a builder that breaks: the item is not run, and says why
                 row.update(state='NOT_RUN', why='BUILDER: ' + (str(exc).split(':', 1)[0][:80] or type(exc).__name__))
                 results.append(row)
@@ -721,13 +794,14 @@ def sit(papers, port, *, short=True, clock=None, on_item=None, paused=None, root
                 continue
             began = time.monotonic()
             try:
-                answer = turns.ask(kind, inputs, _request(port, item, clock))
+                answer = turns._without(kind, unsent.inputs, unsent.why) if unsent is not None else \
+                    turns.ask(kind, inputs, _request(port, item, clock))
             except Exception as exc:  # noqa: BLE001 - inputs the kind's builders cannot take (no exam_inputs yet): not run
                 row.update(state='NOT_RUN', why='KIND_REFUSED_ITS_INPUTS: ' + type(exc).__name__)
                 results.append(row)
                 if on_item:on_item(row)
                 continue
-            got = score(item, answer, rule)
+            got = score(item, as_marked(answer, kind, item), rule)
             sent = answer.outcome != 'NOT_SENT'
             expected = 'NOT_SENT' in (item['expect'].get('outcome') or ())
             row.update(state='ASKED' if sent or expected else 'NOT_SENT', sent=sent, outcome=answer.outcome,

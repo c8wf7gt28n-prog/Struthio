@@ -1071,3 +1071,87 @@ def total(found):
     return {'state': 'ANSWERED', 'answer': number, 'exact': [str(x) for x in exact], 'text': text, 'parts': parts, 'record': record,
             'digest': record.get('digest', ''), 'receipt': list((record.get('words') or {}).get('receipt') or ())}
 # == end 0.8.7 B8 ==========================================================================================================
+
+
+# == 0.8.7 X7 · the exam's inputs: one READ paper item as its question (model_exam) =========================================
+# The READ paper (tests_integrated/data/exam/read/) gives each item {"now", "request"} and the desk's numbered things
+# (desks/*.json, which the item's "files" put in inputs["desk"]). The question is the one this module builds, over a
+# Lexicon made from that desk, with the paper's own handles kept, because its known answers name D1, D2 ... as the desk
+# file numbers them. How each thing of the desk file is listed:
+#   a sheet whose columns are Parameter, Value, Unit and Conditions is a reviewed sheet: its rows are its columns, as
+#     things() lists a reviewed sheet (Home Demo's bank sheet takes its 41 rows from home_demo.BANK, as the desk file says);
+#   any other sheet is a typed sheet (Groceries and Household November are typed sheets in home_demo.py);
+#   a calculation is a calculation (its unit from its title, the sheet it reads by its handle);
+#   a source, a page, a finding or a question is not listed, as things() lists none on the real desk (no verb of this
+#     turn's table applies to them, and a finding's title would tie with the sheets it speaks of). The paper's handles of
+#     the things listed are kept, so message 2 may skip a number (Rail Demo lists D1 to D5; Home Demo D4 to D6); an item
+#     whose known answer names an unlisted thing cannot be read right by any model here, and says so in the exam.
+# The whole request is read (the exam reads all of it, not only what the dictionary left), after the "should I" decline:
+# a request the decline takes gets no READ turn on the desk, so it is not sent here either (model_exam.DeskSendsNothing,
+# DECLINE); with no words of yours to copy, nothing is sent (NOTHING_TO_READ), as ask() does.
+EXAM_REVIEWED = ('Parameter', 'Value', 'Unit', 'Conditions')       # the columns of a sheet reviewed from a source
+
+
+def _exam_desk(raw):
+    desk = raw.get('desk')
+    if isinstance(desk, str):desk = json.loads(desk)
+    if not isinstance(desk, dict) or desk.get('schema') != 'graphite.exam-desk/1' or not isinstance(desk.get('things'), list):
+        raise ValueError('READ_EXAM_DESK: the item names no exam desk (files.desk)')
+    return desk
+
+
+def _exam_rows(t):
+    """A reviewed sheet's rows as the Lexicon takes them ({cell, parameter, value, unit, conditions}; cells B2, B3 ...)."""
+    rows = [list(r) for r in t.get('rows') or ()]
+    if not rows and 'home_demo.py BANK' in str(t.get('rows_from') or ''):
+        from . import home_demo           # the bank sheet: description, amount (paid out is negative), no unit, the date
+        rows = [[description, amount, '', day] for day, description, amount in home_demo.BANK]
+    return [{'cell': 'B%d' % (n + 2), 'parameter': str(r[0]), 'value': str(r[1]) if len(r) > 1 else '',
+             'unit': str(r[2]) if len(r) > 2 else '', 'conditions': str(r[3]) if len(r) > 3 else ''}
+            for n, r in enumerate(rows) if r and str(r[0]).strip()]
+
+
+def exam_lexicon(desk):
+    """(lex, things): a Lexicon over an exam desk file's sheets and calculations, and the things READ lists of it (as
+    things() lists them) with the file's own handles, in the file's order."""
+    from .desk_ops import Sheet as FieldSheet, World
+    by_handle = {t['handle']: t for t in desk['things']}
+    sheets, typed, calcs = [], [], []
+    for t in desk['things']:
+        if t.get('kind') == 'sheet':
+            if tuple(t.get('columns') or ())[:4] == EXAM_REVIEWED:
+                sheets.append({'id': 'exam:%s' % t['handle'], 'title': t['title'], 'rows': _exam_rows(t)})
+            else:
+                typed.append({'id': 'exam:%s' % t['handle'], 'title': t['title'],
+                              'rows': [list(t.get('columns') or ())] + [list(r) for r in t.get('rows') or ()]})
+        elif t.get('kind') == 'calculation':
+            unit = re.search(r'·\s*[-+]?\d[\d.,]*\s*([^\s\d]+)\s*$', t['title'])
+            calcs.append({'id': 'exam:%s' % t['handle'], 'title': t['title'], 'unit': unit.group(1) if unit else '', 'expression': '',
+                          'sheet': (by_handle.get(t.get('reads')) or {}).get('title', '')})
+    field_world = reading.world_of([s['title'] for s in sheets] + [s['title'] for s in typed])
+    world = World(field_world.sheets + tuple(FieldSheet(c['title'], 'calculation') for c in calcs))
+    lex = reading.Lexicon.of(sheets=sheets, calculations=calcs, typed=typed, world=world)
+    listed = {t.title: t for t in things(lex)}
+    return lex, tuple(replace(listed[d['title']], handle=d['handle']) for d in desk['things'] if d['title'] in listed)
+
+
+def exam_inputs(raw, item):
+    """The READ question for one READ paper item (model_exam's builder; see the block's words above)."""
+    from datetime import date as _day
+    desk = _exam_desk(raw)
+    lex, listed = exam_lexicon(desk)
+    if not 1 <= len(listed) <= STABLE_MOST:raise ValueError('READ_EXAM_DESK: 1 to %d things' % STABLE_MOST)
+    today = _day.fromisoformat(desk['today']) if desk.get('today') else None
+    text = reading.plain(str(raw.get('request') or ''))[:reading.TEXT]
+    got = inputs(text, lex, whole=True)
+    got = replace(got, things=listed, stable_count=len(listed), now=str(raw.get('now') or got.now), today=today)
+    columns = sorted({c.name for t in listed for c in t.columns})
+    try:
+        got.grammar = build_grammar(list(VERBS), [t.handle for t in listed], got.words, columns, got.steps) if got.words else None
+    except (grammars.OverCap, ValueError):
+        got.grammar = None
+    from . import model_exam
+    if reading.read(text, lex, today=today).get('route') == 'DECLINE':raise model_exam.DeskSendsNothing('DECLINE', got)
+    if got.grammar is None:raise model_exam.DeskSendsNothing('NOTHING_TO_READ', got)
+    return got
+# == end 0.8.7 X7 ==========================================================================================================

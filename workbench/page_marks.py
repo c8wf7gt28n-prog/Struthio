@@ -17,7 +17,8 @@ The order of work, and what holds it:
    deterministic: the same page gives the same records, digest for digest (`record_digest`).
 3. **The MARKS turn** (registered with turns.py, E0), only on your press and only after the doorway (open question 2's
    default): the page goes as message 2 with flagged lines withheld; the answer is up to 8 lines `L<n> <kind> | <label> |
-   <value>` or `NONE`, under a grammar that admits only the page's unflagged line numbers and the pack's kinds.
+   <value>` or `NONE`, under a grammar that admits only the page's unflagged line numbers and the pack's kinds, and
+   labels and values of the page's own words, cut to the 140-token answer cap (0.8.7 X7: as many marks as fit).
 4. **The page checks** (`check`), every mark of the model's, in order, each refused mark with exactly one reason:
    the line is in range (LINE_OUT_OF_RANGE) and not withheld (LINE_FLAGGED); the kind is in the pack (KIND_NOT_IN_PACK);
    the value is on that line verbatim, NFKC with spaces as one, with its offsets (VALUE_NOT_ON_LINE); a number kind holds
@@ -582,18 +583,71 @@ def _last(inputs):
         mark_kinds.PACK_WORDS[page.pack], ', '.join(mark_kinds.kinds_of(page.pack)))
 
 
+# 0.8.7 X7 · the grammar within MARKS's answer cap. The first grammar let each label and value run to 16 free words of up to
+# 40 characters, so the longest answer it admitted was some 20,800 tokens by grammars.worst_tokens: over the 140-token cap
+# on every page, and turns.ask (A3) sent no MARKS question at all (OVER_CAP). Now a label and a value are made of the page's
+# own words (as ASK's are), and the grammar is cut to what fits the cap: values of up to 3 words (a number and its unit, a
+# date, an amount, "does not apply") and labels of up to 2 (the checker puts the line's own label in place of the model's
+# where the line has one), then as many marks as fit, at most 8; where not even one mark fits, fewer value words, then
+# fewer label words. Under the cap's upper estimate (a digit is a token) that is 2 to 4 marks on the invented pages.
+LABEL_WORDS_MOST = 2
+VALUE_WORDS_MOST = 3
+WORD_CHARS_MOST = 40                       # a page word longer than this is not in the grammar
+WORD_TOKENS_MOST = 16                      # nor one over this many tokens by grammars.estimate (so one mark always fits)
+GRAMMAR_WORDS_MOST = 2500                  # the most distinct page words a grammar lists
+SHAPES = ((LABEL_WORDS_MOST, VALUE_WORDS_MOST), (2, 2), (2, 1), (1, 1))     # (label words, value words), in the order tried
+
+
+def page_words(page, label=False):
+    """The page's own words on its open lines as the model sees them, in order, each once: every word that holds a letter or
+    a digit (leader dots and rules are never a label or a value) and no bar, and the same word without the punctuation
+    that closes or opens it ("1,200.00," also as "1,200.00": a value ends where the page's number ends); for a label, only
+    words with no digit."""
+    out = {}
+    for row in doorway.model_lines(page.door):
+        n, _, text = row.partition('| ')
+        if int(n) in page.withheld:continue
+        for raw in text.split():
+            for w in dict.fromkeys((raw, raw.strip('.,;:()[]"\'“”‘’'), raw.rstrip('.,;:)]"\'”’'))):
+                if not w or len(w) > WORD_CHARS_MOST or grammars.estimate(w) > WORD_TOKENS_MOST or '|' in w:continue
+                if not re.search(r'[^\W_]', w) or (label and re.search(r'\d', w)):continue
+                out.setdefault(w, True)
+                if len(out) >= GRAMMAR_WORDS_MOST:return list(out)
+    return list(out)
+
+
+def _phrase(rule, most):
+    tail = ''
+    for _ in range(most - 1):tail = '( " " %s %s)?' % (rule, tail)
+    return ('%s %s' % (rule, tail)).strip()
+
+
 def grammar_for(page):
-    """GBNF: NONE, or 1 to 8 marks; only the page's open line numbers and the pack's kinds; single spaces only."""
+    """GBNF: NONE, or 1 to 8 marks `L<n> <kind> | <label> | <value>`: only the page's open line numbers, the pack's kinds
+    and the page's own words, single spaces only, and no answer over MARKS's answer cap (grammars.fits, which turns.ask
+    checks). grammars.OverCap when not even one mark of one word fits."""
     lines = page.open_lines()
     if not lines:raise ValueError('MARKS_NO_OPEN_LINE')
-    return '\n'.join([
-        'root ::= "NONE" | mark ( "\\n" mark ){0,%d}' % (MOST - 1),
-        'mark ::= "L" n " " kind " | " text " | " text',
-        'n ::= ' + ' | '.join(grammars.literal(str(n)) for n in lines),
-        'kind ::= ' + ' | '.join(grammars.literal(k) for k in mark_kinds.kinds_of(page.pack)),
-        'text ::= word ( " " word ){0,15}',
-        'word ::= [^\\x20\\x7C\\x0A\\x0D\\x09]{1,40}',
-    ]) + '\n'
+    values = page_words(page)
+    labels = page_words(page, label=True) or values
+    if not values:raise ValueError('MARKS_NO_PAGE_WORDS')
+
+    def build(n, label_most, value_most):
+        return '\n'.join([
+            'root ::= "NONE" | mark' + (' ( "\\n" mark ){0,%d}' % (n - 1) if n > 1 else ''),
+            'mark ::= "L" n " " kind " | " label " | " value',
+            'n ::= ' + ' | '.join(grammars.literal(str(x)) for x in lines),
+            'kind ::= ' + ' | '.join(grammars.literal(k) for k in mark_kinds.kinds_of(page.pack)),
+            'label ::= ' + _phrase('lw', label_most),
+            'value ::= ' + _phrase('vw', value_most),
+            'lw ::= ' + ' | '.join(grammars.literal(w) for w in labels),
+            'vw ::= ' + ' | '.join(grammars.literal(w) for w in values),
+        ]) + '\n'
+    for label_most, value_most in SHAPES:
+        for n in range(MOST, 0, -1):
+            grammar = build(n, label_most, value_most)
+            if grammars.fits(grammar, grammars.CAPS['MARKS']):return grammar
+    raise grammars.OverCap('GRAMMAR_OVER_CAP: not even one mark fits %d tokens' % grammars.CAPS['MARKS'])
 
 
 def _grammar(inputs):

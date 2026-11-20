@@ -842,3 +842,65 @@ def goal_order(b, first, request):
 __all__ += ['NextQuestion', 'Asked', 'GoalOrder', 'next_question', 'next_reasons', 'reason_holds', 'order_due', 'order_verdict',
             'check_next', 'check_order', 'next_fallback', 'ask_next', 'trip_words', 'lines_words', 'measure_words',
             'goal_order', 'goal_order_due', 'NEXT', 'ORDER', 'ORDER_GOAL', 'NEXT_BRIEF']
+
+
+# =========================================================================================================================
+# 0.8.7 X7 · the exam's inputs: a CHOOSE or STEER paper item's NEXT question (model_exam)
+# =========================================================================================================================
+# The papers give {"open", "outcomes", "owner_words", "options": [{n, act, class, settles, seconds, undo, licensed,
+# unblocks}]} (STEER adds "request" and a page). The options become the desk's Options in the paper's order, keyed o1, o2
+# ... so the paper's numbers still name them:
+#   settles   the outcomes it settles over the open outcomes, as the share the gate weighs (2 of 2 is 1)
+#   ms        its seconds, in milliseconds
+#   undo      its class in this module's terms: a read READ, navigation NAVIGATION, a change CHANGE when the paper says it
+#             can be undone (undo 0 or 1) and ASKS when it cannot (2), a send ASKS (sending always asks)
+#   licensed, unblocks   as the paper gives them (the licence is the option's own: no licence tuple)
+# A page goes through the doorway (doorway.scan) and is message 2 as next_question puts it, titled by the item's page
+# label ("page: Home Demo lease, rider B"); its flagged lines are withheld from the model. The question is next_question's,
+# the rule's default hers. exam_value() reads the checked value back as the paper's option number (the format's NEXT pick):
+# a pick {key, shown, why, ...} as its number, her default (a key) as its number, her buttons as their numbers.
+EXAM_KEY = _re.compile(r'o([1-9])')
+
+
+def _exam_undo(row):
+    cls = row.get('class')
+    if cls == 'read':return READ
+    if cls == 'navigate':return NAVIGATION
+    if cls == 'change':return CHANGE if int(row.get('undo') or 0) <= 1 else ASKS
+    if cls == 'send':return ASKS
+    raise ValueError('NEXT_EXAM_CLASS: %s' % cls)
+
+
+def exam_inputs(raw, item):
+    """The NextQuestion for one CHOOSE or STEER paper NEXT item (see the block's words above)."""
+    rows = sorted(raw.get('options') or (), key=lambda r: int(r.get('n') or 0))
+    if not 1 <= len(rows) <= NEXT_SHOWN_MOST or [int(r.get('n') or 0) for r in rows] != list(range(1, len(rows) + 1)):
+        raise ValueError('NEXT_EXAM_OPTIONS: 1 to %d options, numbered from 1' % NEXT_SHOWN_MOST)
+    outcomes = raw.get('outcomes')
+    options = []
+    for r in rows:
+        settles = r.get('settles')
+        share = Fraction(int(settles), int(outcomes)) if settles is not None and outcomes else None
+        options.append(Option(key='o%d' % int(r['n']), words=str(r.get('act') or ''), settles=share,
+                              ms=int(r['seconds']) * 1000 if r.get('seconds') is not None else None, undo=_exam_undo(r),
+                              licensed=r.get('licensed'), unblocks=r.get('unblocks')))
+    door = None;title = ''
+    if isinstance(raw.get('page'), str) and raw['page'].strip():
+        from . import doorway
+        door = doorway.scan(raw['page'])
+        label = str(item.get('desk') or '')
+        title = label.split(':', 1)[1].strip() if label.startswith('page:') else 'The page'
+    return next_question(options, goal=str(raw.get('open') or ''), words=str(raw.get('owner_words') or raw.get('request') or ''),
+                         door=door, title=title)
+
+
+def exam_value(value, item):
+    """NEXT's checked value (or its fallback's) as the paper numbers its options."""
+    def number(key):
+        m = EXAM_KEY.fullmatch(str(key))
+        return int(m.group(1)) if m else key
+    if isinstance(value, dict) and 'key' in value:return number(value['key'])
+    if isinstance(value, str):return number(value)
+    if isinstance(value, (list, tuple)):return [number(k) for k in value]
+    return value
+# == end 0.8.7 X7 ==========================================================================================================

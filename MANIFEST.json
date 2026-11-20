@@ -3710,8 +3710,8 @@
       "sha256": "5895f72641a1f06ae1f24fed3b68926f0ecb20ad017085621e119fe91380559f"
     },
     "workbench/brief.py": {
-      "bytes": 19681,
-      "sha256": "c2f3ac7fd956eea8bdd76785af94fad54f413d708a92282a90542cab372c1a1d"
+      "bytes": 22440,
+      "sha256": "6aa66af19fb5d98a3b32673aad2246b2295d6b2faa6c985fd844bf8ad9f7edfe"
     },
     "workbench/browse.py": {
       "bytes": 7211,
@@ -4410,8 +4410,8 @@
       "sha256": "d717d33336cb3bd3bd56cdc33e4ba0f8e3548ba127fbc2e776780a8b401bd935"
     },
     "workbench/judgment.py": {
-      "bytes": 52236,
-      "sha256": "6f8536922deb4855f197b032863d26e5c960806c8eb43ece10b62d77a0b2cabc"
+      "bytes": 56128,
+      "sha256": "ed96b7829902cb0ded1be22fabb14cee18674784c1fecee8e3013a1112635432"
     },
     "workbench/kasandra/character_starter.md": {
       "bytes": 1709,
@@ -4486,8 +4486,8 @@
       "sha256": "432d143b33715ddc633c0683325a64cbd71a3a00af2f20a843e9fc9e602aeedb"
     },
     "workbench/library_service.py": {
-      "bytes": 39982,
-      "sha256": "6868947f00fe9315ae1243ac998512c3a9c889c0174a5a9459c8fcbacdfe652a"
+      "bytes": 40055,
+      "sha256": "956f7c47312dd5144e6b145ab4b8924de4b13e5e2ac936e46f9c7be346724d0d"
     },
     "workbench/line_steps.py": {
       "bytes": 14308,
@@ -4638,8 +4638,8 @@
       "sha256": "1ba7c16a65d4f48a71d4d41a765e67d65a745757ac9e71b7a63e36a849315162"
     },
     "workbench/model_exam.py": {
-      "bytes": 56471,
-      "sha256": "9cf0f2a624c65f38b0cbcf39bfb038b95f02e50e38f66a01115d2577032978e2"
+      "bytes": 61412,
+      "sha256": "53622a16986fb7e28ed988b7627ff00a4e08c8f200da9e42b276ada431d39a41"
     },
     "workbench/model_marks_qt.py": {
       "bytes": 22849,
@@ -4950,8 +4950,8 @@
       "sha256": "41782f6b81a14e915e011fa805e149b3d9d9ae4cc10293d1d22e9d2ebf1816d1"
     },
     "workbench/page_marks.py": {
-      "bytes": 55273,
-      "sha256": "61ba5bb552b13f7303020647d55f3e92f6ccc5b8af8b7af5733f0e09e37f7416"
+      "bytes": 58834,
+      "sha256": "e0a3f23b7865eb8ac2cc5e9e21ced86c39344113ea28e5fb0fe37b39c0cd8d0a"
     },
     "workbench/pane_qt.py": {
       "bytes": 49426,
@@ -5678,8 +5678,8 @@
       "sha256": "b99633601211b4335483dc8872150341828b2031fad40f4868e95c292f056586"
     },
     "workbench/understand.py": {
-      "bytes": 64735,
-      "sha256": "5175f5748aba064c788fa047f5ef8c2b98f95f1e9d77523da536f6c1de449666"
+      "bytes": 70667,
+      "sha256": "8dd607b4c3e73865fac8bab18633b611bfc434ed5faab85ccebe9d3385ec9d13"
     },
     "workbench/understand_check.py": {
       "bytes": 50927,
