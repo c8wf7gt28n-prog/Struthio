@@ -90,7 +90,7 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
    screen). History keeps the names it was written with.
 5. **MERGED (0a4cc3b), reviewed and fixed.** The window-check scripts: retire or fold 7, port the rest (`wip/2026-11-14/tests_measure/fix_patches/patches/`).
 6. **MERGED (dd2c2db), reviewed and fixed.** The seven line bugs (NOTES.md "PAL P0"; `sdk/cli/arc1cli/typed_pipeline.py`), a test pinning each.
-7. Tests for the blind spots in the guarding code (Kernel scopes, her hand's rules, memory rules, release check); run the
+7. **MERGED (28e99db), reviewed and fixed.** Tests for the blind spots in the guarding code (Kernel scopes, her hand's rules, memory rules, release check); run the
    planted bugs again; target 75% caught there (`wip/2026-11-14/tests_measure/mutants.md`).
 8. **MERGED (0ca267a), reviewed and fixed.** The tiered runner (tier 0 under a minute) and the slimmed release checks (`tests_measure/release-checks.md`).
 9. **MERGED (a737d20), reviewed and fixed.** The yellow leftovers and the colour-vision check (`wip/2026-11-14/yellow_review/`, spec section 7).
@@ -203,6 +203,11 @@ switched the session's model.
 
 ## Log (newest first)
 
+- 20 Nov 02:30 UTC: guards merged (28e99db). Planted bugs caught by behaviour: guarding code 51 of 53 (96%, was 30);
+  overall 100 of 131 (76%, was 70). The builder's caution, for the release notes: most new tests were written for these
+  same planted bugs, so 96% says these holes are closed, not how a new bug would fare; a fresh sample is the honest next
+  measure (0.8.5). **Part B is complete. All of 0.8.4's building steps are merged.** Full suite running in both looks;
+  then the release pass (step 10).
 - 20 Nov 01:15 UTC: a second container restart (about 00:55) stopped part B again. tiers had finished its fix: merged
   (0ca267a). guards is built (planted bugs caught by behaviour: guarding code 30 of 53 -> 51 of 53; overall 70 of 131 ->
   100 of 131, 76%); its review was half done (two must-fix candidates in its notes: the kit check of tools/planted_bugs,
