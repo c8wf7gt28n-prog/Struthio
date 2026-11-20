@@ -268,6 +268,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 08:10 UTC: the owner: "Let's build 86 and 87. Then I will have download a model and can test and I can provide
+  results before we build 88". So: 0.8.5 released now; then 0.8.6 built and shipped; then 0.8.7 built and shipped (it
+  carries "Check her model on this machine", designed in its section 6, so the owner's first model evening measures
+  everything at once); then the owner downloads a model, tests, and sends results; 0.8.8 starts only after that. The
+  open questions of both designs are taken at their defaults unless he answers (0.8.6 section 8, 0.8.7 section 9). The
+  head and footer layout, equalizer D, meters H and his Struthio icon go into 0.8.6 at their defaults.
 - 20 Nov 08:05 UTC: **full suite on all of 0.8.5 (f9fffa8): 81 modules, 1,294 tests, 0 failing in BOTH looks.** Next: the
   0.8.5 release (version, notes from `wip/2026-11-20_b085_saved/RELEASE_NOTES_0.8.5.draft.md`, tier 2 on the exact
   commit, kit, screenshots with `work/shots085/shots.py`).
