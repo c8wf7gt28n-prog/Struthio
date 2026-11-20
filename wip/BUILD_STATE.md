@@ -268,6 +268,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 08:20 UTC: the owner: **"No tests"** (for 0.8.6). Phase 1 was stopped ten minutes in (its work kept as
+  `work/b086/S0.patch` and `S2.patch`) and the script changed: builders write no test files and run no suite, tiers or
+  window checks; the design's vectors become acceptance examples checked in one smoke script; no independent reviews;
+  existing tests are changed only where a change makes them untrue. S8 becomes the I05 arms as a kit for the ThinkPad
+  (no everyday score harness, no sealed sets, no measurement here). The coordinator still runs the EXISTING suite at
+  each merge (it costs no usage) and fixes what an existing test shows broken; the owner may say to drop that too.
 - 20 Nov 08:15 UTC: the owner: "Don't stop until all 6 phases complete". So every wake-up (a phase's completion notice,
   or the hourly wake-up) does the next thing without waiting: merge the finished phase, test, commit, push, launch the
   next phase, until phase 6 is merged; then the 0.8.6 release. Nothing in 0.8.6 waits for the owner (all its questions
