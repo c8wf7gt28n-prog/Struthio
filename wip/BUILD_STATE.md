@@ -268,6 +268,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 08:25 UTC: the owner, on keeping the existing suite at each merge: **"We test before 88."** So for 0.8.6 and
+  0.8.7 no test runs at all, the existing suite included: at each merge only a start-up smoke (the program imports and
+  its window opens offscreen once) and the seed rebuilt. A full test pass (the existing suite in both looks, the tiers,
+  the window checks, then fixes) comes after 0.8.7, together with the owner's results from his model, and before any of
+  0.8.8 starts. Kits for 0.8.6 and 0.8.7 are still cut and restored with the installer (packaging, not testing), and
+  their notes say plainly that they were not tested.
 - 20 Nov 08:20 UTC: the owner: **"No tests"** (for 0.8.6). Phase 1 was stopped ten minutes in (its work kept as
   `work/b086/S0.patch` and `S2.patch`) and the script changed: builders write no test files and run no suite, tiers or
   window checks; the design's vectors become acceptance examples checked in one smoke script; no independent reviews;
