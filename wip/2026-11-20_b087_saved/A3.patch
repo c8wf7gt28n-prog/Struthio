@@ -1,0 +1,1349 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index fad0876..28708a8 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -53,6 +53,7 @@
+    "brain.acceleration": "workbench/local_brain.py#dispatch",
+    "brain.acceleration.probe": "workbench/local_brain.py#dispatch",
+    "brain.ask": "workbench/local_brain.py#dispatch",
++   "brain.help.set": "workbench/turns.py#dispatch",
+    "brain.host": "workbench/local_brain.py#dispatch",
+    "brain.model.add": "workbench/local_brain.py#dispatch",
+    "brain.model.inspect": "workbench/local_brain.py#dispatch",
+@@ -991,9 +992,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 793,
++  "adapters": 794,
+   "job_tools": 113,
+-  "operations": 793,
++  "operations": 794,
+   "settings": 48
+  },
+  "formulas": {
+@@ -1882,6 +1883,14 @@
+    },
+    "scope": "execute"
+   },
++  "brain.help.set": {
++   "arguments": "22f2cecce589b1e469279dd21d3c1929f07f85973000370ba541a96f8648e032",
++   "properties": {
++    "switches": "1bcd205f137986e7",
++    "undo": "7cb541e84f226754"
++   },
++   "scope": "execute"
++  },
+   "brain.host": {
+    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+    "properties": {},
+@@ -7797,7 +7806,7 @@
+  },
+  "release": "Graphite 0.8.5",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "a1a066792b1f3b8eb3bcb46a272feed0573c3091d95a14c020492d680d856ba0",
++ "schema_digest": "3ccf276e01af64f1b241072383bc3ea051c960f19a927870de6b796a9b9b175b",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/brain_clock.py b/workbench/brain_clock.py
+new file mode 100644
+index 0000000..3f12370
+--- /dev/null
++++ b/workbench/brain_clock.py
+@@ -0,0 +1,226 @@
++"""Her clock: the price of a model turn before it is sent, its deadline, and the line under her card while it runs (0.8.7,
++"Kas's mind with the model, interwoven"; slice A3, lane A).
++
++Asking must pay (design 3.1, rule 3): no turn is sent unless the desk needs one, it fits its price, and its kind is switched
++on; every turn has a deadline, and past it the safe default or the buttons. This module is the price and the deadline.
++
++    price    = the desk's share + new tokens / read rate + answer tokens / write rate                  (design 4.4)
++    deadline = max(3 s, 2 x price + 1 s), capped by the kind (turns.standard_deadline; the caps are BUDGETS below)
++
++The rates are rolling medians per model key (model file, runtime, backend, context: the port's key), per kind, from the
++timings every turn already returns (prompt_n, prompt_ms, predicted_n, predicted_ms on its brain.turn/1 record), with reads
++kept in size bands: small reads are slower per token (30 to 43 a second against 70 cold on the 4B, measured). Where a kind
++has fewer than three timings, the key's other kinds stand in; where the key has none, the 4B's quiet rates here (rounded
++down). All of it is whole milliseconds and exact fractions: no floating point.
++
++Also here: the line under her card while a turn runs ("Asking the model: 2 s of about 3"), why a turn three times its price
++was slow, from the meters ("Slow today: memory is tight."), the lates (two in a row narrow the question; three in a session
++raise her cost of asking to the measured median, so she asks less), and BUDGETS, the design's table of budgets per kind
++(4.3), from which a kind's Caps are built (caps()).
++"""
++from __future__ import annotations
++
++import json
++import math
++import os
++from collections import deque
++from fractions import Fraction
++from pathlib import Path
++from statistics import median_low
++
++from . import turns
++
++WINDOW = 31                               # timings kept per (key, kind, band)
++LEAST = 3                                 # timings a median needs before it replaces the stand-in
++BANDS = ((256, 'small'), (1024, 'medium'), (None, 'large'))     # new prompt tokens of a read
++DEFAULT_READ = {'small': Fraction(30), 'medium': Fraction(50), 'large': Fraction(70)}    # tokens a second (4B, quiet)
++DEFAULT_WRITE = Fraction(5)
++SLOW_TIMES = 3                            # a turn this many times its price says why
++LATES_NARROW = 2                          # lates in a row of a kind that narrow its question
++LATES_SESSION = 3                         # lates in a session that raise her cost of asking
++
++# Budgets per kind (design 4.3): the brief kept (tokens), new tokens typical and cap, the answer cap, the deadline cap (ms),
++# foreground. The 4B column is the bench here; the 35B's are estimates until the model check measures them.
++BUDGETS = {
++    'GOAL':    dict(brief=450, new_typical=120, new_cap=300, answer=6, deadline=6000, foreground=True),
++    'PICK':    dict(brief=450, new_typical=120, new_cap=300, answer=4, deadline=6000, foreground=True),
++    'READ':    dict(brief=700, new_typical=60, new_cap=250, answer=24, deadline=10000, foreground=True),
++    'BIND':    dict(brief=0, new_typical=150, new_cap=300, answer=6, deadline=6000, foreground=True),
++    'NEXT':    dict(brief=450, new_typical=150, new_cap=600, answer=8, deadline=6000, foreground=True),
++    'ORDER':   dict(brief=0, new_typical=97, new_cap=200, answer=4, deadline=6000, foreground=True),
++    'MARKS':   dict(brief=500, new_typical=700, new_cap=1000, answer=140, deadline=20000, foreground=True),
++    'ASK':     dict(brief=0, new_typical=30, new_cap=60, answer=48, deadline=6000, foreground=True),
++    'COLUMNS': dict(brief=500, new_typical=300, new_cap=400, answer=30, deadline=10000, foreground=True),
++    'FRAME':   dict(brief=450, new_typical=180, new_cap=250, answer=90, deadline=10000, foreground=False),
++    'TALK':    dict(brief=300, new_typical=60, new_cap=600, answer=256, deadline=0, foreground=True),
++}
++
++
++def caps(kind, **over):
++    """The kind's turns.Caps from the budgets table (READ with four steps: answer=48). Talk has no deadline: Stop."""
++    b = dict(BUDGETS[kind]);b.update(over)
++    return turns.Caps(new_tokens=b['new_cap'], answer_tokens=b['answer'], deadline_ms=b['deadline'],
++                      foreground=b['foreground'], stop_only=kind == 'TALK' or not b['deadline'],
++                      desk_ms=b.get('desk_ms', 50), odds=b.get('odds', 0))
++
++
++def band(new_tokens):
++    for most, name in BANDS:
++        if most is None or new_tokens <= most:return name
++    return 'large'
++
++
++def deadline_ms(price_ms, kind_caps):
++    """max(3 s, 2 x price + 1 s), capped by the kind; 0 for Talk (no deadline, Stop)."""
++    return turns.standard_deadline(price_ms, kind_caps)
++
++
++def _int(value):
++    return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) and value == value and value >= 0 else None
++
++
++class Clock:
++    """Her clock for one Graphite session: rates from the turns it has seen (and, through clock(kernel), the ledger's)."""
++
++    def __init__(self):
++        self.read = {}                    # (key, kind, band) -> deque of tokens a second (Fraction)
++        self.write = {}                   # (key, kind) -> deque of tokens a second
++        self.elapsed = {}                 # (key, kind) -> deque of whole ms a turn took
++        self.lates_in_row = {}            # (key, kind) -> lates in a row
++        self.session_lates = 0
++
++    # -- learning ------------------------------------------------------------------------------------------------------
++    def _keep(self, table, slot, value):
++        table.setdefault(slot, deque(maxlen=WINDOW)).append(value)
++
++    def observe(self, key, kind, record, live=True):
++        """Learn from one brain.turn/1 record (turns.ask calls it after every sent turn). `live` False when replaying the
++        ledger at start: replays never count as this session's lates."""
++        t = record.get('timings') or {}
++        prompt_n, prompt_ms = _int(t.get('prompt_n')), _int(t.get('prompt_ms'))
++        predicted_n, predicted_ms = _int(t.get('predicted_n')), _int(t.get('predicted_ms'))
++        if prompt_n and prompt_ms:self._keep(self.read, (key, kind, band(prompt_n)), Fraction(prompt_n * 1000, prompt_ms))
++        if predicted_n and predicted_ms:self._keep(self.write, (key, kind), Fraction(predicted_n * 1000, predicted_ms))
++        outcome = record.get('outcome');elapsed = _int(record.get('elapsed_ms'))
++        if outcome == 'LATE':
++            self.lates_in_row[(key, kind)] = self.lates_in_row.get((key, kind), 0) + 1
++            if live:self.session_lates += 1
++        elif outcome not in (None, 'FAILED'):
++            self.lates_in_row[(key, kind)] = 0
++        if elapsed and outcome not in ('FAILED',):self._keep(self.elapsed, (key, kind), elapsed)
++
++    # -- rates --------------------------------------------------------------------------------------------------------------
++    def _median(self, table, key, kind, extra=()):
++        mine = table.get((key, kind) + tuple(extra))
++        if mine and len(mine) >= LEAST:return median_low(mine)
++        pooled = [v for slot, values in table.items() if slot[0] == key and tuple(slot[2:]) == tuple(extra) for v in values]
++        if len(pooled) >= LEAST:return median_low(pooled)
++        return None
++
++    def read_rate(self, key, kind, new_tokens):
++        b = band(new_tokens)
++        return self._median(self.read, key, kind, (b,)) or DEFAULT_READ[b]
++
++    def write_rate(self, key, kind):
++        return self._median(self.write, key, kind) or DEFAULT_WRITE
++
++    def price_ms(self, key, kind, new_tokens, answer_tokens, desk_ms):
++        """The price of a turn before it is sent, in whole ms (rounded up): desk + new / read rate + answer / write rate."""
++        new_tokens = max(0, int(new_tokens));answer_tokens = max(0, int(answer_tokens))
++        read = self.read_rate(key, kind, new_tokens);write = self.write_rate(key, kind)
++        return int(desk_ms) + math.ceil(Fraction(new_tokens * 1000) / read) + math.ceil(Fraction(answer_tokens * 1000) / write)
++
++    # -- lates and her cost of asking -----------------------------------------------------------------------------------
++    def narrow(self, key, kind):
++        """True after two lates in a row of this kind: the next question of it is narrowed (fewer options, one step)."""
++        return self.lates_in_row.get((key, kind), 0) >= LATES_NARROW
++
++    def measured_ms(self, key, kind):
++        """The median time a turn of this kind took on this key (None before three)."""
++        mine = self.elapsed.get((key, kind))
++        return median_low(mine) if mine and len(mine) >= LEAST else None
++
++    def asking_cost_ms(self, key, kind, rule_ms):
++        """Her cost of asking the model this kind of question, for 'worth asking?' (judgment.front): the rule's figure, and
++        after three lates in a session the measured median when that is higher, so she asks less."""
++        rule_ms = int(rule_ms)
++        if self.session_lates < LATES_SESSION:return rule_ms
++        measured = self.measured_ms(key, kind)
++        return max(rule_ms, int(measured)) if measured is not None else rule_ms
++
++
++# -- one clock per Kernel database, rebuilt from the ledger --------------------------------------------------------------------
++_CLOCKS = {}
++
++
++def clock(kernel=None):
++    """Her clock for this Kernel: built once per process from the newest turn records' timings, then kept up to date by
++    turns.ask (observe). With no Kernel, a fresh clock on the stand-in rates."""
++    if kernel is None:return Clock()
++    slot = str(getattr(kernel, 'dbpath', id(kernel)))
++    held = _CLOCKS.get(slot)
++    if held is not None:return held
++    made = Clock()
++    try:
++        with kernel.db() as db:
++            turns.ensure(db)
++            rows = db.execute("SELECT payload FROM brain_turns WHERE state='KEPT' ORDER BY at DESC, rowid DESC LIMIT 400").fetchall()
++        for (payload,) in reversed(rows):
++            value = json.loads(payload)
++            made.observe(value.get('key'), value.get('kind'), value, live=False)
++    except Exception:  # noqa: BLE001 - a clock that cannot read the ledger starts on the stand-in rates
++        made = Clock()
++    _CLOCKS[slot] = made
++    return made
++
++
++# -- the line under her card ---------------------------------------------------------------------------------------------
++def asking_line(elapsed_ms, price_ms):
++    """'Asking the model: 2 s of about 3' (whole seconds gone, the price rounded up; Stop is the button beside it)."""
++    gone = max(0, int(elapsed_ms)) // 1000
++    about = max(1, -(-int(price_ms) // 1000))
++    return 'Asking the model: %d s of about %d' % (gone, about)
++
++
++def asking_now(request, now_ms=None):
++    """The line for a request whose turn is running (turns.TurnRequest.now_asking), or '' when none is."""
++    asking = getattr(request, 'now_asking', None)
++    if not asking:return ''
++    now = request.now_ms() if now_ms is None else int(now_ms)
++    return asking_line(now - asking['began_ms'], asking['price_ms'])
++
++
++# -- why it was slow, from the meters -------------------------------------------------------------------------------------
++def meters():
++    """What the machine says now: memory tight, on battery, processor busy (each True, False or None for not measured)."""
++    out = {'memory_tight': None, 'battery': None, 'processor_busy': None}
++    try:
++        from . import host_observations
++        sample = host_observations.memory()
++        if sample:out['memory_tight'] = sample['used'] * 10 >= sample['total'] * 9
++    except Exception:  # noqa: BLE001 - a meter that cannot be read says nothing
++        pass
++    try:
++        supplies = list(Path('/sys/class/power_supply').glob('*'))
++        states = [(p / 'status').read_text().strip() for p in supplies if (p / 'type').read_text().strip() == 'Battery']
++        if states:out['battery'] = 'Discharging' in states
++    except OSError:
++        pass
++    try:
++        with open('/proc/loadavg') as stream:load = stream.read().split()[0]
++        whole, _, part = load.partition('.')
++        hundredths = int(whole) * 100 + int((part + '00')[:2])
++        out['processor_busy'] = hundredths * 10 >= (os.cpu_count() or 1) * 100 * 9
++    except (OSError, ValueError, IndexError):
++        pass
++    return out
++
++
++def slow_why(elapsed_ms, price_ms, readings=None):
++    """When a turn took three times its price, why, in her words from the meters; None when it was not slow."""
++    if int(price_ms) <= 0 or int(elapsed_ms) < SLOW_TIMES * int(price_ms):return None
++    readings = meters() if readings is None else readings
++    said = [words for name, words in (('memory_tight', 'memory is tight'), ('battery', 'on battery'),
++                                      ('processor_busy', 'the processor is busy')) if readings.get(name)]
++    if not said:return 'Slow today; the meters do not say why.'
++    return 'Slow today: ' + '; '.join(said) + '.'
+diff --git a/workbench/brain_qt.py b/workbench/brain_qt.py
+index 208ba28..7f3ff18 100644
+--- a/workbench/brain_qt.py
++++ b/workbench/brain_qt.py
+@@ -7,6 +7,7 @@ from PySide6.QtGui import QDesktopServices
+ from PySide6.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QGridLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QSpinBox, QCheckBox, QPlainTextEdit, QTabWidget, QFileDialog, QProgressBar
+ from .register_tabs import ServiceTab
+ from . import brain_seal, local_brain
++from . import turns  # 0.8.7 A3: the owner's switches per kind
+ from .explore_qt import BRAIN_WORDS  # one vocabulary for the model state: Hatch, Explore and this room say the same words (V-19)
+ 
+ class BrainTab(ServiceTab):
+@@ -79,10 +80,36 @@ class BrainTab(ServiceTab):
+         self.acceleration=QPlainTextEdit();self.acceleration.setReadOnly(True);hardware_layout.addWidget(self.acceleration,1)
+         self.hardware_page=hardware
+         for title,widget in [('Model / launch',self.launch_scroll),('Hardware / Vulkan',hardware),('GGUF metadata',self.metadata),('Tensor inspector',self.tensors)]:self.pages.addTab(widget,title)
++        # 0.8.7 A3: what the model may do, a switch per kind of question; with every switch off Kas is exactly 0.8.6.
++        self.help_page=QWidget();help_layout=QVBoxLayout(self.help_page);help_layout.setContentsMargins(6,6,6,6)
++        intro=QLabel('Which questions Kas may put to the model on this computer. Off means she answers as she does with no model.')
++        intro.setWordWrap(True);help_layout.addWidget(intro);self.help_boxes={}
++        for name in ('understanding','reading','wording','choosing','talk'):
++            box=QCheckBox(turns.SWITCH_WORDS[name]);box.setAccessibleName(turns.SWITCH_WORDS[name])
++            box.toggled.connect(lambda on,name=name:self.help_set({name:bool(on)}));help_layout.addWidget(box);self.help_boxes[name]=box
++        row=QHBoxLayout();self.help_undo=QPushButton('Undo');self.help_undo.setAccessibleName('Undo the last switch')
++        self.help_undo.clicked.connect(lambda:self.help_set(None,undo=True));row.addWidget(self.help_undo);row.addStretch(1);help_layout.addLayout(row)
++        self.help_note=QLabel('');self.help_note.setWordWrap(True);self.help_note.setAccessibleName('What the model may do');help_layout.addWidget(self.help_note)
++        help_layout.addStretch(1);self.pages.addTab(self.help_page,'What the model may do')
++        self.show_help(turns.stored_switches(self.kernel))
+         self.outer.addWidget(self.pages,1)
+         self.launch_edited('context')
+         self.show_acceleration(local_brain.acceleration(self.kernel))
+         self.timer=QTimer(self);self.timer.setInterval(1000);self.timer.timeout.connect(self.refresh);self.timer.start();self.refresh()
++    def show_help(self,switches):
++        for name,box in self.help_boxes.items():
++            with QSignalBlocker(box):box.setChecked(bool(switches.get(name)))
++        off=[turns.SWITCH_WORDS[name] for name in self.help_boxes if not switches.get(name)]
++        if not any(switches.get(name) for name in self.help_boxes):text='Every switch is off: Kas answers exactly as she does with no model.'
++        elif off:text='Off: '+', '.join(off)+'. The rest are on.'
++        else:text='Every switch is on.'
++        self.help_note.setText(text)
++    def help_set(self,changes,undo=False):
++        result=self.kernel.dispatch('brain.help.set',{'undo':True} if undo else {'switches':changes},self.principal)
++        if result.get('ok'):self.show_help(result['result']['switches']);return
++        self.show_help(turns.stored_switches(self.kernel))
++        message=(result.get('error') or {}).get('message') or ''
++        self.help_note.setText('Nothing to undo yet.' if 'NOTHING_TO_UNDO' in message else 'The switch was not changed.')
+     def title(self):return 'Graphite · Brain'
+     def info(self):return 'Local CPU / Vulkan inference · external weights · scoped Graphite tools'
+     def options(self):
+diff --git a/workbench/fake_worker.py b/workbench/fake_worker.py
+index 69fec3e..94c3d8d 100644
+--- a/workbench/fake_worker.py
++++ b/workbench/fake_worker.py
+@@ -16,7 +16,9 @@ FakeServer(script, context=4096)
+     /v1/chat/completions), with the Bearer key check. `worker()` gives a worker record local_brain.request accepts, so a
+     check can run ask() through turns.LocalPort and local_brain.completion with no model. `bodies` holds every request
+     body as sent (a grammar in the body, cache_prompt, t_max_predict_ms, and whether a forgotten text is sent again).
+-    A step may also carry 'sleep_ms' (real time, kept short) to make the client's timeout fire.
++    A step may also carry 'sleep_ms' (real time, kept short) to make the client's timeout fire. (A3) A request with
++    "stream": true is answered as llama-server streams: one SSE event per token, 'token_ms' (real time) apart, the
++    timings in the last event, then [DONE]; `closed` counts streams the client closed before the end.
+ 
+ FAKE, register_fake()
+     A stand-in kind ("which of these numbered options"), the example lanes B and C can copy: options are (label, is_read)
+@@ -102,8 +104,10 @@ class FakeWorker:
+     def kept(self, messages):
+         return _shared(tokens(chatml(messages)), self._last) if self.cache else 0
+ 
+-    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None):
++    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None,
++                 cancelled=None):
+         if not self.script:raise turns.PortError('FAKE_SCRIPT_EMPTY')
++        if cancelled is not None and cancelled():raise turns.PortError('STOPPED')
+         step = _step(self.script.pop(0), messages, grammar)
+         seen = tokens(chatml(messages));kept = self.kept(messages)
+         self.calls.append({'messages': json.loads(json.dumps(messages)), 'grammar': grammar, 'answer_tokens': answer_tokens,
+@@ -113,14 +117,15 @@ class FakeWorker:
+         if step.get('cancel'):
+             self.time.advance(deadline_ms);raise turns.Late(deadline_ms)
+         text = step.get('text', '');finish = step.get('finish', 'stop')
+-        if self.enforce_grammar and grammar and text not in grammars.admits(grammar):raise turns.PortError('FAKE_GRAMMAR_REFUSES')
++        if self.enforce_grammar and grammar and not grammars.matches(grammar, text):raise turns.PortError('FAKE_GRAMMAR_REFUSES')
+         written = tokens(text)
+         if len(written) > answer_tokens:text = ''.join(written[:answer_tokens]);finish = 'length';written = written[:answer_tokens]
+         new = len(seen) - kept
+         ms = step.get('ms')
+         if ms is None:ms = math.ceil(Fraction(new * 1000) / self.read_rate) + math.ceil(Fraction(len(written) * 1000) / self.write_rate)
+         self.time.advance(min(ms, deadline_ms) if deadline_ms else ms)
+-        if on_progress is not None:on_progress(len(written), int(ms))
++        if on_progress is not None:     # A3: one progress event per token written, the last at the answer's time
++            for n in range(1, len(written) + 1):on_progress(n, int(ms) if n == len(written) else int(ms) * n // (len(written) + 1))
+         return {'text': text, 'finish': finish, 'elapsed_ms': int(ms),
+                 'timings': {'prompt_n': new, 'cache_n': kept, 'predicted_n': len(written), 'prompt_ms': ms, 'predicted_ms': 0},
+                 'odds': step.get('odds')}
+@@ -129,7 +134,7 @@ class FakeWorker:
+ # -- the HTTP stand-in ----------------------------------------------------------------------------------------------------------
+ class FakeServer:
+     def __init__(self, script=(), *, context=4096, model_id='f' * 64, key='fake-worker-key'):
+-        self.script = list(script);self.context = context;self.model_id = model_id;self.bodies = []
++        self.script = list(script);self.context = context;self.model_id = model_id;self.bodies = [];self.closed = 0
+         self._dir = tempfile.mkdtemp(prefix='fake-worker-');self.key_file = Path(self._dir) / 'key'
+         self.key_file.write_text(key);self.key_file.chmod(0o600);self._key = key
+         server = self
+@@ -147,6 +152,23 @@ class FakeServer:
+                     self._send(401, {'error': 'unauthorised'});return False
+                 return True
+ 
++            def _stream(self, step, text, seen):
++                """A3: llama-server's streamed answer, one event per token, token_ms apart."""
++                self.send_response(200);self.send_header('Content-Type', 'text/event-stream');self.end_headers()
++                pieces = tokens(text)
++                events = [{'choices': [{'index': 0, 'delta': {'content': p}, 'finish_reason': None}]} for p in pieces]
++                events.append({'choices': [{'index': 0, 'delta': {}, 'finish_reason': step.get('finish', 'stop')}],
++                               'usage': {'prompt_tokens': len(seen), 'completion_tokens': len(pieces)},
++                               'timings': {'prompt_n': len(seen), 'cache_n': 0, 'predicted_n': len(pieces),
++                                           'prompt_ms': 1.0, 'predicted_ms': 1.0}})
++                try:
++                    for value in events:
++                        if step.get('token_ms'):time.sleep(step['token_ms'] / 1000)
++                        self.wfile.write(b'data: ' + json.dumps(value).encode() + b'\n\n');self.wfile.flush()
++                    self.wfile.write(b'data: [DONE]\n\n');self.wfile.flush()
++                except OSError:
++                    server.closed += 1
++
+             def do_GET(self):
+                 if not self._authorised():return
+                 server.bodies.append((self.path, None))
+@@ -167,6 +189,7 @@ class FakeServer:
+                     if step.get('sleep_ms'):time.sleep(step['sleep_ms'] / 1000)
+                     if step.get('fail'):return self._send(500, {'error': step['fail']})
+                     text = step.get('text', '');seen = tokens(chatml(body['messages']))
++                    if body.get('stream'):return self._stream(step, text, seen)
+                     return self._send(200, {'choices': [{'index': 0, 'message': {'role': 'assistant', 'content': text},
+                                                          'finish_reason': step.get('finish', 'stop')}],
+                                             'usage': {'prompt_tokens': len(seen), 'completion_tokens': len(tokens(text))},
+diff --git a/workbench/grammars.py b/workbench/grammars.py
+index 56bd1b8..31c0985 100644
+--- a/workbench/grammars.py
++++ b/workbench/grammars.py
+@@ -1,18 +1,56 @@
+-"""The one grammar builder for model turns (0.8.7, slice E0 starts it; lane A's A3 grows it).
++"""The one grammar builder for model turns (0.8.7: slice E0 started it; lane A's A3 grows it to one grammar per kind).
+ 
+ Every turn kind's answer is a terse line under a per-request GBNF grammar with no free whitespace (design 3.3): the same
+ two-step reading is 22 tokens as a line, 46 as compact JSON and 102 as the JSON a small model writes under a schema that
+ allows whitespace, and writing is the slow half on the owner's computer. A kind's `grammar(inputs)` returns the text these
+-functions build; turns.ask sends it with the question and refuses a grammar with free whitespace (`check`).
++functions build; turns.ask sends it with the question, refuses a grammar with free whitespace (`check`), and never sends a
++grammar that admits an answer longer than the kind's answer cap (`fits`).
+ 
+-Only literal alternatives are built here, so what a grammar admits can be listed exactly (`admits`), which is what A3's fuzz
+-against the tokenizer will read.
++A3 · one grammar per kind, each admitting only answers within its cap
++---------------------------------------------------------------------
++    GOAL    goal(count)                     1, "1 2" or 0                                   cap 6
++    PICK    pick(count)                     n or 0                                          cap 4
++    BIND    bind(count)                     n, "n n" or 0                                   cap 6
++    NEXT    next_pick(count)                "n why", why one of REASONS                     cap 8
++    ORDER   order(count)                    n                                               cap 4
++    READ    read_line(...)                  kind|verb Dn "your words" [column] ["value"]|...  cap 24 (48 for four steps)
++    MARKS   marks(lines, kinds, words)      up to 8 "L<n> <kind> | <label> | <value>", or NONE   cap 140
++    ASK     ask_lines(lines, words)         up to 3 "L<n> | <value>", or NONE                cap 48
++    COLUMNS columns(count, roles)           "C1=role C2=role ..."                           cap 30
++    FRAME   frame(slots, words)             "{ANSWER} joining words {SLOT} ..."             cap 90
++    TALK    none (free text, streamed, marked as the model's own; Stop, no grammar)          cap 256
++
++Free words are never free characters: a quoted span of your words is built from your request's own words, a page value
++from that page's own words, a frame's joining words from her lexicon. Lines a page's doorway flagged are not in a page
++grammar at all, so the model cannot even point at them.
++
++The cap, before anything is sent. `worst_tokens(grammar)` is an upper estimate of the tokens of the longest answer the
++grammar admits, summed piece by piece with `estimate` (digits one each, letters one per three, other signs one each, a
++non-ASCII letter two); the builders shrink their optional repetitions until the worst case fits the kind's cap, and refuse
++(OverCap) a shape that cannot. `fits` is what turns.ask checks; a grammar that admits unbounded answers (`*`, `+`,
++recursion) never fits. The estimate is checked against the 4B's own vocabulary by fuzzing (`sample`) in the build's smoke
++script; whatever a model does inside the grammar, an answer cut at its cap (finish `length`) is refused whole by ask().
++
++Only a small GBNF subset is built here (literals, character classes, rule references, groups, `?` and `{m,n}`), so what a
++grammar admits can be matched (`matches`), listed (`admits`), sampled (`sample`) and measured (`longest_bytes`) exactly.
+ """
+ from __future__ import annotations
+ 
++import math
++import random
+ import re
++from functools import lru_cache
+ 
+ FREE_WHITESPACE = re.compile(r'\[[^\]]*(?:\\t|\\n|\\r| )[^\]]*\][*+]|\bws\b|\\s')
++_LITERALS = re.compile(r'"(?:[^"\\]|\\.)*"')
++REASONS = ('settles_most', 'cheapest', 'owner_asked', 'keeps_undo', 'unblocks')    # NEXT's whys (design 3.3)
++READ_KINDS = ('desk', 'app', 'talk', 'unclear')                                    # READ's kinds (design 3.3)
++CAPS = {'GOAL': 6, 'PICK': 4, 'BIND': 6, 'NEXT': 8, 'ORDER': 4, 'READ': 24, 'READ4': 48, 'MARKS': 140, 'ASK': 48,
++        'COLUMNS': 30, 'FRAME': 90, 'TALK': 256}                                    # answer caps (design 3.3 and 4.3)
++
++
++class OverCap(ValueError):
++    """The smallest answer of this shape cannot fit the kind's cap: the question is not asked."""
+ 
+ 
+ def literal(text):
+@@ -48,20 +86,472 @@ def check(grammar):
+     """The grammar a turn sends: None (a kind with no grammar, Talk only) or GBNF with a root rule and no free whitespace."""
+     if grammar is None:return None
+     if not isinstance(grammar, str) or not re.search(r'(?m)^root\s*::=', grammar):raise ValueError('GRAMMAR_NO_ROOT')
+-    if FREE_WHITESPACE.search(grammar):raise ValueError('GRAMMAR_FREE_WHITESPACE: a turn grammar admits no free whitespace')
++    if FREE_WHITESPACE.search(_LITERALS.sub('""', grammar)):   # a word such as "ws" inside a literal is not whitespace
++        raise ValueError('GRAMMAR_FREE_WHITESPACE: a turn grammar admits no free whitespace')
+     if len(grammar) > 65536:raise ValueError('GRAMMAR_TOO_LONG')
+     return grammar
+ 
+ 
+-def admits(grammar):
+-    """Every answer a grammar built here admits, listed (for the caps check and A3's fuzz). Only the shapes above."""
+-    rules = dict(re.findall(r'(?m)^(\w+)\s*::=\s*(.*)$', grammar))
+-    lit = lambda s: [bytes(m, 'utf-8').decode('unicode_escape') for m in re.findall(r'"((?:[^"\\]|\\.)*)"', s)]
+-    if 'n' not in rules:return lit(rules['root'])
+-    numbers = lit(rules['n']);most = 1 + rules['root'].count('" " n')
+-    out = ['0'] if rules['root'].lstrip().startswith('"0"') else []
+-    rows = [[x] for x in numbers]
+-    for _ in range(most):
+-        out += [' '.join(r) for r in rows]
+-        rows = [r + [x] for r in rows for x in numbers]
+-    return out
++# -- the token estimate -------------------------------------------------------------------------------------------------------
++LETTERS_PER_TOKEN = 4                    # checked against the 4B's vocabulary by the build's fuzz (A3 smoke)
++_PIECE = re.compile(r'[\r\n]+|[ \t]+|[0-9]|[A-Za-z]+|[^\x00-\x7f]|[^A-Za-z0-9\s]')
++
++
++def estimate(text):
++    """An upper estimate of the tokens a byte-level BPE vocabulary (the Qwen family) gives `text`: a digit is one token, a
++    run of ASCII letters one per LETTERS_PER_TOKEN letters, a non-ASCII letter two, any other sign one; a single space
++    before a letter or a sign joins it (none), before a digit or at the end it is one."""
++    total = 0;pieces = _PIECE.findall(text)
++    for i, p in enumerate(pieces):
++        if p[0] in ' \t':
++            following = pieces[i + 1] if i + 1 < len(pieces) else ''
++            total += 0 if (len(p) == 1 and following[:1] and not following[:1].isdigit() and not following[:1].isspace()) else 1
++        elif p[0] in '\r\n':total += 1
++        elif p.isascii() and p.isalpha():total += math.ceil(len(p) / LETTERS_PER_TOKEN)
++        elif not p.isascii():total += 2
++        else:total += 1
++    return total
++
++
++# -- the subset: parse, match, measure, sample, list ----------------------------------------------------------------------------
++class _Parser:
++    def __init__(self, text):
++        self.s = text;self.i = 0
++
++    def ws(self):
++        while self.i < len(self.s) and self.s[self.i] in ' \t':self.i += 1
++
++    def peek(self):
++        self.ws();return self.s[self.i] if self.i < len(self.s) else ''
++
++    def alt(self):
++        options = [self.seq()]
++        while self.peek() == '|':
++            self.i += 1;options.append(self.seq())
++        return options[0] if len(options) == 1 else ('alt', tuple(options))
++
++    def seq(self):
++        items = []
++        while self.peek() not in ('', '|', ')'):items.append(self.item())
++        return items[0] if len(items) == 1 else ('seq', tuple(items))
++
++    def item(self):
++        node = self.atom()
++        while True:
++            c = self.s[self.i] if self.i < len(self.s) else ''
++            if c == '?':self.i += 1;node = ('rep', node, 0, 1)
++            elif c == '*':self.i += 1;node = ('rep', node, 0, None)
++            elif c == '+':self.i += 1;node = ('rep', node, 1, None)
++            elif c == '{':
++                end = self.s.index('}', self.i);body = self.s[self.i + 1:end];self.i = end + 1
++                lo, _, hi = body.partition(',')
++                lo = int(lo or 0);hi = (None if body.endswith(',') else int(hi)) if ',' in body else lo
++                node = ('rep', node, lo, hi)
++            else:return node
++
++    def atom(self):
++        c = self.peek()
++        if c == '"':return ('lit', self.string())
++        if c == '[':return self.cls()
++        if c == '(':
++            self.i += 1;node = self.alt()
++            if self.peek() != ')':raise ValueError('GRAMMAR_PARSE: a group is not closed')
++            self.i += 1;return node
++        m = re.compile(r'[A-Za-z][A-Za-z0-9_-]*').match(self.s, self.i)
++        if not m:raise ValueError('GRAMMAR_PARSE: at %r' % self.s[self.i:self.i + 12])
++        self.i = m.end();return ('ref', m.group(0))
++
++    def esc(self):
++        c = self.s[self.i];self.i += 1
++        if c == 'x':v = int(self.s[self.i:self.i + 2], 16);self.i += 2;return chr(v)
++        if c == 'u':v = int(self.s[self.i:self.i + 4], 16);self.i += 4;return chr(v)
++        return {'n': '\n', 'r': '\r', 't': '\t'}.get(c, c)
++
++    def string(self):
++        self.i += 1;out = []
++        while self.s[self.i] != '"':
++            c = self.s[self.i];self.i += 1
++            out.append(self.esc() if c == '\\' else c)
++        self.i += 1
++        return ''.join(out)
++
++    def cls(self):
++        self.i += 1;negated = self.s[self.i] == '^'
++        if negated:self.i += 1
++        ranges = []
++        while self.s[self.i] != ']':
++            c = self.s[self.i];self.i += 1
++            lo = self.esc() if c == '\\' else c;hi = lo
++            if self.s[self.i] == '-' and self.s[self.i + 1] != ']':
++                self.i += 1;c = self.s[self.i];self.i += 1;hi = self.esc() if c == '\\' else c
++            ranges.append((ord(lo), ord(hi)))
++        self.i += 1
++        return ('cls', negated, tuple(ranges))
++
++
++@lru_cache(maxsize=256)
++def _rules(grammar):
++    rules = {}
++    for line in grammar.splitlines():
++        if not line.strip() or line.lstrip().startswith('#'):continue
++        name, sep, body = line.partition('::=')
++        if not sep:raise ValueError('GRAMMAR_PARSE: a rule is one line, name ::= body')
++        p = _Parser(body);node = p.alt()
++        if p.peek():raise ValueError('GRAMMAR_PARSE: left over %r' % p.s[p.i:p.i + 12])
++        rules[name.strip()] = node
++    if 'root' not in rules:raise ValueError('GRAMMAR_NO_ROOT')
++    return rules
++
++
++def _walk(grammar, fn):
++    rules = _rules(grammar);seen = set()
++
++    def go(node):
++        if node[0] == 'ref':
++            if node[1] not in rules:raise ValueError('GRAMMAR_PARSE: no rule %s' % node[1])
++            if node[1] in seen:return fn(('recursive',), go)
++            seen.add(node[1])
++            try:return go(rules[node[1]])
++            finally:seen.discard(node[1])
++        return fn(node, go)
++    return go(rules['root'])
++
++
++def _members(node):
++    _, negated, ranges = node
++    return negated, ranges
++
++
++def longest_bytes(grammar):
++    """The most bytes any answer the grammar admits can take, or None when it admits unbounded answers."""
++    def fn(node, go):
++        k = node[0]
++        if k == 'recursive':return None
++        if k == 'lit':return len(node[1].encode('utf-8'))
++        if k == 'cls':
++            negated, ranges = _members(node)
++            return 4 if negated else max(len(chr(hi).encode('utf-8')) for _, hi in ranges)
++        if k == 'alt':
++            parts = [go(x) for x in node[1]]
++            return None if None in parts else max(parts)
++        if k == 'seq':
++            parts = [go(x) for x in node[1]]
++            return None if None in parts else sum(parts)
++        if k == 'rep':
++            inner = go(node[1])
++            return None if inner is None or node[3] is None else inner * node[3]
++        raise ValueError(k)
++    return _walk(grammar, fn)
++
++
++def _first(grammar, node):
++    """What an answer of this node can begin with: a subset of {'digit', 'space', 'other', 'empty'}."""
++    rules = _rules(grammar)
++
++    def go(n, seen):
++        k = n[0]
++        if k == 'ref':
++            return {'other'} if n[1] in seen else go(rules[n[1]], seen | {n[1]})
++        if k == 'lit':
++            c = n[1][:1]
++            return {'digit'} if c.isdigit() else {'space'} if c.isspace() else {'other'}
++        if k == 'cls':
++            negated, ranges = _members(n)
++            return {'digit', 'space', 'other'} if negated else {('digit' if chr(lo).isdigit() else 'space' if chr(lo).isspace() else 'other')
++                                                               for lo, _ in ranges}
++        if k == 'alt':return set().union(*(go(x, seen) for x in n[1]))
++        if k == 'seq':
++            out = set()
++            for x in n[1]:
++                f = go(x, seen);out |= f - {'empty'}
++                if 'empty' not in f:return out
++            return out | {'empty'}
++        if k == 'rep':return go(n[1], seen) | ({'empty'} if n[2] == 0 else set())
++        return {'other'}
++    return go(node, frozenset())
++
++
++def worst_tokens(grammar):
++    """The upper estimate (see `estimate`) of the tokens of the longest answer the grammar admits; None when unbounded. A
++    single space that cannot be followed by a digit, a space or the end joins what follows (no token of its own)."""
++    def fn(node, go):
++        k = node[0]
++        if k == 'recursive':return None
++        if k == 'lit':return estimate(node[1]) if node[1].strip(' ') else 1
++        if k == 'cls':return 2
++        if k == 'alt':
++            parts = [go(x) for x in node[1]]
++            return None if None in parts else max(parts)
++        if k == 'seq':
++            parts = []
++            for i, x in enumerate(node[1]):
++                if x[0] == 'lit' and x[1] == ' ' and i + 1 < len(node[1]):
++                    if not (_first(grammar, ('seq', node[1][i + 1:])) & {'digit', 'space', 'empty'}):
++                        parts.append(0);continue
++                if x[0] == 'lit' and x[1].endswith(' ') and len(x[1]) > 1 and i + 1 < len(node[1]):
++                    if not (_first(grammar, ('seq', node[1][i + 1:])) & {'digit', 'space', 'empty'}):
++                        parts.append(estimate(x[1][:-1]) if x[1][:-1].strip(' ') else 1);continue
++                parts.append(go(x))
++            return None if None in parts else sum(parts)
++        if k == 'rep':
++            inner = go(node[1])
++            if inner is None or node[3] is None:return None
++            if node[1][0] == 'cls' and _letters_only(node[1]):return math.ceil(node[3] / 3) + 1
++            return inner * node[3]
++        raise ValueError(k)
++    return _walk(grammar, fn)
++
++
++def _letters_only(node):
++    negated, ranges = _members(node)
++    return not negated and all(chr(lo).isascii() and chr(hi).isascii() and chr(lo).isalpha() and chr(hi).isalpha() and
++                               (chr(lo).islower() == chr(hi).islower()) for lo, hi in ranges)
++
++
++def fits(grammar, cap):
++    """True when every answer the grammar admits is within `cap` tokens by the estimate (never for an unbounded grammar)."""
++    if grammar is None:return True
++    worst = worst_tokens(grammar)
++    return worst is not None and worst <= cap
++
++
++def _class_regex(node):
++    negated, ranges = _members(node)
++    body = ''.join('\\U%08x' % lo if lo == hi else '\\U%08x-\\U%08x' % (lo, hi) for lo, hi in ranges)
++    return '[' + ('^' if negated else '') + body + ']'
++
++
++@lru_cache(maxsize=256)
++def _regex(grammar):
++    def fn(node, go):
++        k = node[0]
++        if k == 'recursive':raise ValueError('GRAMMAR_RECURSIVE: not matched here')
++        if k == 'lit':return re.escape(node[1])
++        if k == 'cls':return _class_regex(node)
++        if k == 'alt':return '(?:' + '|'.join(go(x) for x in node[1]) + ')'
++        if k == 'seq':return ''.join(go(x) for x in node[1])
++        if k == 'rep':
++            return '(?:' + go(node[1]) + '){%d,%s}' % (node[2], '' if node[3] is None else node[3])
++        raise ValueError(k)
++    return re.compile(_walk(grammar, fn), re.DOTALL)
++
++
++def matches(grammar, text):
++    """True when the grammar admits `text` exactly."""
++    return isinstance(text, str) and _regex(grammar).fullmatch(text) is not None
++
++
++_SAMPLE_EXTRA = 'éßøçñ中文Ж'
++
++
++def _class_sample(node, rnd):
++    negated, ranges = _members(node)
++    if not negated:
++        lo, hi = rnd.choice(ranges);return chr(rnd.randint(lo, hi))
++    pool = [c for c in [chr(x) for x in range(33, 127)] + list(_SAMPLE_EXTRA)
++            if not any(lo <= ord(c) <= hi for lo, hi in ranges)]
++    return rnd.choice(pool)
++
++
++def sample(grammar, rnd=None, longest=False):
++    """One answer the grammar admits, drawn at random (with `longest`, every repetition at its most and the alternative with
++    the most estimated tokens), for fuzzing against a tokenizer."""
++    rnd = rnd or random.Random()
++
++    def fn(node, go):
++        k = node[0]
++        if k == 'recursive':raise ValueError('GRAMMAR_RECURSIVE: not sampled here')
++        if k == 'lit':return node[1]
++        if k == 'cls':return _class_sample(node, rnd)
++        if k == 'alt':
++            if longest:
++                drawn = [go(x) for x in node[1]]
++                return max(drawn, key=lambda s: (estimate(s), len(s.encode('utf-8'))))
++            return go(rnd.choice(node[1]))
++        if k == 'seq':return ''.join(go(x) for x in node[1])
++        if k == 'rep':
++            hi = node[3] if node[3] is not None else node[2] + 3
++            n = hi if longest else rnd.randint(node[2], hi)
++            return ''.join(go(node[1]) for _ in range(n))
++        raise ValueError(k)
++    return _walk(grammar, fn)
++
++
++def admits(grammar, limit=100000):
++    """Every answer the grammar admits, listed (for finite shapes only; refuses more than `limit` or an open class)."""
++    def fn(node, go):
++        k = node[0]
++        if k == 'recursive':raise ValueError('GRAMMAR_RECURSIVE')
++        if k == 'lit':return [node[1]]
++        if k == 'cls':
++            negated, ranges = _members(node)
++            if negated or sum(hi - lo + 1 for lo, hi in ranges) > 256:raise ValueError('GRAMMAR_NOT_LISTABLE')
++            return [chr(c) for lo, hi in ranges for c in range(lo, hi + 1)]
++        if k == 'alt':
++            out = []
++            for x in node[1]:out += go(x)
++            return out
++        if k == 'seq':
++            out = ['']
++            for x in node[1]:
++                part = go(x);out = [a + b for a in out for b in part]
++                if len(out) > limit:raise ValueError('GRAMMAR_NOT_LISTABLE')
++            return out
++        if k == 'rep':
++            if node[3] is None:raise ValueError('GRAMMAR_NOT_LISTABLE')
++            part = go(node[1]);out = [];row = ['']
++            for n in range(node[3] + 1):
++                if n >= node[2]:out += row
++                row = [a + b for a in row for b in part]
++                if len(out) + len(row) > limit:raise ValueError('GRAMMAR_NOT_LISTABLE')
++            return out
++        raise ValueError(k)
++    listed = list(dict.fromkeys(_walk(grammar, fn)))
++    return [t for _, t in sorted(enumerate(listed), key=lambda it: (it[1].count(' '), it[0]))]   # fewer parts first, as E0 listed them
++
++
++# -- one grammar per kind --------------------------------------------------------------------------------------------------------
++def _alts(words):
++    words = list(dict.fromkeys(w for w in words if w))
++    if not words:raise ValueError('GRAMMAR_EMPTY: nothing to admit')
++    return ' | '.join(literal(w) for w in words)
++
++
++def _fit(build, most, least, cap):
++    """The grammar from build(n) for the largest n in [least, most] that fits the cap; OverCap when even `least` does not."""
++    for n in range(most, least - 1, -1):
++        grammar = build(n)
++        if fits(grammar, cap):return grammar
++    raise OverCap('GRAMMAR_OVER_CAP: the smallest answer of this shape is over %d tokens' % cap)
++
++
++def goal(count, most=2, cap=CAPS['GOAL']):
++    """GOAL (0.8.6's brief on turns.ask): `1`, `1 2` or `0`."""
++    return _fit(lambda n: picks(count, n), most, 1, cap)
++
++
++def pick(count, cap=CAPS['PICK']):
++    """PICK: your typed answer placed among the question's options: `n` or `0`."""
++    return _fit(lambda n: choice(count), 1, 1, cap)
++
++
++def bind(count, most=2, cap=CAPS['BIND']):
++    """BIND: listed column values your words mean: `n`, `n n` or `0`."""
++    return _fit(lambda n: picks(count, n), most, 1, cap)
++
++
++def order(count, cap=CAPS['ORDER']):
++    """ORDER: the same options reversed: `n` (no none: it is compared with the first pick)."""
++    return _fit(lambda n: choice(count, none=False), 1, 1, cap)
++
++
++def next_pick(count, reasons=REASONS, cap=CAPS['NEXT']):
++    """NEXT: `n why`, the option and which of the desk's own measures it wins on."""
++    if not 1 <= count <= 4:raise ValueError('GRAMMAR_COUNT: NEXT offers 1 to 4 options')
++    bad = [r for r in reasons if r not in REASONS]
++    if bad or not reasons:raise ValueError('GRAMMAR_REASON: %s' % (bad or 'none'))
++    return _fit(lambda n: 'root ::= n " " why\nn ::= %s\nwhy ::= %s\n' % (_alts(str(i) for i in range(1, count + 1)),
++                                                                        _alts(reasons)), 1, 1, cap)
++
++
++def _words_rule(name, words):
++    return '%s ::= %s\n' % (name, _alts(words))
++
++
++def _phrase(rule, most):
++    """`most` words or fewer, one space between (nested optionals: no free whitespace)."""
++    tail = ''
++    for _ in range(most - 1):tail = '( " " %s %s)?' % (rule, tail)
++    return ('%s %s' % (rule, tail)).strip()
++
++
++def read_line(verbs, handles, request_words, columns=(), value_words=(), kinds=READ_KINDS, most_steps=2, quote_most=6,
++              cap=None):
++    """READ: `kind|verb Dn "your words" [column] ["value words"]` and up to `most_steps` steps joined by `|`. The verbs are the
++    turn's verb table (lane B's view over desk_acts.ACTS: no App verb is ever in it), the handles this turn's numbered list,
++    the quoted words your request's own words, the columns the listed things' columns. Within the cap it keeps, in order,
++    the most steps, then the most quoted words, then the most value words."""
++    cap = cap if cap is not None else (CAPS['READ4'] if most_steps > 2 else CAPS['READ'])
++    if not verbs or not handles or not request_words:raise ValueError('GRAMMAR_EMPTY: verbs, handles and your words')
++
++    def build(steps, q, v):
++        lines = ['root ::= kind ("|" step){1,%d}\n' % steps, 'kind ::= %s\n' % _alts(kinds),
++                 'step ::= verb " " handle " \\"" quote "\\""%s%s\n' % (' (" " column)?' if columns else '',
++                                                                       ' (" \\"" value "\\"")?' if value_words else ''),
++                 'quote ::= %s\n' % _phrase('qw', q), _words_rule('verb', verbs), _words_rule('handle', handles),
++                 _words_rule('qw', request_words)]
++        if columns:lines.append(_words_rule('column', columns))
++        if value_words:lines += ['value ::= %s\n' % _phrase('vw', v), _words_rule('vw', value_words)]
++        return ''.join(lines)
++    for steps in range(most_steps, 0, -1):
++        for q in range(quote_most, 0, -1):
++            for v in range(min(q, 4) if value_words else 1, 0, -1):
++                grammar = build(steps, q, v)
++                if fits(grammar, cap):return grammar
++    raise OverCap('GRAMMAR_OVER_CAP: not even one step of one word fits %d tokens' % cap)
++
++
++def _line_numbers(lines):
++    numbers = sorted({int(n) for n in lines})
++    if not numbers or numbers[0] < 1:raise ValueError('GRAMMAR_EMPTY: no line may be pointed at')
++    return 'line ::= ' + _alts('L%d' % n for n in numbers) + '\n'
++
++
++def marks(lines, kinds, words, label_words=(), most=8, field_most=5, cap=CAPS['MARKS']):
++    """MARKS: up to `most` lines of `L<n> <kind> | <label> | <value>`, or NONE. `lines` are the page's line numbers the
++    doorway did not flag (a flagged line is not in the grammar); `words` the page's own words (values are verbatim on their
++    line: the checker proves it); `label_words` the words a label may use (the page's, by default)."""
++    label_words = tuple(label_words) or tuple(words)
++    if not kinds or not words:raise ValueError('GRAMMAR_EMPTY: kinds and page words')
++
++    def build(n, f):
++        return ('root ::= "NONE" | mark %s\n' % ''.join(['( "\\n" mark '] * (n - 1) + [')?'] * (n - 1)) +
++                'mark ::= line " " kind " | " label " | " value\n' + _line_numbers(lines) + _words_rule('kind', kinds) +
++                'label ::= %s\n' % _phrase('lw', f) + 'value ::= %s\n' % _phrase('pw', f) +
++                _words_rule('lw', label_words) + _words_rule('pw', words))
++    for f in range(field_most, 0, -1):
++        try:return _fit(lambda n: build(n, f), most, 1, cap)
++        except OverCap:continue
++    raise OverCap('GRAMMAR_OVER_CAP: not even one mark fits %d tokens' % cap)
++
++
++def ask_lines(lines, words, most=3, value_most=6, cap=CAPS['ASK']):
++    """ASK: up to `most` lines of `L<n> | <value>` on the asked page, or NONE."""
++    if not words:raise ValueError('GRAMMAR_EMPTY: page words')
++
++    def build(n, f):
++        return ('root ::= "NONE" | hit %s\n' % ''.join(['( "\\n" hit '] * (n - 1) + [')?'] * (n - 1)) +
++                'hit ::= line " | " value\n' + _line_numbers(lines) + 'value ::= %s\n' % _phrase('pw', f) +
++                _words_rule('pw', words))
++    for f in range(value_most, 0, -1):
++        try:return _fit(lambda n: build(n, f), most, 1, cap)
++        except OverCap:continue
++    raise OverCap('GRAMMAR_OVER_CAP: not even one line fits %d tokens' % cap)
++
++
++def columns(count, roles, cap=CAPS['COLUMNS']):
++    """COLUMNS: `C1=role C2=role ...`, every column once, in order (each role once is the checker's)."""
++    if not 1 <= count <= 24:raise ValueError('GRAMMAR_COUNT: 1 to 24 columns')
++    body = ' " " '.join('"C%d=" role' % i for i in range(1, count + 1))
++    return _fit(lambda n: 'root ::= %s\nrole ::= %s\n' % (body, _alts(roles)), 1, 1, cap)
++
++
++def frame(slots, words, must=('ANSWER',), most_pieces=24, cap=CAPS['FRAME']):
++    """FRAME: `{ANSWER}` first, then slot names and joining words, one space between. Which slots, how often and which
++    words are the gate's (voice_gate); the grammar keeps the frame short and makes digits and signs impossible."""
++    if 'ANSWER' not in must:raise ValueError('GRAMMAR_FRAME: {ANSWER} comes first')
++    if not words:raise ValueError('GRAMMAR_EMPTY: joining words')
++    pieces = ['{%s}' % s for s in dict.fromkeys(slots) if s != 'ANSWER']
++
++    def build(n):
++        return ('root ::= "{ANSWER}" %s ("." )?\n' % ''.join(['( " " piece '] * n + [')?'] * n) +
++                'piece ::= %s\n' % _alts(pieces + list(words)))
++    return _fit(build, most_pieces, 1, cap)
++
++
++def for_kind(name, **inputs):
++    """The kind's grammar by name (a convenience for the lanes; each kind's grammar(inputs) may call its builder directly)."""
++    builders = {'GOAL': goal, 'PICK': pick, 'BIND': bind, 'NEXT': next_pick, 'ORDER': order, 'READ': read_line,
++                'MARKS': marks, 'ASK': ask_lines, 'COLUMNS': columns, 'FRAME': frame}
++    if name == 'TALK':return None
++    return builders[name](**inputs)
+diff --git a/workbench/local_brain.py b/workbench/local_brain.py
+index 2ac40c8..debce02 100644
+--- a/workbench/local_brain.py
++++ b/workbench/local_brain.py
+@@ -522,7 +522,10 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
+ # the token budget and return empty text; templates without this switch ignore it.
+ TEMPLATE_OPTIONS={'enable_thinking':False}
+ 
+-def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,timeout=90,t_max_predict_ms=None,odds=0,prompt_tokens=None):
++def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,timeout=90,t_max_predict_ms=None,odds=0,prompt_tokens=None,
++               on_progress=None,cancelled=None):
++    # 0.8.7 A3: with on_progress or cancelled, the turn streams (slate_stream.turn): progress as the answer is written, and
++    # the stream is closed at the deadline (t_max_predict_ms) or on Stop, reading included.
+     # 0.8.7 E0: besides the ready probe, only turns.ask calls this (the turn contract). Its keywords: the kind's GBNF grammar
+     # (never with a JSON schema), the deadline (the HTTP timeout, and t_max_predict_ms to bound writing), the alternatives
+     # per answer token to record (odds), and the prompt's token count when the caller has just measured it.
+@@ -537,7 +540,13 @@ def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,ti
+     if grammar:payload['grammar']=grammar
+     if t_max_predict_ms:payload['t_max_predict_ms']=int(t_max_predict_ms)
+     if odds:payload.update(logprobs=True,top_logprobs=int(odds))
+-    began=time.monotonic();response=request(worker,'/v1/chat/completions',payload,timeout=timeout)
++    began=time.monotonic()
++    if on_progress is not None or cancelled is not None:   # 0.8.7 A3: streamed, closed past its deadline
++        from . import slate_stream
++        got=slate_stream.turn(worker,payload,close_after_ms=int(t_max_predict_ms or 0),seconds=timeout,on_progress=on_progress,cancelled=cancelled)
++        response={'choices':[{'message':{'content':got['text']},'finish_reason':got['finish_reason'],'logprobs':got.get('logprobs')}],
++                  'usage':got['usage'],'timings':got['timings']}
++    else:response=request(worker,'/v1/chat/completions',payload,timeout=timeout)
+     text=response['choices'][0]['message'].get('content','')
+     if not isinstance(text,str) or len(text)>32000:raise ValueError('MODEL_OUTPUT_LIMIT_OR_TYPE')
+     return {'text':text,'usage':response.get('usage',{}),'timings':response.get('timings',{}),
+diff --git a/workbench/slate_stream.py b/workbench/slate_stream.py
+index 9f7e6cd..8b769f6 100644
+--- a/workbench/slate_stream.py
++++ b/workbench/slate_stream.py
+@@ -3,6 +3,8 @@ by the caller."""
+ from __future__ import annotations
+ import http.client
+ import json
++import socket
++import threading
+ import time
+ from contextlib import contextmanager
+ from pathlib import Path
+@@ -91,7 +93,8 @@ def opened(worker, body, key, seconds):
+ 
+ 
+ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cancelled=lambda: False,
+-             seconds=120, measured_prompt=None, *, kernel, cache_key=None):
++             seconds=120, measured_prompt=None, *, kernel, cache_key=None, on_progress=None):
++    # 0.8.7 A3: on_progress(tokens_written, elapsed_ms) is called as each piece of the answer streams in (her clock's line).
+     if not brain.worker_live(worker): raise ValueError('MODEL_WORKER_NOT_LIVE')
+     measured_prompt = prompt_size(worker, messages) if measured_prompt is None else measured_prompt
+     if measured_prompt + max_tokens + 32 > worker['context']: raise ValueError('CONTEXT_BUDGET_EXCEEDED: reduce context or output tokens')
+@@ -108,7 +111,7 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
+         'stream_options': {'include_usage': True}, 'cache_prompt': reuse, 'chat_template_kwargs': brain.TEMPLATE_OPTIONS}
+     if schema: payload['response_format'] = {'type': 'json_schema', 'json_schema': {'name': 'slate_result', 'strict': True, 'schema': schema}}
+     key = Path(worker['key_file']).read_text().strip()
+-    began = time.monotonic(); first = None; text = ''; finish = None; done = False; usage = {}; timings = {}
++    began = time.monotonic(); first = None; text = ''; finish = None; done = False; usage = {}; timings = {}; written = 0
+     with opened(worker, json.dumps(payload).encode(), key, seconds) as response:
+         if response.headers.get_content_type() != 'text/event-stream': raise ValueError('LOCAL_STREAM_CONTENT_TYPE')
+         for event in events(response, cancelled, began + seconds):
+@@ -131,6 +134,8 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
+                     text += content
+                     if len(text) > 65536: raise ValueError('LOCAL_STREAM_OUTPUT_BOUND')
+                     if on_delta and content: on_delta(text)
++                    if on_progress and content:
++                        written += 1; on_progress(written, int((time.monotonic() - began) * 1000))
+                 if choice.get('finish_reason') is not None:
+                     if finish is not None: raise ValueError('LOCAL_STREAM_DUPLICATE_FINISH')
+                     finish = choice['finish_reason']
+@@ -149,6 +154,93 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
+         'transport': 'AUTHENTICATED_PRIVATE_SOCKET_SSE' if worker.get('socket') else 'AUTHENTICATED_LOOPBACK_SSE'}
+ 
+ 
++# -- 0.8.7 A3: one model turn, streamed with progress, closed past its deadline ------------------------------------------------
++STOP_POLL_SECONDS = 0.1
++
++
++def turn(worker, payload, *, close_after_ms=0, seconds=90, on_progress=None, cancelled=None):
++    """One turn of turns.ask (through local_brain.completion), streamed. `on_progress(tokens_written, elapsed_ms)` is called
++    as each piece of the answer arrives. At `close_after_ms` (the turn's deadline; t_max_predict_ms bounds only the writing,
++    not the reading) or when `cancelled()` turns true (Stop), the stream is closed at once: the socket is shut, so a read
++    that waits returns, and from that moment no progress event is delivered, not even one already on the wire (the close and
++    the delivery share one lock). Past the deadline it raises TimeoutError('LOCAL_TURN_LATE'); on Stop,
++    ValueError('MODEL_OPERATION_CANCELLED'). Returns the answer as local_brain.completion does (text, finish_reason, usage,
++    timings, logprobs when asked)."""
++    if not brain.worker_live(worker): raise ValueError('MODEL_WORKER_NOT_LIVE')
++    body = dict(payload, stream=True, stream_options={'include_usage': True})
++    key = Path(worker['key_file']).read_text().strip()
++    headers = {'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Accept': 'text/event-stream'}
++    lock = threading.Lock(); state = {'closed': None}; done_event = threading.Event()
++    conn = brain_seal.connection(worker, seconds)
++
++    def close(why):
++        with lock:
++            if state['closed'] is None: state['closed'] = why
++        sock = getattr(conn, 'sock', None)
++        if sock is not None:
++            try: sock.shutdown(socket.SHUT_RDWR)
++            except OSError: pass
++
++    def watch():
++        limit = time.monotonic() + close_after_ms / 1000 if close_after_ms else None
++        while not done_event.is_set():
++            if cancelled is not None and cancelled(): close('STOPPED'); return
++            if limit is not None and time.monotonic() >= limit: close('LATE'); return
++            wait = STOP_POLL_SECONDS if limit is None else max(0.0, min(STOP_POLL_SECONDS, limit - time.monotonic()))
++            done_event.wait(wait)
++
++    watcher = threading.Thread(target=watch, name='graphite-turn-clock', daemon=True)
++    began = time.monotonic(); text = ''; finish = None; done = False; usage = {}; timings = {}; written = 0; odds = []
++    watcher.start()
++    try:
++        try:
++            conn.request('POST', '/v1/chat/completions', body=json.dumps(body).encode(), headers=headers)
++            response = conn.getresponse()
++            if not 200 <= response.status < 300: raise ValueError('LOCAL_STREAM_HTTP_' + str(response.status))
++            if response.headers.get_content_type() != 'text/event-stream': raise ValueError('LOCAL_STREAM_CONTENT_TYPE')
++            for event in events(response, lambda: state['closed'] is not None, began + seconds):
++                if event == '[DONE]': done = True; break
++                value = record_io.strict_json(event)
++                if not isinstance(value, dict) or value.get('error'): raise ValueError('LOCAL_STREAM_SERVER_ERROR')
++                if isinstance(value.get('usage'), dict): usage = value['usage']
++                if isinstance(value.get('timings'), dict): timings = value['timings']
++                choices = value.get('choices', [])
++                if not isinstance(choices, list) or len(choices) > 1: raise ValueError('LOCAL_STREAM_CHOICE_BOUND')
++                for choice in choices:
++                    if choice.get('index', 0) != 0: raise ValueError('LOCAL_STREAM_CHOICE_INDEX')
++                    delta = choice.get('delta') or {}
++                    if delta.get('tool_calls') or choice.get('message'): raise ValueError('LOCAL_STREAM_UNEXPECTED_ACTION_CHANNEL')
++                    content = delta.get('content')
++                    if content is not None:
++                        if not isinstance(content, str): raise ValueError('LOCAL_STREAM_DELTA_TYPE')
++                        if finish is not None and content: raise ValueError('LOCAL_STREAM_CONTENT_AFTER_FINISH')
++                        text += content
++                        if len(text) > 32000: raise ValueError('MODEL_OUTPUT_LIMIT_OR_TYPE')
++                        if content:
++                            written += 1
++                            with lock:
++                                if state['closed'] is None and on_progress is not None:
++                                    on_progress(written, int((time.monotonic() - began) * 1000))
++                    if isinstance(choice.get('logprobs'), dict) and isinstance(choice['logprobs'].get('content'), list):
++                        odds += choice['logprobs']['content'][:64]
++                    if choice.get('finish_reason') is not None:
++                        if finish is not None: raise ValueError('LOCAL_STREAM_DUPLICATE_FINISH')
++                        finish = choice['finish_reason']
++        except (OSError, ValueError, http.client.HTTPException) as exc:
++            if state['closed'] == 'LATE': raise TimeoutError('LOCAL_TURN_LATE') from None
++            if state['closed'] == 'STOPPED': raise ValueError('MODEL_OPERATION_CANCELLED') from None
++            if isinstance(exc, TimeoutError): raise TimeoutError('LOCAL_TURN_LATE') from None
++            if isinstance(exc, http.client.HTTPException): raise ValueError('LOCAL_STREAM_PROTOCOL') from None
++            raise
++    finally:
++        done_event.set(); conn.close()
++    if state['closed'] == 'LATE': raise TimeoutError('LOCAL_TURN_LATE')
++    if state['closed'] == 'STOPPED': raise ValueError('MODEL_OPERATION_CANCELLED')
++    if not done and finish is None: raise ValueError('LOCAL_RESPONSE_INCOMPLETE')
++    return {'text': text, 'finish_reason': finish, 'usage': usage, 'timings': timings, 'tokens_streamed': written,
++            'elapsed_seconds': time.monotonic() - began, **({'logprobs': {'content': odds}} if odds else {})}
++
++
+ def preview(text, structured=True):
+     """Display only provisional answer prose, never partial actions or patches."""
+     if not structured: return text
+diff --git a/workbench/turns.py b/workbench/turns.py
+index 337a2e8..fce1f7f 100644
+--- a/workbench/turns.py
++++ b/workbench/turns.py
+@@ -55,6 +55,15 @@ prompt_tokens, on_progress) -> dict(text, finish, timings, odds, elapsed_ms); ra
+ when the worker fails. on_progress(tokens_written, elapsed_ms), when given, is called as the answer streams (A3).
+ Her clock (brain_clock.py, lane A's A3, when it exists; FixedClock until then): price_ms(key, kind, new_tokens,
+ answer_tokens, desk_ms) and observe(key, kind, record).
++Added by A3 (backward compatible: new names only, nothing above changed meaning):
++    NOT_SENT also RECEIPT_FIRST: a wording kind (FRAME) is never sent before her receipt sentence is on screen
++             (request.receipt_on_screen()); OVER_CAP also for a grammar that admits an answer over the kind's cap
++             (grammars.fits; a grammar outside grammars.py's subset is a contract error)
++    the port's complete() also takes cancelled (the request's Stop): the turn streams and is closed past its deadline
++    TurnRequest.receipt_on_screen(), .card(buttons) (the one question card, then None), .ceiling() (what is left),
++               .now_asking ({kind, price_ms, deadline_ms, began_ms} while a turn runs: brain_clock.asking_now's line)
++    set_switches(kernel, changes, undo) and the operation brain.help.set (execute, with Undo): the owner's switch per
++    kind; with every switch off no turn is sent, no record is written, and every answer is the kind's 0.8.6 fallback.
+ ====================================================================================================================
+ 
+ Only this module calls local_brain.completion (local_brain's own ready probe excepted). This module, model_words.py and
+@@ -91,7 +100,9 @@ VERDICTS = ('TAKEN', 'TRIMMED', 'REFUSED', 'UNSETTLED', 'TRIPPED')
+ OUTCOMES = VERDICTS + ('LATE', 'FAILED')
+ USED = ('TAKEN', 'TRIMMED', 'UNSETTLED')         # verdicts whose value the caller receives
+ FALLBACKS = ('ASK_OWNER', 'DEFAULT_READ', 'PLAIN_WORDS', 'CANNOT_TELL', 'NOT_OFFERED', 'PATTERNS', 'PLACES')
+-NOT_SENT = ('SWITCH_OFF', 'AI_OFF', 'NO_MODEL', 'STOPPED', 'CEILING_TURNS', 'CEILING_TIME', 'OVER_CAP', 'OVER_CONTEXT')
++NOT_SENT = ('SWITCH_OFF', 'AI_OFF', 'NO_MODEL', 'STOPPED', 'CEILING_TURNS', 'CEILING_TIME', 'OVER_CAP', 'OVER_CONTEXT',
++            'RECEIPT_FIRST')     # A3: a wording turn waits for her receipt sentence on screen
++RECEIPT_FIRST_SWITCHES = ('wording',)   # A3: kinds of these switches are sent only after request.receipt_on_screen()
+ BASES = ('owner_words', 'owner_click', 'deduction', 'model_pick')
+ FOREGROUND_TURNS = 3                     # at most 3 foreground model turns per request (design 4.4)
+ FOREGROUND_BUDGET_MS = 25000             # the 4B here; the 35B's 8 s is a target the model check replaces (design 4.4)
+@@ -335,6 +346,8 @@ class TurnRequest:
+         self.turns_used = 0
+         self.spent_ms = 0
+         self.cards_used = 0
++        self.receipt_shown = False          # A3: her receipt sentence is on screen (a wording turn waits for it)
++        self.now_asking = None              # A3: {kind, price_ms, deadline_ms, began_ms} while a turn runs
+ 
+     def switch_on(self, name):return bool(self.switches.get(name, False))
+ 
+@@ -346,6 +359,23 @@ class TurnRequest:
+         self.cards_used += 1
+         return True
+ 
++    # -- 0.8.7 A3: the ceiling, the receipt first -----------------------------------------------------------------------------
++    def card(self, buttons):
++        """The buttons as this request's one question card, or None when a card was shown already: past the ceiling she
++        stops asking, says what she has, and the buttons appear, once (never two question cards in one request)."""
++        return buttons if buttons and self.take_card() else None
++
++    def ceiling(self):
++        """What is left of this request's ceiling: model turns, model time, the one card."""
++        return {'turns_used': self.turns_used, 'turns_most': self.foreground_turns, 'spent_ms': self.spent_ms,
++                'budget_ms': self.budget_ms, 'cards_used': self.cards_used, 'cards_most': 1,
++                'reached': self.turns_used >= self.foreground_turns or self.remaining_ms() < DEADLINE_FLOOR_MS}
++
++    def receipt_on_screen(self):
++        """Her column calls this once the receipt's sentence (a kept phrasing or her plain words) is painted: her facts never
++        wait for her wording, so no wording turn is sent before it."""
++        self.receipt_shown = True
++
+ 
+ def stored_switches(kernel):
+     """The owner's switches per kind (brain.help.set writes them, a later slice); the defaults where none is stored."""
+@@ -361,10 +391,13 @@ def request_for(kernel, principal, **options):
+     """A TurnRequest for this owner request, on the live, selected local model; with none (or Graphite AI off), the port is
+     None and every ask() returns its fallback without a turn."""
+     port = None;off = 'NO_MODEL'
++    options.setdefault('switches', stored_switches(kernel))
+     try:
+         from . import local_brain
+     except ImportError:
+         local_brain = None
++    if not any({**SWITCHES, **options['switches']}.values()):
++        local_brain = None;off = 'SWITCH_OFF'     # A3: every switch off: Kas is exactly 0.8.6; the worker is not looked at
+     if local_brain is not None:
+         try:
+             local_brain.require_enabled(kernel)
+@@ -378,7 +411,6 @@ def request_for(kernel, principal, **options):
+                     port = LocalPort(worker)
+                 except (ValueError, OSError):
+                     port = None
+-    options.setdefault('switches', stored_switches(kernel))
+     options.setdefault('clock', default_clock(kernel))
+     return TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
+                        **options)
+@@ -420,24 +452,35 @@ class LocalPort:
+     def kept(self, messages):
+         return 0
+ 
+-    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None):
++    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None,
++                 cancelled=None):
+         from . import local_brain
+         began = _monotonic_ms()
+         timeout = 90 if not deadline_ms else (deadline_ms + self.GRACE_MS) / 1000
+-        try:
++        try:   # A3: every turn streams, so it is closed at its deadline (reading included) or on Stop
+             got = local_brain.completion(self.worker, messages, answer_tokens, grammar=grammar, timeout=timeout,
+-                                         t_max_predict_ms=deadline_ms or None, odds=odds, prompt_tokens=prompt_tokens)
++                                         t_max_predict_ms=deadline_ms or None, odds=odds, prompt_tokens=prompt_tokens,
++                                         on_progress=on_progress or _quiet, cancelled=cancelled or _never)
+         except TimeoutError:
+             raise Late(_monotonic_ms() - began) from None
+         except OSError as exc:      # URLError is an OSError; a timeout while connecting arrives as one
+             if 'timed out' in str(exc):raise Late(_monotonic_ms() - began) from None
+             raise PortError(_code(exc)) from None
+         except (ValueError, KeyError, TypeError) as exc:
++            if 'MODEL_OPERATION_CANCELLED' in str(exc):raise PortError('STOPPED') from None
+             raise PortError(_code(exc)) from None
+         return {'text': got['text'], 'finish': got.get('finish_reason'), 'timings': got.get('timings') or {},
+                 'odds': got.get('odds'), 'elapsed_ms': _monotonic_ms() - began}
+ 
+ 
++def _quiet(tokens_written, elapsed_ms):
++    pass
++
++
++def _never():
++    return False
++
++
+ def _code(exc):
+     text = str(exc) or type(exc).__name__
+     return text.split(':', 1)[0].strip()[:120] or type(exc).__name__
+@@ -458,6 +501,7 @@ def ask(kind, inputs, request):
+     caps = kind.caps
+     # 1 · the switch and the per-request ceiling
+     if not request.switch_on(kind.switch):return _without(kind, inputs, 'SWITCH_OFF')
++    if kind.switch in RECEIPT_FIRST_SWITCHES and not request.receipt_shown:return _without(kind, inputs, 'RECEIPT_FIRST')
+     port = request.port
+     if port is None or not port.live():return _without(kind, inputs, request.off_reason if port is None else 'NO_MODEL')
+     if request.cancelled():return _without(kind, inputs, 'STOPPED')
+@@ -466,6 +510,7 @@ def ask(kind, inputs, request):
+     messages = layout(kind, inputs)
+     grammar = grammars.check(kind.grammar(inputs))
+     if grammar is None and kind.name != 'TALK' and not caps.stop_only:raise ValueError('TURN_GRAMMAR: only Talk has none')
++    if grammar is not None and not grammars.fits(grammar, caps.answer_tokens):return _without(kind, inputs, 'OVER_CAP')  # A3
+     # 3 · the tokens and the price from her clock; the deadline
+     try:
+         prompt = port.count(messages)
+@@ -485,9 +530,11 @@ def ask(kind, inputs, request):
+     # 4 · the call
+     if caps.foreground:request.turns_used += 1
+     began = request.now_ms();late = False;failed = None;text = None;finish = None;timings = {};odds = None
++    request.now_asking = {'kind': kind.name, 'price_ms': price, 'deadline_ms': deadline, 'began_ms': began}   # A3: her line
+     try:
+         got = port.complete(messages, answer_tokens=caps.answer_tokens, grammar=grammar, deadline_ms=deadline,
+-                            odds=caps.odds, prompt_tokens=prompt, on_progress=request.on_progress)
++                            odds=caps.odds, prompt_tokens=prompt, on_progress=request.on_progress,
++                            cancelled=request.cancelled)
+         text = got.get('text');finish = got.get('finish');timings = got.get('timings') or {};odds = got.get('odds')
+         elapsed = int(got['elapsed_ms']) if got.get('elapsed_ms') is not None else request.now_ms() - began
+         late = bool(deadline) and elapsed > deadline
+@@ -495,6 +542,8 @@ def ask(kind, inputs, request):
+         late = True;elapsed = max(exc.elapsed_ms, deadline);text = exc.text;timings = exc.timings
+     except PortError as exc:
+         failed = exc.code;elapsed = request.now_ms() - began
++    finally:
++        request.now_asking = None
+     if caps.foreground:request.spent_ms += min(elapsed, deadline) if deadline else elapsed
+     if isinstance(text, str) and len(text) > MODEL_SAID_MOST and failed is None:failed = 'MODEL_OUTPUT_LIMIT';text = None
+     # 5 · parse and check (a late answer is checked too, for the record and the offer beside hers)
+@@ -700,8 +749,12 @@ FIELDS = {
+                      'limit': {'type': 'integer', 'minimum': 1, 'maximum': 200},
+                      'before': {'type': 'number', 'minimum': 0}}, []),
+     'brain.turn.get': ({'id': TURN_ID}, ['id']),
++    # 0.8.7 A3: the owner's switch per kind (execute, with Undo)
++    'brain.help.set': ({'switches': {'type': 'object', 'additionalProperties': False,
++                                     'properties': {name: {'type': 'boolean'} for name in SWITCHES}},
++                        'undo': {'type': 'boolean'}}, []),
+ }
+-SCOPES = {op: 'read' for op in FIELDS}
++SCOPES = {op: 'execute' if op == 'brain.help.set' else 'read' for op in FIELDS}
+ 
+ 
+ def dispatch(kernel, op, args, principal):
+@@ -710,4 +763,39 @@ def dispatch(kernel, op, args, principal):
+         return {'schema': SCHEMA, 'turns': rows, 'bounded': {'days': KEEP_DAYS, 'turns': KEEP_TURNS}}
+     if op == 'brain.turn.get':
+         return {'turn': get(kernel, principal.identity, args['id'])}
++    if op == 'brain.help.set':
++        return set_switches(kernel, args.get('switches'), bool(args.get('undo')))
+     raise ValueError('Unknown turn operation')
++
++
++# -- 0.8.7 A3: the owner's switches per kind ----------------------------------------------------------------------------------
++HELP_KEY = 'brain.help'
++HELP_PREVIOUS = 'brain.help.previous'
++SWITCH_WORDS = {'understanding': 'Understanding your requests', 'reading': 'Reading pages', 'wording': 'Wording her answers',
++                'choosing': 'Choosing between next steps', 'talk': 'Talk'}
++
++
++def set_switches(kernel, changes=None, undo=False):
++    """Set the owner's switches (changes: {switch: bool}), or Undo the last setting. With every switch off, Kas is exactly
++    0.8.6: no turn is sent, no record written, and every answer is the kind's no-model fallback."""
++    if undo and changes:raise ValueError('BRAIN_HELP_ONE_THING: switches or undo, not both')
++    if not undo and not changes:raise ValueError('BRAIN_HELP_NOTHING: name a switch to set')
++    if changes:
++        unknown = sorted(set(changes) - set(SWITCHES))
++        if unknown:raise ValueError('BRAIN_HELP_SWITCH: no switch named %s' % unknown[0])
++        if any(not isinstance(v, bool) for v in changes.values()):raise ValueError('BRAIN_HELP_SWITCH: on or off')
++    with kernel.db() as db:
++        db.execute('BEGIN IMMEDIATE')
++        row = db.execute('SELECT value FROM settings WHERE key=?', (HELP_KEY,)).fetchone()
++        current = {name: bool((json.loads(row[0]) if row else {}).get(name, on)) for name, on in SWITCHES.items()}
++        if undo:
++            prev = db.execute('SELECT value FROM settings WHERE key=?', (HELP_PREVIOUS,)).fetchone()
++            if not prev:raise ValueError('BRAIN_HELP_NOTHING_TO_UNDO')
++            new = {name: bool(json.loads(prev[0]).get(name, on)) for name, on in SWITCHES.items()}
++        else:
++            new = {**current, **{name: bool(v) for name, v in changes.items()}}
++        db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_KEY, json.dumps(new, sort_keys=True)))
++        db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_PREVIOUS, json.dumps(current, sort_keys=True)))
++    return {'switches': new, 'previous': current, 'all_off': not any(new.values()),
++            'words': {name: '%s: %s' % (SWITCH_WORDS[name], 'on' if on else 'off') for name, on in new.items()},
++            'undo': {'op': 'brain.help.set', 'args': {'undo': True}}}

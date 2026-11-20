@@ -3,6 +3,8 @@ by the caller."""
 from __future__ import annotations
 import http.client
 import json
+import socket
+import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -91,7 +93,8 @@ def opened(worker, body, key, seconds):
 
 
 def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cancelled=lambda: False,
-             seconds=120, measured_prompt=None, *, kernel, cache_key=None):
+             seconds=120, measured_prompt=None, *, kernel, cache_key=None, on_progress=None):
+    # 0.8.7 A3: on_progress(tokens_written, elapsed_ms) is called as each piece of the answer streams in (her clock's line).
     if not brain.worker_live(worker): raise ValueError('MODEL_WORKER_NOT_LIVE')
     measured_prompt = prompt_size(worker, messages) if measured_prompt is None else measured_prompt
     if measured_prompt + max_tokens + 32 > worker['context']: raise ValueError('CONTEXT_BUDGET_EXCEEDED: reduce context or output tokens')
@@ -108,7 +111,7 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
         'stream_options': {'include_usage': True}, 'cache_prompt': reuse, 'chat_template_kwargs': brain.TEMPLATE_OPTIONS}
     if schema: payload['response_format'] = {'type': 'json_schema', 'json_schema': {'name': 'slate_result', 'strict': True, 'schema': schema}}
     key = Path(worker['key_file']).read_text().strip()
-    began = time.monotonic(); first = None; text = ''; finish = None; done = False; usage = {}; timings = {}
+    began = time.monotonic(); first = None; text = ''; finish = None; done = False; usage = {}; timings = {}; written = 0
     with opened(worker, json.dumps(payload).encode(), key, seconds) as response:
         if response.headers.get_content_type() != 'text/event-stream': raise ValueError('LOCAL_STREAM_CONTENT_TYPE')
         for event in events(response, cancelled, began + seconds):
@@ -131,6 +134,8 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
                     text += content
                     if len(text) > 65536: raise ValueError('LOCAL_STREAM_OUTPUT_BOUND')
                     if on_delta and content: on_delta(text)
+                    if on_progress and content:
+                        written += 1; on_progress(written, int((time.monotonic() - began) * 1000))
                 if choice.get('finish_reason') is not None:
                     if finish is not None: raise ValueError('LOCAL_STREAM_DUPLICATE_FINISH')
                     finish = choice['finish_reason']
@@ -147,6 +152,93 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
         'context_limit': worker['context'], 'prefix_reuse_requested': reuse, 'observed_reused_tokens': reused,
         'input_messages_digest': record_io.digest(messages), 'memory': brain.usage(worker),
         'transport': 'AUTHENTICATED_PRIVATE_SOCKET_SSE' if worker.get('socket') else 'AUTHENTICATED_LOOPBACK_SSE'}
+
+
+# -- 0.8.7 A3: one model turn, streamed with progress, closed past its deadline ------------------------------------------------
+STOP_POLL_SECONDS = 0.1
+
+
+def turn(worker, payload, *, close_after_ms=0, seconds=90, on_progress=None, cancelled=None):
+    """One turn of turns.ask (through local_brain.completion), streamed. `on_progress(tokens_written, elapsed_ms)` is called
+    as each piece of the answer arrives. At `close_after_ms` (the turn's deadline; t_max_predict_ms bounds only the writing,
+    not the reading) or when `cancelled()` turns true (Stop), the stream is closed at once: the socket is shut, so a read
+    that waits returns, and from that moment no progress event is delivered, not even one already on the wire (the close and
+    the delivery share one lock). Past the deadline it raises TimeoutError('LOCAL_TURN_LATE'); on Stop,
+    ValueError('MODEL_OPERATION_CANCELLED'). Returns the answer as local_brain.completion does (text, finish_reason, usage,
+    timings, logprobs when asked)."""
+    if not brain.worker_live(worker): raise ValueError('MODEL_WORKER_NOT_LIVE')
+    body = dict(payload, stream=True, stream_options={'include_usage': True})
+    key = Path(worker['key_file']).read_text().strip()
+    headers = {'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Accept': 'text/event-stream'}
+    lock = threading.Lock(); state = {'closed': None}; done_event = threading.Event()
+    conn = brain_seal.connection(worker, seconds)
+
+    def close(why):
+        with lock:
+            if state['closed'] is None: state['closed'] = why
+        sock = getattr(conn, 'sock', None)
+        if sock is not None:
+            try: sock.shutdown(socket.SHUT_RDWR)
+            except OSError: pass
+
+    def watch():
+        limit = time.monotonic() + close_after_ms / 1000 if close_after_ms else None
+        while not done_event.is_set():
+            if cancelled is not None and cancelled(): close('STOPPED'); return
+            if limit is not None and time.monotonic() >= limit: close('LATE'); return
+            wait = STOP_POLL_SECONDS if limit is None else max(0.0, min(STOP_POLL_SECONDS, limit - time.monotonic()))
+            done_event.wait(wait)
+
+    watcher = threading.Thread(target=watch, name='graphite-turn-clock', daemon=True)
+    began = time.monotonic(); text = ''; finish = None; done = False; usage = {}; timings = {}; written = 0; odds = []
+    watcher.start()
+    try:
+        try:
+            conn.request('POST', '/v1/chat/completions', body=json.dumps(body).encode(), headers=headers)
+            response = conn.getresponse()
+            if not 200 <= response.status < 300: raise ValueError('LOCAL_STREAM_HTTP_' + str(response.status))
+            if response.headers.get_content_type() != 'text/event-stream': raise ValueError('LOCAL_STREAM_CONTENT_TYPE')
+            for event in events(response, lambda: state['closed'] is not None, began + seconds):
+                if event == '[DONE]': done = True; break
+                value = record_io.strict_json(event)
+                if not isinstance(value, dict) or value.get('error'): raise ValueError('LOCAL_STREAM_SERVER_ERROR')
+                if isinstance(value.get('usage'), dict): usage = value['usage']
+                if isinstance(value.get('timings'), dict): timings = value['timings']
+                choices = value.get('choices', [])
+                if not isinstance(choices, list) or len(choices) > 1: raise ValueError('LOCAL_STREAM_CHOICE_BOUND')
+                for choice in choices:
+                    if choice.get('index', 0) != 0: raise ValueError('LOCAL_STREAM_CHOICE_INDEX')
+                    delta = choice.get('delta') or {}
+                    if delta.get('tool_calls') or choice.get('message'): raise ValueError('LOCAL_STREAM_UNEXPECTED_ACTION_CHANNEL')
+                    content = delta.get('content')
+                    if content is not None:
+                        if not isinstance(content, str): raise ValueError('LOCAL_STREAM_DELTA_TYPE')
+                        if finish is not None and content: raise ValueError('LOCAL_STREAM_CONTENT_AFTER_FINISH')
+                        text += content
+                        if len(text) > 32000: raise ValueError('MODEL_OUTPUT_LIMIT_OR_TYPE')
+                        if content:
+                            written += 1
+                            with lock:
+                                if state['closed'] is None and on_progress is not None:
+                                    on_progress(written, int((time.monotonic() - began) * 1000))
+                    if isinstance(choice.get('logprobs'), dict) and isinstance(choice['logprobs'].get('content'), list):
+                        odds += choice['logprobs']['content'][:64]
+                    if choice.get('finish_reason') is not None:
+                        if finish is not None: raise ValueError('LOCAL_STREAM_DUPLICATE_FINISH')
+                        finish = choice['finish_reason']
+        except (OSError, ValueError, http.client.HTTPException) as exc:
+            if state['closed'] == 'LATE': raise TimeoutError('LOCAL_TURN_LATE') from None
+            if state['closed'] == 'STOPPED': raise ValueError('MODEL_OPERATION_CANCELLED') from None
+            if isinstance(exc, TimeoutError): raise TimeoutError('LOCAL_TURN_LATE') from None
+            if isinstance(exc, http.client.HTTPException): raise ValueError('LOCAL_STREAM_PROTOCOL') from None
+            raise
+    finally:
+        done_event.set(); conn.close()
+    if state['closed'] == 'LATE': raise TimeoutError('LOCAL_TURN_LATE')
+    if state['closed'] == 'STOPPED': raise ValueError('MODEL_OPERATION_CANCELLED')
+    if not done and finish is None: raise ValueError('LOCAL_RESPONSE_INCOMPLETE')
+    return {'text': text, 'finish_reason': finish, 'usage': usage, 'timings': timings, 'tokens_streamed': written,
+            'elapsed_seconds': time.monotonic() - began, **({'logprobs': {'content': odds}} if odds else {})}
 
 
 def preview(text, structured=True):

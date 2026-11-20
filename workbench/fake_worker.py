@@ -16,7 +16,9 @@ FakeServer(script, context=4096)
     /v1/chat/completions), with the Bearer key check. `worker()` gives a worker record local_brain.request accepts, so a
     check can run ask() through turns.LocalPort and local_brain.completion with no model. `bodies` holds every request
     body as sent (a grammar in the body, cache_prompt, t_max_predict_ms, and whether a forgotten text is sent again).
-    A step may also carry 'sleep_ms' (real time, kept short) to make the client's timeout fire.
+    A step may also carry 'sleep_ms' (real time, kept short) to make the client's timeout fire. (A3) A request with
+    "stream": true is answered as llama-server streams: one SSE event per token, 'token_ms' (real time) apart, the
+    timings in the last event, then [DONE]; `closed` counts streams the client closed before the end.
 
 FAKE, register_fake()
     A stand-in kind ("which of these numbered options"), the example lanes B and C can copy: options are (label, is_read)
@@ -102,8 +104,10 @@ class FakeWorker:
     def kept(self, messages):
         return _shared(tokens(chatml(messages)), self._last) if self.cache else 0
 
-    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None):
+    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None,
+                 cancelled=None):
         if not self.script:raise turns.PortError('FAKE_SCRIPT_EMPTY')
+        if cancelled is not None and cancelled():raise turns.PortError('STOPPED')
         step = _step(self.script.pop(0), messages, grammar)
         seen = tokens(chatml(messages));kept = self.kept(messages)
         self.calls.append({'messages': json.loads(json.dumps(messages)), 'grammar': grammar, 'answer_tokens': answer_tokens,
@@ -113,14 +117,15 @@ class FakeWorker:
         if step.get('cancel'):
             self.time.advance(deadline_ms);raise turns.Late(deadline_ms)
         text = step.get('text', '');finish = step.get('finish', 'stop')
-        if self.enforce_grammar and grammar and text not in grammars.admits(grammar):raise turns.PortError('FAKE_GRAMMAR_REFUSES')
+        if self.enforce_grammar and grammar and not grammars.matches(grammar, text):raise turns.PortError('FAKE_GRAMMAR_REFUSES')
         written = tokens(text)
         if len(written) > answer_tokens:text = ''.join(written[:answer_tokens]);finish = 'length';written = written[:answer_tokens]
         new = len(seen) - kept
         ms = step.get('ms')
         if ms is None:ms = math.ceil(Fraction(new * 1000) / self.read_rate) + math.ceil(Fraction(len(written) * 1000) / self.write_rate)
         self.time.advance(min(ms, deadline_ms) if deadline_ms else ms)
-        if on_progress is not None:on_progress(len(written), int(ms))
+        if on_progress is not None:     # A3: one progress event per token written, the last at the answer's time
+            for n in range(1, len(written) + 1):on_progress(n, int(ms) if n == len(written) else int(ms) * n // (len(written) + 1))
         return {'text': text, 'finish': finish, 'elapsed_ms': int(ms),
                 'timings': {'prompt_n': new, 'cache_n': kept, 'predicted_n': len(written), 'prompt_ms': ms, 'predicted_ms': 0},
                 'odds': step.get('odds')}
@@ -129,7 +134,7 @@ class FakeWorker:
 # -- the HTTP stand-in ----------------------------------------------------------------------------------------------------------
 class FakeServer:
     def __init__(self, script=(), *, context=4096, model_id='f' * 64, key='fake-worker-key'):
-        self.script = list(script);self.context = context;self.model_id = model_id;self.bodies = []
+        self.script = list(script);self.context = context;self.model_id = model_id;self.bodies = [];self.closed = 0
         self._dir = tempfile.mkdtemp(prefix='fake-worker-');self.key_file = Path(self._dir) / 'key'
         self.key_file.write_text(key);self.key_file.chmod(0o600);self._key = key
         server = self
@@ -146,6 +151,23 @@ class FakeServer:
                 if self.headers.get('Authorization') != 'Bearer ' + server._key:
                     self._send(401, {'error': 'unauthorised'});return False
                 return True
+
+            def _stream(self, step, text, seen):
+                """A3: llama-server's streamed answer, one event per token, token_ms apart."""
+                self.send_response(200);self.send_header('Content-Type', 'text/event-stream');self.end_headers()
+                pieces = tokens(text)
+                events = [{'choices': [{'index': 0, 'delta': {'content': p}, 'finish_reason': None}]} for p in pieces]
+                events.append({'choices': [{'index': 0, 'delta': {}, 'finish_reason': step.get('finish', 'stop')}],
+                               'usage': {'prompt_tokens': len(seen), 'completion_tokens': len(pieces)},
+                               'timings': {'prompt_n': len(seen), 'cache_n': 0, 'predicted_n': len(pieces),
+                                           'prompt_ms': 1.0, 'predicted_ms': 1.0}})
+                try:
+                    for value in events:
+                        if step.get('token_ms'):time.sleep(step['token_ms'] / 1000)
+                        self.wfile.write(b'data: ' + json.dumps(value).encode() + b'\n\n');self.wfile.flush()
+                    self.wfile.write(b'data: [DONE]\n\n');self.wfile.flush()
+                except OSError:
+                    server.closed += 1
 
             def do_GET(self):
                 if not self._authorised():return
@@ -167,6 +189,7 @@ class FakeServer:
                     if step.get('sleep_ms'):time.sleep(step['sleep_ms'] / 1000)
                     if step.get('fail'):return self._send(500, {'error': step['fail']})
                     text = step.get('text', '');seen = tokens(chatml(body['messages']))
+                    if body.get('stream'):return self._stream(step, text, seen)
                     return self._send(200, {'choices': [{'index': 0, 'message': {'role': 'assistant', 'content': text},
                                                          'finish_reason': step.get('finish', 'stop')}],
                                             'usage': {'prompt_tokens': len(seen), 'completion_tokens': len(tokens(text))},

@@ -53,6 +53,7 @@
    "brain.acceleration": "workbench/local_brain.py#dispatch",
    "brain.acceleration.probe": "workbench/local_brain.py#dispatch",
    "brain.ask": "workbench/local_brain.py#dispatch",
+   "brain.help.set": "workbench/turns.py#dispatch",
    "brain.host": "workbench/local_brain.py#dispatch",
    "brain.model.add": "workbench/local_brain.py#dispatch",
    "brain.model.inspect": "workbench/local_brain.py#dispatch",
@@ -1002,9 +1003,9 @@
   }
  },
  "counts": {
-  "adapters": 804,
+  "adapters": 805,
   "job_tools": 113,
-  "operations": 804,
+  "operations": 805,
   "settings": 48
  },
  "formulas": {
@@ -1890,6 +1891,14 @@
     "reference_packet": "d76a3cd568c70cee",
     "request_key": "66f34441032fb10a",
     "view": "c369c06181df4392"
+   },
+   "scope": "execute"
+  },
+  "brain.help.set": {
+   "arguments": "22f2cecce589b1e469279dd21d3c1929f07f85973000370ba541a96f8648e032",
+   "properties": {
+    "switches": "1bcd205f137986e7",
+    "undo": "7cb541e84f226754"
    },
    "scope": "execute"
   },
@@ -7918,7 +7927,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "4fbc7a01fcd7c304acc92782d2752737532dfb4cf604b943c0b0d7d30d1618f9",
+ "schema_digest": "fade09b9d80d77810bddb75ad436b2a01c8d803c26c023d35f774a9976a79dd2",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

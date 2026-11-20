@@ -7,6 +7,7 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QGridLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QSpinBox, QCheckBox, QPlainTextEdit, QTabWidget, QFileDialog, QProgressBar
 from .register_tabs import ServiceTab
 from . import brain_seal, local_brain
+from . import turns  # 0.8.7 A3: the owner's switches per kind
 from .explore_qt import BRAIN_WORDS  # one vocabulary for the model state: Hatch, Explore and this room say the same words (V-19)
 
 class BrainTab(ServiceTab):
@@ -79,10 +80,36 @@ class BrainTab(ServiceTab):
         self.acceleration=QPlainTextEdit();self.acceleration.setReadOnly(True);hardware_layout.addWidget(self.acceleration,1)
         self.hardware_page=hardware
         for title,widget in [('Model / launch',self.launch_scroll),('Hardware / Vulkan',hardware),('GGUF metadata',self.metadata),('Tensor inspector',self.tensors)]:self.pages.addTab(widget,title)
+        # 0.8.7 A3: what the model may do, a switch per kind of question; with every switch off Kas is exactly 0.8.6.
+        self.help_page=QWidget();help_layout=QVBoxLayout(self.help_page);help_layout.setContentsMargins(6,6,6,6)
+        intro=QLabel('Which questions Kas may put to the model on this computer. Off means she answers as she does with no model.')
+        intro.setWordWrap(True);help_layout.addWidget(intro);self.help_boxes={}
+        for name in ('understanding','reading','wording','choosing','talk'):
+            box=QCheckBox(turns.SWITCH_WORDS[name]);box.setAccessibleName(turns.SWITCH_WORDS[name])
+            box.toggled.connect(lambda on,name=name:self.help_set({name:bool(on)}));help_layout.addWidget(box);self.help_boxes[name]=box
+        row=QHBoxLayout();self.help_undo=QPushButton('Undo');self.help_undo.setAccessibleName('Undo the last switch')
+        self.help_undo.clicked.connect(lambda:self.help_set(None,undo=True));row.addWidget(self.help_undo);row.addStretch(1);help_layout.addLayout(row)
+        self.help_note=QLabel('');self.help_note.setWordWrap(True);self.help_note.setAccessibleName('What the model may do');help_layout.addWidget(self.help_note)
+        help_layout.addStretch(1);self.pages.addTab(self.help_page,'What the model may do')
+        self.show_help(turns.stored_switches(self.kernel))
         self.outer.addWidget(self.pages,1)
         self.launch_edited('context')
         self.show_acceleration(local_brain.acceleration(self.kernel))
         self.timer=QTimer(self);self.timer.setInterval(1000);self.timer.timeout.connect(self.refresh);self.timer.start();self.refresh()
+    def show_help(self,switches):
+        for name,box in self.help_boxes.items():
+            with QSignalBlocker(box):box.setChecked(bool(switches.get(name)))
+        off=[turns.SWITCH_WORDS[name] for name in self.help_boxes if not switches.get(name)]
+        if not any(switches.get(name) for name in self.help_boxes):text='Every switch is off: Kas answers exactly as she does with no model.'
+        elif off:text='Off: '+', '.join(off)+'. The rest are on.'
+        else:text='Every switch is on.'
+        self.help_note.setText(text)
+    def help_set(self,changes,undo=False):
+        result=self.kernel.dispatch('brain.help.set',{'undo':True} if undo else {'switches':changes},self.principal)
+        if result.get('ok'):self.show_help(result['result']['switches']);return
+        self.show_help(turns.stored_switches(self.kernel))
+        message=(result.get('error') or {}).get('message') or ''
+        self.help_note.setText('Nothing to undo yet.' if 'NOTHING_TO_UNDO' in message else 'The switch was not changed.')
     def title(self):return 'Graphite · Brain'
     def info(self):return 'Local CPU / Vulkan inference · external weights · scoped Graphite tools'
     def options(self):

@@ -55,6 +55,15 @@ prompt_tokens, on_progress) -> dict(text, finish, timings, odds, elapsed_ms); ra
 when the worker fails. on_progress(tokens_written, elapsed_ms), when given, is called as the answer streams (A3).
 Her clock (brain_clock.py, lane A's A3, when it exists; FixedClock until then): price_ms(key, kind, new_tokens,
 answer_tokens, desk_ms) and observe(key, kind, record).
+Added by A3 (backward compatible: new names only, nothing above changed meaning):
+    NOT_SENT also RECEIPT_FIRST: a wording kind (FRAME) is never sent before her receipt sentence is on screen
+             (request.receipt_on_screen()); OVER_CAP also for a grammar that admits an answer over the kind's cap
+             (grammars.fits; a grammar outside grammars.py's subset is a contract error)
+    the port's complete() also takes cancelled (the request's Stop): the turn streams and is closed past its deadline
+    TurnRequest.receipt_on_screen(), .card(buttons) (the one question card, then None), .ceiling() (what is left),
+               .now_asking ({kind, price_ms, deadline_ms, began_ms} while a turn runs: brain_clock.asking_now's line)
+    set_switches(kernel, changes, undo) and the operation brain.help.set (execute, with Undo): the owner's switch per
+    kind; with every switch off no turn is sent, no record is written, and every answer is the kind's 0.8.6 fallback.
 ====================================================================================================================
 
 Only this module calls local_brain.completion (local_brain's own ready probe excepted). This module, model_words.py and
@@ -91,7 +100,9 @@ VERDICTS = ('TAKEN', 'TRIMMED', 'REFUSED', 'UNSETTLED', 'TRIPPED')
 OUTCOMES = VERDICTS + ('LATE', 'FAILED')
 USED = ('TAKEN', 'TRIMMED', 'UNSETTLED')         # verdicts whose value the caller receives
 FALLBACKS = ('ASK_OWNER', 'DEFAULT_READ', 'PLAIN_WORDS', 'CANNOT_TELL', 'NOT_OFFERED', 'PATTERNS', 'PLACES')
-NOT_SENT = ('SWITCH_OFF', 'AI_OFF', 'NO_MODEL', 'STOPPED', 'CEILING_TURNS', 'CEILING_TIME', 'OVER_CAP', 'OVER_CONTEXT')
+NOT_SENT = ('SWITCH_OFF', 'AI_OFF', 'NO_MODEL', 'STOPPED', 'CEILING_TURNS', 'CEILING_TIME', 'OVER_CAP', 'OVER_CONTEXT',
+            'RECEIPT_FIRST')     # A3: a wording turn waits for her receipt sentence on screen
+RECEIPT_FIRST_SWITCHES = ('wording',)   # A3: kinds of these switches are sent only after request.receipt_on_screen()
 BASES = ('owner_words', 'owner_click', 'deduction', 'model_pick')
 FOREGROUND_TURNS = 3                     # at most 3 foreground model turns per request (design 4.4)
 FOREGROUND_BUDGET_MS = 25000             # the 4B here; the 35B's 8 s is a target the model check replaces (design 4.4)
@@ -335,6 +346,8 @@ class TurnRequest:
         self.turns_used = 0
         self.spent_ms = 0
         self.cards_used = 0
+        self.receipt_shown = False          # A3: her receipt sentence is on screen (a wording turn waits for it)
+        self.now_asking = None              # A3: {kind, price_ms, deadline_ms, began_ms} while a turn runs
 
     def switch_on(self, name):return bool(self.switches.get(name, False))
 
@@ -345,6 +358,23 @@ class TurnRequest:
         if self.cards_used >= 1:return False
         self.cards_used += 1
         return True
+
+    # -- 0.8.7 A3: the ceiling, the receipt first -----------------------------------------------------------------------------
+    def card(self, buttons):
+        """The buttons as this request's one question card, or None when a card was shown already: past the ceiling she
+        stops asking, says what she has, and the buttons appear, once (never two question cards in one request)."""
+        return buttons if buttons and self.take_card() else None
+
+    def ceiling(self):
+        """What is left of this request's ceiling: model turns, model time, the one card."""
+        return {'turns_used': self.turns_used, 'turns_most': self.foreground_turns, 'spent_ms': self.spent_ms,
+                'budget_ms': self.budget_ms, 'cards_used': self.cards_used, 'cards_most': 1,
+                'reached': self.turns_used >= self.foreground_turns or self.remaining_ms() < DEADLINE_FLOOR_MS}
+
+    def receipt_on_screen(self):
+        """Her column calls this once the receipt's sentence (a kept phrasing or her plain words) is painted: her facts never
+        wait for her wording, so no wording turn is sent before it."""
+        self.receipt_shown = True
 
 
 def stored_switches(kernel):
@@ -361,10 +391,13 @@ def request_for(kernel, principal, **options):
     """A TurnRequest for this owner request, on the live, selected local model; with none (or Graphite AI off), the port is
     None and every ask() returns its fallback without a turn."""
     port = None;off = 'NO_MODEL'
+    options.setdefault('switches', stored_switches(kernel))
     try:
         from . import local_brain
     except ImportError:
         local_brain = None
+    if not any({**SWITCHES, **options['switches']}.values()):
+        local_brain = None;off = 'SWITCH_OFF'     # A3: every switch off: Kas is exactly 0.8.6; the worker is not looked at
     if local_brain is not None:
         try:
             local_brain.require_enabled(kernel)
@@ -378,7 +411,6 @@ def request_for(kernel, principal, **options):
                     port = LocalPort(worker)
                 except (ValueError, OSError):
                     port = None
-    options.setdefault('switches', stored_switches(kernel))
     options.setdefault('clock', default_clock(kernel))
     return TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
                        **options)
@@ -420,22 +452,33 @@ class LocalPort:
     def kept(self, messages):
         return 0
 
-    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None):
+    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None,
+                 cancelled=None):
         from . import local_brain
         began = _monotonic_ms()
         timeout = 90 if not deadline_ms else (deadline_ms + self.GRACE_MS) / 1000
-        try:
+        try:   # A3: every turn streams, so it is closed at its deadline (reading included) or on Stop
             got = local_brain.completion(self.worker, messages, answer_tokens, grammar=grammar, timeout=timeout,
-                                         t_max_predict_ms=deadline_ms or None, odds=odds, prompt_tokens=prompt_tokens)
+                                         t_max_predict_ms=deadline_ms or None, odds=odds, prompt_tokens=prompt_tokens,
+                                         on_progress=on_progress or _quiet, cancelled=cancelled or _never)
         except TimeoutError:
             raise Late(_monotonic_ms() - began) from None
         except OSError as exc:      # URLError is an OSError; a timeout while connecting arrives as one
             if 'timed out' in str(exc):raise Late(_monotonic_ms() - began) from None
             raise PortError(_code(exc)) from None
         except (ValueError, KeyError, TypeError) as exc:
+            if 'MODEL_OPERATION_CANCELLED' in str(exc):raise PortError('STOPPED') from None
             raise PortError(_code(exc)) from None
         return {'text': got['text'], 'finish': got.get('finish_reason'), 'timings': got.get('timings') or {},
                 'odds': got.get('odds'), 'elapsed_ms': _monotonic_ms() - began}
+
+
+def _quiet(tokens_written, elapsed_ms):
+    pass
+
+
+def _never():
+    return False
 
 
 def _code(exc):
@@ -458,6 +501,7 @@ def ask(kind, inputs, request):
     caps = kind.caps
     # 1 · the switch and the per-request ceiling
     if not request.switch_on(kind.switch):return _without(kind, inputs, 'SWITCH_OFF')
+    if kind.switch in RECEIPT_FIRST_SWITCHES and not request.receipt_shown:return _without(kind, inputs, 'RECEIPT_FIRST')
     port = request.port
     if port is None or not port.live():return _without(kind, inputs, request.off_reason if port is None else 'NO_MODEL')
     if request.cancelled():return _without(kind, inputs, 'STOPPED')
@@ -466,6 +510,7 @@ def ask(kind, inputs, request):
     messages = layout(kind, inputs)
     grammar = grammars.check(kind.grammar(inputs))
     if grammar is None and kind.name != 'TALK' and not caps.stop_only:raise ValueError('TURN_GRAMMAR: only Talk has none')
+    if grammar is not None and not grammars.fits(grammar, caps.answer_tokens):return _without(kind, inputs, 'OVER_CAP')  # A3
     # 3 · the tokens and the price from her clock; the deadline
     try:
         prompt = port.count(messages)
@@ -485,9 +530,11 @@ def ask(kind, inputs, request):
     # 4 · the call
     if caps.foreground:request.turns_used += 1
     began = request.now_ms();late = False;failed = None;text = None;finish = None;timings = {};odds = None
+    request.now_asking = {'kind': kind.name, 'price_ms': price, 'deadline_ms': deadline, 'began_ms': began}   # A3: her line
     try:
         got = port.complete(messages, answer_tokens=caps.answer_tokens, grammar=grammar, deadline_ms=deadline,
-                            odds=caps.odds, prompt_tokens=prompt, on_progress=request.on_progress)
+                            odds=caps.odds, prompt_tokens=prompt, on_progress=request.on_progress,
+                            cancelled=request.cancelled)
         text = got.get('text');finish = got.get('finish');timings = got.get('timings') or {};odds = got.get('odds')
         elapsed = int(got['elapsed_ms']) if got.get('elapsed_ms') is not None else request.now_ms() - began
         late = bool(deadline) and elapsed > deadline
@@ -495,6 +542,8 @@ def ask(kind, inputs, request):
         late = True;elapsed = max(exc.elapsed_ms, deadline);text = exc.text;timings = exc.timings
     except PortError as exc:
         failed = exc.code;elapsed = request.now_ms() - began
+    finally:
+        request.now_asking = None
     if caps.foreground:request.spent_ms += min(elapsed, deadline) if deadline else elapsed
     if isinstance(text, str) and len(text) > MODEL_SAID_MOST and failed is None:failed = 'MODEL_OUTPUT_LIMIT';text = None
     # 5 · parse and check (a late answer is checked too, for the record and the offer beside hers)
@@ -700,8 +749,12 @@ FIELDS = {
                      'limit': {'type': 'integer', 'minimum': 1, 'maximum': 200},
                      'before': {'type': 'number', 'minimum': 0}}, []),
     'brain.turn.get': ({'id': TURN_ID}, ['id']),
+    # 0.8.7 A3: the owner's switch per kind (execute, with Undo)
+    'brain.help.set': ({'switches': {'type': 'object', 'additionalProperties': False,
+                                     'properties': {name: {'type': 'boolean'} for name in SWITCHES}},
+                        'undo': {'type': 'boolean'}}, []),
 }
-SCOPES = {op: 'read' for op in FIELDS}
+SCOPES = {op: 'execute' if op == 'brain.help.set' else 'read' for op in FIELDS}
 
 
 def dispatch(kernel, op, args, principal):
@@ -710,4 +763,39 @@ def dispatch(kernel, op, args, principal):
         return {'schema': SCHEMA, 'turns': rows, 'bounded': {'days': KEEP_DAYS, 'turns': KEEP_TURNS}}
     if op == 'brain.turn.get':
         return {'turn': get(kernel, principal.identity, args['id'])}
+    if op == 'brain.help.set':
+        return set_switches(kernel, args.get('switches'), bool(args.get('undo')))
     raise ValueError('Unknown turn operation')
+
+
+# -- 0.8.7 A3: the owner's switches per kind ----------------------------------------------------------------------------------
+HELP_KEY = 'brain.help'
+HELP_PREVIOUS = 'brain.help.previous'
+SWITCH_WORDS = {'understanding': 'Understanding your requests', 'reading': 'Reading pages', 'wording': 'Wording her answers',
+                'choosing': 'Choosing between next steps', 'talk': 'Talk'}
+
+
+def set_switches(kernel, changes=None, undo=False):
+    """Set the owner's switches (changes: {switch: bool}), or Undo the last setting. With every switch off, Kas is exactly
+    0.8.6: no turn is sent, no record written, and every answer is the kind's no-model fallback."""
+    if undo and changes:raise ValueError('BRAIN_HELP_ONE_THING: switches or undo, not both')
+    if not undo and not changes:raise ValueError('BRAIN_HELP_NOTHING: name a switch to set')
+    if changes:
+        unknown = sorted(set(changes) - set(SWITCHES))
+        if unknown:raise ValueError('BRAIN_HELP_SWITCH: no switch named %s' % unknown[0])
+        if any(not isinstance(v, bool) for v in changes.values()):raise ValueError('BRAIN_HELP_SWITCH: on or off')
+    with kernel.db() as db:
+        db.execute('BEGIN IMMEDIATE')
+        row = db.execute('SELECT value FROM settings WHERE key=?', (HELP_KEY,)).fetchone()
+        current = {name: bool((json.loads(row[0]) if row else {}).get(name, on)) for name, on in SWITCHES.items()}
+        if undo:
+            prev = db.execute('SELECT value FROM settings WHERE key=?', (HELP_PREVIOUS,)).fetchone()
+            if not prev:raise ValueError('BRAIN_HELP_NOTHING_TO_UNDO')
+            new = {name: bool(json.loads(prev[0]).get(name, on)) for name, on in SWITCHES.items()}
+        else:
+            new = {**current, **{name: bool(v) for name, v in changes.items()}}
+        db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_KEY, json.dumps(new, sort_keys=True)))
+        db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (HELP_PREVIOUS, json.dumps(current, sort_keys=True)))
+    return {'switches': new, 'previous': current, 'all_off': not any(new.values()),
+            'words': {name: '%s: %s' % (SWITCH_WORDS[name], 'on' if on else 'off') for name, on in new.items()},
+            'undo': {'op': 'brain.help.set', 'args': {'undo': True}}}

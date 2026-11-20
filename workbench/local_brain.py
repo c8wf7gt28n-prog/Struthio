@@ -522,7 +522,10 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
 # the token budget and return empty text; templates without this switch ignore it.
 TEMPLATE_OPTIONS={'enable_thinking':False}
 
-def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,timeout=90,t_max_predict_ms=None,odds=0,prompt_tokens=None):
+def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,timeout=90,t_max_predict_ms=None,odds=0,prompt_tokens=None,
+               on_progress=None,cancelled=None):
+    # 0.8.7 A3: with on_progress or cancelled, the turn streams (slate_stream.turn): progress as the answer is written, and
+    # the stream is closed at the deadline (t_max_predict_ms) or on Stop, reading included.
     # 0.8.7 E0: besides the ready probe, only turns.ask calls this (the turn contract). Its keywords: the kind's GBNF grammar
     # (never with a JSON schema), the deadline (the HTTP timeout, and t_max_predict_ms to bound writing), the alternatives
     # per answer token to record (odds), and the prompt's token count when the caller has just measured it.
@@ -537,7 +540,13 @@ def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,ti
     if grammar:payload['grammar']=grammar
     if t_max_predict_ms:payload['t_max_predict_ms']=int(t_max_predict_ms)
     if odds:payload.update(logprobs=True,top_logprobs=int(odds))
-    began=time.monotonic();response=request(worker,'/v1/chat/completions',payload,timeout=timeout)
+    began=time.monotonic()
+    if on_progress is not None or cancelled is not None:   # 0.8.7 A3: streamed, closed past its deadline
+        from . import slate_stream
+        got=slate_stream.turn(worker,payload,close_after_ms=int(t_max_predict_ms or 0),seconds=timeout,on_progress=on_progress,cancelled=cancelled)
+        response={'choices':[{'message':{'content':got['text']},'finish_reason':got['finish_reason'],'logprobs':got.get('logprobs')}],
+                  'usage':got['usage'],'timings':got['timings']}
+    else:response=request(worker,'/v1/chat/completions',payload,timeout=timeout)
     text=response['choices'][0]['message'].get('content','')
     if not isinstance(text,str) or len(text)>32000:raise ValueError('MODEL_OUTPUT_LIMIT_OR_TYPE')
     return {'text':text,'usage':response.get('usage',{}),'timings':response.get('timings',{}),
