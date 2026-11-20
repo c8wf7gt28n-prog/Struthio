@@ -1,0 +1,32 @@
+Program extracted and verified · nothing installed · next: bash /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/kit_086/Restored/INSTALL_DEBIAN.sh --quick
+Only in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/kit_086/src/tools: i05_kit
+Only in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/kit_086/src/tools: planted_bugs
+Only in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/kit_086/src: wip
+release check on the restored tree: PASSED | files 1399 | Graphite 0.8.6
+ 
+4096 .
+4096 ..
+67983 Graphite_0.8.6_START_HERE.zip
+14930816 Graphite_0.8.6_part_01.zip
+14690449 Graphite_0.8.6_part_02.zip
+14860114 Graphite_0.8.6_part_03.zip
+14671002 Graphite_0.8.6_part_04.zip
+14862229 Graphite_0.8.6_part_05.zip
+14837147 Graphite_0.8.6_part_06.zip
+14926419 Graphite_0.8.6_part_07.zip
+14914155 Graphite_0.8.6_part_08.zip
+14730104 Graphite_0.8.6_part_09.zip
+446754 Graphite_0.8.6_part_10.zip
+every ZIP is under 15,000,000 bytes
+    23973  2026-11-20 15:20   Graphite_Transfer/INSTALL_LS.py
+        0  2026-11-20 15:20   Graphite_Transfer/App/
+     2514  2026-11-20 15:20   Graphite_Transfer/App/PREPARE_DEBIAN.sh
+    43599  2026-11-20 15:20   Graphite_Transfer/App/DEBIAN_USB.sha256
+     4089  2026-11-20 15:20   Graphite_Transfer/App/RELEASE_PARTS.json
+      979  2026-11-20 15:20   Graphite_Transfer/App/INSTALL_GRAPHITE.sh
+    23973  2026-11-20 15:20   Graphite_Transfer/App/INSTALL_LS.py
+    66166  2026-11-20 15:20   Graphite_Transfer/App/OFFLINE_FILES.json
+      930  2026-11-20 15:20   Graphite_Transfer/App/SHA256SUMS
+     5939  2026-11-20 15:20   Graphite_Transfer/START_HERE.md
+---------                     -------
+   172162                     11 files

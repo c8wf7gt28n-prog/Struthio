@@ -273,6 +273,15 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 15:21 UTC: **0.8.6 released, not tested** (the owner's rule). All of 0.8.6 merged (S8 28caf03, W 8ba984e; W's
+  union merge closed activity.py's list early again: repaired, and `work/merge_one.sh` now runs `work/fix_observers.py`).
+  Release commit 87ca7e2 (version, notes with the four corrected promises), then d97127c (the notes' check words; Ask
+  the Library, 1b45457, among the early 0.8.7 parts). **Kit cut from d97127c** (`work/kit_086/deliver/`: 10 parts
+  and START_HERE, every ZIP under 15 MB); restored with INSTALL_LS identical to the commit except wip/,
+  tools/planted_bugs/ and tools/i05_kit/; check_release PASSED on 1,399 files. The cutter's old-kit folder `x/` had
+  been cleaned away; rebuilt from the 0.8.5 kit's App files. NOTE for A5: tools/i05_kit/ is not shipped, so the model
+  check's overnight I05 stage must run from the shipped workbench.i05_arms, or the kit must ship. Running: 0.8.7 B3,
+  B4, A4. Next: B5 after B3; then A5 (+A5P), B6, C6a; then the if-room six; then the 0.8.7 release.
 - 20 Nov 15:10 UTC: Merged since 14:20: 0.8.7 A3 (00e5f41), A2 (rebased onto A3 by a second agent, b2c3a0d), C2
   (29450d6), C5 (8927946), B2 (d55be4a), C4 (33301c8), B1 (655d24c); 0.8.6 S7 (d44623b) and R (b96bfb4). **0.8.6 has
   only S8 (I05 kit) and W (window panel, demos) left; both running.** 0.8.7 running: C3 (Ask the Library), B3 (read
