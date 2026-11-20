@@ -5,7 +5,7 @@ from cabinet records, and only scopes with real backing stores are advertised.
 """
 import re
 from . import reading_profile
-from .presentation_preferences import DEFAULTS, OUTPUT_TABS, LAYOUT_RANGES, CURSIVE_DEFAULT
+from .presentation_preferences import DEFAULTS, OUTPUT_TABS, LAYOUT_RANGES
 
 
 def spec(key, label, category, default, kind, description, **extra):
@@ -54,9 +54,9 @@ SPECS += [
          'Case-insensitive natural order keeps Project 2 before Project 10. Alphabetical order compares the label as text. This changes presentation only.',
          choices=['natural','alphabetical'],group='Cabinet',scope='Workspace private',scope_id='project_private',supported_scopes=['project_private'],
          store='Kernel settings: ledger.cabinet.sort',application='next_use',effect='Next cabinet refresh'),
-    spec('appearance.cursive','Script for incidental text','Appearance',CURSIVE_DEFAULT,'boolean',
-         'Use the existing script accent for incidental text. Working text stays in the reading fonts.',
-         application='immediate',effect='After desktop presentation readback',store='Session cursive'),
+    # appearance.cursive, "Script for incidental text", was retired in 0.8.4: the script it named is off in every look, so a
+    # change to it changed nothing on screen. A Session file that still holds its field loads without it (session.py), and
+    # a journal row of it is shown in the history, never undone (ledger_control.history; tests_integrated/test_lit_controls.py).
     *[spec('layout.'+key,label,'Workspace',DEFAULTS[key],'integer',description,
            group='Layout',application='immediate',effect='After desktop layout readback',
            store='Session layout.'+key,minimum=LAYOUT_RANGES[key][0],maximum=LAYOUT_RANGES[key][1])

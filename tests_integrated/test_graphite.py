@@ -369,7 +369,7 @@ class TodayWorkspaceWordsTests(unittest.TestCase):
             root=locations.ensure_workspace(Path(tmp)/'north',name='North field')
             host=SimpleNamespace(root=root,_viewer_recent=[],reading_profile={'ui_pt':14},resume_workspace=lambda:None,
                                  open_in_viewer=lambda *a:None,open_document=lambda *a:None,
-                                 session=SimpleNamespace(state={'recent':['Survey/second/gate posts.md'],'cursive':False}))
+                                 session=SimpleNamespace(state={'recent':['Survey/second/gate posts.md']}))
             with patch.object(shell2,'call',return_value=None),patch.object(agent_qt,'today_rows',return_value=[]):
                 today=shell2.TodayPage(host);self.addCleanup(today.deleteLater);today.fill()
             rows=[l.text() for l in today.continue_.findChildren(QLabel)]

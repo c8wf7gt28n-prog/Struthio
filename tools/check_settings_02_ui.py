@@ -47,15 +47,19 @@ w.resize(1920,1200);w.show();settle();bridge.tick();settle()
 assert {'settings:ledger','settings:slate'}<=set(w.settings_navigator.items)
 assert all('setting:'+spec['key'] in w.settings_navigator.items for spec in ledger_control.SPECS)
 record(str(len(ledger_control.SPECS))+' registered definitions project into separate Ledger and Slate settings roots')
-# The script setting is Settings' alone since 0.8.4: the menu toggle that wrote it changed nothing on screen and is gone
-# (tests_integrated/test_settings_advanced.py). Apply reaches the Session's stored field and the shared history; Undo restores it.
-assert not hasattr(w.shell2,'script_action')
-tab=select('appearance.cursive');tab.boolean.setCurrentIndex(0);apply(tab)
-assert read('appearance.cursive')['stored'] is False and Session(session.path,root).state['cursive'] is False
-cursive=read('appearance.cursive')['latest_change'];assert cursive['key']=='appearance.cursive'
-tab=select('appearance.cursive');QTest.mouseClick(tab.undo_button,Qt.LeftButton);settle();bridge.tick();settle()
-assert read('appearance.cursive')['stored'] is True and Session(session.path,root).state['cursive'] is True
-record('The script setting is edited in Settings alone: Apply writes the Session field and the shared history, and registry Undo restores it')
+# A Session boolean edited in Settings: the writing marker (0.8.4: this step took the script setting, appearance.cursive, which
+# changed nothing on screen and is retired with its menu toggle; tests_integrated/test_lit_controls.py). Apply reaches the
+# Session's stored field, the shared history and the window's marker; Undo restores all three.
+assert not hasattr(w.shell2,'script_action') and 'setting:appearance.cursive' not in w.settings_navigator.items
+assert bridge.marker.enabled is True
+tab=select('appearance.writing_marker');tab.boolean.setCurrentIndex(0);apply(tab)
+assert read('appearance.writing_marker')['stored'] is False and Session(session.path,root).state['writing_marker'] is False
+assert bridge.marker.enabled is False and read('appearance.writing_marker')['effective'] is False
+marker=read('appearance.writing_marker')['latest_change'];assert marker['key']=='appearance.writing_marker'
+tab=select('appearance.writing_marker');QTest.mouseClick(tab.undo_button,Qt.LeftButton);settle();bridge.tick();settle()
+assert read('appearance.writing_marker')['stored'] is True and Session(session.path,root).state['writing_marker'] is True
+assert bridge.marker.enabled is True
+record('The writing marker is edited in Settings: Apply writes the Session field and the shared history and turns the marker off, and registry Undo restores it')
 # Numeric settings preserve integer typing and read back actual dock dimensions.
 tab=select('layout.navigator_width');number(tab,420);apply(tab)
 actual=read(tab.key);assert type(actual['stored']) is int and actual['stored']==420

@@ -96,7 +96,8 @@ the workshop and Game; the cabinet tree's right-click is the desk's own menu; Ap
 slab holds its face in its own sheet, before the line's colours. The script now reads the sheet that way; the program was right.
 
 `check_settings_02_ui` had pressed a menu toggle, "Pleasantries in script", that wrote a setting nothing reads. The toggle
-is gone (`tests_integrated/test_lit_controls.py`); the check now edits the setting in Settings.
+is gone (`tests_integrated/test_lit_controls.py`), and in the release pass the setting itself, "Script for incidental
+text" (appearance.cursive), was retired; the check now edits the writing marker in Settings, a boolean whose change shows.
 
 ## Faults found while doing this
 

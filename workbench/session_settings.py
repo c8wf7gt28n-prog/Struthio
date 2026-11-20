@@ -18,7 +18,6 @@ def write_value(session,key,value):
         from sdk.cli.arc1cli.command_bar import FAVORITE_KEYS, session_favorites
         groups=session_favorites(session.state);groups[FAVORITE_KEYS[key]]=list(value)
         session.state['toolbar_favorites']=groups;session.state['toolbar_favorites_version']=2
-    elif key=='appearance.cursive':session.state['cursive']=value
     elif key.startswith('layout.'):session.set_layout(**{key.split('.',1)[1]:value})
     elif key=='stacy.reactions':session.set_layout(stacy_reactions=value)
     elif key.startswith('workspace.'):session.state['view_preferences'][key.split('.',1)[1]]=value
@@ -32,7 +31,6 @@ def refresh_session(session,kernel):
     if not session.path.is_file():return
     session.state['reading_profile']=reading_profile.clean(fresh.state.get('reading_profile',{}))
     session.state['view_preferences']=fresh.state['view_preferences']
-    session.state['cursive']=fresh.state['cursive']
     for key in ('toolbar_favorites','toolbar_favorites_version'):session.state[key]=fresh.state[key]
     # The whole map is shared state now; a bound desktop must not resurrect its stale copy over another writer's save.
     session.state['category_views']=dict(fresh.state.get('category_views',{}))

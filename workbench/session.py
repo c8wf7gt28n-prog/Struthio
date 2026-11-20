@@ -24,7 +24,7 @@ LAYOUT_VERSION = 2          # bump when the dock layout changes; old saved layou
 MAX_FILE = 128 * 1024
 MAX_DOCS = 20
 MAX_RECENT = 10
-from .presentation_preferences import DEFAULTS, OUTPUT_TABS, CURSIVE_DEFAULT, appearance as saved_appearance
+from .presentation_preferences import DEFAULTS, OUTPUT_TABS, appearance as saved_appearance
 SELF_TREE_IDS = {'root', 'interface', 'source', 'clip', 'tools', 'simulator', 'tests', 'settings', 'recovery'}
 # Desktop fields restored with bounds since INTEGRATION-01 (they were written on every save but never read back).
 TYPE_TARGETS = ('slate', 'stac', 'kernel', 'find', 'shell', 'web', 'log')   # typebar_qt.MAPPED keys (D3: the four modes and the old targets); Qt-free
@@ -86,7 +86,7 @@ class Session:
 
     def fresh(self):
         return {'schema': SCHEMA, 'project': self.project, 'documents': [], 'active': None,
-                'view_preferences': dict(VIEW_DEFAULT), 'cursive':CURSIVE_DEFAULT,
+                'view_preferences': dict(VIEW_DEFAULT),
                 'target': DEFAULT_TARGET, 'last_game': None, 'recent': [], 'toolbar_favorites': {}, 'toolbar_favorites_version':2,
                 'layout': dict(DEFAULTS, self_tree_expanded=['root'], hardware_tree_expanded=['root'], version=LAYOUT_VERSION,
                                geometry=None, dock_state=None)}
@@ -119,7 +119,8 @@ class Session:
         idle_minutes = data.get('idle_display_minutes')
         if type(idle_minutes) is int and idle_minutes in IDLE_DISPLAY_MINUTES:
             s['idle_display_minutes'] = idle_minutes
-        if type(data.get('cursive')) is bool:s['cursive']=data['cursive']
+        # 'cursive' (the setting appearance.cursive, retired in 0.8.4) is not read: a file that holds it loads as before, and
+        # the next save leaves it out.
         seen=data.get('field_zoom')     # how the Field's desk was last seen: its size, and whether the whole desk was asked for
         if (isinstance(seen,dict) and type(seen.get('whole')) is bool and type(seen.get('zoom')) in (int,float) and 0.3<=seen['zoom']<=2.0):
             s['field_zoom']={'zoom':float(seen['zoom']),'whole':seen['whole']}

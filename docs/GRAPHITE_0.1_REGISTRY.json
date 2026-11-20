@@ -778,10 +778,6 @@
     "adapter": null,
     "store": "Kernel settings: ledger.agent.continue_when_closed"
    },
-   "appearance.cursive": {
-    "adapter": null,
-    "store": "Session cursive"
-   },
    "appearance.writing_marker": {
     "adapter": null,
     "store": "Session writing_marker"
@@ -976,7 +972,7 @@
   "adapters": 771,
   "job_tools": 113,
   "operations": 771,
-  "settings": 49
+  "settings": 48
  },
  "formulas": {
   "arguments": "sha256 of the operation argument schema, canonical JSON; properties: its first 16 hex digits per top-level property",
@@ -4317,9 +4313,9 @@
    "scope": "read"
   },
   "ledger.settings.apply": {
-   "arguments": "4df2cbb37554351b242ae5ce77d808aa884ba111d9797d69e64e5208711c8dc9",
+   "arguments": "056df0d0b75b6f2f046aecc5665e4df87f41a2922847b51f66f12e7812102b16",
    "properties": {
-    "changes": "3ddde82a4b4661d1"
+    "changes": "0dd49a60a957d033"
    },
    "scope": "execute"
   },
@@ -7546,7 +7542,7 @@
  },
  "release": "Graphite 0.8.4",
  "schema": "graphite.registry-record/1",
- "schema_digest": "0204af3878423b62f1dc643ce3ec1a79b6edf62c2e1b627aeb62009bfd38d743",
+ "schema_digest": "4953a87c0827601b079e162395bd5c424ca9173101a7d6fa31f0e865282558a6",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
@@ -7567,27 +7563,6 @@
     "scope_id": "e29c730f472e7fe6",
     "store": "03b2b52f4e7a8b5b",
     "supported_scopes": "1fb68d0b99d08f81",
-    "type": "a5b031ab62bc416d"
-   }
-  },
-  "appearance.cursive": {
-   "definition": "54145fbd45773e40fce1bcce72cb0f169e4066f86e659a08a49d34452dc05cfd",
-   "fields": {
-    "application": "60060042289e5269",
-    "category": "b69fc1f8128958fc",
-    "default": "b5bea41b6c623f7c",
-    "dependencies": "4f53cda18c2baa0c",
-    "description": "d21b1c359d81b3f3",
-    "effect": "6e147f9faa0f77a3",
-    "group": "b69fc1f8128958fc",
-    "key": "f9334ea43872c3f6",
-    "label": "c8206d25e4aaeaaa",
-    "overrides": "4f53cda18c2baa0c",
-    "root": "e41b7584e2350adb",
-    "scope": "d018c242b62e9632",
-    "scope_id": "42ade3e67c83e36d",
-    "store": "9a9b692b00ea5203",
-    "supported_scopes": "4a75b2b8e1edbccc",
     "type": "a5b031ab62bc416d"
    }
   },
@@ -8694,7 +8669,7 @@
    }
   }
  },
- "settings_digest": "ced6bee1ff55370e326f3e005df57ac851f3624e74a63b5bd7868490e0b9565c",
+ "settings_digest": "78523519ff04114b580ed7a2cf8081487c93204733843f3ea935186c7408abdd",
  "settings_order": [
   "reading.family",
   "reading.prose_family",
@@ -8715,7 +8690,6 @@
   "operations.priority",
   "operations.services_enabled",
   "cabinet.sort",
-  "appearance.cursive",
   "layout.navigator_width",
   "layout.output_height",
   "layout.output_visible",

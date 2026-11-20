@@ -1,0 +1,66 @@
+{
+  "summary": "Finished removing the setting that did nothing, \"Script for incidental text\" (appearance.cursive). I applied the earlier builder's patch to this worktree without its registry-record hunk, then rebuilt docs/GRAPHITE_0.1_REGISTRY.json in a copy with tools/record_registry.py (49 settings now 48) and copied it back. Next I ran all 61 tier-1 modules that import the touched files in both looks, plus 4 settings window checks in both looks. One test failed in both looks: test_presentation_settings pinned the public ledger.settings.apply key list at 17, and it is now 16 because the retired key left with its definition. I changed that test to 16 and made it check that the key is absent. I also added a test that pleasantry() follows the script's one switch (shell2.SCRIPT_ON) and never changes it. The old cursive_on() switched the script off every time it answered. Then I made a fresh copy, re-ran the three touched test modules in both looks (all OK) and did the self-review: I reverted each piece in turn in a copy, and every piece that has its own behaviour failed its test. The settings_02 window check passes in both looks and now edits the writing marker. A profile file or journal that still holds the old value loads with no message and no error.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b085/setting.patch",
+  "files_changed": [
+    "workbench/settings_registry.py",
+    "workbench/presentation_preferences.py",
+    "workbench/session.py",
+    "workbench/session_settings.py",
+    "workbench/ledger_control.py",
+    "workbench/control_qt.py",
+    "workbench/shell2.py",
+    "workbench/programs_qt.py",
+    "tools/check_settings_02_ui.py",
+    "tests_integrated/test_lit_controls.py",
+    "tests_integrated/test_settings_advanced.py",
+    "tests_integrated/test_presentation_settings.py",
+    "tests_integrated/test_graphite.py",
+    "docs/GRAPHITE_0.1_REGISTRY.json",
+    "docs/SETTINGS_INVENTORY_07.md",
+    "docs/WINDOW_CHECKS.md"
+  ],
+  "tests": [
+    {"module": "tier-1 set: 61 modules importing the touched files (first pass, before the two test edits)", "look": "graphite", "ran": 1033, "failed": 1, "note": "only failure: test_presentation_settings.test_public_batch_contract_is_unchanged_and_rejects_new_favorites (16 != 17), fixed afterwards"},
+    {"module": "tier-1 set: 61 modules importing the touched files (first pass, before the two test edits)", "look": "kasandra", "ran": 1033, "failed": 1, "note": "the same single failure, fixed afterwards"},
+    {"module": "test_lit_controls (fresh copy, final)", "look": "graphite", "ran": 4, "failed": 0},
+    {"module": "test_lit_controls (fresh copy, final)", "look": "kasandra", "ran": 4, "failed": 0},
+    {"module": "test_presentation_settings (fresh copy, final)", "look": "graphite", "ran": 16, "failed": 0},
+    {"module": "test_presentation_settings (fresh copy, final)", "look": "kasandra", "ran": 16, "failed": 0},
+    {"module": "test_settings_advanced (fresh copy, final)", "look": "graphite", "ran": 15, "failed": 0},
+    {"module": "test_settings_advanced (fresh copy, final)", "look": "kasandra", "ran": 15, "failed": 0},
+    {"module": "tools/check_settings_02_ui.py", "look": "graphite", "ran": 1, "failed": 0, "note": "exit 0, settings_count 48"},
+    {"module": "tools/check_settings_02_ui.py", "look": "kasandra", "ran": 1, "failed": 0, "note": "exit 0, settings_count 48"},
+    {"module": "tools/check_presentation_settings_ui.py, check_settings_ui.py, check_hardware_settings_ui.py", "look": "graphite", "ran": 3, "failed": 0, "note": "exit 0 each"},
+    {"module": "tools/check_presentation_settings_ui.py, check_settings_ui.py, check_hardware_settings_ui.py", "look": "kasandra", "ran": 3, "failed": 0, "note": "exit 0 each"}
+  ],
+  "new_tests": [
+    "tests_integrated.test_lit_controls.TheScriptControls.test_settings_does_not_offer_the_script_setting (earlier builder): the key is gone from the registry, the Settings tree and the screen; the shared Set refuses it and leaves the Session file as it was; the desktop's readback carries no value for it. It fails when the definition is put back (revert R1) or when the Session writes the field again (R2).",
+    "tests_integrated.test_lit_controls.TheScriptControls.test_a_session_file_and_journal_that_hold_the_old_value_load_without_a_word_and_it_stays_off_screen (earlier builder): a profile with cursive=false and Settings left open on the retired setting, plus a journal row of it, load with no message box and no error. The row shows in the history as orphaned and cannot be undone, and the next save leaves the field out. It fails on R1, R2 and R6 (profile sync copies the old field: KeyError).",
+    "tests_integrated.test_lit_controls.TheScriptSwitch.test_a_pleasantry_follows_the_switch_and_leaves_it_where_it_was (new in this run): pleasantry draws in the script only while shell2.SCRIPT_ON is on and never changes the switch, even with an old stored cursive value. It fails with the old shell2 (revert R4: 'False is not True: a pleasantry leaves the switch where it was').",
+    "tests_integrated.test_presentation_settings.test_public_batch_contract_is_unchanged_and_rejects_new_favorites (changed): the public batch key list is now 16, without appearance.cursive (it was 17).",
+    "tests_integrated.test_settings_advanced.test_session_field_reopens_and_undo_restores_actual_existing_field (earlier builder, moved from cursive to the writing marker): with the old session_settings.refresh_session put back (revert R5), it and 4 other tests in the module fail with KeyError 'cursive'."
+  ],
+  "numbers": [
+    "Registered settings: 49 before, 48 after (docs/GRAPHITE_0.1_REGISTRY.json from tools/record_registry.py; check_settings_02_ui reports settings_count 48 in both looks)",
+    "Public ledger.settings.apply key list: 17 before, 16 after (test_presentation_settings)",
+    "Tier-1 set for this change: 61 test modules, 1033 tests per look (counted from the 'Ran N tests' lines of each module's log in a copy, both looks)",
+    "test_lit_controls runs in about 37-38 s per look (its 'Ran 4 tests' line)"
+  ],
+  "decisions": [
+    "I kept the earlier builder's design unchanged. The definition leaves the registry, so the Session loader no longer reads 'cursive', fresh() no longer writes it, and the next save drops it. A journal row of the retired key goes through the existing orphan path in ledger_control.history (shown, never undone).",
+    "test_presentation_settings pinned the public batch list at 17 keys. That list is built from the registry (SESSION_BATCH_KEYS), so removing the setting shrinks it to 16 on purpose. I updated the count and pinned the retired key as absent rather than keep the old contract.",
+    "pleasantry() now checks shell2._script_ready() (SCRIPT_ON and the face present) instead of cursive_on(), which switched SCRIPT_ON off as a side effect every time it was called. Nothing changes on screen, because no program code turns SCRIPT_ON on. But a drawing test that turns the script on is no longer switched back off by a pleasantry. As a result the existing D1-fix test in test_graphite now really checks the room around a pleasantry's swashes, and it passed in both looks. I added TheScriptSwitch to pin this.",
+    "Three removed lines have no test of their own because they could no longer run once the definition was gone: session_settings.write_value's branch, ledger_control.value's branch, and control_qt's readback entry. A Set of an unknown key is refused before write_value, and publish_settings_runtime drops keys that are not in the registry. Revert R3 (only the readback line put back) still passed, which shows this. The receipt check fails as soon as the definition comes back (R1).",
+    "I ran 4 settings window checks in both looks, not all 22 window checks that tier 1 lists for these files. That is check_settings_02_ui, as the task asked, plus check_presentation_settings_ui, check_settings_ui and check_hardware_settings_ui, which count or use the settings list. This saved usage time; the coordinator runs the rest at merge.",
+    "I checked the patch with 'patch --dry-run -p1' against a clean 'git archive HEAD' export, because the sandbox refuses git commands aimed outside the worktree. Every file checked cleanly (exit 0).",
+    "I left dated records as they are: docs/GRAPHITE_DESK.md (D1, 6 Nov), docs/RELEASE_NOTES_4.9.md and the SETTINGS_02 evidence JSON. They describe the program as it was when written. Current docs (SETTINGS_INVENTORY_07, WINDOW_CHECKS) say the setting is retired.",
+    "No new test module was added, so tools/check_hatch.py FOCUSED_MODULES is unchanged; test_lit_controls was already listed."
+  ],
+  "not_done": [
+    "The other 18 tier-1 window checks were not run (check_context_menu_ui, check_finder_ui, check_machine_ui and the rest); only the 4 settings checks ran, in both looks.",
+    "After the two test-only edits, the 58 other tier-1 modules were not re-run. They passed in both looks on the same source, and those edits change only those two test files.",
+    "docs/GRAPHITE_DESK.md still says 'View > Pleasantries in script (the setting appearance.cursive, unchanged)' in its dated D1 section; I did not rewrite that record.",
+    "Nothing was run on the owner's ThinkPad; everything ran offscreen in copies on this machine."
+  ],
+  "release_note": "Settings no longer offers \"Script for incidental text\". It changed nothing on screen, because the script it named is off in every look, so a control that could not do anything is gone. A profile saved by an earlier Graphite that still holds the choice opens as before, with no message, and the next save leaves it out. A past change to it stays in the Settings history but cannot be undone."
+}

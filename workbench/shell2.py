@@ -76,7 +76,7 @@ def load_fonts(root):
     return PLEX_SANS in QFontDatabase.families()
 
 
-SCRIPT_ON = [False]  # the owner's choice, for words drawn without a window at hand (card notes)
+SCRIPT_ON = [False]  # the Paper script's one switch: off in every look (readable lettering); tests turn it on to check the drawing
 
 
 def apps_mark(button, host):
@@ -96,12 +96,6 @@ def apps_mark(button, host):
     button.setToolButtonStyle(Qt.ToolButtonIconOnly);button.setText('')      # its name stays for readers (Apps)
     button.update()
     return True
-
-
-def cursive_on(host):
-    # Preserve the stored paper-theme preference; BOSS uses readable terminal lettering.
-    SCRIPT_ON[0] = False
-    return False
 
 
 def script_room(text, px):
@@ -153,7 +147,7 @@ class QuietWords(QLabel):
     may skip (explain: the Paper script by the quiet-script rule). The desk's panes use it (HATCH DESK D1b; the owner,
     2026-11-06: "Don't we like cursive font for 'less necessary to read' text"). explain(note, lead) keeps a printed lead
     (a heading, a status) in print and sets only the note in script, after it on the same line (sep ' · ') or under it
-    (sep '\\n'). Numbers stay printed: a note with a digit is print. With the script off (cursive_on: off in every look) it is all print.
+    (sep '\\n'). Numbers stay printed: a note with a digit is print. With the script off (SCRIPT_ON: off in every look) it is all print.
     The print size is the window's own (base None) or base px at 14 pt; the script is 1.3 times the print size, and never
     under quiet_script's 1.3 times 15 px (the script's x-height is small), both following the interface size. The words as
     plain text are `words()`."""
@@ -234,7 +228,7 @@ def quiet_html(text, px, print_px):
 class Wordmark(QLabel):
     """The word Graphite alone at the upper left of the head band (the owner, 2026-11-06: "upper left Graphite should be
     cursive"): the Paper script in the bands' erased paper, as if rubbed out of the shading, with a hairline of the same paper
-    round its outline so the thin strokes hold on the grain; Plex SemiBold when the script is off (cursive_on) or the
+    round its outline so the thin strokes hold on the grain; Plex SemiBold when the script is off (SCRIPT_ON) or the
     face is missing. It is drawn by its outline (QPainterPath), so the widget is the word's ink: the script's G reaches left of
     its origin and its descenders fall below the line, so the ink's left edge is put on the widget's left edge (the band's
     inset) and the ink is centred in the band's height, on the symbol's centre line; the pair measured on the boxes is the
@@ -285,7 +279,7 @@ class Wordmark(QLabel):
 def pleasantry(label, host, pixels):
     """A short greeting or pleasantry in Paper's script, graphite; plain Plex italic when script is off or missing.
     Only short words get this: menus, words to act on, file names, status and prose stay typeset."""
-    if cursive_on(host) and SCRIPT in QFontDatabase.families():
+    if _script_ready():
         size = round(pixels * 1.25);left, right, bottom = script_room(label.text(), size)  # D1-fix: room round its swashes
         label.setStyleSheet('QLabel {font-family:\"%s\";font-size:%dpx;color:%s;font-weight:400;padding:0 %dpx %dpx %dpx;}' % (SCRIPT, size, TEXT, right, bottom, left))
         label.setIndent(0)  # the room is exactly the swash's (with a padding Qt would add half an x of its own)

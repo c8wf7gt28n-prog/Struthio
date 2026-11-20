@@ -4,7 +4,6 @@ DEFAULTS = {'navigator_width':285, 'output_height':170, 'output_visible':False,
             'self_tree_expanded':['root'], 'hardware_tree_expanded':['root'], 'stacy_reactions':True}
 OUTPUT_TABS = ('Output','Problems','Debug','Agent Activity')
 LAYOUT_RANGES = {'navigator_width':(160,600), 'output_height':(80,700)}
-CURSIVE_DEFAULT = True
 # The whole window's looks (0.8.0), each with the word it is chosen by: the one list of them (0.8.4). The theme draws
 # them (boss_theme.APPEARANCES is this list, with a palette for each) and the session keeps one for the next start; the
 # session reads the list here, so it never imports the theme.

@@ -134,7 +134,7 @@ class LedgerBridge(QObject):
         self.desktop_id=host.desktop_lease.stem
         ledger_control.bind(self.kernel,host.session);self.last_profile_mtime=None
         self.startup_at_launch=host.session.state['view_preferences']['startup']
-        self._cursive_applied=host.session.state.get('cursive',True);self._provider_revision=None
+        self._provider_revision=None
         self._views_applied=dict(host.session.state.get('category_views',{}))
         from . import writing_marker
         self.marker=writing_marker.install(host);self._marker_applied=self.marker.enabled
@@ -296,7 +296,6 @@ class LedgerBridge(QObject):
         for key in ('reading_profile','view_preferences'):
             if key in fresh.state:state[key]=fresh.state[key]
         state['layout']['stacy_reactions']=fresh.layout['stacy_reactions']
-        state['cursive']=fresh.state['cursive']
         for key in ('toolbar_favorites','toolbar_favorites_version'):state[key]=fresh.state[key]
         views=dict(fresh.state.get('category_views',{}));state['category_views']=views
         if views!=self._views_applied:
@@ -328,18 +327,6 @@ class LedgerBridge(QObject):
             self.host.set_workspace_layout(state['view_preferences']['mode'],persist=False)
         self.host.view_preferences['startup']=state['view_preferences']['startup']
         if not state['layout']['stacy_reactions']:self.host.clip.presence.dismiss()
-        if self._cursive_applied!=state['cursive'] and hasattr(self.host,'shell2'):
-            from .shell2 import cursive_on,pleasantry,quiet_script
-            self._cursive_applied=state['cursive'];cursive_on(self.host)
-            self.host.shell2.restyle(getattr(self.host,'reading_profile',None))
-            for label in self.host.findChildren(QLabel):
-                if label.property('pleasantry'):pleasantry(label,self.host,int(label.property('pleasantry_px') or 26))
-                elif label.property('quiet_script'):quiet_script(label)
-                elif label.property('quiet_words'):label.restyle()  # the panes' notes (shell2.QuietWords)
-            top=getattr(self.host.shell2,'top',None)
-            if top is not None:top.ledger_head()  # the word Graphite: the script, or print with the script off
-            inspector=getattr(self.host,'arc_inspector',None)
-            if inspector is not None:inspector.refresh()  # the Context face's notes (shell2.Note) in the script or print
         for row in ledger_control.settings(self.kernel,'Workspace')['settings']:
             key=row['key']
             if key not in self._layout_revisions or self._layout_revisions[key]==row['revision']:continue
@@ -404,9 +391,6 @@ class LedgerBridge(QObject):
         values['workspace.startup']={'requested':self.startup_at_launch,'effective':self.startup_at_launch}
         reactions=self.host.session.layout['stacy_reactions']
         values['stacy.reactions']={'requested':reactions,'effective':reactions}
-        if hasattr(self.host,'shell2'):
-            from .shell2 import SCRIPT_ON
-            values['appearance.cursive']={'requested':self._cursive_applied,'effective':SCRIPT_ON[0]}
         values['layout.navigator_width']={'requested':self._layout_requested['layout.navigator_width'],'effective':self.host.nav_dock.width()}
         visible=self.host.output_dock.isVisible()
         values['layout.output_visible']={'requested':self._layout_requested['layout.output_visible'],'effective':visible}

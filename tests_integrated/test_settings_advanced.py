@@ -27,11 +27,12 @@ class AdvancedSettingsTests(unittest.TestCase):
     def set(self,key,value,principal=None):return self.call('ledger.settings.set',dict(key=key,value=value,expected_revision=self.row(key)['revision']),principal)
     def batch(self,values):return [dict(key=k,value=v,expected_revision=self.row(k)['revision']) for k,v in values.items()]
 
-    def test_cursive_reopens_and_undo_restores_actual_existing_field(self):
-        change=self.set('appearance.cursive',False,self.slate)
-        self.assertFalse(Session(self.session.path,self.root).state['cursive'])
+    def test_session_field_reopens_and_undo_restores_actual_existing_field(self):
+        # 0.8.4: on the writing marker; the script setting (appearance.cursive) it used to take is retired (test_lit_controls)
+        change=self.set('appearance.writing_marker',False,self.slate)
+        self.assertFalse(Session(self.session.path,self.root).state['writing_marker'])
         self.call('ledger.settings.undo',{'id':change['id']})
-        self.assertTrue(Session(self.session.path,self.root).state['cursive'])
+        self.assertTrue(Session(self.session.path,self.root).state['writing_marker'])
 
     def test_integer_layout_ranges_and_page_names_validate_without_writes(self):
         original=self.session.path.read_bytes()

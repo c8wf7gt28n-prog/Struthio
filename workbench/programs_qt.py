@@ -409,7 +409,7 @@ class Margin(QWidget):
 
 
 class Caption(QWidget):
-    """A menu's small caption you may skip, in the Paper script (print when the script is off, shell2.cursive_on), at the menu's
+    """A menu's small caption you may skip, in the Paper script (print when the script is off, shell2.SCRIPT_ON), at the menu's
     far end from its anchor: the programs list's at its top, the System menu's at its foot (point-mirror images). One height
     in both menus: the script's line."""
     def __init__(self, menu, words):

@@ -18,7 +18,6 @@ records every definition's digest and the settings digest in `docs/GRAPHITE_0.1_
 | Canonical key | Visible control (Settings → root → group → label) | Default | Actual scope | Backing store |
 | --- | --- | --- | --- | --- |
 | agent.continue_when_closed | Assistant → Assignments → Continue assignments while Graphite is closed | true | Project private (owner only) | Kernel settings: ledger.agent.continue_when_closed |
-| appearance.cursive | Workspace → Appearance → Script for incidental text | true | Connected session profile | Session cursive |
 | appearance.writing_marker | Workspace → Appearance → Writing marker | true | Connected session profile | Session writing_marker |
 | brain.context | Assistant → Local model → Model context tokens | 2048 | Owner-controlled launch defaults in this workspace (owner only) | Kernel settings: ledger.brain.context |
 | brain.memory_mb | Assistant → Local model → Model memory cap (MiB) | 0 | Owner-controlled launch defaults in this workspace (owner only) | Kernel settings: ledger.brain.memory_mb |
@@ -78,6 +77,7 @@ options. `QSettings` is not used anywhere.
 | Existing field or control | Classification and treatment |
 | --- | --- |
 | Session `writing_marker` (new in DESKTOP-01) | Genuine boolean presentation preference, adapted as `appearance.writing_marker` (above). It is the reversible, quiet-motion-aware form of the owner's decorative X; it never changes editing behaviour, so it is public presentation state in `ledger.context` and a cloud proposal may Set it like favorites. |
+| Session `cursive` (the setting appearance.cursive, "Script for incidental text") | Retired in 0.8.4: the script it named is off in every look, so a change to it changed nothing on screen (the rule "a control is lit only when a press would do something"; its menu toggle went first). It left the registry and the recorded registry; a Session file that holds the field loads without it and the next save leaves it out; journal rows of it are shown in the history, never undone. Evidence: `tests_integrated/test_lit_controls.py`. |
 | Hardware category_views: Auto view, Details, Thumbnails | Adapted in INTEGRATION-01 as `hardware.category_views`; the editor now sizes its frame to its rows up to a cap that scales with the interface size, runs its Tab order pane by pane into Apply, and names each combo for assistive technology (DESKTOP-01, V-08 / ACC-06 / ACC-07 / ACC-10). |
 | Orange Book `auto_refresh` (`.ledger/orange_book_enabled.json`, checkbox "Automatic updates", default from `docs/orange_book/bindings.json`, env override `ARC_LEDGER_DISABLE_BOOK_WATCHER`) | Genuine boolean preference, previously absent from this table. Retained in its original control (Orange Book panel checkbox); not adapted in INTEGRATION-01, reason: project-private boolean with an env override and a watcher consumer; candidate for a later slice. |
 | Window geometry, dock state and engineering split state | Saved workspace arrangement, retained by the original restore paths. No scalar setting invented. |

@@ -84,7 +84,6 @@ def value(kernel, key, current_session=None):
     if key.startswith('favorites.'):
         from sdk.cli.arc1cli.command_bar import FAVORITE_KEYS, session_favorites
         return session_favorites(s.state)[FAVORITE_KEYS[key]]
-    if key=='appearance.cursive':return s.state.get('cursive',BY_KEY[key]['default'])
     if key.startswith('layout.'):return s.layout[key.split('.',1)[1]]
     if key.startswith('gemini.'):
         from .clip import preferences

@@ -71,7 +71,8 @@ class PresentationSettingsTests(unittest.TestCase):
 
     def test_public_batch_contract_is_unchanged_and_rejects_new_favorites(self):
         enum=control.FIELDS['ledger.settings.apply'][0]['changes']['items']['properties']['key']['enum']
-        self.assertEqual(len(enum),17);self.assertFalse(any(k.startswith('favorites.') for k in enum))
+        # 16 since 0.8.4: the retired script setting (appearance.cursive) left with its definition (tests_integrated/test_lit_controls.py)
+        self.assertEqual(len(enum),16);self.assertNotIn('appearance.cursive',enum);self.assertFalse(any(k.startswith('favorites.') for k in enum))
         result=self.kernel.dispatch('ledger.settings.apply',dict(changes=[dict(key='favorites.file',value=[],expected_revision=self.row('favorites.file')['revision'])]),self.owner)
         self.assertFalse(result['ok']);self.assertEqual(self.row('favorites.file')['stored'],list(DEFAULTS['File']))
 
