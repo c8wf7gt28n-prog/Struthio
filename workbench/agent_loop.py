@@ -110,6 +110,24 @@ with the card "The model suggests this. Nothing you said asks for it, so it's yo
 MODEL_PICK, the model's pick first, then the other acceptable steps, then Leave it), its proposal carrying an origin on
 every argument (the procedure's deduction; never the model). Your press takes it, recorded "picked by the model, approved
 by you".
+
+NEXT on the desk (0.8.7 slice B6, judgment.py's B6 block). A new choice is no longer asked through brain.ask's choice mode:
+when the gate's route is NEXT, next_turn asks one NEXT question through the turn contract (turns.ask: the switch
+"choosing", her clock's price and deadline, the grammar, the record brain.turn/1 with the raw odds, which route nothing).
+Shown: the acceptable options the gate kept, in the profile's order, at most four, each with its class and measures; the
+answer is "n why". Checked: the option is acceptable on a fresh read (it repeats no step that ran); the reason is true on
+the desk's own table (only reasons true for some option shown are offered; none: not asked, her default). Then, when a
+profile's options rest on a page it read (its outcome's 'source': {'title', 'text'}; the doorway checks it and the model
+sees only its model view), and the page has flagged lines or an option could be a change, the order test: ORDER, the
+same question with the options reversed. Outcomes: TAKEN (a read, or her own default: taken; a change on the model's pick
+alone: the card, B1), REASON_REFUSED or NOT_ACCEPTABLE or unusable (her default, said why), TRIPPED (the two orders split on
+a flagged page: the pick is refused, the trip is said once per page, her default if it is a read, else the buttons), SPLIT
+(they split with no flags: her question), LATE (B2's late rule; a late answer that differs is an offer), Stop while it is
+asked (the consultation recorded DROPPED, the Stop stands). Each is an inv_steps row: MODEL_CHOICE, operation 'turns.ask',
+with the turn ids, the options shown, the reasons offered, the pick, its reason, the outcome and the order test; or CHOICE
+when no turn was sent. turn_request() and ask_next() are module-level seams (a check passes a fake worker). The job path
+(ask_model, model_answer, resolve_choice, late_choice, watch_late, the 'pending' plan entry) stays only to resolve a
+choice left pending by an earlier build.
 """
 from __future__ import annotations
 import contextlib
@@ -161,7 +179,7 @@ DRIVERS = ('desktop', 'service')
 SETTING = 'agent.continue_when_closed'   # AGENT-02: the owner's setting (settings_registry; Kernel settings ledger.agent.continue_when_closed)
 DRIVEN_BY_DESKTOP = 'ASSIGNMENT_DRIVEN_BY_DESKTOP'
 STEPPABLE = ('READY', 'RUNNING')
-OPEN_KEYS = ('question', 'late', 'offer')   # 0.8.7 B2: kept in plan JSON while open
+OPEN_KEYS = ('question', 'late', 'offer', 'trips')   # 0.8.7 B2: kept in plan JSON while open; B6: 'trips', the pages whose trip was shown
 
 # request_profile: the words an owner uses for "numbers on the page" (owner decision 8). All three groups must be present.
 _VERB = re.compile(r'\b(add(?:s|ed|ing)?\s+up|total(?:s|led|ling)?|sum(?:s|med|ming)?(?:\s+up)?|how\s+much|count(?:s|ed|ing)?|tally|tot\s+up)\b')
@@ -528,7 +546,7 @@ def _step_once(kernel, ident, principal, driver='desktop'):
         complete(kernel, state, out.get('reason'))
         return report(kernel, state, step_row, state['reason'])
     words = None
-    if out.get('options'): words = choose_next(kernel, principal, state, out['options'], out.get('situation'))
+    if out.get('options'): words = choose_next(kernel, principal, state, out['options'], out.get('situation'), out.get('source'), out.get('goal'))   # B6: the page
     if state['state'] == 'WAITING': return report(kernel, state, step_row, words or state['reason'])   # 0.8.7 B2: yours to say
     if words is None:
         following = profile.next(state)
@@ -698,14 +716,14 @@ def take(state, option, at=0):
 
 def record_choice(kernel, state, principal, kind, operation, arguments, outcome, note, chosen, result=None):
     """The choice as an inv_steps row: kind CHOICE (no model) or MODEL_CHOICE (operation brain.ask, the job, the pick, the decision)."""
-    inputs = {'job': arguments['job']} if arguments.get('job') else {}
+    inputs = {'job': arguments['job']} if arguments.get('job') else {'turns': arguments['turns']} if arguments.get('turns') else {}   # B6: turns
     return investigations.record_step(kernel, state['investigation'], operation, arguments, principal, 'Choose the next step', outcome,
                                       note + ': ' + chosen['purpose'], {'chosen': chosen['key'], 'decision': note, **(result or {})}, inputs, kind=kind)
 
 
 def record_open(kernel, state, principal, kind, operation, arguments, outcome, words, result=None):
     """A choice row where nothing was taken (0.8.7 B2: a question, a late model with a change default, a late answer)."""
-    inputs = {'job': arguments['job']} if arguments.get('job') else {}
+    inputs = {'job': arguments['job']} if arguments.get('job') else {'turns': arguments['turns']} if arguments.get('turns') else {}   # B6: turns
     return investigations.record_step(kernel, state['investigation'], operation, arguments, principal, 'Choose the next step', outcome,
                                       words, {'chosen': None, 'decision': words, **(result or {})}, inputs, kind=kind)
 
@@ -734,25 +752,24 @@ def open_choices(state):
     return out
 
 
-def choose_next(kernel, principal, state, options, situation=None):
+def choose_next(kernel, principal, state, options, situation=None, source=None, goal=None):
     """At most four candidate next steps. Worth asking? (0.8.7 B2) first: the gate takes the forced, either-way, covering-read and
     bounded-loss cases itself, and puts a choice that needs your authority to you, never to the model; only a real tie goes to
-    the model, over the front. The default is the profile's rule (default_of). The model is asked only when more than one
-    option is acceptable and one is READY (ask_model); otherwise, or when asking fails, the default is taken and the record
-    says why. Returns words for the caller; a pending model answer is resolved by the next agent.step."""
+    the model, over the front. The default is the profile's rule (default_of). 0.8.7 B6: the model is asked through the turn
+    contract (next_turn: a NEXT turn, its reason checked on the desk's own table, then the order test when due); with no model,
+    or when the question cannot pay, the default is taken and the record says why. Returns words for the caller."""
     from . import judgment
     options = normalise_options(options)
     if not options: return None
     default = default_of(options); acceptable = [o for o in options if o['acceptable']]
     note = 'no model loaded; default taken'
     if len(acceptable) > 1:
-        deadline = None
         try:
             clock, key = model_clock(kernel)
-            cost = judgment.asking_cost_ms(clock, key); deadline = judgment.next_deadline_ms(clock, key)
+            cost = judgment.asking_cost_ms(clock, key)
             decision = judgment.gate(scored(kernel, acceptable), cost_ms=cost, model_ready=True)
-        except (ValueError, TypeError) as exc:     # measures the gate cannot read: asked as before, and the record says so
-            decision = None; note = 'the options could not be weighed (%s); no model loaded; default taken' % words_of(exc)
+        except (ValueError, TypeError) as exc:     # measures the gate cannot read: not asked, and the record says so
+            decision = None; note = 'the options could not be weighed (%s); default taken' % words_of(exc)
         by = {o['key']: o for o in acceptable}
         record = {'options': option_keys(options)}
         if decision is not None: record['gate'] = decision.as_record()
@@ -766,22 +783,170 @@ def choose_next(kernel, principal, state, options, situation=None):
             ask_you(state, [by[k] for k in decision.buttons if k in by], decision.words, 'OWNER')
             record_open(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, record, 'ASKED', decision.words + ' (' + decision.fold + '); nothing taken')
             return state['reason']
-        # NEXT: over the front when the gate removed dominated options, else over the options as the profile gave them
-        front = [by[k] for k in decision.front] if decision is not None and decision.removed else options
-        prompt = choice_prompt(situation or state['request'], front)
-        try: job = ask_model(kernel, principal, prompt, len(front))
-        except Exception as exc: job, note = None, 'the model could not be asked (%s); default taken' % words_of(exc)
-        if job:
-            if deadline is None:
-                clock, key = model_clock(kernel); deadline = judgment.next_deadline_ms(clock, key)
-            state['pending'] = {'job': str(job), 'options': front, 'asked': time.time(), 'asked_ms': now_ms(), 'deadline_ms': int(deadline),
-                                'prompt': prompt}
-            state['model_job'] = str(job)
-            return 'Asked the model to pick among %d steps' % len(front)
+        if decision is not None:
+            # NEXT (0.8.7 B6): the acceptable options the gate kept, in the profile's order, at most four
+            shown = [o for o in options if o['acceptable'] and o['key'] in decision.front][:judgment.NEXT_SHOWN_MOST]
+            if len(shown) > 1: return next_turn(kernel, principal, state, options, shown, default, situation, source, goal, record)
     else: note = 'one acceptable option; taken' if acceptable else 'no option marked acceptable; the first taken'
     take(state, default)
     record_choice(kernel, state, principal, 'CHOICE', CHOICE_OPERATION, {'options': option_keys(options), 'chosen': default['key']}, 'DONE', note, default)
     return 'Next: ' + default['purpose']
+
+
+# -- 0.8.7 B6 · NEXT on the desk, with the order test and the tripwire ---------------------------------------------------------------
+# The model's question about which step comes next goes through the turn contract (turns.ask), as every model question does:
+# judgment.NEXT, then judgment.ORDER when the order test is due (a page the doorway flagged, or a sourced choice that could
+# lead to a change). The job path further down (ask_model, model_answer, resolve_choice, late_choice, watch_late) is kept only
+# to resolve a choice left pending by a build before this one; no new choice is asked that way.
+
+NOT_SENT_WORDS = {'SWITCH_OFF': 'choosing between next steps is switched off', 'NO_HELP': 'the model has not changed a choice of next step this month',
+                  'CEILING_TURNS': 'this request has had its model turns', 'CEILING_TIME': 'this request has had its model time',
+                  'OVER_CAP': 'the question is too long to ask', 'OVER_CONTEXT': 'the question does not fit the model',
+                  'FORGETTING': 'the model is forgetting a turn'}
+
+
+def turn_request(kernel, principal, state=None):
+    """The turn contract's request for one choice (turns.request_for: the live, selected local model, her clock, your switches);
+    Stop on the assignment cancels a turn in flight. Smoke scripts patch this with a fake worker."""
+    from . import turns
+    cancelled = (lambda: stopped_now(kernel, state)) if state else None
+    try: return turns.request_for(kernel, principal, cancelled=cancelled)
+    except Exception: return turns.TurnRequest(port=None, cancelled=cancelled)
+
+
+def ask_next(question, request, first_time=True):
+    """judgment.ask_next, here so a check can watch it: NEXT, then ORDER when due. It takes nothing itself."""
+    from . import judgment
+    return judgment.ask_next(question, request, first_time)
+
+
+def stopped_now(kernel, state):
+    """True when the assignment was stopped (agent.stop) since this step began."""
+    try:
+        with opened(kernel) as db: row = db.execute('SELECT state FROM agent_assignments WHERE id=?', (state['id'],)).fetchone()
+        return bool(row) and row[0] == 'STOPPED'
+    except Exception: return False
+
+
+def repeats(state, option):
+    """The option's step already ran with the same operation and arguments (a fresh read: it would repeat a step)."""
+    step = option.get('step') or {}
+    return any(s.get('outcome') == 'DONE' and s.get('operation') == step.get('operation') and (s.get('arguments') or {}) == (step.get('arguments') or {})
+               for s in state['plan'][:state['cursor']])
+
+
+def source_door(source):
+    """(door, title, key) of the page a choice rests on: a profile's {'title', 'text'} at the doorway; (None, '', None) for none."""
+    if not isinstance(source, dict) or not isinstance(source.get('text'), str) or not source['text'].strip(): return None, '', None
+    import hashlib
+    from . import doorway
+    text = source['text'][:200000]
+    return doorway.scan(text), str(source.get('title') or 'this page')[:120], hashlib.sha256(text.encode('utf-8')).hexdigest()[:16]
+
+
+def next_turn(kernel, principal, state, options, shown, default, situation=None, source=None, goal=None, record=None):
+    """The NEXT question over `shown` (the gate's front, two to four acceptable options in the profile's order): asked, checked
+    and, when due, asked again reversed; then taken, offered as a card, put to you, or her default, each recorded."""
+    from . import judgment, stacy_hand
+    by = {o['key']: o for o in shown}
+    door, title, page_key = source_door(source)
+    trips = list(state.get('trips') or [])
+    q = judgment.next_question(scored(kernel, shown), goal=goal or '', now=situation or '', words=state['request'], door=door, title=title,
+                               default_key=default['key'] if default['key'] in by else None,
+                               fresh=[o['key'] for o in shown if not repeats(state, o)])
+    her = default if default['key'] in by else by[q.default]
+    request = turn_request(kernel, principal, state)
+    asked = ask_next(q, request, page_key not in trips)
+    state['model_turns'] += sum(1 for a in asked.answers if a.said is not None)
+    arguments = {**(record or {}), 'kind': 'NEXT', 'turns': asked.turn_ids(), 'options': option_keys(options), 'shown': [o['key'] for o in shown],
+                 'reasons': list(q.reasons), 'pick': asked.picked, 'why': asked.why, 'outcome': asked.outcome, 'order': asked.order,
+                 'sourced': q.sourced, 'flagged': list(q.flagged), 'default': her['key']}
+    result = {'turns': asked.turn_ids(), 'pick': asked.picked, 'why': asked.why, 'outcome': asked.outcome, 'order': asked.order}
+    model = 'MODEL_CHOICE' if asked.answers and asked.answers[0].outcome != 'NOT_SENT' else 'CHOICE'
+    operation = 'turns.ask' if model == 'MODEL_CHOICE' else CHOICE_OPERATION
+
+    def default_taken(note, outcome='DONE'):
+        take(state, her)
+        record_choice(kernel, state, principal, model, operation, {**arguments, 'chosen': her['key']}, outcome, note, her, result)
+        return 'Next: ' + her['purpose']
+
+    if asked.outcome == 'NOT_ASKED':
+        if getattr(request, 'port', None) is None: return default_taken('no model loaded; default taken')
+        return default_taken('each option wins on something the desk cannot measure, so the model is not asked; default taken')
+    if asked.reason == 'STOPPED': return dropped(kernel, principal, state, arguments, result)
+    if asked.outcome == 'NOT_SENT':
+        why = NOT_SENT_WORDS.get(asked.reason)
+        return default_taken('no model loaded; default taken' if why is None else 'the model was not asked (%s); default taken' % why)
+    if asked.outcome == 'FAILED':
+        return default_taken('the model ended without an answer (%s); default taken' % asked.reason, 'FAILED')
+    if asked.outcome == 'LATE': return late_turn(kernel, principal, state, shown, her, asked, arguments, result)
+    if asked.outcome == 'REFUSED':
+        if asked.reason == 'NOT_ACCEPTABLE': note = 'model chose %s, not acceptable here, default taken' % asked.picked
+        elif asked.reason == 'REASON_REFUSED': note = asked.words + ' Default taken'
+        else: note = 'model answer unusable, default taken'
+        return asked.words + ' ' + default_taken(note)
+    if asked.outcome == 'TRIPPED':
+        if page_key and page_key not in trips: state['trips'] = trips + [page_key]
+        if scored(kernel, [her])[0].undo == judgment.READ:
+            take(state, her)
+            record_choice(kernel, state, principal, 'MODEL_CHOICE', 'turns.ask', {**arguments, 'chosen': her['key']}, 'TRIPPED', asked.words + ' Default taken', her, result)
+            return asked.words + ' Next: ' + her['purpose']
+        ask_you(state, [her] + [o for o in shown if o['key'] != her['key']], asked.words, 'TRIPPED')
+        record_open(kernel, state, principal, 'MODEL_CHOICE', 'turns.ask', arguments, 'TRIPPED', asked.words + ' Nothing taken', result)
+        return state['reason']
+    if asked.outcome == 'SPLIT':
+        first = by.get(asked.picked)
+        ask_you(state, [her] + [o for o in shown if o['key'] != her['key']], asked.words, 'ORDER')
+        if first is not None and first['key'] != her['key']:
+            state['question']['model_lean'] = {'key': first['key'], 'words': 'The model leaned to “%s”, then changed its mind when the options moved.' % first['purpose']}
+        record_open(kernel, state, principal, 'MODEL_CHOICE', 'turns.ask', arguments, 'ASKED', asked.words + ' Nothing taken', result)
+        return state['reason']
+    chosen = by[asked.picked]
+    if asked.outcome == 'OFFER' or (pick_basis(chosen, her) == stacy_hand.MODEL_PICK and not pick_is_hers(chosen)):
+        # B1: a change on the model's pick alone is never done: a card, the model's pick first, then the others, then Leave it
+        ask_you(state, [chosen] + [o for o in shown if o['key'] != chosen['key']], stacy_hand.MODEL_PICK_CARD, 'MODEL_PICK')
+        state['question'].update(model_pick=chosen['key'], proposal=pick_proposal(state, chosen))
+        record_open(kernel, state, principal, 'MODEL_CHOICE', 'turns.ask', arguments, 'ASKED',
+                    stacy_hand.MODEL_PICK_CARD + ' (model chose option %d; nothing taken)' % ([o['key'] for o in shown].index(chosen['key']) + 1),
+                    {**result, 'basis': stacy_hand.MODEL_PICK, 'offered': chosen['key']})
+        return state['reason']
+    take(state, chosen)
+    note = 'model chose option %d because %s, which is so%s' % ([o['key'] for o in shown].index(chosen['key']) + 1, judgment.CLAIM[asked.why],
+                                                              '; it chose the same when the options moved' if asked.order == 'AGREED' else '')
+    record_choice(kernel, state, principal, 'MODEL_CHOICE', 'turns.ask', {**arguments, 'chosen': chosen['key'], 'basis': asked.basis}, 'DONE', note, chosen, result)
+    return asked.words
+
+
+def dropped(kernel, principal, state, arguments, result):
+    """Stopped while the model was being asked: the consultation stays on the record, nothing is taken, and the stored Stop stands."""
+    record_open(kernel, state, principal, 'MODEL_CHOICE', 'turns.ask', arguments, 'DROPPED', 'stopped before the model answered; nothing taken', result)
+    with opened(kernel) as db: ensure(db); fresh = load(db, state['id'], state['owner'])
+    reason = fresh['reason'] + (' · the open model choice was dropped' if fresh['state'] == 'STOPPED' else '')
+    state.update(state=fresh['state'], reason=reason, paused_reason=fresh.get('paused_reason'), question=None, late=None, offer=None)
+    return state['reason']
+
+
+def late_turn(kernel, principal, state, shown, her, asked, arguments, result):
+    """The model is late (design 4.4): her default when it is a read or navigation that can be put back, else the buttons. A late
+    answer that arrived was checked by turns.ask; when it differs it is offered beside hers and changes nothing."""
+    from . import judgment
+    options = scored(kernel, shown); verdict = judgment.late(options, her['key']); by = {o['key']: o for o in shown}
+    if verdict.action == 'TAKE':
+        chosen = by[verdict.key]; take(state, chosen)
+        record_choice(kernel, state, principal, 'MODEL_CHOICE', 'turns.ask', {**arguments, 'chosen': chosen['key']}, 'LATE', verdict.words.rsplit(':', 1)[0], chosen, result)
+        words = verdict.words
+    else:
+        ask_you(state, [by[k] for k in verdict.buttons if k in by], verdict.words, 'LATE')
+        record_open(kernel, state, principal, 'MODEL_CHOICE', 'turns.ask', arguments, 'LATE', verdict.words + ' nothing taken', result)
+        words = state['reason']
+    if asked.late_view in by:
+        outcome, said = judgment.late_answer(options, verdict.key, asked.late_view)
+        if outcome == 'OFFER':
+            if state.get('question'): state['question']['model_lean'] = {'key': asked.late_view, 'words': said}
+            else: state['offer'] = {'option': by[asked.late_view], 'words': said}
+        record_open(kernel, state, principal, 'MODEL_CHOICE', 'turns.ask', {**arguments, 'late_answer': True}, 'LATE_' + outcome, said, {**result, 'late_pick': asked.late_view})
+        if outcome != 'UNUSABLE' and verdict.action == 'TAKE': words = words + ' ' + said
+    return words
 
 
 def pending_deadline(kernel, pending):

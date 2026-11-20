@@ -1,12 +1,13 @@
 """The resident agent loop (HATCH AGENT-01): an assignment is an investigation worked one bounded, recorded step at a time.
 
 Nothing here starts a worker, a job, a model or a native tool: Kernel.launch and Kernel.submit are held for every case, and the
-model branch runs only through patched ask_model / model_answer (the live path is not exercised here).
+model branch runs only through a fake worker given as turn_request (0.8.7 B6: the NEXT question goes through the turn contract,
+turns.ask; the live path is not exercised here).
 """
 import json,os,tempfile,time,unittest
 from pathlib import Path
 from unittest.mock import patch
-from workbench import agent_loop as loop,agent_profiles as profiles,investigations
+from workbench import agent_loop as loop,agent_profiles as profiles,investigations,turns,fake_worker
 from workbench.engineering_kernel import Kernel,operator,Principal,CAPABILITIES
 from workbench.engineering_cli import schemas
 
@@ -28,13 +29,33 @@ def looks(n):
 
 
 class Choosy(profiles.OperationSequence):
-    """The given sequence, but after its first step it offers three next looks; which are acceptable is set per case."""
-    def __init__(self,acceptable):super().__init__();self.acceptable=acceptable
+    """The given sequence, but after its first step it offers three next looks; which are acceptable is set per case (0.8.7 B6:
+    and, when given, the desk's measures of each look)."""
+    def __init__(self,acceptable,measures=None):super().__init__();self.acceptable=acceptable;self.measures=measures
 
     def interpret(self,step,result,state,kernel,principal):
         if step['key']!='step1':return {}
         options=[{'key':key,'purpose':purpose,'acceptable':ok,'step':profiles.step(key,purpose,'ledger.machine',{'section':key})} for (key,purpose),ok in zip(LOOKS,self.acceptable)]
+        if self.measures:
+            for o in options:o['measures']=dict(self.measures[o['key']])
         return {'options':options,'situation':'A page with three masses on it'}
+
+
+# 0.8.7 B6: memory is the quickest, storage settles the most (and is her default: the most settled read); a minute keeps it a real tie
+SETTLES={'memory':{'settles':'1/5','ms':1000},'storage':{'settles':'1','ms':60000},'tools':{'settles':'0','ms':1000}}
+
+
+class Primed(fake_worker.FakeWorker):
+    """The fake worker with the kind's brief kept, as brain_briefs primes it on the real worker; after a turn, its messages 1 to 3."""
+    def kept(self,messages):
+        if self.calls and self.calls[-1]['messages'][:3]==messages[:3]:return self.count(messages[:3])
+        return self.count(messages[:1])
+
+
+def fake_request(script):
+    """A turn request on a fake worker (0.8.7 B6): what agent_loop.turn_request gives when a model is loaded."""
+    clock=fake_worker.VirtualTime();worker=Primed(script,time=clock,read_rate=1000)
+    return turns.TurnRequest(port=worker,now_ms=clock),worker
 
 
 class Loop(unittest.TestCase):
@@ -207,51 +228,59 @@ class Loop(unittest.TestCase):
 
     # -- choosing among options ------------------------------------------------------------------------------------------------
 
-    def test_choose_next_takes_the_model_pick_when_acceptable_after_polling(self):
-        with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((True,True,False))}):
+    def test_choose_next_takes_the_model_pick_when_its_reason_holds(self):
+        # 0.8.7 B6: the model is asked one NEXT question through the turn contract (no brain.ask job, no polling); its reason is
+        # checked on the desk's own table before the pick is taken
+        with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((True,True,False),SETTLES)}):
             a=self.assign(seq(('ledger.machine',{'section':'processor'},'First look'),('ledger.machine',{'section':'memory'},'Last look')))
-            with patch.object(loop,'ask_model',return_value=JOB) as asked,patch.object(loop,'model_answer',side_effect=[None,{'choice':2,'text':'Option 2','state':'Completed'}]) as answered:
+            request,worker=fake_request(['1 cheapest'])
+            with patch.object(loop,'turn_request',return_value=request),patch.object(loop,'ask_model',side_effect=AssertionError('no brain.ask job')):
                 out=self.call('agent.step',{'id':a['id']})
-                self.assertEqual((out['step']['purpose'],out['next']),('First look','Asked the model to pick among 3 steps'))
-                self.assertEqual(out['assignment']['doing_now'],'Waiting for the model to pick the next step')
-                asked.assert_called_once();prompt=asked.call_args[0][2]
-                self.assertLess(len(prompt),600);self.assertIn('A page with three masses',prompt);self.assertEqual(asked.call_args[0][3],3)
-                self.assertEqual([line[:2] for line in prompt.splitlines()[-3:]],['1.','2.','3.'])
-                waiting=self.call('agent.step',{'id':a['id']});self.assertIsNone(waiting['step']);self.assertEqual(waiting['assignment']['state'],'RUNNING');self.assertIn('Waiting for the model',waiting['next'])
-                out=self.call('agent.step',{'id':a['id']});self.assertEqual((out['step']['key'],out['step']['purpose']),('storage','Look at storage'))
-                self.assertTrue(out['assignment']['model_used']);self.assertEqual(answered.call_count,2);self.assertEqual(answered.call_args[0][2],JOB)
+            self.assertEqual((out['step']['purpose'],out['next']),('First look','Next: Look at memory. The model chose it because it is the quickest, which is so.'))
+            self.assertEqual(len(worker.calls),1);asked=worker.calls[0]
+            self.assertIn('A page with three masses',asked['messages'][1]['content'])
+            self.assertEqual([line[:2] for line in asked['messages'][3]['content'].splitlines()[1:3]],['1.','2.'])   # the acceptable looks only
+            self.assertNotIn('tools',asked['messages'][3]['content']);self.assertIn('cheapest',asked['grammar']);self.assertNotIn('keeps_undo',asked['grammar'])
+            out=self.call('agent.step',{'id':a['id']});self.assertEqual((out['step']['key'],out['step']['purpose']),('memory','Look at memory'))
+            self.assertTrue(out['assignment']['model_used'])
             rows=self.steps_of(a['investigation']);self.assertEqual([r['kind'] for r in rows],['STEP','MODEL_CHOICE','STEP'])
-            program=json.loads(rows[1]['program']);self.assertEqual((program['operation'],program['arguments']['job'],program['arguments']['choices'],program['arguments']['mode']),('brain.ask',JOB,3,'choice'))
-            self.assertEqual([o['key'] for o in program['arguments']['options']],['memory','storage','tools']);self.assertEqual(rows[1]['summary'],'model chose option 2: Look at storage')
-            self.assertEqual(json.loads(rows[1]['inputs']),{'job':JOB});self.assertEqual(rows[1]['outcome'],'DONE')
-            self.assertEqual(self.call('investigation.sheet',{'id':a['investigation']})['attempted'][-1]['purpose'],'Look at storage')  # choices are not 'attempted' operations
+            program=json.loads(rows[1]['program']);arguments=program['arguments']
+            self.assertEqual((program['operation'],arguments['kind'],arguments['shown'],arguments['pick'],arguments['why']),('turns.ask','NEXT',['memory','storage'],'memory','cheapest'))
+            self.assertEqual([o['key'] for o in arguments['options']],['memory','storage','tools'])
+            self.assertEqual(rows[1]['summary'],'model chose option 1 because it is the quickest, which is so: Look at memory')
+            self.assertEqual(json.loads(rows[1]['inputs']),{'turns':list(request.ledger.rows)});self.assertEqual(rows[1]['outcome'],'DONE')
+            self.assertEqual(self.call('investigation.sheet',{'id':a['investigation']})['attempted'][-1]['purpose'],'Look at memory')  # choices are not 'attempted' operations
             done=self.call('agent.run',{'id':a['id']});self.assertEqual((done['assignment']['state'],[s['purpose'] for s in done['ran']]),('DONE',['Last look']))
         self.assertEqual(self.jobs(),0)
 
     def test_choose_next_default_paths_are_recorded_in_words(self):
-        def fresh(acceptable):
+        def fresh(acceptable,first='processor'):
             with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy(acceptable)}):
-                a=self.assign(seq(('ledger.machine',{'section':'processor'},'First look'),('ledger.machine',{'section':'memory'},'Last look')))
+                a=self.assign(seq(('ledger.machine',{'section':first},'First look'),('ledger.machine',{'section':'memory'},'Last look')))
                 return a['id'],a['investigation']
-        # the model's pick is not acceptable here: the default is taken and the record says so
+
+        def asked(ident,script):   # 0.8.7 B6: a fake worker answers the NEXT question; the looks carry the desk's measures
+            request,worker=fake_request(script)
+            with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((True,True,False),SETTLES)}),patch.object(loop,'turn_request',return_value=request):
+                first=self.call('agent.step',{'id':ident});return first,self.call('agent.step',{'id':ident})
+        # the model picks a look that would repeat a step that ran (not acceptable on a fresh read): her default (storage) is taken
+        ident,inv=fresh((True,True,False),'memory')
+        first,out=asked(ident,['1 cheapest'])
+        self.assertEqual(out['step']['key'],'storage');self.assertTrue(out['assignment']['model_used'])
+        choice=self.steps_of(inv)[1];self.assertEqual((choice['kind'],choice['summary'],choice['outcome']),('MODEL_CHOICE','model chose memory, not acceptable here, default taken: Look at storage','DONE'))
+        # a reason that is not so on the desk's table: refused out loud, her default taken
         ident,inv=fresh((True,True,False))
-        with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((True,True,False))}),patch.object(loop,'ask_model',return_value=JOB),\
-             patch.object(loop,'model_answer',return_value={'choice':3,'text':'Option 3','state':'Completed'}):
-            self.call('agent.step',{'id':ident});out=self.call('agent.step',{'id':ident})
-        self.assertEqual(out['step']['key'],'memory');self.assertTrue(out['assignment']['model_used'])
-        choice=self.steps_of(inv)[1];self.assertEqual((choice['kind'],choice['summary'],choice['outcome']),('MODEL_CHOICE','model chose 3, not acceptable here, default taken: Look at memory','DONE'))
-        # an answer without a number in range is unusable
+        first,out=asked(ident,['1 settles_most'])
+        self.assertEqual(out['step']['key'],'storage')
+        self.assertTrue(first['next'].startswith('The model chose “Look at memory” because it settles the most outcomes. Another step settles more, so I did not take that on its word.'),first['next'])
+        # an answer not in the shape asked is unusable
         ident,inv=fresh((True,True,False))
-        with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((True,True,False))}),patch.object(loop,'ask_model',return_value=JOB),\
-             patch.object(loop,'model_answer',return_value={'choice':None,'text':'I cannot decide','state':'Completed'}):
-            self.call('agent.step',{'id':ident});out=self.call('agent.step',{'id':ident})
-        self.assertEqual(out['step']['key'],'memory');self.assertEqual(self.steps_of(inv)[1]['summary'],'model answer unusable, default taken: Look at memory')
-        # the job ended without an answer: FAILED consultation, default taken, no model turn counted
+        first,out=asked(ident,['I cannot decide'])
+        self.assertEqual(out['step']['key'],'storage');self.assertEqual(self.steps_of(inv)[1]['summary'],'model answer unusable, default taken: Look at storage')
+        # the worker failed: FAILED consultation, default taken, no model turn counted
         ident,inv=fresh((True,True,False))
-        with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((True,True,False))}),patch.object(loop,'ask_model',return_value=JOB),\
-             patch.object(loop,'model_answer',return_value={'choice':None,'text':'','state':'Failed'}):
-            self.call('agent.step',{'id':ident});out=self.call('agent.step',{'id':ident})
-        choice=self.steps_of(inv)[1];self.assertEqual((choice['outcome'],out['step']['key'],out['assignment']['model_used']),('FAILED','memory',False));self.assertIn('ended without an answer',choice['summary'])
+        first,out=asked(ident,[{'fail':'BROKEN'}])
+        choice=self.steps_of(inv)[1];self.assertEqual((choice['outcome'],out['step']['key'],out['assignment']['model_used']),('FAILED','storage',False));self.assertIn('ended without an answer',choice['summary'])
         # no model loaded: the default at once, kind CHOICE
         ident,inv=fresh((True,True,False))
         with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((True,True,False))}),patch.object(loop,'ask_model',return_value=None):
@@ -263,11 +292,16 @@ class Loop(unittest.TestCase):
         with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((False,True,False))}),patch.object(loop,'ask_model',side_effect=AssertionError('must not ask')):
             self.call('agent.step',{'id':ident});out=self.call('agent.step',{'id':ident})
         self.assertEqual(out['step']['key'],'storage');self.assertIn('one acceptable option; taken',self.steps_of(inv)[1]['summary'])
-        # Stop while the model is being asked: the consultation is recorded as dropped, nothing is taken
+        # Stop while the model is being asked: the consultation is recorded as dropped, nothing is taken (0.8.7 B6: the Stop lands
+        # while the turn runs; the fake worker stops the assignment and is then cancelled)
         ident,inv=fresh((True,True,False))
-        with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((True,True,False))}),patch.object(loop,'ask_model',return_value=JOB):
+
+        def stopped_meanwhile(messages,grammar):
+            loop.stop(self.kernel,{'id':ident},self.owner);return {'fail':'STOPPED'}
+        request,worker=fake_request([stopped_meanwhile])
+        with patch.dict(profiles.PROFILES,{'operation_sequence':Choosy((True,True,False),SETTLES)}),patch.object(loop,'turn_request',return_value=request):
             self.call('agent.step',{'id':ident})
-        stopped=self.call('agent.stop',{'id':ident})['assignment'];self.assertIn('model choice was dropped',stopped['reason'])
+        stopped=self.call('agent.status',{'id':ident})['assignments'][0];self.assertEqual(stopped['state'],'STOPPED');self.assertIn('model choice was dropped',stopped['reason'])
         rows=self.steps_of(inv);self.assertEqual([(r['kind'],r['outcome']) for r in rows],[('STEP','DONE'),('MODEL_CHOICE','DROPPED')])
         self.assertEqual(self.jobs(),0)
 

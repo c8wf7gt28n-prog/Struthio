@@ -4,19 +4,27 @@ A disposable workspace holds a Files folder and an Ingress folder with matching 
 choose the profile (fits; no model); agent.assign + agent.run work it to DONE through registered operations only: receiving.status,
 files.find, ledger.browse (the Ingress listing), files.get (at most four reads, inside Files) and the two document writes.
 Nothing here starts a worker, a job, a model or a native tool: Kernel.launch and Kernel.submit are held for every case, and the
-model's advice runs only through a patched ask_model / model_answer.
+model's advice runs only through a fake worker given as agent_loop.turn_request (0.8.7 B6: the NEXT question goes through the
+turn contract, turns.ask).
 """
 import json,os,re,tempfile,time,unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
-from workbench import agent_loop as loop,agent_profiles as profiles,profile_files as pf
+from workbench import agent_loop as loop,agent_profiles as profiles,profile_files as pf,turns,fake_worker
 from workbench.engineering_kernel import Kernel,operator
 from workbench.engineering_cli import schemas
 
 JOB='a'*32
 REQUEST='find files about pellets'
 ALLOWED={'receiving.status','files.find','ledger.browse','files.get','documents.create','documents.edit'}
+
+
+class Primed(fake_worker.FakeWorker):
+    """The fake worker with the kind's brief kept, as brain_briefs primes it on the real worker; after a turn, its messages 1 to 3."""
+    def kept(self,messages):
+        if self.calls and self.calls[-1]['messages'][:3]==messages[:3]:return self.count(messages[:3])
+        return self.count(messages[:1])
 
 
 class Words(unittest.TestCase):
@@ -139,7 +147,8 @@ class Assignment(unittest.TestCase):
         a=self.assign()
         self.assertEqual((a['state'],a['profile'],a['steps_used']),('READY','files_about',0))
         self.assertEqual(self.call('investigation.sheet',{'id':a['investigation']})['objective'],pf.PROFILE.words)
-        with patch.object(loop,'ask_model',return_value=None) as asked:   # no model loaded: the default (write the page) is taken
+        # no model loaded: the NEXT question finds none (0.8.7 B6: asked through the turn contract), so the default (write the page) is taken
+        with patch.object(loop,'ask_next',wraps=loop.ask_next) as asked,patch.object(loop,'ask_model',side_effect=AssertionError('no brain.ask job')):
             out=self.call('agent.run',{'id':a['id']})
         row=out['assignment'];self.assertEqual(row['state'],'DONE',row)
         self.assertEqual(row['reason'],'Found 5 files about pellets; the findings page is in Documents');self.assertEqual(row['doing_now'],row['reason'])
@@ -171,7 +180,10 @@ class Assignment(unittest.TestCase):
     def test_the_models_advice_reads_more_but_never_more_than_four(self):
         for n in range(4):self.put('Coop/pellet batch %d.txt'%n,'Batch %d of pellets.\n'%n)
         a=self.assign()
-        with patch.object(loop,'ask_model',return_value=JOB) as asked,patch.object(loop,'model_answer',return_value={'choice':2,'text':'2','state':'Completed'}):
+        # 0.8.7 B6: the model answers each NEXT question "2 keeps_undo" (read one more: a read is the easiest to put back, which is so)
+        def model_loaded(*args,**more):
+            clock=fake_worker.VirtualTime();return turns.TurnRequest(port=Primed(['2 keeps_undo'],time=clock,read_rate=1000),now_ms=clock)
+        with patch.object(loop,'turn_request',side_effect=model_loaded),patch.object(loop,'ask_next',wraps=loop.ask_next) as asked:
             out=self.call('agent.run',{'id':a['id']})
         row=out['assignment'];self.assertEqual(row['state'],'DONE',row);self.assertIs(row['model_used'],True)
         programs=self.programs(a['investigation']);self.assert_reads_stay_inside_files(programs)
@@ -182,7 +194,7 @@ class Assignment(unittest.TestCase):
 
     def test_nothing_found_asks_a_question_and_writes_no_page(self):
         a=self.assign('find documents about unicorns')
-        with patch.object(loop,'ask_model',side_effect=AssertionError('no choice when nothing matched')):
+        with patch.object(loop,'ask_next',side_effect=AssertionError('no choice when nothing matched')):
             row=self.call('agent.run',{'id':a['id']})['assignment']
         self.assertEqual(row['state'],'DONE');self.assertTrue(row['reason'].startswith('Found no files about unicorns in Files or Ingress (looked at '),row['reason'])
         self.assertEqual([n['kind'] for n in row['needs_you']],['QUESTION']);self.assertIn('“unicorn”',row['needs_you'][0]['text'])
@@ -191,7 +203,7 @@ class Assignment(unittest.TestCase):
 
     def test_a_match_only_in_ingress_writes_the_page_and_asks_nothing(self):
         a=self.assign('find files about invoices')   # nothing in Files carries “invoice”; Ingress holds “Pellets invoice.pdf”
-        with patch.object(loop,'ask_model',side_effect=AssertionError('no choice: nothing in Files to read')):
+        with patch.object(loop,'ask_next',side_effect=AssertionError('no choice: nothing in Files to read')):
             row=self.call('agent.run',{'id':a['id']})['assignment']
         self.assertEqual(row['state'],'DONE',row);self.assertEqual(row['reason'],'Found 1 file about invoices; the findings page is in Documents')
         self.assertEqual(row['needs_you'],[])   # the QUESTION waits for Ingress and is not asked when Ingress has the match
@@ -203,7 +215,7 @@ class Assignment(unittest.TestCase):
     def test_nothing_in_files_and_ingress_not_listed_still_asks_the_question(self):
         import shutil
         a=self.assign('find documents about unicorns')
-        with patch.object(loop,'ask_model',side_effect=AssertionError('no choice when nothing matched')):
+        with patch.object(loop,'ask_next',side_effect=AssertionError('no choice when nothing matched')):
             keys=[self.call('agent.step',{'id':a['id']})['step']['key'] for _ in range(2)];self.assertEqual(keys,['where','find'])
             self.assertEqual(self.call('agent.status',{'id':a['id']})['assignments'][0]['needs_you'],[])   # held back while Ingress is to be listed
             shutil.rmtree(self.ingress)                                                                     # the listing fails
@@ -214,7 +226,7 @@ class Assignment(unittest.TestCase):
 
     def test_a_short_word_is_searched_whole(self):
         a=self.assign('find files about news')   # the roof note says “needs new felt”: “new” must not count as news
-        with patch.object(loop,'ask_model',side_effect=AssertionError('no choice when nothing matched')):
+        with patch.object(loop,'ask_next',side_effect=AssertionError('no choice when nothing matched')):
             row=self.call('agent.run',{'id':a['id']})['assignment']
         self.assertEqual(row['state'],'DONE');self.assertTrue(row['reason'].startswith('Found no files about news in Files or Ingress'),row['reason'])
         self.assertEqual([p['arguments']['text'] for p in self.programs(a['investigation']) if p['operation']=='files.find'],['news'])
