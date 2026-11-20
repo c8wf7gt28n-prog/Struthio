@@ -24,10 +24,12 @@ words behind every change are in `NOTES.md` under "Directions since the specific
 
 ## Changed on 20 November by the owner
 
-After 0.8.4 the order is: **0.8.5** = maths in lines + skins and Kas by day (the old 0.8.8 and 0.8.5), because the maths
-is the root the goals stand on; **0.8.6** = her door on the Field + goals, quarantine and the web (the old 0.8.6 and
-0.8.9); then her hand in LibreOffice (the old 0.8.7), then the rest. New tests and reviews only for the safety rules.
-`wip/BUILD_STATE.md` has the details. The table below is the order of 19 November, kept for its descriptions.
+"Let's do maths, then join floor/door/hand into one complex but united pass. Then add programs like web, librra, gadot
+and so on." So after 0.8.4: **0.8.5** maths in lines; **0.8.6** one united pass: the floor (split, drills, budgets), her
+door on the Field with its goals, and changes through her hand; **0.8.7 on** programs, one per pass: the web (quarantine
+first), LibreOffice, Godot, GIMP. The day look, her question and 0.9.0's gates come after. New tests and reviews only for
+the safety rules, and the maths' own vectors. `wip/BUILD_STATE.md` has the details. The table below is the order of
+19 November, kept for its descriptions.
 
 ## The releases
 

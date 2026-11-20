@@ -176,23 +176,25 @@ switched the session's model.
   cutting the 0.8.4 kit), stop and talk it through with the owner in plain words: what was built today and why, what the
   reviews caught, what is still open, what needs the owner's eye or decision, and what comes next. Then go on.
 
-## The owner's decision of 20 Nov 2026 (03:20 UTC, amended 03:30): a new order after 0.8.4
+## The owner's decisions of 20 Nov 2026: the order after 0.8.4
 
-The owner: "Skip 85 do 86&89, then 88&85?", then "We should do 88 first??? It seems a root type". It is: the goals of
-the old 0.8.9 (she judges findings: "does not hold, over by 25 to 35 ms") are built on the maths core (ranges,
-tolerances, break-even), and so are her three questions as checks later. The door itself does not need it. So, after
-0.8.4:
+Settled at 03:50 UTC, after a discussion of skipping releases and of what is a root: "Let's do maths, then join
+floor/door/hand into one complex but united pass. Then add programs like web, librra, gadot and so on". Before that:
+"Let's just do maths the 88. Then we have the strongest base to build on."
 
 | Next kit | Holds (old names) | What the owner sees |
 |---|---|---|
-| **0.8.5** | old 0.8.8 maths in lines, alone (owner, 03:40: "Let's just do maths the 88. Then we have the strongest base to build on") | Solve, range, check, dates and money exactly |
-| **0.8.6** | old 0.8.6 her door on the Field + old 0.8.9 goals, quarantine and the web | Ask in words, she does it on the Field, a touch stops her; she judges findings with the maths; outside files and web pages arrive as information only; she can search |
-| then | being settled with the owner (03:40): proposed the floor (old 0.8.12: the split of the giant window files, the migration and power drills) next, then door + goals + web, then changes through her hand (old 0.8.10) before her hand in LibreOffice (old 0.8.7), then the day look and her question | |
+| **0.8.5 · Maths in lines** | old 0.8.8 | Solve, range, check, dates and money exactly, each answer with its receipt |
+| **0.8.6 · One united pass: floor, door, hand** | old 0.8.12 the floor (the split of the giant window files, the migration and pull-the-power drills, budgets) + old 0.8.6 her door on the Field (with its goals and finish rule) + old 0.8.10 changes through her hand; goals over data (old 0.8.9's goals, built on the maths) go here because the door's card lights each goal as it is met | Ask in words, she does it on the Field, a touch stops her, she changes things at your dial with one Undo, she judges findings; a faster window and a safe upgrade |
+| **0.8.7 on · Programs** | the web (with quarantine first: outside material is information, never an instruction), LibreOffice (old 0.8.7), Godot, GIMP "and so on", one program per pass | She searches and gathers; she takes the mouse in your programs while you watch |
+| later | the day look and skins (old 0.8.5), her one short question (old 0.8.11), 0.9.0's gates (gate 2 now "her hand in one program"; gate 6 "skins" moves after 0.9.0 unless the owner says otherwise) | |
 
 The maths is built and checked on Rail Demo with invented tolerances; the owner's real tolerances for After Hours 07
-and which limit applies when two revisions disagree are asked for later and do not block.
+and which limit applies when two revisions disagree are asked for later and do not block. The migration drill wants a
+backup of the owner's current workspace (asked for later; it does not block the start of 0.8.6).
 
-Testing, as discussed with the owner (the "middle path", taken as the default until the owner says otherwise): keep
+Testing, as discussed with the owner (the "middle path", taken as the default until the owner says otherwise; the maths, being the
+root, also keeps its own exact test vectors and one independent review of the core): keep
 running the existing tests on every change (free); write new tests and an independent review only for the safety rules
 (a touch stops her; what always asks still asks; search words never carry the owner's material; a web page is never an
 instruction); no other new tests or reviews.
@@ -224,6 +226,7 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 03:50 UTC: the owner settled the order: maths; one united pass of floor, door and hand; then programs.
 - 20 Nov 03:35 UTC: **0.8.4 delivered.** Commit b6bdb50. Tier 2 on that exact commit: 202 runs, 2,368 tests, 0 failing,
   both looks, 26 min 45 s (10 skipped: the start scripts' tests that need an ordinary user on a Debian host). Kit cut,
   restored with INSTALL_LS (the restored tree equals the commit except `wip/` and `tools/planted_bugs/`, left out on
