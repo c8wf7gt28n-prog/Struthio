@@ -234,6 +234,10 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 07:50 UTC: a goal for starting 0.8.8 was proposed to the owner (her mind finished and measured; the ThinkPad
+  check run; reference frames and tests around the giant window files; a workspace backup for the drills; 0.8.8 designed
+  by a group). **Not adopted.** The owner: "Not yet. We wait until after I run 87." So 0.8.8's goal is settled with him
+  after he has run 0.8.7 on the ThinkPad; nothing for 0.8.8 starts before that conversation.
 - 20 Nov 07:40 UTC: the owner: "88 will bring us do major to 90. 90 beyond will add programs until 1.0". So the road is:
   0.8.5 maths; 0.8.6 Kas's mind, no model (with the ThinkPad check, which the spec already placed early); 0.8.7 the
   model interwoven; 0.8.8 the united pass (floor, door mechanics, hand), the last 0.8; **0.9.0** the gates on the
