@@ -234,7 +234,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
-- 20 Nov 05:25 UTC: 0.8.7 (the model interwoven) confirmed; its design group started (six lenses, two judges, one synthesis; scratch `work/b087d/`).
+- 20 Nov 05:25 UTC: 0.8.7 (the model interwoven) confirmed; its design group started: workflow `graphite-087-model-interwoven-design`
+  (run id `wf_8d796545-a17`, task `w3ac8ihlx`; six lenses: understanding, reading/the library, her voice, judgment, speed
+  and memory with a model-check kit, trust; two judges; one synthesis; scratch `work/b087d/`). Running beside it: 0.8.5
+  fixes (`wf_9807ad9e-481`) and the 0.8.6 design (`wf_2d88d9a7-4b2`, scratch `work/b086d/`). Both design scripts are
+  saved in `wip/2026-11-14/workflow_scripts/`. If cut off: relaunch each with its `resumeFromRunId`.
 - 20 Nov 05:15 UTC: the owner asked about a pass that interweaves the model into her mind after 0.8.6; recommended as 0.8.7 (pending his yes).
 - 20 Nov 04:45 UTC: the owner added 0.8.6 "Kas's mind, no model" after the maths; its design pass started.
 - 20 Nov 04:00 UTC: **0.8.5 started**: workflow `graphite-085-maths` (run id `wf_9807ad9e-481`, task `wncvmyr1a`; script
