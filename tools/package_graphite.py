@@ -39,7 +39,7 @@ NOT_SHIPPED = ('tools/planted_bugs/', 'tools/i05_kit/')
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
 # Fields of earlier checkpoints' manifests that no reader uses any more (the release check reads graphite_release).
 RETIRED_FIELDS = ('hatch_checkpoint', 'integrated_pass', 'delivery_stage')
-NOTE = ('Graphite 0.8.5: maths in lines: solve, range and check, exact, with a receipt for every answer; the owner\'s tolerances; money and dates. Still in 0.8.4: tests you can believe, Kasandra by name, a sturdier start, Rail Demo. Still in 0.8.3: her hologram, her column, her typewriter face, DELETE, burnt yellow, the neon kp logo. Still in 0.8.2: forty desk acts typed in the writing line (/help acts) and the playable scene (tools/campaign.py run --set scenes). Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.')
+NOTE = ('Graphite 0.8.6: Kas\'s mind without a model (Why on every card, either way, what would settle it, your word, rule cards), the owner\'s head and footer, and the first parts of 0.8.7; built and not tested, by the owner\'s rule. Still in 0.8.5: maths in lines, exact, with a receipt. Still in 0.8.4: tests you can believe, Kasandra by name, a sturdier start, Rail Demo. Still in 0.8.3: her hologram, her column, her typewriter face, DELETE, burnt yellow, the neon kp logo. Still in 0.8.2: forty desk acts typed in the writing line (/help acts) and the playable scene (tools/campaign.py run --set scenes). Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.')
 
 
 

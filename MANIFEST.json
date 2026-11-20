@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "package_profile": "runtime",
-  "note": "Graphite 0.8.5: maths in lines: solve, range and check, exact, with a receipt for every answer; the owner's tolerances; money and dates. Still in 0.8.4: tests you can believe, Kasandra by name, a sturdier start, Rail Demo. Still in 0.8.3: her hologram, her column, her typewriter face, DELETE, burnt yellow, the neon kp logo. Still in 0.8.2: forty desk acts typed in the writing line (/help acts) and the playable scene (tools/campaign.py run --set scenes). Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.",
+  "note": "Graphite 0.8.6: Kas's mind without a model (Why on every card, either way, what would settle it, your word, rule cards), the owner's head and footer, and the first parts of 0.8.7; built and not tested, by the owner's rule. Still in 0.8.5: maths in lines, exact, with a receipt. Still in 0.8.4: tests you can believe, Kasandra by name, a sturdier start, Rail Demo. Still in 0.8.3: her hologram, her column, her typewriter face, DELETE, burnt yellow, the neon kp logo. Still in 0.8.2: forty desk acts typed in the writing line (/help acts) and the playable scene (tools/campaign.py run --set scenes). Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -66,8 +66,8 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 17965,
-      "sha256": "54b24b4ed16ecbfac1b3b630d32c8bdc08cf3d105300330c8d2caef688cfc6b6"
+      "bytes": 17986,
+      "sha256": "a34e8e1fc18c582ba6be77065cdf9c8a9b937e608c38c9a84781e7ee4dccbe10"
     },
     "RECORD_OF_DIRECTIONS.md": {
       "bytes": 39804,
@@ -1283,7 +1283,7 @@
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
       "bytes": 295458,
-      "sha256": "b9fd410cf0e91461db1735515b4cc3aecbada18d61019857937f4378b28987b3"
+      "sha256": "140b7c587c8623ecf01f2a2bcce53c873900b4b4f001153f8a3712c91c8f44cf"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -1701,6 +1701,10 @@
       "bytes": 6367,
       "sha256": "25c33d679855a8313d2b29dfe4bf5792422417e8eb97e14e8eb5fe9f9292191e"
     },
+    "docs/RELEASE_NOTES_0.8.6.md": {
+      "bytes": 8006,
+      "sha256": "5fb3dc49bf3dd6bc1db8158098f5f0d7ede65659024378cfefeda4002c0ae611"
+    },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
       "sha256": "03a8d7e31fd4b7cca05b9c16a9f7aab641b727c73bc4ffd82ad0e3d7337ff1c4"
@@ -1811,7 +1815,7 @@
     },
     "docs/THINKPAD_FIRST_INSTALL.md": {
       "bytes": 8838,
-      "sha256": "860c0d02ccc10ff8d8f10818c6131fd8f2440b329ca9974845ecf8fd5df5bd27"
+      "sha256": "a28d378649458f18e66f30ba8addfd5f760e24dc9b127094936d1faec89f642c"
     },
     "docs/THINKPAD_VULKAN_P05.md": {
       "bytes": 8880,
@@ -2222,16 +2226,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1983944,
-      "sha256": "8b6f84cf6d6ee555fcecb34c2c733eec3ce887439665082b44603cc58f19f272"
+      "bytes": 1983965,
+      "sha256": "cdb5198602edfd22a8da5fa36f32c30dece9c0c812f2d0f4665d5fc5bbe7c2ad"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4542464,
-      "sha256": "ae10f47b7cdb62471de4080a700ece38f8b8acdc7e28d68937034218f0b64fb1"
+      "sha256": "b08bacdff7c82beca68a87a7f640ae5288dbf58af4863703ada685e3cbf0c947"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "b297498ac6883793f777de714c2e9c905be98de2573a3baf037f8a29360cec76"
+      "sha256": "b97c61ff49587e0510d585efb33717c246ad650ff00c9e775453edf2d4e834ae"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3218,8 +3222,8 @@
       "sha256": "bed980a41868db593459a0f9e7ff1e461bf29a2b035cba2d26b84eb5a57171f1"
     },
     "tools/package_graphite.py": {
-      "bytes": 11037,
-      "sha256": "10ac96e6b9e4e7d7bdd73f13f46d39c51d092f0cafbab97037715dd9a6602129"
+      "bytes": 11180,
+      "sha256": "947ccc05148e58cff9eaf768c51fe4fff15e408382f17b9e8834abb5c43c717b"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -5446,8 +5450,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 15937,
-      "sha256": "9c804783a0cdb7f47bf833c44efbb7ac62c96f07f13a3fbf84053b3bde2f61f7"
+      "bytes": 16653,
+      "sha256": "29071f47a64f3fd312c55cfb4f4b8ed5498d0beccfc4e4666ecde3355591459f"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -5598,5 +5602,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "0.8.5"
+  "graphite_release": "0.8.6"
 }
