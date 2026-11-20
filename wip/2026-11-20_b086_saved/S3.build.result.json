@@ -1,0 +1,58 @@
+{
+  "summary": "S3 (lane B, your word and her reasons) is built under the owner's 'No tests' rule. New workbench/your_word.py adds ledger.word/1 (kind 'word', on screen 'your word') with five sorts: CHOICE, READING, COMPLETE, SAYS and STANDING. It has word.list and word.get (reads) and word.set (approve scope, caught by the new ALWAYS_ASKS row at every dial place). A word is set aside (OUT) and taken back (IN) as new revisions, and nothing is deleted. Freshness (CURRENT or RECONSIDER) is computed on read from the rows the word was said about. New workbench/reasons.py adds field.why, field.rests and field.without (reads). A proof is a finite graph in reason_graph's shape, built from the Field's own records: reviewed rows, the maths answer through goals.judge, checks, sources, your tolerances and the revision choice. Its own paths() works it out four-valued through stac/evidence.py, and reason_graph.py is not edited. The wires it lights are exactly the Field's links between the proof's records. What counts is worked out without her proposals: an open revision choice gives 'cannot tell', and the answer under her proposal is said beside it ('It would hold if you agree that Rev B applies'). goals.judge gains said= so that 'without it' can leave one tolerance out. FieldView gains light_proof(), which reuses the Trace surge. The five new reads are activity observers. Registrations are in the Kernel and CLI blocks marked 0.8.6 S3, and the registry was regenerated in a copy and copied back (789 operations). One smoke script, kept outside the repo, ran once at the end on a fresh seeded copy with Rail Demo built through the Kernel's own doors: 45 of 45 checks passed. No test file was written and the suite was not run.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S3.patch",
+  "files_changed": [
+    "workbench/reasons.py (new)",
+    "workbench/your_word.py (new)",
+    "workbench/goals.py (judge gains said=)",
+    "workbench/stacy_hand.py (one ALWAYS_ASKS row: word.set, rules.set, quotes.rebind)",
+    "workbench/activity.py (field.why, field.rests, field.without, word.list, word.get are observer reads)",
+    "workbench/field_qt.py (FieldView.light_proof)",
+    "workbench/engineering_kernel.py (0.8.6 S3 block: import, scopes, dispatch)",
+    "workbench/engineering_cli.py (0.8.6 S3 block: fields)",
+    "docs/GRAPHITE_0.1_REGISTRY.json (regenerated in the copy: 783 to 789 operations)"
+  ],
+  "tests": [
+    {"module": "scratch smoke S3/smoke.py (not a test file; one run at the end on a fresh seeded copy)", "look": "none (no window)", "ran": 45, "failed": 0, "note": "Rail Demo built in 7.9 s; the second process (probe.py) checked identical output with workbench.local_brain replaced by an unusable module, and the same graph digests from a second build"},
+    {"module": "tools/record_registry.py --check (in the copy after the seed steps)", "look": "none", "ran": 1, "failed": 0, "note": "record MATCHES, operations_served 789, differences []"}
+  ],
+  "new_tests": [],
+  "numbers": [
+    "45 of 45 smoke checks passed (count printed by the smoke script, final run)",
+    "field.why on Rail Demo's startup_holds took 210 ms for one call, Field read included (time.time around the call in the smoke; one measurement, not a p95)",
+    "Rail Demo built in 7.9 s in the copy (time.time around rail_demo.workspace in the smoke)",
+    "Kernel operations served went from 783 to 789: field.why, field.rests, field.without, word.list, word.get and word.set (record_registry.py in the copy)",
+    "reasons.paths equals reason_graph.compute (state, paths, reason_digest) on 18 of 18 memory_graph observation sets plus the cycle fixture, and on 300 of 300 seeded random lab-shaped graphs (seed 20261120); also on the Why graph of startup_holds itself",
+    "Why(startup_holds): REFUTED, slack -5 ms, leaves exactly {bench readings row 5, Rev B row 3, the check, the revision choice}, against: 1 independent source, 9 lines",
+    "Why(settled_holds): SUPPORTED, 2 independent sources, Against empty; with one OPPOSES row from the Rev A source: CONFLICT with both tabs non-empty",
+    "Settled goal with +-0.25 V: counted answer cannot tell; under her proposal (Rev B) holds with 15/16 to 17/16 W to spare; without the choice cannot tell; with Rev A 31/16 to 33/16 W; without the tolerance 1 W",
+    "Startup goal with Rev A: holds, 15 ms to spare",
+    "The tolerance break-even said for the settled current: larger than 3750/49 mA (76.53 mA) turns it to cannot tell",
+    "Record counts (desk_records, desk_history, desk_events) were equal before and after field.why, field.read, field.rests and field.without"
+  ],
+  "decisions": [
+    "No panel: section 6.2 does not place mind_panel_qt.py (or the right-click 'Why' item) in S3, so neither is built. The data the panel needs is returned: each line carries its state word, where it came from and its Field id, plus the walk order and the route to light. FieldView.light_proof(owner, wires) lights a proof's wires with the existing Trace surge.",
+    "Leaves are the premises you can look at or say: reviewed rows, your tolerances, the revision choice and the Kernel's checks. Source evidence goes in the For and Against tabs, joined into the state by knowledge_join, and independence is counted by the investigation's own keys. This gives exactly the four leaves 6.2 names for startup_holds.",
+    "A finding is tied to a relation goal only when one goal clearly matches. The strongest match is a check that reads the goal's reading row on the same sheet. A weaker match is the goal's compared name (for example 'settled power') appearing in the finding's words. If two goals match equally well, no maths is attached: she does not guess. A revision the finding names ('the Rev B limit') fixes the way. The revision choice is then a leaf that decides whether the finding matters, not whether it holds.",
+    "What counts is worked out without her proposals. A goal whose revision is not said is 'cannot tell', and the proposed answer is given beside it. 'Without the choice' therefore gives cannot tell, as 6.2 says. 'Without the tolerance' is worked out under the choice in effect (your word, or her proposal), which gives the design's 1 W.",
+    "A word to RECONSIDER stays IN and nothing is undone, but her reasons do not apply it until you say it again, as with a tolerance to RECHECK. A word is bound to the content of its rows (parameter, value, unit and conditions), so an unrelated cell changing leaves it CURRENT. COMPLETE binds the whole sheet's revision. A desk-wide CHOICE binds the rows it decides: the limit rows of every goal whose alternatives include the chosen sheet.",
+    "The new ALWAYS_ASKS row is written as the design gives it, with word.set, rules.set and quotes.rebind together. The two S6 names are already covered before S6 lands.",
+    "Budgets do not raise in her reasons. A closure over 64 records or 128 rules gives cannot tell with the budget sentence. When there are too many path combinations, the state stays exact (from the four-valued operators) and the listing is marked partial with the sentence. reason_graph's limits still raise there, so the two engines are compared only inside those limits.",
+    "A proof's node ids, labels and receipts are made from record content, never record uuids, so the graph digest is the same across builds. A second Rail Demo build in another process gave the same digests.",
+    "'local_brain unimportable': the Kernel imports local_brain eagerly, so the probe replaced workbench.local_brain with a module whose constants are empty and whose every other attribute raises ImportError. Another process reading the same records gave byte-identical field.why output. A Rail Demo build needs the real module, because job admission asks its worker, so the across-builds check used it. reasons.py and your_word.py never import it.",
+    "The five new reads are added to activity.OBSERVER_OPERATIONS, so asking Why adds nothing to the timeline, like the existing field.* reads. Inside her reasons, goals and tolerances are read in process rather than through Kernel.dispatch, for the same reason.",
+    "A revision's short name drops the title words all alternatives share at the start, but keeps the last shared word when the rest is only one or two characters ('Rev B', not 'B'). It also drops a trailing mark such as CURRENT.",
+    "Any other card (a sheet, a calculation, a source) gets a trace proof. It holds when everything it was made from agrees. A card with nothing upstream says it has nothing to agree with."
+  ],
+  "not_done": [
+    "mind_panel_qt.py (Why, Rests on, Either way and What would settle it in her column), the right-click 'Why' item and the Next and Back walk in the window: not placed in S3 by 6.2",
+    "The Field's new kinds 'goal', 'rule' and 'word' (field_model, field_source) are not added. Goals are addressed as 'goal:<id or key>' and are not drawn as cards.",
+    "'What would change it' is a template built from the room (or 'your word on which revision applies'). It does not use settle's exact open points, which belong to S5.",
+    "field.settle (S5) does not exist yet, so the record-count check covered field.why, field.rests and field.without only",
+    "Templates live in reasons.WORDS and your_word.WORDS. Registering them in mind_words.py waits for lane C's S6.",
+    "No Home Demo examples were run: S3's acceptance examples are all on Rail Demo",
+    "No test file was written, the suite, tiers and window checks were not run (the owner's rule), and no existing test was changed",
+    "Nothing ran on the owner's ThinkPad"
+  ],
+  "release_note": "Right-click questions now have answers with no model loaded. Ask Kasandra why about a finding, a sheet or a goal, and she shows a short proof: what it needs, each premise with its state and where it came from, and For and Against. It also shows what the answer rests on. Your tolerances and your choice of revision are listed with the answer without them, or with the other revision. Her own defaults are marked 'mine, not agreed' and never count until you agree. 'Your word' is a new record that only you can set (it always asks, at every setting of her hand). Setting a word aside and back keeps both in history, and a word turns to 'reconsider' when a row it was said about changes."
+}

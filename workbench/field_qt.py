@@ -1338,6 +1338,24 @@ class FieldView(QWidget):
         else:self._surge_timer.start()
         self.update()
 
+    def light_proof(self, owner, wires):
+        """0.8.6 S3: light exactly a proof's wires (reasons.why's 'route': [{source, target, hop}], hop 0 at the source end)
+        with the same surge as a Trace. Only wires on this Field are lit. `owner` is the card the proof or its line is about;
+        it is selected, and the light gives way when the selection moves, as a Trace's does."""
+        import time
+        here = {(link.source, link.target) for link in self.field.links}
+        links = {(w['source'], w['target']): int(w.get('hop', 0)) for w in wires if (w['source'], w['target']) in here}
+        if owner and self.field.get(owner) is not None:self.field.select(owner)
+        hops = max(links.values()) + 1 if links else 0
+        sources = {a for a, _ in links};ends = [b for _, b in links if b not in sources] or [owner]
+        self._route = dict(owner=self.field.selected, links=links, hops=hops, ends=ends, at=time.monotonic())
+        try:calm = bool(self.still()) if callable(self.still) else False
+        except Exception:calm = False  # noqa: BLE001 - motion is a nicety; a profile that cannot be read moves nothing
+        if calm or not self.texture:self._route['at'] = None
+        else:self._surge_timer.start()
+        self.update()
+        return sorted(links)
+
     def surge_elapsed(self):
         import time
         at = (self._route or {}).get('at')

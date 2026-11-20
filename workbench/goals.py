@@ -359,15 +359,16 @@ def _freshness(kernel, principal, saved):
     except (ValueError, OSError, KeyError):return 'REVIEW_REQUIRED'
 
 
-def judge(kernel, principal, goal, choose=(), stages=('check',), accuracy=()):
+def judge(kernel, principal, goal, choose=(), stages=('check',), accuracy=(), said=None):
     """A relation goal judged under every way the desk knows (each alternative of its limit), each through
     math_answers.answer in process: {'goal', 'statement', 'state' (the ways' common state, or DEPENDS), 'ways': [{'choice',
-    'state', 'answers': {stage: ledger.math-answer/1}}], 'judgement' (mind_types.Judgement), 'model_calls': 0}."""
+    'state', 'answers': {stage: ledger.math-answer/1}}], 'judgement' (mind_types.Judgement), 'model_calls': 0}.
+    said: the owner's cell tolerances to use instead of all of them (0.8.6 S3: her reasons' "without it" leaves one out)."""
     from . import math_answers as answers, tolerances
     from .math_ranges import RangeError
     from .mind_types import Judgement, Way, BUDGET, DEPENDS
     from .office_service import store
-    said = tolerances.on_cells(kernel, principal);ways, every = _ways(goal, choose);rows = [];shapes = []
+    said = tolerances.on_cells(kernel, principal) if said is None else said;ways, every = _ways(goal, choose);rows = [];shapes = []
     stages = tuple(stages or ('check',));sheets = {}
     def saved_of(sheet):
         if sheet not in sheets:

@@ -1,0 +1,53 @@
+{
+  "summary": "S4, her dictionary (lane A), is built as workbench/reading.py, with the read operation requests.read registered in engineering_kernel.py and engineering_cli.py (each in its own S4 block) and the registry regenerated. read(text, lexicon) is pure Python. With no model, no write and no float, it reads the owner's words against the desk's own vocabulary: reviewed sheets and their rows, with each unit's dimension from math_units; calculations; goals.candidates; typed sheets; the rules and dated lines of admitted papers; and hand_words for desk goals. It returns one reading per clause, each with a route (NONE, KEPT, DECLINE, DESK, CHECK, SOLVE, VALUE, MONEY, DATE, DAY, ASK, MEANING or COMPOUND). Each reading also carries every word with what it meant and the unused words, an 'understood' sentence from fixed templates, open points as mind_types.OpenPoint records, button and brief options, any elimination with the other sense named, acts ('read' or 'navigates', never a change), model_calls 0, and a key that ignores word positions and clause text. lexicon(kernel, principal) gathers the vocabulary from the desk, and work() works out a read reading exactly with existing code (goals.judge room and check, math_money.answer, math_dates.answer period). requests.read {text, today?, work?, model_loaded?} wraps both. One smoke script, run once on Rail Demo plus Home Demo built in one workspace, gave every S4 acceptance example as the design states it. No test files were written and the suite was not run.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S4.patch",
+  "files_changed": [
+    "workbench/reading.py (new)",
+    "workbench/engineering_kernel.py (S4 block: import, SCOPES, dispatch with the clock's day)",
+    "workbench/engineering_cli.py (S4 block: READING_FIELDS)",
+    "docs/GRAPHITE_0.1_REGISTRY.json (regenerated in the copy with tools/record_registry.py; --check reports no differences)"
+  ],
+  "tests": [
+    {"module": "smoke script (scratch S4/smoke.py, not a test file)", "look": "offscreen, no window", "ran": 1, "failed": 0, "note": "One run in a throwaway copy, after package_graphite --manifest-only, record_registry, package_graphite --manifest-only and record_registry --check. Output is in scratch S4/smoke4.log. The existing suite, the tiers and the window checks were not run, under the owner's rule."}
+  ],
+  "new_tests": [],
+  "numbers": [
+    "'How much current can the rail settle at and stay under the current limit?' gives route SOLVE: unknown Settled current, goal settled power <= settled power limit, under Rev B (marked current), reached by elimination. Her words: 'No limit in amps is on the desk, so I read this as the current revision's limit: Rev B's settled power limit, 4 W. If you meant a limit in amps, there is none to check against.' Measured through requests.read with work=true on Rail Demo.",
+    "The worked answer is 1000/3 mA exactly (1/3 A), 333 mA in whole steps. After tolerances.set_cell recorded ±0.25 V on Rail voltage, it is 16000/49 mA, 326 mA in whole steps. Measured through requests.read with work=true (goals.judge, room stage).",
+    "'is startup ok?' gives the covering pair {Startup duration <= startup duration limit, Startup power <= startup power ceiling} with no question. Worked out: duration DEPENDS (Rev A holds, Rev B fails); power HOLDS in both. Measured through requests.read with work=true.",
+    "'How much can I spend each week on groceries and stay under the month?' gives MONEY on 'Groceries November' as of 2026-11-20 with 10 days left: exactly 131341/1000, 131.34 in whole cents. 'each day' gives 18763/1000, 18.76. Measured through requests.read with work=true (math_money.answer).",
+    "'When is the last day for the deposit?' gives DATE under § 12(a) (21 days after 'a tenancy ends'), counted by § 3(a), § 3(b) and § 3(c), over the events Lease term ends 2026-09-30 and Keys returned to the agent 2026-10-03. Worked out: 2026-10-21 and 2026-10-26, 30 and 25 days before 2026-11-20. Measured with math_dates.answer, stage period, through requests.read with work=true.",
+    "'next Friday', said on Friday 2026-11-20, gives ASK to you (a CONVENTION leaf) with the options Friday 27 November 2026 and Friday 4 December 2026. Measured with read() over the lexicon.",
+    "\"don't close anything\" gives DESK with no goals and forbid=[tidy]. \"what's for dinner\" gives NONE, with no options and no model. Measured with read().",
+    "'put the limits side by side' gives side_by_side(Rail Demo limits Rev A ARCHIVED, Rail Demo limits Rev B CURRENT). Measured with read().",
+    "'pop the bench readings' trace up' gives MEANING with two licensed options, trace and select the bench readings, as in the design's flow 2. Measured with read().",
+    "Metamorphic: 4 of 4 'please'/'now' and 'milliamps'/'mA' pairs gave the same key. 5 of 5 \"don't\" insertions changed the reading. Swapping clauses swapped the goal order. A renamed sheet gave the same goal with the new title. Measured with read() comparing keys.",
+    "Authority: none of 15 probe requests, read with model_loaded=true, sent the model an option set that differs only in an authority. Options that differ only in a revision are merged into one option whose revision stays open, or become an ASK to you. Measured with reading.only_authority over the options.",
+    "Decline: 20 of 20 'should I' phrasings gave route DECLINE, acts 'read' and no desk goal. Legal phrasings give 'Whether to bring a claim is yours to decide, and a lawyer can advise you.' and medical ones give \"I can't advise on medicines or treatment; your pharmacist or doctor can.\" Measured with read().",
+    "Speed: 725 calls of read() over 29 requests in this container gave p50 0.20 ms, p99 0.99 ms and max 1.26 ms, against the 20 ms p99 target. Building the lexicon from the desk took 0.86 s and is a separate, once-a-turn step. Measured with time.perf_counter around read().",
+    "Every requests.read call left the desk_records count unchanged (3/3 before the tolerance was set, 4/4 after). Measured by counting desk_records rows around each call.",
+    "Importing workbench.reading with workbench.local_brain made unimportable succeeds, and local_brain stays unloaded. Measured in a subprocess."
+  ],
+  "decisions": [
+    "The phrasebook is S7's: read() takes `kept` (a phrase's words and the reading the owner kept) and checks it first, but S4 adds no phrases.py and writes no phrasebook rows.",
+    "requests.read builds the World for desk goals from sheet titles, using field_page.revision_sibling's revision rule copied as a regex because field_page imports Qt. In the live hand, the caller passes its own World from the Field.",
+    "Admitted papers are found through intake.search (queries 'days after', 'ends' and 'returned', at most 8 namespaces). A period is a subsection saying 'within N days after <event>'. The counting rules are found by their own words (the day of the event not counted; 'falls on ... next day'; 'holidays are'). A dated line is '<label>: <ISO day>'. An event counts as an 'end' when its label holds an end word (ends, returned, vacated and the like). That fixed word list is how 'a tenancy ends' reaches both 30 Sep and 3 Oct; which one applies is put to you as a RULE_READING leaf, while both answers are given, earliest first.",
+    "Covering instead of asking: a check whose subject fits up to 4 goals judges them all together (the design's 'is startup ok?'). 'are the limits ok?' judges every goal. A value question shows every revision's row side by side.",
+    "Words that are not accounted for are never guessed. When a read leaves a meaningful word unread, it becomes MEANING with that reading as the one option plus 'none of these' (buttons with no model), so a no-model reading is never wrong because of an ignored word.",
+    "'next <weekday>' asks you only when the coming day is in the current Monday-to-Sunday week, or is the same weekday as today. Otherwise the coming one is taken. 'this', 'last', 'today', 'tomorrow', 'yesterday' and 'in N days' each give one day.",
+    "'current' before a limit word has two senses, a limit in amps or the revision marked CURRENT. When only one sense exists on the desk, it is taken by elimination and the other is named. When both exist, it is MEANING.",
+    "work() only reads and runs only on a complete read reading (never a navigation or a change).",
+    "Her templates live in reading.WORDS and reading.FORBID until mind_words.py (lane C) exists to register them. They avoid the section 5 banned words; 'a lawyer can advise you' uses 'advise', which is not on the list.",
+    "No existing test was changed."
+  ],
+  "not_done": [
+    "No new test files and no run of the existing suite, tiers or window checks (the owner's 'No tests' rule). The coordinator runs the suite at merge.",
+    "Nothing on screen yet: her column's word marks, the grey unused words, the corrected-request edit and the buttons are not wired. S7 does the buttons and brief, and lane B the column panel. shell2 and her_hand_qt still use hand_words.match directly.",
+    "The phrasebook (phrases.py, phrases.list, keep and strike) is S7.",
+    "The everyday score's request files are S8's; no sealed set was written or read.",
+    "The lexicon is not memoised: requests.read rebuilds it on every call (about 0.9 s on Rail Demo plus Home Demo). Only read() itself is within the 20 ms budget.",
+    "The Rail Demo ThinkPad timing was not measured; every number here is from this container.",
+    "The household money question is supported in code (rows with Low/High go to math.money range or solve) but was not printed by the smoke script; only groceries was checked."
+  ],
+  "release_note": "Kasandra now reads your request from your desk's own words, with no model. She marks what each word meant, sets aside the ones she did not use, and acts only when every meaningful word is accounted for and one reading is left. When a word could mean two things and the desk allows only one, she takes that one and names the other, as in 'No limit in amps is on the desk, so I read this as the current revision's limit'. What is yours to say, such as which revision or which Friday 'next Friday' means, comes back to you as a question. 'Should I ...' always gets a plain decline, followed by whatever she can work out from your records."
+}

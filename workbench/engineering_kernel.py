@@ -46,6 +46,8 @@ from . import adaptive_work,schedule_math,slate_action
 from . import math_answers, tolerances  # 0.8.5: the one maths core in lines: math.answer, and the owner's tolerances (recorded additions)
 from . import math_money, math_dates  # 0.8.5: money and dates exactly, on the same core: math.money and math.dates (recorded additions)
 from . import goals  # 0.8.6 S1 (the exact goal face): goals over data, ledger.goal/1: goals.candidates, goals.keep, goals.list, goals.get, goals.check (recorded additions)
+from . import reasons, your_word  # 0.8.6 S3 (your word and her reasons): field.why, field.rests, field.without; ledger.word/1: word.list, word.get, word.set (recorded additions)
+from . import reading  # 0.8.6 S4 (her dictionary): requests.read, the owner's words read from the desk's own vocabulary with no model (recorded addition)
 from . import joined_work,typed_artifacts,checked_methods,native_sessions
 from . import slate_context, slate_reasoning
 from . import edit_storage, import_profiles, change_sets
@@ -180,6 +182,8 @@ CAPABILITIES = {
     **math_answers.SCOPES, **tolerances.SCOPES,
     **math_money.SCOPES, **math_dates.SCOPES,
     **goals.SCOPES,  # 0.8.6 S1: goals over data
+    **reasons.SCOPES, **your_word.SCOPES,  # 0.8.6 S3: her reasons and your word
+    **reading.SCOPES,  # 0.8.6 S4: her dictionary (requests.read, a read)
     **joined_work.SCOPES, **typed_artifacts.SCOPES, **checked_methods.SCOPES, **native_sessions.SCOPES,
     **office_service.SCOPES,
     **notebook_service.SCOPES,
@@ -585,6 +589,9 @@ class Kernel:
         if op in math_money.FIELDS:return math_money.dispatch(self,op,a,p)
         if op in math_dates.FIELDS:return math_dates.dispatch(self,op,a,p,today())   # 0.8.6 S2: the clock's day for a period's as_of
         if op in goals.FIELDS:return goals.dispatch(self,op,a,p)   # 0.8.6 S1: goals over data (ledger.goal/1)
+        if op in reasons.FIELDS:return reasons.dispatch(self,op,a,p)   # 0.8.6 S3: Why, Rests on and Without it (reads)
+        if op in your_word.FIELDS:return your_word.dispatch(self,op,a,p)   # 0.8.6 S3: your word (ledger.word/1)
+        if op in reading.FIELDS:return reading.dispatch(self,op,a,p,today())   # 0.8.6 S4: her dictionary; the clock's day for calendar words
         if op in lab_service.FIELDS:return lab_service.dispatch(self,op,a,p)
         if op in reason_service.FIELDS:return reason_service.dispatch(self,op,a,p)
         if op in math_service.FIELDS:return math_service.dispatch(self,op,a,p)

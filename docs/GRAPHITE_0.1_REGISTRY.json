@@ -185,10 +185,13 @@
    "field.brief.keep": "workbench/field_service.py#dispatch",
    "field.doubt": "workbench/field_service.py#dispatch",
    "field.read": "workbench/field_service.py#dispatch",
+   "field.rests": "workbench/reasons.py#dispatch",
    "field.ripple": "workbench/field_service.py#dispatch",
    "field.set": "workbench/field_service.py#dispatch",
    "field.trace": "workbench/field_service.py#dispatch",
    "field.whatif": "workbench/field_service.py#dispatch",
+   "field.why": "workbench/reasons.py#dispatch",
+   "field.without": "workbench/reasons.py#dispatch",
    "files.cells": "workbench/files_service.py#dispatch",
    "files.compare": "workbench/files_service.py#dispatch",
    "files.copy": "workbench/files_service.py#dispatch",
@@ -659,6 +662,7 @@
    "repairs.authorize": "workbench/baseline_repair.py#dispatch",
    "repairs.inspect": "workbench/baseline_repair.py#dispatch",
    "repairs.propose": "workbench/baseline_repair.py#dispatch",
+   "requests.read": "workbench/reading.py#dispatch",
    "research.create": "workbench/research_service.py#dispatch",
    "research.evaluate": "workbench/research_service.py#dispatch",
    "research.export": "workbench/research_service.py#dispatch",
@@ -742,6 +746,9 @@
    "vendor.status": "workbench/vendor_adapter.py#dispatch",
    "vendor.value": "workbench/vendor_adapter.py#dispatch",
    "viewer.describe": "workbench/universal_view.py#dispatch",
+   "word.get": "workbench/your_word.py#dispatch",
+   "word.list": "workbench/your_word.py#dispatch",
+   "word.set": "workbench/your_word.py#dispatch",
    "words.forget": "workbench/stac_words.py#dispatch",
    "words.keep": "workbench/stac_words.py#dispatch",
    "words.list": "workbench/stac_words.py#dispatch",
@@ -981,9 +988,9 @@
   }
  },
  "counts": {
-  "adapters": 783,
+  "adapters": 790,
   "job_tools": 113,
-  "operations": 783,
+  "operations": 790,
   "settings": 48
  },
  "formulas": {
@@ -2878,6 +2885,13 @@
    "properties": {},
    "scope": "read"
   },
+  "field.rests": {
+   "arguments": "de2f7e460673f2775d580e0722b797db46a8f1f2891a45fd73ddc1cb59891e57",
+   "properties": {
+    "id": "52ba84a4bbf396ba"
+   },
+   "scope": "read"
+  },
   "field.ripple": {
    "arguments": "79321876e5422af0a1a7220620b282cd5acd6fdda40d6b5427d02f8887e23c28",
    "properties": {
@@ -2908,6 +2922,22 @@
    "properties": {
     "id": "52ba84a4bbf396ba",
     "set": "a2c799262a3ce3c1"
+   },
+   "scope": "read"
+  },
+  "field.why": {
+   "arguments": "de2f7e460673f2775d580e0722b797db46a8f1f2891a45fd73ddc1cb59891e57",
+   "properties": {
+    "id": "52ba84a4bbf396ba"
+   },
+   "scope": "read"
+  },
+  "field.without": {
+   "arguments": "e5ee5c5f2a57a80c11031f1356a9f92a044da4d6191eff2eda6c5df731498ea4",
+   "properties": {
+    "id": "52ba84a4bbf396ba",
+    "leaf": "b040c1ebf2f78da7",
+    "other": "a197705b0fea6cee"
    },
    "scope": "read"
   },
@@ -6729,6 +6759,16 @@
    },
    "scope": "candidate"
   },
+  "requests.read": {
+   "arguments": "badbd141a0a8f85de0aa6691f4b0ceb0d5738179fcaecdf95d59e78a80dc3378",
+   "properties": {
+    "model_loaded": "7cb541e84f226754",
+    "text": "d11c7080fc8c95d5",
+    "today": "ab8572ba08665cd5",
+    "work": "7cb541e84f226754"
+   },
+   "scope": "read"
+  },
   "research.create": {
    "arguments": "4f803a036370c69561ec2acb4c9144c0894194fddfcf342a36f9599a0f1256a5",
    "properties": {
@@ -7348,6 +7388,42 @@
    },
    "scope": "read"
   },
+  "word.get": {
+   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+   "properties": {
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "read"
+  },
+  "word.list": {
+   "arguments": "a2b52fd4d105136c69a8218d58336a4c0f1396d61b0972394d45a687dc7178a1",
+   "properties": {
+    "about": "cb97d241241f843c",
+    "all": "7cb541e84f226754"
+   },
+   "scope": "read"
+  },
+  "word.set": {
+   "arguments": "5865b49a8beaa1a81a532e26134e2cc2e45a8c39328683c03d240c35db738f52",
+   "properties": {
+    "because": "9c628200e6cc91a3",
+    "cell": "4066b324a3b3ccec",
+    "choice": "a197705b0fea6cee",
+    "expected_revision": "2a1379ebe9f4b632",
+    "from": "97ff1836f9f6cc3c",
+    "goal": "cb97d241241f843c",
+    "id": "1a75c379fb0fafe6",
+    "means": "11033dea281281d3",
+    "sheet": "a197705b0fea6cee",
+    "sort": "8737ee61698fbcc8",
+    "span": "11033dea281281d3",
+    "standing": "7f818255399d7fae",
+    "state": "bb42ca0547a2b0d9",
+    "to": "97ff1836f9f6cc3c",
+    "words": "11033dea281281d3"
+   },
+   "scope": "approve"
+  },
   "words.forget": {
    "arguments": "18b403b0fe96d835ec6097ec0bbb1445a61ed61813e79896fdadbd5b6c1cce36",
    "properties": {
@@ -7694,7 +7770,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "96abead04d52dd70adfcffed45be060158ced61c1adb1d5e3d3ef8bb8c31e7e6",
+ "schema_digest": "ee56f2718c9a841c67a42916421b71daf1111a49338a9c8162814552e870cd5b",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

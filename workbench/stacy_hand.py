@@ -59,6 +59,7 @@ ALWAYS_ASKS = (
     (('releases.*', 'repairs.*', '*.install'), 'it changes the program itself'),
     (('shell.*', 'terminal.*'), 'a command in the Terminal can do anything'),
     (('tolerances.set', 'tolerances.set_cell'), 'a tolerance is yours to say: it decides what I conclude'),   # 0.8.6 S1: on a sheet's cell too
+    (('word.set', 'rules.set', 'quotes.rebind'), 'it is yours to say: it decides what I conclude'),   # 0.8.6 S3: your word (and S6's rules and quotes)
 )
 LEAVES = ('address', 'peer', 'url', 'host', 'recipient')      # an argument by one of these names reaches another computer
 
