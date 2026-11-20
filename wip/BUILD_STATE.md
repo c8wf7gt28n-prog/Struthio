@@ -234,6 +234,9 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 06:15 UTC: full suite on e1cf56d: 80 modules, 1,261 tests per look; default 0 failing, Kasandra 1: the start
+  scripts' session test, a race in its stand-ins (failed 2 runs in 5, either look in principle). Fixed in the test
+  (the stand-ins wait for each other); 24 of 24 runs pass.
 - 20 Nov 05:55 UTC: 0.8.5's maths core merged (093335c) and the owner's values taken out of the shared files (e1cf56d),
   both reviewed and fixed; the dead setting merged earlier (5029e3f). Full suite running in both looks. Money and dates
   started as the second maths item: workflow `graphite-085-money-dates` (script in `wip/2026-11-14/workflow_scripts/`,
