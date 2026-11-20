@@ -203,6 +203,13 @@ switched the session's model.
 
 ## Log (newest first)
 
+- 20 Nov 02:45 UTC: **the full suite on everything merged (28e99db): 78 modules, 1,204 tests, 0 failing in BOTH looks.**
+  Release prep started: workflow `graphite-084-release-prep` (run id `wf_50b7a084-3ec`, task `wm4i1ridj`; scratch
+  `work/b084c/`): keys setting (remove "Script for incidental text") and private (the owner's own values out of the
+  shared files, after classifying each). Release notes drafted: `wip/2026-11-19_b084b_saved/RELEASE_NOTES_0.8.4.draft.md`
+  (fill in TESTS and MODULES at the end). Then: version 0.8.4 (workbench/version.py VERSION, SHORT, LINEAGE; README
+  title and install lines), docs/RELEASE_NOTES_0.8.4.md, seed, tier 2 in both looks and the release check on the exact
+  commit, the kit (`wip/2026-11-14/scratch_tools/tools/kit/cut.sh`), send to the owner.
 - 20 Nov 02:30 UTC: guards merged (28e99db). Planted bugs caught by behaviour: guarding code 51 of 53 (96%, was 30);
   overall 100 of 131 (76%, was 70). The builder's caution, for the release notes: most new tests were written for these
   same planted bugs, so 96% says these holes are closed, not how a new bug would fare; a fresh sample is the honest next
