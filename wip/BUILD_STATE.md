@@ -273,6 +273,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 15:10 UTC: Merged since 14:20: 0.8.7 A3 (00e5f41), A2 (rebased onto A3 by a second agent, b2c3a0d), C2
+  (29450d6), C5 (8927946), B2 (d55be4a), C4 (33301c8), B1 (655d24c); 0.8.6 S7 (d44623b) and R (b96bfb4). **0.8.6 has
+  only S8 (I05 kit) and W (window panel, demos) left; both running.** 0.8.7 running: C3 (Ask the Library), B3 (read
+  your words). 0.8.7 still to start: B4, B5, A4 (after W), then A5, A5P, B6, C6a, then B7, B8, C6b, C6c, C6d, A6.
+  After 0.8.6 S8 and W merge: the 0.8.6 release (version, notes saying untested and the four corrected promises, kit
+  cut and restored, screenshots, sent).
 - 20 Nov 14:22 UTC: Merged: **0.8.7 C1** (doorway, af28e38), **0.8.6 S6** (quotes, rules, mind_words, d54632d), **0.8.6
   S5** (either way, settle, 135fe2e; its union merge broke activity.py's observer list, fixed in f741d51 within
   minutes; `work/finish_merge.sh` now exits non-zero on a compile, seed or window failure). 0.8.6 phases 1 to 4 are all
