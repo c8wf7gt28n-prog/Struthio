@@ -38,7 +38,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 0.8.6 S5: either way and what would settle it, read when a card is asked; asking is not an event
  'field.either','field.settle',
  # 0.8.6 if there is room, items 1 and 2: what this change did, where does my desk say it; asking is not an event
- 'field.change','places.find'})
+ 'field.change','places.find',
+ # 0.8.6 W: the goals you kept, read and checked when the Field is shown (goal cards); showing the desk is not an event
+ 'goals.list','goals.get','goals.check'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

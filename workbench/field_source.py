@@ -12,6 +12,8 @@ record that cannot be read is drawn as "not read", never as current, and is not 
     findings      investigation.list, investigation.sheet, .path          what was learned, what must be rechecked, what is unknown
     totals        conditions.list                                         a total bound to a page's words that no longer holds
     work          jobs.list                                               jobs that are not finished: running, waiting, failed
+    her mind      goals.list, goals.check, word.list, rules.list,         0.8.6 W: the goals you kept, your words and your rule
+                  rules.check, quotes.list                                cards; a pinned quote is a wire, never a card
 
 There is no table of links in the program: each link is a field inside a record (a sheet's origin, a report's
 derivation, a claim's path), so the links are derived here, kind by kind. A FieldObject's `target` is a small dict the
@@ -34,7 +36,8 @@ ports they wait on. It reads /proc and /sys only, starts no capture, and nothing
 """
 from pathlib import Path
 
-from .field_model import Field, FieldLink, FieldObject, STATE_CURRENT, STATE_HELD, STATE_OPEN, STATE_RECHECK, carries
+from .field_model import (Field, FieldLink, FieldObject, STATE_CURRENT, STATE_DEPENDS, STATE_FAILS, STATE_HELD, STATE_HOLDS, STATE_OPEN, STATE_RECHECK,
+                          STATE_UNTOLD, carries)
 
 UNAVAILABLE = 'unavailable'      # the record cannot reach its source now: quiet ink, not an alarm
 NOT_READ = 'not read'            # the record itself could not be read this time
@@ -318,6 +321,125 @@ class Reader:
             self.add(FieldObject('job:' + row['id'], 'job', goal, 'work Graphite holds',
                                  word, tuple(facts), '', {'kind': 'job', 'id': row['id']}, stac='jobs | where id=%s | select tool,state,goal' % row['id']))
 
+    # ---- 0.8.6 W, Kas's mind: three kinds of card, domain-neutral -------------------------------------------------------------
+    def mind(self):
+        """The goals you kept, your words and your rule cards, each a card with its state in her words. A pinned quote is not a
+        card: it is the wire from the admitted file its words stand on to the rule card that rests on them, labelled with the
+        quote's label ("§ 12(c)"), drawn to recheck when the words are no longer where they were pinned. Reads only."""
+        self.rule_rows = {}                  # rule card -> the rows it rests on, for the words that say how a row reads
+        said = (self.call('word.list') or {}).get('words', ())
+        kept = [g for g in (self.call('goals.list') or {}).get('goals', ()) if g.get('form') == 'relation' and g.get('id')]
+        for goal in self.newest(kept, 'goals'):self.goal(goal, said)
+        rules = (self.call('rules.list') or {}).get('rules', ())
+        if rules:
+            cards = {card['rule']: card for card in (self.call('rules.check') or {}).get('cards', ())}
+            quotes = {q['id']: q for q in (self.call('quotes.list', {'all': True}) or {}).get('quotes', ())}
+            for rule in self.newest(rules, 'rule cards'):self.rule(rule, cards.get(rule['id']), quotes)
+        for word in self.newest(said, 'words of yours'):self.word(word, kept)
+
+    def goal(self, goal, said):
+        from fractions import Fraction
+        from .mind_types import CONFLICT, DEPENDS, FAILS, HOLDS, UNDECIDED
+        from .reasons import room_words
+        from .your_word import _alternatives_of, choice_for, short_name
+        ident = 'goal:' + goal['id']
+        way, _ = choice_for(said, goal, goal['id'], goal.get('key', ''))
+        options = _alternatives_of(goal);titles = [a['title'] for a in options]
+        judged = self.call('goals.check', dict({'id': goal['id'], 'stages': ['check']}, **({'choose': [way['sheet']]} if way else {})), record=ident)
+        facts = []
+        if judged is None:
+            state = NOT_READ;facts.append('it could not be checked this time')
+        else:
+            state = {HOLDS: STATE_HOLDS, FAILS: STATE_FAILS, UNDECIDED: STATE_UNTOLD, DEPENDS: STATE_DEPENDS, CONFLICT: STATE_HELD}.get(judged.get('state'), STATE_UNTOLD)
+            ways = (judged.get('judgement') or {}).get('ways') or ()
+            words = {HOLDS: 'holds', FAILS: 'does not hold', UNDECIDED: 'cannot tell', CONFLICT: 'the records disagree'}
+            if len(ways) == 1:
+                room = tuple(Fraction(x) for x in ways[0]['room']) if ways[0].get('room') else None
+                if room is not None:facts.append(room_words(room, ways[0].get('unit') or '', ways[0]['state']))
+                if way:facts.append('by your word, %s applies' % short_name(way['title'], titles))
+            else:
+                facts.append(' · '.join('%s: %s' % (' '.join(short_name(t, titles) for _, t in w.get('choices') or ()) or 'as read',
+                                                      words.get(w['state'], 'cannot tell')) for w in ways))
+                if state == STATE_DEPENDS:facts.append('which revision applies is yours to say')
+            if any(str(((w.get('answers') or {}).get('check') or {}).get('freshness') or 'CURRENT') != 'CURRENT' for w in judged.get('ways') or ()):
+                state = STATE_RECHECK;facts.insert(0, 'a row it reads changed')
+        self.add(FieldObject(ident, 'goal', goal.get('statement') or 'A goal', 'a goal you kept', state, tuple(f for f in facts if f), 'kept by you',
+                             {'kind': 'goal', 'id': goal['id']}, stac='goals.list | pick goals | where id=%s | select statement,state' % goal['id']))
+        refs = list((goal.get('cells') or {}).values()) + [a for alts in (goal.get('alternatives') or {}).values() for a in alts]
+        rows = {}
+        for ref in refs:rows.setdefault(ref['sheet'], []).append(str(ref['cell'])[1:])
+        for sheet, numbers in rows.items():self.link('office:' + sheet, ident, _rows_said(numbers))
+        if goal.get('via'):self.link('document:' + goal['via'], ident, 'its result')
+
+    def rule(self, rule, card, quotes):
+        from .mind_types import CONFLICT, FAILS, HOLDS, UNDECIDED
+        ident = 'rule:' + rule['id'];facts = []
+        if card is None:state = NOT_READ;facts.append('it could not be judged this time')
+        elif card.get('freshness') != 'CURRENT':
+            state = STATE_RECHECK;facts.append('rests on words or rows that changed: ' + ', '.join(card.get('changed') or ()))
+        else:
+            state = {HOLDS: STATE_HOLDS, FAILS: STATE_FAILS, UNDECIDED: STATE_UNTOLD, CONFLICT: STATE_HELD}.get(card.get('state'), STATE_UNTOLD)
+            facts.append({'SUPPORTED': 'its conclusion follows on your records', 'CONFLICT': 'the records disagree'}.get(card.get('conclusion'), 'no conclusion either way'))
+        if card is not None and card.get('footer'):facts.append(card['footer'])
+        sort = {'STATUTE_TEXT': 'statute text', 'CONTRACT': 'contract', 'SPECIFICATION': 'specification'}.get(rule.get('sort'), 'your source')
+        title = (card or {}).get('title') or rule.get('title') or 'A rule card'
+        self.add(FieldObject(ident, 'rule', title, 'a rule card you split', state, tuple(facts), '%s · %s' % (rule.get('title', ''), sort),
+                             {'kind': 'rule', 'id': rule['id']}, stac='rules.list | pick rules | where id=%s | select title,sort,freshness' % rule['id']))
+        changed = ' '.join((card or {}).get('changed') or ())
+        wires = {}                           # one wire from each source, carrying every label it gives (§ 12(a), § 12(b), …)
+        for bound in _rule_bounds(rule):
+            if bound.get('quote'):          # a pinned quote: a wire from the file its words stand on, never a card of its own
+                quote = quotes.get(bound['quote'])
+                if quote is None:continue
+                now = quote.get('now') or {};item = ((now.get('now') or {}).get('item')) or quote['source']['item']
+                labels, stale = wires.setdefault('intake:' + item, ([], [False]))
+                label = quote.get('label') or bound.get('label') or 'pinned quote'
+                if label not in labels:labels.append(label)
+                stale[0] = stale[0] or now.get('state') != 'CURRENT'
+            elif bound.get('row'):
+                row = bound['row'];number = str(row.get('cell', ''))[1:]
+                labels, stale = wires.setdefault('office:' + row['sheet'], ([], [False]))
+                if number not in labels:labels.append(number)
+                stale[0] = stale[0] or 'row %s of “%s”' % (number, row.get('title', '')) in changed
+        for source, (labels, stale) in wires.items():
+            self.link(source, ident, _rows_said(labels) if source.startswith('office:') else ', '.join(labels), stale[0])
+        self.rule_rows[ident] = {(b['row']['sheet'], b['row'].get('cell')) for b in _rule_bounds(rule) if b.get('row')}
+
+    def word(self, word, kept):
+        ident = 'word:' + word['id'];subject = word.get('subject') or {}
+        sorts = {'CHOICE': 'a choice', 'READING': 'how a row reads', 'COMPLETE': 'a sheet complete', 'SAYS': 'your own account', 'STANDING': 'a standing choice'}
+        fresh = word.get('freshness', 'CURRENT');facts = [sorts.get(word.get('sort'), 'your word')]
+        if fresh != 'CURRENT':facts.insert(0, 'to reconsider: %s changed' % ', '.join(word.get('changed') or ()))
+        self.add(FieldObject(ident, 'word', word.get('statement') or 'Your word', 'your word', STATE_CURRENT if fresh == 'CURRENT' else STATE_RECHECK, tuple(facts),
+                             'said by you', {'kind': 'word', 'id': word['id']}, stac='word.list | pick words | where id=%s | select statement,sort,freshness' % word['id']))
+        for bound in list(word.get('bound') or ()) + list(word.get('because') or ()):
+            if not bound.get('sheet'):continue
+            label = ('row %s' % str(bound['cell'])[1:]) if bound.get('cell') else 'the whole sheet'
+            self.link('office:' + bound['sheet'], ident, label, fresh != 'CURRENT')
+        if subject.get('rule'):self.link(ident, 'rule:' + subject['rule'], 'says which row')
+        if word.get('sort') == 'READING':    # how a row's words read: it decides every rule card that rests on that row
+            for rule, rows in self.rule_rows.items():
+                if (subject.get('sheet'), subject.get('cell')) in rows:self.link(ident, rule, 'how it reads')
+        for goal in kept:                    # what your word decides: the goal it is said about, or every goal whose revisions it names
+            sheets = {a['sheet'] for alts in (goal.get('alternatives') or {}).values() for a in alts}
+            about = subject.get('goal') == goal['id'] or bool(subject.get('goal_key') and subject.get('goal_key') == goal.get('key'))
+            if word.get('sort') == 'CHOICE' and word.get('scope') == 'desk':about = bool(sheets) and sheets <= set(subject.get('sheets') or ())
+            if word.get('sort') == 'STANDING':about = bool(sheets)
+            if about:self.link(ident, 'goal:' + goal['id'], 'decides' if word.get('sort') in ('CHOICE', 'STANDING') else 'about it')
+
+
+def _rows_said(numbers):
+    """'row 3' or 'rows 2, 3': the rows of one sheet a card reads, said once on its one wire."""
+    numbers = sorted(set(numbers), key=lambda n: (len(n), n))
+    return ('row ' if len(numbers) == 1 else 'rows ') + ', '.join(numbers)
+
+
+def _rule_bounds(rule):
+    """Every source a rule card rests on, as it was bound when you set it."""
+    gives = rule.get('gives') or {}
+    out = [e.get('bound') or {} for part in ('needs', 'unless') for e in rule.get(part) or ()] + [gives.get('bound') or {}]
+    return out + [(gives.get('amount') or {}).get('bound') or {}]
+
 
 def _left_out(reader):
     """What the ceilings kept back, one count per kind: '440 more sheets, 90 more findings'."""
@@ -331,7 +453,9 @@ def _left_out(reader):
 def problems(reader):
     """What could not be read, in the owner's words (never an operation name): one sentence for the status line, or ''."""
     kinds = {'intake.namespaces': 'the sources', 'intake.items': 'the sources', 'office.list': 'the sheets', 'documents.list': 'the pages',
-             'investigation.list': 'the findings', 'conditions.list': 'the totals', 'jobs.list': 'the jobs', 'network.observe': 'the network'}
+             'investigation.list': 'the findings', 'conditions.list': 'the totals', 'jobs.list': 'the jobs', 'network.observe': 'the network',
+             'goals.list': 'the goals', 'word.list': 'your words', 'rules.list': 'the rule cards', 'rules.check': 'the rule cards',
+             'quotes.list': 'the pinned quotes'}
     whole = []
     for operation, _ in reader.refused:
         name = kinds.get(operation, 'some records')
@@ -413,7 +537,7 @@ def read_field(kernel, principal, title='', skip=()):
     reader = Reader(kernel, principal, skip)
     reader.material();reader.tables();reader.pages_and_calculations()
     investigations = reader.findings()
-    reader.settle_tables();reader.totals();reader.jobs()
+    reader.settle_tables();reader.mind();reader.totals();reader.jobs()      # 0.8.6 W: her mind's cards after the sheets are settled
     if reader.replaced:      # a calculation that was brought up to date is a new page; the one it replaced is history, not work
         gone = {obj.id for obj in reader.objects if obj.id in reader.replaced and (obj.kind == 'calculation' or obj.tag == 'BRIEF')}
         reader.objects = [obj for obj in reader.objects if obj.id not in gone]

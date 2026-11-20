@@ -25,7 +25,7 @@ VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@c
         'fullscreen', 'reading', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9)
 TOOLS = ['discovery','algorithms','atlas', '@type_to', '@chain', 'ledger_commands', None,
          'ledger_settings', 'doctor', '@computer', '@pills', None, 'master_stop', None, '@engineering', '@service']
-HELP = ['@getting_started', '@whats_new', 'keys', 'setup_guide', None, 'orange_book', None, 'about']
+HELP = ['@getting_started', '@whats_new', None, '@kas_evening', '@try_rail', '@try_home', None, 'keys', 'setup_guide', None, 'orange_book', None, 'about']      # 0.8.6 W: the evening with her mind, and its two demos
 ENGINEERING = [('Projects and code', ['definition', 'completion', 'engineering', 'development', 'ledger', 'desk', 'native_game', 'newgame', 'browse', 'refresh', 'project_search',
                                       'engineering_layout', 'focus_layout', 'object_glass', 'output', 'problems', 'dual', 'developer_tools', 'arcos', 'trace', 'register', 'cartdock']),
                ('Build and run', ['build', 'build_all', 'tests', 'run', 'stop', 'next', 'prev', 'boot', '@targets']),
@@ -148,6 +148,13 @@ def rebuild(host):
         release_notes = program / 'docs' / ('RELEASE_NOTES_%s.md' % SHORT)
         if not release_notes.is_file(): release_notes = program / 'docs' / 'STAGE6.md'
         host.a_whats_new = make("What's New in %s" % SHORT, lambda:host.open_in_viewer(release_notes))
+        # 0.8.6 W: the Guide page "An evening with Kas's mind", and its two invented desks, each built in a fresh folder of its own
+        host.a_kas_evening = make("An Evening with Kas's Mind", lambda:host.open_in_viewer(program / 'docs' / 'KAS_MIND_EVENING.md'))
+        host.a_try_rail = make('Try Rail Demo', lambda:__import__('workbench.demo_try', fromlist=['try_demo']).try_demo(host, 'rail'))
+        host.a_try_home = make('Try Home Demo', lambda:__import__('workbench.demo_try', fromlist=['try_demo']).try_demo(host, 'home'))
+        for a, tip in ((host.a_try_rail, 'An invented 12 V rail, built in a new folder of its own and opened on the Field in a window of its own'),
+                       (host.a_try_home, 'An invented household, built in a new folder of its own and opened on the Field in a window of its own')):
+            a.setToolTip(tip);a.setStatusTip(tip)
         sizes = QActionGroup(host);host.a_sizes = {}
         for level, word in ((0, 'One Line'), (1, 'Half'), (2, 'Tall')):
             a = make(word, lambda level=level:host.console.set_size(level) if hasattr(host, 'console') else None);a.setCheckable(True);sizes.addAction(a);host.a_sizes[level] = a
@@ -191,6 +198,7 @@ def rebuild(host):
     service = next((a for a in before if a.text().replace('&', '').startswith('Background service')), None)
     extras = {'@receive': host.a_receive, '@files': host.a_files, '@agenda': host.a_agenda, '@project_desk': host.a_project_desk, '@changes': host.a_changes, '@continuing':host.a_continuing, '@deployment':host.a_deployment, '@slate_panel': host.a_slate_panel,
               '@getting_started': host.a_getting_started, '@whats_new': host.a_whats_new,
+              '@kas_evening': host.a_kas_evening, '@try_rail': host.a_try_rail, '@try_home': host.a_try_home,      # 0.8.6 W
               **{'@size_' + w: host.a_sizes[l] for l, w in ((0, 'line'), (1, 'half'), (2, 'tall'))},
               **{'@talk_' + k: a for k, a in host.a_talk.items()}, '@run_operation': host.a_run_operation,
               '@computer': host.a_computer, '@pills': host.a_pills, '@work_copy': host.a_work_copy, '@console': host.a_console, '@library': host.a_library, '@chain': host.a_chain,

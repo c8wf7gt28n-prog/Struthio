@@ -14,19 +14,25 @@ from dataclasses import dataclass, field
 
 KINDS = ('source', 'sheet', 'calculation', 'document', 'finding', 'question', 'condition', 'method', 'job', 'folder',
          'interface', 'program', 'endpoint',        # these three are the network face: this computer, what runs, where it reaches
-         'app')                                      # the programs face: one program or room Graphite can open
+         'app',                                      # the programs face: one program or room Graphite can open
+         'goal', 'rule', 'word')                     # 0.8.6 W, Kas's mind: a goal you kept, a rule card, your word (domain-neutral)
 # Where a kind sits when nothing feeds it and it feeds nothing: left to right, material to conclusion.
 KIND_RANK = {'source': 0, 'folder': 0, 'sheet': 1, 'method': 1, 'calculation': 2, 'job': 5, 'document': 3, 'finding': 3, 'question': 4, 'condition': 4,
-             'interface': 0, 'program': 1, 'endpoint': 2, 'app': 0}
+             'interface': 0, 'program': 1, 'endpoint': 2, 'app': 0,
+             'word': 2, 'rule': 3, 'goal': 4}          # 0.8.6 W: your word stands beside the rows it is said about; a goal after what it reads
 KIND_TAG = {'source': 'SOURCE', 'sheet': 'SHEET', 'calculation': 'CALC', 'document': 'PAGE', 'finding': 'FINDING',
             'question': 'OPEN QUESTION', 'condition': 'TOTAL', 'method': 'METHOD', 'job': 'JOB', 'folder': 'FOLDER',
-            'interface': 'INTERFACE', 'program': 'PROGRAM', 'endpoint': 'ELSEWHERE', 'app': 'PROGRAM'}
+            'interface': 'INTERFACE', 'program': 'PROGRAM', 'endpoint': 'ELSEWHERE', 'app': 'PROGRAM',
+            'goal': 'GOAL', 'rule': 'RULE CARD', 'word': 'YOUR WORD'}
 RANK_TITLE = ('MATERIAL', 'TABLES', 'CALCULATIONS', 'FINDINGS', 'OPEN', 'WORK')
 # States the view knows how to mark. Anything else is shown as its own word in quiet ink.
 STATE_CURRENT, STATE_RECHECK, STATE_OPEN, STATE_HELD = 'current', 'recheck', 'open', 'held'
-ATTENTION = (STATE_RECHECK, STATE_OPEN, STATE_HELD, 'waiting', 'paused', 'failed', 'interrupted')
+# 0.8.6 W: a goal's or a rule card's state, in her words: it holds, it does not hold, it cannot be told yet, or it depends on
+# a choice that is yours (which revision applies). Each has its own mark's shape in the view, not only a colour.
+STATE_HOLDS, STATE_FAILS, STATE_UNTOLD, STATE_DEPENDS = 'holds', 'does not hold', 'cannot tell', 'depends'
+ATTENTION = (STATE_RECHECK, STATE_OPEN, STATE_HELD, 'waiting', 'paused', 'failed', 'interrupted', STATE_FAILS, STATE_UNTOLD, STATE_DEPENDS)
 # States drawn with the small green mark: the record agrees with its source, the line is up, the work is running.
-SETTLED = (STATE_CURRENT, 'up', 'connected', 'listening', 'running', 'in use')
+SETTLED = (STATE_CURRENT, 'up', 'connected', 'listening', 'running', 'in use', STATE_HOLDS)
 
 
 LATELY = 12 * 3600                       # "lately": the last twelve hours, a working day's reach
@@ -200,7 +206,8 @@ class Field:
             kind = kinds.pop()
             return {'source': 'MATERIAL', 'folder': 'MATERIAL', 'sheet': 'TABLES', 'calculation': 'CALCULATIONS', 'document': 'PAGES',
                     'finding': 'FINDINGS', 'question': 'OPEN', 'condition': 'OPEN', 'method': 'METHODS', 'job': 'WORK',
-                    'interface': 'THIS COMPUTER', 'program': 'APPS', 'endpoint': 'ELSEWHERE'}.get(kind, str(kind).upper())
+                    'interface': 'THIS COMPUTER', 'program': 'APPS', 'endpoint': 'ELSEWHERE',
+                    'goal': 'GOALS', 'rule': 'RULE CARDS', 'word': 'YOUR WORD'}.get(kind, str(kind).upper())
         return RANK_TITLE[min(rank, len(RANK_TITLE) - 1)]
 
     # ---- selection -------------------------------------------------------------------------------------------------
@@ -282,7 +289,8 @@ class Field:
         words = {'source': ('source', 'sources'), 'folder': ('folder', 'folders'), 'sheet': ('sheet', 'sheets'),
                  'calculation': ('calculation', 'calculations'), 'document': ('page', 'pages'), 'finding': ('finding', 'findings'),
                  'question': ('open question', 'open questions'), 'condition': ('total', 'totals'), 'method': ('method', 'methods'), 'job': ('job', 'jobs'),
-                 'interface': ('interface', 'interfaces'), 'program': ('program', 'programs'), 'endpoint': ('place reached', 'places reached'), 'app': ('program', 'programs')}
+                 'interface': ('interface', 'interfaces'), 'program': ('program', 'programs'), 'endpoint': ('place reached', 'places reached'), 'app': ('program', 'programs'),
+                 'goal': ('goal', 'goals'), 'rule': ('rule card', 'rule cards'), 'word': ('word of yours', 'words of yours')}
         parts = []
         for kind in KINDS:
             count = sum(1 for obj in self.objects if obj.kind == kind)

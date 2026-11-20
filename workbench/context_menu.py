@@ -1426,6 +1426,10 @@ def field_entries(host, t):
     if work and obj.kind in ('sheet', 'calculation'):      # the cascade for looking ahead: a number, then a value to try
         out.append(Entry('field:whatif', 'What if', 'command', icon='line', submenu=lambda:field_whatif_rows(host, obj),
                          tip='Set one of its numbers to another value without changing anything: the wires are followed and the Field marks what would move'))
+    if work:          # 0.8.6 W: Why, on every card of the work: her short proof in her column, the proof's wires lit here
+        out.append(Entry('field:why', 'Why', 'command', lambda:__import__('workbench.mind_panel_qt', fromlist=['show_why']).show_why(host, obj),
+                         icon='line', glyph='found', group='Look into it', operation='field.why',
+                         tip='Why it stands as it does: a short proof in her column, each line with where it came from; a line lights its wires here'))
     out.append(Entry('field:doubt', 'Doubt it', 'command', lambda:view.doubt_asked.emit(obj), icon='line',
                      submenu=(lambda:field_doubt_rows(host, view, obj)) if work else None,
                      tip='Cross-examine it for what a plausible result may hide: what does not hold, what cannot be told, what holds'))

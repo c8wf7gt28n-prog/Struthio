@@ -441,6 +441,28 @@ def trace(p, ink, accent):
     facet(p, ink, (17.5, 14.5), (12.5, 11.2), (12.5, 17.8))
 
 
+# ---- 0.8.6 W, Kas's mind: the three kinds of card her reasons add to the Field ------------------------------------------
+
+def aim(p, ink, accent):
+    """A goal: a cell of the lattice with the point it is aimed at."""
+    pen(p, ink);line(p, *HEX, close=True)
+    facet(p, accent, (10.0, 6.5), (13.5, 10.0), (10.0, 13.5), (6.5, 10.0))
+    facet(p, ink, (10.0, 8.2), (11.8, 10.0), (10.0, 11.8), (8.2, 10.0))
+
+
+def ruled(p, ink, accent):
+    """A rule card: what it needs, gathered, and what it gives."""
+    pen(p, ink);line(p, (2.5, 5.5), (7.5, 5.5));line(p, (2.5, 10.5), (7.5, 10.5));line(p, (2.5, 15.5), (7.5, 15.5))
+    line(p, (7.5, 5.5), (7.5, 15.5));line(p, (7.5, 10.5), (13.0, 10.5))
+    facet(p, ink, (17.5, 10.5), (13.0, 7.2), (13.0, 13.8))
+
+
+def worded(p, ink, accent):
+    """Your word: a slip that speaks, its tail a facet."""
+    facet(p, accent, (6.5, 14.5), (6.5, 18.0), (10.0, 14.5))
+    pen(p, ink);p.drawRect(QRectF(2.5, 3.5, 15, 11));line(p, (5.5, 7.5), (14.5, 7.5));line(p, (5.5, 10.5), (11.5, 10.5))
+
+
 GLYPHS = {
     'trash': trash, 'pause': pause, 'filter': funnel, 'sort': ordering, 'group': gathered, 'watch': watch, 'trace': trace,
     'count': letters('#', QFont.DemiBold, size=14.0),
@@ -453,7 +475,7 @@ GLYPHS = {
     'delta': delta, 'agenda': agenda, 'chain': chain, 'star': star, 'split': split, 'picture': picture,
     # the kinds of sheet, by what they draw, so a menu or a tab can wear them too
     'page': page, 'found': found, 'asked': asked, 'limit': limit, 'steps': steps, 'running': running, 'folder': folder,
-    'port': port, 'window': window, 'reach': reach, 'rooms': rooms,
+    'port': port, 'window': window, 'reach': reach, 'rooms': rooms, 'aim': aim, 'ruled': ruled, 'worded': worded,
     'bold': letters('B', QFont.Bold, size=14.0), 'italic': letters('I', QFont.DemiBold, italic=True, size=14.0),
     'underline': letters('U', QFont.DemiBold, under=True, size=12.0),
     'h1': letters('H1'), 'h2': letters('H2', QFont.Medium, size=12.0), 'h3': letters('H3', QFont.Normal, size=11.0),
@@ -464,4 +486,5 @@ GLYPHS = {
 # What each kind of sheet on the Field is drawn as (field_model.KINDS). A sheet seen from far off is this glyph and its name.
 KIND = {'source': page, 'folder': folder, 'sheet': table, 'method': steps, 'calculation': report, 'job': running,
         'document': cell, 'finding': found, 'question': asked, 'condition': limit,
-        'interface': port, 'program': window, 'endpoint': reach, 'app': rooms}
+        'interface': port, 'program': window, 'endpoint': reach, 'app': rooms,
+        'goal': aim, 'rule': ruled, 'word': worded}        # 0.8.6 W

@@ -1,0 +1,1049 @@
+diff --git a/docs/KAS_MIND_EVENING.md b/docs/KAS_MIND_EVENING.md
+index a571f22..f66aaff 100644
+--- a/docs/KAS_MIND_EVENING.md
++++ b/docs/KAS_MIND_EVENING.md
+@@ -5,13 +5,22 @@ with the maths, says what would settle what she cannot tell, and asks a model on
+ you the same choices as buttons when no model is loaded. Everything here works with no model.
+ 
+ Two invented desks carry the examples. **Rail Demo** (a 12 V rail: bench readings, and limits in Rev A, archived, and
+-Rev B, current) is built from the Apps. **Home Demo** is an invented household: a tenancy under the *Demoland Tenancy Act
+-(invented)*, a bank sheet and two typed money sheets. Every Home Demo legal page says INVENTED: NOT THE LAW OF ANY PLACE.
++Rev B, current) is built by Guide ▸ Try Rail Demo. **Home Demo** is an invented household: a tenancy under the *Demoland
++Tenancy Act (invented)*, a bank sheet and two typed money sheets, built by Guide ▸ Try Home Demo. Each is built through the
++Kernel's own doors in a new folder of its own, never in your workspace; her card says so before anything is built, and the
++demo opens on the Field in a window of its own. Every Home Demo legal page says INVENTED: NOT THE LAW OF ANY PLACE.
+ "Today" in every example is Friday 20 November 2026.
+ 
+ Ten things to try, one for each thing she can do.
+ 
+-## 1. Ask in your own words
++## 1. Why, with the wires lit
++
++Open Rail Demo (Guide ▸ Try Rail Demo), right-click the finding "Startup is inside the Rev B limit of 40 ms" and choose
++Why. Her column shows a short proof: 45 ms is at most 40 ms does not hold, 5 ms over; each line says its state and where
++it came from, and clicking a line selects that card and lights the proof's wires in the Field while the rest of the desk
++steps back. Next and Back walk the proof card by card from the source end; the last line says what would change it.
++
++## 2. Ask in your own words
+ 
+ Type in the writing line: *How much current can the rail settle at and stay under the current limit?*
+ 
+@@ -23,14 +32,9 @@ reached this by elimination. The answer: below 1/3 A, up to 333 mA in whole mill
+ On Home Demo, *How much can I spend each week on groceries and stay under the month?* gives up to 131.34 a week (18.76 a
+ day) for the 10 days left: 187.63 is left of 600.00.
+ 
+-## 2. Why, with the wires lit
+-
+-Right-click the finding "Startup is inside the Rev B limit of 40 ms" and choose Why. She shows a short proof: 45 ms is at
+-most 40 ms does not hold, 5 ms over; each line says where it came from, and clicking a line lights its wires in the Field.
+-
+ ## 3. What it rests on, and without it
+ 
+-Under Why, Rests on lists your tolerances and your word on open points, such as which revision applies. Each has a
++Beside Why, Rests on lists your tolerances and your word on open points, such as which revision applies. Each has a
+ Without it button: settled power with your ±0.25 V tolerance holds with 0.9375 to 1.0625 W to spare; without the
+ tolerance, with 1 W to spare.
+ 
+diff --git a/workbench/activity.py b/workbench/activity.py
+index 7bdfcd5..ce5f66a 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -36,7 +36,9 @@ OBSERVER_OPERATIONS=frozenset({
+  # 0.8.6 S6: pinned quotes and rule cards, read when a card is shown; reading is not an event
+  'quotes.list','quotes.get','quotes.check','rules.list','rules.get','rules.check',
+  # 0.8.6 S5: either way and what would settle it, read when a card is asked; asking is not an event
+- 'field.either','field.settle'})
++ 'field.either','field.settle',
++ # 0.8.6 W: the goals you kept, read and checked when the Field is shown (goal cards); showing the desk is not an event
++ 'goals.list','goals.get','goals.check'})
+ 
+ def folder(root):
+     """Legacy journal location, now used only for migration and failed delivery."""
+diff --git a/workbench/context_menu.py b/workbench/context_menu.py
+index 1287138..f4fdc96 100644
+--- a/workbench/context_menu.py
++++ b/workbench/context_menu.py
+@@ -1426,6 +1426,10 @@ def field_entries(host, t):
+     if work and obj.kind in ('sheet', 'calculation'):      # the cascade for looking ahead: a number, then a value to try
+         out.append(Entry('field:whatif', 'What if', 'command', icon='line', submenu=lambda:field_whatif_rows(host, obj),
+                          tip='Set one of its numbers to another value without changing anything: the wires are followed and the Field marks what would move'))
++    if work:          # 0.8.6 W: Why, on every card of the work: her short proof in her column, the proof's wires lit here
++        out.append(Entry('field:why', 'Why', 'command', lambda:__import__('workbench.mind_panel_qt', fromlist=['show_why']).show_why(host, obj),
++                         icon='line', glyph='found', group='Look into it', operation='field.why',
++                         tip='Why it stands as it does: a short proof in her column, each line with where it came from; a line lights its wires here'))
+     out.append(Entry('field:doubt', 'Doubt it', 'command', lambda:view.doubt_asked.emit(obj), icon='line',
+                      submenu=(lambda:field_doubt_rows(host, view, obj)) if work else None,
+                      tip='Cross-examine it for what a plausible result may hide: what does not hold, what cannot be told, what holds'))
+diff --git a/workbench/demo_try.py b/workbench/demo_try.py
+new file mode 100644
+index 0000000..a2ab94b
+--- /dev/null
++++ b/workbench/demo_try.py
+@@ -0,0 +1,183 @@
++"""Try Rail Demo and Try Home Demo (0.8.6 W): the two invented desks of "An evening with Kas's mind", from the Guide menu.
++
++Each demo is built through the Kernel's own doors (rail_demo.workspace, home_demo.workspace: Files, bring in, admit, review
++the table, calculate, investigate), in a fresh folder of its own under "Graphite demos" in your home folder, with a profile
++and a Concern folder of its own beside it. It is never built in your workspace and nothing of it reaches your profile.
++
++Her card says so first, in her column, and nothing is built until you press Build it. The build runs in a process of its
++own (python -m workbench.demo_try KEY FOLDER), so this window's own locations are never changed and it waits for nothing;
++when the build is done the demo opens in a window of its own, on the Field, and your window stays as it is. The goals the
++desk proposes are kept there, as you would keep them (goals.keep, your press, given by Build it), so their cards show.
++
++Her words here are fixed templates (WORDS), registered with mind_words. No model is asked.
++"""
++from __future__ import annotations
++
++import json
++import os
++import sys
++import time
++from pathlib import Path
++
++DEMOS = {'rail': ('Rail Demo', 'workbench.rail_demo'), 'home': ('Home Demo', 'workbench.home_demo')}
++FOLDER = 'Graphite demos'            # under your home folder: a fresh folder for each demo you try
++BUILD_SECONDS = 240                  # a build that has not finished by then is stopped, and the card says so
++
++WORDS = {
++    'card': '{name}: {notice}',
++    'where': 'I build it in a new folder of its own, {folder}, with a profile of its own. Nothing goes into your workspace or your profile.',
++    'opens': 'It opens in a window of its own, on the Field. This window stays as it is.',
++    'build': 'Build it',
++    'not_now': 'Not now',
++    'building': 'Building {name} through the Kernel’s own doors. It takes a few seconds.',
++    'built': '{name} is open in a window of its own, on the Field. Its folder is {folder}.',
++    'failed': '{name} could not be built: {why}',
++    'left': 'Nothing was built.',
++    'menu_rail': 'Try Rail Demo',
++    'menu_home': 'Try Home Demo',
++}
++try:
++    from . import mind_words
++    mind_words.register('demo_try', WORDS, kind='sentence')
++except ImportError:  # pragma: no cover - run as a script before the package is importable
++    pass
++
++
++def fresh_folder(name, now=None):
++    """A new, empty folder for one demo: ~/Graphite demos/<name> <date and time>. Never inside the program, never a workspace
++    of yours (your Concern folder), never one that is already there."""
++    from . import locations
++    stamp = time.strftime('%Y-%m-%d %H.%M.%S', time.localtime(now))
++    base = Path.home() / FOLDER
++    concern = locations.concern_home().resolve()
++    candidate = base / ('%s %s' % (name, stamp))
++    resolved = candidate.resolve()
++    if resolved.is_relative_to(locations.PACKAGE.resolve()) or resolved.is_relative_to(concern):
++        import tempfile
++        return Path(tempfile.mkdtemp(prefix=name.replace(' ', '_') + '_'))
++    n = 1
++    while candidate.exists():
++        n += 1;candidate = base / ('%s %s (%d)' % (name, stamp, n))
++    candidate.mkdir(parents=True, mode=0o700)
++    return candidate
++
++
++def demo_environment(folder, appearance=''):
++    """The environment a demo's window starts with: its own workspace, profile and Concern folder, and this window's look."""
++    folder = Path(folder);env = dict(os.environ)
++    env.update(ARC1_WORKBENCH_CONFIG_HOME=str(folder / 'profile'), ARC_LEDGER_WORKSPACE=str(folder / 'workspace'), ARC_LEDGER_CONCERN=str(folder / 'Concern'))
++    env.pop('ARC_LEDGER_EDITION', None)
++    if appearance:env['GRAPHITE_APPEARANCE'] = appearance
++    return env
++
++
++def build(key, folder):
++    """In this process (the build's own): the demo built in `folder` through the Kernel's own doors, its proposed goals kept.
++    Returns {'workspace', 'goals'}. Changes this process's Graphite locations (rail_demo.workspace does): never call it in
++    the window's own process."""
++    import importlib
++    name, module = DEMOS[key]
++    kernel, principal, _ = importlib.import_module(module).workspace(folder)
++    kept = 0
++    found = kernel.dispatch('goals.candidates', {}, principal)
++    for candidate in ((found.get('result') or {}).get('candidates') or ()) if found.get('ok') else ():
++        if kernel.dispatch('goals.keep', {'candidate': candidate['key']}, principal).get('ok'):kept += 1
++    return {'workspace': str(Path(folder) / 'workspace'), 'goals': kept}
++
++
++def main(argv=None):
++    argv = list(sys.argv[1:] if argv is None else argv)
++    if len(argv) != 2 or argv[0] not in DEMOS:
++        print(json.dumps({'ok': False, 'why': 'usage: python -m workbench.demo_try rail|home FOLDER'}));return 2
++    try:
++        made = build(argv[0], Path(argv[1]))
++    except Exception as exc:  # noqa: BLE001 - the window says why, in words
++        print(json.dumps({'ok': False, 'why': str(exc)[:300]}));return 1
++    print(json.dumps({'ok': True, **made}));return 0
++
++
++# ---- the window side ----------------------------------------------------------------------------------------------------------
++
++def try_demo(host, key):
++    """Guide ▸ Try Rail Demo / Try Home Demo: her card first, then (on Build it) the build in its own process, then the demo's
++    own window, on the Field."""
++    from PySide6.QtCore import Qt
++    from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QMessageBox, QSizePolicy, QVBoxLayout
++    import importlib
++    from .model_words import plain_only
++    name, module = DEMOS[key]
++    notice = getattr(importlib.import_module(module), 'NOTICE', '')
++    words = [WORDS['card'].format(name=name, notice=notice), WORDS['where'].format(folder='~/%s/%s …' % (FOLDER, name)), WORDS['opens']]
++    face = getattr(getattr(host, 'shell2', None), 'face', None)
++    if face is None:                 # a window with no column of hers: the same words, in a question
++        if QMessageBox.question(host, WORDS['menu_' + key], '\n\n'.join(plain_only(w) for w in words)) == QMessageBox.Yes:start(host, key, None)
++        return None
++    from .shell2 import button
++    card = QFrame();card.setObjectName('KasDemoCard')
++    from . import boss_theme as bt
++    card.setStyleSheet('QFrame#KasDemoCard {border:1px solid %s; background:%s;}' % (bt.LINE, bt.CARD))
++    box = QVBoxLayout(card);box.setContentsMargins(10, 8, 8, 8);box.setSpacing(6)
++    card.lines = []
++    for text in words:
++        label = QLabel(plain_only(text));label.setWordWrap(True);label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++        label.setTextInteractionFlags(Qt.TextSelectableByMouse);box.addWidget(label);card.lines.append(label)
++    row = QHBoxLayout();row.setSpacing(8)
++    go = button(WORDS['build'], 'stac', 'Build %s in a new folder of its own and open it in a window of its own' % name);go.setObjectName('KasDemoBuild')
++    no = button(WORDS['not_now'], 'quiet', 'Nothing is built');no.setObjectName('KasDemoNotNow')
++    row.addWidget(go);row.addWidget(no);row.addStretch(1);box.addLayout(row)
++    card.state = QLabel('');card.state.setWordWrap(True);card.state.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.state.hide();box.addWidget(card.state)
++
++    def said(text):
++        card.state.setText(plain_only(text));card.state.show()
++
++    def build_it():
++        go.setEnabled(False);no.setEnabled(False);start(host, key, said)
++
++    def not_now():
++        go.setEnabled(False);no.setEnabled(False);said(WORDS['left'])
++    go.clicked.connect(build_it);no.clicked.connect(not_now)
++    card.go, card.no = go, no
++    face.add(card)
++    return card
++
++
++def start(host, key, said=None):
++    """The build in a process of its own; when it is done, the demo's window. `said` puts her words on the card."""
++    from PySide6.QtCore import QProcess, QProcessEnvironment, QTimer
++    from . import boss_theme as bt
++    from . import locations
++    name, _ = DEMOS[key]
++    say = said or (lambda text: host.statusBar().showMessage(text, 12000))
++    try:folder = fresh_folder(name)
++    except OSError as exc:
++        say(WORDS['failed'].format(name=name, why=str(exc)[:200]));return None
++    say(WORDS['building'].format(name=name))
++    process = QProcess(host);process.setProgram(sys.executable);process.setArguments(['-m', 'workbench.demo_try', key, str(folder)])
++    process.setWorkingDirectory(str(locations.PACKAGE))
++    env = QProcessEnvironment()
++    for k, v in os.environ.items():env.insert(k, v)
++    process.setProcessEnvironment(env)
++    stop = QTimer(process);stop.setSingleShot(True);stop.timeout.connect(process.kill)
++
++    def finished(*_):
++        stop.stop()
++        out = bytes(process.readAllStandardOutput()).decode('utf-8', 'replace').strip().splitlines()
++        try:answer = json.loads(out[-1]) if out else {}
++        except ValueError:answer = {}
++        if not answer.get('ok'):
++            why = answer.get('why') or 'the build stopped before it was done'
++            say(WORDS['failed'].format(name=name, why=why));return
++        window = QProcess();window.setProgram(sys.executable);window.setArguments(['-m', 'workbench.launch'])
++        window.setWorkingDirectory(str(locations.PACKAGE))
++        shown = QProcessEnvironment()
++        for k, v in demo_environment(folder, bt.APPEARANCE).items():shown.insert(k, v)
++        window.setProcessEnvironment(shown);window.startDetached()
++        say(WORDS['built'].format(name=name, folder=str(folder)))
++    process.finished.connect(finished)
++    process.start();stop.start(BUILD_SECONDS * 1000)
++    host._demo_build = process
++    return process
++
++
++if __name__ == '__main__':
++    sys.exit(main())
+diff --git a/workbench/field_model.py b/workbench/field_model.py
+index 3c5b305..f0d883c 100644
+--- a/workbench/field_model.py
++++ b/workbench/field_model.py
+@@ -14,19 +14,25 @@ from dataclasses import dataclass, field
+ 
+ KINDS = ('source', 'sheet', 'calculation', 'document', 'finding', 'question', 'condition', 'method', 'job', 'folder',
+          'interface', 'program', 'endpoint',        # these three are the network face: this computer, what runs, where it reaches
+-         'app')                                      # the programs face: one program or room Graphite can open
++         'app',                                      # the programs face: one program or room Graphite can open
++         'goal', 'rule', 'word')                     # 0.8.6 W, Kas's mind: a goal you kept, a rule card, your word (domain-neutral)
+ # Where a kind sits when nothing feeds it and it feeds nothing: left to right, material to conclusion.
+ KIND_RANK = {'source': 0, 'folder': 0, 'sheet': 1, 'method': 1, 'calculation': 2, 'job': 5, 'document': 3, 'finding': 3, 'question': 4, 'condition': 4,
+-             'interface': 0, 'program': 1, 'endpoint': 2, 'app': 0}
++             'interface': 0, 'program': 1, 'endpoint': 2, 'app': 0,
++             'word': 2, 'rule': 3, 'goal': 4}          # 0.8.6 W: your word stands beside the rows it is said about; a goal after what it reads
+ KIND_TAG = {'source': 'SOURCE', 'sheet': 'SHEET', 'calculation': 'CALC', 'document': 'PAGE', 'finding': 'FINDING',
+             'question': 'OPEN QUESTION', 'condition': 'TOTAL', 'method': 'METHOD', 'job': 'JOB', 'folder': 'FOLDER',
+-            'interface': 'INTERFACE', 'program': 'PROGRAM', 'endpoint': 'ELSEWHERE', 'app': 'PROGRAM'}
++            'interface': 'INTERFACE', 'program': 'PROGRAM', 'endpoint': 'ELSEWHERE', 'app': 'PROGRAM',
++            'goal': 'GOAL', 'rule': 'RULE CARD', 'word': 'YOUR WORD'}
+ RANK_TITLE = ('MATERIAL', 'TABLES', 'CALCULATIONS', 'FINDINGS', 'OPEN', 'WORK')
+ # States the view knows how to mark. Anything else is shown as its own word in quiet ink.
+ STATE_CURRENT, STATE_RECHECK, STATE_OPEN, STATE_HELD = 'current', 'recheck', 'open', 'held'
+-ATTENTION = (STATE_RECHECK, STATE_OPEN, STATE_HELD, 'waiting', 'paused', 'failed', 'interrupted')
++# 0.8.6 W: a goal's or a rule card's state, in her words: it holds, it does not hold, it cannot be told yet, or it depends on
++# a choice that is yours (which revision applies). Each has its own mark's shape in the view, not only a colour.
++STATE_HOLDS, STATE_FAILS, STATE_UNTOLD, STATE_DEPENDS = 'holds', 'does not hold', 'cannot tell', 'depends'
++ATTENTION = (STATE_RECHECK, STATE_OPEN, STATE_HELD, 'waiting', 'paused', 'failed', 'interrupted', STATE_FAILS, STATE_UNTOLD, STATE_DEPENDS)
+ # States drawn with the small green mark: the record agrees with its source, the line is up, the work is running.
+-SETTLED = (STATE_CURRENT, 'up', 'connected', 'listening', 'running', 'in use')
++SETTLED = (STATE_CURRENT, 'up', 'connected', 'listening', 'running', 'in use', STATE_HOLDS)
+ 
+ 
+ LATELY = 12 * 3600                       # "lately": the last twelve hours, a working day's reach
+@@ -200,7 +206,8 @@ class Field:
+             kind = kinds.pop()
+             return {'source': 'MATERIAL', 'folder': 'MATERIAL', 'sheet': 'TABLES', 'calculation': 'CALCULATIONS', 'document': 'PAGES',
+                     'finding': 'FINDINGS', 'question': 'OPEN', 'condition': 'OPEN', 'method': 'METHODS', 'job': 'WORK',
+-                    'interface': 'THIS COMPUTER', 'program': 'APPS', 'endpoint': 'ELSEWHERE'}.get(kind, str(kind).upper())
++                    'interface': 'THIS COMPUTER', 'program': 'APPS', 'endpoint': 'ELSEWHERE',
++                    'goal': 'GOALS', 'rule': 'RULE CARDS', 'word': 'YOUR WORD'}.get(kind, str(kind).upper())
+         return RANK_TITLE[min(rank, len(RANK_TITLE) - 1)]
+ 
+     # ---- selection -------------------------------------------------------------------------------------------------
+@@ -282,7 +289,8 @@ class Field:
+         words = {'source': ('source', 'sources'), 'folder': ('folder', 'folders'), 'sheet': ('sheet', 'sheets'),
+                  'calculation': ('calculation', 'calculations'), 'document': ('page', 'pages'), 'finding': ('finding', 'findings'),
+                  'question': ('open question', 'open questions'), 'condition': ('total', 'totals'), 'method': ('method', 'methods'), 'job': ('job', 'jobs'),
+-                 'interface': ('interface', 'interfaces'), 'program': ('program', 'programs'), 'endpoint': ('place reached', 'places reached'), 'app': ('program', 'programs')}
++                 'interface': ('interface', 'interfaces'), 'program': ('program', 'programs'), 'endpoint': ('place reached', 'places reached'), 'app': ('program', 'programs'),
++                 'goal': ('goal', 'goals'), 'rule': ('rule card', 'rule cards'), 'word': ('word of yours', 'words of yours')}
+         parts = []
+         for kind in KINDS:
+             count = sum(1 for obj in self.objects if obj.kind == kind)
+diff --git a/workbench/field_page.py b/workbench/field_page.py
+index 65873e7..41bbf25 100644
+--- a/workbench/field_page.py
++++ b/workbench/field_page.py
+@@ -675,6 +675,9 @@ def open_object(host, obj):
+         elif kind == 'job':
+             from .context_menu import show_job
+             opened = show_job(host, target['id'])
++        elif kind in ('goal', 'rule', 'word'):      # 0.8.6 W: a card of her mind has no room of its own: opening it is its Why
++            from .mind_panel_qt import show_why
++            return show_why(host, obj)
+         else:
+             host.statusBar().showMessage('Field · %s has no page of its own to open yet' % obj.title, 6000);return None
+     except (ValueError, OSError, KeyError) as exc:
+diff --git a/workbench/field_qt.py b/workbench/field_qt.py
+index 8f9e0f7..4077436 100644
+--- a/workbench/field_qt.py
++++ b/workbench/field_qt.py
+@@ -1474,13 +1474,15 @@ class FieldView(QWidget):
+             p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(box)
+         elif state == STATE_RECHECK:
+             p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(QRectF(box.left(), box.top(), box.width() / 2, box.height()))
+-        elif state in (STATE_HELD, 'refuted'):
++        elif state in (STATE_HELD, 'refuted', 'does not hold'):      # 0.8.6 W: a goal or rule card that does not hold is crossed too
+             p.drawRect(box);p.drawLine(box.topLeft(), box.bottomRight())
++        elif state == 'depends':             # 0.8.6 W: it depends on one choice of yours: the box parted in two, one part per way
++            p.drawRect(box);p.drawLine(QPointF(box.center().x(), box.top()), QPointF(box.center().x(), box.bottom()))
+         elif state in ('waiting', 'paused'):
+             p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawEllipse(box.center(), box.width() * 0.18, box.width() * 0.18)
+         elif state in ('failed', 'interrupted'):
+             p.drawLine(box.topLeft(), box.bottomRight());p.drawLine(box.topRight(), box.bottomLeft())
+-        elif state == STATE_OPEN:
++        elif state in (STATE_OPEN, 'cannot tell'):      # 0.8.6 W: what cannot be told yet is open, and drawn so
+             p.drawRect(box)
+         else:                                # unavailable, not read, down: a dash
+             p.drawLine(QPointF(box.left(), box.center().y()), QPointF(box.right(), box.center().y()))
+diff --git a/workbench/field_source.py b/workbench/field_source.py
+index 1203611..992ec50 100644
+--- a/workbench/field_source.py
++++ b/workbench/field_source.py
+@@ -12,6 +12,8 @@ record that cannot be read is drawn as "not read", never as current, and is not
+     findings      investigation.list, investigation.sheet, .path          what was learned, what must be rechecked, what is unknown
+     totals        conditions.list                                         a total bound to a page's words that no longer holds
+     work          jobs.list                                               jobs that are not finished: running, waiting, failed
++    her mind      goals.list, goals.check, word.list, rules.list,         0.8.6 W: the goals you kept, your words and your rule
++                  rules.check, quotes.list                                cards; a pinned quote is a wire, never a card
+ 
+ There is no table of links in the program: each link is a field inside a record (a sheet's origin, a report's
+ derivation, a claim's path), so the links are derived here, kind by kind. A FieldObject's `target` is a small dict the
+@@ -34,7 +36,8 @@ ports they wait on. It reads /proc and /sys only, starts no capture, and nothing
+ """
+ from pathlib import Path
+ 
+-from .field_model import Field, FieldLink, FieldObject, STATE_CURRENT, STATE_HELD, STATE_OPEN, STATE_RECHECK, carries
++from .field_model import (Field, FieldLink, FieldObject, STATE_CURRENT, STATE_DEPENDS, STATE_FAILS, STATE_HELD, STATE_HOLDS, STATE_OPEN, STATE_RECHECK,
++                          STATE_UNTOLD, carries)
+ 
+ UNAVAILABLE = 'unavailable'      # the record cannot reach its source now: quiet ink, not an alarm
+ NOT_READ = 'not read'            # the record itself could not be read this time
+@@ -318,6 +321,125 @@ class Reader:
+             self.add(FieldObject('job:' + row['id'], 'job', goal, 'work Graphite holds',
+                                  word, tuple(facts), '', {'kind': 'job', 'id': row['id']}, stac='jobs | where id=%s | select tool,state,goal' % row['id']))
+ 
++    # ---- 0.8.6 W, Kas's mind: three kinds of card, domain-neutral -------------------------------------------------------------
++    def mind(self):
++        """The goals you kept, your words and your rule cards, each a card with its state in her words. A pinned quote is not a
++        card: it is the wire from the admitted file its words stand on to the rule card that rests on them, labelled with the
++        quote's label ("§ 12(c)"), drawn to recheck when the words are no longer where they were pinned. Reads only."""
++        self.rule_rows = {}                  # rule card -> the rows it rests on, for the words that say how a row reads
++        said = (self.call('word.list') or {}).get('words', ())
++        kept = [g for g in (self.call('goals.list') or {}).get('goals', ()) if g.get('form') == 'relation' and g.get('id')]
++        for goal in self.newest(kept, 'goals'):self.goal(goal, said)
++        rules = (self.call('rules.list') or {}).get('rules', ())
++        if rules:
++            cards = {card['rule']: card for card in (self.call('rules.check') or {}).get('cards', ())}
++            quotes = {q['id']: q for q in (self.call('quotes.list', {'all': True}) or {}).get('quotes', ())}
++            for rule in self.newest(rules, 'rule cards'):self.rule(rule, cards.get(rule['id']), quotes)
++        for word in self.newest(said, 'words of yours'):self.word(word, kept)
++
++    def goal(self, goal, said):
++        from fractions import Fraction
++        from .mind_types import CONFLICT, DEPENDS, FAILS, HOLDS, UNDECIDED
++        from .reasons import room_words
++        from .your_word import _alternatives_of, choice_for, short_name
++        ident = 'goal:' + goal['id']
++        way, _ = choice_for(said, goal, goal['id'], goal.get('key', ''))
++        options = _alternatives_of(goal);titles = [a['title'] for a in options]
++        judged = self.call('goals.check', dict({'id': goal['id'], 'stages': ['check']}, **({'choose': [way['sheet']]} if way else {})), record=ident)
++        facts = []
++        if judged is None:
++            state = NOT_READ;facts.append('it could not be checked this time')
++        else:
++            state = {HOLDS: STATE_HOLDS, FAILS: STATE_FAILS, UNDECIDED: STATE_UNTOLD, DEPENDS: STATE_DEPENDS, CONFLICT: STATE_HELD}.get(judged.get('state'), STATE_UNTOLD)
++            ways = (judged.get('judgement') or {}).get('ways') or ()
++            words = {HOLDS: 'holds', FAILS: 'does not hold', UNDECIDED: 'cannot tell', CONFLICT: 'the records disagree'}
++            if len(ways) == 1:
++                room = tuple(Fraction(x) for x in ways[0]['room']) if ways[0].get('room') else None
++                if room is not None:facts.append(room_words(room, ways[0].get('unit') or '', ways[0]['state']))
++                if way:facts.append('by your word, %s applies' % short_name(way['title'], titles))
++            else:
++                facts.append(' · '.join('%s: %s' % (' '.join(short_name(t, titles) for _, t in w.get('choices') or ()) or 'as read',
++                                                      words.get(w['state'], 'cannot tell')) for w in ways))
++                if state == STATE_DEPENDS:facts.append('which revision applies is yours to say')
++            if any(str(((w.get('answers') or {}).get('check') or {}).get('freshness') or 'CURRENT') != 'CURRENT' for w in judged.get('ways') or ()):
++                state = STATE_RECHECK;facts.insert(0, 'a row it reads changed')
++        self.add(FieldObject(ident, 'goal', goal.get('statement') or 'A goal', 'a goal you kept', state, tuple(f for f in facts if f), 'kept by you',
++                             {'kind': 'goal', 'id': goal['id']}, stac='goals.list | pick goals | where id=%s | select statement,state' % goal['id']))
++        refs = list((goal.get('cells') or {}).values()) + [a for alts in (goal.get('alternatives') or {}).values() for a in alts]
++        rows = {}
++        for ref in refs:rows.setdefault(ref['sheet'], []).append(str(ref['cell'])[1:])
++        for sheet, numbers in rows.items():self.link('office:' + sheet, ident, _rows_said(numbers))
++        if goal.get('via'):self.link('document:' + goal['via'], ident, 'its result')
++
++    def rule(self, rule, card, quotes):
++        from .mind_types import CONFLICT, FAILS, HOLDS, UNDECIDED
++        ident = 'rule:' + rule['id'];facts = []
++        if card is None:state = NOT_READ;facts.append('it could not be judged this time')
++        elif card.get('freshness') != 'CURRENT':
++            state = STATE_RECHECK;facts.append('rests on words or rows that changed: ' + ', '.join(card.get('changed') or ()))
++        else:
++            state = {HOLDS: STATE_HOLDS, FAILS: STATE_FAILS, UNDECIDED: STATE_UNTOLD, CONFLICT: STATE_HELD}.get(card.get('state'), STATE_UNTOLD)
++            facts.append({'SUPPORTED': 'its conclusion follows on your records', 'CONFLICT': 'the records disagree'}.get(card.get('conclusion'), 'no conclusion either way'))
++        if card is not None and card.get('footer'):facts.append(card['footer'])
++        sort = {'STATUTE_TEXT': 'statute text', 'CONTRACT': 'contract', 'SPECIFICATION': 'specification'}.get(rule.get('sort'), 'your source')
++        title = (card or {}).get('title') or rule.get('title') or 'A rule card'
++        self.add(FieldObject(ident, 'rule', title, 'a rule card you split', state, tuple(facts), '%s · %s' % (rule.get('title', ''), sort),
++                             {'kind': 'rule', 'id': rule['id']}, stac='rules.list | pick rules | where id=%s | select title,sort,freshness' % rule['id']))
++        changed = ' '.join((card or {}).get('changed') or ())
++        wires = {}                           # one wire from each source, carrying every label it gives (§ 12(a), § 12(b), …)
++        for bound in _rule_bounds(rule):
++            if bound.get('quote'):          # a pinned quote: a wire from the file its words stand on, never a card of its own
++                quote = quotes.get(bound['quote'])
++                if quote is None:continue
++                now = quote.get('now') or {};item = ((now.get('now') or {}).get('item')) or quote['source']['item']
++                labels, stale = wires.setdefault('intake:' + item, ([], [False]))
++                label = quote.get('label') or bound.get('label') or 'pinned quote'
++                if label not in labels:labels.append(label)
++                stale[0] = stale[0] or now.get('state') != 'CURRENT'
++            elif bound.get('row'):
++                row = bound['row'];number = str(row.get('cell', ''))[1:]
++                labels, stale = wires.setdefault('office:' + row['sheet'], ([], [False]))
++                if number not in labels:labels.append(number)
++                stale[0] = stale[0] or 'row %s of “%s”' % (number, row.get('title', '')) in changed
++        for source, (labels, stale) in wires.items():
++            self.link(source, ident, _rows_said(labels) if source.startswith('office:') else ', '.join(labels), stale[0])
++        self.rule_rows[ident] = {(b['row']['sheet'], b['row'].get('cell')) for b in _rule_bounds(rule) if b.get('row')}
++
++    def word(self, word, kept):
++        ident = 'word:' + word['id'];subject = word.get('subject') or {}
++        sorts = {'CHOICE': 'a choice', 'READING': 'how a row reads', 'COMPLETE': 'a sheet complete', 'SAYS': 'your own account', 'STANDING': 'a standing choice'}
++        fresh = word.get('freshness', 'CURRENT');facts = [sorts.get(word.get('sort'), 'your word')]
++        if fresh != 'CURRENT':facts.insert(0, 'to reconsider: %s changed' % ', '.join(word.get('changed') or ()))
++        self.add(FieldObject(ident, 'word', word.get('statement') or 'Your word', 'your word', STATE_CURRENT if fresh == 'CURRENT' else STATE_RECHECK, tuple(facts),
++                             'said by you', {'kind': 'word', 'id': word['id']}, stac='word.list | pick words | where id=%s | select statement,sort,freshness' % word['id']))
++        for bound in list(word.get('bound') or ()) + list(word.get('because') or ()):
++            if not bound.get('sheet'):continue
++            label = ('row %s' % str(bound['cell'])[1:]) if bound.get('cell') else 'the whole sheet'
++            self.link('office:' + bound['sheet'], ident, label, fresh != 'CURRENT')
++        if subject.get('rule'):self.link(ident, 'rule:' + subject['rule'], 'says which row')
++        if word.get('sort') == 'READING':    # how a row's words read: it decides every rule card that rests on that row
++            for rule, rows in self.rule_rows.items():
++                if (subject.get('sheet'), subject.get('cell')) in rows:self.link(ident, rule, 'how it reads')
++        for goal in kept:                    # what your word decides: the goal it is said about, or every goal whose revisions it names
++            sheets = {a['sheet'] for alts in (goal.get('alternatives') or {}).values() for a in alts}
++            about = subject.get('goal') == goal['id'] or bool(subject.get('goal_key') and subject.get('goal_key') == goal.get('key'))
++            if word.get('sort') == 'CHOICE' and word.get('scope') == 'desk':about = bool(sheets) and sheets <= set(subject.get('sheets') or ())
++            if word.get('sort') == 'STANDING':about = bool(sheets)
++            if about:self.link(ident, 'goal:' + goal['id'], 'decides' if word.get('sort') in ('CHOICE', 'STANDING') else 'about it')
++
++
++def _rows_said(numbers):
++    """'row 3' or 'rows 2, 3': the rows of one sheet a card reads, said once on its one wire."""
++    numbers = sorted(set(numbers), key=lambda n: (len(n), n))
++    return ('row ' if len(numbers) == 1 else 'rows ') + ', '.join(numbers)
++
++
++def _rule_bounds(rule):
++    """Every source a rule card rests on, as it was bound when you set it."""
++    gives = rule.get('gives') or {}
++    out = [e.get('bound') or {} for part in ('needs', 'unless') for e in rule.get(part) or ()] + [gives.get('bound') or {}]
++    return out + [(gives.get('amount') or {}).get('bound') or {}]
++
+ 
+ def _left_out(reader):
+     """What the ceilings kept back, one count per kind: '440 more sheets, 90 more findings'."""
+@@ -331,7 +453,9 @@ def _left_out(reader):
+ def problems(reader):
+     """What could not be read, in the owner's words (never an operation name): one sentence for the status line, or ''."""
+     kinds = {'intake.namespaces': 'the sources', 'intake.items': 'the sources', 'office.list': 'the sheets', 'documents.list': 'the pages',
+-             'investigation.list': 'the findings', 'conditions.list': 'the totals', 'jobs.list': 'the jobs', 'network.observe': 'the network'}
++             'investigation.list': 'the findings', 'conditions.list': 'the totals', 'jobs.list': 'the jobs', 'network.observe': 'the network',
++             'goals.list': 'the goals', 'word.list': 'your words', 'rules.list': 'the rule cards', 'rules.check': 'the rule cards',
++             'quotes.list': 'the pinned quotes'}
+     whole = []
+     for operation, _ in reader.refused:
+         name = kinds.get(operation, 'some records')
+@@ -413,7 +537,7 @@ def read_field(kernel, principal, title='', skip=()):
+     reader = Reader(kernel, principal, skip)
+     reader.material();reader.tables();reader.pages_and_calculations()
+     investigations = reader.findings()
+-    reader.settle_tables();reader.totals();reader.jobs()
++    reader.settle_tables();reader.mind();reader.totals();reader.jobs()      # 0.8.6 W: her mind's cards after the sheets are settled
+     if reader.replaced:      # a calculation that was brought up to date is a new page; the one it replaced is history, not work
+         gone = {obj.id for obj in reader.objects if obj.id in reader.replaced and (obj.kind == 'calculation' or obj.tag == 'BRIEF')}
+         reader.objects = [obj for obj in reader.objects if obj.id not in gone]
+diff --git a/workbench/glyph_set.py b/workbench/glyph_set.py
+index 6c7d3e4..2112cb6 100644
+--- a/workbench/glyph_set.py
++++ b/workbench/glyph_set.py
+@@ -441,6 +441,28 @@ def trace(p, ink, accent):
+     facet(p, ink, (17.5, 14.5), (12.5, 11.2), (12.5, 17.8))
+ 
+ 
++# ---- 0.8.6 W, Kas's mind: the three kinds of card her reasons add to the Field ------------------------------------------
++
++def aim(p, ink, accent):
++    """A goal: a cell of the lattice with the point it is aimed at."""
++    pen(p, ink);line(p, *HEX, close=True)
++    facet(p, accent, (10.0, 6.5), (13.5, 10.0), (10.0, 13.5), (6.5, 10.0))
++    facet(p, ink, (10.0, 8.2), (11.8, 10.0), (10.0, 11.8), (8.2, 10.0))
++
++
++def ruled(p, ink, accent):
++    """A rule card: what it needs, gathered, and what it gives."""
++    pen(p, ink);line(p, (2.5, 5.5), (7.5, 5.5));line(p, (2.5, 10.5), (7.5, 10.5));line(p, (2.5, 15.5), (7.5, 15.5))
++    line(p, (7.5, 5.5), (7.5, 15.5));line(p, (7.5, 10.5), (13.0, 10.5))
++    facet(p, ink, (17.5, 10.5), (13.0, 7.2), (13.0, 13.8))
++
++
++def worded(p, ink, accent):
++    """Your word: a slip that speaks, its tail a facet."""
++    facet(p, accent, (6.5, 14.5), (6.5, 18.0), (10.0, 14.5))
++    pen(p, ink);p.drawRect(QRectF(2.5, 3.5, 15, 11));line(p, (5.5, 7.5), (14.5, 7.5));line(p, (5.5, 10.5), (11.5, 10.5))
++
++
+ GLYPHS = {
+     'trash': trash, 'pause': pause, 'filter': funnel, 'sort': ordering, 'group': gathered, 'watch': watch, 'trace': trace,
+     'count': letters('#', QFont.DemiBold, size=14.0),
+@@ -453,7 +475,7 @@ GLYPHS = {
+     'delta': delta, 'agenda': agenda, 'chain': chain, 'star': star, 'split': split, 'picture': picture,
+     # the kinds of sheet, by what they draw, so a menu or a tab can wear them too
+     'page': page, 'found': found, 'asked': asked, 'limit': limit, 'steps': steps, 'running': running, 'folder': folder,
+-    'port': port, 'window': window, 'reach': reach, 'rooms': rooms,
++    'port': port, 'window': window, 'reach': reach, 'rooms': rooms, 'aim': aim, 'ruled': ruled, 'worded': worded,
+     'bold': letters('B', QFont.Bold, size=14.0), 'italic': letters('I', QFont.DemiBold, italic=True, size=14.0),
+     'underline': letters('U', QFont.DemiBold, under=True, size=12.0),
+     'h1': letters('H1'), 'h2': letters('H2', QFont.Medium, size=12.0), 'h3': letters('H3', QFont.Normal, size=11.0),
+@@ -464,4 +486,5 @@ GLYPHS = {
+ # What each kind of sheet on the Field is drawn as (field_model.KINDS). A sheet seen from far off is this glyph and its name.
+ KIND = {'source': page, 'folder': folder, 'sheet': table, 'method': steps, 'calculation': report, 'job': running,
+         'document': cell, 'finding': found, 'question': asked, 'condition': limit,
+-        'interface': port, 'program': window, 'endpoint': reach, 'app': rooms}
++        'interface': port, 'program': window, 'endpoint': reach, 'app': rooms,
++        'goal': aim, 'rule': ruled, 'word': worded}        # 0.8.6 W
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index b8803b4..059f68a 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -25,7 +25,7 @@ VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@c
+         'fullscreen', 'reading', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9)
+ TOOLS = ['discovery','algorithms','atlas', '@type_to', '@chain', 'ledger_commands', None,
+          'ledger_settings', 'doctor', '@computer', '@pills', None, 'master_stop', None, '@engineering', '@service']
+-HELP = ['@getting_started', '@whats_new', 'keys', 'setup_guide', None, 'orange_book', None, 'about']
++HELP = ['@getting_started', '@whats_new', None, '@kas_evening', '@try_rail', '@try_home', None, 'keys', 'setup_guide', None, 'orange_book', None, 'about']      # 0.8.6 W: the evening with her mind, and its two demos
+ ENGINEERING = [('Projects and code', ['definition', 'completion', 'engineering', 'development', 'ledger', 'desk', 'native_game', 'newgame', 'browse', 'refresh', 'project_search',
+                                       'engineering_layout', 'focus_layout', 'object_glass', 'output', 'problems', 'dual', 'developer_tools', 'arcos', 'trace', 'register', 'cartdock']),
+                ('Build and run', ['build', 'build_all', 'tests', 'run', 'stop', 'next', 'prev', 'boot', '@targets']),
+@@ -148,6 +148,13 @@ def rebuild(host):
+         release_notes = program / 'docs' / ('RELEASE_NOTES_%s.md' % SHORT)
+         if not release_notes.is_file(): release_notes = program / 'docs' / 'STAGE6.md'
+         host.a_whats_new = make("What's New in %s" % SHORT, lambda:host.open_in_viewer(release_notes))
++        # 0.8.6 W: the Guide page "An evening with Kas's mind", and its two invented desks, each built in a fresh folder of its own
++        host.a_kas_evening = make("An Evening with Kas's Mind", lambda:host.open_in_viewer(program / 'docs' / 'KAS_MIND_EVENING.md'))
++        host.a_try_rail = make('Try Rail Demo', lambda:__import__('workbench.demo_try', fromlist=['try_demo']).try_demo(host, 'rail'))
++        host.a_try_home = make('Try Home Demo', lambda:__import__('workbench.demo_try', fromlist=['try_demo']).try_demo(host, 'home'))
++        for a, tip in ((host.a_try_rail, 'An invented 12 V rail, built in a new folder of its own and opened on the Field in a window of its own'),
++                       (host.a_try_home, 'An invented household, built in a new folder of its own and opened on the Field in a window of its own')):
++            a.setToolTip(tip);a.setStatusTip(tip)
+         sizes = QActionGroup(host);host.a_sizes = {}
+         for level, word in ((0, 'One Line'), (1, 'Half'), (2, 'Tall')):
+             a = make(word, lambda level=level:host.console.set_size(level) if hasattr(host, 'console') else None);a.setCheckable(True);sizes.addAction(a);host.a_sizes[level] = a
+@@ -191,6 +198,7 @@ def rebuild(host):
+     service = next((a for a in before if a.text().replace('&', '').startswith('Background service')), None)
+     extras = {'@receive': host.a_receive, '@files': host.a_files, '@agenda': host.a_agenda, '@project_desk': host.a_project_desk, '@changes': host.a_changes, '@continuing':host.a_continuing, '@deployment':host.a_deployment, '@slate_panel': host.a_slate_panel,
+               '@getting_started': host.a_getting_started, '@whats_new': host.a_whats_new,
++              '@kas_evening': host.a_kas_evening, '@try_rail': host.a_try_rail, '@try_home': host.a_try_home,      # 0.8.6 W
+               **{'@size_' + w: host.a_sizes[l] for l, w in ((0, 'line'), (1, 'half'), (2, 'tall'))},
+               **{'@talk_' + k: a for k, a in host.a_talk.items()}, '@run_operation': host.a_run_operation,
+               '@computer': host.a_computer, '@pills': host.a_pills, '@work_copy': host.a_work_copy, '@console': host.a_console, '@library': host.a_library, '@chain': host.a_chain,
+diff --git a/workbench/mind_panel_qt.py b/workbench/mind_panel_qt.py
+new file mode 100644
+index 0000000..8f92bbd
+--- /dev/null
++++ b/workbench/mind_panel_qt.py
+@@ -0,0 +1,420 @@
++"""Her column panel (0.8.6 W, "Kas's mind, no model"): Why, Rests on, Either way and What would settle it, for one card.
++
++One panel in her column, the window side of her reasons (reasons.py, either_way.py, settle.py). Every card on the Field has
++"Why" in its right-click (context_menu.field_entries), and a goal, rule or word card opens to it; show_why(host, card) puts
++the panel in her column, in place of the one shown before.
++
++  Why                   the short proof (at most 12 lines, reasons.BUDGET), each line with its state word and where it came
++                        from, For and Against, ending with what would change the conclusion. A click on a line selects its
++                        card on the Field and lights the proof's wires there with the Field's own trace light (light_proof);
++                        the selection steps the rest of the desk back. Next and Back walk the proof card by card from the
++                        source end, the wires lit as far as the walk has come.
++  Rests on              what the answer rests on that is not a reviewed reading (field.rests), each with Without it, and for
++                        a choice between revisions With the other one; the answer that counts is said without her proposals.
++  Either way            every reading the desk knows of, worked out (field.either); for a choice that decides it, one button
++                        per value with its exact outcome; a press selects that revision's sheet on the Field.
++  What would settle it  what would settle a cannot tell, and who can settle it (field.settle).
++
++Nothing here writes a record: every call is a read (field.why, field.rests, field.either, field.settle, observer operations,
++so asking is not an event). No model is asked: the words are her templates (WORDS, registered with mind_words, and the
++reasons modules' own), and the foot says the model calls, 0. Every text shown goes through model_words.plain_only first, as
++her column's plain renderer does: model words can never be shown here as hers. Every colour that means something also has
++a word or a shape: the line chosen carries a rule at its left and a mark, the section shown its mark.
++"""
++from __future__ import annotations
++
++from PySide6.QtCore import Qt, QTimer
++from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget
++
++from . import boss_theme as bt
++from . import mind_words
++
++SECTIONS = (('why', 'tab_why'), ('rests', 'tab_rests'), ('either', 'tab_either'), ('settle', 'tab_settle'))
++
++# Her words here: fixed templates, scanned with the rest of hers (mind_words.check): no exclamation mark, no sentence over
++# 30 words, no digit in the fixed words, every number through a slot that names its record.
++WORDS = {
++    'head': 'Why “{title}” stands as it does',
++    'tab_why': 'Why',
++    'tab_rests': 'Rests on',
++    'tab_either': 'Either way',
++    'tab_settle': 'What would settle it',
++    'foot': 'My own templates, worked out on your records with no model. Model calls: {count}.',
++    'not_goal': 'This card is not a goal over the desk’s data, so there is no other way of reading it to work out. Why gives its reasons.',
++    'next': 'Next',
++    'back': 'Back',
++    'away': 'Put it away',
++    'walk': 'Card {n} of {count} from the source end: “{title}”.',
++    'walk_start': 'Next walks the proof card by card from the source end, lighting its wires on the Field.',
++    'walk_none': 'There are no wires to walk: nothing else on the desk feeds it.',
++    'for': 'For it:',
++    'against': 'Against it:',
++    'nothing': 'nothing',
++    'counted': 'The answer that counts: {words}.',
++    'proposed': 'With my proposal, not agreed: {words}.',
++    'without': 'Without it',
++    'with_other': 'With {name} instead',
++    'without_said': 'Without it: {words}.',
++    'other_said': 'With {name} instead: {words}.',
++    'whose': 'Whose: {whose}.',
++    'nothing_rests': 'It rests on nothing but reviewed readings and what Why shows.',
++    'way_pressed': 'Its sheet, “{title}”, is selected on the Field. Which revision applies stays yours to say.',
++    'could_not': 'I could not work this out: {why}',
++    'no_field': 'The Field is not open in this window, so no wires can be lit.',
++    'worked': 'Worked out when you asked. Nothing was written.',
++}
++NUMBERS = {'foot': {'count': 'the reads behind this panel: field.why, field.rests, field.either, field.settle'},
++           'walk': {'n': 'the proof’s walk (reasons.why)', 'count': 'the proof’s walk (reasons.why)'}}
++mind_words.register('mind_panel', WORDS, kind='sentence', numbers=NUMBERS)
++
++# Where a line came from, in words (reasons.why's 'from' is the premise's role).
++FROM_WORDS = {'row': 'a reviewed row', 'tolerance': 'your tolerance', 'choice': 'which revision applies', 'check': 'a check the Kernel ran',
++              'maths': 'the maths', 'source': 'a source admitted here', 'made': 'what it was made from', 'evidence': 'the evidence',
++              'rests': 'what it rests on', 'change': 'what would change it', 'budget': 'the budget', 'subject': 'the card itself'}
++
++
++def say(key, **slots):
++    return WORDS[key].format(**slots)
++
++
++def plain(text):
++    """Her plain words, checked first: model words are refused here exactly as her column's plain renderer refuses them."""
++    from .model_words import plain_only
++    return plain_only(text)
++
++
++def put(label, text):
++    """Her words into a label: through plain_only, then leaded in Kasandra (room between the lines), as she speaks there."""
++    text = plain(text)
++    if bt.APPEARANCE == 'kasandra':
++        from .shell2 import leaded
++        leaded(label, text)
++    else:
++        label.setProperty('plain', str(text));label.setTextFormat(Qt.PlainText);label.setText(str(text))
++    return label
++
++
++def words_label(text='', quiet=False):
++    label = QLabel();label.setWordWrap(True);label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++    label.setTextInteractionFlags(Qt.TextSelectableByMouse)
++    if quiet:label.setStyleSheet('color:%s;' % bt.QUIET)
++    if text:put(label, text)
++    return label
++
++
++class Line(QFrame):
++    """One line of the proof: her words, and under them its state word and where it came from. A line about a card is a
++    place to click: that card is selected on the Field and the proof's wires are lit."""
++
++    def __init__(self, panel, line):
++        super().__init__();self.panel = panel;self.line = line;self.setObjectName('KasMindLine')
++        box = QVBoxLayout(self);box.setContentsMargins(8, 3, 4, 3);box.setSpacing(1)
++        self.text = words_label(line.get('text', ''))
++        self.text.setTextInteractionFlags(Qt.NoTextInteraction)
++        meta = ' · '.join(x for x in (line.get('state') or '', self._from(line)) if x)
++        self.meta = words_label(meta, quiet=True) if meta else None
++        self.text.setAttribute(Qt.WA_TransparentForMouseEvents)
++        box.addWidget(self.text)
++        if self.meta is not None:self.meta.setAttribute(Qt.WA_TransparentForMouseEvents);box.addWidget(self.meta)
++        self.card = line.get('field') or ''
++        if self.card or line.get('leaf'):
++            self.setCursor(Qt.PointingHandCursor)
++            self.setToolTip('Select this card on the Field and light the proof’s wires' if self.card else 'Light the proof’s wires on the Field')
++        self.set_chosen(False)
++
++    @staticmethod
++    def _from(line):
++        said = str(line.get('from') or '')
++        return FROM_WORDS.get(said, said)
++
++    def set_chosen(self, chosen):
++        """The line chosen: a rule at its left and a mark before its words (a shape, not only a colour)."""
++        self.chosen = chosen
++        edge = bt.AMBER_EDGE if chosen else 'transparent'
++        self.setStyleSheet('QFrame#KasMindLine {border:0; border-left:3px solid %s;}' % edge)
++        self.setAccessibleName(('Chosen: ' if chosen else '') + str(self.line.get('text', ''))[:200])
++
++    def mousePressEvent(self, event):
++        if event.button() == Qt.LeftButton and (self.card or self.line.get('leaf')):
++            self.panel.choose_line(self);return
++        super().mousePressEvent(event)
++
++
++class MindPanel(QFrame):
++    """The panel for one card. Reads on open (Why) and when a section is first shown; writes nothing."""
++
++    def __init__(self, host, ident, title=''):
++        super().__init__();self.host = host;self.ident = str(ident);self.title = str(title or ident)
++        self.setObjectName('KasMindPanel');self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
++        self.setStyleSheet('QFrame#KasMindPanel {border:1px solid %s; background:%s;}' % (bt.LINE, bt.CARD))
++        self.why = None;self.answers = {};self.calls = 0;self.lines = [];self.step = -1;self.walk = [];self.wires = []
++        box = self.box = QVBoxLayout(self);box.setContentsMargins(10, 8, 8, 8);box.setSpacing(6)
++        from .shell2 import button
++        head = QHBoxLayout();head.setSpacing(8)
++        self.head = words_label(say('head', title=self.title[:160]));self.head.setStyleSheet('font-weight:600;')
++        head.addWidget(self.head, 1)
++        self.away = button(say('away'), 'quiet', 'The panel leaves her column; the Field stays as it is')
++        self.away.setObjectName('KasMindAway');self.away.clicked.connect(self.put_away);head.addWidget(self.away, 0, Qt.AlignTop)
++        box.addLayout(head)
++        tabs = QHBoxLayout();tabs.setSpacing(4);self.tabs = {}
++        for name, key in SECTIONS:
++            b = button(WORDS[key], 'quiet', '');b.setObjectName('KasMindSection');b.setCheckable(True)
++            b.clicked.connect(lambda checked=False, name=name: self.show_section(name))
++            self.tabs[name] = b;tabs.addWidget(b)
++        tabs.addStretch(1);box.addLayout(tabs)
++        walk = QHBoxLayout();walk.setSpacing(6)        # the walk sits above the proof, so it is in reach without scrolling
++        self.back = button(say('back'), 'quiet', 'One card back towards the source end');self.back.setObjectName('KasMindBack')
++        self.next = button(say('next'), 'quiet', 'The next card from the source end, its wires lit');self.next.setObjectName('KasMindNext')
++        self.back.clicked.connect(lambda: self.walk_by(-1));self.next.clicked.connect(lambda: self.walk_by(1))
++        self.walk_words = words_label('', quiet=True)
++        walk.addWidget(self.back, 0, Qt.AlignTop);walk.addWidget(self.next, 0, Qt.AlignTop);walk.addWidget(self.walk_words, 1);box.addLayout(walk)
++        self.pages = {}                                  # one section shown at a time; a hidden one takes no room
++        for name, _ in SECTIONS:
++            page = QWidget();lay = QVBoxLayout(page);lay.setContentsMargins(0, 0, 0, 0);lay.setSpacing(3)
++            self.pages[name] = (page, lay);page.hide();box.addWidget(page)
++        self.foot = words_label('', quiet=True);box.addWidget(self.foot)
++
++    # ---- reading --------------------------------------------------------------------------------------------------------------
++    def kernel(self):
++        from .engineering_kernel import operator
++        kernel = getattr(getattr(self.host, 'ledger_bridge', None), 'kernel', None)
++        if kernel is None:
++            from .engine import engineering
++            kernel = engineering(self.host.root)
++        return kernel, operator()
++
++    def read(self, operation, arguments):
++        """One read through the Kernel: (result, '') or (None, her words for why it could not be read)."""
++        from PySide6.QtWidgets import QApplication
++        QApplication.setOverrideCursor(Qt.WaitCursor)
++        try:
++            kernel, principal = self.kernel()
++            answer = kernel.dispatch(operation, arguments, principal)
++        except Exception as exc:  # noqa: BLE001 - a panel never takes the window down
++            answer = {'ok': False, 'error': {'message': str(exc)}}
++        finally:
++            QApplication.restoreOverrideCursor()
++        if not isinstance(answer, dict) or not answer.get('ok'):
++            error = (answer or {}).get('error') if isinstance(answer, dict) else answer
++            message = error.get('message') if isinstance(error, dict) else str(error)
++            return None, str(message or 'it could not be read').strip()[:300]
++        result = answer.get('result') or {}
++        self.calls += int(result.get('model_calls') or 0) if isinstance(result, dict) else 0
++        return result, ''
++
++    def start(self):
++        self.show_section('why')
++        return self
++
++    def show_section(self, name):
++        for other, b in self.tabs.items():
++            b.setChecked(other == name)
++            b.setText(('› ' if other == name else '') + WORDS[dict(SECTIONS)[other]])      # the section shown carries a mark
++        if name not in self.answers:self.fill(name)
++        for other, (page, _) in self.pages.items():page.setVisible(other == name)      # the panel is as tall as the section shown
++        self.adjustSize()
++        self.walk_row(name == 'why')
++        self.foot.setText('');put(self.foot, say('foot', count=self.calls) + ' ' + say('worked'))
++
++    def walk_row(self, shown):
++        for w in (self.back, self.next, self.walk_words):w.setVisible(shown)
++        if shown:self.said_walk()
++
++    def fill(self, name):
++        lay = self.pages[name][1]
++        if name == 'why':
++            found, why = self.read('field.why', {'id': self.ident});self.answers[name] = found
++            if found is None:lay.addWidget(words_label(say('could_not', why=why)));return
++            self.why = found;self.lines = []
++            for line in found.get('lines') or ():
++                row = Line(self, line);self.lines.append(row);lay.addWidget(row)
++            self.sides(lay, found)
++            self.prepare_walk(found)
++        elif name == 'rests':
++            found, why = self.read('field.rests', {'id': self.ident});self.answers[name] = found
++            if found is None:lay.addWidget(words_label(say('could_not', why=why)));return
++            self.rests(lay, found)
++        elif name == 'either':
++            found, why = self.read('field.either', {'id': self.ident});self.answers[name] = found
++            if found is None:lay.addWidget(words_label(self.refusal(why)));return
++            for text in found.get('words') or ():lay.addWidget(words_label(text))
++            question = found.get('question') or {}
++            for outcome in question.get('outcomes') or ():
++                self.way_button(lay, outcome)
++        else:
++            found, why = self.read('field.settle', {'id': self.ident});self.answers[name] = found
++            if found is None:lay.addWidget(words_label(self.refusal(why)));return
++            for text in found.get('words') or ():lay.addWidget(words_label(text))
++            step = found.get('next') or {}
++            if step.get('words') and step.get('route') != 'NOTHING':lay.addWidget(words_label(step['words'], quiet=True))
++
++    @staticmethod
++    def refusal(why):
++        """Why a section could not be worked out, in her words (never an operation's name)."""
++        if str(why).startswith('That card is not a goal'):return say('not_goal')
++        return say('could_not', why=why)
++
++    def sides(self, lay, found):
++        """For and Against: the sources on each side, each a place to click that selects it on the Field."""
++        if found.get('kind') != 'claim':return
++        from .shell2 import sentence
++        for key, rows in (('for', found.get('for') or ()), ('against', found.get('against') or ())):
++            if not rows:
++                lay.addWidget(words_label('%s %s' % (WORDS[key], WORDS['nothing']), quiet=True));continue
++            actions = {}
++            parts = []
++            for n, row in enumerate(rows):
++                name = 'c%d' % n;actions[name] = (plain(str(row.get('title') or '')), lambda f=row.get('field'): self.light(f))
++                parts.append('{%s}' % name)
++            label = sentence('%s %s' % (WORDS[key], ', '.join(parts)), actions)
++            label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);lay.addWidget(label)
++
++    def rests(self, lay, found):
++        from .shell2 import button
++        counted = (found.get('counted') or {}).get('words')
++        if counted:lay.addWidget(words_label(say('counted', words=counted)))
++        proposed = (found.get('proposed') or {}).get('words') if found.get('proposed') else ''
++        if proposed:lay.addWidget(words_label(say('proposed', words=proposed), quiet=True))
++        items = found.get('rests_on') or ()
++        for item in items:
++            lay.addWidget(words_label(item.get('words', '')))
++            if item.get('whose'):lay.addWidget(words_label(say('whose', whose=item['whose']), quiet=True))
++            row = QHBoxLayout();row.setSpacing(6);answers = []
++            if item.get('without'):
++                b = button(say('without'), 'quiet', 'The answer worked out without it; nothing is changed')
++                b.setObjectName('KasMindWithout');shown = words_label('', quiet=True);shown.hide();answers.append(shown)
++                b.clicked.connect(lambda checked=False, w=item['without'], s=shown: self.reveal(s, say('without_said', words=w.get('words', ''))))
++                row.addWidget(b)
++            for other in item.get('with_other') or ():
++                b = button(say('with_other', name=other.get('name') or other.get('title', '')), 'quiet', 'The answer with the other revision; nothing is changed')
++                b.setObjectName('KasMindWithOther');shown = words_label('', quiet=True);shown.hide();answers.append(shown)
++                b.clicked.connect(lambda checked=False, o=other, s=shown: self.reveal(s, say('other_said', name=o.get('name') or o.get('title', ''), words=o.get('words', ''))))
++                row.addWidget(b)
++            row.addStretch(1);lay.addLayout(row)
++            for shown in answers:lay.addWidget(shown)
++        for text in found.get('unset') or ():lay.addWidget(words_label(text, quiet=True))
++        if not items and not found.get('unset'):lay.addWidget(words_label(say('nothing_rests'), quiet=True))
++
++    def reveal(self, label, text):
++        put(label, text);label.show();self.adjustSize()
++
++    def way_button(self, lay, outcome):
++        """One way of a choice that decides it: the button carries its exact outcome; a press selects that revision's sheet."""
++        from .shell2 import button
++        b = button(plain(str(outcome.get('words') or '')), 'quiet', 'Select this revision’s sheet on the Field; nothing is changed')
++        b.setObjectName('KasMindWay');b.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
++        titles = [str(v) for _, v in outcome.get('choices') or ()]
++        shown = words_label('', quiet=True);shown.hide()
++
++        def pressed():
++            view = self.view()
++            hit = next((o for o in (view.field.objects if view is not None else ()) if o.title in titles), None)
++            if hit is not None:
++                view.field.select(hit.id);view._layout();view._reveal();view._describe();view.update()
++                self.reveal(shown, say('way_pressed', title=hit.title))
++        b.clicked.connect(pressed);lay.addWidget(b, 0, Qt.AlignLeft);lay.addWidget(shown)
++
++    # ---- the Field: selection, the lit wires, the walk -------------------------------------------------------------------------
++    def view(self):
++        """The Field's view, brought to the front if it is not (asking Why happens on the Field, but a goal's panel may stay
++        open while you look elsewhere)."""
++        page = getattr(self.host, 'field_page', None)
++        if not getattr(self.host, '_field_active', False):
++            try:
++                from .field_page import show_field
++                page = show_field(self.host)
++            except Exception:  # noqa: BLE001 - no Field in this window: the panel still reads
++                page = None
++        return getattr(page, 'view', None)
++
++    def prepare_walk(self, found):
++        """The proof's wires on the Field, and the walk: the cards from the source end in to this one."""
++        view = self.view()
++        on = {o.id for o in view.field.objects} if view is not None else set()
++        wires = [dict(w) for w in found.get('route') or () if w['source'] in on and w['target'] in on]
++        walk = [card for card in found.get('walk') or () if card in on]
++        if self.ident in on and view is not None:      # a card of her mind: the wires into it from the proof's own cards
++            near = set(walk) | {l.get('field') for l in found.get('leaves') or () if l.get('field')}
++            top = max([w['hop'] for w in wires] + [-1]) + 1
++            for link in view.field.fed_by(self.ident):
++                if link.source in near and not any(w['source'] == link.source and w['target'] == self.ident for w in wires):
++                    wires.append({'source': link.source, 'target': self.ident, 'hop': top})
++            if self.ident not in walk:
++                walk = [c for c in walk if c in near] + [self.ident]
++                for w in wires:
++                    if w['source'] not in walk:walk.insert(0, w['source'])
++        self.wires = wires;self.walk = walk;self.step = -1
++        self.light(self.ident if self.ident in on else '', quiet=True)
++
++    def light(self, card, upto=None, quiet=False):
++        view = self.view()
++        if view is None:
++            if not quiet:put(self.walk_words, say('no_field'))
++            return []
++        wires = self.wires if upto is None else [w for w in self.wires if w['source'] in upto and w['target'] in upto]
++        owner = card if card and view.field.get(card) is not None else (self.ident if view.field.get(self.ident) is not None else '')
++        lit = view.light_proof(owner, wires)
++        try:view._layout();view._reveal();view._describe();view.update()
++        except Exception:  # noqa: BLE001 - bringing it into view is a nicety
++            pass
++        return lit
++
++    def choose_line(self, row):
++        for other in self.lines:other.set_chosen(other is row)
++        card = row.card or self.ident
++        if card in self.walk:self.step = self.walk.index(card);self.said_walk()
++        self.light(card)
++
++    def walk_by(self, step):
++        if not self.walk:self.said_walk();return
++        self.step = max(0, min(len(self.walk) - 1, self.step + step))
++        card = self.walk[self.step]
++        self.light(card, upto=set(self.walk[:self.step + 1]))
++        for row in self.lines:row.set_chosen(bool(row.card) and row.card == card)
++        self.said_walk()
++
++    def said_walk(self):
++        if not self.walk:
++            put(self.walk_words, say('walk_none'));self.back.setEnabled(False);self.next.setEnabled(False);return
++        self.back.setEnabled(self.step > 0);self.next.setEnabled(self.step < len(self.walk) - 1)
++        if self.step < 0:put(self.walk_words, say('walk_start'));return
++        view = self.view();card = self.walk[self.step]
++        obj = view.field.get(card) if view is not None else None
++        put(self.walk_words, say('walk', n=self.step + 1, count=len(self.walk), title=(obj.title if obj is not None else card)[:120]))
++
++    def put_away(self):
++        if getattr(self.host, 'mind_panel', None) is self:self.host.mind_panel = None
++        self.hide();self.deleteLater()
++
++
++def show_why(host, card):
++    """Her panel for one card (a FieldObject, or a card's id such as 'claim:…' or 'goal:…'), in her column, in place of the one
++    shown before. Returns the panel."""
++    ident = getattr(card, 'id', None) or str(card)
++    title = getattr(card, 'title', '') or ident
++    old = getattr(host, 'mind_panel', None)
++    if old is not None:
++        try:old.hide();old.deleteLater()
++        except RuntimeError:  # it left with Talk's earlier exchanges
++            pass
++    panel = MindPanel(host, ident, title)
++    host.mind_panel = panel
++    face = getattr(getattr(host, 'shell2', None), 'face', None)
++    if face is not None:
++        face.add(panel)
++    else:                                  # a window with no column of hers: the panel stands on its own, beside the work
++        panel.setParent(host, Qt.Tool);panel.setWindowTitle(WORDS['tab_why']);panel.resize(460, 620);panel.show()
++    panel.start()
++    for ms in (60, 200):QTimer.singleShot(ms, lambda: _into_view(face, panel))      # after her column's own scroll and fold
++    return panel
++
++
++def _into_view(face, panel):
++    """Her column scrolled so the panel's head (its sections and the walk) is at the top, however long its proof."""
++    try:
++        scroll = getattr(face, 'scroll', None)
++        if scroll is None or scroll.widget() is None:return
++        from PySide6.QtCore import QPoint
++        scroll.verticalScrollBar().setValue(max(0, panel.mapTo(scroll.widget(), QPoint(0, 0)).y() - 8))
++    except RuntimeError:  # the panel was put away meanwhile
++        pass
+diff --git a/workbench/mind_words.py b/workbench/mind_words.py
+index bf1d6d6..54841a1 100644
+--- a/workbench/mind_words.py
++++ b/workbench/mind_words.py
+@@ -55,7 +55,8 @@ STYLE = ("Marie Curie's precision: every number carries its receipt; cannot tell
+ # Modules whose templates are registered here when they are imported (collect() imports them; a module that is not in
+ # this program yet is passed over, so a lane's templates join the scan the day its module lands).
+ MODULES = ('workbench.mind_words', 'workbench.rules', 'workbench.quotes', 'workbench.page_marks',  # 0.8.7 C2: pencil words
+-           'workbench.voice_character')            # 0.8.7 C5: her character file's own plain words
++           'workbench.voice_character',            # 0.8.7 C5: her character file's own plain words
++           'workbench.mind_panel_qt', 'workbench.demo_try')      # 0.8.6 W: her column panel's words, and the demos' card
+ 
+ QUOTED = re.compile(r'“[^”]*”|"[^"]*"')
+ SENTENCE = re.compile(r'(?<=[.?!])\s+')

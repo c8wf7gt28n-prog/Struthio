@@ -1474,13 +1474,15 @@ class FieldView(QWidget):
             p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(box)
         elif state == STATE_RECHECK:
             p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(QRectF(box.left(), box.top(), box.width() / 2, box.height()))
-        elif state in (STATE_HELD, 'refuted'):
+        elif state in (STATE_HELD, 'refuted', 'does not hold'):      # 0.8.6 W: a goal or rule card that does not hold is crossed too
             p.drawRect(box);p.drawLine(box.topLeft(), box.bottomRight())
+        elif state == 'depends':             # 0.8.6 W: it depends on one choice of yours: the box parted in two, one part per way
+            p.drawRect(box);p.drawLine(QPointF(box.center().x(), box.top()), QPointF(box.center().x(), box.bottom()))
         elif state in ('waiting', 'paused'):
             p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawEllipse(box.center(), box.width() * 0.18, box.width() * 0.18)
         elif state in ('failed', 'interrupted'):
             p.drawLine(box.topLeft(), box.bottomRight());p.drawLine(box.topRight(), box.bottomLeft())
-        elif state == STATE_OPEN:
+        elif state in (STATE_OPEN, 'cannot tell'):      # 0.8.6 W: what cannot be told yet is open, and drawn so
             p.drawRect(box)
         else:                                # unavailable, not read, down: a dash
             p.drawLine(QPointF(box.left(), box.center().y()), QPointF(box.right(), box.center().y()))

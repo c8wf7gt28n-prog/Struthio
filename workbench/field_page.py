@@ -675,6 +675,9 @@ def open_object(host, obj):
         elif kind == 'job':
             from .context_menu import show_job
             opened = show_job(host, target['id'])
+        elif kind in ('goal', 'rule', 'word'):      # 0.8.6 W: a card of her mind has no room of its own: opening it is its Why
+            from .mind_panel_qt import show_why
+            return show_why(host, obj)
         else:
             host.statusBar().showMessage('Field · %s has no page of its own to open yet' % obj.title, 6000);return None
     except (ValueError, OSError, KeyError) as exc:

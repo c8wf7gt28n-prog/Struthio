@@ -5,13 +5,22 @@ with the maths, says what would settle what she cannot tell, and asks a model on
 you the same choices as buttons when no model is loaded. Everything here works with no model.
 
 Two invented desks carry the examples. **Rail Demo** (a 12 V rail: bench readings, and limits in Rev A, archived, and
-Rev B, current) is built from the Apps. **Home Demo** is an invented household: a tenancy under the *Demoland Tenancy Act
-(invented)*, a bank sheet and two typed money sheets. Every Home Demo legal page says INVENTED: NOT THE LAW OF ANY PLACE.
+Rev B, current) is built by Guide ▸ Try Rail Demo. **Home Demo** is an invented household: a tenancy under the *Demoland
+Tenancy Act (invented)*, a bank sheet and two typed money sheets, built by Guide ▸ Try Home Demo. Each is built through the
+Kernel's own doors in a new folder of its own, never in your workspace; her card says so before anything is built, and the
+demo opens on the Field in a window of its own. Every Home Demo legal page says INVENTED: NOT THE LAW OF ANY PLACE.
 "Today" in every example is Friday 20 November 2026.
 
 Ten things to try, one for each thing she can do.
 
-## 1. Ask in your own words
+## 1. Why, with the wires lit
+
+Open Rail Demo (Guide ▸ Try Rail Demo), right-click the finding "Startup is inside the Rev B limit of 40 ms" and choose
+Why. Her column shows a short proof: 45 ms is at most 40 ms does not hold, 5 ms over; each line says its state and where
+it came from, and clicking a line selects that card and lights the proof's wires in the Field while the rest of the desk
+steps back. Next and Back walk the proof card by card from the source end; the last line says what would change it.
+
+## 2. Ask in your own words
 
 Type in the writing line: *How much current can the rail settle at and stay under the current limit?*
 
@@ -23,14 +32,9 @@ reached this by elimination. The answer: below 1/3 A, up to 333 mA in whole mill
 On Home Demo, *How much can I spend each week on groceries and stay under the month?* gives up to 131.34 a week (18.76 a
 day) for the 10 days left: 187.63 is left of 600.00.
 
-## 2. Why, with the wires lit
-
-Right-click the finding "Startup is inside the Rev B limit of 40 ms" and choose Why. She shows a short proof: 45 ms is at
-most 40 ms does not hold, 5 ms over; each line says where it came from, and clicking a line lights its wires in the Field.
-
 ## 3. What it rests on, and without it
 
-Under Why, Rests on lists your tolerances and your word on open points, such as which revision applies. Each has a
+Beside Why, Rests on lists your tolerances and your word on open points, such as which revision applies. Each has a
 Without it button: settled power with your ±0.25 V tolerance holds with 0.9375 to 1.0625 W to spare; without the
 tolerance, with 1 W to spare.
 
