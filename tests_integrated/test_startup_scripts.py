@@ -12,13 +12,16 @@ ROOT=Path(__file__).resolve().parents[1]
 SCRIPTS=('LS_XSESSION.sh','START_MINIMAL_DEBIAN.sh','START_OFFICE.sh','INSTALL_DEBIAN.sh','INSTALL_LEDGER.sh','LEDGER.sh','START_LEDGER.sh','HATCH_CHECK.sh')
 UID=1000
 SYSTEM_PATH='/usr/local/bin:/usr/bin:/bin'
+# The stand-in office waits (at most 5 s) until the stand-in window manager is ready, as the real window takes seconds
+# to come up: without it the session script could stop the window manager before it had started (a race in the stand-ins).
 OFFICE_STUB='''#!/usr/bin/env bash
+if [[ -n "${STUB_FLUXPID:-}" ]]; then for _ in $(seq 100); do [[ -s "$STUB_FLUXPID" ]] && break; sleep 0.05; done; fi
 echo "office pid=$$ XSESSION=${ARC_LEDGER_XSESSION:-unset} FULLSCREEN=${ARC_LEDGER_FULLSCREEN:-unset} args=$*" >> "$STUB_LOG"
 if [[ -n "${STUB_WRITE_LOG:-}" ]]; then mkdir -p "$(dirname "$STUB_WRITE_LOG")"; echo traceback > "$STUB_WRITE_LOG"; fi
 exit "${STUB_EXIT:-0}"
 '''
 FLUXBOX_STUB='''#!/usr/bin/env bash
-echo "$$" > "$STUB_FLUXPID"; echo "fluxbox args: $*" >> "$STUB_LOG"; trap 'echo "fluxbox got TERM" >> "$STUB_LOG"; exit 0' TERM; while :; do sleep 0.2; done
+trap 'echo "fluxbox got TERM" >> "$STUB_LOG"; exit 0' TERM; echo "fluxbox args: $*" >> "$STUB_LOG"; echo "$$" > "$STUB_FLUXPID.tmp"; mv "$STUB_FLUXPID.tmp" "$STUB_FLUXPID"; while :; do sleep 0.2; done
 '''
 STARTX_STUB='''#!/usr/bin/env bash
 echo "startx args: $*" >> "$STUB_LOG"

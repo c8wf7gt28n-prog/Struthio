@@ -2890,8 +2890,8 @@
       "sha256": "2d64c820aa915c7642a8234a9299c84dd43d403638bd1224928d64c4c87a704b"
     },
     "tests_integrated/test_startup_scripts.py": {
-      "bytes": 15723,
-      "sha256": "3e5597ddbe971b09fe758f1d47bc33eb39c06adf18f71439800102f60f771bca"
+      "bytes": 16127,
+      "sha256": "11197b1225c9023206fb767e58698f174ce2e18ad43ee450ccc8b19b2e7dd335"
     },
     "tests_integrated/test_system_menu.py": {
       "bytes": 44723,
