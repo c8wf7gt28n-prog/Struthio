@@ -18,6 +18,7 @@ The functions, for the Library that builds on this (0.8.7):
     terms(text)                         the words of a text as they are matched: lower case, no stop words, a light stem
     split(text)                         a page's text cut into places [{'label', 'mark', 'text', 'line'}]
     rank(query, passages, limit)        pure: the places of these passages ranked for the query (no Kernel, no model)
+    score(query, places, limit)         pure: the ranking rule itself, over places already cut (0.8.7 C3's Library index)
     passages(kernel, principal, query, namespaces=None)    the pages the FTS5 search finds, admitted and current
     pin_args(kernel, principal, place)  the arguments quotes.pin takes for this place, or None when its words are not
                                         found as one run on the page
@@ -130,29 +131,36 @@ def rank(query, passages, limit=LIMIT):
     the question's shape adds scores half that. Ties go to the place that carries more of the query's own words, then to
     reading order. Pure: no Kernel, no model, no float. Returns [{'rank', 'label', 'text', 'score' (a Fraction as text),
     'matched', **the passage's other fields}]."""
-    own = list(dict.fromkeys(terms(query)));extra = [w for w in asked(query) if w not in own]
-    places = []
+    cut = []
     for order, passage in enumerate(passages):
         for place in split(passage.get('text') or ''):
-            places.append((order, place, set(terms(place['text']))))
+            cut.append({**place, 'order': order, 'terms': set(terms(place['text']))})
+    out = []
+    for n, (place, score_, matched) in enumerate(score(query, cut, limit), 1):
+        passage = {k: v for k, v in passages[place['order']].items() if k != 'text'}
+        out.append({**passage, 'rank': n, 'label': place['label'], 'text': place['text'], 'score': str(score_), 'matched': matched})
+    return out
+
+
+def score(query, places, limit=LIMIT):
+    """The one ranking rule (rank() above, and 0.8.7's Library over its index, library_service): places already cut, each
+    {'terms': its terms() as a set, 'order': its passage's reading order, 'line', and anything else}, scored for the query.
+    Returns [(place, score as a Fraction, matched words)], best first, at most `limit`. Pure: no Kernel, no model, no float."""
+    own = list(dict.fromkeys(terms(query)));extra = [w for w in asked(query) if w not in own]
     if not places or not (own or extra):return []
     count = len(places)
     def weight(word):
-        df = sum(1 for _, _, have in places if word in have)
+        df = sum(1 for place in places if word in place['terms'])
         return Fraction(count, df) if df else Fraction(0)
     weights = {w: weight(w) for w in own};weights.update({w: weight(w) * ASKED for w in extra})
     scored = []
-    for order, place, have in places:
-        matched = [w for w in own + extra if w in have]
+    for place in places:
+        matched = [w for w in own + extra if w in place['terms']]
         if not matched:continue
-        score = sum((weights[w] for w in matched), Fraction(0))
-        scored.append((-score, -sum(1 for w in matched if w in own), order, place['line'], place, matched, score))
+        total = sum((weights[w] for w in matched), Fraction(0))
+        scored.append((-total, -sum(1 for w in matched if w in own), place['order'], place['line'], place, matched, total))
     scored.sort(key=lambda row: row[:4])
-    out = []
-    for n, (_, _, order, _, place, matched, score) in enumerate(scored[:limit], 1):
-        passage = {k: v for k, v in passages[order].items() if k != 'text'}
-        out.append({**passage, 'rank': n, 'label': place['label'], 'text': place['text'], 'score': str(score), 'matched': matched})
-    return out
+    return [(place, total, matched) for _, _, _, _, place, matched, total in scored[:limit]]
 
 
 # ============================================================================================================ the desk

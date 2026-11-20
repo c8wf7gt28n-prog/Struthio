@@ -405,11 +405,14 @@
    "ledger.work.resume": "workbench/work_trail.py#dispatch",
    "ledger.work.status": "workbench/work_trail.py#dispatch",
    "ledger.workflow.describe": "workbench/stacy_awareness.py#dispatch",
+   "library.ask": "workbench/library_service.py#dispatch",
    "library.doorway": "workbench/doorway.py#dispatch",
    "library.keep": "workbench/page_marks.py#dispatch",
    "library.marks": "workbench/page_marks.py#dispatch",
+   "library.page": "workbench/library_service.py#dispatch",
    "library.read": "workbench/page_marks.py#dispatch",
    "library.rubout": "workbench/page_marks.py#dispatch",
+   "library.search": "workbench/library_service.py#dispatch",
    "links.catalog": "workbench/brain_link.py#dispatch",
    "links.inspect": "workbench/brain_link.py#dispatch",
    "links.trace": "workbench/brain_link.py#dispatch",
@@ -1017,9 +1020,9 @@
   }
  },
  "counts": {
-  "adapters": 819,
+  "adapters": 822,
   "job_tools": 113,
-  "operations": 819,
+  "operations": 822,
   "settings": 48
  },
  "formulas": {
@@ -4649,6 +4652,15 @@
    },
    "scope": "read"
   },
+  "library.ask": {
+   "arguments": "21350d774004cf63e6fe72180ba2d841fa989c80c87ed0db68a1649a8010050c",
+   "properties": {
+    "limit": "049413350c4892f5",
+    "namespace": "423010dfd115daf3",
+    "query": "11033dea281281d3"
+   },
+   "scope": "read"
+  },
   "library.doorway": {
    "arguments": "ce8c57f941f415709bf4ab48827df450c14a4bb8c0f560d2c5aa19fc617df89e",
    "properties": {
@@ -4686,6 +4698,15 @@
    },
    "scope": "read"
   },
+  "library.page": {
+   "arguments": "d26a687667e9f7dac3defddf39af717e68dd8966680e23642bcfd12243a104f4",
+   "properties": {
+    "id": "8d84283928a18afc",
+    "item": "423010dfd115daf3",
+    "namespace": "423010dfd115daf3"
+   },
+   "scope": "read"
+  },
   "library.read": {
    "arguments": "d26a687667e9f7dac3defddf39af717e68dd8966680e23642bcfd12243a104f4",
    "properties": {
@@ -4703,6 +4724,16 @@
     "undo": "7cb541e84f226754"
    },
    "scope": "execute"
+  },
+  "library.search": {
+   "arguments": "131aa0349c3ea3ab4a43ffd1126155a50cc2747cd0a71c180a0bfd8c3eb317d0",
+   "properties": {
+    "limit": "049413350c4892f5",
+    "namespace": "423010dfd115daf3",
+    "query": "11033dea281281d3",
+    "rebuild": "7cb541e84f226754"
+   },
+   "scope": "read"
   },
   "links.catalog": {
    "arguments": "fba82810a14481f27f7525ff46a94435414fbcbeb1ad75abc17c64fbafeadf13",
@@ -8060,7 +8091,7 @@
  },
  "release": "Graphite 0.8.6",
  "schema": "graphite.registry-record/1",
- "schema_digest": "6c3e5a6ed158d2c7033c96bb038db467ed005069e3d0cfb978afcf0c9311a4eb",
+ "schema_digest": "0c1a8a790581150e0effeeb2b7696875c4d96a30ae11fe52f01f57b7ac3b2763",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

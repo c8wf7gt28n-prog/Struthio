@@ -199,3 +199,9 @@ def frames(module=None):
     """{(module, key): text} of every registered frame (kind 'frame'), or one module's."""
     return {k: e['text'] for k, e in _REGISTRY.items() if e['kind'] == 'frame' and (module is None or k[0] == module)}
 # ---- end of 0.8.7 C4 --------------------------------------------------------------------------------------------------------
+
+
+# ---- 0.8.7 C3, Ask the Library (library_service) ------------------------------------------------------------------------------
+# Her Library words (places, the desk's cut quote, "the places I looked at do not say") join the sweep like every other module's.
+MODULES = MODULES + ('workbench.library_service',)
+# ---- end of 0.8.7 C3 --------------------------------------------------------------------------------------------------------

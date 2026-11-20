@@ -106,6 +106,7 @@ def schemas():
     from .field_service import FIELDS as FIELD_FIELDS
     from .doorway import FIELDS as DOORWAY_FIELDS  # 0.8.7 C1 (the doorway)
     from .page_marks import FIELDS as PENCIL_FIELDS  # 0.8.7 C2 (pages in pencil)
+    from .library_service import FIELDS as LIBRARY_FIELDS  # 0.8.7 C3 (Ask the Library)
     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
@@ -214,6 +215,7 @@ def schemas():
         **FIELD_FIELDS,
         **DOORWAY_FIELDS,  # 0.8.7 C1 (the doorway)
         **PENCIL_FIELDS,  # 0.8.7 C2 (pages in pencil)
+        **LIBRARY_FIELDS,  # 0.8.7 C3 (Ask the Library)
         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
