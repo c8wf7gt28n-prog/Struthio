@@ -185,6 +185,10 @@ switched the session's model.
   button that chooses how much room the writing or Log area takes (Line / Half / Tall, today left of the box) ends
   exactly at the middle column's right edge. The chooser (Kasandra, Terminal, Search, Web, Log) stays under the left
   column and the four meters under the right. Mockup with both changes sent (`work/head_mock/mock2_*`). With 0.8.6.
+- 20 Nov 08:15 UTC, approved by the owner ("Yep, that's perfect"), with two changes: the room button and send swap
+  places (prompt box, then the room button, then send, which ends exactly at the middle column's right edge); and the
+  four meters (CPU, GPU, RAM, TXT) centred and evenly spaced under the right column. Final mockup:
+  `work/head_mock/mock3_*`. With 0.8.6.
 
 - 19 Nov 22:15 UTC: "Discussion on what we did after the stuff finishes". When part B has finished and is merged (before
   cutting the 0.8.4 kit), stop and talk it through with the owner in plain words: what was built today and why, what the
