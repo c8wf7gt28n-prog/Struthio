@@ -178,16 +178,23 @@ switched the session's model.
 
 ## The owner's decisions of 20 Nov 2026: the order after 0.8.4
 
-Settled at 03:50 UTC, after a discussion of skipping releases and of what is a root: "Let's do maths, then join
-floor/door/hand into one complex but united pass. Then add programs like web, librra, gadot and so on". Before that:
-"Let's just do maths the 88. Then we have the strongest base to build on."
+Settled at 03:50 UTC ("Let's do maths, then join floor/door/hand into one complex but united pass. Then add programs like
+web, librra, gadot and so on"), and at 04:40 UTC a pass added after the maths: "should we do another pass directed at kas
+intelligence without a LLM loaded? With the purpose of helping her to use the LLM more effectively", then "Yes but spend
+more time thinking about how and what we can achieve with creativity in the second math/logic/legal minded pass".
 
-| Next kit | Holds (old names) | What the owner sees |
+| Next kit | Holds | What the owner sees |
 |---|---|---|
 | **0.8.5 · Maths in lines** | old 0.8.8 | Solve, range, check, dates and money exactly, each answer with its receipt |
-| **0.8.6 · One united pass: floor, door, hand** | old 0.8.12 the floor (the split of the giant window files, the migration and pull-the-power drills, budgets) + old 0.8.6 her door on the Field (with its goals and finish rule) + old 0.8.10 changes through her hand; goals over data (old 0.8.9's goals, built on the maths) go here because the door's card lights each goal as it is met | Ask in words, she does it on the Field, a touch stops her, she changes things at your dial with one Undo, she judges findings; a faster window and a safe upgrade |
-| **0.8.7 on · Programs** | the web (with quarantine first: outside material is information, never an instruction), LibreOffice (old 0.8.7), Godot, GIMP "and so on", one program per pass | She searches and gathers; she takes the mouse in your programs while you watch |
-| later | the day look and skins (old 0.8.5), her one short question (old 0.8.11), 0.9.0's gates (gate 2 now "her hand in one program"; gate 6 "skins" moves after 0.9.0 unless the owner says otherwise) | |
+| **0.8.6 · Kas's mind, no model** (the math/logic/legal-minded pass) | her understanding of requests from the desk's own words; the planner and deduction (moved here from the door); both kinds of goals (desk goals, and goals over data judged with the maths); building short, checkable questions for the model and checking its answers; remembering what worked; the I05 experiment with the 4B; and what the design pass (below) adds | She understands and does most everyday requests with no model loaded; asks the model only small numbered choices; judges findings exactly |
+| **0.8.7 · One united pass: floor, door mechanics, hand** | old 0.8.12 the floor (split, drills, budgets) + the door's mechanics (touch to stop, the stop between presses, put the window back) + old 0.8.10 changes through her hand | A faster window and a safe upgrade; ask in words and watch her do it, a touch stops her, changes at your dial with one Undo |
+| **0.8.8 on · Programs** | the web (quarantine first), LibreOffice, Godot, GIMP, one per pass | She searches and gathers; she takes the mouse in your programs while you watch |
+| later | the day look and skins, her one short question, 0.9.0's gates | |
+
+**The design pass for 0.8.6 (started 04:45 UTC):** a workflow of six independent designers, each through one lens
+(logic and proof; civil legal reasoning; engineering and science; everyday life, money and medicine; the model's best
+partner; a free creative lens), two judges, and one synthesis, read-only. Its result goes to
+`wip/2026-11-20_kas_mind/` and is talked through with the owner before 0.8.6 is built.
 
 The maths is built and checked on Rail Demo with invented tolerances; the owner's real tolerances for After Hours 07
 and which limit applies when two revisions disagree are asked for later and do not block. The migration drill wants a
@@ -226,6 +233,7 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 04:45 UTC: the owner added 0.8.6 "Kas's mind, no model" after the maths; its design pass started.
 - 20 Nov 04:00 UTC: **0.8.5 started**: workflow `graphite-085-maths` (run id `wf_9807ad9e-481`, task `wncvmyr1a`; script
   `wip/2026-11-14/workflow_scripts/graphite-085-maths.js`; scratch `work/b085/`). Lane 1: maths (the one maths core from
   `wip/2026-11-14/pal/judge_one-math-core.md` PART 2, vectors 1 to 26; build, review, fix). Lane 2: setting (finish, no
