@@ -12,10 +12,10 @@ index 8ca9709..c53c763 100644
  python3 -m workbench.deployment_checks --ui
 diff --git a/docs/CHECKS.md b/docs/CHECKS.md
 new file mode 100644
-index 0000000..bbd6da7
+index 0000000..8f2b3fc
 --- /dev/null
 +++ b/docs/CHECKS.md
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,136 @@
 +# The checks, in tiers
 +
 +One command runs the checks at the size the moment needs:
@@ -32,9 +32,9 @@ index 0000000..bbd6da7
 +
 +| Tier | What it runs | When | Measured here |
 +| --- | --- | --- | --- |
-+| 0 | 25 fast modules (two of them in part) that guard the most: the owner's guards always, then the most planted bugs caught per second | every change | 39 s (budget: 1 minute) |
++| 0 | 25 fast modules (two of them in part) that guard the most: the owner's guards always, then the most planted bugs caught per second | every change | 35 to 52 s (budget: 1 minute) |
 +| 1 | tier 0, and every test module and window check that imports a changed file | before a commit | 1 min 46 s for a one-line change in `workbench/agenda_qt.py` |
-+| 2 | every test module, the 22 window checks, the playable scene on Rail Demo four ways, the name sweep, the release check's integrity sections | a release | 11 min 36 s per look (budget: 15 minutes) |
++| 2 | every test module, the 22 window checks, the playable scene on Rail Demo four ways, the name sweep, the release check's integrity sections | a release | 11 min 36 s per look; both looks in one run 25 min (budget: 15 minutes a look) |
 +| 3 | the ThinkPad: the check, the scenes on the real display, an evening of use | each release, by the owner | not run here |
 +
 +Each module, window check and scene runs in a process of its own, with an empty home folder and a temporary folder of its
@@ -135,7 +135,10 @@ index 0000000..bbd6da7
 +On 19 November 2026, on a copy of the tree (four cores, another build's two test processes running beside it, load 2 to
 +3.5), each child at nice 19 in a process namespace of its own, two at a time:
 +
-+- **Tier 0:** 39.9 s, 39.4 s and 38.6 s in three runs; 25 runs, 412 tests, 0 failing.
++- **Tier 0:** 39.9 s, 39.4 s and 38.6 s in three runs; 25 runs, 412 tests, 0 failing. After the review's fixes, on the
++  same tree: 35 s, 37 s and 37 s in Graphite's look and 38 s in Kasandra's; then, with another build's tests running
++  beside it (the children took 98 s between them instead of 67 s), 52 s and 47 s. Under a minute each time, but that
++  margin is what a busy machine takes.
 +- **Tier 1** for a one-line change in `workbench/agenda_qt.py` (with the seed made current again): it chose
 +  `test_delete_words`, `test_hologram`, `test_kasandra_column`, `test_session_start` and `test_typewriter_faces`; 30 runs,
 +  492 tests, 1 min 46 s, 0 failing.
@@ -144,8 +147,11 @@ index 0000000..bbd6da7
 +  modules 920 s (the slowest `test_desk_acts`, 187 s), the window checks 372 s (`check_finder_ui` 68 s), the scene 90 s,
 +  the name sweep 5 s and the release check's sections 4 s. Two at a time, the run takes half of that.
 +
-+Both looks in one run (`--look both`, the default for tier 2) share the two modules that run both looks themselves and
-+the sweep, so they should take about 21 minutes; that was estimated from the two runs above, not measured.
++Both looks in one run (`--look both`, the default for tier 2), after the review's fixes, with another build's tests
++running beside it (load 2.5 to 3.3): 25 min 3 s; 196 runs (the two modules that run both looks themselves, the sweep and
++the release check's sections once), 2,302 tests, the 22 window checks and the scene 4 of 4 in each look, 0 failing, and
++10 skipped, named on the last line (`test_startup_scripts`, 5 in each look: the privilege tests). The children took
++3,005 s between them, so two at a time were busy the whole run; each look's half, 12.5 minutes, is inside the budget.
 diff --git a/docs/WINDOW_CHECKS.md b/docs/WINDOW_CHECKS.md
 index 0e1571a..743457c 100644
 --- a/docs/WINDOW_CHECKS.md

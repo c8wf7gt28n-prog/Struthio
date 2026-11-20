@@ -66,8 +66,8 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 17842,
-      "sha256": "b54aae892e92cc2c0a2529aa15993cf7f9ca753bd2e5c208911554cccbc8244e"
+      "bytes": 17980,
+      "sha256": "797a573c649eba220e42427360b078ba9ca07d9efcd139f0cc1bd57717396319"
     },
     "RECORD_OF_DIRECTIONS.md": {
       "bytes": 39804,
@@ -1205,6 +1205,10 @@
       "bytes": 17495,
       "sha256": "0dcaf06ba63732be3bf3ec61f6ba0a7787e85bfe4316bbf76f17c27bc02c674a"
     },
+    "docs/CHECKS.md": {
+      "bytes": 11378,
+      "sha256": "4969da9eafeb9b97da112a9b6949322b84bc4714c6c7cace19555ba4bf214fd8"
+    },
     "docs/CONTINUE_01.md": {
       "bytes": 10775,
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
@@ -1818,8 +1822,8 @@
       "sha256": "403ef4dc021eb2487196dd577cf32e2c99af947df9ac76054a41ba4ae7eb09b5"
     },
     "docs/WINDOW_CHECKS.md": {
-      "bytes": 10578,
-      "sha256": "526e860dd7a6593eabf3174071f8b1f9ac38afc94ac660defadf99e2d2dbcfe2"
+      "bytes": 10745,
+      "sha256": "0272da07a320eb7a197a5065e7750ba62dc3a94ad3d633e87ef1ea8ee9194ebc"
     },
     "docs/WORKSHOP.md": {
       "bytes": 1427,
@@ -2198,16 +2202,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1910174,
-      "sha256": "3c1a7e5da1ff41fdb52e9865701ad2e5af55995d81f3e74325dc2dbd34d45d21"
+      "bytes": 1910313,
+      "sha256": "264c79cae6e741942e29e60b06797bbc5a81f9d1996a48ce7c0993a85cad66dc"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4366336,
-      "sha256": "d0f0b610f4a169663c33c1b63e82b23dc8a65651e3c5b1f1758aeb83f34a86d7"
+      "sha256": "9c30d9e3fc04e7af3680924c6ba965c6972c118b226b7600bb2958c1a9840dfe"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "0d931b97df495e67c98d4f597c5954387af694d81f9768043351455d4385aef7"
+      "sha256": "be4da2c25cfc339d0e52446d4ac3529e3a2bce3ac7505bc840a8903a793fb08f"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2829,6 +2833,10 @@
       "bytes": 7006,
       "sha256": "dcf2f8a493315fb0c72c815e38a92ef0e9aa4512e2d54448dbbe35a471773ee6"
     },
+    "tests_integrated/test_run_tiers.py": {
+      "bytes": 30236,
+      "sha256": "20ca961de32199db60f1e02c9649960cf2605e5c1d2886da3073eebac1891ace"
+    },
     "tests_integrated/test_service_lifecycle.py": {
       "bytes": 18877,
       "sha256": "98a27166327e88ef21b4f1abd290c60825968753551572c3b63d20102b8833b5"
@@ -3002,8 +3010,8 @@
       "sha256": "871cc8ecb2e66ff89bcc7fd8fd96d5458c2baa90fd9a339a0f6b6ccf86640f96"
     },
     "tools/check_hatch.py": {
-      "bytes": 32321,
-      "sha256": "a8004240b5de0ea8c137020ebf3c0c9ba4a46a33f57bed49c9e82e4a20efd3b3"
+      "bytes": 32470,
+      "sha256": "805067d640d10f5f13a0a3b32578fe0c7edef037c15125207c028a5f4b9f8a52"
     },
     "tools/check_machine_ui.py": {
       "bytes": 17406,
@@ -3097,9 +3105,17 @@
       "bytes": 5783,
       "sha256": "c055bd6f5c22819141a648fab88f918e2d6c37e771682ca9d89668f77261b7bf"
     },
+    "tools/run_tiers.py": {
+      "bytes": 37079,
+      "sha256": "ca7961a4fe71701887ad16c607d26d104429419ca9d43b6f9d3eaee55249bf20"
+    },
     "tools/source_identity.py": {
       "bytes": 4218,
       "sha256": "824eddbc7d27025fda2d551b26a8bb87933e2b3a3cac251895c212289d1540d4"
+    },
+    "tools/tiers.json": {
+      "bytes": 5149,
+      "sha256": "70b78fcc5d6e24996e1ee8263fc85ba7944f97f2b769f91569d335c5f44a695c"
     },
     "tools/traffic_forecast.py": {
       "bytes": 8904,

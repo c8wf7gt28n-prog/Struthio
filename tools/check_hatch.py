@@ -70,6 +70,10 @@ FOCUSED_MODULES=(
  'test_kasandra_highlight',
  # 0.8.4: the colour-vision check: every pair of meaning colours as weak red and weak green sight take them (tools/colour_vision.py)
  'test_colour_vision',
+
+ # 0.8.4: the checks in tiers (tools/run_tiers.py, tools/tiers.json): the lists, the import map, the runner and its result file
+ 'test_run_tiers',
+
  # the agent loop, condition cards, quiet connections, the Finder's listing, Ingress and Egress, the model turn, files about;
  # the network capability the agent can inspect (HATCH DESK D5)
  'test_tool_selection','test_agent_loop','test_conditions','test_related','test_browse','test_vocabulary','test_model_turn','test_profile_files',

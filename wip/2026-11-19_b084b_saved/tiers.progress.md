@@ -13,3 +13,9 @@ applies to HEAD). Result: ../tiers.build.result.json. Measurements: tiers/measur
 
 ## Not done
 - Step 2 new scenes / probe assertions; fixed waits in check_finder_ui; --look both not measured as one run.
+
+## Fix after review - DONE (20 Nov, worktree wf_401c7b30-522-12)
+- All must_fix (Ctrl-C/SIGTERM stop with killpg, result written, exit 130, `timeout` backstop; --no-renames) and all
+  should_fix items are in tiers.patch; test_run_tiers 14 tests, both looks OK; 12 of 12 mutations caught.
+- Re-measured: tier 0 35/37/37 s (G) 38 s (K) on a quiet machine, 52/47 s with another build beside; tier 2 both looks one
+  run 25 min 3 s, 2,302 tests, 0 failing, 10 skipped named. Notes: tiers.fix.md; result: tiers.fix.result.json.

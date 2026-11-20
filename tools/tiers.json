@@ -1,0 +1,63 @@
+{
+ "about": "The checks in tiers (tools/run_tiers.py; docs/CHECKS.md). Tier 0 at every change, in under a minute; tier 1 before a commit: tier 0 and what imports a changed file; tier 2 at a release: everything, in both looks. tests_integrated/test_run_tiers.py holds every module to tier 2 and tier 0 to a part of it.",
+ "0": {
+  "budget_seconds": 60,
+  "modules": [
+   {"module": "test_stacy_hand", "why": "her hand's rules: the dial, what always asks, what takes an act back, her trail"},
+   {"module": "test_desk_acts", "classes": ["PureRules"], "why": "her hand's rule over the desk acts, without a window: what an act may do and what always asks"},
+   {"module": "test_resource_rules", "why": "the model's memory rules, each against the program's own code"},
+   {"module": "test_memory_settings", "why": "the memory settings: undo and default only on the current profile"},
+   {"module": "test_model_settings", "why": "the model's launch settings: restore and cancel, as a model swap needs"},
+   {"module": "test_release_check", "why": "release integrity: the registry record, the runtime section, the privacy scan, every module and window check listed"},
+   {"module": "test_project_desk", "why": "the seed is current (a plan refuses while it is not), and the owner's scope and privacy"},
+   {"module": "test_one_name", "classes": ["TheName", "TheSweepItself", "TheCode"], "why": "one name: Kasandra in every look, and the sweep of the code and the guides (the window's sweep, a minute more, is tier 1's and tier 2's)"},
+   {"module": "test_conditions", "why": "the Kernel's scopes: the registry's scopes and observers"},
+   {"module": "test_network_watch", "why": "the Kernel's scopes held through the one dispatcher; captures stop and keep what they took"},
+   {"module": "test_documents", "why": "the Kernel's scopes: the document operations, their scopes and privacy"},
+   {"module": "test_cabinet_actions", "why": "the Kernel's scopes: a read scope can look and cannot prepare writing"},
+   {"module": "test_change_sets", "why": "change sets and undo: the owner's review cannot be gone around"},
+   {"module": "test_continuing_work", "why": "work that continues while the window is closed, and its checks"},
+   {"module": "test_workspace_backup", "why": "the owner's data: backup and restore"},
+   {"module": "test_service_lifecycle", "why": "the service's cycle (two planted bugs only it caught)"},
+   {"module": "test_line_rules", "why": "what a line does with values (the seven evaluator faults of 14 November)"},
+   {"module": "test_faces_find_light", "why": "a planted bug only it caught, in under a second"},
+   {"module": "test_joined_work", "why": "a planted bug only it caught, in under a second"},
+   {"module": "test_kasandra", "why": "her look at start, a planted bug only it caught"},
+   {"module": "test_cabinet", "why": "the cabinet, a planted bug only it caught"},
+   {"module": "test_operations", "why": "the queue and its controls, a planted bug only it caught"},
+   {"module": "test_colour_vision", "why": "every colour that means something also reads for weak red and weak green sight"},
+   {"module": "test_stacy_start", "why": "her first journey (a project started in another program), a planted bug only it caught"},
+   {"module": "test_deployment", "why": "exchange and updates, a planted bug only it caught"}
+  ]
+ },
+ "1": {
+  "budget": "a few minutes",
+  "ignored": {
+   "MANIFEST.json": "follows the source; tier 0's release check and the seed test read it",
+   "project/stacy_seed/current/": "follows the source; tier 0's seed test reads it",
+   "wip/": "development notes, never run",
+   ".claude/": "the session's own folder, never run"
+  }
+ },
+ "2": {
+  "budget_seconds_per_look": 900,
+  "scene": ["DP01a", "DP01b", "DP01c", "DP01d"],
+  "once": {
+   "test_one_name": "sweeps the window in both looks itself, so it runs once",
+   "test_rail_demo_campaign": "plays the scene in both looks itself, so it runs once"
+  }
+ },
+ "timeout_seconds": {"module": 900, "check": 600, "scene": 900, "integrity": 600, "sweep": 300},
+ "timeout_grace_seconds": 30,
+ "seconds_measured": "19 November 2026, tier 2 in the Graphite look on the four-core build machine; only the order of the runs reads them (the longest first)",
+ "seconds": {
+  "test_desk_acts": 187, "test_one_name": 127, "test_rail_demo": 92, "test_rail_demo_campaign": 73, "test_desk_scenes": 62,
+  "test_context_menu": 60, "test_session_start": 46, "test_hologram": 29, "test_kasandra_column": 28, "test_kasandra_highlight": 22,
+  "test_system_menu": 18, "test_campaign": 16, "test_delete_words": 16, "test_lit_controls": 15, "test_slate_reasoning": 12,
+  "test_run_tiers": 28,"test_agent_loop": 10, "test_typewriter_faces": 9, "test_pane_width": 8, "test_graphite": 7, "test_exact_math_solvers": 7,
+  "test_one_name (TheName, TheSweepItself, TheCode)": 11, "test_desk_acts (PureRules)": 5,
+  "check_finder_ui": 68, "check_continue_ui": 33, "check_settings_02_ui": 23, "check_context_menu_ui": 22, "check_cabinet_ui": 21,
+  "check_agent_ui": 20, "check_settings_ui": 19, "check_navigation_ui": 19,
+  "check": 12, "scene": 90, "integrity": 5, "sweep": 5
+ }
+}

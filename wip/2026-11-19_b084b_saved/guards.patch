@@ -1,11 +1,27 @@
 diff --git a/tests_integrated/test_change_sets.py b/tests_integrated/test_change_sets.py
-index 2baa2f5..9bb9017 100644
+index 2baa2f5..13d5035 100644
 --- a/tests_integrated/test_change_sets.py
 +++ b/tests_integrated/test_change_sets.py
-@@ -173,6 +173,24 @@ class Changes(unittest.TestCase):
+@@ -173,6 +173,40 @@ class Changes(unittest.TestCase):
              self.assertFalse(self.kernel.dispatch('changes.apply', {'id': proposal['id'], 'expected_digest': proposal['content_digest']}, self.owner)['ok'])
          self.assertFalse((outside / 'new.txt').exists())
  
++    def test_without_the_owners_approval_files_outside_graphites_area_are_not_moved_renamed_or_deleted(self):
++        """0.8.4: a caller without the owner's approve scope (her hand) changes Files only in Graphite's own area (Slate): the
++        owner's own file stays where it is, and that change is proposed instead (files_service.may_change; planted bug M055)."""
++        from workbench import files_service
++        hand = Principal(self.owner.identity, frozenset({'read', 'execute'}))
++        for name in ('plan.txt', 'Slate/draft.txt'):
++            self.assertTrue(self.kernel.dispatch('files.write', {'path': name, 'text': 'x\n'}, self.owner)['ok'], name)
++        files = files_service.root(self.kernel)
++        for op, args in (('files.trash', {'path': 'plan.txt'}), ('files.rename', {'path': 'plan.txt', 'name': 'other.txt'}),
++                         ('files.move', {'path': 'plan.txt', 'to': 'Slate'})):
++            out = self.kernel.dispatch(op, args, hand)
++            self.assertFalse(out['ok'], op);self.assertIn('FILES_OUTSIDE_SLATE_AREA', out['error']['message'], op)
++            self.assertEqual((files / 'plan.txt').read_text(), 'x\n', op)
++        self.assertTrue(self.kernel.dispatch('files.trash', {'path': 'Slate/draft.txt'}, hand)['ok'])
++        self.assertFalse((files / 'Slate' / 'draft.txt').exists())
++
 +    def test_an_interrupted_change_two_folders_down_rolls_back_and_leaves_no_temporary(self):
 +        """0.8.4: the recovery temporaries of a file two folders down, found where they are, and none left behind."""
 +        self.assertEqual(self.apply(self.propose([{'op': 'CREATE', 'path': 'deep/er/note.txt', 'text': 'first\n'}]))['state'], 'DONE')
@@ -77,10 +93,10 @@ index 38e5aa4..42d9922 100644
  if __name__=='__main__':
      unittest.main()
 diff --git a/tests_integrated/test_continuing_work.py b/tests_integrated/test_continuing_work.py
-index 3b94434..8683a94 100644
+index 3b94434..d26d133 100644
 --- a/tests_integrated/test_continuing_work.py
 +++ b/tests_integrated/test_continuing_work.py
-@@ -157,6 +157,20 @@ class Continuing(unittest.TestCase):
+@@ -157,6 +157,35 @@ class Continuing(unittest.TestCase):
          retry=self.get(w)['state']['retry_at']
          with patch('time.time',return_value=retry+1):self.assertEqual(self.run_step(w)['reason'],'BUDGET_STEPS')
  
@@ -98,11 +114,26 @@ index 3b94434..8683a94 100644
 +                retry=self.get(w)['state']['retry_at'];waits.append(round(retry-clock[0],3));clock[0]=retry+0.5
 +        self.assertEqual(waits,[10,20])
 +
++    def test_pausing_or_revoking_an_adaptive_investigation_cancels_its_job_in_flight(self):
++        """0.8.4: the job an adaptive investigation is waiting on stops when the owner pauses or revokes the order (its stored
++        order and step are written here as the adaptive controller leaves them; the job is a queued row, nothing runs)."""
++        from workbench import adaptive_contract
++        for op,args in (('work.pause',{}),('work.revoke',{'reason':'Stop the investigation'})):
++            w=self.create();self.authorize(w);job=os.urandom(16).hex()
++            self.kernel.save('jobs',dict(id=job,owner=self.p.identity,tool='kicad.drc',state='Queued',created=time.time(),request_spec={}))
++            with self.kernel.db() as db:
++                plan,state=flow.load(db,w['plan']['id'],self.p)
++                plan['profile']=adaptive_contract.PROFILE;state['current']={'job':job}
++                db.execute('UPDATE flow_orders SET plan=?,digest=?,payload=? WHERE id=?',
++                           (flow.records.canonical(plan),flow.records.digest(plan),flow.records.canonical(state),plan['id']))
++            self.call(op,{'id':w['plan']['id'],**args})
++            self.assertEqual(self.kernel.record('jobs',job)['state'],'Cancelled',op)
++
      def test_model_protocol_fixture_freezes_only_complete_current_exact_patches(self):
          from workbench import local_brain,brain_runtime
          base=hashlib.sha256(b'blue\n').hexdigest()
 diff --git a/tests_integrated/test_desk_acts.py b/tests_integrated/test_desk_acts.py
-index e3162e1..e97832c 100644
+index e3162e1..d9467ee 100644
 --- a/tests_integrated/test_desk_acts.py
 +++ b/tests_integrated/test_desk_acts.py
 @@ -48,6 +48,18 @@ def no_logind(request):
@@ -141,7 +172,7 @@ index e3162e1..e97832c 100644
          for variant in desk_acts.plan_variants():
              self.assertIn('act',variant['properties']);self.assertNotIn('operation',variant['properties'])
              self.assertNotIn('by',variant['properties']);self.assertNotIn('arguments',variant['properties'])
-@@ -679,6 +692,16 @@ class LiveActs(unittest.TestCase):
+@@ -679,6 +692,31 @@ class LiveActs(unittest.TestCase):
          from workbench.files_qt import FilesTab
          self.assertIsInstance(self.w.tabs.currentWidget(),FilesTab)
          self.assertEqual(act('read.desk',{'part':'where'})['result']['surface'],'field')
@@ -155,6 +186,21 @@ index e3162e1..e97832c 100644
 +        self.assertTrue(keys['ok'],keys['words']);self.assertGreater(keys['result']['presses'],0)
 +        direct=act('point.sheet',{'title':'07 Bench readings'})
 +        self.assertTrue(direct['ok'],direct['words']);self.assertEqual(direct['result']['presses'],0)
++
++    def test_the_empty_place_she_points_at_in_files_is_on_the_screen_when_the_list_is_full(self):
++        """0.8.4: her right-click on an empty place in Files (desk_doers.here_point) lands inside the view she names, also
++        when the files fill the list to its lower corner."""
++        from workbench import desk_doers
++        from workbench.engineering_kernel import operator
++        k=WINDOW['k'];names=['full list/row %02d.txt'%i for i in range(80)]
++        for name in names:self.assertTrue(k.dispatch('files.write',{'path':name,'text':'x'},operator())['ok'])
++        try:
++            self.assertTrue(act('go.files',{'folder':'full list','view':'list'})['ok'])
++            widget,at=desk_doers.here_point(self.w)
++            self.assertTrue(widget.rect().contains(at.toPoint()),(widget.size(),at))
++        finally:
++            for name in names:k.dispatch('files.trash',{'path':name},operator())
++            k.dispatch('files.trash',{'path':'full list'},operator());act('go.files',{'folder':'','view':'list'})
  
      def test_look_set_motion(self):
          from workbench import boss_theme,menu_catch
@@ -181,10 +227,28 @@ index 281a27b..12c81c5 100644
 +
  if __name__=='__main__':unittest.main()
 diff --git a/tests_integrated/test_line_rules.py b/tests_integrated/test_line_rules.py
-index b833bc3..0e2a07e 100644
+index b833bc3..3de0892 100644
 --- a/tests_integrated/test_line_rules.py
 +++ b/tests_integrated/test_line_rules.py
-@@ -430,6 +430,15 @@ class TheCallers(unittest.TestCase):
+@@ -417,6 +417,17 @@ class TheSameKindOfFault(unittest.TestCase):
+         self.assertEqual(run(left, 'missing @files:x.csv rows on part.id', other), [left[0]])
+ 
+ 
++class TheBounds(unittest.TestCase):
++    """0.8.4: the bounds a line keeps, at their edges (planted bugs in tools/planted_bugs)."""
++
++    def test_take_keeps_one_to_two_hundred_rows(self):
++        """'take 1' is the first row and 'take 200' the most a line takes; 0 and 201 are refused (M002)."""
++        rows = [{'n': n} for n in range(1, 251)]
++        self.assertEqual(run(rows, 'take 1'), [{'n': 1}]);self.assertEqual(len(run(rows, 'take 200')), 200)
++        for steps in ('take 0', 'take 201', 'take -1', 'take'):
++            with self.assertRaises(ValueError, msg=steps):lines.parse('jobs | ' + steps)
++
++
+ class TheCallers(unittest.TestCase):
+     """The line panel's steps and the Then menu write lines that run, and count by the same rule."""
+ 
+@@ -430,6 +441,15 @@ class TheCallers(unittest.TestCase):
          base = '@%s | pick origin.reviewed_rows' % address
          return line_steps, line_steps.Held(dispatch).read(base), base
  
@@ -510,16 +574,52 @@ index 6cefb42..d5aa886 100644
      def test_what_she_made_new_goes_to_the_trash_and_what_was_written_over_does_not(self):
          import json
          line=hand.takes_back('files.write',{'path':'plan.txt','text':'x'},{'path':'plan.txt','kept_version':None})
+diff --git a/tests_integrated/test_viewer_kinds.py b/tests_integrated/test_viewer_kinds.py
+new file mode 100644
+index 0000000..3995c95
+--- /dev/null
++++ b/tests_integrated/test_viewer_kinds.py
+@@ -0,0 +1,28 @@
++"""The kind the viewer gives a file from its first bytes (workbench/universal_view.identify and the view modules' claims):
++a picture a phone saved as HEIC or AVIF is a picture, whatever this computer can decode. 0.8.4: written for a planted bug that
++stopped HEIF files being named as pictures (tools/planted_bugs, M111). Run alone:
++
++  python -B -m unittest -v tests_integrated.test_viewer_kinds
++"""
++import unittest
++
++from workbench.universal_view import Source, identify
++
++
++def heif(brand):
++    """The start of an ISO media file: a box size, 'ftyp', its brand, a version and the compatible brands."""
++    return b'\x00\x00\x00\x1c' + b'ftyp' + brand + b'\x00\x00\x00\x00' + b'mif1' + brand + b'\x00' * 64
++
++
++class PictureKinds(unittest.TestCase):
++    def test_heic_and_avif_files_are_pictures(self):
++        for name, brand in (('IMG_0001.heic', b'heic'), ('photo.heif', b'mif1'), ('cover.avif', b'avif')):
++            self.assertEqual(identify(Source(name, data=heif(brand))), 'image', name)
++
++    def test_a_tiff_is_a_picture_and_an_unknown_brand_is_not_one(self):
++        self.assertEqual(identify(Source('scan.tif', data=b'II*\x00' + b'\x00' * 64)), 'image')
++        self.assertNotEqual(identify(Source('clip.heic', data=heif(b'qt  '))), 'image')
++
++
++if __name__ == '__main__':
++    unittest.main()
 diff --git a/tools/check_hatch.py b/tools/check_hatch.py
-index 0abd107..6a2f44d 100644
+index 0abd107..03669a4 100644
 --- a/tools/check_hatch.py
 +++ b/tools/check_hatch.py
-@@ -62,6 +62,8 @@ FOCUSED_MODULES=(
+@@ -62,6 +62,10 @@ FOCUSED_MODULES=(
   'test_rail_demo','test_rail_demo_campaign',
   # 0.8.1: the model's memory rules, each against Graphite's own code with simulated readings
   'test_resource_rules',
 + # 0.8.4: the record paths the Kernel's views read and write: never hidden, linked or outside the folder (tools/planted_bugs)
 + 'test_record_paths',
++ # 0.8.4: the kind the viewer gives a file from its first bytes: a HEIC or AVIF picture is a picture (tools/planted_bugs)
++ 'test_viewer_kinds',
   # 0.8.2: desk acts: the registry, her hand's rule, the typed door, the playable scene
   'test_desk_acts','test_desk_scenes',
   # 0.8.3: DELETE, the typewriter faces, her hologram, her column and Apps
@@ -555,10 +655,10 @@ index 3377398..42d73dd 100644
  def package(folder, root=ROOT):
 diff --git a/tools/planted_bugs/README.md b/tools/planted_bugs/README.md
 new file mode 100644
-index 0000000..ec558a4
+index 0000000..d5566c5
 --- /dev/null
 +++ b/tools/planted_bugs/README.md
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,43 @@
 +# Planted bugs: how many the tests catch
 +
 +A planted bug is one small wrong edit in one function: a comparison flipped, a condition negated, a return changed, a
@@ -570,7 +670,9 @@ index 0000000..ec558a4
 +## Files
 +
 +- `bugs.json`: the 156 planted bugs of the 14 November 2026 measure, each with its file, function, kind, old and new
-+  text, what the 0.8.2 suite did with it (`verdict_0_8_2`), its group (`guarding` or `other`) and the test modules to run.
++  text, what the 0.8.2 suite did with it (`verdict_0_8_2`), what the 0.8.4 suite did with it (`verdict_0_8_4`, absent
++  when it was not rerun), its group (`guarding` or `other`) and the test modules to run. A later release adds its own
++  `verdict_` field the same way and compares.
 +- `plant.py`: finds a bug in the current code by its file, function, kind and text (never by line number, since code
 +  moves) and writes it into a copy of the tree. `python3 tools/planted_bugs/plant.py --where` lists where each lands now;
 +  a bug the code no longer holds shows as `GONE`.
@@ -583,7 +685,7 @@ index 0000000..ec558a4
 +the build rules say (the tracked files without `wip/` and `.claude/`) and make its seed current first. Two copies give
 +two workers; never more than two test processes at once.
 +
-+    python3 tools/planted_bugs/run.py --tree /tmp/copy-a --tree /tmp/copy-b --group guarding --out guarding.jsonl
++    python3 tools/planted_bugs/run.py --tree COPY_A --tree COPY_B --group guarding --out guarding.jsonl
 +    python3 tools/planted_bugs/run.py --report guarding.jsonl
 +
 +`--ids M007 M008` runs named bugs; `--before gap` only the ones the 0.8.2 suite missed; `--python` names the interpreter
@@ -602,12 +704,12 @@ index 0000000..ec558a4
 +When new code is written, add bugs to `bugs.json` in the same shape; keep the ids of the old ones so releases compare.
 diff --git a/tools/planted_bugs/bugs.json b/tools/planted_bugs/bugs.json
 new file mode 100644
-index 0000000..abb5d3a
+index 0000000..54fdde5
 --- /dev/null
 +++ b/tools/planted_bugs/bugs.json
-@@ -0,0 +1,3028 @@
+@@ -0,0 +1,3148 @@
 +{
-+ "about": "The planted bugs of the 14 November 2026 measure (seed 20261114; 156 sampled: 102 in 17 named files, 54 one per file elsewhere). Each is one minimal edit of one function: cmp, if, ret, num or call (plant.py). verdict_0_8_2 is what the 0.8.2 suite did with it: caught (a behaviour test failed), gap (no behaviour test failed; digest_only_0_8_2 marks those only the seed digest noticed), equivalent (no behaviour can tell it apart; left out of every rate), void (its run was spoiled by a full disk), not_run (the run was stopped first). group \"guarding\" is the code that protects the owner: the Kernel, record paths, her hand, the memory and resource rules, change sets, continuing work, the seed and release integrity. modules: the test modules to run, in order; a dotted name runs one class or one test; the first ones are where 0.8.4 put the test written for that bug.",
++ "about": "The planted bugs of the 14 November 2026 measure (seed 20261114; 156 sampled: 102 in 17 named files, 54 one per file elsewhere). Each is one minimal edit of one function: cmp, if, ret, num or call (plant.py). verdict_0_8_2 is what the 0.8.2 suite did with it: caught (a behaviour test failed), gap (no behaviour test failed; digest_only_0_8_2 marks those only the seed digest noticed), equivalent (no behaviour can tell it apart; left out of every rate), void (its run was spoiled by a full disk), not_run (the run was stopped first). group \"guarding\" is the code that protects the owner: the Kernel, record paths, her hand, the memory and resource rules, change sets, continuing work, the seed and release integrity. modules: the test modules to run, in order; a dotted name runs one class or one test; the first ones are where 0.8.4 put the test written for that bug. verdict_0_8_4: what the 0.8.4 suite did, with the seed made current before each run (run.py): caught, missed, or caught_on_stale_seed (packaging refused the planted tree; a test other than the seed-current one failed); absent: not rerun.",
 + "guarding_files": [
 +  "tools/check_hatch.py",
 +  "tools/check_release.py",
@@ -642,7 +744,8 @@ index 0000000..abb5d3a
 +    "test_continuing_work",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M002",
@@ -661,7 +764,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_line_rules",
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M003",
@@ -679,7 +783,8 @@ index 0000000..abb5d3a
 +    "test_context_menu",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M004",
@@ -700,7 +805,8 @@ index 0000000..abb5d3a
 +    "test_context_menu",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M005",
@@ -718,7 +824,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_line_rules",
 +    "test_project_desk"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M006",
@@ -736,7 +843,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_line_rules",
 +    "test_project_desk"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M007",
@@ -755,7 +863,8 @@ index 0000000..abb5d3a
 +    "test_change_sets",
 +    "test_continuing_work",
 +    "test_deployment"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M008",
@@ -772,7 +881,8 @@ index 0000000..abb5d3a
 +   "what": "undo after a partial apply: negated, the retained temporaries of the entries outside the active set are no longer checked and removed (and active entries are visited instead); test_change_sets never leaves a retained temporary for undo to clear (change_sets.py:444)",
 +   "modules": [
 +    "test_change_sets"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M009",
@@ -789,7 +899,8 @@ index 0000000..abb5d3a
 +    "test_change_sets",
 +    "test_continuing_work",
 +    "test_deployment"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M010",
@@ -821,7 +932,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "not_run",
 +   "modules": [
 +    "test_change_sets"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M012",
@@ -836,7 +948,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "not_run",
 +   "modules": [
 +    "test_change_sets"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M013",
@@ -904,7 +1017,8 @@ index 0000000..abb5d3a
 +    "test_context_menu",
 +    "test_desk_acts",
 +    "test_system_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M017",
@@ -922,7 +1036,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M018",
@@ -954,7 +1069,8 @@ index 0000000..abb5d3a
 +   "what": "the retry back-off of a failed read step becomes 5*3^n instead of 5*2^n seconds (capped at 60); no test checks retry_at (continuing_work.py:533)",
 +   "modules": [
 +    "test_continuing_work"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M020",
@@ -971,7 +1087,8 @@ index 0000000..abb5d3a
 +   "what": "pausing or revoking an adaptive investigation no longer stops its pending branches (stop_pending runs on every other operation instead); no test pauses/revokes a ledger.adaptive-investigation/1 plan and checks its branches (continuing_work.py:724)",
 +   "modules": [
 +    "test_continuing_work"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M021",
@@ -987,7 +1104,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_continuing_work",
 +    "test_deployment"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M022",
@@ -1002,7 +1120,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_continuing_work"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M023",
@@ -1017,7 +1136,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_continuing_work"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M024",
@@ -1035,7 +1155,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_continuing_work",
 +    "test_deployment"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M025",
@@ -1050,7 +1171,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M026",
@@ -1082,7 +1204,8 @@ index 0000000..abb5d3a
 +    "test_writing_line",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M028",
@@ -1100,7 +1223,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_desk_acts.PureRules",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M029",
@@ -1116,7 +1240,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M030",
@@ -1133,7 +1258,8 @@ index 0000000..abb5d3a
 +    "test_desk_acts",
 +    "test_writing_line",
 +    "test_desk_scenes"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M031",
@@ -1148,7 +1274,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M032",
@@ -1167,7 +1294,8 @@ index 0000000..abb5d3a
 +    "test_desk_acts.LiveActs.test_read_desk_reads_the_centre",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M033",
@@ -1182,7 +1310,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_desk_scenes"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M034",
@@ -1201,7 +1330,8 @@ index 0000000..abb5d3a
 +    "test_desk_acts.LiveActs.test_a_sheet_is_reached_by_key_presses_only_when_asked_by_keys",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M035",
@@ -1233,8 +1363,10 @@ index 0000000..abb5d3a
 +   "severity_0_8_2": "real",
 +   "what": "here_point's fallback empty place in the Files view: the second probe point moves outside the viewport (x = 1.5 x width) and is used when the first probe hits an item; no test fills the lower-right corner so the fallback is never checked (desk_doers.py:972)",
 +   "modules": [
++    "test_desk_acts.LiveActs.test_the_empty_place_she_points_at_in_files_is_on_the_screen_when_the_list_is_full",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M037",
@@ -1286,7 +1418,8 @@ index 0000000..abb5d3a
 +    "test_context_menu",
 +    "test_desk_acts",
 +    "test_desk_scenes"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M038",
@@ -1331,7 +1464,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M040",
@@ -1352,7 +1486,8 @@ index 0000000..abb5d3a
 +    "test_network_watch",
 +    "test_change_sets",
 +    "test_slate_reasoning"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M041",
@@ -1372,7 +1507,8 @@ index 0000000..abb5d3a
 +    "test_network_watch",
 +    "test_slate_reasoning",
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M042",
@@ -1394,7 +1530,8 @@ index 0000000..abb5d3a
 +    "test_network_watch",
 +    "test_slate_reasoning",
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M043",
@@ -1429,7 +1566,8 @@ index 0000000..abb5d3a
 +    "test_faces_find_light",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M045",
@@ -1496,7 +1634,8 @@ index 0000000..abb5d3a
 +    "test_faces_find_light",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M049",
@@ -1511,7 +1650,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M050",
@@ -1526,7 +1666,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M051",
@@ -1544,7 +1685,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_rail_demo",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M052",
@@ -1559,7 +1701,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M053",
@@ -1577,7 +1720,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_rail_demo",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M054",
@@ -1595,7 +1739,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_rail_demo",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M055",
@@ -1609,9 +1754,11 @@ index 0000000..abb5d3a
 +   "group": "other",
 +   "verdict_0_8_2": "caught",
 +   "modules": [
++    "test_change_sets",
 +    "test_desk_acts",
 +    "test_desk_scenes"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M056",
@@ -1637,7 +1784,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M057",
@@ -1660,7 +1808,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M058",
@@ -1675,7 +1824,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M059",
@@ -1693,7 +1843,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_context_menu.CompareText",
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M060",
@@ -1707,13 +1858,15 @@ index 0000000..abb5d3a
 +   "group": "other",
 +   "verdict_0_8_2": "caught",
 +   "modules": [
++    "test_line_rules",
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts",
 +    "test_profile_files",
 +    "test_project_desk",
 +    "test_slate_reasoning"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M061",
@@ -1747,7 +1900,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M063",
@@ -1764,7 +1918,8 @@ index 0000000..abb5d3a
 +   "what": "the line preview's 'long column' threshold moves from 24 to 25 characters on average; no test offers a column at the threshold (line_steps.py:242)",
 +   "modules": [
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "missed"
 +  },
 +  {
 +   "id": "M064",
@@ -1779,7 +1934,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M065",
@@ -1796,7 +1952,8 @@ index 0000000..abb5d3a
 +    "test_context_menu",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M066",
@@ -1839,7 +1996,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M068",
@@ -1854,7 +2012,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_slate_reasoning"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M069",
@@ -1875,7 +2034,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M070",
@@ -1893,7 +2053,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_resource_rules",
 +    "test_model_settings"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M071",
@@ -1908,7 +2069,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "not_run",
 +   "modules": [
 +    "test_resource_rules"
-+   ]
++   ],
++   "verdict_0_8_4": "missed"
 +  },
 +  {
 +   "id": "M072",
@@ -1923,7 +2085,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_slate_reasoning"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M073",
@@ -1951,7 +2114,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M074",
@@ -1967,7 +2131,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_model_settings",
 +    "test_resource_rules"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M075",
@@ -1983,7 +2148,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_model_settings",
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "missed"
 +  },
 +  {
 +   "id": "M076",
@@ -2014,7 +2180,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M077",
@@ -2043,7 +2210,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M078",
@@ -2061,7 +2229,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_model_settings",
 +    "test_resource_rules"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M079",
@@ -2079,7 +2248,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_release_check",
 +    "test_workspace_backup"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M080",
@@ -2094,7 +2264,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_release_check"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M081",
@@ -2110,7 +2281,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_release_check",
 +    "test_workspace_backup"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M082",
@@ -2126,7 +2298,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_workspace_backup",
 +    "test_release_check"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M083",
@@ -2143,7 +2316,8 @@ index 0000000..abb5d3a
 +    "test_workspace_backup",
 +    "test_release_check",
 +    "test_deployment"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M084",
@@ -2159,7 +2333,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_release_check",
 +    "test_workspace_backup"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M085",
@@ -2179,7 +2354,8 @@ index 0000000..abb5d3a
 +    "test_model_settings",
 +    "test_network_watch",
 +    "test_agent_loop"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M086",
@@ -2198,7 +2374,8 @@ index 0000000..abb5d3a
 +    "test_resource_rules",
 +    "test_model_settings",
 +    "test_continuing_work"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M087",
@@ -2213,7 +2390,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_resource_rules"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M088",
@@ -2231,7 +2409,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_resource_rules",
 +    "test_network_watch"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M089",
@@ -2248,7 +2427,8 @@ index 0000000..abb5d3a
 +   "what": "memory view: negated, a live resident model worker's reservation is dropped from the commitments (and a loading or excluded one is counted); test_resource_rules reaches the line with a live worker but never asserts the resident model's row or the 'future' total (resource_control.py:167)",
 +   "modules": [
 +    "test_resource_rules"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M090",
@@ -2264,7 +2444,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_resource_rules",
 +    "test_network_watch"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M091",
@@ -2286,7 +2467,8 @@ index 0000000..abb5d3a
 +    "test_explore",
 +    "test_launcher",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M092",
@@ -2308,7 +2490,8 @@ index 0000000..abb5d3a
 +    "test_network_watch",
 +    "test_launcher",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M093",
@@ -2340,7 +2523,8 @@ index 0000000..abb5d3a
 +    "test_tool_atlas",
 +    "test_desk_scenes",
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "caught_on_stale_seed"
 +  },
 +  {
 +   "id": "M094",
@@ -2363,7 +2547,8 @@ index 0000000..abb5d3a
 +    "test_launcher",
 +    "test_release_check",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M095",
@@ -2384,7 +2569,8 @@ index 0000000..abb5d3a
 +    "test_network_watch",
 +    "test_launcher",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M096",
@@ -2410,7 +2596,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught_on_stale_seed"
 +  },
 +  {
 +   "id": "M097",
@@ -2427,7 +2614,8 @@ index 0000000..abb5d3a
 +   "what": "Stacy's 'make a file ... containing \"words\"': with words[:2], quotes around the contents are no longer stripped, so the file gets the quote marks; no test makes a file with quoted contents (stacy_hand.py:185)",
 +   "modules": [
 +    "test_stacy_hand"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M098",
@@ -2444,7 +2632,8 @@ index 0000000..abb5d3a
 +    "test_stacy_hand",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M099",
@@ -2461,7 +2650,8 @@ index 0000000..abb5d3a
 +    "test_stacy_hand",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M100",
@@ -2477,7 +2667,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_stacy_hand",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M101",
@@ -2494,7 +2685,8 @@ index 0000000..abb5d3a
 +    "test_stacy_hand",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M102",
@@ -2511,7 +2703,8 @@ index 0000000..abb5d3a
 +    "test_stacy_hand",
 +    "test_desk_scenes",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M103",
@@ -2527,7 +2720,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_exact_math",
 +    "test_problem"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M104",
@@ -2579,7 +2773,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_stacy_start"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M107",
@@ -2617,7 +2812,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M109",
@@ -2632,7 +2828,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_deployment"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M110",
@@ -2666,6 +2863,7 @@ index 0000000..abb5d3a
 +   "severity_0_8_2": "real",
 +   "what": "HEIF/AVIF detection: head[5:8] can never equal b'ftyp', so .heic/.avif files are no longer claimed as images; 12 modules run claim() on ordinary files but none on a HEIF header (view_modules/images_plus.py:21)",
 +   "modules": [
++    "test_viewer_kinds",
 +    "test_exact_math",
 +    "test_problem",
 +    "test_profile_files",
@@ -2678,7 +2876,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M112",
@@ -2697,7 +2896,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M113",
@@ -2732,7 +2932,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "missed"
 +  },
 +  {
 +   "id": "M115",
@@ -2767,7 +2968,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_service_lifecycle"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M117",
@@ -2782,7 +2984,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_cabinet"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M118",
@@ -2834,7 +3037,8 @@ index 0000000..abb5d3a
 +    "test_change_sets",
 +    "test_slate_reasoning",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M120",
@@ -2887,7 +3091,8 @@ index 0000000..abb5d3a
 +   "what": "memory settings undo: the earlier ledger record is no longer marked undone=True in the database; no test reads the restored record's undone flag after an undo (memory_settings.py:91)",
 +   "modules": [
 +    "test_memory_settings"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M123",
@@ -2973,7 +3178,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_project_desk",
 +    "test_slate_reasoning"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M125",
@@ -2988,7 +3194,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_change_sets"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M126",
@@ -3030,7 +3237,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M128",
@@ -3062,7 +3270,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_operations"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M130",
@@ -3096,7 +3305,8 @@ index 0000000..abb5d3a
 +   "modules": [
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M132",
@@ -3114,7 +3324,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M133",
@@ -3170,7 +3381,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M134",
@@ -3187,7 +3399,8 @@ index 0000000..abb5d3a
 +    "test_browse",
 +    "test_profile_files",
 +    "test_context_menu"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M135",
@@ -3399,7 +3612,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_workspace_backup"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M144",
@@ -3438,7 +3652,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M146",
@@ -3470,7 +3685,8 @@ index 0000000..abb5d3a
 +    "test_graphite",
 +    "test_launcher",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M148",
@@ -3485,7 +3701,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_joined_work"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M149",
@@ -3526,7 +3743,8 @@ index 0000000..abb5d3a
 +    "test_tool_atlas",
 +    "test_project_desk",
 +    "test_discovery"
-+   ]
++   ],
++   "verdict_0_8_4": "missed"
 +  },
 +  {
 +   "id": "M151",
@@ -3561,7 +3779,8 @@ index 0000000..abb5d3a
 +    "test_explore",
 +    "test_launcher",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M153",
@@ -3576,7 +3795,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M154",
@@ -3615,7 +3835,8 @@ index 0000000..abb5d3a
 +    "test_desk_scenes",
 +    "test_context_menu",
 +    "test_desk_acts"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  },
 +  {
 +   "id": "M156",
@@ -3630,7 +3851,8 @@ index 0000000..abb5d3a
 +   "verdict_0_8_2": "caught",
 +   "modules": [
 +    "test_service_lifecycle"
-+   ]
++   ],
++   "verdict_0_8_4": "caught"
 +  }
 + ]
 +}

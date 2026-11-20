@@ -14,6 +14,8 @@ The release check runs one look, because one pass of all twenty-two takes about 
 (371.4 s in Graphite's look and 373.8 s in the Kasandra look, the scripts' times added up, on 19 November 2026), and both
 looks would double that. So whoever cuts a release runs `--ui` twice before cutting it: once as it is, once with
 `GRAPHITE_APPEARANCE=kasandra`. The Kasandra pass is not optional: it is where 0.8.4 found two of its three faults (below).
+The release tier does both: `python3 tools/run_tiers.py 2` runs every check in `UI_CHECKS` in each look, two at a time,
+with the suite and the scene (docs/CHECKS.md).
 
 ## The rule: no window check without a home
 
