@@ -234,6 +234,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 05:55 UTC: 0.8.5's maths core merged (093335c) and the owner's values taken out of the shared files (e1cf56d),
+  both reviewed and fixed; the dead setting merged earlier (5029e3f). Full suite running in both looks. Money and dates
+  started as the second maths item: workflow `graphite-085-money-dates` (script in `wip/2026-11-14/workflow_scripts/`,
+  scratch `work/b085/money.*`; build, review, fix). Then the 0.8.5 release: version, notes, tier 2 on the exact commit,
+  kit, screenshots of a solve, a range and a check.
 - 20 Nov 05:25 UTC: 0.8.7 (the model interwoven) confirmed; its design group started: workflow `graphite-087-model-interwoven-design`
   (run id `wf_8d796545-a17`, task `w3ac8ihlx`; six lenses: understanding, reading/the library, her voice, judgment, speed
   and memory with a model-check kit, trust; two judges; one synthesis; scratch `work/b087d/`). Running beside it: 0.8.5
