@@ -234,6 +234,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 07:15 UTC: the 5-hour limit stopped work at about 06:35 (reset 07:10). Money and dates: built and reviewed
+  (four must-fix: a documented date form always refused; round 0 raises; the money and dates tools crowd unrelated plans
+  past the plan bound; "(exact 3.33 USD (exact 10/3 USD))"); the fix was half done, saved as
+  `work/b085/money.wf_2a0093ca-846-3.patch` with a note at the top of `money.fix.md`. 0.8.7 design: four of six lenses
+  done (understanding, reading, voice, judgment; trust wrote its file but did not return), speed, the judges and the
+  synthesis not run. Both relaunched with their run ids (tasks wf9o98kbu and wt97yk2xd).
 - 20 Nov 06:30 UTC: **the 0.8.6 design is written**: `wip/2026-11-20_kas_mind/DESIGN_0.8.6_kas_mind.md` (about 13,000
   words: the open point; your word; either way; what would settle it; why with the wires lit; rule cards from pinned
   quotes; absent is not false; one small question or buttons; Home Demo with an invented statute; the everyday score and
