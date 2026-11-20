@@ -41,6 +41,8 @@ def schemas():
     from .turns import FIELDS as TURN_FIELDS  # 0.8.7 E0 (the turn contract)
     from .quotes import FIELDS as QUOTE_FIELDS  # 0.8.6 S6: pinned quotes
     from .rules import FIELDS as RULE_FIELDS  # 0.8.6 S6: rule cards
+    from .either_way import FIELDS as EITHER_WAY_FIELDS  # 0.8.6 S5: either way
+    from .settle import FIELDS as SETTLE_FIELDS  # 0.8.6 S5: what would settle it
     from .lab_service import FIELDS as LAB_FIELDS, OPTIONS as LAB_OPTIONS
     from .reason_service import FIELDS as REASON_FIELDS
     from .math_service import FIELDS as MATH_FIELDS, OPTIONS as MATH_OPTIONS
@@ -155,6 +157,7 @@ def schemas():
         **READING_FIELDS,  # 0.8.6 S4: her dictionary (requests.read)
         **TURN_FIELDS,  # 0.8.7 E0 (the turn contract)
         **QUOTE_FIELDS, **RULE_FIELDS,  # 0.8.6 S6: pinned quotes and rule cards
+        **EITHER_WAY_FIELDS, **SETTLE_FIELDS,  # 0.8.6 S5: either way and what would settle it
         **REASON_FIELDS,
         **SLATE_CONTEXT_FIELDS,
         **SLATE_REASONING_FIELDS,

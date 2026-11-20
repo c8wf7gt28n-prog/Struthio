@@ -1,0 +1,53 @@
+{
+  "item": "S5",
+  "status": "done",
+  "worktree": "/home/user/Struthio/.claude/worktrees/agent-a07ee508cd74b02cb",
+  "base": "24a2c03",
+  "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S5.patch",
+  "patch_check": "non-empty (91376 bytes); patch -p1 --dry-run on a clean export of HEAD (workbench, docs) applies every file cleanly. git apply --check outside the worktree was refused by the worktree isolation, so patch --dry-run was used instead",
+  "files": [
+    "workbench/either_way.py (new): the pure combine() core (EITHER_WAY / DEPENDS_ON_ONE / EXCEPT / DEPENDS, CONFLICT first and never combined, TOO_MANY past 64 ways with the budget sentence; the Belnap knowledge meet; the smallest groups; relevant and irrelevant choices); judge_goal() over the revisions, which-row readings, at-values and unknowns, with your word or the STANDING word named in the receipt; period_ways() for Home Demo periods against the ledger sheet and the COMPLETE word; the operation field.either (read)",
+    "workbench/settle.py (new): the pure weigh() over four-valued formulas by bit-set enumeration of completions (alone / pair / not decisive, both ways, the smallest make-hold and make-fail sets, within budget); formula_points(); next_step() (DEDUCED with no brain call when one decisive leaf is open; NEXT options at most 3 plus 'None of these'; a brain's pick is checked and a bad pick goes to buttons); settle_goal() and settle_period(); the operation field.settle (read)",
+    "workbench/engineering_kernel.py, workbench/engineering_cli.py: S5 import, scopes, schemas and dispatch in their own commented lines beside 0.8.7 E0's turns",
+    "workbench/activity.py: field.either and field.settle added to OBSERVER_OPERATIONS (asking is not an event)",
+    "docs/GRAPHITE_0.1_REGISTRY.json: regenerated in the copy (794 operations, +field.either, +field.settle) and copied back; record_registry.py --check showed no differences"
+  ],
+  "restart": "The earlier attempt's patch was applied with git apply -3. It held no test files. engineering_kernel.py and engineering_cli.py conflicted with 0.8.7 E0 (turns), which merged after it; each conflict was resolved by keeping both sides.",
+  "changes_this_run": [
+    "field.either and field.settle results now go through mind_types._plain. Before this, exact Fractions in the ways' rooms would have broken json.dumps on the CLI, and results came back as tuples instead of lists",
+    "The TOO_MANY budget sentence now says 'I tried 0 of N', which matches the budget tuple: no way was worked out. Before, it said 64 were tried",
+    "The settle meter words now take the maths core's settling readings (math_zones.settling_reading, rounded inward to whole steps) and meet them across the ways still open. The band where a reading does not settle it is exact, from the zones plus or minus the accuracy",
+    "Wording fixes: 'How far X may go' for an unknown; no 'every reading:' label when there are no choices; a reading that is not a range (the credit statement) goes through the 'settles it alone' template"
+  ],
+  "smoke": {
+    "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S5/smoke.py",
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S5/smoke.log",
+    "result": "RAN 44 checks, 0 failed (final run, on a throwaway copy with the seed and registry made current, under unshare and nice with a temporary HOME)",
+    "first_run": "44 checks, 7 failed: 4 were tuple-versus-list (fixed by _plain), 2 were a bug in the smoke's own property oracle at 81 ways, past the 64-way budget (the case now expects TOO_MANY), and 1 was the missing 'at or below 969 mA' meter line (fixed in settle.py)",
+    "highlights": [
+      "property: combine equals brute-force all-ways-agree and relevance on 400 seeded cases; groups are uniform, minimal and cover every way; choice and way order change nothing",
+      "property: weigh's decisiveness, alone outcomes, both-ways flag and smallest make-hold and make-fail sets equal brute-force enumeration on 250 seeded four-valued formulas with up to 8 leaves",
+      "settled power: HOLDS either way, spare Rev A 31/16 to 33/16 W and Rev B 15/16 to 17/16 W, no question, model_calls 0",
+      "startup over [42, 48] ms: DEPENDS_ON_ONE, relevant [revision], a question to you: 'Rev A applies: holds, 12 to 18 ms to spare' and 'Rev B applies: does not hold, 2 to 8 ms over'",
+      "with the STANDING word: FAILS, and the receipt names the word",
+      "340 mA: EXCEPT, the single group [revision, Rev B], UNDECIDED over [799/200, 833/200] W with witness 833/200 W; Rev A HOLDS",
+      "harmless: Rail voltage or Nominal voltage both give 1000/3 mA (333 on whole steps) and no question; with ±0.25 V on the measured voltage only, 16000/49 (326) against 1000/3 (333) and the choice goes to you, or to the model when one is loaded",
+      "Home Demo § 12(a): with COMPLETE agreed, FAILS either way with relevant []; paid 23 Oct is in time only in the keys group (DEPENDS_ON_ONE)",
+      "§ 12(c): no leaf and no pair decides both ways; make-hold is exactly the set of three; make-fail is each of the three alone; who is YOU for the bank sheet's completeness and your account, WORLD for the agent's email",
+      "settle at ±5 ms: the only open leaf is startup_duration, ALONE, WORLD; without the word: revision ALONE (YOU), then duration PAIR (WORLD)",
+      "G3 (startup current ±100 mA, voltage ±0.25 V): startup current 44/49 before voltage 1/2, both WORLD; 'Measure startup current first'; 'With a meter good to ±10 mA, a reading at or below 969 mA settles it: it holds.'",
+      "B2: a brain that fails if called is never called when one decisive leaf is open (route DEDUCED, model_calls 0); with three tied options there are 4 NEXT options; a pick out of range is refused and goes to buttons",
+      "AST scan: no float and no model import in either module; both operations are reads, and neither is in ALWAYS_ASKS; reads write nothing (record counts unchanged)"
+    ]
+  },
+  "not_done": [
+    "No test files were written, and the suite, tiers and window checks were not run (the owner's 'No tests' rule). test_either_way.py and test_settle.py are covered only as acceptance examples in the smoke",
+    "Nothing ran on the owner's ThinkPad"
+  ],
+  "decisions": [
+    "The meter line for a ±0.5 ms re-timing says the band exactly ('unless it lies between 39.5 ms and 40.5 ms', as in the design). The one-sided line uses whole-step readings ('at or below 39 ms'), as the maths core rounds them inward, which matches the design's '969 mA' for G3. For G3 the exact band is wordy: '969.6 mA (exact 47510/49 mA) and 1031 mA (exact 48470/47 mA)'",
+    "The 'settles it over 1 of its range' wording comes from math_zones' own template and was not changed (it belongs to the maths core, not S5)",
+    "Choice, way and group shapes come back as plain JSON (lists, exact values as text). The Python-level judge_goal and period_ways still return tuples and Fractions for in-process callers"
+  ],
+  "existing_tests_changed": "none"
+}
