@@ -326,6 +326,14 @@ def now():
     return time.time()
 
 
+# 0.8.6 S2 (the dates delta): the day of this computer's clock, the one place a dates answer reads it. math_dates reads no
+# clock itself: a period worked out as of this day carries origin CLOCK, and math_dates.freshness reads REVIEW_REQUIRED once
+# the clock shows another day.
+def today():
+    import datetime
+    return datetime.date.today()
+
+
 def process_token(pid):
     from .operation_stop import process_identity,UNKNOWN
     value=process_identity(pid)
@@ -573,7 +581,7 @@ class Kernel:
         if op in math_answers.FIELDS:return math_answers.dispatch(self,op,a,p)
         if op in tolerances.FIELDS:return tolerances.dispatch(self,op,a,p)
         if op in math_money.FIELDS:return math_money.dispatch(self,op,a,p)
-        if op in math_dates.FIELDS:return math_dates.dispatch(self,op,a,p)
+        if op in math_dates.FIELDS:return math_dates.dispatch(self,op,a,p,today())   # 0.8.6 S2: the clock's day for a period's as_of
         if op in lab_service.FIELDS:return lab_service.dispatch(self,op,a,p)
         if op in reason_service.FIELDS:return reason_service.dispatch(self,op,a,p)
         if op in math_service.FIELDS:return math_service.dispatch(self,op,a,p)

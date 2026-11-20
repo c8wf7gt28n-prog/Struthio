@@ -4553,20 +4553,29 @@
    "scope": "execute"
   },
   "math.dates": {
-   "arguments": "8714abd46fd0c9cfa791c4593692b0f780f42bcb57484d05b7dfc8b38ba67078",
+   "arguments": "c5c2d0baa897e2d6dbb14dac1f0587dfd1e5d33b4fc1e9ab5066bf8ba42bc335",
    "properties": {
     "after": "8e4920360c270f3f",
+    "as_of": "8e4920360c270f3f",
+    "between": "513291d2be250763",
     "count": "0eb2e3b6e08c031d",
+    "count_clause": "1e9bad1926ec2c6f",
     "end": "f166a8a171733c53",
+    "events": "482be6277c8420ed",
     "expression": "2b1e00f7cfc18abe",
     "for": "520c691f88f728d6",
     "from": "8e4920360c270f3f",
     "given": "6c8917c50bf8ec1e",
+    "holiday_clause": "1e9bad1926ec2c6f",
     "holidays": "95652f01aab8e073",
-    "stage": "25bf6b591707ea7e",
+    "labels": "67c940c7cb35573d",
+    "on": "8e4920360c270f3f",
+    "roll": "f6df7f543bc79d7a",
+    "stage": "e2c8d95fc82f3f8c",
     "to": "8e4920360c270f3f",
     "unit": "1d7803d26f083380",
-    "within": "1c1c26f0c5a206b8"
+    "within": "1c1c26f0c5a206b8",
+    "yearly": "2f64d5921f572221"
    },
    "scope": "read"
   },
@@ -7624,7 +7633,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "34f754862b4425dd161fd6c6a1ca50df046d70be4b39a75d9ee75010960f717c",
+ "schema_digest": "5a9f067b2a52fe243338eaf1be59d2e786d3043acb26b91c3686bf30f2dcae0b",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

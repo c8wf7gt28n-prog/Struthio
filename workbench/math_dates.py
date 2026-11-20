@@ -27,6 +27,25 @@ day itself is inside the period is the owner's rule to say (| end included, | en
 are shown, so no convention is hidden. With the end excluded, the last day inside is the day before the end (for business
 days, the business day before it), and a period left with no day inside is refused. A date that falls outside the years
 1 to 9999 is refused. This works out what the owner asks; it gives no legal advice.
+
+The last day of a period after an event (0.8.6, "Kas's mind, no model": the dates delta, stage 'period', no line yet):
+
+    math.dates {stage: period, count: 21, after: 2026-10-03, roll: {clause, words, skips}, holidays: [...], yearly: [MM-DD],
+                holiday_clause, count_clause, labels, on, as_of}         one event
+               {..., events: [2026-09-30, 2026-10-03]}                   an event on one of these days
+               {..., between: [2026-09-30, 2026-10-03]}                  an event on some day of this range
+
+The event's day is day 0, as for a deadline; the counting clause the owner recorded is quoted beside it. A last day that
+falls on a day the owner's quoted rule passes over (Saturday, Sunday, a public holiday: `roll`) moves to the next day that
+is none of these; the holidays are the owner's (listed days, and days of the month every year from a clause). When the
+rule passes over holidays and none are recorded, every last day says so ("unless it is a public holiday; holidays not
+recorded"); when no rule is recorded and day N is a weekend, the day a rule would move it to is shown beside it, earliest
+first. An uncertain event gives every reading's last day, and a range of days gives its two ends, exact, since counting
+on and passing over a day never move a date earlier. The break-even is by days: a day on or before the earliest last day
+is within the period on every reading, and on or before the latest, on at least one (`on` asks it of one day). `as_of`
+counts the days from each last day to that day; when the caller takes it from this computer's clock (the Kernel does:
+engineering_kernel.today) the answer carries origin CLOCK, and freshness() reads REVIEW_REQUIRED once the clock shows
+another day. Nothing here reads a clock.
 """
 from __future__ import annotations
 import ast
@@ -56,12 +75,23 @@ NAME = {'type': 'string', 'minLength': 1, 'maxLength': 64}
 DAY = {'type': 'string', 'minLength': 10, 'maxLength': 10}
 GIVEN = {'type': 'object', 'additionalProperties': False, 'properties': {'name': NAME, 'lo': NUMBER, 'hi': NUMBER, 'unit': {'type': 'string', 'enum': ['days', 'weeks']}},
          'required': ['name', 'lo']}
-FIELDS = {'math.dates': ({'stage': {'type': 'string', 'enum': ['calculate', 'solve', 'range', 'check', 'deadline', 'business']},
+# 0.8.6 S2, the dates delta: the last day of a period after an event (stage 'period')
+SKIPS = ('saturday', 'sunday', 'holidays')          # what a rule may pass over, in the owner's quoted words
+EVENTS, ROLL_STEPS = 8, 400
+CLAUSE = {'type': 'object', 'additionalProperties': False, 'required': ['clause', 'words'],
+          'properties': {'clause': {'type': 'string', 'minLength': 1, 'maxLength': 64}, 'words': {'type': 'string', 'minLength': 1, 'maxLength': 1000}}}
+ROLL = {**CLAUSE, 'required': ['clause', 'words', 'skips'],
+        'properties': {**CLAUSE['properties'], 'skips': {'type': 'array', 'minItems': 1, 'maxItems': 3, 'items': {'type': 'string', 'enum': list(SKIPS)}}}}
+PERIOD = {'events': {'type': 'array', 'minItems': 2, 'maxItems': EVENTS, 'items': DAY}, 'between': {'type': 'array', 'minItems': 2, 'maxItems': 2, 'items': DAY},
+          'labels': {'type': 'array', 'minItems': 1, 'maxItems': EVENTS, 'items': {'type': 'string', 'minLength': 1, 'maxLength': 120}},
+          'roll': ROLL, 'count_clause': CLAUSE, 'holiday_clause': CLAUSE, 'yearly': {'type': 'array', 'maxItems': HOLIDAYS, 'items': {'type': 'string', 'minLength': 5, 'maxLength': 5}},
+          'on': DAY, 'as_of': DAY}
+FIELDS = {'math.dates': ({'stage': {'type': 'string', 'enum': ['calculate', 'solve', 'range', 'check', 'deadline', 'business', 'period']},
                           'expression': {'type': 'string', 'minLength': 1, 'maxLength': 1000}, 'for': NAME,
                           'within': {'type': 'array', 'minItems': 2, 'maxItems': 2, 'items': NUMBER},
                           'given': {'type': 'array', 'maxItems': GIVENS, 'items': GIVEN}, 'holidays': {'type': 'array', 'maxItems': HOLIDAYS, 'items': DAY},
                           'count': NUMBER, 'unit': {'type': 'string', 'enum': sorted(set(UNITS.values()))}, 'after': DAY, 'from': DAY, 'to': DAY,
-                          'end': {'type': 'string', 'enum': ['included', 'excluded']}}, ['stage'])}
+                          'end': {'type': 'string', 'enum': ['included', 'excluded']}, **PERIOD}, ['stage'])}
 SCOPES = {'math.dates': 'read'}
 
 
@@ -116,6 +146,55 @@ def count_business(start, end, holidays):
 def words_of(day):return '%s %s' % (WEEKDAYS[day.weekday()], day.isoformat())
 
 
+# -- the last day of a period after an event (0.8.6 S2) ------------------------------------------------------------------
+
+def yearly_of(texts):
+    """Days of the month every year ('12-25'), as (month, day); 29 February is one, held in the years that have it."""
+    out = set()
+    for text in texts or ():
+        found = re.fullmatch(r'(\d{2})-(\d{2})', text or '')
+        month, day = (int(found.group(1)), int(found.group(2))) if found else (0, 0)
+        if not 1 <= month <= 12 or not 1 <= day <= (29 if month == 2 else (date(2001, month % 12 + 1, 1) - timedelta(days=1)).day):
+            typed.refuse('UNSUPPORTED', 'write a day held every year as month-day, such as 12-25 for 25 December, not ' + str(text))
+        out.add((month, day))
+    return out
+
+
+def passed_over(day, skips, held=(), yearly=()):
+    """Why a rule that passes over `skips` passes over `day` ('saturday', 'sunday' or 'holidays'), or None."""
+    weekday = {5: 'saturday', 6: 'sunday'}.get(day.weekday())
+    if weekday and weekday in skips:return weekday
+    if 'holidays' in skips and (day in held or (day.month, day.day) in yearly):return 'holidays'
+    return None
+
+
+def roll(day, skips, held=(), yearly=()):
+    """The day itself when the rule passes it by, else the next day the rule does not pass over; and the days passed over,
+    each with why. Never earlier than `day`."""
+    over = []
+    for _ in range(ROLL_STEPS):
+        why = passed_over(day, skips, held, yearly)
+        if why is None:return day, over
+        over.append((day, why));day = step_days(day, 1)
+    typed.refuse('UNSUPPORTED', 'no day within %d days of the last day is one the rule does not pass over' % ROLL_STEPS)
+
+
+def last_day(event, count, skips=(), held=(), yearly=()):
+    """(day `count` after `event`, the event's day being day 0; the last day once the rule has moved it; the days passed
+    over). Both steps never move a date earlier, so a later event never gives an earlier last day."""
+    day = step_days(event, count)
+    last, over = roll(day, skips, held, yearly)
+    return day, last, over
+
+
+def freshness(record, today):
+    """CURRENT, or REVIEW_REQUIRED for an answer worked out as of a day read from this computer's clock once `today` (the
+    caller reads the clock) is another day: its counts of days are of the day it was worked out. Reads no clock itself."""
+    as_of = (record or {}).get('as_of') or {}
+    if as_of.get('origin') == 'CLOCK' and as_of.get('day') != today.isoformat():return 'REVIEW_REQUIRED'
+    return (record or {}).get('freshness') or 'CURRENT'
+
+
 # -- the line ------------------------------------------------------------------------------------------------------------
 
 def _date_text(text):
@@ -163,8 +242,11 @@ def line_args(verb, steps):
 
 
 def owners(args):
-    """What only the owner gives in a dates line: a range, or a list of holidays (never in a line Kasandra proposes)."""
-    return any('hi' in row for row in args.get('given') or ()) or bool(args.get('holidays'))
+    """What only the owner gives in a dates line: a range, or a list of holidays (never in a line Kasandra proposes); and in
+    a period (0.8.6), the rule that moves a last day, the counting and holiday clauses, the days held every year, the day
+    it is worked out as of, and an event that is one of several days or a range of them."""
+    return (any('hi' in row for row in args.get('given') or ()) or bool(args.get('holidays'))
+            or any(args.get(k) for k in ('roll', 'count_clause', 'holiday_clause', 'yearly', 'as_of', 'events', 'between')))
 
 
 # -- kinds ---------------------------------------------------------------------------------------------------------------
@@ -288,8 +370,8 @@ def _given(rows):
 def _checked(args):
     """What a dates question must carry, in words, before anything is worked out."""
     stage = args.get('stage')
-    if stage not in ORDER and stage not in ('deadline', 'business'):
-        typed.refuse('UNSUPPORTED', 'ask to calculate, solve, range or check, or for a deadline or a count of business days')
+    if stage not in ORDER and stage not in ('deadline', 'business', 'period'):
+        typed.refuse('UNSUPPORTED', 'ask to calculate, solve, range or check, or for a deadline, a count of business days or the last day of a period')
     if len(args.get('holidays') or ()) > HOLIDAYS:typed.refuse('UNSUPPORTED', 'list at most %d holidays in a line' % HOLIDAYS)
     if stage == 'deadline':
         if not re.fullmatch(r'\d{1,7}', str(args.get('count', ''))) or int(args['count']) < 1:
@@ -396,6 +478,164 @@ def _deadline(start, end, clamped, said, excluded):
     return after
 
 
+# -- the last day of a period after an event, as an answer (0.8.6 S2) ----------------------------------------------------
+
+UNLESS = 'unless it is a public holiday; holidays not recorded'
+NOT_COVERED = 'Not covered: the time of day, how a notice is served or received, court days, and periods counted backwards.'
+
+
+def _day(value):return None if value is None else mark(number_record(Fraction(value.toordinal())), 'date')
+
+
+def _period_events(args):
+    """The event as the owner gave it: ('ONE', [day]), ('ONE_OF', days) or ('BETWEEN', [first, last]); in words otherwise."""
+    if not re.fullmatch(r'\d{1,7}', str(args.get('count', ''))) or not 1 <= int(args['count']) <= LONGEST:
+        typed.refuse('UNSUPPORTED', 'count a period after an event in whole days, at least 1, such as 21 days after 2026-09-30')
+    if args.get('unit') not in (None, 'days'):
+        typed.refuse('UNSUPPORTED', 'a period after an event is counted in days here; months, years and business days are counted by a deadline')
+    if len([k for k in ('after', 'events', 'between') if args.get(k)]) != 1:
+        typed.refuse('UNSUPPORTED', 'give the event once: the day it happened, the days it may have been, or the range of days it falls in')
+    if args.get('after'):return 'ONE', [day_of(args['after'])]
+    if args.get('events'):
+        days = [day_of(d) for d in args['events']]
+        if not 2 <= len(days) <= EVENTS or len(set(days)) != len(days):
+            typed.refuse('UNSUPPORTED', 'give from 2 to %d different days the event may have been' % EVENTS)
+        return 'ONE_OF', days
+    days = [day_of(d) for d in args['between']]
+    if len(days) != 2 or days[0] >= days[1]:typed.refuse('UNSUPPORTED', 'give the range of days the event falls in earlier day first, such as 2026-09-30 2026-10-03')
+    return 'BETWEEN', days
+
+
+def _period(args, block, today):
+    kind, events = _period_events(args);n = int(args['count'])
+    labels = list(args.get('labels') or ())
+    if labels and len(labels) != len(events):typed.refuse('UNSUPPORTED', 'give one name for each day the event may have been')
+    rule = args.get('roll') or None;skips = tuple(s for s in SKIPS if s in (rule or {}).get('skips', ()))
+    held = {day_of(h) for h in args.get('holidays') or ()};yearly = yearly_of(args.get('yearly'))
+    unless = 'holidays' in skips and not (held or yearly)
+    as_of = day_of(args['as_of']) if args.get('as_of') else today
+    origin = 'GIVEN_IN_LINE' if args.get('as_of') else 'CLOCK' if today else None
+    on = day_of(args['on']) if args.get('on') else None
+    rows, steps = [], ['The question: the last day, %d day%s after %s.' % (n, '' if n == 1 else 's', _event_words(kind, events))]
+    for i, event in enumerate(events):
+        day, last, over = last_day(event, n, skips, held, yearly)
+        moved = None if rule else roll(day, SKIPS, held, yearly)[0]
+        rows.append({'label': labels[i] if labels else None, 'event': _day(event), 'day': _day(day), 'last_day': _day(last),
+                     'passed_over': [{'day': d.isoformat(), 'as': why} for d, why in over], 'if_moved': _day(moved) if moved != day else None,
+                     'since': (as_of - last).days if as_of else None})
+        steps.append('Day %d after %s is %s%s.' % (n, words_of(event), words_of(day), '' if last == day else
+                     '; %s passes over %s: the last day is %s' % (rule['clause'], ', '.join(words_of(d) for d, _ in over), words_of(last))))
+    lasts = [date.fromisoformat(row['last_day']['iso']) for row in rows];first, latest = min(lasts), max(lasts)
+    if kind == 'BETWEEN':steps.append('Counting on and passing over a day never move a date earlier, so the earliest event gives the earliest last day '
+                                      'and the latest event the latest: both ends are exact.')
+    if kind != 'ONE':steps.append('Within the period on every reading: on or before %s; on at least one: on or before %s.' % (words_of(first), words_of(latest)))
+    period = {'count': n, 'event': kind, 'readings': rows, 'every': _day(first), 'some': _day(latest), 'unless_holiday': unless,
+              'roll': dict(rule) if rule else None, 'counting': 'EVENT_DAY_IS_DAY_0',
+              'on': {'day': _day(on), 'readings': [on <= last for last in lasts], 'every': on <= first, 'some': on <= latest} if on else None}
+    result = {'period': period, **({'value': _day(lasts[0])} if kind == 'ONE' else {'range': [_day(first), _day(latest)], 'status': typed.ranges.ATTAINED})}
+    block.update(kinds={}, result='date', period={'counting': 'EVENT_DAY_IS_DAY_0', 'count_clause': args.get('count_clause'), 'roll': rule, 'skips': list(skips),
+                                                 'yearly': sorted('%02d-%02d' % md for md in yearly), 'holiday_clause': args.get('holiday_clause'),
+                                                 'holidays_recorded': bool(held or yearly), 'as_of': as_of.isoformat() if as_of else None, 'as_of_origin': origin})
+    asked = {k: args[k] for k in ('count', 'after', 'events', 'between', 'labels', 'roll', 'count_clause', 'holiday_clause', 'holidays', 'yearly', 'on', 'as_of') if k in args}
+    record = {'schema': typed.answers.SCHEMA, 'stage': 'calculate' if kind == 'ONE' else 'range',
+              'asked': {**asked, 'rule': 'period', 'expression': '%d days after %s' % (n, _event_words(kind, events))},
+              'model': None, 'model_digest': None, 'assumptions': [], 'obligations': [], 'inputs': [], 'result': result, 'state': 'ANSWERED',
+              'for_all': None, 'witness': None, 'guarantee': 'EXACT_VALUE' if kind == 'ONE' else 'EXACT_RANGE', 'derivation': steps[:8],
+              'freshness': 'CURRENT', 'reason': '', 'model_calls': 0, 'physical_qualification': False,
+              'as_of': {'day': as_of.isoformat(), 'origin': origin} if as_of else None}
+    return typed.seal(record, ('calendar', block), KIT)
+
+
+def _event_words(kind, days):
+    if kind == 'ONE':return words_of(days[0])
+    if kind == 'BETWEEN':return 'an event between %s and %s' % (words_of(days[0]), words_of(days[1]))
+    return 'an event on one of %s' % ', '.join(words_of(d) for d in days)
+
+
+def _skip_words(skips):
+    said = ['a ' + {'saturday': 'Saturday', 'sunday': 'Sunday', 'holidays': 'public holiday'}[s] for s in skips]
+    return ', '.join(said[:-1]) + (' or ' if len(said) > 1 else '') + said[-1]
+
+
+def _period_said(record):
+    p = record['result']['period'];n, rows = p['count'], p['readings'];rule = p['roll'] or {}
+    def day(row, key):return show(_r(row[key]), 'date')
+    def event(row):return day(row, 'event') + (' (%s)' % row['label'] if row['label'] else '')
+    unless = ', ' + UNLESS if p['unless_holiday'] else ''
+    if p['event'] == 'ONE':said = '%d days after %s: the last day is %s%s.' % (n, event(rows[0]), day(rows[0], 'last_day'), unless)
+    elif p['event'] == 'ONE_OF':
+        said = '%d days after the event, the last day is %s%s.' % (n, '; '.join('%s if it was on %s' % (day(r, 'last_day'), event(r)) for r in rows),
+                                                              ('; each ' + UNLESS) if unless else '')
+    else:
+        said = '%d days after an event between %s and %s, the last day is between %s and %s, exact at both ends%s.' % (
+            n, event(rows[0]), event(rows[1]), day(rows[0], 'last_day'), day(rows[1], 'last_day'), ('; each ' + UNLESS) if unless else '')
+    lines = []
+    for r in rows:
+        if r['passed_over']:lines.append('Day %d after %s is %s, and %s moves it to %s.' % (n, day(r, 'event'), day(r, 'day'), rule['clause'], day(r, 'last_day')))
+        elif r['if_moved']:
+            lines.append('Day %d after %s is %s. No rule of yours that moves a last day off a weekend or a holiday is recorded; with one, it '
+                         'would be %s.' % (n, day(r, 'event'), day(r, 'day'), day(r, 'if_moved')))
+    if p['event'] != 'ONE':
+        lines.append('A day on or before %s is within the period on every reading; a day on or before %s, on at least one.' % (
+            show(_r(p['every']), 'date'), show(_r(p['some']), 'date')))
+    on = p['on']
+    if on:
+        when = show(_r(on['day']), 'date')
+        if p['event'] == 'ONE' or on['every'] or not on['some']:
+            lines.append('A day dated %s is %s.' % (when, ('within the period' + (' on every reading' if p['event'] != 'ONE' else '')) if on['every'] else
+                                                   'after the last day' + (' on every reading' if p['event'] != 'ONE' else '')))
+        elif p['event'] == 'ONE_OF':
+            lines.append('A day dated %s is within the period only if the event was on %s.' % (when, ' or '.join(event(r) for r, inside in zip(rows, on['readings']) if inside)))
+        else:lines.append('A day dated %s is within the period only if the event was late enough in the range: it is after %s.' % (when, show(_r(p['every']), 'date')))
+    as_of = record.get('as_of')
+    if as_of:
+        since = [r['since'] for r in rows];when = words_of(date.fromisoformat(as_of['day'])) + (" (this computer's clock)" if as_of['origin'] == 'CLOCK' else '')
+        if all(s > 0 for s in since) and len(since) == 1:lines.append('As of %s, the last day passed %s.' % (when, _days_ago(since)))
+        elif all(s > 0 for s in since):lines.append('As of %s, %s passed: %s.' % (when, 'both last days have' if len(since) == 2 else 'every last day has', _days_ago(since)))
+        else:lines.append('As of %s: %s.' % (when, '; '.join('%s %s' % (day(r, 'last_day'), _since_words(r['since'])) for r in rows)))
+    return said, lines
+
+
+def _listed(said):return ', '.join(said[:-1]) + (' and ' if len(said) > 1 else '') + said[-1]
+
+
+def _days_ago(since):return _listed(['%d' % s for s in since]) + ' day%s ago' % ('' if since == [1] else 's')
+
+
+def _quoted(clause):
+    """A clause of the owner's source and its words, exactly as recorded, ending a sentence."""
+    words = clause['words'].strip()
+    return '%s: "%s"%s' % (clause['clause'], words, '' if words[-1:] in '.?!' else '.')
+
+
+def _since_words(n):
+    if n > 0:return 'passed %d day%s ago' % (n, '' if n == 1 else 's')
+    return 'is that day' if n == 0 else 'is %d day%s later' % (-n, '' if n == -1 else 's')
+
+
+def _period_told(block):
+    p = block['period'];lines = ['Calendar: whole days written year-month-day, with no time of day and no time zone.']
+    counted = p.get('count_clause')
+    lines.append('Counting: the day of the event is day 0 and is not counted, by your source, ' + _quoted(counted) if counted else
+                 'Counting: the day of the event is day 0 and is not counted; no counting clause of yours is recorded, so this is the line\'s own rule.')
+    rule = p.get('roll')
+    if rule:lines.append('A last day on %s moves to the next day that is none of these, by your source, %s' % (_skip_words(p['skips']), _quoted(rule)))
+    else:lines.append('A last day on a weekend or a public holiday is not moved: no rule of yours that moves one is recorded.')
+    yearly = [('%d %s' % (int(md[3:]), MONTHS[int(md[:2]) - 1])) for md in p.get('yearly') or ()]
+    listed = [words_of(date.fromisoformat(h)) for h in block.get('holidays') or ()]
+    if yearly or listed:
+        clause = p.get('holiday_clause');parts = []
+        if yearly:parts.append(_listed(yearly) + ' every year')
+        if listed:parts.append(_listed(listed) + ', as listed')
+        lines.append('Holidays: ' + '; and '.join(parts) + ('; every year\'s by your source, ' + _quoted(clause) if clause and yearly else '.'))
+    elif 'holidays' in p.get('skips', ()):lines.append('Holidays: not recorded, so a last day may yet be a public holiday.')
+    if p.get('as_of'):
+        lines.append('As of: %s, %s.' % (words_of(date.fromisoformat(p['as_of'])), "from this computer's clock; worked out again when the day changes"
+                                          if p['as_of_origin'] == 'CLOCK' else 'as given'))
+    lines.append(NOT_COVERED)
+    return lines
+
+
 # -- words ---------------------------------------------------------------------------------------------------------------
 
 def label(kind):return {'date': 'date', 'days': 'days'}.get(kind, '1')
@@ -427,11 +667,13 @@ def _r(record):return rational(record['rational'])
 
 def heading(record):
     rule = (record.get('asked') or {}).get('rule')
-    return 'Deadline' if rule == 'deadline' and record['state'] == 'ANSWERED' else None
+    if record['state'] != 'ANSWERED':return None
+    return 'Deadline' if rule == 'deadline' else 'Last day' if rule == 'period' else None
 
 
 def said(record):
     asked = record.get('asked') or {}
+    if asked.get('rule') == 'period':return _period_said(record)
     if asked.get('rule') == 'business':
         n = _r(record['result']['value'])
         return '%s business day%s from %s to %s.' % (n, '' if n == 1 else 's', words_of(date.fromisoformat(asked['from'])), words_of(date.fromisoformat(asked['to']))), [
@@ -473,6 +715,7 @@ def notes(record):
 
 def told(record):
     block = record.get('calendar') or {};lines = ['Calendar: whole days written year-month-day, with no time of day and no time zone.']
+    if block.get('period'):return _period_told(block)
     if any(step['unit'] in ('months', 'years') for step in block.get('steps') or ()):
         lines.append("Months and years are counted the calendar's way: the same day of the month, or the month's last day when the month has no such day.")
     if block.get('business'):
@@ -490,17 +733,25 @@ KIT = {'show': show, 'label': label, 'mark': mark, 'difference': lambda kind:'da
        'said': said, 'heading': heading, 'prefixes': lambda unit:{'upper': 'On or before', 'lower': 'On or after', 'below': 'Before', 'above': 'After'} if unit == 'date' else typed.PREFIXES}
 
 
-def answer(args):
+def answer(args, today=None):
     """ledger.math-answer/1 for one dates line; its `calendar` field holds each name's kind, the calendar steps taken
-    (and whether one was clamped), the holidays and their source, and the rules. Never raises: a refusal is its state."""
+    (and whether one was clamped), the holidays and their source, and the rules. Never raises: a refusal is its state.
+    today: the day of this computer's clock, read by the caller (a period without as_of is worked out as of it, origin
+    CLOCK); nothing here reads a clock."""
     args = dict(args or {});block = {'kinds': {}, 'result': None, 'steps': [], 'month_end': MONTH_END, 'business_days': 'MONDAY_TO_FRIDAY',
                                      'holidays': [], 'holiday_source': 'LISTED_IN_LINE' if args.get('holidays') else None, 'day_numbers': 'PROLEPTIC_GREGORIAN'}
-    asked = {k: args[k] for k in ('expression', 'for', 'within', 'given', 'holidays', 'count', 'unit', 'after', 'from', 'to', 'end') if k in args}
-    stage = args['stage'] if isinstance(args.get('stage'), str) and args['stage'] in (*ORDER, 'deadline', 'business') else 'calculate'
-    try:spec = _spec(args, block);return typed.answer(spec, KIT)
+    asked = {k: args[k] for k in ('expression', 'for', 'within', 'given', 'holidays', 'count', 'unit', 'after', 'from', 'to', 'end', *PERIOD) if k in args}
+    stage = args['stage'] if isinstance(args.get('stage'), str) and args['stage'] in (*ORDER, 'deadline', 'business', 'period') else 'calculate'
+    try:
+        if stage == 'period':
+            block['holidays'] = sorted({day_of(h).isoformat() for h in args.get('holidays') or ()})
+            return _period(args, block, today)
+        spec = _spec(args, block);return typed.answer(spec, KIT)
     except typed.Refused as exc:return typed.refused(stage, asked, ('calendar', block), KIT, exc)
     except (ValueError, ZeroDivisionError, OverflowError):return typed.refused(stage, asked, ('calendar', block), KIT, typed.Refused('UNSUPPORTED', typed.NUMBERS))
     except (KeyError, TypeError, AttributeError):return typed.refused(stage, asked, ('calendar', block), KIT, typed.Refused('UNSUPPORTED', typed.SHAPE))
 
 
-def dispatch(kernel, op, args, p):return answer(args)
+def dispatch(kernel, op, args, p, today=None):
+    """math.dates in the Kernel; `today` is the day of this computer's clock as the Kernel read it (engineering_kernel.today)."""
+    return answer(args, today)
