@@ -268,6 +268,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 09:38 UTC: **0.8.6 phase 3 merged**: S3 (your word, her reasons; its smoke 45/45) and S4 (her dictionary,
+  requests.read). The kernel and CLI registrations conflicted only by adding beside each other: both kept (merge helper
+  scripts now in scratch `work/merge_phase.sh` and `work/finish_merge.sh`). Seed rebuilt; the window opened in both looks.
+  Phase 4 (S5 either way and settle; S6 quotes and rule cards) launched next. Also running: 0.8.7 phase 1, the talk
+  between 0.8.7 and 0.8.8, and, for fun at the owner's word ("let's imagine a Struthio themed desktop"), three painted
+  takes on a Struthio look from the owner's art (scratch `work/struthio_look/`; the art stays out of the repository).
 - 20 Nov 09:12 UTC: **0.8.6 phase 2 merged** as 6ed2ab9: S1 (mind_types, math_zones, room and settle, goals relation
   form; its builder's smoke 48/48) and L (the owner's head and footer layout, Struthio icon, equalizer D, meters H;
   frames in both looks read against the mockups, kept in `wip/2026-11-20_b086_saved/frames_L/`). Seed rebuilt; the
