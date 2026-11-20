@@ -234,6 +234,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 07:30 UTC: the owner, asked whether to build 0.8.6 and 0.8.7 together or overlapped: "It's probably best to do
+  separately." So: 0.8.6 is built, checked and shipped on its own; 0.8.7 starts after it. The one-command model-check
+  kit (no model needed to build it) ships with 0.8.6 so the owner can measure the 35B before 0.8.7 is tuned.
+  Noted: a design agent of the 0.8.7 group published its trust design as a private artifact page (nothing private in
+  it; the owner was told).
 - 20 Nov 07:15 UTC: the 5-hour limit stopped work at about 06:35 (reset 07:10). Money and dates: built and reviewed
   (four must-fix: a documented date form always refused; round 0 raises; the money and dates tools crowd unrelated plans
   past the plan bound; "(exact 3.33 USD (exact 10/3 USD))"); the fix was half done, saved as
