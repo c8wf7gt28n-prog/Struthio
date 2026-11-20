@@ -2582,7 +2582,7 @@ class SlateFace(QWidget):
         from . import hand_words
         from .her_hand_qt import hand
         if getattr(self.host, 'field_page', None) is None and not getattr(self.host, '_field_active', False):
-            if not re.search(r'\b(?:trace|beside|side by side|compare|where .+ comes? from)\b', text, re.IGNORECASE):return False
+            if not re.search(r'\b(?:trace|beside|side by side|compare|where .+ (?:comes?|came) from)\b', text, re.IGNORECASE):return False   # 0.8.7 W7: "came from" too
         her = hand(self.host);world = her.world()
         if not world.sheets:return False
         found = hand_words.match(text, world)
@@ -2593,7 +2593,8 @@ class SlateFace(QWidget):
         sight = world.titles() if state.whole is True else tuple(state.in_sight)
         if not hand_words.desk_request(text, world, sight if state.surface == 'field' else ()):return False
         if not found.goals and not found.ambiguous and not any(hand_words.find(c, world.titles())[1] for c in found.unmatched):
-            if not re.search(r'\b(?:trace|beside|side by side|compare)\b', text, re.IGNORECASE):return False      # no sheet and no verb of the desk's own
+            # 0.8.7 W7: "where ... came from" is the desk's own question too (design 2.1: her READ card for "the bench numbers")
+            if not re.search(r'\b(?:trace|beside|side by side|compare|where .+ (?:comes?|came) from)\b', text, re.IGNORECASE):return False      # no sheet and no verb of the desk's own
         self.thing = None;self.mine(text)
         return her.ask_goal(text, word=text.strip())
 
@@ -2781,6 +2782,8 @@ class SlateFace(QWidget):
 
     def ask(self, text, about=None):
         if self.own_word(text):return
+        from .library_qt import asked as library_asked      # 0.8.7 W7: a question of the Library, answered by Ask the Library
+        if library_asked(self, text):return
         if self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
         if self.made_asked(text):return
         if self.set_asked(text):return
@@ -2837,6 +2840,8 @@ class SlateFace(QWidget):
                               '“Add up the numbers on this page” I work out myself: the total goes under your words and stays bound to them.')
                 note.setWordWrap(True);card.box.addWidget(note)
             card.box.addWidget(sentence('{choose}', {'choose': ('Choose a model', lambda:open_destination(self.host, 'slate').pick_model())}))
+            from .library_qt import QUESTION, ask as ask_library, say as library_say      # 0.8.7 W7: a question can go to the Library
+            if QUESTION.search(text):card.box.addWidget(sentence('{library}', {'library': (library_say('ask_library'), lambda q=text:ask_library(self, q))}))
             return
         message = text if not about else text + '\n\n(About the open item: ' + about + ')'
         if selected:

@@ -237,7 +237,7 @@ class MindPanel(QFrame):
     def _fill(self, name):
         lay = self.pages[name][1]
         if name == 'why':
-            found, why = self.read('field.why', {'id': self.ident});self.answers[name] = found
+            found, why = self.read('field.why', {'id': self.ident});found = self.voiced(name, found);self.answers[name] = found   # 0.8.7 W7
             if found is None:lay.addWidget(words_label(say('could_not', why=why)));return
             self.why = found;self.lines = []
             for line in found.get('lines') or ():
@@ -249,7 +249,7 @@ class MindPanel(QFrame):
             if found is None:lay.addWidget(words_label(say('could_not', why=why)));return
             self.rests(lay, found)
         elif name == 'either':
-            found, why = self.read('field.either', {'id': self.ident});self.answers[name] = found
+            found, why = self.read('field.either', {'id': self.ident});found = self.voiced(name, found);self.answers[name] = found   # 0.8.7 W7
             if found is None:lay.addWidget(words_label(self.refusal(why)));return
             for text in found.get('words') or ():lay.addWidget(words_label(text))
             question = found.get('question') or {}
@@ -261,6 +261,19 @@ class MindPanel(QFrame):
             for text in found.get('words') or ():lay.addWidget(words_label(text))
             step = found.get('next') or {}
             if step.get('words') and step.get('route') != 'NOTHING':lay.addWidget(words_label(step['words'], quiet=True))
+
+    def voiced(self, name, found):
+        """0.8.7 W7: her answers (the proof's maths line, each way) said through her voice floor where 0.8.6's templates said
+        them (voice_column.restate). With every 0.8.7 switch off, or nothing the floor can say, 0.8.6's words stand."""
+        if not isinstance(found, dict):return found
+        try:
+            if not hasattr(self, '_voice'):self._voice = self.read('voice.say', {'id': self.ident})[0]
+            from . import voice_column
+            found, n = voice_column.restate(name, found, self._voice)
+        except Exception:  # noqa: BLE001 - her floor never takes the panel down: 0.8.6's words stand
+            return found
+        self.voice_said = getattr(self, 'voice_said', 0) + n
+        return found
 
     @staticmethod
     def refusal(why):

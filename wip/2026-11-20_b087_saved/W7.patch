@@ -1,0 +1,1067 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 402f1f3..46501a3 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -785,6 +785,7 @@
+    "voice.character": "workbench/voice_character.py#dispatch",
+    "voice.character.admit": "workbench/voice_character.py#dispatch",
+    "voice.character.start": "workbench/voice_character.py#dispatch",
++   "voice.say": "workbench/voice_column.py#dispatch",
+    "word.get": "workbench/your_word.py#dispatch",
+    "word.list": "workbench/your_word.py#dispatch",
+    "word.set": "workbench/your_word.py#dispatch",
+@@ -1027,9 +1028,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 829,
++  "adapters": 830,
+   "job_tools": 113,
+-  "operations": 829,
++  "operations": 830,
+   "settings": 48
+  },
+  "formulas": {
+@@ -7770,6 +7771,18 @@
+    "properties": {},
+    "scope": "execute"
+   },
++  "voice.say": {
++   "arguments": "9b36b8dc08671851c95a96ddc9811c1279a7c7d0910e6025d0959dfd35e29d8a",
++   "properties": {
++    "at": "b46250e2f5fb13e5",
++    "choose": "c670dde09c006e30",
++    "id": "52ba84a4bbf396ba",
++    "on": "97ff1836f9f6cc3c",
++    "reading": "cee1c4dc227b697c",
++    "sheet": "a197705b0fea6cee"
++   },
++   "scope": "read"
++  },
+   "word.get": {
+    "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+    "properties": {
+@@ -8154,7 +8167,7 @@
+  },
+  "release": "Graphite 0.8.6",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "82eca81c52f96b829d9a23546fdd6f55a676aeffd04878dab9ad146fe1485cd1",
++ "schema_digest": "ed6634d2953b2ad97c401f2d79193a9aafb418c962684db8e2056eeb0eeb7f90",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/activity.py b/workbench/activity.py
+index dfe3e50..ae46306 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -40,7 +40,9 @@ OBSERVER_OPERATIONS=frozenset({
+  # 0.8.6 if there is room, items 1 and 2: what this change did, where does my desk say it; asking is not an event
+  'field.change','places.find',
+  # 0.8.6 W: the goals you kept, read and checked when the Field is shown (goal cards); showing the desk is not an event
+- 'goals.list','goals.get','goals.check'})
++ 'goals.list','goals.get','goals.check',
++ # 0.8.7 W7: her answers through her voice floor, and a page's cross-references, read each time a card or a page is shown
++ 'voice.say','library.links'})
+ 
+ def folder(root):
+     """Legacy journal location, now used only for migration and failed delivery."""
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index c30700c..ff0eae1 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -111,6 +111,7 @@ def schemas():
+     from .tables import FIELDS as TABLE_FIELDS  # 0.8.7 C6a (tables that check themselves)
+     from .crossrefs import FIELDS as CROSSREF_FIELDS  # 0.8.7 C6b (cross-references)
+     from .model_exam import FIELDS as EXAM_FIELDS  # 0.8.7 A5 (the exam and the model key)
++    from .voice_column import FIELDS as VOICE_COLUMN_FIELDS  # 0.8.7 W7 (the window wiring): voice.say
+     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
+     from .stac_words import FIELDS as WORD_FIELDS
+     from .agent_operations import FIELDS
+@@ -224,6 +225,7 @@ def schemas():
+         **TABLE_FIELDS,  # 0.8.7 C6a (tables that check themselves)
+         **CROSSREF_FIELDS,  # 0.8.7 C6b (cross-references)
+         **EXAM_FIELDS,  # 0.8.7 A5 (the exam and the model key)
++        **VOICE_COLUMN_FIELDS,  # 0.8.7 W7 (the window wiring): voice.say
+         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
+         **WORD_FIELDS,
+         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 1fa8802..40074cf 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -74,6 +74,7 @@ from . import library_service  # 0.8.7 C3 (Ask the Library): the Library's index
+ from . import crossrefs  # 0.8.7 C6b (cross-references): where a place refers to another, against revisions: library.links (read; recorded addition)
+ from . import tables  # 0.8.7 C6a (tables that check themselves): the COLUMNS turn: library.table (read; its only effect a turn record) (recorded addition)
+ from . import model_exam  # 0.8.7 A5 (the exam and the model key): brain.exam, the exam card for the live model's key (read; recorded addition)
++from . import voice_column  # 0.8.7 W7 (the window wiring): her answers said through her voice floor in her column: voice.say (read; recorded addition)
+ from . import stac_words  # Graphite 0.4.3: the owner's own staC words (words.list, words.keep, words.forget: recorded additions)
+ from . import program_mail, program_build, program_transfer, program_cartridge
+ from . import program_vector, program_media, program_freecad
+@@ -261,6 +262,7 @@ CAPABILITIES = {
+     **crossrefs.SCOPES,  # 0.8.7 C6b (cross-references): library.links, a read; nothing written but the Library's rebuildable index
+     **tables.SCOPES,  # 0.8.7 C6a (tables that check themselves): library.table, a read whose only effect is a turn record
+     **model_exam.SCOPES,  # 0.8.7 A5 (the exam and the model key): brain.exam, a read
++    **voice_column.SCOPES,  # 0.8.7 W7 (the window wiring): voice.say, a read; nothing written, no model
+     **voice_character.SCOPES,  # 0.8.7 C5 (her character file)
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+@@ -695,6 +697,7 @@ class Kernel:
+         if op in crossrefs.FIELDS:return crossrefs.dispatch(self,op,a,p)   # 0.8.7 C6b (cross-references): wires between places, CURRENT, RECHECK or MISSING against the earlier revision
+         if op in tables.FIELDS:return tables.dispatch(self,op,a,p)   # 0.8.7 C6a (tables that check themselves): a page's tables cut, named and checked to the cent
+         if op in model_exam.FIELDS:return model_exam.dispatch(self,op,a,p)   # 0.8.7 A5 (the exam and the model key): the exam card per model, read
++        if op in voice_column.FIELDS:return voice_column.dispatch(self,op,a,p)   # 0.8.7 W7 (the window wiring): a card's answers said through her voice floor, read
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+         if op in workspace_services.FIELDS:
+diff --git a/workbench/her_hand_qt.py b/workbench/her_hand_qt.py
+index dab3381..c876cd2 100644
+--- a/workbench/her_hand_qt.py
++++ b/workbench/her_hand_qt.py
+@@ -306,7 +306,9 @@ class HerHand(QObject):
+                 'journal_stopped': sum(1 for e in t.envelopes if (e.get('error') or {}).get('code') == 'STOPPED'),
+                 'journal_offered': sum(1 for e in t.envelopes if (e.get('error') or {}).get('code') == 'OFFERED'),
+                 'desk_unchanged': bool(t.offer_digest) and t.offer_digest == t.snapshot_digest, 'seconds': round(t.seconds(), 3),
+-                'model': t.model, 'rows': [{'act': r['step'].act, 'args': r['step'].args, 'state': r['state']} for r in t.rows]}
++                # 0.8.7 W7: a turn in flight holds its thread and its holder; neither is a record (the session could not be saved)
++                'model': {k: v for k, v in t.model.items() if k not in ('thread', 'holder')} if isinstance(t.model, dict) else t.model,
++                'rows': [{'act': r['step'].act, 'args': r['step'].args, 'state': r['state']} for r in t.rows]}
+ 
+     # -- reading the window ---------------------------------------------------------------------------------------------------
+     def read(self):
+@@ -636,9 +638,11 @@ class HerHand(QObject):
+             try:holder['answer'] = turns.ask(brief.GOAL, b, request)
+             except Exception as exc:  # noqa: BLE001 - a failed turn gives the buttons
+                 holder['error'] = str(exc)[:200]
++        stop = self._stoppable(request)          # 0.8.7 W7: her clock's Stop reaches the turn
+         thread = threading.Thread(target=run, name='her-goal-turn', daemon=True);thread.start()
+         t.model['holder'] = holder;t.model['thread'] = thread
+-        self.set_state('thinking');self.say(named('I am asking my model which of these you meant: %s.') % '; '.join(o.words for o in b.options))
++        self.set_state('thinking')
++        self._clock(self.say(named('I am asking my model which of these you meant: %s.') % '; '.join(o.words for o in b.options)), request, thread, stop)
+         QTimer.singleShot(POLL_MS, self.poll_goal)
+         return True
+ 
+@@ -680,10 +684,12 @@ class HerHand(QObject):
+             try:holder['got'] = understand.ask(i, request)
+             except Exception as exc:  # noqa: BLE001 - a failed turn gives her guesses
+                 holder['error'] = str(exc)[:200]
++        stop = self._stoppable(request)          # 0.8.7 W7: her clock's Stop reaches the turn
+         thread = threading.Thread(target=run, name='her-read-turn', daemon=True);thread.start()
+         t.model.update(asked=True, calls=1, started=time.monotonic(), holder=holder, thread=thread)
+         self.set_state('thinking')
+-        self._read_buttons(t, 'I am asking my model how to read your words. Meanwhile, my own guesses:', understand.guesses(i))
++        self._clock(self._read_buttons(t, 'I am asking my model how to read your words. Meanwhile, my own guesses:', understand.guesses(i)),
++                    request, thread, stop)
+         QTimer.singleShot(POLL_MS, self.poll_read)
+         return True
+ 
+@@ -1026,9 +1032,10 @@ class HerHand(QObject):
+             try:holder['placed'] = Q.answer(q, typed, request)
+             except Exception as exc:  # noqa: BLE001 - a failed turn leaves the buttons
+                 holder['error'] = str(exc)[:200]
++        stop = self._stoppable(request)          # 0.8.7 W7: her clock's Stop reaches the turn
+         thread = threading.Thread(target=run, name='her-pick-turn', daemon=True);thread.start()
+         t.model['calls'] = int(t.model.get('calls') or 0) + 1
+-        self.set_state('thinking');self.say(named('I am asking my model which of these your answer chooses.'))
++        self.set_state('thinking');self._clock(self.say(named('I am asking my model which of these your answer chooses.')), request, thread, stop)
+ 
+         def poll():
+             if thread.is_alive():QTimer.singleShot(POLL_MS, poll);return
+@@ -1047,17 +1054,24 @@ class HerHand(QObject):
+         q = t.question
+         if getattr(t, 'answered', False) or (self.turn is not t and getattr(self.turn, 'question', None) is not q):return None
+         t.answered = True;t.model['answer'] = placed.as_record()
+-        if placed.n == Q.LEAVE:
+-            left = Q.leave(q);t.model['left'] = left.as_record()
+-            t.state = 'finished';t.closing = left.words;self.say(left.words);self.set_state('finished');return None
++        if placed.n == Q.LEAVE:          # 0.8.7 W7: Leave it runs the reads it says it runs, and says only those
++            ran = Q.runnable(q, Q.leave(q).take)
++            left = Q.left_done(q, ran);t.model['left'] = left.as_record()
++            t.state = 'finished';t.closing = left.words;self.say(left.words)
++            pairs = [p for n in ran for p in q.choice(n).goals()]
++            if pairs:                    # reads that decide nothing for him: the desk's default, a deduction, never his choice
++                nt = self.start(t.text, pairs, t.word, origin='DEDUCED')
++                nt.model = dict(t.model);nt.question = q;nt.request = getattr(t, 'request', None)
++                return nt
++            self.set_state('finished');return None
+         c = q.choice(placed.n)
+         if q.source in ('understand', 'saying'):return self._read_answered(t, q, c, placed)     # 0.8.7 B5: his words' question
+         if placed.words:self.say(placed.words)
+         if c.reading.get('revision_open'):          # a second question would be needed: never a second card
+             t.state = 'finished';self.say(Q.once_more('REVISION'));self.set_state('finished');return None
+         pairs = Q.goals_with(getattr(t, 'found', None) if q.source == 'reading' else None, q, c)
+-        if not pairs:
+-            t.state = 'finished';self.say(Q.leave(q).words);self.set_state('finished');return None
++        if not pairs:                    # 0.8.7 W7: nothing here runs, so she says no read was done (Q.leave would claim one)
++            t.state = 'finished';self.say(Q.left_done(q, ()).words);self.set_state('finished');return None
+         nt = self.start(t.text, pairs, t.word, origin='HER' if placed.basis == 'model_pick' else 'OWNER')
+         nt.model = dict(t.model, chosen=c.n, by=placed.by);nt.brief = getattr(t, 'brief', None);nt.found = getattr(t, 'found', None)
+         nt.question = q;nt.request = getattr(t, 'request', None)
+@@ -1067,6 +1081,44 @@ class HerHand(QObject):
+         return nt
+     # == end 0.8.7 B4 =======================================================================================================
+ 
++    # == 0.8.7 W7 · her clock's line under her card while a model turn runs (design 4.4) =====================================
++    @staticmethod
++    def _stoppable(request):
++        """Her clock's Stop for this request, put on it before the turn's thread starts: {'pressed': bool}. A press is
++        read by turns.ask (request.cancelled) and by the port's stream, which closes the turn."""
++        stop = {'pressed': False}
++        if request is None:return stop
++        before = getattr(request, 'cancelled', None) or (lambda: False)
++        request.cancelled = lambda: stop['pressed'] or bool(before())
++        return stop
++
++    def _clock(self, card, request, thread, stop=None):
++        """'Asking the model: 2 s of about 3 · Stop' under her card while the turn runs: the seconds gone and her clock's
++        price (brain_clock.asking_now, from the request's own running turn), set again four times a second; Stop closes
++        the turn; the line goes when the turn ends. Returns the line, or None when there is no card."""
++        if card is None or request is None or thread is None:return None
++        import html as _html
++        from . import brain_clock
++        from .shell2 import sentence
++        stop = stop if stop is not None else self._stoppable(request)
++        actions = {'stop': ('Stop', lambda: stop.update(pressed=True))}
++        line = sentence('', actions);line.setObjectName('HerClockLine');line.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++        line.setAccessibleName('Her clock')
++        try:card.box.addWidget(line)
++        except (AttributeError, RuntimeError):return None
++        timer = QTimer(line);timer.setInterval(250)
++
++        def tick():
++            try:
++                if not thread.is_alive():timer.stop();line.hide();return
++                said = 'Stopping' if stop['pressed'] else (brain_clock.asking_now(request) or 'Asking the model')
++                sentence(_html.escape(said) + ('' if stop['pressed'] else ' · {stop}'), actions, label=line)
++            except RuntimeError:  # the card left her column
++                timer.stop()
++        timer.timeout.connect(tick);timer.start();tick()
++        return line
++    # == end 0.8.7 W7 ========================================================================================================
++
+     # -- where a press lands --------------------------------------------------------------------------------------------------
+     def still(self):
+         try:
+diff --git a/workbench/library_qt.py b/workbench/library_qt.py
+new file mode 100644
+index 0000000..734a43a
+--- /dev/null
++++ b/workbench/library_qt.py
+@@ -0,0 +1,314 @@
++"""The Library on screen (0.8.7 W7, the window wiring): Ask the Library, tables that check themselves and cross-references,
++in the reference view and in her column.
++
++0.8.7 C3, C6a and C6b work through the Kernel (library.ask, library.table, library.links); here is where they show:
++
++  Ask the Library   in the reference view (its tab "Ask the Library"), and from the writing line when you ask a question
++                    of the Library ("ask the library how long does the landlord have ..."; or any question while the
++                    reference view is in front; or "Ask the Library" under her no-model card). Her answer shows, in her
++                    order: her lines; the desk's own cut quote with the words the model pointed at lit (a model's pointing
++                    carries its mark line, "read by the model, checked against your desk", and the fold "What I asked
++                    the model"); the places, each as file · page · label, its words with your words lit, and why it
++                    matched; the places that refer to it (crossrefs.into), each on a wire; and the legal footer.
++  Read this table   on a page with a table (tables.find_tables), the table cut into columns, each column's role and who
++                    named it, its rows, and the closing line ("rows close: 1,204.17 − 1,143.24 + 2,610.40 = 2,671.33, the
++                    closing balance.").
++  Cross-references  drawn on the page in the reference view (beside each place that refers to another, a quiet wire and
++                    the target; beside a place referred to, who refers to it), with their state against the earlier
++                    revision (current, to recheck, missing).
++
++Lit words are bold and underlined (a shape, never a colour alone); a wire is an arrow with its words; a state is a word.
++Every word of hers here is a template registered with mind_words (WORDS), or the Kernel's own lines as it said them.
++No model is asked here: library.ask asks it, through the turn contract, only when one is live and its switch is on.
++"""
++from __future__ import annotations
++
++import html
++import re
++
++from . import mind_words
++
++WORDS = {
++    'asking': 'Asking the Library: {query}',
++    'asked': 'Your question for the Library: {query}',
++    'places': 'Places that may say it',
++    'why_matched': 'why: {why}',
++    'wire_out': 'refers to {target} · {state}',
++    'wire_in': 'referred to by {sources}',
++    'wires_head': 'Cross-references on this page: {count}.',
++    'state_CURRENT': 'current',
++    'state_RECHECK': 'to recheck',
++    'state_MISSING': 'missing from this file',
++    'open_place': 'Open this place',
++    'table_head': 'What the desk read in this table',
++    'role_by': '{role}, named {by}',
++    'by_HEADER': 'by its header',
++    'by_CLOSURES': 'by the closures',
++    'by_CELLS': 'by its cells',
++    'by_MODEL': 'by the model, checked',
++    'by_NONE': 'not named',
++    'state_CLOSES': 'Closes',
++    'state_DISAGREES': 'Disagrees',
++    'state_NO_CLOSURE': 'In pencil',
++    'state_CANNOT_TELL': 'Cannot tell',
++    'state_NO_CARD': 'Not named',
++    'no_table': 'No table on this page.',
++    'reading_table': 'Reading this table…',
++    'could_not': 'I could not read this: {why}',
++    'ask_library': 'Ask the Library',
++}
++NUMBERS = {'wires_head': {'count': 'library.links: the wires on this page'}}
++mind_words.register('library_qt', WORDS, kind='sentence', numbers=NUMBERS)
++
++STATE_MARK = {'CLOSES': '✓', 'DISAGREES': '✗', 'CANNOT_TELL': '?', 'NO_CLOSURE': '·', 'NO_CARD': '·'}      # a shape beside the word
++
++# How a question of the Library is said on the writing line (fixed and short; anything else goes the way it always went)
++ASKED = (re.compile(r'^\s*(?:please\s+)?ask\s+(?:the|my)\s+library\b\s*(?:[:,–—-]\s*)?(?:about\s+|whether\s+|if\s+)?(?P<q>.+)$', re.I),
++         re.compile(r'^\s*library\s*[:,]\s*(?P<q>.+)$', re.I),
++         re.compile(r'^\s*(?:what|where)\s+(?:does|do)\s+(?:the|my)\s+(?:library|papers|admitted\s+pages)\s+say\s+(?:about\s+)?(?P<q>.+)$', re.I))
++QUESTION = re.compile(r'\?\s*$|^\s*(?:how|what|when|where|which|who|whom|whose|why|does|do|did|is|are|was|can|could|may|must|shall|will)\b', re.I)
++
++
++def say(key, **slots):
++    return WORDS[key].format(**slots)
++
++
++def _bt(name, default):
++    from . import boss_theme as bt
++    return getattr(bt, name, default)
++
++
++def esc(value):
++    return html.escape(str(value), quote=False)
++
++
++def soft(name):
++    """A file name escaped, with a place to break after each underscore, dot and hyphen (her column is narrow)."""
++    return re.sub(r'([_.\-])', '\\1\u200b', esc(name))
++
++
++# ============================================================================================================== the lit words
++def _lit_terms(text, matched):
++    """`text` escaped, each word whose term is one of `matched` bold and underlined (places.terms reads both alike)."""
++    from . import places
++    want = set(matched or ())
++    out, at = [], 0
++    for m in re.finditer(r'[A-Za-z0-9§()]+(?:[\'’][A-Za-z]+)?', text):
++        out.append(esc(text[at:m.start()]));word = m.group(0)
++        hit = want and any(t in want for t in places.terms(word))
++        out.append('<b><u>%s</u></b>' % esc(word) if hit else esc(word));at = m.end()
++    out.append(esc(text[at:]))
++    return ''.join(out)
++
++
++def _lit_span(text, lit):
++    """`text` escaped with [start, end) bold and underlined: the words the model pointed at, in the desk's own cut."""
++    if not lit or len(lit) != 2:return esc(text)
++    a, b = int(lit[0]), int(lit[1])
++    if not (0 <= a < b <= len(text)):return esc(text)
++    return esc(text[:a]) + '<b><u>%s</u></b>' % esc(text[a:b]) + esc(text[b:])
++
++
++# ============================================================================================================== Ask the Library
++def _hit_line(hit, row):
++    from .library_service import WORDS as LIB
++    if hit.get('label'):return LIB['says'].format(label=hit['label'], page=row.get('page_label'), quote=hit['quote'])
++    return LIB['says_unlabelled'].format(name=row.get('name') or 'an admitted file', page=row.get('page_label'), quote=hit['quote'])
++
++
++def answer_parts(found):
++    """Her answer as parts, in her own order: [(kind, text, extra)], kind one of 'line' (her sentence), 'title', 'quote'
++    (the desk's cut, the pointed words lit), 'place' (with the place), 'wire', 'footer', 'mark' (the model's mark line)."""
++    if not isinstance(found, dict):return []
++    places_ = list(((found.get('places') or {}).get('places')) or ())
++    by_words = {p.get('words'): p for p in places_}
++    wires = set(found.get('links') or ())
++    footer = found.get('footer') or ''
++    answer = found.get('answer') or {}
++    row = answer.get('page') or {}
++    hits = {_hit_line(h, row): h for h in answer.get('hits') or ()}
++    from .library_service import WORDS as LIB
++    out, marked = [], False
++    for line in found.get('said') or ():
++        if line in hits:
++            if not marked:out.append(('mark', 'CHECKED', None));marked = True
++            out.append(('quote', line, hits[line]))
++        elif line in by_words:out.append(('place', line, by_words[line]))
++        elif line in wires:out.append(('wire', line, None))
++        elif footer and line == footer:out.append(('footer', line, None))
++        elif line == LIB['title'] + ':':out.append(('title', line, None))
++        else:out.append(('line', line, None))
++    return out
++
++
++def answer_html(found, links=True):
++    """Her answer to a question of the Library as rich text (her column's label, the reference view's browser). Places are
++    links 'place:<n>' (n: the place's index in found['places']['places'])."""
++    quiet = _bt('QUIET', '#8a8a8a');faint = _bt('FAINT', '#9a9a9a')
++    places_ = list(((found or {}).get('places') or {}).get('places') or ())
++    out = []
++    for kind, text, extra in answer_parts(found):
++        if kind == 'mark':
++            from .model_words import MARKS
++            out.append('<p style="margin:2px 0;color:%s"><i>%s</i></p>' % (quiet, esc(MARKS['CHECKED'])))
++        elif kind == 'quote':
++            hit = extra;head = (hit.get('label') or '') + ', page ' + str(((found.get('answer') or {}).get('page') or {}).get('page_label') or '')
++            out.append('<p style="margin:4px 0 0 0">%s:</p><blockquote style="margin:2px 0 6px 14px">“%s”</blockquote>'
++                       % (esc(head.strip(', ')), _lit_span(hit.get('quote') or '', hit.get('lit'))))
++        elif kind == 'place':
++            p = extra;n = places_.index(p) if p in places_ else -1
++            where = ' · '.join(x for x in (soft(p.get('name') or 'an admitted file'), esc('page %s' % (p.get('page_label') or '?')), esc(p.get('label') or '')) if x)
++            title = ('<a href="place:%d">%s</a>' % (n, where)) if links and n >= 0 else where
++            out.append('<p style="margin:6px 0 0 0">%s. %s</p>' % (esc(p.get('rank', '')), title))
++            out.append('<p style="margin:1px 0 0 14px">“%s”</p>' % _lit_terms(p.get('text') or '', p.get('matched')))
++            if p.get('why'):out.append('<p style="margin:1px 0 0 14px;color:%s"><small>%s</small></p>' % (faint, esc(say('why_matched', why=p['why']))))
++        elif kind == 'wire':
++            out.append('<p style="margin:3px 0 0 14px;color:%s">⤷ %s</p>' % (quiet, esc(text)))
++        elif kind == 'footer':
++            out.append('<p style="margin:8px 0 0 0;color:%s"><small>%s</small></p>' % (faint, esc(text)))
++        elif kind == 'title':
++            out.append('<p style="margin:6px 0 0 0"><b>%s</b></p>' % esc(say('places')))
++        else:
++            out.append('<p style="margin:3px 0">%s</p>' % esc(text))
++    return ''.join(out)
++
++
++def asked(face, text):
++    """The writing line: a question of the Library? ("ask the library ...", "library: ...", "what does the library say
++    about ...", or a question while the reference view is in front). If so, her column asks it and True is returned."""
++    query = None
++    for pattern in ASKED:
++        m = pattern.match(text or '')
++        if m and m.group('q').strip():query = m.group('q').strip();break
++    if query is None:
++        host = getattr(face, 'host', None)
++        front = getattr(getattr(host, 'tabs', None), 'currentWidget', lambda: None)()
++        if type(front).__name__ == 'ReferenceTab' and QUESTION.search(text or ''):query = text.strip()
++    if not query:return False
++    face.thing = None
++    face.mine(text)
++    ask(face, query)
++    return True
++
++
++def ask(face, query, namespace=None):
++    """Ask the Library from her column: her card says what she asks, then her answer (answer_html) when the Kernel has it.
++    The read runs off the window's thread (library.ask may ask the model one short ASK turn per page)."""
++    from .register_tabs import Call
++    from .engine import engineering
++    from .engineering_kernel import operator
++    host = face.host
++    card = face.say(say('asking', query=query))
++    args = {'query': query[:300], **({'namespace': namespace} if namespace else {})}
++    worker = Call(engineering(host.root), 'library.ask', args, operator(), host)
++    if not hasattr(host, 'service_workers'):host.service_workers = []
++    host.service_workers.append(worker)
++    worker.ready.connect(lambda r: answered(face, card, r))
++    worker.finished.connect(lambda: host.service_workers.remove(worker) if worker in host.service_workers else None)
++    worker.finished.connect(worker.deleteLater)
++    worker.start()
++    card.library_worker = worker
++    return card
++
++
++def answered(face, card, r):
++    """Her answer on her card: the answer itself, the model's fold for each page it was asked about."""
++    from PySide6.QtCore import Qt
++    from PySide6.QtWidgets import QLabel, QSizePolicy
++    try:
++        if not r.get('ok'):
++            card.set_text(say('could_not', why=str((r.get('error') or {}).get('message') or '')[:200]));return None
++        found = r['result']
++        card.set_text(say('asked', query=found.get('query') or ''))
++        label = QLabel(answer_html(found));label.setObjectName('KasLibraryAnswer');label.setTextFormat(Qt.RichText);label.setWordWrap(True)
++        label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);label.setTextInteractionFlags(Qt.TextBrowserInteraction)
++        label.setOpenExternalLinks(False);label.setAccessibleName(say('ask_library'))
++        places_ = list((found.get('places') or {}).get('places') or ())
++        label.linkActivated.connect(lambda href: open_place(face.host, places_[int(href.split(':', 1)[1])]) if href.startswith('place:') else None)
++        card.box.addWidget(label);card.library = found
++        turns_ = [p.get('turn') for p in found.get('pages') or () if p.get('turn')]
++        if turns_:
++            from . import model_marks_qt
++            from .model_marks_qt import Fold, kernel_of
++            try:
++                kernel, principal = kernel_of(face.host)
++                for ident in turns_:card.box.addWidget(Fold.for_turn(face.host, ident, kernel, principal))
++            except Exception:  # noqa: BLE001 - a fold that cannot be read never takes her card down
++                card.box.addWidget(model_marks_qt.Fold(None, None, 'it could not be read'))
++        return label
++    except RuntimeError:  # her card left the column meanwhile
++        return None
++
++
++def open_place(host, place):
++    """A place opened in the reference view: its library chosen, its page resolved (and drawn with its wires)."""
++    bridge = getattr(host, 'ledger_bridge', None)
++    if bridge is None or not place:return None
++    tab = bridge.show_references()
++    opener = getattr(tab, 'open_place', None)
++    if opener is not None:opener(place)
++    return tab
++
++
++# ============================================================================================================== Read this table
++def has_table(text, title=''):
++    """Whether a page has a table the desk can cut (tables.find_tables, through the doorway; pure, no model)."""
++    if not text:return False
++    try:
++        from . import page_marks, tables
++        return bool(tables.find_tables(page_marks.Page(text, title)))
++    except Exception:  # noqa: BLE001 - a page that cannot be cut has no table to read
++        return False
++
++
++def table_html(found):
++    """library.table's answer as rich text: per table its state (a word and a shape), the columns with their roles and who
++    named them, the rows as cut, and her lines (the closing line among them)."""
++    quiet = _bt('QUIET', '#8a8a8a');line = _bt('LINE_STRONG', '#999999')
++    tables_ = list((found or {}).get('tables') or ())
++    if not tables_:return '<p>%s</p>' % esc(say('no_table'))
++    out = ['<p><b>%s</b></p>' % esc(say('table_head'))]
++    for t in tables_:
++        state = t.get('state') or ''
++        out.append('<p style="margin:6px 0 2px 0"><b>%s %s</b></p>' % (esc(STATE_MARK.get(state, '·')), esc(WORDS.get('state_' + state, state.lower()))))
++        for said in t.get('said') or ():      # her lines first: the closing line is what the table is read for
++            closing = said.startswith('rows close:') or said.startswith('the total closes:')
++            out.append('<p style="margin:2px 0">%s</p>' % (('<b>%s</b>' % esc(said)) if closing else esc(said)))
++        cols = t.get('columns') or ()
++        head = ''.join('<th align="left" style="padding:6px 8px 0 8px">%s</th>' % esc(c.get('header') or 'C%s' % c.get('c')) for c in cols)
++        roles = ''.join('<td style="padding:0 8px 3px 8px;border-bottom:1px solid %s;color:%s"><small>%s</small></td>' % (
++            line, quiet, esc(say('role_by', role=str(c['role']).replace('_', ' '), by=WORDS.get('by_' + str(c.get('named_by') or 'NONE'), '')))
++            if c.get('role') else esc(WORDS['by_NONE'])) for c in cols)
++        body = ''
++        for row in t.get('rows') or ():
++            body += '<tr>' + ''.join('<td style="padding:1px 8px">%s</td>' % esc(v) for v in list(row.get('cells') or ())) + '</tr>'
++        out.append('<table cellspacing="0"><tr>%s</tr><tr>%s</tr>%s</table>' % (head, roles, body))
++    return ''.join(out)
++
++
++# ============================================================================================================== cross-references
++def wires_on_page(links, text, page_index=0):
++    """{line: [her notes]} for the wires of one page of a file (library.links' answer for that file): beside each place that
++    refers to another, 'refers to § 12(a) · current'; beside the first line of a place referred to, 'referred to by
++    § 12(b), § 12(c)'. Lines are the page's own numbers (doorway's)."""
++    from .library_service import page_places
++    out = {}
++    if not isinstance(links, dict):return out
++    try:places_ = page_places(text or '')
++    except Exception:  # noqa: BLE001 - a page whose places cannot be cut draws no wires
++        places_ = []
++    first = {p.get('label'): p.get('first') for p in places_ if p.get('label')}
++    into = {}
++    for f in links.get('files') or ():
++        for link in f.get('links') or ():
++            if int(link.get('page') or 0) != int(page_index or 0):continue
++            state = WORDS.get('state_' + str(link.get('state')), str(link.get('state') or '').lower())
++            out.setdefault(int(link.get('line') or 0), []).append(say('wire_out', target=link.get('target') or '', state=state))
++            if link.get('found') and link.get('target') in first:into.setdefault(first[link['target']], []).append(link.get('source') or '')
++    for n, sources in into.items():
++        out.setdefault(int(n or 0), []).append(say('wire_in', sources=', '.join(dict.fromkeys(sources))))
++    return out
++
++
++def wires_count(links, page_index=0):
++    return sum(1 for f in (links or {}).get('files') or () for link in f.get('links') or () if int(link.get('page') or 0) == int(page_index or 0))
+diff --git a/workbench/mind_panel_qt.py b/workbench/mind_panel_qt.py
+index ddf0075..2835c27 100644
+--- a/workbench/mind_panel_qt.py
++++ b/workbench/mind_panel_qt.py
+@@ -237,7 +237,7 @@ class MindPanel(QFrame):
+     def _fill(self, name):
+         lay = self.pages[name][1]
+         if name == 'why':
+-            found, why = self.read('field.why', {'id': self.ident});self.answers[name] = found
++            found, why = self.read('field.why', {'id': self.ident});found = self.voiced(name, found);self.answers[name] = found   # 0.8.7 W7
+             if found is None:lay.addWidget(words_label(say('could_not', why=why)));return
+             self.why = found;self.lines = []
+             for line in found.get('lines') or ():
+@@ -249,7 +249,7 @@ class MindPanel(QFrame):
+             if found is None:lay.addWidget(words_label(say('could_not', why=why)));return
+             self.rests(lay, found)
+         elif name == 'either':
+-            found, why = self.read('field.either', {'id': self.ident});self.answers[name] = found
++            found, why = self.read('field.either', {'id': self.ident});found = self.voiced(name, found);self.answers[name] = found   # 0.8.7 W7
+             if found is None:lay.addWidget(words_label(self.refusal(why)));return
+             for text in found.get('words') or ():lay.addWidget(words_label(text))
+             question = found.get('question') or {}
+@@ -262,6 +262,19 @@ class MindPanel(QFrame):
+             step = found.get('next') or {}
+             if step.get('words') and step.get('route') != 'NOTHING':lay.addWidget(words_label(step['words'], quiet=True))
+ 
++    def voiced(self, name, found):
++        """0.8.7 W7: her answers (the proof's maths line, each way) said through her voice floor where 0.8.6's templates said
++        them (voice_column.restate). With every 0.8.7 switch off, or nothing the floor can say, 0.8.6's words stand."""
++        if not isinstance(found, dict):return found
++        try:
++            if not hasattr(self, '_voice'):self._voice = self.read('voice.say', {'id': self.ident})[0]
++            from . import voice_column
++            found, n = voice_column.restate(name, found, self._voice)
++        except Exception:  # noqa: BLE001 - her floor never takes the panel down: 0.8.6's words stand
++            return found
++        self.voice_said = getattr(self, 'voice_said', 0) + n
++        return found
++
+     @staticmethod
+     def refusal(why):
+         """Why a section could not be worked out, in her words (never an operation's name)."""
+diff --git a/workbench/mind_words.py b/workbench/mind_words.py
+index b1dcb8a..6b29fa1 100644
+--- a/workbench/mind_words.py
++++ b/workbench/mind_words.py
+@@ -209,3 +209,8 @@ def frames(module=None):
+ # Her Library words (places, the desk's cut quote, "the places I looked at do not say") join the sweep like every other module's.
+ MODULES = MODULES + ('workbench.library_service',)
+ # ---- end of 0.8.7 C3 --------------------------------------------------------------------------------------------------------
++
++
++# ---- 0.8.7 W7, the window wiring: her voice floor in her column; Ask the Library, tables and cross-references on screen ------
++MODULES = MODULES + ('workbench.voice_column', 'workbench.library_qt')
++# ---- end of 0.8.7 W7 --------------------------------------------------------------------------------------------------------
+diff --git a/workbench/one_question.py b/workbench/one_question.py
+index 6bcd4ca..ef3ad2b 100644
+--- a/workbench/one_question.py
++++ b/workbench/one_question.py
+@@ -560,6 +560,21 @@ def leave(question):
+     return Left('CANNOT_TELL', (), WORDS['left_cannot'].format(because=question.because))
+ 
+ 
++# ---- 0.8.7 W7 (the window wiring): Leave it says only what it does ----------------------------------------------------------
++def runnable(question, take):
++    """The choices of Leave it's read default that her hand can run as reads now: a read whose reading is desk goals."""
++    return tuple(n for n in take if question.choice(n) is not None and question.choice(n).acts == 'read' and question.choice(n).goals())
++
++
++def left_done(question, ran):
++    """What Leave it says once it has run its reads: the reads that ran (choice numbers) and only those, or "cannot tell,
++    because ..." when none could run. Never says a read was done that was not."""
++    ran = tuple(n for n in ran if question.choice(n) is not None)
++    if ran:return Left('DEFAULT_READ', ran, WORDS['left_read'].format(what='; '.join(question.choice(n).words for n in ran)))
++    return Left('CANNOT_TELL', (), WORDS['left_cannot'].format(because=question.because))
++# ---- end of 0.8.7 W7 ----------------------------------------------------------------------------------------------------------
++
++
+ # =========================================================================================================================
+ # PICK: the turn kind (the owner's typed answer placed among the question's options; one number)
+ # =========================================================================================================================
+@@ -667,4 +682,5 @@ _register_words()
+ 
+ __all__ = ['Choice', 'Question', 'Placed', 'Left', 'PickInputs', 'PICK', 'of_reading', 'of_brief', 'of_revision_open',
+            'of_decision', 'of_choices', 'goals_with', 'card', 'once_more', 'more_words', 'click', 'place', 'answer', 'leave', 'not_placed',
+-           'authority_leaks', 'ELSE', 'LEAVE']
++           'authority_leaks', 'ELSE', 'LEAVE',
++           'runnable', 'left_done']   # 0.8.7 W7: Leave it says only what it does
+diff --git a/workbench/reference_qt.py b/workbench/reference_qt.py
+index d89db9c..ae455d8 100644
+--- a/workbench/reference_qt.py
++++ b/workbench/reference_qt.py
+@@ -43,6 +43,11 @@ class ReferenceTab(ServiceTab):
+         compile_button=QPushButton('Compile selected references');compile_button.clicked.connect(self.compile);pbox.addWidget(compile_button)
+         ask=QPushButton('Ask local Graphite with this packet');ask.clicked.connect(self.ask);pbox.addWidget(ask);self.answer=QTextBrowser();self.answer.setOpenLinks(False);self.answer.anchorClicked.connect(self.follow_citation);pbox.addWidget(self.answer,1)
+         export=QPushButton('Export reference volume');export.clicked.connect(self.export);pbox.addWidget(export);verify=QPushButton('Verify a reference volume');verify.clicked.connect(self.verify);pbox.addWidget(verify);self.pages.addTab(packets,'Packets / volume')
++        # 0.8.7 W7 (the window wiring): Ask the Library here: the places at once, the desk's own cut quote lit, the wires into it, the footer
++        library=QWidget();lbox=QVBoxLayout(library);lbox.setContentsMargins(0,0,0,0);lrow=QHBoxLayout();self.library_found=None;self.library_asking=0
++        self.library_query=QLineEdit();writing_prompt(self.library_query,'Ask a question of the pages admitted in this library');self.library_query.setAccessibleName('Your question for the Library');self.library_query.returnPressed.connect(self.ask_library);lrow.addWidget(self.library_query,1)
++        asking=QPushButton('Ask the Library');asking.setAccessibleName('Ask the Library');asking.clicked.connect(self.ask_library);lrow.addWidget(asking);lbox.addLayout(lrow)
++        self.library_view=QTextBrowser();self.library_view.setOpenLinks(False);self.library_view.setAccessibleName('What the Library says');self.library_view.anchorClicked.connect(self.library_link);lbox.addWidget(self.library_view,1);self.pages.addTab(library,'Ask the Library');self.library_tab=library
+         self.detail=QTabWidget();self.excerpt=QPlainTextEdit();self.excerpt.setReadOnly(True);self.detail.addTab(self.excerpt,'Verified excerpt')
+         self.image_label=QLabel('Choose a PDF passage, then Open original location.');self.image_label.setAlignment(Qt.AlignCenter);self.image_label.setWordWrap(True);self.image_scroll=QScrollArea();self.image_scroll.setWidgetResizable(True);self.image_scroll.setWidget(self.image_label);self.detail.addTab(self.image_scroll,'Original page')
+         self.proof=QPlainTextEdit();self.proof.setReadOnly(True);self.detail.addTab(self.proof,'Provenance')
+@@ -53,7 +58,10 @@ class ReferenceTab(ServiceTab):
+         self.read_button=QPushButton('Read this page');self.read_button.setAccessibleName('Read this page');self.read_button.clicked.connect(self.read_page);prow.addWidget(self.read_button)
+         self.pencil_line=QLabel('Choose a passage, then Read this page. Marks stay in pencil until you keep them.');self.pencil_line.setWordWrap(True);prow.addWidget(self.pencil_line,1);pen.addLayout(prow)
+         self.pencil_view=QTextBrowser();self.pencil_view.setOpenLinks(False);self.pencil_view.setAccessibleName('In pencil');self.pencil_view.anchorClicked.connect(self.pencil_link);pen.addWidget(self.pencil_view,1);self.detail.addTab(pencil,'In pencil');self.pencil_tab=pencil
+-        split=QSplitter(Qt.Vertical);split.addWidget(self.pages);split.addWidget(self.detail);split.setSizes([340,250]);self.outer.addWidget(split,1)
++        # 0.8.7 W7 (the window wiring): Read this table on a page with a table (its columns, its rows, its closing line); the page's cross-references drawn beside its places
++        self.table_button=QPushButton('Read this table');self.table_button.setAccessibleName('Read this table');self.table_button.setEnabled(False);self.table_button.setToolTip('This page has no table the desk can cut');self.table_button.clicked.connect(self.read_table);prow.insertWidget(1,self.table_button)
++        self.table_view=QTextBrowser();self.table_view.setOpenLinks(False);self.table_view.setAccessibleName('This table, read');self.detail.addTab(self.table_view,'Table');self.page_links={};self.pending_place=None;self.wanted_namespace=None
++        split=QSplitter(Qt.Vertical);split.addWidget(self.pages);split.addWidget(self.detail);split.setSizes([340,250]);self.outer.addWidget(split,1);self.split=split   # 0.8.7 W7: room given to what was asked for
+         self.unavailable_sources=0;self.reference_font_id=-1
+         font_path=locations.program(host.root)/'branding/fonts/NotoSansCJKsc-Regular.otf'
+         if font_path.is_file():
+@@ -68,6 +76,7 @@ class ReferenceTab(ServiceTab):
+     def ns(self):return self.namespaces.currentData()
+     def clear_location(self):
+         self.citation=None;self.requested=None;self.excerpt.clear();self.proof.clear();self.door_view.clear();self.pencil_view.clear();self.pencil_marks=[];self.pencil_column='';self.pencil_said=[];self.image_label.clear();self.image_label.setText('Choose a PDF passage, then Open original location.');self.update_inspector()
++        self.table_view.clear();self.table_button.setEnabled(False);self.scroll_to_line=None   # 0.8.7 W7: Read this table waits for a page with a table
+     def load_namespaces(self):self.call('intake.namespaces',{},self.loaded_namespaces)
+     def open_collection(self, namespace, project):
+         self.project_collection=(namespace,project)
+@@ -79,7 +88,7 @@ class ReferenceTab(ServiceTab):
+         self.pages.setCurrentIndex(0)
+ 
+     def loaded_namespaces(self,value):
+-        current=self.project_collection[0] if self.project_collection else self.ns()
++        current=self.project_collection[0] if self.project_collection else (self.wanted_namespace or self.ns())   # 0.8.7 W7: a place opened from her column chooses its library
+         self.namespaces.blockSignals(True);self.namespaces.clear()
+         for ns in value['namespaces']:self.namespaces.addItem(ns['name'],ns['id'])
+         index=self.namespaces.findData(current)
+@@ -121,6 +130,8 @@ class ReferenceTab(ServiceTab):
+             if selected:
+                 entry=next((self.hits.topLevelItem(i) for i in range(self.hits.topLevelItemCount()) if self.hits.topLevelItem(i).data(0,Qt.UserRole)['id']==selected),None)
+                 if entry:self.hits.setCurrentItem(entry);entry.setSelected(True);self.resolve(entry.data(0,Qt.UserRole))
++            if self.pending_place and self.pending_place.get('namespace')==nsid:   # 0.8.7 W7: the place opened from her column
++                place=self.pending_place;self.pending_place=None;self.wanted_namespace=None;self.resolve({'id':place['segment'],'item':place['item']});self.scroll_to_line=place.get('first');self.detail.setCurrentWidget(self.pencil_tab)
+         self.call('references.passages',{'namespace':nsid,'item':item,'offset':self.offset,'limit':100},loaded)
+     def page(self,direction):
+         offset=self.offset+direction*100
+@@ -148,6 +159,11 @@ class ReferenceTab(ServiceTab):
+                 door=doorway.scan(value['text']);self.door_view.setHtml(doorway.owner_html(door))
+                 if door.withheld():self.detail.setCurrentWidget(self.door_view)
+                 if self.citation:self.load_pencil()
++                if self.citation:   # 0.8.7 W7: Read this table where the desk can cut one; the page's cross-references
++                    from . import library_qt
++                    found=library_qt.has_table(value['text'],value.get('name') or '');self.table_button.setEnabled(found)
++                    self.table_button.setToolTip('Cut this page’s table into columns and check its sums' if found else 'This page has no table the desk can cut')
++                    self.load_links()
+             self.update_inspector()
+         self.call('references.resolve',{'namespace':nsid,**row},loaded)
+     # ---- 0.8.7 C2 (pages in pencil) -------------------------------------------------------------------------------------
+@@ -176,6 +192,10 @@ class ReferenceTab(ServiceTab):
+         live=[m for m in self.pencil_marks if m['state']!='RUBBED_OUT']
+         self.pencil_line.setText(self.pencil_column or ('%d places in pencil or ink on this page.'%len(live) if live else 'Nothing on this page is in pencil yet. Read this page to mark it.'))
+         body=''.join('<p><small>'+esc(s)+'</small></p>' for s in self.pencil_said)
++        from . import library_qt   # 0.8.7 W7: the page's cross-references, a quiet wire beside each place they join
++        links=self.page_links.get((self.ns(),self.citation['item'])) if self.citation else None;page_index=((self.citation or {}).get('locator') or {}).get('page_index') or 0
++        wires=library_qt.wires_on_page(links,text,page_index);count=library_qt.wires_count(links,page_index)
++        if count:body+='<p><small>'+esc(library_qt.say('wires_head',count=count))+'</small></p>'
+         for row in door.lines:
+             n=row['n']
+             if n in held:body+='<p style="color:#8a8a8a">'+str(n)+' · [not shown to the model: this line '+esc(doorway.line_words(door,n))+']</p>';continue
+@@ -192,7 +212,8 @@ class ReferenceTab(ServiceTab):
+                 if ink[i]==1:part='<u style="color:#7c7c7c">'+part+'</u>'
+                 elif ink[i]==2:part='<u style="color:#1f1f1f;font-weight:bold">'+part+'</u>'
+                 html_line+=part;i=j
+-            body+='<p style="margin:2px 0">'+str(n)+' · '+html_line+'</p>'
++            body+='<p style="margin:2px 0"><a name="l'+str(n)+'"></a>'+str(n)+' · '+html_line+'</p>'   # 0.8.7 W7: each line an anchor
++            for wire in wires.get(n,()):body+='<p style="margin:0 0 3px 24px;color:#8a8a8a"><small>⤷ '+esc(wire)+'</small></p>'   # 0.8.7 W7
+             for m in marks:
+                 label=m['label_shown']+(' ('+m['label_mark']+')' if m.get('label_mark') else '')
+                 tag=esc(m['kind'].replace('_',' ')+' · '+label+' · '+' '.join(m['value'].split()))
+@@ -204,6 +225,7 @@ class ReferenceTab(ServiceTab):
+                 style='color:#8a8a8a;text-decoration:line-through' if m['state']=='RUBBED_OUT' else 'color:#5a5a5a'
+                 body+='<p style="margin:0 0 4px 24px;'+style+'"><small>'+tag+' — '+state+'</small>'+links+'</p>'
+         self.pencil_view.setHtml(body or '<p>This page has no lines.</p>')
++        if getattr(self,'scroll_to_line',None):QTimer.singleShot(0,lambda n=self.scroll_to_line:self.pencil_view.scrollToAnchor('l%d'%n))   # 0.8.7 W7: the place opened
+     def pencil_link(self,url):
+         action,_,ident=url.toString().partition(':');mark=next((m for m in self.pencil_marks if m['id']==ident),None)
+         if mark is None:return
+@@ -232,6 +254,55 @@ class ReferenceTab(ServiceTab):
+             except ValueError:self.note.setText('Conditions must be valid JSON.');return
+             args.update(door='FACT',**values)
+         self.call('library.keep',args,lambda value:(self.pencil_line.setText(value['said']),self.load_pencil(),self.refresh_status()))
++    # ---- 0.8.7 W7 (the window wiring): Ask the Library, Read this table, the page's cross-references, a place opened -------
++    def room_for(self,upper):
++        """Most of the room to the upper pages (an answer of the Library) or to the page below (a page, its table, its wires); on
++        a short window all of it, the other half folded away behind the splitter's handle (drag it to bring it back)."""
++        total=sum(self.split.sizes()) or 600;short=total<520
++        if upper:self.split.setSizes([total,0] if short else [total*3//4,total-total*3//4])
++        else:self.split.setSizes([0,total] if short else [total//3,total-total//3])
++    def ask_library(self):
++        query=self.library_query.text().strip()
++        if not query or not self.ns():return
++        from . import library_qt
++        nsid=self.ns();self.library_asking+=1;asking=self.library_asking;self.pages.setCurrentWidget(self.library_tab);self.room_for(True)
++        self.library_view.setHtml('<p>'+esc(library_qt.say('asking',query=query))+'</p>')
++        def done(value):
++            if asking!=self.library_asking or self.ns()!=nsid:return
++            self.library_found=value;self.library_view.setHtml(library_qt.answer_html(value))
++        def failed(error):self.library_view.setHtml('<p>'+esc(library_qt.say('could_not',why=str((error or {}).get('message',''))[:200]))+'</p>')
++        self.call('library.ask',{'namespace':nsid,'query':query[:300]},done,failed)
++    def library_link(self,url):
++        action,_,n=url.toString().partition(':')
++        places=list(((self.library_found or {}).get('places') or {}).get('places') or [])
++        if action=='place' and n.isdigit() and int(n)<len(places):self.open_place(places[int(n)])
++    def open_place(self,place):
++        """A place of the Library opened here: its library chosen, its page resolved and drawn (in pencil, with its wires)."""
++        nsid=place.get('namespace')
++        if not nsid:return
++        self.hits.blockSignals(True);self.hits.clearSelection();self.hits.setCurrentItem(None);self.hits.blockSignals(False)   # the list no longer names what is shown
++        self.room_for(False)
++        if self.ns()==nsid:self.resolve({'id':place['segment'],'item':place['item']});self.scroll_to_line=place.get('first');self.detail.setCurrentWidget(self.pencil_tab);return
++        self.pending_place=place;self.wanted_namespace=nsid;index=self.namespaces.findData(nsid)
++        if index>=0:self.namespaces.setCurrentIndex(index)
++    def read_table(self):
++        if not self.citation or not self.ns():return
++        from . import library_qt
++        nsid=self.ns();ident=self.citation['id'];self.table_button.setEnabled(False);self.table_view.setHtml('<p>'+esc(library_qt.say('reading_table'))+'</p>');self.detail.setCurrentWidget(self.table_view);self.room_for(False)
++        def done(value):
++            self.table_button.setEnabled(True)
++            if self.ns()!=nsid or not self.citation or self.citation['id']!=ident:return
++            self.table_view.setHtml(library_qt.table_html(value))
++        def failed(error):self.table_button.setEnabled(True);self.table_view.setHtml('<p>'+esc(library_qt.say('could_not',why=str((error or {}).get('message',''))[:200]))+'</p>')
++        self.call('library.table',{'namespace':nsid,'id':ident,'item':self.citation['item']},done,failed)
++    def load_links(self):
++        if not self.citation or not self.ns():return
++        key=(self.ns(),self.citation['item'])
++        if key in self.page_links:self.draw_pencil();return
++        def loaded(value):
++            self.page_links[key]=value
++            if self.citation and (self.ns(),self.citation['item'])==key:self.draw_pencil()
++        self.call('library.links',{'namespace':key[0],'item':key[1]},loaded)
+     def launch(self,op,args):
+         if self.job:self.note.setText('Finish or cancel the current reference job first.');return
+         nsid=self.ns();self.call(op,args,lambda job:self.watch(job,nsid))
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index a576e4a..b236803 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -2582,7 +2582,7 @@ class SlateFace(QWidget):
+         from . import hand_words
+         from .her_hand_qt import hand
+         if getattr(self.host, 'field_page', None) is None and not getattr(self.host, '_field_active', False):
+-            if not re.search(r'\b(?:trace|beside|side by side|compare|where .+ comes? from)\b', text, re.IGNORECASE):return False
++            if not re.search(r'\b(?:trace|beside|side by side|compare|where .+ (?:comes?|came) from)\b', text, re.IGNORECASE):return False   # 0.8.7 W7: "came from" too
+         her = hand(self.host);world = her.world()
+         if not world.sheets:return False
+         found = hand_words.match(text, world)
+@@ -2593,7 +2593,8 @@ class SlateFace(QWidget):
+         sight = world.titles() if state.whole is True else tuple(state.in_sight)
+         if not hand_words.desk_request(text, world, sight if state.surface == 'field' else ()):return False
+         if not found.goals and not found.ambiguous and not any(hand_words.find(c, world.titles())[1] for c in found.unmatched):
+-            if not re.search(r'\b(?:trace|beside|side by side|compare)\b', text, re.IGNORECASE):return False      # no sheet and no verb of the desk's own
++            # 0.8.7 W7: "where ... came from" is the desk's own question too (design 2.1: her READ card for "the bench numbers")
++            if not re.search(r'\b(?:trace|beside|side by side|compare|where .+ (?:comes?|came) from)\b', text, re.IGNORECASE):return False      # no sheet and no verb of the desk's own
+         self.thing = None;self.mine(text)
+         return her.ask_goal(text, word=text.strip())
+ 
+@@ -2781,6 +2782,8 @@ class SlateFace(QWidget):
+ 
+     def ask(self, text, about=None):
+         if self.own_word(text):return
++        from .library_qt import asked as library_asked      # 0.8.7 W7: a question of the Library, answered by Ask the Library
++        if library_asked(self, text):return
+         if self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
+         if self.made_asked(text):return
+         if self.set_asked(text):return
+@@ -2837,6 +2840,8 @@ class SlateFace(QWidget):
+                               '“Add up the numbers on this page” I work out myself: the total goes under your words and stays bound to them.')
+                 note.setWordWrap(True);card.box.addWidget(note)
+             card.box.addWidget(sentence('{choose}', {'choose': ('Choose a model', lambda:open_destination(self.host, 'slate').pick_model())}))
++            from .library_qt import QUESTION, ask as ask_library, say as library_say      # 0.8.7 W7: a question can go to the Library
++            if QUESTION.search(text):card.box.addWidget(sentence('{library}', {'library': (library_say('ask_library'), lambda q=text:ask_library(self, q))}))
+             return
+         message = text if not about else text + '\n\n(About the open item: ' + about + ')'
+         if selected:
+diff --git a/workbench/voice_column.py b/workbench/voice_column.py
+new file mode 100644
+index 0000000..391361d
+--- /dev/null
++++ b/workbench/voice_column.py
+@@ -0,0 +1,217 @@
++"""Her voice floor in her column (0.8.7 W7, the window wiring): her answers said through the fact sheet and the gate.
++
++0.8.7 C4 built her voice floor (voice_facts cuts a receipt into slots; voice_gate checks a frame, fills it and checks the
++words again), but her column still said 0.8.6's words. Here the column's panel (mind_panel_qt) asks, beside its own reads,
++for the same answers said through the floor, and puts them where 0.8.6's templates said them:
++
++  Why          the proof's maths line ("45 ms is at most 40 ms: does not hold, 5 ms over (the maths, receipt ...)") is said
++               as the fact sheet says it ("No. Startup duration is over Rev B's 40 ms limit by 5 ms; ..."); its state word
++               and its place in the proof stay, and where it came from names the receipt.
++  Either way   each way of the goal (each revision, each row a symbol could read) is said through the floor, one line a
++               way ("Rev A applies: Yes. ..."), under the head of 0.8.6's sentence; "cannot tell" is the floor's own
++               (whose tolerance reaches both sides of which limit, where it would not hold, where it holds, what keeps).
++  A period     'period:§ 12(a)' with a day paid or a ledger sheet: the period's fact sheet (its last days, the credit).
++
++Only plain words of hers come back as text. A frame the model worded would come back as a stored model answer beside the
++mark model_marks_qt.place expects ('WORDED'), never as text: her column's plain renderer refuses model words.
++
++**With every 0.8.7 switch off, her words stay 0.8.6's** (design 2.12: with all off, Kas is exactly 0.8.6): the read says
++it is off and the panel shows 0.8.6's words untouched. The floor itself asks no model either way (model_calls 0).
++
++Kernel operation (one block in engineering_kernel.py and engineering_cli.py, commented 0.8.7 W7):
++  voice.say  {id, choose?, at?, reading?, on?, sheet?}   read   a goal's ways (or a finding's, or a period's) said through
++                                                                her voice floor; nothing written, no model
++Pure apart from the reads it makes: no Qt, no float, no clock in what is said.
++"""
++from __future__ import annotations
++
++import re
++
++from . import mind_words
++
++VERSION = 'voice-column/1'
++RECEIPT = re.compile(r'\(the maths, receipt ([0-9a-f]{12})\)')
++REV = re.compile(r'\bRev\.?\s*([A-Z0-9]{1,3})\b')
++
++# Her words here (templates, swept with the rest of hers: no digit in the fixed words, nothing but a slot carries a number)
++WORDS = {
++    'way': '{value} applies: {said}',
++    'way_plain': '{said}',
++    'from_maths': 'the maths, receipt {receipt}',
++}
++NUMBERS = {'way': {'said': 'voice.say: the way said through her voice floor (voice_gate.speak of voice_facts.math_sheet)',
++                   'value': 'voice.say: the way\'s choice (either_way.judge_goal ways[].choice)'},
++           'way_plain': {'said': 'voice.say: the way said through her voice floor (voice_gate.speak of voice_facts.math_sheet)'},
++           'from_maths': {'receipt': 'field.why: the maths line\'s receipt'}}
++mind_words.register('voice_column', WORDS, kind='sentence', numbers=NUMBERS)
++
++
++def switched_on(kernel):
++    """Whether any 0.8.7 switch is on (the owner's, or the defaults): with every one off, her words stay 0.8.6's."""
++    from . import turns
++    try:return any(turns.stored_switches(kernel).values())
++    except Exception:  # noqa: BLE001 - no settings to read: the defaults, which are on
++        return any(turns.SWITCHES.values())
++
++
++# -- the labels a fact sheet reads: each symbol's name in the desk's words, and whose limit it is -----------------------------
++def _name(ref, symbol):
++    words = str((ref or {}).get('parameter') or symbol.replace('_', ' ')).strip()
++    if len(words) > 1 and not words[:2].isupper():words = words[:1].lower() + words[1:]
++    return words
++
++
++def _owner(way, found):
++    """Whose limit: the revision this way reads ('Rev B'), from the way's choice, your word, the finding or the question."""
++    choice = way.get('choice') or {}
++    if choice.get('revision'):return str(choice['revision'])
++    receipt = found.get('receipt') or {}
++    for said in ((receipt.get('word') or {}).get('name'), receipt.get('named'), receipt.get('asked')):
++        if said:return str(said)
++    for ref in (way.get('bound') or {}).values():
++        m = REV.search(str(ref.get('title') or ''))
++        if m:return 'Rev ' + m.group(1)
++    return ''
++
++
++def labels(goal, way, found):
++    """{symbol: {'name', 'owner'?}} for voice_facts.math_sheet."""
++    out = {sym: {'name': _name(ref, sym)} for sym, ref in (goal.get('cells') or {}).items()}
++    owner = _owner(way, found)
++    for sym, role in (goal.get('roles') or {}).items():
++        if role == 'limit' and owner:out.setdefault(sym, {'name': sym.replace('_', ' ')})['owner'] = owner
++    return out
++
++
++def _value(way, found):
++    choice = way.get('choice') or {}
++    return ' · '.join(str(v) for v in choice.values()) or _owner(way, found)
++
++
++def _spoken(sheet):
++    """(said, mark, record): her plain words as text, or a model's worded frame as its stored record with its mark."""
++    from . import voice_gate
++    from .model_words import Marked
++    got = voice_gate.speak(sheet)
++    text = got.get('text')
++    if isinstance(text, Marked):
++        from .model_words import ModelSaid
++        return {'model_said': text.text, 'kind': 'FRAME'}, 'WORDED', got
++    if not isinstance(text, str) and text is not None:
++        text = None
++    return text, '', got
++
++
++def _receipt_of(record):
++    from .reasons import _receipt
++    return _receipt({'state': record.get('state'), 'result': record.get('result') or {}})[:12]
++
++
++# -- the read -------------------------------------------------------------------------------------------------------------------
++def say(kernel, principal, args):
++    """voice.say: {'id', 'on', 'subject', 'form', 'ways': [{'choice', 'value', 'state', 'answer', 'receipt', 'heading',
++    'said' (text, or a stored model answer), 'mark', 'source', 'frame_key', 'shape', 'defect', 'why'}], 'model_calls': 0}."""
++    from . import either_way, voice_facts
++    ident = str(args['id']).strip()
++    out = {'id': ident, 'on': switched_on(kernel), 'subject': '', 'form': '', 'ways': [], 'model_calls': 0, 'version': VERSION}
++    if not out['on']:
++        out['why'] = 'SWITCHED_OFF'
++        return out
++    if ident.startswith('period:'):
++        found = either_way.period_ways(kernel, principal, ident[7:].strip() or None, on=args.get('on'), sheet=args.get('sheet'))
++        out.update(subject=found['period']['clause'], form=found.get('form', ''))
++        try:sheet = voice_facts.period_sheet(found)
++        except (ValueError, KeyError, TypeError) as exc:
++            out['ways'].append({'choice': {}, 'value': '', 'state': found.get('state'), 'said': None, 'why': str(exc)[:200]})
++            return out
++        said, mark, got = _spoken(sheet)
++        out['ways'].append({'choice': {}, 'value': '', 'state': sheet.state, 'heading': got['heading'], 'said': said, 'mark': mark,
++                            'source': got['source'], 'frame_key': got['frame_key'], 'shape': got['shape'], 'defect': got['defect']})
++        return out
++    goal, goal_id, named, desk = either_way.goal_of(kernel, principal, ident)
++    choose, at, readings = either_way.args_of(args)
++    found = either_way.judge_goal(kernel, principal, goal, choose=choose, readings=readings, at=at, words=desk.words, said=desk.said,
++                                  ident=goal_id, named=named)
++    subject = found.get('subject') or goal.get('statement') or ''
++    out.update(subject=subject, form=found.get('form', ''))
++    settled = {}
++    if any(way.get('state') == 'UNDECIDED' for way in found.get('ways') or ()):
++        # cannot tell, said well: the settle stage's receipt carries where it holds (its zones) and what keeps (its moves)
++        again = either_way.judge_goal(kernel, principal, goal, choose=choose, readings=readings, at=at, stage='settle', words=desk.words,
++                                      said=desk.said, ident=goal_id, named=named)
++        settled = {repr(sorted((w.get('choice') or {}).items())): r for w, r in zip(again.get('ways') or (), again.get('records') or ())
++                   if r.get('state') == 'UNDECIDED'}
++    for way, record in zip(found.get('ways') or (), found.get('records') or ()):
++        row = {'choice': dict(way.get('choice') or {}), 'value': _value(way, found), 'state': way.get('state'),
++               'answer': way.get('answer', ''), 'receipt': _receipt_of(record)}      # the receipt the proof's maths line names
++        if way.get('state') == 'UNDECIDED':record = settled.get(repr(sorted((way.get('choice') or {}).items())), record)
++        try:sheet = voice_facts.math_sheet(record, labels(goal, way, found), subject)
++        except (ValueError, KeyError, TypeError) as exc:      # a receipt the floor does not cut: 0.8.6's words stand for it
++            row.update(said=None, why=str(exc)[:200]);out['ways'].append(row);continue
++        said, mark, got = _spoken(sheet)
++        row.update(heading=got['heading'], said=said, mark=mark, source=got['source'], frame_key=got['frame_key'], shape=got['shape'],
++                   defect=got['defect'])
++        out['ways'].append(row)
++    return out
++
++
++# -- where 0.8.6's templates said them --------------------------------------------------------------------------------------------
++def restate(section, found, voiced):
++    """The panel's read `found` (field.why or field.either) with her answers said through the voice floor. Returns (found, the
++    number of answers said through it). Unchanged when the floor is off, said nothing, or the read is not one it restates."""
++    if not isinstance(found, dict) or not isinstance(voiced, dict) or not voiced.get('on'):return found, 0
++    ways = [w for w in voiced.get('ways') or () if w.get('said') and not w.get('defect')]
++    if not ways:return found, 0
++    if section == 'why':
++        by = {w['receipt']: w for w in ways if w.get('receipt')}
++        lines, n = [], 0
++        for line in found.get('lines') or ():
++            m = RECEIPT.search(str(line.get('text') or '')) if isinstance(line.get('text'), str) else None
++            w = by.get(m.group(1)) if m else None
++            if w is not None:
++                from .model_words import ModelSaid
++                text = w['said'] if isinstance(w['said'], str) else ModelSaid.from_record(w['said'])
++                line = dict(line, text=text, voice=True, **{'from': WORDS['from_maths'].format(receipt=m.group(1))})
++                if w.get('mark'):line['mark'] = w['mark']
++                n += 1
++            lines.append(line)
++        return (dict(found, lines=lines), n) if n else (found, 0)
++    if section == 'either':
++        words = list(found.get('words') or ())
++        if not words:return found, 0
++        plain = [w for w in ways if isinstance(w['said'], str)]
++        model = [{'said': w['said'], 'mark': w['mark'] or 'WORDED'} for w in ways if not isinstance(w['said'], str)]
++        many = len(ways) > 1 or bool(ways[0].get('value'))
++        said = [WORDS['way'].format(value=w['value'], said=w['said']) if many and w.get('value') else WORDS['way_plain'].format(said=w['said'])
++                for w in plain]
++        head = words[0]
++        if found.get('form') == 'EITHER_WAY' and ': ' in head:
++            head = head.split(': ', 1)[0] + ':'      # "... under every reading the desk knows of:" and then each way in her voice
++        out = dict(found, words=[head] + said + words[1:])
++        if model:out['voice'] = model                  # model words: placed with their mark by model_marks_qt.place
++        return out, len(ways)
++    return found, 0
++
++
++# -- the Kernel ----------------------------------------------------------------------------------------------------------------
++_ID = {'type': 'string', 'minLength': 1, 'maxLength': 200}
++_SHEET = {'type': 'string', 'pattern': '^owner:[a-f0-9]{32}$'}
++_DAY = {'type': 'string', 'pattern': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'}
++_NAME = {'type': 'string', 'pattern': '^[a-z][a-z0-9_]{0,63}$'}
++_VALUE = {'type': 'string', 'pattern': '^-?[0-9]+(\\.[0-9]+)?(/[0-9]+)?$', 'maxLength': 60}
++_CELL = {'type': 'string', 'pattern': '^B[1-9][0-9]{0,2}$'}
++_AT = {'type': 'array', 'maxItems': 8, 'items': {'type': 'object', 'additionalProperties': False, 'required': ['name', 'value'],
++                                                  'properties': {'name': _NAME, 'value': _VALUE}}}
++_READING = {'type': 'array', 'maxItems': 8, 'items': {'type': 'object', 'additionalProperties': False, 'required': ['name', 'sheet', 'cell'],
++                                                       'properties': {'name': _NAME, 'sheet': _SHEET, 'cell': _CELL}}}
++FIELDS = {'voice.say': ({'id': _ID, 'choose': {'type': 'array', 'maxItems': 8, 'items': _SHEET}, 'at': _AT, 'reading': _READING,
++                         'on': _DAY, 'sheet': _SHEET}, ['id'])}
++SCOPES = {op: 'read' for op in FIELDS}
++OBSERVERS = tuple(FIELDS)
++
++
++def dispatch(kernel, op, args, principal):
++    from .office_service import owner
++    owner(principal)                 # the sheets live in the owner's profile, as for field.either
++    if op == 'voice.say':return say(kernel, principal, args)
++    raise ValueError('Unknown voice operation')

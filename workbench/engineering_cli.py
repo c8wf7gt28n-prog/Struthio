@@ -111,6 +111,7 @@ def schemas():
     from .tables import FIELDS as TABLE_FIELDS  # 0.8.7 C6a (tables that check themselves)
     from .crossrefs import FIELDS as CROSSREF_FIELDS  # 0.8.7 C6b (cross-references)
     from .model_exam import FIELDS as EXAM_FIELDS  # 0.8.7 A5 (the exam and the model key)
+    from .voice_column import FIELDS as VOICE_COLUMN_FIELDS  # 0.8.7 W7 (the window wiring): voice.say
     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
@@ -224,6 +225,7 @@ def schemas():
         **TABLE_FIELDS,  # 0.8.7 C6a (tables that check themselves)
         **CROSSREF_FIELDS,  # 0.8.7 C6b (cross-references)
         **EXAM_FIELDS,  # 0.8.7 A5 (the exam and the model key)
+        **VOICE_COLUMN_FIELDS,  # 0.8.7 W7 (the window wiring): voice.say
         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},

@@ -560,6 +560,21 @@ def leave(question):
     return Left('CANNOT_TELL', (), WORDS['left_cannot'].format(because=question.because))
 
 
+# ---- 0.8.7 W7 (the window wiring): Leave it says only what it does ----------------------------------------------------------
+def runnable(question, take):
+    """The choices of Leave it's read default that her hand can run as reads now: a read whose reading is desk goals."""
+    return tuple(n for n in take if question.choice(n) is not None and question.choice(n).acts == 'read' and question.choice(n).goals())
+
+
+def left_done(question, ran):
+    """What Leave it says once it has run its reads: the reads that ran (choice numbers) and only those, or "cannot tell,
+    because ..." when none could run. Never says a read was done that was not."""
+    ran = tuple(n for n in ran if question.choice(n) is not None)
+    if ran:return Left('DEFAULT_READ', ran, WORDS['left_read'].format(what='; '.join(question.choice(n).words for n in ran)))
+    return Left('CANNOT_TELL', (), WORDS['left_cannot'].format(because=question.because))
+# ---- end of 0.8.7 W7 ----------------------------------------------------------------------------------------------------------
+
+
 # =========================================================================================================================
 # PICK: the turn kind (the owner's typed answer placed among the question's options; one number)
 # =========================================================================================================================
@@ -667,4 +682,5 @@ _register_words()
 
 __all__ = ['Choice', 'Question', 'Placed', 'Left', 'PickInputs', 'PICK', 'of_reading', 'of_brief', 'of_revision_open',
            'of_decision', 'of_choices', 'goals_with', 'card', 'once_more', 'more_words', 'click', 'place', 'answer', 'leave', 'not_placed',
-           'authority_leaks', 'ELSE', 'LEAVE']
+           'authority_leaks', 'ELSE', 'LEAVE',
+           'runnable', 'left_done']   # 0.8.7 W7: Leave it says only what it does

@@ -785,6 +785,7 @@
    "voice.character": "workbench/voice_character.py#dispatch",
    "voice.character.admit": "workbench/voice_character.py#dispatch",
    "voice.character.start": "workbench/voice_character.py#dispatch",
+   "voice.say": "workbench/voice_column.py#dispatch",
    "word.get": "workbench/your_word.py#dispatch",
    "word.list": "workbench/your_word.py#dispatch",
    "word.set": "workbench/your_word.py#dispatch",
@@ -1027,9 +1028,9 @@
   }
  },
  "counts": {
-  "adapters": 829,
+  "adapters": 830,
   "job_tools": 113,
-  "operations": 829,
+  "operations": 830,
   "settings": 48
  },
  "formulas": {
@@ -7770,6 +7771,18 @@
    "properties": {},
    "scope": "execute"
   },
+  "voice.say": {
+   "arguments": "9b36b8dc08671851c95a96ddc9811c1279a7c7d0910e6025d0959dfd35e29d8a",
+   "properties": {
+    "at": "b46250e2f5fb13e5",
+    "choose": "c670dde09c006e30",
+    "id": "52ba84a4bbf396ba",
+    "on": "97ff1836f9f6cc3c",
+    "reading": "cee1c4dc227b697c",
+    "sheet": "a197705b0fea6cee"
+   },
+   "scope": "read"
+  },
   "word.get": {
    "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
    "properties": {
@@ -8154,7 +8167,7 @@
  },
  "release": "Graphite 0.8.6",
  "schema": "graphite.registry-record/1",
- "schema_digest": "82eca81c52f96b829d9a23546fdd6f55a676aeffd04878dab9ad146fe1485cd1",
+ "schema_digest": "ed6634d2953b2ad97c401f2d79193a9aafb418c962684db8e2056eeb0eeb7f90",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

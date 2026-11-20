@@ -209,3 +209,8 @@ def frames(module=None):
 # Her Library words (places, the desk's cut quote, "the places I looked at do not say") join the sweep like every other module's.
 MODULES = MODULES + ('workbench.library_service',)
 # ---- end of 0.8.7 C3 --------------------------------------------------------------------------------------------------------
+
+
+# ---- 0.8.7 W7, the window wiring: her voice floor in her column; Ask the Library, tables and cross-references on screen ------
+MODULES = MODULES + ('workbench.voice_column', 'workbench.library_qt')
+# ---- end of 0.8.7 W7 --------------------------------------------------------------------------------------------------------

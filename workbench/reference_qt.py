@@ -43,6 +43,11 @@ class ReferenceTab(ServiceTab):
         compile_button=QPushButton('Compile selected references');compile_button.clicked.connect(self.compile);pbox.addWidget(compile_button)
         ask=QPushButton('Ask local Graphite with this packet');ask.clicked.connect(self.ask);pbox.addWidget(ask);self.answer=QTextBrowser();self.answer.setOpenLinks(False);self.answer.anchorClicked.connect(self.follow_citation);pbox.addWidget(self.answer,1)
         export=QPushButton('Export reference volume');export.clicked.connect(self.export);pbox.addWidget(export);verify=QPushButton('Verify a reference volume');verify.clicked.connect(self.verify);pbox.addWidget(verify);self.pages.addTab(packets,'Packets / volume')
+        # 0.8.7 W7 (the window wiring): Ask the Library here: the places at once, the desk's own cut quote lit, the wires into it, the footer
+        library=QWidget();lbox=QVBoxLayout(library);lbox.setContentsMargins(0,0,0,0);lrow=QHBoxLayout();self.library_found=None;self.library_asking=0
+        self.library_query=QLineEdit();writing_prompt(self.library_query,'Ask a question of the pages admitted in this library');self.library_query.setAccessibleName('Your question for the Library');self.library_query.returnPressed.connect(self.ask_library);lrow.addWidget(self.library_query,1)
+        asking=QPushButton('Ask the Library');asking.setAccessibleName('Ask the Library');asking.clicked.connect(self.ask_library);lrow.addWidget(asking);lbox.addLayout(lrow)
+        self.library_view=QTextBrowser();self.library_view.setOpenLinks(False);self.library_view.setAccessibleName('What the Library says');self.library_view.anchorClicked.connect(self.library_link);lbox.addWidget(self.library_view,1);self.pages.addTab(library,'Ask the Library');self.library_tab=library
         self.detail=QTabWidget();self.excerpt=QPlainTextEdit();self.excerpt.setReadOnly(True);self.detail.addTab(self.excerpt,'Verified excerpt')
         self.image_label=QLabel('Choose a PDF passage, then Open original location.');self.image_label.setAlignment(Qt.AlignCenter);self.image_label.setWordWrap(True);self.image_scroll=QScrollArea();self.image_scroll.setWidgetResizable(True);self.image_scroll.setWidget(self.image_label);self.detail.addTab(self.image_scroll,'Original page')
         self.proof=QPlainTextEdit();self.proof.setReadOnly(True);self.detail.addTab(self.proof,'Provenance')
@@ -53,7 +58,10 @@ class ReferenceTab(ServiceTab):
         self.read_button=QPushButton('Read this page');self.read_button.setAccessibleName('Read this page');self.read_button.clicked.connect(self.read_page);prow.addWidget(self.read_button)
         self.pencil_line=QLabel('Choose a passage, then Read this page. Marks stay in pencil until you keep them.');self.pencil_line.setWordWrap(True);prow.addWidget(self.pencil_line,1);pen.addLayout(prow)
         self.pencil_view=QTextBrowser();self.pencil_view.setOpenLinks(False);self.pencil_view.setAccessibleName('In pencil');self.pencil_view.anchorClicked.connect(self.pencil_link);pen.addWidget(self.pencil_view,1);self.detail.addTab(pencil,'In pencil');self.pencil_tab=pencil
-        split=QSplitter(Qt.Vertical);split.addWidget(self.pages);split.addWidget(self.detail);split.setSizes([340,250]);self.outer.addWidget(split,1)
+        # 0.8.7 W7 (the window wiring): Read this table on a page with a table (its columns, its rows, its closing line); the page's cross-references drawn beside its places
+        self.table_button=QPushButton('Read this table');self.table_button.setAccessibleName('Read this table');self.table_button.setEnabled(False);self.table_button.setToolTip('This page has no table the desk can cut');self.table_button.clicked.connect(self.read_table);prow.insertWidget(1,self.table_button)
+        self.table_view=QTextBrowser();self.table_view.setOpenLinks(False);self.table_view.setAccessibleName('This table, read');self.detail.addTab(self.table_view,'Table');self.page_links={};self.pending_place=None;self.wanted_namespace=None
+        split=QSplitter(Qt.Vertical);split.addWidget(self.pages);split.addWidget(self.detail);split.setSizes([340,250]);self.outer.addWidget(split,1);self.split=split   # 0.8.7 W7: room given to what was asked for
         self.unavailable_sources=0;self.reference_font_id=-1
         font_path=locations.program(host.root)/'branding/fonts/NotoSansCJKsc-Regular.otf'
         if font_path.is_file():
@@ -68,6 +76,7 @@ class ReferenceTab(ServiceTab):
     def ns(self):return self.namespaces.currentData()
     def clear_location(self):
         self.citation=None;self.requested=None;self.excerpt.clear();self.proof.clear();self.door_view.clear();self.pencil_view.clear();self.pencil_marks=[];self.pencil_column='';self.pencil_said=[];self.image_label.clear();self.image_label.setText('Choose a PDF passage, then Open original location.');self.update_inspector()
+        self.table_view.clear();self.table_button.setEnabled(False);self.scroll_to_line=None   # 0.8.7 W7: Read this table waits for a page with a table
     def load_namespaces(self):self.call('intake.namespaces',{},self.loaded_namespaces)
     def open_collection(self, namespace, project):
         self.project_collection=(namespace,project)
@@ -79,7 +88,7 @@ class ReferenceTab(ServiceTab):
         self.pages.setCurrentIndex(0)
 
     def loaded_namespaces(self,value):
-        current=self.project_collection[0] if self.project_collection else self.ns()
+        current=self.project_collection[0] if self.project_collection else (self.wanted_namespace or self.ns())   # 0.8.7 W7: a place opened from her column chooses its library
         self.namespaces.blockSignals(True);self.namespaces.clear()
         for ns in value['namespaces']:self.namespaces.addItem(ns['name'],ns['id'])
         index=self.namespaces.findData(current)
@@ -121,6 +130,8 @@ class ReferenceTab(ServiceTab):
             if selected:
                 entry=next((self.hits.topLevelItem(i) for i in range(self.hits.topLevelItemCount()) if self.hits.topLevelItem(i).data(0,Qt.UserRole)['id']==selected),None)
                 if entry:self.hits.setCurrentItem(entry);entry.setSelected(True);self.resolve(entry.data(0,Qt.UserRole))
+            if self.pending_place and self.pending_place.get('namespace')==nsid:   # 0.8.7 W7: the place opened from her column
+                place=self.pending_place;self.pending_place=None;self.wanted_namespace=None;self.resolve({'id':place['segment'],'item':place['item']});self.scroll_to_line=place.get('first');self.detail.setCurrentWidget(self.pencil_tab)
         self.call('references.passages',{'namespace':nsid,'item':item,'offset':self.offset,'limit':100},loaded)
     def page(self,direction):
         offset=self.offset+direction*100
@@ -148,6 +159,11 @@ class ReferenceTab(ServiceTab):
                 door=doorway.scan(value['text']);self.door_view.setHtml(doorway.owner_html(door))
                 if door.withheld():self.detail.setCurrentWidget(self.door_view)
                 if self.citation:self.load_pencil()
+                if self.citation:   # 0.8.7 W7: Read this table where the desk can cut one; the page's cross-references
+                    from . import library_qt
+                    found=library_qt.has_table(value['text'],value.get('name') or '');self.table_button.setEnabled(found)
+                    self.table_button.setToolTip('Cut this page’s table into columns and check its sums' if found else 'This page has no table the desk can cut')
+                    self.load_links()
             self.update_inspector()
         self.call('references.resolve',{'namespace':nsid,**row},loaded)
     # ---- 0.8.7 C2 (pages in pencil) -------------------------------------------------------------------------------------
@@ -176,6 +192,10 @@ class ReferenceTab(ServiceTab):
         live=[m for m in self.pencil_marks if m['state']!='RUBBED_OUT']
         self.pencil_line.setText(self.pencil_column or ('%d places in pencil or ink on this page.'%len(live) if live else 'Nothing on this page is in pencil yet. Read this page to mark it.'))
         body=''.join('<p><small>'+esc(s)+'</small></p>' for s in self.pencil_said)
+        from . import library_qt   # 0.8.7 W7: the page's cross-references, a quiet wire beside each place they join
+        links=self.page_links.get((self.ns(),self.citation['item'])) if self.citation else None;page_index=((self.citation or {}).get('locator') or {}).get('page_index') or 0
+        wires=library_qt.wires_on_page(links,text,page_index);count=library_qt.wires_count(links,page_index)
+        if count:body+='<p><small>'+esc(library_qt.say('wires_head',count=count))+'</small></p>'
         for row in door.lines:
             n=row['n']
             if n in held:body+='<p style="color:#8a8a8a">'+str(n)+' · [not shown to the model: this line '+esc(doorway.line_words(door,n))+']</p>';continue
@@ -192,7 +212,8 @@ class ReferenceTab(ServiceTab):
                 if ink[i]==1:part='<u style="color:#7c7c7c">'+part+'</u>'
                 elif ink[i]==2:part='<u style="color:#1f1f1f;font-weight:bold">'+part+'</u>'
                 html_line+=part;i=j
-            body+='<p style="margin:2px 0">'+str(n)+' · '+html_line+'</p>'
+            body+='<p style="margin:2px 0"><a name="l'+str(n)+'"></a>'+str(n)+' · '+html_line+'</p>'   # 0.8.7 W7: each line an anchor
+            for wire in wires.get(n,()):body+='<p style="margin:0 0 3px 24px;color:#8a8a8a"><small>⤷ '+esc(wire)+'</small></p>'   # 0.8.7 W7
             for m in marks:
                 label=m['label_shown']+(' ('+m['label_mark']+')' if m.get('label_mark') else '')
                 tag=esc(m['kind'].replace('_',' ')+' · '+label+' · '+' '.join(m['value'].split()))
@@ -204,6 +225,7 @@ class ReferenceTab(ServiceTab):
                 style='color:#8a8a8a;text-decoration:line-through' if m['state']=='RUBBED_OUT' else 'color:#5a5a5a'
                 body+='<p style="margin:0 0 4px 24px;'+style+'"><small>'+tag+' — '+state+'</small>'+links+'</p>'
         self.pencil_view.setHtml(body or '<p>This page has no lines.</p>')
+        if getattr(self,'scroll_to_line',None):QTimer.singleShot(0,lambda n=self.scroll_to_line:self.pencil_view.scrollToAnchor('l%d'%n))   # 0.8.7 W7: the place opened
     def pencil_link(self,url):
         action,_,ident=url.toString().partition(':');mark=next((m for m in self.pencil_marks if m['id']==ident),None)
         if mark is None:return
@@ -232,6 +254,55 @@ class ReferenceTab(ServiceTab):
             except ValueError:self.note.setText('Conditions must be valid JSON.');return
             args.update(door='FACT',**values)
         self.call('library.keep',args,lambda value:(self.pencil_line.setText(value['said']),self.load_pencil(),self.refresh_status()))
+    # ---- 0.8.7 W7 (the window wiring): Ask the Library, Read this table, the page's cross-references, a place opened -------
+    def room_for(self,upper):
+        """Most of the room to the upper pages (an answer of the Library) or to the page below (a page, its table, its wires); on
+        a short window all of it, the other half folded away behind the splitter's handle (drag it to bring it back)."""
+        total=sum(self.split.sizes()) or 600;short=total<520
+        if upper:self.split.setSizes([total,0] if short else [total*3//4,total-total*3//4])
+        else:self.split.setSizes([0,total] if short else [total//3,total-total//3])
+    def ask_library(self):
+        query=self.library_query.text().strip()
+        if not query or not self.ns():return
+        from . import library_qt
+        nsid=self.ns();self.library_asking+=1;asking=self.library_asking;self.pages.setCurrentWidget(self.library_tab);self.room_for(True)
+        self.library_view.setHtml('<p>'+esc(library_qt.say('asking',query=query))+'</p>')
+        def done(value):
+            if asking!=self.library_asking or self.ns()!=nsid:return
+            self.library_found=value;self.library_view.setHtml(library_qt.answer_html(value))
+        def failed(error):self.library_view.setHtml('<p>'+esc(library_qt.say('could_not',why=str((error or {}).get('message',''))[:200]))+'</p>')
+        self.call('library.ask',{'namespace':nsid,'query':query[:300]},done,failed)
+    def library_link(self,url):
+        action,_,n=url.toString().partition(':')
+        places=list(((self.library_found or {}).get('places') or {}).get('places') or [])
+        if action=='place' and n.isdigit() and int(n)<len(places):self.open_place(places[int(n)])
+    def open_place(self,place):
+        """A place of the Library opened here: its library chosen, its page resolved and drawn (in pencil, with its wires)."""
+        nsid=place.get('namespace')
+        if not nsid:return
+        self.hits.blockSignals(True);self.hits.clearSelection();self.hits.setCurrentItem(None);self.hits.blockSignals(False)   # the list no longer names what is shown
+        self.room_for(False)
+        if self.ns()==nsid:self.resolve({'id':place['segment'],'item':place['item']});self.scroll_to_line=place.get('first');self.detail.setCurrentWidget(self.pencil_tab);return
+        self.pending_place=place;self.wanted_namespace=nsid;index=self.namespaces.findData(nsid)
+        if index>=0:self.namespaces.setCurrentIndex(index)
+    def read_table(self):
+        if not self.citation or not self.ns():return
+        from . import library_qt
+        nsid=self.ns();ident=self.citation['id'];self.table_button.setEnabled(False);self.table_view.setHtml('<p>'+esc(library_qt.say('reading_table'))+'</p>');self.detail.setCurrentWidget(self.table_view);self.room_for(False)
+        def done(value):
+            self.table_button.setEnabled(True)
+            if self.ns()!=nsid or not self.citation or self.citation['id']!=ident:return
+            self.table_view.setHtml(library_qt.table_html(value))
+        def failed(error):self.table_button.setEnabled(True);self.table_view.setHtml('<p>'+esc(library_qt.say('could_not',why=str((error or {}).get('message',''))[:200]))+'</p>')
+        self.call('library.table',{'namespace':nsid,'id':ident,'item':self.citation['item']},done,failed)
+    def load_links(self):
+        if not self.citation or not self.ns():return
+        key=(self.ns(),self.citation['item'])
+        if key in self.page_links:self.draw_pencil();return
+        def loaded(value):
+            self.page_links[key]=value
+            if self.citation and (self.ns(),self.citation['item'])==key:self.draw_pencil()
+        self.call('library.links',{'namespace':key[0],'item':key[1]},loaded)
     def launch(self,op,args):
         if self.job:self.note.setText('Finish or cancel the current reference job first.');return
         nsid=self.ns();self.call(op,args,lambda job:self.watch(job,nsid))

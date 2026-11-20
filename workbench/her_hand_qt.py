@@ -306,7 +306,9 @@ class HerHand(QObject):
                 'journal_stopped': sum(1 for e in t.envelopes if (e.get('error') or {}).get('code') == 'STOPPED'),
                 'journal_offered': sum(1 for e in t.envelopes if (e.get('error') or {}).get('code') == 'OFFERED'),
                 'desk_unchanged': bool(t.offer_digest) and t.offer_digest == t.snapshot_digest, 'seconds': round(t.seconds(), 3),
-                'model': t.model, 'rows': [{'act': r['step'].act, 'args': r['step'].args, 'state': r['state']} for r in t.rows]}
+                # 0.8.7 W7: a turn in flight holds its thread and its holder; neither is a record (the session could not be saved)
+                'model': {k: v for k, v in t.model.items() if k not in ('thread', 'holder')} if isinstance(t.model, dict) else t.model,
+                'rows': [{'act': r['step'].act, 'args': r['step'].args, 'state': r['state']} for r in t.rows]}
 
     # -- reading the window ---------------------------------------------------------------------------------------------------
     def read(self):
@@ -636,9 +638,11 @@ class HerHand(QObject):
             try:holder['answer'] = turns.ask(brief.GOAL, b, request)
             except Exception as exc:  # noqa: BLE001 - a failed turn gives the buttons
                 holder['error'] = str(exc)[:200]
+        stop = self._stoppable(request)          # 0.8.7 W7: her clock's Stop reaches the turn
         thread = threading.Thread(target=run, name='her-goal-turn', daemon=True);thread.start()
         t.model['holder'] = holder;t.model['thread'] = thread
-        self.set_state('thinking');self.say(named('I am asking my model which of these you meant: %s.') % '; '.join(o.words for o in b.options))
+        self.set_state('thinking')
+        self._clock(self.say(named('I am asking my model which of these you meant: %s.') % '; '.join(o.words for o in b.options)), request, thread, stop)
         QTimer.singleShot(POLL_MS, self.poll_goal)
         return True
 
@@ -680,10 +684,12 @@ class HerHand(QObject):
             try:holder['got'] = understand.ask(i, request)
             except Exception as exc:  # noqa: BLE001 - a failed turn gives her guesses
                 holder['error'] = str(exc)[:200]
+        stop = self._stoppable(request)          # 0.8.7 W7: her clock's Stop reaches the turn
         thread = threading.Thread(target=run, name='her-read-turn', daemon=True);thread.start()
         t.model.update(asked=True, calls=1, started=time.monotonic(), holder=holder, thread=thread)
         self.set_state('thinking')
-        self._read_buttons(t, 'I am asking my model how to read your words. Meanwhile, my own guesses:', understand.guesses(i))
+        self._clock(self._read_buttons(t, 'I am asking my model how to read your words. Meanwhile, my own guesses:', understand.guesses(i)),
+                    request, thread, stop)
         QTimer.singleShot(POLL_MS, self.poll_read)
         return True
 
@@ -1026,9 +1032,10 @@ class HerHand(QObject):
             try:holder['placed'] = Q.answer(q, typed, request)
             except Exception as exc:  # noqa: BLE001 - a failed turn leaves the buttons
                 holder['error'] = str(exc)[:200]
+        stop = self._stoppable(request)          # 0.8.7 W7: her clock's Stop reaches the turn
         thread = threading.Thread(target=run, name='her-pick-turn', daemon=True);thread.start()
         t.model['calls'] = int(t.model.get('calls') or 0) + 1
-        self.set_state('thinking');self.say(named('I am asking my model which of these your answer chooses.'))
+        self.set_state('thinking');self._clock(self.say(named('I am asking my model which of these your answer chooses.')), request, thread, stop)
 
         def poll():
             if thread.is_alive():QTimer.singleShot(POLL_MS, poll);return
@@ -1047,17 +1054,24 @@ class HerHand(QObject):
         q = t.question
         if getattr(t, 'answered', False) or (self.turn is not t and getattr(self.turn, 'question', None) is not q):return None
         t.answered = True;t.model['answer'] = placed.as_record()
-        if placed.n == Q.LEAVE:
-            left = Q.leave(q);t.model['left'] = left.as_record()
-            t.state = 'finished';t.closing = left.words;self.say(left.words);self.set_state('finished');return None
+        if placed.n == Q.LEAVE:          # 0.8.7 W7: Leave it runs the reads it says it runs, and says only those
+            ran = Q.runnable(q, Q.leave(q).take)
+            left = Q.left_done(q, ran);t.model['left'] = left.as_record()
+            t.state = 'finished';t.closing = left.words;self.say(left.words)
+            pairs = [p for n in ran for p in q.choice(n).goals()]
+            if pairs:                    # reads that decide nothing for him: the desk's default, a deduction, never his choice
+                nt = self.start(t.text, pairs, t.word, origin='DEDUCED')
+                nt.model = dict(t.model);nt.question = q;nt.request = getattr(t, 'request', None)
+                return nt
+            self.set_state('finished');return None
         c = q.choice(placed.n)
         if q.source in ('understand', 'saying'):return self._read_answered(t, q, c, placed)     # 0.8.7 B5: his words' question
         if placed.words:self.say(placed.words)
         if c.reading.get('revision_open'):          # a second question would be needed: never a second card
             t.state = 'finished';self.say(Q.once_more('REVISION'));self.set_state('finished');return None
         pairs = Q.goals_with(getattr(t, 'found', None) if q.source == 'reading' else None, q, c)
-        if not pairs:
-            t.state = 'finished';self.say(Q.leave(q).words);self.set_state('finished');return None
+        if not pairs:                    # 0.8.7 W7: nothing here runs, so she says no read was done (Q.leave would claim one)
+            t.state = 'finished';self.say(Q.left_done(q, ()).words);self.set_state('finished');return None
         nt = self.start(t.text, pairs, t.word, origin='HER' if placed.basis == 'model_pick' else 'OWNER')
         nt.model = dict(t.model, chosen=c.n, by=placed.by);nt.brief = getattr(t, 'brief', None);nt.found = getattr(t, 'found', None)
         nt.question = q;nt.request = getattr(t, 'request', None)
@@ -1066,6 +1080,44 @@ class HerHand(QObject):
         if placed.basis != 'model_pick':self._offer_keep(nt, [c])
         return nt
     # == end 0.8.7 B4 =======================================================================================================
+
+    # == 0.8.7 W7 · her clock's line under her card while a model turn runs (design 4.4) =====================================
+    @staticmethod
+    def _stoppable(request):
+        """Her clock's Stop for this request, put on it before the turn's thread starts: {'pressed': bool}. A press is
+        read by turns.ask (request.cancelled) and by the port's stream, which closes the turn."""
+        stop = {'pressed': False}
+        if request is None:return stop
+        before = getattr(request, 'cancelled', None) or (lambda: False)
+        request.cancelled = lambda: stop['pressed'] or bool(before())
+        return stop
+
+    def _clock(self, card, request, thread, stop=None):
+        """'Asking the model: 2 s of about 3 · Stop' under her card while the turn runs: the seconds gone and her clock's
+        price (brain_clock.asking_now, from the request's own running turn), set again four times a second; Stop closes
+        the turn; the line goes when the turn ends. Returns the line, or None when there is no card."""
+        if card is None or request is None or thread is None:return None
+        import html as _html
+        from . import brain_clock
+        from .shell2 import sentence
+        stop = stop if stop is not None else self._stoppable(request)
+        actions = {'stop': ('Stop', lambda: stop.update(pressed=True))}
+        line = sentence('', actions);line.setObjectName('HerClockLine');line.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        line.setAccessibleName('Her clock')
+        try:card.box.addWidget(line)
+        except (AttributeError, RuntimeError):return None
+        timer = QTimer(line);timer.setInterval(250)
+
+        def tick():
+            try:
+                if not thread.is_alive():timer.stop();line.hide();return
+                said = 'Stopping' if stop['pressed'] else (brain_clock.asking_now(request) or 'Asking the model')
+                sentence(_html.escape(said) + ('' if stop['pressed'] else ' · {stop}'), actions, label=line)
+            except RuntimeError:  # the card left her column
+                timer.stop()
+        timer.timeout.connect(tick);timer.start();tick()
+        return line
+    # == end 0.8.7 W7 ========================================================================================================
 
     # -- where a press lands --------------------------------------------------------------------------------------------------
     def still(self):
