@@ -22,6 +22,13 @@ words behind every change are in `NOTES.md` under "Directions since the specific
    model has run there yet). The plan's old largest risk, "built but never seen on the real machine", is much smaller.
 7. **For the owner first; shared free if it is good.** All figures are the owner's own creations and depict no real person.
 
+## Changed on 20 November by the owner
+
+After 0.8.4 the order is: **0.8.5** = her door on the Field + goals, quarantine and the web (the old 0.8.6 and 0.8.9);
+**0.8.6** = maths in lines + skins and Kas by day (the old 0.8.8 and 0.8.5); then her hand in LibreOffice (the old 0.8.7),
+then the rest. New tests and reviews only for the safety rules. `wip/BUILD_STATE.md` has the details. The table below is
+the order of 19 November, kept for its descriptions.
+
 ## The releases
 
 | Release | What the owner sees | Notes |
