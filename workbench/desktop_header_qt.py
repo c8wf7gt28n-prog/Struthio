@@ -68,24 +68,24 @@ def nice_reason(row):
 
 
 class DesktopMonitors(QWidget):
-    """The four monitors in the Ledger Head: CPU, GPU, RAM and TXT (the context monitor). Each is a key word over a reading;
-    an unavailable reading is the explicit '—' with the reason in its tooltip, never a substitute number."""
+    """The four monitors at the foot: CPU, GPU, RAM and TXT (the context monitor). Each is a reading; an unavailable reading
+    is the explicit '—' with the reason in its tooltip, never a substitute number. 0.8.6, the owner ("Work the bottom right
+    4 display a lot more kewl"): each is drawn in style H, a glowing ring with the number inside and a small trace of the
+    last minute ending in a bright dot (neon_meters.RingMeter); a meter with no reading stays dim with its dash and "no
+    reading". They stand centred and evenly spaced under the right column (typebar_qt.place gives them its width)."""
     KEYS = ('CPU', 'GPU', 'RAM', 'TXT')
 
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('DesktopMonitors');self._scale = None
         self.setToolTip(MONITORS_NOTE)
-        row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(12)
+        from .neon_meters import RingMeter
+        row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(0);row.addStretch(1)
         self.values = {};self.labels = {};self.setProperty('paperFunctionalInk', True)
         for key in self.KEYS:
-            col = QVBoxLayout();col.setContentsMargins(0, 0, 0, 0);col.setSpacing(0);col.addStretch(1)  # the pair centred in the band
-            label = QLabel(key);value = QLabel('—');value.setMinimumWidth(40)
-            value.setObjectName('MonitorReading')
-            for word in (label, value):word.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter);word.setProperty('paperFunctionalInk', True)
-            # Readable at 1366 by 768 (UI-03): the reading keeps its width; the key word gives way first (elided in elide_keys).
-            label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);label.setMinimumWidth(0)
-            label.setAccessibleName(key + ' monitor');value.setAccessibleName(key + ' reading')
-            col.addWidget(label);col.addWidget(value);col.addStretch(1);row.addLayout(col);self.values[key] = value;self.labels[key] = label
+            # the key word is drawn by its meter under the ring; the label stays (out of sight) for what reads it
+            label = QLabel(key, self);label.hide();value = RingMeter(key, self)
+            label.setAccessibleName(key + ' monitor');value.setAccessibleName(key + ' reading');value.setProperty('paperFunctionalInk', True)
+            row.addWidget(value);row.addStretch(1);self.values[key] = value;self.labels[key] = label      # evenly spaced: the same air between them and at both ends
         self.setCursor(Qt.PointingHandCursor)      # 0.7.0: each meter is a door (meter_cards): a click opens what it is about
         self.restyle()
         self.previous = None;self.timer = QTimer(self, interval=2000)
@@ -106,42 +106,30 @@ class DesktopMonitors(QWidget):
         super().mouseReleaseEvent(event)
 
     def restyle(self):
-        """Scale the monitor labels and readings with the interface size."""
+        """Size the rings and their faces with the interface size."""
         from .shell2 import scale_of
-        from .desk_qt import ERASED_QUIET
         s = scale_of(self.host)
         if s == self._scale:return
         self._scale = s
-        for key in self.values:
-            self.labels[key].setStyleSheet('font-size:%dpx;color:%s;letter-spacing:1px;background:transparent;' % (caption_px(self.host, 12), ERASED_QUIET))
-            self.values[key].setStyleSheet('font-size:%dpx;background:transparent;' % caption_px(self.host, 14))
-            self.values[key].setMinimumWidth(max(40, self.values[key].fontMetrics().horizontalAdvance('100%') + 4))  # the numbers never clip
-        QTimer.singleShot(0, self.elide_keys)
+        from .desk_qt import clamp_scale
+        ring = round(28 * clamp_scale(s))
+        for value in self.values.values():value.size_to(ring, caption_px(self.host, 12), caption_px(self.host, 10))
+        self.updateGeometry()
 
     def relight(self):
-        """A live reading is green, and on the Illustrated and ASCII desks it glows a little, as the pointer and the Field's
-        live things do. A reading that is not there ('—') does not glow, and the Clean desk has no glow at all."""
-        from PySide6.QtGui import QColor
-        from PySide6.QtWidgets import QGraphicsDropShadowEffect
-        from . import boss_theme as t
+        """A live reading glows, on the Illustrated and ASCII desks, at the Glow dial's strength; a reading that is not there
+        ('—') does not, and the Clean desk has no glow at all."""
         try:glow = self.host.session.state.get('desk_art', 'illustrated') != 'clean'
         except Exception:  # noqa: BLE001 - a host without a session (a check): no ornament
             glow = False
         for value in self.values.values():
             lit = bool(glow and value.property('liveReading'))
-            if lit == (value.graphicsEffect() is not None):continue
-            if lit:
-                halo = QGraphicsDropShadowEffect(value);halo.setOffset(0, 0);halo.setBlurRadius(14)
-                colour = QColor(t.READY);colour.setAlphaF(0.85);halo.setColor(colour);value.setGraphicsEffect(halo)
-            else:
-                value.setGraphicsEffect(None)
+            if lit != value.glow:value.glow = lit;value.update()
 
     def elide_keys(self):
-        """The key words elide to the room their reading leaves them; the readings (the numbers) keep their width."""
+        """The key words are drawn under their rings, whole; the labels (out of sight) keep them for what reads them."""
         for key, label in self.labels.items():
-            room = self.values[key].width()
-            text = label.fontMetrics().elidedText(key, Qt.ElideRight, room) if room > 0 else key
-            if label.text() != text:label.setText(text)
+            if label.text() != key:label.setText(key)
 
     def resizeEvent(self, event):
         super().resizeEvent(event);self.elide_keys()
@@ -166,17 +154,23 @@ class DesktopMonitors(QWidget):
         gpu=sample['gpu']['percent'];self.values['GPU'].setText(str(gpu)+'%' if gpu is not None else '—')
         self.values['GPU'].setToolTip('Current host GPU · busiest reported adapter' if gpu is not None else 'GPU utilization unavailable from this driver')
         self.values['TXT'].setText('—');self.values['TXT'].setToolTip(sample['txt']['reason'])
+        from .neon_meters import NEAR
         for value in self.values.values():
             live = value.text() != '—'
             if value.property('liveReading') != live:
                 value.setProperty('liveReading', live)
                 value.style().unpolish(value)
                 value.style().polish(value)
+            value.push()      # the minute of history beside its ring
+            share = value.value()
+            if share is not None and share >= NEAR:      # near its limit: its own colour, and said in words
+                value.setToolTip('Near its limit (amber). ' + value.toolTip())
         from .meter_cards import DOORS
         for key in self.KEYS:                    # what a click on each opens, said after its reading
             tip = self.values[key].toolTip()
             if DOORS[key] not in tip:self.values[key].setToolTip(tip + '\nClick: ' + DOORS[key] + '.')
             self.labels[key].setToolTip('Click: ' + DOORS[key] + '.')
+            self.values[key].setAccessibleDescription(self.values[key].toolTip())
         self.relight()
         self.setAccessibleDescription('Current Graphite host observation at '+str(sample['sampled_at'])+'; owner-host qualification remains separate.')
 

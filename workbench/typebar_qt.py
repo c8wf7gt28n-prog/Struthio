@@ -163,8 +163,8 @@ def parses_as_stac(text):
 class ExpandButton(QPushButton):
     """The line's expand (the owner, 13 November 2026: "The type bar at the bottom needs a optional expand to show more
     data, like if I'm trying to use the terminal"). The room above the line always had three sizes (one line, half, tall)
-    but their words were hidden and the only way to them was a menu. This is one control at the left end of the line that
-    steps through them: one chevron up at rest (show more), two when half open (taller still), one down when tall (back to
+    but their words were hidden and the only way to them was a menu. This is one control beside the line (0.8.6: after the
+    prompt box, before send, the owner's footer; it was at the line's left end) that steps through them: one chevron up at rest (show more), two when half open (taller still), one down when tall (back to
     one line). What shows in the room is the page of whoever is being typed to: Stacy's answers, the Terminal's output,
     Search's results, or the Log with its own choice of stream at its top."""
     SAYS = ('Show more above the line', 'Taller still', 'Back to one line')
@@ -227,7 +227,7 @@ class TypeBar(QWidget):
         painter = QPainter(arrow)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(Qt.NoPen)
-        painter.setBrush(QColor(_bt.ON_RED if _bt.APPEARANCE == 'kasandra' else TERMINAL_GROUND))      # Kasandra: pale on the red (and on royal purple)
+        painter.setBrush(QColor(TERMINAL_GROUND))      # dark on the cue colour (0.8.6: cyan in Kasandra, orange in Graphite)
         painter.drawPolygon(QPolygon([QPoint(7, 4), QPoint(21, 12), QPoint(7, 20)]))
         painter.end()
         self.send = button('', 'primary')
@@ -478,8 +478,11 @@ class TypeBar(QWidget):
             'QWidget#TypeBar QPushButton#WritingSubmit[reads="true"] {background:%s;border:1px solid %s;} '      # the line reads as staC: the arrow is live
             'QWidget#TypeBar QLabel#TypeContext {font-size:%dpx;}'
             % (TEXT, px, TERMINAL_GROUND, TEXT, QUIET, LINE, MONO, px, AMBER_EDGE,
-               *((_bt.RED, _bt.ON_RED, _bt.RED, '#ff6b84') if _bt.APPEARANCE == 'kasandra' else (AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT)),      # 0.8.1 (Kasandra): send, in red
-               READY, *((_bt.ROYAL, _bt.ROYAL) if _bt.APPEARANCE == 'kasandra' else (READY, READY)), px)
+               # 0.8.6, the owner: send cyan in the Kasandra look, orange still in Graphite: a primary button's cue colour
+               # (CUE_EDGE) in both, its dark arrow on it; 0.8.1 to 0.8.5 it was red in Kasandra
+               _bt.CUE_EDGE, TERMINAL_GROUND, _bt.CUE_EDGE, _bt.CUE_TEXT,
+               _bt.TEXT if _bt.APPEARANCE == 'kasandra' else READY,      # under the pointer: a pale edge on her cyan, the pointer's green on the orange
+               *((_bt.ROYAL, _bt.ROYAL) if _bt.APPEARANCE == 'kasandra' else (READY, READY)), px)
             + ('QWidget#TypeBar QPushButton#WritingSubmit[reads="true"] {color:%s;}' % _bt.ROYAL_INK if _bt.APPEARANCE == 'kasandra' else ''))      # Kasandra: a line it will run, in royal purple
         for b in list(self.targets.values()) + [self.box, self.context]:
             b.style().unpolish(b);b.style().polish(b)
@@ -558,16 +561,19 @@ class TypeBar(QWidget):
             px = self.fit_px(d.pane, d.scale);self.band_style(d.scale, px)
             h, p, o = d.band, d.pane, d.inset
             wh = min(h - 12, self.word_height(), desk_qt.scaled(38, d.scale));y = (h - wh) // 2
-            wide = d.width >= 1250
-            monitor_min = self.monitors.minimumSizeHint().width() + 2 * o
-            meter_slot = min(p, max(monitor_min, round(d.width * .14))) if wide else p
-            self.left.setGeometry(0, 0, p, h);self.right.setGeometry(d.width - meter_slot, 0, meter_slot, h)
-            line_left = max(p + o, round(d.width * .21)) if wide else p + o
-            line_width = max(120, d.width - meter_slot - o - line_left)
-            button_width = max(32, wh + 3);grip = max(26, round(wh * 0.8))      # the expand control stands at the line's left end, the arrow at its right
-            self.expand.setGeometry(line_left, y, grip, wh);self.expand.say()
-            self.box.setFixedSize(line_width - button_width - grip - 4, wh);self.box.move(line_left + grip + 4, y)
-            self.send.setGeometry(line_left + line_width - button_width, y, button_width, wh)
+            # 0.8.6, the owner's footer (20 Nov 2026, "Yep, that's perfect"): the chooser stays under the left column; the
+            # prompt box starts at the middle column's left edge; then the room button (Line / Half / Tall: the room above
+            # the line); then send, whose right edge is the middle column's right edge; the four meters are centred and
+            # evenly spaced under the right column. Box and send stand desk_qt.EDGE inside the column, as the head's first
+            # menu does, so the two bands line up; all of it follows the columns when they are resized (desk_qt.apply).
+            right = d.right + desk_qt.SEPARATOR      # the right column's first pixel (the evidence rail widens it)
+            self.left.setGeometry(0, 0, p, h);self.right.setGeometry(right, 0, max(0, d.width - right), h)
+            e = desk_qt.edge(d.scale);start, end = d.left + e, d.right - e
+            button_width = max(32, wh + 3);grip = max(26, round(wh * 0.8));between = 4
+            send_x = end - button_width;grip_x = send_x - between - grip
+            self.box.setFixedSize(max(80, grip_x - between - start), wh);self.box.move(start, y)
+            self.expand.setGeometry(grip_x, y, grip, wh);self.expand.say()
+            self.send.setGeometry(send_x, y, button_width, wh)
             # 0.5.3: five names stand here (Search is shown; it was hidden and reached by a key). They take the slot's width
             # between its insets: the air between them is what is left over, shared, and never less than a little.
             widths = [self.ink_w(self.targets[key], px) + 8 for key in PRIMARY_TARGETS]
@@ -578,7 +584,7 @@ class TypeBar(QWidget):
                 desk_qt.InkWord.place(control, 4, self.line_baseline());x += width + gap
             self.hatch.hide()
             for control in self.console.sizes.values():control.hide()
-            self.monitors.setGeometry(o, 0, max(0, meter_slot - 2 * o), h);self.monitors.show()
+            self.monitors.setGeometry(o // 2, 0, max(0, self.right.width() - o), h);self.monitors.show()      # their own air centres them
         finally:self._placing = False
         self.place_context()
 

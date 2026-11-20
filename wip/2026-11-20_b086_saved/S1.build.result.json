@@ -1,0 +1,56 @@
+{
+  "summary": "S1 (lane B, the exact goal face) is built under the owner's 'No tests' rule. workbench/mind_types.py was written first: OpenPoint, Way, Leaf, Judgement and Budget, frozen, plus the closed who-answers-what table and who(). workbench/math_zones.py is new and pure, using Fractions only: room, move, order, swings, consumption, leverage, zones, decisive_share, settling_reading, break_even, break_even_factor, joined (truth_and), value_of_information and two_readings, with her templates in WORDS. math_answers.py gains the stages room and settle (GOAL_STAGES), bindings_from_cells and cell_unit, and inputs now keep their role. Tolerances can now be said on a reviewed sheet's Value cell (tolerances.set_cell, approve scope, added to the tolerance row of ALWAYS_ASKS). goals.py gains the relation form: ledger.goal/1 and goals.candidates, goals.keep, goals.list, goals.get and goals.check, registered in the Kernel and CLI blocks, and the registry was regenerated. One smoke script, kept outside the repo, ran on a fresh seeded copy with Rail Demo built through the Kernel's own doors: 48 of 48 checks passed. No test file was written and the suite was not run.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S1.patch",
+  "files_changed": [
+    "workbench/mind_types.py (new)",
+    "workbench/math_zones.py (new)",
+    "workbench/math_answers.py",
+    "workbench/goals.py",
+    "workbench/tolerances.py",
+    "workbench/stacy_hand.py",
+    "workbench/engineering_kernel.py",
+    "workbench/engineering_cli.py",
+    "docs/GRAPHITE_0.1_REGISTRY.json"
+  ],
+  "tests": [
+    {
+      "module": "S1 smoke script /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S1/smoke.py (scratch, not a test module)",
+      "look": "none (no window opened)",
+      "ran": 48,
+      "failed": 0,
+      "note": "Run once at the end on a fresh copy, after package_graphite --manifest-only and record_registry (--check: differences []), under nice/unshare with HOME=mktemp. Two earlier runs of the same script found a nested-transaction bug in goals.keep, since fixed, and wordings that were then changed. The test suite, the tiers and the window checks were NOT run, by the owner's rule. No existing test was changed."
+    }
+  ],
+  "new_tests": [],
+  "numbers": [
+    "48 of 48 smoke checks passed (count printed by the smoke script)",
+    "Rail Demo built in 7.9 s in the copy (time.time around rail_demo.workspace in the smoke, final run)",
+    "Kernel operations served went from 777 to 783: goals.candidates, goals.keep, goals.list, goals.get, goals.check and tolerances.set_cell (record_registry.py in the copy)",
+    "Room parts add up exactly on 200 of 200 seeded random boxes (seed 20261120)",
+    "Vectors reproduced exactly in the smoke: decisive shares 6989/7878 and 3089/3978; break-evens 40/39, 25/14 and C1B 30 ms (open); joined goals FAILS with value of information 0; effects 14/125 W, 6/25 W and 44/125 W; Rail Demo room 15/16 W and 16000/49 mA (326 mA whole), 39/40 W and 48000/49 mA (979 mA whole), Rev A 31/16 to 33/16 W, shares of the limit 15/64 and 13/160, order startup duration, startup power, settled power; zones 47/5 to 49/4 W cannot tell, current 48000/49 and 48000/47 mA with share 44/49, voltage 12 V and 15 V with share 1/2, settling reading 969 mA (and 1032 mA the other way) rechecked; room 6/5 = 3/5 + 9/40 + 1/80 + 29/80; break-evens 5 ms (open) and 3750/49 mA (closed); goals.check on Rail Demo startup FAILS by 5 ms bare, 2 to 8 ms with +-3 ms, and UNDECIDED with +-5 ms"
+  ],
+  "decisions": [
+    "math_answers.STAGES stays at the four line verbs because math_typed reads it as its grammar. room and settle are GOAL_STAGES, and math.answer's enum takes all six. The stac line grammar ('math problem:ID | room ...') was not extended: stac_bridge and math_typed belong to no lane, and S1 lists no line test.",
+    "math_zones.py is added to the implementation hashes of room and settle answers only. test_math_core asserts the exact set {math_ranges, math_answers, math_model, math_units} for line answers, so that set is unchanged for them.",
+    "Cell tolerances use a new op, tolerances.set_cell (approve), instead of widening tolerances.set's schema. Its subject is {address 'office:<sheet id>', sheet, cell} on a Value-column cell. Its state is APPLIES, CARRIED_OVER or RECHECK against the sheet revision and the cell's value and unit, as for problem tolerances. The existing ALWAYS_ASKS tolerance row names it with the same words, so no new row was added.",
+    "Room ends and settling readings are rounded inward to whole units of the input's declared unit unless a step is given. This gives the design's 326 mA, 979 mA, 16 V and 969 mA.",
+    "Her card's order puts what does not hold first, then what she cannot tell, then what holds, least room first measured as a share of the limit. Ranking by absolute room would put settled power (15/16 W) before startup power (39/40 W) and contradict the design's order G2, G3, G1. WORDS['order'] says the order is a convention.",
+    "Candidates: a limit row is a parameter ending in limit, ceiling, maximum or max (<=), or minimum, min or floor (>=). Its left side is a reading row with the same name, or an existing calculation whose title contains the name. The units must be of the same dimension. The same limit row on other sheets becomes its alternatives (the revisions). On Rail Demo this gives exactly the three goals. Nominal voltage is not a limit and is not proposed. Vector 30 was recomputed on Rail Demo because 0.8.5 changed the shared fixture rows.",
+    "goals.check with no choice judges every alternative as its own way and returns DEPENDS when the ways disagree (Rev A holds, Rev B does not). 'choose' takes sheet ids. The full either-way analysis is left to S5.",
+    "goals.keep takes a candidate's key only, so the record is rebuilt from the desk and never from free input. Setting a goal aside or back writes an OUT or IN revision, and nothing is deleted. It is execute scope and is not in HERS_SHOW or HERS_FREE, so it stays the owner's press. goals.* reads also apply office_service.owner, as office.get does.",
+    "The design's own phrase 'These are shares of the range, not chances' contains a banned word ('chance'). The template says instead: 'These are shares of the range: every part of it counts the same.'",
+    "value_of_information: 0 when the joined goals already hold or already fail whatever the values; otherwise the largest decisive share the input has on a joined goal that cannot be told.",
+    "Vectors 27 to 29 are checked only in the scratch smoke, on the abstract numbers the maths design gives. No After Hours numbers were put into code, comments or data in the repository."
+  ],
+  "not_done": [
+    "No test_math_goals.py and no test run, by the owner's rule. The acceptance examples were checked once in the scratch smoke instead.",
+    "The independent review S1 asks for (it touches the maths root) has not been done. It is left for the coordinator.",
+    "The line verbs room, settle and lean in the stac grammar are not added.",
+    "goals.room and goals.settle are not separate reads. They are folded into goals.check's 'stages'.",
+    "The span a limit covers (Rev B's ceiling covers 0 to 40 ms against 45 ms of startup) is not modelled. That belongs to the condition-span and either-way slices.",
+    "field_doubt rule 3 is not replaced by the exact leverage (eng-2): field_doubt.py belongs to lane A.",
+    "Nothing shows room or settle on her card or in the Field yet; that is a later slice.",
+    "goals.candidates reads the office store listing and the desk's documents on every call, with no memo. That is fine for small desks and was not measured on large ones."
+  ],
+  "release_note": "Kasandra can now hold your sheets to their limits exactly. From the desk she proposes goals, pairing each reading with a limit whose units fit and treating each revision of the limit as its own way, and you keep the ones you want. For each goal she works out the room at worst and as a share of the limit, and how far each reading may move before it stops holding. When she cannot tell, she also says which reading to take first and what it must show to settle the question. Tolerances can now be said on a sheet's cell, and they always ask. Every number is an exact fraction, and no model is asked."
+}

@@ -58,7 +58,7 @@ ALWAYS_ASKS = (
     (('power.*', 'session.*'), 'it ends the session or turns this computer off'),
     (('releases.*', 'repairs.*', '*.install'), 'it changes the program itself'),
     (('shell.*', 'terminal.*'), 'a command in the Terminal can do anything'),
-    (('tolerances.set',), 'a tolerance is yours to say: it decides what I conclude'),
+    (('tolerances.set', 'tolerances.set_cell'), 'a tolerance is yours to say: it decides what I conclude'),   # 0.8.6 S1: on a sheet's cell too
 )
 LEAVES = ('address', 'peer', 'url', 'host', 'recipient')      # an argument by one of these names reaches another computer
 

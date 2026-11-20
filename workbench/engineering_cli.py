@@ -34,6 +34,7 @@ def schemas():
     from .tolerances import FIELDS as TOLERANCE_FIELDS
     from .math_money import FIELDS as MONEY_FIELDS
     from .math_dates import FIELDS as DATES_FIELDS
+    from .goals import FIELDS as GOAL_FIELDS  # 0.8.6 S1: goals over data
     from .lab_service import FIELDS as LAB_FIELDS, OPTIONS as LAB_OPTIONS
     from .reason_service import FIELDS as REASON_FIELDS
     from .math_service import FIELDS as MATH_FIELDS, OPTIONS as MATH_OPTIONS
@@ -142,6 +143,7 @@ def schemas():
         **JOINED_FIELDS, **ARTIFACT_FIELDS, **METHOD_FIELDS, **NATIVE_SESSION_FIELDS,
         **SCHEDULE_FIELDS,
         **MATH_ANSWER_FIELDS, **TOLERANCE_FIELDS, **MONEY_FIELDS, **DATES_FIELDS,
+        **GOAL_FIELDS,  # 0.8.6 S1: goals over data
         **REASON_FIELDS,
         **SLATE_CONTEXT_FIELDS,
         **SLATE_REASONING_FIELDS,

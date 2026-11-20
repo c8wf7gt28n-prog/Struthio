@@ -215,9 +215,11 @@ class EqualizerTests(unittest.TestCase):
 
     def test_more_threads_than_bars_are_shown_in_equal_groups(self):
         from workbench import equalizer_qt as eq
+        # 0.8.6: with the room upper left, one tube a thread up to sixteen (it was eight)
         self.assertEqual(eq.grouped([0.5]*4),[0.5]*4);self.assertEqual(len(eq.grouped([0.0]*8)),8)
-        pairs=eq.grouped([1.0,0.0]*8);self.assertEqual(pairs,[0.5]*8,'sixteen threads, as on the ThinkPad: eight bars, each the mean of two')
-        self.assertEqual(eq.grouped([1.0,0.0,0.0,0.0]*8),[0.25]*8,'thirty-two threads: eight bars, each the mean of four')
+        self.assertEqual(eq.grouped([1.0,0.0]*8),[1.0,0.0]*8,'sixteen threads, as on the ThinkPad: a tube each')
+        self.assertEqual(eq.grouped([1.0,0.0]*16),[0.5]*16,'thirty-two threads: sixteen tubes, each the mean of two')
+        self.assertEqual(eq.grouped([1.0,0.0,0.0,0.0]*16),[0.25]*16,'sixty-four threads: sixteen tubes, each the mean of four')
 
     def test_a_rate_is_drawn_on_one_fixed_scale(self):
         from workbench import equalizer_qt as eq

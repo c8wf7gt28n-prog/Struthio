@@ -52,6 +52,8 @@ LETTER_FLOOR = 0.70 # D1-fix: in a narrow window the lower band's words are set 
 INK_AIR = 4         # D1-fix: a band word's box is its ink and this much each side, at 14 pt, scaled (no other padding)
 INK_LEVEL = 0.25    # a pixel is part of a word's ink when at least this much of it is covered (the desk check measures alike)
 MARK = 3            # the bands' marks (an action's eraser pink, the active choice's pencil yellow), px tall
+EDGE = 8            # 0.8.6, the owner's head and footer: the head's first menu box, the prompt box and the end of send stand
+                    # this far (at 14 pt, scaled) inside the middle column's edges, as in the picture he approved (20 Nov)
 
 Desk = namedtuple('Desk', 'width pane workspace band inset gap symbol scale left right line')
 """width: the window; pane: P, both panes and both band slots; workspace: the remainder between the separators; band: the
@@ -97,6 +99,9 @@ def cat_px(scale):return scaled(CAT, scale)
 
 
 def ink_air(scale):return scaled(INK_AIR, scale)
+
+
+def edge(scale):return scaled(EDGE, scale)
 
 
 def letter_px(scale):

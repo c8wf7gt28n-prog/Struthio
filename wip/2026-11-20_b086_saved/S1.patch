@@ -1,0 +1,1610 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 24fdbb6..c1fa7e5 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -215,6 +215,11 @@
+    "files.versions": "workbench/files_service.py#dispatch",
+    "files.write": "workbench/files_service.py#dispatch",
+    "firmware.inspect": "workbench/firmware_tools.py#dispatch",
++   "goals.candidates": "workbench/goals.py#dispatch",
++   "goals.check": "workbench/goals.py#dispatch",
++   "goals.get": "workbench/goals.py#dispatch",
++   "goals.keep": "workbench/goals.py#dispatch",
++   "goals.list": "workbench/goals.py#dispatch",
+    "hardware.checks.inspect": "workbench/hardware_coverage.py#dispatch",
+    "hardware.component_nets": "workbench/agent_operations.py#dispatch",
+    "hardware.coverage.inspect": "workbench/hardware_coverage.py#dispatch",
+@@ -727,6 +732,7 @@
+    "tolerances.get": "workbench/tolerances.py#dispatch",
+    "tolerances.list": "workbench/tolerances.py#dispatch",
+    "tolerances.set": "workbench/tolerances.py#dispatch",
++   "tolerances.set_cell": "workbench/tolerances.py#dispatch",
+    "trellis.inspect": "workbench/pnr_tools.py#dispatch",
+    "trellis.report": "workbench/pnr_tools.py#dispatch",
+    "ux.catalog": "workbench/ux_services.py#dispatch",
+@@ -975,9 +981,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 777,
++  "adapters": 783,
+   "job_tools": 113,
+-  "operations": 777,
++  "operations": 783,
+   "settings": 48
+  },
+  "formulas": {
+@@ -3110,6 +3116,46 @@
+    },
+    "scope": "read"
+   },
++  "goals.candidates": {
++   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
++   "properties": {},
++   "scope": "read"
++  },
++  "goals.check": {
++   "arguments": "3d5a71d0d9174013df97080920f4e351e93f5dee1660572246c84772ad06c63e",
++   "properties": {
++    "accuracy": "60758df17217de15",
++    "candidate": "8d84283928a18afc",
++    "choose": "c670dde09c006e30",
++    "id": "1a75c379fb0fafe6",
++    "stages": "9f33303ed69dfba4"
++   },
++   "scope": "read"
++  },
++  "goals.get": {
++   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
++   "properties": {
++    "id": "1a75c379fb0fafe6"
++   },
++   "scope": "read"
++  },
++  "goals.keep": {
++   "arguments": "a3b5af376c45178f50621054c05b2b54b05706547bc28c444514967568898d6f",
++   "properties": {
++    "candidate": "8d84283928a18afc",
++    "expected_revision": "2a1379ebe9f4b632",
++    "id": "1a75c379fb0fafe6",
++    "state": "bb42ca0547a2b0d9"
++   },
++   "scope": "execute"
++  },
++  "goals.list": {
++   "arguments": "8545cb77cf64ac0e99084a8ef0e33911bf70a3a78338b26c56332b3a2ab9420e",
++   "properties": {
++    "all": "7cb541e84f226754"
++   },
++   "scope": "read"
++  },
+   "hardware.checks.inspect": {
+    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+    "properties": {},
+@@ -4513,13 +4559,14 @@
+    "scope": "read"
+   },
+   "math.answer": {
+-   "arguments": "eade7e755aec003ec07ba63ba6e91351daa2d15df693191c3b1ae2153b011b0a",
++   "arguments": "1d58d91e495509edb508d3a04143fe791d770109168d0b719c4477dbfc4cccb4",
+    "properties": {
++    "accuracy": "60758df17217de15",
+     "expression": "2b1e00f7cfc18abe",
+     "for": "520c691f88f728d6",
+     "given": "ca241a6815ef0053",
+     "id": "1a75c379fb0fafe6",
+-    "stage": "aea3acbb559fd74b",
++    "stage": "0a900dc33a072395",
+     "step": "0eb2e3b6e08c031d",
+     "unit": "520c691f88f728d6",
+     "within": "1c1c26f0c5a206b8"
+@@ -7221,6 +7268,20 @@
+    },
+    "scope": "approve"
+   },
++  "tolerances.set_cell": {
++   "arguments": "a23f10802300c157caadb2cd859390f4a179613b3df5067e10c0dd7ffe05263a",
++   "properties": {
++    "amount": "0eb2e3b6e08c031d",
++    "basis": "2b1e00f7cfc18abe",
++    "cell": "4066b324a3b3ccec",
++    "expected_revision": "8d84283928a18afc",
++    "hi": "0eb2e3b6e08c031d",
++    "lo": "0eb2e3b6e08c031d",
++    "said": "6fd8766b65ed9791",
++    "sheet": "a197705b0fea6cee"
++   },
++   "scope": "approve"
++  },
+   "trellis.inspect": {
+    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+    "properties": {},
+@@ -7633,7 +7694,7 @@
+  },
+  "release": "Graphite 0.8.5",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "5a9f067b2a52fe243338eaf1be59d2e786d3043acb26b91c3686bf30f2dcae0b",
++ "schema_digest": "96abead04d52dd70adfcffed45be060158ced61c1adb1d5e3d3ef8bb8c31e7e6",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 73710b3..2564b08 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -34,6 +34,7 @@ def schemas():
+     from .tolerances import FIELDS as TOLERANCE_FIELDS
+     from .math_money import FIELDS as MONEY_FIELDS
+     from .math_dates import FIELDS as DATES_FIELDS
++    from .goals import FIELDS as GOAL_FIELDS  # 0.8.6 S1: goals over data
+     from .lab_service import FIELDS as LAB_FIELDS, OPTIONS as LAB_OPTIONS
+     from .reason_service import FIELDS as REASON_FIELDS
+     from .math_service import FIELDS as MATH_FIELDS, OPTIONS as MATH_OPTIONS
+@@ -142,6 +143,7 @@ def schemas():
+         **JOINED_FIELDS, **ARTIFACT_FIELDS, **METHOD_FIELDS, **NATIVE_SESSION_FIELDS,
+         **SCHEDULE_FIELDS,
+         **MATH_ANSWER_FIELDS, **TOLERANCE_FIELDS, **MONEY_FIELDS, **DATES_FIELDS,
++        **GOAL_FIELDS,  # 0.8.6 S1: goals over data
+         **REASON_FIELDS,
+         **SLATE_CONTEXT_FIELDS,
+         **SLATE_REASONING_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 2099610..6e0a05f 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -45,6 +45,7 @@ from . import reason_service
+ from . import adaptive_work,schedule_math,slate_action
+ from . import math_answers, tolerances  # 0.8.5: the one maths core in lines: math.answer, and the owner's tolerances (recorded additions)
+ from . import math_money, math_dates  # 0.8.5: money and dates exactly, on the same core: math.money and math.dates (recorded additions)
++from . import goals  # 0.8.6 S1 (the exact goal face): goals over data, ledger.goal/1: goals.candidates, goals.keep, goals.list, goals.get, goals.check (recorded additions)
+ from . import joined_work,typed_artifacts,checked_methods,native_sessions
+ from . import slate_context, slate_reasoning
+ from . import edit_storage, import_profiles, change_sets
+@@ -178,6 +179,7 @@ CAPABILITIES = {
+     **schedule_math.SCOPES,
+     **math_answers.SCOPES, **tolerances.SCOPES,
+     **math_money.SCOPES, **math_dates.SCOPES,
++    **goals.SCOPES,  # 0.8.6 S1: goals over data
+     **joined_work.SCOPES, **typed_artifacts.SCOPES, **checked_methods.SCOPES, **native_sessions.SCOPES,
+     **office_service.SCOPES,
+     **notebook_service.SCOPES,
+@@ -582,6 +584,7 @@ class Kernel:
+         if op in tolerances.FIELDS:return tolerances.dispatch(self,op,a,p)
+         if op in math_money.FIELDS:return math_money.dispatch(self,op,a,p)
+         if op in math_dates.FIELDS:return math_dates.dispatch(self,op,a,p,today())   # 0.8.6 S2: the clock's day for a period's as_of
++        if op in goals.FIELDS:return goals.dispatch(self,op,a,p)   # 0.8.6 S1: goals over data (ledger.goal/1)
+         if op in lab_service.FIELDS:return lab_service.dispatch(self,op,a,p)
+         if op in reason_service.FIELDS:return reason_service.dispatch(self,op,a,p)
+         if op in math_service.FIELDS:return math_service.dispatch(self,op,a,p)
+diff --git a/workbench/goals.py b/workbench/goals.py
+index 826b37c..4b297fa 100644
+--- a/workbench/goals.py
++++ b/workbench/goals.py
+@@ -1,4 +1,5 @@
+-"""What must be true when her hand is done: goals, their evidence, and the finish rule. Desk goals only, in this slice.
++"""What must be true when her hand is done: goals, their evidence, and the finish rule. Desk goals here; goals over data
++(the relation form, ledger.goal/1 and the goals.* operations, 0.8.6 S1) are at the end of the module.
+ 
+ A goal is made from a template and its parameters, never from a model's words: its statement is the template's words with
+ the sheet's title put in. Its test is the same {path: matcher} a scene's step expects (desk_scene.lookup and matches), so a
+@@ -160,3 +161,335 @@ def closing(goals, acts):
+     what = ('both are shown' if met == 2 == len(kept) else 'it is shown' if met == 1 == len(kept) else
+             'all %d are shown' % met if met == len(kept) else '%d of %d are shown' % (met, len(kept)))
+     return 'Done in %d act%s; %s.' % (acts, '' if acts == 1 else 's', what)
++
++
++# =========================================================================================================================
++# 0.8.6 S1 · the relation form: goals over data (ledger.goal/1) and the goals.* operations
++#
++# A relation goal says that a reading (a Value cell of a reviewed sheet, or a calculation that already exists over such
++# cells) is at most, below, at least or above a limit row. Its limit may have alternatives: the same row in two revisions
++# of the limits (Rev A and Rev B). Which one applies is never deduced here: each alternative is a way, judged exactly,
++# and the choice stays the owner's (her word, a later slice).
++#
++#   goals.candidates  {}                                       read     what she would propose from the desk: only rows
++#                                                                       whose units fit, never stored ("mine, not agreed")
++#   goals.keep        {candidate} | {id, expected_revision, state}  execute  the owner's press: keep a candidate as a
++#                                                                       ledger.goal/1 record, or set one aside (OUT) and
++#                                                                       back (IN); nothing is deleted
++#   goals.list        {all?}                                   read     the kept goals (IN; with all, OUT too)
++#   goals.get         {id}                                     read
++#   goals.check       {id | candidate | (none: every kept goal), choose?, stages?, accuracy?}   read
++#                     each way judged through math_answers.answer in process, with bindings to the cells as they stand
++#                     (bindings_from_cells) and the owner's tolerances on them; several goals come back in her card's
++#                     order (math_zones.order). model_calls: 0.
++#
++# Kasandra writes nothing here: goals.keep is execute scope and not among what her hand does by herself (stacy_hand
++# HERS_SHOW, HERS_FREE), so it is always the owner's press. Every read leaves the records as they were.
++# =========================================================================================================================
++import re as _re
++from fractions import Fraction as _Fraction
++
++KIND = 'goal'
++SCHEMA = 'ledger.goal/1'
++GOAL_STATES = ('IN', 'OUT')
++LIMIT_WORDS = {'limit': 'le', 'ceiling': 'le', 'maximum': 'le', 'max': 'le', 'minimum': 'ge', 'min': 'ge', 'floor': 'ge'}
++RELATION_TEMPLATES = {'le': '{left} is at most the {limit}', 'lt': '{left} is below the {limit}',
++                      'ge': '{left} is at least the {limit}', 'gt': '{left} is above the {limit}'}
++SIGNS = {'le': '<=', 'lt': '<', 'ge': '>=', 'gt': '>'}
++STAGES = ('check', 'room', 'settle')
++_ID = {'type': 'string', 'minLength': 32, 'maxLength': 32}
++_KEY = {'type': 'string', 'pattern': '^[a-f0-9]{64}$'}
++_SHEET = {'type': 'string', 'pattern': '^owner:[a-f0-9]{32}$'}
++_ACCURACY = {'type': 'object', 'additionalProperties': False, 'required': ['name', 'amount'],
++             'properties': {'name': {'type': 'string', 'minLength': 1, 'maxLength': 64}, 'amount': {'type': 'string', 'minLength': 1, 'maxLength': 100}}}
++FIELDS = {
++    'goals.candidates': ({}, []),
++    'goals.keep': ({'candidate': _KEY, 'id': _ID, 'expected_revision': {'type': 'integer', 'minimum': 1},
++                    'state': {'type': 'string', 'enum': list(GOAL_STATES)}}, []),
++    'goals.list': ({'all': {'type': 'boolean'}}, []),
++    'goals.get': ({'id': _ID}, ['id']),
++    'goals.check': ({'id': _ID, 'candidate': _KEY, 'choose': {'type': 'array', 'maxItems': 8, 'items': _SHEET},
++                     'stages': {'type': 'array', 'maxItems': 3, 'items': {'type': 'string', 'enum': list(STAGES)}},
++                     'accuracy': {'type': 'array', 'maxItems': 4, 'items': _ACCURACY}}, []),
++}
++SCOPES = {op: 'execute' if op == 'goals.keep' else 'read' for op in FIELDS}
++
++
++def _symbol(parameter, taken):
++    """An expression name from a row's parameter: 'Startup duration limit' -> startup_duration_limit."""
++    name = _re.sub(r'[^a-z0-9]+', '_', str(parameter).lower()).strip('_')[:56] or 'value'
++    if name[0].isdigit():name = 'q_' + name
++    base, n = name, 2
++    while name in taken:name = '%s_%d' % (base, n);n += 1
++    taken.add(name)
++    return name
++
++
++def _limit(parameter):
++    """(stem, relation) of a limit row's parameter ('Startup power ceiling' -> ('startup power', 'le')); None otherwise."""
++    words = str(parameter).strip().split()
++    if len(words) < 2 or words[-1].lower() not in LIMIT_WORDS:return None
++    return ' '.join(words[:-1]).lower(), LIMIT_WORDS[words[-1].lower()]
++
++
++def _dimension(unit):
++    from .math_answers import cell_unit
++    from .math_units import unit_spec
++    from .math_ranges import RangeError
++    try:return unit_spec(cell_unit(unit)[0])[0]
++    except (RangeError, ValueError):return None
++
++
++def _sheets():
++    """The reviewed PDF sheets of the office store: [saved]."""
++    from .office_service import store
++    from .datasheet_work import SHEET
++    found = []
++    for row in store().listing():
++        try:saved = store().get(row['id'])
++        except (ValueError, OSError, KeyError):continue
++        if (saved.get('origin') or {}).get('profile') == SHEET:found.append(saved)
++    return found
++
++
++def _rows(saved):
++    """The sheet's Value rows as tolerances.sheet_cell gives them."""
++    from .tolerances import sheet_cell
++    cells = ((saved.get('document') or {}).get('sheets') or [{}])[0].get('cells') or {}
++    rows = []
++    for key in sorted(cells, key=lambda k: (len(k), k)):
++        if not _re.fullmatch(r'B[1-9][0-9]{0,2}', key) or key == 'B1':continue
++        found = sheet_cell(saved, key)
++        if found and found['parameter']:rows.append(found)
++    return rows
++
++
++def _calculations(kernel, principal):
++    """The calculations worked out from reviewed sheets that stand now (not replaced): [{'id', 'title', 'sheet',
++    'expression', 'inputs': [{symbol, cell, parameter}], 'unit'}]."""
++    from . import project_desk as records, documents
++    from .datasheet_work import REPORT
++    with kernel.db() as db:
++        records.ensure(db)
++        ids = [row[0] for row in db.execute('SELECT id FROM desk_records WHERE owner=? AND kind=? ORDER BY rowid', (principal.identity, documents.KIND))]
++        docs = [records.read(db, documents.KIND, ident, principal) for ident in ids]
++    replaced = {(d.get('derivation') or {}).get('replaces') for d in docs}
++    found = []
++    for d in docs:
++        derivation = d.get('derivation') or {}
++        if derivation.get('profile') != REPORT or d['id'] in replaced or not derivation.get('recipe'):continue
++        value = (((derivation.get('calculation') or {}).get('outputs') or [{}])[0] or {}).get('value') or {}
++        found.append({'id': d['id'], 'title': d.get('title') or '', 'sheet': derivation.get('sheet'), 'expression': derivation['recipe'].get('expression', ''),
++                      'inputs': [{'symbol': i['symbol'], 'cell': i['cell'], 'parameter': i.get('parameter', '')} for i in derivation.get('inputs') or ()],
++                      'unit': value.get('unit') or derivation['recipe'].get('output_unit') or ''})
++    return found
++
++
++def _key(goal):
++    part = {k: goal[k] for k in ('relation', 'expression', 'cells', 'alternatives')}
++    return hashlib.sha256(json.dumps(part, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode('utf-8')).hexdigest()
++
++
++def _ref(cell):
++    return {'address': cell['address'], 'sheet': cell['sheet'], 'cell': cell['cell'], 'parameter': cell['parameter'], 'title': cell['title']}
++
++
++def candidates(kernel, principal):
++    """The relation goals she would propose from the desk, as data and never stored: each limit row (a parameter ending in
++    limit, ceiling, maximum or minimum), its alternatives (the same row on other sheets: the revisions), and a reading row or
++    an existing calculation whose name is the limit's and whose unit is of the same kind. Rows whose units do not fit are
++    never paired."""
++    sheets = _sheets();limits = {};readings = []
++    for saved in sheets:
++        for row in _rows(saved):
++            found = _limit(row['parameter'])
++            if found:limits.setdefault((row['parameter'], found[1]), []).append(row)
++            else:readings.append(row)
++    by_id = {saved['id']: saved for saved in sheets}
++    calcs = [c for c in _calculations(kernel, principal) if c['sheet'] in by_id]
++    proposed = []
++    for (parameter, relation), alternatives in sorted(limits.items()):
++        stem = _limit(parameter)[0];want = _dimension(alternatives[0]['unit'])
++        if want is None or any(_dimension(a['unit']) != want for a in alternatives):continue
++        lefts = []
++        for row in readings:
++            if row['parameter'].lower() == stem and _dimension(row['unit']) == want:lefts.append(('cell', row))
++        for calc in calcs:
++            if stem in calc['title'].lower() and _dimension(calc['unit']) == want:lefts.append(('calculation', calc))
++        for sort, left in lefts:
++            taken = set();cells = {};roles = {}
++            if sort == 'cell':
++                name = _symbol(left['parameter'], taken);cells[name] = _ref(left);roles[name] = 'measured';expression = name;via = None
++            else:
++                from .tolerances import sheet_cell
++                sheet = by_id[left['sheet']];via = left['id'];names = {}
++                for item in left['inputs']:
++                    cell = sheet_cell(sheet, item['cell'])
++                    if not cell:continue
++                    name = _symbol(cell['parameter'], taken);cells[name] = _ref(cell);roles[name] = 'measured';names[item['symbol']] = name
++                if len(cells) != len(left['inputs']):continue        # a cell the calculation read is no longer on its sheet
++                expression = _re.sub(r'\b[A-Za-z_][A-Za-z0-9_]*\b', lambda m: names.get(m.group(0), m.group(0)), left['expression'])
++            limit = _symbol(parameter, taken);roles[limit] = 'limit'
++            options = [_ref(a) for a in alternatives]
++            goal = {'statement': RELATION_TEMPLATES[relation].format(left=stem[:1].upper() + stem[1:], limit=parameter[:1].lower() + parameter[1:]),
++                    'form': 'relation', 'relation': relation, 'expression': '%s %s %s' % (expression, SIGNS[relation], limit),
++                    'cells': {**cells, limit: options[0]}, 'alternatives': {limit: options} if len(options) > 1 else {}, 'roles': roles,
++                    'via': via, 'origin': 'HER'}
++            goal['key'] = _key(goal)
++            proposed.append(goal)
++    return proposed
++
++
++def _ways(goal, choose=()):
++    """Every way the goal's alternatives can be read: [{symbol: alternative}], the choice in `choose` (sheet ids) taken where
++    one is named. At most mind_types.BUDGET.ways of them, and how many there were."""
++    from .mind_types import BUDGET
++    from itertools import product as _product
++    options = []
++    for symbol, alternatives in sorted((goal.get('alternatives') or {}).items()):
++        chosen = [a for a in alternatives if a['sheet'] in set(choose or ())]
++        options.append([(symbol, a) for a in (chosen or alternatives)])
++    every = [dict(choice) for choice in _product(*options)] if options else [{}]
++    return every[:BUDGET.ways], len(every)
++
++
++def _freshness(kernel, principal, saved):
++    from .datasheet_work import sheet_state
++    try:return 'CURRENT' if sheet_state(kernel, principal, saved['origin'])['state'] == 'CURRENT_PDF_SOURCE' else 'REVIEW_REQUIRED'
++    except (ValueError, OSError, KeyError):return 'REVIEW_REQUIRED'
++
++
++def judge(kernel, principal, goal, choose=(), stages=('check',), accuracy=()):
++    """A relation goal judged under every way the desk knows (each alternative of its limit), each through
++    math_answers.answer in process: {'goal', 'statement', 'state' (the ways' common state, or DEPENDS), 'ways': [{'choice',
++    'state', 'answers': {stage: ledger.math-answer/1}}], 'judgement' (mind_types.Judgement), 'model_calls': 0}."""
++    from . import math_answers as answers, tolerances
++    from .math_ranges import RangeError
++    from .mind_types import Judgement, Way, BUDGET, DEPENDS
++    from .office_service import store
++    said = tolerances.on_cells(kernel, principal);ways, every = _ways(goal, choose);rows = [];shapes = []
++    stages = tuple(stages or ('check',));sheets = {}
++    def saved_of(sheet):
++        if sheet not in sheets:
++            try:sheets[sheet] = store().get(sheet)
++            except (ValueError, OSError, KeyError):sheets[sheet] = None
++        return sheets[sheet]
++    for choice in ways:
++        bound = {**goal['cells'], **choice};cells = {};fresh = 'CURRENT';missing = []
++        for symbol, ref in bound.items():
++            saved = saved_of(ref['sheet'])
++            cell = tolerances.sheet_cell(saved, ref['cell']) if saved else None
++            if not cell or cell['parameter'] != ref['parameter']:missing.append(ref);continue
++            cells[symbol] = cell
++            if _freshness(kernel, principal, saved) != 'CURRENT':fresh = 'REVIEW_REQUIRED'
++        asked = {'expression': goal['expression'], **({'accuracy': list(accuracy)} if accuracy else {})}
++        if missing:
++            found = {stage: answers.refused(stage, asked, 'MISSING_INPUT', 'A row this goal reads is no longer where it was: %s' % ', '.join(
++                '%s %s' % (r['title'], r['cell']) for r in missing), fresh) for stage in stages}
++        else:
++            try:ir, inputs = answers.bindings_from_cells(goal['expression'], cells, said, roles=goal.get('roles'))
++            except (RangeError, ValueError) as exc:
++                found = {stage: answers.refused(stage, asked, getattr(exc, 'code', 'UNSUPPORTED'), str(exc), fresh) for stage in stages}
++            else:
++                found = {stage: answers.answer(stage, ir, inputs, asked, fresh) for stage in stages}
++        main = found[stages[0]]
++        picked = {symbol: {'sheet': ref['sheet'], 'title': ref['title'], 'cell': ref['cell']} for symbol, ref in choice.items()}
++        rows.append({'choice': picked, 'state': main['state'], 'answers': found})
++        room = None;unit = ''
++        slack = (main.get('result') or {}).get('slack')
++        if slack:
++            from .math_units import rational
++            lo, hi = rational(slack[0]['rational']), rational(slack[1]['rational']);unit = slack[0]['unit']
++            room = (lo, hi) if goal['relation'] in ('le', 'lt') else (-hi, -lo)
++        shapes.append(Way(choices=tuple(sorted((s, c['title']) for s, c in picked.items())), state=main['state'], room=room, unit=unit,
++                          answer=main['digest'], words=main['words']['answer']))
++    states = {row['state'] for row in rows}
++    state = rows[0]['state'] if len(states) == 1 else DEPENDS
++    budget = (len(ways), every, BUDGET.sentence(len(ways), every, 'the other ways of reading the limits') if every > len(ways) else '')
++    judgement = Judgement(about=(goal.get('id') or goal.get('key'),), state=state, ways=tuple(shapes), budget=budget,
++                          rests_on=tuple(sorted({'%s %s' % (ref['title'], ref['cell']) for ref in goal['cells'].values()})))
++    return {'goal': goal.get('id'), 'key': goal.get('key'), 'statement': goal['statement'], 'state': state, 'ways': rows,
++            'judgement': judgement.as_record(), 'model_calls': 0}
++
++
++def _rank(judged):
++    """The card's order key of a judged goal: its least favourable way."""
++    from .math_units import rational
++    worst = None
++    for row in judged['ways']:
++        for stage in ('room', 'settle', 'check'):
++            said = row['answers'].get(stage)
++            if said and said.get('result'):break
++        result = (said or {}).get('result') or {}
++        share = result.get('share_of_limit');margin = result.get('worst')
++        key = {'state': row['state'], 'share_of_limit': rational(share['rational']) if share else None,
++               'worst': rational(margin['rational']) if margin else None}
++        if worst is None or _order_key(key) < _order_key(worst):worst = key
++    return worst or {'state': 'UNDECIDED'}
++
++
++def _order_key(said):
++    from .math_zones import RANK
++    share = said.get('share_of_limit');share = said.get('worst') if share is None else share
++    return (RANK.get(said.get('state'), 1), share if share is not None else _Fraction(0))
++
++
++def _records(kernel, principal):
++    from . import project_desk as records
++    with kernel.db() as db:
++        records.ensure(db)
++        ids = [row[0] for row in db.execute('SELECT id FROM desk_records WHERE owner=? AND kind=? ORDER BY rowid', (principal.identity, KIND))]
++        return [records.read(db, KIND, ident, principal) for ident in ids]
++
++
++def keep(kernel, args, principal):
++    """The owner's press: keep a candidate as a ledger.goal/1 record, or set a kept goal aside (OUT) and back (IN), each a
++    new revision; nothing is deleted."""
++    from . import project_desk as records
++    if args.get('candidate'):
++        if set(args) - {'candidate'}:raise ValueError('GOAL_KEEP_FIELDS: keep a candidate by its key alone')
++        found = next((c for c in candidates(kernel, principal) if c['key'] == args['candidate']), None)
++        if found is None:raise ValueError('GOAL_CANDIDATE_GONE: the desk no longer proposes that goal; ask for the candidates again')
++        with kernel.db() as db:
++            records.ensure(db)                      # its migrations check begins the write transaction (BEGIN IMMEDIATE)
++            for old in [records.read(db, KIND, row[0], principal) for row in db.execute(
++                    'SELECT id FROM desk_records WHERE owner=? AND kind=?', (principal.identity, KIND))]:
++                if old.get('key') == found['key']:raise ValueError('GOAL_ALREADY_KEPT: that goal is kept already')
++            value = records.new(KIND, principal, schema=SCHEMA, **found, state='IN', set_by='owner', agreed=True, agreed_by='owner')
++            return records.write(db, value, principal, 'GOAL_KEPT')
++    if not {'id', 'expected_revision', 'state'} <= set(args):raise ValueError('GOAL_KEEP_FIELDS: give a candidate, or a goal with its revision and IN or OUT')
++    with kernel.db() as db:
++        records.ensure(db)                          # begins the write transaction (BEGIN IMMEDIATE)
++        value = records.read(db, KIND, args['id'], principal);expected = args['expected_revision']
++        records.edit(value, expected);value['state'] = args['state']
++        return records.write(db, value, principal, 'GOAL_SET_ASIDE' if args['state'] == 'OUT' else 'GOAL_KEPT_AGAIN', expected=expected)
++
++
++def dispatch(kernel, op, args, principal):
++    from .office_service import owner
++    owner(principal)                 # the sheets live in the owner's profile, as for office.get
++    if op == 'goals.candidates':return {'candidates': candidates(kernel, principal), 'model_calls': 0}
++    if op == 'goals.keep':return {'goal': keep(kernel, args, principal)}
++    if op == 'goals.list':
++        rows = _records(kernel, principal)
++        return {'goals': [g for g in rows if args.get('all') or g.get('state') == 'IN']}
++    if op == 'goals.get':
++        from . import project_desk as records
++        with kernel.db() as db:records.ensure(db);return {'goal': records.read(db, KIND, args['id'], principal)}
++    if op == 'goals.check':
++        stages = tuple(args.get('stages') or ('check',));choose = args.get('choose') or ();accuracy = args.get('accuracy') or ()
++        if args.get('id') and args.get('candidate'):raise ValueError('GOAL_CHECK_FIELDS: check a kept goal or a candidate, not both')
++        if args.get('id'):
++            from . import project_desk as records
++            with kernel.db() as db:records.ensure(db);goal = records.read(db, KIND, args['id'], principal)
++            return judge(kernel, principal, goal, choose, stages, accuracy)
++        if args.get('candidate'):
++            goal = next((c for c in candidates(kernel, principal) if c['key'] == args['candidate']), None)
++            if goal is None:raise ValueError('GOAL_CANDIDATE_GONE: the desk no longer proposes that goal; ask for the candidates again')
++            return judge(kernel, principal, goal, choose, stages, accuracy)
++        if 'room' not in stages and 'settle' not in stages:stages = stages + ('room',)      # the card's order needs the room
++        judged = [judge(kernel, principal, g, choose, stages, accuracy) for g in _records(kernel, principal) if g.get('state') == 'IN']
++        judged.sort(key=lambda j: (_order_key(_rank(j)), j['statement']))
++        from .math_zones import WORDS
++        return {'goals': judged, 'order': WORDS['order'], 'model_calls': 0}
++    raise ValueError('Unknown goal operation')
+diff --git a/workbench/math_answers.py b/workbench/math_answers.py
+index 016ee18..dc4a6c7 100644
+--- a/workbench/math_answers.py
++++ b/workbench/math_answers.py
+@@ -8,8 +8,15 @@ One answer serves both faces. A line on a problem sheet,
+ 
+ compiles (stac_bridge) to the Kernel operation math.answer, a read: it reads the sheet with the freshness of its sources
+ (problems.get), the owner's tolerances (tolerances.standing) and the model math_service.model_for makes, and answers
+-through math_ranges. From the goal slice on, her goals call answer() in process with bindings to cells. math.answer writes
+-no record of its own; the Kernel keeps its audit and activity rows, as for every read; stac.observe stores the answer.
++through math_ranges. From the goal slice on, her goals call answer() in process with bindings to cells
++(bindings_from_cells), and two more stages answer for a relation (0.8.6 S1, the exact goal face, through math_zones):
++
++    room     the margin at the reading and at the worst corner, its share of the limit, how far each input may move before
++             the relation changes, and what uses the room;
++    settle   that, and for each input with a range its three zones, the share of its range a reading of it settles, the
++             reading that would settle it with a meter of a given accuracy, and the tolerance it breaks even at.
++
++math.answer writes no record of its own; the Kernel keeps its audit and activity rows, as for every read; stac.observe stores the answer.
+ 
+ The record carries the question as asked, the model and its digest, its assumptions and obligations, every input with its
+ origin (PROBLEM_REVISION, DECLARED_SCENARIO, GIVEN_IN_LINE, OWNER_TOLERANCE, SHEET_CELL or FREED), its source and its
+@@ -29,13 +36,16 @@ from .math_model import MathError, RELATIONS, evaluate
+ from .math_units import number_record, quantity_record, rational, unit_spec
+ 
+ SCHEMA = 'ledger.math-answer/1'
+-STAGES = ('calculate', 'solve', 'range', 'check')
++STAGES = ('calculate', 'solve', 'range', 'check')      # the line verbs (math_typed reads these)
++GOAL_STAGES = ('room', 'settle')                       # 0.8.6 S1: the exact goal face, through math_zones
++ALL_STAGES = STAGES + GOAL_STAGES
+ ERRORS = ('DIMENSION_MISMATCH', 'DOMAIN_ERROR', 'UNSUPPORTED', 'MISSING_INPUT', 'INCOMPATIBLE_OUTPUT_UNIT',
+           'EXACT_ARITHMETIC_SIZE_BOUND', 'DENOMINATOR_MAY_BE_ZERO')
+ IMPLEMENTED = ('math_ranges.py', 'math_answers.py', 'math_model.py', 'math_units.py')
++GOAL_IMPLEMENTED = ('math_zones.py',)                  # hashed too in a room or settle answer, which it works out
+ FIGURES = 4                  # significant figures of a number in words; the exact value stands beside it
+ HEADINGS = {'HOLDS': 'Holds', 'FAILS': 'Does not hold', 'UNDECIDED': 'Cannot tell'}      # the Field's own (field_page)
+-STAGE_HEADINGS = {'calculate': 'Worked out', 'range': 'Range', 'solve': 'Solve for %s'}
++STAGE_HEADINGS = {'calculate': 'Worked out', 'range': 'Range', 'solve': 'Solve for %s', 'room': 'Room to spare', 'settle': 'What would settle it'}
+ SIGNS = {'le': '<=', 'lt': '<', 'ge': '>=', 'gt': '>', 'eq': '=', 'ne': '!='}
+ GUARANTEES = {'EXACT_VALUE': 'an exact value, in exact fractions throughout',
+               'EXACT_RANGE': 'an exact range: both of its ends are values the expression takes',
+@@ -48,10 +58,12 @@ TOLERANCE_STATES = {'APPLIES': 'said at this revision', 'CARRIED_OVER': 'carried
+ NAME = {'type': 'string', 'minLength': 1, 'maxLength': 64}
+ NUMBER = {'type': 'string', 'minLength': 1, 'maxLength': 100}
+ GIVEN = {'type': 'object', 'additionalProperties': False, 'properties': {'name': NAME, 'lo': NUMBER, 'hi': NUMBER}, 'required': ['name', 'lo', 'hi']}
+-FIELDS = {'math.answer': ({'id': records.ID, 'stage': {'type': 'string', 'enum': list(STAGES)},
++ACCURACY = {'type': 'object', 'additionalProperties': False, 'properties': {'name': NAME, 'amount': NUMBER}, 'required': ['name', 'amount']}
++FIELDS = {'math.answer': ({'id': records.ID, 'stage': {'type': 'string', 'enum': list(ALL_STAGES)},
+                            'expression': {'type': 'string', 'minLength': 1, 'maxLength': 1000}, 'for': NAME,
+                            'within': {'type': 'array', 'minItems': 2, 'maxItems': 2, 'items': NUMBER}, 'step': NUMBER,
+-                           'given': {'type': 'array', 'maxItems': 4, 'items': GIVEN}, 'unit': {'type': 'string', 'minLength': 1, 'maxLength': 64}},
++                           'given': {'type': 'array', 'maxItems': 4, 'items': GIVEN}, 'unit': {'type': 'string', 'minLength': 1, 'maxLength': 64},
++                           'accuracy': {'type': 'array', 'maxItems': 4, 'items': ACCURACY}},
+                           ['id', 'stage', 'expression'])}
+ SCOPES = {'math.answer': 'read'}
+ 
+@@ -67,16 +79,18 @@ REWORDS = ((re.compile(r'Zero denominator\b.*'), 'a denominator is zero'), (re.c
+ INTERNAL = re.compile(r'\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b|\bn\d+\b|incompatible quantities|fragment|\bZ3\b|SymPy|\bnodes?\b')
+ 
+ 
+-def _hashes():
+-    return {name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in IMPLEMENTED}
++def _hashes(names=IMPLEMENTED):
++    return {name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in names}
+ 
+ 
+ IMPLEMENTATION = _hashes()      # hashed once, as loaded: the code that works the answers out, not the files as they are later
++GOAL_IMPLEMENTATION = _hashes(GOAL_IMPLEMENTED)
+ 
+ 
+-def implementation():
+-    """sha256 of each file an answer depends on (its own two and the exact base under them), as they were loaded."""
+-    return dict(IMPLEMENTATION)
++def implementation(stage=None):
++    """sha256 of each file an answer depends on (its own two and the exact base under them), as they were loaded; a room
++    or settle answer adds math_zones, which works it out."""
++    return {**IMPLEMENTATION, **(GOAL_IMPLEMENTATION if stage in GOAL_STAGES else {})}
+ 
+ 
+ # -- numbers as the owner reads them --------------------------------------------------------------------------------------
+@@ -143,7 +157,7 @@ def _inputs(ir, inputs, solved):
+         origin = 'FREED' if name == solved else given.get('origin') or ('GIVEN_IN_LINE' if span else 'DECLARED_SCENARIO')
+         rows.append({'name': name, 'unit': v['unit'], 'value': number(rational(v['value']), v['unit']) if 'value' in v else None,
+                      'range': [number(box[name][0], v['unit']), number(box[name][1], v['unit'])] if name in box else None,
+-                     'origin': origin, 'source': given.get('source'), 'tolerance': given.get('tolerance'), 'role': None})
++                     'origin': origin, 'source': given.get('source'), 'tolerance': given.get('tolerance'), 'role': given.get('role')})
+     return rows, box
+ 
+ 
+@@ -157,7 +171,7 @@ def refused(stage, asked, code, reason, freshness='CURRENT'):
+ 
+ def _sealed(value):
+     value.setdefault('reason', '')
+-    value.update(implementation=implementation(), model_calls=0, physical_qualification=False)
++    value.update(implementation=implementation(value.get('stage')), model_calls=0, physical_qualification=False)
+     value['words'] = words(value)
+     value['digest'] = records.digest({k: v for k, v in value.items() if k != 'digest'})
+     return value
+@@ -181,7 +195,7 @@ def answer(stage, ir, inputs=None, asked=None, freshness='CURRENT'):
+     inputs: {name: {'range': (lo, hi) in its declared unit or None, 'origin', 'source', 'tolerance'}}; a name left out has
+     no range. asked: {'expression', 'for', 'within', 'step', 'unit'}. Never raises: a failure is the record's state."""
+     asked = dict(asked or {});unit = asked.get('unit');solved = asked.get('for')
+-    if stage not in STAGES:return refused(stage, asked, 'UNSUPPORTED', 'Ask calculate, solve, range or check', freshness)
++    if stage not in ALL_STAGES:return refused(stage, asked, 'UNSUPPORTED', 'Ask calculate, solve, range, check, room or settle', freshness)
+     if solved and stage != 'solve':return refused(stage, asked, 'UNSUPPORTED', 'Only solve takes a quantity to solve for', freshness)
+     try:rows, box = _inputs(ir, inputs, solved)
+     except (ValueError, ZeroDivisionError) as exc:return refused(stage, asked, _code(exc), str(exc), freshness)
+@@ -197,6 +211,7 @@ def answer(stage, ir, inputs=None, asked=None, freshness='CURRENT'):
+     try:
+         if box:steps.append('Ranges: ' + '; '.join('%s %s' % (name, span_words(lo, hi, ir['model']['variables'][name]['unit'])) for name, (lo, hi) in sorted(box.items())) + '.')
+         if stage == 'solve':_solve(value, ir, box, asked)
++        elif stage in GOAL_STAGES:_goal_stage(value, ir, node, box, asked)
+         elif relation is None and stage == 'check':ranges.fail('UNSUPPORTED', 'A check needs one comparison, such as <=')
+         elif relation is None:_quantity_stage(value, ir, out, box, unit)
+         else:_relation_stage(value, ir, node, box, unit)
+@@ -262,6 +277,92 @@ def _solve(value, ir, box, asked):
+         's' if len(found['ends']) > 1 else '', name, 'holds' if found['checked'] else 'DOES NOT HOLD'))
+ 
+ 
++# -- the exact goal face: room and settle (0.8.6 S1) ----------------------------------------------------------------------
++
++def _end(e, unit):
++    return None if e is None else {'value': number(e['value'], unit), 'closed': e['closed'], **({'by': e['by']} if e.get('by') else {})}
++
++
++def _piece(piece, unit):
++    if piece is None:return None
++    lower, upper = piece
++    return {'lower': None if lower is None else {'value': number(lower[0], unit), 'closed': lower[1]},
++            'upper': None if upper is None else {'value': number(upper[0], unit), 'closed': upper[1]}}
++
++
++def _share(value):return None if value is None else number_record(Fraction(value))
++
++
++def _goal_stage(value, ir, node, box, asked):
++    """room and settle: the relation over the ranges (check_box), its margin at the reading and at the worst corner, how
++    far each input that is not a limit may move (math_zones.room), what uses the room and what moves it most; settle adds,
++    for each input with a range, its three zones, the share of its range a reading settles, the reading that settles it
++    with the meter's accuracy asked, and each input's break-even tolerance."""
++    from . import math_zones as zones
++    roles = {row['name']: row['role'] for row in value['inputs'] if row.get('role')}
++    found = ranges.check_box(ir, box);left = node['left']
++    room = zones.room(ir, box, asked.get('step'), roles);unit = room['unit']
++    def num(x, u=unit):return None if x is None else number(x, u)
++    def way(m, side, u):
++        w = m[side]
++        return None if not w else {'to': num(w['to'], u), 'on_step': num(w['on_step'], u), 'by': num(w['by'], u), 'share': _share(w['share'])}
++    moves = [{'name': m['name'], 'unit': m['unit'], 'declared': num(m['declared'], m['unit']), 'state': m['state'], 'step': num(m['step'], m['unit']),
++              'lower': _end(m['lower'], m['unit']), 'upper': _end(m['upper'], m['unit']), 'rise': way(m, 'rise', m['unit']),
++              'fall': way(m, 'fall', m['unit']), 'rechecked': m['rechecked'], 'reason': m['reason']} for m in room['moves']]
++    result = {'relation': found['relation'], 'left': _span(found['left'], ir, left, None), 'right': _span(found['right'], ir, left, None),
++              'slack': _span(found['slack'], ir, left, None), 'status': found['slack'].status, 'unit': unit,
++              'at_reading': num(room['at_reading']), 'worst': num(room['worst']), 'best': num(room['best']), 'limit': num(room['limit']),
++              'share_of_limit': _share(room['share_of_limit']), 'moves': moves, 'uses': None, 'swings': None, 'leverage': {}}
++    if box:
++        try:
++            uses = zones.consumption(ir, box);spread = zones.swings(ir, box)
++            result['uses'] = {'at_reading': num(uses['at_reading']), 'parts': {k: num(v) for k, v in uses['uses'].items()},
++                              'together': num(uses['together']), 'left': num(uses['left']), 'no_room': uses['no_room']}
++            result['swings'] = {'whole': num(spread['whole']), 'by': {k: num(v) for k, v in spread['by'].items()},
++                                'shares': {k: _share(v) for k, v in spread['shares'].items()}}
++        except ranges.RangeError:pass          # an input with no value at the reading: no room at the reading to share out
++    for name in sorted(ir['model']['variables']):
++        if roles.get(name) == 'limit' or 'value' not in ir['model']['variables'][name]:continue
++        try:result['leverage'][name] = _share(zones.leverage(ir, name))
++        except ranges.RangeError:pass
++    steps = value['derivation'];steps.append(_method(found['slack'], box))
++    steps.append('The room: the margin at the reading and at the worst corner; each input solved for with the others at their ranges, rounded inward to whole steps and worked out again.')
++    if value['stage'] == 'settle':
++        accuracy = {row['name']: row['amount'] for row in asked.get('accuracy') or ()};rows = [];first = []
++        for name in sorted(box):
++            try:z = zones.zones(ir, box, name)
++            except ranges.RangeError as exc:
++                rows.append({'name': name, 'state': exc.code, 'reason': str(exc)});continue
++            u = z['unit'];lo, hi = z['range']
++            row = {'name': name, 'unit': u, 'state': 'ANSWERED', 'range': [num(lo, u), num(hi, u)], 'holds': _piece(z['holds'], u),
++                   'fails': _piece(z['fails'], u), 'share': _share(z['share']), 'reading': None}
++            if z['share'] is not None:first.append((z['share'], name))
++            if name in accuracy:
++                try:
++                    s = zones.settling_reading(ir, box, name, accuracy[name], asked.get('step'))
++                    def readings(pair):return None if pair is None else {'lower': num(pair[0], u), 'upper': num(pair[1], u)}
++                    row['reading'] = {'accuracy': num(s['accuracy'], u), 'holds': readings(s['holds']), 'fails': readings(s['fails']),
++                                      'checked': s['checked'], 'rechecks': [{'reading': num(r['reading'], u), 'range': [num(r['range'][0], u), num(r['range'][1], u)],
++                                                                             'expected': r['expected'], 'state': r['state']} for r in s['rechecks']]}
++                except ranges.RangeError as exc:row['reading'] = {'state': exc.code, 'reason': str(exc)}
++            rows.append(row)
++        best = max(first) if first else None
++        ties = [name for share, name in first if best and share == best[0]]
++        result['zones'] = rows
++        result['first'] = ties[0] if found['state'] == ranges.UNDECIDED and best and best[0] > 0 and len(ties) == 1 else None
++        result['nothing_settles'] = found['state'] != ranges.UNDECIDED
++        result['break_even'] = []
++        for name in sorted(ir['model']['variables']):
++            if roles.get(name) == 'limit' or 'value' not in ir['model']['variables'][name]:continue
++            try:b = zones.break_even(ir, box, name)
++            except ranges.RangeError:continue
++            result['break_even'].append({'name': name, 'unit': b['unit'], 'state': b['state'], 'tolerance': num(b['tolerance'], b['unit']),
++                                         'closed': b['closed'], 'then': b['then']})
++        steps.append('The zones: solved for each input twice, for the relation and for its opposite, with the others at their ranges.')
++    value.update(result=result, state=found['state'], for_all=found['for_all'], witness=_witness(found['witness'], ir, value['inputs']),
++                 guarantee='EXACT_VALUE' if not box else 'EXACT_RANGE' if found['slack'].status == ranges.ATTAINED else 'SOUND_ENCLOSURE')
++
++
+ # -- words ----------------------------------------------------------------------------------------------------------------
+ 
+ def _margin(record, relation):
+@@ -372,7 +473,7 @@ def _origin_words(row):
+     if row['origin'] == 'OWNER_TOLERANCE':
+         t = row['tolerance'] or {};return 'your tolerance (revision %s), %s' % (t.get('revision'), TOLERANCE_STATES.get(t.get('state'), ''))
+     if row['origin'] == 'PROBLEM_REVISION':return 'problem sheet, revision %s' % source.get('revision')
+-    if row['origin'] == 'SHEET_CELL':return 'sheet cell %s, revision %s' % (source.get('cell'), source.get('revision'))
++    if row['origin'] == 'SHEET_CELL':return 'sheet cell %s, revision %s' % (source.get('cell'), str(source.get('revision'))[:12])
+     return 'declared in the model'
+ 
+ 
+@@ -399,6 +500,67 @@ def receipt(record):
+     return [line for line in lines if line]
+ 
+ 
++def _shown(name):
++    said = str(name).replace('_', ' ');return said[:1].upper() + said[1:]
++
++
++def _goal_lines(record):
++    """The room and settle lines, in her templates (math_zones.WORDS)."""
++    from .math_zones import WORDS
++    result = record['result'];lines = [];state = record['state']
++    def q(n, toward=None):return '' if n is None else figure(rational(n['rational']), n['unit'], toward)
++    if result.get('share_of_limit') and state == 'HOLDS':
++        lines.append(WORDS['share_of_limit'].format(share=figure(rational(result['share_of_limit']['rational']) * 100, '%')))
++    for m in result['moves'] if state in ('HOLDS', 'FAILS') else ():      # cannot tell: the zones say it instead
++        for side, toward in (('rise', 'down'), ('fall', 'up')):
++            w = m.get(side)
++            if not w:continue
++            word = side if state == 'HOLDS' else 'to_hold_down' if side == 'rise' else 'to_hold_up'
++            lines.append(WORDS[word].format(name=_shown(m['name']) if state == 'HOLDS' else _shown(m['name']).lower(), end=q(w['on_step'] or w['to'], toward),
++                                            exact=exactly(rational(w['to']['rational']), m['unit'])))
++        if m['state'] == ranges.WHOLE_DOMAIN and state == 'HOLDS':lines.append(WORDS['no_move'].format(name=_shown(m['name'])))
++    uses = result.get('uses')
++    if uses and uses['no_room']:lines.append(WORDS['no_room'])
++    elif uses:
++        parts = '; '.join(WORDS['use'].format(name=_shown(k) if not i else _shown(k).lower(), part=q(v)) for i, (k, v) in enumerate(uses['parts'].items()))
++        left = rational(uses['left']['rational'])
++        if left < 0:word = 'uses_over'
++        elif len(uses['parts']) == 1 and not rational(uses['together']['rational']):word = 'uses_alone'
++        else:word = 'uses'
++        lines.append(WORDS[word].format(room=q(uses['at_reading']), parts=parts, together=q(uses['together']), left=q(uses['left']),
++                                        over=figure(-left, uses['left']['unit'], 'up')))
++    if record['stage'] != 'settle':return lines
++    if result.get('first'):lines.append(WORDS['first'].format(name=_shown(result['first']).lower()))
++    for row in result.get('zones') or ():
++        if row.get('state') != 'ANSWERED':continue
++        name = _shown(row['name']);holds, fails = row['holds'] or {}, row['fails'] or {}
++        if result.get('nothing_settles'):
++            lines.append(WORDS['nothing_settles'].format(name=name.lower(), state=HEADINGS[state].lower()));continue
++        if holds.get('upper') and fails.get('lower'):
++            h, f = holds['upper'], fails['lower']
++            lines.append(WORDS['zone'].format(name=name.lower(), holds=('at or below ' if h['closed'] else 'below ') + q(h['value'], 'down'),
++                                              fails=('at or above ' if f['closed'] else 'above ') + q(f['value'], 'up')))
++        elif holds.get('lower') and fails.get('upper'):
++            h, f = holds['lower'], fails['upper']
++            lines.append(WORDS['zone'].format(name=name.lower(), holds=('at or above ' if h['closed'] else 'above ') + q(h['value'], 'up'),
++                                              fails=('at or below ' if f['closed'] else 'below ') + q(f['value'], 'down')))
++        if row['share']:lines.append(WORDS['share'].format(name=name.lower(), share=row['share']['rational']))
++        reading = row.get('reading') or {}
++        accuracy = '+-' + q(reading['accuracy']) if reading.get('accuracy') else ''
++        for key, word in (('holds', 'settles_holds'), ('fails', 'settles_fails')):
++            pair = reading.get(key)
++            if not pair:continue
++            if pair.get('upper') and not pair.get('lower'):side, value = 'below', pair['upper']
++            elif pair.get('lower') and not pair.get('upper'):side, value = 'above', pair['lower']
++            else:continue
++            lines.append(WORDS[word].format(accuracy=accuracy, side=side, reading=q(value, 'down' if side == 'below' else 'up')))
++    for b in result.get('break_even') or ():
++        if b['tolerance'] is None or b['state'] not in ('HOLDS', 'FAILS') or not rational(b['tolerance']['rational']):continue
++        bound = 'at most' if b['closed'] else 'under'
++        lines.append(WORDS['break_even_holds' if b['state'] == 'HOLDS' else 'break_even_fails'].format(name=_shown(b['name']).lower(), bound=bound, tolerance=q(b['tolerance'])))
++    return lines
++
++
+ def words(record):
+     """{'heading', 'answer', 'lines', 'receipt'}: what the window shows for an answer, in the owner's words."""
+     stage, state = record['stage'], record['state']
+@@ -413,6 +575,7 @@ def words(record):
+         if state == 'DENOMINATOR_MAY_BE_ZERO':said = 'Cannot tell: a denominator may be zero over these ranges, so no range is given.'
+     elif state in HEADINGS:
+         verdict = _verdict(record);said = '%s: %s' % (expression, verdict[0].lower() + verdict[1:])
++        if stage in GOAL_STAGES and record.get('result'):lines += _goal_lines(record)
+     elif stage == 'solve':said = _solve_words(record);lines += _solve_lines(record)
+     elif stage == 'calculate':
+         v = record['result']['value'];said = '%s = %s.' % (expression, figure(rational(v['rational']), v['unit']))
+@@ -494,6 +657,46 @@ def bindings_from_problem(problem, args, said=None):
+     return ir, inputs
+ 
+ 
++def cell_unit(unit):
++    """(the calculator's unit, the factor to it) for a sheet's Unit cell, by datasheet_work.report's rule."""
++    from . import quantities
++    unit = str(unit or '').strip()
++    if not unit:ranges.fail('MISSING_INPUT', 'A cell needs a reviewed unit: fill the Unit column, or enter 1 for a plain number')
++    try:
++        unit_spec(unit);return unit, Fraction(1)
++    except ValueError:
++        spec = quantities.resolve(unit)
++        if not spec or not spec.get('kernel_unit'):ranges.fail('UNSUPPORTED', '%s is not a unit the exact calculator supports' % unit)
++        return spec['kernel_unit'], rational(str(spec['factor']))
++
++
++def bindings_from_cells(expression, cells, said=None, stage='check', roles=None, assumptions=()):
++    """(ir, inputs) for a relation over sheet cells: the goal face's bindings. cells: {symbol: {'address', 'cell',
++    'revision', 'value', 'unit'}} as the sheet holds them now (value and unit as reviewed text). Each input's origin is
++    SHEET_CELL and its source {address, cell, revision}; its range comes only from the owner's tolerance on that cell
++    (said: {(address, cell): {id, revision, state, lo, hi}}, lo and hi in the cell's unit) when it APPLIES or is
++    CARRIED_OVER (OWNER_TOLERANCE; one that needs a RECHECK is shown and not applied); roles: {symbol: 'measured' or
++    'limit'}. A cell that is not an exact number, or a unit the calculator does not support, raises with its code."""
++    from .math_model import compile_expression
++    variables = {};inputs = {}
++    for symbol, cell in cells.items():
++        unit, factor = cell_unit(cell.get('unit'))
++        try:value = rational(str(cell.get('value')).strip()) * factor
++        except ValueError:ranges.fail('UNSUPPORTED', '%s needs a reviewed exact number' % cell.get('cell'))
++        variables[symbol] = {'value': str(value), 'unit': unit}
++        row = {'origin': 'SHEET_CELL', 'range': None, 'tolerance': None, 'role': (roles or {}).get(symbol),
++               'source': {'address': cell['address'], 'cell': cell['cell'], 'revision': cell.get('revision')}}
++        tolerance = (said or {}).get((cell['address'], cell['cell']))
++        if tolerance:
++            row['tolerance'] = {'id': tolerance['id'], 'revision': tolerance['revision'], 'state': tolerance['state']}
++            if tolerance['state'] in ('APPLIES', 'CARRIED_OVER') and stage != 'calculate':
++                row.update(origin='OWNER_TOLERANCE', range=(rational(str(tolerance['lo'])) * factor, rational(str(tolerance['hi'])) * factor))
++        inputs[symbol] = row
++    try:ir = compile_expression(expression, variables, list(assumptions))
++    except MathError as exc:ranges.fail(exc.code, str(exc))
++    return ir, inputs
++
++
+ def ask(stage, expression, variables, inputs=None, asked=None, freshness='CURRENT', assumptions=()):
+     """answer() from an expression and declared variables ({name: {unit, value?, lower?, upper?, domain?}}): the model is
+     compiled here, and a model that cannot be compiled (DIMENSION_MISMATCH, MISSING_INPUT, UNSUPPORTED) is the record's state."""
+@@ -506,7 +709,7 @@ def ask(stage, expression, variables, inputs=None, asked=None, freshness='CURREN
+ 
+ def line(problem, freshness, args, said=None):
+     """The answer to one maths line on a problem sheet as it stands; `said`: the owner's tolerances for it."""
+-    asked = {k: args[k] for k in ('expression', 'for', 'within', 'step', 'unit') if k in args}
++    asked = {k: args[k] for k in ('expression', 'for', 'within', 'step', 'unit', 'accuracy') if k in args}
+     try:ir, inputs = bindings_from_problem(problem, args, said)
+     except (ValueError, ZeroDivisionError) as exc:return refused(args['stage'], asked, _code(exc), str(exc), freshness)
+     return answer(args['stage'], ir, inputs, asked, freshness)
+diff --git a/workbench/math_zones.py b/workbench/math_zones.py
+new file mode 100644
+index 0000000..f5c2f37
+--- /dev/null
++++ b/workbench/math_zones.py
+@@ -0,0 +1,402 @@
++"""The exact goal face (0.8.6, "Kas's mind, no model"): room to spare, what uses it, the three zones of an input and what a
++reading would settle, worked out on the one maths core.
++
++Pure: Fraction arithmetic over math_ranges (allowed, enclose, check_box, corner_witness), which stays exactly as it is.
++No Qt, no Kernel, no language model, no SymPy or Z3, and no float anywhere.
++
++  room              the margin at the reading and at the worst corner of the ranges, as a share of the limit, and how far
++                    each input may move before the relation changes (allowed, with the other inputs at their ranges; the
++                    end on whole steps, rounded inward, each end rechecked at its corner and one step past it).
++  swings            how much of the spread each ranged input causes on its own (the effects over the ranges).
++  consumption       how much of the room at the reading each range uses on its own, what they use together beyond that,
++                    and what is left: the parts add up to the room at the reading exactly.
++  leverage          what a rise of 1 % in one input does to the room, as an exact share of it.
++  zones             for one input: where the relation holds whatever the other inputs are, where it does not hold whatever
++                    they are, and the share of the input's own range those two zones decide (decisive_share).
++  settling_reading  with a meter good to +-a: the readings that settle it each way, rounded inward, each rechecked at both
++                    ends of the meter by check_box.
++  break_even        the tolerance on one input (+- around its reading) up to which the state stays as it is.
++  break_even_factor the common factor (1+r1)(1+r2)... a product of positive inputs may grow by before the state changes.
++  joined            goals joined with "and", through stac/evidence.py's truth_and.
++  value_of_information  what a reading of one input is worth to joined goals: 0 when one of them already does not hold
++                    whatever the values.
++  two_readings      two readings of one quantity: what both allow, or CONFLICT when their ranges do not meet.
++  order             goals in the order her card lists them: does not hold, cannot tell, then holds with the least room
++                    (as a share of the limit) first. That order is a convention, and the words say so.
++
++A box maps an input's name to (lo, hi) in its declared unit, as in math_ranges. Margins are in the relation's own unit (its
++left side's), turned so that a positive margin means room to spare: right - left for <= and <, left - right for >= and >.
++"Equal" and "not equal" have no room, so they are refused with the reason. Every failure is a math_ranges.RangeError with a
++code; math_answers turns it into a state.
++
++WORDS are her templates for these answers. None of them says "chance", "likely", "probability", "risk of" or "safe": a share
++of a range is a share of the range, and the words never say otherwise.
++"""
++from __future__ import annotations
++import copy
++from fractions import Fraction
++from . import math_ranges as ranges
++from .math_model import RELATIONS, MathError, validate
++from .math_units import rational, unit_spec
++from .stac.evidence import EvidenceSupport, truth_and
++
++HOLDS, FAILS, UNDECIDED, CONFLICT = ranges.HOLDS, ranges.FAILS, ranges.UNDECIDED, 'CONFLICT'
++OPPOSITE = {'le': 'gt', 'lt': 'ge', 'ge': 'lt', 'gt': 'le'}      # "does not hold" of each relation with room
++RISE = Fraction(101, 100)        # leverage: a rise of 1 %
++WHOLE = Fraction(1)              # the step an end is rounded to unless another is given: whole units of the input's unit
++RANK = {FAILS: 0, UNDECIDED: 1, CONFLICT: 1, HOLDS: 2}
++
++# Her words for the goal face. Fixed words with slots; every number slot is filled from an answer with its receipt.
++WORDS = {
++    'room_holds': 'It holds, with {spare} to spare at worst: {share} of the limit.',
++    'room_fails': 'It does not hold: over by {over}.',
++    'room_undecided': 'Cannot tell: from {spare} to spare down to {over} over, across the ranges.',
++    'share_of_limit': 'At worst, the room is {share} of the limit.',
++    'rise': '{name} may rise to {end} before it stops holding ({exact} exactly).',
++    'fall': '{name} may fall to {end} before it stops holding ({exact} exactly).',
++    'no_move': '{name} may take any value here without changing it.',
++    'to_hold_down': 'For it to hold, {name} would have to be at most {end} ({exact} exactly).',
++    'to_hold_up': 'For it to hold, {name} would have to be at least {end} ({exact} exactly).',
++    'uses': 'At the reading there is {room} of room. {parts}. Together they use {together} more, which leaves {left}.',
++    'uses_alone': 'At the reading there is {room} of room. {parts}, which leaves {left}.',
++    'uses_over': 'At the reading there is {room} of room. {parts}. Together they use {together} more: at worst it is over by {over}.',
++    'use': '{name} uses {part}',
++    'no_room': 'There is no room left at the reading, so no share of it is given.',
++    'zone': 'With {name} {holds}, it holds whatever the others are; {fails}, it does not hold whatever they are.',
++    'share': 'A reading of {name} settles it over {share} of its range. These are shares of the range: every part of it counts the same.',
++    'first': 'Measure {name} first.',
++    'settles_holds': 'With a meter good to {accuracy}, a reading at or {side} {reading} settles it: it holds.',
++    'settles_fails': 'With a meter good to {accuracy}, a reading at or {side} {reading} settles it: it does not hold.',
++    'nothing_settles': 'No reading of {name} can change this: it {state} whatever the values.',
++    'break_even_holds': 'It holds while the tolerance on {name} is {bound} {tolerance}; beyond that I cannot tell.',
++    'break_even_fails': 'It does not hold while the tolerance on {name} is {bound} {tolerance}; from there on I cannot tell.',
++    'joined_fails': 'Measuring {name} cannot change this: {goal} already does not hold.',
++    'order': 'Listed: what does not hold, then what I cannot tell, then what holds with the least room first, as a share of the limit.',
++}
++
++
++# -- the relation ---------------------------------------------------------------------------------------------------------
++
++def relation_of(ir):
++    """The relation of the model's output, one with room (<=, <, >=, >); otherwise UNSUPPORTED with the reason."""
++    op = ranges.nodes_of(ir)[ranges.output(ir)]['op']
++    if op not in RELATIONS:ranges.fail('UNSUPPORTED', 'Room needs one comparison, such as <=')
++    if op not in OPPOSITE:ranges.fail('UNSUPPORTED', 'Equal and not equal have no room to spare; ask with <= or >= instead')
++    return op
++
++
++def unit_of(ir, node=None):
++    """The unit the relation is said in: its own signature's (its left side's)."""
++    return ir['signatures'][node or ranges.output(ir)]['unit']
++
++
++def _own(ir, base):
++    return Fraction(base) / unit_spec(unit_of(ir))[1]
++
++
++def margin(ir, box=None):
++    """(lo, hi, status) of the margin over the box, in the relation's own unit: positive is room to spare."""
++    relation = relation_of(ir);slack = ranges.enclose(ir, box)
++    lo, hi = (slack.lo, slack.hi) if relation in ('le', 'lt') else (-slack.hi, -slack.lo)
++    return _own(ir, lo), _own(ir, hi), slack.status
++
++
++def at_reading(ir):
++    """The margin at the declared values: one exact number in the relation's unit."""
++    return margin(ir, {})[0]
++
++
++def opposite(ir):
++    """The same model with its relation turned to "does not hold" (<= to >, < to >=, and back)."""
++    relation = relation_of(ir);model = copy.deepcopy(ir['model'])
++    for node in model['nodes']:
++        if node['id'] == ranges.output(ir):node['op'] = OPPOSITE[relation]
++    try:return validate(model)
++    except MathError as exc:ranges.fail(exc.code, str(exc))
++
++
++def declared(ir, name):
++    v = ir['model']['variables'].get(name)
++    if v is None:ranges.fail('MISSING_INPUT', 'The relation does not use ' + str(name))
++    return rational(v['value']) if 'value' in v else None
++
++
++def _box(ir, box):
++    return ranges.checked_box(ir, box)
++
++
++def _others(box, name):
++    return {k: v for k, v in box.items() if k != name}
++
++
++# -- rounding to steps (math_ranges' rule: inward, and an open end on the lattice moves one step in) -----------------------
++
++def _down(value, closed, step):
++    k = value // step
++    if not closed and k * step == value:k -= 1
++    return k * step
++
++
++def _up(value, closed, step):
++    k = -((-value) // step)
++    if not closed and k * step == value:k += 1
++    return k * step
++
++
++# -- room -----------------------------------------------------------------------------------------------------------------
++
++def room(ir, box=None, step=None, roles=None):
++    """The room of a relation over the box: {'relation', 'unit', 'state', 'for_all', 'at_reading', 'worst', 'best',
++    'status', 'limit' (the right side at the declared values), 'share_of_limit' (worst / limit), 'moves' (for each input
++    that is not a limit: how far it may move, with the others at their ranges)}. step: {name: step} or one step for all,
++    in each input's declared unit; whole units when not given."""
++    relation = relation_of(ir);box = _box(ir, box);roles = dict(roles or {})
++    found = ranges.check_box(ir, box)
++    worst, best, status = margin(ir, box)
++    node = ranges.nodes_of(ir)[ranges.output(ir)]
++    limit = None
++    try:
++        right = ranges.enclose(ir, {}, node['right'])
++        if right.lo == right.hi:limit = _own(ir, right.lo)        # a limit with no range of its own
++    except ranges.RangeError:limit = None
++    try:reading = at_reading(ir)
++    except ranges.RangeError:reading = None
++    share = worst / abs(limit) if limit else None
++    moves = []
++    for name in sorted(ir['model']['variables']):
++        if roles.get(name) == 'limit':continue
++        moves.append(move(ir, box, name, step.get(name) if isinstance(step, dict) else step))
++    return {'relation': relation, 'unit': unit_of(ir), 'state': found['state'], 'for_all': found['for_all'], 'at_reading': reading,
++            'worst': worst, 'best': best, 'status': status, 'limit': limit, 'share_of_limit': share, 'moves': moves}
++
++
++def move(ir, box, name, step=None):
++    """How far `name` may move before the relation stops holding, with the other inputs at their ranges: the exact ends,
++    the ends on whole steps (rounded inward), the distance from the reading and its share of the reading, and each end
++    rechecked by math_model.evaluate at the corner that sets it and one step past it. A move that cannot be worked out
++    keeps its reason."""
++    box = _box(ir, box);v = ir['model']['variables'][name];here = declared(ir, name)
++    step = ranges.exact(step) if step is not None else WHOLE
++    row = {'name': name, 'unit': v['unit'], 'declared': here, 'step': step, 'state': None, 'lower': None, 'upper': None,
++           'lattice': None, 'rise': None, 'fall': None, 'rechecked': None, 'ends': [], 'beyond': [], 'reason': ''}
++    try:found = ranges.allowed(ir, name, _others(box, name), step=step)
++    except ranges.RangeError as exc:
++        row.update(state=exc.code, reason=str(exc));return row
++    row.update(state=found['state'], lower=found['lower'], upper=found['upper'], lattice=found['lattice'], ends=found['ends'],
++               beyond=found['beyond'], reason=found['reason'])
++    if found['ends']:
++        row['rechecked'] = all(e['holds'] is True for e in found['ends']) and all(b['holds'] is False for b in found['beyond'])
++    if here is not None and found['state'] == ranges.ALLOWED:
++        upper, lower = found['upper'], found['lower']
++        if upper and upper['by'] == 'relation':
++            row['rise'] = {'to': upper['value'], 'on_step': (found['lattice'] or {}).get('upper'), 'by': upper['value'] - here,
++                           'share': (upper['value'] - here) / abs(here) if here else None}
++        if lower and lower['by'] == 'relation':
++            row['fall'] = {'to': lower['value'], 'on_step': (found['lattice'] or {}).get('lower'), 'by': here - lower['value'],
++                           'share': (here - lower['value']) / abs(here) if here else None}
++    return row
++
++
++def order(judged):
++    """Goals in the order her card lists them: does not hold, cannot tell, then holds with the least room first as a share
++    of the limit (the room itself where there is no limit). judged: [(key, room)] -> the keys in that order."""
++    def key(item):
++        name, said = item
++        share = said.get('share_of_limit');share = said.get('worst') if share is None else share
++        return (RANK.get(said.get('state'), 1), share if share is not None else Fraction(0), str(name))
++    return [name for name, _ in sorted(judged, key=key)]
++
++
++# -- what moves it, and what uses the room --------------------------------------------------------------------------------
++
++def swings(ir, box):
++    """How much of the spread each ranged input causes on its own, the others at their declared values: {'whole': width
++    with every range, 'by': {name: width}, 'shares': {name: width / whole}} in the relation's unit (for an expression that
++    is not a relation, in its own unit). Never per-unit derivatives: W/V and W/mA cannot be compared."""
++    box = _box(ir, box)
++    def width(part):
++        e = ranges.enclose(ir, part);return _own(ir, e.hi - e.lo)
++    whole = width(box);by = {name: width({name: box[name]}) for name in sorted(box)}
++    return {'whole': whole, 'by': by, 'shares': {name: (w / whole if whole else None) for name, w in by.items()}}
++
++
++def consumption(ir, box):
++    """What uses the room: {'at_reading', 'uses': {name: the room its range uses on its own}, 'together': what the ranges
++    use together beyond the parts, 'left': the room left at the worst corner, 'no_room'}. The identity holds exactly:
++    sum(uses) + together + left == at_reading."""
++    relation_of(ir);box = _box(ir, box)
++    here = at_reading(ir);worst = margin(ir, box)[0]
++    uses = {name: here - margin(ir, {name: box[name]})[0] for name in sorted(box)}
++    together = (here - worst) - sum(uses.values(), Fraction(0))
++    return {'at_reading': here, 'uses': uses, 'together': together, 'left': worst, 'no_room': here <= 0}
++
++
++def leverage(ir, name, rise=RISE):
++    """What a rise of 1 % in `name` does to the room at the reading, as an exact share of that room (negative: it takes
++    room). None when there is no room at the reading to take a share of."""
++    relation_of(ir);here = at_reading(ir);value = declared(ir, name)
++    if value is None:ranges.fail('MISSING_INPUT', 'No value for ' + name)
++    if not here:return None
++    moved = margin(ir, {name: (value * rise, value * rise)})[0]
++    return (moved - here) / here
++
++
++# -- the three zones of an input, and what a reading would settle ---------------------------------------------------------
++
++def _piece(found):
++    """(lower, upper) of an allowed set, each (value, closed) or None; None for an empty one."""
++    if found['state'] == ranges.EMPTY:return None
++    lower, upper = found['lower'], found['upper']
++    return (None if lower is None else (lower['value'], lower['closed']), None if upper is None else (upper['value'], upper['closed']))
++
++
++def _length(piece, lo, hi):
++    if piece is None:return Fraction(0)
++    lower, upper = piece
++    a = lo if lower is None else max(lo, lower[0]);b = hi if upper is None else min(hi, upper[0])
++    return max(Fraction(0), b - a)
++
++
++def zones(ir, box, name, within=None):
++    """The three zones of `name`, the other inputs at their ranges: {'name', 'unit', 'range' (its own range, or its
++    reading), 'holds' and 'fails' (the zones as (lower, upper) ends, each (value, closed) or None; None when empty),
++    'decided' (the length of each inside its range), 'share' (the decisive share: the decided length over the range's
++    width; None for a range of one value)}. The zones come from two allowed calls: the relation, and its opposite."""
++    relation_of(ir);box = _box(ir, box);v = ir['model']['variables'].get(name)
++    if v is None:ranges.fail('MISSING_INPUT', 'The relation does not use ' + str(name))
++    if name in box:lo, hi = box[name]
++    else:
++        here = declared(ir, name)
++        if here is None:ranges.fail('MISSING_INPUT', 'No value or range for ' + name)
++        lo = hi = here
++    others = _others(box, name)
++    holds = _piece(ranges.allowed(ir, name, others, within))
++    fails = _piece(ranges.allowed(opposite(ir), name, others, within))
++    decided = {'holds': _length(holds, lo, hi), 'fails': _length(fails, lo, hi)}
++    share = (decided['holds'] + decided['fails']) / (hi - lo) if hi > lo else None
++    return {'name': name, 'unit': v['unit'], 'range': (lo, hi), 'holds': holds, 'fails': fails, 'decided': decided, 'share': share}
++
++
++def decisive_share(ir, box, name):
++    """The share of `name`'s range over which a reading of it settles the relation, exactly."""
++    return zones(ir, box, name)['share']
++
++
++def _readings(piece, accuracy, step):
++    """The readings r with [r - a, r + a] inside the zone, rounded inward to the step: (lower, upper), each a value or None;
++    None when no reading fits."""
++    if piece is None:return None
++    lower, upper = piece
++    low = None if lower is None else _up(lower[0] + accuracy, lower[1], step)
++    high = None if upper is None else _down(upper[0] - accuracy, upper[1], step)
++    if low is not None and high is not None and low > high:return None
++    return low, high
++
++
++def settling_reading(ir, box, name, accuracy, step=None):
++    """With a meter good to +-accuracy on `name` (its declared unit), the readings that settle the relation each way,
++    rounded inward to the step (whole units unless given), each rechecked at both ends of the meter by check_box with the
++    other inputs at their ranges: {'name', 'unit', 'accuracy', 'step', 'holds' and 'fails' ((lower, upper) of the
++    readings that settle it that way, or None), 'rechecks' [{'reading', 'range', 'expected', 'state'}], 'checked'}."""
++    accuracy = ranges.exact(accuracy);step = ranges.exact(step) if step is not None else WHOLE
++    if accuracy < 0:ranges.fail('DOMAIN_ERROR', 'Say a meter\'s accuracy as a size')
++    if step <= 0:ranges.fail('UNSUPPORTED', 'A step is a positive number')
++    box = _box(ir, box);found = zones(ir, box, name);others = _others(box, name)
++    said = {'name': name, 'unit': found['unit'], 'accuracy': accuracy, 'step': step,
++            'holds': _readings(found['holds'], accuracy, step), 'fails': _readings(found['fails'], accuracy, step), 'rechecks': []}
++    for expected in (HOLDS, FAILS):
++        readings = said['holds' if expected == HOLDS else 'fails']
++        if not readings:continue
++        for reading in readings:
++            if reading is None:continue
++            span = (reading - accuracy, reading + accuracy)
++            try:state = ranges.check_box(ir, {**others, name: span})['state']
++            except ranges.RangeError as exc:state = exc.code
++            said['rechecks'].append({'reading': reading, 'range': span, 'expected': expected, 'state': state})
++    said['checked'] = all(row['state'] == row['expected'] for row in said['rechecks']) if said['rechecks'] else None
++    return said
++
++
++# -- break-even -----------------------------------------------------------------------------------------------------------
++
++def break_even(ir, box, name):
++    """The tolerance on `name` (+- around its reading, the other inputs at their ranges) up to which the state stays as it
++    is: {'name', 'unit', 'state' (at the reading), 'tolerance' (exact, in its declared unit; None when no tolerance changes
++    it), 'closed' (True: the state stays at that tolerance too; False: only below it), 'then' (UNDECIDED)}. A state that
++    is already UNDECIDED at the reading has a tolerance of 0."""
++    relation_of(ir);box = _box(ir, box);others = _others(box, name);here = declared(ir, name)
++    if here is None:ranges.fail('MISSING_INPUT', 'No value for ' + name)
++    state = ranges.check_box(ir, others)['state']
++    unit = ir['model']['variables'][name]['unit']
++    if state == UNDECIDED:return {'name': name, 'unit': unit, 'state': state, 'tolerance': Fraction(0), 'closed': False, 'then': UNDECIDED}
++    piece = _piece(ranges.allowed(ir if state == HOLDS else opposite(ir), name, others))
++    nearest = None
++    for end, distance in ((piece[0], None if piece[0] is None else here - piece[0][0]), (piece[1], None if piece[1] is None else piece[1][0] - here)):
++        if distance is None:continue
++        candidate = (distance, end[1])
++        if nearest is None or distance < nearest[0] or (distance == nearest[0] and not end[1]):nearest = candidate
++    if nearest is None:return {'name': name, 'unit': unit, 'state': state, 'tolerance': None, 'closed': True, 'then': state}
++    return {'name': name, 'unit': unit, 'state': state, 'tolerance': nearest[0], 'closed': nearest[1], 'then': UNDECIDED}
++
++
++def _product(ir, node):
++    """The variables of a node that is a product of variables only, each once; None otherwise."""
++    nodes = ranges.nodes_of(ir);found = []
++    def walk(ident):
++        n = nodes[ident]
++        if n['op'] == 'variable':found.append(n['name']);return True
++        return n['op'] == 'mul' and walk(n['left']) and walk(n['right'])
++    if not walk(node) or len(set(found)) != len(found):return None
++    return sorted(found)
++
++
++def break_even_factor(ir):
++    """For "a product of positive inputs <= a limit" (or >=): the common factor (1+r1)(1+r2)... the product may grow by
++    (or shrink by, for >=) before it reaches the limit, exactly: limit / product at the reading. None when the left side
++    is not a product of inputs each used once, or a value is not positive."""
++    relation = relation_of(ir);node = ranges.nodes_of(ir)[ranges.output(ir)]
++    names = _product(ir, node['left'])
++    if not names:return None
++    values = [declared(ir, n) for n in names]
++    if any(v is None or v <= 0 for v in values):return None
++    left = ranges.enclose(ir, {}, node['left']).lo;right = ranges.enclose(ir, {}, node['right'])
++    if right.lo != right.hi or left <= 0 or right.lo <= 0:return None
++    factor = right.lo / left
++    return {'names': names, 'factor': factor if relation in ('le', 'lt') else 1 / factor, 'relation': relation}
++
++
++# -- joined goals, and two readings ---------------------------------------------------------------------------------------
++
++SUPPORT = {HOLDS: EvidenceSupport(True, False), FAILS: EvidenceSupport(False, True), UNDECIDED: EvidenceSupport(False, False),
++           CONFLICT: EvidenceSupport(True, True)}
++
++
++def state_of(support):
++    return {(True, False): HOLDS, (False, True): FAILS, (False, False): UNDECIDED, (True, True): CONFLICT}[(support.positive, support.negative)]
++
++
++def joined(states):
++    """Goals joined with "and": the Belnap conjunction of their states (stac/evidence.truth_and)."""
++    states = list(states)
++    if not states:ranges.fail('MISSING_INPUT', 'Join at least one goal')
++    found = SUPPORT[states[0]]
++    for state in states[1:]:found = truth_and(found, SUPPORT[state])
++    return state_of(found)
++
++
++def value_of_information(parts, name):
++    """What a reading of `name` is worth to goals joined with "and": parts [{'state', 'shares': {input: decisive share}}].
++    0 when the joined goals already hold or already do not hold whatever the values (a conjunct does not hold); otherwise
++    the largest decisive share it has on a goal it touches that cannot be told. Exact."""
++    parts = list(parts);state = joined(p['state'] for p in parts)
++    if state in (HOLDS, FAILS):return Fraction(0)
++    shares = [p['shares'][name] for p in parts if p['state'] in (UNDECIDED, CONFLICT) and p.get('shares', {}).get(name) is not None]
++    return max(shares) if shares else Fraction(0)
++
++
++def two_readings(a, b):
++    """Two readings of one quantity, each (lo, hi): {'state': CONFLICT when their ranges do not meet ("cannot tell: the
++    two readings cannot both be right"), otherwise None with 'both' the range both allow}."""
++    lo, hi = max(ranges.exact(a[0]), ranges.exact(b[0])), min(ranges.exact(a[1]), ranges.exact(b[1]))
++    if lo > hi:return {'state': CONFLICT, 'both': None}
++    return {'state': None, 'both': (lo, hi)}
+diff --git a/workbench/mind_types.py b/workbench/mind_types.py
+new file mode 100644
+index 0000000..8add487
+--- /dev/null
++++ b/workbench/mind_types.py
+@@ -0,0 +1,165 @@
++"""The shapes of her mind (0.8.6, "Kas's mind, no model"): the open point, a way the desk could be, an open leaf, a
++judgement and the one budget. Written first and frozen: either_way, settle, reasons, rules and her words all read these,
++and they change only by agreement between the lanes.
++
++  OpenPoint   one "cannot tell", with who settles it and what would settle it. Computed on read and never stored.
++  Leaf        one open premise of a judgement: is it decisive alone, or only in a pair, and the zone or the candidate values
++              it could take.
++  Way         one way the desk could be read (a choice of revision, of limit, of reading), and the state under it.
++  Judgement   a goal or a rule judged over every way the desk knows: the state, the ways, the open points, the proof's
++              digest, what it rests on, and the budget used. model_calls is 0 in 0.8.6.
++  Budget      every limit of her mind in one place, and the one sentence for a partial answer.
++
++WHO_ANSWERS is the closed table of who answers which open premise; who() reads it, and a premise that is not in it goes to
++you. The words a sort carries on screen are WHO_WORDS: "your records", "the maths", "you", "the model", "a new reading".
++
++Pure Python: no Qt, no Kernel, no model. Every number in these shapes is an exact Fraction or an int, never a float.
++"""
++from __future__ import annotations
++from dataclasses import dataclass, field, asdict
++from fractions import Fraction
++
++# The four values of a judgement, as stac/evidence.py's Belnap lattice names them on the maths' side.
++HOLDS, FAILS, UNDECIDED, CONFLICT = 'HOLDS', 'FAILS', 'UNDECIDED', 'CONFLICT'
++STATES = (HOLDS, FAILS, UNDECIDED, CONFLICT)
++STATE_WORDS = {HOLDS: 'holds', FAILS: 'does not hold', UNDECIDED: 'cannot tell', CONFLICT: 'cannot tell: two readings cannot both be right'}
++
++# What sort of thing is open.
++FACT_MISSING, AUTHORITY, MEANING, TIE, DECISION = 'FACT_MISSING', 'AUTHORITY', 'MEANING', 'TIE', 'DECISION'
++KINDS = (FACT_MISSING, AUTHORITY, MEANING, TIE, DECISION)
++
++# Who settles it, and how that is said on screen.
++RECORDS, MATHS, YOU, MODEL, WORLD = 'RECORDS', 'MATHS', 'YOU', 'MODEL', 'WORLD'
++WHO = (RECORDS, MATHS, YOU, MODEL, WORLD)
++WHO_WORDS = {RECORDS: 'your records', MATHS: 'the maths', YOU: 'you', MODEL: 'the model', WORLD: 'a new reading'}
++
++# Whether a leaf decides the point by itself, only together with one other leaf, or not within the budget.
++ALONE, PAIR, NOT_DECISIVE = 'ALONE', 'PAIR', 'NOT_DECISIVE'
++DECISIVE = (ALONE, PAIR, NOT_DECISIVE)
++
++# The closed table of who answers what (design section 3.1). premise sort -> (who, kind).
++WHO_ANSWERS = {
++    'ROW_NOT_READ': (RECORDS, FACT_MISSING),           # a row or cell already on the desk, not yet read: "I read row 3 of Rev B"
++    'VALUE_TO_WORK_OUT': (MATHS, FACT_MISSING),        # she works it out; no question
++    'REVISION': (YOU, AUTHORITY),                      # which revision or limit applies
++    'TOLERANCE': (YOU, AUTHORITY),
++    'CONVENTION': (YOU, AUTHORITY),                    # a counting, calendar or unit convention
++    'SOURCE_GOVERNS': (YOU, AUTHORITY),                # which source governs
++    'RULE_READING': (YOU, MEANING),                    # how a rule's words read
++    'SHEET_COMPLETE': (YOU, AUTHORITY),                # whether a sheet is complete
++    'OWN_ACCOUNT': (YOU, FACT_MISSING),                # your own account
++    'ALWAYS_ASKS': (YOU, AUTHORITY),                   # anything stacy_hand.ALWAYS_ASKS covers
++    'WHICH_GOAL': (MODEL, MEANING),                    # which numbered goal or row your words pointed at: the model if loaded, else you
++    'NEW_READING': (WORLD, FACT_MISSING),              # a measurement or document not yet on the desk
++    'SHOULD_I': (YOU, DECISION),                       # "should I ...": the fixed decline, and everything she can compute
++}
++
++
++def who(premise, model_loaded=False):
++    """(who, kind) for an open premise of this sort. A sort that only the model could read goes to you when no model is
++    loaded; a sort not in the table goes to you, as an authority."""
++    found_who, kind = WHO_ANSWERS.get(premise, (YOU, AUTHORITY))
++    if found_who == MODEL and not model_loaded:found_who = YOU
++    return found_who, kind
++
++
++def _plain(value):
++    """A shape as plain JSON-ready data: a Fraction as its exact text, tuples as lists."""
++    if isinstance(value, Fraction):return str(value)
++    if isinstance(value, dict):return {str(k): _plain(v) for k, v in value.items()}
++    if isinstance(value, (list, tuple)):return [_plain(v) for v in value]
++    return value
++
++
++@dataclass(frozen=True)
++class Budget:
++    """Every limit of her mind (design section 3.5). Past any of them she says sentence(): what was tried, what is sound,
++    and what she could not reach."""
++    ways: int = 64                       # ways of reading the desk worked out for one question
++    groups: int = 729                    # groups of ways
++    proof_nodes: int = 64                # proof closure: reason_graph's own budgets
++    proof_rules: int = 128
++    settle_leaves: int = 12              # open leaves weighed by settle; pairs only when no single leaf decides
++    make_hold_sets: int = 3              # "would make it hold" sets
++    planner_expansions: int = 4096
++    planner_acts: int = 12
++    proof_lines: int = 12                # proof lines shown
++
++    @staticmethod
++    def sentence(tried, of, unreached=''):
++        """The one sentence for a partial answer."""
++        said = 'I tried %d of %d; this much is sound' % (tried, of)
++        return said + ('; this is what I could not reach: %s.' % unreached if unreached else '.')
++
++    def as_record(self):return asdict(self)
++
++
++BUDGET = Budget()
++
++
++@dataclass(frozen=True)
++class Leaf:
++    """One open premise: what it is about, its sort in WHO_ANSWERS, who settles it, whether it decides alone or in a pair,
++    and its zone (a numeric leaf: the values that settle it each way) or its candidate values (a choice)."""
++    id: str
++    about: tuple = ()                    # record ids, or (sheet, cell) references as text
++    premise: str = 'VALUE_TO_WORK_OUT'   # a key of WHO_ANSWERS
++    who: str = MATHS
++    decisive: str = NOT_DECISIVE
++    share: Fraction | None = None        # for a numeric leaf: the share of its range a reading of it settles
++    zone: dict = field(default_factory=dict)          # {'holds': end, 'fails': end} of a numeric leaf
++    values: tuple = ()                   # the candidate values of a choice
++    words: str = ''
++
++    def as_record(self):return _plain(asdict(self))
++
++
++@dataclass(frozen=True)
++class Way:
++    """One way the desk could be read: the choices that make it ((what was chosen, the choice), ...) and the state under
++    it, with the room and the digest of the answer it came from."""
++    choices: tuple = ()
++    state: str = UNDECIDED
++    room: tuple | None = None            # (lo, hi) to spare, exact, in `unit`; negative: over by
++    unit: str = ''
++    answer: str = ''                     # the digest of the ledger.math-answer/1 (or the rule's evaluation) it rests on
++    words: str = ''
++
++    def as_record(self):return _plain(asdict(self))
++
++
++@dataclass(frozen=True)
++class OpenPoint:
++    """One "cannot tell": what it is about, its kind and who settles it, the open leaves, for each way it could be
++    settled the state and the room, the digest of the proof it came from, and what was tried."""
++    about: tuple
++    kind: str = FACT_MISSING
++    who: str = YOU
++    leaves: tuple = ()                   # Leaf, decisive alone first, then pairs
++    outcomes: tuple = ()                 # Way: "Rev B applies: does not hold, 2 to 8 ms over"
++    proof: str = ''
++    budget: tuple = (0, 0, '')           # (tried, of, the sentence when it is a partial answer)
++
++    @property
++    def who_words(self):return WHO_WORDS[self.who]
++
++    def as_record(self):return _plain({**asdict(self), 'who_words': self.who_words})
++
++
++@dataclass(frozen=True)
++class Judgement:
++    """A goal or a rule judged over every way the desk knows: its state (one of STATES, or DEPENDS when the ways disagree),
++    the ways, the open points, the proof's digest, what it rests on and the budget used. Kasandra asks no model in 0.8.6."""
++    about: tuple
++    state: str = UNDECIDED
++    ways: tuple = ()
++    open_points: tuple = ()
++    proof: str = ''
++    rests_on: tuple = ()
++    budget: tuple = (0, 0, '')
++    model_calls: int = 0
++
++    def as_record(self):return _plain(asdict(self))
++
++
++DEPENDS = 'DEPENDS'                      # a Judgement's state when its ways disagree: "it depends on one thing"
+diff --git a/workbench/stacy_hand.py b/workbench/stacy_hand.py
+index b7e5bc2..fd216bf 100644
+--- a/workbench/stacy_hand.py
++++ b/workbench/stacy_hand.py
+@@ -58,7 +58,7 @@ ALWAYS_ASKS = (
+     (('power.*', 'session.*'), 'it ends the session or turns this computer off'),
+     (('releases.*', 'repairs.*', '*.install'), 'it changes the program itself'),
+     (('shell.*', 'terminal.*'), 'a command in the Terminal can do anything'),
+-    (('tolerances.set',), 'a tolerance is yours to say: it decides what I conclude'),
++    (('tolerances.set', 'tolerances.set_cell'), 'a tolerance is yours to say: it decides what I conclude'),   # 0.8.6 S1: on a sheet's cell too
+ )
+ LEAVES = ('address', 'peer', 'url', 'host', 'recipient')      # an argument by one of these names reaches another computer
+ 
+diff --git a/workbench/tolerances.py b/workbench/tolerances.py
+index e675025..180224f 100644
+--- a/workbench/tolerances.py
++++ b/workbench/tolerances.py
+@@ -15,12 +15,23 @@ the sheet moved on but this quantity's value and unit did not; RECHECK when they
+ Nothing is written in the background. Which range applies decides what Kasandra concludes, so tolerances.set is approve
+ scope and also among what always asks in her hand (stacy_hand.ALWAYS_ASKS): her calls run as the operator, who holds
+ approve scope, so that row is the real guard.
++
++The goal slice (0.8.6 S1) adds tolerances on a reviewed sheet's cells, the subject {address, cell} ('office:' and the
++sheet's id; a Value-column cell such as B5), said in the cell's own unit and held against the sheet the same way:
++APPLIES at the sheet revision it was said on, CARRIED_OVER while that cell's value and unit are unchanged, RECHECK when
++they changed. Her goals read them through on_cells.
++
++  tolerances.set_cell {sheet, cell, expected_revision (the sheet's), said, amount | lo and hi, basis}   approve
+ """
+ from __future__ import annotations
+ from fractions import Fraction
+ from . import project_desk as records, problem_service as problems
+ from .math_units import rational
+ 
++SHEET_ID = {'type': 'string', 'pattern': '^owner:[a-f0-9]{32}$'}      # a working sheet of the office store (office_service.ID)
++SHEET_REVISION = {'type': 'string', 'pattern': '^[a-f0-9]{64}$'}
++CELL = {'type': 'string', 'pattern': '^B[1-9][0-9]{0,2}$'}           # a Value-column cell
++
+ KIND = 'tolerance'
+ SCHEMA = 'ledger.tolerance/1'
+ SAID = ('plus_minus', 'percent', 'between')
+@@ -33,8 +44,13 @@ FIELDS = {
+     'tolerances.set': ({**problems.BOUND, 'variable': NAME, 'said': {'type': 'string', 'enum': list(SAID)}, 'amount': NUMBER,
+                         'lo': NUMBER, 'hi': NUMBER, 'basis': {'type': 'string', 'minLength': 1, 'maxLength': 1000}},
+                        [*problems.BOUND, 'variable', 'said', 'basis']),
++    # 0.8.6 S1 (the exact goal face): a tolerance on a reviewed sheet's Value cell
++    'tolerances.set_cell': ({'sheet': SHEET_ID, 'cell': CELL, 'expected_revision': SHEET_REVISION, 'said': {'type': 'string', 'enum': list(SAID)},
++                             'amount': NUMBER, 'lo': NUMBER, 'hi': NUMBER, 'basis': {'type': 'string', 'minLength': 1, 'maxLength': 1000}},
++                            ['sheet', 'cell', 'expected_revision', 'said', 'basis']),
+ }
+-SCOPES = {op: 'approve' if op == 'tolerances.set' else 'read' for op in FIELDS}
++WRITES = ('tolerances.set', 'tolerances.set_cell')
++SCOPES = {op: 'approve' if op in WRITES else 'read' for op in FIELDS}
+ 
+ 
+ def span(said, value, args):
+@@ -67,6 +83,77 @@ def state(value, problem):
+     return 'APPLIES' if problem['revision'] == at['revision'] else 'CARRIED_OVER'
+ 
+ 
++def sheet_cell(saved, cell):
++    """A Value-column cell of a working sheet as it stands: {'address', 'sheet', 'cell', 'revision', 'value', 'unit',
++    'parameter', 'conditions', 'title'}, the value and unit as the sheet holds them (text); None when it is not there."""
++    cells = ((saved.get('document') or {}).get('sheets') or [{}])[0].get('cells') or {}
++    row = str(cell)[1:]
++    if not str(cell).startswith('B') or not row.isdigit() or cell not in cells:return None
++    def text(column):return str((cells.get(column + row) or {}).get('value') or '').strip()
++    return {'address': 'office:' + saved['id'], 'sheet': saved['id'], 'cell': cell, 'revision': saved['revision'], 'value': text('B'),
++            'unit': text('C'), 'parameter': text('A'), 'conditions': text('D'), 'title': (saved.get('document') or {}).get('title') or ''}
++
++
++def _sheet(sheet):
++    from .office_service import store
++    return store().get(sheet)
++
++
++def cell_state(value, saved):
++    """APPLIES, CARRIED_OVER or RECHECK: a cell's tolerance held against the sheet as it stands now."""
++    at = value['at'];now = sheet_cell(saved, value['subject']['cell']) if saved else None
++    if not now or now['unit'] != at['unit']:return 'RECHECK'
++    try:same = rational(now['value']) == rational(at['value'])
++    except ValueError:return 'RECHECK'
++    if not same:return 'RECHECK'
++    return 'APPLIES' if saved['revision'] == at['revision'] else 'CARRIED_OVER'
++
++
++def _state_now(value, db, principal):
++    """A tolerance's state against what it is said of now: the problem sheet, or the working sheet of its cell."""
++    if 'cell' in value['subject']:
++        try:saved = _sheet(value['subject']['sheet'])
++        except (ValueError, OSError, KeyError):saved = None
++        return cell_state(value, saved), (saved or {}).get('revision')
++    problem = problems.load(db, value['subject']['problem'], principal)
++    return state(value, problem), problem['revision']
++
++
++def on_cells(kernel, principal):
++    """{(address, cell): {id, revision, state, lo, hi, said, unit}} for the owner's tolerances on sheet cells, each held
++    against its sheet as it stands now."""
++    with kernel.db() as db:said = [t for t in _all(db, principal) if 'cell' in t['subject']]
++    found = {}
++    for t in said:
++        try:saved = _sheet(t['subject']['sheet'])
++        except (ValueError, OSError, KeyError):saved = None
++        found[(t['subject']['address'], t['subject']['cell'])] = {'id': t['id'], 'revision': t['revision'], 'state': cell_state(t, saved),
++                                                                  'lo': t['lo'], 'hi': t['hi'], 'said': t['said'], 'unit': t['unit']}
++    return found
++
++
++def put_cell(kernel, args, principal):
++    saved = _sheet(args['sheet'])
++    if saved['revision'] != args['expected_revision']:raise ValueError('REVISION_CHANGED: reopen the sheet before saying a tolerance on it')
++    cell = sheet_cell(saved, args['cell'])
++    if not cell:raise ValueError('TOLERANCE_NEEDS_A_KNOWN_QUANTITY: %s is not a Value cell of this sheet' % args['cell'])
++    try:rational(cell['value'])
++    except ValueError:raise ValueError('TOLERANCE_NEEDS_A_KNOWN_QUANTITY: %s holds no exact number' % args['cell']) from None
++    if not cell['unit']:raise ValueError('TOLERANCE_NEEDS_A_KNOWN_QUANTITY: %s has no reviewed unit' % args['cell'])
++    if not args['basis'].strip():raise ValueError('TOLERANCE_BASIS: say where the tolerance comes from')
++    lo, hi = span(args['said'], cell['value'], {k: args[k] for k in ('amount', 'lo', 'hi') if k in args})
++    fields = {'subject': {'address': cell['address'], 'sheet': cell['sheet'], 'cell': cell['cell']},
++              'at': {'revision': saved['revision'], 'value': cell['value'], 'unit': cell['unit'], 'parameter': cell['parameter']},
++              'said': args['said'], 'amount': args.get('amount'), 'unit': cell['unit'], 'basis': args['basis'],
++              'lo': str(Fraction(lo)), 'hi': str(Fraction(hi)), 'set_by': 'owner'}
++    with kernel.db() as db:
++        db.execute('BEGIN IMMEDIATE')
++        old = next((t for t in _all(db, principal) if t['subject'].get('address') == cell['address'] and t['subject'].get('cell') == cell['cell']), None)
++        if old is None:return records.write(db, records.new(KIND, principal, schema=SCHEMA, **fields), principal, 'TOLERANCE_SAID')
++        expected = old['revision'];records.edit(old, expected);old.update(fields)
++        return records.write(db, old, principal, 'TOLERANCE_SAID_AGAIN', expected=expected)
++
++
+ def _all(db, principal, problem=None):
+     ids = [row[0] for row in db.execute('SELECT id FROM desk_records WHERE owner=? AND kind=? ORDER BY rowid', (principal.identity, KIND))]
+     found = [records.read(db, KIND, ident, principal) for ident in ids]
+@@ -102,14 +189,18 @@ def put(kernel, args, principal):
+ 
+ def dispatch(kernel, op, args, principal):
+     if op == 'tolerances.set':return put(kernel, args, principal)
++    if op == 'tolerances.set_cell':return put_cell(kernel, args, principal)
+     if op == 'tolerances.get':
+-        with kernel.db() as db:value = records.read(db, KIND, args['id'], principal);problem = problems.load(db, value['subject']['problem'], principal)
+-        return {'tolerance': value, 'state': state(value, problem), 'problem_revision_now': problem['revision']}
++        with kernel.db() as db:
++            value = records.read(db, KIND, args['id'], principal);now, revision = _state_now(value, db, principal)
++        key = 'sheet_revision_now' if 'cell' in value['subject'] else 'problem_revision_now'
++        return {'tolerance': value, 'state': now, key: revision}
+     if op == 'tolerances.list':
+         rows = []
+         with kernel.db() as db:
+             for value in _all(db, principal, args.get('problem')):
+-                problem = problems.load(db, value['subject']['problem'], principal)
+-                rows.append({**value, 'state': state(value, problem), 'problem_revision_now': problem['revision']})
++                now, revision = _state_now(value, db, principal)
++                key = 'sheet_revision_now' if 'cell' in value['subject'] else 'problem_revision_now'
++                rows.append({**value, 'state': now, key: revision})
+         return {'tolerances': rows}
+     raise ValueError('Unknown tolerance operation')

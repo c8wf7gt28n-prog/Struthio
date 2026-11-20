@@ -80,17 +80,19 @@ SCRIPT_ON = [False]  # the Paper script's one switch: off in every look (readabl
 
 
 def apps_mark(button, host):
-    """Kasandra's Apps button: the owner's neon kp logo (0.8.3, "New logo for our upper right progman.exe menu ;)"), about
-    44 px tall and 74 wide at 14 pt, its neon drawn round it by kp_logo.AppsButton; the words '[#] Apps ▾' if its bytes are
-    not the recorded ones. Its name for readers stays Apps, and its tip."""
-    from . import kp_logo
-    image = kp_logo.logo(host.root)
+    """Apps: the owner's Struthio in both looks (0.8.6, "like a windows start menu"; struthio_mark), drawn crisp at the head's
+    height by kp_logo.AppsButton with its light; the words '[#] Apps ▾' if its bytes are not the recorded ones. Its name for
+    readers stays Apps, and its tip. (0.8.3 to 0.8.5 it was the neon kp logo, in Kasandra only; that logo stays in the
+    program, kp_logo.)"""
+    from . import struthio_mark
+    image = struthio_mark.image(host.root)
     button.logo = None;button.setStyleSheet('')
     if image.isNull():
         button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('[#] Apps ▾');button.update();return False
-    s = scale_of(host);size = kp_logo.size(s)
+    s = scale_of(host);d = getattr(host, 'desk', None)
+    tall = struthio_mark.height(d.band if d is not None else round(60 * s), s);size = QSize(struthio_mark.width(image, tall), tall)
     from PySide6.QtGui import QPixmap
-    button.scale = s;button.logo = image      # the button paints it, with its neon (kp_logo.AppsButton)
+    button.scale = s;button.logo = image;button.mark = 'struthio'      # the button paints it, with its light (kp_logo.AppsButton)
     button.setIcon(QIcon(QPixmap.fromImage(image.scaled(size * 2, Qt.KeepAspectRatio, Qt.SmoothTransformation))));button.setIconSize(size)
     button.setProperty('paperIcon', True)      # its own colours: menus2 makes other pictures one graphite colour
     button.setToolButtonStyle(Qt.ToolButtonIconOnly);button.setText('')      # its name stays for readers (Apps)
@@ -576,7 +578,9 @@ class TopBar(QWidget):
     centred on the window's axis with equal gaps and the writing line's inset (desk_qt.menu_row); the right slot holds CPU ·
     GPU · RAM · TXT in four columns and, at the band's inset from the right edge, the erased Graphite symbol, the System
     menu (desktop_header_qt.SystemButton, still `nice` for callers). Every position is set by place(desk), called by
-    desk_qt.apply; nothing here is laid out by a box layout, so each mirrored pair lands on whole pixels."""
+    desk_qt.apply; nothing here is laid out by a box layout, so each mirrored pair lands on whole pixels.
+    0.8.6, the owner's head (20 Nov 2026): the equalizer over the left column; the menus from the middle column's left edge
+    (desk_qt.EDGE inside it), following it when the columns are resized; Apps upper right, the owner's Struthio."""
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('TopBar2');self.setProperty('paperFunctionalInk', True)
         rows = QVBoxLayout(self);rows.setContentsMargins(0, 0, 0, 0);rows.setSpacing(0)
@@ -633,16 +637,15 @@ class TopBar(QWidget):
         self.more_menus = QToolButton();self.more_menus.setObjectName('MoreMenus');self.more_menus.setText('Work ▾');self.more_menus.setAccessibleName('Work commands')
         self.more_menus.setPopupMode(QToolButton.InstantPopup);self.more_menus.setToolButtonStyle(Qt.ToolButtonTextOnly);self.more_menus.setMenu(QMenu(self.more_menus))
         self.more_menus.menu().aboutToShow.connect(self.fill_more_menus);self.more_menus.setParent(first);self.more_menus.show();self.folded_menus = []
-        from .kp_logo import AppsButton      # 0.8.3: in Kasandra it wears the owner's neon kp logo and paints its neon (apps_mark)
+        from .kp_logo import AppsButton      # 0.8.6: in both looks it wears the owner's Struthio and paints its light (apps_mark)
         self.programs = AppsButton(first);self.programs.setObjectName('BossPrograms');self.programs.setText('[#] Apps ▾')      # 0.8.1: the owner, "We'll change the name programs to apps"
         self.programs.setAccessibleName('Apps');self.programs.setToolTip('Installed apps and capabilities')
-        from . import boss_theme as _bt
-        if _bt.APPEARANCE == 'kasandra':apps_mark(self.programs, host)      # the owner's neon kp logo, the Apps button's whole face
+        apps_mark(self.programs, host)      # the owner's Struthio, the Apps button's whole face (0.8.6)
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
         # no longer stand here (the bar above the work says the name; Ctrl+L still brings the address, here, to be typed);
-        # in their place, this computer at work (equalizer_qt).
+        # in their place, this computer at work (equalizer_qt). 0.8.6: it stands over the left column (place).
         from .equalizer_qt import Equalizer
         self.equalizer = Equalizer(host);self.equalizer.setParent(first)
 
@@ -753,19 +756,30 @@ class TopBar(QWidget):
             # Its things are behind the four meters at the foot (meter_cards), at the foot of the Work menu (leaving) and
             # among the programs (the game). The button and its menu stay alive, out of sight, for what still calls them.
             self.nice.setGeometry(0, 0, 0, 0);self.nice.hide()
-            for widget in (self.programs,):
+            # 0.8.6, the owner's layout (20 Nov 2026, "Yep, that's perfect"): the Struthio upper right is Apps; the menus
+            # start at the middle column's left edge and follow it when the columns are resized; the equalizer stands in
+            # the room this frees over the left column. The menus' first box and the prompt box in the lower band stand
+            # the same EDGE off the column's separator (typebar_qt), as in the approved picture.
+            from .desk_qt import edge
+            widget = self.programs
+            if widget.logo is not None and getattr(widget, 'mark', None) == 'struthio':
+                from . import struthio_mark
+                tall = struthio_mark.height(h, d.scale);size = QSize(struthio_mark.width(widget.logo, tall), tall)
+                if widget.iconSize() != size:widget.setIconSize(size)
+                width = size.width() + 2 * round(10 * min(d.scale, 1.4))
+            else:
                 width = widget.fontMetrics().horizontalAdvance(widget.text()) + round(26 * min(d.scale, 1.4)) if widget.text() else round(18 * min(d.scale, 1.4))
-                if not widget.icon().isNull():width += widget.iconSize().width() + (round(8 * min(d.scale, 1.4)) if widget.text() else 0)      # Kasandra's neon kp, alone
-                x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
-            # The familiar menus stand in the open from the left edge; the name of what is open follows them. In a window too
-            # narrow for all of them and a name, the rightmost fold into ⋯, which lists every menu.
-            words = self.menu_words();air = round(22 * min(d.scale, 1.4));name_room = round(180 * d.scale)
+                if not widget.icon().isNull():width += widget.iconSize().width() + (round(8 * min(d.scale, 1.4)) if widget.text() else 0)
+            x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
+            # The familiar menus from the middle column's left edge. In a window too narrow for all of them the rightmost
+            # fold into ⋯, which lists every menu.
+            words = self.menu_words();air = round(22 * min(d.scale, 1.4))
             widths = [word.fontMetrics().horizontalAdvance(word.text()) + air for word in words]
             fold = self.more_menus.fontMetrics().horizontalAdvance('⋯') + round(26 * min(d.scale, 1.4));kept = 0
+            left = d.left + edge(d.scale)
             for keep in range(len(words), -1, -1):
-                if o + sum(widths[:keep]) + (fold if keep < len(words) else 0) + gap + name_room <= x or keep == 0:
+                if left + sum(widths[:keep]) + (fold if keep < len(words) else 0) + gap <= x or keep == 0:
                     kept = keep;break
-            left = max(0, o - air // 2)
             for at, word in enumerate(words):
                 if at < kept:
                     word.setGeometry(left, 0, widths[at], h);word.show();left += widths[at]
@@ -775,13 +789,14 @@ class TopBar(QWidget):
                 self.more_menus.setGeometry(left, 0, width, h);self.more_menus.show();left += width
             else:
                 self.more_menus.setText('Work ▾');self.more_menus.hide()      # still there, and still lists every menu, for what reads it
-            # The middle: the equalizer, centred in what is left. The address line lies under it, out of sight, and comes
-            # up in its place only while it has the keyboard (Ctrl+L).
+            # The address line lies after the menus, out of sight, and comes up there only while it has the keyboard (Ctrl+L).
             room = max(0, x - left - 2 * gap);self.path.setGeometry(left + gap, 0, max(40, room), h)
             typing = self.path.hasFocus();self.path.setVisible(typing)
-            wide = min(room, round(self.equalizer.sizeHint().width() * min(d.scale, 1.5)));tall = min(h - 16, round(40 * min(d.scale, 1.3)))
-            self.equalizer.setGeometry(left + gap + (room - wide) // 2, (h - tall) // 2 - 1, max(0, wide), tall)
-            self.equalizer.setVisible(not typing and wide >= 48)
+            # The equalizer over the left column: the column's width less the inset each side, the band's height less a
+            # few pixels above and below.
+            wide = max(0, d.pane - 2 * o);tall = max(16, h - 2 * round(4 * min(d.scale, 1.4)))
+            self.equalizer.setGeometry(o, (h - tall) // 2, wide, tall)
+            self.equalizer.setVisible(wide >= 48)
             self.folded_menus = self.headings()
             self.plan = None
         finally:self._placing = False

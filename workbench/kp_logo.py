@@ -137,11 +137,12 @@ def paint(p, rect, image, level, scale=1.0, surge=0.0):
 
 
 class AppsButton(QToolButton):
-    """The head's Apps button. With the logo (apps_mark gives it one in Kasandra) it paints the logo and its neon itself;
-    without it, it is a tool button with its words, as in Graphite."""
+    """The head's Apps button. With a drawing (apps_mark gives it one) it paints the drawing and its light itself: since
+    0.8.6 the owner's Struthio in both looks (struthio_mark, `mark` 'struthio'), before it the neon kp logo in Kasandra
+    (`mark` 'kp'); without one, it is a tool button with its words."""
 
     def __init__(self, parent=None):
-        super().__init__(parent);self.logo = None;self.scale = 1.0;self.caught_at = None
+        super().__init__(parent);self.logo = None;self.mark = 'kp';self.scale = 1.0;self.caught_at = None
         self._catch = QTimer(self);self._catch.setInterval(16);self._catch.timeout.connect(self._tick)
 
     def host(self):
@@ -174,6 +175,9 @@ class AppsButton(QToolButton):
         self.update()
 
     def logo_rect(self):
+        if self.mark == 'struthio' and self.logo is not None:
+            from .struthio_mark import rect_in
+            return rect_in(self, self.logo, self.scale)
         s = size(self.scale);return QRectF((self.width() - s.width()) / 2.0, (self.height() - s.height()) / 2.0, s.width(), s.height())
 
     def paintEvent(self, event):
@@ -186,6 +190,9 @@ class AppsButton(QToolButton):
                 p.fillRect(self.rect(), QColor(t.TEAL_SOFT));p.fillRect(0, self.height() - edge, self.width(), edge, QColor(t.READY))
             elif self.hasFocus() or self.isDown():      # the keyboard's place: her edge alone, so no light falls on yellow
                 p.fillRect(0, self.height() - edge, self.width(), edge, QColor(t.AMBER_EDGE))
-            paint(p, self.logo_rect(), self.logo, self.level(), self.scale, self.surge())
+            if self.mark == 'struthio':
+                from . import struthio_mark
+                struthio_mark.paint(p, self.logo_rect(), self.logo, self.level(), self.scale, self.surge())
+            else:paint(p, self.logo_rect(), self.logo, self.level(), self.scale, self.surge())
         finally:
             p.end()

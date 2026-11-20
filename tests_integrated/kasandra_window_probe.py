@@ -246,12 +246,14 @@ def case_column(p):
 
 
 def apps_measures(p):
-    """Apps in the head: the owner's neon kp logo (0.8.3), its size and place, its tip, the words when its bytes are not the
-    recorded ones, its neon by the Glow dial (none on the Clean desk), its catch as the list opens (none with Reduce motion),
-    and the window icon (Graphite's sharpened point in both appearances)."""
+    """Apps in the head: the owner's Struthio in both looks (0.8.6; the neon kp logo in Kasandra 0.8.3 to 0.8.5), its size
+    and place, its tip, the words when its bytes are not the recorded ones, its light by the Glow dial (none on the Clean
+    desk), its catch as the list opens (none with Reduce motion), and the window icon (Graphite's sharpened point in both
+    appearances)."""
     from unittest.mock import patch
     from PySide6.QtCore import QRect
-    from workbench import boss_qt, boss_theme as bt, kasandra_art, kp_logo, shell2
+    from PySide6.QtGui import QImage
+    from workbench import boss_qt, boss_theme as bt, shell2, struthio_mark
     from workbench.graphite_brand import mark_tile
     w = p.w;out = {};prog = w.shell2.top.programs
     out['apps'] = dict(icon=[prog.iconSize().width(), prog.iconSize().height()], name=prog.accessibleName(), text=prog.text(), rect=p.rect(prog),
@@ -279,13 +281,9 @@ def apps_measures(p):
         out['catch_settled'] = prog.caught_at is None
         w.session.state.setdefault('reading_profile', {})['reduce_motion'] = True
         out['catch_reduce_motion'] = prog.catch();w.session.state['reading_profile']['reduce_motion'] = False
-    real = kasandra_art.mark
-
-    def without(*names):
-        return lambda base, name: None if name in names else real(base, name)
-    with patch.object(kasandra_art, 'mark', without('kp_neon.png')):
+    with patch.object(struthio_mark, 'image', lambda root: QImage()):      # a drawing whose bytes are not the recorded ones
         shell2.apps_mark(prog, w);out['apps_words'] = prog.text();out['apps_words_logo'] = prog.logo is not None
-    if bt.APPEARANCE == 'kasandra':shell2.apps_mark(prog, w)
+    shell2.apps_mark(prog, w)
     tile = mark_tile(256).toImage().convertToFormat(prog.grab().toImage().format())
     shown = w.windowIcon().pixmap(256, 256).toImage().convertToFormat(tile.format())
     out['window_icon_graphite'] = shown.size() == tile.size() and bytes(shown.constBits()) == bytes(tile.constBits())

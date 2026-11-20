@@ -215,6 +215,11 @@
    "files.versions": "workbench/files_service.py#dispatch",
    "files.write": "workbench/files_service.py#dispatch",
    "firmware.inspect": "workbench/firmware_tools.py#dispatch",
+   "goals.candidates": "workbench/goals.py#dispatch",
+   "goals.check": "workbench/goals.py#dispatch",
+   "goals.get": "workbench/goals.py#dispatch",
+   "goals.keep": "workbench/goals.py#dispatch",
+   "goals.list": "workbench/goals.py#dispatch",
    "hardware.checks.inspect": "workbench/hardware_coverage.py#dispatch",
    "hardware.component_nets": "workbench/agent_operations.py#dispatch",
    "hardware.coverage.inspect": "workbench/hardware_coverage.py#dispatch",
@@ -727,6 +732,7 @@
    "tolerances.get": "workbench/tolerances.py#dispatch",
    "tolerances.list": "workbench/tolerances.py#dispatch",
    "tolerances.set": "workbench/tolerances.py#dispatch",
+   "tolerances.set_cell": "workbench/tolerances.py#dispatch",
    "trellis.inspect": "workbench/pnr_tools.py#dispatch",
    "trellis.report": "workbench/pnr_tools.py#dispatch",
    "ux.catalog": "workbench/ux_services.py#dispatch",
@@ -975,9 +981,9 @@
   }
  },
  "counts": {
-  "adapters": 777,
+  "adapters": 783,
   "job_tools": 113,
-  "operations": 777,
+  "operations": 783,
   "settings": 48
  },
  "formulas": {
@@ -3110,6 +3116,46 @@
    },
    "scope": "read"
   },
+  "goals.candidates": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "goals.check": {
+   "arguments": "3d5a71d0d9174013df97080920f4e351e93f5dee1660572246c84772ad06c63e",
+   "properties": {
+    "accuracy": "60758df17217de15",
+    "candidate": "8d84283928a18afc",
+    "choose": "c670dde09c006e30",
+    "id": "1a75c379fb0fafe6",
+    "stages": "9f33303ed69dfba4"
+   },
+   "scope": "read"
+  },
+  "goals.get": {
+   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+   "properties": {
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "read"
+  },
+  "goals.keep": {
+   "arguments": "a3b5af376c45178f50621054c05b2b54b05706547bc28c444514967568898d6f",
+   "properties": {
+    "candidate": "8d84283928a18afc",
+    "expected_revision": "2a1379ebe9f4b632",
+    "id": "1a75c379fb0fafe6",
+    "state": "bb42ca0547a2b0d9"
+   },
+   "scope": "execute"
+  },
+  "goals.list": {
+   "arguments": "8545cb77cf64ac0e99084a8ef0e33911bf70a3a78338b26c56332b3a2ab9420e",
+   "properties": {
+    "all": "7cb541e84f226754"
+   },
+   "scope": "read"
+  },
   "hardware.checks.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
@@ -4513,13 +4559,14 @@
    "scope": "read"
   },
   "math.answer": {
-   "arguments": "eade7e755aec003ec07ba63ba6e91351daa2d15df693191c3b1ae2153b011b0a",
+   "arguments": "1d58d91e495509edb508d3a04143fe791d770109168d0b719c4477dbfc4cccb4",
    "properties": {
+    "accuracy": "60758df17217de15",
     "expression": "2b1e00f7cfc18abe",
     "for": "520c691f88f728d6",
     "given": "ca241a6815ef0053",
     "id": "1a75c379fb0fafe6",
-    "stage": "aea3acbb559fd74b",
+    "stage": "0a900dc33a072395",
     "step": "0eb2e3b6e08c031d",
     "unit": "520c691f88f728d6",
     "within": "1c1c26f0c5a206b8"
@@ -7221,6 +7268,20 @@
    },
    "scope": "approve"
   },
+  "tolerances.set_cell": {
+   "arguments": "a23f10802300c157caadb2cd859390f4a179613b3df5067e10c0dd7ffe05263a",
+   "properties": {
+    "amount": "0eb2e3b6e08c031d",
+    "basis": "2b1e00f7cfc18abe",
+    "cell": "4066b324a3b3ccec",
+    "expected_revision": "8d84283928a18afc",
+    "hi": "0eb2e3b6e08c031d",
+    "lo": "0eb2e3b6e08c031d",
+    "said": "6fd8766b65ed9791",
+    "sheet": "a197705b0fea6cee"
+   },
+   "scope": "approve"
+  },
   "trellis.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
@@ -7633,7 +7694,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "5a9f067b2a52fe243338eaf1be59d2e786d3043acb26b91c3686bf30f2dcae0b",
+ "schema_digest": "96abead04d52dd70adfcffed45be060158ced61c1adb1d5e3d3ef8bb8c31e7e6",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

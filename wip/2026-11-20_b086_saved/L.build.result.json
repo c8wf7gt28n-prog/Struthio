@@ -1,0 +1,59 @@
+{
+  "summary": "Built the owner's head and footer layout for 0.8.6 in both looks. Head: the equalizer moved over the left column; the menus (Work ... Guide) start at the middle column's left edge (8 px inside it, as in the approved mockup) and follow it on resize (TopBar.place is called by desk_qt.apply); Apps upper right is the owner's Struthio in both looks (white made clear, cropped, 373x512, SHA-recorded, drawn crisp at the head's height on whole pixels, name 'Apps' and its tip kept, soft light by the Glow dial, catch on open, words '[#] Apps ▾' if the bytes differ). Equalizer in style D: one glowing rounded tube per thread up to 16 (more averaged in equal groups), the kernel/memory/disks/network/graphics pairs, floating peak dots that sink, a faint grid floor, and a glowing trace of all activity over two minutes; every rule kept (fixed scales, missing source rests and the card says so, NEAR 0.8 amber and said in words on the card, reduce motion holds it still, amber floor line while Graphite works); drawn from sprites so it stays under budget. Footer: chooser under the left column; prompt box from the middle column's left edge; then the room button (Line/Half/Tall); then send, cyan in Kasandra (orange still in Graphite), its right edge 8 px inside the middle column's right edge; the four meters CPU/GPU/RAM/TXT centred and evenly spaced under the right column in style H (glowing ring, number inside, a minute of history ending in a bright dot; no reading stays dim with its dash and 'no reading'); each meter is still a door. Frames in both looks at 1920x1200 and 1366x768 read against mock3_* and match.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/L.patch",
+  "files_changed": [
+    "RIGHTS.md",
+    "branding/struthio/README.md",
+    "branding/struthio/struthio.png",
+    "docs/DAILY_GUIDE.md",
+    "tests_integrated/kasandra_window_probe.py",
+    "tests_integrated/test_faces_find_light.py",
+    "tests_integrated/test_kasandra_column.py",
+    "tools/colour_vision.py",
+    "tools/cut_struthio.py",
+    "workbench/desk_qt.py",
+    "workbench/desktop_header_qt.py",
+    "workbench/equalizer_qt.py",
+    "workbench/kp_logo.py",
+    "workbench/neon_meters.py",
+    "workbench/shell2.py",
+    "workbench/struthio_mark.py",
+    "workbench/typebar_qt.py"
+  ],
+  "tests": [
+    {"module": "scratch L/scripts/frames.py (smoke of the pure parts + frames + measures), no test module run", "look": "kasandra", "ran": 6, "failed": 0, "note": "1920x1200: grouped 16 and 32 threads, whole() = 0.22, near() words, ramp hot = AMBER_EDGE, reduce motion (interval 2000 ms, no glide, peaks on tubes) all as expected; frames 1_field, 2_equalizer_card, 3_cpu_card, 4_moving saved"},
+    {"module": "scratch L/scripts/frames.py (smoke of the pure parts + frames + measures), no test module run", "look": "graphite", "ran": 6, "failed": 0, "note": "1920x1200: same checks, all as expected; frames 1_field, 2_equalizer_card, 3_cpu_card, 4_moving saved"},
+    {"module": "scratch L/scripts/frames.py (smoke + frame)", "look": "kasandra", "ran": 5, "failed": 0, "note": "1366x768: smoke as expected; all eight menus fit unfolded; frame 1_field saved"},
+    {"module": "scratch L/scripts/frames.py (smoke + frame)", "look": "graphite", "ran": 5, "failed": 0, "note": "1366x768: smoke as expected; all eight menus fit unfolded; frame 1_field saved"}
+  ],
+  "new_tests": [],
+  "numbers": [
+    "Equalizer share of one core AT REST: 0.78 % (Graphite) and 0.82 % (Kasandra), budget 1 %: time inside its read+glide+paint (perf_counter) over 20.0 s of wall time, real /proc counters, 1920x1200 offscreen, nice 19, another builder working beside, on this 4-thread VM (not the ThinkPad)",
+    "Equalizer share of one core WITH EVERYTHING MOVING (every tube to a new random height at every reading): 1.48 % (Graphite) and 1.49 % (Kasandra), budget 2 %, same method over 20.0 s",
+    "Paint time per frame in the window: 0.66 ms (Graphite) / 0.73 ms (Kasandra) at rest, 0.60 / 0.61 ms moving; one paint alone rendered 400 times into an image: 0.32 / 0.34 ms",
+    "Frames per second: about 9.5 at rest (189 paints in 20 s), about 23 moving (462 in 20 s); readings 2 a second (one every 2 s with reduce motion); one reading of the counters about 0.66 ms",
+    "First drawing (stroked tubes, before sprites) measured 1.3-1.4 ms a paint, 2.0-2.1 % at rest and 8.6-8.8 % moving: over budget, so the tubes are now drawn once as sprites and copied",
+    "Geometry, Kasandra 1920x1200: middle column x 355-1565; first menu box and prompt box both at x 363; send's right edge 1557; Apps button x 1846-1904, the Struthio 38 x 52 at y 4; equalizer x 16-338, y 4-56; meters at x 1576, 1660, 1744, 1828 (82 wide each) in the right column 1566-1920. Graphite 1920x1200: column 327-1593; menu and box at 335; send's right edge 1585; meters at 1602, 1679, 1757, 1834",
+    "The Struthio asset: 373 x 512 PNG, 88 KB, SHA-256 217902d73e19e5f730faf882dc670b5fbf3a99fe04e3ec2dbad7ddcfc85de45b, cut from the owner's 1120 x 1404 file (SHA-256 22ad9345...2e42) in 3.0 s by tools/cut_struthio.py"
+  ],
+  "decisions": [
+    "'Exactly at the middle column's edge': the first menu box, the prompt box and the end of send stand desk_qt.EDGE (8 px at 14 pt, scaled) inside the column's separators, as in the mockup the owner approved (box border at 361 for a separator at 353); the footer's group ticks then fall exactly on the separators. One constant, so it is one number to change if he wants 0.",
+    "Send uses the primary-button cue colour CUE_EDGE in both looks: cyan #83eaff in Kasandra, and in Graphite it is #ff9a36, the very orange it had, so Graphite is unchanged. Its arrow is the dark ground colour, not the pale one in the mockup, because pale on cyan is under 2:1; tools/colour_vision.py's descriptions moved the send arrow from 'stopped' (RED) to 'cue'.",
+    "Window icon left untouched: it is Graphite's sharpened point in both looks today (test_kasandra_column asserts it); the kp logo was never the window icon. The kp logo stays in the program (file, recorded SHA, kp_logo module) and the Guide text now says it was Apps in Kasandra before.",
+    "The trace's one meaning: the average of the groups this computer reports, each group's own mean, over 120 s; the card says it and what it stands at now.",
+    "Near the limit is 0.8 (NEAR, the mockup's threshold) for tubes and rings; the equalizer card adds 'amber, near its limit: ...' to that group's line, a meter's tip begins 'Near its limit (amber).'",
+    "Reduce motion: nothing glides, no sinking dots, readings every 2 s instead of 0.5 s, changes at once.",
+    "The Struthio's light: a soft glow behind it by the Glow dial (none on the Clean desk); the cyan/magenta ghosts only during the catch, so it stays crisp settled.",
+    "Rings show the number without '%' (as the mockup); 'no reading' goes on two lines when the cell is narrow.",
+    "The patch is written with git diff --binary (the given command without it would drop the PNG); it applies cleanly to a clean checkout of HEAD.",
+    "Existing tests changed to the new truth: test_faces_find_light EqualizerTests.test_more_threads_than_bars_are_shown_in_equal_groups (MOST is 16 now: 16 threads are 16 tubes, 32 are 16 means of two, 64 are 16 means of four); test_kasandra_column test_apps_is_the_neon_logo_then_words renamed test_apps_is_the_struthio_then_words (icon 38x52, button 58 wide, logo_rect 38x52) and test_graphites_column_is_as_it_was (Graphite's Apps is the Struthio, text ''); kasandra_window_probe.apps_measures hides the Struthio (not the kp) for the words fallback and re-marks Apps in both looks."
+  ],
+  "not_done": [
+    "No test module, tier or window check was run (the owner's rule for 0.8.6); the three changed test files above were not run and need the coordinator's suite run in both looks.",
+    "Nothing ran on the owner's ThinkPad. This VM has 4 threads and no graphics counter, so the frames show 4 CPU tubes and the GPU pair resting; the 16-tube layout is exercised only by the smoke (grouped) and by the layout code, not seen in a frame.",
+    "The meters 'with a model at work' look (GPU and TXT readings) could not be shown: GPU reports nothing here and TXT has no trusted source in the program (unchanged), so both show the honest dim dash and 'no reading'.",
+    "Device pixel ratio 2 (HiDPI) drawing of the sprites and the Struthio was written for but only seen at ratio 1.",
+    "boss_theme.py's comment that RED is on the send arrow was left as is (a comment in a shared file)."
+  ],
+  "release_note": "The head and the foot are laid out as the owner drew them: the menus start at the middle column's edge and follow it when the columns are resized, Apps in the upper right is his own Struthio in both looks, and the prompt, the room button and send fill the middle column with send cyan in Kasandra and orange in Graphite. The equalizer moved upper left and became neon tubes over a scope, one tube per processor thread (up to sixteen), with peak dots that sink and a glowing trace of the last two minutes; amber means near its limit and its card says so in words. The four meters are now glowing rings with a minute of history, centred under the right column; a meter with no reading stays dim and says no reading, and each is still a door. Measured here (not on the ThinkPad), the equalizer takes under 1 % of a core at rest and under 2 % with everything moving."
+}

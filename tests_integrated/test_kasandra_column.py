@@ -6,9 +6,9 @@ because the picture will be gone." and "I attached a new kp icon/logo".
 Her column opens with a masthead whose rule is level with the left pane's tab rule (her name once, at the size of her words;
 the state of the work; what she speaks with, shortened in the middle; her hand); her words have the room the picture had,
 with room between their lines; a line on her card is drawn in the mono face it is measured in (in Graphite too: that was
-the bug); her ground is her terminal's. Apps is the owner's neon kp logo (0.8.3: "New logo for our upper right progman.exe
-menu"), its neon drawn round it by the Glow dial, with the words as its fallback; the window icon is Graphite's sharpened
-point in both appearances. Graphite's column is as it was.
+the bug); her ground is her terminal's. Apps was the owner's neon kp logo (0.8.3: "New logo for our upper right progman.exe
+menu"); since 0.8.6 it is his Struthio in both looks, drawn crisp at the head's height, its light by the Glow dial, with the
+words as its fallback; the window icon is Graphite's sharpened point in both appearances. Graphite's column is as it was.
 """
 import hashlib
 import os
@@ -58,15 +58,17 @@ class Column(unittest.TestCase):
                 got = tuple(int(ground[i:i + 2], 16) for i in (1, 3, 5))
                 self.assertTrue(all(abs(a - b) <= 2 for a, b in zip(got, want)), (ground, out['ground_round']))
 
-    def test_apps_is_the_neon_logo_then_words(self):
+    def test_apps_is_the_struthio_then_words(self):
+        # 0.8.6: the owner's Struthio (it was the neon kp logo, 74 x 44, in a button 92 wide): the band's height less 4 px
+        # above and below (52 at 14 pt), its width by its own shape (38), in a button with 10 px each side
         for out, size in ((self.wide, 1920), (self.small, 1366)):
             apps = out['apps']
             self.assertEqual(apps['kind'], 'AppsButton');self.assertTrue(apps['logo'], size)
-            self.assertEqual(apps['icon'], [74, 44], 'about 44 px tall and 74 wide at 14 pt');self.assertEqual(apps['name'], 'Apps')
+            self.assertEqual(apps['icon'], [38, 52], 'the head\'s height less 4 px above and below at 14 pt');self.assertEqual(apps['name'], 'Apps')
             self.assertEqual(apps['text'], '');self.assertIn('apps', apps['tip'].lower())
-            x, y, w, h = apps['rect'];self.assertEqual((w, h), (92, apps['band']));self.assertEqual(y, 0)
+            x, y, w, h = apps['rect'];self.assertEqual((w, h), (58, apps['band']));self.assertEqual(y, 0)
             self.assertLessEqual(x + w, size, 'in the head, at its right end');self.assertGreater(x + w, size - 40)
-            lx, ly, lw, lh = apps['logo_rect'];self.assertEqual((lw, lh), (74.0, 44.0));self.assertGreaterEqual(ly, 4, 'clear of the band\'s rule')
+            lx, ly, lw, lh = apps['logo_rect'];self.assertEqual((lw, lh), (38.0, 52.0));self.assertGreaterEqual(ly, 4, 'clear of the band\'s rule')
             self.assertEqual(out['apps_words'], '[#] Apps \u25be');self.assertFalse(out['apps_words_logo'], 'a logo whose bytes differ is not shown')
             self.assertTrue(out['window_icon_graphite'], 'the window keeps Graphite\'s sharpened point')
 
@@ -140,8 +142,9 @@ class Graphite(unittest.TestCase):
         self.assertEqual((out['least'], out['need']), (61, 215))
         self.assertEqual(out['portrait'], 'PanelInk');self.assertIsNone(out['masthead']);self.assertEqual(out['margin'], 14)
         self.assertIsNone(out['hologram'])
-        apps = out['apps']      # 0.8.3: Graphite's Apps keeps its words; the window its sharpened point
-        self.assertFalse(apps['apps']['logo']);self.assertEqual(apps['apps']['text'], '[#] Apps \u25be');self.assertTrue(apps['window_icon_graphite'])
+        apps = out['apps']      # 0.8.6: Graphite's Apps is the owner's Struthio too (0.8.3 to 0.8.5 its words); the window its sharpened point
+        self.assertTrue(apps['apps']['logo']);self.assertEqual(apps['apps']['text'], '');self.assertEqual(apps['apps']['name'], 'Apps')
+        self.assertTrue(apps['window_icon_graphite'])
         self.assertEqual(out['slab'], ['IBM Plex Mono', 15], 'the line on her card in the mono face it was always meant to have')
         self.assertAlmostEqual(out['delete'][0], 0.8, delta=0.01)
 
