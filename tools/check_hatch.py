@@ -137,7 +137,8 @@ ON_DEMAND_CHECKS={
  'python -m workbench.lab_checks':'WASI experiments and KiCad boards (needs wasmtime and KiCad)',
  'python -m workbench.math_checks':'connected maths with SymPy, Z3 and optionally Office',
  'python -m workbench.joined_checks':'joined application, takeover and visible Calc (native jobs)',
- 'python -m workbench.joined_model_checks':'the local-model family trials (loads a model)'}
+ 'python -m workbench.joined_model_checks':'the local-model family trials (loads a model)',
+ 'python -m workbench.seal_model_checks':'the sealed room on the real runtime: allow-lists, private socket, own network, seal check (loads a model)'}
 GOOD_STATES={'PASSED'}
 # Findings the privacy scan accepts, each with its reason: (shipped file or archive!member, category).
 PRIVACY_ALLOWED={

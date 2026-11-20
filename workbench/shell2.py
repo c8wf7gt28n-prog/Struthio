@@ -1821,8 +1821,11 @@ def break_long(text, most, fits=None):
 def leaded(label, text, room=None):
     """Her words with room between their lines (125%), as rich text, a long name broken only where it must be (break_long,
     at the label's width `room` in px; kasandra_column.Folding sets them again when the width changes). The words as they
-    were given are kept in the label's 'plain' property, for whatever reads them back (desk_doers.read_desk)."""
+    were given are kept in the label's 'plain' property, for whatever reads them back (desk_doers.read_desk). Model words are
+    refused here (0.8.7: model_words.plain_only): they are shown only with their mark."""
     import html
+    from .model_words import plain_only
+    plain_only(text)
     label.setProperty('plain', str(text));label.setProperty('leaded', True)
     room = int(room or LINE_GUESS);label.setProperty('lineRoom', room);most, fits = line_room(label, room)
     body = html.escape(break_long(text, most, fits), quote=False).replace('\n', '<br>')
@@ -1882,7 +1885,10 @@ class Bubble(QFrame):
         self.box.addWidget(self.text)
 
     def set_text(self, text):
-        """Her words, in Kasandra with room between their lines (leaded); a line or your own words as they are."""
+        """Her words, in Kasandra with room between their lines (leaded); a line or your own words as they are. Never model
+        words: her column's plain renderer refuses them (0.8.7, model_words.plain_only)."""
+        from .model_words import plain_only
+        plain_only(text)
         if bt.APPEARANCE == 'kasandra' and not self.mine and not self.code:leaded(self.text, text)
         else:self.text.setProperty('plain', str(text));self.text.setText(breakable(text))
 

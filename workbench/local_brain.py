@@ -1,7 +1,9 @@
 """Qt-free local inference through Ledger's existing jobs, settings and journal.
 
 Weights stay external. A native CPU/Vulkan worker has no Ledger execution authority.
-It binds to authenticated loopback and receives bounded text/JSON only.
+It listens on a private socket (authenticated loopback where no socket can be had) and receives bounded text/JSON only.
+0.8.7, the sealed room (brain_seal): its launch line and environment come from allow-lists, it runs in its own empty
+network where the computer allows, and the seal check runs every time it starts, before Ready.
 """
 from __future__ import annotations
 from .assistant_identity import named
@@ -10,7 +12,7 @@ from pathlib import Path
 from urllib.request import Request, build_opener, ProxyHandler, HTTPRedirectHandler
 from urllib.error import URLError,HTTPError
 from sdk.cli.arc1cli.gguf_inspect import inspect_set,identity
-from . import activity,brain_runtime,record_io
+from . import activity,brain_runtime,brain_seal,record_io
 from .operation_stop import process_identity,UNKNOWN,owned_tree,kill_owned
 
 TEXT={'type':'string','maxLength':4096};ID={'type':'string','pattern':'^[0-9a-f]{64}$','maxLength':64}
@@ -131,7 +133,8 @@ def status(kernel):
             'resource_stop':resource_stop,
             'selection':active,'worker':{k:worker.get(k) for k in ('model_id','pid','started','context','backend','requested_backend',
                 'device','observed_gpu_layers','offload_evidence','fallback_reason','resource_guard','runtime',
-                'context_basis','batch_size','microbatch_size','context_reuse')} if live else None,
+                'context_basis','batch_size','microbatch_size','context_reuse','seal')} if live else None,
+            'seal_words':brain_seal.words(worker.get('seal')) if live else None,
             'prepared_context':prepared_context(kernel,worker) if live else None,
             'previous':get(kernel,'previous'),'handover':pending,'registered_models':len(models(kernel)),
             'runtime':{k:v for k,v in brain_runtime.status(kernel.root).items() if k!='pin'},
@@ -290,6 +293,16 @@ def request(worker,path,payload=None,timeout=90):
     if path not in ('/health','/props','/tokenize','/apply-template','/v1/chat/completions'):raise ValueError('LOCAL_ENDPOINT_NOT_REGISTERED')
     key=Path(worker['key_file']).read_text().strip()
     body=json.dumps(payload).encode() if payload is not None else None
+    if worker.get('socket'):
+        # The sealed room: the worker's private socket (brain_seal). No proxy, no redirect; errors as urllib gave them.
+        import http.client
+        try:status,raw=brain_seal.exchange(worker,'POST' if body is not None else 'GET',path,body,key,timeout,1024*1024)
+        except TimeoutError:raise
+        except OSError as exc:raise URLError(exc) from exc
+        except http.client.HTTPException as exc:raise ValueError('LOCAL_WORKER_PROTOCOL') from exc
+        if not 200<=status<300:raise ValueError('LOCAL_WORKER_HTTP_'+str(status))
+        if len(raw)>1024*1024:raise ValueError('LOCAL_RESPONSE_LIMIT')
+        return record_io.strict_json(raw)
     req=Request('http://127.0.0.1:'+str(worker['port'])+path,data=body,
                 headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'})
     opener=build_opener(ProxyHandler({}),NoRedirect())
@@ -309,6 +322,7 @@ def terminate(kernel,worker,reason='STOPPED'):
         while worker_live(worker) and time.monotonic()<end:time.sleep(.03)
         if worker_live(worker):raise ValueError('Owned model worker termination was not confirmed')
     if worker.get('key_file'):Path(worker['key_file']).unlink(missing_ok=True)
+    forget_socket(worker)
     with kernel.db() as db:
         db.execute('BEGIN IMMEDIATE')
         for slot in ('worker', 'trial_worker'):
@@ -316,6 +330,13 @@ def terminate(kernel,worker,reason='STOPPED'):
                 put(kernel,slot,{},reason,db)
         if get(kernel,'prepared_context',{},db).get('worker') == worker_identity(worker):
             put(kernel,'prepared_context',{},db=db)
+
+def forget_socket(worker):
+    """Remove the worker's private socket, and the short folder made for it when its own folder's path was too long."""
+    import shutil
+    if worker.get('socket'):Path(worker['socket']).unlink(missing_ok=True)
+    folder=worker.get('socket_folder')
+    if folder and Path(folder).name.startswith('graphite-'):shutil.rmtree(folder,ignore_errors=True)
 
 def stop(kernel,reason='OWNER_STOP'):
     with kernel.db() as db:
@@ -358,7 +379,7 @@ def start_server(kernel,value,config,ident,slot='trial_worker'):
     verified = recheck(value)
     from .resource_control import model_room
     model_room(kernel,config,ident)
-    plan=dict(config);backend=plan.get('backend','CPU')
+    plan=dict(config);backend=plan.get('backend','CPU');network_seal=True
     if backend=='VULKAN':
         probe=brain_runtime.probe(kernel.root);put(kernel,'acceleration_probe',{**probe,'at':time.time()},'DEVICE_DISCOVERY')
         devices=[d for d in probe.get('devices',[]) if not d.get('software')]
@@ -367,36 +388,61 @@ def start_server(kernel,value,config,ident,slot='trial_worker'):
             if not plan.get('cpu_fallback',True):raise ValueError('VULKAN_UNAVAILABLE: '+str(probe.get('reason')))
             plan.update(backend='CPU',fallback_reason='Vulkan device discovery: '+str(probe.get('reason') or probe['state']),
                         resource_guard=resource_guard('CPU'))
-        else:plan['device']=devices[0]
-    try:return _start_server(kernel,value,plan,ident,slot,verified)
+        else:
+            plan['device']=devices[0]
+            # Open question 4's default: the Radeon seen only outside its own network runs there, labelled not
+            # sealed, still offline and behind its socket; the sealed processor is one press away.
+            if probe.get('network_seal')=='VULKAN_NOT_SEEN_IN_ITS_OWN_NETWORK':network_seal=False
+    try:return _start_server(kernel,value,plan,ident,slot,verified,network_seal=network_seal)
     except (OSError,ValueError,subprocess.SubprocessError) as exc:
         reason=str(exc)
         if plan.get('backend')!='VULKAN' or not plan.get('cpu_fallback',True) or cancelled(kernel,ident) or any(
-            code in reason for code in ('MODEL_OPERATION_CANCELLED','MODEL_FILE_CHANGED','GRAPHITE_HOST_MEMORY_LIMIT')):raise
+            code in reason for code in ('MODEL_OPERATION_CANCELLED','MODEL_FILE_CHANGED','GRAPHITE_HOST_MEMORY_LIMIT',brain_seal.REFUSED)):raise
         # A single recorded CPU attempt; never recursion or a second live model.
         retry={**plan,'backend':'CPU','fallback_reason':'Vulkan load: '+reason[:300],
                'resource_guard':resource_guard('CPU')};retry.pop('device',None)
         return _start_server(kernel,value,retry,ident,slot,verified)
 
-def _start_server(kernel,value,config,ident,slot,verified):
+def seal_check(worker,log,backend):
+    """The seal check (brain_seal.check), run every time a model starts, before Ready. A seam of its own so the
+    campaign's simulated worker can answer it (tools/campaign_lib/sim.py); a real start always runs the real check."""
+    return brain_seal.check(worker,log,backend)
+
+def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
     from .locations import child_env
     from .resource_control import model_room
     room=model_room(kernel,config,ident)
     backend=config.get('backend','CPU');executable,runtime=brain_runtime.prepare(kernel.root,backend)
     base=kernel.state/'brain'/uuid.uuid4().hex;base.mkdir(parents=True,mode=0o700)
     key=base/'key';key.write_text(secrets.token_urlsafe(32));key.chmod(0o600)
-    with socket.socket() as socket_:socket_.bind(('127.0.0.1',0));port=socket_.getsockname()[1]
+    # The sealed room: a private socket in the start's own 0700 folder (or a short one), loopback only where no socket
+    # can be had; its own network only behind a socket (loopback inside an empty network cannot be reached).
+    sock,sock_folder=brain_seal.socket_path(base);port=None
+    if sock is None:
+        with socket.socket() as socket_:socket_.bind(('127.0.0.1',0));port=socket_.getsockname()[1]
+    possible=brain_seal.network_seal_possible()
+    network_seal=bool(network_seal and sock is not None and possible)
     weights=next(item['path'] for item in value['files'] if item['role']=='weights')
     gpu_layers=config.get('gpu_layers',-1)
-    argv=[sys.executable,'-m','workbench.brain_worker','--memory-mb',str(config['memory_mb']),'--backend',backend,
-          '--reserve-mb',str(max(128,room['reserve_bytes']//1024**2)),str(executable),
-          '--model',weights,'--host','127.0.0.1','--port',str(port),'--api-key-file',str(key),
+    line=['--model',weights,'--host',str(sock) if sock else '127.0.0.1']+(['--port',str(port)] if port else [])+[
+          '--api-key-file',str(key),
           '--ctx-size',str(config['context']),'--threads',str(config['threads']),'-ngl',
           ('auto' if gpu_layers==-1 else str(gpu_layers)) if backend=='VULKAN' else '0','--parallel','1',
           '--threads-http','2','--batch-size','256','--ubatch-size','64','--cache-ram','0','--ctx-checkpoints','0','--no-cache-idle-slots',
           '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode','none',
-          '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup']
-    argv+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
+          '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup','--offline']
+    line+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
+    try:launch_line=brain_seal.lint(line)
+    except ValueError:
+        key.unlink(missing_ok=True)
+        if sock_folder:sock_folder.rmdir()
+        raise
+    argv=[sys.executable,'-m','workbench.brain_worker','--memory-mb',str(config['memory_mb']),'--backend',backend,
+          '--reserve-mb',str(max(128,room['reserve_bytes']//1024**2)),'--seal','network' if network_seal else 'none',
+          str(executable)]+line
+    cache=kernel.state/'brain'/'shader-cache' if backend=='VULKAN' else None
+    unsealed=None if network_seal else 'VULKAN_NOT_SEEN_IN_ITS_OWN_NETWORK' if sock and possible else \
+        'NO_PRIVATE_SOCKET' if possible else 'NO_NETWORK_NAMESPACES_ON_THIS_SYSTEM'
     process=None;worker={};began=time.monotonic()
     try:
         with kernel.db() as db:
@@ -407,8 +453,10 @@ def _start_server(kernel,value,config,ident,slot,verified):
                 # Inherits this job tool's process group: job cancellation kills
                 # a half-started candidate even before its receipt commits.
                 process=subprocess.Popen(argv,cwd=kernel.root,stdin=subprocess.DEVNULL,stdout=log,stderr=log,
-                                         env=child_env(kernel.root,brain_runtime.worker_environment()))
+                                         env=child_env(kernel.root,brain_runtime.worker_environment(backend,executable.parent,cache)))
             worker={'pid':process.pid,'start':process_identity(process.pid),'port':port,'key_file':str(key),'owner':job['owner'],
+                    'socket':str(sock) if sock else None,'socket_folder':str(sock_folder) if sock_folder else None,
+                    'network_seal_requested':network_seal,'network_seal_reason':unsealed,'launch_line':launch_line,
                     'model_id':value['id'],'context':config['context'],'config':config,'runtime':runtime,
                     'job_id':ident,'started':time.time(),'backend':backend,'requested_backend':config.get('requested_backend','CPU'),
                     'device':config.get('device'),'fallback_reason':config.get('fallback_reason'),
@@ -443,6 +491,8 @@ def _start_server(kernel,value,config,ident,slot,verified):
                 raise ValueError('MODEL_CONTEXT_BELOW_SELECTION: the worker gives {:,} tokens; {:,} were selected'.format(
                     reported,config['context']))
             worker.update(context_basis='WORKER_REPORTED_LIMIT')
+        # The seal check, every start, before Ready and before the model is asked anything (brain_seal).
+        worker['seal']=seal_check(worker,base/'runtime.log',backend)
         verify_resident(value,worker)
         observed=0;evidence='CPU_WORKER_WITH_OFFLOAD_DISABLED'
         if backend=='VULKAN':
@@ -464,6 +514,7 @@ def _start_server(kernel,value,config,ident,slot,verified):
             if process.poll() is None:process.kill()
             process.wait(timeout=5)
         key.unlink(missing_ok=True)
+        forget_socket({'socket':str(sock) if sock else None,'socket_folder':str(sock_folder) if sock_folder else None})
         if worker:put(kernel,slot,{},'LOAD_FAILED')
         raise
 
@@ -471,20 +522,29 @@ def _start_server(kernel,value,config,ident,slot,verified):
 # the token budget and return empty text; templates without this switch ignore it.
 TEMPLATE_OPTIONS={'enable_thinking':False}
 
-def completion(worker,messages,max_tokens=128,json_schema=None):
-    prompt=request(worker,'/apply-template',{'messages':messages,'add_generation_prompt':True,'chat_template_kwargs':TEMPLATE_OPTIONS},timeout=10)['prompt']
-    tokens=request(worker,'/tokenize',{'content':prompt,'add_special':False},timeout=10)['tokens']
-    if len(tokens)+max_tokens+32>worker['context']:raise ValueError('CONTEXT_BUDGET_EXCEEDED: shorten this message or begin a new conversation; saved dialogue is preserved')
+def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,timeout=90,t_max_predict_ms=None,odds=0,prompt_tokens=None):
+    # 0.8.7 E0: besides the ready probe, only turns.ask calls this (the turn contract). Its keywords: the kind's GBNF grammar
+    # (never with a JSON schema), the deadline (the HTTP timeout, and t_max_predict_ms to bound writing), the alternatives
+    # per answer token to record (odds), and the prompt's token count when the caller has just measured it.
+    if prompt_tokens is None:
+        prompt=request(worker,'/apply-template',{'messages':messages,'add_generation_prompt':True,'chat_template_kwargs':TEMPLATE_OPTIONS},timeout=10)['prompt']
+        tokens=request(worker,'/tokenize',{'content':prompt,'add_special':False},timeout=10)['tokens'];prompt_tokens=len(tokens)
+    if prompt_tokens+max_tokens+32>worker['context']:raise ValueError('CONTEXT_BUDGET_EXCEEDED: shorten this message or begin a new conversation; saved dialogue is preserved')
     payload={'messages':messages,'max_tokens':max_tokens,'temperature':0,'stream':False,'cache_prompt':False,
              'chat_template_kwargs':TEMPLATE_OPTIONS}
+    if json_schema and grammar:raise ValueError('ANSWER_SHAPE_TWICE: a JSON schema or a grammar, not both')
     if json_schema:payload['response_format']={'type':'json_schema','json_schema':{'name':'ledger_plan','strict':True,'schema':json_schema}}
-    began=time.monotonic();response=request(worker,'/v1/chat/completions',payload)
+    if grammar:payload['grammar']=grammar
+    if t_max_predict_ms:payload['t_max_predict_ms']=int(t_max_predict_ms)
+    if odds:payload.update(logprobs=True,top_logprobs=int(odds))
+    began=time.monotonic();response=request(worker,'/v1/chat/completions',payload,timeout=timeout)
     text=response['choices'][0]['message'].get('content','')
     if not isinstance(text,str) or len(text)>32000:raise ValueError('MODEL_OUTPUT_LIMIT_OR_TYPE')
     return {'text':text,'usage':response.get('usage',{}),'timings':response.get('timings',{}),
             'input_messages_digest':record_io.digest(messages),
             'finish_reason':response['choices'][0].get('finish_reason'),
-            'elapsed_seconds':time.monotonic()-began,'prompt_tokens_measured':len(tokens),'memory':usage(worker)}
+            'elapsed_seconds':time.monotonic()-began,'prompt_tokens_measured':prompt_tokens,'memory':usage(worker),
+            **({'odds':response['choices'][0].get('logprobs')} if odds else {})}
 
 def control_claim(kernel,ident):
     with kernel.db() as db:
@@ -541,6 +601,7 @@ def run_model_job(kernel,job):
         receipt={'state':trial['backend']+'_CHAT_QUALIFIED','at':time.time(),'file_set_id':value['id'],'runtime':trial['runtime'],
                  'config':config,'load_seconds':trial['load_seconds'],'sample_usage':sample['usage'],
                  'memory':sample['memory'],'template_sha256':hashlib.sha256(value['message_template'].encode()).hexdigest(),
+                 'seal':{k:(trial.get('seal') or {}).get(k) for k in ('state','network','network_reason','transport','digest')},
                  'limits':'Load, tokenizer/template and text generation qualification; engineering-answer accuracy is not inferred.'}
         with kernel.db() as db:
             db.execute('BEGIN IMMEDIATE')

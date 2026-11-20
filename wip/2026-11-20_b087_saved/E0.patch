@@ -1,0 +1,1416 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 24fdbb6..03ec91d 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -65,6 +65,8 @@
+    "brain.runtime": "workbench/local_brain.py#dispatch",
+    "brain.status": "workbench/local_brain.py#dispatch",
+    "brain.stop": "workbench/local_brain.py#dispatch",
++   "brain.turn.get": "workbench/turns.py#dispatch",
++   "brain.turns": "workbench/turns.py#dispatch",
+    "cad.inspect": "workbench/kicad_tools.py#dispatch",
+    "cad.report": "workbench/kicad_tools.py#dispatch",
+    "candidates.accept": "workbench/engineering_kernel.py#Kernel._dispatch",
+@@ -975,9 +977,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 777,
++  "adapters": 779,
+   "job_tools": 113,
+-  "operations": 777,
++  "operations": 779,
+   "settings": 48
+  },
+  "formulas": {
+@@ -1949,6 +1951,22 @@
+    "properties": {},
+    "scope": "execute"
+   },
++  "brain.turn.get": {
++   "arguments": "2919b0ae60fccf396bb31ec42b0b49d30e549db4e90dab97af88aaa60c71e7fa",
++   "properties": {
++    "id": "5ebb95812def9056"
++   },
++   "scope": "read"
++  },
++  "brain.turns": {
++   "arguments": "93d6a94bb13cf39d599e6e0be80ef78c00adc7c435d9374ad4432cbd4e015a03",
++   "properties": {
++    "before": "33527092b4d7b347",
++    "kind": "df06bab3db37e6ee",
++    "limit": "dfbe8dfe1b8e5376"
++   },
++   "scope": "read"
++  },
+   "cad.inspect": {
+    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+    "properties": {},
+@@ -7633,7 +7651,7 @@
+  },
+  "release": "Graphite 0.8.5",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "5a9f067b2a52fe243338eaf1be59d2e786d3043acb26b91c3686bf30f2dcae0b",
++ "schema_digest": "f2c94b7fdb5f1277b2d45677f0a8cc1fb602026ae19913d37aa93334e9097914",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 73710b3..0922065 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -34,6 +34,7 @@ def schemas():
+     from .tolerances import FIELDS as TOLERANCE_FIELDS
+     from .math_money import FIELDS as MONEY_FIELDS
+     from .math_dates import FIELDS as DATES_FIELDS
++    from .turns import FIELDS as TURN_FIELDS  # 0.8.7 E0 (the turn contract)
+     from .lab_service import FIELDS as LAB_FIELDS, OPTIONS as LAB_OPTIONS
+     from .reason_service import FIELDS as REASON_FIELDS
+     from .math_service import FIELDS as MATH_FIELDS, OPTIONS as MATH_OPTIONS
+@@ -142,6 +143,7 @@ def schemas():
+         **JOINED_FIELDS, **ARTIFACT_FIELDS, **METHOD_FIELDS, **NATIVE_SESSION_FIELDS,
+         **SCHEDULE_FIELDS,
+         **MATH_ANSWER_FIELDS, **TOLERANCE_FIELDS, **MONEY_FIELDS, **DATES_FIELDS,
++        **TURN_FIELDS,  # 0.8.7 E0 (the turn contract)
+         **REASON_FIELDS,
+         **SLATE_CONTEXT_FIELDS,
+         **SLATE_REASONING_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 2099610..71ce5a0 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -45,6 +45,7 @@ from . import reason_service
+ from . import adaptive_work,schedule_math,slate_action
+ from . import math_answers, tolerances  # 0.8.5: the one maths core in lines: math.answer, and the owner's tolerances (recorded additions)
+ from . import math_money, math_dates  # 0.8.5: money and dates exactly, on the same core: math.money and math.dates (recorded additions)
++from . import turns  # 0.8.7 E0 (the turn contract): the turn ledger, brain.turns and brain.turn.get (read; recorded additions)
+ from . import joined_work,typed_artifacts,checked_methods,native_sessions
+ from . import slate_context, slate_reasoning
+ from . import edit_storage, import_profiles, change_sets
+@@ -178,6 +179,7 @@ CAPABILITIES = {
+     **schedule_math.SCOPES,
+     **math_answers.SCOPES, **tolerances.SCOPES,
+     **math_money.SCOPES, **math_dates.SCOPES,
++    **turns.SCOPES,  # 0.8.7 E0 (the turn contract)
+     **joined_work.SCOPES, **typed_artifacts.SCOPES, **checked_methods.SCOPES, **native_sessions.SCOPES,
+     **office_service.SCOPES,
+     **notebook_service.SCOPES,
+@@ -582,6 +584,7 @@ class Kernel:
+         if op in tolerances.FIELDS:return tolerances.dispatch(self,op,a,p)
+         if op in math_money.FIELDS:return math_money.dispatch(self,op,a,p)
+         if op in math_dates.FIELDS:return math_dates.dispatch(self,op,a,p,today())   # 0.8.6 S2: the clock's day for a period's as_of
++        if op in turns.FIELDS:return turns.dispatch(self,op,a,p)   # 0.8.7 E0 (the turn contract): the turn ledger, read
+         if op in lab_service.FIELDS:return lab_service.dispatch(self,op,a,p)
+         if op in reason_service.FIELDS:return reason_service.dispatch(self,op,a,p)
+         if op in math_service.FIELDS:return math_service.dispatch(self,op,a,p)
+diff --git a/workbench/fake_worker.py b/workbench/fake_worker.py
+new file mode 100644
+index 0000000..69fec3e
+--- /dev/null
++++ b/workbench/fake_worker.py
+@@ -0,0 +1,243 @@
++"""A stand-in for the local model worker, for smoke scripts and later checks only (0.8.7, slice E0). Never wired into the app.
++
++Two stand-ins and one stand-in kind:
++
++FakeWorker(script, time=VirtualTime(), ...)
++    A turns.ask port in process. Each complete() takes the next step of the script: a string (the answer), a dict
++    {'text', 'ms' (latency; default from the read and write rates), 'finish' ('stop' or 'length'), 'fail' (a PortError
++    code), 'cancel' (True: no answer by the deadline, turns.Late)} or a callable(messages, grammar) giving either. It keeps
++    its last prompt like a server with prompt reuse (`cache=True`): kept() and cache_n are the shared token prefix, so a
++    second question of the same kind re-reads only message 4. Time is virtual: a step's latency advances `time` and a late
++    one is returned with its elapsed time past the deadline, as a real late answer is (ask() records and checks it, and
++    gives the fallback). `calls` holds every request it saw: messages, grammar, answer cap, deadline, odds.
++
++FakeServer(script, context=4096)
++    A loopback HTTP stand-in for llama-server's five endpoints Graphite uses (/health, /props, /apply-template, /tokenize,
++    /v1/chat/completions), with the Bearer key check. `worker()` gives a worker record local_brain.request accepts, so a
++    check can run ask() through turns.LocalPort and local_brain.completion with no model. `bodies` holds every request
++    body as sent (a grammar in the body, cache_prompt, t_max_predict_ms, and whether a forgotten text is sent again).
++    A step may also carry 'sleep_ms' (real time, kept short) to make the client's timeout fire.
++
++FAKE, register_fake()
++    A stand-in kind ("which of these numbered options"), the example lanes B and C can copy: options are (label, is_read)
++    pairs; the grammar admits 0 to n; parse is model_words.option; the check takes a read, refuses a change (the model
++    picks, never writes: a change chosen only by the model is never taken), and leaves "none" UNSETTLED; the fallback is
++    the buttons (ASK_OWNER).
++
++The tokenizer here is a deterministic stand-in (words, signs, spaces and ChatML markers), not any model's vocabulary.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import math
++import os
++import re
++import tempfile
++import threading
++import time
++from fractions import Fraction
++from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
++from pathlib import Path
++
++from . import grammars, model_words, turns
++
++
++class VirtualTime:
++    """Milliseconds that move only when told (a TurnRequest's now_ms, a FakeWorker's latency)."""
++
++    def __init__(self, start=0):
++        self.ms = int(start)
++
++    def __call__(self):return self.ms
++
++    def advance(self, ms):self.ms += int(ms)
++
++
++def chatml(messages, add_generation_prompt=True):
++    """ChatML, the shape of the Qwen templates, for counting with no server. Not the model's own template."""
++    out = ''.join('<|im_start|>%s\n%s<|im_end|>\n' % (m['role'], m['content']) for m in messages)
++    return out + ('<|im_start|>assistant\n' if add_generation_prompt else '')
++
++
++TOKEN = re.compile(r'<\|[a-z_]+\|>|\w+|[^\w\s]|\s+')
++
++
++def tokens(text):
++    return TOKEN.findall(text)
++
++
++def _shared(a, b):
++    n = 0
++    for x, y in zip(a, b):
++        if x != y:break
++        n += 1
++    return n
++
++
++def _step(step, messages, grammar):
++    if callable(step):step = step(messages, grammar)
++    if isinstance(step, str):step = {'text': step}
++    if not isinstance(step, dict):raise TypeError('FAKE_STEP: a string, a dict or a callable giving one')
++    return step
++
++
++class FakeWorker:
++    def __init__(self, script=(), *, time=None, model='fake-model', cache=True, context=4096, read_rate=70, write_rate=5,
++                 enforce_grammar=False, live=True):
++        self.script = list(script);self.time = time if time is not None else VirtualTime()
++        self._model = model;self.cache = cache;self.context = context
++        self.read_rate = Fraction(read_rate);self.write_rate = Fraction(write_rate)
++        self.enforce_grammar = enforce_grammar;self._live = live
++        self.calls = [];self._last = []
++
++    def live(self):return self._live
++
++    def model(self):return self._model
++
++    def key(self):return 'fake:' + hashlib.sha256(self._model.encode()).hexdigest()[:16]
++
++    def count(self, messages):return len(tokens(chatml(messages)))
++
++    def kept(self, messages):
++        return _shared(tokens(chatml(messages)), self._last) if self.cache else 0
++
++    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None):
++        if not self.script:raise turns.PortError('FAKE_SCRIPT_EMPTY')
++        step = _step(self.script.pop(0), messages, grammar)
++        seen = tokens(chatml(messages));kept = self.kept(messages)
++        self.calls.append({'messages': json.loads(json.dumps(messages)), 'grammar': grammar, 'answer_tokens': answer_tokens,
++                           'deadline_ms': deadline_ms, 'odds': odds, 'kept': kept})
++        if step.get('fail'):raise turns.PortError(step['fail'])
++        self._last = seen
++        if step.get('cancel'):
++            self.time.advance(deadline_ms);raise turns.Late(deadline_ms)
++        text = step.get('text', '');finish = step.get('finish', 'stop')
++        if self.enforce_grammar and grammar and text not in grammars.admits(grammar):raise turns.PortError('FAKE_GRAMMAR_REFUSES')
++        written = tokens(text)
++        if len(written) > answer_tokens:text = ''.join(written[:answer_tokens]);finish = 'length';written = written[:answer_tokens]
++        new = len(seen) - kept
++        ms = step.get('ms')
++        if ms is None:ms = math.ceil(Fraction(new * 1000) / self.read_rate) + math.ceil(Fraction(len(written) * 1000) / self.write_rate)
++        self.time.advance(min(ms, deadline_ms) if deadline_ms else ms)
++        if on_progress is not None:on_progress(len(written), int(ms))
++        return {'text': text, 'finish': finish, 'elapsed_ms': int(ms),
++                'timings': {'prompt_n': new, 'cache_n': kept, 'predicted_n': len(written), 'prompt_ms': ms, 'predicted_ms': 0},
++                'odds': step.get('odds')}
++
++
++# -- the HTTP stand-in ----------------------------------------------------------------------------------------------------------
++class FakeServer:
++    def __init__(self, script=(), *, context=4096, model_id='f' * 64, key='fake-worker-key'):
++        self.script = list(script);self.context = context;self.model_id = model_id;self.bodies = []
++        self._dir = tempfile.mkdtemp(prefix='fake-worker-');self.key_file = Path(self._dir) / 'key'
++        self.key_file.write_text(key);self.key_file.chmod(0o600);self._key = key
++        server = self
++
++        class Handler(BaseHTTPRequestHandler):
++            def log_message(self, *args):pass
++
++            def _send(self, code, value):
++                raw = json.dumps(value).encode()
++                self.send_response(code);self.send_header('Content-Type', 'application/json')
++                self.send_header('Content-Length', str(len(raw)));self.end_headers();self.wfile.write(raw)
++
++            def _authorised(self):
++                if self.headers.get('Authorization') != 'Bearer ' + server._key:
++                    self._send(401, {'error': 'unauthorised'});return False
++                return True
++
++            def do_GET(self):
++                if not self._authorised():return
++                server.bodies.append((self.path, None))
++                if self.path == '/health':return self._send(200, {'status': 'ok'})
++                if self.path == '/props':return self._send(200, {'default_generation_settings': {'n_ctx': server.context}})
++                self._send(404, {'error': 'not here'})
++
++            def do_POST(self):
++                if not self._authorised():return
++                body = json.loads(self.rfile.read(int(self.headers.get('Content-Length') or 0)) or b'{}')
++                server.bodies.append((self.path, body))
++                if self.path == '/apply-template':return self._send(200, {'prompt': chatml(body['messages'])})
++                if self.path == '/tokenize':
++                    return self._send(200, {'tokens': [int(hashlib.sha256(t.encode()).hexdigest()[:6], 16) for t in tokens(body['content'])]})
++                if self.path == '/v1/chat/completions':
++                    if not server.script:return self._send(500, {'error': 'script empty'})
++                    step = _step(server.script.pop(0), body['messages'], body.get('grammar'))
++                    if step.get('sleep_ms'):time.sleep(step['sleep_ms'] / 1000)
++                    if step.get('fail'):return self._send(500, {'error': step['fail']})
++                    text = step.get('text', '');seen = tokens(chatml(body['messages']))
++                    return self._send(200, {'choices': [{'index': 0, 'message': {'role': 'assistant', 'content': text},
++                                                         'finish_reason': step.get('finish', 'stop')}],
++                                            'usage': {'prompt_tokens': len(seen), 'completion_tokens': len(tokens(text))},
++                                            'timings': {'prompt_n': len(seen), 'cache_n': 0, 'predicted_n': len(tokens(text)),
++                                                        'prompt_ms': 1.0, 'predicted_ms': 1.0}})
++                self._send(404, {'error': 'not here'})
++
++        self._server = ThreadingHTTPServer(('127.0.0.1', 0), Handler);self._server.daemon_threads = True
++        self.port = self._server.server_address[1]
++        self._thread = threading.Thread(target=self._server.serve_forever, daemon=True);self._thread.start()
++
++    def worker(self):
++        """A worker record local_brain.request and local_brain.worker_live accept (this process stands in for the worker)."""
++        from .operation_stop import process_identity
++        return {'pid': os.getpid(), 'start': process_identity(os.getpid()), 'port': self.port, 'key_file': str(self.key_file),
++                'context': self.context, 'model_id': self.model_id, 'runtime': {'simulated': True, 'name': 'fake_worker'},
++                'backend': 'CPU'}
++
++    def completions(self):
++        """The chat request bodies as sent, in order."""
++        return [body for path, body in self.bodies if path == '/v1/chat/completions']
++
++    def stop(self):
++        self._server.shutdown();self._server.server_close()
++        try:
++            self.key_file.unlink();os.rmdir(self._dir)
++        except OSError:
++            pass
++
++    def __enter__(self):return self
++
++    def __exit__(self, *exc):self.stop()
++
++
++# -- the stand-in kind ----------------------------------------------------------------------------------------------------------
++FAKE_BRIEF = ('You choose one of the numbered options for a desk on this computer. Answer only with the option\'s number, or 0 '
++              'if none of them fits. Do not explain.')
++
++
++def _fake_stable(inputs):
++    return '\n'.join('%d. %s' % (i, label) for i, (label, _) in enumerate(inputs['options'], 1))
++
++
++def _fake_last(inputs):
++    return 'Question: ' + inputs['question']
++
++
++def _fake_grammar(inputs):
++    return grammars.choice(len(inputs['options']))
++
++
++def _fake_parse(said, inputs):
++    return model_words.option(said, len(inputs['options']))
++
++
++def _fake_check(n, inputs):
++    if n == 0:return turns.Verdict('UNSETTLED', value=None, why=('NONE_FITS',), checks=(('range', True, '0'),))
++    label, is_read = inputs['options'][n - 1]
++    if not is_read:
++        return turns.Verdict('REFUSED', why=('MODEL_PICK_CHANGE',), checks=(('range', True, str(n)), ('read', False, label)))
++    return turns.Verdict('TAKEN', value=n, checks=(('range', True, str(n)), ('read', True, label)))
++
++
++def _fake_fallback(inputs):
++    return turns.Fallback('ASK_OWNER', tuple(label for label, _ in inputs['options']))
++
++
++FAKE = turns.TurnKind(name='FAKE', version=1, switch='choosing', brief=lambda: FAKE_BRIEF, stable=_fake_stable, last=_fake_last,
++                      grammar=_fake_grammar, caps=turns.Caps(new_tokens=300, answer_tokens=4, deadline_ms=6000),
++                      parse=_fake_parse, check=_fake_check, fallback=_fake_fallback, paper='')
++
++
++def register_fake():
++    return turns.register(FAKE)
+diff --git a/workbench/grammars.py b/workbench/grammars.py
+new file mode 100644
+index 0000000..56bd1b8
+--- /dev/null
++++ b/workbench/grammars.py
+@@ -0,0 +1,67 @@
++"""The one grammar builder for model turns (0.8.7, slice E0 starts it; lane A's A3 grows it).
++
++Every turn kind's answer is a terse line under a per-request GBNF grammar with no free whitespace (design 3.3): the same
++two-step reading is 22 tokens as a line, 46 as compact JSON and 102 as the JSON a small model writes under a schema that
++allows whitespace, and writing is the slow half on the owner's computer. A kind's `grammar(inputs)` returns the text these
++functions build; turns.ask sends it with the question and refuses a grammar with free whitespace (`check`).
++
++Only literal alternatives are built here, so what a grammar admits can be listed exactly (`admits`), which is what A3's fuzz
++against the tokenizer will read.
++"""
++from __future__ import annotations
++
++import re
++
++FREE_WHITESPACE = re.compile(r'\[[^\]]*(?:\\t|\\n|\\r| )[^\]]*\][*+]|\bws\b|\\s')
++
++
++def literal(text):
++    """A GBNF string literal for `text`, escaped."""
++    if not isinstance(text, str) or not text:raise ValueError('GRAMMAR_LITERAL: a literal is non-empty text')
++    out = text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
++    return '"' + out + '"'
++
++
++def one_of(words):
++    """root admits exactly one of `words`."""
++    words = list(dict.fromkeys(words))
++    if not words:raise ValueError('GRAMMAR_EMPTY: nothing to admit')
++    return 'root ::= ' + ' | '.join(literal(w) for w in words) + '\n'
++
++
++def choice(count, none=True):
++    """One option number from 1 to `count`, or 0 for "none of these" when `none`."""
++    if not 1 <= count <= 99:raise ValueError('GRAMMAR_COUNT: 1 to 99 options')
++    return one_of((['0'] if none else []) + [str(n) for n in range(1, count + 1)])
++
++
++def picks(count, most, none=True):
++    """1 to `most` option numbers separated by single spaces, or 0 alone for none. (That they differ is the parser's check.)"""
++    if not 1 <= count <= 99 or not 1 <= most <= 8:raise ValueError('GRAMMAR_COUNT: 1 to 99 options, at most 8 picks')
++    tail = ''
++    for _ in range(most - 1):tail = '( " " n ' + tail + ')?'
++    head = ('"0" | ' if none else '') + 'n ' + tail
++    return 'root ::= ' + head.strip() + '\nn ::= ' + ' | '.join(literal(str(n)) for n in range(1, count + 1)) + '\n'
++
++
++def check(grammar):
++    """The grammar a turn sends: None (a kind with no grammar, Talk only) or GBNF with a root rule and no free whitespace."""
++    if grammar is None:return None
++    if not isinstance(grammar, str) or not re.search(r'(?m)^root\s*::=', grammar):raise ValueError('GRAMMAR_NO_ROOT')
++    if FREE_WHITESPACE.search(grammar):raise ValueError('GRAMMAR_FREE_WHITESPACE: a turn grammar admits no free whitespace')
++    if len(grammar) > 65536:raise ValueError('GRAMMAR_TOO_LONG')
++    return grammar
++
++
++def admits(grammar):
++    """Every answer a grammar built here admits, listed (for the caps check and A3's fuzz). Only the shapes above."""
++    rules = dict(re.findall(r'(?m)^(\w+)\s*::=\s*(.*)$', grammar))
++    lit = lambda s: [bytes(m, 'utf-8').decode('unicode_escape') for m in re.findall(r'"((?:[^"\\]|\\.)*)"', s)]
++    if 'n' not in rules:return lit(rules['root'])
++    numbers = lit(rules['n']);most = 1 + rules['root'].count('" " n')
++    out = ['0'] if rules['root'].lstrip().startswith('"0"') else []
++    rows = [[x] for x in numbers]
++    for _ in range(most):
++        out += [' '.join(r) for r in rows]
++        rows = [r + [x] for r in rows for x in numbers]
++    return out
+diff --git a/workbench/local_brain.py b/workbench/local_brain.py
+index 9739676..a63dfd9 100644
+--- a/workbench/local_brain.py
++++ b/workbench/local_brain.py
+@@ -471,20 +471,29 @@ def _start_server(kernel,value,config,ident,slot,verified):
+ # the token budget and return empty text; templates without this switch ignore it.
+ TEMPLATE_OPTIONS={'enable_thinking':False}
+ 
+-def completion(worker,messages,max_tokens=128,json_schema=None):
+-    prompt=request(worker,'/apply-template',{'messages':messages,'add_generation_prompt':True,'chat_template_kwargs':TEMPLATE_OPTIONS},timeout=10)['prompt']
+-    tokens=request(worker,'/tokenize',{'content':prompt,'add_special':False},timeout=10)['tokens']
+-    if len(tokens)+max_tokens+32>worker['context']:raise ValueError('CONTEXT_BUDGET_EXCEEDED: shorten this message or begin a new conversation; saved dialogue is preserved')
++def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,timeout=90,t_max_predict_ms=None,odds=0,prompt_tokens=None):
++    # 0.8.7 E0: besides the ready probe, only turns.ask calls this (the turn contract). Its keywords: the kind's GBNF grammar
++    # (never with a JSON schema), the deadline (the HTTP timeout, and t_max_predict_ms to bound writing), the alternatives
++    # per answer token to record (odds), and the prompt's token count when the caller has just measured it.
++    if prompt_tokens is None:
++        prompt=request(worker,'/apply-template',{'messages':messages,'add_generation_prompt':True,'chat_template_kwargs':TEMPLATE_OPTIONS},timeout=10)['prompt']
++        tokens=request(worker,'/tokenize',{'content':prompt,'add_special':False},timeout=10)['tokens'];prompt_tokens=len(tokens)
++    if prompt_tokens+max_tokens+32>worker['context']:raise ValueError('CONTEXT_BUDGET_EXCEEDED: shorten this message or begin a new conversation; saved dialogue is preserved')
+     payload={'messages':messages,'max_tokens':max_tokens,'temperature':0,'stream':False,'cache_prompt':False,
+              'chat_template_kwargs':TEMPLATE_OPTIONS}
++    if json_schema and grammar:raise ValueError('ANSWER_SHAPE_TWICE: a JSON schema or a grammar, not both')
+     if json_schema:payload['response_format']={'type':'json_schema','json_schema':{'name':'ledger_plan','strict':True,'schema':json_schema}}
+-    began=time.monotonic();response=request(worker,'/v1/chat/completions',payload)
++    if grammar:payload['grammar']=grammar
++    if t_max_predict_ms:payload['t_max_predict_ms']=int(t_max_predict_ms)
++    if odds:payload.update(logprobs=True,top_logprobs=int(odds))
++    began=time.monotonic();response=request(worker,'/v1/chat/completions',payload,timeout=timeout)
+     text=response['choices'][0]['message'].get('content','')
+     if not isinstance(text,str) or len(text)>32000:raise ValueError('MODEL_OUTPUT_LIMIT_OR_TYPE')
+     return {'text':text,'usage':response.get('usage',{}),'timings':response.get('timings',{}),
+             'input_messages_digest':record_io.digest(messages),
+             'finish_reason':response['choices'][0].get('finish_reason'),
+-            'elapsed_seconds':time.monotonic()-began,'prompt_tokens_measured':len(tokens),'memory':usage(worker)}
++            'elapsed_seconds':time.monotonic()-began,'prompt_tokens_measured':prompt_tokens,'memory':usage(worker),
++            **({'odds':response['choices'][0].get('logprobs')} if odds else {})}
+ 
+ def control_claim(kernel,ident):
+     with kernel.db() as db:
+diff --git a/workbench/model_words.py b/workbench/model_words.py
+new file mode 100644
+index 0000000..352e69a
+--- /dev/null
++++ b/workbench/model_words.py
+@@ -0,0 +1,195 @@
++"""Whose words: the type every string a model wrote is held in (0.8.7, "Kas's mind with the model, interwoven"; slice E0).
++
++Her rule is "the model proposes; the system disposes". Free model text survives only as `ModelSaid`, which is not a `str`:
++`str()`, `format()`, f-strings, `%s`, `+` with a string, iteration and `in` all raise, so no code can show it as her words
++by accident. It reaches the screen only through `marked()`, which pairs it with its mark line in words, and it reaches a
++checker only through `ModelSaid.for_check()`. Her column's plain renderer (shell2.leaded, shell2.Bubble) calls
++`plain_only()`, which refuses a `ModelSaid` and a `Marked`. Thinking text, if a model ever produces any, is ModelSaid too.
++
++The marks (design 5.1), one quiet line per reply, in words, never an icon alone:
++  CHECKED  read by the model, checked against your desk
++  WORDED   worded by the model · every fact from the receipt
++  KEPT     worded by the model, kept by you
++  YOURS    your wording
++  OWN      the model's own words, from its memory, not from your files      (Talk only)
++Her plain words carry no mark at all.
++
++The strict parsers below read the terse answer lines the kinds' grammars allow (no free whitespace); anything else is
++`Invalid`, and nothing acts on it. They are shared by the kinds lanes B and C register; a kind with its own answer shape
++writes its parser in its own module and raises `Invalid` the same way.
++
++This module, turns.py and every registered checker never import clip or gemini_engineer: Kas's checked questions can never
++go to a cloud model.
++"""
++from __future__ import annotations
++
++import hashlib
++import re
++
++MARKS = {
++    'CHECKED': 'read by the model, checked against your desk',
++    'WORDED': 'worded by the model · every fact from the receipt',
++    'KEPT': 'worded by the model, kept by you',
++    'YOURS': 'your wording',
++    'OWN': "the model's own words, from its memory, not from your files",
++}
++MOST = 32000          # characters: local_brain.completion refuses a longer answer before it is wrapped
++
++
++class Invalid(ValueError):
++    """A model answer that is not in its kind's shape. Nothing acts on it; the turn is REFUSED and the fallback stands."""
++
++
++class ModelSaid:
++    """Text a model wrote. Not a str; it has no string form. `kind` is the turn kind that asked; `turn` its record id."""
++    __slots__ = ('_text', '_kind', '_turn')
++
++    def __init__(self, text, kind='', turn=''):
++        if isinstance(text, ModelSaid):text = text._text
++        if not isinstance(text, str):raise TypeError('MODEL_SAID_TEXT: a model answer is text')
++        if len(text) > MOST:raise ValueError('MODEL_SAID_TOO_LONG')
++        object.__setattr__(self, '_text', text);object.__setattr__(self, '_kind', str(kind or ''))
++        object.__setattr__(self, '_turn', str(turn or ''))
++
++    def __setattr__(self, name, value):raise AttributeError('ModelSaid is fixed once written')
++
++    # -- no string form: these all refuse ---------------------------------------------------------------------------------
++    def __str__(self):raise TypeError('MODEL_SAID_NOT_HER_WORDS: show it with model_words.marked(), never as her words')
++
++    def __format__(self, spec):raise TypeError('MODEL_SAID_NOT_HER_WORDS: show it with model_words.marked(), never as her words')
++
++    def __add__(self, other):raise TypeError('MODEL_SAID_NOT_HER_WORDS: it cannot be joined to her words')
++
++    __radd__ = __add__
++    __mod__ = __add__
++    __rmod__ = __add__
++    __iter__ = None       # iteration and `in` raise TypeError: the text cannot be taken out letter by letter
++
++    def __repr__(self):
++        """No words in the repr (logs and tracebacks are screens too): its length, kind and a short digest."""
++        return 'ModelSaid(%d characters%s, sha256 %s)' % (len(self._text), ' of ' + self._kind if self._kind else '',
++                                                          self.digest()[:12])
++
++    # -- what may be asked of it --------------------------------------------------------------------------------------------
++    def __len__(self):return len(self._text)
++
++    def __bool__(self):return bool(self._text)
++
++    def __eq__(self, other):return isinstance(other, ModelSaid) and other._text == self._text and other._kind == self._kind
++
++    def __hash__(self):return hash(('ModelSaid', self._text, self._kind))
++
++    @property
++    def kind(self):return self._kind
++
++    @property
++    def turn(self):return self._turn
++
++    def digest(self):return hashlib.sha256(self._text.encode('utf-8')).hexdigest()
++
++    def for_check(self):
++        """The raw text, for a parser or a checker only (it never goes to a screen from here)."""
++        return self._text
++
++    def with_turn(self, turn):return ModelSaid(self._text, self._kind, turn)
++
++    def __copy__(self):return self      # fixed once written, so a copy is itself (dataclasses.asdict deep-copies values)
++
++    def __deepcopy__(self, memo):return self
++
++    def __reduce__(self):return (ModelSaid, (self._text, self._kind, self._turn))
++
++    def for_record(self):
++        """The stored form in a brain.turn/1 record: tagged, so whatever reads it back wraps it again (from_record)."""
++        return {'model_said': self._text, 'kind': self._kind}
++
++    @classmethod
++    def from_record(cls, value, turn=''):
++        if value is None:return None
++        if not isinstance(value, dict) or set(value) - {'model_said', 'kind'} or not isinstance(value.get('model_said'), str):
++            raise ValueError('MODEL_SAID_RECORD: not a stored model answer')
++        return cls(value['model_said'], value.get('kind', ''), turn)
++
++
++class Marked(tuple):
++    """(text, mark): model words with their mark line in words. Made only by marked(); shown only by a renderer that draws
++    the mark beside the words (model_marks_qt, lane A). Her column's plain renderer refuses it (plain_only)."""
++    __slots__ = ()
++
++    def __new__(cls, text, mark):return tuple.__new__(cls, (text, mark))
++
++    @property
++    def text(self):return self[0]
++
++    @property
++    def mark(self):return self[1]
++
++
++def marked(said, mark='CHECKED'):
++    """The one way ModelSaid becomes text for a screen: paired with its mark line (MARKS)."""
++    if not isinstance(said, ModelSaid):raise TypeError('MARKED_NEEDS_MODEL_SAID: only model words are marked')
++    if mark not in MARKS:raise ValueError('MARK_UNKNOWN: %s' % mark)
++    return Marked(said.for_check(), MARKS[mark])
++
++
++def is_model(value):
++    """True for model words in either form (ModelSaid, Marked)."""
++    return isinstance(value, (ModelSaid, Marked))
++
++
++def plain_only(value):
++    """Her column's plain renderer calls this first: her plain words pass through unchanged; model words are refused."""
++    if is_model(value):
++        raise TypeError('MODEL_SAID_NOT_HER_WORDS: her column shows model words only with their mark (model_words.marked)')
++    return value
++
++
++# -- strict parsers for terse answer lines ----------------------------------------------------------------------------------
++NUMBER = re.compile(r'(?:0|[1-9][0-9]{0,3})')
++
++
++def _text(said):
++    if not isinstance(said, ModelSaid):raise TypeError('PARSE_NEEDS_MODEL_SAID: a parser reads only model words')
++    text = said.for_check()
++    if text.endswith('\n'):text = text[:-1]         # one closing line break is the only whitespace forgiven
++    return text
++
++
++def option(said, count, none=True):
++    """One option number from 1 to `count`, or 0 for "none of these" when `none` allows it. The whole answer is the number."""
++    text = _text(said)
++    if not NUMBER.fullmatch(text):raise Invalid('NOT_ONE_NUMBER')
++    n = int(text)
++    if n == 0 and none:return 0
++    if not 1 <= n <= count:raise Invalid('OUT_OF_RANGE')
++    return n
++
++
++def options(said, count, most, none=True):
++    """1 to `most` different option numbers separated by single spaces, in the order written; (0,) alone for none."""
++    text = _text(said)
++    parts = text.split(' ')
++    if not parts or any(not NUMBER.fullmatch(p) for p in parts):raise Invalid('NOT_NUMBERS')
++    picked = tuple(int(p) for p in parts)
++    if picked == (0,) and none:return ()
++    if 0 in picked:raise Invalid('NONE_WITH_OTHERS')
++    if len(picked) > most:raise Invalid('TOO_MANY')
++    if len(set(picked)) != len(picked):raise Invalid('REPEATED')
++    if any(not 1 <= n <= count for n in picked):raise Invalid('OUT_OF_RANGE')
++    return picked
++
++
++def word(said, allowed):
++    """One word from `allowed`, exactly."""
++    text = _text(said)
++    if text not in allowed:raise Invalid('NOT_AN_ALLOWED_WORD')
++    return text
++
++
++def lines(said, most):
++    """The answer cut at line breaks: 1 to `most` non-empty lines with no leading or trailing spaces."""
++    text = _text(said)
++    rows = text.split('\n')
++    if not rows or len(rows) > most:raise Invalid('LINE_COUNT')
++    if any(not r or r != r.strip(' \t') for r in rows):raise Invalid('LINE_SPACING')
++    return tuple(rows)
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 3edb033..716111a 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -1806,8 +1806,11 @@ def break_long(text, most, fits=None):
+ def leaded(label, text, room=None):
+     """Her words with room between their lines (125%), as rich text, a long name broken only where it must be (break_long,
+     at the label's width `room` in px; kasandra_column.Folding sets them again when the width changes). The words as they
+-    were given are kept in the label's 'plain' property, for whatever reads them back (desk_doers.read_desk)."""
++    were given are kept in the label's 'plain' property, for whatever reads them back (desk_doers.read_desk). Model words are
++    refused here (0.8.7: model_words.plain_only): they are shown only with their mark."""
+     import html
++    from .model_words import plain_only
++    plain_only(text)
+     label.setProperty('plain', str(text));label.setProperty('leaded', True)
+     room = int(room or LINE_GUESS);label.setProperty('lineRoom', room);most, fits = line_room(label, room)
+     body = html.escape(break_long(text, most, fits), quote=False).replace('\n', '<br>')
+@@ -1867,7 +1870,10 @@ class Bubble(QFrame):
+         self.box.addWidget(self.text)
+ 
+     def set_text(self, text):
+-        """Her words, in Kasandra with room between their lines (leaded); a line or your own words as they are."""
++        """Her words, in Kasandra with room between their lines (leaded); a line or your own words as they are. Never model
++        words: her column's plain renderer refuses them (0.8.7, model_words.plain_only)."""
++        from .model_words import plain_only
++        plain_only(text)
+         if bt.APPEARANCE == 'kasandra' and not self.mine and not self.code:leaded(self.text, text)
+         else:self.text.setProperty('plain', str(text));self.text.setText(breakable(text))
+ 
+diff --git a/workbench/turns.py b/workbench/turns.py
+new file mode 100644
+index 0000000..337a2e8
+--- /dev/null
++++ b/workbench/turns.py
+@@ -0,0 +1,713 @@
++"""The turn contract: every question Kas puts to a local model goes through ask() (0.8.7, "Kas's mind with the model,
++interwoven"; slice E0, lane A).
++
++Her rule is "the model proposes; the system disposes". A model turn here is a short question with a short answer: a number,
++a line reference, a reading the desk checks part by part, a frame the desk fills. Every answer is parsed into a desk object
++and checked by its kind's checker before anything uses it; free model text survives only as model_words.ModelSaid, which
++cannot be shown as her words. A wrong answer is refused before the owner sees it; a late one is not waited for.
++
++====================================================================================================================
++THE FROZEN INTERFACE (slice E0). Lanes B and C register their kinds against it and never edit it; it changes only by
++agreement, in lane A.
++--------------------------------------------------------------------------------------------------------------------
++TurnKind(name, version, switch, brief, stable, last, grammar, caps, parse, check, fallback,
++         deadline=standard_deadline, paper='')
++    name      one of KNOWN_KINDS (READ GOAL PICK BIND NEXT ORDER MARKS ASK COLUMNS FRAME TALK), or another upper-case
++              name for an exam shape or a stand-in (fake_worker.FAKE)
++    version   int; the brief's sha256 and the version together are the kind's identity in every record
++    switch    the owner's switch it belongs to: understanding, choosing, reading, wording, talk (SWITCH_OF fixes it
++              for the eleven known kinds)
++    brief()                -> str   message 1: fixed rules and tables, no owner data; must give the same text every call
++    stable(inputs)         -> str   message 2: session-stable context (the numbered things, a page, agreed examples)
++    last(inputs)           -> str   message 4: everything that varies (the now line, the request, the options)
++    grammar(inputs)        -> str or None   GBNF from grammars.py, no free whitespace (None for Talk only)
++    caps: Caps(new_tokens, answer_tokens, deadline_ms, foreground=True, desk_ms=50, odds=0, stop_only=False)
++    parse(said, inputs)    -> a desk object, or raises model_words.Invalid       (said is a ModelSaid)
++    check(obj, inputs)     -> Verdict(state, value=None, why=(), checks=(), basis='model_pick', second_view=None)
++                              state: TAKEN, TRIMMED, REFUSED, UNSETTLED or TRIPPED
++    fallback(inputs)       -> Fallback(code, value): the exact no-model answer; code: ASK_OWNER, DEFAULT_READ,
++                              PLAIN_WORDS, CANNOT_TELL, NOT_OFFERED, PATTERNS (the pattern pass), PLACES (the places)
++    deadline(price_ms, caps) -> int ms (standard_deadline: max(3 s, 2 x price + 1 s), capped by the kind)
++    paper     the exam paper the kind sits (section 5.5), a name
++
++register(kind) -> kind            once per kind, at import of the module that owns it (idempotent for the same kind)
++ask(kind, inputs, request) -> Answer
++    kind is a registered TurnKind or its name; request is a TurnRequest (one per owner request: the ceiling lives in it).
++    In order: the switch and the per-request ceiling; the layout; the grammar; the tokens and the price from her clock;
++    the deadline; the call (local_brain.completion, through the request's port); parse; check; one brain.turn/1 record;
++    then the checked desk object, or the fallback.
++Answer(value, by_model, outcome, fallback, why, verdict, turn, said, price_ms, deadline_ms, elapsed_ms, late_view)
++    by_model   True when value is the checked model answer (TAKEN, TRIMMED, UNSETTLED); else value is the fallback's
++    outcome    TAKEN TRIMMED REFUSED UNSETTLED TRIPPED LATE FAILED (a turn was sent and recorded), or NOT_SENT
++    why        for NOT_SENT: SWITCH_OFF, AI_OFF, NO_MODEL, STOPPED, CEILING_TURNS, CEILING_TIME, OVER_CAP, OVER_CONTEXT;
++               for a sent turn the first reason code of its verdict, or LATE, or the worker's error code
++    late_view  a late answer's checked value (TAKEN or TRIMMED), offered beside hers, never taken
++TurnRequest(port=None, ledger=None, clock=None, switches=None, owner='', foreground_turns=3, budget_ms=25000,
++            now_ms=None, cancelled=None, on_progress=None, off_reason='NO_MODEL')
++    .take_card() -> bool   at most one question card per request (the one question, lane B)
++    request_for(kernel, principal, ...) builds one for the live, selected local model; with none, port is None.
++layout(kind, inputs) -> the four messages: system brief | user stable | assistant "Ready." | user last
++The record: brain.turn/1 (record()), kept local in its own table, bounded (KEEP_DAYS, KEEP_TURNS); Forget leaves a
++tombstone (forget()); read through the Kernel as brain.turns and brain.turn.get (read scope).
++The worker port (LocalPort here; fake_worker.FakeWorker for smoke scripts): live(), model(), key(), count(messages),
++kept(messages), the attribute context (tokens, or None), complete(messages, *, answer_tokens, grammar, deadline_ms, odds,
++prompt_tokens, on_progress) -> dict(text, finish, timings, odds, elapsed_ms); raises Late past the deadline, PortError
++when the worker fails. on_progress(tokens_written, elapsed_ms), when given, is called as the answer streams (A3).
++Her clock (brain_clock.py, lane A's A3, when it exists; FixedClock until then): price_ms(key, kind, new_tokens,
++answer_tokens, desk_ms) and observe(key, kind, record).
++====================================================================================================================
++
++Only this module calls local_brain.completion (local_brain's own ready probe excepted). This module, model_words.py and
++every registered checker never import clip or gemini_engineer, so Kas's checked questions can never go to a cloud model.
++Nothing here writes a fact, a decision or a change: ask() returns a checked desk object or the fallback, and what the
++caller does with it still passes the dial (stacy_hand), where a change whose only basis is the model's pick is never hers.
++"""
++from __future__ import annotations
++
++import ast
++import hashlib
++import importlib
++import json
++import math
++import time
++import uuid
++from dataclasses import dataclass, field, is_dataclass, asdict
++from fractions import Fraction
++from pathlib import Path
++from typing import Any, Callable
++
++from . import grammars
++from .model_words import MOST as MODEL_SAID_MOST, Invalid, ModelSaid
++
++SCHEMA = 'brain.turn/1'
++READY = 'Ready.'                         # message 3, one fixed line, never changes (the layout contract)
++STABLE_EMPTY = 'Nothing is kept for this question.'
++KNOWN_KINDS = ('READ', 'GOAL', 'PICK', 'BIND', 'NEXT', 'ORDER', 'MARKS', 'ASK', 'COLUMNS', 'FRAME', 'TALK')
++SWITCHES = {'understanding': True, 'choosing': True, 'reading': True, 'wording': False, 'talk': True}   # defaults (design 9)
++SWITCH_OF = {'READ': 'understanding', 'GOAL': 'understanding', 'PICK': 'understanding', 'BIND': 'understanding',
++             'NEXT': 'choosing', 'ORDER': 'choosing', 'MARKS': 'reading', 'ASK': 'reading', 'COLUMNS': 'reading',
++             'FRAME': 'wording', 'TALK': 'talk'}
++VERDICTS = ('TAKEN', 'TRIMMED', 'REFUSED', 'UNSETTLED', 'TRIPPED')
++OUTCOMES = VERDICTS + ('LATE', 'FAILED')
++USED = ('TAKEN', 'TRIMMED', 'UNSETTLED')         # verdicts whose value the caller receives
++FALLBACKS = ('ASK_OWNER', 'DEFAULT_READ', 'PLAIN_WORDS', 'CANNOT_TELL', 'NOT_OFFERED', 'PATTERNS', 'PLACES')
++NOT_SENT = ('SWITCH_OFF', 'AI_OFF', 'NO_MODEL', 'STOPPED', 'CEILING_TURNS', 'CEILING_TIME', 'OVER_CAP', 'OVER_CONTEXT')
++BASES = ('owner_words', 'owner_click', 'deduction', 'model_pick')
++FOREGROUND_TURNS = 3                     # at most 3 foreground model turns per request (design 4.4)
++FOREGROUND_BUDGET_MS = 25000             # the 4B here; the 35B's 8 s is a target the model check replaces (design 4.4)
++DEADLINE_FLOOR_MS = 3000
++FOREGROUND_DEADLINE_MOST_MS = 20000      # no foreground deadline exceeds 20 s (design 4.3)
++NEW_TOKENS_MOST = 1600                   # no foreground question reads more than 1,600 new tokens (design 4.3)
++KEEP_DAYS = 30
++KEEP_TURNS = 2000
++FORBIDDEN_IMPORTS = ('clip', 'gemini_engineer')
++KINDS: dict = {}
++_DIGESTS: dict = {}
++
++
++# -- the shapes -------------------------------------------------------------------------------------------------------------
++@dataclass(frozen=True)
++class Caps:
++    new_tokens: int                      # most new (not re-read) prompt tokens a question may carry; one over is never sent
++    answer_tokens: int                   # the answer cap (max_tokens)
++    deadline_ms: int                     # the kind's cap on its deadline; 0 only with stop_only (Talk: no deadline, Stop)
++    foreground: bool = True              # foreground turns count against the request's ceiling
++    desk_ms: int = 50                    # the desk's own share of the price
++    odds: int = 0                        # alternatives per answer token to record (0: none)
++    stop_only: bool = False
++
++
++@dataclass(frozen=True)
++class Fallback:
++    code: str
++    value: Any = None
++
++    def __post_init__(self):
++        if self.code not in FALLBACKS:raise ValueError('TURN_FALLBACK_CODE: %s' % self.code)
++
++
++@dataclass(frozen=True)
++class Verdict:
++    state: str
++    value: Any = None
++    why: tuple = ()
++    checks: tuple = ()                   # (name, passed, detail) for every check run, for the record and the fold
++    basis: str = 'model_pick'
++    second_view: Any = None              # {'hers': ..., 'model': ..., 'why': ...} when the model's view differs from hers
++
++    def __post_init__(self):
++        if self.state not in VERDICTS:raise ValueError('TURN_VERDICT_STATE: %s' % self.state)
++        if self.basis not in BASES:raise ValueError('TURN_BASIS: %s' % self.basis)
++
++
++def standard_deadline(price_ms, caps):
++    """max(3 s, 2 x price + 1 s), capped by the kind (design 4.4). Integer milliseconds; 0 for a Stop-only kind."""
++    if caps.stop_only:return 0
++    return min(caps.deadline_ms, max(DEADLINE_FLOOR_MS, 2 * int(price_ms) + 1000))
++
++
++@dataclass(frozen=True)
++class TurnKind:
++    name: str
++    version: int
++    switch: str
++    brief: Callable[[], str]
++    stable: Callable[[Any], str]
++    last: Callable[[Any], str]
++    grammar: Callable[[Any], Any]
++    caps: Caps
++    parse: Callable[[ModelSaid, Any], Any]
++    check: Callable[[Any, Any], Verdict]
++    fallback: Callable[[Any], Fallback]
++    deadline: Callable[[int, Caps], int] = standard_deadline
++    paper: str = ''
++
++    def brief_digest(self):
++        return hashlib.sha256(self.brief().encode('utf-8')).hexdigest()
++
++    def ident(self):
++        """name/version#brief sha256 (12): what every record and the exam key name the kind by."""
++        return '%s/%d#%s' % (self.name, self.version, self.brief_digest()[:12])
++
++
++@dataclass(frozen=True)
++class Answer:
++    value: Any
++    by_model: bool
++    outcome: str
++    fallback: Any = None                 # the fallback code when value is the fallback's
++    why: str = ''
++    verdict: Any = None
++    turn: str = ''                       # the brain.turn/1 record id when a turn was sent
++    said: Any = None                     # the raw answer, as ModelSaid
++    price_ms: int = 0
++    deadline_ms: int = 0
++    elapsed_ms: int = 0
++    late_view: Any = None
++
++
++class Late(Exception):
++    """The worker did not answer by the deadline. `text` is a late answer if one arrived (it is recorded and checked)."""
++
++    def __init__(self, elapsed_ms, text=None, timings=None):
++        super().__init__('LATE');self.elapsed_ms = int(elapsed_ms);self.text = text;self.timings = timings or {}
++
++
++class PortError(Exception):
++    """The worker failed (not live, an HTTP error, a malformed reply). `code` is a short reason, never the worker's log."""
++
++    def __init__(self, code):
++        super().__init__(code);self.code = str(code)[:120]
++
++
++# -- the registry -----------------------------------------------------------------------------------------------------------
++def register(kind):
++    """Add a kind to the one registry. The same kind again is a no-op; another kind under a taken name is refused."""
++    if not isinstance(kind, TurnKind):raise TypeError('TURN_KIND: register a TurnKind')
++    if not kind.name.isupper() or not kind.name.replace('_', '').isalpha() or not 2 <= len(kind.name) <= 16:
++        raise ValueError('TURN_KIND_NAME: upper-case letters, 2 to 16')
++    if kind.switch not in SWITCHES:raise ValueError('TURN_KIND_SWITCH: %s' % kind.switch)
++    if kind.name in SWITCH_OF and SWITCH_OF[kind.name] != kind.switch:
++        raise ValueError('TURN_KIND_SWITCH: %s belongs to %s' % (kind.name, SWITCH_OF[kind.name]))
++    if not isinstance(kind.version, int) or kind.version < 1:raise ValueError('TURN_KIND_VERSION')
++    caps = kind.caps
++    if not 1 <= caps.answer_tokens <= 600:raise ValueError('TURN_CAPS_ANSWER: 1 to 600 tokens')
++    if not 1 <= caps.new_tokens <= NEW_TOKENS_MOST:raise ValueError('TURN_CAPS_NEW_TOKENS: 1 to %d' % NEW_TOKENS_MOST)
++    if caps.stop_only:
++        if caps.deadline_ms != 0:raise ValueError('TURN_CAPS_DEADLINE: a Stop-only kind has no deadline')
++    elif caps.foreground and not DEADLINE_FLOOR_MS <= caps.deadline_ms <= FOREGROUND_DEADLINE_MOST_MS:
++        raise ValueError('TURN_CAPS_DEADLINE: a foreground deadline is 3 to 20 s')
++    elif not caps.foreground and not DEADLINE_FLOOR_MS <= caps.deadline_ms <= 120000:
++        raise ValueError('TURN_CAPS_DEADLINE: a background deadline is 3 to 120 s')
++    if not 0 <= caps.odds <= 8 or caps.desk_ms < 0:raise ValueError('TURN_CAPS_ODDS_OR_DESK')
++    brief = kind.brief()
++    if not isinstance(brief, str) or not brief.strip() or brief != kind.brief():raise ValueError('TURN_BRIEF_NOT_FIXED')
++    digest = kind.brief_digest()
++    held = KINDS.get(kind.name)
++    if held is not None:
++        if held is kind or (held.version == kind.version and _DIGESTS[kind.name] == digest and held.caps == kind.caps):
++            return held
++        raise ValueError('TURN_KIND_TAKEN: %s is registered already' % kind.name)
++    KINDS[kind.name] = kind;_DIGESTS[kind.name] = digest
++    return kind
++
++
++def kind_of(kind):
++    if isinstance(kind, TurnKind):
++        if KINDS.get(kind.name) is not kind:raise ValueError('TURN_KIND_NOT_REGISTERED: %s' % kind.name)
++        return kind
++    if kind not in KINDS:raise ValueError('TURN_KIND_UNKNOWN: %s' % kind)
++    return KINDS[kind]
++
++
++def checker_modules():
++    """The modules of every registered kind's builders, parser and checker (for the no-cloud-import scan)."""
++    out = set()
++    for kind in KINDS.values():
++        for fn in (kind.brief, kind.stable, kind.last, kind.grammar, kind.parse, kind.check, kind.fallback, kind.deadline):
++            module = getattr(fn, '__module__', None)
++            if module:out.add(module)
++    return sorted(out)
++
++
++def discover(root=None):
++    """Import every workbench module that registers a kind, found by reading the sources (no list to keep by hand), so a
++    check over "every registered kind" sees them all. Returns the module names imported."""
++    root = Path(root or Path(__file__).resolve().parent)
++    found = []
++    for path in sorted(root.glob('*.py')):
++        text = path.read_text(encoding='utf-8', errors='replace')
++        if 'register(' not in text or 'turns' not in text or path.name == 'turns.py':continue
++        try:tree = ast.parse(text)
++        except SyntaxError:continue
++        for node in ast.walk(tree):
++            if isinstance(node, ast.Call):
++                f = node.func
++                if (isinstance(f, ast.Attribute) and f.attr == 'register' and isinstance(f.value, ast.Name) and f.value.id == 'turns') or \
++                   (isinstance(f, ast.Name) and f.id == 'register' and 'from .turns import' in text):
++                    found.append('workbench.' + path.stem);break
++    for name in found:importlib.import_module(name)
++    return found
++
++
++# -- the layout -------------------------------------------------------------------------------------------------------------
++def layout(kind, inputs):
++    """The four messages (design 3.2). Everything that varies lives in message 4, so a kept brief is re-used up to there."""
++    kind = kind_of(kind)
++    brief = kind.brief()
++    if hashlib.sha256(brief.encode('utf-8')).hexdigest() != _DIGESTS[kind.name]:
++        raise ValueError('TURN_BRIEF_CHANGED: %s gave another brief; its sha256 is part of the kind' % kind.name)
++    stable = kind.stable(inputs);last = kind.last(inputs)
++    if not isinstance(stable, str) or not isinstance(last, str):
++        raise TypeError('TURN_MESSAGE_TEXT: a message is plain text the desk built (never model words)')
++    if not last.strip():raise ValueError('TURN_LAST_EMPTY: message 4 holds the question')
++    return [{'role': 'system', 'content': brief}, {'role': 'user', 'content': stable if stable.strip() else STABLE_EMPTY},
++            {'role': 'assistant', 'content': READY}, {'role': 'user', 'content': last}]
++
++
++# -- her clock until brain_clock.py --------------------------------------------------------------------------------------------
++class FixedClock:
++    """Fixed rates for the price until her clock (brain_clock.py, A3) measures them: tokens a second, read cold and read in
++    small kept pieces, and written. The defaults are the 4B's quiet rates here (design 4.3), rounded down."""
++    SMALL = 256
++
++    def __init__(self, read_small=30, read_large=70, write=5):
++        self.read_small = Fraction(read_small);self.read_large = Fraction(read_large);self.write = Fraction(write)
++
++    def price_ms(self, key, kind, new_tokens, answer_tokens, desk_ms):
++        """desk share + new tokens / read rate + answer tokens / write rate, in whole milliseconds, rounded up."""
++        read = self.read_small if new_tokens <= self.SMALL else self.read_large
++        return int(desk_ms) + math.ceil(Fraction(new_tokens * 1000) / read) + math.ceil(Fraction(answer_tokens * 1000) / self.write)
++
++    def observe(self, key, kind, record):
++        pass
++
++
++def default_clock(kernel=None):
++    """Her clock when lane A has built it (brain_clock.clock(kernel)), else FixedClock."""
++    try:
++        from . import brain_clock
++    except ImportError:
++        return FixedClock()
++    return brain_clock.clock(kernel)
++
++
++# -- the request: one per owner request, with its ceiling ---------------------------------------------------------------------
++def _monotonic_ms():
++    return time.monotonic_ns() // 1000000
++
++
++class TurnRequest:
++    def __init__(self, port=None, ledger=None, clock=None, switches=None, owner='', foreground_turns=FOREGROUND_TURNS,
++                 budget_ms=FOREGROUND_BUDGET_MS, now_ms=None, cancelled=None, on_progress=None, off_reason='NO_MODEL'):
++        self.id = uuid.uuid4().hex
++        self.port = port
++        self.ledger = ledger if ledger is not None else MemoryLedger()
++        self.clock = clock if clock is not None else FixedClock()
++        self.switches = {**SWITCHES, **(switches or {})}
++        self.owner = owner
++        self.foreground_turns = int(foreground_turns)
++        self.budget_ms = int(budget_ms)
++        self.now_ms = now_ms or _monotonic_ms
++        self.cancelled = cancelled or (lambda: False)
++        self.on_progress = on_progress
++        self.off_reason = off_reason
++        self.turns_used = 0
++        self.spent_ms = 0
++        self.cards_used = 0
++
++    def switch_on(self, name):return bool(self.switches.get(name, False))
++
++    def remaining_ms(self):return max(0, self.budget_ms - self.spent_ms)
++
++    def take_card(self):
++        """At most one question card per request (design 4.4): True the first time, False after."""
++        if self.cards_used >= 1:return False
++        self.cards_used += 1
++        return True
++
++
++def stored_switches(kernel):
++    """The owner's switches per kind (brain.help.set writes them, a later slice); the defaults where none is stored."""
++    try:
++        with kernel.db() as db:row = db.execute("SELECT value FROM settings WHERE key='brain.help'").fetchone()
++        stored = json.loads(row[0]) if row else {}
++    except Exception:  # noqa: BLE001 - no settings to read: the defaults
++        stored = {}
++    return {name: bool(stored.get(name, on)) for name, on in SWITCHES.items()}
++
++
++def request_for(kernel, principal, **options):
++    """A TurnRequest for this owner request, on the live, selected local model; with none (or Graphite AI off), the port is
++    None and every ask() returns its fallback without a turn."""
++    port = None;off = 'NO_MODEL'
++    try:
++        from . import local_brain
++    except ImportError:
++        local_brain = None
++    if local_brain is not None:
++        try:
++            local_brain.require_enabled(kernel)
++        except ValueError:
++            off = 'AI_OFF'
++        else:
++            worker = local_brain.get(kernel, 'worker', {});selection = local_brain.get(kernel, 'selection', {})
++            if local_brain.worker_live(worker) and worker.get('model_id') == selection.get('model_id'):
++                try:
++                    local_brain.verify_resident(local_brain.model(kernel, worker['model_id']), worker)
++                    port = LocalPort(worker)
++                except (ValueError, OSError):
++                    port = None
++    options.setdefault('switches', stored_switches(kernel))
++    options.setdefault('clock', default_clock(kernel))
++    return TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
++                       **options)
++
++
++# -- the local worker port: the only caller of local_brain.completion -----------------------------------------------------------
++class LocalPort:
++    """Graphite's own local model worker (local_brain). Prompt reuse is off until A2 turns it on (cache_prompt false,
++    --cache-ram 0), so kept() is 0 and every token of a question is new."""
++    GRACE_MS = 500
++
++    def __init__(self, worker):
++        self.worker = worker;self.context = worker.get('context')
++
++    def live(self):
++        from . import local_brain
++        return local_brain.worker_live(self.worker)
++
++    def model(self):return self.worker.get('model_id', '')
++
++    def key(self):
++        """The qualification key until A5's seven-part exam key: model file, runtime, backend, context, template options."""
++        from . import local_brain, record_io
++        return record_io.digest({'model': self.worker.get('model_id'), 'runtime': self.worker.get('runtime'),
++                                 'backend': self.worker.get('backend'), 'context': self.worker.get('context'),
++                                 'template': local_brain.TEMPLATE_OPTIONS})
++
++    def count(self, messages):
++        from . import local_brain
++        try:
++            prompt = local_brain.request(self.worker, '/apply-template', {'messages': messages, 'add_generation_prompt': True,
++                                         'chat_template_kwargs': local_brain.TEMPLATE_OPTIONS}, timeout=10)['prompt']
++            tokens = local_brain.request(self.worker, '/tokenize', {'content': prompt, 'add_special': False}, timeout=10)['tokens']
++        except (ValueError, OSError, KeyError, TypeError) as exc:
++            raise PortError(_code(exc)) from None
++        if not isinstance(tokens, list):raise PortError('LOCAL_TOKENIZER_RESPONSE_INVALID')
++        return len(tokens)
++
++    def kept(self, messages):
++        return 0
++
++    def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None):
++        from . import local_brain
++        began = _monotonic_ms()
++        timeout = 90 if not deadline_ms else (deadline_ms + self.GRACE_MS) / 1000
++        try:
++            got = local_brain.completion(self.worker, messages, answer_tokens, grammar=grammar, timeout=timeout,
++                                         t_max_predict_ms=deadline_ms or None, odds=odds, prompt_tokens=prompt_tokens)
++        except TimeoutError:
++            raise Late(_monotonic_ms() - began) from None
++        except OSError as exc:      # URLError is an OSError; a timeout while connecting arrives as one
++            if 'timed out' in str(exc):raise Late(_monotonic_ms() - began) from None
++            raise PortError(_code(exc)) from None
++        except (ValueError, KeyError, TypeError) as exc:
++            raise PortError(_code(exc)) from None
++        return {'text': got['text'], 'finish': got.get('finish_reason'), 'timings': got.get('timings') or {},
++                'odds': got.get('odds'), 'elapsed_ms': _monotonic_ms() - began}
++
++
++def _code(exc):
++    text = str(exc) or type(exc).__name__
++    return text.split(':', 1)[0].strip()[:120] or type(exc).__name__
++
++
++# -- ask --------------------------------------------------------------------------------------------------------------------
++def _without(kind, inputs, why):
++    fb = kind.fallback(inputs)
++    if not isinstance(fb, Fallback):raise TypeError('TURN_FALLBACK: a kind returns a Fallback')
++    return Answer(value=fb.value, by_model=False, outcome='NOT_SENT', fallback=fb.code, why=why)
++
++
++def ask(kind, inputs, request):
++    """Ask the model one question of this kind, or give the fallback. Never raises for anything the model or the worker
++    does; raises only for a kind that breaks the contract (an unregistered kind, a brief that changed, a message that is
++    not plain text)."""
++    kind = kind_of(kind)
++    caps = kind.caps
++    # 1 · the switch and the per-request ceiling
++    if not request.switch_on(kind.switch):return _without(kind, inputs, 'SWITCH_OFF')
++    port = request.port
++    if port is None or not port.live():return _without(kind, inputs, request.off_reason if port is None else 'NO_MODEL')
++    if request.cancelled():return _without(kind, inputs, 'STOPPED')
++    if caps.foreground and request.turns_used >= request.foreground_turns:return _without(kind, inputs, 'CEILING_TURNS')
++    # 2 · the layout and the grammar
++    messages = layout(kind, inputs)
++    grammar = grammars.check(kind.grammar(inputs))
++    if grammar is None and kind.name != 'TALK' and not caps.stop_only:raise ValueError('TURN_GRAMMAR: only Talk has none')
++    # 3 · the tokens and the price from her clock; the deadline
++    try:
++        prompt = port.count(messages)
++    except PortError as exc:
++        return _without(kind, inputs, 'OVER_CONTEXT' if 'CONTEXT' in exc.code else 'NO_MODEL')
++    context = getattr(port, 'context', None)
++    if context and prompt + caps.answer_tokens + 32 > context:return _without(kind, inputs, 'OVER_CONTEXT')
++    kept = max(0, min(int(port.kept(messages)), prompt));new = prompt - kept
++    if new > caps.new_tokens:return _without(kind, inputs, 'OVER_CAP')
++    key = port.key()
++    price = int(request.clock.price_ms(key, kind.name, new, caps.answer_tokens, caps.desk_ms))
++    deadline = int(kind.deadline(price, caps))
++    if caps.foreground and not caps.stop_only:
++        remaining = request.remaining_ms()
++        if price > remaining or remaining < DEADLINE_FLOOR_MS:return _without(kind, inputs, 'CEILING_TIME')
++        deadline = min(deadline, remaining)
++    # 4 · the call
++    if caps.foreground:request.turns_used += 1
++    began = request.now_ms();late = False;failed = None;text = None;finish = None;timings = {};odds = None
++    try:
++        got = port.complete(messages, answer_tokens=caps.answer_tokens, grammar=grammar, deadline_ms=deadline,
++                            odds=caps.odds, prompt_tokens=prompt, on_progress=request.on_progress)
++        text = got.get('text');finish = got.get('finish');timings = got.get('timings') or {};odds = got.get('odds')
++        elapsed = int(got['elapsed_ms']) if got.get('elapsed_ms') is not None else request.now_ms() - began
++        late = bool(deadline) and elapsed > deadline
++    except Late as exc:
++        late = True;elapsed = max(exc.elapsed_ms, deadline);text = exc.text;timings = exc.timings
++    except PortError as exc:
++        failed = exc.code;elapsed = request.now_ms() - began
++    if caps.foreground:request.spent_ms += min(elapsed, deadline) if deadline else elapsed
++    if isinstance(text, str) and len(text) > MODEL_SAID_MOST and failed is None:failed = 'MODEL_OUTPUT_LIMIT';text = None
++    # 5 · parse and check (a late answer is checked too, for the record and the offer beside hers)
++    said = ModelSaid(text, kind.name) if isinstance(text, str) else None
++    verdict = None;invalid = None
++    if said is not None and failed is None:
++        if finish == 'length':
++            invalid = 'LENGTH'
++        else:
++            try:
++                obj = kind.parse(said, inputs)
++            except Invalid as exc:
++                invalid = str(exc) or 'INVALID'
++            except Exception as exc:  # noqa: BLE001 - a parser that breaks refuses the answer (fails closed)
++                invalid = 'PARSE_ERROR:' + type(exc).__name__
++            else:
++                try:
++                    verdict = kind.check(obj, inputs)
++                    if not isinstance(verdict, Verdict):raise TypeError('not a Verdict')
++                except Exception as exc:  # noqa: BLE001 - a checker that breaks refuses the answer (fails closed)
++                    verdict = Verdict('REFUSED', why=('CHECK_ERROR:' + type(exc).__name__,))
++        if invalid is not None:verdict = Verdict('REFUSED', why=('INVALID:' + invalid,), checks=(('shape', False, invalid),))
++    if failed is not None:outcome = 'FAILED'
++    elif late:outcome = 'LATE'
++    elif verdict is None:outcome = 'FAILED';failed = 'NO_ANSWER'
++    else:outcome = verdict.state
++    use = outcome in USED
++    fb = None if use else kind.fallback(inputs)
++    if fb is not None and not isinstance(fb, Fallback):raise TypeError('TURN_FALLBACK: a kind returns a Fallback')
++    why = failed or ('LATE' if late else (verdict.why[0] if verdict and verdict.why else ''))
++    # 6 · one record
++    value = record(kind=kind, request=request, messages=messages, grammar=grammar, said=said, finish=finish, odds=odds,
++                   verdict=verdict, outcome=outcome, fallback=None if fb is None else fb.code, why=why, price=price,
++                   deadline=deadline, elapsed=elapsed, timings=timings, prompt=prompt, kept=kept, key=key, model=port.model())
++    ident = request.ledger.write(value)
++    try:
++        request.clock.observe(key, kind.name, value)
++    except Exception:  # noqa: BLE001 - her clock never stops an answer
++        pass
++    said = said.with_turn(ident) if said is not None else None
++    late_view = verdict.value if late and verdict is not None and verdict.state in ('TAKEN', 'TRIMMED') else None
++    return Answer(value=verdict.value if use else fb.value, by_model=use, outcome=outcome,
++                  fallback=None if fb is None else fb.code, why=why, verdict=verdict, turn=ident, said=said,
++                  price_ms=price, deadline_ms=deadline, elapsed_ms=elapsed, late_view=late_view)
++
++
++# -- the record: brain.turn/1 ------------------------------------------------------------------------------------------------
++def _jsonable(value):
++    """A desk object as JSON for the record: dataclasses as dicts, tuples and sets as lists, model words tagged."""
++    def norm(v):
++        if isinstance(v, ModelSaid):return v.for_record()
++        if is_dataclass(v) and not isinstance(v, type):return norm(asdict(v))
++        if isinstance(v, dict):return {str(k): norm(x) for k, x in v.items()}
++        if isinstance(v, (list, tuple)):return [norm(x) for x in v]
++        if isinstance(v, (set, frozenset)):return sorted((norm(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
++        if isinstance(v, Fraction):return str(v)
++        if v is None or isinstance(v, (str, int, bool)):return v
++        if isinstance(v, float):return v if math.isfinite(v) else None
++        return {'unrecorded': type(v).__name__}
++    return norm(value)
++
++
++def _timings(timings):
++    out = {}
++    for name in ('prompt_n', 'cache_n', 'predicted_n', 'prompt_ms', 'predicted_ms'):
++        v = timings.get(name) if isinstance(timings, dict) else None
++        if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v):out[name] = int(round(v))
++    return out
++
++
++def record(*, kind, request, messages, grammar, said, finish, odds, verdict, outcome, fallback, why, price, deadline,
++           elapsed, timings, prompt, kept, key, model):
++    """One brain.turn/1 record (design 3.5)."""
++    if outcome not in OUTCOMES:raise ValueError('TURN_OUTCOME: %s' % outcome)
++    return {
++        'schema': SCHEMA, 'id': uuid.uuid4().hex, 'owner': request.owner, 'at': time.time(), 'state': 'KEPT',
++        'request': request.id, 'kind': kind.name, 'version': kind.version, 'brief_sha256': _DIGESTS[kind.name],
++        'switch': kind.switch, 'foreground': kind.caps.foreground, 'paper': kind.paper,
++        'messages': [{'role': m['role'], 'content': m['content']} for m in messages],
++        'grammar_sha256': hashlib.sha256(grammar.encode('utf-8')).hexdigest() if grammar else None,
++        'answer': said.for_record() if said is not None else None, 'finish': finish,
++        'odds': _jsonable(odds) if odds is not None else None,
++        'verdict': None if verdict is None else {'state': verdict.state, 'why': [str(w) for w in verdict.why],
++                                                 'checks': _jsonable(list(verdict.checks)), 'kept': _jsonable(verdict.value)},
++        'basis': verdict.basis if verdict is not None else None,
++        'second_view': _jsonable(verdict.second_view) if verdict is not None and verdict.second_view is not None else None,
++        'outcome': outcome, 'fallback': fallback, 'why': why,
++        'price_ms': int(price), 'deadline_ms': int(deadline), 'elapsed_ms': int(elapsed),
++        'tokens': {'prompt': int(prompt), 'kept_expected': int(kept), 'new': int(prompt - kept),
++                   'answer_cap': kind.caps.answer_tokens},
++        'timings': _timings(timings), 'key': key, 'model': model,
++    }
++
++
++def tombstone(value, at=None):
++    """What Forget leaves: that a turn of this kind was asked and how it ended; no messages, answer, checks or views."""
++    return {'schema': SCHEMA, 'id': value['id'], 'owner': value['owner'], 'at': value['at'], 'state': 'FORGOTTEN',
++            'forgotten_at': at or time.time(), 'kind': value['kind'], 'version': value['version'],
++            'outcome': value['outcome'], 'elapsed_ms': value['elapsed_ms'], 'foreground': value['foreground']}
++
++
++def said_of(value):
++    """The raw answer of a stored turn, as ModelSaid again (None for a tombstone or a turn with no answer)."""
++    return ModelSaid.from_record(value.get('answer'), value.get('id', ''))
++
++
++class MemoryLedger:
++    """Turn records held in memory (smoke scripts, a request with no Kernel)."""
++
++    def __init__(self):
++        self.rows = {}
++
++    def write(self, value):
++        self.rows[value['id']] = json.loads(json.dumps(value));return value['id']
++
++    def get(self, ident):return self.rows[ident]
++
++    def forget(self, ident):
++        self.rows[ident] = tombstone(self.rows[ident]);return self.rows[ident]
++
++
++def ensure(db):
++    db.execute('CREATE TABLE IF NOT EXISTS brain_turns(id TEXT PRIMARY KEY, owner TEXT NOT NULL, at REAL NOT NULL, '
++               'kind TEXT NOT NULL, state TEXT NOT NULL, payload TEXT NOT NULL, digest TEXT NOT NULL)')
++    db.execute('CREATE INDEX IF NOT EXISTS brain_turns_owner ON brain_turns(owner, at)')
++
++
++def _canonical(value):
++    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
++
++
++def prune(db, owner, now=None):
++    """Bounded: turns older than KEEP_DAYS and beyond the newest KEEP_TURNS go."""
++    now = time.time() if now is None else now
++    db.execute('DELETE FROM brain_turns WHERE owner=? AND at<?', (owner, now - KEEP_DAYS * 86400))
++    db.execute('DELETE FROM brain_turns WHERE owner=? AND id NOT IN (SELECT id FROM brain_turns WHERE owner=? '
++               'ORDER BY at DESC, rowid DESC LIMIT ?)', (owner, owner, KEEP_TURNS))
++
++
++class KernelLedger:
++    """Turn records in the Kernel's database, in their own table: local only, never a desk record, never in a receipt bundle."""
++
++    def __init__(self, kernel, owner):
++        self.kernel = kernel;self.owner = owner
++
++    def write(self, value):
++        if value['owner'] != self.owner:raise ValueError('TURN_OWNER')
++        raw = _canonical(value)
++        with self.kernel.db() as db:
++            db.execute('BEGIN IMMEDIATE');ensure(db)
++            db.execute('INSERT INTO brain_turns VALUES(?,?,?,?,?,?,?)', (value['id'], value['owner'], value['at'], value['kind'],
++                       value['state'], raw, hashlib.sha256(raw.encode('utf-8')).hexdigest()))
++            prune(db, self.owner, value['at'])
++        return value['id']
++
++    def get(self, ident):return get(self.kernel, self.owner, ident)
++
++    def forget(self, ident):return forget(self.kernel, self.owner, ident)
++
++
++def get(kernel, owner, ident):
++    if not isinstance(ident, str) or len(ident) != 32 or any(c not in '0123456789abcdef' for c in ident):
++        raise ValueError('TURN_ID_INVALID')
++    with kernel.db() as db:
++        ensure(db)
++        row = db.execute('SELECT payload,digest FROM brain_turns WHERE id=? AND owner=?', (ident, owner)).fetchone()
++    if not row:raise ValueError('TURN_UNAVAILABLE: no such turn for this owner')
++    if hashlib.sha256(row[0].encode('utf-8')).hexdigest() != row[1]:raise ValueError('TURN_RECORD_DAMAGED')
++    return json.loads(row[0])
++
++
++def forget(kernel, owner, ident):
++    """Forget a turn: its record becomes a tombstone. (The operation brain.turn.forget, approve and always asked, and the
++    worker restart that clears its memory of the turn come with lane A's A2 and A4.)"""
++    value = get(kernel, owner, ident)
++    if value['state'] == 'FORGOTTEN':return value
++    stone = tombstone(value);raw = _canonical(stone)
++    with kernel.db() as db:
++        db.execute('BEGIN IMMEDIATE')
++        db.execute('UPDATE brain_turns SET state=?, payload=?, digest=? WHERE id=? AND owner=?',
++                   ('FORGOTTEN', raw, hashlib.sha256(raw.encode('utf-8')).hexdigest(), ident, owner))
++    return stone
++
++
++def listing(kernel, owner, kind=None, limit=50, before=None):
++    """The ledger, newest first: one summary row per turn (no messages, no answer)."""
++    query = 'SELECT payload FROM brain_turns WHERE owner=?';params = [owner]
++    if kind:query += ' AND kind=?';params.append(kind)
++    if before is not None:query += ' AND at<?';params.append(before)
++    query += ' ORDER BY at DESC, rowid DESC LIMIT ?';params.append(int(limit))
++    with kernel.db() as db:
++        ensure(db)
++        rows = [json.loads(r[0]) for r in db.execute(query, params)]
++    keep = ('id', 'at', 'state', 'kind', 'version', 'outcome', 'fallback', 'why', 'elapsed_ms', 'price_ms', 'deadline_ms',
++            'foreground', 'model')
++    return [{k: r.get(k) for k in keep if k in r} for r in rows]
++
++
++# -- the Kernel's operations (0.8.7 E0: the turn ledger, read scope) ---------------------------------------------------------
++TURN_ID = {'type': 'string', 'pattern': '^[0-9a-f]{32}$', 'minLength': 32, 'maxLength': 32}
++FIELDS = {
++    'brain.turns': ({'kind': {'type': 'string', 'pattern': '^[A-Z_]{2,16}$', 'maxLength': 16},
++                     'limit': {'type': 'integer', 'minimum': 1, 'maximum': 200},
++                     'before': {'type': 'number', 'minimum': 0}}, []),
++    'brain.turn.get': ({'id': TURN_ID}, ['id']),
++}
++SCOPES = {op: 'read' for op in FIELDS}
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'brain.turns':
++        rows = listing(kernel, principal.identity, args.get('kind'), args.get('limit', 50), args.get('before'))
++        return {'schema': SCHEMA, 'turns': rows, 'bounded': {'days': KEEP_DAYS, 'turns': KEEP_TURNS}}
++    if op == 'brain.turn.get':
++        return {'turn': get(kernel, principal.identity, args['id'])}
++    raise ValueError('Unknown turn operation')

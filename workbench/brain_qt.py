@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer, QUrl, QSignalBlocker
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QGridLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QSpinBox, QCheckBox, QPlainTextEdit, QTabWidget, QFileDialog, QProgressBar
 from .register_tabs import ServiceTab
-from . import local_brain
+from . import brain_seal, local_brain
 from .explore_qt import BRAIN_WORDS  # one vocabulary for the model state: Hatch, Explore and this room say the same words (V-19)
 
 class BrainTab(ServiceTab):
@@ -16,6 +16,18 @@ class BrainTab(ServiceTab):
         heading=QLabel('GRAPHITE · BRAIN');heading.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(heading)
         self.note=QLabel('Drop a GGUF file or complete model folder. Weights stay outside the program ZIP. Inspection starts no inference.');self.note.setWordWrap(True);self.outer.addWidget(self.note)
         self.outer.addWidget(self.status)
+        # 0.8.7, the sealed room: the seal in words under the model's state, how she knows (each check made at start),
+        # and, when the Radeon could not be sealed, the sealed processor one press away (open question 4's default).
+        seal_row=QHBoxLayout();seal_row.setSpacing(18)
+        self.seal_line=QLabel('');self.seal_line.setWordWrap(True);self.seal_line.setAccessibleName('How the model is sealed')
+        self.seal_how=QPushButton('How I know');self.seal_how.setCheckable(True);self.seal_how.setAccessibleName('How I know the model is sealed')
+        self.seal_processor=QPushButton(brain_seal.PROCESSOR_SEALED);self.seal_processor.setAccessibleName(brain_seal.PROCESSOR_SEALED)
+        self.seal_processor.clicked.connect(self.use_processor_sealed)
+        seal_row.addWidget(self.seal_line,1);seal_row.addWidget(self.seal_how);seal_row.addWidget(self.seal_processor)
+        self.outer.addLayout(seal_row)
+        self.seal_fold=QLabel('');self.seal_fold.setWordWrap(True);self.seal_fold.setVisible(False);self.seal_fold.setAccessibleName('Seal checks')
+        self.seal_how.toggled.connect(self.seal_fold.setVisible);self.outer.addWidget(self.seal_fold)
+        self.seal_how.setVisible(False);self.seal_processor.setVisible(False)
         self.list=QComboBox();self.list.setAccessibleName('Registered local models');self.list.currentIndexChanged.connect(self.selected);self.outer.addWidget(self.list)
         # V-19: the actions are words in two rows at their natural width (theme2.as_words), not a slab of full-width bars.
         words=[('Add file',self.add_file),('Add folder',self.add_folder),('Inspect',self.inspect),('Locate',self.locate),('Qualify',self.qualify),
@@ -129,6 +141,7 @@ class BrainTab(ServiceTab):
         if worker.get('fallback_reason'):active+=' · '+worker['fallback_reason']
         if data.get('resource_stop'):active+=' · '+data['resource_stop']
         self.status.setText(BRAIN_WORDS.get(data['state'],str(data['state']).replace('_',' ').lower())+' · '+str(data['runtime']['build'] or 'runtime unavailable')+' · '+active+' · cloud calls 0')
+        self.show_seal(worker.get('seal'),data.get('seal_words'))
         if hasattr(self.host,'arc_inspector') and self.host.tabs.currentWidget() is self:self.host.arc_inspector.refresh()
         rows=local_brain.models(self.kernel);identity=[(r['id'],r.get('qualification')) for r in rows]
         if identity!=getattr(self,'_identity',None):
@@ -140,7 +153,9 @@ class BrainTab(ServiceTab):
             result=self.kernel.dispatch('brain.result',{'id':self.job},self.principal)
             if result['ok'] and result['result']['state'] in ('Completed','Failed','Cancelled','Interrupted'):
                 outcome=result['result'];self.progress.setRange(0,1);self.progress.setValue(1 if outcome['state']=='Completed' else 0)
-                self.note.setText(outcome['state']+' · '+str((outcome.get('result') or {}).get('reason',(outcome.get('result') or {}).get('status',outcome.get('error') or ''))))
+                said=str((outcome.get('result') or {}).get('reason',(outcome.get('result') or {}).get('status',outcome.get('error') or '')))
+                if brain_seal.REFUSED+': ' in said:said=said.split(brain_seal.REFUSED+': ',1)[1]  # her one line, without the code
+                self.note.setText(outcome['state']+' · '+said)
                 task_receipt=(outcome.get('result') or {}).get('qualification') or {}
                 if task_receipt.get('tasks'):
                     passed=sum(r['state']=='PASSED' for r in task_receipt['tasks'])
@@ -150,6 +165,24 @@ class BrainTab(ServiceTab):
                 if model_id:
                     index=self.list.findData(model_id)
                     if index>=0:self.list.setCurrentIndex(index)
+    def show_seal(self,seal,said):
+        """The seal under the model's state: one line in words, 'How I know' with each check made at start, and the
+        sealed processor when the Radeon runs without its own network. Nothing here when no model runs."""
+        self.seal_line.setText(said or '')
+        self.seal_how.setVisible(bool(seal))
+        if not seal:self.seal_how.setChecked(False)
+        self.seal_fold.setText('\n'.join('· '+line for line in brain_seal.fold(seal)))
+        self.seal_processor.setVisible(brain_seal.processor_offered(seal))
+
+    def use_processor_sealed(self):
+        """Open question 4's default: the same model on the processor, in its own network. The Inference field shows the
+        change (a local override), and Use model starts it through the same checks."""
+        selection=(self.kernel.dispatch('brain.status',{},self.principal).get('result') or {}).get('selection') or {}
+        index=self.list.findData(selection.get('model_id'))
+        if index>=0:self.list.setCurrentIndex(index)
+        self.backend.setCurrentIndex(self.backend.findData('CPU'))
+        self.use()
+
     def show_acceleration(self,data):
         host=data['host'];profile=host['hardware_profile'];probe=data.get('last_device_probe') or {}
         mib=lambda value:'not reported' if value is None else str(round(value/1024**2))+' MiB'
@@ -214,6 +247,8 @@ class BrainTab(ServiceTab):
                 'MODEL_CHAT_TEMPLATE_MISSING':'This file has no usable chat template. Choose a compatible instruction model.'}
         # A memory refusal carries its numbers after the code: show the advice and keep the numbers.
         code,_,numbers=self._last_error.partition(': ')
+        if code==brain_seal.REFUSED:
+            self.note.setText(numbers);self.progress.setRange(0,1);self.progress.setValue(0);return  # her one line
         text=advice.get(code,self._last_error)
         if code in advice and numbers:text+=' '+numbers[:1].upper()+numbers[1:]+'.'
         self.note.setText('Not started · '+text)

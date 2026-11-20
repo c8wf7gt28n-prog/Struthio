@@ -38,6 +38,7 @@ def schemas():
     from .reasons import FIELDS as MIND_REASON_FIELDS  # 0.8.6 S3: her reasons
     from .your_word import FIELDS as YOUR_WORD_FIELDS  # 0.8.6 S3: your word
     from .reading import FIELDS as READING_FIELDS  # 0.8.6 S4: her dictionary (requests.read)
+    from .turns import FIELDS as TURN_FIELDS  # 0.8.7 E0 (the turn contract)
     from .lab_service import FIELDS as LAB_FIELDS, OPTIONS as LAB_OPTIONS
     from .reason_service import FIELDS as REASON_FIELDS
     from .math_service import FIELDS as MATH_FIELDS, OPTIONS as MATH_OPTIONS
@@ -149,6 +150,7 @@ def schemas():
         **GOAL_FIELDS,  # 0.8.6 S1: goals over data
         **MIND_REASON_FIELDS, **YOUR_WORD_FIELDS,  # 0.8.6 S3: her reasons and your word
         **READING_FIELDS,  # 0.8.6 S4: her dictionary (requests.read)
+        **TURN_FIELDS,  # 0.8.7 E0 (the turn contract)
         **REASON_FIELDS,
         **SLATE_CONTEXT_FIELDS,
         **SLATE_REASONING_FIELDS,

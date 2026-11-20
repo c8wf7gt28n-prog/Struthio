@@ -1,5 +1,5 @@
 """Pinned CPU and Vulkan workers from one upstream revision. No runtime from PATH."""
-import gzip,hashlib,json,os,platform,re,shutil,subprocess,tarfile,tempfile,zipfile
+import gzip,hashlib,json,os,platform,re,shutil,subprocess,sys,tarfile,tempfile,zipfile
 from pathlib import Path,PurePosixPath
 from .session import config_dir
 from .locations import program
@@ -130,9 +130,13 @@ def _prepare(root,backend='CPU'):
     return executable,{'build':info['build'],'source_commit':info['source_commit'],'archive_sha256':entry['sha256'],'platform':key,'backend':backend}
 
 
-def worker_environment():
-    # Saved Graphite options, not unrelated llama CLI environment defaults, own this worker.
-    return {k:v for k,v in os.environ.items() if not k.startswith('LLAMA_ARG_')}
+def worker_environment(backend='CPU',runtime=None,cache=None):
+    """The model worker's environment from an allow-list (0.8.7, the sealed room), replacing "everything except
+    LLAMA_ARG_*": PATH, the locale and the runtime's own library folder; for Vulkan XDG_RUNTIME_DIR and a shader cache
+    under Graphite's state. A key the owner's shell sets for another tool (LLAMA_API_KEY, HF_TOKEN), LLAMA_CACHE,
+    GGML_BACKEND_PATH, debug switches and proxies never reach it; saved Graphite options alone set the worker."""
+    from .brain_seal import environment
+    return environment(os.environ,backend,runtime,cache)
 
 
 def parse_devices(text):
@@ -149,17 +153,46 @@ def parse_devices(text):
     return devices[:16]
 
 
+def _listing(root,executable,sealed):
+    """`--list-devices` once: inside the sealed room (through brain_worker, which unshares the runtime's own network
+    before exec, as for a model) or, when `sealed` is False, without it. The environment is the allow-list either way."""
+    command=[str(executable),'--list-devices']
+    if sealed:
+        from .locations import child_env
+        command=[sys.executable,'-m','workbench.brain_worker','--memory-mb','2048','--backend','VULKAN','--reserve-mb','128',
+                 '--seal','network']+command
+        env=child_env(root,worker_environment('VULKAN',executable.parent))
+    else:env=worker_environment('VULKAN',executable.parent)
+    result=subprocess.run(command,env=env,cwd=str(root) if sealed else None,
+                          stdin=subprocess.DEVNULL,capture_output=True,text=True,errors='replace',timeout=12)
+    return result,(result.stdout+'\n'+result.stderr)[-65536:]
+
+
 def probe(root):
-    """Explicit bounded device discovery, never model inference or a benchmark."""
+    """Explicit bounded device discovery, never model inference or a benchmark.
+
+    0.8.7, the sealed room: discovery looks from inside the runtime's own empty network first, as a model would run. If
+    the Radeon is seen only from outside it (Vulkan inside a user namespace is untested), the result says so in
+    `network_seal`, and the model start takes open question 4's default: the Radeon without its own network, still
+    offline, behind its private socket and both allow-lists, labelled not sealed; the sealed processor one press away."""
     try:
         executable,runtime=prepare(root,'VULKAN')
-        result=subprocess.run([str(executable),'--list-devices'],env=worker_environment(),
-                              stdin=subprocess.DEVNULL,capture_output=True,text=True,errors='replace',timeout=12)
-        text=(result.stdout+'\n'+result.stderr)[-65536:]
+        from .brain_seal import NOT_SEALED_MARK,network_seal_possible
+        sealed=network_seal_possible()
+        result,text=_listing(root,executable,sealed)
         devices=parse_devices(text);physical=[d for d in devices if not d['software']]
+        seal='NOT_TRIED' if not sealed else 'COMPUTER_REFUSED' if NOT_SEALED_MARK in text else 'SEEN_IN_ITS_OWN_NETWORK'
+        if seal=='SEEN_IN_ITS_OWN_NETWORK' and not (result.returncode==0 and physical):
+            outside,outside_text=_listing(root,executable,False)
+            outside_devices=parse_devices(outside_text)
+            if outside.returncode==0 and [d for d in outside_devices if not d['software']]:
+                result,text,devices=outside,outside_text,outside_devices
+                physical=[d for d in devices if not d['software']];seal='VULKAN_NOT_SEEN_IN_ITS_OWN_NETWORK'
+            else:seal='NOT_SEEN_EITHER_WAY'
         state='AVAILABLE' if result.returncode==0 and physical else 'NO_PHYSICAL_VULKAN_DEVICE' if result.returncode==0 else 'VULKAN_PROBE_FAILED'
-        reason=None if state=='AVAILABLE' else ('No physical device was reported by the pinned worker.' if result.returncode==0 else text.strip().splitlines()[-1][:300] if text.strip() else 'Worker exited '+str(result.returncode))
-        return dict(state=state,devices=devices,runtime=runtime,reason=reason,
+        lines=[line for line in text.strip().splitlines() if not line.startswith(NOT_SEALED_MARK)]
+        reason=None if state=='AVAILABLE' else ('No physical device was reported by the pinned worker.' if result.returncode==0 else lines[-1][:300] if lines else 'Worker exited '+str(result.returncode))
+        return dict(state=state,devices=devices,runtime=runtime,reason=reason,network_seal=seal,
                     qualification='DEVICE_DISCOVERY_ONLY_NOT_MODEL_OR_PERFORMANCE_QUALIFICATION')
     except (OSError,ValueError,subprocess.SubprocessError) as exc:
         return dict(state='VULKAN_UNAVAILABLE',devices=[],reason=str(exc)[:300],qualification='NOT_RUN')

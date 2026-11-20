@@ -150,7 +150,7 @@ def executor_identity():
     return records.digest({name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
         ('continuing_work.py','work_scope.py','engineering_kernel.py','engineering_cli.py','change_sets.py','worker_boundary.py',
          'adaptive_work.py','adaptive_contract.py','slate_action.py','schedule_math.py','slate_stream.py',
-         'local_brain.py','brain_worker.py','brain_runtime.py','math_service.py','math_model.py','math_backend.py','math_units.py',
+         'local_brain.py','brain_worker.py','brain_runtime.py','brain_seal.py','math_service.py','math_model.py','math_backend.py','math_units.py',
          'joined_work.py','typed_artifacts.py','checked_methods.py','native_sessions.py','LedgerSession.java','project_context.py')})
 
 

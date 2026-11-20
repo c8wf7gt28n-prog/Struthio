@@ -1,11 +1,14 @@
-"""Bounded authenticated loopback SSE, with final-only validation by the caller."""
+"""Bounded authenticated SSE over the worker's private socket (loopback where it has none), with final-only validation
+by the caller."""
 from __future__ import annotations
+import http.client
 import json
 import time
+from contextlib import contextmanager
 from pathlib import Path
 from urllib.request import Request, build_opener, ProxyHandler
-from urllib.error import HTTPError
-from . import local_brain as brain, record_io
+from urllib.error import HTTPError, URLError
+from . import brain_seal, local_brain as brain, record_io
 
 
 def prompt_size(worker, messages):
@@ -60,6 +63,33 @@ def events(response, cancelled, deadline):
         elif not line.startswith((':', 'event:', 'id:', 'retry:')): raise ValueError('LOCAL_STREAM_INVALID_FRAME')
 
 
+@contextmanager
+def opened(worker, body, key, seconds):
+    """The streaming response: over the worker's private socket (0.8.7, the sealed room), or loopback for a worker
+    that has none. Either way no proxy and no redirect; an HTTP error status becomes LOCAL_STREAM_HTTP_<code>."""
+    headers = {'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Accept': 'text/event-stream'}
+    if worker.get('socket'):
+        conn = brain_seal.connection(worker, seconds)
+        try:
+            try:
+                conn.request('POST', '/v1/chat/completions', body=body, headers=headers)
+                response = conn.getresponse()
+            except TimeoutError: raise
+            except OSError as exc: raise URLError(exc) from exc
+            except http.client.HTTPException as exc: raise ValueError('LOCAL_STREAM_PROTOCOL') from exc
+            if not 200 <= response.status < 300: raise ValueError('LOCAL_STREAM_HTTP_' + str(response.status))
+            yield response
+        finally:
+            conn.close()
+        return
+    request = Request('http://127.0.0.1:' + str(worker['port']) + '/v1/chat/completions', data=body, headers=headers)
+    opener = build_opener(ProxyHandler({}), brain.NoRedirect())
+    try:
+        with opener.open(request, timeout=seconds) as response:
+            yield response
+    except HTTPError as exc: raise ValueError('LOCAL_STREAM_HTTP_' + str(exc.code)) from exc
+
+
 def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cancelled=lambda: False,
              seconds=120, measured_prompt=None, *, kernel, cache_key=None):
     if not brain.worker_live(worker): raise ValueError('MODEL_WORKER_NOT_LIVE')
@@ -78,37 +108,32 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
         'stream_options': {'include_usage': True}, 'cache_prompt': reuse, 'chat_template_kwargs': brain.TEMPLATE_OPTIONS}
     if schema: payload['response_format'] = {'type': 'json_schema', 'json_schema': {'name': 'slate_result', 'strict': True, 'schema': schema}}
     key = Path(worker['key_file']).read_text().strip()
-    request = Request('http://127.0.0.1:' + str(worker['port']) + '/v1/chat/completions', data=json.dumps(payload).encode(),
-        headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Accept': 'text/event-stream'})
     began = time.monotonic(); first = None; text = ''; finish = None; done = False; usage = {}; timings = {}
-    opener = build_opener(ProxyHandler({}), brain.NoRedirect())
-    try:
-        with opener.open(request, timeout=seconds) as response:
-            if response.headers.get_content_type() != 'text/event-stream': raise ValueError('LOCAL_STREAM_CONTENT_TYPE')
-            for event in events(response, cancelled, began + seconds):
-                if event == '[DONE]': done = True; break
-                value = record_io.strict_json(event)
-                if not isinstance(value, dict) or value.get('error'): raise ValueError('LOCAL_STREAM_SERVER_ERROR')
-                if isinstance(value.get('usage'), dict): usage = value['usage']
-                if isinstance(value.get('timings'), dict): timings = value['timings']
-                choices = value.get('choices', [])
-                if not isinstance(choices, list) or len(choices) > 1: raise ValueError('LOCAL_STREAM_CHOICE_BOUND')
-                for choice in choices:
-                    if choice.get('index', 0) != 0: raise ValueError('LOCAL_STREAM_CHOICE_INDEX')
-                    delta = choice.get('delta') or {}
-                    if delta.get('tool_calls') or choice.get('message'): raise ValueError('LOCAL_STREAM_UNEXPECTED_ACTION_CHANNEL')
-                    content = delta.get('content')
-                    if content is not None:
-                        if not isinstance(content, str): raise ValueError('LOCAL_STREAM_DELTA_TYPE')
-                        if finish is not None and content: raise ValueError('LOCAL_STREAM_CONTENT_AFTER_FINISH')
-                        if content and first is None: first = time.monotonic() - began
-                        text += content
-                        if len(text) > 65536: raise ValueError('LOCAL_STREAM_OUTPUT_BOUND')
-                        if on_delta and content: on_delta(text)
-                    if choice.get('finish_reason') is not None:
-                        if finish is not None: raise ValueError('LOCAL_STREAM_DUPLICATE_FINISH')
-                        finish = choice['finish_reason']
-    except HTTPError as exc: raise ValueError('LOCAL_STREAM_HTTP_' + str(exc.code)) from exc
+    with opened(worker, json.dumps(payload).encode(), key, seconds) as response:
+        if response.headers.get_content_type() != 'text/event-stream': raise ValueError('LOCAL_STREAM_CONTENT_TYPE')
+        for event in events(response, cancelled, began + seconds):
+            if event == '[DONE]': done = True; break
+            value = record_io.strict_json(event)
+            if not isinstance(value, dict) or value.get('error'): raise ValueError('LOCAL_STREAM_SERVER_ERROR')
+            if isinstance(value.get('usage'), dict): usage = value['usage']
+            if isinstance(value.get('timings'), dict): timings = value['timings']
+            choices = value.get('choices', [])
+            if not isinstance(choices, list) or len(choices) > 1: raise ValueError('LOCAL_STREAM_CHOICE_BOUND')
+            for choice in choices:
+                if choice.get('index', 0) != 0: raise ValueError('LOCAL_STREAM_CHOICE_INDEX')
+                delta = choice.get('delta') or {}
+                if delta.get('tool_calls') or choice.get('message'): raise ValueError('LOCAL_STREAM_UNEXPECTED_ACTION_CHANNEL')
+                content = delta.get('content')
+                if content is not None:
+                    if not isinstance(content, str): raise ValueError('LOCAL_STREAM_DELTA_TYPE')
+                    if finish is not None and content: raise ValueError('LOCAL_STREAM_CONTENT_AFTER_FINISH')
+                    if content and first is None: first = time.monotonic() - began
+                    text += content
+                    if len(text) > 65536: raise ValueError('LOCAL_STREAM_OUTPUT_BOUND')
+                    if on_delta and content: on_delta(text)
+                if choice.get('finish_reason') is not None:
+                    if finish is not None: raise ValueError('LOCAL_STREAM_DUPLICATE_FINISH')
+                    finish = choice['finish_reason']
     if cancelled(): raise ValueError('MODEL_OPERATION_CANCELLED')
     if time.monotonic() - began > seconds: raise ValueError('LOCAL_STREAM_TIME_BUDGET')
     if not done or finish != 'stop': raise ValueError('LOCAL_RESPONSE_INCOMPLETE: no validated result was committed')
@@ -120,7 +145,8 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
     return {'text': text, 'finish_reason': finish, 'stream_complete': True, 'usage': usage, 'timings': timings,
         'first_token_seconds': first, 'elapsed_seconds': time.monotonic() - began, 'prompt_tokens_measured': measured_prompt,
         'context_limit': worker['context'], 'prefix_reuse_requested': reuse, 'observed_reused_tokens': reused,
-        'input_messages_digest': record_io.digest(messages), 'memory': brain.usage(worker), 'transport': 'AUTHENTICATED_LOOPBACK_SSE'}
+        'input_messages_digest': record_io.digest(messages), 'memory': brain.usage(worker),
+        'transport': 'AUTHENTICATED_PRIVATE_SOCKET_SSE' if worker.get('socket') else 'AUTHENTICATED_LOOPBACK_SSE'}
 
 
 def preview(text, structured=True):

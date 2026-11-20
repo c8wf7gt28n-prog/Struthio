@@ -1,0 +1,1330 @@
+diff --git a/tools/campaign_lib/sim.py b/tools/campaign_lib/sim.py
+index b8c90a1..118b798 100644
+--- a/tools/campaign_lib/sim.py
++++ b/tools/campaign_lib/sim.py
+@@ -10,6 +10,8 @@ child process, is only what they read from the outside world:
+                     process_memory, operation_stop.process_identity -> FakeProcesses
+   the worker        local_brain.subprocess.Popen -> FakePopen (writes a scripted load log, scripted exit)
+   its HTTP replies  local_brain.request -> scripted /health, /props, /apply-template, /tokenize, chat reply
++  the seal check    local_brain.seal_check -> a sealed record marked simulated (0.8.7: a scripted worker has no
++                    process to read; the walls themselves are checked against stand-in runtimes, not here)
+   time              the `time` attribute of local_brain and resource_control -> FakeClock
+   file hashing      gguf_inspect.identity and local_brain.identity -> gguf_fixture.bounded_identity
+   side effects      job_priority.apply_worker (renice) -> no-op; Kernel.launch -> recorded, never started
+@@ -263,6 +265,13 @@ class Bench:
+                     'usage': {'prompt_tokens': 12, 'completion_tokens': 1}, 'timings': {'simulated': True}}
+         raise ValueError('LOCAL_ENDPOINT_NOT_REGISTERED')
+ 
++    def _seal(self, worker, log, backend):
++        record = {'schema': 'graphite.model-seal/1', 'state': 'SEALED', 'network': 'OWN_EMPTY_NETWORK',
++                  'network_reason': None, 'transport': 'PRIVATE_SOCKET' if worker.get('socket') else 'LOOPBACK',
++                  'backend': backend, 'offline': True, 'checks': [], 'environment_names': None,
++                  'launch_line': worker.get('launch_line'), 'runtime': {}, 'simulated': True, 'digest': 'simulated'}
++        return record
++
+     def live_workers(self):
+         """Model worker processes this scenario started that are still alive (owned workers left behind)."""
+         return sorted(pid for pid in self.by_pid if pid in self.procs.alive)
+@@ -288,6 +297,7 @@ class Bench:
+         s.enter_context(patch.object(resource_control, 'process_memory', side_effect=self.procs.process_memory))
+         s.enter_context(patch.object(local_brain.subprocess, 'Popen', self._popen_class()))
+         s.enter_context(patch.object(local_brain, 'request', side_effect=self._request))
++        s.enter_context(patch.object(local_brain, 'seal_check', side_effect=self._seal))
+         s.enter_context(patch.object(local_brain, 'time', self.clock))
+         s.enter_context(patch.object(resource_control, 'time', self.clock))
+         s.enter_context(patch.object(gguf_inspect, 'identity', side_effect=gguf_fixture.bounded_identity))
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index 886421f..19c876c 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -137,7 +137,8 @@ ON_DEMAND_CHECKS={
+  'python -m workbench.lab_checks':'WASI experiments and KiCad boards (needs wasmtime and KiCad)',
+  'python -m workbench.math_checks':'connected maths with SymPy, Z3 and optionally Office',
+  'python -m workbench.joined_checks':'joined application, takeover and visible Calc (native jobs)',
+- 'python -m workbench.joined_model_checks':'the local-model family trials (loads a model)'}
++ 'python -m workbench.joined_model_checks':'the local-model family trials (loads a model)',
++ 'python -m workbench.seal_model_checks':'the sealed room on the real runtime: allow-lists, private socket, own network, seal check (loads a model)'}
+ GOOD_STATES={'PASSED'}
+ # Findings the privacy scan accepts, each with its reason: (shipped file or archive!member, category).
+ PRIVACY_ALLOWED={
+diff --git a/workbench/brain_qt.py b/workbench/brain_qt.py
+index 5fcbe6a..208ba28 100644
+--- a/workbench/brain_qt.py
++++ b/workbench/brain_qt.py
+@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer, QUrl, QSignalBlocker
+ from PySide6.QtGui import QDesktopServices
+ from PySide6.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QGridLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QSpinBox, QCheckBox, QPlainTextEdit, QTabWidget, QFileDialog, QProgressBar
+ from .register_tabs import ServiceTab
+-from . import local_brain
++from . import brain_seal, local_brain
+ from .explore_qt import BRAIN_WORDS  # one vocabulary for the model state: Hatch, Explore and this room say the same words (V-19)
+ 
+ class BrainTab(ServiceTab):
+@@ -16,6 +16,18 @@ class BrainTab(ServiceTab):
+         heading=QLabel('GRAPHITE · BRAIN');heading.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(heading)
+         self.note=QLabel('Drop a GGUF file or complete model folder. Weights stay outside the program ZIP. Inspection starts no inference.');self.note.setWordWrap(True);self.outer.addWidget(self.note)
+         self.outer.addWidget(self.status)
++        # 0.8.7, the sealed room: the seal in words under the model's state, how she knows (each check made at start),
++        # and, when the Radeon could not be sealed, the sealed processor one press away (open question 4's default).
++        seal_row=QHBoxLayout();seal_row.setSpacing(18)
++        self.seal_line=QLabel('');self.seal_line.setWordWrap(True);self.seal_line.setAccessibleName('How the model is sealed')
++        self.seal_how=QPushButton('How I know');self.seal_how.setCheckable(True);self.seal_how.setAccessibleName('How I know the model is sealed')
++        self.seal_processor=QPushButton(brain_seal.PROCESSOR_SEALED);self.seal_processor.setAccessibleName(brain_seal.PROCESSOR_SEALED)
++        self.seal_processor.clicked.connect(self.use_processor_sealed)
++        seal_row.addWidget(self.seal_line,1);seal_row.addWidget(self.seal_how);seal_row.addWidget(self.seal_processor)
++        self.outer.addLayout(seal_row)
++        self.seal_fold=QLabel('');self.seal_fold.setWordWrap(True);self.seal_fold.setVisible(False);self.seal_fold.setAccessibleName('Seal checks')
++        self.seal_how.toggled.connect(self.seal_fold.setVisible);self.outer.addWidget(self.seal_fold)
++        self.seal_how.setVisible(False);self.seal_processor.setVisible(False)
+         self.list=QComboBox();self.list.setAccessibleName('Registered local models');self.list.currentIndexChanged.connect(self.selected);self.outer.addWidget(self.list)
+         # V-19: the actions are words in two rows at their natural width (theme2.as_words), not a slab of full-width bars.
+         words=[('Add file',self.add_file),('Add folder',self.add_folder),('Inspect',self.inspect),('Locate',self.locate),('Qualify',self.qualify),
+@@ -129,6 +141,7 @@ class BrainTab(ServiceTab):
+         if worker.get('fallback_reason'):active+=' · '+worker['fallback_reason']
+         if data.get('resource_stop'):active+=' · '+data['resource_stop']
+         self.status.setText(BRAIN_WORDS.get(data['state'],str(data['state']).replace('_',' ').lower())+' · '+str(data['runtime']['build'] or 'runtime unavailable')+' · '+active+' · cloud calls 0')
++        self.show_seal(worker.get('seal'),data.get('seal_words'))
+         if hasattr(self.host,'arc_inspector') and self.host.tabs.currentWidget() is self:self.host.arc_inspector.refresh()
+         rows=local_brain.models(self.kernel);identity=[(r['id'],r.get('qualification')) for r in rows]
+         if identity!=getattr(self,'_identity',None):
+@@ -140,7 +153,9 @@ class BrainTab(ServiceTab):
+             result=self.kernel.dispatch('brain.result',{'id':self.job},self.principal)
+             if result['ok'] and result['result']['state'] in ('Completed','Failed','Cancelled','Interrupted'):
+                 outcome=result['result'];self.progress.setRange(0,1);self.progress.setValue(1 if outcome['state']=='Completed' else 0)
+-                self.note.setText(outcome['state']+' · '+str((outcome.get('result') or {}).get('reason',(outcome.get('result') or {}).get('status',outcome.get('error') or ''))))
++                said=str((outcome.get('result') or {}).get('reason',(outcome.get('result') or {}).get('status',outcome.get('error') or '')))
++                if brain_seal.REFUSED+': ' in said:said=said.split(brain_seal.REFUSED+': ',1)[1]  # her one line, without the code
++                self.note.setText(outcome['state']+' · '+said)
+                 task_receipt=(outcome.get('result') or {}).get('qualification') or {}
+                 if task_receipt.get('tasks'):
+                     passed=sum(r['state']=='PASSED' for r in task_receipt['tasks'])
+@@ -150,6 +165,24 @@ class BrainTab(ServiceTab):
+                 if model_id:
+                     index=self.list.findData(model_id)
+                     if index>=0:self.list.setCurrentIndex(index)
++    def show_seal(self,seal,said):
++        """The seal under the model's state: one line in words, 'How I know' with each check made at start, and the
++        sealed processor when the Radeon runs without its own network. Nothing here when no model runs."""
++        self.seal_line.setText(said or '')
++        self.seal_how.setVisible(bool(seal))
++        if not seal:self.seal_how.setChecked(False)
++        self.seal_fold.setText('\n'.join('· '+line for line in brain_seal.fold(seal)))
++        self.seal_processor.setVisible(brain_seal.processor_offered(seal))
++
++    def use_processor_sealed(self):
++        """Open question 4's default: the same model on the processor, in its own network. The Inference field shows the
++        change (a local override), and Use model starts it through the same checks."""
++        selection=(self.kernel.dispatch('brain.status',{},self.principal).get('result') or {}).get('selection') or {}
++        index=self.list.findData(selection.get('model_id'))
++        if index>=0:self.list.setCurrentIndex(index)
++        self.backend.setCurrentIndex(self.backend.findData('CPU'))
++        self.use()
++
+     def show_acceleration(self,data):
+         host=data['host'];profile=host['hardware_profile'];probe=data.get('last_device_probe') or {}
+         mib=lambda value:'not reported' if value is None else str(round(value/1024**2))+' MiB'
+@@ -214,6 +247,8 @@ class BrainTab(ServiceTab):
+                 'MODEL_CHAT_TEMPLATE_MISSING':'This file has no usable chat template. Choose a compatible instruction model.'}
+         # A memory refusal carries its numbers after the code: show the advice and keep the numbers.
+         code,_,numbers=self._last_error.partition(': ')
++        if code==brain_seal.REFUSED:
++            self.note.setText(numbers);self.progress.setRange(0,1);self.progress.setValue(0);return  # her one line
+         text=advice.get(code,self._last_error)
+         if code in advice and numbers:text+=' '+numbers[:1].upper()+numbers[1:]+'.'
+         self.note.setText('Not started · '+text)
+diff --git a/workbench/brain_runtime.py b/workbench/brain_runtime.py
+index beb9aa3..53b6a9d 100644
+--- a/workbench/brain_runtime.py
++++ b/workbench/brain_runtime.py
+@@ -1,5 +1,5 @@
+ """Pinned CPU and Vulkan workers from one upstream revision. No runtime from PATH."""
+-import gzip,hashlib,json,os,platform,re,shutil,subprocess,tarfile,tempfile,zipfile
++import gzip,hashlib,json,os,platform,re,shutil,subprocess,sys,tarfile,tempfile,zipfile
+ from pathlib import Path,PurePosixPath
+ from .session import config_dir
+ from .locations import program
+@@ -130,9 +130,13 @@ def _prepare(root,backend='CPU'):
+     return executable,{'build':info['build'],'source_commit':info['source_commit'],'archive_sha256':entry['sha256'],'platform':key,'backend':backend}
+ 
+ 
+-def worker_environment():
+-    # Saved Graphite options, not unrelated llama CLI environment defaults, own this worker.
+-    return {k:v for k,v in os.environ.items() if not k.startswith('LLAMA_ARG_')}
++def worker_environment(backend='CPU',runtime=None,cache=None):
++    """The model worker's environment from an allow-list (0.8.7, the sealed room), replacing "everything except
++    LLAMA_ARG_*": PATH, the locale and the runtime's own library folder; for Vulkan XDG_RUNTIME_DIR and a shader cache
++    under Graphite's state. A key the owner's shell sets for another tool (LLAMA_API_KEY, HF_TOKEN), LLAMA_CACHE,
++    GGML_BACKEND_PATH, debug switches and proxies never reach it; saved Graphite options alone set the worker."""
++    from .brain_seal import environment
++    return environment(os.environ,backend,runtime,cache)
+ 
+ 
+ def parse_devices(text):
+@@ -149,17 +153,46 @@ def parse_devices(text):
+     return devices[:16]
+ 
+ 
++def _listing(root,executable,sealed):
++    """`--list-devices` once: inside the sealed room (through brain_worker, which unshares the runtime's own network
++    before exec, as for a model) or, when `sealed` is False, without it. The environment is the allow-list either way."""
++    command=[str(executable),'--list-devices']
++    if sealed:
++        from .locations import child_env
++        command=[sys.executable,'-m','workbench.brain_worker','--memory-mb','2048','--backend','VULKAN','--reserve-mb','128',
++                 '--seal','network']+command
++        env=child_env(root,worker_environment('VULKAN',executable.parent))
++    else:env=worker_environment('VULKAN',executable.parent)
++    result=subprocess.run(command,env=env,cwd=str(root) if sealed else None,
++                          stdin=subprocess.DEVNULL,capture_output=True,text=True,errors='replace',timeout=12)
++    return result,(result.stdout+'\n'+result.stderr)[-65536:]
++
++
+ def probe(root):
+-    """Explicit bounded device discovery, never model inference or a benchmark."""
++    """Explicit bounded device discovery, never model inference or a benchmark.
++
++    0.8.7, the sealed room: discovery looks from inside the runtime's own empty network first, as a model would run. If
++    the Radeon is seen only from outside it (Vulkan inside a user namespace is untested), the result says so in
++    `network_seal`, and the model start takes open question 4's default: the Radeon without its own network, still
++    offline, behind its private socket and both allow-lists, labelled not sealed; the sealed processor one press away."""
+     try:
+         executable,runtime=prepare(root,'VULKAN')
+-        result=subprocess.run([str(executable),'--list-devices'],env=worker_environment(),
+-                              stdin=subprocess.DEVNULL,capture_output=True,text=True,errors='replace',timeout=12)
+-        text=(result.stdout+'\n'+result.stderr)[-65536:]
++        from .brain_seal import NOT_SEALED_MARK,network_seal_possible
++        sealed=network_seal_possible()
++        result,text=_listing(root,executable,sealed)
+         devices=parse_devices(text);physical=[d for d in devices if not d['software']]
++        seal='NOT_TRIED' if not sealed else 'COMPUTER_REFUSED' if NOT_SEALED_MARK in text else 'SEEN_IN_ITS_OWN_NETWORK'
++        if seal=='SEEN_IN_ITS_OWN_NETWORK' and not (result.returncode==0 and physical):
++            outside,outside_text=_listing(root,executable,False)
++            outside_devices=parse_devices(outside_text)
++            if outside.returncode==0 and [d for d in outside_devices if not d['software']]:
++                result,text,devices=outside,outside_text,outside_devices
++                physical=[d for d in devices if not d['software']];seal='VULKAN_NOT_SEEN_IN_ITS_OWN_NETWORK'
++            else:seal='NOT_SEEN_EITHER_WAY'
+         state='AVAILABLE' if result.returncode==0 and physical else 'NO_PHYSICAL_VULKAN_DEVICE' if result.returncode==0 else 'VULKAN_PROBE_FAILED'
+-        reason=None if state=='AVAILABLE' else ('No physical device was reported by the pinned worker.' if result.returncode==0 else text.strip().splitlines()[-1][:300] if text.strip() else 'Worker exited '+str(result.returncode))
+-        return dict(state=state,devices=devices,runtime=runtime,reason=reason,
++        lines=[line for line in text.strip().splitlines() if not line.startswith(NOT_SEALED_MARK)]
++        reason=None if state=='AVAILABLE' else ('No physical device was reported by the pinned worker.' if result.returncode==0 else lines[-1][:300] if lines else 'Worker exited '+str(result.returncode))
++        return dict(state=state,devices=devices,runtime=runtime,reason=reason,network_seal=seal,
+                     qualification='DEVICE_DISCOVERY_ONLY_NOT_MODEL_OR_PERFORMANCE_QUALIFICATION')
+     except (OSError,ValueError,subprocess.SubprocessError) as exc:
+         return dict(state='VULKAN_UNAVAILABLE',devices=[],reason=str(exc)[:300],qualification='NOT_RUN')
+diff --git a/workbench/brain_seal.py b/workbench/brain_seal.py
+new file mode 100644
+index 0000000..100043c
+--- /dev/null
++++ b/workbench/brain_seal.py
+@@ -0,0 +1,525 @@
++"""The sealed room: Kas's model can only answer (0.8.7, slice A1).
++
++"The model proposes; the system disposes." These walls make sure that answering is all her model can do. Every wall is
++checked each time the model starts, before it is marked Ready, by asking the server and reading its process, never the
++model itself:
++
++1. Its launch line comes from an allow-list (lint). Agent tools (a shell among them), MCP, downloads, prompt logs, slot
++   files, extra endpoints and a key on the command line are refused by name, the names taken from the b11669 help text;
++   anything else that is not on the list is refused too. --offline is always there.
++2. Its environment comes from an allow-list: PATH, the locale and its own library folder; for Vulkan, XDG_RUNTIME_DIR
++   and a shader cache under Graphite's own state. A key the owner's shell sets for another tool (LLAMA_API_KEY,
++   HF_TOKEN), GGML_BACKEND_PATH, LLAMA_CACHE, debug switches and proxies never reach it.
++3. It listens on a private socket in a 0700 folder (loopback only where no socket can be had) and knows one key, hers,
++   kept in a file.
++4. It has its own empty network: brain_worker._child_setup unshares a user and a network namespace before exec. Where
++   the computer refuses, NETWORK_NOT_SEALED is recorded and said in words, and the model still starts offline.
++5. The seal check (check()): /tools refused, /slots and POST /props not served, chat refused without her key and with a
++   second key, its network its own, its environment only allowed names, no connection out and no network port open.
++   A failure means the model is not Ready, and she says why in one line.
++
++Standard library only: brain_worker imports this in the supervisor process.
++"""
++from __future__ import annotations
++
++import hashlib
++import http.client
++import json
++import os
++import re
++import secrets
++import socket
++import sys
++import tempfile
++from pathlib import Path
++
++SCHEMA = 'graphite.model-seal/1'
++REFUSED = 'MODEL_SEAL_REFUSED'
++SOCKET_NAME = 'm.sock'
++SOCKET_LIMIT = 107  # bytes in a UNIX socket path (sun_path less its closing zero)
++NOT_SEALED_MARK = 'GRAPHITE_NETWORK_NOT_SEALED'  # what brain_worker writes to the runtime log when the computer refuses
++SEALED_WORDS = 'Sealed: it can only answer. No tools, no network, only the key I made, and only Graphite can reach it.'
++NOT_SEALED_WORDS = 'Not sealed from the network on this computer; started offline.'
++PROCESSOR_SEALED = 'Use the processor, sealed'  # open question 4's default: the sealed processor one press away
++
++
++class SealRefused(ValueError):
++    """The model is not Ready: one wall did not hold. The message is her one line, after the code."""
++
++    def __init__(self, check, why):
++        self.check = check
++        self.words = "I didn't start the model: " + why + '. Nothing was asked of it.'
++        super().__init__(REFUSED + ': ' + self.words)
++
++
++# ---------------------------------------------------------------------------------------------- 1. the launch line
++
++_INT = re.compile(r'^[0-9]{1,7}$')
++
++
++def _number(value):
++    return bool(_INT.match(value))
++
++
++def _path(value):
++    """An absolute local path: never a URL, never two lines."""
++    return (os.path.isabs(value) and '\n' not in value and '\x00' not in value
++            and not re.match(r'^[A-Za-z][A-Za-z0-9+.-]*://', value))
++
++
++def _host(value):
++    """Loopback, or a private socket path ending in .sock that fits the socket limit. Never a list, never 0.0.0.0."""
++    return value == '127.0.0.1' or (_path(value) and value.endswith('.sock') and len(os.fsencode(value)) <= SOCKET_LIMIT)
++
++
++# Every argument Graphite may give the runtime, with the shape of its value (None: a switch). Closed: anything else is
++# refused. --checkpoint-min-step is admitted for slice A2's launch line (design 4.2); nothing else is open for it.
++ALLOWED = {
++    '--model': _path, '--host': _host, '--port': lambda v: _number(v) and 0 < int(v) < 65536, '--api-key-file': _path,
++    '--ctx-size': _number, '--threads': _number, '-ngl': lambda v: v == 'auto' or _number(v), '--parallel': _number,
++    '--threads-http': _number, '--batch-size': _number, '--ubatch-size': _number, '--cache-ram': _number,
++    '--ctx-checkpoints': _number, '--checkpoint-min-step': _number, '--fit': lambda v: v in ('on', 'off'),
++    '--load-mode': lambda v: v == 'none', '--device': lambda v: v == 'none' or bool(re.fullmatch(r'Vulkan[0-9]{1,2}', v)),
++    '--no-cache-idle-slots': None, '--no-webui': None, '--no-ui-mcp-proxy': None, '--no-slots': None,
++    '--no-context-shift': None, '--no-warmup': None, '--offline': None}
++REQUIRED = ('--model', '--host', '--api-key-file', '--offline', '--no-slots', '--no-webui', '--no-ui-mcp-proxy')
++
++# Refused by name, every alias as `llama-server --help` of b11669 prints it (b087d/synth/help_b11669.txt), with the reason
++# she gives. The list names the dangerous ones; the allow-list above is what keeps everything else out.
++FORBIDDEN_GROUPS = {
++    'AGENT_TOOLS': ('it would turn on agent tools, a shell among them',
++                    ('--tools', '--tools-runtime', '-ag', '--agent', '--mcp-servers-config', '--mcp-servers-json',
++                     '--ui-mcp-proxy', '--webui-mcp-proxy')),
++    'DOWNLOADS': ('it would let the runtime download from the internet',
++                  ('-mu', '--model-url', '-dr', '--docker-repo', '-hf', '-hfr', '--hf-repo', '-hff', '--hf-file', '-hft',
++                   '--hf-token', '-hfd', '-hfrd', '--hf-repo-draft', '--spec-draft-hf', '-mmu', '--mmproj-url',
++                   '--mmproj-auto', '-cl', '--cache-list', '--embd-gemma-default', '--fim-qwen-1.5b-default',
++                   '--fim-qwen-3b-default', '--fim-qwen-7b-default', '--fim-qwen-7b-spec', '--fim-qwen-14b-spec',
++                   '--fim-qwen-30b-default', '--gpt-oss-20b-default', '--gpt-oss-120b-default',
++                   '--vision-gemma-4b-default', '--vision-gemma-12b-default')),
++    'NETWORK': ('it would open the runtime to the network',
++                ('--rpc', '--reuse-port', '--cors-origins', '--cors-methods', '--cors-headers', '--cors-credentials',
++                 '--ssl-key-file', '--ssl-cert-file')),
++    'WRITES_TO_DISK': ('it would write prompts or model state to disk',
++                       ('--log-prompts-dir', '--slot-save-path', '--log-file', '-lcd', '--lookup-cache-dynamic')),
++    'VERBOSE_LOGS': ('it would write what is asked into its log',
++                     ('-v', '--verbose', '--log-verbose', '-lv', '--verbosity', '--log-verbosity')),
++    'ENDPOINTS': ('it would open more doors than answering',
++                  ('--props', '--metrics', '--slots', '--path', '--media-path', '--ui', '--webui', '--ui-config',
++                   '--webui-config', '--ui-config-file', '--webui-config-file', '--api-prefix', '--embedding',
++                   '--embeddings', '--rerank', '--reranking', '--lora-init-without-apply')),
++    'OTHER_MODELS': ('it would change which model or template answers',
++                     ('--models-dir', '--models-preset', '--models-max', '--models-autoload', '--lora', '--lora-scaled',
++                      '--control-vector', '--control-vector-scaled', '--control-vector-layer-range', '-md',
++                      '--model-draft', '--spec-draft-model', '-mm', '--mmproj', '--chat-template',
++                      '--chat-template-file', '--override-kv', '--spec-default')),
++    'KEY_ON_COMMAND_LINE': ('it would put a key on the command line, where other programs can read it', ('--api-key',)),
++    'RUNS_PROGRAMS': ('it would let the runtime run other programs', ('--video-ffmpeg-dir',)),
++    'READS_FILES': ('it would let the runtime read files I did not choose',
++                    ('--grammar-file', '-jf', '--json-schema-file', '-lcs', '--lookup-cache-static')),
++}
++FORBIDDEN = {name: group for group, (_, names) in FORBIDDEN_GROUPS.items() for name in names}
++
++
++def _refuse_argument(token, why):
++    raise SealRefused('launch_line', 'its launch line holds ' + token + ', and ' + why)
++
++
++def lint(arguments):
++    """Check the runtime's arguments (without the program itself) against the allow-list. Returns what the seal
++    record keeps (the count and a digest of the names and non-path values); raises SealRefused otherwise."""
++    args = list(arguments)
++    seen = []
++    shape = []
++    index = 0
++    while index < len(args):
++        token = args[index]
++        if not isinstance(token, str):
++            _refuse_argument(repr(token), 'it is not on my list')
++        if token not in ALLOWED:
++            # The runtime's parser takes --name=value and reads _ as - in long names: refuse those spellings by name too.
++            name = token.split('=', 1)[0]
++            name = name.replace('_', '-') if name.startswith('--') else name
++            group = FORBIDDEN.get(token) or FORBIDDEN.get(name)
++            _refuse_argument(token[:80], FORBIDDEN_GROUPS[group][0] if group else 'it is not on my list')
++        if token in seen:
++            _refuse_argument(token, 'it is given twice')
++        seen.append(token)
++        check = ALLOWED[token]
++        if check is None:
++            shape.append(token)
++            index += 1
++            continue
++        if index + 1 >= len(args) or not isinstance(args[index + 1], str) or not check(args[index + 1]):
++            _refuse_argument(token, 'its value is not one I allow')
++        value = args[index + 1]
++        shape.append([token, '<path>' if check in (_path, _host) and value != '127.0.0.1' else '<port>' if token == '--port'
++                      else value])
++        index += 2
++    missing = [name for name in REQUIRED if name not in seen]
++    if missing:
++        raise SealRefused('launch_line', 'its launch line lacks ' + missing[0])
++    host = args[args.index('--host') + 1]
++    if host.endswith('.sock') and '--port' in seen:
++        _refuse_argument('--port', 'a private socket takes no port')
++    if host == '127.0.0.1' and '--port' not in seen:
++        raise SealRefused('launch_line', 'its launch line names loopback without a port')
++    return {'arguments': len(args), 'digest': hashlib.sha256(json.dumps(shape).encode()).hexdigest()}
++
++
++# ---------------------------------------------------------------------------------------------- 2. the environment
++
++LOCALE = re.compile(r'^(LANG|LANGUAGE|LC_[A-Z]+)$')
++VULKAN_NAMES = ('XDG_RUNTIME_DIR', 'MESA_SHADER_CACHE_DIR')
++WINDOWS_NAMES = ('SYSTEMROOT', 'SYSTEMDRIVE', 'WINDIR', 'TEMP', 'TMP', 'PATHEXT', 'NUMBER_OF_PROCESSORS',
++                 'PROCESSOR_ARCHITECTURE')  # what a Windows process needs to start; untested here
++
++
++def allowed_name(name, backend=None):
++    """Whether the runtime may be given this environment variable (for this backend; any backend when None)."""
++    key = name.upper() if os.name == 'nt' else name
++    if key in ('PATH', 'LD_LIBRARY_PATH') or LOCALE.match(key):
++        return True
++    if key in VULKAN_NAMES:
++        return backend in (None, 'VULKAN')
++    return os.name == 'nt' and key in WINDOWS_NAMES
++
++
++def environment(source, backend='CPU', library=None, cache=None):
++    """The runtime's whole environment, built from the allow-list, never from what the owner's shell happens to hold:
++    PATH and the locale from `source`, LD_LIBRARY_PATH set to the runtime's own folder, and for Vulkan XDG_RUNTIME_DIR
++    and MESA_SHADER_CACHE_DIR, a shader cache Graphite names under its own state (created 0700)."""
++    env = {key: value for key, value in source.items()
++           if (key == 'PATH' or LOCALE.match(key) or (os.name == 'nt' and key.upper() in WINDOWS_NAMES))}
++    env.setdefault('PATH', os.defpath)
++    if library is not None and os.name != 'nt':
++        env['LD_LIBRARY_PATH'] = str(library)
++    if backend == 'VULKAN':
++        if source.get('XDG_RUNTIME_DIR'):
++            env['XDG_RUNTIME_DIR'] = source['XDG_RUNTIME_DIR']
++        if cache is not None:
++            Path(cache).mkdir(parents=True, mode=0o700, exist_ok=True)
++            env['MESA_SHADER_CACHE_DIR'] = str(cache)
++    return env
++
++
++def child_environment(source):
++    """What the supervisor (brain_worker) hands the native runtime: its own environment less anything off the list
++    (PYTHONPATH, which the supervisor itself needs, among them)."""
++    return {key: value for key, value in source.items() if allowed_name(key)}
++
++
++# ---------------------------------------------------------------------------------------------- 3. the private socket
++
++def socket_path(base):
++    """Where the runtime listens: `base`/m.sock (base is the start's own 0700 folder) when the path fits the socket
++    limit, else m.sock in a short 0700 folder of its own under XDG_RUNTIME_DIR or the temporary folder. Returns
++    (path, folder made for it or None); (None, None) where no socket can be had (Windows), which means loopback."""
++    if os.name == 'nt' or not hasattr(socket, 'AF_UNIX'):
++        return None, None
++    path = Path(base) / SOCKET_NAME
++    if len(os.fsencode(str(path))) <= SOCKET_LIMIT:
++        return path, None
++    for parent in (os.environ.get('XDG_RUNTIME_DIR'), tempfile.gettempdir()):
++        if not parent or not os.path.isdir(parent):
++            continue
++        folder = Path(tempfile.mkdtemp(prefix='graphite-', dir=parent))  # 0700
++        if len(os.fsencode(str(folder / SOCKET_NAME))) <= SOCKET_LIMIT:
++            return folder / SOCKET_NAME, folder
++        folder.rmdir()
++    return None, None
++
++
++def network_seal_possible():
++    """Whether this system has network namespaces to try (Linux). Whether the computer allows them is learnt by trying."""
++    return sys.platform.startswith('linux')
++
++
++class UnixConnection(http.client.HTTPConnection):
++    """HTTP over the worker's private socket. No proxy, no redirect, nothing on the network."""
++
++    def __init__(self, path, timeout):
++        super().__init__('localhost', timeout=timeout)
++        self.unix_path = str(path)
++
++    def connect(self):
++        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
++        try:
++            sock.settimeout(self.timeout)
++            sock.connect(self.unix_path)
++        except BaseException:
++            sock.close()
++            raise
++        self.sock = sock
++
++
++def connection(worker, timeout):
++    if worker.get('socket'):
++        return UnixConnection(worker['socket'], timeout)
++    return http.client.HTTPConnection('127.0.0.1', int(worker['port']), timeout=timeout)
++
++
++def exchange(worker, method, path, body=None, key=None, timeout=10.0, limit=65536):
++    """One request to the worker; returns (status, at most limit+1 bytes of the body). Raises OSError or
++    http.client.HTTPException when it does not answer."""
++    headers = {'Content-Type': 'application/json'}
++    if key is not None:
++        headers['Authorization'] = 'Bearer ' + key
++    conn = connection(worker, timeout)
++    try:
++        conn.request(method, path, body=body, headers=headers)
++        response = conn.getresponse()
++        return response.status, response.read(limit + 1)
++    finally:
++        conn.close()
++
++
++# ---------------------------------------------------------------------------------------------- 5. the seal check
++
++def runtime_pid(supervisor):
++    """The native runtime: the supervisor's (brain_worker's) child. None where it cannot be read."""
++    if not sys.platform.startswith('linux'):
++        return None
++    try:
++        children = Path('/proc', str(supervisor), 'task', str(supervisor), 'children').read_text().split()
++        if children:
++            return int(children[0])
++    except (OSError, ValueError):
++        pass
++    for path in Path('/proc').iterdir():
++        if not path.name.isdigit():
++            continue
++        try:
++            fields = (path / 'stat').read_text().rsplit(')', 1)[1].split()
++            if int(fields[1]) == int(supervisor):
++                return int(path.name)
++        except (OSError, ValueError, IndexError):
++            continue
++    return None
++
++
++def environment_names(pid):
++    raw = Path('/proc', str(pid), 'environ').read_bytes()
++    return sorted({item.split(b'=', 1)[0].decode('utf-8', 'replace') for item in raw.split(b'\0') if item})
++
++
++def network_namespace(pid='self'):
++    return os.readlink('/proc/%s/ns/net' % pid)
++
++
++def _address(text):
++    """(is loopback, is unspecified, port) for one /proc/net address field (hex, as the kernel prints it)."""
++    host, port = text.split(':')
++    raw = bytes.fromhex(host)
++    if len(raw) == 4:
++        raw = raw[::-1]
++    else:
++        raw = b''.join(raw[i:i + 4][::-1] for i in range(0, 16, 4))
++    unspecified = not any(raw)
++    if len(raw) == 4:
++        loopback = raw[0] == 127
++    else:
++        loopback = raw == b'\0' * 15 + b'\1' or (raw[:12] == b'\0' * 10 + b'\xff\xff' and raw[12] == 127)
++    return loopback, unspecified, int(port, 16)
++
++
++def inet_sockets(pid):
++    """The runtime's own internet sockets, read from its file table and its own network's tables: a list of
++    {protocol, state, local_loopback, local_port, remote_loopback, remote_unspecified, remote_port}."""
++    inodes = set()
++    for fd in Path('/proc', str(pid), 'fd').iterdir():
++        try:
++            target = os.readlink(fd)
++        except OSError:
++            continue
++        if target.startswith('socket:['):
++            inodes.add(target[8:-1])
++    found = []
++    for protocol in ('tcp', 'tcp6', 'udp', 'udp6'):
++        try:
++            lines = Path('/proc', str(pid), 'net', protocol).read_text().splitlines()[1:]
++        except OSError:
++            continue
++        for line in lines:
++            fields = line.split()
++            if len(fields) < 10 or fields[9] not in inodes:
++                continue
++            local, remote = _address(fields[1]), _address(fields[2])
++            found.append({'protocol': protocol, 'state': fields[3], 'local_loopback': local[0], 'local_port': local[2],
++                          'remote_loopback': remote[0], 'remote_unspecified': remote[1], 'remote_port': remote[2]})
++    return found
++
++
++def _reached_out(sockets):
++    return [s for s in sockets if s['remote_port'] and not s['remote_unspecified'] and not s['remote_loopback']]
++
++
++def _listens(sockets):
++    # TCP LISTEN (0A), or a UDP socket bound to a port and not connected: a way in other than her private socket, or what
++    # an outward attempt leaves behind in its own empty network (a failed UDP connect still binds a port). The pinned
++    # runtime behind its socket holds no internet socket at all (trust lens, measured), so either refuses Ready.
++    return [s for s in sockets if s['local_port'] and (s['state'] == '0A' or (s['protocol'].startswith('udp')
++                                                                              and not s['remote_port']))]
++
++
++def not_sealed_reason(log):
++    """Why the computer refused the network namespace, as brain_worker wrote it into the runtime log."""
++    try:
++        with Path(log).open('rb') as stream:
++            head = stream.read(65536).decode('utf-8', 'replace')
++    except (OSError, TypeError):
++        return None
++    match = re.search(NOT_SEALED_MARK + r': ([A-Z0-9_]+)', head)
++    return 'COMPUTER_REFUSED: ' + match.group(1) if match else None
++
++
++HTTP_CHECKS = (
++    # name, method, path, the answer that keeps it sealed, sent with her key?
++    ('tools', 'GET', '/tools', 403, True),
++    ('slots', 'GET', '/slots', 501, True),
++    ('props_change', 'POST', '/props', 501, True),
++    ('without_key', 'POST', '/v1/chat/completions', 401, False),
++    ('second_key', 'POST', '/v1/chat/completions', 401, 'SECOND'),
++)
++REFUSALS = {
++    'tools': 'it offers built-in tools',
++    'slots': 'it lets its slots be read',
++    'props_change': 'it lets its settings be changed',
++    'without_key': 'it answers without my key',
++    'second_key': "it accepted a key I didn't make",
++    'environment': 'it was given settings outside my list ({names})',
++    'reached_out': 'it reached out to the network',
++    'listens': 'it opened a network socket of its own beside its private socket',
++    'network': 'it shares Graphite\'s network although I gave it its own',
++    'runtime_process': 'I could not see its own process to check it',
++    'transport': 'it is not behind its private socket',
++}
++NO_ANSWER = 'it did not answer my checks'
++
++
++def check(worker, log=None, backend='CPU'):
++    """The seal check, run every time the model starts, before Ready. Returns the seal record (no paths, no key, no
++    pid in what the digest covers); raises SealRefused with her one line when a wall does not hold."""
++    key = Path(worker['key_file']).read_text().strip()
++    chat = json.dumps({'messages': [{'role': 'user', 'content': '.'}], 'max_tokens': 1, 'temperature': 0}).encode()
++    checks = []
++    for name, method, path, want, keyed in HTTP_CHECKS:
++        sent = key if keyed is True else secrets.token_urlsafe(32) if keyed == 'SECOND' else None
++        body = chat if path == '/v1/chat/completions' else b'{}' if method == 'POST' else None
++        try:
++            status, _ = exchange(worker, method, path, body, sent, timeout=10.0, limit=4096)
++        except (OSError, http.client.HTTPException):
++            status = 'NO_ANSWER'
++        checks.append({'name': name, 'asked': method + ' ' + path, 'expected': want, 'got': status, 'ok': status == want})
++        if status == 'NO_ANSWER':
++            raise SealRefused(name, NO_ANSWER)
++        if status != want:
++            raise SealRefused(name, REFUSALS[name])
++    transport = 'PRIVATE_SOCKET' if worker.get('socket') else 'LOOPBACK'
++    requested = bool(worker.get('network_seal_requested'))
++    names = None
++    if sys.platform.startswith('linux'):
++        pid = runtime_pid(worker['pid'])
++        if pid is None:
++            raise SealRefused('runtime_process', REFUSALS['runtime_process'])
++        try:
++            names = environment_names(pid)
++            own = network_namespace(pid) != network_namespace()
++            sockets = inet_sockets(pid)
++        except (OSError, ValueError):
++            raise SealRefused('runtime_process', REFUSALS['runtime_process']) from None
++        extra = [name for name in names if not allowed_name(name, backend)]
++        checks.append({'name': 'environment', 'asked': 'its environment', 'expected': 'only names on my list',
++                       'got': names, 'ok': not extra})
++        if extra:
++            raise SealRefused('environment', REFUSALS['environment'].format(names=', '.join(extra[:4])))
++        out = _reached_out(sockets)
++        checks.append({'name': 'reached_out', 'asked': 'its connections', 'expected': 'none out', 'got': len(out),
++                       'ok': not out})
++        if out:
++            raise SealRefused('reached_out', REFUSALS['reached_out'])
++        doors = _listens(sockets) if transport == 'PRIVATE_SOCKET' else [
++            s for s in _listens(sockets) if not s['local_loopback'] or s['local_port'] != int(worker.get('port') or 0)]
++        checks.append({'name': 'listens', 'asked': 'its network ports', 'expected': 'none open', 'got': len(doors),
++                       'ok': not doors})
++        if doors:
++            raise SealRefused('listens', REFUSALS['listens'])
++        if own:
++            network, reason = 'OWN_EMPTY_NETWORK', None
++        elif requested:
++            # The child cannot leave a namespace it was given; sharing Graphite's means the computer refused one.
++            network, reason = 'NETWORK_NOT_SEALED', not_sealed_reason(log) or 'COMPUTER_REFUSED: UNKNOWN'
++        else:
++            network, reason = 'NETWORK_NOT_SEALED', worker.get('network_seal_reason') or 'NOT_ASKED'
++        checks.append({'name': 'network', 'asked': 'its network', 'expected': 'its own',
++                       'got': 'its own' if own else 'shared', 'ok': own})
++    else:
++        network, reason = 'NETWORK_NOT_SEALED', 'NO_NETWORK_NAMESPACES_ON_THIS_SYSTEM'
++        checks.append({'name': 'network', 'asked': 'its network', 'expected': 'its own', 'got': 'not readable here',
++                       'ok': False})
++    if transport == 'LOOPBACK' and network == 'OWN_EMPTY_NETWORK':
++        # Loopback inside its own network is unreachable from Graphite; it answered, so something is not as built.
++        raise SealRefused('transport', REFUSALS['transport'])
++    record = {'schema': SCHEMA, 'state': 'SEALED' if network == 'OWN_EMPTY_NETWORK' else 'NETWORK_NOT_SEALED',
++              'network': network, 'network_reason': reason, 'transport': transport, 'backend': backend,
++              'offline': True, 'checks': checks, 'environment_names': names,
++              'launch_line': worker.get('launch_line'), 'runtime': {k: (worker.get('runtime') or {}).get(k)
++                                                                  for k in ('build', 'platform', 'archive_sha256')}}
++    record['digest'] = digest(record)
++    return record
++
++
++def digest(record):
++    """What the qualification key takes from the seal (design 5.5): every wall's outcome, the names it was given, the
++    launch line's shape and the runtime; never a path, the key or a process number."""
++    kept = {key: record.get(key) for key in ('schema', 'state', 'network', 'transport', 'backend', 'offline',
++                                              'environment_names', 'launch_line', 'runtime')}
++    kept['checks'] = [[c['name'], c['expected'], c['got'] if c['name'] != 'environment' else None, c['ok']]
++                      for c in record.get('checks') or []]
++    return hashlib.sha256(json.dumps(kept, sort_keys=True).encode()).hexdigest()
++
++
++# ---------------------------------------------------------------------------------------------- her words
++
++FOLD = {
++    'tools': 'built-in tools: asked, refused',
++    'slots': 'its slots: asked, not served',
++    'props_change': 'changing its settings: asked, not served',
++    'without_key': 'without my key: refused',
++    'second_key': 'a second key: refused',
++    'reached_out': 'connections out: none',
++    'listens': 'network sockets of its own: none',
++}
++
++
++def words(seal):
++    """The one line under the model's name, or None when no seal is recorded (a model started before 0.8.7)."""
++    if not isinstance(seal, dict):
++        return None
++    return SEALED_WORDS if seal.get('state') == 'SEALED' else NOT_SEALED_WORDS
++
++
++def fold(seal):
++    """'How I know': each check made at start and its result, in words."""
++    if not isinstance(seal, dict):
++        return []
++    lines = []
++    for item in seal.get('checks') or []:
++        if item['name'] in FOLD:
++            lines.append(FOLD[item['name']])
++        elif item['name'] == 'environment':
++            lines.append('its settings from me: %d names, all on my list' % len(item['got'] or []))
++        elif item['name'] == 'network':
++            lines.append('network: none, its own empty network' if item['ok'] else
++                         'network: not sealed on this computer; started offline, with no network features')
++    lines.append('reached through a private socket only' if seal.get('transport') == 'PRIVATE_SOCKET'
++                 else "reached on this computer's loopback only, with my key")
++    lines.append('its launch line: every argument on my list; no tools, no downloads, no prompt log')
++    return lines
++
++
++def processor_offered(seal):
++    """Open question 4's default: the Radeon runs without its own network only when it could not be seen inside one;
++    then the sealed processor is one press away. Not offered when the computer refuses namespaces altogether."""
++    return isinstance(seal, dict) and seal.get('backend') == 'VULKAN' and seal.get('state') != 'SEALED' \
++        and seal.get('network_reason') == 'VULKAN_NOT_SEEN_IN_ITS_OWN_NETWORK'
+diff --git a/workbench/brain_worker.py b/workbench/brain_worker.py
+index d5d4e80..ef8fe7d 100644
+--- a/workbench/brain_worker.py
++++ b/workbench/brain_worker.py
+@@ -3,9 +3,14 @@
+ CPU retains its address-space cap. Vulkan needs a larger virtual address range
+ for driver mappings, so its supervisor watches resident memory and host/cgroup
+ headroom instead. That observation is not a hard cap on GPU allocations.
++
++0.8.7, the sealed room (brain_seal): the native runtime gets only allow-listed environment names, a 077 umask and,
++unless asked otherwise, its own empty network (a user and a network namespace unshared before exec). Where the computer
++refuses, the child says so in the runtime log (GRAPHITE_NETWORK_NOT_SEALED) and still starts, offline.
+ """
+-import argparse,os,signal,subprocess,sys
++import argparse,errno,os,signal,subprocess,sys
+ from pathlib import Path
++from .brain_seal import NOT_SEALED_MARK,child_environment
+ 
+ # Where the memory reading comes from; module names so a test can point them at fixture files.
+ MEMINFO=Path('/proc/meminfo');OWN_CGROUP=Path('/proc/self/cgroup');CGROUPS=Path('/sys/fs/cgroup')
+@@ -39,10 +44,38 @@ def memory_sample(pid):
+     return int(rows['VmRSS'].split()[0])*1024,total,available
+ 
+ 
+-def _child_setup(parent,memory_mb=None):
++CLONE_NEWUSER=0x10000000;CLONE_NEWNET=0x40000000
++
++
++def seal_network():
++    """Its own empty network (0.8.7, the sealed room): unshare a user and a network namespace in this single-threaded
++    child before exec, so the runtime has no route anywhere (an outward connect gets ENETUNREACH) while Graphite still
++    reaches it through its private socket. Never raises: where the computer refuses (no user namespaces, a container
++    profile, an AppArmor rule), it writes why to the runtime log and returns False; the runtime still starts offline."""
++    flags=getattr(os,'CLONE_NEWUSER',CLONE_NEWUSER)|getattr(os,'CLONE_NEWNET',CLONE_NEWNET)
++    try:
++        if hasattr(os,'unshare'):os.unshare(flags)
++        else:
++            import ctypes
++            libc=ctypes.CDLL(None,use_errno=True)
++            if libc.unshare(flags)!=0:
++                code=ctypes.get_errno();raise OSError(code,os.strerror(code))
++        return True
++    except (OSError,AttributeError) as exc:
++        name=errno.errorcode.get(getattr(exc,'errno',None) or 0,'UNAVAILABLE')
++        try:os.write(2,(NOT_SEALED_MARK+': '+name+'\n').encode())
++        except OSError:pass
++        return False
++
++
++def _child_setup(parent,memory_mb=None,seal=False):
+     # This trampoline is single threaded. Kill the native child if its supervisor
+     # disappears between launch and the desktop's owned-process-tree snapshot.
+     import ctypes,resource
++    os.umask(0o077)
++    # The seal hooks in here, before the limits and the parent-death signal (an unshare that changed credentials
++    # would clear that signal; this one does not, but the order keeps it certain).
++    if seal:seal_network()
+     resource.setrlimit(resource.RLIMIT_CORE,(0,0))
+     if memory_mb:
+         limit=memory_mb*1024**2;resource.setrlimit(resource.RLIMIT_AS,(limit,limit))
+@@ -50,10 +83,12 @@ def _child_setup(parent,memory_mb=None):
+     if os.getppid()!=parent:os.kill(os.getpid(),signal.SIGKILL)
+ 
+ 
+-def supervise(command,memory_mb,backend='VULKAN',reserve_mb=None):
++def supervise(command,memory_mb,backend='VULKAN',reserve_mb=None,seal=False):
+     if not sys.platform.startswith('linux'):raise ValueError('Shared-memory resource guard requires Linux')
+     parent=os.getpid()
+-    child=subprocess.Popen(command,stdin=subprocess.DEVNULL,preexec_fn=lambda:_child_setup(parent,memory_mb if backend=='CPU' else None))
++    # The runtime's environment is the allow-list only (brain_seal): this supervisor's PYTHONPATH stays here.
++    child=subprocess.Popen(command,stdin=subprocess.DEVNULL,env=child_environment(os.environ),
++                           preexec_fn=lambda:_child_setup(parent,memory_mb if backend=='CPU' else None,seal))
+     def stop(signum,_frame):
+         if child.poll() is None:child.send_signal(signum)
+     signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop)
+@@ -76,15 +111,17 @@ def main():
+     parser=argparse.ArgumentParser();parser.add_argument('--memory-mb',type=int,required=True)
+     parser.add_argument('--backend',choices=('CPU','VULKAN'),default='CPU')
+     parser.add_argument('--reserve-mb',type=int,default=2048)
++    # The sealed room: its own network unless the launch asks for none (the Radeon not seen inside one, open question 4).
++    parser.add_argument('--seal',choices=('network','none'),default='network')
+     parser.add_argument('command',nargs=argparse.REMAINDER);args=parser.parse_args()
+     if not 512<=args.memory_mb<=262144 or not 128<=args.reserve_mb<=16384 or not args.command:raise ValueError('Worker resource contract')
+-    if sys.platform.startswith('linux'):return supervise(args.command,args.memory_mb,args.backend,args.reserve_mb)
++    if sys.platform.startswith('linux'):return supervise(args.command,args.memory_mb,args.backend,args.reserve_mb,args.seal=='network')
+     if args.backend=='VULKAN':raise ValueError('Vulkan resource guard requires Linux')
+     if os.name!='nt':
+         import resource
+         limit=args.memory_mb*1024*1024;resource.setrlimit(resource.RLIMIT_AS,(limit,limit))
+         resource.setrlimit(resource.RLIMIT_CORE,(0,0))
+     # Windows is monitored by the supervisor; a hard Job Object cap remains a qualification limit.
+-    os.execv(args.command[0],args.command)
++    os.execve(args.command[0],args.command,child_environment(os.environ))
+ 
+ if __name__=='__main__':sys.exit(main())
+diff --git a/workbench/continuing_work.py b/workbench/continuing_work.py
+index dfae263..b9da9ea 100644
+--- a/workbench/continuing_work.py
++++ b/workbench/continuing_work.py
+@@ -150,7 +150,7 @@ def executor_identity():
+     return records.digest({name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
+         ('continuing_work.py','work_scope.py','engineering_kernel.py','engineering_cli.py','change_sets.py','worker_boundary.py',
+          'adaptive_work.py','adaptive_contract.py','slate_action.py','schedule_math.py','slate_stream.py',
+-         'local_brain.py','brain_worker.py','brain_runtime.py','math_service.py','math_model.py','math_backend.py','math_units.py',
++         'local_brain.py','brain_worker.py','brain_runtime.py','brain_seal.py','math_service.py','math_model.py','math_backend.py','math_units.py',
+          'joined_work.py','typed_artifacts.py','checked_methods.py','native_sessions.py','LedgerSession.java','project_context.py')})
+ 
+ 
+diff --git a/workbench/local_brain.py b/workbench/local_brain.py
+index 9739676..7d0152c 100644
+--- a/workbench/local_brain.py
++++ b/workbench/local_brain.py
+@@ -1,7 +1,9 @@
+ """Qt-free local inference through Ledger's existing jobs, settings and journal.
+ 
+ Weights stay external. A native CPU/Vulkan worker has no Ledger execution authority.
+-It binds to authenticated loopback and receives bounded text/JSON only.
++It listens on a private socket (authenticated loopback where no socket can be had) and receives bounded text/JSON only.
++0.8.7, the sealed room (brain_seal): its launch line and environment come from allow-lists, it runs in its own empty
++network where the computer allows, and the seal check runs every time it starts, before Ready.
+ """
+ from __future__ import annotations
+ from .assistant_identity import named
+@@ -10,7 +12,7 @@ from pathlib import Path
+ from urllib.request import Request, build_opener, ProxyHandler, HTTPRedirectHandler
+ from urllib.error import URLError,HTTPError
+ from sdk.cli.arc1cli.gguf_inspect import inspect_set,identity
+-from . import activity,brain_runtime,record_io
++from . import activity,brain_runtime,brain_seal,record_io
+ from .operation_stop import process_identity,UNKNOWN,owned_tree,kill_owned
+ 
+ TEXT={'type':'string','maxLength':4096};ID={'type':'string','pattern':'^[0-9a-f]{64}$','maxLength':64}
+@@ -131,7 +133,8 @@ def status(kernel):
+             'resource_stop':resource_stop,
+             'selection':active,'worker':{k:worker.get(k) for k in ('model_id','pid','started','context','backend','requested_backend',
+                 'device','observed_gpu_layers','offload_evidence','fallback_reason','resource_guard','runtime',
+-                'context_basis','batch_size','microbatch_size','context_reuse')} if live else None,
++                'context_basis','batch_size','microbatch_size','context_reuse','seal')} if live else None,
++            'seal_words':brain_seal.words(worker.get('seal')) if live else None,
+             'prepared_context':prepared_context(kernel,worker) if live else None,
+             'previous':get(kernel,'previous'),'handover':pending,'registered_models':len(models(kernel)),
+             'runtime':{k:v for k,v in brain_runtime.status(kernel.root).items() if k!='pin'},
+@@ -290,6 +293,16 @@ def request(worker,path,payload=None,timeout=90):
+     if path not in ('/health','/props','/tokenize','/apply-template','/v1/chat/completions'):raise ValueError('LOCAL_ENDPOINT_NOT_REGISTERED')
+     key=Path(worker['key_file']).read_text().strip()
+     body=json.dumps(payload).encode() if payload is not None else None
++    if worker.get('socket'):
++        # The sealed room: the worker's private socket (brain_seal). No proxy, no redirect; errors as urllib gave them.
++        import http.client
++        try:status,raw=brain_seal.exchange(worker,'POST' if body is not None else 'GET',path,body,key,timeout,1024*1024)
++        except TimeoutError:raise
++        except OSError as exc:raise URLError(exc) from exc
++        except http.client.HTTPException as exc:raise ValueError('LOCAL_WORKER_PROTOCOL') from exc
++        if not 200<=status<300:raise ValueError('LOCAL_WORKER_HTTP_'+str(status))
++        if len(raw)>1024*1024:raise ValueError('LOCAL_RESPONSE_LIMIT')
++        return record_io.strict_json(raw)
+     req=Request('http://127.0.0.1:'+str(worker['port'])+path,data=body,
+                 headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'})
+     opener=build_opener(ProxyHandler({}),NoRedirect())
+@@ -309,6 +322,7 @@ def terminate(kernel,worker,reason='STOPPED'):
+         while worker_live(worker) and time.monotonic()<end:time.sleep(.03)
+         if worker_live(worker):raise ValueError('Owned model worker termination was not confirmed')
+     if worker.get('key_file'):Path(worker['key_file']).unlink(missing_ok=True)
++    forget_socket(worker)
+     with kernel.db() as db:
+         db.execute('BEGIN IMMEDIATE')
+         for slot in ('worker', 'trial_worker'):
+@@ -317,6 +331,13 @@ def terminate(kernel,worker,reason='STOPPED'):
+         if get(kernel,'prepared_context',{},db).get('worker') == worker_identity(worker):
+             put(kernel,'prepared_context',{},db=db)
+ 
++def forget_socket(worker):
++    """Remove the worker's private socket, and the short folder made for it when its own folder's path was too long."""
++    import shutil
++    if worker.get('socket'):Path(worker['socket']).unlink(missing_ok=True)
++    folder=worker.get('socket_folder')
++    if folder and Path(folder).name.startswith('graphite-'):shutil.rmtree(folder,ignore_errors=True)
++
+ def stop(kernel,reason='OWNER_STOP'):
+     with kernel.db() as db:
+         db.execute('BEGIN IMMEDIATE')
+@@ -358,7 +379,7 @@ def start_server(kernel,value,config,ident,slot='trial_worker'):
+     verified = recheck(value)
+     from .resource_control import model_room
+     model_room(kernel,config,ident)
+-    plan=dict(config);backend=plan.get('backend','CPU')
++    plan=dict(config);backend=plan.get('backend','CPU');network_seal=True
+     if backend=='VULKAN':
+         probe=brain_runtime.probe(kernel.root);put(kernel,'acceleration_probe',{**probe,'at':time.time()},'DEVICE_DISCOVERY')
+         devices=[d for d in probe.get('devices',[]) if not d.get('software')]
+@@ -367,36 +388,61 @@ def start_server(kernel,value,config,ident,slot='trial_worker'):
+             if not plan.get('cpu_fallback',True):raise ValueError('VULKAN_UNAVAILABLE: '+str(probe.get('reason')))
+             plan.update(backend='CPU',fallback_reason='Vulkan device discovery: '+str(probe.get('reason') or probe['state']),
+                         resource_guard=resource_guard('CPU'))
+-        else:plan['device']=devices[0]
+-    try:return _start_server(kernel,value,plan,ident,slot,verified)
++        else:
++            plan['device']=devices[0]
++            # Open question 4's default: the Radeon seen only outside its own network runs there, labelled not
++            # sealed, still offline and behind its socket; the sealed processor is one press away.
++            if probe.get('network_seal')=='VULKAN_NOT_SEEN_IN_ITS_OWN_NETWORK':network_seal=False
++    try:return _start_server(kernel,value,plan,ident,slot,verified,network_seal=network_seal)
+     except (OSError,ValueError,subprocess.SubprocessError) as exc:
+         reason=str(exc)
+         if plan.get('backend')!='VULKAN' or not plan.get('cpu_fallback',True) or cancelled(kernel,ident) or any(
+-            code in reason for code in ('MODEL_OPERATION_CANCELLED','MODEL_FILE_CHANGED','GRAPHITE_HOST_MEMORY_LIMIT')):raise
++            code in reason for code in ('MODEL_OPERATION_CANCELLED','MODEL_FILE_CHANGED','GRAPHITE_HOST_MEMORY_LIMIT',brain_seal.REFUSED)):raise
+         # A single recorded CPU attempt; never recursion or a second live model.
+         retry={**plan,'backend':'CPU','fallback_reason':'Vulkan load: '+reason[:300],
+                'resource_guard':resource_guard('CPU')};retry.pop('device',None)
+         return _start_server(kernel,value,retry,ident,slot,verified)
+ 
+-def _start_server(kernel,value,config,ident,slot,verified):
++def seal_check(worker,log,backend):
++    """The seal check (brain_seal.check), run every time a model starts, before Ready. A seam of its own so the
++    campaign's simulated worker can answer it (tools/campaign_lib/sim.py); a real start always runs the real check."""
++    return brain_seal.check(worker,log,backend)
++
++def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
+     from .locations import child_env
+     from .resource_control import model_room
+     room=model_room(kernel,config,ident)
+     backend=config.get('backend','CPU');executable,runtime=brain_runtime.prepare(kernel.root,backend)
+     base=kernel.state/'brain'/uuid.uuid4().hex;base.mkdir(parents=True,mode=0o700)
+     key=base/'key';key.write_text(secrets.token_urlsafe(32));key.chmod(0o600)
+-    with socket.socket() as socket_:socket_.bind(('127.0.0.1',0));port=socket_.getsockname()[1]
++    # The sealed room: a private socket in the start's own 0700 folder (or a short one), loopback only where no socket
++    # can be had; its own network only behind a socket (loopback inside an empty network cannot be reached).
++    sock,sock_folder=brain_seal.socket_path(base);port=None
++    if sock is None:
++        with socket.socket() as socket_:socket_.bind(('127.0.0.1',0));port=socket_.getsockname()[1]
++    possible=brain_seal.network_seal_possible()
++    network_seal=bool(network_seal and sock is not None and possible)
+     weights=next(item['path'] for item in value['files'] if item['role']=='weights')
+     gpu_layers=config.get('gpu_layers',-1)
+-    argv=[sys.executable,'-m','workbench.brain_worker','--memory-mb',str(config['memory_mb']),'--backend',backend,
+-          '--reserve-mb',str(max(128,room['reserve_bytes']//1024**2)),str(executable),
+-          '--model',weights,'--host','127.0.0.1','--port',str(port),'--api-key-file',str(key),
++    line=['--model',weights,'--host',str(sock) if sock else '127.0.0.1']+(['--port',str(port)] if port else [])+[
++          '--api-key-file',str(key),
+           '--ctx-size',str(config['context']),'--threads',str(config['threads']),'-ngl',
+           ('auto' if gpu_layers==-1 else str(gpu_layers)) if backend=='VULKAN' else '0','--parallel','1',
+           '--threads-http','2','--batch-size','256','--ubatch-size','64','--cache-ram','0','--ctx-checkpoints','0','--no-cache-idle-slots',
+           '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode','none',
+-          '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup']
+-    argv+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
++          '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup','--offline']
++    line+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
++    try:launch_line=brain_seal.lint(line)
++    except ValueError:
++        key.unlink(missing_ok=True)
++        if sock_folder:sock_folder.rmdir()
++        raise
++    argv=[sys.executable,'-m','workbench.brain_worker','--memory-mb',str(config['memory_mb']),'--backend',backend,
++          '--reserve-mb',str(max(128,room['reserve_bytes']//1024**2)),'--seal','network' if network_seal else 'none',
++          str(executable)]+line
++    cache=kernel.state/'brain'/'shader-cache' if backend=='VULKAN' else None
++    unsealed=None if network_seal else 'VULKAN_NOT_SEEN_IN_ITS_OWN_NETWORK' if sock and possible else \
++        'NO_PRIVATE_SOCKET' if possible else 'NO_NETWORK_NAMESPACES_ON_THIS_SYSTEM'
+     process=None;worker={};began=time.monotonic()
+     try:
+         with kernel.db() as db:
+@@ -407,8 +453,10 @@ def _start_server(kernel,value,config,ident,slot,verified):
+                 # Inherits this job tool's process group: job cancellation kills
+                 # a half-started candidate even before its receipt commits.
+                 process=subprocess.Popen(argv,cwd=kernel.root,stdin=subprocess.DEVNULL,stdout=log,stderr=log,
+-                                         env=child_env(kernel.root,brain_runtime.worker_environment()))
++                                         env=child_env(kernel.root,brain_runtime.worker_environment(backend,executable.parent,cache)))
+             worker={'pid':process.pid,'start':process_identity(process.pid),'port':port,'key_file':str(key),'owner':job['owner'],
++                    'socket':str(sock) if sock else None,'socket_folder':str(sock_folder) if sock_folder else None,
++                    'network_seal_requested':network_seal,'network_seal_reason':unsealed,'launch_line':launch_line,
+                     'model_id':value['id'],'context':config['context'],'config':config,'runtime':runtime,
+                     'job_id':ident,'started':time.time(),'backend':backend,'requested_backend':config.get('requested_backend','CPU'),
+                     'device':config.get('device'),'fallback_reason':config.get('fallback_reason'),
+@@ -443,6 +491,8 @@ def _start_server(kernel,value,config,ident,slot,verified):
+                 raise ValueError('MODEL_CONTEXT_BELOW_SELECTION: the worker gives {:,} tokens; {:,} were selected'.format(
+                     reported,config['context']))
+             worker.update(context_basis='WORKER_REPORTED_LIMIT')
++        # The seal check, every start, before Ready and before the model is asked anything (brain_seal).
++        worker['seal']=seal_check(worker,base/'runtime.log',backend)
+         verify_resident(value,worker)
+         observed=0;evidence='CPU_WORKER_WITH_OFFLOAD_DISABLED'
+         if backend=='VULKAN':
+@@ -464,6 +514,7 @@ def _start_server(kernel,value,config,ident,slot,verified):
+             if process.poll() is None:process.kill()
+             process.wait(timeout=5)
+         key.unlink(missing_ok=True)
++        forget_socket({'socket':str(sock) if sock else None,'socket_folder':str(sock_folder) if sock_folder else None})
+         if worker:put(kernel,slot,{},'LOAD_FAILED')
+         raise
+ 
+@@ -541,6 +592,7 @@ def run_model_job(kernel,job):
+         receipt={'state':trial['backend']+'_CHAT_QUALIFIED','at':time.time(),'file_set_id':value['id'],'runtime':trial['runtime'],
+                  'config':config,'load_seconds':trial['load_seconds'],'sample_usage':sample['usage'],
+                  'memory':sample['memory'],'template_sha256':hashlib.sha256(value['message_template'].encode()).hexdigest(),
++                 'seal':{k:(trial.get('seal') or {}).get(k) for k in ('state','network','network_reason','transport','digest')},
+                  'limits':'Load, tokenizer/template and text generation qualification; engineering-answer accuracy is not inferred.'}
+         with kernel.db() as db:
+             db.execute('BEGIN IMMEDIATE')
+diff --git a/workbench/seal_model_checks.py b/workbench/seal_model_checks.py
+new file mode 100644
+index 0000000..c76392d
+--- /dev/null
++++ b/workbench/seal_model_checks.py
+@@ -0,0 +1,150 @@
++"""The sealed room on the real runtime and a real model (0.8.7, slice A1). needs: model.
++
++The trust lens's two hand scripts (the sealed 4B on a socket in its own network, and the inherited-key run) as a model
++check beside joined_model_checks.py. In an invented, empty workspace it starts the model through Graphite's own path
++(brain.model.use: both allow-lists, the private socket, its own network, the seal check before Ready) with two canaries
++set in Graphite's own environment, an LLAMA_API_KEY and an HF_TOKEN such as the owner's shell may hold for another tool,
++and then checks every wall again from outside, as the trust lens did by hand:
++
++  the seal record      Ready came with a seal record: its state (SEALED, or NETWORK_NOT_SEALED with the reason and her
++                       words), the transport and each check made at start
++  the inherited key    chat with the canary LLAMA_API_KEY gives 401 (before 0.8.7 it gave 200)
++  her key              chat with her own key gives 200 and an answer, through the private socket
++  other keys           no key 401, a second random key 401; /tools 403; /slots and POST /props 501
++  its environment      /proc/<runtime>/environ holds neither canary and only allow-listed names
++  its network          its network namespace differs from Graphite's; it holds no internet socket at all
++
++It passes (PASSED) when every wall holds; PASSED_NOT_SEALED_STARTED_OFFLINE when every wall holds but the computer
++refused the network namespace (or the Radeon was not seen inside one), which the report says in her words. On the
++ThinkPad it runs with --backend VULKAN on the first evening (open question 4). Nothing of the owner's is read: the model
++file is named by its base name only; the seal record holds no path, key or process number.
++
++    python -B -m workbench.seal_model_checks --model Qwen3.5-4B-Q4_K_M.gguf --keep <a new folder> --output seal.json [--backend CPU|VULKAN|AUTO]
++"""
++import argparse
++import json
++import os
++import secrets
++import time
++from pathlib import Path
++from unittest.mock import patch
++
++from . import brain_seal, locations, local_brain
++from .baseline import environment
++from .problem_checks import invoke
++
++NEEDS = ('model',)
++CONFIG = {'context': 2048, 'threads': 4, 'memory_mb': 4480}
++WALLS = ('seal_record', 'inherited_key', 'her_key', 'without_key', 'second_key', 'tools', 'slots', 'props_change',
++         'environment', 'network', 'no_internet_socket')
++
++
++def frozen(backend):
++    """What is fixed before the model starts: the walls, what each must give, and the configuration."""
++    return {'schema': 'graphite.seal-model-check/1', 'frozen_before_inference': True, 'backend': backend,
++            'model_config': CONFIG, 'walls': list(WALLS),
++            'expect': {'inherited_key': 401, 'her_key': 200, 'without_key': 401, 'second_key': 401, 'tools': 403,
++                       'slots': 501, 'props_change': 501, 'environment': 'only allow-listed names, neither canary',
++                       'network': 'its own (or NETWORK_NOT_SEALED said in words)', 'no_internet_socket': 0}}
++
++
++def checks(model_path, base, output=None, backend='CPU'):
++    from .engineering_kernel import Kernel, operator
++    base = Path(base);base.mkdir(parents=True, exist_ok=False);home = base / 'Home';home.mkdir()
++    root = base / 'Office';profile = base / 'profile'
++    spec = frozen(backend);(base / 'frozen-evaluation.json').write_text(json.dumps(spec, indent=2) + '\n')
++    canary_key = 'seal-canary-' + secrets.token_hex(12);canary_hf = 'hf_seal_canary_' + secrets.token_hex(12)
++    value = {'state': 'IN_PROGRESS', 'model': Path(model_path).name, 'backend_requested': backend, 'config': CONFIG,
++             'walls': [], 'cloud_calls': 0}
++
++    def save():
++        if output:Path(output).write_text(json.dumps(value, indent=2) + '\n')
++
++    def wall(name, expected, got, ok, note=None):
++        value['walls'].append({'name': name, 'expected': expected, 'got': got, 'ok': bool(ok), **({'note': note} if note else {})})
++
++    env = {**environment(os.environ, root, profile), 'HOME': str(home), 'LLAMA_API_KEY': canary_key, 'HF_TOKEN': canary_hf}
++    with patch.dict(os.environ, env), patch.object(Path, 'home', return_value=home):
++        locations.office(root);kernel = Kernel(root);p = operator()
++
++        def wait(job, seconds=300):
++            until = time.monotonic() + seconds
++            while kernel.record('jobs', job['id'])['state'] in ('Queued', 'Running') and time.monotonic() < until:time.sleep(0.2)
++            result = invoke(kernel, 'brain.result', {'id': job['id']}, p)
++            if result['state'] != 'Completed':raise ValueError(str(result.get('error') or result)[:600])
++            return result['result']
++        try:
++            registered = wait(invoke(kernel, 'brain.model.add', {'path': str(Path(model_path).resolve()), 'managed_copy': False,
++                                                                  'origin': 'Explicit local model file for the sealed-room check.'}, p))
++            started = time.monotonic()
++            try:
++                wait(invoke(kernel, 'brain.model.use', {'id': registered['model_id'], 'options': {**CONFIG, 'backend': backend}}, p))
++            except ValueError as exc:
++                said = str(exc)
++                value.update(state='FAILED', reason=said.split(brain_seal.REFUSED + ': ', 1)[-1][:400])
++                save();return value
++            value['activation_seconds'] = round(time.monotonic() - started, 3)
++            worker = local_brain.get(kernel, 'worker', {})
++            seal = worker.get('seal') or {}
++            value.update(backend=worker.get('backend'), transport=seal.get('transport'), seal_state=seal.get('state'),
++                         network_reason=seal.get('network_reason'), words=brain_seal.words(seal), how_i_know=brain_seal.fold(seal),
++                         seal_digest=seal.get('digest'), checks_at_start=seal.get('checks'))
++            wall('seal_record', 'a seal record with every check passed', seal.get('state'),
++                 bool(seal) and all(c['ok'] for c in seal.get('checks', []) if c['name'] != 'network'))
++            key = Path(worker['key_file']).read_text().strip()
++            chat = json.dumps({'messages': [{'role': 'user', 'content': 'Reply with the word ready.'}], 'max_tokens': 4,
++                               'temperature': 0, 'chat_template_kwargs': local_brain.TEMPLATE_OPTIONS}).encode()
++
++            def asked(method, path, sent, body=None):
++                try:return brain_seal.exchange(worker, method, path, body, sent, timeout=60.0, limit=65536)
++                except OSError as exc:return type(exc).__name__, b''
++            status, _ = asked('POST', '/v1/chat/completions', canary_key, chat)
++            wall('inherited_key', 401, status, status == 401, 'an LLAMA_API_KEY set in Graphite\'s own environment')
++            began = time.monotonic();status, raw = asked('POST', '/v1/chat/completions', key, chat)
++            answer = None
++            if status == 200:
++                try:answer = json.loads(raw)['choices'][0]['message'].get('content')
++                except (ValueError, KeyError, IndexError, TypeError):answer = None
++            wall('her_key', 200, status, status == 200 and isinstance(answer, str) and answer.strip() != '',
++                 'answer %r in %.2f s' % (answer, time.monotonic() - began))
++            for name, method, path, want, keyed in brain_seal.HTTP_CHECKS:
++                sent = key if keyed is True else secrets.token_urlsafe(32) if keyed == 'SECOND' else None
++                body = chat if path == '/v1/chat/completions' else b'{}' if method == 'POST' else None
++                status, _ = asked(method, path, sent, body)
++                wall(name, want, status, status == want)
++            pid = brain_seal.runtime_pid(worker['pid'])
++            if pid is None:
++                wall('environment', 'readable', None, False, 'the runtime process was not found');wall('network', 'its own', None, False)
++                wall('no_internet_socket', 0, None, False)
++            else:
++                names = brain_seal.environment_names(pid)
++                extra = [n for n in names if not brain_seal.allowed_name(n, worker.get('backend'))]
++                wall('environment', 'only allow-listed names, neither canary', names,
++                     not extra and 'LLAMA_API_KEY' not in names and 'HF_TOKEN' not in names)
++                own = brain_seal.network_namespace(pid) != brain_seal.network_namespace()
++                wall('network', 'its own', 'its own' if own else 'shared', own or seal.get('state') == 'NETWORK_NOT_SEALED',
++                     None if own else 'NETWORK_NOT_SEALED: ' + str(seal.get('network_reason')))
++                sockets = brain_seal.inet_sockets(pid)
++                wall('no_internet_socket', 0, len(sockets), not sockets)
++            failed = [w['name'] for w in value['walls'] if not w['ok']]
++            value['state'] = 'FAILED' if failed else 'PASSED' if seal.get('state') == 'SEALED' else 'PASSED_NOT_SEALED_STARTED_OFFLINE'
++            if failed:value['failed'] = failed
++            save();return value
++        finally:
++            local_brain.stop(kernel, 'SEAL_CHECK_FINISHED')
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--model', type=Path, required=True);parser.add_argument('--keep', type=Path, required=True)
++    parser.add_argument('--output', type=Path);parser.add_argument('--backend', choices=('CPU', 'VULKAN', 'AUTO'), default='CPU')
++    args = parser.parse_args()
++    value = checks(args.model, args.keep, args.output, args.backend)
++    print(json.dumps({'state': value['state'], 'backend': value.get('backend'), 'seal': value.get('seal_state'),
++                      'words': value.get('words'), 'walls': [(w['name'], w['got'], w['ok']) for w in value['walls']],
++                      **({'reason': value['reason']} if value.get('reason') else {})}))
++    return 0 if value['state'].startswith('PASSED') else 1
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
+diff --git a/workbench/slate_stream.py b/workbench/slate_stream.py
+index be936f1..9f7e6cd 100644
+--- a/workbench/slate_stream.py
++++ b/workbench/slate_stream.py
+@@ -1,11 +1,14 @@
+-"""Bounded authenticated loopback SSE, with final-only validation by the caller."""
++"""Bounded authenticated SSE over the worker's private socket (loopback where it has none), with final-only validation
++by the caller."""
+ from __future__ import annotations
++import http.client
+ import json
+ import time
++from contextlib import contextmanager
+ from pathlib import Path
+ from urllib.request import Request, build_opener, ProxyHandler
+-from urllib.error import HTTPError
+-from . import local_brain as brain, record_io
++from urllib.error import HTTPError, URLError
++from . import brain_seal, local_brain as brain, record_io
+ 
+ 
+ def prompt_size(worker, messages):
+@@ -60,6 +63,33 @@ def events(response, cancelled, deadline):
+         elif not line.startswith((':', 'event:', 'id:', 'retry:')): raise ValueError('LOCAL_STREAM_INVALID_FRAME')
+ 
+ 
++@contextmanager
++def opened(worker, body, key, seconds):
++    """The streaming response: over the worker's private socket (0.8.7, the sealed room), or loopback for a worker
++    that has none. Either way no proxy and no redirect; an HTTP error status becomes LOCAL_STREAM_HTTP_<code>."""
++    headers = {'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Accept': 'text/event-stream'}
++    if worker.get('socket'):
++        conn = brain_seal.connection(worker, seconds)
++        try:
++            try:
++                conn.request('POST', '/v1/chat/completions', body=body, headers=headers)
++                response = conn.getresponse()
++            except TimeoutError: raise
++            except OSError as exc: raise URLError(exc) from exc
++            except http.client.HTTPException as exc: raise ValueError('LOCAL_STREAM_PROTOCOL') from exc
++            if not 200 <= response.status < 300: raise ValueError('LOCAL_STREAM_HTTP_' + str(response.status))
++            yield response
++        finally:
++            conn.close()
++        return
++    request = Request('http://127.0.0.1:' + str(worker['port']) + '/v1/chat/completions', data=body, headers=headers)
++    opener = build_opener(ProxyHandler({}), brain.NoRedirect())
++    try:
++        with opener.open(request, timeout=seconds) as response:
++            yield response
++    except HTTPError as exc: raise ValueError('LOCAL_STREAM_HTTP_' + str(exc.code)) from exc
++
++
+ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cancelled=lambda: False,
+              seconds=120, measured_prompt=None, *, kernel, cache_key=None):
+     if not brain.worker_live(worker): raise ValueError('MODEL_WORKER_NOT_LIVE')
+@@ -78,37 +108,32 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
+         'stream_options': {'include_usage': True}, 'cache_prompt': reuse, 'chat_template_kwargs': brain.TEMPLATE_OPTIONS}
+     if schema: payload['response_format'] = {'type': 'json_schema', 'json_schema': {'name': 'slate_result', 'strict': True, 'schema': schema}}
+     key = Path(worker['key_file']).read_text().strip()
+-    request = Request('http://127.0.0.1:' + str(worker['port']) + '/v1/chat/completions', data=json.dumps(payload).encode(),
+-        headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Accept': 'text/event-stream'})
+     began = time.monotonic(); first = None; text = ''; finish = None; done = False; usage = {}; timings = {}
+-    opener = build_opener(ProxyHandler({}), brain.NoRedirect())
+-    try:
+-        with opener.open(request, timeout=seconds) as response:
+-            if response.headers.get_content_type() != 'text/event-stream': raise ValueError('LOCAL_STREAM_CONTENT_TYPE')
+-            for event in events(response, cancelled, began + seconds):
+-                if event == '[DONE]': done = True; break
+-                value = record_io.strict_json(event)
+-                if not isinstance(value, dict) or value.get('error'): raise ValueError('LOCAL_STREAM_SERVER_ERROR')
+-                if isinstance(value.get('usage'), dict): usage = value['usage']
+-                if isinstance(value.get('timings'), dict): timings = value['timings']
+-                choices = value.get('choices', [])
+-                if not isinstance(choices, list) or len(choices) > 1: raise ValueError('LOCAL_STREAM_CHOICE_BOUND')
+-                for choice in choices:
+-                    if choice.get('index', 0) != 0: raise ValueError('LOCAL_STREAM_CHOICE_INDEX')
+-                    delta = choice.get('delta') or {}
+-                    if delta.get('tool_calls') or choice.get('message'): raise ValueError('LOCAL_STREAM_UNEXPECTED_ACTION_CHANNEL')
+-                    content = delta.get('content')
+-                    if content is not None:
+-                        if not isinstance(content, str): raise ValueError('LOCAL_STREAM_DELTA_TYPE')
+-                        if finish is not None and content: raise ValueError('LOCAL_STREAM_CONTENT_AFTER_FINISH')
+-                        if content and first is None: first = time.monotonic() - began
+-                        text += content
+-                        if len(text) > 65536: raise ValueError('LOCAL_STREAM_OUTPUT_BOUND')
+-                        if on_delta and content: on_delta(text)
+-                    if choice.get('finish_reason') is not None:
+-                        if finish is not None: raise ValueError('LOCAL_STREAM_DUPLICATE_FINISH')
+-                        finish = choice['finish_reason']
+-    except HTTPError as exc: raise ValueError('LOCAL_STREAM_HTTP_' + str(exc.code)) from exc
++    with opened(worker, json.dumps(payload).encode(), key, seconds) as response:
++        if response.headers.get_content_type() != 'text/event-stream': raise ValueError('LOCAL_STREAM_CONTENT_TYPE')
++        for event in events(response, cancelled, began + seconds):
++            if event == '[DONE]': done = True; break
++            value = record_io.strict_json(event)
++            if not isinstance(value, dict) or value.get('error'): raise ValueError('LOCAL_STREAM_SERVER_ERROR')
++            if isinstance(value.get('usage'), dict): usage = value['usage']
++            if isinstance(value.get('timings'), dict): timings = value['timings']
++            choices = value.get('choices', [])
++            if not isinstance(choices, list) or len(choices) > 1: raise ValueError('LOCAL_STREAM_CHOICE_BOUND')
++            for choice in choices:
++                if choice.get('index', 0) != 0: raise ValueError('LOCAL_STREAM_CHOICE_INDEX')
++                delta = choice.get('delta') or {}
++                if delta.get('tool_calls') or choice.get('message'): raise ValueError('LOCAL_STREAM_UNEXPECTED_ACTION_CHANNEL')
++                content = delta.get('content')
++                if content is not None:
++                    if not isinstance(content, str): raise ValueError('LOCAL_STREAM_DELTA_TYPE')
++                    if finish is not None and content: raise ValueError('LOCAL_STREAM_CONTENT_AFTER_FINISH')
++                    if content and first is None: first = time.monotonic() - began
++                    text += content
++                    if len(text) > 65536: raise ValueError('LOCAL_STREAM_OUTPUT_BOUND')
++                    if on_delta and content: on_delta(text)
++                if choice.get('finish_reason') is not None:
++                    if finish is not None: raise ValueError('LOCAL_STREAM_DUPLICATE_FINISH')
++                    finish = choice['finish_reason']
+     if cancelled(): raise ValueError('MODEL_OPERATION_CANCELLED')
+     if time.monotonic() - began > seconds: raise ValueError('LOCAL_STREAM_TIME_BUDGET')
+     if not done or finish != 'stop': raise ValueError('LOCAL_RESPONSE_INCOMPLETE: no validated result was committed')
+@@ -120,7 +145,8 @@ def complete(worker, messages, max_tokens=512, schema=None, on_delta=None, cance
+     return {'text': text, 'finish_reason': finish, 'stream_complete': True, 'usage': usage, 'timings': timings,
+         'first_token_seconds': first, 'elapsed_seconds': time.monotonic() - began, 'prompt_tokens_measured': measured_prompt,
+         'context_limit': worker['context'], 'prefix_reuse_requested': reuse, 'observed_reused_tokens': reused,
+-        'input_messages_digest': record_io.digest(messages), 'memory': brain.usage(worker), 'transport': 'AUTHENTICATED_LOOPBACK_SSE'}
++        'input_messages_digest': record_io.digest(messages), 'memory': brain.usage(worker),
++        'transport': 'AUTHENTICATED_PRIVATE_SOCKET_SSE' if worker.get('socket') else 'AUTHENTICATED_LOOPBACK_SSE'}
+ 
+ 
+ def preview(text, structured=True):

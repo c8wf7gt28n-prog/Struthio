@@ -3,9 +3,14 @@
 CPU retains its address-space cap. Vulkan needs a larger virtual address range
 for driver mappings, so its supervisor watches resident memory and host/cgroup
 headroom instead. That observation is not a hard cap on GPU allocations.
+
+0.8.7, the sealed room (brain_seal): the native runtime gets only allow-listed environment names, a 077 umask and,
+unless asked otherwise, its own empty network (a user and a network namespace unshared before exec). Where the computer
+refuses, the child says so in the runtime log (GRAPHITE_NETWORK_NOT_SEALED) and still starts, offline.
 """
-import argparse,os,signal,subprocess,sys
+import argparse,errno,os,signal,subprocess,sys
 from pathlib import Path
+from .brain_seal import NOT_SEALED_MARK,child_environment
 
 # Where the memory reading comes from; module names so a test can point them at fixture files.
 MEMINFO=Path('/proc/meminfo');OWN_CGROUP=Path('/proc/self/cgroup');CGROUPS=Path('/sys/fs/cgroup')
@@ -39,10 +44,38 @@ def memory_sample(pid):
     return int(rows['VmRSS'].split()[0])*1024,total,available
 
 
-def _child_setup(parent,memory_mb=None):
+CLONE_NEWUSER=0x10000000;CLONE_NEWNET=0x40000000
+
+
+def seal_network():
+    """Its own empty network (0.8.7, the sealed room): unshare a user and a network namespace in this single-threaded
+    child before exec, so the runtime has no route anywhere (an outward connect gets ENETUNREACH) while Graphite still
+    reaches it through its private socket. Never raises: where the computer refuses (no user namespaces, a container
+    profile, an AppArmor rule), it writes why to the runtime log and returns False; the runtime still starts offline."""
+    flags=getattr(os,'CLONE_NEWUSER',CLONE_NEWUSER)|getattr(os,'CLONE_NEWNET',CLONE_NEWNET)
+    try:
+        if hasattr(os,'unshare'):os.unshare(flags)
+        else:
+            import ctypes
+            libc=ctypes.CDLL(None,use_errno=True)
+            if libc.unshare(flags)!=0:
+                code=ctypes.get_errno();raise OSError(code,os.strerror(code))
+        return True
+    except (OSError,AttributeError) as exc:
+        name=errno.errorcode.get(getattr(exc,'errno',None) or 0,'UNAVAILABLE')
+        try:os.write(2,(NOT_SEALED_MARK+': '+name+'\n').encode())
+        except OSError:pass
+        return False
+
+
+def _child_setup(parent,memory_mb=None,seal=False):
     # This trampoline is single threaded. Kill the native child if its supervisor
     # disappears between launch and the desktop's owned-process-tree snapshot.
     import ctypes,resource
+    os.umask(0o077)
+    # The seal hooks in here, before the limits and the parent-death signal (an unshare that changed credentials
+    # would clear that signal; this one does not, but the order keeps it certain).
+    if seal:seal_network()
     resource.setrlimit(resource.RLIMIT_CORE,(0,0))
     if memory_mb:
         limit=memory_mb*1024**2;resource.setrlimit(resource.RLIMIT_AS,(limit,limit))
@@ -50,10 +83,12 @@ def _child_setup(parent,memory_mb=None):
     if os.getppid()!=parent:os.kill(os.getpid(),signal.SIGKILL)
 
 
-def supervise(command,memory_mb,backend='VULKAN',reserve_mb=None):
+def supervise(command,memory_mb,backend='VULKAN',reserve_mb=None,seal=False):
     if not sys.platform.startswith('linux'):raise ValueError('Shared-memory resource guard requires Linux')
     parent=os.getpid()
-    child=subprocess.Popen(command,stdin=subprocess.DEVNULL,preexec_fn=lambda:_child_setup(parent,memory_mb if backend=='CPU' else None))
+    # The runtime's environment is the allow-list only (brain_seal): this supervisor's PYTHONPATH stays here.
+    child=subprocess.Popen(command,stdin=subprocess.DEVNULL,env=child_environment(os.environ),
+                           preexec_fn=lambda:_child_setup(parent,memory_mb if backend=='CPU' else None,seal))
     def stop(signum,_frame):
         if child.poll() is None:child.send_signal(signum)
     signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop)
@@ -76,15 +111,17 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--memory-mb',type=int,required=True)
     parser.add_argument('--backend',choices=('CPU','VULKAN'),default='CPU')
     parser.add_argument('--reserve-mb',type=int,default=2048)
+    # The sealed room: its own network unless the launch asks for none (the Radeon not seen inside one, open question 4).
+    parser.add_argument('--seal',choices=('network','none'),default='network')
     parser.add_argument('command',nargs=argparse.REMAINDER);args=parser.parse_args()
     if not 512<=args.memory_mb<=262144 or not 128<=args.reserve_mb<=16384 or not args.command:raise ValueError('Worker resource contract')
-    if sys.platform.startswith('linux'):return supervise(args.command,args.memory_mb,args.backend,args.reserve_mb)
+    if sys.platform.startswith('linux'):return supervise(args.command,args.memory_mb,args.backend,args.reserve_mb,args.seal=='network')
     if args.backend=='VULKAN':raise ValueError('Vulkan resource guard requires Linux')
     if os.name!='nt':
         import resource
         limit=args.memory_mb*1024*1024;resource.setrlimit(resource.RLIMIT_AS,(limit,limit))
         resource.setrlimit(resource.RLIMIT_CORE,(0,0))
     # Windows is monitored by the supervisor; a hard Job Object cap remains a qualification limit.
-    os.execv(args.command[0],args.command)
+    os.execve(args.command[0],args.command,child_environment(os.environ))
 
 if __name__=='__main__':sys.exit(main())

@@ -10,6 +10,8 @@ child process, is only what they read from the outside world:
                     process_memory, operation_stop.process_identity -> FakeProcesses
   the worker        local_brain.subprocess.Popen -> FakePopen (writes a scripted load log, scripted exit)
   its HTTP replies  local_brain.request -> scripted /health, /props, /apply-template, /tokenize, chat reply
+  the seal check    local_brain.seal_check -> a sealed record marked simulated (0.8.7: a scripted worker has no
+                    process to read; the walls themselves are checked against stand-in runtimes, not here)
   time              the `time` attribute of local_brain and resource_control -> FakeClock
   file hashing      gguf_inspect.identity and local_brain.identity -> gguf_fixture.bounded_identity
   side effects      job_priority.apply_worker (renice) -> no-op; Kernel.launch -> recorded, never started
@@ -263,6 +265,13 @@ class Bench:
                     'usage': {'prompt_tokens': 12, 'completion_tokens': 1}, 'timings': {'simulated': True}}
         raise ValueError('LOCAL_ENDPOINT_NOT_REGISTERED')
 
+    def _seal(self, worker, log, backend):
+        record = {'schema': 'graphite.model-seal/1', 'state': 'SEALED', 'network': 'OWN_EMPTY_NETWORK',
+                  'network_reason': None, 'transport': 'PRIVATE_SOCKET' if worker.get('socket') else 'LOOPBACK',
+                  'backend': backend, 'offline': True, 'checks': [], 'environment_names': None,
+                  'launch_line': worker.get('launch_line'), 'runtime': {}, 'simulated': True, 'digest': 'simulated'}
+        return record
+
     def live_workers(self):
         """Model worker processes this scenario started that are still alive (owned workers left behind)."""
         return sorted(pid for pid in self.by_pid if pid in self.procs.alive)
@@ -288,6 +297,7 @@ class Bench:
         s.enter_context(patch.object(resource_control, 'process_memory', side_effect=self.procs.process_memory))
         s.enter_context(patch.object(local_brain.subprocess, 'Popen', self._popen_class()))
         s.enter_context(patch.object(local_brain, 'request', side_effect=self._request))
+        s.enter_context(patch.object(local_brain, 'seal_check', side_effect=self._seal))
         s.enter_context(patch.object(local_brain, 'time', self.clock))
         s.enter_context(patch.object(resource_control, 'time', self.clock))
         s.enter_context(patch.object(gguf_inspect, 'identity', side_effect=gguf_fixture.bounded_identity))

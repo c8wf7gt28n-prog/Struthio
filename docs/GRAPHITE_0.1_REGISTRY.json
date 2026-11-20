@@ -65,6 +65,8 @@
    "brain.runtime": "workbench/local_brain.py#dispatch",
    "brain.status": "workbench/local_brain.py#dispatch",
    "brain.stop": "workbench/local_brain.py#dispatch",
+   "brain.turn.get": "workbench/turns.py#dispatch",
+   "brain.turns": "workbench/turns.py#dispatch",
    "cad.inspect": "workbench/kicad_tools.py#dispatch",
    "cad.report": "workbench/kicad_tools.py#dispatch",
    "candidates.accept": "workbench/engineering_kernel.py#Kernel._dispatch",
@@ -988,9 +990,9 @@
   }
  },
  "counts": {
-  "adapters": 790,
+  "adapters": 792,
   "job_tools": 113,
-  "operations": 790,
+  "operations": 792,
   "settings": 48
  },
  "formulas": {
@@ -1961,6 +1963,22 @@
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
    "scope": "execute"
+  },
+  "brain.turn.get": {
+   "arguments": "2919b0ae60fccf396bb31ec42b0b49d30e549db4e90dab97af88aaa60c71e7fa",
+   "properties": {
+    "id": "5ebb95812def9056"
+   },
+   "scope": "read"
+  },
+  "brain.turns": {
+   "arguments": "93d6a94bb13cf39d599e6e0be80ef78c00adc7c435d9374ad4432cbd4e015a03",
+   "properties": {
+    "before": "33527092b4d7b347",
+    "kind": "df06bab3db37e6ee",
+    "limit": "dfbe8dfe1b8e5376"
+   },
+   "scope": "read"
   },
   "cad.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
@@ -7770,7 +7788,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "ee56f2718c9a841c67a42916421b71daf1111a49338a9c8162814552e870cd5b",
+ "schema_digest": "f5d256ba5bf30822f5ab9834b6a0e33a591c942851974fcc786e110cfa63f037",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
