@@ -268,6 +268,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 14:22 UTC: Merged: **0.8.7 C1** (doorway, af28e38), **0.8.6 S6** (quotes, rules, mind_words, d54632d), **0.8.6
+  S5** (either way, settle, 135fe2e; its union merge broke activity.py's observer list, fixed in f741d51 within
+  minutes; `work/finish_merge.sh` now exits non-zero on a compile, seed or window failure). 0.8.6 phases 1 to 4 are all
+  merged. Running as single agents: 0.8.7 A2, A3, C2 and 0.8.6 S7. Next: 0.8.6 R, then S8 and W; 0.8.7 C5, then B1, B2
+  and C4 (their 0.8.6 sockets are in), then phase 4 after S7. Briefs for all of them are in scratch `work/briefs/`.
 - 20 Nov 14:12 UTC: Workflow launches now stop at an approval prompt that no one answers during wake-ups (twice
   interrupted, 12:20 and 13:12). So builders now run as **single background agents** (Agent tool, worktree isolation),
   each given the exact builder prompt the workflow would have sent, written to scratch `work/briefs/<release>_<KEY>.md`
