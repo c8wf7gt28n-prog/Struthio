@@ -4366,8 +4366,8 @@
       "sha256": "47b30fe41336617c2fa4d459685b9796f4f46ede89aaa53b27fd97b691bcb28d"
     },
     "workbench/mind_words.py": {
-      "bytes": 9689,
-      "sha256": "bbdf35fa94854ab2a40bde147824c20ff37691b242b1479c7a755432251fa0ff"
+      "bytes": 10735,
+      "sha256": "8f233a5887576071ff19706cb2649e202525d95056d5baf59f19750efe407335"
     },
     "workbench/model_settings.py": {
       "bytes": 9407,
@@ -5476,6 +5476,18 @@
     "workbench/voice_character.py": {
       "bytes": 29732,
       "sha256": "49b47a9bd7810637a592e3bcbf9c9b3db47efc77de66804f99e71ed5ca78d4cd"
+    },
+    "workbench/voice_facts.py": {
+      "bytes": 41583,
+      "sha256": "2e968a3d65504c757b80e2cfa23f44e585d05e7d93d54737dbbc7257837375d1"
+    },
+    "workbench/voice_gate.py": {
+      "bytes": 17135,
+      "sha256": "30af91d6cd6e6ba4d2ae92e6996332a8f8577acf00f61279c4254c54fefb52e0"
+    },
+    "workbench/voice_lexicon.py": {
+      "bytes": 17535,
+      "sha256": "cb78e5fc288d2639bdc3ad2e9add560e4b4d2afef2c416cc32b60aa1c886e21d"
     },
     "workbench/window_views.py": {
       "bytes": 17836,

@@ -183,3 +183,18 @@ def scan_text(text):
 
 
 register('mind_words', {'footer': FOOTER, 'intro': INTRO}, kind='footer')
+
+
+# ---- 0.8.7 C4, her voice floor (voice_facts, voice_gate, voice_lexicon) ---------------------------------------------------
+# Her plain-word frames are templates of a kind of their own, 'frame': a sentence pattern of slot names ({ANSWER},
+# {MARGIN}) and joining words, each slot a clause the fact sheet (voice_facts) cut from a receipt. They and the fact sheet's
+# clauses are registered here like every other template and swept by check(); frames() hands the frames to the voice gate,
+# which checks every word of a frame before it is filled (one store, not a parallel one).
+KINDS = KINDS + ('frame',)
+MODULES = MODULES + ('workbench.voice_lexicon', 'workbench.voice_facts')
+
+
+def frames(module=None):
+    """{(module, key): text} of every registered frame (kind 'frame'), or one module's."""
+    return {k: e['text'] for k, e in _REGISTRY.items() if e['kind'] == 'frame' and (module is None or k[0] == module)}
+# ---- end of 0.8.7 C4 --------------------------------------------------------------------------------------------------------

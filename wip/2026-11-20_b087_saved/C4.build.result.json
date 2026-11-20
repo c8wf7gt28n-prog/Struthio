@@ -1,0 +1,57 @@
+{
+  "item": "C4",
+  "state": "DONE",
+  "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C4.patch",
+  "patch_applies_to_clean_head": true,
+  "files": {
+    "new": ["workbench/voice_facts.py", "workbench/voice_gate.py", "workbench/voice_lexicon.py"],
+    "changed": ["workbench/mind_words.py (one marked block at the end of the file, '0.8.7 C4': KINDS gains 'frame', MODULES gains voice_lexicon and voice_facts, new frames())"],
+    "tests_added": [],
+    "existing_tests_changed": [],
+    "registrations": "none: the design gives C4 no Kernel operation and no record, so engineering_kernel/cli, the registry and the seed are untouched"
+  },
+  "built": {
+    "voice_facts.py": "The fact sheet: Sheet (kind, state, heading, slots, register, receipt digest, shape, model_calls 0), Slot (name, exact text, must, facts, ANSWER's state), Fact (said, kind, exact value, unit, rounding EXACT/DOWN/UP, receipt ref). Cuts: a ledger.math-answer/1 check against a limit (check: ANSWER, MARGIN, READING, caveats TOLERANCE and RECHECK; undecided: ANSWER, WHY, WITNESS, DECIDER, KEEPS; changed: freshness REVIEW_REQUIRED gives 'I cannot tell yet', CHANGED, WAS), a period (either_way.period_ways' answer: ANSWER, LAST_DAYS, CREDIT, NEXT), a search that found nothing (ANSWER, LOOKED, NEXT; with your COMPLETE word LOOKED and UNSEEN). Exact rounding that never claims more: an exact decimal of at most 6 figures as it is; otherwise to the places the desk's own numbers for that quantity carry (at least 3 figures), toward the safe side (allowed upper end down, lower end up, margin outward / 'at least' near end down, failing corner away from the limit, a tolerance that keeps an answer down); a value under one V/A/W/s that must be rounded is shown in its milli unit. Clause templates registered with mind_words (numbers= names each receipt place). desk_values(sheet) builds answer_check.Value rows (guarded) for the WORDS check.",
+    "voice_gate.py": "check_frame (characters incl. zero-width/direction/non-Latin letters, braces, glue, unknown/twice/missing slots, ANSWER first, digit, quote, sign, '!', word classes, never-say floor + C5's never-say list, 0.8.6 BANNED), fill (capitalises a clause opening a sentence, records spans), lengths from C5's budgets (guarded; floor plain 3, formal 4, warm 3 sentences, never over MAX_WORDS words), second_net (every digit, spelled number and month/weekday inside a slot and declared by that slot's facts; slot text exact; ANSWER first and its state = heading; mind_words.scan_text; then answer_check.check_words guarded, 'not run' recorded when absent) -> Gate KEPT/REFUSED, defect=True when the second net fires. speak(sheet, frame=None): a given frame if kept (a ModelSaid frame returns model_words.Marked with 'worded by the model · every fact from the receipt'; an owner frame 'your wording'), else her plain-word frame; says(receipt).",
+    "voice_lexicon.py": "Word classes VERDICT, NEGATION, HEDGE, BOOSTER, NUMBER (spelled-out numbers included), CALENDAR, UNIT (words and case-sensitive symbols), ADVICE, LOGIC, APOLOGY; phrases ('it should be fine' ...); NEVER_SAY_FLOOR; classify(), number_words(); her plain-word frames per sheet shape (FRAMES, registered in mind_words as kind 'frame'), frame_for(sheet); the gate's reasons in plain words (registered as 'doubt').",
+    "mind_words.py": "Marked C4 block only: frames are templates in the one store (kind 'frame'), swept by check(); frames() hands them to the gate."
+  },
+  "smoke": {
+    "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C4/scripts/smoke.py (outputs C4/smoke.out and C4/smoke3.out)",
+    "runs": "three throwaway copies: (1) the tree alone: SUMMARY pass 53 fail 0; (2) + S7's answer_check.py taken from S7.patch: pass 53 fail 0, WORDS check TAKEN on all five kinds; (3) + the main checkout's merged answer_check.py, voice_character.py, its starter and its mind_words.py with the C4 block appended: pass 53 fail 0, WORDS check TAKEN on all five kinds, mind_words.check() 0 problems",
+    "printed_highlights": [
+      "200/17 V -> '11.76 V' DOWN; 16/49 A (reading 340 mA or 0.34 A) -> '326 mA' DOWN; 0.9375 W exact; sound range -> 'it is inside the 4 limit with at least 0 to spare'",
+      "Yes. Settled power is inside Rev B's 4 W limit with 0.9375 to 1.0625 W to spare; the rail read 12 V, good to 0.25 V either way.",
+      "No. Startup is over Rev B's 40 ms limit by 2 to 8 ms; the stopwatch read 45 ms, good to 3 ms either way.",
+      "I cannot tell. Your voltage tolerance reaches both sides of Rev B's 4 W limit: at 12.25 V it would be 4.165 W, over it. It holds only while the rail stays at or below 11.76 V, and up to 326 mA holds across your whole tolerance.",
+      "I cannot tell. § 12(a) gives two last days: 21 October counted from “Lease term ends”, and 26 October counted from “Keys returned to the agent”. Nothing on the desk shows a credit of 1,200.00 by either day: I looked in “Home Demo bank Sep–Nov” (41 rows, revision 1, 1 September to 17 November 2026). Whether that sheet is complete is yours to say.",
+      "missing tolerance: '... The desk has no tolerance for the settled current, so this is judged at the reading; the answer stands for any tolerance up to 76.5 mA.' (3750/49 mA rounded down)",
+      "changed source: I cannot tell yet. Rev B's sheet has changed since this was worked out, and it needs your review first. On the sources as they were, settled power is inside Rev B's 4 W limit with 0.9375 to 1.0625 W to spare.",
+      "nothing found: I cannot tell. Nothing on the desk shows a credit of 1,200.00: I looked in “Home Demo bank Sep–Nov” (41 rows, revision 1, 1 September to 17 November 2026). Whether none was made rests on that sheet being complete, which is yours to say.",
+      "math_answers.words() unchanged (file untouched): 0.8.5 vectors 'Up to 500 mA', 'over by 25 to 35 ms', 'with at least 0 to spare', 'needs current <= -83.33 mA (exact -250/3 mA)' and the 340 mA record's own words all as before",
+      "planted faults measured: 30 of 30 frame faults refused by the expected rule; 2 of 2 desk faults (a slot number not on its receipt, an answer that is not the heading's verdict) caught by the second net and flagged defect",
+      "'sorry', 'probably', 'it should be fine' refused on every kind: 30 of 30 (5 kinds x 3 phrases x 2 places)",
+      "fuzz: 10000 random frames, 1107 kept by the gate, 0 kept frames breaking the property (first sentence opens with ANSWER whose state is the heading; no digit or number word outside a slot); 0.19 to 0.27 ms a frame including fill and second net",
+      "a kept ModelSaid frame returns Marked with 'worded by the model · every fact from the receipt'; a refused one falls back to her plain words with the refusal kept"
+    ]
+  },
+  "not_done": [
+    "No model was loaded or asked: the FRAME turn (her phrasings written by the model, voice_frame.py, phrasings.py, ledger.phrasing/1) is C6c, if room, not C4.",
+    "No wiring into her column or Why: speak()/says() are ready for the caller; the Field/her column still shows 0.8.6's words until someone calls them.",
+    "The planted-fault corpus (30) and the fuzz live in the smoke script only (owner's rule: no test files); growing it to about 200 is for the test pass before 0.8.8.",
+    "Home Demo's period receipt in the smoke is the period_ways dict shape written by hand with the demo's days (30 Sep -> 21 Oct, 3 Oct -> 24 Oct rolled to 26 Oct), not run through a Kernel with Home Demo built."
+  ],
+  "decisions": [
+    "Logic connectives banned in a frame include 'so', 'because', 'since', 'if', 'only', 'unless', 'while', 'when'; 'and', 'but', 'then' are allowed. The C5 starter lists 'so, because, but' as plain joining words: the gate refuses 'so' and 'because' (a causal word between two desk clauses claims a link nobody checked). Flagged for the coordinator: the starter's joining words and the gate's floor disagree on those two.",
+    "Units in a frame: unit words and case-sensitive unit symbols (V, mA, ms, W ...) are refused; a capital 'A' alone is not (it is also the article).",
+    "The fact sheet's verdict slot is ANSWER = 'Yes', 'No', 'I cannot tell' or 'I cannot tell yet'; the heading is math_answers.HEADINGS of the sheet's state.",
+    "A changed source (freshness REVIEW_REQUIRED) makes the sheet 'cannot tell yet' and keeps the earlier answer only as 'on the sources as they were, ...'.",
+    "'A missing tolerance' is a caveat slot (TOLERANCE) from the settle stage's break_even: the first input in receipt order with no tolerance, its break-even rounded down ('up to' when the end is closed, 'under' when open).",
+    "Rounding places come from the desk's own numbers for that quantity (12 V, 11.75 V -> 2 places; 340 mA -> 0), at least 3 and at most 6 figures; this gives the design's 11.76 V and 326 mA from one rule.",
+    "A frame may hold no quotation mark (quoted words are exempt from mind_words' banned scan, so quotes could smuggle words) and no letter outside plain Latin (homoglyphs).",
+    "The WORDS check is called with goals=None (its holds/over word test would misread a cannot-tell sentence that names a failing corner); the heading check is the gate's own (ANSWER first, its state = the heading).",
+    "Her sentence budget: her character's per register, but never below what her own plain frame for the sheet needs (the period sheet needs 4 sentences, formal allows 4)."
+  ],
+  "guarded": "answer_check (0.8.6 S7) and voice_character (0.8.7 C5) are imported guarded; both are in the main checkout now and were exercised in copy 3. model_words (E0) is in the tree.",
+  "honesty": "Nothing was tested in the owner's sense and nothing ran on the owner's ThinkPad. The smoke script ran only on throwaway copies, now deleted."
+}

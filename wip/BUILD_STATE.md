@@ -239,6 +239,11 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 20 Nov (0.8.7 C4 and C5): **"so" and "because" in her words.** The voice gate refuses causal words in a frame the
+  model writes (a causal word between two of the desk's clauses claims a link nobody checked); her starter character
+  file lists "so, because, but" as her plain joining words. Taken: the gate's stricter rule holds for every
+  model-written frame; the character file's joining words govern only her own fixed templates, which the desk wrote
+  and checked. The owner may change either.
 - 20 Nov 08:00: business-day holidays in 0.8.5 come only from a list typed in the line itself (the builder's reading of
   "a list the owner admits as a source"); none are counted otherwise, and the receipt says "no holidays counted". An
   admitted holiday calendar can come with 0.8.6's rule cards. The release notes say exactly this.
