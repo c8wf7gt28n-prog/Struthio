@@ -489,6 +489,14 @@ def _desk(cl, lex, last):
         template, params = hand_words._clause(text, lex.world, last)
     if template is None:
         why = params or ('no pattern', text, [])
+        if why[0] == 'ambiguous' and why[2] and not neg and _revisions_of_one(why[2]):
+            # 0.8.7 B4 · the one question: her pattern settled the verb ("show the limits") and the words name one sheet
+            # in more than one revision. The only thing open is which revision, an authority: an ASK to you, never the
+            # model's (the MEANING branch of read() collapses these options into one REVISION point).
+            verb = 'traced' if TRACE_LEAD.search(text) else 'shown'
+            cl.use_span(0, 10 ** 6, 'an order for her hand on the desk')
+            return {'frame': 'DESK', 'route': 'MEANING', '_options': [(hand_words.ask_words(verb, {'s': t}), {'frame': 'DESK', 'goals': [
+                {'template': verb, 'params': {'s': t}}]}) for t in why[2]]}
         if why[0] == 'ambiguous' and why[2]:return {'_ambiguous': (why[1], list(why[2]), neg is not None)}
         return None
     cl.use_span(0, 10 ** 6, 'an order for her hand on the desk')
@@ -499,6 +507,17 @@ def _desk(cl, lex, last):
         cl.negated = True
         return {'frame': 'DESK', 'route': 'DESK', 'goals': [], 'forbid': [{'template': template, 'params': dict(params), 'statement': goal.statement}]}
     return {'frame': 'DESK', 'route': 'DESK', 'goals': [{'template': template, 'params': dict(params), 'statement': goal.statement}], 'forbid': []}
+
+
+# 0.8.7 B4: hand_words' own leads of a trace ("trace X", "follow X", "where X comes from"); any other ambiguous order is a show
+TRACE_LEAD = re.compile(r'^(?:trace|follow)\b|\bwhere\b.*\bcomes?\s+from$', re.I)
+
+
+def _revisions_of_one(titles):
+    """0.8.7 B4: whether `titles` are two or more revisions of one sheet (the same title once the revision mark is off)."""
+    marks = [REVISION_TITLE.match(t or '') for t in titles]
+    if len(marks) < 2 or not all(marks):return False
+    return len({m['stem'].strip().casefold() for m in marks}) == 1 and len({m['rev'].casefold() for m in marks}) == len(marks)
 
 
 def _revisions(cl, lex, sheets):

@@ -603,6 +603,9 @@ class HerHand(QObject):
         is not taken."""
         world = self.world()
         found, b = brief.desk(text, world, kept=self._kept(world))
+        if found.get('route') == 'ASK' and b is None:      # 0.8.7 B4: an open point that is yours (which revision): her one question
+            from . import one_question
+            return self.ask_one(text, word, one_question.of_reading(found), found=found)
         if found.get('route') == 'KEPT':
             goals = (found['readings'][0] or {}).get('goals') or ()
             pairs = [(g['template'], dict(g['params'])) for g in goals]
@@ -623,6 +626,7 @@ class HerHand(QObject):
             request = turns.request_for(kernel, p)
         except Exception:  # noqa: BLE001 - no model to reach is the no-model case
             request = None
+        t.request = request                                 # 0.8.7 B4: the GOAL turn and her one question card share one request
         if request is None or request.port is None:
             return self._choose_in_words(t, 'No model is loaded, so which of these you meant is yours to choose:')
         t.model.update(asked=True, started=time.monotonic(), calls=1)
@@ -668,6 +672,10 @@ class HerHand(QObject):
         if not picks:
             t.state = 'finished';t.closing = 'None of these fits your words, so I leave the window as it is.'
             self.say(t.closing);self.set_state('finished');return
+        opened = t.brief.option(picks[0]) if len(picks) == 1 else None
+        if opened is not None and opened.reading.get('revision_open'):   # 0.8.7 B4: which revision stays yours: her one question
+            from . import one_question
+            return self.ask_one(t.text, t.word, one_question.of_revision_open(opened, t.text), t=t)
         pairs = [pair for n in picks for pair in t.cands[n - 1]]
         self._begin_from(t, pairs, 'HER')
         self.say('The model’s pick, checked against your words · model calls: 1')
@@ -702,7 +710,10 @@ class HerHand(QObject):
 
     def _choose_in_words(self, t, lead):
         """The brief's options as the owner's buttons, exactly (and "None of these"); nothing runs until he presses one. His
-        press is his own approval; she then offers to keep his words."""
+        press is his own approval; she then offers to keep his words. 0.8.7 B4: shown as her one question card (ask_one)."""
+        if getattr(t, 'brief', None) is not None:
+            from . import one_question
+            return self.ask_one(t.text, t.word, one_question.of_brief(t.brief), t=t, lead=lead)
         from .shell2 import sentence
         card = self.say(lead)
         options = brief.buttons(t.brief) if getattr(t, 'brief', None) is not None else []
@@ -753,6 +764,101 @@ class HerHand(QObject):
         card = self.say(offer['question'])
         if card is not None:card.box.addWidget(sentence(words, actions))
         return offer
+
+    # == 0.8.7 B4 · the one question (one_question.py): one card per request, on the buttons above ===========================
+    def _request(self, t):
+        """This owner request's TurnRequest (its one card, its model ceiling); one with no model when none can be made."""
+        found = getattr(t, 'request', None)
+        if found is None:
+            try:
+                kernel, p = self._kernel();found = turns.request_for(kernel, p)
+            except Exception:  # noqa: BLE001 - no Kernel to reach: no model, and still one card
+                found = turns.TurnRequest()
+            t.request = found
+        return found
+
+    def ask_one(self, text, word, question, t=None, lead='', found=None):
+        """Her one question card: the choices in her ranked order, Something else (a typed answer, read against these
+        options only) and Leave it. A second question in the same request is never shown: she says cannot tell instead."""
+        from PySide6.QtWidgets import QLineEdit
+        from . import one_question as Q
+        from .shell2 import sentence
+        if question is None:return False
+        if t is None:
+            t = Turn(text, [], word);t.found = found;t.model = {'asked': False, 'calls': 0}
+            self.turn = t;self.snapshot = None
+        if not Q.card(question, self._request(t)):
+            t.state = 'finished';self.say(Q.once_more(question));self.set_state('finished');return True
+        t.question = question;t.answered = False;t.model = dict(t.model or {}, question=question.as_record())
+        card = self.say(lead or question.words)
+        if card is not None:
+            for n, words in question.buttons():
+                if n == Q.ELSE:continue
+                said = words if n == Q.LEAVE else '%d  %s' % (n, words)
+                card.box.addWidget(sentence('{go}', {'go': (said, lambda n=n: self._answered(t, Q.click(question, n)))}))
+            typed = QLineEdit();typed.setObjectName('HerOneQuestionTyped')
+            typed.setPlaceholderText('%s: %s' % (Q.BUTTONS['else'], Q.BUTTONS['typed']))
+            typed.returnPressed.connect(lambda: self._typed(t, typed.text()))
+            card.box.addWidget(typed)
+        t.state = 'idle';self.set_state('idle')
+        return True
+
+    def _typed(self, t, typed):
+        """A typed answer: placed by her fixed rules, else (no authority, a model loaded) the model's PICK off the window's
+        thread; not placed: "please choose one of these", on the same card."""
+        from . import one_question as Q
+        q = getattr(t, 'question', None)
+        if q is None or getattr(t, 'answered', False) or not str(typed).strip():return None
+        placed = Q.place(q, typed)
+        if placed is not None:return self._answered(t, placed)
+        request = self._request(t)
+        if q.authority or request.port is None:
+            self.say(Q.not_placed(q, typed).words);return None
+        holder = {}
+
+        def run():
+            try:holder['placed'] = Q.answer(q, typed, request)
+            except Exception as exc:  # noqa: BLE001 - a failed turn leaves the buttons
+                holder['error'] = str(exc)[:200]
+        thread = threading.Thread(target=run, name='her-pick-turn', daemon=True);thread.start()
+        t.model['calls'] = int(t.model.get('calls') or 0) + 1
+        self.set_state('thinking');self.say(named('I am asking my model which of these your answer chooses.'))
+
+        def poll():
+            if thread.is_alive():QTimer.singleShot(POLL_MS, poll);return
+            got = holder.get('placed')
+            t.model['pick'] = got.as_record() if got is not None else {'error': holder.get('error')}
+            if got is None or not got.placed:
+                self.set_state('idle');self.say(Q.not_placed(q, typed).words);return
+            self._answered(t, got)
+        QTimer.singleShot(POLL_MS, poll)
+        return None
+
+    def _answered(self, t, placed):
+        """The one answer: Leave it gives the read default or cannot tell; a choice starts its goals (the owner's click or
+        words: his own approval; the model's placing: basis model_pick, so a change on it is never hers)."""
+        from . import one_question as Q
+        q = t.question
+        if getattr(t, 'answered', False) or (self.turn is not t and getattr(self.turn, 'question', None) is not q):return None
+        t.answered = True;t.model['answer'] = placed.as_record()
+        if placed.n == Q.LEAVE:
+            left = Q.leave(q);t.model['left'] = left.as_record()
+            t.state = 'finished';t.closing = left.words;self.say(left.words);self.set_state('finished');return None
+        c = q.choice(placed.n)
+        if placed.words:self.say(placed.words)
+        if c.reading.get('revision_open'):          # a second question would be needed: never a second card
+            t.state = 'finished';self.say(Q.once_more('REVISION'));self.set_state('finished');return None
+        pairs = Q.goals_with(getattr(t, 'found', None) if q.source == 'reading' else None, q, c)
+        if not pairs:
+            t.state = 'finished';self.say(Q.leave(q).words);self.set_state('finished');return None
+        nt = self.start(t.text, pairs, t.word, origin='HER' if placed.basis == 'model_pick' else 'OWNER')
+        nt.model = dict(t.model, chosen=c.n, by=placed.by);nt.brief = getattr(t, 'brief', None);nt.found = getattr(t, 'found', None)
+        nt.question = q;nt.request = getattr(t, 'request', None)
+        more = Q.more_words(q)
+        if more:self.say(more)
+        if placed.basis != 'model_pick':self._offer_keep(nt, [c])
+        return nt
+    # == end 0.8.7 B4 =======================================================================================================
 
     # -- where a press lands --------------------------------------------------------------------------------------------------
     def still(self):
