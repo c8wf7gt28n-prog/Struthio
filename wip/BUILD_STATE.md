@@ -268,6 +268,13 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 13:11 UTC: A 5-hour usage limit stopped everything at about 09:56 (reset 12:10), then the container restarted.
+  **0.8.7 E0 and A1 merged** as a3dc57e (the turn contract; the sealed room, one real 4B start here passed every wall).
+  Cut off and saved as patches with restart notes (the worktree diffs at the stop): 0.8.7 C1 (`work/b087/C1.patch`),
+  0.8.6 S5 and S6 (`work/b086/S5.patch`, `S6.patch`); the Struthio look's third take (rider) not painted; box and arena
+  are in `work/struthio_look/`. NEXT: resume 0.8.6 phase 4 (`resumeFromRunId: wf_c2275ac4-81f`, args phase 4); run
+  0.8.7 with `args: {phase: 2, only: [C1, A2, A3, C5]}` (C2 waits for C1 and goes with phase 3). The first relaunch
+  at 12:20 was interrupted at its approval prompt; relaunched at the next wake-up.
 - 20 Nov 09:49 UTC: **The talk "between 0.8.7 and 0.8.8"** written and checked (`wip/2026-11-20_TALK_between_087_and_088.md`).
   It found gaps no build task covered; closed now in the build scripts: **0.8.6 gains slice W** (phase 6, beside S8):
   her column panel (Why, Rests on, Either way, What would settle it), Why in every card's right-click, the card kinds
