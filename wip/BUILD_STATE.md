@@ -268,6 +268,10 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 08:15 UTC: the owner: "Don't stop until all 6 phases complete". So every wake-up (a phase's completion notice,
+  or the hourly wake-up) does the next thing without waiting: merge the finished phase, test, commit, push, launch the
+  next phase, until phase 6 is merged; then the 0.8.6 release. Nothing in 0.8.6 waits for the owner (all its questions
+  at their defaults). Finish the 0.8.5 kit when its release check reports, in between.
 - 20 Nov 08:30 UTC: **0.8.6 build started**, one phase per run of `wip/2026-11-14/workflow_scripts/graphite-086-kas-mind.js`
   (Workflow with `scriptPath` and `args: {phase: N}`; scratch `work/b086/`). Phases from the design's section 6.2:
   1 = S0 (the half-build of her door, merged) and S2 (dates delta, Home Demo); 2 = S1 (mind_types and the exact goal
