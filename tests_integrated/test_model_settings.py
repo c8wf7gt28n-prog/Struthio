@@ -92,6 +92,27 @@ class ModelSettingsTests(unittest.TestCase):
         direct=self.call('jobs.submit',dict(tool='brain.activate',request_key='direct',brain={'model_id':'a'*64}))
         self.assertEqual(self.launched(direct),(dict(context=6144,threads=6,memory_mb=2048),'AUTO'))
 
+    def test_the_lowest_choices_are_kept_and_a_one_character_request_key_is_one_request(self):
+        """0.8.4: one thread, 512 tokens and 512 MiB are choices the owner may make; a request key of one character is a key."""
+        self.set('brain.threads',1);self.assertEqual(self.row('brain.threads')['stored'],1)
+        job=self.request(key='k',options=dict(context=512,threads=1,memory_mb=512))
+        self.assertEqual(self.launched(job)[0],dict(context=512,threads=1,memory_mb=512))
+        self.assertEqual(self.request(key='k',options=dict(context=512,threads=1,memory_mb=512))['id'],job['id'])
+        self.assertFalse(self.k.dispatch('brain.model.use',dict(id='b'*64,request_key='k'*129),self.owner)['ok'])
+        self.assertFalse(self.k.dispatch('brain.model.use',dict(id='b'*64,request_key=''),self.owner)['ok'])
+
+    def test_a_request_and_its_state_are_written_in_the_activity_journal(self):
+        """0.8.4: the Log shows each request the Kernel keeps, with its state, by the job's own id."""
+        from workbench import activity
+        job=self.request()
+        events=[e for e in activity.tail(self.root,limit=500).get('events',[]) if e.get('job_id')==job['id']]
+        self.assertIn(('brain.activate','Queued'),[(e['operation'],e['state']) for e in events])
+
+    def test_the_history_a_row_promises_is_the_history_kept(self):
+        for i in range(105):self.set('brain.context',2048+(i%2)*1024)
+        with self.k.db() as db:kept=db.execute("SELECT count(*) FROM settings WHERE key LIKE 'ledger.change.%'").fetchone()[0]
+        self.assertEqual({self.row(key)['history_limit'] for key in ('brain.context','brain.threads','brain.memory_mb')},{kept})
+
     def test_explicit_request_and_restore_override_launch_defaults(self):
         self.set('brain.context',6144);self.set('brain.threads',8);self.set('brain.memory_mb',4096)
         direct=self.request(options=dict(context=2048,threads=3,memory_mb=2048))

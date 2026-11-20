@@ -27,6 +27,7 @@ from unittest.mock import patch
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 from workbench import desk_acts,stacy_hand
 from workbench.desk_acts import ACTS,Refusal,check,desk_hers
+from tests_integrated.seed_hold import seed_bound
 
 ROOT=Path(__file__).resolve().parent.parent
 P01=ROOT/'tools/campaign_lib/data/scenes/P01.json'
@@ -76,7 +77,7 @@ def build_window(store,prefix,seed=bench_seed,early=False):
     holds=[patch.object(clip,'_request',side_effect=AssertionError('No provider request')),patch.object(Kernel,'launch',side_effect=AssertionError('No worker launch')),
            patch.object(Kernel,'submit',side_effect=AssertionError('No job submission')),patch.object(session_power,'system',side_effect=no_logind),
            patch.object(QMessageBox,'question',return_value=QMessageBox.No)]
-    held=[]
+    held=[seed_bound()];held[0].start()   # the seed hold first: an early seed is made under it too
 
     def seeded():
         k=Kernel(root);p=operator()
@@ -96,7 +97,7 @@ def build_window(store,prefix,seed=bench_seed,early=False):
           patch.object(QProcess,'startDetached',side_effect=AssertionError('No detached program'))]
     for h in late:h.start()
     w.resize(1920,1200);w.show()
-    store.update(app=app,w=w,k=w.ledger_bridge.kernel,temporary=temporary,holds=holds+late,env=env,files=files_root)
+    store.update(app=app,w=w,k=w.ledger_bridge.kernel,temporary=temporary,holds=held+late,env=env,files=files_root)
     settle(store,60);w.ledger_bridge.timer.stop()
     try:w.type_bar.hatch.lifecycle.timer.stop()
     except AttributeError:pass
@@ -247,6 +248,7 @@ class PureRules(unittest.TestCase):
             offered={v['properties']['operation']['const'] for v in schema['properties']['actions']['items']['oneOf']}
             self.assertTrue(offered.isdisjoint(set(ACTS)),message)
         self.assertLessEqual({'ledger.navigate','ledger.open'},tool_selection.DENY)
+        self.assertEqual({v['properties']['act']['const'] for v in desk_acts.plan_variants()},exported,'each act she may use is one plan choice')
         for variant in desk_acts.plan_variants():
             self.assertIn('act',variant['properties']);self.assertNotIn('operation',variant['properties'])
             self.assertNotIn('by',variant['properties']);self.assertNotIn('arguments',variant['properties'])
@@ -679,6 +681,31 @@ class LiveActs(unittest.TestCase):
         from workbench.files_qt import FilesTab
         self.assertIsInstance(self.w.tabs.currentWidget(),FilesTab)
         self.assertEqual(act('read.desk',{'part':'where'})['result']['surface'],'field')
+        self.assertEqual(act('go.today',{})['result']['surface'],'home')
+        self.assertEqual(act('read.desk',{'part':'where'})['result']['surface'],'home')
+        act('go.files',{});self.assertEqual(act('read.desk',{'part':'where'})['result']['surface'],'workspace')
+
+    def test_a_sheet_is_reached_by_key_presses_only_when_asked_by_keys(self):
+        act('go.field',{});act('point.sheet',{'title':'07 Bench readings'})
+        keys=act('point.sheet',{'title':'07 Limits Rev B CURRENT','by':'keys'})
+        self.assertTrue(keys['ok'],keys['words']);self.assertGreater(keys['result']['presses'],0)
+        direct=act('point.sheet',{'title':'07 Bench readings'})
+        self.assertTrue(direct['ok'],direct['words']);self.assertEqual(direct['result']['presses'],0)
+
+    def test_the_empty_place_she_points_at_in_files_is_on_the_screen_when_the_list_is_full(self):
+        """0.8.4: her right-click on an empty place in Files (desk_doers.here_point) lands inside the view she names, also
+        when the files fill the list to its lower corner."""
+        from workbench import desk_doers
+        from workbench.engineering_kernel import operator
+        k=WINDOW['k'];names=['full list/row %02d.txt'%i for i in range(80)]
+        for name in names:self.assertTrue(k.dispatch('files.write',{'path':name,'text':'x'},operator())['ok'])
+        try:
+            self.assertTrue(act('go.files',{'folder':'full list','view':'list'})['ok'])
+            widget,at=desk_doers.here_point(self.w)
+            self.assertTrue(widget.rect().contains(at.toPoint()),(widget.size(),at))
+        finally:
+            for name in names:k.dispatch('files.trash',{'path':name},operator())
+            k.dispatch('files.trash',{'path':'full list'},operator());act('go.files',{'folder':'','view':'list'})
 
     def test_look_set_motion(self):
         from workbench import boss_theme,menu_catch

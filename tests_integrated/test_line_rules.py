@@ -417,6 +417,17 @@ class TheSameKindOfFault(unittest.TestCase):
         self.assertEqual(run(left, 'missing @files:x.csv rows on part.id', other), [left[0]])
 
 
+class TheBounds(unittest.TestCase):
+    """0.8.4: the bounds a line keeps, at their edges (planted bugs in tools/planted_bugs)."""
+
+    def test_take_keeps_one_to_two_hundred_rows(self):
+        """'take 1' is the first row and 'take 200' the most a line takes; 0 and 201 are refused (M002)."""
+        rows = [{'n': n} for n in range(1, 251)]
+        self.assertEqual(run(rows, 'take 1'), [{'n': 1}]);self.assertEqual(len(run(rows, 'take 200')), 200)
+        for steps in ('take 0', 'take 201', 'take -1', 'take'):
+            with self.assertRaises(ValueError, msg=steps):lines.parse('jobs | ' + steps)
+
+
 class TheCallers(unittest.TestCase):
     """The line panel's steps and the Then menu write lines that run, and count by the same rule."""
 
@@ -429,6 +440,15 @@ class TheCallers(unittest.TestCase):
             return {'ok': True, 'result': {'object': {'origin': {'reviewed_rows': rows}}}}
         base = '@%s | pick origin.reviewed_rows' % address
         return line_steps, line_steps.Held(dispatch).read(base), base
+
+    def test_a_files_cells_reach_a_line_as_numbers_by_the_same_rule(self):
+        """0.8.4: a file's cells as Files gives them to a line (files_service.number): a number written as text, with up to
+        three thousands commas, is that number; a word, a date and a fourth comma stay the text they are."""
+        from workbench import files_service
+        for cell, value in ((' 1,234 ', 1234), ('12', 12), ('-0.5', -0.5), (7, 7), (2.5, 2.5), ('1,234,567,890', 1234567890)):
+            self.assertEqual((files_service.number(cell), type(files_service.number(cell)) in (int, float)), (value, True), cell)
+        for cell in ('Rail voltage', '2026-11-19', '1,2,3,4,5', 'nan', ''):
+            self.assertEqual(files_service.number(cell), cell, cell)
 
     def test_the_panel_counts_and_offers_by_the_evaluators_rule(self):
         line_steps, held, base = self.held([{'part': 'R1; R2', 'value': '12', 'kind': 'null', 'size': '0805'}, {'part': 'C1', 'value': '110', 'kind': 'x', 'size': '0805'},

@@ -157,6 +157,35 @@ class Continuing(unittest.TestCase):
         retry=self.get(w)['state']['retry_at']
         with patch('time.time',return_value=retry+1):self.assertEqual(self.run_step(w)['reason'],'BUDGET_STEPS')
 
+    def test_a_new_order_has_all_its_rounds_and_a_failed_read_waits_10_then_20_seconds(self):
+        """0.8.4: a fresh order's Agenda row has used none of its twenty rounds; a failed read is tried again after 10 s, then 20 s."""
+        step=self.steps()[0];step['retries']=2
+        w=self.create([step],{'failures':5})
+        rows=[r for value in self.call('agenda.view').values() if isinstance(value,list) for r in value
+              if isinstance(r,dict) and r.get('title')=='Clock preparation' and 'rounds_used' in r]
+        self.assertEqual([(r['rounds'],r['rounds_used']) for r in rows],[(20,0)])
+        self.authorize(w);clock=[time.time()];waits=[]
+        with patch.object(flow,'read_file',side_effect=OSError('READ_FIXTURE_FAILURE')),patch('time.time',side_effect=lambda:clock[0]):
+            for _ in range(2):
+                self.assertEqual(self.run_step(w)['state'],'RETRY')
+                retry=self.get(w)['state']['retry_at'];waits.append(round(retry-clock[0],3));clock[0]=retry+0.5
+        self.assertEqual(waits,[10,20])
+
+    def test_pausing_or_revoking_an_adaptive_investigation_cancels_its_job_in_flight(self):
+        """0.8.4: the job an adaptive investigation is waiting on stops when the owner pauses or revokes the order (its stored
+        order and step are written here as the adaptive controller leaves them; the job is a queued row, nothing runs)."""
+        from workbench import adaptive_contract
+        for op,args in (('work.pause',{}),('work.revoke',{'reason':'Stop the investigation'})):
+            w=self.create();self.authorize(w);job=os.urandom(16).hex()
+            self.kernel.save('jobs',dict(id=job,owner=self.p.identity,tool='kicad.drc',state='Queued',created=time.time(),request_spec={}))
+            with self.kernel.db() as db:
+                plan,state=flow.load(db,w['plan']['id'],self.p)
+                plan['profile']=adaptive_contract.PROFILE;state['current']={'job':job}
+                db.execute('UPDATE flow_orders SET plan=?,digest=?,payload=? WHERE id=?',
+                           (flow.records.canonical(plan),flow.records.digest(plan),flow.records.canonical(state),plan['id']))
+            self.call(op,{'id':w['plan']['id'],**args})
+            self.assertEqual(self.kernel.record('jobs',job)['state'],'Cancelled',op)
+
     def test_model_protocol_fixture_freezes_only_complete_current_exact_patches(self):
         from workbench import local_brain,brain_runtime
         base=hashlib.sha256(b'blue\n').hexdigest()

@@ -62,6 +62,12 @@ FOCUSED_MODULES=(
  'test_rail_demo','test_rail_demo_campaign',
  # 0.8.1: the model's memory rules, each against Graphite's own code with simulated readings
  'test_resource_rules',
+ # 0.8.4: the record paths the Kernel's views read and write: never hidden, linked or outside the folder (tools/planted_bugs)
+ 'test_record_paths',
+ # 0.8.4: the kind the viewer gives a file from its first bytes: a HEIC or AVIF picture is a picture (tools/planted_bugs)
+ 'test_viewer_kinds',
+ # 0.8.4: the planted-bug rerun itself (tools/planted_bugs, never shipped): a killed run's bug is put back, Ctrl-C stops at once
+ 'test_planted_bugs',
  # 0.8.2: desk acts: the registry, her hand's rule, the typed door, the playable scene
  'test_desk_acts','test_desk_scenes',
  # 0.8.3: DELETE, the typewriter faces, her hologram, her column and Apps

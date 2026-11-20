@@ -1,0 +1,3148 @@
+{
+ "about": "The planted bugs of the 14 November 2026 measure (seed 20261114; 156 sampled: 102 in 17 named files, 54 one per file elsewhere). Each is one minimal edit of one function: cmp, if, ret, num or call (plant.py). verdict_0_8_2 is what the 0.8.2 suite did with it: caught (a behaviour test failed), gap (no behaviour test failed; digest_only_0_8_2 marks those only the seed digest noticed), equivalent (no behaviour can tell it apart; left out of every rate), void (its run was spoiled by a full disk), not_run (the run was stopped first). group \"guarding\" is the code that protects the owner: the Kernel, record paths, her hand, the memory and resource rules, change sets, continuing work, the seed and release integrity. modules: the test modules to run, in order; a dotted name runs one class or one test; the first ones are where 0.8.4 put the test written for that bug. verdict_0_8_4: what the 0.8.4 suite did, with the seed made current before each run (run.py): caught, missed, or caught_on_stale_seed (packaging refused the planted tree; a test other than the seed-current one failed); absent: not rerun.",
+ "guarding_files": [
+  "tools/check_hatch.py",
+  "tools/check_release.py",
+  "workbench/change_sets.py",
+  "workbench/continuing_work.py",
+  "workbench/desk_acts.py",
+  "workbench/desk_doers.py",
+  "workbench/engineering_kernel.py",
+  "workbench/local_brain.py",
+  "workbench/memory_settings.py",
+  "workbench/model_settings.py",
+  "workbench/record_io.py",
+  "workbench/release_integrity.py",
+  "workbench/resource_control.py",
+  "workbench/stacy_foundation.py",
+  "workbench/stacy_hand.py"
+ ],
+ "bugs": [
+  {
+   "id": "M001",
+   "file": "sdk/cli/arc1cli/typed_pipeline.py",
+   "func": "apply",
+   "kind": "ret",
+   "old": "rows",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 273,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_context_menu",
+    "test_continuing_work",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M002",
+   "file": "sdk/cli/arc1cli/typed_pipeline.py",
+   "func": "parse",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 1,
+   "line_0_8_2": 53,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "boundary",
+   "digest_only_0_8_2": true,
+   "what": "the line's 'take N' refuses take 1 (lower bound 2); only the seed digest notices the edit (sdk/cli/arc1cli/typed_pipeline.py:53)",
+   "modules": [
+    "test_line_rules",
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M003",
+   "file": "sdk/cli/arc1cli/typed_pipeline.py",
+   "func": "apply",
+   "kind": "if",
+   "old": "len(rows)>limit",
+   "new": "not (len(rows)>limit)",
+   "nth": 0,
+   "line_0_8_2": 272,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_continuing_work",
+    "test_context_menu",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M004",
+   "file": "sdk/cli/arc1cli/typed_pipeline.py",
+   "func": "split",
+   "kind": "cmp",
+   "old": "==",
+   "new": "!=",
+   "nth": 0,
+   "line_0_8_2": 20,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_memory_settings",
+    "test_writing_line",
+    "test_project_desk",
+    "test_continuing_work",
+    "test_context_menu",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M005",
+   "file": "sdk/cli/arc1cli/typed_pipeline.py",
+   "func": "arithmetic",
+   "kind": "call",
+   "old": "ops.append(symbol)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 125,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "the line's add expression loses every operator (ops.append deleted), so NAME = a + b is not computed as a sum; no test evaluates an add expression with an operator (sdk/cli/arc1cli/typed_pipeline.py:125)",
+   "modules": [
+    "test_line_rules",
+    "test_project_desk"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M006",
+   "file": "sdk/cli/arc1cli/typed_pipeline.py",
+   "func": "arithmetic",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 0,
+   "line_0_8_2": 116,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "operator precedence in the line's add expression: '+' gets the precedence of * and /, so 'a + b * c' becomes (a + b) * c; only test_project_desk reaches arithmetic() and no test checks a mixed expression (sdk/cli/arc1cli/typed_pipeline.py:116)",
+   "modules": [
+    "test_line_rules",
+    "test_project_desk"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M007",
+   "file": "workbench/change_sets.py",
+   "func": "entry_state",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 0,
+   "line_0_8_2": 269,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "entry_state for a file two or more folders deep: rsplit('/', 2)[0] looks for the temporary file in the wrong folder (same result for one-folder paths), so a staged change in a nested folder reads as PENDING/CONFLICT wrongly; tests use shallow paths only (change_sets.py:269)",
+   "modules": [
+    "test_change_sets",
+    "test_continuing_work",
+    "test_deployment"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M008",
+   "file": "workbench/change_sets.py",
+   "func": "undo",
+   "kind": "if",
+   "old": "e in active or not e['after']",
+   "new": "not (e in active or not e['after'])",
+   "nth": 0,
+   "line_0_8_2": 444,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "undo after a partial apply: negated, the retained temporaries of the entries outside the active set are no longer checked and removed (and active entries are visited instead); test_change_sets never leaves a retained temporary for undo to clear (change_sets.py:444)",
+   "modules": [
+    "test_change_sets"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M009",
+   "file": "workbench/change_sets.py",
+   "func": "apply_proposal",
+   "kind": "ret",
+   "old": "read_commit(kernel, prior[0], principal)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 413,
+   "group": "guarding",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_change_sets",
+    "test_continuing_work",
+    "test_deployment"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M010",
+   "file": "workbench/change_sets.py",
+   "func": "staged_file",
+   "kind": "call",
+   "old": "os.fsync(fd)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 317,
+   "group": "guarding",
+   "verdict_0_8_2": "equivalent",
+   "modules": [
+    "test_change_sets",
+    "test_continuing_work",
+    "test_deployment"
+   ]
+  },
+  {
+   "id": "M011",
+   "file": "workbench/change_sets.py",
+   "func": "entry_state",
+   "kind": "cmp",
+   "old": " == ",
+   "new": " != ",
+   "nth": 4,
+   "line_0_8_2": 274,
+   "group": "guarding",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_change_sets"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M012",
+   "file": "workbench/change_sets.py",
+   "func": "propose",
+   "kind": "call",
+   "old": "changes.append({'path': target, 'before': None, 'after': before, 'before_mode': None, 'after_mode': mode, 'operation': 'RENAME_TO', 'rename_from': rel})",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 239,
+   "group": "guarding",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_change_sets"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M013",
+   "file": "workbench/context_menu.py",
+   "func": "start_entry.children",
+   "kind": "if",
+   "old": "e.key == 'start'",
+   "new": "not (e.key == 'start')",
+   "nth": 0,
+   "line_0_8_2": 1952,
+   "group": "other",
+   "verdict_0_8_2": "void",
+   "modules": [
+    "test_context_menu"
+   ]
+  },
+  {
+   "id": "M014",
+   "file": "workbench/context_menu.py",
+   "func": "ContextMenu.refit",
+   "kind": "call",
+   "old": "rect.setWidth(width)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 2267,
+   "group": "other",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M015",
+   "file": "workbench/context_menu.py",
+   "func": "field_entries",
+   "kind": "num",
+   "old": "0",
+   "new": "1",
+   "nth": 2,
+   "line_0_8_2": 1441,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "the Field's right-click row 'Compare with Rev %s' names the wrong item of the revision pair (other[1], the object, instead of its letter); no test reads that row's words (context_menu.py:1441)",
+   "modules": [
+    "test_desk_scenes",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M016",
+   "file": "workbench/context_menu.py",
+   "func": "Router.eventFilter",
+   "kind": "cmp",
+   "old": " != ",
+   "new": " == ",
+   "nth": 0,
+   "line_0_8_2": 2880,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts",
+    "test_system_menu"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M017",
+   "file": "workbench/context_menu.py",
+   "func": "Router.eventFilter",
+   "kind": "ret",
+   "old": "False",
+   "new": "not (False)",
+   "nth": 0,
+   "line_0_8_2": 2869,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M018",
+   "file": "workbench/context_menu.py",
+   "func": "queued_action",
+   "kind": "if",
+   "old": "not r.get('ok')",
+   "new": "not (not r.get('ok'))",
+   "nth": 0,
+   "line_0_8_2": 1040,
+   "group": "other",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_context_menu"
+   ]
+  },
+  {
+   "id": "M019",
+   "file": "workbench/continuing_work.py",
+   "func": "advance",
+   "kind": "num",
+   "old": "2",
+   "new": "3",
+   "nth": 0,
+   "line_0_8_2": 533,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "the retry back-off of a failed read step becomes 5*3^n instead of 5*2^n seconds (capped at 60); no test checks retry_at (continuing_work.py:533)",
+   "modules": [
+    "test_continuing_work"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M020",
+   "file": "workbench/continuing_work.py",
+   "func": "dispatch",
+   "kind": "cmp",
+   "old": " in ",
+   "new": " not in ",
+   "nth": 4,
+   "line_0_8_2": 724,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "pausing or revoking an adaptive investigation no longer stops its pending branches (stop_pending runs on every other operation instead); no test pauses/revokes a ledger.adaptive-investigation/1 plan and checks its branches (continuing_work.py:724)",
+   "modules": [
+    "test_continuing_work"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M021",
+   "file": "workbench/continuing_work.py",
+   "func": "dispatch",
+   "kind": "call",
+   "old": "state.update(state='READY',reason=None,epoch=gate['epoch'])",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 708,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_continuing_work",
+    "test_deployment"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M022",
+   "file": "workbench/continuing_work.py",
+   "func": "guard.inside",
+   "kind": "if",
+   "old": "state['state']!='RUNNING'",
+   "new": "not (state['state']!='RUNNING')",
+   "nth": 0,
+   "line_0_8_2": 254,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_continuing_work"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M023",
+   "file": "workbench/continuing_work.py",
+   "func": "procedure_save",
+   "kind": "ret",
+   "old": "value",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 650,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_continuing_work"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M024",
+   "file": "workbench/continuing_work.py",
+   "func": "create",
+   "kind": "num",
+   "old": "0",
+   "new": "1",
+   "nth": 9,
+   "line_0_8_2": 231,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "a new continuing-work order's agenda row starts with rounds_used=1 instead of 0 (one of its 20 rounds lost); no test reads the fresh row's rounds_used (continuing_work.py:231-232)",
+   "modules": [
+    "test_continuing_work",
+    "test_deployment"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M025",
+   "file": "workbench/desk_acts.py",
+   "func": "desk_hers",
+   "kind": "if",
+   "old": "why",
+   "new": "not (why)",
+   "nth": 0,
+   "line_0_8_2": 323,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M026",
+   "file": "workbench/desk_acts.py",
+   "func": "unknown",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 0,
+   "line_0_8_2": 230,
+   "group": "guarding",
+   "verdict_0_8_2": "equivalent",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M027",
+   "file": "workbench/desk_acts.py",
+   "func": "_acts",
+   "kind": "ret",
+   "old": "{act.name: act for act in rows}",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 173,
+   "group": "guarding",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_writing_line",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M028",
+   "file": "workbench/desk_acts.py",
+   "func": "plan_variants",
+   "kind": "call",
+   "old": "out.append({'type': 'object', 'properties': {'act': {'const': act.name}, **args['properties']}, 'required': ['act'] + args.get('required', []),\n                    'additionalProperties': False})",
+   "new": "(None\n)",
+   "nth": 0,
+   "line_0_8_2": 372,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "plan_variants returns an empty list (no act is offered as a plan choice); no test reads the plan choices built from the exported acts, though the docstring sets rules for them (keyed 'act', flat, within 9,000 bytes) (desk_acts.py:372)",
+   "modules": [
+    "test_desk_acts.PureRules",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M029",
+   "file": "workbench/desk_acts.py",
+   "func": "check",
+   "kind": "cmp",
+   "old": " == ",
+   "new": " != ",
+   "nth": 1,
+   "line_0_8_2": 274,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M030",
+   "file": "workbench/desk_acts.py",
+   "func": "_acts",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 3,
+   "line_0_8_2": 110,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_acts",
+    "test_writing_line",
+    "test_desk_scenes"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M031",
+   "file": "workbench/desk_doers.py",
+   "func": "changing_row",
+   "kind": "cmp",
+   "old": " in ",
+   "new": " not in ",
+   "nth": 0,
+   "line_0_8_2": 432,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M032",
+   "file": "workbench/desk_doers.py",
+   "func": "surface",
+   "kind": "ret",
+   "old": "'home'",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 180,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "surface() returns None instead of 'home' while Home is in front; no test asserts that the desk reads 'home' (desk_doers.py:180; desk_acts and desk_scenes reach the line)",
+   "modules": [
+    "test_desk_acts.LiveActs.test_read_desk_reads_the_centre",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M033",
+   "file": "workbench/desk_doers.py",
+   "func": "by_search",
+   "kind": "call",
+   "old": "key(c, box, Q.Qt.Key_Return)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 381,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_scenes"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M034",
+   "file": "workbench/desk_doers.py",
+   "func": "point_sheet",
+   "kind": "if",
+   "old": "by == 'keys'",
+   "new": "not (by == 'keys')",
+   "nth": 0,
+   "line_0_8_2": 829,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "point_sheet's route is unguarded: with the condition negated, by='keys' selects the sheet directly and the direct route presses keys; both end with the same selection, and no test checks that a sheet chosen 'by keys' was reached by key presses (or 'direct' without them) (desk_doers.py:829)",
+   "modules": [
+    "test_desk_acts.LiveActs.test_a_sheet_is_reached_by_key_presses_only_when_asked_by_keys",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M035",
+   "file": "workbench/desk_doers.py",
+   "func": "outside",
+   "kind": "num",
+   "old": "6",
+   "new": "7",
+   "nth": 2,
+   "line_0_8_2": 1020,
+   "group": "guarding",
+   "verdict_0_8_2": "equivalent",
+   "modules": [
+    "test_desk_scenes",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M036",
+   "file": "workbench/desk_doers.py",
+   "func": "here_point",
+   "kind": "num",
+   "old": "0.5",
+   "new": "1.5",
+   "nth": 3,
+   "line_0_8_2": 972,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "here_point's fallback empty place in the Files view: the second probe point moves outside the viewport (x = 1.5 x width) and is used when the first probe hits an item; no test fills the lower-right corner so the fallback is never checked (desk_doers.py:972)",
+   "modules": [
+    "test_desk_acts.LiveActs.test_the_empty_place_she_points_at_in_files_is_on_the_screen_when_the_list_is_full",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M037",
+   "file": "workbench/engineering_kernel.py",
+   "func": "Kernel._dispatch",
+   "kind": "cmp",
+   "old": " in ",
+   "new": " not in ",
+   "nth": 44,
+   "line_0_8_2": 595,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_continue_setting",
+    "test_browse",
+    "test_frame",
+    "test_cabinet_actions",
+    "test_machine",
+    "test_return_thread",
+    "test_related",
+    "test_documents",
+    "test_memory_cabinet",
+    "test_service_lifecycle",
+    "test_algorithm_atlas",
+    "test_model_settings",
+    "test_cabinet",
+    "test_hardware_settings",
+    "test_paper",
+    "test_operations",
+    "test_memory_settings",
+    "test_settings_advanced",
+    "test_conditions",
+    "test_settings_registry",
+    "test_presentation_settings",
+    "test_resource_rules",
+    "test_profile_files",
+    "test_tool_atlas",
+    "test_explore",
+    "test_project_desk",
+    "test_network_watch",
+    "test_change_sets",
+    "test_discovery",
+    "test_model_turn",
+    "test_launcher",
+    "test_agent_loop",
+    "test_continuing_work",
+    "test_slate_reasoning",
+    "test_system_menu",
+    "test_context_menu",
+    "test_desk_acts",
+    "test_desk_scenes"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M038",
+   "file": "workbench/engineering_kernel.py",
+   "func": "Kernel._dispatch",
+   "kind": "call",
+   "old": "db.execute(\"BEGIN IMMEDIATE\")",
+   "new": "None",
+   "nth": 2,
+   "line_0_8_2": 825,
+   "group": "guarding",
+   "verdict_0_8_2": "equivalent",
+   "modules": [
+    "test_resource_rules",
+    "test_network_watch",
+    "test_context_menu"
+   ]
+  },
+  {
+   "id": "M039",
+   "file": "workbench/engineering_kernel.py",
+   "func": "Kernel._dispatch",
+   "kind": "ret",
+   "old": "helpers.dispatch(self,op,a,p)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 622,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_conditions",
+    "test_browse",
+    "test_related",
+    "test_service_lifecycle",
+    "test_model_settings",
+    "test_resource_rules",
+    "test_profile_files",
+    "test_network_watch",
+    "test_agent_loop",
+    "test_slate_reasoning",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M040",
+   "file": "workbench/engineering_kernel.py",
+   "func": "Kernel.submit",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 0,
+   "line_0_8_2": 1241,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "boundary",
+   "what": "the idempotency key's lower bound moves from 1 to 2 characters (a one-character request key is refused); no test submits a one-character key (engineering_kernel.py:1241)",
+   "modules": [
+    "test_model_settings",
+    "test_resource_rules",
+    "test_network_watch",
+    "test_change_sets",
+    "test_slate_reasoning"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M041",
+   "file": "workbench/engineering_kernel.py",
+   "func": "Kernel._dispatch",
+   "kind": "if",
+   "old": "op == \"candidates.diff\"",
+   "new": "not (op == \"candidates.diff\")",
+   "nth": 0,
+   "line_0_8_2": 786,
+   "group": "guarding",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_service_lifecycle",
+    "test_model_settings",
+    "test_resource_rules",
+    "test_network_watch",
+    "test_slate_reasoning",
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M042",
+   "file": "workbench/engineering_kernel.py",
+   "func": "Kernel.save.write",
+   "kind": "call",
+   "old": "activity.append(conn,event)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 463,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_model_settings",
+    "test_change_sets",
+    "test_service_lifecycle",
+    "test_operations",
+    "test_resource_rules",
+    "test_network_watch",
+    "test_slate_reasoning",
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M043",
+   "file": "workbench/field_page.py",
+   "func": "FieldPage.__init__",
+   "kind": "call",
+   "old": "self.view.face_chosen.connect(self.show_face)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 57,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "the Field view's face_chosen signal is no longer connected, so choosing a face on the Field itself changes nothing; the desk tests reach the line but change faces another way and never through that signal (field_page.py:57)",
+   "modules": [
+    "test_desk_scenes",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M044",
+   "file": "workbench/field_page.py",
+   "func": "revision_sibling",
+   "kind": "if",
+   "old": "theirs and theirs['stem'].strip().casefold() == mine['stem'].strip().casefold() and theirs['rev'].casefold() != mine['rev'].casefold()",
+   "new": "not (theirs and theirs['stem'].strip().casefold() == mine['stem'].strip().casefold() and theirs['rev'].casefold() != mine['rev'].casefold())",
+   "nth": 0,
+   "line_0_8_2": 703,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_faces_find_light",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M045",
+   "file": "workbench/field_page.py",
+   "func": "reviewed_rows",
+   "kind": "ret",
+   "old": "[]",
+   "new": "None",
+   "nth": 1,
+   "line_0_8_2": 715,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "reviewed_rows returns None instead of [] when office.get is refused, which its callers would iterate; no test opens a Field sheet whose office record cannot be read (field_page.py:715)",
+   "modules": [
+    "test_desk_scenes",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M046",
+   "file": "workbench/field_page.py",
+   "func": "open_object",
+   "kind": "cmp",
+   "old": " is not ",
+   "new": " is ",
+   "nth": 0,
+   "line_0_8_2": 684,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "opening an object from the Field no longer leaves the Field (leave_field is called only when nothing opened); no test checks what the centre shows after an open from the Field (field_page.py:684)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M047",
+   "file": "workbench/field_page.py",
+   "func": "do",
+   "kind": "num",
+   "old": "6000",
+   "new": "6001",
+   "nth": 0,
+   "line_0_8_2": 282,
+   "group": "other",
+   "verdict_0_8_2": "equivalent",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M048",
+   "file": "workbench/field_page.py",
+   "func": "compare_rows",
+   "kind": "cmp",
+   "old": " not in ",
+   "new": " in ",
+   "nth": 0,
+   "line_0_8_2": 739,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_faces_find_light",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M049",
+   "file": "workbench/field_ripple.py",
+   "func": "cells_named",
+   "kind": "ret",
+   "old": "sheet, names",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 81,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M050",
+   "file": "workbench/field_ripple.py",
+   "func": "cells_named",
+   "kind": "cmp",
+   "old": " != ",
+   "new": " == ",
+   "nth": 0,
+   "line_0_8_2": 75,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M051",
+   "file": "workbench/field_ripple.py",
+   "func": "cells_named",
+   "kind": "if",
+   "old": "obj.kind == 'calculation'",
+   "new": "not (obj.kind == 'calculation')",
+   "nth": 0,
+   "line_0_8_2": 65,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "cells_named on a calculation: negated, a calculation's input symbols are never collected and a sheet is read through documents.get; no test checks the names a calculation answers to (field_ripple.py:65; only test_desk_acts runs it, and only a crash on line 74 is caught)",
+   "modules": [
+    "test_rail_demo",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M052",
+   "file": "workbench/field_ripple.py",
+   "func": "cells_named",
+   "kind": "num",
+   "old": "0",
+   "new": "1",
+   "nth": 0,
+   "line_0_8_2": 74,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M053",
+   "file": "workbench/field_ripple.py",
+   "func": "cells_named",
+   "kind": "if",
+   "old": "obj.kind == 'sheet'",
+   "new": "not (obj.kind == 'sheet')",
+   "nth": 0,
+   "line_0_8_2": 71,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "cells_named on a sheet: negated, a Field sheet yields no cell names (and a non-sheet object is read as a sheet); no test checks the names field_ripple collects from a sheet (field_ripple.py:71; only test_desk_acts runs it)",
+   "modules": [
+    "test_rail_demo",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M054",
+   "file": "workbench/field_ripple.py",
+   "func": "_read",
+   "kind": "ret",
+   "old": "answer['result'] if answer.get('ok') else None",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 39,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "field_ripple._read always answers None, so no record is ever read for a ripple; with M051/M053 this shows that nothing asserts what field_ripple computes, only that it does not crash (field_ripple.py:39)",
+   "modules": [
+    "test_rail_demo",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M055",
+   "file": "workbench/files_service.py",
+   "func": "dispatch",
+   "kind": "call",
+   "old": "may_change(kernel, path, principal)",
+   "new": "None",
+   "nth": 2,
+   "line_0_8_2": 505,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_change_sets",
+    "test_desk_acts",
+    "test_desk_scenes"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M056",
+   "file": "workbench/files_service.py",
+   "func": "entry",
+   "kind": "ret",
+   "old": "value",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 138,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_exact_math",
+    "test_problem",
+    "test_profile_files",
+    "test_project_desk",
+    "test_change_sets",
+    "test_discovery",
+    "test_continuing_work",
+    "test_deployment",
+    "test_slate_reasoning",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M057",
+   "file": "workbench/files_service.py",
+   "func": "number",
+   "kind": "if",
+   "old": "isinstance(text, (int, float))",
+   "new": "not (isinstance(text, (int, float)))",
+   "nth": 0,
+   "line_0_8_2": 259,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "number(): negated, a numeric cell is passed through only when it is NOT a number, so text cells such as '1,234' or '12' are no longer read as numbers (and bools become text); six modules reach it but none asserts a text cell read as a number (files_service.py:259)",
+   "modules": [
+    "test_line_rules",
+    "test_profile_files",
+    "test_project_desk",
+    "test_slate_reasoning",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M058",
+   "file": "workbench/files_service.py",
+   "func": "text_diff",
+   "kind": "cmp",
+   "old": " == ",
+   "new": " != ",
+   "nth": 2,
+   "line_0_8_2": 332,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M059",
+   "file": "workbench/files_service.py",
+   "func": "text_diff",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 3,
+   "line_0_8_2": 331,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "the file diff numbers every added line one too high ('after': j + 2); test_context_menu shows a diff but never checks an added line's number (files_service.py:331)",
+   "modules": [
+    "test_context_menu.CompareText",
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M060",
+   "file": "workbench/files_service.py",
+   "func": "number",
+   "kind": "ret",
+   "old": "text",
+   "new": "None",
+   "nth": 1,
+   "line_0_8_2": 265,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_line_rules",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts",
+    "test_profile_files",
+    "test_project_desk",
+    "test_slate_reasoning"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M061",
+   "file": "workbench/line_steps.py",
+   "func": "values",
+   "kind": "call",
+   "old": "out.append(Offer(step, words, 'filter', step, count, True, ''))",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 206,
+   "group": "other",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M062",
+   "file": "workbench/line_steps.py",
+   "func": "steps_left",
+   "kind": "ret",
+   "old": "max(0, MOST_STAGES - len(stages(line)))",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 58,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M063",
+   "file": "workbench/line_steps.py",
+   "func": "preview_columns.long",
+   "kind": "num",
+   "old": "24",
+   "new": "25",
+   "nth": 0,
+   "line_0_8_2": 242,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "boundary",
+   "what": "the line preview's 'long column' threshold moves from 24 to 25 characters on average; no test offers a column at the threshold (line_steps.py:242)",
+   "modules": [
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "missed"
+  },
+  {
+   "id": "M064",
+   "file": "workbench/line_steps.py",
+   "func": "firsts",
+   "kind": "if",
+   "old": "count is not None and count > LIMIT",
+   "new": "not (count is not None and count > LIMIT)",
+   "nth": 0,
+   "line_0_8_2": 72,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M065",
+   "file": "workbench/line_steps.py",
+   "func": "ending_ready",
+   "kind": "cmp",
+   "old": " > ",
+   "new": " >= ",
+   "nth": 0,
+   "line_0_8_2": 64,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_context_menu",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M066",
+   "file": "workbench/line_steps.py",
+   "func": "Held.readings",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 0,
+   "line_0_8_2": 142,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "boundary",
+   "what": "the line's held readings are offered only from three entries instead of two (len(out) > 2); no test holds exactly two readings (line_steps.py:142)",
+   "modules": [
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M067",
+   "file": "workbench/local_brain.py",
+   "func": "status",
+   "kind": "if",
+   "old": "worker and not live and resource_stop is None and worker.get('key_file')",
+   "new": "not (worker and not live and resource_stop is None and worker.get('key_file'))",
+   "nth": 0,
+   "line_0_8_2": 120,
+   "group": "guarding",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_frame",
+    "test_service_lifecycle",
+    "test_operations",
+    "test_resource_rules",
+    "test_launcher",
+    "test_agent_loop",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M068",
+   "file": "workbench/local_brain.py",
+   "func": "dispatch",
+   "kind": "ret",
+   "old": "result(kernel,args['id'],principal)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 1064,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_slate_reasoning"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M069",
+   "file": "workbench/local_brain.py",
+   "func": "dispatch",
+   "kind": "cmp",
+   "old": "==",
+   "new": "!=",
+   "nth": 7,
+   "line_0_8_2": 1036,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_model_settings",
+    "test_resource_rules",
+    "test_slate_reasoning",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M070",
+   "file": "workbench/local_brain.py",
+   "func": "configuration",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 1,
+   "line_0_8_2": 260,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "boundary",
+   "what": "GPU layers accept -2 as well as -1..512; no test offers an out-of-range layer count (local_brain.py:260)",
+   "modules": [
+    "test_resource_rules",
+    "test_model_settings"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M071",
+   "file": "workbench/local_brain.py",
+   "func": "_start_server",
+   "kind": "call",
+   "old": "process.kill()",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 463,
+   "group": "guarding",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_resource_rules"
+   ],
+   "verdict_0_8_4": "missed"
+  },
+  {
+   "id": "M072",
+   "file": "workbench/local_brain.py",
+   "func": "dispatch",
+   "kind": "if",
+   "old": "op=='brain.ask'",
+   "new": "not (op=='brain.ask')",
+   "nth": 0,
+   "line_0_8_2": 1055,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_slate_reasoning"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M073",
+   "file": "workbench/model_settings.py",
+   "func": "snapshot",
+   "kind": "ret",
+   "old": "value",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 130,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_model_settings",
+    "test_continue_setting",
+    "test_service_lifecycle",
+    "test_hardware_settings",
+    "test_paper",
+    "test_memory_settings",
+    "test_settings_advanced",
+    "test_settings_registry",
+    "test_presentation_settings",
+    "test_agent_loop",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M074",
+   "file": "workbench/model_settings.py",
+   "func": "config",
+   "kind": "if",
+   "old": "backend not in ('AUTO','CPU','VULKAN') or requested not in ('AUTO','CPU','VULKAN')",
+   "new": "not (backend not in ('AUTO','CPU','VULKAN') or requested not in ('AUTO','CPU','VULKAN'))",
+   "nth": 0,
+   "line_0_8_2": 72,
+   "group": "guarding",
+   "verdict_0_8_2": "void",
+   "modules": [
+    "test_model_settings",
+    "test_resource_rules"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M075",
+   "file": "workbench/model_settings.py",
+   "func": "snapshot",
+   "kind": "cmp",
+   "old": ">",
+   "new": ">=",
+   "nth": 0,
+   "line_0_8_2": 103,
+   "group": "guarding",
+   "verdict_0_8_2": "void",
+   "modules": [
+    "test_model_settings",
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "missed"
+  },
+  {
+   "id": "M076",
+   "file": "workbench/model_settings.py",
+   "func": "rows",
+   "kind": "num",
+   "old": "100",
+   "new": "101",
+   "nth": 0,
+   "line_0_8_2": 143,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "low",
+   "digest_only_0_8_2": true,
+   "what": "model settings report history_limit 101; nothing in the tree reads the field, and only the seed digest notices the edit (model_settings.py:143-145)",
+   "modules": [
+    "test_model_settings",
+    "test_continue_setting",
+    "test_service_lifecycle",
+    "test_hardware_settings",
+    "test_paper",
+    "test_memory_settings",
+    "test_settings_advanced",
+    "test_settings_registry",
+    "test_presentation_settings",
+    "test_agent_loop",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M077",
+   "file": "workbench/model_settings.py",
+   "func": "preferences",
+   "kind": "call",
+   "old": "validate(key,value)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 23,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_model_settings",
+    "test_continue_setting",
+    "test_service_lifecycle",
+    "test_hardware_settings",
+    "test_paper",
+    "test_memory_settings",
+    "test_settings_advanced",
+    "test_settings_registry",
+    "test_presentation_settings",
+    "test_resource_rules",
+    "test_agent_loop",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M078",
+   "file": "workbench/model_settings.py",
+   "func": "config",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 0,
+   "line_0_8_2": 66,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "boundary",
+   "what": "model settings accept threads from 2 instead of 1 (a saved one-thread setting would be refused); no test saves threads=1 (model_settings.py:66)",
+   "modules": [
+    "test_model_settings",
+    "test_resource_rules"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M079",
+   "file": "workbench/release_integrity.py",
+   "func": "verify",
+   "kind": "num",
+   "old": "4",
+   "new": "5",
+   "nth": 0,
+   "line_0_8_2": 28,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "low",
+   "what": "the 4 MiB cap on MANIFEST.json becomes 5 MiB; no test offers an oversized manifest (release_integrity.py:28)",
+   "modules": [
+    "test_release_check",
+    "test_workspace_backup"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M080",
+   "file": "workbench/release_integrity.py",
+   "func": "verify",
+   "kind": "call",
+   "old": "problems.append(name + ': changed')",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 42,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_release_check"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M081",
+   "file": "workbench/release_integrity.py",
+   "func": "verify",
+   "kind": "cmp",
+   "old": " != ",
+   "new": " == ",
+   "nth": 1,
+   "line_0_8_2": 41,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_release_check",
+    "test_workspace_backup"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M082",
+   "file": "workbench/release_integrity.py",
+   "func": "verify",
+   "kind": "ret",
+   "old": "{'state': 'VERIFIED' if not problems else 'DAMAGED', 'files': len(files),\n            'version': record.get('version'), 'problems': problems,\n            'meaning': 'Payload matches the local manifest; this does not authenticate its publisher.'}",
+   "new": "(None\n\n)",
+   "nth": 0,
+   "line_0_8_2": 43,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_workspace_backup",
+    "test_release_check"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M083",
+   "file": "workbench/release_integrity.py",
+   "func": "relative",
+   "kind": "if",
+   "old": "not isinstance(name, str) or not name or any(x in name for x in ('\\\\', '\\x00', ':'))",
+   "new": "not (not isinstance(name, str) or not name or any(x in name for x in ('\\\\', '\\x00', ':')))",
+   "nth": 0,
+   "line_0_8_2": 17,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_workspace_backup",
+    "test_release_check",
+    "test_deployment"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M084",
+   "file": "workbench/release_integrity.py",
+   "func": "verify",
+   "kind": "if",
+   "old": "any(p.is_symlink() for p in (path, *path.parents))",
+   "new": "not (any(p.is_symlink() for p in (path, *path.parents)))",
+   "nth": 0,
+   "line_0_8_2": 37,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_release_check",
+    "test_workspace_backup"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M085",
+   "file": "workbench/resource_control.py",
+   "func": "_view",
+   "kind": "num",
+   "old": "0",
+   "new": "1",
+   "nth": 2,
+   "line_0_8_2": 172,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "boundary",
+   "what": "each resident-model commitment adds at least one byte to the reserved future (max(1, ...)); no test checks reserved_future_bytes exactly when budgets are fully used (resource_control.py:172)",
+   "modules": [
+    "test_resource_rules",
+    "test_model_settings",
+    "test_network_watch",
+    "test_agent_loop"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M086",
+   "file": "workbench/resource_control.py",
+   "func": "reserve_setting",
+   "kind": "ret",
+   "old": "reserve_setting(kernel,connection)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 62,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "reserve_setting(kernel) without a connection returns None, so starting a model (local_brain.py:509, brain_qt.py:82, worker_boundary.py:408) silently uses the default foreground reserve instead of the owner's; tests keep the default reserve, so the owner's value is never checked on that path (resource_control.py:62)",
+   "modules": [
+    "test_resource_rules",
+    "test_model_settings",
+    "test_continuing_work"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M087",
+   "file": "workbench/resource_control.py",
+   "func": "claim",
+   "kind": "call",
+   "old": "kernel.save('jobs',job,db)",
+   "new": "None",
+   "nth": 3,
+   "line_0_8_2": 281,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_resource_rules"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M088",
+   "file": "workbench/resource_control.py",
+   "func": "decision",
+   "kind": "cmp",
+   "old": "==",
+   "new": "!=",
+   "nth": 5,
+   "line_0_8_2": 187,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "the one-coordinator rule: with == flipped, a control job no longer waits for another control job, and inference/compute work waits while any control job runs; no test runs two control jobs or control beside other lanes (resource_control.py:187)",
+   "modules": [
+    "test_resource_rules",
+    "test_network_watch"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M089",
+   "file": "workbench/resource_control.py",
+   "func": "_view",
+   "kind": "if",
+   "old": "worker.get('job_id') in loading or worker.get('job_id')==exclude",
+   "new": "not (worker.get('job_id') in loading or worker.get('job_id')==exclude)",
+   "nth": 0,
+   "line_0_8_2": 167,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "memory view: negated, a live resident model worker's reservation is dropped from the commitments (and a loading or excluded one is counted); test_resource_rules reaches the line with a live worker but never asserts the resident model's row or the 'future' total (resource_control.py:167)",
+   "modules": [
+    "test_resource_rules"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M090",
+   "file": "workbench/resource_control.py",
+   "func": "decision",
+   "kind": "num",
+   "old": "0",
+   "new": "1",
+   "nth": 0,
+   "line_0_8_2": 192,
+   "group": "guarding",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_resource_rules",
+    "test_network_watch"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M091",
+   "file": "workbench/stacy_foundation.py",
+   "func": "prerequisites",
+   "kind": "num",
+   "old": "32_000_000",
+   "new": "32000001",
+   "nth": 0,
+   "line_0_8_2": 256,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "boundary",
+   "digest_only_0_8_2": true,
+   "what": "the 32,000,000-byte bound on a project prerequisite becomes 32,000,001; only the seed digest notices (stacy_foundation.py:256); re-run beside an unmutated control: the mutant fails test_every_navigation_changes_nothing again with 'offers no rows to keep', the control passes (recheck.json)",
+   "modules": [
+    "test_project_desk",
+    "test_tool_atlas",
+    "test_explore",
+    "test_launcher",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M092",
+   "file": "workbench/stacy_foundation.py",
+   "func": "handler_map",
+   "kind": "cmp",
+   "old": " in ",
+   "new": " not in ",
+   "nth": 0,
+   "line_0_8_2": 307,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_release_check",
+    "test_release_check",
+    "test_machine",
+    "test_tool_atlas",
+    "test_explore",
+    "test_network_watch",
+    "test_launcher",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M093",
+   "file": "workbench/stacy_foundation.py",
+   "func": "project_file",
+   "kind": "if",
+   "old": "not isinstance(name, str) or '\\\\' in name or ':' in name",
+   "new": "not (not isinstance(name, str) or '\\\\' in name or ':' in name)",
+   "nth": 0,
+   "line_0_8_2": 225,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_project_desk",
+    "test_release_check",
+    "test_cabinet_actions",
+    "test_algorithm_atlas",
+    "test_cabinet",
+    "test_explore",
+    "test_project_desk",
+    "test_change_sets",
+    "test_discovery",
+    "test_launcher",
+    "test_continuing_work",
+    "test_slate_reasoning",
+    "test_desk_acts",
+    "test_machine",
+    "test_workspace_backup",
+    "test_tool_atlas",
+    "test_desk_scenes",
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "caught_on_stale_seed"
+  },
+  {
+   "id": "M094",
+   "file": "workbench/stacy_foundation.py",
+   "func": "handler_map",
+   "kind": "ret",
+   "old": "handlers",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 310,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_project_desk",
+    "test_release_check",
+    "test_machine",
+    "test_tool_atlas",
+    "test_explore",
+    "test_network_watch",
+    "test_launcher",
+    "test_release_check",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M095",
+   "file": "workbench/stacy_foundation.py",
+   "func": "handler_map",
+   "kind": "call",
+   "old": "handlers.setdefault(literal.value, {'path': 'workbench/engineering_kernel.py',\n                                                                 'symbol': 'Kernel._dispatch', 'basis': 'LITERAL_DISPATCH_CASE'})",
+   "new": "(None\n)",
+   "nth": 0,
+   "line_0_8_2": 308,
+   "group": "guarding",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_release_check",
+    "test_machine",
+    "test_tool_atlas",
+    "test_explore",
+    "test_network_watch",
+    "test_launcher",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M096",
+   "file": "workbench/stacy_foundation.py",
+   "func": "carried",
+   "kind": "ret",
+   "old": "name.endswith(('.md', '.txt')) and (name.startswith('docs/') or name == 'AGENTS.md')",
+   "new": "not (name.endswith(('.md', '.txt')) and (name.startswith('docs/') or name == 'AGENTS.md'))",
+   "nth": 0,
+   "line_0_8_2": 359,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "carried(): negated, program files count as notes a verified seed may leave out and docs do not, so staC would run on a seed missing .py files; only the seed digest notices (stacy_foundation.py:359)",
+   "modules": [
+    "test_project_desk",
+    "test_workspace_backup",
+    "test_change_sets",
+    "test_continuing_work",
+    "test_release_check",
+    "test_slate_reasoning",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught_on_stale_seed"
+  },
+  {
+   "id": "M097",
+   "file": "workbench/stacy_hand.py",
+   "func": "made",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 3,
+   "line_0_8_2": 185,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "Stacy's 'make a file ... containing \"words\"': with words[:2], quotes around the contents are no longer stripped, so the file gets the quote marks; no test makes a file with quoted contents (stacy_hand.py:185)",
+   "modules": [
+    "test_stacy_hand"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M098",
+   "file": "workbench/stacy_hand.py",
+   "func": "undo_allowed",
+   "kind": "ret",
+   "old": "False",
+   "new": "not (False)",
+   "nth": 2,
+   "line_0_8_2": 227,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_stacy_hand",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M099",
+   "file": "workbench/stacy_hand.py",
+   "func": "undo_allowed",
+   "kind": "if",
+   "old": "name == 'field.set'",
+   "new": "not (name == 'field.set')",
+   "nth": 0,
+   "line_0_8_2": 228,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_stacy_hand",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M100",
+   "file": "workbench/stacy_hand.py",
+   "func": "hers",
+   "kind": "cmp",
+   "old": " in ",
+   "new": " not in ",
+   "nth": 1,
+   "line_0_8_2": 158,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_stacy_hand",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M101",
+   "file": "workbench/stacy_hand.py",
+   "func": "record",
+   "kind": "call",
+   "old": "trail.append(entry)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 248,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_stacy_hand",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M102",
+   "file": "workbench/stacy_hand.py",
+   "func": "undo_allowed",
+   "kind": "if",
+   "old": "not line.startswith('/')",
+   "new": "not (not line.startswith('/'))",
+   "nth": 0,
+   "line_0_8_2": 223,
+   "group": "guarding",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_stacy_hand",
+    "test_desk_scenes",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M103",
+   "file": "workbench/problem_checks.py",
+   "func": "invoke",
+   "kind": "if",
+   "old": "not result['ok']",
+   "new": "not (not result['ok'])",
+   "nth": 0,
+   "line_0_8_2": 21,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_exact_math",
+    "test_problem"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M104",
+   "file": "workbench/typebar_qt.py",
+   "func": "TypeBar.typed",
+   "kind": "call",
+   "old": "self.mode_hint()",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 383,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "typing to the slate no longer refreshes the mode hint (self.mode_hint deleted); only the seed digest notices (typebar_qt.py:383)",
+   "modules": [
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M105",
+   "file": "workbench/network_watch.py",
+   "func": "parse_filter.host",
+   "kind": "if",
+   "old": "'%' in value and _host(value.split('%', 1)[0])[0] is not None",
+   "new": "not ('%' in value and _host(value.split('%', 1)[0])[0] is not None)",
+   "nth": 0,
+   "line_0_8_2": 430,
+   "group": "other",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_writing_line",
+    "test_network_watch",
+    "test_context_menu"
+   ]
+  },
+  {
+   "id": "M106",
+   "file": "workbench/stacy_start.py",
+   "func": "_answer",
+   "kind": "call",
+   "old": "os.killpg(process.pid, signal.SIGKILL)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 70,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_stacy_start"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M107",
+   "file": "workbench/pane_qt.py",
+   "func": "draw_branches",
+   "kind": "if",
+   "old": "has",
+   "new": "not (has)",
+   "nth": 0,
+   "line_0_8_2": 359,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "low",
+   "what": "the tree's chevron and down-trace are painted for rows without children instead of rows with them; no test inspects the painted branches (pane_qt.py:359)",
+   "modules": [
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M108",
+   "file": "workbench/boss_theme.py",
+   "func": "line_sheet",
+   "kind": "ret",
+   "old": "'color:%s' % TEAL_TEXT",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 78,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_kasandra",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M109",
+   "file": "workbench/release_updates.py",
+   "func": "verify_bundle",
+   "kind": "cmp",
+   "old": "!=",
+   "new": "==",
+   "nth": 6,
+   "line_0_8_2": 185,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_deployment"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M110",
+   "file": "workbench/field_model.py",
+   "func": "Field.place",
+   "kind": "num",
+   "old": "2",
+   "new": "3",
+   "nth": 1,
+   "line_0_8_2": 314,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "low",
+   "what": "the Field's narrow layout takes three margins instead of two, so sheets come out slightly narrower in a narrow window; no test measures the narrow-layout sheet width (field_model.py:314)",
+   "modules": [
+    "test_faces_find_light",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M111",
+   "file": "workbench/view_modules/images_plus.py",
+   "func": "claim",
+   "kind": "num",
+   "old": "4",
+   "new": "5",
+   "nth": 0,
+   "line_0_8_2": 21,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "HEIF/AVIF detection: head[5:8] can never equal b'ftyp', so .heic/.avif files are no longer claimed as images; 12 modules run claim() on ordinary files but none on a HEIF header (view_modules/images_plus.py:21)",
+   "modules": [
+    "test_viewer_kinds",
+    "test_exact_math",
+    "test_problem",
+    "test_profile_files",
+    "test_project_desk",
+    "test_change_sets",
+    "test_discovery",
+    "test_continuing_work",
+    "test_deployment",
+    "test_slate_reasoning",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M112",
+   "file": "workbench/catalog_settings.py",
+   "func": "read",
+   "kind": "ret",
+   "old": "view_preference(db)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 21,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_presentation_settings",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M113",
+   "file": "workbench/glyph_set.py",
+   "func": "trash",
+   "kind": "call",
+   "old": "line(p, (7.5, 4.5), (7.5, 2.5), (12.5, 2.5), (12.5, 4.5))",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 399,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "low",
+   "what": "the Trash glyph loses its lid outline; the glyph tests check that every named glyph is drawn, not its strokes (glyph_set.py:399)",
+   "modules": [
+    "test_faces_find_light",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M114",
+   "file": "workbench/change_sets_qt.py",
+   "func": "ChangesTab.reload",
+   "kind": "cmp",
+   "old": " is ",
+   "new": " is not ",
+   "nth": 0,
+   "line_0_8_2": 208,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "missed"
+  },
+  {
+   "id": "M115",
+   "file": "workbench/trash_can_qt.py",
+   "func": "TrashCan.paintEvent",
+   "kind": "cmp",
+   "old": " is not ",
+   "new": " is ",
+   "nth": 0,
+   "line_0_8_2": 121,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "low",
+   "what": "the Trash can no longer paints its item count; no test inspects the painted can (trash_can_qt.py:121)",
+   "modules": [
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M116",
+   "file": "workbench/service_lifecycle.py",
+   "func": "start",
+   "kind": "if",
+   "old": "receipt",
+   "new": "not (receipt)",
+   "nth": 0,
+   "line_0_8_2": 168,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_service_lifecycle"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M117",
+   "file": "workbench/cabinet.py",
+   "func": "snapshot",
+   "kind": "call",
+   "old": "add(ident,parent,'investigation',record['question'],'investigations',dict(kind='investigation',id=record['id']),\n            canonical=ident,owning=True,state=record['state'],canonical_home=unassigned,\n            description='Existing investigation, kept alongside saved inquiries without merging their records.')",
+   "new": "(None\n\n)",
+   "nth": 0,
+   "line_0_8_2": 185,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_cabinet"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M118",
+   "file": "workbench/session.py",
+   "func": "Session.load",
+   "kind": "if",
+   "old": "lay.get('version') == LAYOUT_VERSION and _b64_ok(lay.get('dock_state'), 32768)",
+   "new": "not (lay.get('version') == LAYOUT_VERSION and _b64_ok(lay.get('dock_state'), 32768))",
+   "nth": 0,
+   "line_0_8_2": 262,
+   "group": "other",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_stacy_hand",
+    "test_faces_find_light",
+    "test_continue_setting",
+    "test_frame",
+    "test_kasandra",
+    "test_service_lifecycle",
+    "test_model_settings",
+    "test_cabinet",
+    "test_hardware_settings",
+    "test_paper",
+    "test_memory_settings",
+    "test_settings_advanced",
+    "test_settings_registry",
+    "test_presentation_settings",
+    "test_writing_line",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M119",
+   "file": "workbench/tool_selection.py",
+   "func": "relevant",
+   "kind": "if",
+   "old": "not (by_name or by_family or on_program)",
+   "new": "not (not (by_name or by_family or on_program))",
+   "nth": 0,
+   "line_0_8_2": 113,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_tool_selection",
+    "test_network_watch",
+    "test_model_turn",
+    "test_change_sets",
+    "test_slate_reasoning",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M120",
+   "file": "workbench/knowledge_qt.py",
+   "func": "KnowledgeTab.shutdown_engineering",
+   "kind": "call",
+   "old": "super().shutdown_engineering()",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 147,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "the knowledge tab's shutdown skips the base shutdown (super().shutdown_engineering deleted), leaving its engineering timers/workers at close; only the seed digest notices (knowledge_qt.py:147)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M121",
+   "file": "workbench/program_rooms_qt.py",
+   "func": "ProgramRoom.sync_actions",
+   "kind": "call",
+   "old": "button.setEnabled(not self.busy and enabled())",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 161,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "a program room's action buttons are no longer disabled while it is busy; only the seed digest notices (program_rooms_qt.py:161)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M122",
+   "file": "workbench/memory_settings.py",
+   "func": "change",
+   "kind": "call",
+   "old": "db.execute('UPDATE settings SET value=? WHERE key=?',(json.dumps(previous),'ledger.change.'+undo_id))",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 91,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "memory settings undo: the earlier ledger record is no longer marked undone=True in the database; no test reads the restored record's undone flag after an undo (memory_settings.py:91)",
+   "modules": [
+    "test_memory_settings"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M123",
+   "file": "workbench/evidence_compiler.py",
+   "func": "ensure",
+   "kind": "call",
+   "old": "db.execute('CREATE TABLE IF NOT EXISTS ekp_receipts(id TEXT PRIMARY KEY,owner TEXT,sha256 TEXT,job TEXT)')",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 29,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "the ekp_receipts table is never created, so evidence_compiler.handles/receipts (lines 31, 139-141, 165) would fail; 53 modules run ensure() but none records or reads an evidence receipt; only the seed digest notices (evidence_compiler.py:29)",
+   "modules": [
+    "test_reasoning_graph",
+    "test_adaptive_contract",
+    "test_joined_work",
+    "test_tool_selection",
+    "test_desk",
+    "test_vocabulary",
+    "test_continue_setting",
+    "test_browse",
+    "test_frame",
+    "test_cabinet_actions",
+    "test_machine",
+    "test_return_thread",
+    "test_workspace_backup",
+    "test_related",
+    "test_documents",
+    "test_exact_math",
+    "test_memory_cabinet",
+    "test_service_lifecycle",
+    "test_algorithm_atlas",
+    "test_model_settings",
+    "test_cabinet",
+    "test_hardware_settings",
+    "test_paper",
+    "test_operations",
+    "test_memory_settings",
+    "test_problem",
+    "test_settings_advanced",
+    "test_conditions",
+    "test_settings_registry",
+    "test_presentation_settings",
+    "test_writing_line",
+    "test_resource_rules",
+    "test_profile_files",
+    "test_tool_atlas",
+    "test_explore",
+    "test_project_desk",
+    "test_exact_math_solvers",
+    "test_network_watch",
+    "test_change_sets",
+    "test_discovery",
+    "test_model_turn",
+    "test_readiness",
+    "test_launcher",
+    "test_agent_loop",
+    "test_continuing_work",
+    "test_release_check",
+    "test_deployment",
+    "test_graphite",
+    "test_slate_reasoning",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M124",
+   "file": "workbench/project_desk_checks.py",
+   "func": "fixture",
+   "kind": "call",
+   "old": "locations.office(root)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 28,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_project_desk",
+    "test_slate_reasoning"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M125",
+   "file": "workbench/cell_edits.py",
+   "func": "apply",
+   "kind": "if",
+   "old": "cached is not None",
+   "new": "not (cached is not None)",
+   "nth": 0,
+   "line_0_8_2": 216,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_change_sets"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M126",
+   "file": "workbench/reading_preferences.py",
+   "func": "load_fonts",
+   "kind": "ret",
+   "old": "tuple(sorted(set(families)))",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 22,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "load_fonts returns None instead of the loaded font families; only the seed digest notices (reading_preferences.py:22)",
+   "modules": [
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M127",
+   "file": "workbench/record_io.py",
+   "func": "project_path",
+   "kind": "num",
+   "old": "1",
+   "new": "2",
+   "nth": 0,
+   "line_0_8_2": 61,
+   "group": "guarding",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "private-path check: parts[2:] skips the folder right under .ledger, so with private=True a path like '.ledger/.hidden/x' is accepted; no test offers a hidden name directly under .ledger (record_io.py:61)",
+   "modules": [
+    "test_record_paths",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M128",
+   "file": "workbench/programs_qt.py",
+   "func": "_icon_paths",
+   "kind": "num",
+   "old": "2.5",
+   "new": "3.5",
+   "nth": 11,
+   "line_0_8_2": 166,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "low",
+   "what": "the Office icon's tray outline moves one unit; no test compares icon geometry (programs_qt.py:166)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M129",
+   "file": "workbench/agenda.py",
+   "func": "dispatch",
+   "kind": "call",
+   "old": "db.execute('UPDATE agenda_items SET nice=?, updated=? WHERE id=?', (args['nice'], time.time(), row['id']))",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 548,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_operations"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M130",
+   "file": "workbench/explore_qt.py",
+   "func": "ExploreTab.refresh",
+   "kind": "cmp",
+   "old": "==",
+   "new": "!=",
+   "nth": 2,
+   "line_0_8_2": 313,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "the Explore list labels every non-instrument entry by the instrument words and vice versa (kind column); only the seed digest notices (explore_qt.py:313)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M131",
+   "file": "workbench/command_rows.py",
+   "func": "plain",
+   "kind": "ret",
+   "old": "text.replace('&&', '\\0').replace('&', '').replace('\\0', '&').strip()",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 11,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M132",
+   "file": "workbench/qt_app.py",
+   "func": "WorkbenchWindow.closeEvent",
+   "kind": "cmp",
+   "old": " is not ",
+   "new": " is ",
+   "nth": 2,
+   "line_0_8_2": 5284,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M133",
+   "file": "workbench/pdf_service.py",
+   "func": "ensure",
+   "kind": "call",
+   "old": "db.execute('CREATE TABLE IF NOT EXISTS ref_pdf_annotations(id TEXT PRIMARY KEY,ns TEXT,owner TEXT,item TEXT,version INTEGER,payload TEXT,sha256 TEXT)')",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 30,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_continue_setting",
+    "test_browse",
+    "test_frame",
+    "test_cabinet_actions",
+    "test_machine",
+    "test_return_thread",
+    "test_workspace_backup",
+    "test_related",
+    "test_documents",
+    "test_exact_math",
+    "test_memory_cabinet",
+    "test_service_lifecycle",
+    "test_algorithm_atlas",
+    "test_model_settings",
+    "test_cabinet",
+    "test_hardware_settings",
+    "test_paper",
+    "test_operations",
+    "test_memory_settings",
+    "test_problem",
+    "test_settings_advanced",
+    "test_conditions",
+    "test_settings_registry",
+    "test_presentation_settings",
+    "test_resource_rules",
+    "test_profile_files",
+    "test_tool_atlas",
+    "test_explore",
+    "test_project_desk",
+    "test_network_watch",
+    "test_change_sets",
+    "test_discovery",
+    "test_model_turn",
+    "test_launcher",
+    "test_agent_loop",
+    "test_continuing_work",
+    "test_deployment",
+    "test_slate_reasoning",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M134",
+   "file": "workbench/browse.py",
+   "func": "listing",
+   "kind": "call",
+   "old": "rows.append((entry, kind_of(entry)))",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 116,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_browse",
+    "test_profile_files",
+    "test_context_menu"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M135",
+   "file": "workbench/stacy_control.py",
+   "func": "parse",
+   "kind": "if",
+   "old": "lower in ('/fabrication','generate fabrication candidates','generate gerbers')",
+   "new": "not (lower in ('/fabrication','generate fabrication candidates','generate gerbers'))",
+   "nth": 0,
+   "line_0_8_2": 81,
+   "group": "other",
+   "verdict_0_8_2": "void",
+   "modules": [
+    "test_settings_registry"
+   ]
+  },
+  {
+   "id": "M136",
+   "file": "workbench/memory_qt.py",
+   "func": "MemoryTab.refresh_profile.preferences",
+   "kind": "if",
+   "old": "self.context()!=context",
+   "new": "not (self.context()!=context)",
+   "nth": 0,
+   "line_0_8_2": 85,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "the Memory tab drops the preferences answer in the normal case (stale-context guard negated), so its feedback list is never filled; only the seed digest notices (memory_qt.py:85)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M137",
+   "file": "workbench/discovery_qt.py",
+   "func": "DiscoveryTab.load_list",
+   "kind": "if",
+   "old": "value is None",
+   "new": "not (value is None)",
+   "nth": 0,
+   "line_0_8_2": 64,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "the Discovery tab returns without listing when the list arrives (and reads None when it does not); only the seed digest notices (discovery_qt.py:64)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M138",
+   "file": "workbench/idle_display_qt.py",
+   "func": "IdleDisplay._listen",
+   "kind": "if",
+   "old": "needed != self.listening",
+   "new": "not (needed != self.listening)",
+   "nth": 0,
+   "line_0_8_2": 80,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "the idle display's event filter: negated, it is never installed when it becomes needed, so the idle screen would not see input to wake or to restart its minutes; no test drives the idle display's wake by input (idle_display_qt.py:80)",
+   "modules": [
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M139",
+   "file": "workbench/receiving.py",
+   "func": "Budget.__init__",
+   "kind": "num",
+   "old": "0",
+   "new": "1",
+   "nth": 1,
+   "line_0_8_2": 84,
+   "group": "other",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_reasoning_graph",
+    "test_adaptive_contract",
+    "test_joined_work",
+    "test_tool_selection",
+    "test_desk",
+    "test_vocabulary",
+    "test_continue_setting",
+    "test_browse",
+    "test_frame",
+    "test_cabinet_actions",
+    "test_machine",
+    "test_return_thread",
+    "test_workspace_backup",
+    "test_related",
+    "test_documents",
+    "test_exact_math",
+    "test_memory_cabinet",
+    "test_service_lifecycle",
+    "test_algorithm_atlas",
+    "test_model_settings",
+    "test_cabinet",
+    "test_hardware_settings",
+    "test_paper",
+    "test_operations",
+    "test_memory_settings",
+    "test_problem",
+    "test_settings_advanced",
+    "test_conditions",
+    "test_settings_registry",
+    "test_presentation_settings",
+    "test_writing_line",
+    "test_resource_rules",
+    "test_profile_files",
+    "test_tool_atlas",
+    "test_explore",
+    "test_project_desk",
+    "test_exact_math_solvers",
+    "test_network_watch",
+    "test_change_sets",
+    "test_discovery",
+    "test_model_turn",
+    "test_readiness",
+    "test_launcher",
+    "test_agent_loop",
+    "test_continuing_work",
+    "test_release_check",
+    "test_deployment",
+    "test_graphite",
+    "test_slate_reasoning",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M140",
+   "file": "workbench/writing_marker.py",
+   "func": "WritingMarker.__init__",
+   "kind": "call",
+   "old": "self.timer.setInterval(PERIOD_MS // 2)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 240,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "the writing marker's timer runs with interval 0 instead of PERIOD_MS/2 (a busy tick, wrong blink rate); test_paper/test_graphite reach it and pass; only the seed digest notices (writing_marker.py:240)",
+   "modules": [
+    "test_paper",
+    "test_graphite",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M141",
+   "file": "workbench/empty_workspace_qt.py",
+   "func": "show_home",
+   "kind": "cmp",
+   "old": " is not ",
+   "new": " is ",
+   "nth": 0,
+   "line_0_8_2": 49,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "show_home no longer removes the previous centre page from the stack (and calls removeWidget(None) when there is none); only the seed digest notices (empty_workspace_qt.py:49)",
+   "modules": [
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M142",
+   "file": "workbench/field_doubt.py",
+   "func": "doubts_for",
+   "kind": "ret",
+   "old": "sorted(found, key=lambda doubt: ORDER.get(doubt.verdict, 9))",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 526,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "the Field's doubts: doubts_for returns None, so field.doubts and desk() would raise TypeError (field_service.py:135-136, field_doubt.py:534); the desk_acts tests that reach it neither fail nor assert the doubt rows (field_doubt.py:526)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M143",
+   "file": "workbench/doctor.py",
+   "func": "database",
+   "kind": "ret",
+   "old": "{'state': 'NOT_CREATED'}",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 46,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_workspace_backup"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M144",
+   "file": "workbench/arc_desktop.py",
+   "func": "ActivityRail.__init__",
+   "kind": "call",
+   "old": "self.setObjectName('ActivityRail')",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 363,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "low",
+   "digest_only_0_8_2": true,
+   "what": "the activity rail loses its object name, so the #ActivityRail style no longer applies; only the seed digest notices (arc_desktop.py:363)",
+   "modules": [
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M145",
+   "file": "workbench/menu_catch.py",
+   "func": "Watcher.eventFilter",
+   "kind": "ret",
+   "old": "False",
+   "new": "not (False)",
+   "nth": 0,
+   "line_0_8_2": 128,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M146",
+   "file": "workbench/exchange.py",
+   "func": "dispatch",
+   "kind": "cmp",
+   "old": "==",
+   "new": "!=",
+   "nth": 0,
+   "line_0_8_2": 206,
+   "group": "other",
+   "verdict_0_8_2": "not_run",
+   "modules": [
+    "test_deployment"
+   ]
+  },
+  {
+   "id": "M147",
+   "file": "workbench/graphite_brand.py",
+   "func": "Cat.show",
+   "kind": "if",
+   "old": "self.reduce_motion()",
+   "new": "not (self.reduce_motion())",
+   "nth": 0,
+   "line_0_8_2": 448,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_graphite",
+    "test_launcher",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M148",
+   "file": "workbench/checked_methods.py",
+   "func": "dispatch",
+   "kind": "cmp",
+   "old": " == ",
+   "new": " != ",
+   "nth": 2,
+   "line_0_8_2": 188,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_joined_work"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M149",
+   "file": "workbench/machine_overview.py",
+   "func": "tools",
+   "kind": "cmp",
+   "old": " in ",
+   "new": " not in ",
+   "nth": 0,
+   "line_0_8_2": 553,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "the machine overview marks found tools PARTIAL and missing-reason rows OBSERVED (state in -> not in); test_machine reaches it and passes; only the seed digest notices (machine_overview.py:553-556)",
+   "modules": [
+    "test_machine",
+    "test_context_menu",
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M150",
+   "file": "workbench/stac_bridge.py",
+   "func": "compile_program",
+   "kind": "num",
+   "old": "4096",
+   "new": "4097",
+   "nth": 1,
+   "line_0_8_2": 66,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "boundary",
+   "what": "the 4,096-byte bound on a STAC program becomes 4,097 bytes; no test offers a program at the bound (stac_bridge.py:66)",
+   "modules": [
+    "test_algorithm_atlas",
+    "test_writing_line",
+    "test_tool_atlas",
+    "test_project_desk",
+    "test_discovery"
+   ],
+   "verdict_0_8_4": "missed"
+  },
+  {
+   "id": "M151",
+   "file": "workbench/kibot_tools.py",
+   "func": "dispatch",
+   "kind": "cmp",
+   "old": "==",
+   "new": "!=",
+   "nth": 0,
+   "line_0_8_2": 320,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "kibot dispatch swaps kibot.report with the overview answer; no test calls the kibot operations; only the seed digest notices (kibot_tools.py:320)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M152",
+   "file": "workbench/explore.py",
+   "func": "snapshot",
+   "kind": "num",
+   "old": "0",
+   "new": "1",
+   "nth": 0,
+   "line_0_8_2": 149,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_explore",
+    "test_launcher",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M153",
+   "file": "workbench/field_do.py",
+   "func": "_sheet",
+   "kind": "call",
+   "old": "out.append(_watch(obj.title, obj.stac))",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 111,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M154",
+   "file": "workbench/office_qt.py",
+   "func": "OfficePanel.can_close_concern",
+   "kind": "cmp",
+   "old": "!=",
+   "new": "==",
+   "nth": 0,
+   "line_0_8_2": 348,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "digest_only_0_8_2": true,
+   "what": "closing an office workspace is refused when the candidate editor is NOT running and allowed while it runs; only the seed digest notices (office_qt.py:348)",
+   "modules": [
+    "test_desk_acts"
+   ]
+  },
+  {
+   "id": "M155",
+   "file": "workbench/rooms.py",
+   "func": "status_text",
+   "kind": "call",
+   "old": "parts.append('%d arrived' % waiting)",
+   "new": "None",
+   "nth": 0,
+   "line_0_8_2": 179,
+   "group": "other",
+   "verdict_0_8_2": "gap",
+   "severity_0_8_2": "real",
+   "what": "the status line drops 'N arrived' when things wait in the inbox; no test sets a waiting inbox and reads the status text (rooms.py:179)",
+   "modules": [
+    "test_frame",
+    "test_system_menu",
+    "test_desk_scenes",
+    "test_context_menu",
+    "test_desk_acts"
+   ],
+   "verdict_0_8_4": "caught"
+  },
+  {
+   "id": "M156",
+   "file": "workbench/host_service.py",
+   "func": "Coordinator.invoke",
+   "kind": "if",
+   "old": "method == 'hold' and not args",
+   "new": "not (method == 'hold' and not args)",
+   "nth": 0,
+   "line_0_8_2": 245,
+   "group": "other",
+   "verdict_0_8_2": "caught",
+   "modules": [
+    "test_service_lifecycle"
+   ],
+   "verdict_0_8_4": "caught"
+  }
+ ]
+}

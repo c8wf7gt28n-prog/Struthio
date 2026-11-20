@@ -31,6 +31,8 @@ RELEASE = SHORT
 ARCHIVE = 'Graphite_' + RELEASE + '_full.zip'
 # Never shipped: private state, environments and caches.
 EXCLUDED_PARTS = ('.ledger', '.venv', '__pycache__', '.pytest_cache', '.git', '.claude', 'wip')  # .claude: the session's worktrees and settings; wip: development notes and saved work in progress; never shipped
+# Development tools kept in the tree and never shipped: the planted-bug rerun (0.8.4) measures the tests, not the program.
+NOT_SHIPPED = ('tools/planted_bugs/',)
 # Ship the approved UI evidence and cited model-trial records. Other local
 # captures under build/ stay outside the release.
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
@@ -110,6 +112,7 @@ def payload_paths(root=ROOT):
         name = relative.as_posix()
         if path.name.endswith('.partial'): continue
         if name.startswith('build/') and not name.startswith(BUILD_SHIPPED): continue
+        if name.startswith(NOT_SHIPPED): continue
         rows.append(path)
     return rows
 
@@ -149,7 +152,7 @@ def dry_run(root=ROOT):
                 seed=dict(state=seed['state'], changed_sources=seed.get('changed_sources', []),
                           missing_sources=seed.get('missing_sources', []),
                           note='packaging rebuilds the seed first' if seed['state'] != 'VERIFIED_SOURCE_BINDINGS' else 'current'),
-                excluded=dict(parts=list(EXCLUDED_PARTS), build_shipped=list(BUILD_SHIPPED)))
+                excluded=dict(parts=list(EXCLUDED_PARTS), build_shipped=list(BUILD_SHIPPED), not_shipped=list(NOT_SHIPPED)))
 
 
 def package(folder, root=ROOT):

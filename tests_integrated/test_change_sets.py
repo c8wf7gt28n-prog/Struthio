@@ -173,6 +173,40 @@ class Changes(unittest.TestCase):
             self.assertFalse(self.kernel.dispatch('changes.apply', {'id': proposal['id'], 'expected_digest': proposal['content_digest']}, self.owner)['ok'])
         self.assertFalse((outside / 'new.txt').exists())
 
+    def test_without_the_owners_approval_files_outside_graphites_area_are_not_moved_renamed_or_deleted(self):
+        """0.8.4: a caller without the owner's approve scope (her hand) changes Files only in Graphite's own area (Slate): the
+        owner's own file stays where it is, and that change is proposed instead (files_service.may_change; planted bug M055)."""
+        from workbench import files_service
+        hand = Principal(self.owner.identity, frozenset({'read', 'execute'}))
+        for name in ('plan.txt', 'Slate/draft.txt'):
+            self.assertTrue(self.kernel.dispatch('files.write', {'path': name, 'text': 'x\n'}, self.owner)['ok'], name)
+        files = files_service.root(self.kernel)
+        for op, args in (('files.trash', {'path': 'plan.txt'}), ('files.rename', {'path': 'plan.txt', 'name': 'other.txt'}),
+                         ('files.move', {'path': 'plan.txt', 'to': 'Slate'})):
+            out = self.kernel.dispatch(op, args, hand)
+            self.assertFalse(out['ok'], op);self.assertIn('FILES_OUTSIDE_SLATE_AREA', out['error']['message'], op)
+            self.assertEqual((files / 'plan.txt').read_text(), 'x\n', op)
+        self.assertTrue(self.kernel.dispatch('files.trash', {'path': 'Slate/draft.txt'}, hand)['ok'])
+        self.assertFalse((files / 'Slate' / 'draft.txt').exists())
+
+    def test_an_interrupted_change_two_folders_down_rolls_back_and_leaves_no_temporary(self):
+        """0.8.4: the recovery temporaries of a file two folders down, found where they are, and none left behind."""
+        self.assertEqual(self.apply(self.propose([{'op': 'CREATE', 'path': 'deep/er/note.txt', 'text': 'first\n'}]))['state'], 'DONE')
+        folder = self.work / 'deep' / 'er'; latest = lambda: self.call('changes.commits', {'copy': self.workspace['id']})['commits'][0]
+        write = lambda text: self.propose([{'op': 'WRITE', 'path': 'deep/er/note.txt', 'base_sha256': self.file('deep/er/note.txt')['sha256'], 'text': text}])
+        second = write('second\n')             # stopped after the exchange: the new bytes in place, the old kept beside them
+        with patch.object(change_sets, 'CRASH_AT', 'MUTATED'):
+            with self.assertRaises(change_sets.Crash): self.apply(second)
+        self.assertEqual([o['state'] for o in self.call('changes.commit', {'id': latest()['id']})['observed']], ['APPLIED'])
+        self.call('changes.recover', {'id': latest()['id'], 'action': 'ROLLBACK'})
+        self.assertEqual((folder / 'note.txt').read_text(), 'first\n'); self.assertEqual(sorted(p.name for p in folder.iterdir()), ['note.txt'])
+        third = write('third\n')               # stopped before the exchange: the staged bytes wait beside the file
+        with patch.object(change_sets.store, 'rename_linux', side_effect=OSError('interrupted')):
+            self.assertFalse(self.kernel.dispatch('changes.apply', {'id': third['id'], 'expected_digest': third['content_digest']}, self.owner)['ok'])
+        self.assertEqual(len(list(folder.iterdir())), 2)
+        self.call('changes.recover', {'id': latest()['id'], 'action': 'ROLLBACK'})
+        self.assertEqual((folder / 'note.txt').read_text(), 'first\n'); self.assertEqual(sorted(p.name for p in folder.iterdir()), ['note.txt'])
+
     def test_exchange_retains_unexpected_displaced_bytes_instead_of_erasing_them(self):
         proposal = self.propose([{'op': 'DELETE', 'path': 'note.txt', 'base_sha256': self.file('note.txt')['sha256']}])
         original = edit_storage.rename_linux

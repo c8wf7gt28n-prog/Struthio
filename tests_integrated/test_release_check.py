@@ -162,6 +162,18 @@ class Runtime(unittest.TestCase):
             self.assertEqual(verify(root)['problems'],['gone.txt: missing'])
             (root/'gone.txt').write_bytes(b'two');self.assertEqual(verify(root)['problems'],['gone.txt: changed'])
 
+    def test_a_manifest_over_4_mib_is_refused_before_it_is_read(self):
+        """0.8.4: the verifier reads a manifest of 4 MiB at most; one byte more is refused, whatever it lists."""
+        from workbench.release_integrity import verify
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);(root/'a.txt').write_bytes(b'one')
+            listed=json.dumps({'files':{'a.txt':{'bytes':3,'sha256':recorder.hashlib.sha256(b'one').hexdigest()}}})
+            for size,read in ((4*1024*1024,True),(4*1024*1024+1,False)):
+                (root/'MANIFEST.json').write_text(listed+' '*(size-len(listed)))
+                if read:self.assertEqual(verify(root)['problems'],[])
+                else:
+                    with self.assertRaisesRegex(ValueError,'Invalid package manifest'):verify(root)
+
     def test_runtime_section_keeps_any_failure_failed_and_explains_unpackaged_edits(self):
         edited={'state':'FAILED','errors':['payload','source foundation'],'payload':{'state':'DAMAGED','problems':['workbench/x.py: changed']},'foundation':'STALE'}
         value=checker.runtime_section(runner=lambda:copy.deepcopy(edited))
@@ -170,6 +182,21 @@ class Runtime(unittest.TestCase):
         value=checker.runtime_section(runner=lambda:copy.deepcopy(missing));self.assertEqual(value['state'],'FAILED');self.assertNotIn('reading',value)
         self.assertEqual(checker.runtime_section(runner=lambda:{'state':'PASSED','errors':[]})['state'],'PASSED')
         self.assertEqual(checker.runtime_section(runner=lambda:{'error':'child crashed'})['state'],'FAILED')
+
+
+class Kit(unittest.TestCase):
+    def test_the_planted_bug_tools_stay_out_of_the_kit(self):
+        """0.8.4: tools/planted_bugs measures the tests; it is kept in the tree and never shipped. The other tools ship. Read on
+        a tree of its own that holds the folder (a kit has none, so the live tree alone could not show it left out)."""
+        from tools import package_graphite
+        with tempfile.TemporaryDirectory(prefix='graphite-kit-') as temp:
+            tree=Path(temp)
+            for name in ('tools/planted_bugs/run.py','tools/planted_bugs/bugs.json','tools/check_release.py','tools/planted_bugs_note.txt'):
+                (tree/name).parent.mkdir(parents=True,exist_ok=True);(tree/name).write_text('# '+name+'\n')
+            shipped={p.relative_to(tree).as_posix() for p in package_graphite.payload_paths(tree)}
+        self.assertEqual(shipped,{'tools/check_release.py','tools/planted_bugs_note.txt'})
+        live={p.relative_to(ROOT).as_posix() for p in package_graphite.payload_paths(ROOT)}
+        self.assertIn('tools/check_release.py',live);self.assertEqual(sorted(n for n in live if n.startswith('tools/planted_bugs/')),[])
 
 
 class PayloadPrivacy(unittest.TestCase):

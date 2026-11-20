@@ -24,6 +24,7 @@ from pathlib import Path
 from unittest.mock import patch
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 from workbench import context_menu as cm
+from tests_integrated.seed_hold import seed_bound
 
 WINDOW={}
 SHEET='office:owner:'+'a'*32
@@ -55,7 +56,7 @@ def setUpModule():
     from workbench.session import Session
     holds=[patch.object(clip,'_request',side_effect=AssertionError('No provider request')),patch.object(Kernel,'launch',side_effect=AssertionError('No worker launch')),
            patch.object(Kernel,'submit',side_effect=AssertionError('No job submission')),patch.object(session_power,'system',side_effect=no_logind),
-           patch.object(QMessageBox,'question',return_value=QMessageBox.Yes)]
+           patch.object(QMessageBox,'question',return_value=QMessageBox.Yes),seed_bound()]
     for h in holds:h.start()
     app=make_app([]);root=locations.office(run/'workspace');session=Session(run/'profile/session.json',root)
     w=WorkbenchWindow(root,session,restore=False);platform.processor()
@@ -915,6 +916,17 @@ def key_literals(paths):
             if isinstance(node,ast.Constant) and isinstance(node.value,str) and id(node) not in skip and re.search(KEY_TEXT,node.value):
                 found.append('%s:%d %r'%(rel,node.lineno,node.value[:80]))
     return found
+
+
+class CompareText(unittest.TestCase):
+    def test_a_compare_numbers_each_line_where_it_stands_on_its_own_side(self):
+        """0.8.4: Compare with Rev (files_service.text_diff): an added line carries its number in the newer text, a removed one
+        its number in the older, a line that stayed both."""
+        from workbench import files_service
+        diff=files_service.text_diff('a\nb\nc\nold\n','a\nnew\nb\nc\nend\n')
+        self.assertEqual([(r['op'],r.get('before'),r.get('after')) for r in diff['lines']],
+                         [('same',1,1),('added',None,2),('same',2,3),('same',3,4),('removed',4,None),('added',None,5)])
+        self.assertEqual((diff['added'],diff['removed']),(2,1))
 
 
 if __name__=='__main__':

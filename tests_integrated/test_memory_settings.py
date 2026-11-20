@@ -56,6 +56,14 @@ class MemorySettingsTests(unittest.TestCase):
         self.assertFalse(self.kernel.dispatch('ledger.settings.undo',{'id':latest['id']},self.owner)['ok'])
         self.assertFalse(self.kernel.dispatch('ledger.settings.undo',{'id':latest['id']},operator('other'))['ok'])
 
+    def test_an_undone_change_is_kept_in_history_as_undone(self):
+        """0.8.4: the history says which change an undo took back, and that change cannot be taken back twice."""
+        self.imported();key='memory.weight.owner_statement';change=self.set(key,3.5)
+        undo=self.call('ledger.settings.undo',{'id':change['id']})
+        rows={r['id']:r for r in self.call('ledger.settings.history',{'key':key})['changes']}
+        self.assertEqual((rows[change['id']]['undone'],rows[change['id']]['can_undo']),(True,False))
+        self.assertEqual((rows[undo['id']]['undone'],rows[undo['id']]['restores']),(False,change['id']))
+
     def test_owner_modes_private_history_and_shared_activity_do_not_expose_new_profile_values(self):
         self.imported();change=self.set('memory.soft_half_life_days',321)
         other=self.row('memory.soft_half_life_days',operator('other'));self.assertIsNone(other['stored']);self.assertIsNone(other['latest_change'])

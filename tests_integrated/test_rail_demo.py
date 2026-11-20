@@ -20,6 +20,7 @@ from pathlib import Path
 from unittest.mock import NonCallableMock,patch
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 from tests_integrated.test_desk_acts import P01,build_window,close_window,settle
+from tests_integrated.seed_hold import seed_bound
 from workbench import rail_demo
 
 # The three sources as the program writes them (rail_demo.REVISION 2). A source changed on purpose changes its line here and
@@ -106,6 +107,7 @@ class Workspace:
     def __init__(self,prefix):
         self.temporary=tempfile.TemporaryDirectory(prefix=prefix);self.base=Path(self.temporary.name)
         self.env=patch.dict(os.environ);self.env.start();self.watched=Watched()
+        self.seed=seed_bound();self.seed.start()
         try:
             with patch.object(rail_demo,'build',self.watched):self.k,self.p,self.made=rail_demo.workspace(self.base)
         except BaseException:
@@ -122,7 +124,7 @@ class Workspace:
         return {o['title']:o for o in field['objects']},pictured(field)[0],pictured(field)[1],field
 
     def close(self):
-        self.env.stop();self.temporary.cleanup()
+        self.seed.stop();self.env.stop();self.temporary.cleanup()
 
 
 def pictured(field):

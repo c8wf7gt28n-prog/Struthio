@@ -92,6 +92,12 @@ class MadeTests(unittest.TestCase):
         self.assertEqual(hand.made('make a folder called "Parts containing lead"'),('folder','Parts containing lead',''))
         self.assertEqual(hand.made('make a folder called Parts containing lead'),('folder','Parts containing lead',''),'a folder holds no words: all of it is the name')
 
+    def test_words_in_quotes_are_written_without_the_quotes(self):
+        """0.8.4: the quote marks around what a file should say are the owner's punctuation, not its contents."""
+        for said in ('"cut the stock first"','“cut the stock first”','\'cut the stock first\'','‘cut the stock first’'):
+            self.assertEqual(hand.made('write a file called plan.txt saying '+said),('file','plan.txt','cut the stock first'),said)
+        self.assertEqual(hand.made('write a file called plan.txt saying "cut" the stock')[2],'"cut" the stock','only quotes around all of it go')
+
     def test_what_she_made_new_goes_to_the_trash_and_what_was_written_over_does_not(self):
         import json
         line=hand.takes_back('files.write',{'path':'plan.txt','text':'x'},{'path':'plan.txt','kept_version':None})

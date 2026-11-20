@@ -15,6 +15,7 @@
    {"module": "test_network_watch", "why": "the Kernel's scopes held through the one dispatcher; captures stop and keep what they took"},
    {"module": "test_documents", "why": "the Kernel's scopes: the document operations, their scopes and privacy"},
    {"module": "test_cabinet_actions", "why": "the Kernel's scopes: a read scope can look and cannot prepare writing"},
+   {"module": "test_record_paths", "why": "the Kernel's record paths: a view reads and writes only inside its folder, never a hidden name or a link"},
    {"module": "test_change_sets", "why": "change sets and undo: the owner's review cannot be gone around"},
    {"module": "test_continuing_work", "why": "work that continues while the window is closed, and its checks"},
    {"module": "test_workspace_backup", "why": "the owner's data: backup and restore"},

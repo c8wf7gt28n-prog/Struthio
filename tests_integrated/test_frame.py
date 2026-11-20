@@ -116,4 +116,20 @@ class HeldStateWordsTests(unittest.TestCase):
         self.assertEqual(tool_words('unknown.tool'),'unknown.tool');self.assertEqual(tool_words(None,'Queued'),'Job · queued')
 
 
+class StatusLineTests(unittest.TestCase):
+    def test_the_status_line_names_the_workspace_and_says_what_arrived(self):
+        """0.8.4: the status line under the work: the workspace's name, the model's state when there is one, and how many
+        things wait in Ingress (rooms.status_text, for any place that is not an engineering target)."""
+        from types import SimpleNamespace
+        from workbench import locations,rooms
+        with tempfile.TemporaryDirectory() as temp:
+            host=SimpleNamespace(root=locations.office(Path(temp)/'Bench'),_home_active=True,_status_brain=None,_status_inbox=0)
+            parts=lambda:rooms.status_text(host,None,'','').split(' · ')
+            alone=parts();self.assertEqual(len(alone),1,alone);self.assertIn(locations.marker(host.root)['name'],alone[0])
+            host._status_inbox=3;waiting=parts()
+            self.assertEqual((len(waiting),waiting[0]),(2,alone[0]),waiting);self.assertRegex(waiting[1],r'\b3\b','how many arrived')
+            host._status_brain='ready';full=parts()
+            self.assertEqual((len(full),full[0],full[2]),(3,alone[0],waiting[1]),full);self.assertIn('ready',full[1],'the model\'s state, between them')
+
+
 if __name__=='__main__':unittest.main()

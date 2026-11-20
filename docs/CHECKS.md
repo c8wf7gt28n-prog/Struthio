@@ -46,7 +46,7 @@ The list is in `tools/tiers.json`, each entry with why it is there. Always in it
 `test_memory_settings`, `test_model_settings`), release integrity (`test_release_check`), the seed being current
 (`test_project_desk`), one name (`test_one_name`'s name, sweep and code classes; its window sweep takes two minutes and
 is left to tiers 1 and 2), and the Kernel's scopes (`test_conditions`, `test_network_watch`, `test_documents`,
-`test_cabinet_actions`), change sets, continuing work and backup. The rest were chosen from the planted bugs of
+`test_cabinet_actions`) and its record paths (`test_record_paths`), change sets, continuing work and backup. The rest were chosen from the planted bugs of
 14 November (`unique kills` per second of the module's time): every module that alone caught a planted bug in under
 seven seconds, the line's rules and the colour-vision check.
 

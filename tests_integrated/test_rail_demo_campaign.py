@@ -31,6 +31,7 @@ from pathlib import Path
 from unittest import mock
 
 from tools.campaign_lib import cases_anchor, cases_scene, core, fixture, needs, report, runner
+from tests_integrated import seed_hold
 
 ROOT = Path(__file__).resolve().parent.parent
 ANCHORS = ['DA01', 'DA16', 'DA17', 'DA27']
@@ -269,6 +270,8 @@ class TheRuns(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if seed_hold.edited():
+            raise unittest.SkipTest(seed_hold.EDITED_REASON)
         cls.temp = tempfile.TemporaryDirectory(prefix='graphite-rail-demo-campaign-')
         cls.out = Path(cls.temp.name) / 'run'
         cls.code, cls.results = run(cls.out, ANCHORS + ['DP01a', 'P01a'])

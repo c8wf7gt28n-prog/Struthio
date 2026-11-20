@@ -1,0 +1,366 @@
+{
+ "summary": "Fix run of item 'guards' after its review (accept_after_fixes). The existing guards.patch was applied in a fresh worktree; all three must_fix findings and all eight should_fix findings are dealt with, and guards.patch is rewritten (26 files, applies to a clean HEAD). (1) The Kit test in test_release_check no longer needs tools/planted_bugs to exist: it builds a temporary tree that holds the folder, a sibling file and check_release.py, and asserts payload_paths ships only the two others; it still asserts the live tree ships nothing under tools/planted_bugs. In a kit-shaped folder (payload + MANIFEST.json, 1321 files) test_release_check is now 25 OK. (2) Digest rule for the Rail Demo modules: the hold is now one shared helper, tests_integrated/seed_hold.py, used by test_desk_acts (started before an early seed too, which is how test_rail_demo's scene window was escaping it), test_context_menu and test_rail_demo's Workspace. test_rail_demo_campaign runs the real program in child processes the hold cannot reach, so its TheRuns class now skips on an edited seed and says why. On a stale seed (a comment in engineering_kernel.py): test_rail_demo 34 OK (was 4 failures), test_rail_demo_campaign OK with TheRuns skipped (was 2 failures), test_desk_acts 30 OK, test_context_menu 45 OK, test_desk_scenes 5 OK, and test_project_desk fails only Seed.test_the_seed_of_this_tree_is_current. The earlier claim is corrected below: no window test fails on the digest alone, and the campaign's twin runs are skipped, not passed, on a stale seed. (3) run.py no longer leaves a planted bug behind: plant.py writes the file's own text to a marker in the copy (tools/planted_bugs/.planted.json) before planting, refuses to plant while a marker is there, and restore() puts the file back; every run first restores and makes the seed current. Measured on a real copy: kill -9 of the run during M078's test left the marker and no test process; the next run put M078 back and gave M075 'missed' (the review saw 'caught'), and the file was byte-identical afterwards. Should-fix: one Ctrl-C now stops at once (the running tests are ended, their bugs put back and not written, exit 130; measured 1.1 s on a real bug); a missing file is 'gone' and the run goes on; any other per-bug failure is an 'error' row tried again next run; a refresh timeout is a reason, not a dead worker; a tree that cannot be made current again stops the run with exit 1 and names the bug and tree; the default --out is beside the first copy; test_record_paths is in tier 0 (tools/tiers.json, docs/CHECKS.md); test_frame's status line test asserts the parts and their order, not the words; the release note carries the same-sample caveat. A new module, test_planted_bugs (4 tests, listed in FOCUSED_MODULES on its own line), holds run.py to all this on an invented tree; against the old run.py it gave 3 failures and 1 error, now 4 OK; in a kit it skips with its reason. Every module touched or importing what was touched passes in both looks. The planted-bug numbers are the build run's (not rerun as a whole here); five guarding/other bugs rerun with the new runner were each caught by their new test.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b084b/guards.patch",
+ "files_changed": [
+  "docs/CHECKS.md (fix run: tier 0 names the Kernel's record paths, test_record_paths)",
+  "tests_integrated/seed_hold.py (new in the fix run: the one seed hold, seed_bound(), and edited() with its reason)",
+  "tests_integrated/test_change_sets.py",
+  "tests_integrated/test_context_menu.py (fix run: imports seed_bound from seed_hold instead of its own copy)",
+  "tests_integrated/test_continuing_work.py",
+  "tests_integrated/test_desk_acts.py (fix run: imports seed_bound; build_window starts the seed hold before an early seed)",
+  "tests_integrated/test_frame.py (fix run: StatusLineTests asserts the parts and their order, not the words)",
+  "tests_integrated/test_line_rules.py",
+  "tests_integrated/test_memory_settings.py",
+  "tests_integrated/test_model_settings.py",
+  "tests_integrated/test_planted_bugs.py (new in the fix run: 4 tests of run.py and plant.py on an invented tree; skips in a kit)",
+  "tests_integrated/test_project_desk.py",
+  "tests_integrated/test_rail_demo.py (fix run: the Workspace holds the seed hold for as long as it lives)",
+  "tests_integrated/test_rail_demo_campaign.py (fix run: TheRuns skips on an edited seed, with the reason)",
+  "tests_integrated/test_record_paths.py (new)",
+  "tests_integrated/test_release_check.py (fix run: Kit test on a temporary tree)",
+  "tests_integrated/test_resource_rules.py",
+  "tests_integrated/test_stacy_hand.py",
+  "tests_integrated/test_viewer_kinds.py (new)",
+  "tools/check_hatch.py (FOCUSED_MODULES: test_record_paths, test_viewer_kinds and, in the fix run, test_planted_bugs, each on its own line with its own comment, after test_resource_rules and before the 0.8.2 desk-acts line)",
+  "tools/package_graphite.py (NOT_SHIPPED = ('tools/planted_bugs/',), applied in payload_paths and shown in dry_run)",
+  "tools/planted_bugs/README.md (fix run: stopping and starting again, the marker, the verdicts as the code writes them)",
+  "tools/planted_bugs/bugs.json",
+  "tools/planted_bugs/plant.py (fix run: marker, restore(), a missing file is gone, --restore on the command line)",
+  "tools/planted_bugs/run.py (fix run: Stop, prepare(), ended tests on Ctrl-C, gone and error rows, refresh timeout, exit codes, default --out)",
+  "tools/tiers.json (fix run: test_record_paths in tier 0 with its why)"
+ ],
+ "tests": [
+  {
+   "module": "test_desk_acts",
+   "look": "default",
+   "ran": 30,
+   "failed": 0
+  },
+  {
+   "module": "test_rail_demo",
+   "look": "default",
+   "ran": 34,
+   "failed": 0
+  },
+  {
+   "module": "test_frame",
+   "look": "default",
+   "ran": 12,
+   "failed": 0
+  },
+  {
+   "module": "test_release_check",
+   "look": "default",
+   "ran": 25,
+   "failed": 0
+  },
+  {
+   "module": "test_planted_bugs",
+   "look": "default",
+   "ran": 4,
+   "failed": 0,
+   "note": "new module"
+  },
+  {
+   "module": "test_run_tiers",
+   "look": "default",
+   "ran": 14,
+   "failed": 0
+  },
+  {
+   "module": "test_one_name",
+   "look": "default",
+   "ran": 19,
+   "failed": 0,
+   "note": "imports test_desk_acts; sweeps both looks itself, so run once"
+  },
+  {
+   "module": "test_rail_demo_campaign",
+   "look": "default",
+   "ran": 21,
+   "failed": 0,
+   "note": "plays both looks itself, so run once"
+  },
+  {
+   "module": "test_desk_scenes",
+   "look": "default",
+   "ran": 5,
+   "failed": 0
+  },
+  {
+   "module": "test_context_menu",
+   "look": "default",
+   "ran": 45,
+   "failed": 0
+  },
+  {
+   "module": "test_kasandra_highlight",
+   "look": "default",
+   "ran": 20,
+   "failed": 0
+  },
+  {
+   "module": "test_desk_acts",
+   "look": "kasandra",
+   "ran": 30,
+   "failed": 0
+  },
+  {
+   "module": "test_rail_demo",
+   "look": "kasandra",
+   "ran": 34,
+   "failed": 0
+  },
+  {
+   "module": "test_frame",
+   "look": "kasandra",
+   "ran": 12,
+   "failed": 0
+  },
+  {
+   "module": "test_release_check",
+   "look": "kasandra",
+   "ran": 25,
+   "failed": 0
+  },
+  {
+   "module": "test_desk_scenes",
+   "look": "kasandra",
+   "ran": 5,
+   "failed": 0
+  },
+  {
+   "module": "test_context_menu",
+   "look": "kasandra",
+   "ran": 45,
+   "failed": 0
+  },
+  {
+   "module": "test_kasandra_highlight",
+   "look": "kasandra",
+   "ran": 20,
+   "failed": 0
+  },
+  {
+   "module": "test_planted_bugs",
+   "look": "kasandra",
+   "ran": 4,
+   "failed": 0
+  },
+  {
+   "module": "test_run_tiers",
+   "look": "kasandra",
+   "ran": 14,
+   "failed": 0
+  },
+  {
+   "module": "test_rail_demo",
+   "look": "default, stale seed",
+   "ran": 34,
+   "failed": 0,
+   "note": "comment appended to workbench/engineering_kernel.py, seed_status STALE; the review saw 4 failures"
+  },
+  {
+   "module": "test_rail_demo_campaign",
+   "look": "default, stale seed",
+   "ran": 14,
+   "failed": 0,
+   "note": "OK (skipped=1): TheRuns skipped with its reason; the review saw 2 failures"
+  },
+  {
+   "module": "test_desk_acts",
+   "look": "default, stale seed",
+   "ran": 30,
+   "failed": 0
+  },
+  {
+   "module": "test_context_menu",
+   "look": "default, stale seed",
+   "ran": 45,
+   "failed": 0
+  },
+  {
+   "module": "test_desk_scenes",
+   "look": "default, stale seed",
+   "ran": 5,
+   "failed": 0
+  },
+  {
+   "module": "test_project_desk",
+   "look": "default, stale seed",
+   "ran": 14,
+   "failed": 1,
+   "note": "by design: only Seed.test_the_seed_of_this_tree_is_current fails"
+  },
+  {
+   "module": "test_release_check",
+   "look": "default, kit-shaped folder",
+   "ran": 25,
+   "failed": 0,
+   "note": "payload_paths + MANIFEST.json, 1321 files, no tools/planted_bugs; the review saw 1 failure"
+  },
+  {
+   "module": "test_planted_bugs",
+   "look": "default, kit-shaped folder",
+   "ran": 0,
+   "failed": 0,
+   "note": "OK (skipped=1): the module says tools/planted_bugs is not shipped"
+  },
+  {
+   "module": "test_project_desk",
+   "look": "default, kit-shaped folder",
+   "ran": 14,
+   "failed": 0
+  },
+  {
+   "module": "test_planted_bugs",
+   "look": "default, with the OLD run.py and plant.py",
+   "ran": 4,
+   "failed": 4,
+   "note": "fails before: 3 failures + 1 error (kill, gone, refresh, Ctrl-C); passes after"
+  },
+  {
+   "module": "test_run_tiers",
+   "look": "default, final copy",
+   "ran": 14,
+   "failed": 0,
+   "note": "fresh copy after the last edit (docs/CHECKS.md)"
+  },
+  {
+   "module": "test_release_check",
+   "look": "default, final copy",
+   "ran": 25,
+   "failed": 0
+  },
+  {
+   "module": "test_planted_bugs",
+   "look": "default, final copy",
+   "ran": 4,
+   "failed": 0
+  },
+  {
+   "module": "test_frame",
+   "look": "default, final copy",
+   "ran": 12,
+   "failed": 0
+  },
+  {
+   "module": "test_project_desk",
+   "look": "default, final copy",
+   "ran": 14,
+   "failed": 0
+  },
+  {
+   "module": "test_run_tiers",
+   "look": "kasandra, final copy",
+   "ran": 14,
+   "failed": 0
+  },
+  {
+   "module": "test_release_check",
+   "look": "kasandra, final copy",
+   "ran": 25,
+   "failed": 0
+  },
+  {
+   "module": "test_planted_bugs",
+   "look": "kasandra, final copy",
+   "ran": 4,
+   "failed": 0
+  },
+  {
+   "module": "test_frame",
+   "look": "kasandra, final copy",
+   "ran": 12,
+   "failed": 0
+  },
+  {
+   "module": "test_project_desk",
+   "look": "kasandra, final copy",
+   "ran": 14,
+   "failed": 0
+  }
+ ],
+ "new_tests": [
+  "test_planted_bugs.Rerun.test_a_bug_left_planted_by_a_killed_run_is_put_back_before_the_next_run_measures (fix run): a bug planted and never put back (a killed run) is put back before the next bug is measured, so B2 is 'missed', not 'caught' by B1's failure. Pins review must_fix 3. Failed with the old run.py.",
+  "test_planted_bugs.Rerun.test_a_bug_whose_file_is_gone_is_gone_and_the_run_goes_on (fix run): a bug whose file is missing is 'gone' and the next bug still runs. Failed with the old run.py (the worker died).",
+  "test_planted_bugs.Rerun.test_ctrl_c_stops_at_once_writes_nothing_for_the_bug_it_cut_off_and_puts_it_back (fix run): one SIGINT ends the running test within seconds (not when its 60 s sleep ends), exits 130, writes no row, leaves the file and marker clean. Errored with the old run.py (still running after 40 s).",
+  "test_planted_bugs.Rerun.test_a_tree_that_cannot_be_made_current_again_stops_the_run_and_says_so (fix run): when packaging fails after a bug is put back, the measured row is kept, the next bug is not run, the run exits 1 and names the bug and tree. Failed with the old run.py (exit 0).",
+  "test_release_check.Kit.test_the_planted_bug_tools_stay_out_of_the_kit (rewritten in the fix run): on a temporary tree holding tools/planted_bugs, a sibling file and check_release.py, only the last two ship; the live tree ships nothing under tools/planted_bugs. Failed in a kit-shaped folder before, passes there now.",
+  "test_frame.StatusLineTests.test_the_status_line_names_the_workspace_and_says_what_arrived (rewritten in the fix run): the workspace's name first, the model's state between, how many arrived last, without fixing the words. Pins M155: run.py with M155 planted -> caught by test_frame (2.9 s).",
+  "test_record_paths.RecordPaths (3 tests, new module): project names are read where they are; Graphite's own state under .ledger only when asked, never a hidden name in it; names that leave the folder or go through a link are refused. Pins M127.",
+  "test_stacy_hand.MadeTests.test_words_in_quotes_are_written_without_the_quotes: straight or curly quotes around what a file should say are not written into it. Pins M097.",
+  "test_desk_acts.PureRules.test_exported_but_not_offered (added assertion): every act she may use is one plan choice. Pins M028.",
+  "test_desk_acts.LiveActs.test_read_desk_reads_the_centre (extended): with Home in front she reads 'home', then 'workspace' after Files. Pins M032.",
+  "test_desk_acts.LiveActs.test_a_sheet_is_reached_by_key_presses_only_when_asked_by_keys: by='keys' uses key presses and a direct point uses none. Pins M034.",
+  "test_desk_acts.LiveActs.test_the_empty_place_she_points_at_in_files_is_on_the_screen_when_the_list_is_full (this run): her right-click on an empty place in a full Files list lands inside the view. Pins M036 (with M036 the point was x=1800 in a 1200-wide view).",
+  "test_resource_rules.OwnersNumbers (4 tests): the owner's smaller reserve reaches the model start; a resident model's unused budget is kept from other work, down to one byte; a second coordinator waits and other work is not held; layer counts outside -1..512 are refused. Pins M085, M086, M088, M089, M090, M070.",
+  "test_memory_settings.MemorySettingsTests.test_an_undone_change_is_kept_in_history_as_undone: an undone change is marked undone and cannot be undone twice. Pins M122.",
+  "test_model_settings.ModelSettingsTests.test_the_lowest_choices_are_kept_and_a_one_character_request_key_is_one_request: one thread, 512 tokens and 512 MiB are kept, and a one-character request key is a key. Pins M078, M040.",
+  "test_model_settings.ModelSettingsTests.test_a_request_and_its_state_are_written_in_the_activity_journal: the Log shows each request the Kernel keeps. Pins M042 (its 0.8.2 catch did not recur on a current seed).",
+  "test_model_settings.ModelSettingsTests.test_the_history_a_row_promises_is_the_history_kept: the history_limit a settings row reports equals what the ledger keeps. Pins M076.",
+  "test_change_sets.Changes.test_an_interrupted_change_two_folders_down_rolls_back_and_leaves_no_temporary: an interrupted change two folders down rolls back and leaves no temporary file. Pins M007, M008.",
+  "test_change_sets.Changes.test_without_the_owners_approval_files_outside_graphites_area_are_not_moved_renamed_or_deleted (this run): without the approve scope, trash, rename and move of an owner's file are refused and the file stays; inside Slate they are allowed. Pins M055 (caught at 0.8.2 only incidentally; missed in this run's first pass).",
+  "test_continuing_work.Continuing.test_a_new_order_has_all_its_rounds_and_a_failed_read_waits_10_then_20_seconds: a new order has used none of its 20 rounds, and a failed read is retried after 10 s, then 20 s. Pins M024, M019.",
+  "test_continuing_work.Continuing.test_pausing_or_revoking_an_adaptive_investigation_cancels_its_job_in_flight (this run): pause and revoke cancel the queued job an adaptive investigation waits on. Pins M020 (failed with 'Queued' != 'Cancelled').",
+  "test_project_desk.Seed.test_the_seed_of_this_tree_is_current: the one test whose job is that the shipped seed is current; its message names the four commands that fix it.",
+  "test_project_desk.Seed.test_a_note_may_be_left_out_of_a_copy_and_a_program_file_never: a fixture seed with a missing doc is still bound, and one with a missing program file is SOURCE_UNAVAILABLE and refused. Pins M096.",
+  "test_project_desk.Seed.test_a_prerequisite_over_32_000_000_bytes_is_missing: a 32,000,000-byte prerequisite is present and one byte more is missing. Pins M091.",
+  "test_release_check.Runtime.test_a_manifest_over_4_mib_is_refused_before_it_is_read: a manifest of 4 MiB is read and one byte more is refused. Pins M079.",
+  "test_line_rules.TheCallers.test_a_files_cells_reach_a_line_as_numbers_by_the_same_rule: Files cells become numbers by the line's rule. Pins M057 and M060 (M060 only needed test_line_rules listed first in bugs.json).",
+  "test_line_rules.TheBounds.test_take_keeps_one_to_two_hundred_rows (this run): take 1 and take 200 work, and 0, 201, -1 and a bare take are refused. Pins M002.",
+  "test_context_menu.CompareText.test_a_compare_numbers_each_line_where_it_stands_on_its_own_side: Compare with Rev numbers each added line in the newer text and each removed line in the older. Pins M059.",
+  "test_viewer_kinds.PictureKinds (2 tests, new module, this run): HEIC, HEIF and AVIF headers are pictures, as is a TIFF, and an unknown ftyp brand is not. Pins M111."
+ ],
+ "numbers": [
+  "Fix run, run.py on a real copy (no .git, seed current): kill -9 of the run's process group 2 s into M078's test left the marker and model_settings.py planted, no test process (setpriv's parent-death signal ended it) and no row; the next run put M078 back, made the seed current and gave M075 'missed' in 77 s (the review saw 'caught' with the old runner); model_settings.py byte-identical afterwards (md5 a94e19efe146 before and after).",
+  "Fix run, Ctrl-C (SIGINT to run.py) 2 s into M078's test: exit 130 after 1.1 s, no row, no marker, model_settings.py clean, no test process left (the review measured 59 s and a full queue with the old runner).",
+  "Fix run, five bugs with the new runner and the default --out (written beside the copy): M020 caught by test_continuing_work (7.4 s), M078 by test_model_settings (9.2 s), M097 by test_stacy_hand (2.3 s), M127 by test_record_paths (2.3 s), M155 by test_frame with its rewritten test (2.9 s); seed VERIFIED afterwards.",
+  "Fix run, digest rule on a stale seed (comment in engineering_kernel.py): 0 failures in test_rail_demo (34), test_desk_acts (30), test_context_menu (45), test_desk_scenes (5); test_rail_demo_campaign OK with TheRuns skipped; test_project_desk 1 failure, the Seed test. The review measured 4 and 2 failures in the two Rail Demo modules before.",
+  "Fix run, kit-shaped folder (payload_paths + MANIFEST.json, 1321 files): test_release_check 25 OK (was 1 failure), test_planted_bugs skipped, test_project_desk 14 OK.",
+  "Fix run machine time: round 1 from 01:58:53 to 02:17:10 UTC (18 min), round 2 from 02:17:48 to 02:21:18 UTC (3.5 min), never more than two test processes at once.",
+  "Guarding code, caught by behaviour on the 53 planted bugs that were valid at 0.8.2 (caught + gap): before 30/53 = 56.6%; after 51/53 = 96.2% (fresh run of the whole group with the 0.8.4 suite, seed made current before each bug). The other two, M093 (stacy_foundation.project_file) and M096 (stacy_foundation.carried), make packaging refuse the planted tree. They ran on the stale seed and were caught by tests other than the seed-current test: 53/53 if counted. Target 75%: met.",
+  "Guarding files counted (the 13 with planted bugs; tools/check_hatch.py and tools/check_release.py are on the guarding list but had no bug in the sample), before -> after of valid: change_sets 0->2 of 2, continuing_work 3->6 of 6, desk_acts 3->4 of 4, desk_doers 2->5 of 5, engineering_kernel 3->4 of 4, local_brain 3->4 of 4, memory_settings 0->1 of 1, model_settings 2->4 of 4, record_io 0->1 of 1, release_integrity 5->6 of 6, resource_control 1->5 of 5, stacy_foundation 3->3 of 5 (+2 on a stale seed), stacy_hand 5->6 of 6.",
+  "Guarding bugs not run or void at 0.8.2 (outside the 53): 11 run now, 9 caught; missed M071 (local_brain._start_server) and M075 (model_settings.snapshot).",
+  "Other code: before 40/78 = 51.3%; after 49/78 = 62.8%. 52 rerun: all 40 caught at 0.8.2 (39 still caught; M114 lost) and 12 chosen gaps (10 caught; M063 and M150 missed). The 26 gaps not rerun are counted as still missed.",
+  "Overall: before 70/131 = 53.4%; after 100/131 = 76.3% (same counting: equivalent bugs left out, not-rerun gaps counted as missed).",
+  "Machine time (19 Nov 23:57 to 20 Nov 00:47 UTC, never more than two test processes): touched modules 6.2 min per look x 2; guarding rerun 7.8 min wall, 936 worker-seconds for 64 bugs; other rerun 16.5 min wall, about 1,890 worker-seconds for 52 bugs; follow-ups (M002/M055/M060 again, stale-seed checks, last module checks) about 10 min. About 47 minutes in all, a little over the 40-minute budget because of the follow-ups.",
+  "Digest rule. A comment appended to workbench/engineering_kernel.py makes seed_status STALE. Then test_desk_acts gives 30 OK and test_project_desk gives 14 run, 1 failed, and that one is the seed-current test. In the first run, with the same kind of stale seed, test_context_menu passed all 44 and test_desk_scenes all 5 with the hold. Without it they had 2 and 5 failures. A comment in desk_doers.py does not make the seed stale, because desk_doers.py is not a seed input.",
+  "Results are in work/b084b/guards/final_guarding.jsonl, final_other.jsonl, final_extra.jsonl (M002, M055) and final_m060.jsonl. bugs.json records verdict_0_8_4: 109 caught, 2 caught_on_stale_seed, 5 missed, 40 not rerun."
+ ],
+ "decisions": [
+  "Fix run, must_fix 2: the campaign's twins run tools/campaign.py in child processes, which the in-process hold cannot reach, and the program's own refusal of a stale seed must not be weakened. So TheRuns skips (not passes) on an edited seed, with a reason naming test_project_desk.Seed; an absent or broken seed still fails. This is a test that says why it does not run, not a pass on the digest. When the seed is current nothing changes.",
+  "Fix run, should_fix 5: the shared hold is a small helper module beside protocol_fixture.py (tests_integrated/seed_hold.py), not an import of test_desk_acts into test_context_menu, so a change to test_desk_acts does not pull test_context_menu into tier 1. The inline holds already inside the setUpModule of test_project_desk, test_line_rules, test_change_sets, test_continuing_work and test_slate_reasoning were there before this item and were left as they are.",
+  "Fix run, must_fix 3: the marker lives in the copy under tools/planted_bugs/ (never shipped, outside MANIFEST.json's payload), written atomically before the planted file; plant() refuses while it exists, so a leftover bug can never become the 'original'. Every run restores and makes the seed current before the first bug, and refuses to run on a tree that cannot be made current.",
+  "Fix run, should_fix 1 and 3: test processes run in a session of their own (a terminal Ctrl-C reaches only run.py, which ends them itself and discards the bug they were measuring, since a cut-off test proves nothing) and under setpriv --pdeathsig KILL where setpriv exists, so a killed run leaves no test running. Packaging runs in its own session without that signal, so it is never cut off half written. A stop for a tree error keeps the row that was measured, then exits 1.",
+  "Fix run: the 'refresh_failed' verdict in the README did not exist in the code (rows carry a 'refresh' reason); the README now describes what run.py writes, and the new 'error' verdict.",
+  "Fix run, should_fix 4: test_record_paths was added to tier 0 here (tools/tiers.json and the docs/CHECKS.md sentence that lists the owner's guards), since tiers were already merged into this worktree's base; the coordinator need not do it at merge.",
+  "run.py makes the seed current with tools/package_graphite.py --manifest-only only, and does not record docs/GRAPHITE_0.1_REGISTRY.json again. The registry records operations and the code that serves each, not source bytes, so when LiveRecord fails on a planted bug the behaviour of the live foundation changed. M092, M094 and M095 are counted as caught that way. Re-recording the registry would hide that change.",
+  "When packaging refuses a planted tree, the bug runs on the stale seed. Every failure counts except test_project_desk.Seed.test_the_seed_of_this_tree_is_current, and the report lists the bug apart (M093, M096). The headline numbers set these two apart, and I also give the figure that counts them.",
+  "Digest rule (build run; extended in the fix run to test_rail_demo and the early seed, see above): the program's own refusal is unchanged. In tests only, the window modules (test_desk_acts.build_window, which test_desk_scenes uses, and test_context_menu.setUpModule) read an edited, unpackaged seed (STALE or SOURCE_UNAVAILABLE) as bound, keeping its real seed_id. The Kernel modules already did this. An absent or broken seed still refuses. The one place that says the seed is stale is test_project_desk.Seed.test_the_seed_of_this_tree_is_current. This was a small change, so I made it rather than putting it in not_done.",
+  "Two new modules, each where no module fitted: test_record_paths (record_io had none) and test_viewer_kinds (universal_view and the view modules had none). Each is in FOCUSED_MODULES on its own line with its own comment, after test_resource_rules.",
+  "The M020 test does not build a whole adaptive investigation, which needs a problem, a model binding and a live model. It writes the stored order as the adaptive controller leaves it (profile and current job), then calls the real work.pause/work.revoke and the real jobs.cancel.",
+  "M055 is in the 'other' group because files_service is not on the guarding list, but it guards the owner's files. Its test is in test_change_sets because the refusal tells the caller to propose the change instead.",
+  "M060 needed no new test: test_line_rules already tests files_service.number but was missing from the bug's module list in bugs.json. I put it first there.",
+  "bugs.json keeps the 0.8.2 verdicts, ids and layout. It adds verdict_0_8_4, so a later release can compare bug by bug and see if a retired test lowered the rate.",
+  "The take test went into a new class TheBounds, not TheSevenFaults, because that class holds the seven line faults from part A.",
+  "The README example uses COPY_A/COPY_B placeholders, so there is no absolute path anywhere in tools/planted_bugs."
+ ],
+ "not_done": [
+  "Fix run: the planted-bug campaign was not rerun as a whole; the guarding and overall rates below are the build run's (19-20 Nov), and only five bugs (M020, M078, M097, M127, M155) plus M075 were rerun with the new runner, all with the expected verdict.",
+  "Fix run: test_rail_demo_campaign's twin runs are skipped, not run, on a stale seed: holding the seed inside the campaign's child processes would need a hook in tools/campaign.py, which ships, and would weaken the program's refusal. Left as a skip with its reason.",
+  "Fix run: the five older inline seed holds (test_project_desk, test_line_rules, test_change_sets, test_continuing_work, test_slate_reasoning) still have their own copies; moving them to seed_hold.py is a tidy-up for a later release.",
+  "Fix run: a refresh (packaging) that is running when run.py is killed with -9 is left to finish on its own; if a new run starts at once, two packagings may touch the same copy. The README says to start again after a kill; not guarded further.",
+  "Fix run: the modules the build touched and this run did not (test_change_sets, test_continuing_work, test_line_rules, test_memory_settings, test_model_settings, test_resource_rules, test_stacy_hand, test_record_paths, test_viewer_kinds, test_graphite) were not rerun; none of their files changed in the fix run, and the review ran all 19 in both looks (341 tests per look, 0 failing).",
+  "M071 local_brain._start_server: the fallback process.kill() after kill_owned. Under the simulator, FakePopen.wait() kills the process itself, so the fallback cannot be seen. Catching it needs a FakePopen whose wait() only waits, with kill_owned patched to do nothing. It was not in the 0.8.2 valid set.",
+  "M075 model_settings.snapshot, '>' to '>=' on the journal budget (void at 0.8.2): missed. It needs a test whose job records add up to exactly MAX_JOURNAL bytes, all listed and not marked partial.",
+  "M063 line_steps.preview_columns 'long column' threshold of 24 (boundary): missed. It needs a line preview with a column that averages exactly 24 characters.",
+  "M150 stac_bridge.compile_program 4,096-byte bound (boundary): missed. It needs a program of exactly 4,096 bytes accepted and one of 4,097 refused.",
+  "M114 change_sets_qt.ChangesTab.reload, 'is' to 'is not': caught at 0.8.2 by test_every_navigation_changes_nothing ('No app office in the Apps list'), missed now on a current seed. That catch was probably a seed-digest failure counted as behaviour. It needs a window test that opens Changes after a proposal and checks the list shows it.",
+  "Other gaps not written or rerun (26), with what each needs. M015: open the sheet menu's More on '07 Limits Rev B CURRENT' and read the 'Compare with Rev A' row. M043, M045, M046 (field_page): Field window tests for the face signal, a refused office read, and leaving the Field after an open. M142 (field_doubt.doubts_for): the doubts list of a Rail Demo sheet. M138: idle display woken by input. M123: record and read one evidence receipt. M066: a line holding exactly two readings. The Qt tabs and services M104, M120, M121, M126, M130, M136, M137, M140, M141, M149, M151 and M154: window tests. The drawing-only M107, M110, M113, M115, M128 and M144: pixel or geometry checks.",
+  "No fresh sample. The rerun uses the 0.8.2 sample, and most of its gaps now have tests written for them, so 96% overstates protection against a bug nobody has planted yet. The honest next measure is a new sample over the guarding files (the 14 November mutator with a new seed).",
+  "The whole suite was not run (the coordinator runs it in both looks at merge), tools/check_*_ui.py was not run, and nothing ran on the owner's ThinkPad.",
+  "test_desk_scenes stays in the per-commit run. mutants.md suggested moving it to release-only, which is outside this item."
+ ],
+ "release_note": "0.8.4 checks its own tests by planting small bugs in the code and counting how many the tests catch. In the code that protects you (Kasandra's hand, the Kernel's permissions and record paths, the memory and model rules, change sets and undo, continuing work, the seed and release checks), the tests caught 30 of 53 at 0.8.2 and catch 51 now (96%); the other two make packaging refuse to build. Most of the new tests were written for these same planted bugs, so 96% says these holes are closed, not how a bug nobody has planted yet would fare; across all 131 the rate rose from 53% to 76%. A window test no longer fails only because the seed is out of date: one test says so and names the commands that fix it, and the Rail Demo scene run, which runs the program itself, says why it waits. The rerun lives in tools/planted_bugs, can be stopped and started again safely, and is never shipped."
+}

@@ -7,6 +7,7 @@ stop staying visible, and the simulated offload mark. The readings come from the
 
   python -B -m unittest -v tests_integrated.test_resource_rules
 """
+import contextlib
 import json
 import os
 import tempfile
@@ -302,6 +303,57 @@ class Offload(Workspace):
                                             [sim.Worker(log=OFFLOAD_41, n_ctx=4096)]))
         worker = local_brain.status(self.kernel)['worker']
         self.assertEqual(worker['offload_evidence'], 'PINNED_WORKER_LOAD_LOG: offloaded 41/41 layers to GPU')
+
+
+class OwnersNumbers(Workspace):
+    """The owner's own reserve, a resident model's budget and the one-coordinator rule, each as admission and the model
+    start apply it (0.8.4: planted bugs in these rules went unnoticed in 0.8.2)."""
+
+    def job(self, ident, tool, lane, state='Queued', memory_mb=256):
+        return dict(id=ident * 32, owner=self.owner.identity, tool=tool, state=state, created=1.0, request_spec={},
+                    resource_request=dict(priority='foreground', lane=lane, memory_bytes=memory_mb * MiB, basis='FIXTURE',
+                                          model_handover=False))
+
+    def decide(self, job, host=None, rss=None):
+        used = patch.object(resource_control, 'process_memory', return_value=dict(rss_bytes=rss, private_bytes=0, observed=True)) \
+            if rss is not None else contextlib.nullcontext()
+        with used, self.kernel.db() as db:
+            return resource_control.decision(self.kernel, job, db, host or brain_runtime.host())
+
+    def test_the_owners_smaller_reserve_reaches_the_model_start(self):
+        with self.kernel.db() as db:
+            db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', ('ledger.operations.reserve_mb', json.dumps(1024)))
+        self.assertEqual(resource_control.reserve_setting(self.kernel), 1024)
+        self.host.available = 33         # the 32,768 MiB cap and the owner's 1,024 MiB reserve, exactly
+        self.assertIsNone(self.activate(self.model, 'owners-reserve', {'memory_mb': 32768, 'backend': 'CPU'}, [sim.Worker(n_ctx=4096)]))
+        self.assertEqual(local_brain.status(self.kernel)['state'], 'READY')
+
+    def test_a_resident_models_unused_budget_is_kept_from_other_work(self):
+        self.assertIsNone(self.activate(self.model, 'resident', {'memory_mb': 32768, 'backend': 'CPU'}, [sim.Worker(n_ctx=4096)]))
+        calculation = self.job('f', 'kicad.drc', 'compute', memory_mb=512)
+        host = dict(available_ram_bytes=(2048 + 512) * MiB, total_ram_bytes=64 * GiB, logical_cpus=16)   # the reserve and 512 MiB
+        part = self.decide(calculation, host, rss=(32768 - 1024) * MiB)      # 1,024 MiB of its budget not yet used
+        self.assertEqual((part['allowed'], part['reserved_future_bytes']), (False, 1024 * MiB))
+        for rss in (32768 * MiB, 40000 * MiB):                               # all of it used, or more: nothing more is kept
+            full = self.decide(calculation, host, rss=rss)
+            self.assertEqual((full['allowed'], full['reserved_future_bytes']), (True, 0), rss)
+        short = dict(host, available_ram_bytes=host['available_ram_bytes'] - 1)
+        self.assertFalse(self.decide(calculation, short, rss=32768 * MiB)['allowed'], 'one byte short of its room, it waits')
+
+    def test_a_second_coordinator_waits_and_other_work_is_not_held_by_one(self):
+        self.assertTrue(self.decide(self.job('d', 'clip.workshop', 'control'))['allowed'])
+        self.kernel.save('jobs', self.job('c', 'clip.loop', 'control', 'Running'))
+        second = self.decide(self.job('d', 'clip.workshop', 'control'))
+        self.assertFalse(second['allowed']);self.assertIn('coordinator', second['reason'])
+        calculation = self.decide(self.job('e', 'kicad.drc', 'compute'))
+        self.assertTrue(calculation['allowed'], calculation['reason'])
+
+    def test_a_layer_count_outside_minus_one_to_512_is_refused(self):
+        for layers in (-1, 0, 512):
+            self.assertEqual(self.configure({'gpu_layers': layers})['memory_mb'], 32768, layers)
+        for layers in (-2, 513):
+            with self.assertRaisesRegex(ValueError, '^MODEL_ACCELERATION_OPTIONS_INVALID'):
+                self.configure({'gpu_layers': layers})
 
 
 class SharedReading(unittest.TestCase):

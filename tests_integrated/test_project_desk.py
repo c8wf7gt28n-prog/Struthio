@@ -10,12 +10,13 @@ import unittest
 from unittest.mock import patch
 from workbench.baseline import environment
 from workbench.engineering_kernel import Kernel, Principal, operator
-from workbench import project_desk as desk
+from workbench import project_desk as desk, stacy_foundation as foundation
 from workbench.project_desk_checks import fixture, invoke, plan_arguments, REQUEST
 
 
 
 HOLDS=[]
+PACKAGED_SEED_STATUS = foundation.seed_status     # the real reading, kept before the module hold below replaces it
 
 
 def setUpModule():
@@ -187,6 +188,57 @@ class ProjectDesk(unittest.TestCase):
         self.assertEqual(self.call('ideas.list', {})['records'], before)
         self.assertEqual(planned['plan']['native']['schema'], 'arc.registered-call/1')
         self.assertEqual(planned['plan']['permissions']['authority'], 'REQUEST_ONLY_NO_GRANT')
+
+
+
+class Seed(unittest.TestCase):
+    """0.8.4: the one test whose job is that the seed shipped with this tree is current (every other module reads an edited,
+    unpackaged seed as bound, so a stale digest never fails them), and the rules of a seed on a fixture of its own."""
+
+    def test_the_seed_of_this_tree_is_current(self):
+        status = PACKAGED_SEED_STATUS(foundation.locations.PACKAGE)
+        self.assertEqual(status['state'], 'VERIFIED_SOURCE_BINDINGS',
+                         'The packaged seed is not current (changed: %s; missing: %s). After any source edit run: python3 '
+                         'tools/package_graphite.py --manifest-only; python3 tools/record_registry.py; python3 '
+                         'tools/package_graphite.py --manifest-only; python3 tools/record_registry.py --check'
+                         % (status.get('changed_sources'), status.get('missing_sources') or status.get('reason')))
+
+    def tree(self, base):
+        """A program folder holding every seed input (a line of text each) and a seed built over exactly those bytes."""
+        inputs = {}
+        for name in foundation.SEED_INPUTS:
+            path = base / name; path.parent.mkdir(parents=True, exist_ok=True); raw = ('# ' + name + '\n').encode()
+            path.write_bytes(raw); inputs[name] = foundation.sha(raw)
+        seed = base / foundation.SEED_DIR; seed.mkdir(parents=True); files = {}
+        for member in ('catalog.json', 'index.sqlite'):
+            (seed / member).write_bytes(member.encode()); files[member] = foundation.sha(member.encode())
+        (seed / 'manifest.json').write_text(json.dumps(dict(schema=foundation.SCHEMA, inputs=inputs, files=files, records=0,
+                                                             seed_id=foundation.sha(foundation.canonical(inputs)))))
+        return base
+
+    def test_a_note_may_be_left_out_of_a_copy_and_a_program_file_never(self):
+        with tempfile.TemporaryDirectory(prefix='graphite-seed-') as temp:
+            root = self.tree(Path(temp))
+            self.assertEqual(PACKAGED_SEED_STATUS(root)['state'], 'VERIFIED_SOURCE_BINDINGS')
+            note = next(n for n in foundation.SEED_INPUTS if n.startswith('docs/') and n.endswith('.md'))
+            (root / note).unlink()
+            status = PACKAGED_SEED_STATUS(root)
+            self.assertEqual((status['state'], status['carried_in_seed'], status['missing_sources']), ('VERIFIED_SOURCE_BINDINGS', [note], []))
+            program = next(n for n in foundation.SEED_INPUTS if n.endswith('.py') and n != 'workbench/engineering_kernel.py')
+            (root / program).unlink()
+            status = PACKAGED_SEED_STATUS(root)
+            self.assertEqual((status['state'], status['missing_sources']), ('SOURCE_UNAVAILABLE', [program]))
+            with patch.object(foundation, 'seed_status', PACKAGED_SEED_STATUS):
+                with self.assertRaisesRegex(ValueError, 'SOURCE_UNAVAILABLE'):
+                    foundation._require_seed(root)
+
+    def test_a_prerequisite_over_32_000_000_bytes_is_missing(self):
+        with tempfile.TemporaryDirectory(prefix='graphite-prerequisite-') as temp:
+            from workbench.hardware_review import BASE
+            proof = Path(temp) / BASE / 'closure_p8/P8_VERIFICATION.json'; proof.parent.mkdir(parents=True)
+            for size, missing in ((32_000_000, []), (32_000_001, [proof.relative_to(temp).as_posix()])):
+                with proof.open('wb') as out:out.truncate(size)
+                self.assertEqual(foundation.prerequisites(temp, 'hardware.proof.inspect'), missing, size)
 
 
 if __name__ == '__main__': unittest.main()
