@@ -22,6 +22,10 @@ slots that carry a number and the record each number is read from. check() scans
     "you have until", "entitled", "liable", "guilty", "safe", "safely", "recommend", "advice" (except in the fixed
     footer), "chance", "likely", "probability", "risk of", "odds".
 
+0.8.7 C5: her character file (voice_character) feeds these rules. never_said() finds its never-say phrases and marks in
+her own words, max_words() is the shorter of MAX_WORDS and the file's sentence length; check() and scan_text() read both.
+The file adds to this floor and never lifts it. When voice_character is not in the program, the floor alone applies.
+
 banned() and style() scan any text the same way (a finished card, its title, a Doubt row): what stands inside quotation
 marks is the source's own words and is not hers, and the fixed footer is the one place "advice" is said.
 
@@ -50,7 +54,8 @@ STYLE = ("Marie Curie's precision: every number carries its receipt; cannot tell
          "Eleanor Roosevelt's plain warmth: plain words, the person first, and always the next step.")
 # Modules whose templates are registered here when they are imported (collect() imports them; a module that is not in
 # this program yet is passed over, so a lane's templates join the scan the day its module lands).
-MODULES = ('workbench.mind_words', 'workbench.rules', 'workbench.quotes', 'workbench.page_marks')  # 0.8.7 C2: pencil words
+MODULES = ('workbench.mind_words', 'workbench.rules', 'workbench.quotes', 'workbench.page_marks',  # 0.8.7 C2: pencil words
+           'workbench.voice_character')            # 0.8.7 C5: her character file's own plain words
 
 QUOTED = re.compile(r'“[^”]*”|"[^"]*"')
 SENTENCE = re.compile(r'(?<=[.?!])\s+')
@@ -111,6 +116,34 @@ def banned(text):
     return [word for word in BANNED if re.search(r'(?<![\w-])%s(?![\w-])' % re.escape(word), plain)]
 
 
+def character():
+    """Her character in force (0.8.7 C5, voice_character), or None when it is not in this program."""
+    try:from . import voice_character
+    except ImportError:return None
+    return voice_character.current()
+
+
+def max_words():
+    """The most words in one of her sentences: MAX_WORDS, or fewer when her character file says so."""
+    found = character()
+    return min(MAX_WORDS, found['lengths']['sentence_words']) if found else MAX_WORDS
+
+
+def never_said(text):
+    """Her character file's never-say phrases and marks found in her own words in `text` (quoted source words and the fixed
+    footer set aside), in the file's order; what BANNED and the exclamation-mark rule already catch is not said twice."""
+    found = character()
+    if not found:return []
+    plain = ' %s ' % ' '.join(unquoted(text).lower().replace('’', "'").split())
+    out = []
+    for item in found['never_say']:
+        phrase = item['phrase'].lower().replace('’', "'")
+        if phrase in BANNED or phrase == '!':continue
+        hit = (phrase in plain) if item['mark'] else re.search(r'(?<![\w-])%s(?![\w-])' % re.escape(phrase), plain)
+        if hit:out.append(item['phrase'])
+    return out
+
+
 def sentences(text):
     return [s for s in SENTENCE.split(' '.join(str(text).split())) if s]
 
@@ -120,8 +153,9 @@ def style(text):
     problems = []
     plain = re.sub(r'\{[^{}]*\}', 'x', str(text))
     if '!' in unquoted(plain):problems.append('an exclamation mark')
+    most = max_words()
     for sentence in sentences(plain):
-        if len(sentence.split()) > MAX_WORDS:problems.append('a sentence of %d words: %s' % (len(sentence.split()), sentence[:60]))
+        if len(sentence.split()) > most:problems.append('a sentence of %d words: %s' % (len(sentence.split()), sentence[:60]))
     return problems
 
 
@@ -133,6 +167,7 @@ def check(entries=None):
         text = entry['text']
         for word in banned(text):out.append((module, key, 'banned word: %s' % word))
         for problem in style(text):out.append((module, key, problem))
+        for phrase in never_said(text):out.append((module, key, 'never-say (her character file): %s' % phrase))
         fixed = re.sub(r'\{[^{}]*\}', ' ', text)
         if DIGIT.search(unquoted(fixed)):out.append((module, key, 'a digit in the fixed words: a number arrives only through a slot'))
         for name in slots(text):
@@ -143,7 +178,8 @@ def check(entries=None):
 
 def scan_text(text):
     """What a finished card, title or Doubt row breaks: banned words outside quotes, and the style rules."""
-    return ['banned word: %s' % w for w in banned(text)] + style(text)
+    return (['banned word: %s' % w for w in banned(text)] + ['never-say (her character file): %s' % p for p in never_said(text)]
+            + style(text))
 
 
 register('mind_words', {'footer': FOOTER, 'intro': INTRO}, kind='footer')

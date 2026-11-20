@@ -1,0 +1,51 @@
+{
+  "item": "C5",
+  "slice": "0.8.7 C5 - her character file (lane C)",
+  "state": "BUILT_NOT_TESTED",
+  "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C5.patch",
+  "notes": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C5.progress.md",
+  "smoke_output": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C5/out2.txt",
+  "files": {
+    "new": ["workbench/voice_character.py", "workbench/kasandra/character_starter.md"],
+    "changed": [
+      "workbench/mind_words.py (0.8.6 style rules fed by the character file: character(), max_words(), never_said(); check() and scan_text() report never-say phrases; MODULES gains workbench.voice_character)",
+      "tools/check_hatch.py (privacy scan: NAME_PATTERNS 'her-character-file' finds a shipped file or archive member named character.md or kept in kasandra/.revisions)",
+      "workbench/engineering_kernel.py, workbench/engineering_cli.py (own C5 block: voice.character read, voice.character.start execute, voice.character.admit approve)",
+      "docs/GRAPHITE_0.1_REGISTRY.json (regenerated in the copy; coordinator regenerates at merge)"
+    ]
+  },
+  "built": [
+    "The file is <workspace>/kasandra/character.md, editable in any App. voice.character.start writes the starter where no file is (never overwrites) and admits it as revision 1.",
+    "Admitted with revisions: voice.character.admit {expected_sha256} admits the file as it is now only if its bytes are the ones read and it compiles; exact bytes kept in <workspace>/kasandra/.revisions/<sha256>.md with index.json (ledger.character/1). {revision: n} takes an earlier revision back as a new TAKEN_BACK revision. An unadmitted edit changes nothing; a broken edit leaves the revision in force; a damaged kept copy falls back to the starter, said in plain words. Graphite never writes your file except to start it.",
+    "Exact compile (headings ## and dash bullets, no model): Registers (plain, formal, warm, each with its kinds of work), Manner, Joining words (words only), Never say (quoted phrase or mark, with a note), Lengths (sentence words, sentences per register). Other lines and unknown headings are your notes, kept, never compiled. Errors in plain words with the line number. The file adds to the floor and never lifts it (sentence words capped at mind_words.MAX_WORDS; '!' and 0.8.6 banned words stay banned). Manner may not name the three women.",
+    "card(): the text for FRAME's system message; compile refuses a card over 160 tokens, counted by an optional exact counter (the bundled tokenizer, count=) or else by grammars.estimate (an upper estimate). Digest covers the character content only.",
+    "Governs her words with or without a model: mind_words.check() sweep and scan_text() read the character in force; API for C4's gate and FRAME: never_say(), budgets(register), register_for(kind), scan(text, register), current(), use(root), in_force(root).",
+    "Kit: only workbench/kasandra/character_starter.md ships (its line 'A starter, not yet yours.' sets starter=True until the owner deletes it); private_in(names) and the release check's privacy scan catch a planted character.md or kept revision."
+  ],
+  "smoke_printed": {
+    "starter": "compiles, no errors; starter mark True; digest stable; starter does not name the three women",
+    "card_tokens": "starter card 155 by the upper estimate, 120 by the bundled tokenizer (llama-tokenize b11669, vocab only, 4B and 2B both 120, under the model lock); the first draft card was 197 by the tokenizer and was shortened",
+    "compile_vectors": "no Never say heading; unknown register 'cosy' (+ warm missing); 'at most three sentences' not understood with example; 40 words over the floor of 30; a digit in joining words; Manner naming Marie Curie refused; Lengths heading twice; empty quotes; a domain given to two registers; card about 178 tokens refused; non-UTF-8 refused; notes kept as ['Your own words','My draft'] - each gave its plain-words error",
+    "sweep": "mind_words.check() over all registered templates: 0 problems; planted template 'As an AI, I cannot tell.' -> ('planted','x','never-say (her character file): As an AI'); scan_text('Done!') -> an exclamation mark; quoted source words not flagged; a 4-sentence plain answer -> '4 sentences, and the plain register allows 3'",
+    "registers": "CONTRACT, STATUTE_TEXT, lease -> formal; money, deposit -> warm; engineering, unknown -> plain",
+    "revisions": "fresh -> STARTER; start -> revision 1; start again -> nothing written; owner edit unadmitted -> revision 1 stays, 'cannot be admitted' (161 by estimate); wrong sha refused; same edit admitted with the bundled tokenizer's exact count (124) as revision 2 YOUR_FILE; after it scan_text('Of course, the rail holds.') -> never-say: of course, max_words 25; broken edit (no Lengths heading) refused, revision 2 stays; take back 1 -> revision 3 TAKEN_BACK; tampered kept copy -> 'The kept copy of revision 3 is damaged. She speaks by the starter until you admit the file again.'",
+    "kernel": "voice.character read ok (origin STARTER); voice.character.start with execute ok (revision 1); voice.character.admit as a read/execute principal refused: outside the authorized scope",
+    "privacy": "payload_privacy over a planted x/kasandra/character.md and a kit.zip holding kasandra/character.md and a .revisions copy -> FAILED with three 'her-character-file' findings (file and category only); the starter alone -> PASSED; private_in(MANIFEST files) -> []"
+  },
+  "decisions_where_design_silent": [
+    "No owner draft is in the tree (wip/2026-11-14/NOTES.md records only that he likes the three references; the 19 Nov handoff's 'Character File' was 'just ideas', not installed), so the starter alone, with a 'Your own words' heading where his draft goes word for word and is never compiled.",
+    "Starter path is workbench/kasandra/character_starter.md (the lane table names kasandra/character_starter.md beside workbench modules), so it ships in the payload.",
+    "'Admitted' means an explicit owner press (approve scope), not automatic on read: an edit takes effect only when admitted, and an expected_sha256 guards against the file changing between read and admit.",
+    "Card limit: the compile cannot load a tokenizer, so without a counter it uses grammars.estimate (an upper estimate, about 1.3 times the real count). This guarantees <=160 real tokens but leaves only 5 estimate tokens of room over the starter; an exact count (count=) gives about 40 tokens of room. The Kernel ops pass no counter in C5 (no model); FRAME (C6) or the admit window can pass the worker's /tokenize.",
+    "The card leaves out which kinds of work go to which register (the desk picks the register with register_for), to fit 160 tokens.",
+    "'safe' about anything not proven is banned outright in her own words (as 0.8.6 already does); the note travels to the card for the model.",
+    "Op names voice.character, voice.character.start, voice.character.admit (the design's operation table names none for C5)."
+  ],
+  "not_done": [
+    "No tests written or run (owner's rule); no tiers, no window checks; nothing ran on the ThinkPad; no model was loaded (only llama-tokenize in vocab-only mode under the model lock, to count the card).",
+    "No window for the character file (the admit press, the plain-words errors on screen): not in C5's scope; the ops carry the words.",
+    "Her column's renderer does not call scan() yet; the feed reaches every finished card through mind_words.scan_text and the template sweep. voice_gate (C4) should read never_say() and budgets() from here.",
+    "The model check kit (A5) is not in the tree; its kit builder should call voice_character.private_in or rely on the release check's scan."
+  ],
+  "existing_tests_changed": "none"
+}

@@ -770,6 +770,9 @@
    "vendor.status": "workbench/vendor_adapter.py#dispatch",
    "vendor.value": "workbench/vendor_adapter.py#dispatch",
    "viewer.describe": "workbench/universal_view.py#dispatch",
+   "voice.character": "workbench/voice_character.py#dispatch",
+   "voice.character.admit": "workbench/voice_character.py#dispatch",
+   "voice.character.start": "workbench/voice_character.py#dispatch",
    "word.get": "workbench/your_word.py#dispatch",
    "word.list": "workbench/your_word.py#dispatch",
    "word.set": "workbench/your_word.py#dispatch",
@@ -1012,9 +1015,9 @@
   }
  },
  "counts": {
-  "adapters": 814,
+  "adapters": 817,
   "job_tools": 113,
-  "operations": 814,
+  "operations": 817,
   "settings": 48
  },
  "formulas": {
@@ -7635,6 +7638,24 @@
    },
    "scope": "read"
   },
+  "voice.character": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "voice.character.admit": {
+   "arguments": "ce33c063027fd6d8867762a5de0c0c164f61ae8cab0054224aacaae6541b2920",
+   "properties": {
+    "expected_sha256": "8d84283928a18afc",
+    "revision": "8289f552d4d24e43"
+   },
+   "scope": "approve"
+  },
+  "voice.character.start": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "execute"
+  },
   "word.get": {
    "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
    "properties": {
@@ -8019,7 +8040,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "a0f3e9959e98eb4d74a536270a502c91c5279f704007d55ef51ff1851a282f25",
+ "schema_digest": "2dc10c47325e22fea362367bb899f3284ead0935b57114b2a4cacf7df2d312b1",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

@@ -9,8 +9,9 @@ Sections, each with its own state:
   changed (with the fields that changed) or moved, and a changed adapter;
 - payload_privacy: every shipped file and every member of a shipped .zip, .xlsx or .docx is scanned for developer home paths
   (the build container's root home and per-session temp root included), private keys, provider keys and GitHub tokens; private
-  state folders, logs, compiled files, key files, symlinks and unsafe archive members fail. Only the file and the category are
-  reported, never the matched value;
+  state folders, logs, compiled files, key files, symlinks and unsafe archive members fail; so does her character file
+  (0.8.7 C5): a shipped file or archive member named character.md, or a revision kept in kasandra/.revisions (the kit ships
+  only character_starter.md). Only the file and the category are reported, never the matched value;
 - focused_tests (--self-test): every fast current-behaviour tests_integrated module, one module per child, never discover;
 - ui_checks (--ui): the UI gate, the offscreen Qt checks, each writing its captures under build/release_check_ui/<check>.
 
@@ -158,6 +159,9 @@ PATTERNS={
  'private-key':re.compile(rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----'),
  'provider-key':re.compile(rb'(?:AIza[0-9A-Za-z_-]{32,}|sk-(?:proj-|ant-)?[A-Za-z0-9_-]{40,})'),
  'github-token':re.compile(rb'(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{50,})')}
+# 0.8.7 C5 (her character file): your kasandra/character.md and its kept revisions are private, found by name wherever they
+# are (a shipped file or an archive member). The same rule as workbench/voice_character.py PRIVATE_NAME.
+NAME_PATTERNS={'her-character-file':re.compile(r'(?:^|[/!\\])(?:character\.md|\.revisions[/\\][0-9a-f]{64}\.md)$',re.IGNORECASE)}
 
 
 def canonical(value):return json.dumps(value,sort_keys=True,separators=(',',':'))
@@ -309,6 +313,8 @@ def runtime_section(root=ROOT,runner=None):
 def _scan(name,raw,findings):
     for category,pattern in PATTERNS.items():
         if pattern.search(raw):findings.append({'file':name,'category':category})
+    for category,pattern in NAME_PATTERNS.items():   # 0.8.7 C5: found by its name
+        if pattern.search(name):findings.append({'file':name,'category':category})
 
 
 def payload_privacy(root=ROOT,files=None,allowed=PRIVACY_ALLOWED):
@@ -339,7 +345,7 @@ def payload_privacy(root=ROOT,files=None,allowed=PRIVACY_ALLOWED):
         else:kept.append(finding)
     problems+=[item['file']+': '+item['category'] for item in kept]
     return {'state':'FAILED' if problems or not names else 'PASSED','files_scanned':len(names),'archives_scanned':archives,
-        'patterns':sorted(PATTERNS),'findings':kept,'accepted':accepted,'problems':problems if names else ['no shipped file list (MANIFEST.json)'],
+        'patterns':sorted(PATTERNS)+sorted(NAME_PATTERNS),'findings':kept,'accepted':accepted,'problems':problems if names else ['no shipped file list (MANIFEST.json)'],
         'reading':'Values are never printed: only the file and the category.'}
 
 
