@@ -32,6 +32,8 @@ reconsider stays IN, is shown with what changed, and is not applied by her reaso
   word.get   {id}                                                          read   the word, its freshness and history
   word.set   {sort, goal?, choice?, sheet?, cell?, span?, means?, from?,   approve  (ALWAYS_ASKS)
               to?, words?, standing?, because?}
+             | {sort: CHOICE, rule, choice, cell} | {sort: CHOICE, rule,       which row applies past what a rule card covers,
+               none: true}                                                 or none (0.8.6 S6, rules.beyond_word; scope 'rule')
              | {id, expected_revision, state}                              set aside (OUT) or take back (IN)
 
 Pure Python apart from the Kernel's own record store; no Qt, no model, no float.
@@ -65,7 +67,8 @@ FIELDS = {
                   'span': _TEXT, 'means': _TEXT, 'from': _DATE, 'to': _DATE, 'words': _TEXT,
                   'standing': {'type': 'string', 'enum': list(STANDING_CHOICES)},
                   'because': {'type': 'array', 'maxItems': 8, 'items': _ROW},
-                  'id': records.ID, 'expected_revision': records.REV, 'state': {'type': 'string', 'enum': list(STATES)}}, []),
+                  'id': records.ID, 'expected_revision': records.REV, 'state': {'type': 'string', 'enum': list(STATES)},
+                  'rule': {'type': 'string', 'pattern': '^[a-f0-9]{32}$'}, 'none': {'type': 'boolean'}}, []),   # 0.8.6 S6: past what a rule covers
 }
 WRITES = ('word.set',)
 SCOPES = {op: 'approve' if op in WRITES else 'read' for op in FIELDS}
@@ -167,7 +170,7 @@ def _compose(kernel, principal, args):
     rows and sheets it is said about, bound as they stand."""
     sort = args.get('sort')
     if sort not in SORTS:raise ValueError('WORD_SORT: say which sort of word this is')
-    allowed = {'CHOICE': {'goal', 'choice', 'because'}, 'READING': {'sheet', 'cell', 'span', 'means', 'because'},
+    allowed = {'CHOICE': {'goal', 'choice', 'because', 'rule', 'cell', 'none'}, 'READING': {'sheet', 'cell', 'span', 'means', 'because'},
                'COMPLETE': {'sheet', 'from', 'to', 'because'}, 'SAYS': {'words', 'goal', 'because'}, 'STANDING': {'standing'}}[sort]
     extra = set(args) - allowed - {'sort'}
     if extra:raise ValueError('WORD_FIELDS: a %s word does not take %s' % (sort, ', '.join(sorted(extra))))
@@ -177,6 +180,13 @@ def _compose(kernel, principal, args):
         if not saved:raise ValueError('WORD_ROW_NOT_FOUND: that sheet cannot be read')
         because.append(_bind_row(saved, item['cell']))
     bound = [];subject = {};value = {};scope = 'desk'
+    if sort == 'CHOICE' and ('rule' in args or 'cell' in args or 'none' in args):   # 0.8.6 S6: which row applies past what a rule covers
+        if not args.get('rule') or args.get('goal'):raise ValueError('WORD_FIELDS: a row past what a rule covers names the rule, and no goal')
+        from .rules import beyond_word
+        statement, subject, value, bound, ident_key = beyond_word(kernel, principal, args)
+        fields = {'sort': sort, 'statement': statement, 'subject': subject, 'value': value, 'scope': 'rule', 'because': because, 'bound': bound,
+                  'set_by': 'owner', 'state': 'IN'}
+        return records.digest(list(ident_key)), fields
     if sort == 'CHOICE':
         if not args.get('choice'):raise ValueError('WORD_FIELDS: a choice names the sheet that applies')
         if args.get('goal'):

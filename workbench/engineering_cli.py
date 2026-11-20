@@ -39,6 +39,8 @@ def schemas():
     from .your_word import FIELDS as YOUR_WORD_FIELDS  # 0.8.6 S3: your word
     from .reading import FIELDS as READING_FIELDS  # 0.8.6 S4: her dictionary (requests.read)
     from .turns import FIELDS as TURN_FIELDS  # 0.8.7 E0 (the turn contract)
+    from .quotes import FIELDS as QUOTE_FIELDS  # 0.8.6 S6: pinned quotes
+    from .rules import FIELDS as RULE_FIELDS  # 0.8.6 S6: rule cards
     from .lab_service import FIELDS as LAB_FIELDS, OPTIONS as LAB_OPTIONS
     from .reason_service import FIELDS as REASON_FIELDS
     from .math_service import FIELDS as MATH_FIELDS, OPTIONS as MATH_OPTIONS
@@ -152,6 +154,7 @@ def schemas():
         **MIND_REASON_FIELDS, **YOUR_WORD_FIELDS,  # 0.8.6 S3: her reasons and your word
         **READING_FIELDS,  # 0.8.6 S4: her dictionary (requests.read)
         **TURN_FIELDS,  # 0.8.7 E0 (the turn contract)
+        **QUOTE_FIELDS, **RULE_FIELDS,  # 0.8.6 S6: pinned quotes and rule cards
         **REASON_FIELDS,
         **SLATE_CONTEXT_FIELDS,
         **SLATE_REASONING_FIELDS,

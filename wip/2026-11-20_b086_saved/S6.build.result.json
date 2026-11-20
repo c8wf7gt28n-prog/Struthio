@@ -1,0 +1,37 @@
+{
+  "item": "S6",
+  "status": "done",
+  "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S6.patch",
+  "progress": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S6.progress.md",
+  "smoke_script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S6/smoke.py",
+  "smoke_log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S6/smoke.log",
+  "built": [
+    "workbench/mind_words.py (new): register/say/check of her fixed templates; banned-word scan (design 5.1 list, outside quoted source words, 'advice' only in the fixed footer); style rules of 3.6 (no '!', at most 30 words a sentence, no digit in fixed words, every number slot names its record); FOOTER, INTRO, footer_for(sort) for STATUTE_TEXT and CONTRACT; scan_text for finished cards, titles and Doubt rows.",
+    "workbench/quotes.py (new): ledger.quote/1 records; quotes.pin (execute, your press) refuses QUOTE_NOT_ON_PAGE unless the exact words stand in that region of that page of an admitted file; state computed on read (CURRENT / MOVED / GONE against the file of the same name admitted now in the collection); quotes.list, quotes.get, quotes.check (with the rules to recheck), quotes.rebind (approve, ALWAYS_ASKS).",
+    "workbench/rules.py (new): ledger.rule/1 rule cards (needs, unless, gives, beyond); RULE_WITHOUT_SOURCE unless every part rests on a pinned quote or a reviewed row; tests: account, found, absent (absent is not false: only a COMPLETE word turns it), compare (a bound read from a row's words used only after a READING word), word, open; four-valued Belnap judgement, conclusion SUPPORTED / UNKNOWN / CONFLICT, never REFUTED; STALE when a quote is not CURRENT or a row changed; the open point with decisive leaves; past-the-bound judgement with the owner's CHOICE word; her proposed split from a table row writes nothing ('mine, not agreed'); all exact Fractions, no float, no model.",
+    "workbench/your_word.py: word.set CHOICE may name a rule (which row applies past what it covers, or none), via rules.beyond_word.",
+    "workbench/activity.py: quotes.* and rules.* reads added to OBSERVER_OPERATIONS.",
+    "workbench/engineering_kernel.py, engineering_cli.py: S6 block registering quotes and rules (beside 0.8.7 E0's turns).",
+    "docs/GRAPHITE_0.1_REGISTRY.json regenerated in a copy (record_registry.py --check: no differences) and copied back."
+  ],
+  "smoke_results": {
+    "mind_words.check()": "[] (53 templates registered); banned('Is the landlord liable?') = ['liable']; quoted 'is liable' + footer = []",
+    "no_fallacies": "256 combinations of three needs and one exception: 0 disagreements with a hand-written Belnap table; needs refuted -> UNKNOWN; UNKNOWN exception -> does not fire (UNDECIDED); CONFLICT exception -> CONFLICT; no REFUTED conclusion anywhere",
+    "ALWAYS_ASKS": "rules.set and quotes.rebind ask at ask, show and free (stacy_hand already named them in the base)",
+    "quotes": "§ 12(a) pinned on H1 page 1 reads CURRENT; § 12(c)'s words in § 3(a)'s region -> QUOTE_NOT_ON_PAGE; an invented revision of H1 (a § 11 paragraph added above § 12, § 12(c)'s words changed) admitted under the same name: § 3(a) CURRENT, § 12(a) MOVED, § 12(b) MOVED, § 12(c) GONE; the § 12(c) rule STALE, not applied (conclusion UNKNOWN); revision revoked and the old file re-admitted: all CURRENT, rule CURRENT and SUPPORTED again",
+    "home_demo_12c": "rules.set with an empty source -> RULE_WITHOUT_SOURCE; at the start UNDECIDED / UNKNOWN with the three-leaf open point [n1, n2, u1], title 'Do § 12(c)’s conditions, as you recorded them, hold on your records?', footer present, card scan clean; with COMPLETE, SAYS, H3 admitted and its words pinned: HOLDS / SUPPORTED, conclusion is § 12(c)'s quoted words, 'Worked out: 1,200.00 + 1,200.00 = 2,400.00.'; a row found in the window (stand-in: the -1450.00 rent row of 1 Oct, since Home Demo has no 1,200.00 credit) -> needs FAILS, conclusion UNKNOWN",
+    "rail_demo_R1": "her proposal from Rev B row 4 writes nothing (agreed False, writes 0, rule count 2 -> 2); without the READING word UNDECIDED (the reading is not used); with READING: needs FAILS at 45 ms, conclusion UNKNOWN, 'From 40 ms to 45 ms, no row on the desk gives a limit', state UNDECIDED; with the CHOICE word for the 4 W row: FAILS, 10.8 W against 4 W, over by 34/5 W (6.8 W)"
+  },
+  "decisions": [
+    "rules.py writes the Belnap lattice out (a few lines) instead of importing workbench.stac.evidence: importing the stac package from a module the Kernel imports at load time imported the Kernel back (circular import found when the seed tools ran).",
+    "quotes.pin is execute scope (the owner's press, checked against the page) and not ALWAYS_ASKS; only quotes.rebind and rules.set are approve and ALWAYS_ASKS, as S6 lists.",
+    "A newer revision of a source is the file of the same name admitted now in the same collection (the collection admits one file per name at a time); nothing about a quote's state is stored, so undoing a revision makes quotes current again.",
+    "The 'credit found on 20 Oct' example was checked with a found-row variant on an existing Home Demo row, because Home Demo's bank sheet has no 1,200.00 credit and the smoke does not edit the sheet."
+  ],
+  "not_done": [
+    "No test files written and the suite, tiers and window checks not run (the owner's 'No tests' rule); the earlier attempt's patch held no test files.",
+    "No existing test changed.",
+    "No Guide page or UI for rule cards (not part of S6)."
+  ],
+  "notes": "The worktree started from a newer base (0.8.7 E0 and A1 merged); the earlier S6 patch conflicted only in the registration lines of engineering_kernel.py and engineering_cli.py, resolved by keeping both blocks. The patch excludes MANIFEST.json, the seed and wip/, and a dry run applies it cleanly to the HEAD tree. Nothing ran on the owner's ThinkPad."
+}

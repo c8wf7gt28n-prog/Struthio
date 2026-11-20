@@ -585,6 +585,11 @@
    "projects.get": "workbench/project_desk.py#dispatch",
    "projects.link": "workbench/project_desk.py#dispatch",
    "projects.list": "workbench/project_desk.py#dispatch",
+   "quotes.check": "workbench/quotes.py#dispatch",
+   "quotes.get": "workbench/quotes.py#dispatch",
+   "quotes.list": "workbench/quotes.py#dispatch",
+   "quotes.pin": "workbench/quotes.py#dispatch",
+   "quotes.rebind": "workbench/quotes.py#dispatch",
    "reasons.create": "workbench/reason_service.py#dispatch",
    "reasons.evaluate": "workbench/reason_service.py#dispatch",
    "reasons.get": "workbench/reason_service.py#dispatch",
@@ -679,6 +684,10 @@
    "research.review": "workbench/research_service.py#dispatch",
    "research.status": "workbench/research_service.py#dispatch",
    "reviews.get": "workbench/project_desk.py#dispatch",
+   "rules.check": "workbench/rules.py#dispatch",
+   "rules.get": "workbench/rules.py#dispatch",
+   "rules.list": "workbench/rules.py#dispatch",
+   "rules.set": "workbench/rules.py#dispatch",
    "simulation.inspect": "workbench/console_simulation.py#dispatch",
    "slate.action": "workbench/adaptive_work.py#dispatch",
    "slate.action.result": "workbench/adaptive_work.py#dispatch",
@@ -991,9 +1000,9 @@
   }
  },
  "counts": {
-  "adapters": 793,
+  "adapters": 802,
   "job_tools": 113,
-  "operations": 793,
+  "operations": 802,
   "settings": 48
  },
  "formulas": {
@@ -6113,6 +6122,49 @@
    },
    "scope": "read"
   },
+  "quotes.check": {
+   "arguments": "c811f84ca9d65bb15f59a2bd7cad736c4bdfb4d0a3ad8ff43bdd3b93de57f0da",
+   "properties": {
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "read"
+  },
+  "quotes.get": {
+   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+   "properties": {
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "read"
+  },
+  "quotes.list": {
+   "arguments": "5ab2358ac0767bb1bf66df869c98d513d696745543c18cb14c204512eabbbb04",
+   "properties": {
+    "all": "7cb541e84f226754",
+    "item": "423010dfd115daf3"
+   },
+   "scope": "read"
+  },
+  "quotes.pin": {
+   "arguments": "2bab89bd0b9c60a3a6997da59d690a5424515157ad801800b9025a058a6ab669",
+   "properties": {
+    "item": "423010dfd115daf3",
+    "label": "7c2c69742619ef58",
+    "namespace": "423010dfd115daf3",
+    "page_index": "19dfd8e33ae96a3d",
+    "rect": "b1f508ec51e09343",
+    "source_sha256": "8d84283928a18afc",
+    "words": "76f40fe54111097c"
+   },
+   "scope": "execute"
+  },
+  "quotes.rebind": {
+   "arguments": "dd7b66f6e20ebd919a2f9a62c1eca27db46a261422ac39794a98e328dd20c5dd",
+   "properties": {
+    "expected_revision": "2a1379ebe9f4b632",
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "approve"
+  },
   "reasons.create": {
    "arguments": "57c7f7e9e376563f1cd5a17448864c5061c4ccbb57da38daa013a6850365dbe9",
    "properties": {
@@ -6897,6 +6949,43 @@
    },
    "scope": "read"
   },
+  "rules.check": {
+   "arguments": "b1ac8a4bca81c23e1b2a3cbbad71a40d4b47a20879349ae55b1f7604feb41cb6",
+   "properties": {
+    "id": "1a75c379fb0fafe6",
+    "propose": "5a81858f3757a7e7"
+   },
+   "scope": "read"
+  },
+  "rules.get": {
+   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+   "properties": {
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "read"
+  },
+  "rules.list": {
+   "arguments": "8545cb77cf64ac0e99084a8ef0e33911bf70a3a78338b26c56332b3a2ab9420e",
+   "properties": {
+    "all": "7cb541e84f226754"
+   },
+   "scope": "read"
+  },
+  "rules.set": {
+   "arguments": "1cb0a7664eb32f1b442f841cb11f4444a7426e1b987f426057bb2fc2763d7e7b",
+   "properties": {
+    "beyond": "99f223d6a6f30fa5",
+    "expected_revision": "2a1379ebe9f4b632",
+    "gives": "462721a230c184a7",
+    "id": "1a75c379fb0fafe6",
+    "needs": "b6f31aa6ebf12868",
+    "sort": "3aa7cd6115efe788",
+    "state": "bb42ca0547a2b0d9",
+    "title": "7c2c69742619ef58",
+    "unless": "b6f31aa6ebf12868"
+   },
+   "scope": "approve"
+  },
   "simulation.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
@@ -7431,7 +7520,7 @@
    "scope": "read"
   },
   "word.set": {
-   "arguments": "5865b49a8beaa1a81a532e26134e2cc2e45a8c39328683c03d240c35db738f52",
+   "arguments": "ef70e2365f3cc2123364234eb38e0ffe86009abb0679f34edcbe8ac9640ff156",
    "properties": {
     "because": "9c628200e6cc91a3",
     "cell": "4066b324a3b3ccec",
@@ -7441,6 +7530,8 @@
     "goal": "cb97d241241f843c",
     "id": "1a75c379fb0fafe6",
     "means": "11033dea281281d3",
+    "none": "7cb541e84f226754",
+    "rule": "423010dfd115daf3",
     "sheet": "a197705b0fea6cee",
     "sort": "8737ee61698fbcc8",
     "span": "11033dea281281d3",
@@ -7797,7 +7888,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "a1a066792b1f3b8eb3bcb46a272feed0573c3091d95a14c020492d680d856ba0",
+ "schema_digest": "ab0bc151f2a113233b5b70275d309d8c0b13babb9fb8e5e38ebafab37f2af5f6",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
