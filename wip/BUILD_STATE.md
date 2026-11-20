@@ -176,15 +176,21 @@ switched the session's model.
   cutting the 0.8.4 kit), stop and talk it through with the owner in plain words: what was built today and why, what the
   reviews caught, what is still open, what needs the owner's eye or decision, and what comes next. Then go on.
 
-## The owner's decision of 20 Nov 2026, about 03:20 UTC: a new order after 0.8.4
+## The owner's decision of 20 Nov 2026 (03:20 UTC, amended 03:30): a new order after 0.8.4
 
-The owner, after weighing skipping releases and tests: "Skip 85 do 86&89, then 88&85?" So, after 0.8.4:
+The owner: "Skip 85 do 86&89, then 88&85?", then "We should do 88 first??? It seems a root type". It is: the goals of
+the old 0.8.9 (she judges findings: "does not hold, over by 25 to 35 ms") are built on the maths core (ranges,
+tolerances, break-even), and so are her three questions as checks later. The door itself does not need it. So, after
+0.8.4:
 
 | Next kit | Holds (old names) | What the owner sees |
 |---|---|---|
-| **0.8.5** | old 0.8.6 her door on the Field + old 0.8.9 goals, quarantine and the web | Ask in words, she does it on the Field, a touch stops her; she judges findings; outside files and web pages arrive as information only; she can search |
-| **0.8.6** | old 0.8.8 maths in lines + old 0.8.5 skins and Kas by day | Solve, range, check, dates and money exactly; a day look to switch to |
+| **0.8.5** | old 0.8.8 maths in lines + old 0.8.5 skins and Kas by day | Solve, range, check, dates and money exactly; a day look to switch to |
+| **0.8.6** | old 0.8.6 her door on the Field + old 0.8.9 goals, quarantine and the web | Ask in words, she does it on the Field, a touch stops her; she judges findings with the maths; outside files and web pages arrive as information only; she can search |
 | then | old 0.8.7 her hand in LibreOffice (placement not yet settled with the owner; default: next), then old 0.8.10, 0.8.11, 0.8.12, 0.9.0 | |
+
+The maths is built and checked on Rail Demo with invented tolerances; the owner's real tolerances for After Hours 07
+and which limit applies when two revisions disagree are asked for later and do not block.
 
 Testing, as discussed with the owner (the "middle path", taken as the default until the owner says otherwise): keep
 running the existing tests on every change (free); write new tests and an independent review only for the safety rules
@@ -218,7 +224,7 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
-- 20 Nov 03:20 UTC: the owner set a new order after 0.8.4 (above).
+- 20 Nov 03:30 UTC: the owner set a new order after 0.8.4 (above): maths first, with the day look; then the door, goals and the web.
 - 20 Nov 02:45 UTC: **the full suite on everything merged (28e99db): 78 modules, 1,204 tests, 0 failing in BOTH looks.**
   Release prep started: workflow `graphite-084-release-prep` (run id `wf_50b7a084-3ec`, task `wm4i1ridj`; scratch
   `work/b084c/`): keys setting (remove "Script for incidental text") and private (the owner's own values out of the

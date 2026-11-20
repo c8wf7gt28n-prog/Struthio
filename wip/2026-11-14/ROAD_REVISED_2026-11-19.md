@@ -24,10 +24,10 @@ words behind every change are in `NOTES.md` under "Directions since the specific
 
 ## Changed on 20 November by the owner
 
-After 0.8.4 the order is: **0.8.5** = her door on the Field + goals, quarantine and the web (the old 0.8.6 and 0.8.9);
-**0.8.6** = maths in lines + skins and Kas by day (the old 0.8.8 and 0.8.5); then her hand in LibreOffice (the old 0.8.7),
-then the rest. New tests and reviews only for the safety rules. `wip/BUILD_STATE.md` has the details. The table below is
-the order of 19 November, kept for its descriptions.
+After 0.8.4 the order is: **0.8.5** = maths in lines + skins and Kas by day (the old 0.8.8 and 0.8.5), because the maths
+is the root the goals stand on; **0.8.6** = her door on the Field + goals, quarantine and the web (the old 0.8.6 and
+0.8.9); then her hand in LibreOffice (the old 0.8.7), then the rest. New tests and reviews only for the safety rules.
+`wip/BUILD_STATE.md` has the details. The table below is the order of 19 November, kept for its descriptions.
 
 ## The releases
 
