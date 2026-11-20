@@ -762,6 +762,13 @@ class HerHand(QObject):
         if origin == 'OWNER':
             for r in got.get('readings') or ():
                 for name, args in r.get('acts') or ():run(self.host, name, args, door='owner', word=t.text)
+        for r in got.get('readings') or ():          # 0.8.7 B8: a total is a read: the maths core's answer, with its receipt
+            if r.get('route') == 'TOTAL':
+                try:
+                    done = understand_mod().total(r)
+                    self.say(done['text'] + (' ' + done['receipt'][-1] if done.get('receipt') else ''))
+                except Exception as exc:  # noqa: BLE001 - a total that cannot be worked out is said, never guessed
+                    self.say('I could not add these up: %s' % str(exc)[:160])
         if pairs:return self.start(t.text, pairs, t.word, origin=origin)
         return None
 
