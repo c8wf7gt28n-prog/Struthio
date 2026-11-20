@@ -77,6 +77,8 @@ Built beside 0.8.6 and merged as they landed. Most are not visible until a model
 - **Worth asking, and late.** She asks the model only when the answer could change what she does; when it is late, a
   read is taken by default and a change never is.
 - **Pick, never write.** A change only the model chose is never done, at any place of the dial: it comes as a card.
+- **Ask the Library.** The places on your admitted pages that may answer, listed with no model; with a model, it may
+  only point at a line, and the desk checks the words stand there, cuts the quote itself and lights it.
 - **The doorway, pages in pencil, her voice floor, her character file.** Lines on a page written to an assistant are
   withheld from the model and shown to you; Read this page puts pencil marks you keep or rub out; her answers are cut
   from the receipt, rounded never to claim more; her character lives in `kasandra/character.md` in your workspace,
@@ -99,13 +101,14 @@ back quietly, with no error. The test pass is where that would show.
 
 - **Built:** everything above, each part by one agent, no independent review.
 - **Checked here:** each builder's one smoke script of the design's examples; at each merge, the seed rebuilt and the
-  window opened offscreen in both looks. The kit: RELEASE_CHECK_RESULT
+  window opened offscreen in both looks. The kit was restored with the installer and the release check run on the
+  restored tree; its result is on the kit's start page.
 - **Not run:** the test suite, the tiers, the window checks (by your rule); every model arm of I05 (its kit is in
   `tools/i05_kit/` in the source, for the ThinkPad); the demo windows themselves were not started here.
 - **Observed on the ThinkPad:** nothing yet.
 
 ## What is not done
 
-- 0.8.7 itself: reading your words with the model ("I took it as …"), the one question card, Ask the Library, the marks
+- 0.8.7 itself: reading your words with the model ("I took it as …"), the one question card, the marks
   and the account of what the model did, and "Check her model on this machine". They come in 0.8.7.
 - The test pass, with the tests and reviews these two releases skipped.
