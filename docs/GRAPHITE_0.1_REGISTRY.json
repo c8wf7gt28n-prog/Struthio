@@ -186,10 +186,12 @@
    "field.brief": "workbench/field_service.py#dispatch",
    "field.brief.keep": "workbench/field_service.py#dispatch",
    "field.doubt": "workbench/field_service.py#dispatch",
+   "field.either": "workbench/either_way.py#dispatch",
    "field.read": "workbench/field_service.py#dispatch",
    "field.rests": "workbench/reasons.py#dispatch",
    "field.ripple": "workbench/field_service.py#dispatch",
    "field.set": "workbench/field_service.py#dispatch",
+   "field.settle": "workbench/settle.py#dispatch",
    "field.trace": "workbench/field_service.py#dispatch",
    "field.whatif": "workbench/field_service.py#dispatch",
    "field.why": "workbench/reasons.py#dispatch",
@@ -1000,9 +1002,9 @@
   }
  },
  "counts": {
-  "adapters": 802,
+  "adapters": 804,
   "job_tools": 113,
-  "operations": 802,
+  "operations": 804,
   "settings": 48
  },
  "formulas": {
@@ -2908,6 +2910,20 @@
    },
    "scope": "read"
   },
+  "field.either": {
+   "arguments": "725d2ee2fc03b332c60cbdef67964fe881bd8f7928bd3558173bcc1571d32c83",
+   "properties": {
+    "at": "b46250e2f5fb13e5",
+    "choose": "c670dde09c006e30",
+    "id": "52ba84a4bbf396ba",
+    "model_loaded": "7cb541e84f226754",
+    "on": "97ff1836f9f6cc3c",
+    "reading": "cee1c4dc227b697c",
+    "sheet": "a197705b0fea6cee",
+    "unknown": "8b749d801182017a"
+   },
+   "scope": "read"
+  },
   "field.read": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
@@ -2937,6 +2953,20 @@
     "value": "2ed73e9d5c6a0625"
    },
    "scope": "execute"
+  },
+  "field.settle": {
+   "arguments": "3472cb18a3ae532c04eb6a222e8ce3b515313c39f4b4daa686b105cd7055adba",
+   "properties": {
+    "accuracy": "ffaaa72c1823c906",
+    "at": "b46250e2f5fb13e5",
+    "choose": "c670dde09c006e30",
+    "id": "52ba84a4bbf396ba",
+    "model_loaded": "7cb541e84f226754",
+    "on": "97ff1836f9f6cc3c",
+    "reading": "cee1c4dc227b697c",
+    "sheet": "a197705b0fea6cee"
+   },
+   "scope": "read"
   },
   "field.trace": {
    "arguments": "de2f7e460673f2775d580e0722b797db46a8f1f2891a45fd73ddc1cb59891e57",
@@ -7888,7 +7918,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "ab0bc151f2a113233b5b70275d309d8c0b13babb9fb8e5e38ebafab37f2af5f6",
+ "schema_digest": "4fbc7a01fcd7c304acc92782d2752737532dfb4cf604b943c0b0d7d30d1618f9",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

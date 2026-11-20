@@ -34,7 +34,7 @@ OBSERVER_OPERATIONS=frozenset({
  # 0.8.6 S3: her reasons and your word, read when a card is asked why; asking is not an event
  'field.why','field.rests','field.without','word.list','word.get',
  # 0.8.6 S6: pinned quotes and rule cards, read when a card is shown; reading is not an event
- 'quotes.list','quotes.get','quotes.check','rules.list','rules.get','rules.check'})
+ 'quotes.list','quotes.get','quotes.check','rules.list','rules.get','rules.check',
  # 0.8.6 S5: either way and what would settle it, read when a card is asked; asking is not an event
  'field.either','field.settle'})
 
