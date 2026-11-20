@@ -185,9 +185,9 @@ tolerances, break-even), and so are her three questions as checks later. The doo
 
 | Next kit | Holds (old names) | What the owner sees |
 |---|---|---|
-| **0.8.5** | old 0.8.8 maths in lines + old 0.8.5 skins and Kas by day | Solve, range, check, dates and money exactly; a day look to switch to |
+| **0.8.5** | old 0.8.8 maths in lines, alone (owner, 03:40: "Let's just do maths the 88. Then we have the strongest base to build on") | Solve, range, check, dates and money exactly |
 | **0.8.6** | old 0.8.6 her door on the Field + old 0.8.9 goals, quarantine and the web | Ask in words, she does it on the Field, a touch stops her; she judges findings with the maths; outside files and web pages arrive as information only; she can search |
-| then | old 0.8.7 her hand in LibreOffice (placement not yet settled with the owner; default: next), then old 0.8.10, 0.8.11, 0.8.12, 0.9.0 | |
+| then | being settled with the owner (03:40): proposed the floor (old 0.8.12: the split of the giant window files, the migration and power drills) next, then door + goals + web, then changes through her hand (old 0.8.10) before her hand in LibreOffice (old 0.8.7), then the day look and her question | |
 
 The maths is built and checked on Rail Demo with invented tolerances; the owner's real tolerances for After Hours 07
 and which limit applies when two revisions disagree are asked for later and do not block.
@@ -224,6 +224,7 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 03:40 UTC: the owner: 0.8.5 is the maths alone; the order after it is being discussed.
 - 20 Nov 03:30 UTC: the owner set a new order after 0.8.4 (above): maths first, with the day look; then the door, goals and the web.
 - 20 Nov 02:45 UTC: **the full suite on everything merged (28e99db): 78 modules, 1,204 tests, 0 failing in BOTH looks.**
   Release prep started: workflow `graphite-084-release-prep` (run id `wf_50b7a084-3ec`, task `wm4i1ridj`; scratch
