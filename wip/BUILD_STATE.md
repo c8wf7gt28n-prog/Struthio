@@ -92,7 +92,7 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 6. **MERGED (dd2c2db), reviewed and fixed.** The seven line bugs (NOTES.md "PAL P0"; `sdk/cli/arc1cli/typed_pipeline.py`), a test pinning each.
 7. Tests for the blind spots in the guarding code (Kernel scopes, her hand's rules, memory rules, release check); run the
    planted bugs again; target 75% caught there (`wip/2026-11-14/tests_measure/mutants.md`).
-8. The tiered runner (tier 0 under a minute) and the slimmed release checks (`tests_measure/release-checks.md`).
+8. **MERGED (0ca267a), reviewed and fixed.** The tiered runner (tier 0 under a minute) and the slimmed release checks (`tests_measure/release-checks.md`).
 9. **MERGED (a737d20), reviewed and fixed.** The yellow leftovers and the colour-vision check (`wip/2026-11-14/yellow_review/`, spec section 7).
 10. Release 0.8.4: version, notes, checks on the exact commit, kit, send to the owner.
 
@@ -203,6 +203,10 @@ switched the session's model.
 
 ## Log (newest first)
 
+- 20 Nov 01:15 UTC: a second container restart (about 00:55) stopped part B again. tiers had finished its fix: merged
+  (0ca267a). guards is built (planted bugs caught by behaviour: guarding code 30 of 53 -> 51 of 53; overall 70 of 131 ->
+  100 of 131, 76%); its review was half done (two must-fix candidates in its notes: the kit check of tools/planted_bugs,
+  and a planted bug left in the copy when a run is killed). Part B relaunched (task wy4uj3tkw) for that review and fix.
 - 19 Nov 23:45 UTC: part B relaunched (task wdnhowczg, same run id) after a container restart at about 23:33 stopped it.
   tiers was in its fix (patch saved 23:18), guards half built (patch saved 23:30); restart notes added at the top of
   `work/b084b/tiers.fix.md` and `guards.progress.md`; both patches apply to HEAD.
