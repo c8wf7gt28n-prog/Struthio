@@ -273,6 +273,17 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 20:49 UTC: **Stopped by the weekly usage limit** (about 16:00; it resets **26 Nov 01:00 UTC**). Merged before it:
+  0.8.7 C6b cross-references (ee2faa1). Cut off mid-build, their worktree diffs saved as patches in
+  `wip/2026-11-20_b087_saved/partial_at_weekly_limit/` (with the briefs and the merge helpers, since scratch may be
+  cleared): **A5** (exam runner and the model check kit; 12 files; it was told to add a marking adapter for READ, GOAL
+  and WORDS that compares each item's `known`, and to run the overnight I05 stage from the shipped workbench.i05_arms),
+  **B6** (NEXT and the tripwire), **B8** (BIND and total). **C6c** (her phrasings) left nothing. Not started: B7, C6d,
+  A6. **On 26 Nov:** resume A5, B6, B8 with SendMessage (their worktrees are kept: agent-a27e5054016c97894,
+  agent-aa4a049a1718b1038, agent-aaa85b99d29623607) or, if those agents are gone, start new ones from the briefs with
+  "apply the partial patch first"; then C6c, B7, C6d, A6; merge each with `merge_one.sh`; then the 0.8.7 release
+  (version, notes, kit, screenshots, sent); then wait for the owner's model results. Hourly wake-ups before 26 Nov
+  have nothing to do.
 - 20 Nov 15:55 UTC: 0.8.7 merged since the 0.8.6 kit: C3 (1b45457), B4 (2542d7c), A4 (4bcabd3), B3 (117ef24), C6a
   (262a1a9), B5 (7614cdc), the exam papers A5P (47b5805; 167 items, written blind to the checkers). **The papers found
   that the runner cannot mark READ, GOAL and WORDS answers** (only outcomes): sent to the A5 builder, still running, to
