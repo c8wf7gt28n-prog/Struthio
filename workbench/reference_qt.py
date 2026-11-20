@@ -10,6 +10,7 @@ from . import reference_service as refs,local_brain
 from sdk.cli.arc1cli import record_store as records
 from . import locations,page_light
 from . import doorway  # 0.8.7 C1 (the doorway)
+from . import page_marks  # 0.8.7 C2 (pages in pencil)
 
 def esc(value):return html.escape(str(value))
 
@@ -47,6 +48,11 @@ class ReferenceTab(ServiceTab):
         self.proof=QPlainTextEdit();self.proof.setReadOnly(True);self.detail.addTab(self.proof,'Provenance')
         # 0.8.7 C1 (the doorway): the passage as it stands at the door, lines written to an assistant outlined with the reason in words
         self.door_view=QTextBrowser();self.door_view.setOpenLinks(False);self.door_view.setAccessibleName('At the door');self.detail.addTab(self.door_view,'At the door')
+        # 0.8.7 C2 (pages in pencil): Read this page; pencil underlines with Keep and Rub out; nothing is kept until you keep it
+        self.pencil_marks=[];self.pencil_column='';self.pencil_said=[];pencil=QWidget();pen=QVBoxLayout(pencil);pen.setContentsMargins(0,0,0,0);prow=QHBoxLayout()
+        self.read_button=QPushButton('Read this page');self.read_button.setAccessibleName('Read this page');self.read_button.clicked.connect(self.read_page);prow.addWidget(self.read_button)
+        self.pencil_line=QLabel('Choose a passage, then Read this page. Marks stay in pencil until you keep them.');self.pencil_line.setWordWrap(True);prow.addWidget(self.pencil_line,1);pen.addLayout(prow)
+        self.pencil_view=QTextBrowser();self.pencil_view.setOpenLinks(False);self.pencil_view.setAccessibleName('In pencil');self.pencil_view.anchorClicked.connect(self.pencil_link);pen.addWidget(self.pencil_view,1);self.detail.addTab(pencil,'In pencil');self.pencil_tab=pencil
         split=QSplitter(Qt.Vertical);split.addWidget(self.pages);split.addWidget(self.detail);split.setSizes([340,250]);self.outer.addWidget(split,1)
         self.unavailable_sources=0;self.reference_font_id=-1
         font_path=locations.program(host.root)/'branding/fonts/NotoSansCJKsc-Regular.otf'
@@ -61,7 +67,7 @@ class ReferenceTab(ServiceTab):
     def info(self):return 'Exact references · %d current sources · reference generation %d · source records only'%(self.current_sources,self.generation)
     def ns(self):return self.namespaces.currentData()
     def clear_location(self):
-        self.citation=None;self.requested=None;self.excerpt.clear();self.proof.clear();self.door_view.clear();self.image_label.clear();self.image_label.setText('Choose a PDF passage, then Open original location.');self.update_inspector()
+        self.citation=None;self.requested=None;self.excerpt.clear();self.proof.clear();self.door_view.clear();self.pencil_view.clear();self.pencil_marks=[];self.pencil_column='';self.pencil_said=[];self.image_label.clear();self.image_label.setText('Choose a PDF passage, then Open original location.');self.update_inspector()
     def load_namespaces(self):self.call('intake.namespaces',{},self.loaded_namespaces)
     def open_collection(self, namespace, project):
         self.project_collection=(namespace,project)
@@ -141,8 +147,91 @@ class ReferenceTab(ServiceTab):
             if value.get('text'):  # 0.8.7 C1: checked at the door, no model; a page with lines aimed at an assistant opens on this view
                 door=doorway.scan(value['text']);self.door_view.setHtml(doorway.owner_html(door))
                 if door.withheld():self.detail.setCurrentWidget(self.door_view)
+                if self.citation:self.load_pencil()
             self.update_inspector()
         self.call('references.resolve',{'namespace':nsid,**row},loaded)
+    # ---- 0.8.7 C2 (pages in pencil) -------------------------------------------------------------------------------------
+    def read_page(self):
+        if not self.citation or not self.ns():self.pencil_line.setText('Choose a current passage first.');return
+        nsid=self.ns();ident=self.citation['id'];self.read_button.setEnabled(False);self.pencil_line.setText('Reading this page…')
+        def done(value):
+            self.read_button.setEnabled(True)
+            if self.ns()!=nsid or not self.citation or self.citation['id']!=ident:return
+            self.pencil_column=value['column'];self.pencil_said=list(value.get('said') or []);self.load_pencil();self.detail.setCurrentWidget(self.pencil_tab)
+        def failed(error):self.read_button.setEnabled(True);self.pencil_line.setText('This page could not be read in pencil: '+str((error or {}).get('message',''))[:200])
+        self.call('library.read',{'namespace':nsid,'id':ident,'item':self.citation['item']},done,failed)
+    def load_pencil(self):
+        if not self.citation or not self.ns():return
+        nsid=self.ns();ident=self.citation['id']
+        def loaded(value):
+            if self.ns()!=nsid or not self.citation or self.citation['id']!=ident:return
+            self.pencil_marks=value['marks'];self.draw_pencil()
+        self.call('library.marks',{'namespace':nsid,'id':ident,'item':self.citation['item'],'all':True},loaded)
+    def draw_pencil(self):
+        text=self.citation['text'] if self.citation else '';door=doorway.scan(text);held=set(door.withheld());by_line={}
+        for m in self.pencil_marks:
+            now=m.get('now') or {}
+            if now.get('state')=='GONE':continue
+            by_line.setdefault(now.get('line') or m['line'],[]).append(m)
+        live=[m for m in self.pencil_marks if m['state']!='RUBBED_OUT']
+        self.pencil_line.setText(self.pencil_column or ('%d places in pencil or ink on this page.'%len(live) if live else 'Nothing on this page is in pencil yet. Read this page to mark it.'))
+        body=''.join('<p><small>'+esc(s)+'</small></p>' for s in self.pencil_said)
+        for row in door.lines:
+            n=row['n']
+            if n in held:body+='<p style="color:#8a8a8a">'+str(n)+' · [not shown to the model: this line '+esc(doorway.line_words(door,n))+']</p>';continue
+            marks=by_line.get(n,[]);line=row['text'];ink=[0]*len(line)
+            for m in marks:
+                if m['state']=='RUBBED_OUT':continue
+                s,e=(m.get('now') or {}).get('offsets') or m['offsets']
+                for i in range(max(0,s),min(len(line),e)):ink[i]=max(ink[i],2 if m['state']=='KEPT' else 1)
+            html_line='';i=0
+            while i<len(line):
+                j=i
+                while j<len(line) and ink[j]==ink[i]:j+=1
+                part=esc(line[i:j])
+                if ink[i]==1:part='<u style="color:#7c7c7c">'+part+'</u>'
+                elif ink[i]==2:part='<u style="color:#1f1f1f;font-weight:bold">'+part+'</u>'
+                html_line+=part;i=j
+            body+='<p style="margin:2px 0">'+str(n)+' · '+html_line+'</p>'
+            for m in marks:
+                label=m['label_shown']+(' ('+m['label_mark']+')' if m.get('label_mark') else '')
+                tag=esc(m['kind'].replace('_',' ')+' · '+label+' · '+' '.join(m['value'].split()))
+                state=esc(m['said']+(' · '+m['note'] if m.get('note') else ''))
+                if (m.get('now') or {}).get('state')=='MOVED':state+=esc(' · '+page_marks.WORDS['moved'].format(line=m['now']['line']))
+                links=''
+                if m['state']=='PENCIL':links=' <a href="keep:'+m['id']+'">Keep</a> · <a href="rubout:'+m['id']+'">Rub out</a>'
+                elif m['state']=='RUBBED_OUT':links=' <a href="undo:'+m['id']+'">Undo</a>'
+                style='color:#8a8a8a;text-decoration:line-through' if m['state']=='RUBBED_OUT' else 'color:#5a5a5a'
+                body+='<p style="margin:0 0 4px 24px;'+style+'"><small>'+tag+' — '+state+'</small>'+links+'</p>'
+        self.pencil_view.setHtml(body or '<p>This page has no lines.</p>')
+    def pencil_link(self,url):
+        action,_,ident=url.toString().partition(':');mark=next((m for m in self.pencil_marks if m['id']==ident),None)
+        if mark is None:return
+        if action=='rubout':self.call('library.rubout',{'id':ident,'expected_revision':mark['revision']},lambda value:self.load_pencil())
+        elif action=='undo':self.call('library.rubout',{'id':ident,'expected_revision':mark['revision'],'undo':True},lambda value:self.load_pencil())
+        elif action=='keep':self.keep_mark(mark)
+    def keep_mark(self,mark):
+        quantities=(mark.get('reading') or {}).get('quantities') or []
+        doors=(['As a reviewed reference fact'] if quantities and (mark.get('reading') or {}).get('as')=='QUANTITY' else [])+(['As a pinned quote'] if mark.get('rect') else [])
+        if not doors:self.pencil_line.setText('This mark has no door to keep it through yet: it is not a number with a unit from the units table, and the page has no region for a pinned quote.');return
+        door=doors[0]
+        if len(doors)>1:
+            chosen=self.dialog('Keep this mark',[('door','Keep it',doors[0])],{'door':doors})
+            if chosen is None:return
+            door=chosen['door']
+        args={'id':mark['id'],'expected_revision':mark['revision']}
+        if door=='As a pinned quote':
+            values=self.dialog('Keep as a pinned quote',[('label','Label','' if mark.get('model_label') else mark['label_shown'][:80])])
+            if values is None:return
+            args.update(door='QUOTE',**({'label':values['label']} if values['label'] else {}))
+        else:
+            first=quantities[0]
+            values=self.dialog('Keep as a reviewed reference fact',[('subject','Subject',self.subject.text()),('property','Property','' if mark.get('model_label') else mark['label_shown'][:120]),('value','Exact decimal',first['value']),('unit','Unit',first['unit']),('variant','Exact variant',self.variant.text()),('conditions','Conditions JSON','{}'),('role','Evidence role',''),('polarity','Support',''),('reason','Review reason','')],{'role':['SOURCE_CLAIM','REQUIREMENT','HYPOTHESIS'],'polarity':['SUPPORT','REFUTE']})
+            if values is None:return
+            try:values['conditions']=json.loads(values['conditions'])
+            except ValueError:self.note.setText('Conditions must be valid JSON.');return
+            args.update(door='FACT',**values)
+        self.call('library.keep',args,lambda value:(self.pencil_line.setText(value['said']),self.load_pencil(),self.refresh_status()))
     def launch(self,op,args):
         if self.job:self.note.setText('Finish or cancel the current reference job first.');return
         nsid=self.ns();self.call(op,args,lambda job:self.watch(job,nsid))

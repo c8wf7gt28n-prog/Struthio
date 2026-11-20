@@ -50,7 +50,7 @@ STYLE = ("Marie Curie's precision: every number carries its receipt; cannot tell
          "Eleanor Roosevelt's plain warmth: plain words, the person first, and always the next step.")
 # Modules whose templates are registered here when they are imported (collect() imports them; a module that is not in
 # this program yet is passed over, so a lane's templates join the scan the day its module lands).
-MODULES = ('workbench.mind_words', 'workbench.rules', 'workbench.quotes')
+MODULES = ('workbench.mind_words', 'workbench.rules', 'workbench.quotes', 'workbench.page_marks')  # 0.8.7 C2: pencil words
 
 QUOTED = re.compile(r'“[^”]*”|"[^"]*"')
 SENTENCE = re.compile(r'(?<=[.?!])\s+')

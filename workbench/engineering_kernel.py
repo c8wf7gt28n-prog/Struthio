@@ -64,6 +64,7 @@ from . import agent_loop, conditions, helpers, related, browse  # AGENT-01: the 
 from . import network_watch, network_capture  # HATCH DESK D5: network.observe and the headers-only capture, its job tool network.capture (recorded additions)
 from . import field_service  # Graphite 0.4.1: the desk as something staC can read (field.read, field.trace, field.whatif: three reads, recorded additions)
 from . import doorway  # 0.8.7 C1 (the doorway): every line of a page checked before any model reads it: library.doorway (read; recorded addition)
+from . import page_marks  # 0.8.7 C2 (pages in pencil): ledger.pencil/1 and the MARKS turn: library.read (execute), library.marks (read), library.rubout (execute, with Undo), library.keep (approve) (recorded additions)
 from . import stac_words  # Graphite 0.4.3: the owner's own staC words (words.list, words.keep, words.forget: recorded additions)
 from . import program_mail, program_build, program_transfer, program_cartridge
 from . import program_vector, program_media, program_freecad
@@ -242,6 +243,7 @@ CAPABILITIES = {
     **network_watch.SCOPES,
     **field_service.SCOPES,
     **doorway.SCOPES,  # 0.8.7 C1 (the doorway)
+    **page_marks.SCOPES,  # 0.8.7 C2 (pages in pencil): library.read writes only pencil records; library.keep approve
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -664,6 +666,7 @@ class Kernel:
         if op in network_watch.FIELDS:return network_watch.dispatch(self,op,a,p)
         if op in field_service.FIELDS:return field_service.dispatch(self,op,a,p)
         if op in doorway.FIELDS:return doorway.dispatch(self,op,a,p)   # 0.8.7 C1 (the doorway): a page checked at the door, read, no model
+        if op in page_marks.FIELDS:return page_marks.dispatch(self,op,a,p)   # 0.8.7 C2 (pages in pencil): read a page in pencil, its marks, Rub out, Keep
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:
