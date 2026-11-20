@@ -394,6 +394,7 @@
    "links.catalog": "workbench/brain_link.py#dispatch",
    "links.inspect": "workbench/brain_link.py#dispatch",
    "links.trace": "workbench/brain_link.py#dispatch",
+   "math.answer": "workbench/math_answers.py#dispatch",
    "math.calculate": "workbench/schedule_math.py#dispatch",
    "math.concurrent": "workbench/schedule_math.py#dispatch",
    "math.evaluate": "workbench/math_service.py#dispatch",
@@ -721,6 +722,9 @@
    "system.supports": "workbench/host_support.py#dispatch",
    "tasks.plan": "workbench/project_guidance.py#dispatch",
    "tasks.templates": "workbench/project_guidance.py#dispatch",
+   "tolerances.get": "workbench/tolerances.py#dispatch",
+   "tolerances.list": "workbench/tolerances.py#dispatch",
+   "tolerances.set": "workbench/tolerances.py#dispatch",
    "trellis.inspect": "workbench/pnr_tools.py#dispatch",
    "trellis.report": "workbench/pnr_tools.py#dispatch",
    "ux.catalog": "workbench/ux_services.py#dispatch",
@@ -969,9 +973,9 @@
   }
  },
  "counts": {
-  "adapters": 771,
+  "adapters": 775,
   "job_tools": 113,
-  "operations": 771,
+  "operations": 775,
   "settings": 48
  },
  "formulas": {
@@ -4505,6 +4509,20 @@
    },
    "scope": "read"
   },
+  "math.answer": {
+   "arguments": "eade7e755aec003ec07ba63ba6e91351daa2d15df693191c3b1ae2153b011b0a",
+   "properties": {
+    "expression": "2b1e00f7cfc18abe",
+    "for": "520c691f88f728d6",
+    "given": "ca241a6815ef0053",
+    "id": "1a75c379fb0fafe6",
+    "stage": "aea3acbb559fd74b",
+    "step": "0eb2e3b6e08c031d",
+    "unit": "520c691f88f728d6",
+    "within": "1c1c26f0c5a206b8"
+   },
+   "scope": "read"
+  },
   "math.calculate": {
    "arguments": "a209a4e44c602e3242f8ac9fc441bb641a05769b7cd39a970010ab25f871bdf8",
    "properties": {
@@ -7130,6 +7148,35 @@
    "properties": {},
    "scope": "read"
   },
+  "tolerances.get": {
+   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+   "properties": {
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "read"
+  },
+  "tolerances.list": {
+   "arguments": "d7dab831932db0f1ebd3d3376c671fc23588c97ed9c530cf7ffd6beb493daa74",
+   "properties": {
+    "problem": "1a75c379fb0fafe6"
+   },
+   "scope": "read"
+  },
+  "tolerances.set": {
+   "arguments": "d7aa38d42d16244381cacd941c5c66320a3b3b30aefca2157a8a663bcdb8717d",
+   "properties": {
+    "amount": "0eb2e3b6e08c031d",
+    "basis": "2b1e00f7cfc18abe",
+    "expected_context_digest": "7e3f7236ab75c8d7",
+    "expected_revision": "2a1379ebe9f4b632",
+    "hi": "0eb2e3b6e08c031d",
+    "id": "1a75c379fb0fafe6",
+    "lo": "0eb2e3b6e08c031d",
+    "said": "6fd8766b65ed9791",
+    "variable": "520c691f88f728d6"
+   },
+   "scope": "approve"
+  },
   "trellis.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
@@ -7542,7 +7589,7 @@
  },
  "release": "Graphite 0.8.4",
  "schema": "graphite.registry-record/1",
- "schema_digest": "4953a87c0827601b079e162395bd5c424ca9173101a7d6fa31f0e865282558a6",
+ "schema_digest": "6e45cec22314610d375f6e5c0113c5b9c6fac32ecdcd5bd4df9720aadb19b088",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

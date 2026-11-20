@@ -61,6 +61,86 @@ def reference_ir(program):
     else:raise ValueError('STAC_REFERENCE_COMMAND_UNSUPPORTED')
     body={'schema':'arc.stac.reference-ir/1','operation':op,'arguments':args,'result_type':kind,'effects':['read'],'namespace':namespace}
     return {**body,'program_id':c.digest(body),'authority':'EXISTING_KERNEL_ACL_REQUIRED'}
+MATH_STEPS={'solve':('within','step','given','unit'),'range':('given','unit'),'check':('given',)}
+MATH_NAME=re.compile('[A-Za-z][A-Za-z0-9_]{0,63}')
+
+
+def _math_number(text):
+    from .math_units import rational
+    try:rational(text)
+    except ValueError:raise ValueError('STAC_MATH_NUMBER') from None
+    return text
+
+
+def math_ir(program):
+    """A maths line on a problem sheet (docs/INTEGRATED_I02.md): strict shell words, at most 40, its steps in this order.
+      math problem:ID | calculate "EXPR" [| unit U]                                                 -> math.preview
+      math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] (up to four) [| unit U]
+      math problem:ID | range "EXPR" [| given NAME LO HI] (up to four) [| unit U]
+      math problem:ID | check "REL" [| given NAME LO HI] (up to four)                               -> math.answer
+    The quoted expression is data for the typed compiler; LO, HI and S are in that quantity's declared unit."""
+    try:tokens=shlex.split(program)
+    except ValueError:raise ValueError('STAC_MATH_SYNTAX') from None
+    if len(tokens)>40:raise ValueError('STAC_MATH_TOKEN_BOUND')
+    stages=[[]]
+    for token in tokens:
+        if token=='|':stages.append([])
+        else:stages[-1].append(token)
+    if len(stages)<2 or len(stages[0])!=2 or stages[0][0]!='math' or not stages[1]:raise ValueError('STAC_MATH_SYNTAX')
+    ident=stages[0][1].removeprefix('problem:')
+    if not re.fullmatch('[0-9a-f]{32}',ident):raise ValueError('STAC_MATH_PROBLEM_ID')
+    verb,rest=stages[1],stages[2:]
+    if verb[0]=='calculate':
+        if len(verb)!=2 or len(rest)>1 or (rest and len(rest[0])!=2):raise ValueError('STAC_MATH_SYNTAX')
+        args={'id':ident,'expression':verb[1]}
+        if rest:
+            if rest[0][0]!='unit':raise ValueError('STAC_MATH_UNIT_SYNTAX')
+            args['output_unit']=rest[0][1]
+        body={'schema':'arc.stac.math-ir/1','operation':'math.preview','arguments':args,'effects':['read'],'result_type':'SourceBoundMathematicalPreview'}
+        return {**body,'program_id':c.digest(body)}
+    stage=verb[0]
+    if stage not in MATH_STEPS or len(verb)!=(4 if stage=='solve' else 2) or (stage=='solve' and (verb[2]!='for' or not MATH_NAME.fullmatch(verb[3]))):
+        raise ValueError('STAC_MATH_SYNTAX')
+    args={'id':ident,'stage':stage,'expression':verb[1],**({'for':verb[3]} if stage=='solve' else {})}
+    order=MATH_STEPS[stage];last=-1
+    for step in rest:
+        if not step or step[0] not in order:raise ValueError('STAC_MATH_SYNTAX')
+        place=order.index(step[0])
+        if place<last or (place==last and step[0]!='given'):raise ValueError('STAC_MATH_STEP_ORDER')
+        last=place
+        if step[0]=='within' and len(step)==3:args['within']=[_math_number(step[1]),_math_number(step[2])]
+        elif step[0]=='step' and len(step)==2:args['step']=_math_number(step[1])
+        elif step[0]=='given' and len(step)==4:
+            if not MATH_NAME.fullmatch(step[1]):raise ValueError('STAC_MATH_NAME')
+            args.setdefault('given',[]).append({'name':step[1],'lo':_math_number(step[2]),'hi':_math_number(step[3])})
+            if len(args['given'])>4:raise ValueError('STAC_MATH_GIVEN_BOUND')
+        elif step[0]=='unit' and len(step)==2:args['unit']=step[1]
+        else:raise ValueError('STAC_MATH_UNIT_SYNTAX' if step[0]=='unit' else 'STAC_MATH_SYNTAX')
+    body={'schema':'arc.stac.math-ir/1','operation':'math.answer','arguments':args,'effects':['read'],'result_type':'ExactMathematicalAnswer'}
+    return {**body,'program_id':c.digest(body)}
+
+
+MATH_GRAMMAR='math problem:ID | calculate "EXPR" [| unit U]; math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] [| unit U]; math problem:ID | range "EXPR" [| given NAME LO HI] [| unit U]; math problem:ID | check "REL" [| given NAME LO HI]; at most four given, each typed by the owner'
+
+
+def gives_ranges(program):
+    """Whether a maths line carries a range of its own (a given step), read as route_program and compile_program would read
+    it. Ranges are the owner's to write: a line Kasandra proposes never carries one, whichever command carries the line; her
+    ranges come only from the owner's tolerances (stacy_control.validate_actions)."""
+    text=str(program or '').replace('\u200b','').strip();first=text.split(maxsplit=1)
+    if first and first[0].lower()=='explain':text=first[1].strip() if len(first)>1 else ''
+    if text.split(maxsplit=1)[:1]!=['math']:return False
+    try:return bool(math_ir(text)['arguments'].get('given'))
+    except ValueError:return False
+
+
+def _freshness(kernel,principal,result,ident):
+    """CURRENT or REVIEW_REQUIRED: the problem sheet's sources as they stand (problems.get), for every maths result."""
+    if isinstance(result,dict) and result.get('schema')=='ledger.math-answer/1':return result['freshness']
+    r=kernel.dispatch('problems.get',{'id':ident},principal)
+    return r['result']['freshness']['state'] if r.get('ok') else 'REVIEW_REQUIRED'
+
+
 def compile_program(program):
     c.text(program,4096,False)
     if len(program.encode())>4096:raise ValueError('STAC_PROGRAM_BYTE_BOUND')
@@ -73,18 +153,7 @@ def compile_program(program):
     if program.strip() == 'atlas' or program.lstrip().startswith('atlas '):
         from .tool_atlas import compile_read
         return {'kind': 'ATLAS', 'ir': compile_read(program), 'runtime_authorization': False}
-    if program.lstrip().startswith('math '):
-        tokens=shlex.split(program)
-        if len(tokens) not in (5,8) or tokens[0]!='math' or tokens[2:4]!=['|','calculate']:raise ValueError('STAC_MATH_SYNTAX')
-        # The quoted expression is data for the typed compiler.
-        ident=tokens[1].removeprefix('problem:')
-        if not re.fullmatch('[0-9a-f]{32}',ident):raise ValueError('STAC_MATH_PROBLEM_ID')
-        args={'id':ident,'expression':tokens[4]}
-        if len(tokens)==8:
-            if tokens[5:7]!=['|','unit']:raise ValueError('STAC_MATH_UNIT_SYNTAX')
-            args['output_unit']=tokens[7]
-        body={'schema':'arc.stac.math-ir/1','operation':'math.preview','arguments':args,'effects':['read'],'result_type':'SourceBoundMathematicalPreview'}
-        return {'kind':'MATH','ir':{**body,'program_id':c.digest(body)},'runtime_authorization':False}
+    if program.lstrip().startswith('math '):return {'kind':'MATH','ir':math_ir(program),'runtime_authorization':False}
     if program.strip()=='desk' or program.lstrip().startswith(('desk ','package ')):
         from sdk.cli.arc1cli.work_organizer import compile_read
         return {'kind':'WORKBENCH','ir':compile_read(program),'runtime_authorization':False}
@@ -117,7 +186,9 @@ def run(kernel,principal,program):
         if not r['ok']:raise ValueError(r['error']['message'])
         if compiled['kind']=='WORKBENCH' and ir.get('presentation')=='gaps':
             value=r['result'];r['result']={k:value[k] for k in ('id','state','sha256','encryption','issues','transport','rules_current')}
-        return {'schema':'arc.stac-kernel-result/1','program_id':ir['program_id'],'invocation_id':uuid.uuid4().hex,'result_type':ir.get('result_type','SourceBoundEngineeringRelationships'),'result':r['result'],'effects':['read'],'engineering_qualification':False}
+        out={'schema':'arc.stac-kernel-result/1','program_id':ir['program_id'],'invocation_id':uuid.uuid4().hex,'result_type':ir.get('result_type','SourceBoundEngineeringRelationships'),'result':r['result'],'effects':['read'],'engineering_qualification':False}
+        if compiled['kind']=='MATH':out['freshness']=_freshness(kernel,principal,r['result'],ir['arguments']['id'])
+        return out
     if compiled['presentation_io_requested']:raise ValueError('EMBEDDED_IO_REQUIRES_OWNER_STAC_EXPORT_ACTION')
     from .stac.runtime import evaluate,RunError
     try:return {'schema':'arc.stac-kernel-result/1','state':'READ_COMPLETED','result':evaluate(compiled['ir'],CallerKernel(kernel,principal)),'authority':'EXISTING_CALLER_PRINCIPAL','physical_qualification':False}
@@ -161,7 +232,7 @@ def inspect_program(kernel, principal, program):
 
 
 def dispatch(kernel,op,args,principal):
-    if op=='stac.status':return {'schema':'arc.stac-bridge/1','upstream':'0.6','discovery_grammar':'inquiries; inquiry ID | inspect; inquiry ID | history','algorithm_grammar':'algorithms; algorithms | find TEXT; algorithms | method ID','atlas_grammar':'atlas; atlas | find TEXT; atlas | operation ID; atlas | tool ID','workbench_grammar':'desk; desk | focus bring-in/understand/build/follow-through; desk | find TEXT; package ID | contents/gaps','workbench_scope':'Kernel bridge read extension; upstream POSIX grammar unchanged','knowledge_grammar':'source ID | search TEXT | take 5; map ID[@REV] | part REF; map ID | net NET; map ID | trace REF REF; map ID | evidence; map ID | status','execution_authority':'EXISTING_KERNEL','caller':'FORWARDED_WITHOUT_SCOPE_ESCALATION','reference_grammar':'library NS | search TEXT | take 5; library NS | reference ID; library NS | question SUBJECT PROPERTY VARIANT JSON','observation_store':'SHARED_KERNEL_MEMORY_AND_ACTIVITY','legacy_POSIX_CLI':'USER_INVOKED_ONLY_WINDOWS_IO_UNQUALIFIED','local_brain':'EXISTING_LEDGER_BRAIN'}
+    if op=='stac.status':return {'schema':'arc.stac-bridge/1','upstream':'0.6','discovery_grammar':'inquiries; inquiry ID | inspect; inquiry ID | history','algorithm_grammar':'algorithms; algorithms | find TEXT; algorithms | method ID','atlas_grammar':'atlas; atlas | find TEXT; atlas | operation ID; atlas | tool ID','workbench_grammar':'desk; desk | focus bring-in/understand/build/follow-through; desk | find TEXT; package ID | contents/gaps','workbench_scope':'Kernel bridge read extension; upstream POSIX grammar unchanged','math_grammar':MATH_GRAMMAR,'knowledge_grammar':'source ID | search TEXT | take 5; map ID[@REV] | part REF; map ID | net NET; map ID | trace REF REF; map ID | evidence; map ID | status','execution_authority':'EXISTING_KERNEL','caller':'FORWARDED_WITHOUT_SCOPE_ESCALATION','reference_grammar':'library NS | search TEXT | take 5; library NS | reference ID; library NS | question SUBJECT PROPERTY VARIANT JSON','observation_store':'SHARED_KERNEL_MEMORY_AND_ACTIVITY','legacy_POSIX_CLI':'USER_INVOKED_ONLY_WINDOWS_IO_UNQUALIFIED','local_brain':'EXISTING_LEDGER_BRAIN'}
     if op=='stac.compile':return compile_program(args['program'])
     if op=='stac.inspect':return inspect_program(kernel,principal,args['program'])
     if op=='stac.translate':

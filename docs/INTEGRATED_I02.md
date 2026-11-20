@@ -53,6 +53,51 @@ math problem:PROBLEM_ID | calculate "voltage * assumed_typical_current" | unit W
 
 The expression is quoted data for the typed compiler. The caller's real principal is forwarded. Compiling or previewing this program creates no write grant.
 
+## Maths in lines (0.8.5)
+
+The same line takes three more steps: solve for a quantity, the range of an expression, and a check. Each is the read operation `math.answer` (workbench/math_answers.py over the pure core workbench/math_ranges.py), and its answer is one record, `ledger.math-answer/1`: the question as asked, the model, every input with its revision and where it came from, the result, the guarantee, the steps, and whether the sheet's sources are still as they were. The grammar, strict shell words, at most 40, the steps in this order:
+
+```
+math problem:ID | calculate "EXPR" [| unit U]
+math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] (up to four) [| unit U]
+math problem:ID | range "EXPR" [| given NAME LO HI] (up to four) [| unit U]
+math problem:ID | check "REL" [| given NAME LO HI] (up to four)
+```
+
+ID is the problem sheet's ID. LO, HI and S are in that quantity's declared unit; a `given` on the quantity being solved for is refused, since that quantity is the one left free. A sheet's quantities carry no domain of their own, which is why `within` and `step` exist. A `given` range is typed by the owner; a line Kasandra proposes never carries one, and her ranges come only from the owner's tolerances (`tolerances.set`, which waits for Approve). Every maths answer, `calculate` included, says whether the sheet's sources changed since it was made, so a stale limit is never used silently. Everything is worked in exact fractions; numbers are shown to four figures, rounded outward for a range and toward the inside for an allowed end, with the exact value beside them. When a range can only be bounded soundly (a quantity used twice, or under an even power), the check says the margin is at least so much and that the range may be wider than the true one; it never says the ranges reach both sides when that is not known. The existing hashed maths files are unchanged; an answer carries the hashes of its own implementation.
+
+### Three worked examples on Rail Demo
+
+Rail Demo comes without a problem sheet, so first make one from its invented numbers: rail_voltage 12 V and settled_current 250 mA from its bench readings, settled_power_limit 4 W from its limits Rev B. Graphite gives the sheet an ID of 32 hex characters; `RAIL` below stands for it, so type the sheet's own ID in its place. tests_integrated/test_math_lines.py makes that sheet, runs these three lines and compares what the window shows (the lines under each one) with the words below, line for line. The receipt, one word away under each answer, lists the inputs with their revisions, the method and the guarantee.
+
+Solve for the current under the limit, in whole mA:
+
+```text
+math problem:RAIL | solve "rail_voltage * settled_current <= settled_power_limit" for settled_current | within 0 1000 | step 1
+Solve for settled_current
+Up to 333 mA, at rail_voltage 12 V and settled_power_limit 4 W.
+In whole steps of 1 mA: 0 to 333 mA.
+The exact end is 333.3 mA (exact 1000/3 mA).
+The declared 250 mA lies inside.
+333 mA holds (3.996 W); 334 mA does not (4.008 W).
+```
+
+Then the owner sets a tolerance on rail_voltage, plus or minus 0.5 V: with the operation `tolerances.set` typed in the Terminal after a leading / (`/help tolerances.set` lists what it takes: the sheet, the quantity, `plus_minus`, `percent` or `between`, the amount and where the tolerance comes from), or by asking Kasandra, who always asks before she sets one. The window has no control of its own for it yet. The owner then asks for the range of the power over it:
+
+```text
+math problem:RAIL | range "rail_voltage * settled_current" | unit W
+Range
+rail_voltage * settled_current: 2.875 to 3.125 W, over rail_voltage 11.5 to 12.5 V and settled_current 250 mA.
+```
+
+And the check against the limit, over the same tolerance:
+
+```text
+math problem:RAIL | check "rail_voltage * settled_current <= settled_power_limit"
+Holds
+rail_voltage * settled_current <= settled_power_limit: it holds for every value in the ranges, with 0.875 to 1.125 W to spare.
+```
+
 ## Office profile and precision
 
 The unmodified, hash-pinned LibreOffice UNO Java API JAR 25.2.0 is included with its MPL license and upstream POM/source reference. A fixed Java client receives data fields, not model-generated Java. The running native LibreOffice and Java versions are recorded per action. Documents load in an isolated profile with source document macros disabled and external updates disabled. This is a new generated-cell/paragraph/table profile; legacy Office adapters retain their existing interfaces and document-loss reports.

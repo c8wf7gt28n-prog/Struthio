@@ -1,0 +1,1605 @@
+diff --git a/docs/CAMPAIGN.md b/docs/CAMPAIGN.md
+index 6c3e886..19f2e64 100644
+--- a/docs/CAMPAIGN.md
++++ b/docs/CAMPAIGN.md
+@@ -90,6 +90,20 @@ here, so the operations the assistant would choose are scripted, and the result
+ for your approval is read from the assistant's policy table for the steps Graphite offers. No approval is pressed:
+ in the window it is your Run, and the run grants it for you.
+ 
++Since 0.8.5 the campaign's code, its cases and its scene keep nothing of your backup: no record id, no file hash, no
++title of yours. (The release notes of earlier versions, 0.4 to 0.8.2, still quote some of your titles, rows and
++numbers; they are left as they were written, for you to decide.) When a case runs, it finds what it works on in the
++restored workspace by what each thing is: the reviewed sheet whose title says "bench readings"; the two standing
++calculations that read its B2 with B3 (settled power) and with B4 (startup power); the finding that says settled
++power's result; and the PDF the sheet was reviewed from, with the SHA-256 it was admitted with. If one of them is
++missing, or there are two, the case stops and says which: the backup is then not the one these cases are written
++for. A calculation it cannot read is passed over, and named if what it looks for is then not found. No hash of your
++files is needed for that check, so there is no file to keep beside the backup. A01 compares the hash the sheet keeps
++of its source with the one its PDF was admitted with, and keeps neither. A27 finds its records once, before the
++write, and its resumed half works on the ones its checkpoint keeps. The numbers the cases expect (12 V, 280 mA, 3.36 W, then 3.6 W at 300 mA) are the ones the
++first-run workshop already prints (THINKPAD_FIRST_INSTALL.md) and Rail Demo's 300 mA. Older commits of the
++repository still hold the ids and names that were written here before 0.8.5; the history was not rewritten.
++
+ ## Rail Demo: the invented workspace kept in the program (0.8.4)
+ 
+ Your After Hours 07 backup is yours and is never shipped, so wherever it is not, the cases above say Blocked and
+@@ -150,24 +164,25 @@ python3 tools/campaign.py run --case DP01a,DP01b,DP01c,DP01d      # on Rail Demo
+ ```
+ 
+ The `scenes` set plays P01 (`tools/campaign_lib/data/scenes/P01.json`) on a live Graphite window, with no model:
+-P01a to P01d on your After Hours 07 backup, and DP01a to DP01d on Rail Demo. On Rail Demo it is the same scene,
+-the same acts in the same order, with each name swapped for the one there (the scene's `workspaces` entry lists
+-the pairs: `07 Bench readings` becomes `Rail Demo bench readings`, and so on). Every step is a desk act, the same
+-acts you can type in the writing line (`/help acts` lists them). On After Hours 07:
++DP01a to DP01d on Rail Demo, and P01a to P01d on your After Hours 07 backup. Since 0.8.5 the scene is written on
++Rail Demo and names nothing of yours. On After Hours 07 it is the same scene, the same acts in the same order, with
++each name swapped for the one there: the scene's `workspaces` entry says how each is found (its kind and the words
++it says, such as the sheet that says "rev b current" or the row of that sheet that says "duration"), and the case
++finds them in the restored workspace before the first step. What the window reads is then said back in the scene's
++own names, so both are judged by the same checks. Every step is a desk act, the same acts you can type in the
++writing line (`/help acts` lists them):
+ 
+ 1. open Tools across the head, then close it;
+-2. write `07 Bench readings.csv` through Stacy's hand (one card, one line in her trail, one Undo);
++2. write `Rail Demo bench readings.csv` (on After Hours 07, named after your bench readings sheet) through Stacy's
++   hand (one card, one line in her trail, one Undo);
+ 3. go to Files, right-click the CSV, choose Then, keep the rows where unit is mA, count them, and put the line in
+    the writing line;
+-4. go to the Field, see the whole desk, select 07 Bench readings and trace it (two hops, to 07 Settled power and
+-   07 Startup power);
+-5. select 07 Limits Rev B CURRENT, compare it with Rev A (Pulse ceiling and Pulse duration changed), and close the
+-   comparison;
++4. go to the Field, see the whole desk, select the bench readings and trace them (two hops, to the settled power
++   and startup power calculations);
++5. select the Rev B limits, compare them with Rev A (on Rail Demo Settled power limit, Startup duration limit and
++   Startup power ceiling changed; the scene checks the duration and the ceiling rows), and close the comparison;
+ 6. Undo, which takes the CSV back.
+ 
+-On Rail Demo the trace also goes two hops, to Rail Demo settled power and Rail Demo startup power, and the
+-comparison shows Settled power limit, Startup duration limit and Startup power ceiling changed.
+-
+ Each step's result is checked against what the window then reads back. The scene is played four times: by pointer
+ (P01a), by keys (P01b), and each again with Reduce motion on (P01c, P01d). A step that would wait for your Approve,
+ or open a window that asks, fails unless the scene says it should. The window is the size the scene gives
+diff --git a/docs/DAILY_GUIDE.md b/docs/DAILY_GUIDE.md
+index 2486e6d..2dfd620 100644
+--- a/docs/DAILY_GUIDE.md
++++ b/docs/DAILY_GUIDE.md
+@@ -30,7 +30,7 @@ to what rests on it. With a calculation selected, ask "what if B3 were 320?": Ka
+ In the writing strip `this` is the selected sheet (`this | count`, Ctrl+Enter), and `field.read` is the whole desk as
+ records (`field.read | pick waiting | select kind,title,state`). **X** doubts the selected sheet: Kasandra puts exact questions to the records and shows what does not hold, what she cannot
+ tell and what holds; **D** then offers the step that removes a doubt, and **C** lists what she doubts across the desk.
+-"What if" also works with a sheet selected, by cell or by the row's words ("what if the pulse duration were 100?"): the
++"What if" also works with a sheet selected, by cell or by the row's words ("what if the startup duration were 50?"): the
+ change is followed along the wires, nothing is changed, and the Field marks what would move until **Esc**. **B** shows the
+ desk written up as one page from the records; **G** keeps it as a page, and D on that page writes it again when the desk
+ has changed. **Backspace** goes back to the sheet you were on before. In the writing strip you can keep a line under a
+diff --git a/docs/MODEL_TRIAL_03.md b/docs/MODEL_TRIAL_03.md
+index b9ad48c..07a8974 100644
+--- a/docs/MODEL_TRIAL_03.md
++++ b/docs/MODEL_TRIAL_03.md
+@@ -8,7 +8,8 @@ Graphite's own operations (`brain.model.add`, then `brain.model.use` with the pr
+ context): `Qwen3.5-2B-Q4_K_M.gguf` (1.28 GB, sha256 aaf42c8b…699223) and `Qwen3.5-4B-Q4_K_M.gguf` (2.74 GB, sha256
+ 00fe7986…ef11a4), both Apache 2.0, thinking off. Inspecting a file took about 5 seconds and starting it 6 to 15. The window
+ was the real one, offscreen, on the restored After Hours 07 case, with the Field in front and a sheet selected. No file
+-ships with Graphite.
++ships with Graphite. (0.8.5: the answers below quoted names, texts and a size from the owner's own workspace; each is now
++given in brackets by what it was, as the owner may share Graphite one day. The answers are otherwise as the models gave them.)
+ 
+ ## What the first try showed
+ 
+@@ -31,11 +32,11 @@ the ordinary way.
+ | Sheet | Question | Qwen3.5-2B | s | Qwen3.5-4B | s |
+ | --- | --- | --- | --- | --- | --- |
+ | calculation | what went into this? | The calculation uses the voltage from cell B2 and the settled current from cell B3. | 5 | The calculation uses the settled current from cell B3 and the rail voltage from cell B2. These values were recorded during both observations and after settling, respectively. | 13 |
+-| finding | why do we believe this? | The finding is supported by two sources, both of which are marked as current. | 7 | The records show that the finding is supported by source "07_Bench_Readings.pdf" and source "07_Rail_Limits_Rev_B.pdf". These sources are marked as current… No further details explaining the reasoning are present in the provided rows. | 25 |
+-| open question | what is still open here? | The question "What stretched the startup pulse?" is still open with a state of UNKNOWN and a review of CURRENT. | 5 | The question … is still open. Its evidence state is UNKNOWN and its review status is CURRENT. | 10 |
+-| sheet | where did this table come from, and is it still good? | The sheet "07 Bench readings" comes from the current PDF source "07_Bench_Readings.pdf" and is still good. It was reviewed from page 1 and is currently in version 1. | 7 | The table comes from the source file "07_Bench_Readings.pdf" and is currently in good standing… | 18 |
+-| source | what is this file? | The file … has a state of current. It feeds the finding "Settled draw is 3.36 W. Rev B allows 6 W." and the finding "Startup ran 30 ms past the Rev B limit." | 10 | The file … is currently in the ACCEPTED state. It contains 77439 bytes and feeds findings regarding settled draw and startup times. | 16 |
+-| page | what is this page? | The document "07 Case conclusion · HOLD" is a record with revision 1 and contains 125 words. | 5 | This page is a document titled "07 Case conclusion · HOLD" with revision 1 and 125 words. | 10 |
++| finding | why do we believe this? | The finding is supported by two sources, both of which are marked as current. | 7 | The records show that the finding is supported by source "[the readings PDF]" and source "[the Rev B limits PDF]". These sources are marked as current… No further details explaining the reasoning are present in the provided rows. | 25 |
++| open question | what is still open here? | The question "[the case's open question]" is still open with a state of UNKNOWN and a review of CURRENT. | 5 | The question … is still open. Its evidence state is UNKNOWN and its review status is CURRENT. | 10 |
++| sheet | where did this table come from, and is it still good? | The sheet "[the bench readings sheet]" comes from the current PDF source "[the readings PDF]" and is still good. It was reviewed from page 1 and is currently in version 1. | 7 | The table comes from the source file "[the readings PDF]" and is currently in good standing… | 18 |
++| source | what is this file? | The file … has a state of current. It feeds the finding "[the settled power finding]" and the finding "[the startup finding]" | 10 | The file … is currently in the ACCEPTED state. It contains [its size] bytes and feeds findings regarding settled draw and startup times. | 16 |
++| page | what is this page? | The document "[the case conclusion page]" is a record with revision 1 and contains 125 words. | 5 | This page is a document titled "[the case conclusion page]" with revision 1 and 125 words. | 10 |
+ 
+ Asked about something the rows do not hold while it still pointed at the sheet, the 2B model said the records do not contain
+ it and said what they do show. "What is the capital of France?", which points at nothing, went the ordinary way and was
+diff --git a/tests_integrated/kasandra_window_probe.py b/tests_integrated/kasandra_window_probe.py
+index 49b7d48..262260c 100644
+--- a/tests_integrated/kasandra_window_probe.py
++++ b/tests_integrated/kasandra_window_probe.py
+@@ -319,7 +319,7 @@ def case_review(p):
+     row = next(r for r in ledger_control.settings(w.ledger_bridge.kernel)['settings'] if r['key'] == 'reading.family')
+     out['font_report'] = [row['application_state'], settings_qt.state_words(row)]
+     # her words: a name that fits a line is never cut at a line's end, in her leaded words and in a plain row of a card
+-    name, other = '07_Bench_Readings.pdf', '07_Rail_Limits_Rev_B.pdf'
++    name, other = 'Rail_Demo_Bench_Readings.pdf', 'Rail_Demo_Limits_Rev_B.pdf'
+     said = lambda n:'\u2190 source \u00b7 %s (current) \u00b7 supports' % n
+     card = face.say(said(name) + '\n' + said(other));row_label = QLabel(shell2.breakable(said(other)));row_label.setWordWrap(True);card.box.addWidget(row_label)
+     long = 'path/to/a/very/long/folder/name/that/never/fits/one/line/of/her/column.csv'
+@@ -384,7 +384,7 @@ def case_review(p):
+     # a note in the viewer at this size: the panes keep their width and no action is cut
+     from workbench import files_service
+     note = files_service.root(w.ledger_bridge.kernel) / 'bench note.md'
+-    note.write_text('# Bench note\n\nSettled draw is **3.36 W**.\n\n`office.get {"id":"x"}`\n')
++    note.write_text('# Bench note\n\nSettled power is **3 W**.\n\n`office.get {"id":"x"}`\n')
+     pane_before = w.desk.pane;w.open_in_viewer(note);p.settle(60, 8)
+     tab = w.tabs.currentWidget()
+     actions = getattr(tab, 'actions_row', ())
+diff --git a/tests_integrated/test_context_menu.py b/tests_integrated/test_context_menu.py
+index 54c8a9d..8f6adec 100644
+--- a/tests_integrated/test_context_menu.py
++++ b/tests_integrated/test_context_menu.py
+@@ -28,9 +28,10 @@ from tests_integrated.seed_hold import seed_bound
+ 
+ WINDOW={}
+ SHEET='office:owner:'+'a'*32
+-BENCH=[{'parameter':'Rail voltage','value':'12','unit':'V'},{'parameter':'Settled current','value':'280','unit':'mA'},
+-       {'parameter':'Startup current','value':'650','unit':'mA'},{'parameter':'Startup duration','value':'110','unit':'ms'}]
+-BENCH_CSV='parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n'
++# Rail Demo's invented bench readings (workbench/rail_demo.py READINGS), as reviewed rows and as a CSV table
++BENCH=[{'parameter':'Rail voltage','value':'12','unit':'V'},{'parameter':'Settled current','value':'250','unit':'mA'},
++       {'parameter':'Startup current','value':'900','unit':'mA'},{'parameter':'Startup duration','value':'45','unit':'ms'}]
++BENCH_CSV='parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n'
+ # A printed key: a whole caption that is one, or words that tell one (the judge's keys_scan patterns).
+ KEY_CAPTION=r'^(?:(?:Ctrl|Shift|Alt|Meta)\b.*|Esc|Enter|Return|Space|Backspace|Tab|F\d{1,2}|[A-Z0-9`])$'
+ KEY_TEXT=(r'\b(?:Ctrl|Shift|Alt|Meta)\s*[+ ]\s*\w|\buntil Esc\b|\b(?:Esc|Enter|Space|Backspace|F\d{1,2})\s+(?:asks|shows|takes|does|keeps|runs|closes)\b'
+@@ -224,12 +225,12 @@ class Rules(unittest.TestCase):
+         self.assertEqual([(o.words,o.count) for o in line_steps.values(held,base,'unit')],
+                          [('is mA',2),('is V',1),('is ms',1),('is not mA',2),('is not V',3),('is not ms',3)])
+         self.assertEqual([(o.words,o.count) for o in line_steps.values(held,base,'value')],
+-                         [('at least 110',3),('at least 280',2),('at least 650',1),('at most 12',1),('at most 110',2),('at most 280',3)])
++                         [('at least 45',3),('at least 250',2),('at least 900',1),('at most 12',1),('at most 45',2),('at most 250',3)])
+         self.assertEqual(held.rows(base+' | where unit=mA | count'),[{'count':2}])
+         self.assertEqual(held.rows(base+' | group unit | count'),[{'unit':'V','count':1},{'unit':'mA','count':2},{'unit':'ms','count':1}])
+         self.assertEqual((line_steps.steps_left(base),line_steps.steps_left(base+' | where unit=mA')),(6,5))
+-        # 0.8.4: a number written as text sorts by its value (12 before 110; it sorted as text before, so was not offered)
+-        self.assertIn('value',line_steps.sortable(held,base));self.assertEqual([r['value'] for r in held.rows(base+' | sort value')],['12','110','280','650'])
++        # 0.8.4: a number written as text sorts by its value (45 before 250; it sorted as text before, so was not offered)
++        self.assertIn('value',line_steps.sortable(held,base));self.assertEqual([r['value'] for r in held.rows(base+' | sort value')],['12','45','250','900'])
+         self.assertEqual(calls,['language.parse','ledger.address.read'],'two reads in all')
+ 
+     def test_the_window_never_names_the_language_and_says_the_200_limit(self):
+diff --git a/tests_integrated/test_desk_acts.py b/tests_integrated/test_desk_acts.py
+index 06451ec..cf72db9 100644
+--- a/tests_integrated/test_desk_acts.py
++++ b/tests_integrated/test_desk_acts.py
+@@ -32,10 +32,13 @@ from tests_integrated.seed_hold import seed_bound
+ ROOT=Path(__file__).resolve().parent.parent
+ P01=ROOT/'tools/campaign_lib/data/scenes/P01.json'
+ WINDOW={}
+-BENCH='parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n'
+-REV_A='parameter,value,unit,conditions\nPulse duration,120,ms,\nPulse ceiling,,,Up to 120 ms\n'
+-REV_B='parameter,value,unit,conditions\nPulse duration,80,ms,\nPulse ceiling,,,Up to 80 ms\n'
+-SEED=(('07 Bench readings.csv',BENCH),('07 Limits Rev A ARCHIVED.csv',REV_A),('07 Limits Rev B CURRENT.csv',REV_B))
++# The bench seed (0.8.5): P01's names, which are Rail Demo's, and Rail Demo's invented readings and limits, as CSV tables
++# imported into sheets (not reviewed from a PDF, so a trace of them has no hops). Nothing of the owner's workspace.
++BENCH='parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n'
++REV_A='parameter,value,unit,conditions\nStartup duration limit,60,ms,\nStartup power ceiling,,,Up to 60 ms\n'
++REV_B='parameter,value,unit,conditions\nStartup duration limit,40,ms,\nStartup power ceiling,,,Up to 40 ms\n'
++READINGS,LIMITS_A,LIMITS_B='Rail Demo bench readings','Rail Demo limits Rev A ARCHIVED','Rail Demo limits Rev B CURRENT'
++SEED=((READINGS+'.csv',BENCH),(LIMITS_A+'.csv',REV_A),(LIMITS_B+'.csv',REV_B))
+ OWNER_ONLY={'hand.approve','hand.undo','hand.dial','look.set','type.send'}
+ # The tables reading writes to: the journal's own (a read of the journal makes its bookkeeping), the Kernel's audit of
+ # every request that is not an observer's, and the instruction matrix, which records every line that runs (a read line
+@@ -365,28 +368,28 @@ class LiveActs(unittest.TestCase):
+             for left_pane,right_pane in (('machine','activity'),('settings','context'),('files','talk')):go('go.pane',{'left':left_pane,'right':right_pane})
+             go('go.today',{});go('go.today',{'by':'keys'})
+             go('go.files',{'folder':'seed','view':'icons'});go('go.files',{'folder':'seed','view':'list'})
+-            go('go.open',{'path':'07 Bench readings.csv'});go('go.open',{'tab':0})
++            go('go.open',{'path':READINGS+'.csv'});go('go.open',{'tab':0})
+             go('go.files',{'folder':'seed','view':'list'})
+             for how in ('show','line','copy','rows'):
+-                go('menu.open',{'on':'file','name':'07 Bench readings.csv'});go('menu.choose',{'path':'then'})
++                go('menu.open',{'on':'file','name':READINGS+'.csv'});go('menu.choose',{'path':'then'})
+                 go('then.keep',{'column':'unit','words':'is mA'});go('then.count');go('then.back');go('then.end',{'how':how})
+                 w.type_bar.box.clear();w._desk_put='';go('menu.close')
+-            go('menu.open',{'on':'file','name':'07 Bench readings.csv','by':'keys'});go('menu.choose',{'path':'more/copy:path'});go('menu.close')
++            go('menu.open',{'on':'file','name':READINGS+'.csv','by':'keys'});go('menu.choose',{'path':'more/copy:path'});go('menu.close')
+             go('menu.open',{'on':'here'});go('menu.close')
+             go('go.field',{});go('go.field',{'by':'keys'})
+             for to in ('whole','larger','smaller','reading','whole'):go('point.zoom',{'to':to})
+-            go('point.sheet',{'title':'07 Bench readings','by':'pointer'});go('point.sheet',{'title':'07 Limits Rev B CURRENT','by':'keys'})
+-            go('point.sheet',{'title':'07 Bench readings'})
++            go('point.sheet',{'title':READINGS,'by':'pointer'});go('point.sheet',{'title':LIMITS_B,'by':'keys'})
++            go('point.sheet',{'title':READINGS})
+             for way in ('first','last','right','left'):go('point.move',{'way':way})
+-            go('point.sheet',{'title':'07 Bench readings'})
++            go('point.sheet',{'title':READINGS})
+             for by in ('pointer','keys'):
+                 go('sheet.trace',{'by':by});go('sheet.close',{'by':by});go('sheet.doubt',{'by':by});go('sheet.close',{'by':by})
+                 go('sheet.steps',{'by':by});go('menu.close');go('sheet.close',{'by':by})
+-            go('menu.open',{'on':'sheet','name':'07 Bench readings'});go('menu.choose',{'path':'field:do/field:do:0'});go('menu.close');go('sheet.close')
++            go('menu.open',{'on':'sheet','name':READINGS});go('menu.choose',{'path':'field:do/field:do:0'});go('menu.close');go('sheet.close')
+             go('sheet.whatif',{'cell':'B3','value':'300'},'NOT_HERE')      # the bench's sheets hold words, not numbers
+-            go('point.sheet',{'title':'07 Limits Rev B CURRENT'})
++            go('point.sheet',{'title':LIMITS_B})
+             for by in ('pointer','keys'):go('sheet.compare',{'by':by});go('sheet.close',{'by':by})
+-            go('go.open',{'sheet':'07 Bench readings'});go('go.field',{'face':'apps'})
++            go('go.open',{'sheet':READINGS});go('go.field',{'face':'apps'})
+             go('point.sheet',{'id':w.field_page.view.field.objects[0].id})
+             go('sheet.whatif',{'cell':'B3','value':'300'},'NOT_HERE')
+             go('go.field',{'face':'network'});go('go.field',{'face':'work'});go('go.back',{})
+@@ -467,7 +470,7 @@ class LiveActs(unittest.TestCase):
+         w=self.w;k=WINDOW['k'];page=w.field_page
+         act('hand.dial',{'place':'ask'})
+         self.assertTrue(act('hand.write',{'path':'approve a.txt','text':'a'})['result']['waits'])
+-        act('go.field',{});act('point.sheet',{'title':'07 Bench readings'})
++        act('go.field',{});act('point.sheet',{'title':READINGS})
+         steps=act('sheet.steps',{'by':'keys'})['result']['steps']
+         n=next(i for i,s in enumerate(steps,1) if s['kind']=='write')
+         self.assertTrue(act('hand.step',{'n':n})['result']['waits']);self.assertTrue(page.view.go)
+@@ -481,7 +484,7 @@ class LiveActs(unittest.TestCase):
+         self.assertIs(out['result']['ran'],True);self.assertIs(latest.ran,True);self.assertIsNone(watch.ran)
+         self.assertTrue((WINDOW['files']/'approve b.txt').exists())
+         # the go's card the latest: G is pressed, and the card read back is the one it approved
+-        act('point.sheet',{'title':'07 Bench readings'});act('sheet.steps',{'by':'keys'})
++        act('point.sheet',{'title':READINGS});act('sheet.steps',{'by':'keys'})
+         self.assertTrue(act('hand.step',{'n':n})['result']['waits'])
+         again=go_card(page);self.assertIs(waiting_cards(w)[-1],again)
+         page.view.setFocus();settle()
+@@ -504,7 +507,7 @@ class LiveActs(unittest.TestCase):
+             act('go.field',{'face':'apps'});act('point.sheet',{'id':w.field_page.view.field.objects[0].id})
+             out=act('sheet.whatif',{'cell':'B3','value':'300'})
+             self.assertEqual(out['error']['code'],'NOT_HERE');self.assertIn('is neither',out['words'])
+-            act('go.field',{'face':'work'});act('point.sheet',{'title':'07 Bench readings'})
++            act('go.field',{'face':'work'});act('point.sheet',{'title':READINGS})
+             out=act('sheet.whatif',{'cell':'B3','value':'300'})
+             self.assertEqual(out['error']['code'],'NOT_HERE');self.assertEqual(out['changed'],[])
+             self.assertEqual(act('sheet.whatif',{'cell':'B3','value':'please'})['error']['code'],'BAD_ARGUMENTS')
+@@ -686,10 +689,10 @@ class LiveActs(unittest.TestCase):
+         act('go.files',{});self.assertEqual(act('read.desk',{'part':'where'})['result']['surface'],'workspace')
+ 
+     def test_a_sheet_is_reached_by_key_presses_only_when_asked_by_keys(self):
+-        act('go.field',{});act('point.sheet',{'title':'07 Bench readings'})
+-        keys=act('point.sheet',{'title':'07 Limits Rev B CURRENT','by':'keys'})
++        act('go.field',{});act('point.sheet',{'title':READINGS})
++        keys=act('point.sheet',{'title':LIMITS_B,'by':'keys'})
+         self.assertTrue(keys['ok'],keys['words']);self.assertGreater(keys['result']['presses'],0)
+-        direct=act('point.sheet',{'title':'07 Bench readings'})
++        direct=act('point.sheet',{'title':READINGS})
+         self.assertTrue(direct['ok'],direct['words']);self.assertEqual(direct['result']['presses'],0)
+ 
+     def test_the_empty_place_she_points_at_in_files_is_on_the_screen_when_the_list_is_full(self):
+@@ -722,7 +725,7 @@ class LiveActs(unittest.TestCase):
+ 
+     def test_one_record_per_act(self):
+         before=len(journal(origin='desk-script:test'))
+-        for name,args in (('go.field',{}),('point.zoom',{'to':'whole'}),('point.sheet',{'title':'07 Bench readings'}),('read.desk',{}),
++        for name,args in (('go.field',{}),('point.zoom',{'to':'whole'}),('point.sheet',{'title':READINGS}),('read.desk',{}),
+                           ('point.move',{'way':'first'}),('go.files',{}),('head.open',{'menu':'Guide'}),('menu.close',{}),('go.today',{}),
+                           ('go.open',{'tab':0})):
+             out=act(name,args);self.assertTrue(out['ok'],(name,out['words']))
+diff --git a/tests_integrated/test_desk_scenes.py b/tests_integrated/test_desk_scenes.py
+index 7f4b36d..9be5186 100644
+--- a/tests_integrated/test_desk_scenes.py
++++ b/tests_integrated/test_desk_scenes.py
+@@ -1,18 +1,19 @@
+ """0.8.2: the first scene (tools/campaign_lib/data/scenes/P01.json), played on the live window by desk acts alone.
+ 
+ The owner's playable scene: open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it
+-in the writing line); back to the Field; trace 07 Bench readings; compare the two revisions of the limits; and take back
++in the writing line); back to the Field; trace the bench readings; compare the two revisions of the limits; and take back
+ what Stacy's hand wrote. It is played by pointer (real mouse events and right-clicks), by keys (the keys a person would
+ press, sent where the keyboard is), each again with less motion, and by pointer on a 1366 by 768 window. Every step is an
+ act (desk_doers.run, door 'script') and every check reads what read.desk reads; nothing here reaches into a widget.
+ 
+ The window is built once on the bench seed (test_desk_acts.build_window: three sheets imported through Graphite's own
+-operations, the two revisions among them); the After Hours 07 run of the same scene is the campaign's (tools/campaign.py
+---set scenes).
++operations, the two revisions among them, under the scene's own names, which are Rail Demo's); the runs on Rail Demo and
++on the owner's After Hours 07 are the campaign's (tools/campaign.py --set scenes) and test_rail_demo's.
+ """
+ import os,unittest
+ os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
+-from tests_integrated.test_desk_acts import P01,build_window,close_window,settle
++from tests_integrated.test_desk_acts import P01,READINGS,build_window,close_window,settle
++CSV=READINGS+'.csv'      # what the scene writes in Files, and takes back
+ 
+ WINDOW={}
+ 
+@@ -32,7 +33,7 @@ class PlayableScene(unittest.TestCase):
+         w=WINDOW['w']
+         for name,args in (('menu.close',{}),('hand.dial',{'place':'show'})):run(w,name,args,door='script',origin='desk-script:setup')
+         if getattr(w,'_field_active',False):run(w,'go.back',{'by':'pointer'},door='script',origin='desk-script:setup')
+-        if (WINDOW['files']/'07 Bench readings.csv').exists():WINDOW['k'].dispatch('files.trash',{'path':'07 Bench readings.csv'},operator())
++        if (WINDOW['files']/CSV).exists():WINDOW['k'].dispatch('files.trash',{'path':CSV},operator())
+         if w.type_bar.box.text():w.type_bar.box.clear()
+         w._desk_put='';settle(WINDOW)
+ 
+@@ -44,7 +45,7 @@ class PlayableScene(unittest.TestCase):
+         self.assertNotIn('blocked',out)
+         self.assertTrue(out['passed'],desk_scene.failures(out))
+         self.assertEqual(len(out['steps']),len(scene['steps']))
+-        self.assertFalse((WINDOW['files']/'07 Bench readings.csv').exists(),'the scene takes back what it wrote')
++        self.assertFalse((WINDOW['files']/CSV).exists(),'the scene takes back what it wrote')
+         return out
+ 
+     def test_p01_by_mouse(self):
+diff --git a/tests_integrated/test_faces_find_light.py b/tests_integrated/test_faces_find_light.py
+index 4fd44f0..fe35f30 100644
+--- a/tests_integrated/test_faces_find_light.py
++++ b/tests_integrated/test_faces_find_light.py
+@@ -130,14 +130,14 @@ class FindTests(unittest.TestCase):
+     def test_a_tree_and_a_list_are_searched_by_their_rows(self):
+         tree=QTreeWidget();tree.setColumnCount(2);top=QTreeWidgetItem(tree,['Engineering','']);QTreeWidgetItem(top,['Rail limits','rev B']);QTreeWidgetItem(top,['Bench','rev A'])
+         self.assertEqual([i.text(0) for i in centre_find.places(tree,'rev b')[0]],['Rail limits'])
+-        rows=QListWidget();rows.addItems(['07 Case conclusion','07 Settled power','07 Startup power'])
+-        self.assertEqual([i.text() for i in centre_find.places(rows,'power')[0]],['07 Settled power','07 Startup power'])
++        rows=QListWidget();rows.addItems(['Rail Demo summary','Rail Demo settled power','Rail Demo startup power'])
++        self.assertEqual([i.text() for i in centre_find.places(rows,'power')[0]],['Rail Demo settled power','Rail Demo startup power'])
+ 
+     def test_a_page_of_words_is_searched_line_by_line_without_its_markup(self):
+-        page=QWidget();box=QVBoxLayout(page);lines=[QLabel('<b>Settled</b> draw is 3.36 W.'),QLabel('Startup ran 30 ms past the limit.'),QLabel('')]
++        page=QWidget();box=QVBoxLayout(page);lines=[QLabel('<b>Settled</b> power is 3 W.'),QLabel('Startup ran 5 ms past the limit.'),QLabel('')]
+         for line in lines:box.addWidget(line)
+         page.show();APP.processEvents()
+-        self.assertEqual(centre_find.places(page,'settled draw')[0],[lines[0]],'the words are found across the markup that shapes them')
++        self.assertEqual(centre_find.places(page,'settled power')[0],[lines[0]],'the words are found across the markup that shapes them')
+         self.assertEqual(centre_find.places(page,'<b>')[0],[],'the markup itself is not words')
+         self.assertIs(centre_find.subject(page),page);page.hide()
+ 
+@@ -295,7 +295,7 @@ class SurgeTests(unittest.TestCase):
+         from workbench.field_model import Field, FieldLink, FieldObject
+         from workbench.field_qt import FieldView
+         objs=[FieldObject('pdf','source','Bench.pdf'),FieldObject('sheet','sheet','Bench readings'),FieldObject('calc','calculation','Settled power'),
+-              FieldObject('find','finding','Settled draw'),FieldObject('other','source','Rev B.pdf'),FieldObject('alone','source','Rev A.pdf')]
++              FieldObject('find','finding','Settled power holds'),FieldObject('other','source','Rev B.pdf'),FieldObject('alone','source','Rev A.pdf')]
+         links=[FieldLink('pdf','sheet'),FieldLink('sheet','calc'),FieldLink('pdf','find'),FieldLink('other','find')]
+         v=FieldView();v.set_field(Field(objects=objs,links=links));v.resize(1200,800);self.addCleanup(v.deleteLater);return v
+ 
+@@ -359,18 +359,18 @@ class RevisionCutTests(unittest.TestCase):
+     and after for the selected row; Esc or a click beside it closes it."""
+     def test_rows_are_matched_and_the_change_is_said_in_words(self):
+         from workbench import field_page
+-        a=[{'parameter':'Continuous limit','value':'6','unit':'W','conditions':'Continuous'},{'parameter':'Pulse duration','value':'120','unit':'ms','conditions':'At up to 8 W'},
++        a=[{'parameter':'Settled power limit','value':'4','unit':'W','conditions':'Continuous'},{'parameter':'Startup duration limit','value':'60','unit':'ms','conditions':'From switch-on'},
+            {'parameter':'Gone','value':'1','unit':'V'}]
+-        b=[{'parameter':'Continuous limit','value':'6','unit':'W','conditions':'Continuous'},{'parameter':'Pulse duration','value':'80','unit':'ms','conditions':'At up to 8 W'},
++        b=[{'parameter':'Settled power limit','value':'4','unit':'W','conditions':'Continuous'},{'parameter':'Startup duration limit','value':'40','unit':'ms','conditions':'From switch-on'},
+            {'parameter':'New','value':'2','unit':'V'}]
+         rows=field_page.compare_rows(a,b)
+-        self.assertEqual([(r['parameter'],r['changed']) for r in rows],[('Continuous limit',[]),('Pulse duration',['value']),('New',['value']),('Gone',['value'])])
++        self.assertEqual([(r['parameter'],r['changed']) for r in rows],[('Settled power limit',[]),('Startup duration limit',['value']),('New',['value']),('Gone',['value'])])
+         from workbench.field_qt import FieldView
+         v=FieldView();self.addCleanup(v.deleteLater);v.resize(1200,800)
+         v.show_revisions(dict(a='Limits Rev A',b='Limits Rev B',a_rev='A',b_rev='B',rows=rows))
+         self.assertEqual(v.revisions['sel'],1,'the first row that changed is selected')
+-        self.assertEqual(v.revision_words(rows[1]),'value 120 ms in Rev A, 80 ms in Rev B')
+-        self.assertIn('Pulse duration: value 120 ms in Rev A, 80 ms in Rev B',v.accessibleDescription())
++        self.assertEqual(v.revision_words(rows[1]),'value 60 ms in Rev A, 40 ms in Rev B')
++        self.assertIn('Startup duration limit: value 60 ms in Rev A, 40 ms in Rev B',v.accessibleDescription())
+         self.assertFalse(v.grab().isNull())
+         v.close_revisions();self.assertIsNone(v.revisions)
+ 
+@@ -378,8 +378,8 @@ class RevisionCutTests(unittest.TestCase):
+         from workbench import field_page
+         from workbench.field_model import Field,FieldObject
+         from workbench.field_qt import FieldView
+-        objs=[FieldObject('a','sheet','07 Limits Rev A ARCHIVED'),FieldObject('b','sheet','07 Limits Rev B CURRENT'),FieldObject('c','sheet','07 Bench readings'),
+-              FieldObject('d','source','07 Limits Rev C.pdf')]
++        objs=[FieldObject('a','sheet','Rail Demo limits Rev A ARCHIVED'),FieldObject('b','sheet','Rail Demo limits Rev B CURRENT'),FieldObject('c','sheet','Rail Demo bench readings'),
++              FieldObject('d','source','Rail Demo limits Rev C.pdf')]
+         v=FieldView();self.addCleanup(v.deleteLater);v.set_field(Field(objects=objs))
+         pair=field_page.revision_sibling(v,v.field.get('b'));self.assertEqual([(rev,o.id) for rev,o in pair],[('A','a'),('B','b')])
+         self.assertIsNone(field_page.revision_sibling(v,v.field.get('c')),'no revision mark');self.assertIsNone(field_page.revision_sibling(v,v.field.get('d')),'a source is not a sheet')
+diff --git a/tests_integrated/test_kasandra.py b/tests_integrated/test_kasandra.py
+index a4f069e..8086c78 100644
+--- a/tests_integrated/test_kasandra.py
++++ b/tests_integrated/test_kasandra.py
+@@ -69,8 +69,8 @@ class PaletteTests(unittest.TestCase):
+         with mock.patch.object(boss_theme, 'APPEARANCE', 'kasandra'), mock.patch.multiple(boss_theme, ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff'):
+             sheet = boss_theme.line_sheet()
+             self.assertIn('background:#271a58', sheet);self.assertIn('border-left:3px solid #7b4fd8', sheet);self.assertIn('color:#ebe2ff', sheet)
+-        line = '/field.set {"id": "office:owner:db5f669f863d4c71b89fa7ba348957da", "cell": "B3", "expected_revision": "69dada6fef720000e4b538e9cc3a9518ecba564118661fc4b7a7e81372536a27"}'
+-        self.assertEqual(boss_theme.eye(line), '/field.set {"id": "office:owner:db5f66…", "cell": "B3", "expected_revision": "69dada…"}')
++        line = '/field.set {"id": "office:owner:3c9e0a51d2f84b7e96a0c4d18b2e7f53", "cell": "B3", "expected_revision": "8f41c2d07a9b3e6f15c84d2a90e7b3c6d51f08a2e94c7b36a0d8e5f1c27b94ae"}'
++        self.assertEqual(boss_theme.eye(line), '/field.set {"id": "office:owner:3c9e0a…", "cell": "B3", "expected_revision": "8f41c2…"}')
+         self.assertEqual(boss_theme.eye('field.read | pick waiting'), 'field.read | pick waiting', 'nothing to shorten')
+         self.assertEqual(set(boss_theme.PALETTES['graphite']) >= {'ROYAL', 'ROYAL_SOFT', 'ROYAL_INK', 'ROYAL_TEXT', 'HONEY', 'VIOLET'}, True)
+         self.assertEqual(boss_theme.PALETTES['graphite']['ROYAL_TEXT'], boss_theme.PALETTES['graphite']['TEAL_TEXT'], 'Graphite keeps its green for lines')
+diff --git a/tests_integrated/test_rail_demo.py b/tests_integrated/test_rail_demo.py
+index 6df54eb..3446d26 100644
+--- a/tests_integrated/test_rail_demo.py
++++ b/tests_integrated/test_rail_demo.py
+@@ -8,7 +8,9 @@ Every number in it is invented, and it says so.
+ 
+ Here: the sources are the same bytes every time; a workspace built by rail_demo.workspace() holds every record and every
+ link, each read back through Graphite's operations; nothing of it is outside the folder it was given; it is built through
+-Kernel.dispatch alone; changing the settled current from 250 mA to 300 mA gives 3.6 W exactly and sends what rests on it to
++Kernel.dispatch alone; the campaign finds its records by what each is, past more intake rows than one list gives and past
++a calculation it cannot read, and A01 tells the sheet's own record of its source from the hash its PDF was admitted with;
++changing the settled current from 250 mA to 300 mA gives 3.6 W exactly and sends what rests on it to
+ recheck while the reviewed source keeps its reading; and the playable scene P01 is played on it on the live window, by
+ pointer and by keys, each again with less motion, in the look this module was started in (run it once more with
+ GRAPHITE_APPEARANCE=kasandra for the other; tests_integrated.test_rail_demo_campaign plays it in both from one run).
+@@ -127,6 +129,32 @@ class Workspace:
+         self.seed.stop();self.env.stop();self.temporary.cleanup()
+ 
+ 
++class Elsewhere:
++    """The workspace's kernel answering as a restored backup might: more intake rows than one list gives (invented, and
++    listed before the PDF), calculations on the desk that cannot be read (an invented one, or one of Rail Demo's), or the
++    sheet's own record of its source's SHA-256 other than the hash its PDF was admitted with. Reads only."""
++
++    def __init__(self,kernel,more_items=0,unreadable=(),sheet_sha=None):
++        self.kernel,self.more_items,self.unreadable,self.sheet_sha=kernel,more_items,set(unreadable),sheet_sha
++
++    def dispatch(self,operation,arguments,principal):
++        if operation=='documents.get' and 'document:'+arguments['id'] in self.unreadable:
++            return {'ok':False,'error':{'code':'DOCUMENT_NOT_READABLE','message':'DOCUMENT_NOT_READABLE'}}
++        if operation=='intake.items' and self.more_items:
++            real=self.kernel.dispatch(operation,dict(arguments,limit=200,offset=0),principal)['result']['items']
++            rows=[{'id':'invented-%03d'%n,'name':'A note %03d.txt'%n,'sha256':''} for n in range(self.more_items)]+real
++            offset=arguments.get('offset',0)
++            return {'ok':True,'result':{'total':len(rows),'items':rows[offset:offset+arguments.get('limit',100)]}}
++        answer=self.kernel.dispatch(operation,arguments,principal)
++        if operation=='field.read' and answer['ok']:
++            answer=json.loads(json.dumps(answer))
++            on_desk={o['id'] for o in answer['result']['objects']}
++            answer['result']['objects']+=[{'id':ident,'kind':'calculation','title':'Another calculation · 1 W'} for ident in sorted(self.unreadable-on_desk)]
++        if operation=='office.get' and answer['ok'] and self.sheet_sha:
++            answer=json.loads(json.dumps(answer));answer['result']['source_state']['source_sha256']=self.sheet_sha
++        return answer
++
++
+ def pictured(field):
+     """What a read of the desk holds, without ids and times: (the set of objects, the set of links by title)."""
+     return ({(o['kind'],o['title'],o['state'],o['role'],tuple(o['facts']),o['where']) for o in field['objects']},
+@@ -309,6 +337,45 @@ class TheRecords(unittest.TestCase):
+             if kind in ('finding','question'):self.assertEqual(where,DESK,title)
+             else:self.assertTrue(title.startswith(('Rail Demo ','Rail_Demo_')),title)
+ 
++    def test_the_campaign_finds_the_same_records_by_what_each_is(self):
++        # 0.8.5: the anchor cases write no record id of the owner's: they find what they work on by kind and words
++        # (cases_anchor.found), on the owner's backup as here; here it finds what build() made
++        from tools.campaign_lib import cases_anchor
++        made=self.ws.made
++        self.assertEqual(cases_anchor.found(self.ws.k,self.ws.p),
++                         {'sheet':made['sheets']['readings'],'calc_settled':made['calculations']['settled_power'],'calc_startup':made['calculations']['startup_power'],
++                          'claim_settled':made['findings']['settled_holds'],'pdf_item':made['sources']['readings']['item'],'pdf_sha256':made['sources']['readings']['sha256']})
++
++    def test_the_campaign_finds_them_past_one_list_and_past_a_calculation_it_cannot_read(self):
++        # 0.8.5: found() asks the intake rows a page at a time, and passes over a calculation it cannot read, naming it when
++        # what it looks for is then not there
++        from tools.campaign_lib import cases_anchor
++        want=cases_anchor.found(self.ws.k,self.ws.p)
++        for what,elsewhere in (('more intake rows than one list gives',Elsewhere(self.ws.k,more_items=101)),
++                               ('a calculation it cannot read',Elsewhere(self.ws.k,unreadable=['document:unread']))):
++            with self.subTest(what):
++                self.assertEqual(cases_anchor.found(elsewhere,self.ws.p),want)
++        with self.assertRaises(LookupError) as refused:
++            cases_anchor.found(Elsewhere(self.ws.k,unreadable=['document:'+want['calc_settled']]),self.ws.p)
++        self.assertEqual(str(refused.exception),'The restored workspace holds no standing calculation of that sheet\'s B2 and B3 (settled power) '
++                                                '(1 calculation could not be read: %s).'%SETTLED)
++
++    def test_a01_says_whether_the_sheets_source_is_the_admitted_pdf_and_keeps_no_hash(self):
++        # 0.8.5: the sheet's own record of its source is compared with the hash the PDF was admitted with (its intake row),
++        # never with itself; neither hash is kept as an observation; what found() reads is logged with the case's own calls
++        from tools.campaign_lib import cases_anchor,core,runner
++        case=runner.registry()['DA01']
++        for sheet_sha,admitted in ((None,True),('0'*64,False)):
++            with tempfile.TemporaryDirectory(prefix='graphite-rail-demo-a01-') as folder:
++                ctx=core.Attempt(case,folder,1);ctx.kernel,ctx.owner=Elsewhere(self.ws.k,sheet_sha=sheet_sha),self.ws.p
++                case.fn(ctx)
++                self.assertIs(ctx.observed['pdf_source_is_the_admitted_one'],admitted,sheet_sha)
++                self.assertEqual(sorted(ctx.observed),sorted(case.expect),'nothing observed beyond the checks')
++                ops=[line['op'] for line in map(json.loads,(Path(folder)/'progress.jsonl').read_text().splitlines()) if line['step']=='op']
++                self.assertTrue(set(cases_anchor.FINDS)<=set(ops),ops)
++                self.assertEqual(set(ops)-set(case.allowed),set(),'every read is one the case allows')
++        self.assertEqual(runner.registry()['A01'].allowed,case.allowed)
++
+     def test_build_returns_what_find_reads_back(self):
+         made=self.ws.made
+         self.assertEqual(made,rail_demo.find(self.ws.k,self.ws.p))
+@@ -421,8 +488,12 @@ class TheRecords(unittest.TestCase):
+         from workbench import locations
+         from workbench.engineering_kernel import Kernel,operator
+         with tempfile.TemporaryDirectory(prefix='graphite-rail-demo-empty-') as folder,patch.dict(os.environ,{'ARC1_WORKBENCH_CONFIG_HOME':str(Path(folder)/'profile'),'ARC_LEDGER_CONCERN':str(Path(folder)/'Concern')}):
++            kernel=Kernel(locations.office(Path(folder)/'workspace'))
+             with self.assertRaisesRegex(rail_demo.Unavailable,'Rail Demo is not in this workspace'):
+-                rail_demo.find(Kernel(locations.office(Path(folder)/'workspace')),operator())
++                rail_demo.find(kernel,operator())
++            from tools.campaign_lib import cases_anchor          # 0.8.5: nor does the campaign find records that are not there
++            with self.assertRaisesRegex(LookupError,'The restored workspace holds no reviewed sheet whose title says "bench readings"'):
++                cases_anchor.found(kernel,operator())
+ 
+ 
+ class TheChange(unittest.TestCase):
+@@ -552,7 +623,7 @@ class ThePlayableSceneOnRailDemo(unittest.TestCase):
+             if step['act']=='hand.write':wrote.append((WINDOW['files']/CSV).read_text(encoding='utf-8'))      # read in Files, while it is there
+         out=desk_scene.run_scene(WINDOW['w'],scene,run,seed='rail_demo',origin='desk-script:P01',after_step=after)      # the scene as it is written: the seed is the switch
+         self.assertNotIn('blocked',out)
+-        # what the doer was given is this workspace's: the file it wrote holds Rail Demo's readings, not the ones the scene was written with
++        # what the doer was given is what the scene says: the file it wrote holds Rail Demo's readings (0.8.5: the scene is written with them)
+         self.assertEqual(wrote,[CSV_TEXT])
+         self.assertEqual([s['args'] for s in out['steps'] if s['act']=='hand.write'],[{'path':CSV,'text':CSV_TEXT}],'and the row says what the doer was given')
+         self.assertTrue(out['passed'],desk_scene.failures(out))
+@@ -569,11 +640,26 @@ class ThePlayableSceneOnRailDemo(unittest.TestCase):
+         field=WINDOW['k'].dispatch('field.read',{},operator())['result']
+         self.assertTrue(field['title'].startswith(DESK));self.assertEqual([c for c in field['counts'] if 'lately' not in c],COUNTS)
+         written=desk_scene.load(P01);scene=desk_scene.for_workspace(written,'rail_demo')
++        self.assertEqual(scene,written,'0.8.5: the scene is written on Rail Demo')
+         self.assertEqual(desk_scene.check_scene(scene),[])
+         said=json.dumps([[desk_scene.arguments(step,'rail_demo'),desk_scene.expected(step,run['name'],'rail_demo')] for step in scene['steps'] for run in scene['runs']])
+-        for name in written['workspaces']['rail_demo']['names']:self.assertNotIn(name,said,name)
+         self.assertNotIn('After Hours',said)
+ 
++    def test_p01_as_played_on_the_owners_workspace_finds_each_name_here_and_passes(self):
++        # 0.8.5: the scene's After Hours 07 entry finds each name by its kind and the words it says. On Rail Demo they are
++        # Rail Demo's own, so the scene as it is played on the owner's workspace (find_names, the swap) is played here.
++        from workbench import desk_scene
++        from workbench.engineering_kernel import operator
++        written=desk_scene.load(P01)
++        found=desk_scene.find_names(WINDOW['k'],operator(),written,'after_hours_07')
++        self.assertEqual(found,{name:name for name in written['workspaces']['after_hours_07']['find']})
++        out=desk_scene.run_scene(WINDOW['w'],written,'keys_still',seed='after_hours_07',origin='desk-script:P01')
++        self.assertNotIn('blocked',out)
++        self.assertEqual((out['seed'],out['found']),('after_hours_07',found))
++        self.assertTrue(out['passed'],desk_scene.failures(out))
++        self.assertEqual(len(out['steps']),len(written['steps']))
++        self.assertFalse((WINDOW['files']/CSV).exists(),'the scene takes back what it wrote')
++
+     def test_p01_by_mouse(self):
+         out=self.play('mouse')
+         self.assertTrue(all(s['by'] in ('pointer','direct') for s in out['steps']),[(s['act'],s['by']) for s in out['steps']])
+diff --git a/tests_integrated/test_rail_demo_campaign.py b/tests_integrated/test_rail_demo_campaign.py
+index 87e227d..07284a6 100644
+--- a/tests_integrated/test_rail_demo_campaign.py
++++ b/tests_integrated/test_rail_demo_campaign.py
+@@ -5,10 +5,17 @@ never shipped: wherever it was not they were Blocked, and their steps never ran.
+ steps on Rail Demo: DP01a..DP01d (the scene, its names swapped) and DA01, DA16, DA17, DA27 (the same functions, Rail
+ Demo's own values).
+ 
+-Without a run: the scene as it is played on Rail Demo names nothing of the owner's workspace and is the same scene (the
+-same acts, in the same order, with the same expectations by place); the runner's parent, which never imports Graphite,
+-and the program give the same scene; the scene as written is untouched and its cases still need the backup; the twins
+-need only what a PDF source needs, and say which part is missing.
++Without a run: since 0.8.5 the scene is written on Rail Demo and names nothing of the owner's workspace; on After Hours 07
++each of its names is found there by kind and words (on a stand-in desk of invented names here), the same acts in the
++same order, and what the window reads there is said back in the scene's own names, so a run there is judged by the
++same checks; the runner's parent, which never imports Graphite, and the program give the same scene; the scene as
++written is untouched and its cases on the owner's workspace still need the backup; no anchor or scene case, and no
++module of the campaign, holds a record id or a hash of the owner's; the twins need only what a PDF source needs, and
++say which part is missing.
++
++The scene case itself, played once in this process as a child of the runner plays it: P01 said in invented names, with
++an entry that finds each of them on Rail Demo by the words its After Hours 07 entry uses, so the case finds Rail Demo's
++names before the first step, plays the scene in them and meets the scene's own checks with what it read said back.
+ 
+ With a run, exactly as `tools/campaign.py run` makes it (one child per attempt, in its own folder, no fixtures folder):
+ the four anchors' steps pass on Rail Demo with its values (3 W, 3.6 W at 300 mA, the finding flagged, the source still at
+@@ -25,6 +32,7 @@ import copy
+ import io
+ import json
+ import os
++import re
+ import tempfile
+ import unittest
+ from pathlib import Path
+@@ -36,9 +44,15 @@ from tests_integrated import seed_hold
+ ROOT = Path(__file__).resolve().parent.parent
+ ANCHORS = ['DA01', 'DA16', 'DA17', 'DA27']
+ SCENES = ['DP01a', 'DP01b', 'DP01c', 'DP01d']
+-# what the scene's names become on Rail Demo, in the order the scene lists them: the file it writes, the three sheets, two rows
+-THERE = ['Rail Demo bench readings.csv', 'Rail Demo bench readings', 'Rail Demo limits Rev A ARCHIVED', 'Rail Demo limits Rev B CURRENT',
+-         'Startup duration limit', 'Startup power ceiling']
++# The names the scene says that its After Hours 07 entry finds there, in the order it lists them: three sheets, two
++# calculations, two rows of the Rev B sheet
++FOUND = ['Rail Demo bench readings', 'Rail Demo limits Rev A ARCHIVED', 'Rail Demo limits Rev B CURRENT', 'Rail Demo settled power',
++         'Rail Demo startup power', 'Startup duration limit', 'Startup power ceiling']
++# Invented names for a workspace whose names the program does not hold, as find_names would find them there
++ELSEWHERE = dict(zip(FOUND, ['Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT', 'Night settled power',
++                             'Night startup power', 'Peak duration', 'Peak ceiling']))
++RAIL_CSV = 'parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n'
++HEX_ID = r'(?<![0-9a-f])(?:[0-9a-f]{32}|[0-9a-f]{64})(?![0-9a-f])'      # a record id or a SHA-256, as Graphite writes them
+ 
+ 
+ def arguments(**values):
+@@ -62,58 +76,115 @@ def run(out, cases, look=None, first_on_path=None):
+     return code, results
+ 
+ 
++class Desk:
++    """A workspace's desk as find_names reads it (field.read; office.get of a sheet for its reviewed rows), with invented
++    names standing for a workspace the program does not hold."""
++
++    def __init__(self, sheets=None, calculations=None, rows=None):
++        self.sheets = sheets if sheets is not None else ['Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT', 'Night notes']
++        self.calculations = calculations if calculations is not None else ['Night settled power · 4.2 W', 'Night startup power · 9 W']
++        self.rows = rows if rows is not None else ['Peak duration', 'Peak ceiling', 'Nominal voltage']
++        self.asked = []
++
++    def dispatch(self, op, args, principal):
++        self.asked.append(op)
++        if op == 'field.read':
++            return {'ok': True, 'result': {'objects': [{'id': 'office:owner:%d' % n, 'kind': 'sheet', 'title': t} for n, t in enumerate(self.sheets)]
++                                           + [{'id': 'document:%d' % n, 'kind': 'calculation', 'title': t} for n, t in enumerate(self.calculations)]
++                                           + [{'id': 'claim:1', 'kind': 'finding', 'title': 'Night settled power is 4.2 W.'}]}}
++        if op == 'office.get':
++            title = self.sheets[int(args['id'].rsplit(':', 1)[1])]
++            rows = self.rows if title.endswith('Rev B CURRENT') else ['Other']
++            return {'ok': True, 'result': {'origin': {'reviewed_rows': [{'parameter': p, 'value': '1'} for p in rows]}}}
++        return {'ok': False, 'error': {'code': 'NOT_ASKED'}}
++
++
+ class TheSceneOnAnotherWorkspace(unittest.TestCase):
+-    """No run: what the scene is on Rail Demo, and that the scene as written is untouched."""
++    """No run: the scene is written on Rail Demo and names nothing of the owner's workspace; on After Hours 07 each of its
++    names is found there by kind and words, and what the window reads there is said back in the scene's own names."""
+ 
+     def setUp(self):
++        from workbench import desk_scene
+         self.written = cases_scene.load('P01')
+-        self.there = cases_scene.for_workspace(self.written, 'rail_demo')
+-        self.names = self.written['workspaces']['rail_demo']['names']
+-
+-    def test_the_same_acts_in_the_same_order_with_each_name_swapped(self):
+-        self.assertEqual(list(self.names.values()), THERE)
++        self.find = self.written['workspaces']['after_hours_07']['find']
++        self.there = desk_scene.for_workspace(self.written, 'after_hours_07', ELSEWHERE)
++
++    def test_the_scene_is_written_on_rail_demo_and_names_nothing_of_the_owners_workspace(self):
++        self.assertEqual((self.written['seed'], self.written['title']), ('rail_demo', 'Rail Demo, the playable scene'))
++        self.assertEqual(cases_scene.for_workspace(self.written, 'rail_demo'), self.written, 'the scene as written is what Rail Demo plays')
++        self.assertEqual(list(self.written['workspaces']), ['after_hours_07'])
++        self.assertNotIn('names', self.written['workspaces']['after_hours_07'], 'no name of the owner\'s workspace is written')
++        self.assertEqual(list(self.find), FOUND)
+         said = json.dumps(self.written['steps'])
+-        for name in self.names:
+-            self.assertIn(json.dumps(name)[1:-1], said, 'a name the scene does not say')
++        for name in FOUND:
++            self.assertIn(name, said, 'a name the scene does not say')
++        named = {s['args'][k] for s in self.written['steps'] for k in ('title', 'name', 'path') if k in s.get('args', {}) and s['act'] != 'menu.choose'}
++        self.assertEqual(named, {'Rail Demo bench readings', 'Rail Demo bench readings.csv', 'Rail Demo limits Rev B CURRENT'})
++        self.assertEqual([s['args']['text'] for s in self.written['steps'] if s['act'] == 'hand.write'], [RAIL_CSV], 'Rail Demo\'s readings, invented')
++        self.assertEqual([s for s in self.written['steps'] if 'args_by_seed' in s], [], 'the same arguments on every workspace')
++        self.assertEqual(re.findall(HEX_ID, json.dumps(self.written)), [])
++
++    def test_on_another_workspace_the_same_acts_with_each_name_found_there(self):
+         self.assertEqual([s['act'] for s in self.there['steps']], [s['act'] for s in self.written['steps']])
+         self.assertEqual((self.there['seed'], self.there['id'], self.there['runs'], self.there['given']),
+-                         ('rail_demo', 'P01', self.written['runs'], self.written['given']))
+-        self.assertEqual(self.there['title'], 'Rail Demo, the playable scene')
+-        self.assertIn('invented data', self.there['intent'])
++                         ('after_hours_07', 'P01', self.written['runs'], self.written['given']))
++        self.assertEqual(self.there['title'], 'After Hours 07, the playable scene')
+         for was, now in zip(self.written['steps'], self.there['steps']):
+-            self.assertEqual(sorted(was), sorted(now))
+-            for key in ('args', 'expect', 'expect_by_run'):
++            for key in ('args', 'expect', 'expect_by_run', 'expect_by_seed'):
+                 self.assertEqual(sorted(was.get(key, {})), sorted(now.get(key, {})), (was['act'], key))
+         by_act = {s['act']: s for s in self.there['steps']}
+-        self.assertEqual(by_act['hand.write']['args']['path'], 'Rail Demo bench readings.csv')
+-        self.assertEqual(by_act['menu.open']['args'], {'on': 'file', 'name': 'Rail Demo bench readings.csv'})
+-        self.assertEqual(by_act['then.end']['expect']['desk.line.text'], '@files:Rail Demo bench readings.csv | rows | where unit=mA | count')
++        self.assertEqual(by_act['hand.write']['args'], {'path': 'Night bench readings.csv', 'text': RAIL_CSV})
++        self.assertEqual(by_act['menu.open']['args'], {'on': 'file', 'name': 'Night bench readings.csv'})
++        self.assertEqual(by_act['then.end']['expect']['desk.line.text'], '@files:Night bench readings.csv | rows | where unit=mA | count')
+         self.assertEqual(by_act['sheet.compare']['expect'],
+-                         {'desk.field.revisions.a': 'Rail Demo limits Rev A ARCHIVED', 'desk.field.revisions.b': 'Rail Demo limits Rev B CURRENT',
+-                          'desk.field.revisions.changed': {'contains': 'Startup duration limit'},
+-                          'desk.field.revisions.changed#ceiling': {'contains': 'Startup power ceiling'}})
+-        self.assertEqual(by_act['hand.undo']['expect']['act.result.trashed'], 'Rail Demo bench readings.csv')
+-
+-    def test_what_is_played_on_rail_demo_names_nothing_of_the_owners_workspace(self):
+-        for run_name in ('mouse', 'keys', 'mouse_still', 'keys_still'):
+-            played = json.dumps([[{**s.get('args', {}), **s.get('args_by_seed', {}).get('rail_demo', {})}] for s in self.there['steps']]
+-                                + [cases_scene.flattened(self.there, run_name, 'rail_demo')])
+-            for name in self.names:
+-                self.assertNotIn(name, played, (run_name, name))
+-            self.assertNotIn('After Hours', played, run_name)
+-        text = self.there['steps'][2]['args_by_seed']['rail_demo']['text']
+-        self.assertEqual(text, 'parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n')
+-        self.assertEqual((text.count('\n') - 1, text.count(',mA\n')), (4, 2), 'the four rows and the two in mA the scene counts')
++                         {'desk.field.revisions.a': 'Night limits Rev A ARCHIVED', 'desk.field.revisions.b': 'Night limits Rev B CURRENT',
++                          'desk.field.revisions.changed': {'contains': 'Peak duration'}, 'desk.field.revisions.changed#ceiling': {'contains': 'Peak ceiling'}})
++        self.assertEqual(by_act['sheet.trace']['expect_by_seed']['after_hours_07']['desk.field.route.ends'], {'contains': 'Night settled power'})
++        said = json.dumps(self.there['steps'])
++        for name in FOUND:
++            self.assertNotIn(name, said, name)
++        self.assertEqual(cases_scene.for_workspace(self.written, 'after_hours_07')['steps'], self.written['steps'],
++                         'where the names are not found yet (the runner\'s parent) they stay as the scene says them')
++
++    def test_what_the_window_reads_there_is_said_back_in_the_scenes_own_names(self):
++        from workbench import desk_scene
++        self.assertEqual(desk_scene.said_back({'ends': ['Night settled power · 4.2 W', 'Night startup power · 9 W'], 'hops': 2, 'other': 'Night notes'}, ELSEWHERE),
++                         {'ends': ['Rail Demo settled power · 4.2 W', 'Rail Demo startup power · 9 W'], 'hops': 2, 'other': 'Night notes'})
++        self.assertEqual(desk_scene.said_back('Night bench readings.csv', {}), 'Night bench readings.csv')
++        for run_name in ('mouse', 'keys', 'mouse_still', 'keys_still'):     # every check, read there as expected, is the scene's own check
++            here = cases_scene.flattened(cases_scene.for_workspace(self.written, 'after_hours_07'), run_name, 'after_hours_07')
++            there = cases_scene.flattened(self.there, run_name, 'after_hours_07')
++            self.assertEqual(sorted(there), sorted(here))
++            for path, value in there.items():
++                self.assertEqual(desk_scene.said_back(value, ELSEWHERE), here[path], (run_name, path))
++
++    def test_each_name_is_found_once_by_its_kind_and_the_words_it_says(self):
++        from workbench import desk_scene
++        desk = Desk()
++        self.assertEqual(desk_scene.find_names(desk, None, self.written, 'after_hours_07'), ELSEWHERE)
++        self.assertEqual(desk.asked.count('field.read'), 1)
++        self.assertTrue(set(desk.asked) <= {'field.read', 'office.get'}, 'it only reads')
++        self.assertEqual(desk_scene.find_names(desk, None, self.written, 'rail_demo'), {}, 'the scene\'s own workspace: nothing to find')
++        for broken, words in ((Desk(sheets=['Night bench readings', 'Day bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT']),
++                               '2 sheets say "bench readings" (for Rail Demo bench readings)'),
++                              # a sheet is one record: two of one title are two, whether a row is found in it or not
++                              (Desk(sheets=['Night bench readings', 'Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT']),
++                               '2 sheets say "bench readings" (for Rail Demo bench readings)'),
++                              (Desk(sheets=['Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT', 'Night limits Rev B CURRENT']),
++                               '2 sheets say "rev b current" (for Rail Demo limits Rev B CURRENT)'),
++                              (Desk(calculations=['Night settled power · 4.2 W']), 'no calculation says "startup power" (for Rail Demo startup power)'),
++                              (Desk(rows=['Peak duration ceiling', 'Nominal voltage']), 'Startup duration limit and Startup power ceiling are found as the same row of Night limits Rev B CURRENT'),
++                              (Desk(rows=['Nominal voltage']), 'no row of Night limits Rev B CURRENT says "duration" (for Startup duration limit)')):
++            with self.assertRaises(ValueError, msg=words) as refused:
++                desk_scene.find_names(broken, None, self.written, 'after_hours_07')
++            self.assertEqual(str(refused.exception), "The scene P01, workspace 'after_hours_07': " + words)
+ 
+     def test_the_scene_as_written_is_untouched_and_is_what_its_own_seed_gives(self):
++        from workbench import desk_scene
+         before = copy.deepcopy(self.written)
+-        cases_scene.for_workspace(self.written, 'rail_demo')
++        desk_scene.for_workspace(self.written, 'after_hours_07', ELSEWHERE);cases_scene.for_workspace(self.written, 'after_hours_07')
+         self.assertEqual(self.written, before, 'a copy is swapped, never the scene')
+-        self.assertEqual(cases_scene.for_workspace(self.written, 'after_hours_07'), self.written)
+-        self.assertEqual((self.written['seed'], self.written['title']), ('after_hours_07', 'After Hours 07, the playable scene'))
+-        said = json.dumps(self.written['steps'])
+-        self.assertNotIn('Rail Demo', said.replace(json.dumps(self.written['steps'][2]['args_by_seed'])[1:-1], '')
+-                         .replace(json.dumps(self.written['steps'][12]['expect_by_seed']['rail_demo'])[1:-1], ''))
++        self.assertEqual(desk_scene.for_workspace(self.written, 'rail_demo', ELSEWHERE), self.written, 'its own seed: as written')
+         with self.assertRaisesRegex(ValueError, "not written for the workspace 'bench'"):
+             cases_scene.for_workspace(self.written, 'bench')
+ 
+@@ -124,8 +195,8 @@ class TheSceneOnAnotherWorkspace(unittest.TestCase):
+         with self.assertRaises(ValueError):
+             desk_scene.for_workspace(self.written, 'bench')
+         for run_name in ('mouse', 'keys', 'mouse_still', 'keys_still'):
+-            flat = cases_scene.flattened(self.there, run_name, 'rail_demo')
+-            for n, step in enumerate(self.there['steps'], 1):
++            flat = cases_scene.flattened(self.written, run_name, 'rail_demo')
++            for n, step in enumerate(self.written['steps'], 1):
+                 for path, value in desk_scene.expected(step, run_name, 'rail_demo').items():
+                     self.assertEqual(flat['%d:%s' % (n, path)], value, (run_name, n, path))
+         self.assertEqual(desk_scene.check_scene(self.there), [])
+@@ -134,25 +205,34 @@ class TheSceneOnAnotherWorkspace(unittest.TestCase):
+     def test_a_malformed_entry_is_said_in_words(self):
+         from workbench import desk_scene
+         scene = copy.deepcopy(self.written)
+-        scene['workspaces'] = {'rail_demo': {'names': {'a name the scene says': 7}}}
+-        scene['steps'][2]['args_by_seed'] = {'rail_demo': {'path': ''}}
+-        scene['steps'][3]['args_by_seed'] = ['rail_demo']
++        scene['workspaces'] = {'rail_demo': {'names': {'a name the scene says': 7}},
++                               'after_hours_07': {'find': {'Rail Demo bench readings': {'kind': 'page', 'says': 'bench'},
++                                                           'Startup power ceiling': {'kind': 'row', 'of': 'Rail Demo settled power', 'says': 'ceiling'},
++                                                           'Rail Demo settled power': {'kind': 'calculation', 'says': ' '}}}}
++        scene['steps'][2]['args_by_seed'] = {'after_hours_07': {'path': ''}}
++        scene['steps'][3]['args_by_seed'] = ['after_hours_07']
+         problems = desk_scene.check_scene(scene)
+         self.assertIn("workspace 'rail_demo': names is not an object of names", problems)
++        self.assertIn("workspace 'after_hours_07': 'Rail Demo bench readings' is not found by a kind (sheet, calculation, row) and the words it says", problems)
++        self.assertIn("workspace 'after_hours_07': the row 'Startup power ceiling' is not of a sheet the entry finds", problems)
++        self.assertIn("workspace 'after_hours_07': 'Rail Demo settled power' is not found by a kind (sheet, calculation, row) and the words it says", problems)
+         self.assertIn('step 4: args_by_seed is not an object of objects', problems)
+-        self.assertTrue([p for p in problems if p.startswith('step 3, on rail_demo: ')], problems)
+-        self.assertEqual(len(problems), 3, problems)
++        self.assertTrue([p for p in problems if p.startswith('step 3, on after_hours_07: ')], problems)
++        self.assertEqual(len(problems), 6, problems)
+ 
+     def test_names_the_swap_cannot_use_are_refused_in_words_and_nothing_is_swapped(self):
+         from workbench import desk_scene
+-        for names in ({'': 'x'}, {'07 Bench readings': 7}, ['07 Bench readings'], None):
++        for names in ({'': 'x'}, {'Rail Demo bench readings': 7}, ['Rail Demo bench readings'], None):
+             scene = copy.deepcopy(self.written)
+-            scene['workspaces']['rail_demo']['names'] = names
++            scene['workspaces']['after_hours_07']['names'] = names
+             for give in (desk_scene.for_workspace, cases_scene.for_workspace):
+                 with self.assertRaises(ValueError, msg=(names, give.__module__)) as refused:
+-                    give(scene, 'rail_demo')
+-                self.assertEqual(str(refused.exception), "The scene P01, workspace 'rail_demo': names is not an object of names")
+-            self.assertIn("workspace 'rail_demo': names is not an object of names", desk_scene.check_scene(scene))
++                    give(scene, 'after_hours_07')
++                self.assertEqual(str(refused.exception), "The scene P01, workspace 'after_hours_07': names is not an object of names")
++            self.assertIn("workspace 'after_hours_07': names is not an object of names", desk_scene.check_scene(scene))
++            if isinstance(names, dict):
++                with self.assertRaises(ValueError, msg=names):
++                    desk_scene.for_workspace(self.written, 'after_hours_07', names)      # nor names found that it cannot use
+ 
+     def test_arguments_for_a_seed_add_to_or_replace_the_steps_own(self):
+         from workbench import desk_scene
+@@ -163,6 +243,65 @@ class TheSceneOnAnotherWorkspace(unittest.TestCase):
+         self.assertEqual(step['args'], {'path': 'a.csv', 'text': 'one'})
+ 
+ 
++class TheSceneCaseWhereItsNamesAreFound(unittest.TestCase):
++    """The scene case itself (cases_scene.run_case, as a child of the runner calls it) on a workspace whose names are not the
++    scene's, as P01a..P01d are on the owner's backup, which is not here: P01 said in invented names, with an entry that
++    finds each of them on Rail Demo by the words its After Hours 07 entry uses. The case finds Rail Demo's names before
++    the first step, plays the scene in them, and says what the window read back in the scene's own names, so the scene's
++    own checks are met. Played once, in this process, on Rail Demo built as the runner builds it for a child."""
++
++    @classmethod
++    def setUpClass(cls):
++        from workbench import desk_scene
++        written = cases_scene.load('P01')
++        find = written['workspaces']['after_hours_07']['find']
++        invented = desk_scene.for_workspace(written, 'after_hours_07', ELSEWHERE)      # the same scene, said in invented names
++        invented.update(seed='night', workspaces={'rail_demo': {'find': {
++            ELSEWHERE[name]: dict(how, **({'of': ELSEWHERE[how['of']]} if 'of' in how else {})) for name, how in find.items()}}})
++        cls.invented = invented
++        cls.case = core.Case(id='XP01d', set='scenes', title='P01 in invented names, played on Rail Demo', seed='rail_demo', needs=['rail_demo'],
++                             inputs={'scene': 'P01', 'run': 'keys_still'}, fn=cases_scene.run_case,
++                             expect=cases_scene.flattened(cases_scene.for_workspace(invented, 'rail_demo'), 'keys_still', 'rail_demo'))
++        cls.temp = tempfile.TemporaryDirectory(prefix='graphite-scene-case-', ignore_cleanup_errors=True)
++        folder = Path(cls.temp.name) / 'attempt'
++        fixture.make_folders(folder)
++        holds = [mock.patch.dict(os.environ, fixture.attempt_environment(folder)), seed_hold.seed_bound(),
++                 mock.patch.object(cases_scene, 'load', lambda scene_id: copy.deepcopy(invented))]
++        for hold in holds:hold.start()
++        try:
++            cls.ctx = core.Attempt(cls.case, folder, 1)
++            cls.ctx.kernel, cls.ctx.owner, _ = fixture.rail_demo_workspace(folder)
++            cls.case.fn(cls.ctx)
++        finally:
++            for hold in reversed(holds):hold.stop()
++        cls.outcome, cls.scored = core.score(cls.case, cls.ctx.observed)
++
++    @classmethod
++    def tearDownClass(cls):
++        cls.temp.cleanup()
++
++    def test_the_scene_in_invented_names_names_nothing_of_rail_demo_that_its_entry_finds(self):
++        said = json.dumps(self.invented['steps'])
++        for name in FOUND:
++            self.assertNotIn(name, said, name)
++        self.assertEqual(self.case.expect['12:desk.field.selected.title'], 'Night bench readings')
++
++    def test_the_case_finds_each_name_there_and_meets_the_scenes_own_checks(self):
++        self.assertEqual(self.outcome, 'Pass', [c for c in self.scored if not c['ok']])
++        self.assertEqual(len(self.scored), len(self.case.expect))
++        self.assertEqual(self.ctx.notes['found'], sorted(ELSEWHERE.values()), 'which of the scene\'s names were found there')
++        self.assertIs(self.ctx.notes['passed'], True)
++        self.assertEqual([s['act'] for s in self.ctx.notes['steps']], [s['act'] for s in self.invented['steps']])
++
++    def test_it_was_played_in_the_names_there_and_judged_in_the_scenes_own(self):
++        trace = next(s for s in self.ctx.notes['steps'] if s['act'] == 'sheet.trace')
++        self.assertEqual(trace['result']['route']['owner_title'], 'Rail Demo bench readings', 'what the window read, as it read it')
++        got = self.ctx.observed
++        self.assertEqual((got['12:desk.field.selected.title'], got['15:desk.field.revisions.a'], got['15:desk.field.revisions.b'], got['17:act.result.trashed']),
++                         ('Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT', 'Night bench readings.csv'))
++        self.assertEqual([name for name in FOUND if name in json.dumps(got)], [], 'every name read there is said back')
++
++
+ class TheCases(unittest.TestCase):
+     """No run: the twins are registered, need nothing of the owner's, and the cases on the owner's workspace are as they were."""
+ 
+@@ -178,14 +317,13 @@ class TheCases(unittest.TestCase):
+         for case, original in zip(scenes[4:], scenes[:4]):
+             self.assertEqual((case.seed, case.needs, case.source_case), ('rail_demo', ['rail_demo'], original.id + ' on Rail Demo'), case.id)
+             self.assertEqual(case.inputs, original.inputs, case.id)
+-            self.assertEqual(sorted(case.expect), sorted(original.expect), 'the same checks, by place')
++            self.assertEqual(case.expect, original.expect, 'the same checks with the same values: the owner\'s run is judged in the scene\'s own names')
+             self.assertEqual((case.budget_s, case.fn), (original.budget_s, original.fn), case.id)
+             self.assertIn('Rail Demo (invented data)', case.title)
+-            for name in written['workspaces']['rail_demo']['names']:
+-                self.assertNotIn(name, json.dumps(case.expect), (case.id, name))
+             self.assertIs(every[case.id], case)
+         self.assertEqual(scenes[4].expect['13:desk.field.route.hops'], 2)
+         self.assertEqual(scenes[4].expect['13:desk.field.route.ends'], {'contains': 'Rail Demo settled power'})
++        self.assertEqual(re.findall(HEX_ID, json.dumps([[c.title, c.intent, c.expect, c.inputs] for c in scenes])), [])
+ 
+     def test_the_demo_set_is_the_four_anchors_steps_with_rail_demos_values(self):
+         every = runner.registry()
+@@ -198,7 +336,7 @@ class TheCases(unittest.TestCase):
+             self.assertEqual((case.seed, case.needs, case.mode, case.slice, case.situation), ('rail_demo', ['rail_demo'], 'sim', None, None), case.id)
+             self.assertEqual(case.source_case, case.id[1:] + ' on Rail Demo')
+             self.assertTrue(case.title.startswith('Rail Demo'), case.title)
+-            self.assertEqual(sorted(set(anchor.expect) - set(case.expect)), ['pdf_source_sha'] if case.id == 'DA01' else [], case.id)
++            self.assertEqual(sorted(set(anchor.expect) - set(case.expect)), [], case.id)
+             said = json.dumps([case.title, case.inputs, case.expect, case.start])      # the intent alone says whose steps these are
+             self.assertNotIn('After Hours', said, case.id)
+             self.assertNotEqual(case.expect, anchor.expect, 'Rail Demo\'s own values, not the owner\'s')
+@@ -214,13 +352,22 @@ class TheCases(unittest.TestCase):
+         self.assertEqual(every['DA01'].expect['power_w'], '3')
+         self.assertEqual(every['DA27'].expect['settled_calculations'], ['Rail Demo settled power · 3.6 W'])
+ 
+-    def test_the_anchors_on_the_owners_workspace_are_as_they_were(self):
++    def test_the_anchors_on_the_owners_workspace_find_their_records_and_hold_nothing_of_it(self):
+         every = runner.registry()
+         for ident in ('A01', 'A16', 'A27'):
+             self.assertEqual((every[ident].seed, every[ident].needs), ('after_hours_07', ['after_hours_07']), ident)
+         self.assertEqual((every['A17'].seed, every['A17'].needs), ('none', ['after_hours_07']))
+-        self.assertEqual(every['A01'].expect['pdf_source_sha'], fixture.AH07_IDS['pdf_sha256'])
+-        self.assertNotIn('pdf_source_is_the_admitted_one', every['A01'].expect)
++        # 0.8.5: no record id, hash or title of the owner's is written; the records are found where the case runs (found())
++        self.assertFalse(hasattr(fixture, 'AH07_IDS'))
++        self.assertIs(every['A01'].expect['pdf_source_is_the_admitted_one'], True)
++        self.assertNotIn('pdf_source_sha', every['A01'].expect)
++        self.assertNotIn('open_item', every['A16'].expect, 'the sheet is found by its words: its title is not expected')
++        self.assertEqual((every['A16'].expect['was_power_w'], every['A27'].expect['settled_results']), ('84/25', ['3.6 W']))
++        for ident in ('A01', 'A16', 'A17', 'A27'):
++            said = json.dumps([every[ident].title, every[ident].expect, every[ident].inputs, every[ident].start])
++            self.assertEqual(re.findall(HEX_ID, said), [], ident)
++        for module in (fixture, cases_anchor, cases_scene):
++            self.assertEqual(re.findall(HEX_ID, Path(module.__file__).read_text(encoding='utf-8')), [], module.__name__)
+         self.assertEqual(every['A16'].inputs['request'], cases_anchor.REQUEST)
+         self.assertNotEqual(cases_anchor.REQUEST, cases_anchor.DEMO_REQUEST)
+         for sid, ident in (('S01', 'A01'), ('S16', 'A16'), ('S17', 'A17'), ('S27', 'A27')):
+@@ -347,10 +494,17 @@ class TheRuns(unittest.TestCase):
+         self.assertEqual([p['phase'] for p in result['phases']], ['first', 'resume'])
+         self.assertTrue(result['phases'][0]['killed_at_checkpoint'])
+         self.assertEqual(self.checks('DA27'), {'resumed_from': 'set', 'completed_change_recognised': True, 'replay_with_old_revision': 'REFUSED',
+-                                               'power_now_w': '18/5', 'sheet_versions': ['version 2'],
++                                               'power_now_w': '18/5', 'sheet_versions': ['version 2'], 'settled_results': ['3.6 W'],
+                                                'settled_calculations': ['Rail Demo settled power · 3.6 W'], 'finding_state': 'recheck'})
+         self.assertEqual(result['fixture']['seed'], 'rail_demo')
+         self.assertIn('resumed', result['fixture'])
++        # 0.8.5: the records are found once, before the write, and the resumed phase works on the ones its checkpoint keeps
++        lines = [json.loads(line) for line in (Path(result['folder']) / 'progress.jsonl').read_text().splitlines()]
++        reads = {phase: [line['op'] for line in lines if line['step'] == 'op' and line['phase'] == phase] for phase in ('first', 'resume')}
++        self.assertIn('intake.items', reads['first'])
++        self.assertNotIn('intake.items', reads['resume'])
++        self.assertEqual(sorted(json.loads((Path(result['folder']) / 'checkpoint.json').read_text())['records']), ['calc_settled', 'claim_settled', 'sheet'])
++        self.assertEqual(set(reads['first'] + reads['resume']) - set(runner.registry()['DA27'].allowed), set(), 'every read is one the case allows')
+ 
+     def test_p01_is_played_on_rail_demo_in_the_graphite_look_and_in_the_kasandra_look(self):
+         self.assertEqual(self.kas_code, 0)
+diff --git a/tools/campaign_lib/cases_anchor.py b/tools/campaign_lib/cases_anchor.py
+index 5efa819..5f56878 100644
+--- a/tools/campaign_lib/cases_anchor.py
++++ b/tools/campaign_lib/cases_anchor.py
+@@ -25,8 +25,14 @@ The demo set (DA01, DA16, DA17, DA27): the After Hours 07 backup is the owner's
+ A27 are Blocked wherever it is not, and their steps would then never run. Each has a twin here that runs the same steps
+ (the same function) on Rail Demo, the workspace of invented data the program builds itself (workbench/rail_demo.py, seed
+ "rail_demo"): a 12 V rail whose settled current is 250 mA, so settled power is 3 W and becomes 3.6 W at 300 mA. The
+-records are found by name in the workspace just built (records() below), the expected values are Rail Demo's own, and
+-DA17 makes its backup with Graphite's own backup code first. A twin is not an anchor of a situation and claims no slice.
++records are found the same way as on After Hours 07 (records() below), the expected values are Rail Demo's own, and DA17
++makes its backup with Graphite's own backup code first. A twin is not an anchor of a situation and claims no slice.
++
++0.8.5: nothing of the owner's workspace is written here: no record id, no hash, no title. The records a case works on are
++found when it runs, in the workspace it runs on, by what each is (found() below); a backup that does not hold them is not
++the one these cases are written for, and the case says which is missing. The numbers the anchors expect on After Hours 07
++(12 V, 280 mA, 3.36 W, then 3.6 W at 300 mA) are the program's own first-run workshop's (docs/THINKPAD_FIRST_INSTALL.md,
++"First-run workshop"), public already, and Rail Demo's 300 mA.
+ """
+ from __future__ import annotations
+ 
+@@ -51,21 +57,82 @@ REQUEST = ASKED % '280'
+ DEMO_REQUEST = ASKED % '250'            # Rail Demo's own reading; the words are the same
+ AH07_OPS = ['field.read', 'field.ripple', 'field.set', 'office.get', 'documents.get', 'office.datasheet.recheck',
+             'field.trace']
++FINDS = ['field.read', 'documents.get', 'office.get', 'intake.items']      # what found() reads, logged as the case's own calls
++PAGE = 100                  # rows asked of a paged list at a time
+ SCRIPTED = 'scripted: the real flow has the 35B model choose these operations; no model runs in a sim attempt'
+ 
+ 
+ # ---------------------------------------------------------------- shared reads: After Hours 07, or Rail Demo
+ 
+ def records(ctx):
+-    """The records a rail case works on, by what each is: After Hours 07's are the ids of the owner's backup; Rail Demo's
+-    are found by name in the workspace the attempt built (the calculation is the one that stands now)."""
+-    if ctx.case.seed != 'rail_demo':
+-        return fixture.AH07_IDS
+-    from workbench import rail_demo
+-    made = rail_demo.find(ctx.kernel, ctx.owner)
+-    return {'sheet': made['sheets']['readings'], 'calc_settled': made['calculations']['settled_power'],
+-            'calc_startup': made['calculations']['startup_power'], 'claim_settled': made['findings']['settled_holds'],
+-            'pdf_item': made['sources']['readings']['item'], 'pdf_sha256': made['sources']['readings']['sha256']}
++    """The records a rail case works on, found in the workspace it runs on by what each is (found()): the same way on After
++    Hours 07, whose records the program does not hold, and on Rail Demo, so a twin runs the very steps of its anchor. Each
++    read is logged as the case's own calls are (Attempt.call)."""
++    return found(ctx.kernel, ctx.owner, ctx.progress)
++
++
++def found(kernel, owner, progress=None):
++    """The records a rail case works on, found in a restored workspace by what each is, never by an id written here: the
++    reviewed sheet whose title says "bench readings"; the standing calculations that read its B2 with B3 (settled power)
++    and with B4 (startup power); the finding whose words carry settled power's result, as the Field matches a finding to a
++    result (field_model.carries); and the PDF the sheet was reviewed from, with the SHA-256 it was admitted with (its
++    intake row, not the sheet's own record of it). Reads only; `progress`, when given, logs each read as Attempt.call does.
++    A calculation that cannot be read is passed over, and named if what is looked for is then not found. Raises
++    LookupError, in words, when one of them is not there or is there more than once: the backup is then not the
++    workspace these cases are written for."""
++    from workbench.field_model import carries
++
++    def answer(op, args=None):
++        r = kernel.dispatch(op, args or {}, owner)
++        if progress:
++            progress('op', op=op, ok=r['ok'], code=None if r['ok'] else code_of(r))
++        return r
++
++    def call(op, args=None):
++        r = answer(op, args)
++        if not r['ok']:
++            raise LookupError('The restored workspace could not be read: %s refused: %s' % (op, code_of(r)))
++        return r['result']
++
++    def pages(op, key, args):
++        rows, offset = [], 0
++        while offset < 100000:
++            page = list(call(op, dict(args, limit=PAGE, offset=offset)).get(key) or ())
++            rows.extend(page)
++            offset += PAGE
++            if len(page) < PAGE:
++                break
++        return rows
++
++    def one(rows, what, unread=()):
++        if len(rows) != 1:
++            passed = (' (%d calculation%s could not be read: %s)' % (len(unread), 's' if len(unread) > 1 else '', ', '.join(unread))
++                      if unread and not rows else '')
++            raise LookupError('The restored workspace holds %s %s%s.' % (len(rows) or 'no', what, passed))
++        return rows[0]
++    objects = call('field.read')['objects']
++    sheet = one([o for o in objects if o['kind'] == 'sheet' and 'bench readings' in o['title'].casefold()],
++                'reviewed sheet whose title says "bench readings"')['id'].split(':', 1)[1]
++    reading, unread = {}, []
++    for o in objects:
++        if o['kind'] == 'calculation':
++            got = answer('documents.get', {'id': o['id'].split(':', 1)[1]})
++            if not got['ok']:
++                unread.append(o['title'])
++                continue
++            derivation = got['result']['document'].get('derivation') or {}
++            if derivation.get('sheet') == sheet:
++                reading.setdefault(tuple(sorted(str(i.get('cell')) for i in derivation.get('inputs') or ())), []).append(o)
++    settled = one(reading.get(('B2', 'B3'), []), 'standing calculation of that sheet\'s B2 and B3 (settled power)', unread)
++    startup = one(reading.get(('B2', 'B4'), []), 'standing calculation of that sheet\'s B2 and B4 (startup power)', unread)
++    result = settled['title'].rsplit(' · ', 1)[-1]          # the result as the desk says it: "<name> · 3.36 W"
++    claim = one([o for o in objects if o['kind'] == 'finding' and carries(o['title'], result)],
++                'finding that says settled power\'s result (%s)' % result)
++    pdf = (call('office.get', {'id': sheet}).get('origin') or {}).get('pdf') or {}
++    item = one([row for row in pages('intake.items', 'items', {'namespace': pdf.get('namespace')}) if row['id'] == pdf.get('item')],
++               'admitted PDF that sheet was reviewed from')
++    return {'sheet': sheet, 'calc_settled': settled['id'].split(':', 1)[1], 'calc_startup': startup['id'].split(':', 1)[1],
++            'claim_settled': claim['id'].split(':', 1)[1], 'pdf_item': item['id'], 'pdf_sha256': item['sha256']}
+ 
+ 
+ def _field(ctx):
+@@ -265,8 +332,7 @@ def rail_trace(ctx):
+         trace = json.dumps(ctx.call('field.trace', {'id': 'document:' + IDS['calc_settled']}))
+         ctx.observe('traces_to_sheet', 'office:' + IDS['sheet'] in trace)
+         ctx.observe('traces_to_pdf', 'intake:' + IDS['pdf_item'] in trace)
+-        sheet = ctx.call('office.get', {'id': IDS['sheet']})
+-        ctx.observe('pdf_source_sha', sheet['source_state'].get('source_sha256'))
++        sheet = ctx.call('office.get', {'id': IDS['sheet']})      # its hash is compared, never kept: on the backup it is the owner's
+         ctx.observe('pdf_source_is_the_admitted_one', sheet['source_state'].get('source_sha256') == IDS['pdf_sha256'])
+     finally:
+         guard.stop()
+@@ -343,7 +409,9 @@ def _backup_checks(ctx, backup, root, profile):
+ # ---------------------------------------------------------------- A27: crash after the write, resume
+ 
+ def rail_resume(ctx):
+-    IDS = records(ctx)
++    # the records are found once, before the write, and kept in the checkpoint: what a later phase finds could differ
++    saved = ctx.read_checkpoint() if ctx.phase != 'first' else None
++    IDS = (saved or {}).get('records') or records(ctx)
+     guard = _guard_launch()
+     try:
+         ctx.note('driver', SCRIPTED)
+@@ -352,11 +420,11 @@ def rail_resume(ctx):
+             before = ctx.call('office.get', {'id': IDS['sheet']})
+             changed = ctx.call('field.set', {'id': sheet_id, 'cell': 'B3', 'value': '300',
+                                               'expected_revision': before['revision']})
+-            ctx.checkpoint('set', revision=changed['revision'], before=before['revision'])
++            ctx.checkpoint('set', revision=changed['revision'], before=before['revision'],
++                           records={key: IDS[key] for key in ('sheet', 'calc_settled', 'claim_settled')})     # no hash kept
+             ctx.progress('recheck', state='about to recalculate; simulated crash')
+             time.sleep(600)
+             return
+-        saved = ctx.read_checkpoint()
+         ctx.observe('resumed_from', saved and saved['step'])
+         current = ctx.call('office.get', {'id': IDS['sheet']})
+         done = current['revision'] == saved['revision'] and current['document']['sheets'][0]['cells']['B3']['value'] == '300'
+@@ -371,8 +439,9 @@ def rail_resume(ctx):
+         ctx.observe('power_now_w', str(power))
+         field = _field(ctx)
+         ctx.observe('sheet_versions', [f for f in field[sheet_id]['facts'] if f.startswith('version')])
+-        ctx.observe('settled_calculations', sorted(o['title'] for o in field.values()
+-                                                    if o['kind'] == 'calculation' and 'settled' in o['title'].lower()))
++        settled = sorted(o['title'] for o in field.values() if o['kind'] == 'calculation' and 'settled' in o['title'].lower())
++        ctx.observe('settled_calculations', settled)
++        ctx.observe('settled_results', [title.rsplit(' · ', 1)[-1] for title in settled])     # one stands, and what it says
+         ctx.observe('finding_state', field['claim:' + IDS['claim_settled']]['state'])
+     finally:
+         guard.stop()
+@@ -439,16 +508,16 @@ RUNNABLE = {
+                 title='After Hours 07: trace settled power to its source and check it exactly',
+                 slice='the trace of settled power to its reviewed PDF row and the exact 84/25 W check, not the '
+                       'readiness report with unresolved conditions and a physical test',
+-                allowed=['documents.get', 'field.trace', 'office.get'],
++                allowed=sorted(set(FINDS + ['documents.get', 'field.trace', 'office.get'])),
+                 expect={'power_w': '84/25', 'unit': 'W', 'exact_recomputed': '84/25', 'inputs_basis': ['REVIEWED_PDF_ROW'],
+-                        'traces_to_sheet': True, 'traces_to_pdf': True, 'pdf_source_sha': fixture.AH07_IDS['pdf_sha256']}),
++                        'traces_to_sheet': True, 'traces_to_pdf': True, 'pdf_source_is_the_admitted_one': True}),
+     'S16': dict(fn=rail_flow, seed='after_hours_07', budget_s=120, needs=['after_hours_07'],
+                 title='After Hours 07: 280 mA -> 300 mA, recalculate, flag the finding, keep the source',
+                 slice='one changed reading carried to its power calculation, the finding flag and the reopened '
+                       'result, not the updated design, drawings, cost, firmware and revision package',
+-                allowed=AH07_OPS + ['intake.read'],
++                allowed=AH07_OPS + ['intake.read', 'intake.items'],
+                 inputs={'request': REQUEST, 'approvals': ['office.datasheet.recheck'], 'driver': 'scripted'},
+-                expect={'open_item': '07 Bench readings', 'target_cell': 'B3', 'was_power_w': '84/25',
++                expect={'target_cell': 'B3', 'was_power_w': '84/25',      # the sheet is found by its words: its title is not expected
+                         'preview_shows': ['280 mA', '300 mA'],
+                         'policy_table:set_waits_for_approval': False,
+                         'policy_table:offered_steps_waiting_for_approval': ['office.datasheet.recheck'],
+@@ -473,12 +542,12 @@ RUNNABLE = {
+                 title='After Hours 07: killed after the cell write, resumed from its checkpoint',
+                 slice='resuming local work and recognising a completed working-copy change, not reconciling an '
+                       'uncertain external action or preserving later owner edits',
+-                allowed=['office.get', 'field.set', 'documents.get', 'office.datasheet.recheck', 'field.read'],
++                allowed=['office.get', 'field.set', 'documents.get', 'office.datasheet.recheck', 'field.read', 'intake.items'],
+                 resume={'kill_after': 'set'},
+                 faults=[{'at': 'after checkpoint set', 'fault': 'attempt process killed (SIGKILL) before the recalculation'}],
+                 expect={'resumed_from': 'set', 'completed_change_recognised': True, 'replay_with_old_revision': 'REFUSED',
+-                        'power_now_w': '18/5', 'sheet_versions': ['version 2'],
+-                        'settled_calculations': ['07 Settled power · 3.6 W'], 'finding_state': 'recheck'}),
++                        'power_now_w': '18/5', 'sheet_versions': ['version 2'], 'settled_results': ['3.6 W'],
++                        'finding_state': 'recheck'}),
+     'S28': dict(fn=busy_desk, seed='base', budget_s=60, needs=[],
+                 title='Busy desk: foreground turn first, background waits, reserve kept',
+                 slice='the foreground turn and the reserve on simulated readings, not sustained work kept usable '
+@@ -514,11 +583,11 @@ CASES = [_anchor('S%02d' % n) for n in range(1, 36)]
+ 
+ DEMO_REOPENED = {**REOPENED, 'reopened:finding_says': 'says 3 W; now 3.6 W', 'reopened:source_row_3': ['250', 'mA']}
+ DEMO_RUNNABLE = {
+-    'A01': dict(fn=rail_trace, budget_s=60, allowed=['documents.get', 'field.trace', 'office.get'],
++    'A01': dict(fn=rail_trace, budget_s=60, allowed=RUNNABLE['S01']['allowed'],
+                 title='Rail Demo: trace settled power to its source and check it exactly',
+                 expect={'power_w': '3', 'unit': 'W', 'exact_recomputed': '3', 'inputs_basis': ['REVIEWED_PDF_ROW'],
+                         'traces_to_sheet': True, 'traces_to_pdf': True, 'pdf_source_is_the_admitted_one': True}),
+-    'A16': dict(fn=rail_flow, budget_s=120, allowed=AH07_OPS + ['intake.read'],
++    'A16': dict(fn=rail_flow, budget_s=120, allowed=RUNNABLE['S16']['allowed'],
+                 title='Rail Demo: 250 mA -> 300 mA, recalculate, flag the finding, keep the source',
+                 inputs={'request': DEMO_REQUEST, 'approvals': ['office.datasheet.recheck'], 'driver': 'scripted'},
+                 expect={**RUNNABLE['S16']['expect'], 'open_item': 'Rail Demo bench readings', 'was_power_w': '3',
+diff --git a/tools/campaign_lib/cases_scene.py b/tools/campaign_lib/cases_scene.py
+index b7c7432..3b96fdd 100644
+--- a/tools/campaign_lib/cases_scene.py
++++ b/tools/campaign_lib/cases_scene.py
+@@ -1,14 +1,17 @@
+ """The scenes set (P01a..P01d, DP01a..DP01d): the owner's playable scene, played on a live offscreen window by desk acts alone.
+ 
+-P01 (data/scenes/P01.json) runs in the After Hours 07 workspace, restored with Graphite's own backup code: open a menu across
+-the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace
+-07 Bench readings; compare the two revisions of the limits; take back what Stacy's hand wrote. Four cases, one per run of
+-the scene: by pointer (P01a), by keys (P01b), and each with less motion (P01c, P01d).
+-
+-The After Hours 07 backup is the owner's and is never shipped, so those four are Blocked wherever it is not. DP01a..DP01d
+-are the same scene on Rail Demo, the workspace of invented data the program builds itself (workbench/rail_demo.py): the
+-same acts in the same order, each name swapped for the one there (the scene's "workspaces" entry; for_workspace below).
+-They need nothing from the owner and play anywhere.
++P01 (data/scenes/P01.json): open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it
++in the writing line); back to the Field; trace the bench readings; compare the two revisions of the limits; take back what
++Stacy's hand wrote. Four cases, one per run of the scene: by pointer (P01a), by keys (P01b), and each with less motion
++(P01c, P01d), in the After Hours 07 workspace, restored with Graphite's own backup code.
++
++0.8.5: the scene is written on Rail Demo, the workspace of invented data the program builds itself (workbench/rail_demo.py),
++and names nothing of the owner's workspace. DP01a..DP01d play it as written: they need nothing from the owner and play
++anywhere. The After Hours 07 backup is the owner's and is never shipped, so P01a..P01d are Blocked wherever it is not;
++where it is, the scene's "after_hours_07" entry says how each name is found there (its kind and the words it says), and
++the case finds them in the restored workspace before the first step (desk_scene.find_names). The window's readings are
++then said back in the scene's own names (desk_scene.said_back), so each case is judged against the scene as written, by
++the same checks as its twin.
+ 
+ The case builds the window behind the same holds as the right-click's tests (no provider request, no job, no worker, no
+ session or power call, no process start), stops the window's own timers, and plays the run through
+@@ -38,7 +41,8 @@ def load(scene_id):
+ 
+ def for_workspace(scene, workspace):
+     """The scene as it is played on another workspace: workbench.desk_scene.for_workspace, the same swap with the same answer
+-    (the runner's parent decides what a case expects without importing Graphite)."""
++    (the runner's parent decides what a case expects without importing Graphite). The names an entry finds ("find") are
++    found only where the scene is played: here they stay as the scene says them, as the child says back what it read."""
+     if workspace == scene.get('seed'):return copy.deepcopy(scene)
+     there = (scene.get('workspaces') or {}).get(workspace)
+     if not isinstance(there, dict):raise ValueError('The scene %s is not written for the workspace %r' % (scene.get('id', ''), workspace))
+@@ -86,10 +90,13 @@ def run_case(ctx):
+     from PySide6.QtTest import QTest
+     from PySide6.QtWidgets import QMessageBox
+     from workbench import boss_theme, clip, desk_scene, session_power
+-    from workbench.engineering_kernel import Kernel
++    from workbench.engineering_kernel import Kernel, operator
+     from workbench.qt_app import WorkbenchWindow, make_app
+     from workbench.session import Session
+-    scene = desk_scene.for_workspace(load(ctx.case.inputs['scene']), ctx.case.seed);run_name = ctx.case.inputs['run']
++    written = load(ctx.case.inputs['scene'])
++    found = desk_scene.find_names(ctx.kernel, operator(), written, ctx.case.seed) if ctx.case.seed != written.get('seed') else {}
++    ctx.note('found', sorted(found))          # which of the scene's names were found there (not what they are called there)
++    scene = desk_scene.for_workspace(written, ctx.case.seed, found);run_name = ctx.case.inputs['run']
+     if (scene.get('given') or {}).get('appearance', boss_theme.APPEARANCE) != boss_theme.APPEARANCE:
+         raise fixture.Blocked('The scene is for the %s appearance, and the appearance is chosen when Graphite starts.' % scene['given']['appearance'])
+ 
+@@ -127,7 +134,7 @@ def run_case(ctx):
+         def after(n, step, row):
+             settle()
+             ctx.progress('act', n=n, act=step['act'], ok=row['ok'], by=row['by'], seconds=row['seconds'])
+-            for check in row['checks']:ctx.observe('%d:%s' % (n, check['path']), check['got'])
++            for check in row['checks']:ctx.observe('%d:%s' % (n, check['path']), desk_scene.said_back(check['got'], found))
+             # done, and no ask or refusal the scene did not declare (run_scene adds those as checks of its own)
+             unasked = [c for c in row['checks'] if c['path'] in ('act.ok', 'act.result.waits', 'step') and not c['ok']]
+             ctx.observe('%d:act.ok' % n, bool(row['done']) and not unasked)
+diff --git a/tools/campaign_lib/data/scenes/P01.json b/tools/campaign_lib/data/scenes/P01.json
+index 3dc1a8e..9f7a458 100644
+--- a/tools/campaign_lib/data/scenes/P01.json
++++ b/tools/campaign_lib/data/scenes/P01.json
+@@ -1,21 +1,22 @@
+ {
+  "schema": "graphite.scene/1",
+  "id": "P01",
+- "title": "After Hours 07, the playable scene",
+- "intent": "The owner's playable scene: open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace 07 Bench readings; compare the two revisions of the limits. Every step is a desk act, played by pointer and by keys, and with less motion.",
+- "seed": "after_hours_07",
++ "title": "Rail Demo, the playable scene",
++ "intent": "The owner's playable scene, written on Rail Demo, the workspace of invented data kept in the program: open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace Rail Demo bench readings; compare the two revisions of the limits. Every step is a desk act, played by pointer and by keys, and with less motion.",
++ "seed": "rail_demo",
+  "given": {"size": [1920, 1200], "dial": "show"},
+  "workspaces": {
+-  "rail_demo": {
+-   "title": "Rail Demo, the playable scene",
+-   "intent": "The playable scene on Rail Demo, the workspace of invented data kept in the program: the same acts in the same order as on After Hours 07, each name swapped for the one there. Open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace Rail Demo bench readings; compare the two revisions of the limits. Every step is a desk act, played by pointer and by keys, and with less motion.",
+-   "names": {
+-    "07 Bench readings.csv": "Rail Demo bench readings.csv",
+-    "07 Bench readings": "Rail Demo bench readings",
+-    "07 Limits Rev A ARCHIVED": "Rail Demo limits Rev A ARCHIVED",
+-    "07 Limits Rev B CURRENT": "Rail Demo limits Rev B CURRENT",
+-    "Pulse duration": "Startup duration limit",
+-    "Pulse ceiling": "Startup power ceiling"
++  "after_hours_07": {
++   "title": "After Hours 07, the playable scene",
++   "intent": "The same scene on the owner's After Hours 07 backup, which is never shipped: the same acts in the same order, each of Rail Demo's names swapped for the one found there when the case runs, by its kind and the words it says. No name, number or record of the owner's workspace is written here.",
++   "find": {
++    "Rail Demo bench readings": {"kind": "sheet", "says": "bench readings"},
++    "Rail Demo limits Rev A ARCHIVED": {"kind": "sheet", "says": "rev a archived"},
++    "Rail Demo limits Rev B CURRENT": {"kind": "sheet", "says": "rev b current"},
++    "Rail Demo settled power": {"kind": "calculation", "says": "settled power"},
++    "Rail Demo startup power": {"kind": "calculation", "says": "startup power"},
++    "Startup duration limit": {"kind": "row", "of": "Rail Demo limits Rev B CURRENT", "says": "duration"},
++    "Startup power ceiling": {"kind": "row", "of": "Rail Demo limits Rev B CURRENT", "says": "ceiling"}
+    }
+   }
+  },
+@@ -31,44 +32,43 @@
+    "expect_by_run": {"keys": {"act.result.keyboard_route": false}, "keys_still": {"act.result.keyboard_route": false}}},
+   {"act": "menu.close", "args": {},
+    "expect": {"desk.where.popups": []}},
+-  {"act": "hand.write", "args": {"path": "07 Bench readings.csv", "text": "parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n"},
+-   "args_by_seed": {"rail_demo": {"text": "parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n"}},
+-   "expect": {"act.result.ran": true, "act.result.hers": true, "act.result.undo": "/files.trash {\"path\": \"07 Bench readings.csv\"}",
++  {"act": "hand.write", "args": {"path": "Rail Demo bench readings.csv", "text": "parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n"},
++   "expect": {"act.result.ran": true, "act.result.hers": true, "act.result.undo": "/files.trash {\"path\": \"Rail Demo bench readings.csv\"}",
+               "desk.talk.trail.line": {"startswith": "/files.write"}}},
+   {"act": "go.files", "args": {"view": "list"},
+-   "expect": {"desk.where.surface": "workspace", "desk.files.names": {"contains": "07 Bench readings.csv"}}},
+-  {"act": "menu.open", "args": {"on": "file", "name": "07 Bench readings.csv"},
+-   "expect": {"desk.menu.first": ["open", "ask", "rename", "trash", "then", "more"], "desk.menu.then_line": "@files:07 Bench readings.csv | rows"},
++   "expect": {"desk.where.surface": "workspace", "desk.files.names": {"contains": "Rail Demo bench readings.csv"}}},
++  {"act": "menu.open", "args": {"on": "file", "name": "Rail Demo bench readings.csv"},
++   "expect": {"desk.menu.first": ["open", "ask", "rename", "trash", "then", "more"], "desk.menu.then_line": "@files:Rail Demo bench readings.csv | rows"},
+    "expect_by_run": {"mouse_still": {"desk.motion.calm": true}, "keys_still": {"desk.motion.calm": true}}},
+   {"act": "menu.choose", "args": {"path": "then"},
+    "expect": {"desk.menu.panel.count": "4 rows · 6 steps left"}},
+   {"act": "then.keep", "args": {"column": "unit", "words": "is mA"},
+    "expect": {"desk.menu.panel.count": "2 rows · 5 steps left"}},
+   {"act": "then.count", "args": {},
+-   "expect": {"desk.menu.panel.line": "@files:07 Bench readings.csv | rows | where unit=mA | count", "desk.menu.panel.preview": [{"count": 2}]}},
++   "expect": {"desk.menu.panel.line": "@files:Rail Demo bench readings.csv | rows | where unit=mA | count", "desk.menu.panel.preview": [{"count": 2}]}},
+   {"act": "then.end", "args": {"how": "line"},
+-   "expect": {"desk.line.text": "@files:07 Bench readings.csv | rows | where unit=mA | count", "desk.line.target": "her", "desk.menu.open": false,
++   "expect": {"desk.line.text": "@files:Rail Demo bench readings.csv | rows | where unit=mA | count", "desk.line.target": "her", "desk.menu.open": false,
+               "act.result.outcome.ok": true}},
+   {"act": "go.field", "args": {},
+    "expect": {"desk.where.surface": "field", "desk.field.face": "work"}},
+   {"act": "point.zoom", "args": {"to": "whole"},
+    "expect": {"desk.field.whole": true}},
+-  {"act": "point.sheet", "args": {"title": "07 Bench readings"},
+-   "expect": {"desk.field.selected.title": "07 Bench readings"}},
++  {"act": "point.sheet", "args": {"title": "Rail Demo bench readings"},
++   "expect": {"desk.field.selected.title": "Rail Demo bench readings"}},
+   {"act": "sheet.trace", "args": {},
+-   "expect": {"desk.field.route.owner_title": "07 Bench readings"},
+-   "expect_by_seed": {"after_hours_07": {"desk.field.route.hops": 2, "desk.field.route.ends": {"contains": "07 Settled power"}, "desk.field.route.ends#startup": {"contains": "07 Startup power"}},
+-                      "rail_demo": {"desk.field.route.hops": 2, "desk.field.route.ends": {"contains": "Rail Demo settled power"}, "desk.field.route.ends#startup": {"contains": "Rail Demo startup power"}},
++   "expect": {"desk.field.route.owner_title": "Rail Demo bench readings"},
++   "expect_by_seed": {"rail_demo": {"desk.field.route.hops": 2, "desk.field.route.ends": {"contains": "Rail Demo settled power"}, "desk.field.route.ends#startup": {"contains": "Rail Demo startup power"}},
++                      "after_hours_07": {"desk.field.route.hops": 2, "desk.field.route.ends": {"contains": "Rail Demo settled power"}, "desk.field.route.ends#startup": {"contains": "Rail Demo startup power"}},
+                       "bench": {"desk.field.route.hops": 0}},
+    "expect_by_run": {"mouse_still": {"desk.field.route.animating": false}, "keys_still": {"desk.field.route.animating": false}}},
+-  {"act": "point.sheet", "args": {"title": "07 Limits Rev B CURRENT"},
+-   "expect": {"desk.field.selected.title": "07 Limits Rev B CURRENT"}},
++  {"act": "point.sheet", "args": {"title": "Rail Demo limits Rev B CURRENT"},
++   "expect": {"desk.field.selected.title": "Rail Demo limits Rev B CURRENT"}},
+   {"act": "sheet.compare", "args": {},
+-   "expect": {"desk.field.revisions.a": "07 Limits Rev A ARCHIVED", "desk.field.revisions.b": "07 Limits Rev B CURRENT",
+-              "desk.field.revisions.changed": {"contains": "Pulse duration"}, "desk.field.revisions.changed#ceiling": {"contains": "Pulse ceiling"}}},
++   "expect": {"desk.field.revisions.a": "Rail Demo limits Rev A ARCHIVED", "desk.field.revisions.b": "Rail Demo limits Rev B CURRENT",
++              "desk.field.revisions.changed": {"contains": "Startup duration limit"}, "desk.field.revisions.changed#ceiling": {"contains": "Startup power ceiling"}}},
+   {"act": "sheet.close", "args": {},
+    "expect": {"desk.field.revisions": null, "desk.where.surface": "field"}},
+   {"act": "hand.undo", "args": {},
+-   "expect": {"act.result.state": "undone", "act.result.trashed": "07 Bench readings.csv"}}
++   "expect": {"act.result.state": "undone", "act.result.trashed": "Rail Demo bench readings.csv"}}
+  ]
+ }
+diff --git a/tools/campaign_lib/fixture.py b/tools/campaign_lib/fixture.py
+index 0c57ab4..7afcbdf 100644
+--- a/tools/campaign_lib/fixture.py
++++ b/tools/campaign_lib/fixture.py
+@@ -12,7 +12,11 @@ Three seeds exist:
+                   the base workspace through the Kernel's own operations. It needs nothing from the owner;
+   after_hours_07  the owner's After Hours 07 backup, verified and restored with Graphite's own backup code.
+ The After Hours 07 backup is owner data and is not shipped: it is found under --fixtures (or the
+-GRAPHITE_CAMPAIGN_FIXTURES variable, or ~/Graphite_Campaign/fixtures), as a Graphite_Backup folder or the zip.
++GRAPHITE_CAMPAIGN_FIXTURES variable, or ~/Graphite_Campaign/fixtures), as a Graphite_Backup folder or the zip. Nothing of
++it is kept in the campaign (0.8.5): no record id, no hash, no name of the owner's, no number that is not public already
++(the release notes of earlier versions still quote some of it, left for the owner to decide). The
++cases find what they work on in the restored workspace when they run, by its kind and the words it says
++(cases_anchor.found, desk_scene.find_names); a backup that does not hold those is not the one they are written for.
+ """
+ from __future__ import annotations
+ 
+@@ -28,14 +32,6 @@ from pathlib import Path
+ 
+ REPO = Path(__file__).resolve().parents[2]
+ FIXTURE_REVISION = 1   # bump when the way a seed is built changes
+-AH07_IDS = {
+-    'sheet': 'owner:db5f669f863d4c71b89fa7ba348957da',
+-    'calc_settled': '0e39bf65e24740a29a504a6be6e00885',
+-    'calc_startup': '500cd60ebe49411bb9b9e5bbe0570214',
+-    'claim_settled': 'f2a610f24ca84112a400e02d6ad04869',
+-    'pdf_item': 'c1d3fc85730d57bc35404c6065dbe1dc',
+-    'pdf_sha256': '2c60377d8dcf9c821c7d458d4ae944ddd84566c325114700c19ddcd76bbc375b',
+-}
+ KEEP_ENV = ('PATH', 'LANG', 'LC_ALL', 'TZ', 'TERM', 'GRAPHITE_APPEARANCE')      # the appearance a run starts in (0.8.2: a scene in Kasandra)
+ 
+ 
+diff --git a/tools/check_context_menu_ui.py b/tools/check_context_menu_ui.py
+index 538851d..b212c8c 100644
+--- a/tools/check_context_menu_ui.py
++++ b/tools/check_context_menu_ui.py
+@@ -323,7 +323,7 @@ check('08 at 14, 18 and 20 pt the menu\'s row height, icon column and margin are
+ # 09 Then ›: the line panel on a table in Files (0.8.1) ------------------------------------------------------------------------
+ from workbench import boss_theme as bt
+ tab=show_files(w);settle();tab.mode='list';tab.reload();settle()
+-(files/'bench readings.csv').write_text('parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n')
++(files/'bench readings.csv').write_text('parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n')
+ tab.reload();settle();view=tab.table
+ item=next(view.topLevelItem(i) for i in range(view.topLevelItemCount()) if view.topLevelItem(i).data(0,Qt.UserRole)['name']=='bench readings.csv')
+ menu=right_click(view.viewport(),view.visualItemRect(item).center());assert menu is not None
+diff --git a/workbench/datasheet_work.py b/workbench/datasheet_work.py
+index e995e23..8924f0c 100644
+--- a/workbench/datasheet_work.py
++++ b/workbench/datasheet_work.py
+@@ -252,7 +252,7 @@ def report(kernel, args, principal, prior=None, replaces=None):
+     title = saved['document']['title'] + ' · calculation'
+     if replaces:
+         # A recheck is the same calculation brought up to date, so the new page keeps the owner's name for it; where that
+-        # name carried the old result ("07 Settled power · 3.36 W") it carries the new one. The page it replaces is named
++        # name carried the old result ("Rail Demo settled power · 3 W") it carries the new one. The page it replaces is named
+         # in the derivation, so a reader shows the current one and does not leave the old one waiting for ever.
+         derivation['replaces'] = replaces['id'];title = replaces['title'] or title
+         was = ((prior or {}).get('calculation') or {}).get('outputs') or []
+diff --git a/workbench/desk_scene.py b/workbench/desk_scene.py
+index 1efaf94..e4a729b 100644
+--- a/workbench/desk_scene.py
++++ b/workbench/desk_scene.py
+@@ -8,12 +8,14 @@ the same forms and the same answers as the campaign's core.matches). expect_by_r
+ expectations for one run or one seed; args_by_seed adds or replaces arguments for one seed.
+ 
+ A scene is written for one workspace (its seed) and names what is there: a file, a sheet, a row. `workspaces` lets the
+-same scene be played on another one: {workspace: {"names": {a name the scene uses: the name there}, "title", "intent"}}.
+-for_workspace() gives the scene as it is played there: the same acts in the same order, each name swapped wherever it is
+-said (an argument, an expectation), the seed set to that workspace. run_scene() does this itself when its seed is a
+-workspace the scene has such an entry for. P01 is written for the owner's After Hours 07, which is never shipped; its
+-"rail_demo" entry plays it on Rail Demo, the invented workspace kept in the program (workbench/rail_demo.py), so the
+-scene plays anywhere.
++same scene be played on another one: {workspace: {"names": {a name the scene uses: the name there}, "find": {a name the
++scene uses: how to find the name there}, "title", "intent"}}. for_workspace() gives the scene as it is played there: the
++same acts in the same order, each name swapped wherever it is said (an argument, an expectation), the seed set to that
++workspace. "find" is for a workspace whose names the program must not hold: each name is found there when the scene is
++played, by its kind and the words it says (find_names()), and what the window reads there can be said back in the scene's
++own names (said_back()). run_scene() does all of this itself when its seed is a workspace the scene has an entry for.
++0.8.5: P01 is written on Rail Demo, the invented workspace kept in the program (workbench/rail_demo.py), so it plays
++anywhere; its "after_hours_07" entry finds its names in the owner's backup, which is never shipped, and names nothing of it.
+ 
+ run_scene() plays one run: it checks the appearance (chosen at start, so a scene for another appearance is blocked, not
+ failed), sizes the window, sets the dial and the motion, runs each step through desk_doers.run(door='script'), scores it,
+@@ -79,28 +81,44 @@ def lookup(tree, path):
+     return at
+ 
+ 
+-def for_workspace(scene, workspace):
++def for_workspace(scene, workspace, found=None):
+     """The scene as it is played on another workspace (scene['workspaces'][workspace]): a copy with the same steps, every
+     name of the scene swapped for the name there wherever a step says it, the longest name first and each place once; the
+-    seed, and the title and intent when given, are that workspace's. The scene's own seed gives the scene as written."""
++    seed, and the title and intent when given, are that workspace's. The scene's own seed gives the scene as written.
++    `found` is what find_names() found there for an entry that says how to find its names ("find"); without it those names
++    stay as the scene says them."""
+     if workspace == scene.get('seed'):return copy.deepcopy(scene)
+     there = (scene.get('workspaces') or {}).get(workspace)
+     if not isinstance(there, dict):raise ValueError('The scene %s is not written for the workspace %r' % (scene.get('id', ''), workspace))
+-    if not _names(there.get('names', {})):raise ValueError('The scene %s, workspace %r: names is not an object of names' % (scene.get('id', ''), workspace))
+-    names = dict(there.get('names') or {})
++    if not _names(there.get('names', {})) or not _names(found or {}):
++        raise ValueError('The scene %s, workspace %r: names is not an object of names' % (scene.get('id', ''), workspace))
++    names = {**dict(there.get('names') or {}), **dict(found or {})}
++    out = copy.deepcopy(scene)
++    out['steps'] = _swapped(out.get('steps') or [], names)
++    out['seed'] = workspace
++    for key in ('title', 'intent'):
++        if there.get(key):out[key] = there[key]
++    return out
++
++
++def said_back(value, found):
++    """A value read on the workspace whose names were found (find_names), with each name found there put back as the scene
++    says it: what the window read, in the scene's own words, so that a run is judged against the scene as written. A name
++    the window read that was not found stays as it is."""
++    return _swapped(value, {there: name for name, there in (found or {}).items()})
++
++
++def _swapped(value, names):
++    """The value with every name of `names` swapped for its own wherever a string says it, the longest name first and each
++    place once; lists and objects are swapped through, their keys kept."""
+     said = re.compile('|'.join(re.escape(name) for name in sorted(names, key=len, reverse=True))) if names else None
+ 
+     def swap(value):
+-        if isinstance(value, str):return said.sub(lambda found: names[found.group(0)], value) if said else value
++        if isinstance(value, str):return said.sub(lambda hit: names[hit.group(0)], value) if said else value
+         if isinstance(value, list):return [swap(v) for v in value]
+         if isinstance(value, dict):return {key: swap(v) for key, v in value.items()}
+         return value
+-    out = copy.deepcopy(scene)
+-    out['steps'] = swap(out.get('steps') or [])
+-    out['seed'] = workspace
+-    for key in ('title', 'intent'):
+-        if there.get(key):out[key] = there[key]
+-    return out
++    return swap(value)
+ 
+ 
+ def _names(names):
+@@ -109,6 +127,64 @@ def _names(names):
+     return isinstance(names, dict) and all(isinstance(k, str) and k and isinstance(v, str) for k, v in names.items())
+ 
+ 
++FIND_KINDS = ('sheet', 'calculation', 'row')
++
++
++def _find(find):
++    """What is wrong with a workspace's "find" ([] when nothing): {a name the scene says: {"kind": sheet, calculation or row,
++    "says": the words to look for, and for a row "of": the name of a sheet found by the same entry}}."""
++    if not isinstance(find, dict):return ['find is not an object']
++    problems = []
++    for name, how in find.items():
++        if not isinstance(how, dict) or how.get('kind') not in FIND_KINDS or not isinstance(how.get('says'), str) or not how['says'].strip():
++            problems.append('%r is not found by a kind (%s) and the words it says' % (name, ', '.join(FIND_KINDS)));continue
++        if how['kind'] == 'row' and (find.get(how.get('of')) or {}).get('kind') != 'sheet':
++            problems.append('the row %r is not of a sheet the entry finds' % name)
++    return problems
++
++
++def find_names(kernel, principal, scene, workspace):
++    """The names the scene's entry for `workspace` says to find there ("find"), found in that workspace by kind and by the
++    words each says, capitals aside: {a name the scene says: the name there}, {} when the entry finds none. A sheet or a
++    calculation is one on the desk (field.read; a calculation's name is its title before its result, "<name> · 3 W"); a
++    row is a row of a sheet found here (its reviewed rows' parameter, office.get). Each must be found exactly once, or
++    ValueError says which, in words: a sheet as one record (the scene points at it by its title, and its rows are read
++    from it, so two sheets of one title are two), a calculation or a row as one name. Reads only. This is how a scene is played on a workspace whose names the program does
++    not hold: P01 on the owner's After Hours 07, which is never shipped."""
++    there = (scene.get('workspaces') or {}).get(workspace)
++    find = there.get('find') if isinstance(there, dict) else None
++    if not find:return {}
++    head = 'The scene %s, workspace %r: ' % (scene.get('id', ''), workspace)
++    problems = _find(find)
++    if problems:raise ValueError(head + problems[0])
++
++    def call(op, args):
++        r = kernel.dispatch(op, args, principal)
++        if not r.get('ok'):raise ValueError(head + 'the workspace could not be read (%s was refused)' % op)
++        return r['result']
++    objects = call('field.read', {}).get('objects') or []
++    out, offices = {}, {}
++    for name, how in sorted(find.items(), key=lambda item: item[1]['kind'] == 'row'):     # a row is found in a sheet found before it
++        says = how['says'].strip().casefold()
++        if how['kind'] == 'row':
++            rows = (call('office.get', {'id': offices[how['of']]}).get('origin') or {}).get('reviewed_rows') or []
++            there_names = sorted({str(row.get('parameter') or '') for row in rows if isinstance(row, dict) and says in str(row.get('parameter') or '').casefold()})
++            what, whats = 'row of %s' % out[how['of']], 'rows of %s' % out[how['of']]
++        else:
++            hits = [o for o in objects if o.get('kind') == how['kind'] and says in str(o.get('title') or '').casefold()]
++            if how['kind'] == 'sheet':there_names = [str(o['title']) for o in hits]       # one per record
++            else:there_names = sorted({str(o['title']).split(' · ')[0] for o in hits})     # a calculation's name, before its result
++            what, whats = how['kind'], how['kind'] + 's'
++        if len(there_names) != 1:
++            raise ValueError(head + ('no %s says "%s"' % (what, how['says']) if not there_names else
++                                     '%d %s say "%s"' % (len(there_names), whats, how['says'])) + ' (for %s)' % name)
++        if there_names[0] in out.values():      # two names found as one could not be told apart in what the window reads
++            raise ValueError(head + '%s and %s are found as the same %s' % (next(k for k, v in out.items() if v == there_names[0]), name, what))
++        if how['kind'] == 'sheet':offices[name] = str(hits[0]['id']).split(':', 1)[1]
++        out[name] = there_names[0]
++    return out
++
++
+ def check_scene(scene):
+     """What is wrong with a scene, in words ([] when nothing): its schema, its runs, and each step's act and arguments."""
+     problems = []
+@@ -129,6 +205,8 @@ def check_scene(scene):
+     for name, there in workspaces.items():
+         if not isinstance(there, dict) or not _names(there.get('names', {})):
+             problems.append('workspace %r: names is not an object of names' % name)
++        elif 'find' in there:
++            problems.extend('workspace %r: %s' % (name, problem) for problem in _find(there['find']))
+     steps = scene.get('steps')
+     if not isinstance(steps, list) or not steps:problems.append('the scene has no steps');steps = []
+     for n, step in enumerate(steps, 1):
+@@ -165,10 +243,16 @@ def expected(step, run_name, seed):
+ 
+ def run_scene(host, scene, run, *, seed, origin, after_step=None):
+     """Play one run of a scene on the live window. `run` is a run's name or the run itself. A seed the scene has a
+-    `workspaces` entry for is played as that workspace has it (for_workspace). Returns {run, seed, steps: [{n, act, ok, by,
+-    seconds, words, checks: [{path, want, got, ok}]}], passed} or {blocked: why}."""
++    `workspaces` entry for is played as that workspace has it (for_workspace), its names to find found first in the window's
++    workspace (find_names; ValueError, in words, when one is not there). Returns {run, seed, found: {a name the scene says:
++    the name found there}, steps: [{n, act, ok, by, seconds, words, checks: [{path, want, got, ok}]}], passed} or
++    {blocked: why}."""
+     from . import boss_theme, desk_doers
+-    if seed != scene.get('seed') and seed in (scene.get('workspaces') or {}):scene = for_workspace(scene, seed)
++    found = {}
++    if seed != scene.get('seed') and seed in (scene.get('workspaces') or {}):
++        from .engineering_kernel import operator
++        found = find_names(host.ledger_bridge.kernel, operator(), scene, seed)
++        scene = for_workspace(scene, seed, found)
+     if isinstance(run, str):run = next((r for r in scene['runs'] if r['name'] == run), None)
+     if run is None:return {'blocked': 'the scene has no such run'}
+     given = scene.get('given') or {}
+@@ -182,7 +266,7 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
+     if run.get('reduce_motion'):
+         changed = desk_doers.run(host, 'look.set', {'motion': 'reduced'}, door='script', origin=origin)
+         before_motion = ((changed.get('result') or {}).get('before') or {}).get('motion', 'normal')
+-    out = {'run': run['name'], 'seed': seed, 'style': style, 'reduce_motion': bool(run.get('reduce_motion')), 'steps': []}
++    out = {'run': run['name'], 'seed': seed, 'found': found, 'style': style, 'reduce_motion': bool(run.get('reduce_motion')), 'steps': []}
+     try:
+         for n, step in enumerate(scene['steps'], 1):
+             started = time.monotonic();checks = []
+diff --git a/workbench/field_page.py b/workbench/field_page.py
+index 48d71a0..65873e7 100644
+--- a/workbench/field_page.py
++++ b/workbench/field_page.py
+@@ -692,7 +692,7 @@ REVISION_TITLE = re.compile(r'^(?P<stem>.*?)\s*\brev(?:ision)?\.?\s*(?P<rev>[A-Z
+ 
+ 
+ def revision_sibling(view, obj):
+-    """The other revision of a reviewed sheet on the desk ("07 Limits Rev A ARCHIVED" for "07 Limits Rev B CURRENT"), as
++    """The other revision of a reviewed sheet on the desk ("Rail Demo limits Rev A ARCHIVED" for "Rail Demo limits Rev B CURRENT"), as
+     (older, newer), or None. Two sheets are revisions of one when their titles match once the revision mark is taken off."""
+     if obj is None or obj.kind != 'sheet':return None
+     mine = REVISION_TITLE.match(obj.title or '')
+diff --git a/workbench/kasandra_column.py b/workbench/kasandra_column.py
+index d4c7874..3103a79 100644
+--- a/workbench/kasandra_column.py
++++ b/workbench/kasandra_column.py
+@@ -250,7 +250,7 @@ class Hug(QWidget):
+ 
+ 
+ class Folding(QObject):
+-    """Her column's words fold at its width (0.8.3 review: "07_Bench_Readings." above "pdf", though the name fits a line).
++    """Her column's words fold at its width (0.8.3 review: "Rail_Demo_Bench_Readings." above "pdf", though the name fits a line).
+     Every label in her thread, as it is added and whenever its width changes: a long name gets break points only where a
+     line must break (shell2.break_long, at the label's own width and face), so a name that fits a line has none and moves
+     down whole. Her leaded words are set again (shell2.leaded); a plain label's words are set again from the words it was
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 5f940c0..5b34988 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -1787,7 +1787,7 @@ def break_long(text, most, fits=None):
+     """Invisible break points only inside a run of letters longer than a line holds (`most` of the widest letters, or, when
+     `fits` is given, as it is drawn): after the last joint (_ . / \\ - , :) that keeps a piece within the line, else every
+     `most` letters. A run that fits a line has none, so it moves to the next line whole and is never cut in two at a line's
+-    end ("07_Bench_Readings.pdf", "07_Rail_Limits_Rev_B.pdf")."""
++    end ("Rail_Demo_Bench_Readings.pdf", "Rail_Demo_Limits_Rev_B.pdf")."""
+     most = max(8, int(most))
+ 
+     def cut(match):

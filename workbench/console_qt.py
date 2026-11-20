@@ -475,6 +475,12 @@ class Console(QWidget):
             return
         value = r['result'];rows = value.get('rows') if isinstance(value, dict) else None
         self.last_program = program  # a right-click on the output carries on from here, as a chain
+        from .math_answers import receipt_text, screen_text
+        said = screen_text(value)
+        if said:   # a maths line: its answer in words, and its receipt one word away
+            receipt = receipt_text(value)
+            more = ('<br>' + self.link('see the receipt', lambda t=receipt:self.say(escape(t).replace('\n', '<br>')))) if receipt else ''
+            self.say(escape(said).replace('\n', '<br>') + more, echo=echo);return
         if rows is None:self.say(result_html(value), echo=echo);return
         face = self.host.shell2.face
         words = '  ·  '.join([self.link('save as a sheet', lambda p=program, rs=rows:face.save_rows(p, rs)), self.link('watch it', lambda p=program:face.watch(p)),

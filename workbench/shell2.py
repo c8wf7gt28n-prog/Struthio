@@ -3003,6 +3003,10 @@ class SlateFace(QWidget):
         for text, mark in (('Right', 'GOOD'), ('Wrong', 'BAD')):
             b = button(text, 'quiet');b.clicked.connect(lambda checked=False, m=mark, w=row:self.mark(program, m, w));row.addWidget(b)
         bubble.box.addLayout(row)
+        from .math_answers import receipt_text
+        receipt = receipt_text(r['result']) if r.get('ok') else None
+        if receipt:   # a maths answer: its inputs with their revisions, the method and the guarantee, one word away
+            bubble.box.addWidget(sentence('{receipt}', {'receipt': ('see the receipt', lambda t=receipt:self.say(t))}))
         if r.get('ok') and operation == 'language.run':  # any staC answer can be watched: Slate asks again and tells you when it changes
             rows = r['result'].get('rows') or []
             words = {'watch': ('watch it', lambda p=program:self.watch(p)), 'keep': ('add to the Agenda', lambda p=program:self.keep_in_agenda(p))}

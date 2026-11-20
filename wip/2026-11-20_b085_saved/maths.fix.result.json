@@ -1,0 +1,132 @@
+{
+ "summary": "I applied the builder's maths patch to a fresh worktree at e4ce22b. The registry hunk no longer applied, so I left it out and regenerated docs/GRAPHITE_0.1_REGISTRY.json in a copy (4 operations added, record_registry --check shows no differences). I fixed both must-fix findings and all eleven should-fix items. (1) Kasandra's plans: stacy_control.validate_actions now reads every string inside a provider command's arguments, at any depth, as a possible maths line. It reads them as route_program and compile_program do: zero-width spaces removed, a leading 'explain' dropped. So investigation.step, investigation.check, agenda.add, agenda.suggest, stac.* and any later command that carries a line with 'given' are refused, with the owner-worded constant GIVEN_IS_THE_OWNERS. (2) A check over a sound or widened range now says 'at least X to spare', 'over by at least X' or 'short by at least X', rounded down, and gives the reason (the margin may be wider than the true one). When it cannot tell, it says it 'cannot be told from this range' and no longer says 'the ranges reach both sides'. Exact (ATTAINED) ranges keep both ends. Should-fix: refusals are in the owner's words, with no codes, node ids or 'Cannot ge'. Allowed ends and whole-step ends are rounded inward and the step past them outward. An equation's end is said once and exactly. EXACT_ALLOWED_SET is claimed only when an end was worked out again; otherwise the receipt says no guarantee is claimed. A number that is too long is refused as too long. An integer quantity's range must have whole-number ends. A 'given' on the solved quantity and 'for' outside solve are refused, not dropped. Implementation hashes are taken once, at import. stac.status now gives math_grammar. The docs page explains the sheet ID and how to set a tolerance. A new test guards the Terminal and Kasandra receipt links. Results: test_math_core has 33 tests and test_math_lines 13, all passing in both looks. The 73-module tier-1 list passes in both looks: 1186 tests in each, no failures, errors or skips. I showed that every new test fails on the builder's code. I retook the solve frames in both looks at 1366x768 and read them. Patch: /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b085/maths.patch (143528 bytes, 16 files). It applies to a clean archive of HEAD.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b085/maths.patch",
+ "files_changed": [
+  "docs/GRAPHITE_0.1_REGISTRY.json",
+  "docs/INTEGRATED_I02.md",
+  "tests_integrated/test_math_core.py",
+  "tests_integrated/test_math_lines.py",
+  "tools/check_hatch.py",
+  "workbench/console_qt.py",
+  "workbench/engineering_cli.py",
+  "workbench/engineering_kernel.py",
+  "workbench/math_answers.py",
+  "workbench/math_ranges.py",
+  "workbench/office_building_qt.py",
+  "workbench/shell2.py",
+  "workbench/stac_bridge.py",
+  "workbench/stacy_control.py",
+  "workbench/stacy_hand.py",
+  "workbench/tolerances.py"
+ ],
+ "tests": [
+  {
+   "module": "test_math_core",
+   "look": "default",
+   "ran": 33,
+   "failed": 0
+  },
+  {
+   "module": "test_math_core",
+   "look": "kasandra",
+   "ran": 33,
+   "failed": 0
+  },
+  {
+   "module": "test_math_lines",
+   "look": "default",
+   "ran": 13,
+   "failed": 0
+  },
+  {
+   "module": "test_math_lines",
+   "look": "kasandra",
+   "ran": 13,
+   "failed": 0
+  },
+  {
+   "module": "tier-1 list (73 modules from the review's run_tiers.plan(1), one module per process)",
+   "look": "default",
+   "ran": 1186,
+   "failed": 0,
+   "note": "73 of 73 modules OK, no errors or skips"
+  },
+  {
+   "module": "tier-1 list (73 modules from the review's run_tiers.plan(1), one module per process)",
+   "look": "kasandra",
+   "ran": 1186,
+   "failed": 0,
+   "note": "73 of 73 modules OK, no errors or skips"
+  },
+  {
+   "module": "test_math_core on the builder's code (fails-before)",
+   "look": "default",
+   "ran": 33,
+   "failed": 8,
+   "note": "exactly the 8 new tests of class Honest fail"
+  },
+  {
+   "module": "test_math_lines on the builder's code (fails-before)",
+   "look": "default",
+   "ran": 13,
+   "failed": 3,
+   "note": "1 failure and 2 errors: test_26_grammar (no math_grammar), test_a_line_kasandra_proposes_never_carries_a_range, test_a_given_on_the_quantity_solved_for_is_refused_not_dropped"
+  },
+  {
+   "module": "test_math_lines window test with console_qt.py as at HEAD (fails-before)",
+   "look": "default",
+   "ran": 1,
+   "failed": 1
+  },
+  {
+   "module": "test_math_lines window test with shell2.py as at HEAD (fails-before)",
+   "look": "default",
+   "ran": 1,
+   "failed": 1
+  }
+ ],
+ "new_tests": [
+  "tests_integrated.test_math_core.Honest.test_a_check_over_a_sound_range_says_at_least_and_never_that_the_ranges_reach_both_sides: must-fix 2. x*x >= 0 over x -1..2 is UNDECIDED, its words say 'cannot be told from this range' and 'may be wider than the true one', never 'reach both sides'. x*x <= 4 says 'with at least 0 to spare', never '0 to 6'. x*x >= 5 is 'short by at least 1'. An exact range keeps '2 to 5 to spare'.",
+  "tests_integrated.test_math_lines.Lines.test_a_line_kasandra_proposes_never_carries_a_range (extended): must-fix 1. investigation.step, investigation.check, agenda.add and agenda.suggest carrying a maths line with 'given' are refused, as are stac.run with a zero-width space and 'explain' and stac.observe with leading spaces. Each refusal is exactly stacy_control.GIVEN_IS_THE_OWNERS. The owner may still run it.",
+  "tests_integrated.test_math_core.Honest.test_an_allowed_end_is_rounded_inward_and_an_equation_is_said_once_and_exactly: solving x >= 1/3 never shows 0.3333 as holding (every shown number is >= 1/3). x == 1/2 has one end-check line and 'Exactly 0.5'. x == 1/3 is 'Exactly 1/3'.",
+  "tests_integrated.test_math_core.Honest.test_the_exact_allowed_set_is_claimed_only_when_an_end_was_worked_out_again: x > 1/3 has checked None, guarantee None and the receipt line 'Guarantee: none claimed'. x >= 1/3 has checked True and EXACT_ALLOWED_SET.",
+  "tests_integrated.test_math_core.Honest.test_a_refusal_says_why_in_the_owners_words: a range in V, a unit kW, 6 - power (DIMENSION_MISMATCH), 1/x at 0, and a solve shown in V. None of their words carries a code, a node id or 'Cannot ge'. The words name 'kW is not a unit' and 'a denominator is zero'.",
+  "tests_integrated.test_math_core.Honest.test_a_number_too_long_is_refused_as_too_long: a 121-character end is EXACT_ARITHMETIC_SIZE_BOUND and the words say 'too long'. 'one' stays UNSUPPORTED.",
+  "tests_integrated.test_math_core.Honest.test_a_whole_quantity_takes_a_range_of_whole_ends: an integer quantity over 1.5..2.5 is DOMAIN_ERROR. Over 1..3 it is EXACT_RANGE [1, 3].",
+  "tests_integrated.test_math_core.Honest.test_only_solve_frees_a_quantity_and_a_freed_one_takes_no_range: a check with 'for' is UNSUPPORTED and marks no input FREED. A solve given a range on the solved quantity is UNSUPPORTED, with 'what is solved for' in the words.",
+  "tests_integrated.test_math_core.Honest.test_the_implementation_is_hashed_once_as_loaded: with Path.read_bytes made to raise, an answer and a refusal still carry math_answers.IMPLEMENTATION.",
+  "tests_integrated.test_math_lines.Lines.test_a_given_on_the_quantity_solved_for_is_refused_not_dropped: on the Clock Lab sheet, 'solve ... for assumed_typical_current | given assumed_typical_current 1 2' is UNSUPPORTED with no result, where before it answered 'Up to 300 mA'.",
+  "tests_integrated.test_math_lines.Lines.test_the_terminal_and_kasandra_offer_the_receipt_one_word_away: Console.run_stac shows the answer in words with a 'see the receipt' link that shows the receipt. SlateFace.execute shows readable_result, and its bubble has exactly one 'see the receipt' word that says the receipt. It fails with either window file as at HEAD.",
+  "tests_integrated.test_math_lines.Lines.test_26_grammar (extended): stac.status gives math_grammar naming calculate, solve, range, check and given."
+ ],
+ "numbers": [
+  "Tier-1 list: 73 modules x 2 looks = 146 module runs, all OK. 1186 tests in each look, 0 failures, 0 errors, 0 skips. The review counted 1176 on the builder's code; this run adds 10 tests. Run with b085/maths/fix/tier1.sh: one module per process, nice -n 19, unshare, a fresh HOME, two processes at once. About 30 minutes of wall time.",
+  "test_math_core: 33 tests in about 1.1 s; test_math_lines: 13 tests in about 5.3 s (each look, from the unittest 'Ran' lines).",
+  "Fails-before on the builder's code (recovered by undoing this run's edits, fix/rev.py): 8 of 8 new core tests fail, 3 line tests fail, and the window test fails with either old window file.",
+  "Registry on e4ce22b: 771 -> 775 operations (math.answer, tolerances.get, tolerances.list, tolerances.set); record_registry --check: no differences.",
+  "Patch: 143528 bytes, 16 files; apply --check on a clean archive of HEAD gave no errors."
+ ],
+ "decisions": [
+  "The planner guard reads every string in a provider command's arguments, at any depth, as a possible maths line, not only a 'program' argument of named commands. Reason: it covers the four carriers the review found and any later command that keeps or runs a line, with no list to keep current. A string that is a whole maths line with a 'given' is refused wherever it sits, which errs on the safe side.",
+  "gives_ranges reads a line as route_program does (zero-width spaces removed, a leading 'explain' in any case dropped, first word 'math'), so a line cannot slip through by its spelling.",
+  "The planner's refusal is the constant stacy_control.GIVEN_IS_THE_OWNERS, worded for the owner: 'A range in a maths line is given by the owner, never proposed: a tolerance the owner sets is used instead'. Tests compare against the constant, not the wording.",
+  "Over a sound or widened range, a check gives only the near end of the margin as 'at least X', rounded down, and says why. That near end is the only true bound; the far end may be loose. An exact (ATTAINED) range keeps both ends.",
+  "When solving an equation (==), its one end is shown in its exact value, a decimal when exact and a fraction otherwise, because no rounded figure of a single allowed point holds. The main words say 'Exactly 1/3'.",
+  "When no end was worked out again, the guarantee is None and the receipt says 'Guarantee: none claimed'. I did not invent a new guarantee name, because the design names four.",
+  "Refusals: each state has its own owner sentence. It is used when the reason carries a code, a node id or a solver term, and always for DIMENSION_MISMATCH. Three reasons are reworded specifically (zero denominator, negative power of zero, unknown unit). The record's 'reason' field keeps the technical text; only the words on screen change.",
+  "An integer quantity's range with fractional ends is refused (DOMAIN_ERROR), not snapped inward. The owner typed that range, and changing it quietly would be another silent fallback.",
+  "Implementation hashes are taken once at import (math_answers.IMPLEMENTATION), so they record the code actually loaded.",
+  "I regenerated the registry against e4ce22b in the copy and copied the file back, so the whole patch applies to current main.",
+  "The docs say to set a tolerance with /tolerances.set in the Terminal (/help tolerances.set lists its arguments) or by asking Kasandra, and that the window has no control of its own for it yet.",
+  "The FOCUSED_MODULES entry for test_math_core and test_math_lines in tools/check_hatch.py is unchanged from the builder: on its own line, with blank lines around it, away from the other builders' lines."
+ ],
+ "not_done": [
+  "The Then row 'Solve for...' on a calculation (as the builder listed).",
+  "The goal face, vectors 27 to 30 (not this release).",
+  "A window control for tolerances.set: the docs say how to set one today (the Terminal, or asking Kasandra).",
+  "tools/check_*_ui.py window checks were not run.",
+  "Frames were retaken only for the solve answer (Kasandra side, receipt and Terminal, both looks, b085/maths/fix/frames/). No frame was taken of a check over a sound range.",
+  "If main moves again before merge, regenerate docs/GRAPHITE_0.1_REGISTRY.json with tools/record_registry.py."
+ ],
+ "release_note": "Maths in lines: a maths line on a problem sheet can now solve for a quantity, give the range of an expression, or check a limit, worked out in exact fractions. Each answer says Holds, Does not hold or Cannot tell. Numbers are rounded the safe way with the exact value beside them, and one word away is the receipt: the inputs with their revisions, the method and the guarantee. Ranges come only from you, typed in the line or set as a tolerance; Kasandra never writes one, and she always asks before she sets a tolerance. When a range can only be bounded loosely, the answer says 'at least' and why, instead of claiming more than is known."
+}

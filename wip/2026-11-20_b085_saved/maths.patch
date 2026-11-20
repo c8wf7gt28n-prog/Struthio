@@ -1,0 +1,2108 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 85082dd..29d18fe 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -394,6 +394,7 @@
+    "links.catalog": "workbench/brain_link.py#dispatch",
+    "links.inspect": "workbench/brain_link.py#dispatch",
+    "links.trace": "workbench/brain_link.py#dispatch",
++   "math.answer": "workbench/math_answers.py#dispatch",
+    "math.calculate": "workbench/schedule_math.py#dispatch",
+    "math.concurrent": "workbench/schedule_math.py#dispatch",
+    "math.evaluate": "workbench/math_service.py#dispatch",
+@@ -721,6 +722,9 @@
+    "system.supports": "workbench/host_support.py#dispatch",
+    "tasks.plan": "workbench/project_guidance.py#dispatch",
+    "tasks.templates": "workbench/project_guidance.py#dispatch",
++   "tolerances.get": "workbench/tolerances.py#dispatch",
++   "tolerances.list": "workbench/tolerances.py#dispatch",
++   "tolerances.set": "workbench/tolerances.py#dispatch",
+    "trellis.inspect": "workbench/pnr_tools.py#dispatch",
+    "trellis.report": "workbench/pnr_tools.py#dispatch",
+    "ux.catalog": "workbench/ux_services.py#dispatch",
+@@ -969,9 +973,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 771,
++  "adapters": 775,
+   "job_tools": 113,
+-  "operations": 771,
++  "operations": 775,
+   "settings": 48
+  },
+  "formulas": {
+@@ -4505,6 +4509,20 @@
+    },
+    "scope": "read"
+   },
++  "math.answer": {
++   "arguments": "eade7e755aec003ec07ba63ba6e91351daa2d15df693191c3b1ae2153b011b0a",
++   "properties": {
++    "expression": "2b1e00f7cfc18abe",
++    "for": "520c691f88f728d6",
++    "given": "ca241a6815ef0053",
++    "id": "1a75c379fb0fafe6",
++    "stage": "aea3acbb559fd74b",
++    "step": "0eb2e3b6e08c031d",
++    "unit": "520c691f88f728d6",
++    "within": "1c1c26f0c5a206b8"
++   },
++   "scope": "read"
++  },
+   "math.calculate": {
+    "arguments": "a209a4e44c602e3242f8ac9fc441bb641a05769b7cd39a970010ab25f871bdf8",
+    "properties": {
+@@ -7130,6 +7148,35 @@
+    "properties": {},
+    "scope": "read"
+   },
++  "tolerances.get": {
++   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
++   "properties": {
++    "id": "1a75c379fb0fafe6"
++   },
++   "scope": "read"
++  },
++  "tolerances.list": {
++   "arguments": "d7dab831932db0f1ebd3d3376c671fc23588c97ed9c530cf7ffd6beb493daa74",
++   "properties": {
++    "problem": "1a75c379fb0fafe6"
++   },
++   "scope": "read"
++  },
++  "tolerances.set": {
++   "arguments": "d7aa38d42d16244381cacd941c5c66320a3b3b30aefca2157a8a663bcdb8717d",
++   "properties": {
++    "amount": "0eb2e3b6e08c031d",
++    "basis": "2b1e00f7cfc18abe",
++    "expected_context_digest": "7e3f7236ab75c8d7",
++    "expected_revision": "2a1379ebe9f4b632",
++    "hi": "0eb2e3b6e08c031d",
++    "id": "1a75c379fb0fafe6",
++    "lo": "0eb2e3b6e08c031d",
++    "said": "6fd8766b65ed9791",
++    "variable": "520c691f88f728d6"
++   },
++   "scope": "approve"
++  },
+   "trellis.inspect": {
+    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+    "properties": {},
+@@ -7542,7 +7589,7 @@
+  },
+  "release": "Graphite 0.8.4",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "4953a87c0827601b079e162395bd5c424ca9173101a7d6fa31f0e865282558a6",
++ "schema_digest": "6e45cec22314610d375f6e5c0113c5b9c6fac32ecdcd5bd4df9720aadb19b088",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/docs/INTEGRATED_I02.md b/docs/INTEGRATED_I02.md
+index 92b9e1c..d8e8421 100644
+--- a/docs/INTEGRATED_I02.md
++++ b/docs/INTEGRATED_I02.md
+@@ -53,6 +53,51 @@ math problem:PROBLEM_ID | calculate "voltage * assumed_typical_current" | unit W
+ 
+ The expression is quoted data for the typed compiler. The caller's real principal is forwarded. Compiling or previewing this program creates no write grant.
+ 
++## Maths in lines (0.8.5)
++
++The same line takes three more steps: solve for a quantity, the range of an expression, and a check. Each is the read operation `math.answer` (workbench/math_answers.py over the pure core workbench/math_ranges.py), and its answer is one record, `ledger.math-answer/1`: the question as asked, the model, every input with its revision and where it came from, the result, the guarantee, the steps, and whether the sheet's sources are still as they were. The grammar, strict shell words, at most 40, the steps in this order:
++
++```
++math problem:ID | calculate "EXPR" [| unit U]
++math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] (up to four) [| unit U]
++math problem:ID | range "EXPR" [| given NAME LO HI] (up to four) [| unit U]
++math problem:ID | check "REL" [| given NAME LO HI] (up to four)
++```
++
++ID is the problem sheet's ID. LO, HI and S are in that quantity's declared unit; a `given` on the quantity being solved for is refused, since that quantity is the one left free. A sheet's quantities carry no domain of their own, which is why `within` and `step` exist. A `given` range is typed by the owner; a line Kasandra proposes never carries one, and her ranges come only from the owner's tolerances (`tolerances.set`, which waits for Approve). Every maths answer, `calculate` included, says whether the sheet's sources changed since it was made, so a stale limit is never used silently. Everything is worked in exact fractions; numbers are shown to four figures, rounded outward for a range and toward the inside for an allowed end, with the exact value beside them. When a range can only be bounded soundly (a quantity used twice, or under an even power), the check says the margin is at least so much and that the range may be wider than the true one; it never says the ranges reach both sides when that is not known. The existing hashed maths files are unchanged; an answer carries the hashes of its own implementation.
++
++### Three worked examples on Rail Demo
++
++Rail Demo comes without a problem sheet, so first make one from its invented numbers: rail_voltage 12 V and settled_current 250 mA from its bench readings, settled_power_limit 4 W from its limits Rev B. Graphite gives the sheet an ID of 32 hex characters; `RAIL` below stands for it, so type the sheet's own ID in its place. tests_integrated/test_math_lines.py makes that sheet, runs these three lines and compares what the window shows (the lines under each one) with the words below, line for line. The receipt, one word away under each answer, lists the inputs with their revisions, the method and the guarantee.
++
++Solve for the current under the limit, in whole mA:
++
++```text
++math problem:RAIL | solve "rail_voltage * settled_current <= settled_power_limit" for settled_current | within 0 1000 | step 1
++Solve for settled_current
++Up to 333 mA, at rail_voltage 12 V and settled_power_limit 4 W.
++In whole steps of 1 mA: 0 to 333 mA.
++The exact end is 333.3 mA (exact 1000/3 mA).
++The declared 250 mA lies inside.
++333 mA holds (3.996 W); 334 mA does not (4.008 W).
++```
++
++Then the owner sets a tolerance on rail_voltage, plus or minus 0.5 V: with the operation `tolerances.set` typed in the Terminal after a leading / (`/help tolerances.set` lists what it takes: the sheet, the quantity, `plus_minus`, `percent` or `between`, the amount and where the tolerance comes from), or by asking Kasandra, who always asks before she sets one. The window has no control of its own for it yet. The owner then asks for the range of the power over it:
++
++```text
++math problem:RAIL | range "rail_voltage * settled_current" | unit W
++Range
++rail_voltage * settled_current: 2.875 to 3.125 W, over rail_voltage 11.5 to 12.5 V and settled_current 250 mA.
++```
++
++And the check against the limit, over the same tolerance:
++
++```text
++math problem:RAIL | check "rail_voltage * settled_current <= settled_power_limit"
++Holds
++rail_voltage * settled_current <= settled_power_limit: it holds for every value in the ranges, with 0.875 to 1.125 W to spare.
++```
++
+ ## Office profile and precision
+ 
+ The unmodified, hash-pinned LibreOffice UNO Java API JAR 25.2.0 is included with its MPL license and upstream POM/source reference. A fixed Java client receives data fields, not model-generated Java. The running native LibreOffice and Java versions are recorded per action. Documents load in an isolated profile with source document macros disabled and external updates disabled. This is a new generated-cell/paragraph/table profile; legacy Office adapters retain their existing interfaces and document-loss reports.
+diff --git a/tests_integrated/test_math_core.py b/tests_integrated/test_math_core.py
+new file mode 100644
+index 0000000..359427c
+--- /dev/null
++++ b/tests_integrated/test_math_core.py
+@@ -0,0 +1,344 @@
++"""The one maths core, pure (0.8.5, "Maths in lines"): the test vectors 1 to 18 of the design (wip judgment on the one math
++core, PART 2), each exact, on invented numbers. The model has voltage (V), current (mA) and limit = 6 W. No Kernel, no
++window, no model; and no float anywhere in the new modules (an AST scan below)."""
++import ast
++import random
++import unittest
++from fractions import Fraction as F
++from pathlib import Path
++from workbench import math_model as m, math_ranges as r, math_answers as a
++
++ROOT = Path(__file__).resolve().parents[1]
++NEW = ('workbench/math_ranges.py', 'workbench/math_answers.py', 'workbench/tolerances.py')
++POWER = {'voltage': {'unit': 'V', 'value': '12'}, 'current': {'unit': 'mA', 'value': '280', 'lower': '0'}, 'limit': {'unit': 'W', 'value': '6'}}
++
++
++def model(expression, variables=None, **changes):
++    variables = {k: dict(v) for k, v in (variables or POWER).items()}
++    for name, fields in changes.items():variables[name].update(fields)
++    return m.compile_expression(expression, variables)
++
++
++def unitless(*names, **fields):return {n: {'unit': '1', **fields} for n in names}
++
++
++def rec(record):return F(record['rational'])
++
++
++def solve(expression, name='current', box=None, variables=None, **kw):
++    return r.allowed(model(expression, variables), name, box, **kw)
++
++
++class Calculate(unittest.TestCase):
++    def test_1_power_headroom_and_a_bare_number_against_watts(self):
++        said = a.ask('calculate', 'voltage * current', POWER)
++        self.assertEqual((said['state'], rec(said['result']['value']), said['result']['value']['unit']), ('ANSWERED', F(84, 25), 'W'))
++        self.assertEqual(rec(a.ask('calculate', 'voltage * current', POWER, asked={'unit': 'mW'})['result']['value']), 3360)
++        self.assertEqual(rec(a.ask('calculate', 'limit - voltage * current', POWER)['result']['value']), F(66, 25))
++        self.assertEqual(a.ask('calculate', '6 - voltage * current', POWER)['state'], 'DIMENSION_MISMATCH')
++        self.assertEqual(said['guarantee'], 'EXACT_VALUE')
++
++
++class Solve(unittest.TestCase):
++    def test_2_solve_le_for_current_from_zero_is_up_to_500_mA_and_501_is_the_witness(self):
++        found = solve('voltage * current <= limit')
++        self.assertEqual((found['state'], found['lower'], found['upper']['value'], found['upper']['closed']),
++                         ('ALLOWED', {'value': 0, 'closed': True, 'by': 'domain'}, 500, True))
++        self.assertEqual(found['upper']['value'] * F(1, 1000), F(1, 2))         # 1/2 A
++        self.assertTrue(found['checked'])
++        said = a.ask('solve', 'voltage * current <= limit', POWER, asked={'for': 'current'})
++        self.assertTrue(said['words']['answer'].startswith('Up to 500 mA'))
++        at500 = a.ask('check', 'voltage * current <= limit', POWER, {'current': {'range': ('500', '500')}})
++        at501 = a.ask('check', 'voltage * current <= limit', POWER, {'current': {'range': ('501', '501')}})
++        self.assertEqual(at500['state'], 'HOLDS')
++        self.assertEqual((at501['state'], rec(at501['witness']['value'])), ('FAILS', F(1503, 250)))
++        self.assertEqual(rec(at501['witness']['assignment']['current']), 501)
++
++    def test_3_strict_in_whole_mA_is_499_and_not_strict_is_500(self):
++        whole = {'current': {'domain': 'integer'}}
++        self.assertEqual(r.allowed(model('voltage * current < limit', **whole), 'current')['lattice']['upper'], 499)
++        self.assertEqual(r.allowed(model('voltage * current <= limit', **whole), 'current')['lattice']['upper'], 500)
++
++    def test_4_robust_over_11_8_to_12_2_V_ends_at_30000_61_mA_491_holds_492_does_not(self):
++        found = solve('voltage * current <= limit', box={'voltage': ('11.8', '12.2')}, step='1')
++        self.assertEqual(found['upper']['value'], F(30000, 61));self.assertEqual(found['lattice']['upper'], 491)
++        end, past = found['ends'][0], found['beyond'][0]
++        self.assertEqual((end['at'], end['holds'], rec(end['left'])), (491, True, F(29951, 5000)))
++        self.assertEqual((past['at'], past['holds'], rec(past['left'])), (492, False, F(7503, 1250)))
++        self.assertEqual(end['corner'], {'voltage': F(61, 5)})                   # the 12.2 V corner sets it
++        self.assertEqual(solve('voltage * current <= limit', box={'voltage': ('11.8', '11.8')})['upper']['value'], F(30000, 59))
++
++    def test_7_the_limit_as_a_lower_end(self):
++        variables = {**POWER, 'h': {'unit': 'W', 'value': '2.4'}}
++        found = solve('limit - voltage * current <= h', variables=variables)
++        self.assertEqual((found['lower']['value'], found['lower']['closed'], found['upper']), (300, True, None))
++        for at, state in (('299', 'FAILS'), ('300', 'HOLDS')):
++            self.assertEqual(a.ask('check', 'limit - voltage * current <= h', variables, {'current': {'range': (at, at)}})['state'], state)
++        self.assertEqual(solve('limit >= voltage * current')['upper']['value'], 500)
++
++    def test_8_a_zero_coefficient_is_the_whole_domain_or_empty(self):
++        self.assertEqual(solve('x - x <= 0', 'x', variables=unitless('x'))['state'], 'WHOLE_DOMAIN')
++        self.assertEqual(solve('x - x < 0', 'x', variables=unitless('x'))['state'], 'EMPTY')
++        self.assertEqual(solve('x - x + 1 <= 0', 'x', variables=unitless('x'))['state'], 'EMPTY')
++
++    def test_9_the_domain_can_empty_it_and_says_what_it_needed(self):
++        variables = {**POWER, 'floor': {'unit': 'W', 'value': '-1'}}
++        found = solve('voltage * current <= floor', variables=variables)
++        self.assertEqual((found['state'], found['needs']['upper']['value']), ('EMPTY', F(-250, 3)))
++        said = a.ask('solve', 'voltage * current <= floor', variables, asked={'for': 'current'})
++        self.assertIn('needs current <= -83.33 mA (exact -250/3 mA)', said['words']['answer'])
++        self.assertEqual(solve('12 * x < 0', 'x', variables=unitless('x', lower='0'))['state'], 'EMPTY')
++
++    def test_10_steps_of_5_mA(self):
++        self.assertEqual(solve('voltage * current <= limit', box={'voltage': ('11.8', '12.2')}, step='5')['lattice']['upper'], 490)
++        self.assertEqual(solve('voltage * current < limit', step='5')['lattice']['upper'], 495)
++
++    def test_14_two_unknowns_multiplied_is_unsupported_with_its_reason(self):
++        with self.assertRaises(r.RangeError) as caught:solve('x * y <= 1', 'x', variables=unitless('x', 'y'))
++        self.assertEqual(caught.exception.code, 'UNSUPPORTED');self.assertIn('multiplied by another quantity', str(caught.exception))
++        said = a.ask('solve', 'x * y <= 1', unitless('x', 'y'), asked={'for': 'x'})
++        self.assertEqual(said['state'], 'UNSUPPORTED');self.assertTrue(said['words']['answer'].startswith('Cannot work it out'))
++        for expression in ('x * x <= 1', '1 / x <= 1'):        # not affine in x, a variable denominator: never an empty list
++            with self.assertRaises(r.RangeError) as caught:solve(expression, 'x', variables=unitless('x', value='1'))
++            self.assertEqual(caught.exception.code, 'UNSUPPORTED')
++
++    def test_16_the_solved_value_is_checked_on_a_copy_with_its_declared_value_removed(self):
++        ir = model('voltage * current <= limit')
++        self.assertFalse(m.witness_check(ir, {'current': '500'}))       # 280 mA is declared: a witness may not override it
++        self.assertTrue(m.witness_check(r.freed(ir, 'current'), {'current': '500'}))
++        self.assertNotIn('value', r.freed(ir, 'current')['model']['variables']['current'])
++
++    def test_solve_guard_ranges_used_twice_or_under_a_division_are_unsupported(self):
++        for expression in ('voltage * current - voltage * current + voltage * current <= limit', 'current <= limit / voltage'):
++            with self.assertRaises(r.RangeError) as caught:solve(expression, box={'voltage': ('11', '13')})
++            self.assertEqual(caught.exception.code, 'UNSUPPORTED')
++
++
++class Ranges(unittest.TestCase):
++    def test_5_range_of_power_is_exact_and_its_slack_holds(self):
++        box = {'voltage': ('11.8', '12.2'), 'current': ('270', '290')}
++        power = r.enclose(model('voltage * current'), box)
++        self.assertEqual((power.lo, power.hi, power.status), (F(1593, 500), F(1769, 500), r.ATTAINED))
++        found = r.check_box(model('voltage * current <= limit'), box)
++        self.assertEqual((found['slack'].lo, found['slack'].hi, found['state'], found['for_all']), (F(1231, 500), F(1407, 500), 'HOLDS', 'HOLDS_FOR_ALL'))
++        said = a.ask('range', 'voltage * current', POWER, {k: {'range': v} for k, v in box.items()})
++        self.assertEqual((said['guarantee'], [rec(x) for x in said['result']['range']]), ('EXACT_RANGE', [F(1593, 500), F(1769, 500)]))
++
++    def test_6_straddling_the_limit_cannot_tell_yet_a_corner_fails(self):
++        found = r.check_box(model('voltage * current <= limit'), {'voltage': ('11.8', '12.2'), 'current': ('270', '500')})
++        self.assertEqual((found['slack'].lo, found['slack'].hi), (F(-1, 10), F(1407, 500)))
++        self.assertEqual((found['state'], found['for_all']), ('UNDECIDED', 'FAILS_FOR_SOME'))
++        w = found['witness'];self.assertEqual((w['assignment']['voltage'], w['assignment']['current'], rec(w['value'])), (F(61, 5), 500, F(61, 10)))
++        said = a.ask('check', 'voltage * current <= limit', POWER, {'voltage': {'range': ('11.8', '12.2')}, 'current': {'range': ('270', '500')}})
++        self.assertEqual((said['state'], said['words']['heading']), ('UNDECIDED', 'Cannot tell'))
++
++    def test_11_dependency_and_powers(self):
++        self.assertEqual(r.enclose(model('x - x', unitless('x')), {'x': (1, 3)}), r.Enclosure(0, 0, r.ATTAINED))
++        square = r.enclose(model('x * x', unitless('x')), {'x': (-1, 2)})
++        self.assertEqual(square.status, r.SOUND);self.assertTrue(r.Enclosure(0, 4).inside(square))
++        power = r.enclose(model('x ** 2', unitless('x')), {'x': (-1, 2)})
++        self.assertEqual((power.lo, power.hi), (0, 4))
++
++    def test_12_a_pole_is_never_a_range(self):
++        with self.assertRaises(r.RangeError) as caught:r.enclose(model('1 / x', unitless('x')), {'x': (-1, 2)})
++        self.assertEqual(caught.exception.code, 'DENOMINATOR_MAY_BE_ZERO')
++        said = a.ask('range', '1 / x', unitless('x', value='1'), {'x': {'range': ('-1', '2')}})
++        self.assertEqual((said['state'], said['result']), ('DENOMINATOR_MAY_BE_ZERO', None))
++        self.assertIn('DENOMINATOR_MAY_BE_ZERO', [o.get('condition') for o in said['obligations']])
++
++    def test_13_units(self):
++        self.assertEqual(a.ask('range', 'voltage + current', POWER)['state'], 'DIMENSION_MISMATCH')
++        variables = {**POWER, 'cap': {'unit': 'mA', 'value': '500'}}
++        self.assertEqual(a.ask('check', 'voltage * current <= cap', variables)['state'], 'DIMENSION_MISMATCH')
++        wrong = a.ask('calculate', 'voltage * current', POWER, asked={'unit': 'ms'})
++        self.assertEqual(wrong['state'], 'INCOMPATIBLE_OUTPUT_UNIT')                      # a state, never a bare ValueError
++        self.assertEqual(a.ask('range', 'voltage * current', POWER, {'voltage': {'range': ('11', '13')}}, {'unit': 'ms'})['state'], 'INCOMPATIBLE_OUTPUT_UNIT')
++
++    def test_15_widening_stays_within_2048_bits_and_says_so(self):
++        tiny = F(1, 3 ** 1300);found = r.outward(tiny)
++        self.assertIn(tiny, found);self.assertEqual(found.status, r.WIDENED)
++        for end in (found.lo, found.hi):self.assertTrue(r.fits(end))
++        self.assertEqual(r.outward(F(1, 3)), r.Enclosure(F(1, 3), F(1, 3), r.ATTAINED))
++
++
++class S2Numbers(unittest.TestCase):
++    """Vector 17: invented ranges, pure arithmetic: a startup time of 110 ms plus or minus 5 against limits of 80 and 120 ms;
++    12 V plus or minus 1 % with 650 mA or 280 mA plus or minus 2 % against 8 W and 6 W."""
++    TIME = {'startup': {'unit': 'ms', 'value': '110'}, 'limit': {'unit': 'ms', 'value': '80'}}
++    RAIL = {'voltage': {'unit': 'V', 'value': '12'}, 'current': {'unit': 'mA', 'value': '650'}, 'limit': {'unit': 'W', 'value': '8'}}
++
++    def test_17_c1b_over_by_25_to_35_ms_and_c1a_holds(self):
++        said = a.ask('check', 'startup <= limit', self.TIME, {'startup': {'range': ('105', '115')}})
++        self.assertEqual(([rec(x) for x in said['result']['slack']], said['state']), ([-35, -25], 'FAILS'))
++        self.assertIn('over by 25 to 35 ms', said['words']['answer'])
++        held = a.ask('check', 'startup <= limit', {**self.TIME, 'limit': {'unit': 'ms', 'value': '120'}}, {'startup': {'range': ('105', '115')}})
++        self.assertEqual(([rec(x) for x in held['result']['slack']], held['state']), ([5, 15], 'HOLDS'))
++
++    def test_17_c2_cannot_tell_with_its_witness_and_c3_holds(self):
++        box = {'voltage': ('11.88', '12.12'), 'current': ('637', '663')}
++        found = r.check_box(model('voltage * current <= limit', self.RAIL), box)
++        self.assertEqual((found['slack'].lo, found['slack'].hi, found['state']), (F(-889, 25000), F(10811, 25000), 'UNDECIDED'))
++        self.assertEqual(rec(found['witness']['value']), F(200889, 25000))
++        found = r.check_box(model('voltage * current <= limit', {**self.RAIL, 'limit': {'unit': 'W', 'value': '6'}}), {**box, 'current': ('274.4', '285.6')})
++        self.assertEqual((found['slack'].lo, found['slack'].hi, found['state']), (F(79329, 31250), F(85629, 31250), 'HOLDS'))
++
++    def test_17_weakest_preconditions(self):
++        amps = lambda found:found['upper']['value'] / 1000
++        self.assertEqual(amps(solve('voltage * current <= limit', variables={**POWER})), F(1, 2))
++        self.assertEqual(amps(solve('voltage * current <= limit', box={'voltage': ('11.88', '12.12')})), F(50, 101))
++        self.assertEqual(amps(solve('voltage * current <= limit', box={'voltage': ('11.88', '12.12')}, variables=self.RAIL)), F(200, 303))
++
++
++class Properties(unittest.TestCase):
++    """Vector 18, seeded and so the same at every run: points lie inside the enclosure, an ATTAINED enclosure's ends are
++    reached at corners, a sub-box's enclosure lies inside the box's."""
++    EXPRESSIONS = ('x * y + z', 'x - y * z', 'x * x - y', 'x ** 2 + y * z', '(x + y) * (x - z)', 'x / y + z', 'x - x + y ** 3', 'x * y * z')
++
++    def point(self, rng, lo, hi):return lo + (hi - lo) * F(rng.randint(0, 64), 64)
++
++    def box(self, rng):
++        spans = {}
++        for name in 'xyz':
++            lo = F(rng.randint(-40, 40), rng.randint(1, 9));spans[name] = (lo, lo + F(rng.randint(0, 50), rng.randint(1, 9)))
++        if spans['y'][0] <= 0:spans['y'] = (F(1, 2), spans['y'][1] + 1 - spans['y'][0])  # y is a denominator: keep it off zero
++        return spans
++
++    def value(self, ir, at):
++        out = m.evaluate(ir, {k: str(v) for k, v in at.items() if k in ir['model']['variables']})['outputs'][0]['value']
++        return rec(out)
++
++    def test_18_seeded_properties(self):
++        rng = random.Random(20261120)
++        for expression in self.EXPRESSIONS:
++            ir = m.compile_expression(expression, unitless('x', 'y', 'z'))
++            for _ in range(12):
++                spans = {k: v for k, v in self.box(rng).items() if k in ir['model']['variables']}
++                found = r.enclose(ir, spans)
++                for _ in range(8):
++                    at = {k: self.point(rng, *v) for k, v in spans.items()}
++                    self.assertIn(self.value(ir, at), found, (expression, spans, at))
++                if found.status == r.ATTAINED:
++                    reached = {self.value(ir, corner) for corner in r.corners(spans)}
++                    self.assertIn(found.lo, reached, expression);self.assertIn(found.hi, reached, expression)
++                inner = {k: (self.point(rng, lo, hi), hi) for k, (lo, hi) in spans.items()}
++                inner = {k: (lo, max(lo, self.point(rng, lo, hi))) for k, (lo, hi) in inner.items()}
++                self.assertTrue(r.enclose(ir, inner).inside(found), (expression, spans, inner))
++
++
++class Exactness(unittest.TestCase):
++    def test_no_float_and_no_optional_solver_in_the_new_modules(self):
++        for path in NEW:
++            tree = ast.parse((ROOT / path).read_text())
++            for node in ast.walk(tree):
++                self.assertFalse(isinstance(node, ast.Constant) and isinstance(node.value, float), (path, getattr(node, 'lineno', 0)))
++                self.assertFalse(isinstance(node, ast.Name) and node.id == 'float', (path, getattr(node, 'lineno', 0)))
++                if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == 'math':
++                    self.assertIn(node.attr, ('floor', 'ceil'), (path, node.lineno))       # math.floor and math.ceil of a Fraction are ints
++                if isinstance(node, (ast.Import, ast.ImportFrom)):
++                    names = [getattr(node, 'module', None) or ''] + [alias.name for alias in node.names]
++                    self.assertFalse(any(n.split('.')[0] in ('sympy', 'z3', 'math_backend') or n.endswith('math_backend') for n in names), (path, names))
++
++    def test_answers_are_exact_fractions_throughout(self):
++        found = r.allowed(model('voltage * current <= limit'), 'current', {'voltage': ('11.8', '12.2')}, step='1')
++        for value in (found['upper']['value'], found['lattice']['upper'], found['ends'][0]['at']):self.assertIsInstance(value, F)
++        self.assertIsInstance(r.enclose(model('voltage * current'), {'voltage': ('11.8', '12.2')}).lo, F)
++
++    def test_the_decision_table(self):
++        cases = {'le': ((0, 1, 'HOLDS'), (-2, -1, 'FAILS'), (-1, 0, 'UNDECIDED')), 'lt': ((F(1, 9), 1, 'HOLDS'), (-1, 0, 'FAILS'), (0, 1, 'UNDECIDED')),
++                 'ge': ((-1, 0, 'HOLDS'), (F(1, 9), 1, 'FAILS'), (0, 1, 'UNDECIDED')), 'gt': ((-1, F(-1, 9), 'HOLDS'), (0, 1, 'FAILS'), (-1, 0, 'UNDECIDED')),
++                 'eq': ((0, 0, 'HOLDS'), (1, 2, 'FAILS'), (0, 1, 'UNDECIDED')), 'ne': ((1, 2, 'HOLDS'), (0, 0, 'FAILS'), (-1, 1, 'UNDECIDED'))}
++        for relation, rows in cases.items():
++            for lo, hi, state in rows:self.assertEqual(r.decide(r.Enclosure(lo, hi), relation), state, (relation, lo, hi))
++
++    def test_an_answer_carries_its_receipt_and_its_own_implementation(self):
++        said = a.ask('range', 'voltage * current', POWER, {'voltage': {'range': ('11.8', '12.2')}})
++        self.assertEqual(set(said['implementation']), {'math_ranges.py', 'math_answers.py', 'math_model.py', 'math_units.py'})
++        self.assertEqual((said['model_calls'], said['physical_qualification'], said['schema']), (0, False, 'ledger.math-answer/1'))
++        self.assertEqual(said['digest'], a.records.digest({k: v for k, v in said.items() if k != 'digest'}))
++        self.assertEqual([row['origin'] for row in said['inputs']], ['GIVEN_IN_LINE', 'DECLARED_SCENARIO'])
++        self.assertLessEqual(len(said['derivation']), 8)
++        self.assertTrue(any(line.startswith('Guarantee: an exact range') for line in said['words']['receipt']))
++
++
++class Honest(unittest.TestCase):
++    """What the words claim is never more than is known: a sound range says 'at least' and why; an allowed number is shown
++    rounded inward; a guarantee is claimed only when it was earned; a refusal says why in the owner's words."""
++    X = {'x': {'unit': '1', 'value': '1'}}
++    INTERNAL = r'\b[A-Z]{2,}_[A-Z_]+\b|\bn\d+\b|Cannot (?:ge|gt|le|lt|eq|ne|add|sub|mul|div)\b'
++
++    def test_a_check_over_a_sound_range_says_at_least_and_never_that_the_ranges_reach_both_sides(self):
++        box = {'x': {'range': ('-1', '2')}}
++        unknown = a.ask('check', 'x * x >= 0', self.X, box)                     # true for every x, yet the sound range straddles 0
++        self.assertEqual((unknown['state'], unknown['result']['status']), ('UNDECIDED', r.SOUND))
++        self.assertNotIn('reach both sides of it', unknown['words']['answer'])
++        self.assertIn('cannot be told from this range', unknown['words']['answer']);self.assertIn('may be wider than the true one', unknown['words']['answer'])
++        held = a.ask('check', 'x * x <= 4', self.X, box)                         # the true spare is 0 to 4, the sound one 0 to 6
++        self.assertEqual(held['state'], 'HOLDS');self.assertIn('with at least 0 to spare', held['words']['answer'])
++        self.assertNotIn('0 to 6', held['words']['answer'])
++        short = a.ask('check', 'x * x >= 5', self.X, box)                        # x * x is at most 4: short by at least 1, truly
++        self.assertEqual(short['state'], 'FAILS');self.assertIn('short by at least 1 ', short['words']['answer'])
++        exact = a.ask('check', 'x <= 4', self.X, box)                            # an exact range keeps both ends
++        self.assertIn('with 2 to 5 to spare.', exact['words']['answer'])
++
++    def test_an_allowed_end_is_rounded_inward_and_an_equation_is_said_once_and_exactly(self):
++        third = {'x': {'unit': '1', 'value': '1'}, 'y': {'unit': '1', 'value': '1/3'}}
++        said = a.ask('solve', 'x >= y', third, asked={'for': 'x'})
++        shown = [line.split(' (exact')[0] for line in said['words']['lines'] if ' holds' in line]
++        self.assertTrue(shown)
++        for number in shown:self.assertGreaterEqual(F(number), F(1, 3), said['words']['lines'])     # never 0.3333, which does not hold
++        self.assertGreaterEqual(F(said['words']['answer'].split()[2]), F(1, 3), said['words']['answer'])
++        half = {'x': {'unit': '1', 'value': '1'}, 'y': {'unit': '1', 'value': '1/2'}}
++        equal = a.ask('solve', 'x == y', half, asked={'for': 'x'})
++        held = [line for line in equal['words']['lines'] if ' holds' in line]
++        self.assertEqual(len(held), 1, equal['words']['lines']);self.assertTrue(equal['words']['answer'].startswith('Exactly 0.5'))
++        self.assertTrue(a.ask('solve', 'x == y', third, asked={'for': 'x'})['words']['answer'].startswith('Exactly 1/3'))
++
++    def test_the_exact_allowed_set_is_claimed_only_when_an_end_was_worked_out_again(self):
++        third = {'x': {'unit': '1', 'value': '1'}, 'y': {'unit': '1', 'value': '1/3'}}
++        open_end = a.ask('solve', 'x > y', third, asked={'for': 'x'})
++        self.assertIsNone(open_end['result']['allowed']['checked']);self.assertIsNone(open_end['guarantee'])
++        self.assertTrue(any(line.startswith('Guarantee: none claimed') for line in open_end['words']['receipt']))
++        closed = a.ask('solve', 'x >= y', third, asked={'for': 'x'})
++        self.assertEqual((closed['result']['allowed']['checked'], closed['guarantee']), (True, 'EXACT_ALLOWED_SET'))
++
++    def test_a_refusal_says_why_in_the_owners_words(self):
++        import re
++        cases = (('range', 'voltage * current', POWER, {'voltage': {'range': ('11', '13')}}, {'unit': 'V'}, 'INCOMPATIBLE_OUTPUT_UNIT'),
++                 ('range', 'voltage * current', POWER, {}, {'unit': 'kW'}, None),
++                 ('calculate', '6 - voltage * current', POWER, {}, {}, 'DIMENSION_MISMATCH'),
++                 ('range', '1 / x', self.X, {'x': {'range': ('0', '0')}}, {}, 'DOMAIN_ERROR'),
++                 ('solve', 'voltage * current <= limit', POWER, {}, {'for': 'current', 'unit': 'V'}, 'INCOMPATIBLE_OUTPUT_UNIT'))
++        for stage, expression, variables, box, asked, state in cases:
++            said = a.ask(stage, expression, variables, box, asked)
++            if state:self.assertEqual(said['state'], state, said['reason'])
++            self.assertTrue(said['words']['answer'].startswith('Cannot work it out: '), said['words']['answer'])
++            self.assertIsNone(re.search(self.INTERNAL, said['words']['answer']), said['words']['answer'])
++        self.assertIn('kW is not a unit', a.ask('range', 'voltage * current', POWER, asked={'unit': 'kW'})['words']['answer'])
++        self.assertIn('a denominator is zero', a.ask('range', '1 / x', self.X, {'x': {'range': ('0', '0')}})['words']['answer'])
++
++    def test_a_number_too_long_is_refused_as_too_long(self):
++        said = a.ask('range', 'x', self.X, {'x': {'range': ('1', '1' + '0' * 120)}})
++        self.assertEqual(said['state'], 'EXACT_ARITHMETIC_SIZE_BOUND');self.assertIn('too long', said['words']['answer'])
++        self.assertEqual(a.ask('range', 'x', self.X, {'x': {'range': ('1', 'one')}})['state'], 'UNSUPPORTED')
++
++    def test_a_whole_quantity_takes_a_range_of_whole_ends(self):
++        whole = {'n': {'unit': '1', 'value': '2', 'domain': 'integer'}}
++        self.assertEqual(a.ask('range', 'n', whole, {'n': {'range': ('1.5', '2.5')}})['state'], 'DOMAIN_ERROR')
++        said = a.ask('range', 'n', whole, {'n': {'range': ('1', '3')}})
++        self.assertEqual((said['guarantee'], [rec(x) for x in said['result']['range']]), ('EXACT_RANGE', [1, 3]))
++
++    def test_only_solve_frees_a_quantity_and_a_freed_one_takes_no_range(self):
++        check = a.ask('check', 'voltage * current <= limit', POWER, asked={'for': 'current'})
++        self.assertEqual((check['state'], check['inputs']), ('UNSUPPORTED', []))
++        solved = a.ask('solve', 'voltage * current <= limit', POWER, {'current': {'range': ('1', '2')}}, {'for': 'current'})
++        self.assertEqual(solved['state'], 'UNSUPPORTED');self.assertIn('what is solved for', solved['words']['answer'])
++
++    def test_the_implementation_is_hashed_once_as_loaded(self):
++        from unittest.mock import patch
++        with patch.object(Path, 'read_bytes', side_effect=AssertionError('an answer read its files again')):
++            said = a.ask('range', 'voltage * current', POWER, {'voltage': {'range': ('11.8', '12.2')}})
++            refused = a.ask('calculate', '6 - voltage * current', POWER)
++        self.assertEqual(said['implementation'], a.IMPLEMENTATION);self.assertEqual(refused['implementation'], a.IMPLEMENTATION)
++
++
++if __name__ == '__main__':unittest.main()
+diff --git a/tests_integrated/test_math_lines.py b/tests_integrated/test_math_lines.py
+new file mode 100644
+index 0000000..b622cd8
+--- /dev/null
++++ b/tests_integrated/test_math_lines.py
+@@ -0,0 +1,241 @@
++"""Maths in lines (0.8.5): the line face of the one maths core, vectors 19 to 26 of the design, on the Clock Lab fixture as
++test_exact_math does; the owner's tolerances; the words the window shows; and the three worked examples on Rail Demo's
++invented numbers in docs/INTEGRATED_I02.md, run here word for word. No model and no window: the window's own frame is
++taken by hand (the report says where)."""
++import json
++import re
++import subprocess
++import sys
++import unittest
++from fractions import Fraction as F
++from pathlib import Path
++from workbench import math_answers, stacy_hand, stacy_control, rail_demo
++from workbench.engineering_kernel import CAPABILITIES, Principal, operator
++from workbench.office_building_qt import readable_result
++from workbench.problem_checks import bound, invoke
++from workbench.stac_bridge import compile_program
++from tests_integrated import test_problem as fixtures  # run per module from the program root
++
++ROOT = Path(__file__).resolve().parents[1]
++DOC = ROOT / 'docs' / 'INTEGRATED_I02.md'
++EXAMPLES = '### Three worked examples on Rail Demo'
++
++
++def rec(record):return F(record['rational'])
++
++
++class Lines(fixtures.ProblemBindings):
++    def line(self, rest, p=None):
++        response = self.kernel.dispatch('stac.run', {'program': 'math problem:%s | %s' % (self.problem['id'], rest)}, p or self.p)
++        self.assertTrue(response['ok'], response);return response['result']
++
++    def revise(self, **changes):
++        sheet = self.call('problems.get', {'id': self.problem['id']})['problem']
++        self.problem = self.call('problems.revise', {**bound(sheet), **changes});return self.problem
++
++    def test_19_calculate_carries_the_freshness_of_its_sources(self):
++        out = self.line('calculate "voltage * assumed_typical_current" | unit W')
++        self.assertEqual((out['result']['evaluation']['outputs'][0]['value']['rational'], out['freshness']), ('5/4', 'CURRENT'))
++        self.assertEqual(readable_result(out), 'Worked out\n1.25 W.')
++        work = self.root / 'Files' / self.copy['work'] / 'power.csv';work.write_text(work.read_text().replace('120', '125'))
++        out = self.line('calculate "voltage * assumed_typical_current" | unit W')
++        self.assertEqual(out['freshness'], 'REVIEW_REQUIRED');self.assertIn('review them before relying on this', readable_result(out))
++        answered = self.line('range "voltage * assumed_typical_current" | unit W')
++        self.assertEqual((answered['freshness'], answered['result']['freshness']), ('REVIEW_REQUIRED', 'REVIEW_REQUIRED'))
++
++    def test_20_memory_all_concurrent_does_not_hold_and_the_workspace_may_be_4_MiB(self):
++        found = self.line('check "buffer_A + buffer_B + workspace <= memory_limit"')['result']
++        self.assertEqual((found['state'], rec(found['result']['left'][0]), rec(found['result']['right'][0])), ('FAILS', 17, 16))
++        self.assertEqual(found['words']['heading'], 'Does not hold')
++        solved = self.line('solve "buffer_A + buffer_B + workspace <= memory_limit" for workspace')['result']['result']['allowed']
++        self.assertEqual((rec(solved['upper']['value']), solved['upper']['value']['unit'], solved['declared_inside']), (4, 'MiB', False))
++
++    def test_21_current_solve_within_0_and_1000_in_whole_mA(self):
++        said = self.line('solve "assumed_typical_current <= declared_current_limit" for assumed_typical_current | within 0 1000 | step 1')['result']
++        found = said['result']['allowed']
++        self.assertEqual((rec(found['lattice']['lower']), rec(found['lattice']['upper']), found['declared_inside']), (0, 300, True))
++        self.assertEqual(said['guarantee'], 'EXACT_ALLOWED_SET')
++        self.assertEqual([row['origin'] for row in said['inputs']], ['FREED', 'PROBLEM_REVISION'])
++        self.assertEqual(said['inputs'][1]['source']['revision'], self.problem['revision'])
++
++    def test_22_a_range_given_in_the_line(self):
++        said = self.line('range "voltage * assumed_typical_current" | given assumed_typical_current 240 260 | unit W')['result']
++        self.assertEqual([rec(x) for x in said['result']['range']], [F(6, 5), F(13, 10)])
++        self.assertEqual({row['name']: row['origin'] for row in said['inputs']}, {'voltage': 'PROBLEM_REVISION', 'assumed_typical_current': 'GIVEN_IN_LINE'})
++
++    def test_23_the_owners_tolerance_applies_carries_over_and_waits_for_a_recheck(self):
++        said = self.call('tolerances.set', {**bound(self.problem), 'variable': 'voltage', 'said': 'plus_minus', 'amount': '0.25',
++                                            'basis': 'Invented for this test: the supply holds 5 V to a quarter volt'})
++        self.assertEqual((said['schema'], said['lo'], said['hi'], said['set_by']), ('ledger.tolerance/1', '19/4', '21/4', 'owner'))
++        def voltage(answer):return next(row for row in answer['inputs'] if row['name'] == 'voltage')
++        answer = self.line('range "voltage * assumed_typical_current" | unit W')['result']
++        self.assertEqual([rec(x) for x in answer['result']['range']], [F(19, 16), F(21, 16)])
++        self.assertEqual((voltage(answer)['origin'], voltage(answer)['tolerance']['state']), ('OWNER_TOLERANCE', 'APPLIES'))
++        self.revise(questions=['When is each allocation live?'])
++        answer = self.line('range "voltage * assumed_typical_current" | unit W')['result']
++        self.assertEqual(([rec(x) for x in answer['result']['range']], voltage(answer)['tolerance']['state']), ([F(19, 16), F(21, 16)], 'CARRIED_OVER'))
++        variables = json.loads(json.dumps(self.problem['variables']))
++        next(v for v in variables if v['name'] == 'voltage')['value'] = '5.1'
++        self.revise(variables=variables)
++        answer = self.line('range "voltage * assumed_typical_current" | unit W')['result']
++        self.assertEqual([rec(x) for x in answer['result']['range']], [F(51, 40), F(51, 40)])              # not applied
++        self.assertEqual((voltage(answer)['origin'], voltage(answer)['tolerance']['state']), ('PROBLEM_REVISION', 'RECHECK'))
++        self.assertIn('needs your recheck', '\n'.join(answer['words']['receipt']))
++        listed = self.call('tolerances.list', {'problem': self.problem['id']})['tolerances']
++        self.assertEqual([(t['subject']['variable'], t['state']) for t in listed], [('voltage', 'RECHECK')])
++
++    def test_24_read_scope_runs_the_lines_and_a_tolerance_is_the_owners(self):
++        reader = Principal(self.p.identity)
++        for rest in ('calculate "voltage * assumed_typical_current" | unit W', 'check "buffer_A + buffer_B + workspace <= memory_limit"',
++                     'solve "assumed_typical_current <= declared_current_limit" for assumed_typical_current | within 0 1000 | step 1',
++                     'range "voltage * assumed_typical_current" | given assumed_typical_current 240 260 | unit W'):
++            self.line(rest, reader)
++        refused = self.kernel.dispatch('tolerances.set', {**bound(self.problem), 'variable': 'voltage', 'said': 'percent', 'amount': '5',
++                                                          'basis': 'invented'}, reader)
++        self.assertFalse(refused['ok'])
++        self.assertEqual((CAPABILITIES['tolerances.set'], CAPABILITIES['math.answer'], CAPABILITIES['tolerances.list']), ('approve', 'read', 'read'))
++        self.assertEqual(stacy_hand.why_asks('tolerances.set'), 'a tolerance is yours to say: it decides what I conclude')
++        for place in ('ask', 'show', 'free'):self.assertFalse(stacy_hand.hers(place, 'approve', 'tolerances.set'))
++
++    def test_26_grammar(self):
++        ident = self.problem['id']
++        for program, code in (('math problem:%s | solve "workspace <= memory_limit"' % ident, 'STAC_MATH_SYNTAX'),
++                              ('math problem:%s | check "workspace <= memory_limit"' % ident + ' | given workspace 1 2' * 5, 'STAC_MATH_GIVEN_BOUND'),
++                              ('math problem:%s | solve "workspace <= memory_limit" for workspace | step 1 | within 0 9' % ident, 'STAC_MATH_STEP_ORDER'),
++                              ('math problem:%s | check "workspace <= memory_limit" | given workspace one 2' % ident, 'STAC_MATH_NUMBER')):
++            with self.assertRaises(ValueError) as caught:compile_program(program)
++            self.assertEqual(str(caught.exception), code)
++        plan = self.call('stac.inspect', {'program': 'math problem:%s | check "workspace <= memory_limit"' % ident})
++        self.assertEqual((plan['operation'], plan['required_scope'], plan['executed']), ('math.answer', 'read', False))
++        grammar = self.call('stac.status', {})['math_grammar']                  # the status names the maths steps too
++        for word in ('calculate', 'solve', 'range', 'check', 'given'):self.assertIn(word, grammar)
++
++    def test_a_line_kasandra_proposes_never_carries_a_range(self):
++        given = 'math problem:%s | range "workspace" | given workspace 4 6' % self.problem['id']
++        with self.assertRaises(ValueError) as caught:
++            stacy_control.validate_actions([{'operation': 'stac.run', 'arguments': {'program': given}}], operator(), provider=True, private_local=True)
++        self.assertEqual(str(caught.exception), stacy_control.GIVEN_IS_THE_OWNERS)
++        # whatever runs or keeps the line: investigation.step runs it at once, a check or the Agenda runs it later
++        check = 'math problem:%s | check "workspace <= memory_limit" | given workspace 0 1' % self.problem['id']
++        carried = (('investigation.step', {'id': '0' * 32, 'program': check, 'purpose': 'x'}),
++                   ('investigation.check', {'claim': '0' * 32, 'program': check, 'oracle': 'x'}),
++                   ('agenda.add', {'title': 'x', 'program': check}), ('agenda.suggest', {'parent': '0' * 32, 'title': 'x', 'why': 'x', 'program': check}),
++                   ('stac.run', {'program': '\u200b explain ' + check}), ('stac.observe', {'program': '  ' + check}))
++        for op, args in carried:
++            with self.assertRaises(ValueError, msg=op) as caught:
++                stacy_control.validate_actions([{'operation': op, 'arguments': args}], operator(), provider=True, private_local=True)
++            self.assertEqual(str(caught.exception), stacy_control.GIVEN_IS_THE_OWNERS, op)
++        with self.assertRaises(ValueError):
++            stacy_control.validate_actions([{'operation': 'math.answer', 'arguments': {'id': self.problem['id'], 'stage': 'range', 'expression': 'workspace',
++                                                                                    'given': [{'name': 'workspace', 'lo': '4', 'hi': '6'}]}}], operator(), provider=True, private_local=True)
++        stacy_control.validate_actions([{'operation': 'stac.run', 'arguments': {'program': given.split(' | given')[0]}}], operator(), provider=True, private_local=True)
++        stacy_control.validate_actions([{'operation': 'stac.run', 'arguments': {'program': given}}], operator())       # the owner may
++
++    def test_a_given_on_the_quantity_solved_for_is_refused_not_dropped(self):
++        said = self.line('solve "assumed_typical_current <= declared_current_limit" for assumed_typical_current | given assumed_typical_current 1 2')['result']
++        self.assertEqual((said['state'], said['result']), ('UNSUPPORTED', None))
++        self.assertIn('what is solved for', said['words']['answer'])
++
++    def test_the_terminal_and_kasandra_offer_the_receipt_one_word_away(self):
++        from types import SimpleNamespace
++        from unittest.mock import patch
++        from PySide6.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget
++        from workbench import shell2
++        from workbench.console_qt import Console
++        QApplication.instance() or QApplication([])
++        program = 'math problem:%s | solve "assumed_typical_current <= declared_current_limit" for assumed_typical_current | within 0 1000 | step 1' % self.problem['id']
++        out = self.call('stac.run', {'program': program})
++
++        class Terminal:
++            link = Console.link
++            def __init__(t):t.links = {};t.said = [];t.host = None;t.last_program = None
++            def say(t, html, echo=None, **kw):t.said.append(html)
++        terminal = Terminal()
++        with patch('workbench.console_qt.call_write', return_value={'ok': True, 'result': out}):Console.run_stac(terminal, program)
++        self.assertIn('Up to 300 mA', terminal.said[0])
++        key = re.search(r'href="console:(\w+)">see the receipt<', terminal.said[0]).group(1)
++        terminal.links[key]();self.assertIn('Guarantee: the exact allowed set', terminal.said[-1])
++
++        class Face:
++            def __init__(f):f.host = SimpleNamespace(root=self.root);f.said = [];f.bubbles = []
++            def say(f, text):
++                bubble = QWidget();bubble.box = QVBoxLayout(bubble);f.said.append(text);f.bubbles.append(bubble);return bubble
++            def mark(f, *args):pass
++        face = Face()
++        with patch('workbench.engine.engineering', return_value=SimpleNamespace(dispatch=lambda op, args, p:{'ok': True, 'result': out})):
++            shell2.SlateFace.execute(face, 'stac.run', {'program': program}, program)
++        self.assertEqual(face.said[0], readable_result(out))
++        words = [w for w in face.bubbles[0].findChildren(QLabel) if 'receipt' in (getattr(w, '_actions', None) or {})]
++        self.assertEqual(len(words), 1);self.assertIn('see the receipt', words[0].text())
++        words[0]._actions['receipt'][1]();self.assertTrue(face.said[-1].startswith('Receipt\n'), face.said[-1])
++
++    def test_the_window_shows_the_answer_in_words_with_its_receipt(self):
++        out = self.line('solve "assumed_typical_current <= declared_current_limit" for assumed_typical_current | within 0 1000 | step 1')
++        shown = readable_result(out).split('\n')
++        self.assertEqual(shown[:2], ['Solve for assumed_typical_current', 'Up to 300 mA, at declared_current_limit 300 mA.'])
++        check = readable_result(self.line('check "buffer_A + buffer_B + workspace <= memory_limit"'))
++        self.assertTrue(check.startswith('Does not hold\nbuffer_A + buffer_B + workspace <= memory_limit: it does not hold: over by 1 MiB.'), check)
++        receipt = math_answers.receipt_text(out)
++        self.assertIn('declared_current_limit: 300 mA · problem sheet, revision %d' % self.problem['revision'], receipt)
++        self.assertIn('Guarantee: the exact allowed set', receipt)
++        for text in (readable_result(out), receipt, check):
++            self.assertIsNone(re.search(r'\b(staC|Lain|Programs|Ctrl|Alt\+|Shift\+)', text), text)
++
++
++class RailDemoExamples(fixtures.ProblemBindings):
++    """The three worked examples of docs/INTEGRATED_I02.md, on a problem sheet of Rail Demo's invented numbers."""
++    def sheet(self):
++        readings = {row[0]: row for row in rail_demo.READINGS};limits = {row[0]: row for row in rail_demo.LIMITS_B}
++        folder = self.home / 'Rail_Demo_numbers';folder.mkdir()
++        (folder / 'rail_numbers.md').write_text('%s\n\nRail voltage %s %s; settled current %s %s (bench readings). Settled power limit %s %s (limits Rev B).\n' % (
++            rail_demo.NOTICE, *readings['Rail voltage'][1:3], *readings['Settled current'][1:3], *limits['Settled power limit'][1:3]))
++        preview = self.call('imports.preview', {'source': str(folder), 'profile': 'ENGINEERING'})
++        copy = self.call('imports.accept', {'id': preview['id'], 'expected_digest': preview['content_digest'], 'for_slate': True})
++        def quantity(name, row, basis):return {'name': name, 'type': 'quantity', 'unit': row[2], 'state': 'KNOWN', 'value': row[1], 'basis': basis}
++        return self.call('problems.create', {'request': 'Does the 12 V rail stay inside its settled power limit? ' + rail_demo.NOTICE,
++            'title': 'Rail Demo rail power (invented data)', 'goals': ['Keep settled power inside the Rev B limit.'],
++            'variables': [quantity('rail_voltage', readings['Rail voltage'], 'Rail Demo bench readings, invented'),
++                          quantity('settled_current', readings['Settled current'], 'Rail Demo bench readings, invented'),
++                          quantity('settled_power_limit', limits['Settled power limit'], 'Rail Demo limits Rev B, invented')],
++            'sources': [{'copy': copy['id'], 'path': 'rail_numbers.md', 'label': 'Rail Demo numbers'}]})
++
++    def test_the_three_worked_examples_are_true_word_for_word(self):
++        text = DOC.read_text();part = text[text.index(EXAMPLES):]
++        part = part[:part.index('\n## ')] if '\n## ' in part else part
++        blocks = [block.strip('\n').split('\n') for block in re.findall(r'```text\n(.*?)```', part, re.S)]
++        self.assertEqual(len(blocks), 3);self.assertIn('plus or minus 0.5 V', part)
++        sheet = self.sheet()
++        for index, (program, *expected) in enumerate(blocks):
++            if index == 1:      # between the first and the second, the owner says the tolerance the page names
++                self.call('tolerances.set', {**bound(sheet), 'variable': 'rail_voltage', 'said': 'plus_minus', 'amount': '0.5',
++                                             'basis': 'Rail Demo, invented: the supply holds 12 V to half a volt'})
++            out = self.call('stac.run', {'program': program.replace('problem:RAIL', 'problem:' + sheet['id'])})
++            self.assertEqual(readable_result(out).split('\n'), expected, program)
++
++
++# Only the tests above run here; the fixture's own tests run in test_problem.
++for name in tuple(vars(fixtures.ProblemBindings)):
++    if name.startswith('test_'):
++        setattr(Lines, name, None);setattr(RailDemoExamples, name, None)
++
++
++class SolversHidden(unittest.TestCase):
++    """Vector 25: with the optional solvers out of reach (python -S leaves out site-packages), every answer is the same,
++    and none of the new modules brings in SymPy or Z3."""
++    CASES = (('calculate', 'voltage * current', {}, {}), ('solve', 'voltage * current <= limit', {'voltage': ('11.8', '12.2')}, {'for': 'current', 'step': '1'}),
++             ('range', 'voltage * current', {'voltage': ('11.8', '12.2'), 'current': ('270', '290')}, {}),
++             ('check', 'voltage * current <= limit', {'voltage': ('11.8', '12.2'), 'current': ('270', '500')}, {}))
++    CHILD = ('import json,sys\nfrom workbench import math_answers as a, math_ranges, tolerances\nV=%r\nC=%r\n'
++             'print(json.dumps({"digests":[a.ask(s,e,V,{k:{"range":v} for k,v in g.items()},q)["digest"] for s,e,g,q in C],'
++             '"loaded":sorted(n for n in sys.modules if n.split(".")[0] in ("sympy","z3"))}))')
++    VARIABLES = {'voltage': {'unit': 'V', 'value': '12'}, 'current': {'unit': 'mA', 'value': '280', 'lower': '0'}, 'limit': {'unit': 'W', 'value': '6'}}
++
++    def test_25_every_answer_is_the_same_without_the_optional_solvers(self):
++        here = [math_answers.ask(s, e, self.VARIABLES, {k: {'range': v} for k, v in g.items()}, q)['digest'] for s, e, g, q in self.CASES]
++        child = subprocess.run([sys.executable, '-S', '-B', '-c', self.CHILD % (self.VARIABLES, self.CASES)], cwd=ROOT, capture_output=True, text=True, timeout=120)
++        self.assertEqual(child.returncode, 0, child.stderr[-2000:])
++        seen = json.loads(child.stdout.strip().splitlines()[-1])
++        self.assertEqual((seen['digests'], seen['loaded']), (here, []))
++
++
++if __name__ == '__main__':unittest.main()
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index 501e917..000f8cc 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -90,6 +90,10 @@ FOCUSED_MODULES=(
+  'test_problem','test_exact_math','test_reasoning_graph','test_adaptive_contract','test_joined_work',
+  # 0.8.4: what a line does with values: one rule for a number written as text, and the seven evaluator faults of 14 November
+  'test_line_rules',
++
++ # 0.8.5: the one maths core (math_ranges, math_answers, tolerances) and its lines: solve, range and check, exact, with receipts
++ 'test_math_core','test_math_lines',
++
+  # backup and restore, the Project Desk, slate reasoning, change sets, continuing work, exchange and updates
+  'test_workspace_backup','test_project_desk','test_slate_reasoning','test_change_sets','test_continuing_work','test_deployment')
+ # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.
+diff --git a/workbench/console_qt.py b/workbench/console_qt.py
+index 504a3b8..37f7e88 100644
+--- a/workbench/console_qt.py
++++ b/workbench/console_qt.py
+@@ -475,6 +475,12 @@ class Console(QWidget):
+             return
+         value = r['result'];rows = value.get('rows') if isinstance(value, dict) else None
+         self.last_program = program  # a right-click on the output carries on from here, as a chain
++        from .math_answers import receipt_text, screen_text
++        said = screen_text(value)
++        if said:   # a maths line: its answer in words, and its receipt one word away
++            receipt = receipt_text(value)
++            more = ('<br>' + self.link('see the receipt', lambda t=receipt:self.say(escape(t).replace('\n', '<br>')))) if receipt else ''
++            self.say(escape(said).replace('\n', '<br>') + more, echo=echo);return
+         if rows is None:self.say(result_html(value), echo=echo);return
+         face = self.host.shell2.face
+         words = '  ·  '.join([self.link('save as a sheet', lambda p=program, rs=rows:face.save_rows(p, rs)), self.link('watch it', lambda p=program:face.watch(p)),
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 3a7cd14..ec921bd 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -30,6 +30,8 @@ def schemas():
+     from .checked_methods import FIELDS as METHOD_FIELDS
+     from .native_sessions import FIELDS as NATIVE_SESSION_FIELDS
+     from .schedule_math import FIELDS as SCHEDULE_FIELDS
++    from .math_answers import FIELDS as MATH_ANSWER_FIELDS
++    from .tolerances import FIELDS as TOLERANCE_FIELDS
+     from .lab_service import FIELDS as LAB_FIELDS, OPTIONS as LAB_OPTIONS
+     from .reason_service import FIELDS as REASON_FIELDS
+     from .math_service import FIELDS as MATH_FIELDS, OPTIONS as MATH_OPTIONS
+@@ -137,6 +139,7 @@ def schemas():
+         **ADAPTIVE_FIELDS,
+         **JOINED_FIELDS, **ARTIFACT_FIELDS, **METHOD_FIELDS, **NATIVE_SESSION_FIELDS,
+         **SCHEDULE_FIELDS,
++        **MATH_ANSWER_FIELDS, **TOLERANCE_FIELDS,
+         **REASON_FIELDS,
+         **SLATE_CONTEXT_FIELDS,
+         **SLATE_REASONING_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 72cbb97..d324b51 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -43,6 +43,7 @@ from . import math_service
+ from . import lab_service
+ from . import reason_service
+ from . import adaptive_work,schedule_math,slate_action
++from . import math_answers, tolerances  # 0.8.5: the one maths core in lines: math.answer, and the owner's tolerances (recorded additions)
+ from . import joined_work,typed_artifacts,checked_methods,native_sessions
+ from . import slate_context, slate_reasoning
+ from . import edit_storage, import_profiles, change_sets
+@@ -174,6 +175,7 @@ CAPABILITIES = {
+     **reason_service.SCOPES,
+     **adaptive_work.SCOPES,
+     **schedule_math.SCOPES,
++    **math_answers.SCOPES, **tolerances.SCOPES,
+     **joined_work.SCOPES, **typed_artifacts.SCOPES, **checked_methods.SCOPES, **native_sessions.SCOPES,
+     **office_service.SCOPES,
+     **notebook_service.SCOPES,
+@@ -566,6 +568,8 @@ class Kernel:
+         if op in checked_methods.FIELDS:return checked_methods.dispatch(self,op,a,p)
+         if op in native_sessions.FIELDS:return native_sessions.dispatch(self,op,a,p)
+         if op in schedule_math.FIELDS:return schedule_math.dispatch(self,op,a,p)
++        if op in math_answers.FIELDS:return math_answers.dispatch(self,op,a,p)
++        if op in tolerances.FIELDS:return tolerances.dispatch(self,op,a,p)
+         if op in lab_service.FIELDS:return lab_service.dispatch(self,op,a,p)
+         if op in reason_service.FIELDS:return reason_service.dispatch(self,op,a,p)
+         if op in math_service.FIELDS:return math_service.dispatch(self,op,a,p)
+diff --git a/workbench/math_answers.py b/workbench/math_answers.py
+new file mode 100644
+index 0000000..016ee18
+--- /dev/null
++++ b/workbench/math_answers.py
+@@ -0,0 +1,518 @@
++"""Answers of the one maths core (0.8.5, "Maths in lines"): the record ledger.math-answer/1, its words, and math.answer.
++
++One answer serves both faces. A line on a problem sheet,
++
++    math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] (up to four) [| unit U]
++    math problem:ID | range "EXPR" [| given NAME LO HI] (up to four) [| unit U]
++    math problem:ID | check "REL" [| given NAME LO HI] (up to four)
++
++compiles (stac_bridge) to the Kernel operation math.answer, a read: it reads the sheet with the freshness of its sources
++(problems.get), the owner's tolerances (tolerances.standing) and the model math_service.model_for makes, and answers
++through math_ranges. From the goal slice on, her goals call answer() in process with bindings to cells. math.answer writes
++no record of its own; the Kernel keeps its audit and activity rows, as for every read; stac.observe stores the answer.
++
++The record carries the question as asked, the model and its digest, its assumptions and obligations, every input with its
++origin (PROBLEM_REVISION, DECLARED_SCENARIO, GIVEN_IN_LINE, OWNER_TOLERANCE, SHEET_CELL or FREED), its source and its
++tolerance, the result, the state (HOLDS, FAILS or UNDECIDED for the one real value; ANSWERED when the stage asks no
++yes-or-no question; an error state otherwise), for_all (every value in the ranges), the witness, the guarantee, at most
++eight steps of derivation, the freshness, the words the owner reads, and the hashes of its own implementation (the hashed
++files of math_service are not touched, so a new answer never makes an older calculation historical). answer() never raises.
++"""
++from __future__ import annotations
++import hashlib
++import math
++import re
++from fractions import Fraction
++from pathlib import Path
++from . import math_ranges as ranges, project_desk as records
++from .math_model import MathError, RELATIONS, evaluate
++from .math_units import number_record, quantity_record, rational, unit_spec
++
++SCHEMA = 'ledger.math-answer/1'
++STAGES = ('calculate', 'solve', 'range', 'check')
++ERRORS = ('DIMENSION_MISMATCH', 'DOMAIN_ERROR', 'UNSUPPORTED', 'MISSING_INPUT', 'INCOMPATIBLE_OUTPUT_UNIT',
++          'EXACT_ARITHMETIC_SIZE_BOUND', 'DENOMINATOR_MAY_BE_ZERO')
++IMPLEMENTED = ('math_ranges.py', 'math_answers.py', 'math_model.py', 'math_units.py')
++FIGURES = 4                  # significant figures of a number in words; the exact value stands beside it
++HEADINGS = {'HOLDS': 'Holds', 'FAILS': 'Does not hold', 'UNDECIDED': 'Cannot tell'}      # the Field's own (field_page)
++STAGE_HEADINGS = {'calculate': 'Worked out', 'range': 'Range', 'solve': 'Solve for %s'}
++SIGNS = {'le': '<=', 'lt': '<', 'ge': '>=', 'gt': '>', 'eq': '=', 'ne': '!='}
++GUARANTEES = {'EXACT_VALUE': 'an exact value, in exact fractions throughout',
++              'EXACT_RANGE': 'an exact range: both of its ends are values the expression takes',
++              'SOUND_ENCLOSURE': 'a sound range: every value lies inside it, though it may be wider than the true range',
++              'EXACT_ALLOWED_SET': 'the exact allowed set, its ends worked out again with the solved quantity freed'}
++FRESHNESS = {'CURRENT': 'The sheet\'s sources are as they were when it was made.',
++             'REVIEW_REQUIRED': 'The sheet\'s sources have changed since it was made: review them before relying on this.'}
++TOLERANCE_STATES = {'APPLIES': 'said at this revision', 'CARRIED_OVER': 'carried over: the value has not changed since',
++                    'RECHECK': 'needs your recheck: the value changed since, so it is not applied'}
++NAME = {'type': 'string', 'minLength': 1, 'maxLength': 64}
++NUMBER = {'type': 'string', 'minLength': 1, 'maxLength': 100}
++GIVEN = {'type': 'object', 'additionalProperties': False, 'properties': {'name': NAME, 'lo': NUMBER, 'hi': NUMBER}, 'required': ['name', 'lo', 'hi']}
++FIELDS = {'math.answer': ({'id': records.ID, 'stage': {'type': 'string', 'enum': list(STAGES)},
++                           'expression': {'type': 'string', 'minLength': 1, 'maxLength': 1000}, 'for': NAME,
++                           'within': {'type': 'array', 'minItems': 2, 'maxItems': 2, 'items': NUMBER}, 'step': NUMBER,
++                           'given': {'type': 'array', 'maxItems': 4, 'items': GIVEN}, 'unit': {'type': 'string', 'minLength': 1, 'maxLength': 64}},
++                          ['id', 'stage', 'expression'])}
++SCOPES = {'math.answer': 'read'}
++
++
++# What the owner reads when an answer cannot be worked out, by its state; a reason in the code's own terms is not shown.
++REFUSALS = {'DIMENSION_MISMATCH': 'quantities of different kinds are added or compared, so their units do not fit together',
++            'DOMAIN_ERROR': 'a value lies outside what it may take', 'UNSUPPORTED': 'the maths core does not answer this kind of question',
++            'MISSING_INPUT': 'a quantity it needs has no value', 'INCOMPATIBLE_OUTPUT_UNIT': 'the answer is not a quantity that unit can show',
++            'EXACT_ARITHMETIC_SIZE_BOUND': 'a number here is too long to work with exactly',
++            'DENOMINATOR_MAY_BE_ZERO': 'a denominator may be zero over these ranges'}
++REWORDS = ((re.compile(r'Zero denominator\b.*'), 'a denominator is zero'), (re.compile(r'Negative power of zero\b.*'), 'zero is raised to a negative power'),
++           (re.compile(r'UNKNOWN_OR_AMBIGUOUS_UNIT: (.+)'), r'\1 is not a unit Graphite knows'))
++INTERNAL = re.compile(r'\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b|\bn\d+\b|incompatible quantities|fragment|\bZ3\b|SymPy|\bnodes?\b')
++
++
++def _hashes():
++    return {name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in IMPLEMENTED}
++
++
++IMPLEMENTATION = _hashes()      # hashed once, as loaded: the code that works the answers out, not the files as they are later
++
++
++def implementation():
++    """sha256 of each file an answer depends on (its own two and the exact base under them), as they were loaded."""
++    return dict(IMPLEMENTATION)
++
++
++# -- numbers as the owner reads them --------------------------------------------------------------------------------------
++
++def rounded(value, toward=None):
++    """`value` to four significant figures: 'down', 'up', or to the nearest."""
++    value = Fraction(value)
++    if value == 0:return value
++    size = abs(value);power = len(str(size.numerator // size.denominator)) - 1 if size >= 1 else -1
++    while size < Fraction(10) ** power:power -= 1
++    scale = Fraction(10) ** (FIGURES - 1 - power);x = value * scale
++    return (math.floor(x) if toward == 'down' else math.ceil(x) if toward == 'up' else math.floor(x + Fraction(1, 2))) / scale
++
++
++def figure(value, unit, toward=None):
++    """An exact value in words: its decimal when that is short and exact; otherwise four figures rounded `toward` ('down',
++    'up'; outward for a range, inward for an allowed end) with the exact value beside it."""
++    value = Fraction(value);exact = number_record(value);unit = '' if unit in ('1', '') else ' ' + unit
++    if exact['decimal_exact'] and len(exact['decimal'].lstrip('-').replace('.', '').lstrip('0')) <= 6:return exact['decimal'] + unit
++    near = number_record(rounded(value, toward))['decimal']
++    return '%s%s (exact %s%s)' % (near, unit, exact['decimal'] if exact['decimal_exact'] else exact['rational'], unit)
++
++
++def exactly(value, unit):
++    """An exact value in words with nothing rounded: its decimal when that is exact, otherwise its fraction."""
++    exact = number_record(Fraction(value));unit = '' if unit in ('1', '') else ' ' + unit
++    return (exact['decimal'] if exact['decimal_exact'] else exact['rational']) + unit
++
++
++def span_words(lo, hi, unit):
++    """A range in words, rounded outward."""
++    return figure(lo, unit) if lo == hi else '%s to %s' % (figure(lo, '', 'down').strip(), figure(hi, unit, 'up'))
++
++
++def number(value, unit):return {**number_record(Fraction(value)), 'unit': unit}
++
++
++def _dimension(ir, node):return ir['signatures'][node]['dimension']
++
++
++def _quantity(base, ir, node, unit):
++    return quantity_record(Fraction(base), _dimension(ir, node), unit or ir['signatures'][node]['unit'])
++
++
++def _span(enclosure, ir, node, unit):
++    return [_quantity(enclosure.lo, ir, node, unit), _quantity(enclosure.hi, ir, node, unit)]
++
++
++# -- the record -----------------------------------------------------------------------------------------------------------
++
++def _code(exc):
++    if isinstance(exc, (MathError, ranges.RangeError)):return exc.code
++    message = str(exc)
++    return next((code for code in ERRORS if code in message), 'UNSUPPORTED')
++
++
++def _inputs(ir, inputs, solved):
++    """The record's inputs, and the box of ranges (exact, in declared units) the stage works over."""
++    rows = [];box = {}
++    for name, v in ir['model']['variables'].items():
++        given = dict((inputs or {}).get(name) or {});span = given.get('range')
++        if span is not None and name == solved:ranges.fail('UNSUPPORTED', '%s is what is solved for, so it cannot also have a range' % name)
++        if span is not None:box[name] = (ranges.exact(span[0]), ranges.exact(span[1]))
++        origin = 'FREED' if name == solved else given.get('origin') or ('GIVEN_IN_LINE' if span else 'DECLARED_SCENARIO')
++        rows.append({'name': name, 'unit': v['unit'], 'value': number(rational(v['value']), v['unit']) if 'value' in v else None,
++                     'range': [number(box[name][0], v['unit']), number(box[name][1], v['unit'])] if name in box else None,
++                     'origin': origin, 'source': given.get('source'), 'tolerance': given.get('tolerance'), 'role': None})
++    return rows, box
++
++
++def refused(stage, asked, code, reason, freshness='CURRENT'):
++    """An answer that could not be worked out, as a record: the state says why, and nothing else is claimed."""
++    value = {'schema': SCHEMA, 'stage': stage, 'asked': dict(asked or {}), 'model': None, 'model_digest': None, 'assumptions': [],
++             'obligations': [], 'inputs': [], 'result': None, 'state': code, 'for_all': None, 'witness': None, 'guarantee': None,
++             'derivation': [], 'freshness': freshness, 'reason': reason}
++    return _sealed(value)
++
++
++def _sealed(value):
++    value.setdefault('reason', '')
++    value.update(implementation=implementation(), model_calls=0, physical_qualification=False)
++    value['words'] = words(value)
++    value['digest'] = records.digest({k: v for k, v in value.items() if k != 'digest'})
++    return value
++
++
++def _witness(found, ir, rows):
++    if not found:return None
++    units = {row['name']: row['unit'] for row in rows}
++    return {'assignment': {name: number(value, units[name]) for name, value in found['assignment'].items()}, 'value': found['value']}
++
++
++def _method(enclosure, box):
++    if not box:return 'Worked out at the declared values in exact fractions.'
++    if enclosure.status == ranges.WIDENED:return 'Interval arithmetic, its ends moved outward to stay within 2048 bits.'
++    if enclosure.status == ranges.SOUND:return 'Interval arithmetic: a ranged quantity repeats or sits under an even power, so the range may be wider than the true one.'
++    return 'The range from its exact form over the ranges: each end is reached at a corner of them.'
++
++
++def answer(stage, ir, inputs=None, asked=None, freshness='CURRENT'):
++    """ledger.math-answer/1 for one stage over a compiled model (math_model.compile_expression, declared values in it).
++    inputs: {name: {'range': (lo, hi) in its declared unit or None, 'origin', 'source', 'tolerance'}}; a name left out has
++    no range. asked: {'expression', 'for', 'within', 'step', 'unit'}. Never raises: a failure is the record's state."""
++    asked = dict(asked or {});unit = asked.get('unit');solved = asked.get('for')
++    if stage not in STAGES:return refused(stage, asked, 'UNSUPPORTED', 'Ask calculate, solve, range or check', freshness)
++    if solved and stage != 'solve':return refused(stage, asked, 'UNSUPPORTED', 'Only solve takes a quantity to solve for', freshness)
++    try:rows, box = _inputs(ir, inputs, solved)
++    except (ValueError, ZeroDivisionError) as exc:return refused(stage, asked, _code(exc), str(exc), freshness)
++    if stage == 'calculate':
++        box = {}
++        for row in rows:row['range'] = None
++    value = {'schema': SCHEMA, 'stage': stage, 'asked': asked, 'model': ir['model'], 'model_digest': ir['model_digest'],
++             'assumptions': list(ir['model']['assumptions']), 'obligations': [dict(d) for d in ir['domain_conditions']], 'inputs': rows,
++             'result': None, 'state': None, 'for_all': None, 'witness': None, 'guarantee': None, 'derivation': [], 'freshness': freshness}
++    out = ranges.output(ir);node = ranges.nodes_of(ir)[out];relation = node['op'] if node['op'] in RELATIONS else None
++    steps = value['derivation']
++    steps.append('The question: %s %s%s.' % (stage, asked.get('expression') or 'the model', ' for ' + solved if solved else ''))
++    try:
++        if box:steps.append('Ranges: ' + '; '.join('%s %s' % (name, span_words(lo, hi, ir['model']['variables'][name]['unit'])) for name, (lo, hi) in sorted(box.items())) + '.')
++        if stage == 'solve':_solve(value, ir, box, asked)
++        elif relation is None and stage == 'check':ranges.fail('UNSUPPORTED', 'A check needs one comparison, such as <=')
++        elif relation is None:_quantity_stage(value, ir, out, box, unit)
++        else:_relation_stage(value, ir, node, box, unit)
++    except (ValueError, ZeroDivisionError) as exc:
++        code = _code(exc);value.update(state=code, reason=str(exc), result=None, for_all=None, witness=None, guarantee=None)
++        if code == 'DENOMINATOR_MAY_BE_ZERO':value['obligations'].append({'condition': 'DENOMINATOR_MAY_BE_ZERO', 'detail': str(exc)})
++    value['derivation'] = steps[:8]
++    return _sealed(value)
++
++
++def _quantity_stage(value, ir, out, box, unit):
++    if value['stage'] == 'calculate':
++        worked = evaluate(ir, output_unit=unit)
++        if worked['state'] not in ('FEASIBLE', 'INFEASIBLE', 'UNKNOWN'):ranges.fail(worked['state'], worked.get('reason', ''))
++        row = worked['outputs'][0]
++        if row['state'] != 'EXACT':ranges.fail('MISSING_INPUT', 'No value for ' + ', '.join(worked['missing']))
++        value.update(result={'value': row['value']}, state='ANSWERED', guarantee='EXACT_VALUE')
++        value['derivation'].append('Worked out by the same exact evaluator as every calculation.');return
++    enclosure = ranges.enclose(ir, box)
++    value.update(result={'range': _span(enclosure, ir, out, unit), 'status': enclosure.status}, state='ANSWERED',
++                 guarantee='EXACT_RANGE' if enclosure.status == ranges.ATTAINED else 'SOUND_ENCLOSURE')
++    value['derivation'].append(_method(enclosure, box))
++
++
++def _relation_stage(value, ir, node, box, unit):
++    found = ranges.check_box(ir, box);left = node['left']
++    value.update(result={'relation': found['relation'], 'left': _span(found['left'], ir, left, unit), 'right': _span(found['right'], ir, left, unit),
++                         'slack': _span(found['slack'], ir, left, unit), 'status': found['slack'].status},
++                 state=found['state'], for_all=found['for_all'], witness=_witness(found['witness'], ir, value['inputs']),
++                 guarantee='EXACT_VALUE' if not box else 'EXACT_RANGE' if found['slack'].status == ranges.ATTAINED else 'SOUND_ENCLOSURE')
++    steps = value['derivation'];steps.append(_method(found['slack'], box));slack = value['result']['slack']
++    steps.append('Decided on the slack, right side minus left: %s.' % span_words(rational(slack[0]['rational']), rational(slack[1]['rational']), slack[0]['unit']))
++    if value['witness']:
++        steps.append('The corner furthest from holding, worked out again: %s gives %s %s.' % (
++            ', '.join('%s %s %s' % (k, v['decimal'], v['unit']) for k, v in value['witness']['assignment'].items()), value['witness']['value']['decimal'], value['witness']['value']['unit']))
++
++
++def _solve(value, ir, box, asked):
++    name = asked.get('for')
++    if not name:ranges.fail('UNSUPPORTED', 'Say which quantity to solve for')
++    unit = asked.get('unit');declared = ir['model']['variables'].get(name, {}).get('unit')
++    found = ranges.allowed(ir, name, box, asked.get('within'), asked.get('step'))
++    shown = unit or found['unit']
++    if unit_spec(shown)[0] != unit_spec(found['unit'])[0]:ranges.fail('INCOMPATIBLE_OUTPUT_UNIT', '%s is not a unit of %s' % (unit, name))
++    def at(x):return number(Fraction(x) * unit_spec(declared)[1] / unit_spec(shown)[1], shown)
++    def end(e):return None if e is None else {'value': at(e['value']), 'closed': e['closed'], **({'by': e['by']} if 'by' in e else {})}
++    def point(row):return {'side': row['side'], 'at': at(row['at']), 'holds': row['holds'], 'left': row['left'],
++                           'corner': {k: number(v, ir['model']['variables'][k]['unit']) for k, v in row['corner'].items()}}
++    allowed = {'state': found['state'], 'name': name, 'unit': shown, 'relation': found['relation'], 'lower': end(found['lower']), 'upper': end(found['upper']),
++               'needs': {side: end(e) for side, e in found['needs'].items()}, 'step': None if found['step'] is None else at(found['step']),
++               'lattice': None if found['lattice'] is None else {side: None if x is None else at(x) for side, x in found['lattice'].items()},
++               'declared': None if found['declared'] is None else at(found['declared']), 'declared_inside': found['declared_inside'],
++               'checked': found['checked'], 'ends': [point(r) for r in found['ends']], 'beyond': [point(r) for r in found['beyond']],
++               'corners': found['corners'], 'reason': found['reason']}
++    # the exact allowed set is claimed only when its ends were worked out again: an open end, or none, claims nothing
++    value.update(result={'allowed': allowed}, state='ANSWERED', guarantee='EXACT_ALLOWED_SET' if found['checked'] is True else None)
++    steps = value['derivation']
++    steps.append('Solved %s %s 0 for %s at %d corner%s of the ranges, keeping the tightest end.' % (
++        'left - right', SIGNS[found['relation']], name, found['corners'], '' if found['corners'] == 1 else 's'))
++    if asked.get('within'):steps.append('Kept within %s to %s %s, as asked.' % (asked['within'][0], asked['within'][1], declared))
++    if found['step'] is not None:steps.append('Rounded inward to whole steps of %s %s.' % (figure(found['step'], '').strip(), declared))
++    if found['checked'] is not None:steps.append('Its end%s worked out again with %s freed: %s.' % (
++        's' if len(found['ends']) > 1 else '', name, 'holds' if found['checked'] else 'DOES NOT HOLD'))
++
++
++# -- words ----------------------------------------------------------------------------------------------------------------
++
++def _margin(record, relation):
++    """The slack as the owner reads it, rounded outward: ('to spare' or 'over by' or ..., lo, hi, unit)."""
++    lo, hi, unit = rational(record[0]['rational']), rational(record[1]['rational']), record[0]['unit']
++    if relation in ('ge', 'gt'):lo, hi = -hi, -lo
++    return lo, hi, unit
++
++
++def _inputs_at(record, skip=()):
++    """The inputs, as the answer was worked out at them: 'voltage 11.8 to 12.2 V and limit 6 W'."""
++    parts = []
++    for row in record['inputs']:
++        if row['name'] in skip:continue
++        if row['range']:parts.append('%s %s' % (row['name'], span_words(rational(row['range'][0]['rational']), rational(row['range'][1]['rational']), row['unit'])))
++        elif row['value']:parts.append('%s %s' % (row['name'], figure(rational(row['value']['rational']), row['unit'])))
++    return ', '.join(parts[:-1]) + (' and ' if len(parts) > 1 else '') + (parts[-1] if parts else '')
++
++
++LOOSE = 'the margin was worked out as a sound range, which may be wider than the true one'
++
++
++def _verdict(record):
++    """The check in words. Over a sound range (not ATTAINED) only its near end is a true bound, so the words say 'at least'
++    and say why; 'the ranges reach both sides' is said only of an exact range."""
++    result = record['result'];relation = result['relation'];lo, hi, unit = _margin(result['slack'], relation)
++    ranged = any(row['range'] for row in record['inputs']);loose = result['status'] != ranges.ATTAINED
++    def by(near, far):return 'at least ' + figure(near, unit, 'down') if loose else span_words(near, far, unit)
++    why = ' (%s)' % LOOSE if loose else ''
++    if record['state'] == 'HOLDS':
++        if relation == 'eq':return 'The two sides are equal.'
++        if relation == 'ne':return 'The two sides never meet.'
++        return 'It holds%s, with %s to spare%s.' % (' for every value in the ranges' if ranged else '', by(lo, hi), why)
++    if record['state'] == 'FAILS':
++        if relation == 'ne':return 'The two sides are equal.'
++        if relation == 'eq':return 'The two sides differ by %s%s.' % (by(min(abs(lo), abs(hi)), max(abs(lo), abs(hi))), why)
++        return 'It does not hold%s: %s by %s%s.' % (' for any value in the ranges' if ranged else '', 'short' if relation in ('ge', 'gt') else 'over',
++                                                   by(-hi, -lo), why)
++    if loose:said = 'Whether it holds cannot be told from this range: %s, and that range reaches both sides.' % LOOSE
++    else:said = 'The ranges reach both sides of it, so whether the real value holds cannot be told from them.'
++    witness = record['witness'];ranged = {row['name'] for row in record['inputs'] if row['range']}
++    if witness:
++        said += ' At %s it would not hold: %s.' % (', '.join('%s %s' % (k, figure(rational(v['rational']), v['unit'])) for k, v in witness['assignment'].items() if k in ranged),
++                                                 figure(rational(witness['value']['rational']), witness['value']['unit']))
++    return said
++
++
++def _solve_words(record):
++    found = record['result']['allowed'];name, unit = found['name'], found['unit']
++    def at(e, toward=None):return figure(rational(e['value']['rational']), unit, toward)
++    lattice = found['lattice'] or {}
++    if found['state'] == 'EMPTY':
++        needs = found['needs']
++        wanted = ' and '.join('%s %s %s' % (name, ('>=' if needs[s]['closed'] else '>') if s == 'lower' else ('<=' if needs[s]['closed'] else '<'), at(needs[s]))
++                              for s in ('lower', 'upper') if needs.get(s))
++        return 'No value of %s holds%s. %s.' % (name, ': it needs ' + wanted if wanted else '', found['reason'])
++    if found['state'] == 'WHOLE_DOMAIN':
++        said = 'Every value of %s holds' % name
++    else:
++        upper = found['upper'] if found['upper'] and found['upper']['by'] == 'relation' else None
++        lower = found['lower'] if found['lower'] and found['lower']['by'] == 'relation' else None
++        def shown(side, e):
++            inward = 'down' if side == 'upper' else 'up'
++            if lattice.get(side):return figure(rational(lattice[side]['rational']), unit, inward)
++            return at(e, inward)
++        if upper and lower and found['relation'] == 'eq':said = 'Exactly ' + exactly(rational(upper['value']['rational']), unit)
++        elif upper and lower:said = 'From %s to %s' % (shown('lower', lower), shown('upper', upper))
++        elif upper:said = ('Up to ' if upper['closed'] or lattice.get('upper') else 'Below ') + shown('upper', upper)
++        elif lower:said = ('At least ' if lower['closed'] or lattice.get('lower') else 'Above ') + shown('lower', lower)
++        else:said = 'Every value of %s in the range asked holds' % name
++    others = _inputs_at(record, (name,))
++    return said + (', at ' + others if others else '') + '.'
++
++
++def _solve_lines(record):
++    found = record['result']['allowed'];name, unit = found['name'], found['unit'];lines = []
++    if found['state'] == 'EMPTY':return lines
++    lo, hi = found['lower'], found['upper'];lattice = found['lattice'] or {}
++    def num(e, toward=None):return figure(rational(e['rational']), unit, toward)
++    if lattice:
++        low, high = [None if e is None else rational((lattice.get(s) or e['value'])['rational']) for s, e in (('lower', lo), ('upper', hi))]
++        if low is not None and high is not None:steps = figure(low, unit) if low == high else '%s to %s' % (figure(low, '', 'up').strip(), figure(high, unit, 'down'))
++        elif low is not None:steps = 'from ' + figure(low, unit, 'up')
++        elif high is not None:steps = 'up to ' + figure(high, unit, 'down')
++        else:steps = 'any value'
++        lines.append('In whole steps of %s: %s.' % (num(found['step']), steps))
++    exact = [figure(rational(e['value']['rational']), unit, 'up' if s == 'lower' else 'down') for s, e in (('lower', lo), ('upper', hi)) if e and e['by'] == 'relation']
++    if lattice and exact:lines.append('The exact end is %s.' % exact[0] if len(exact) == 1 else 'The exact ends are %s and %s.' % tuple(exact))
++    if found['declared'] is not None:
++        lines.append('The declared %s lies %s.' % (num(found['declared']), 'inside' if found['declared_inside'] else 'outside'))
++    for row, past in zip(found['ends'], found['beyond'] or [None] * len(found['ends'])):
++        # an end rounded inward (a shown allowed number never claims more than is allowed), the step past it outward; the
++        # one end of an equation in its exact value, since no rounding of it holds
++        inward, outward = ('down', 'up') if row['side'] == 'upper' else ('up', 'down')
++        end = exactly(rational(row['at']['rational']), unit) if found['relation'] == 'eq' else num(row['at'], inward)
++        said = '%s %s (%s)' % (end, 'holds' if row['holds'] else 'does not hold', figure(rational(row['left']['rational']), row['left']['unit'])) if row['left'] else ''
++        if past and past['left']:said += '; %s %s (%s)' % (num(past['at'], outward), 'holds' if past['holds'] else 'does not', figure(rational(past['left']['rational']), past['left']['unit']))
++        if not said:continue
++        said = said[0].upper() + said[1:] + ('' if not row['corner'] else ', at ' + ', '.join('%s %s' % (k, figure(rational(v['rational']), v['unit'])) for k, v in row['corner'].items())) + '.'
++        if said not in lines:lines.append(said)       # an equation's one end is both of its ends: said once
++    return lines
++
++
++def _origin_words(row):
++    source = row.get('source') or {}
++    if row['origin'] == 'FREED':return 'solved for' + (' (declared %s)' % figure(rational(row['value']['rational']), row['unit']) if row['value'] else '')
++    if row['origin'] == 'GIVEN_IN_LINE':return 'given in the line'
++    if row['origin'] == 'OWNER_TOLERANCE':
++        t = row['tolerance'] or {};return 'your tolerance (revision %s), %s' % (t.get('revision'), TOLERANCE_STATES.get(t.get('state'), ''))
++    if row['origin'] == 'PROBLEM_REVISION':return 'problem sheet, revision %s' % source.get('revision')
++    if row['origin'] == 'SHEET_CELL':return 'sheet cell %s, revision %s' % (source.get('cell'), source.get('revision'))
++    return 'declared in the model'
++
++
++def receipt(record):
++    """The receipt in words: the inputs with their revisions and where each came from, the method, the guarantee, the sources."""
++    lines = []
++    for row in record.get('inputs') or ():
++        if row['range']:shown = span_words(rational(row['range'][0]['rational']), rational(row['range'][1]['rational']), row['unit'])
++        elif row['value']:shown = figure(rational(row['value']['rational']), row['unit'])
++        else:shown = 'no value'
++        said = '%s: %s · %s' % (row['name'], shown, _origin_words(row))
++        t = row.get('tolerance')
++        if t and row['origin'] != 'OWNER_TOLERANCE':said += ' · your tolerance (revision %s) %s' % (t.get('revision'), TOLERANCE_STATES.get(t.get('state'), ''))
++        lines.append(said)
++    lines += ['How: ' + step for step in record.get('derivation') or ()]
++    if record.get('guarantee'):lines.append('Guarantee: ' + GUARANTEES.get(record['guarantee'], record['guarantee']) + '.')
++    elif record.get('stage') == 'solve' and record.get('state') == 'ANSWERED':
++        lines.append('Guarantee: none claimed, since no end of it was worked out again (an open end, or no end at all).')
++    if record.get('obligations'):lines.append('Assumed: every denominator is not zero.' if all(o.get('condition') == 'DENOMINATOR_NONZERO' for o in record['obligations'])
++                                             else 'Open: a denominator may be zero over the ranges.')
++    lines += ['Assumption: ' + a for a in record.get('assumptions') or ()]
++    lines.append(FRESHNESS.get(record.get('freshness'), ''))
++    lines.append('Worked out by Graphite in exact fractions; no model was asked. Nothing was measured here.')
++    return [line for line in lines if line]
++
++
++def words(record):
++    """{'heading', 'answer', 'lines', 'receipt'}: what the window shows for an answer, in the owner's words."""
++    stage, state = record['stage'], record['state']
++    asked = record.get('asked') or {};expression = asked.get('expression', '')
++    if state in HEADINGS:heading = HEADINGS[state]
++    elif stage == 'check':heading = 'Cannot tell'
++    elif stage == 'solve':heading = STAGE_HEADINGS['solve'] % asked.get('for', '')
++    else:heading = STAGE_HEADINGS.get(stage, 'Answer')
++    lines = []
++    if state in ERRORS:
++        said = 'Cannot work it out: %s.' % plain(state, record.get('reason'), asked.get('unit'))
++        if state == 'DENOMINATOR_MAY_BE_ZERO':said = 'Cannot tell: a denominator may be zero over these ranges, so no range is given.'
++    elif state in HEADINGS:
++        verdict = _verdict(record);said = '%s: %s' % (expression, verdict[0].lower() + verdict[1:])
++    elif stage == 'solve':said = _solve_words(record);lines += _solve_lines(record)
++    elif stage == 'calculate':
++        v = record['result']['value'];said = '%s = %s.' % (expression, figure(rational(v['rational']), v['unit']))
++    else:
++        lo, hi = record['result']['range'];status = record['result']['status']
++        said = '%s: %s%s.' % (expression, span_words(rational(lo['rational']), rational(hi['rational']), lo['unit']),
++                              '' if status == ranges.ATTAINED else ', a sound range that may be wider than the true one')
++        others = _inputs_at(record)
++        if others:said = said[:-1] + ', over ' + others + '.'
++    if record.get('freshness') == 'REVIEW_REQUIRED':lines.append(FRESHNESS['REVIEW_REQUIRED'])
++    return {'heading': heading, 'answer': said, 'lines': lines, 'receipt': receipt(record)}
++
++
++def plain(state, reason, unit=None):
++    """Why an answer could not be worked out, in the owner's words: the reason when it is already in them, otherwise the
++    state's own sentence. A code, a node or a solver's term never reaches the screen."""
++    reason = str(reason or '').strip().rstrip('.')
++    for pattern, said in REWORDS:
++        if pattern.fullmatch(reason):return pattern.sub(said, reason)
++    if state == 'INCOMPATIBLE_OUTPUT_UNIT' and unit and (not reason or INTERNAL.search(reason)):return 'the answer cannot be shown in ' + unit
++    if not reason or state == 'DIMENSION_MISMATCH' or INTERNAL.search(reason):return REFUSALS.get(state, REFUSALS['UNSUPPORTED'])
++    return reason
++
++
++def is_answer(value):
++    """The math answer inside a line's result, or None."""
++    if isinstance(value, dict) and value.get('schema') == SCHEMA:return value
++    inner = value.get('result') if isinstance(value, dict) else None
++    return inner if isinstance(inner, dict) and inner.get('schema') == SCHEMA else None
++
++
++def screen_text(value):
++    """A line's answer as plain text for the window: the heading, the answer, its lines. None when it is not one."""
++    found = is_answer(value)
++    if found:
++        said = found['words'];return '\n'.join([said['heading'], said['answer'], *said['lines']])
++    inner = value.get('result') if isinstance(value, dict) else None
++    if isinstance(inner, dict) and isinstance(inner.get('evaluation'), dict):      # calculate: math.preview, unchanged
++        rows = [r for r in inner['evaluation'].get('outputs') or () if r.get('kind') == 'quantity' and r.get('value')]
++        if rows:
++            v = rows[0]['value'];lines = ['Worked out', figure(rational(v['rational']), v['unit']) + '.']
++            if value.get('freshness') == 'REVIEW_REQUIRED':lines.append(FRESHNESS['REVIEW_REQUIRED'])
++            return '\n'.join(lines)
++    return None
++
++
++def receipt_text(value):
++    found = is_answer(value)
++    return None if not found else 'Receipt\n' + '\n'.join(found['words']['receipt'])
++
++
++# -- a line on a problem sheet --------------------------------------------------------------------------------------------
++
++def bindings_from_problem(problem, args, said=None):
++    """(ir, inputs) for a line on a problem sheet: the model from math_service.model_for, each input's origin and source,
++    its range from the line's `given` (GIVEN_IN_LINE) or else from the owner's tolerance when it APPLIES or is CARRIED_OVER
++    (OWNER_TOLERANCE; one that needs a RECHECK is shown and not applied), and the solved one FREED. Ranges come only from
++    the owner: a line Kasandra proposes never carries `given` (stacy_control.validate_actions refuses it)."""
++    from . import math_service
++    ir, bindings = math_service.model_for(problem, {'expression': args['expression']})
++    given = {}
++    for row in args.get('given') or ():
++        if row['name'] in given:ranges.fail('UNSUPPORTED', 'Give each quantity one range')
++        given[row['name']] = (row['lo'], row['hi'])
++    if args.get('for') in given:ranges.fail('UNSUPPORTED', '%s is what is solved for, so it cannot also have a range' % args['for'])
++    unused = sorted(set(given) - set(ir['model']['variables']))
++    if unused:ranges.fail('UNSUPPORTED', 'The expression does not use ' + ', '.join(unused))
++    inputs = {}
++    for binding in bindings:
++        name = binding['name'];tolerance = (said or {}).get(name)
++        row = {'origin': binding['origin'], 'range': None, 'tolerance': None,
++               'source': {'problem': problem['id'], 'revision': problem['revision'], 'context_digest': problem['context_digest'], 'variable': name}}
++        if tolerance:row['tolerance'] = {'id': tolerance['id'], 'revision': tolerance['revision'], 'state': tolerance['state']}
++        if name == args.get('for'):row['origin'] = 'FREED'
++        elif name in given:row.update(origin='GIVEN_IN_LINE', range=given[name])
++        elif tolerance and tolerance['state'] in ('APPLIES', 'CARRIED_OVER') and args['stage'] != 'calculate':
++            row.update(origin='OWNER_TOLERANCE', range=(tolerance['lo'], tolerance['hi']))
++        inputs[name] = row
++    return ir, inputs
++
++
++def ask(stage, expression, variables, inputs=None, asked=None, freshness='CURRENT', assumptions=()):
++    """answer() from an expression and declared variables ({name: {unit, value?, lower?, upper?, domain?}}): the model is
++    compiled here, and a model that cannot be compiled (DIMENSION_MISMATCH, MISSING_INPUT, UNSUPPORTED) is the record's state."""
++    from .math_model import compile_expression
++    asked = {'expression': expression, **dict(asked or {})}
++    try:ir = compile_expression(expression, variables, list(assumptions))
++    except (ValueError, ZeroDivisionError) as exc:return refused(stage, asked, _code(exc), str(exc), freshness)
++    return answer(stage, ir, inputs, asked, freshness)
++
++
++def line(problem, freshness, args, said=None):
++    """The answer to one maths line on a problem sheet as it stands; `said`: the owner's tolerances for it."""
++    asked = {k: args[k] for k in ('expression', 'for', 'within', 'step', 'unit') if k in args}
++    try:ir, inputs = bindings_from_problem(problem, args, said)
++    except (ValueError, ZeroDivisionError) as exc:return refused(args['stage'], asked, _code(exc), str(exc), freshness)
++    return answer(args['stage'], ir, inputs, asked, freshness)
++
++
++def dispatch(kernel, op, args, p):
++    from . import problem_service as problems, tolerances
++    sheet = problems.get(kernel, args['id'], p)
++    return line(sheet['problem'], sheet['freshness']['state'], args, tolerances.standing(kernel, sheet['problem'], p))
+diff --git a/workbench/math_ranges.py b/workbench/math_ranges.py
+new file mode 100644
+index 0000000..a5d2354
+--- /dev/null
++++ b/workbench/math_ranges.py
+@@ -0,0 +1,408 @@
++"""The one maths core (0.8.5, "Maths in lines"): exact ranges, the decision rule, and the allowed set of "solve for".
++
++Pure: Fraction arithmetic over math_model's validated IR, which stays exactly as it is (math_service hashes it). No Qt, no
++Kernel, no language model, no SymPy or Z3, and no float anywhere (tests_integrated/test_math_core.py scans for one).
++
++  Enclosure       a closed range [lo, hi] in base units, and how it was found: ATTAINED (its ends are values the expression
++                  takes at corners of the ranges), SOUND_ENCLOSURE (it holds every value, perhaps more) or WIDENED (2048
++                  bits were not enough, so its ends were moved outward to dyadic numbers).
++  outward         that widening.
++  enclose         the range of a node over a box of input ranges; a relation's node gives its slack, right minus left.
++  decide          HOLDS, FAILS or UNDECIDED from a slack and a relation (the table of the design, rule 3).
++  check_box       the one real value (state) and every value in the ranges (for_all), with the worst corner as witness.
++  corner_witness  that corner, re-evaluated by math_model.evaluate.
++  allowed         "solve for x": every value of x for which the relation holds at every corner of the ranges.
++  freed           a copy of the model with x's declared value removed, where its witnesses are checked.
++
++A box maps a variable's name to (lo, hi) in its declared unit. A range is exact (ATTAINED) when the expression is affine in
++the ranged inputs (x - x cancels), or when each ranged input occurs once and never under an even power; otherwise it is a
++sound enclosure. Every failure is a RangeError with a code (DIMENSION_MISMATCH, DOMAIN_ERROR, UNSUPPORTED, MISSING_INPUT,
++EXACT_ARITHMETIC_SIZE_BOUND, DENOMINATOR_MAY_BE_ZERO); math_answers turns it into a state and never raises.
++"""
++from __future__ import annotations
++import copy
++import math
++from fractions import Fraction
++from itertools import product
++from .math_model import RELATIONS, MathError, affine, evaluate, validate, witness_check
++from .math_units import rational, unit_spec
++
++BITS = 2048                  # the size limit of math_units.bounded, for a numerator and a denominator alike
++ATTAINED, SOUND, WIDENED = 'ATTAINED', 'SOUND_ENCLOSURE', 'WIDENED'
++HOLDS, FAILS, UNDECIDED = 'HOLDS', 'FAILS', 'UNDECIDED'
++HOLDS_FOR_ALL, FAILS_FOR_SOME, FAILS_FOR_ALL = 'HOLDS_FOR_ALL', 'FAILS_FOR_SOME', 'FAILS_FOR_ALL'
++ALLOWED, WHOLE_DOMAIN, EMPTY = 'ALLOWED', 'WHOLE_DOMAIN', 'EMPTY'
++RANGED = 4                   # at most four inputs with a range at once: at most sixteen corners
++# math_model's reasons name its solver fragment; the owner reads these instead.
++REWORDED = {'Variable products are outside the linear fragment': 'it is multiplied by another quantity without a value',
++            'A variable denominator is outside the linear fragment': 'a quantity without a value is under a division',
++            'Z3 fragment admits linear arithmetic only': 'a quantity without a value is under a power'}
++
++
++class RangeError(ValueError):
++    def __init__(self, code, detail):super().__init__(detail);self.code=code
++
++
++def fail(code, detail):raise RangeError(code, detail)
++
++
++def fits(value):
++    return max(abs(value.numerator).bit_length(), value.denominator.bit_length()) <= BITS
++
++
++class Enclosure:
++    """A closed range in base units, with how it was found."""
++    __slots__ = ('lo', 'hi', 'status')
++
++    def __init__(self, lo, hi, status=ATTAINED):
++        if lo > hi:fail('DOMAIN_ERROR', 'A range runs from its low end to its high end')
++        self.lo, self.hi, self.status = Fraction(lo), Fraction(hi), status
++
++    def __contains__(self, value):return self.lo <= value <= self.hi
++    def __eq__(self, other):return isinstance(other, Enclosure) and (self.lo, self.hi, self.status) == (other.lo, other.hi, other.status)
++    __hash__ = None
++    def __repr__(self):return 'Enclosure(%s, %s, %s)' % (self.lo, self.hi, self.status)
++    def inside(self, other):return other.lo <= self.lo and self.hi <= other.hi
++
++
++def outward(lo, hi=None):
++    """[lo, hi] (or the one value lo) as the narrowest range whose ends fit in 2048 bits: unchanged and ATTAINED when they
++    already fit; otherwise its ends moved outward to dyadic numbers, WIDENED. Too large even for that: a state."""
++    lo = Fraction(lo);hi = lo if hi is None else Fraction(hi)
++    if fits(lo) and fits(hi):return Enclosure(lo, hi)
++    whole = (math.floor(max(abs(lo), abs(hi))) + 1).bit_length()
++    if BITS - 2 - whole < 0:fail('EXACT_ARITHMETIC_SIZE_BOUND', 'A number here needs more than 2048 bits even when rounded')
++    scale = 2 ** (BITS - 2 - whole)
++    return Enclosure(Fraction(math.floor(lo * scale), scale), Fraction(math.ceil(hi * scale), scale), WIDENED)
++
++
++def exact(value):
++    """A number of a range as an exact Fraction: a Fraction or int as it is, text through math_units.rational."""
++    if isinstance(value, (Fraction, int)) and not isinstance(value, bool):return Fraction(value)
++    try:return rational(value)
++    except (ValueError, TypeError) as exc:
++        if isinstance(value, str) and (len(value) > 100 or str(exc) in ('NUMBER_EXPONENT_BOUND', 'EXACT_ARITHMETIC_SIZE_BOUND')):
++            fail('EXACT_ARITHMETIC_SIZE_BOUND', 'A number here is too long to work with exactly: write it in at most 100 characters')
++        fail('UNSUPPORTED', 'Write each number as an exact decimal or fraction, such as 11.8 or 1/3')
++
++
++def nodes_of(ir):return {n['id']: n for n in ir['model']['nodes']}
++
++
++def output(ir):return ir['model']['outputs'][0]
++
++
++def shape(ir, root=None):
++    """For each variable the node at `root` (default: the output) reaches: how often it is used, and what it sits under
++    ('power', 'even' for an even power, 'division' for either side of one)."""
++    nodes = ir['model']['nodes'];uses = {n['id']: 0 for n in nodes};under = {n['id']: set() for n in nodes}
++    uses[root or output(ir)] = 1
++    for n in reversed(nodes):
++        if not uses[n['id']]:continue
++        marks = set(under[n['id']])
++        if n['op'] == 'power':marks |= {'power'} | ({'even'} if n['exponent'] % 2 == 0 else set())
++        if n['op'] == 'div':marks.add('division')
++        for key in ('left', 'right', 'argument'):
++            if key in n:uses[n[key]] += uses[n['id']];under[n[key]] |= marks
++    found = {}
++    for n in nodes:
++        if n['op'] == 'variable' and uses[n['id']]:
++            row = found.setdefault(n['name'], {'uses': 0, 'under': set()});row['uses'] += uses[n['id']];row['under'] |= under[n['id']]
++    return found
++
++
++def checked_box(ir, box):
++    """The box as exact Fractions in declared units, after the checks every range gets."""
++    variables = ir['model']['variables'];box = dict(box or {})
++    if len(box) > RANGED:fail('UNSUPPORTED', 'At most four quantities may have a range at once')
++    result = {}
++    for name, span in box.items():
++        if name not in variables:fail('MISSING_INPUT', 'The expression does not use ' + str(name))
++        lo, hi = exact(span[0]), exact(span[1])
++        if lo > hi:fail('DOMAIN_ERROR', 'The range of %s runs from its low end to its high end' % name)
++        v = variables[name]
++        if v.get('domain') == 'integer' and (lo.denominator != 1 or hi.denominator != 1):
++            fail('DOMAIN_ERROR', '%s takes whole values only, so each end of its range is a whole number' % name)
++        if ('lower' in v and lo < rational(v['lower'])) or ('upper' in v and hi > rational(v['upper'])):
++            fail('DOMAIN_ERROR', 'The range of %s leaves the values it may take' % name)
++        result[name] = (lo, hi)
++    return result
++
++
++def _power(span, exponent, ident):
++    lo, hi = span
++    if exponent < 0:
++        if lo == hi == 0:fail('DOMAIN_ERROR', 'Negative power of zero at ' + ident)
++        if lo <= 0 <= hi:fail('DENOMINATOR_MAY_BE_ZERO', 'The range under a negative power includes zero')
++        lo, hi, exponent = 1 / hi, 1 / lo, -exponent
++    if exponent == 0:return Fraction(1), Fraction(1)
++    a, b = lo ** exponent, hi ** exponent
++    if exponent % 2:return a, b
++    return (Fraction(0) if lo <= 0 <= hi else min(a, b)), max(a, b)
++
++
++def _intervals(ir, box):
++    """Every node's range in base units by interval arithmetic (a relation's: right minus left), and whether a range had to
++    be widened to stay inside 2048 bits."""
++    variables = ir['model']['variables'];spans = {};widened = False
++    for n in ir['model']['nodes']:
++        op = n['op']
++        if op == 'quantity':
++            value = rational(n['value']) * unit_spec(n['unit'])[1];span = (value, value)
++        elif op == 'variable':
++            v = variables[n['name']];factor = unit_spec(v['unit'])[1]
++            if n['name'] in box:span = (box[n['name']][0] * factor, box[n['name']][1] * factor)
++            elif 'value' in v:
++                value = rational(v['value']) * factor;span = (value, value)
++            else:fail('MISSING_INPUT', 'No value or range for ' + n['name'])
++        elif op == 'neg':
++            lo, hi = spans[n['argument']];span = (-hi, -lo)
++        elif op == 'power':span = _power(spans[n['argument']], n['exponent'], n['id'])
++        else:
++            (a, b), (c, d) = spans[n['left']], spans[n['right']]
++            if op == 'add':span = (a + c, b + d)
++            elif op == 'sub':span = (a - d, b - c)
++            elif op in RELATIONS:span = (c - b, d - a)
++            elif op == 'mul':
++                ends = (a * c, a * d, b * c, b * d);span = (min(ends), max(ends))
++            else:
++                if c == d == 0:fail('DOMAIN_ERROR', 'Zero denominator at ' + n['id'])
++                if c <= 0 <= d:fail('DENOMINATOR_MAY_BE_ZERO', 'The range of a denominator includes zero')
++                ends = (a / c, a / d, b / c, b / d);span = (min(ends), max(ends))
++        kept = outward(*span);widened = widened or kept.status == WIDENED
++        spans[n['id']] = (kept.lo, kept.hi)
++    return spans, widened
++
++
++def _affine_span(ir, box, node):
++    """The exact range of a node that is affine in the ranged inputs (constant plus each coefficient times its range), as
++    (lo, hi) in base units; None when the model is not affine in them."""
++    try:forms = affine(ir, free=tuple(box))
++    except MathError as exc:
++        if exc.code == 'DOMAIN_ERROR':fail('DOMAIN_ERROR', str(exc))
++        return None
++    constant, coefficients = forms[node]
++    missing = sorted(set(coefficients) - set(box))
++    if missing:fail('MISSING_INPUT', 'No value or range for ' + ', '.join(missing))
++    lo = hi = constant
++    for name, k in coefficients.items():
++        ends = (k * box[name][0], k * box[name][1]);lo += min(ends);hi += max(ends)
++    return lo, hi
++
++
++def enclose(ir, box=None, node=None):
++    """The range of `node` (default: the output) over the box, in base units; for a relation, its slack right - left."""
++    box = checked_box(ir, box);node = node or output(ir)
++    try:
++        spans = _affine_span(ir, box, node)
++        if spans is not None:
++            lo, hi = spans
++            if nodes_of(ir)[node]['op'] in RELATIONS:lo, hi = -hi, -lo     # affine gives left - right
++            return outward(lo, hi)
++        spans, widened = _intervals(ir, box)
++    except (ValueError, ZeroDivisionError) as exc:
++        if isinstance(exc, RangeError):raise
++        fail('EXACT_ARITHMETIC_SIZE_BOUND' if 'EXACT_ARITHMETIC_SIZE_BOUND' in str(exc) else 'DOMAIN_ERROR', str(exc))
++    lo, hi = spans[node]
++    if widened:return Enclosure(lo, hi, WIDENED)
++    used = shape(ir, node)
++    once = all(used[name]['uses'] <= 1 and 'even' not in used[name]['under'] for name in box if name in used)
++    return Enclosure(lo, hi, ATTAINED if once else SOUND)
++
++
++def decide(slack, relation):
++    """HOLDS, FAILS or UNDECIDED for `left relation right`, from its slack S = right - left (an Enclosure)."""
++    lo, hi = slack.lo, slack.hi
++    if relation in ('ge', 'gt'):
++        lo, hi, relation = -hi, -lo, 'le' if relation == 'ge' else 'lt'
++    if relation == 'le':return HOLDS if lo >= 0 else FAILS if hi < 0 else UNDECIDED
++    if relation == 'lt':return HOLDS if lo > 0 else FAILS if hi <= 0 else UNDECIDED
++    zero, apart = lo == hi == 0, lo > 0 or hi < 0
++    if relation == 'eq':return HOLDS if zero else FAILS if apart else UNDECIDED
++    if relation == 'ne':return HOLDS if apart else FAILS if zero else UNDECIDED
++    fail('UNSUPPORTED', 'Unknown comparison')
++
++
++def corners(box):
++    """Each corner of a box, in sorted name order; a range of one value gives one end."""
++    names = sorted(box)
++    for ends in product(*((box[n][0],) if box[n][0] == box[n][1] else (box[n][0], box[n][1]) for n in names)):
++        yield dict(zip(names, ends))
++
++
++def text(value):
++    """A Fraction as math_units.rational reads it."""
++    return str(value)
++
++
++def corner_witness(ir, box=None):
++    """The corner of the ranges where the relation is furthest from holding, re-evaluated by math_model.evaluate: {'assignment':
++    every input's value there, in its declared unit, 'value': the left side there (a quantity record), 'slack'}; None when
++    the relation holds at every corner, or the re-evaluation does not agree."""
++    box = checked_box(ir, box);node = nodes_of(ir)[output(ir)];relation = node['op']
++    if relation not in RELATIONS:return None
++    worst = None
++    for corner in corners(box):
++        s = enclose(ir, {k: (v, v) for k, v in corner.items()}).lo
++        badness = {'le': -s, 'lt': -s, 'ge': s, 'gt': s, 'eq': abs(s), 'ne': -abs(s)}[relation]
++        if decide(Enclosure(s, s), relation) == FAILS and (worst is None or badness > worst[0]):worst = (badness, corner, s)
++    if worst is None:return None
++    _, corner, s = worst
++    try:checked = evaluate(ir, {k: text(v) for k, v in corner.items()})
++    except ValueError:return None
++    row = (checked.get('outputs') or [{}])[0]
++    if checked['state'] != 'INFEASIBLE' or row.get('value') is not False:return None
++    variables = ir['model']['variables']
++    assignment = {name: corner[name] if name in corner else rational(v['value']) for name, v in variables.items() if name in corner or 'value' in v}
++    return {'assignment': assignment, 'value': row['left'], 'slack': s}
++
++
++def check_box(ir, box=None):
++    """A relation over the ranges: {'relation', 'state' (the one real value), 'for_all' (every value in the ranges),
++    'slack', 'left', 'right' (Enclosures), 'witness' (the worst corner, or None)}."""
++    relation = nodes_of(ir)[output(ir)]['op']
++    if relation not in RELATIONS:fail('UNSUPPORTED', 'A check needs one comparison, such as <=')
++    node = nodes_of(ir)[output(ir)];slack = enclose(ir, box);state = decide(slack, relation)
++    witness = corner_witness(ir, box) if state != HOLDS else None
++    for_all = HOLDS_FOR_ALL if state == HOLDS else FAILS_FOR_ALL if state == FAILS else FAILS_FOR_SOME if witness else UNDECIDED
++    return {'relation': relation, 'state': state, 'for_all': for_all, 'slack': slack,
++            'left': enclose(ir, box, node['left']), 'right': enclose(ir, box, node['right']), 'witness': witness}
++
++
++def freed(ir, name):
++    """A copy of the model with `name`'s declared value removed: where a value found for it is checked again."""
++    model = copy.deepcopy(ir['model']);model['variables'][name].pop('value', None)
++    return validate(model)
++
++
++def _fixed(ir, corner):
++    model = copy.deepcopy(ir['model'])
++    for name, value in corner.items():model['variables'][name]['value'] = text(value)
++    try:return validate(model)
++    except MathError as exc:fail(exc.code, str(exc))
++    except ValueError:fail('EXACT_ARITHMETIC_SIZE_BOUND', 'A number of the ranges is too long to write exactly')
++
++
++def _ends(relation, rising, root):
++    """(lower, upper) of {x : a*x + c REL 0} with root -c/a; each end (value, closed) or None; `rising`: a > 0."""
++    if relation == 'eq':return (root, True), (root, True)
++    closed = relation in ('le', 'ge')
++    if (relation in ('le', 'lt')) == rising:return None, (root, closed)
++    return (root, closed), None
++
++
++def _tighter(new, old, upper):
++    if old is None:return True
++    if new[0] != old[0]:return new[0] < old[0] if upper else new[0] > old[0]
++    return not new[1] and old[1]
++
++
++def _holds(value, relation):
++    return {'le': value <= 0, 'lt': value < 0, 'ge': value >= 0, 'gt': value > 0, 'eq': value == 0, 'ne': value != 0}[relation]
++
++
++def _down(end, step):
++    k = math.floor(end[0] / step)
++    if not end[1] and k * step == end[0]:k -= 1
++    return k * step
++
++
++def _up(end, step):
++    k = math.ceil(end[0] / step)
++    if not end[1] and k * step == end[0]:k += 1
++    return k * step
++
++
++def _inside(value, lower, upper):
++    return ((lower is None or value > lower[0] or (value == lower[0] and lower[1]))
++            and (upper is None or value < upper[0] or (value == upper[0] and upper[1])))
++
++
++def _at(fixed, name, point):
++    """The relation and its left side with `name` at `point`, by math_model.evaluate: (holds, left quantity record)."""
++    try:checked = evaluate(fixed, {name: text(point)})
++    except ValueError:return None, None
++    row = (checked.get('outputs') or [{}])[0]
++    if checked['state'] not in ('FEASIBLE', 'INFEASIBLE'):return None, None
++    return row.get('value') is True, row.get('left')
++
++
++def allowed(ir, name, box=None, within=None, step=None):
++    """Solve for `name`: every value of it (in its declared unit) for which the relation holds at every corner of the
++    ranges, intersected with its declared lower and upper and with `within` (lo, hi), rounded to `step` (or to whole units
++    for an integer quantity). {'state': ALLOWED, WHOLE_DOMAIN or EMPTY, 'lower', 'upper' (each {'value', 'closed', 'by'}
++    or None), 'needs' (what the relation alone asks), 'step', 'lattice', 'declared', 'declared_inside', 'checked' (each
++    reported end holds again on the freed copy at every corner), 'ends' and 'beyond' (the end and the next step past it,
++    evaluated at the corner that sets it), 'corners', 'reason'}. Not affine in `name`, a second quantity without a value,
++    a variable denominator, or ranges whose corners need not be the extremes: UNSUPPORTED with the reason."""
++    relation = nodes_of(ir)[output(ir)]['op'];variables = ir['model']['variables']
++    if relation not in RELATIONS:fail('UNSUPPORTED', 'Solve for needs one comparison, such as <=')
++    if relation == 'ne':fail('UNSUPPORTED', 'Not equal leaves two pieces; ask with < or > instead')
++    if name not in variables:fail('MISSING_INPUT', 'The relation does not use ' + str(name))
++    if name in (box or {}):fail('UNSUPPORTED', name + ' is what is solved for, so it cannot also have a range')
++    box = checked_box(ir, box);used = shape(ir)
++    for other in sorted(box):
++        row = used.get(other, {'uses': 0, 'under': set()})
++        if row['uses'] > 1:fail('UNSUPPORTED', other + ' appears more than once, so the corners of its range need not be the extremes')
++        if row['under'] & {'power', 'division'}:fail('UNSUPPORTED', other + ' sits under a division or a power, so the corners of its range need not be the extremes')
++    loose = freed(ir, name);rows = []
++    for corner in corners(box):
++        fixed = _fixed(loose, corner)
++        try:constant, coefficients = affine(fixed, free=(name,))[output(ir)]
++        except MathError as exc:fail(exc.code, '%s: %s' % (name, REWORDED.get(str(exc), str(exc))) if exc.code == 'UNSUPPORTED' else str(exc))
++        others = sorted(set(coefficients) - {name})
++        if others:fail('UNSUPPORTED', 'A second quantity without a value: %s; give it a value or a range' % ', '.join(others))
++        rows.append((corner, fixed, coefficients.get(name, Fraction(0)), constant))
++    v = variables[name];declared = rational(v['value']) if 'value' in v else None
++    step = exact(step) if step is not None else Fraction(1) if v.get('domain') == 'integer' else None
++    if step is not None and step <= 0:fail('UNSUPPORTED', 'A step is a positive number')
++    domain = []
++    if 'lower' in v:domain.append(('lower', (rational(v['lower']), True), 'domain'))
++    if 'upper' in v:domain.append(('upper', (rational(v['upper']), True), 'domain'))
++    if within is not None:
++        lo, hi = exact(within[0]), exact(within[1])
++        if lo > hi:fail('DOMAIN_ERROR', 'Within runs from its low end to its high end')
++        domain += [('lower', (lo, True), 'within'), ('upper', (hi, True), 'within')]
++    result = {'state': ALLOWED, 'name': name, 'relation': relation, 'unit': v['unit'], 'lower': None, 'upper': None,
++              'needs': {'lower': None, 'upper': None}, 'step': step, 'lattice': None, 'declared': declared, 'declared_inside': None,
++              'checked': None, 'ends': [], 'beyond': [], 'corners': len(rows), 'reason': ''}
++    signs = {(a > 0) - (a < 0) for _, _, a, _ in rows}
++    ends = {'lower': None, 'upper': None};by = {};binding = {}
++    if signs == {0}:
++        if not all(_holds(c, relation) for _, _, _, c in rows):
++            result.update(state=EMPTY, reason='It does not hold for any value of %s: %s cancels out of it' % (name, name));return result
++        result['state'] = WHOLE_DOMAIN
++    elif len(signs) > 1 or 0 in signs:
++        fail('UNSUPPORTED', 'Over the ranges the factor of %s changes sign or vanishes, so the corners need not be the extremes' % name)
++    else:
++        for corner, fixed, a, c in rows:
++            for side, end in zip(('lower', 'upper'), _ends(relation, a > 0, -c / a)):
++                if end is not None and _tighter(end, ends[side], side == 'upper'):ends[side] = end;by[side] = 'relation';binding[side] = (corner, fixed)
++        result['needs'] = {side: None if end is None else {'value': end[0], 'closed': end[1]} for side, end in ends.items()}
++    for side, end, origin in domain:
++        if _tighter(end, ends[side], side == 'upper'):ends[side] = end;by[side] = origin;binding.pop(side, None)
++    lower, upper = ends['lower'], ends['upper']
++    result['lower'] = None if lower is None else {'value': lower[0], 'closed': lower[1], 'by': by['lower']}
++    result['upper'] = None if upper is None else {'value': upper[0], 'closed': upper[1], 'by': by['upper']}
++    if lower is not None and upper is not None and (lower[0] > upper[0] or (lower[0] == upper[0] and not (lower[1] and upper[1]))):
++        result.update(state=EMPTY, reason='What the relation needs lies outside the values %s may take' % name);return result
++    if declared is not None:result['declared_inside'] = _inside(declared, lower, upper)
++    points = {}
++    if step is not None:
++        lattice = {'lower': None if lower is None else _up(lower, step), 'upper': None if upper is None else _down(upper, step)}
++        result['lattice'] = lattice
++        if lattice['lower'] is not None and lattice['upper'] is not None and lattice['lower'] > lattice['upper']:
++            result.update(state=EMPTY, reason='No whole step of %s lies inside what the relation allows' % text(step));return result
++        points = {side: value for side, value in lattice.items() if value is not None}
++    else:
++        points = {side: end[0] for side, end in (('lower', lower), ('upper', upper)) if end is not None and end[1]}
++    if points:
++        result['checked'] = all(witness_check(fixed, {name: text(point)}) for point in points.values() for _, fixed, _, _ in rows)
++    for side, point in points.items():
++        if side not in binding:continue
++        corner, fixed = binding[side];holds, left = _at(fixed, name, point)
++        result['ends'].append({'side': side, 'at': point, 'corner': corner, 'holds': holds, 'left': left})
++        if step is not None:
++            past = point + step if side == 'upper' else point - step;holds, left = _at(fixed, name, past)
++            result['beyond'].append({'side': side, 'at': past, 'corner': corner, 'holds': holds, 'left': left})
++    return result
+diff --git a/workbench/office_building_qt.py b/workbench/office_building_qt.py
+index af1988e..964c9a8 100644
+--- a/workbench/office_building_qt.py
++++ b/workbench/office_building_qt.py
+@@ -36,7 +36,11 @@ def is_brain(path):
+ 
+ 
+ def readable_result(value):
+-    """The answer first: rows or hits as plain lines; the raw result follows below."""
++    """The answer first: rows or hits as plain lines; the raw result follows below. A maths line's answer in its words
++    (math_answers.screen_text): Holds, Does not hold or Cannot tell, the number with its exact value beside it."""
++    from .math_answers import screen_text
++    said = screen_text(value)
++    if said:return said
+     rows = value.get('rows') if isinstance(value, dict) else None
+     hits = (value.get('result') or {}).get('hits') if isinstance(value, dict) and isinstance(value.get('result'), dict) else None
+     if rows is not None:
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 5f940c0..b455c58 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -3003,6 +3003,10 @@ class SlateFace(QWidget):
+         for text, mark in (('Right', 'GOOD'), ('Wrong', 'BAD')):
+             b = button(text, 'quiet');b.clicked.connect(lambda checked=False, m=mark, w=row:self.mark(program, m, w));row.addWidget(b)
+         bubble.box.addLayout(row)
++        from .math_answers import receipt_text
++        receipt = receipt_text(r['result']) if r.get('ok') else None
++        if receipt:   # a maths answer: its inputs with their revisions, the method and the guarantee, one word away
++            bubble.box.addWidget(sentence('{receipt}', {'receipt': ('see the receipt', lambda t=receipt:self.say(t))}))
+         if r.get('ok') and operation == 'language.run':  # any staC answer can be watched: Slate asks again and tells you when it changes
+             rows = r['result'].get('rows') or []
+             words = {'watch': ('watch it', lambda p=program:self.watch(p)), 'keep': ('add to the Agenda', lambda p=program:self.keep_in_agenda(p))}
+diff --git a/workbench/stac_bridge.py b/workbench/stac_bridge.py
+index 9fdac5b..97cb8af 100644
+--- a/workbench/stac_bridge.py
++++ b/workbench/stac_bridge.py
+@@ -61,6 +61,86 @@ def reference_ir(program):
+     else:raise ValueError('STAC_REFERENCE_COMMAND_UNSUPPORTED')
+     body={'schema':'arc.stac.reference-ir/1','operation':op,'arguments':args,'result_type':kind,'effects':['read'],'namespace':namespace}
+     return {**body,'program_id':c.digest(body),'authority':'EXISTING_KERNEL_ACL_REQUIRED'}
++MATH_STEPS={'solve':('within','step','given','unit'),'range':('given','unit'),'check':('given',)}
++MATH_NAME=re.compile('[A-Za-z][A-Za-z0-9_]{0,63}')
++
++
++def _math_number(text):
++    from .math_units import rational
++    try:rational(text)
++    except ValueError:raise ValueError('STAC_MATH_NUMBER') from None
++    return text
++
++
++def math_ir(program):
++    """A maths line on a problem sheet (docs/INTEGRATED_I02.md): strict shell words, at most 40, its steps in this order.
++      math problem:ID | calculate "EXPR" [| unit U]                                                 -> math.preview
++      math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] (up to four) [| unit U]
++      math problem:ID | range "EXPR" [| given NAME LO HI] (up to four) [| unit U]
++      math problem:ID | check "REL" [| given NAME LO HI] (up to four)                               -> math.answer
++    The quoted expression is data for the typed compiler; LO, HI and S are in that quantity's declared unit."""
++    try:tokens=shlex.split(program)
++    except ValueError:raise ValueError('STAC_MATH_SYNTAX') from None
++    if len(tokens)>40:raise ValueError('STAC_MATH_TOKEN_BOUND')
++    stages=[[]]
++    for token in tokens:
++        if token=='|':stages.append([])
++        else:stages[-1].append(token)
++    if len(stages)<2 or len(stages[0])!=2 or stages[0][0]!='math' or not stages[1]:raise ValueError('STAC_MATH_SYNTAX')
++    ident=stages[0][1].removeprefix('problem:')
++    if not re.fullmatch('[0-9a-f]{32}',ident):raise ValueError('STAC_MATH_PROBLEM_ID')
++    verb,rest=stages[1],stages[2:]
++    if verb[0]=='calculate':
++        if len(verb)!=2 or len(rest)>1 or (rest and len(rest[0])!=2):raise ValueError('STAC_MATH_SYNTAX')
++        args={'id':ident,'expression':verb[1]}
++        if rest:
++            if rest[0][0]!='unit':raise ValueError('STAC_MATH_UNIT_SYNTAX')
++            args['output_unit']=rest[0][1]
++        body={'schema':'arc.stac.math-ir/1','operation':'math.preview','arguments':args,'effects':['read'],'result_type':'SourceBoundMathematicalPreview'}
++        return {**body,'program_id':c.digest(body)}
++    stage=verb[0]
++    if stage not in MATH_STEPS or len(verb)!=(4 if stage=='solve' else 2) or (stage=='solve' and (verb[2]!='for' or not MATH_NAME.fullmatch(verb[3]))):
++        raise ValueError('STAC_MATH_SYNTAX')
++    args={'id':ident,'stage':stage,'expression':verb[1],**({'for':verb[3]} if stage=='solve' else {})}
++    order=MATH_STEPS[stage];last=-1
++    for step in rest:
++        if not step or step[0] not in order:raise ValueError('STAC_MATH_SYNTAX')
++        place=order.index(step[0])
++        if place<last or (place==last and step[0]!='given'):raise ValueError('STAC_MATH_STEP_ORDER')
++        last=place
++        if step[0]=='within' and len(step)==3:args['within']=[_math_number(step[1]),_math_number(step[2])]
++        elif step[0]=='step' and len(step)==2:args['step']=_math_number(step[1])
++        elif step[0]=='given' and len(step)==4:
++            if not MATH_NAME.fullmatch(step[1]):raise ValueError('STAC_MATH_NAME')
++            args.setdefault('given',[]).append({'name':step[1],'lo':_math_number(step[2]),'hi':_math_number(step[3])})
++            if len(args['given'])>4:raise ValueError('STAC_MATH_GIVEN_BOUND')
++        elif step[0]=='unit' and len(step)==2:args['unit']=step[1]
++        else:raise ValueError('STAC_MATH_UNIT_SYNTAX' if step[0]=='unit' else 'STAC_MATH_SYNTAX')
++    body={'schema':'arc.stac.math-ir/1','operation':'math.answer','arguments':args,'effects':['read'],'result_type':'ExactMathematicalAnswer'}
++    return {**body,'program_id':c.digest(body)}
++
++
++MATH_GRAMMAR='math problem:ID | calculate "EXPR" [| unit U]; math problem:ID | solve "REL" for NAME [| within LO HI] [| step S] [| given NAME LO HI] [| unit U]; math problem:ID | range "EXPR" [| given NAME LO HI] [| unit U]; math problem:ID | check "REL" [| given NAME LO HI]; at most four given, each typed by the owner'
++
++
++def gives_ranges(program):
++    """Whether a maths line carries a range of its own (a given step), read as route_program and compile_program would read
++    it. Ranges are the owner's to write: a line Kasandra proposes never carries one, whichever command carries the line; her
++    ranges come only from the owner's tolerances (stacy_control.validate_actions)."""
++    text=str(program or '').replace('\u200b','').strip();first=text.split(maxsplit=1)
++    if first and first[0].lower()=='explain':text=first[1].strip() if len(first)>1 else ''
++    if text.split(maxsplit=1)[:1]!=['math']:return False
++    try:return bool(math_ir(text)['arguments'].get('given'))
++    except ValueError:return False
++
++
++def _freshness(kernel,principal,result,ident):
++    """CURRENT or REVIEW_REQUIRED: the problem sheet's sources as they stand (problems.get), for every maths result."""
++    if isinstance(result,dict) and result.get('schema')=='ledger.math-answer/1':return result['freshness']
++    r=kernel.dispatch('problems.get',{'id':ident},principal)
++    return r['result']['freshness']['state'] if r.get('ok') else 'REVIEW_REQUIRED'
++
++
+ def compile_program(program):
+     c.text(program,4096,False)
+     if len(program.encode())>4096:raise ValueError('STAC_PROGRAM_BYTE_BOUND')
+@@ -73,18 +153,7 @@ def compile_program(program):
+     if program.strip() == 'atlas' or program.lstrip().startswith('atlas '):
+         from .tool_atlas import compile_read
+         return {'kind': 'ATLAS', 'ir': compile_read(program), 'runtime_authorization': False}
+-    if program.lstrip().startswith('math '):
+-        tokens=shlex.split(program)
+-        if len(tokens) not in (5,8) or tokens[0]!='math' or tokens[2:4]!=['|','calculate']:raise ValueError('STAC_MATH_SYNTAX')
+-        # The quoted expression is data for the typed compiler.
+-        ident=tokens[1].removeprefix('problem:')
+-        if not re.fullmatch('[0-9a-f]{32}',ident):raise ValueError('STAC_MATH_PROBLEM_ID')
+-        args={'id':ident,'expression':tokens[4]}
+-        if len(tokens)==8:
+-            if tokens[5:7]!=['|','unit']:raise ValueError('STAC_MATH_UNIT_SYNTAX')
+-            args['output_unit']=tokens[7]
+-        body={'schema':'arc.stac.math-ir/1','operation':'math.preview','arguments':args,'effects':['read'],'result_type':'SourceBoundMathematicalPreview'}
+-        return {'kind':'MATH','ir':{**body,'program_id':c.digest(body)},'runtime_authorization':False}
++    if program.lstrip().startswith('math '):return {'kind':'MATH','ir':math_ir(program),'runtime_authorization':False}
+     if program.strip()=='desk' or program.lstrip().startswith(('desk ','package ')):
+         from sdk.cli.arc1cli.work_organizer import compile_read
+         return {'kind':'WORKBENCH','ir':compile_read(program),'runtime_authorization':False}
+@@ -117,7 +186,9 @@ def run(kernel,principal,program):
+         if not r['ok']:raise ValueError(r['error']['message'])
+         if compiled['kind']=='WORKBENCH' and ir.get('presentation')=='gaps':
+             value=r['result'];r['result']={k:value[k] for k in ('id','state','sha256','encryption','issues','transport','rules_current')}
+-        return {'schema':'arc.stac-kernel-result/1','program_id':ir['program_id'],'invocation_id':uuid.uuid4().hex,'result_type':ir.get('result_type','SourceBoundEngineeringRelationships'),'result':r['result'],'effects':['read'],'engineering_qualification':False}
++        out={'schema':'arc.stac-kernel-result/1','program_id':ir['program_id'],'invocation_id':uuid.uuid4().hex,'result_type':ir.get('result_type','SourceBoundEngineeringRelationships'),'result':r['result'],'effects':['read'],'engineering_qualification':False}
++        if compiled['kind']=='MATH':out['freshness']=_freshness(kernel,principal,r['result'],ir['arguments']['id'])
++        return out
+     if compiled['presentation_io_requested']:raise ValueError('EMBEDDED_IO_REQUIRES_OWNER_STAC_EXPORT_ACTION')
+     from .stac.runtime import evaluate,RunError
+     try:return {'schema':'arc.stac-kernel-result/1','state':'READ_COMPLETED','result':evaluate(compiled['ir'],CallerKernel(kernel,principal)),'authority':'EXISTING_CALLER_PRINCIPAL','physical_qualification':False}
+@@ -161,7 +232,7 @@ def inspect_program(kernel, principal, program):
+ 
+ 
+ def dispatch(kernel,op,args,principal):
+-    if op=='stac.status':return {'schema':'arc.stac-bridge/1','upstream':'0.6','discovery_grammar':'inquiries; inquiry ID | inspect; inquiry ID | history','algorithm_grammar':'algorithms; algorithms | find TEXT; algorithms | method ID','atlas_grammar':'atlas; atlas | find TEXT; atlas | operation ID; atlas | tool ID','workbench_grammar':'desk; desk | focus bring-in/understand/build/follow-through; desk | find TEXT; package ID | contents/gaps','workbench_scope':'Kernel bridge read extension; upstream POSIX grammar unchanged','knowledge_grammar':'source ID | search TEXT | take 5; map ID[@REV] | part REF; map ID | net NET; map ID | trace REF REF; map ID | evidence; map ID | status','execution_authority':'EXISTING_KERNEL','caller':'FORWARDED_WITHOUT_SCOPE_ESCALATION','reference_grammar':'library NS | search TEXT | take 5; library NS | reference ID; library NS | question SUBJECT PROPERTY VARIANT JSON','observation_store':'SHARED_KERNEL_MEMORY_AND_ACTIVITY','legacy_POSIX_CLI':'USER_INVOKED_ONLY_WINDOWS_IO_UNQUALIFIED','local_brain':'EXISTING_LEDGER_BRAIN'}
++    if op=='stac.status':return {'schema':'arc.stac-bridge/1','upstream':'0.6','discovery_grammar':'inquiries; inquiry ID | inspect; inquiry ID | history','algorithm_grammar':'algorithms; algorithms | find TEXT; algorithms | method ID','atlas_grammar':'atlas; atlas | find TEXT; atlas | operation ID; atlas | tool ID','workbench_grammar':'desk; desk | focus bring-in/understand/build/follow-through; desk | find TEXT; package ID | contents/gaps','workbench_scope':'Kernel bridge read extension; upstream POSIX grammar unchanged','math_grammar':MATH_GRAMMAR,'knowledge_grammar':'source ID | search TEXT | take 5; map ID[@REV] | part REF; map ID | net NET; map ID | trace REF REF; map ID | evidence; map ID | status','execution_authority':'EXISTING_KERNEL','caller':'FORWARDED_WITHOUT_SCOPE_ESCALATION','reference_grammar':'library NS | search TEXT | take 5; library NS | reference ID; library NS | question SUBJECT PROPERTY VARIANT JSON','observation_store':'SHARED_KERNEL_MEMORY_AND_ACTIVITY','legacy_POSIX_CLI':'USER_INVOKED_ONLY_WINDOWS_IO_UNQUALIFIED','local_brain':'EXISTING_LEDGER_BRAIN'}
+     if op=='stac.compile':return compile_program(args['program'])
+     if op=='stac.inspect':return inspect_program(kernel,principal,args['program'])
+     if op=='stac.translate':
+diff --git a/workbench/stacy_control.py b/workbench/stacy_control.py
+index 1c2e836..a4b9cf4 100644
+--- a/workbench/stacy_control.py
++++ b/workbench/stacy_control.py
+@@ -269,10 +269,23 @@ def cloud_private(op, args, _depth=0):
+     if op in ('ledger.settings.set','ledger.settings.restore') and args.get('key') in ledger_control.MEMORY_KEYS|ledger_control.MODEL_KEYS:return True
+     return op.startswith(CLOUD_PRIVATE)
+ 
++GIVEN_IS_THE_OWNERS = 'A range in a maths line is given by the owner, never proposed: a tolerance the owner sets is used instead'
++
++
++def _texts(value):
++    """Every string inside a command's arguments, however deep: a maths line may ride in any of them."""
++    if isinstance(value, str):yield value
++    elif isinstance(value, dict):
++        for item in value.values():yield from _texts(item)
++    elif isinstance(value, (list, tuple)):
++        for item in value:yield from _texts(item)
++
++
+ def validate_actions(actions, principal, *, provider=False, private_local=False):
+     from .engineering_kernel import CAPABILITIES
+     from .engineering_cli import schemas
+     from .agent_operations import validate
++    from .stac_bridge import gives_ranges
+     if not isinstance(actions,list) or not 1<=len(actions)<=3:raise ValueError('Choose one to three commands')
+     for action in actions:
+         if not isinstance(action,dict) or set(action)!={'operation','arguments'}:raise ValueError('Invalid command proposal')
+@@ -289,6 +302,10 @@ def validate_actions(actions, principal, *, provider=False, private_local=False)
+                          or op in ('ledger.settings.set','ledger.settings.restore') and args.get('key') in ledger_control.OWNER_KEYS|{'stacy.actions','stacy.share_activity'}
+                          or op=='jobs.submit' and args.get('tool') in ('brain.inspect','brain.qualify','brain.activate','intake.scan','intake.export','references.export','references.verify','references.compile','references.page','references.office.convert','references.office.edit','knowledge.investigate')):
+             raise ValueError('This command requires a direct owner action')
++        # a line Kasandra proposes never carries a range, whatever runs or keeps it (stac.*, investigation.step and .check,
++        # agenda.add and .suggest, or any later one): every string argument is read as a line
++        if provider and (op == 'math.answer' and isinstance(args, dict) and args.get('given') or any(gives_ranges(text) for text in _texts(args))):
++            raise ValueError(GIVEN_IS_THE_OWNERS)
+         validate(args, schemas()[op])
+ 
+ 
+diff --git a/workbench/stacy_hand.py b/workbench/stacy_hand.py
+index a5be0af..e1b07eb 100644
+--- a/workbench/stacy_hand.py
++++ b/workbench/stacy_hand.py
+@@ -54,6 +54,7 @@ ALWAYS_ASKS = (
+     (('power.*', 'session.*'), 'it ends the session or turns this computer off'),
+     (('releases.*', 'repairs.*', '*.install'), 'it changes the program itself'),
+     (('shell.*', 'terminal.*'), 'a command in the Terminal can do anything'),
++    (('tolerances.set',), 'a tolerance is yours to say: it decides what I conclude'),
+ )
+ LEAVES = ('address', 'peer', 'url', 'host', 'recipient')      # an argument by one of these names reaches another computer
+ 
+diff --git a/workbench/tolerances.py b/workbench/tolerances.py
+new file mode 100644
+index 0000000..e675025
+--- /dev/null
++++ b/workbench/tolerances.py
+@@ -0,0 +1,115 @@
++"""The owner's tolerances (0.8.5, "Maths in lines"): the range a quantity of a problem sheet may take, said by the owner.
++
++A tolerance is a Project Desk record (kind 'tolerance', schema ledger.tolerance/1) in the shared desk store, as condition
++cards are: subject {problem, variable} (the goal slice adds {address, cell}), at {revision, value, unit} (the sheet as it
++was when it was said), said (plus_minus, percent or between, with amount, or lo and hi), unit, basis (the owner's words),
++the exact lo and hi in that unit, and set_by 'owner'. One record per subject; saying it again makes a new revision.
++
++  tolerances.get   {id}                                                                    read
++  tolerances.list  {problem?}                                                              read
++  tolerances.set   {id, expected_revision, expected_context_digest (the sheet), variable,
++                    said, amount | lo and hi, basis}                                       approve
++
++On read each tolerance is held against the sheet as it stands: APPLIES at the revision it was said on; CARRIED_OVER when
++the sheet moved on but this quantity's value and unit did not; RECHECK when they changed, and then it is not applied.
++Nothing is written in the background. Which range applies decides what Kasandra concludes, so tolerances.set is approve
++scope and also among what always asks in her hand (stacy_hand.ALWAYS_ASKS): her calls run as the operator, who holds
++approve scope, so that row is the real guard.
++"""
++from __future__ import annotations
++from fractions import Fraction
++from . import project_desk as records, problem_service as problems
++from .math_units import rational
++
++KIND = 'tolerance'
++SCHEMA = 'ledger.tolerance/1'
++SAID = ('plus_minus', 'percent', 'between')
++STATES = ('APPLIES', 'CARRIED_OVER', 'RECHECK')
++NAME = {'type': 'string', 'minLength': 1, 'maxLength': 64}
++NUMBER = {'type': 'string', 'minLength': 1, 'maxLength': 100}
++FIELDS = {
++    'tolerances.get': ({'id': records.ID}, ['id']),
++    'tolerances.list': ({'problem': records.ID}, []),
++    'tolerances.set': ({**problems.BOUND, 'variable': NAME, 'said': {'type': 'string', 'enum': list(SAID)}, 'amount': NUMBER,
++                        'lo': NUMBER, 'hi': NUMBER, 'basis': {'type': 'string', 'minLength': 1, 'maxLength': 1000}},
++                       [*problems.BOUND, 'variable', 'said', 'basis']),
++}
++SCOPES = {op: 'approve' if op == 'tolerances.set' else 'read' for op in FIELDS}
++
++
++def span(said, value, args):
++    """(lo, hi) exact, in the quantity's unit, from what the owner said about its declared value."""
++    value = rational(value)
++    if said == 'between':
++        if set(args) & {'amount'} or not {'lo', 'hi'} <= set(args):raise ValueError('TOLERANCE_SAID_FIELDS: between takes lo and hi')
++        lo, hi = rational(args['lo']), rational(args['hi'])
++    else:
++        if set(args) & {'lo', 'hi'} or 'amount' not in args:raise ValueError('TOLERANCE_SAID_FIELDS: %s takes an amount' % said)
++        amount = rational(args['amount'])
++        if amount < 0:raise ValueError('TOLERANCE_NEGATIVE: say the amount as a size')
++        width = amount if said == 'plus_minus' else abs(value) * amount / 100
++        lo, hi = value - width, value + width
++    if lo > hi:raise ValueError('TOLERANCE_REVERSED: the low end comes first')
++    return lo, hi
++
++
++def _quantity(problem, name):
++    return next((v for v in problem['variables'] if v['name'] == name), None)
++
++
++def state(value, problem):
++    """APPLIES, CARRIED_OVER or RECHECK: this tolerance held against the sheet as it stands now."""
++    at = value['at'];now = _quantity(problem, value['subject']['variable'])
++    if not now or now['type'] != 'quantity' or now['state'] != 'KNOWN' or now['unit'] != at['unit']:return 'RECHECK'
++    try:same = rational(now['value']) == rational(at['value'])
++    except ValueError:return 'RECHECK'
++    if not same:return 'RECHECK'
++    return 'APPLIES' if problem['revision'] == at['revision'] else 'CARRIED_OVER'
++
++
++def _all(db, principal, problem=None):
++    ids = [row[0] for row in db.execute('SELECT id FROM desk_records WHERE owner=? AND kind=? ORDER BY rowid', (principal.identity, KIND))]
++    found = [records.read(db, KIND, ident, principal) for ident in ids]
++    return [t for t in found if problem is None or t['subject'].get('problem') == problem]
++
++
++def standing(kernel, problem, principal):
++    """{variable: {id, revision, state, lo, hi, said, unit}} for the sheet's tolerances, as they stand against it now."""
++    with kernel.db() as db:said = _all(db, principal, problem['id'])
++    return {t['subject']['variable']: {'id': t['id'], 'revision': t['revision'], 'state': state(t, problem), 'lo': t['lo'], 'hi': t['hi'],
++                                       'said': t['said'], 'unit': t['unit']} for t in said}
++
++
++def put(kernel, args, principal):
++    with kernel.db() as db:problem = problems.load(db, args['id'], principal)
++    problems.check_bound(problem, args)
++    quantity = _quantity(problem, args['variable'])
++    if not quantity or quantity['type'] != 'quantity' or quantity['state'] != 'KNOWN':
++        raise ValueError('TOLERANCE_NEEDS_A_KNOWN_QUANTITY: %s is not a quantity with a value on this sheet' % args['variable'])
++    if not args['basis'].strip():raise ValueError('TOLERANCE_BASIS: say where the tolerance comes from')
++    lo, hi = span(args['said'], quantity['value'], {k: args[k] for k in ('amount', 'lo', 'hi') if k in args})
++    fields = {'subject': {'problem': problem['id'], 'variable': args['variable']},
++              'at': {'revision': problem['revision'], 'value': quantity['value'], 'unit': quantity['unit']},
++              'said': args['said'], 'amount': args.get('amount'), 'unit': quantity['unit'], 'basis': args['basis'],
++              'lo': str(Fraction(lo)), 'hi': str(Fraction(hi)), 'set_by': 'owner'}
++    with kernel.db() as db:
++        db.execute('BEGIN IMMEDIATE');problems.check_bound(problems.load(db, args['id'], principal), args)
++        old = next((t for t in _all(db, principal, problem['id']) if t['subject']['variable'] == args['variable']), None)
++        if old is None:return records.write(db, records.new(KIND, principal, schema=SCHEMA, **fields), principal, 'TOLERANCE_SAID')
++        expected = old['revision'];records.edit(old, expected);old.update(fields)
++        return records.write(db, old, principal, 'TOLERANCE_SAID_AGAIN', expected=expected)
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'tolerances.set':return put(kernel, args, principal)
++    if op == 'tolerances.get':
++        with kernel.db() as db:value = records.read(db, KIND, args['id'], principal);problem = problems.load(db, value['subject']['problem'], principal)
++        return {'tolerance': value, 'state': state(value, problem), 'problem_revision_now': problem['revision']}
++    if op == 'tolerances.list':
++        rows = []
++        with kernel.db() as db:
++            for value in _all(db, principal, args.get('problem')):
++                problem = problems.load(db, value['subject']['problem'], principal)
++                rows.append({**value, 'state': state(value, problem), 'problem_revision_now': problem['revision']})
++        return {'tolerances': rows}
++    raise ValueError('Unknown tolerance operation')

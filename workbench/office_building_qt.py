@@ -36,7 +36,11 @@ def is_brain(path):
 
 
 def readable_result(value):
-    """The answer first: rows or hits as plain lines; the raw result follows below."""
+    """The answer first: rows or hits as plain lines; the raw result follows below. A maths line's answer in its words
+    (math_answers.screen_text): Holds, Does not hold or Cannot tell, the number with its exact value beside it."""
+    from .math_answers import screen_text
+    said = screen_text(value)
+    if said:return said
     rows = value.get('rows') if isinstance(value, dict) else None
     hits = (value.get('result') or {}).get('hits') if isinstance(value, dict) and isinstance(value.get('result'), dict) else None
     if rows is not None:

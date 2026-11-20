@@ -90,6 +90,10 @@ FOCUSED_MODULES=(
  'test_problem','test_exact_math','test_reasoning_graph','test_adaptive_contract','test_joined_work',
  # 0.8.4: what a line does with values: one rule for a number written as text, and the seven evaluator faults of 14 November
  'test_line_rules',
+
+ # 0.8.5: the one maths core (math_ranges, math_answers, tolerances) and its lines: solve, range and check, exact, with receipts
+ 'test_math_core','test_math_lines',
+
  # backup and restore, the Project Desk, slate reasoning, change sets, continuing work, exchange and updates
  'test_workspace_backup','test_project_desk','test_slate_reasoning','test_change_sets','test_continuing_work','test_deployment')
 # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.
