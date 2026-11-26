@@ -157,10 +157,12 @@ class HandCard(QFrame):
         self.stop_button = button('Stop', 'quiet', 'Stop my hand before its next press')
         self.again = button('Continue', 'quiet', 'Let my hand go on from where the window is now')
         self.back = button('Put my window back', 'quiet', 'Back to what was in front, the selection and what was over the work when I started')
+        self.undo = button('Undo my changes', 'quiet', 'Take back every change my hand made for these words, the latest first')      # 1.0 F1: one Undo
         self.go.setObjectName('HerHandGo');self.stop_button.setObjectName('HerHandStop');self.again.setObjectName('HerHandContinue');self.back.setObjectName('HerHandBack')
-        self.go.clicked.connect(lambda: hand.go_ahead(by_owner=True));self.stop_button.clicked.connect(lambda: hand.stop('card'))
-        self.again.clicked.connect(hand.carry_on);self.back.clicked.connect(lambda: hand.put_back())
-        for b in (self.go, self.stop_button, self.again, self.back):row.addWidget(b)
+        self.undo.setObjectName('HerHandUndo')
+        self.go.clicked.connect(lambda: hand.go_ahead(by_owner=True));self.stop_button.clicked.connect(lambda: hand.stop_for_good())      # 1.0 F1
+        self.again.clicked.connect(hand.carry_on);self.back.clicked.connect(lambda: hand.put_back());self.undo.clicked.connect(lambda: hand.undo_changes())
+        for b in (self.go, self.stop_button, self.again, self.back, self.undo):row.addWidget(b)
         row.addStretch(1);self.box.addLayout(row)
         self.closing = self._label('');self.closing.hide()
         self.refresh()
@@ -189,9 +191,13 @@ class HandCard(QFrame):
             label.setWordWrap(True);label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);self.act_box.addWidget(label)
         state = t.state
         self.go.setVisible(state == 'waits' and bool(t.offered) and not t.authorised)
-        self.stop_button.setVisible(state in ('thinking', 'acting'))
+        paused = state == 'stopped' and not t.putting_back and t.stopped_after is not None and t.closing == ''      # 1.0 F1: stopped by you, waiting for your word
+        self.stop_button.setVisible(state in ('thinking', 'acting') or paused)
+        self.stop_button.setToolTip('Stop for good: your window goes back as it was (what is in front, the selection, the tabs, the scroll and your keyboard)'
+                                    if paused else 'Stop my hand before its next press; then your window goes back as it was')
         self.again.setVisible(state == 'stopped' and not t.putting_back)
-        self.back.setVisible(state in ('stopped', 'finished') and self.hand.snapshot is not None and t.done > 0)
+        self.back.setVisible(state in ('stopped', 'finished') and not paused and self.hand.snapshot is not None and t.done > 0)
+        self.undo.setVisible(state in ('stopped', 'finished') and not t.putting_back and bool(self.hand.changes()))
         if t.why:self.note.setText(t.why);self.note.show()
         else:self.note.hide()
         if t.closing:self.closing.setText(t.closing);self.closing.show()
@@ -214,6 +220,7 @@ class HerHand(QObject):
         self.timer = QTimer(self);self.timer.setSingleShot(True);self.timer.timeout.connect(self.tick)
         self.pointer = HerPointer(host);self.filter = _Touch(self);self._filtering = False
         self.state_changed.connect(self._hologram)
+        self._full_stop = False;self._door_snap = None;self._last_back = None      # 1.0 F1: your Stop puts the window back; the window as it was
 
     # -- what the door asks ----------------------------------------------------------------------------------------------
     @property
@@ -256,6 +263,7 @@ class HerHand(QObject):
             except RuntimeError:  # the card left with Talk's earlier exchanges
                 self.card = None
         self.state_changed.emit(state)
+        if state == 'stopped' and self.card is not None:QTimer.singleShot(0, self._door_buttons_seen)      # 1.0 F1: Continue and Stop in sight
 
     def _hologram(self, state):
         """Her picture follows her hand: thinking and acting are at work, waits waits for you, stopped and finished end."""
@@ -367,6 +375,7 @@ class HerHand(QObject):
         state_now = getattr(self.host.session, 'state', {})
         t.trail_before = len(state_now.get(stacy_hand.TRAIL) or []);t.desk_trail_before = len(state_now.get(stacy_hand.DESK_TRAIL) or [])
         self.turn = t;self.snapshot = state;self.snapshot_world = t.world;self.stop_flag = False
+        self._door_begin(t)      # 1.0 F1
         self.card = HandCard(self, t)
         face = getattr(getattr(self.host, 'shell2', None), 'face', None)
         if face is not None:face.add(self.card)
@@ -393,6 +402,7 @@ class HerHand(QObject):
         self.stop_flag = True
         t = self.turn
         if t is None:return
+        self._door_stop(why)      # 1.0 F1: the door hears it (one stop rule): paused, or stopped by HALT
         self.pointer.clear()
         if t.state == 'waits':
             t.offered = [];t.authorised = [];t.stopped_after = t.done
@@ -403,6 +413,9 @@ class HerHand(QObject):
         """Continue from where the window is now."""
         t = self.turn
         if t is None or t.state != 'stopped':return
+        from . import hand_door      # 1.0 F1: your Continue goes through the door (it calls this back, the door driving again)
+        if hand_door.DOOR.hand == 'desk' and hand_door.DOOR.paused('desk'):
+            hand_door.DOOR.carry_on('desk');return
         self.stop_flag = False;t.surprises = 0;t.pending = None
         self.set_state('thinking', '');self.timer.start(self.pace_ms)
 
@@ -420,12 +433,14 @@ class HerHand(QObject):
         t = self.turn
         t.closing = words or G.closing(t.goals, t.done)
         self.pointer.clear();self.set_state('finished', '')
+        self._door_finish(t.closing)      # 1.0 F1: your keyboard and its cursor given back; what she was asked to show stays
 
     def halt(self, why):
         """The turn stops with words (a budget, a repeat, a plan that cannot be made)."""
         t = self.turn
         t.stopped_after = t.done;self.pointer.clear()
         self.set_state('stopped', why)
+        self._door_finish(why)      # 1.0 F1: she stopped herself: what was yours is given back
 
     def tick(self):
         t = self.turn
@@ -516,7 +531,10 @@ class HerHand(QObject):
             if row is not None:row['state'] = 'stopped'
             t.stopped_after = t.done;t.plan = None
             self._count_trails()
-            return self.set_state('stopped', named('You took the window back, so my hand stopped after %d act%s. Continue goes on from here; Put my window back returns it as it was.') % (t.done, '' if t.done == 1 else 's'))
+            self.set_state('stopped', named('You took the window back, so my hand stopped after %d act%s. Continue goes on from here; Stop puts your window back as it was.') % (t.done, '' if t.done == 1 else 's'))
+            if self._full_stop:      # 1.0 F1: your Stop on her card: once she stopped between presses, the window goes back
+                self._full_stop = False;QTimer.singleShot(0, self.put_back)
+            return
         if t.authorised and t.authorised[0] == step.fingerprint():t.authorised.pop(0)
         if not envelope.get('ok'):
             if row is not None:row['state'] = 'refused'
@@ -546,7 +564,24 @@ class HerHand(QObject):
 
     # -- putting the window back -----------------------------------------------------------------------------------------------
     def put_back(self):
-        """Back to the window as the turn found it: a plan of navigation, run through her door now (at most 12 moves)."""
+        """Back to the window as the turn found it. 1.0 F1: through the door (hand_door) while her hand drives or is paused: your
+        Stop; else at once (Put my window back after she finished)."""
+        from . import hand_door
+        door = hand_door.DOOR
+        if self.turn is not None and door.hand == 'desk' and door.state in ('driving', 'paused'):
+            self._last_back = None
+            out = door.stop()
+            if self._last_back is not None:return self._last_back
+            t = self.turn;t.closing = out.get('words') or ''
+            if self.card is not None:
+                try:self.card.refresh()
+                except RuntimeError:self.card = None
+            return {'back': False, 'acts': 0, 'words': t.closing}
+        return self._put_back_now()
+
+    def _put_back_now(self):
+        """Back to the window as the turn found it: a plan of navigation, run through her door now (at most 12 moves); then
+        (1.0 F1) the tabs, the lists' selection, the scroll, the Field's size and your keyboard (hand_door_qt), read back."""
         from .desk_doers import run, settle
         t = self.turn;snap = self.snapshot
         if t is None or snap is None:return {'back': False, 'words': 'There is nothing to put back.'}
@@ -571,13 +606,121 @@ class HerHand(QObject):
                 moved += 1;settle(self.host, 20, 2)
         finally:
             t.putting_back = False
+        qt = self._door_qt_restore()      # 1.0 F1: what a person puts back by hand: tabs, lists, scroll, the Field's size, the keyboard
         desk, state, _ = self.read()
         back = planner.back_to(state, snap)
-        said = ('The window is back as it was: %s.' % self._where(snap)) if back else ('I could not put it all back: %s' % (words or 'the window is not as it was'))
+        from . import hand_door_qt
+        more = hand_door_qt.said(qt) if qt else ''
+        whole = back and (qt is None or qt.get('back') is not False)
+        said = ('The window is back as it was: %s%s.' % (self._where(snap), ('; ' + more) if more else '')) if whole else \
+            ('I could not put it all back: %s' % (words or more or 'the window is not as it was'))
         t.closing = said;self._count_trails()
         self.set_state('finished' if back else 'stopped', '' if back else said)
-        return {'back': back, 'acts': moved, 'words': said, 'surface': state.surface, 'selected': state.sel,
-                'over': list(state.over) if state.over else None, 'snapshot': {'surface': snap.surface, 'selected': snap.sel, 'over': list(snap.over) if snap.over else None}}
+        out = {'back': whole, 'acts': moved, 'words': said, 'surface': state.surface, 'selected': state.sel,
+               'over': list(state.over) if state.over else None, 'snapshot': {'surface': snap.surface, 'selected': snap.sel, 'over': list(snap.over) if snap.over else None},
+               'door_parts': dict((qt or {}).get('parts') or {}, desk={'back': back, 'words': self._where(snap) if back else (words or 'not as it was')})}
+        self._last_back = out
+        return out
+
+    # -- 1.0 F1: the door (hand_door): one stop rule, the window as it was, your changes with one Undo ------------------------------
+    def _door_begin(self, t):
+        """Her hand takes Graphite's window: what is yours in it now is kept (hand_door_qt), and the door knows how to put it
+        back and how to go on. Your new request settles an earlier pause as it stands."""
+        from . import hand_door, hand_door_qt
+        try:
+            self._door_snap = hand_door_qt.snapshot(self.host)
+        except Exception:  # noqa: BLE001 - a window that cannot be read is driven all the same; it is said not put back
+            self._door_snap = None
+        hand_door.DOOR.forget()
+        kernel = getattr(getattr(self.host, 'ledger_bridge', None), 'kernel', None)
+        if kernel is not None:hand_door._KERNEL['kernel'] = kernel      # HALT's hold is read through it: nothing is put back while HALT holds
+        try:hand_door.DOOR.begin('desk', t.text, snapshot=self._door_snap or {'kind': 'desk'}, restore=self._door_restore, carry=self.carry_on,
+                                 program="Graphite's window", title=t.text)
+        except hand_door.Paused:
+            pass
+
+    def _door_stop(self, why):
+        from . import hand_door
+        door = hand_door.DOOR
+        if door.hand != 'desk':return
+        if why == 'HALT':door.halted('desk')
+        elif why in ('a new request', 'the scene ended'):door.leave('desk');door.forget()
+        else:door.touched('desk', {'touch': 'a press of yours on the window', 'card': 'your Stop', 'owner': 'your Stop',
+                                   'Master Stop': 'Master Stop'}.get(why, str(why)[:60]))
+
+    def _door_finish(self, words):
+        from . import hand_door
+        if hand_door.DOOR.driving('desk'):
+            try:hand_door.DOOR.finish(words)
+            except Exception:  # noqa: BLE001 - giving back the keyboard never takes the window down
+                pass
+
+    def _door_restore(self, snap, parts):
+        """The door's put back for Graphite's window: your Stop (every part) runs the whole put back; her own finish gives back
+        your keyboard and its cursor."""
+        from . import hand_door_qt
+        if 'tabs' in parts or 'scroll' in parts:
+            out = self._put_back_now()
+            return {'back': out['back'], 'parts': out.get('door_parts') or {}, 'words': out['words']}
+        got = hand_door_qt.restore(self.host, snap, hand_door_qt.FOCUS_PARTS)
+        return {'back': got.get('back'), 'parts': got.get('parts') or {}, 'words': hand_door_qt.said(got)}
+
+    def _door_qt_restore(self):
+        from . import hand_door_qt
+        if not self._door_snap:return None
+        try:return hand_door_qt.restore(self.host, self._door_snap, ('tabs', 'lists', 'scroll', 'zoom', 'focus'), keep=(self.card,))
+        except Exception as exc:  # noqa: BLE001
+            return {'back': False, 'parts': {'window': {'back': False, 'words': str(exc)[:120]}}}
+
+    def _door_buttons_seen(self):
+        """Her card's Continue and Stop brought into sight in the exchange while she waits for your word."""
+        face = getattr(getattr(self.host, 'shell2', None), 'face', None);card = self.card
+        if face is None or card is None or getattr(face, 'scroll', None) is None:return
+        try:
+            shown = card.again if card.again.isVisibleTo(card) else card.stop_button
+            face.scroll.ensureWidgetVisible(shown)
+        except (AttributeError, RuntimeError):  # the card left with Talk's earlier exchanges
+            pass
+
+    def stop_for_good(self):
+        """Your Stop on her card: she stops for good, and the window goes back as it was when she began (while she moves, once
+        she has stopped between two presses)."""
+        t = self.turn
+        if t is None:return
+        if t.state in ('thinking', 'acting'):
+            self._full_stop = True;self.stop('card');return
+        if t.state == 'waits':self.stop('card')
+        if t.state in ('stopped', 'waits'):QTimer.singleShot(0, self.put_back)
+
+    def changes(self):
+        """Her changes in this turn that can be taken back, the latest first."""
+        from . import hand_door
+        t = self.turn
+        if t is None:return []
+        self._count_trails()
+        return hand_door.changes_of(stacy_hand.trail(getattr(self.host.session, 'state', {}))[:t.trail_added])
+
+    def undo_changes(self):
+        """One Undo for the turn: every change of hers in it that can be taken back, the latest first, each by its own guarded
+        Undo line (an Undo that no longer fits, because the thing changed since, is refused and said)."""
+        from . import hand_door
+        from .desk_doers import settle
+        entries = self.changes();back = 0;left = 0;said = []
+        for entry in entries:
+            try:card = self.host.shell2.face.undo_entry(entry);settle(self.host, 20, 2)
+            except Exception as exc:  # noqa: BLE001
+                left += 1;said.append(str(exc)[:80]);continue
+            now = next((e for e in stacy_hand.trail(self.host.session.state) if e.get('at') == entry.get('at') and e.get('line') == entry.get('line')), entry)
+            if now.get('state') == 'undone':back += 1
+            else:
+                left += 1;said.append(getattr(getattr(card, 'text', None), 'text', lambda: '')().replace('\u200b', '')[:80])
+        words = hand_door.undo_words(back, left, said)
+        if self.turn is not None:
+            self.turn.closing = words
+            if self.card is not None:
+                try:self.card.refresh()
+                except RuntimeError:self.card = None
+        return {'undone': back, 'left': left, 'words': words}
 
     def _where(self, snap):
         if snap.surface != 'field':return {'home': 'Today in front', 'workspace': 'your work in front'}.get(snap.surface, 'as it was')

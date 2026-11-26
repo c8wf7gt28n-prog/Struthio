@@ -626,6 +626,11 @@ def owner_pressed():
     """Your press in Graphite's window that starts or carries on her work (her column calls it): that press is not a touch
     against her next act."""
     if TOUCH.running:_LAST['mark'] = TOUCH.mark()
+    try:
+        from . import hand_door      # 1.0 F1: that press of yours is your Continue for a paused hand
+        hand_door.DOOR.carry_on('program')
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def _halt_stop(kernel, principal):
@@ -637,7 +642,7 @@ def _halt_stop(kernel, principal):
 class Hand:
     """One sequence of acts in her window: each act checked (HALT, your touch) before it is done, and said as it is done."""
 
-    def __init__(self, kernel, principal, row, rec, program):
+    def __init__(self, kernel, principal, row, rec, program, look=None, top=None, rel=''):
         self.kernel = kernel;self.principal = principal;self.row = row;self.rec = rec;self.program = program
         self.done = [];self.how = set()
         try:
@@ -648,6 +653,23 @@ class Hand:
         if not TOUCH.start():raise Refused('NO_TOUCH: I act in your programs only where I can feel your touch: %s' % TOUCH.reason)
         if _mono_ms() - _LAST['end'] > SEQUENCE_GAP_MS:_LAST['mark'] = TOUCH.mark()      # a touch before she started does not count
         _HALTED['flag'] = False
+        self._door(look, top, rel)      # 1.0 F1
+
+    def _door(self, look, top, rel):
+        """1.0 F1: her hand takes your program window through the door (hand_door): a pause of hers not yet answered holds her
+        (Continue or Stop is yours); the window as it is now is kept, to be put back when she finishes or you say Stop."""
+        from . import hand_door
+        snap = None
+        if look is not None and top is not None:
+            try:snap = hand_door.program_snapshot(look, top, self.row, rel or (self.rec or {}).get('path', ''))
+            except Exception:  # noqa: BLE001 - a window that cannot be read before is acted in all the same; it is said not put back
+                snap = None
+        hand_door._KERNEL['kernel'] = self.kernel
+        try:
+            hand_door.DOOR.begin('program', 'in %s' % self.program, snapshot=snap, restore=hand_door.program_put_back, program=self.program,
+                                 title=self.row.get('title', ''), assignment=_permit_assignment() or (self.rec or {}).get('assignment', ''))
+        except hand_door.Paused as paused:
+            raise Refused(str(paused.words)) from None
 
     def _gate(self, act):
         held = _HALTED['flag']
@@ -656,12 +678,18 @@ class Hand:
             held = held or halt_gate.held(self.kernel)
         except Exception:  # noqa: BLE001
             pass
+        from . import hand_door      # 1.0 F1: one stop rule, wherever her hand drives
         if held:
+            hand_door.DOOR.halted('program')
             raise Stopped('halt', 'HALT holds her work: %s' % self._said(act))
         touched, what = TOUCH.since(_LAST['mark'])
         if touched:
             _LAST['mark'] = TOUCH.mark()      # this touch is answered by stopping; the next press of yours starts afresh
+            hand_door.DOOR.touched('program', what)      # 1.0 F1: paused at once; the window held as it is for your word
             raise Stopped('touch', 'stopped by your touch (%s): %s' % (what, self._said(act)))
+        try:hand_door.DOOR.check(act)      # 1.0 F1: paused by your word or your input elsewhere
+        except hand_door.Paused as paused:
+            raise Stopped('halt' if paused.why == 'halt' else 'touch', 'stopped by your touch (%s): %s' % (hand_door.DOOR.what or 'your touch', self._said(act))) from None
 
     def _said(self, act):
         done = ('done: ' + '; '.join(self.done[-3:])) if self.done else 'nothing of this step was done'
@@ -676,12 +704,31 @@ class Hand:
         finally:
             _LAST['end'] = _mono_ms()
         self.done.append(words);self.how.add(how)
+        _door_acted(words)      # 1.0 F1
         TOUCH.after_mine()
         _tell(self.kernel, state='acting', words=words, program=self.program, title=self.row.get('title', ''), act=words, how=how)
         return out
 
     def end(self, state, words):
+        back = _door_end(state, words)      # 1.0 F1: finished: your focus, your cursor, the window in front given back
+        if back:words = '%s %s' % (words.rstrip('.') + '.', back)
         _tell(self.kernel, state=state, words=words, program=self.program, title=self.row.get('title', ''), act='', how=', '.join(sorted(self.how)))
+
+
+def _door_acted(words):
+    from . import hand_door
+    hand_door.DOOR.acted(words)
+
+
+def _door_end(state, words):
+    """1.0 F1: the door when a sequence of hers ends: paused (your touch, HALT) it holds the window for your word; a dialog
+    waiting for you is yours and stays in front; otherwise she gives back what was yours. Returns the words of what came back."""
+    from . import hand_door
+    if hand_door.DOOR.paused('program'):return ''
+    if state == 'waiting for you':
+        hand_door.DOOR.leave('program');return ''
+    back = hand_door.DOOR.finish(words)
+    return (back.get('words') or '') if back.get('back') is not None and (back.get('parts') or {}) else ''
 
 
 # ================================================================== reading her window
@@ -1028,7 +1075,7 @@ def type_text(kernel, principal, rel, text, passage=None, field=None):
     look = Look(_conn())
     app, top = _frame(look, row, rel)
     program = _program_of(row, rec)
-    hand = Hand(kernel, principal, row, rec, program)
+    hand = Hand(kernel, principal, row, rec, program, look, top, rel)      # 1.0 F1: look, top: the window as it was
     try:
         if passage:
             places = _find(look, top, passage)
@@ -1125,7 +1172,7 @@ def save(kernel, principal, rel, expect=None, answer=None, menu=None):
     look = Look(_conn())
     app, top = _frame(look, row, rel)
     program = _program_of(row, rec)
-    hand = Hand(kernel, principal, row, rec, program)
+    hand = Hand(kernel, principal, row, rec, program, look, top, rel)      # 1.0 F1
     parts = _menu_parts(menu or SAVE_MENU['default'])
     answered = None;dialog_seen = None
     try:
@@ -1177,7 +1224,7 @@ def press(kernel, principal, rel, control=None, menu=None, expect=None):
     look = Look(_conn())
     app, top = _frame(look, row, rel)
     program = _program_of(row, rec)
-    hand = Hand(kernel, principal, row, rec, program)
+    hand = Hand(kernel, principal, row, rec, program, look, top, rel)      # 1.0 F1
     by_owner = _by_owner(principal, 'program.press')
     try:
         if menu:
@@ -1221,7 +1268,7 @@ def answer(kernel, principal, rel, button, dialog=None):
     d = dialogs[0]
     nodes = _named(look, d, button, PRESSABLE, skip=frozenset())
     if len(nodes) != 1:raise Refused('NO_BUTTON: the dialog “%s” has %d buttons called “%s”, not one' % (d['name'][:60], len(nodes), button[:60]))
-    hand = Hand(kernel, principal, row, rec, program)
+    hand = Hand(kernel, principal, row, rec, program, look, top, rel)      # 1.0 F1
     try:
         _guard_press(nodes[0], principal, _by_owner(principal, 'program.answer'))
         _press_node(hand, look, nodes[0], 'answer “%s” with “%s”' % (d['name'][:50], reader._button_name(nodes[0]['name'])[:50]),
@@ -1481,6 +1528,11 @@ def dispatch(kernel, op, args, principal):
         if op == 'program.answer':return answer(kernel, principal, args['path'], args['button'], args.get('dialog'))
         if op == 'program.shown':return shown(kernel, principal, args['path'], args['window'])
     except Refused as why:
+        try:
+            from . import hand_door      # 1.0 F1: refused halfway, she still gives back what was yours (a menu she opened is closed)
+            if hand_door.DOOR.driving('program'):hand_door.DOOR.finish('refused')
+        except Exception:  # noqa: BLE001
+            pass
         _tell(kernel, state='refused', words=str(why).split(': ', 1)[-1][:300], program='', title='', act='', how='')
         raise ValueError(str(why)) from None
     raise ValueError('Unknown program operation')

@@ -504,7 +504,7 @@ def brief(host):
     return card
 
 
-def stage_set(host, obj, cell, value, word=''):
+def stage_set(host, obj, cell, value, word='', asked=True):      # 1.0 F1: asked=False from her door when it is not hers at your dial
     """“Set B3 to 300”, asked of Stacy with a sheet (or a calculation, which stands for its sheet) selected: the change is
     put up with its exact line and waits for Approve, and meanwhile the Field marks what it would move, as a what-if does.
     Approving saves the sheet through the same operation the owner's own edit uses; then the records are read again."""
@@ -525,7 +525,7 @@ def stage_set(host, obj, cell, value, word=''):
                 '%s says %s%s now. The sheet is saved with the new value and everything worked from it waits for a recheck; the Field marks what would move' % (
                     cell, held.get('value'), ' ' + unit if unit else ''), 'execute')
     done = lambda ok, result, obj=obj:_after(host, obj, ok, result)
-    card = face.stage(title, step, done=done, asked=True, word=word)      # asked of her: it follows her hand (done at once, or waiting)
+    card = face.stage(title, step, done=done, asked=asked, word=word)      # asked of her: it follows her hand (done at once, or waiting)
     if card.ran is None:_await_go(host, '%s on “%s”' % (words[:1].lower() + words[1:], title), lambda:face.run_staged(card, done))
     elif card.ran is False:                    # she tried at once and it was refused: nothing would move, so nothing is marked
         page.view.would = {};page.view.would_said = '';page.view.update()

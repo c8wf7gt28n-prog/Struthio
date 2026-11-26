@@ -19,8 +19,8 @@ Approve. What always asks still asks.
 
 Her door (Kasandra's hand, first slice): door 'her' runs only inside a turn the owner started (`turn`, her hand's own
 record of it); owner-only acts and a `by` are refused at the door; at Ask first an act that moves the window is offered,
-not done (journal OFFERED), unless the owner's Go ahead authorised exactly that act; a change is refused in this slice
-(NOT_OFFERED: "changes on the desk through my hand come next"). Her hand's stop flag is read before the act and between
+not done (journal OFFERED), unless the owner's Go ahead authorised exactly that act; a change goes at the owner's dial (1.0 F1:
+done with its card, trail line and Undo when it is hers there, else staged to wait for Approve; a step from the list stays his). Her hand's stop flag is read before the act and between
 presses: in each press of `key`, each character of `type_text`, each segment of `walk`, each wait of `wait_until`; a stop
 refuses with STOPPED between presses, never halfway through a click (journal STOPPED). read.desk also says what a planner
 needs and the window did not say before: where the keyboard is, whether the line's words are an act's, whether an
@@ -77,8 +77,14 @@ _HER = []
 def stopped(host):
     """Whether her hand's stop flag is set on this window (Stop on her card, hand.stop, Master Stop, the owner's touch)."""
     hand = getattr(host, 'her_hand', None)
-    try:return bool(hand is not None and hand.stop_flag)
+    try:
+        if hand is not None and hand.stop_flag:return True
     except RuntimeError:  # the hand's QObject is gone with its window
+        return False
+    try:      # 1.0 F1: one stop rule: the door paused her hand on this window (your input, your word, HALT)
+        from .hand_door import DOOR
+        return hand is not None and DOOR.paused('desk')
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -773,6 +779,7 @@ def stage_change(c, title, words, operation, arguments, why, asked=True):
     from .engineering_kernel import CAPABILITIES
     from .field_do import Step, op
     face = c.host.shell2.face
+    asked = asked and getattr(c, 'asked', True)      # 1.0 F1: a change through her door that is not hers at your dial waits
     card = face.stage(title, Step(words, 'write', op(operation, **arguments), why, CAPABILITIES[operation]), asked=asked, word=c.word)
     c.card = card
     return card
@@ -791,7 +798,8 @@ def card_said(c, card, operation=None, arguments=None):
         try:operation, arguments = call(card.step.line)
         except Exception:  # noqa: BLE001
             pass
-        out['why'] = stacy_hand.why_waits(place, CAPABILITIES.get(operation, 'approve'), operation, arguments)
+        out['why'] = stacy_hand.why_waits(place, CAPABILITIES.get(operation, 'approve'), operation, arguments,
+                                          getattr(getattr(c, 'turn', None), 'basis', None))      # 1.0 F1: a change through her door says the model's pick
     else:out['why'] = ''
     return out
 
@@ -1374,7 +1382,7 @@ def hand_trash(c):
 def hand_cell(c):
     from .field_page import stage_set
     host = c.host;page, view = the_field(host);obj = chosen(view);c.by = 'direct'
-    card = stage_set(host, obj, c.args['cell'], c.args['value'], c.word)
+    card = stage_set(host, obj, c.args['cell'], c.args['value'], c.word, asked=c.asked)      # 1.0 F1: through her door, at your dial
     if card is None:raise Refusal('FAILED', REFUSALS['FAILED'] % 'that sheet has no number there')
     c.card = card;settle(host);result = card_said(c, card);result['go'] = view.go
     return change_words(result, 'set %s to %s' % (c.args['cell'], c.args['value'])), result
@@ -1563,9 +1571,15 @@ def her_door(host, name, args, turn):
     if isinstance(args, dict) and 'by' in args:raise Refusal('BAD_ARGUMENTS', REFUSALS['BY_YOURS'])
     clean = desk_acts.check(name, args)
     act = ACTS[name]
-    if act.mark == 'changes':raise Refusal('NOT_OFFERED', REFUSALS['NOT_YET'])      # this slice: navigation and reads only
     place = stacy_hand.level(host)
     hers, why = desk_acts.desk_hers(place, name, clean, basis=getattr(turn, 'basis', None))   # 0.8.7 B1: a turn the model picked
+    if act.mark == 'changes':
+        # 1.0 F1 (0.8.8's changes through her hand): a change goes at your dial. Hers there: done at once, with its card, its line
+        # in her trail and its Undo. Not hers (Ask first, what always asks, the model's pick alone): it is put up on its card and
+        # waits for your Approve, whatever she planned (the doer stages it with asked=False). Never done halfway.
+        if not hers and name == 'hand.step':raise Refusal('NOT_OFFERED', why[:1].upper() + why[1:] + '.')      # a step's own card is your word: it stays yours
+        turn._f1_waits = not hers
+        return clean
     if not hers and not hand.authorised(turn, name, clean):
         if act.mark == 'navigates' and place == 'ask' and why == 'it moves your window, and my hand is at Ask first':
             raise Refusal('OFFERED', REFUSALS['OFFERED'])
@@ -1590,7 +1604,8 @@ def run(host, name, args=None, *, door, by=None, origin=None, word='', turn=None
         else:clean = desk_acts.check(name, args)
         act = ACTS[name]
         c = Ctx(host, name, clean, door, word or ('the act %s' % name), origin, form_for(act, clean, by),
-                asked=getattr(turn, 'asked', True) if door == 'her' else True, turn=turn if door == 'her' else None)
+                asked=(getattr(turn, 'asked', True) and not getattr(turn, '_f1_waits', False)) if door == 'her' else True,      # 1.0 F1: not hers -> it waits
+                turn=turn if door == 'her' else None)
         if door == 'her':_HER.append(c)
         try:
             with watching() as seen, no_dialogs() as reached:

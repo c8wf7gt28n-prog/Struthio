@@ -1,0 +1,1619 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 5262c82..97449df 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -260,6 +260,9 @@
+    "halt.press": "workbench/halt_gate.py#dispatch",
+    "halt.release": "workbench/halt_gate.py#dispatch",
+    "halt.status": "workbench/halt_gate.py#dispatch",
++   "hand.door": "workbench/hand_door.py#dispatch",
++   "hand.door.continue": "workbench/hand_door.py#dispatch",
++   "hand.door.stop": "workbench/hand_door.py#dispatch",
+    "hardware.checks.inspect": "workbench/hardware_coverage.py#dispatch",
+    "hardware.component_nets": "workbench/agent_operations.py#dispatch",
+    "hardware.coverage.inspect": "workbench/hardware_coverage.py#dispatch",
+@@ -1107,9 +1110,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 909,
++  "adapters": 912,
+   "job_tools": 113,
+-  "operations": 909,
++  "operations": 912,
+   "settings": 48
+  },
+  "formulas": {
+@@ -3617,6 +3620,21 @@
+    "properties": {},
+    "scope": "read"
+   },
++  "hand.door": {
++   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
++   "properties": {},
++   "scope": "read"
++  },
++  "hand.door.continue": {
++   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
++   "properties": {},
++   "scope": "approve"
++  },
++  "hand.door.stop": {
++   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
++   "properties": {},
++   "scope": "approve"
++  },
+   "hardware.checks.inspect": {
+    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+    "properties": {},
+@@ -8904,7 +8922,7 @@
+  },
+  "release": "Graphite 0.8.7",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "e0312d3620dbeb592f2ef3185af8a23b207bb41dd03819e129f91de6609ac794",
++ "schema_digest": "ed5ec519acc2a1bfbdbead9875b595ddfeee82fcbb514fc96cf1cb84763741c8",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/a11y_hand.py b/workbench/a11y_hand.py
+index 8ce03f8..4b61b08 100644
+--- a/workbench/a11y_hand.py
++++ b/workbench/a11y_hand.py
+@@ -626,6 +626,11 @@ def owner_pressed():
+     """Your press in Graphite's window that starts or carries on her work (her column calls it): that press is not a touch
+     against her next act."""
+     if TOUCH.running:_LAST['mark'] = TOUCH.mark()
++    try:
++        from . import hand_door      # 1.0 F1: that press of yours is your Continue for a paused hand
++        hand_door.DOOR.carry_on('program')
++    except Exception:  # noqa: BLE001
++        pass
+ 
+ 
+ def _halt_stop(kernel, principal):
+@@ -637,7 +642,7 @@ def _halt_stop(kernel, principal):
+ class Hand:
+     """One sequence of acts in her window: each act checked (HALT, your touch) before it is done, and said as it is done."""
+ 
+-    def __init__(self, kernel, principal, row, rec, program):
++    def __init__(self, kernel, principal, row, rec, program, look=None, top=None, rel=''):
+         self.kernel = kernel;self.principal = principal;self.row = row;self.rec = rec;self.program = program
+         self.done = [];self.how = set()
+         try:
+@@ -648,6 +653,23 @@ class Hand:
+         if not TOUCH.start():raise Refused('NO_TOUCH: I act in your programs only where I can feel your touch: %s' % TOUCH.reason)
+         if _mono_ms() - _LAST['end'] > SEQUENCE_GAP_MS:_LAST['mark'] = TOUCH.mark()      # a touch before she started does not count
+         _HALTED['flag'] = False
++        self._door(look, top, rel)      # 1.0 F1
++
++    def _door(self, look, top, rel):
++        """1.0 F1: her hand takes your program window through the door (hand_door): a pause of hers not yet answered holds her
++        (Continue or Stop is yours); the window as it is now is kept, to be put back when she finishes or you say Stop."""
++        from . import hand_door
++        snap = None
++        if look is not None and top is not None:
++            try:snap = hand_door.program_snapshot(look, top, self.row, rel or (self.rec or {}).get('path', ''))
++            except Exception:  # noqa: BLE001 - a window that cannot be read before is acted in all the same; it is said not put back
++                snap = None
++        hand_door._KERNEL['kernel'] = self.kernel
++        try:
++            hand_door.DOOR.begin('program', 'in %s' % self.program, snapshot=snap, restore=hand_door.program_put_back, program=self.program,
++                                 title=self.row.get('title', ''), assignment=_permit_assignment() or (self.rec or {}).get('assignment', ''))
++        except hand_door.Paused as paused:
++            raise Refused(str(paused.words)) from None
+ 
+     def _gate(self, act):
+         held = _HALTED['flag']
+@@ -656,12 +678,18 @@ class Hand:
+             held = held or halt_gate.held(self.kernel)
+         except Exception:  # noqa: BLE001
+             pass
++        from . import hand_door      # 1.0 F1: one stop rule, wherever her hand drives
+         if held:
++            hand_door.DOOR.halted('program')
+             raise Stopped('halt', 'HALT holds her work: %s' % self._said(act))
+         touched, what = TOUCH.since(_LAST['mark'])
+         if touched:
+             _LAST['mark'] = TOUCH.mark()      # this touch is answered by stopping; the next press of yours starts afresh
++            hand_door.DOOR.touched('program', what)      # 1.0 F1: paused at once; the window held as it is for your word
+             raise Stopped('touch', 'stopped by your touch (%s): %s' % (what, self._said(act)))
++        try:hand_door.DOOR.check(act)      # 1.0 F1: paused by your word or your input elsewhere
++        except hand_door.Paused as paused:
++            raise Stopped('halt' if paused.why == 'halt' else 'touch', 'stopped by your touch (%s): %s' % (hand_door.DOOR.what or 'your touch', self._said(act))) from None
+ 
+     def _said(self, act):
+         done = ('done: ' + '; '.join(self.done[-3:])) if self.done else 'nothing of this step was done'
+@@ -676,14 +704,33 @@ class Hand:
+         finally:
+             _LAST['end'] = _mono_ms()
+         self.done.append(words);self.how.add(how)
++        _door_acted(words)      # 1.0 F1
+         TOUCH.after_mine()
+         _tell(self.kernel, state='acting', words=words, program=self.program, title=self.row.get('title', ''), act=words, how=how)
+         return out
+ 
+     def end(self, state, words):
++        back = _door_end(state, words)      # 1.0 F1: finished: your focus, your cursor, the window in front given back
++        if back:words = '%s %s' % (words.rstrip('.') + '.', back)
+         _tell(self.kernel, state=state, words=words, program=self.program, title=self.row.get('title', ''), act='', how=', '.join(sorted(self.how)))
+ 
+ 
++def _door_acted(words):
++    from . import hand_door
++    hand_door.DOOR.acted(words)
++
++
++def _door_end(state, words):
++    """1.0 F1: the door when a sequence of hers ends: paused (your touch, HALT) it holds the window for your word; a dialog
++    waiting for you is yours and stays in front; otherwise she gives back what was yours. Returns the words of what came back."""
++    from . import hand_door
++    if hand_door.DOOR.paused('program'):return ''
++    if state == 'waiting for you':
++        hand_door.DOOR.leave('program');return ''
++    back = hand_door.DOOR.finish(words)
++    return (back.get('words') or '') if back.get('back') is not None and (back.get('parts') or {}) else ''
++
++
+ # ================================================================== reading her window
+ 
+ def _conn():
+@@ -1025,7 +1072,7 @@ def type_text(kernel, principal, rel, text, passage=None, field=None):
+     look = Look(_conn())
+     app, top = _frame(look, row, rel)
+     program = _program_of(row, rec)
+-    hand = Hand(kernel, principal, row, rec, program)
++    hand = Hand(kernel, principal, row, rec, program, look, top, rel)      # 1.0 F1: look, top: the window as it was
+     try:
+         if passage:
+             places = _find(look, top, passage)
+@@ -1122,7 +1169,7 @@ def save(kernel, principal, rel, expect=None, answer=None, menu=None):
+     look = Look(_conn())
+     app, top = _frame(look, row, rel)
+     program = _program_of(row, rec)
+-    hand = Hand(kernel, principal, row, rec, program)
++    hand = Hand(kernel, principal, row, rec, program, look, top, rel)      # 1.0 F1
+     parts = _menu_parts(menu or SAVE_MENU['default'])
+     answered = None;dialog_seen = None
+     try:
+@@ -1174,7 +1221,7 @@ def press(kernel, principal, rel, control=None, menu=None, expect=None):
+     look = Look(_conn())
+     app, top = _frame(look, row, rel)
+     program = _program_of(row, rec)
+-    hand = Hand(kernel, principal, row, rec, program)
++    hand = Hand(kernel, principal, row, rec, program, look, top, rel)      # 1.0 F1
+     by_owner = _by_owner(principal, 'program.press')
+     try:
+         if menu:
+@@ -1218,7 +1265,7 @@ def answer(kernel, principal, rel, button, dialog=None):
+     d = dialogs[0]
+     nodes = _named(look, d, button, PRESSABLE, skip=frozenset())
+     if len(nodes) != 1:raise Refused('NO_BUTTON: the dialog “%s” has %d buttons called “%s”, not one' % (d['name'][:60], len(nodes), button[:60]))
+-    hand = Hand(kernel, principal, row, rec, program)
++    hand = Hand(kernel, principal, row, rec, program, look, top, rel)      # 1.0 F1
+     try:
+         _guard_press(nodes[0], principal, _by_owner(principal, 'program.answer'))
+         _press_node(hand, look, nodes[0], 'answer “%s” with “%s”' % (d['name'][:50], reader._button_name(nodes[0]['name'])[:50]),
+@@ -1478,6 +1525,11 @@ def dispatch(kernel, op, args, principal):
+         if op == 'program.answer':return answer(kernel, principal, args['path'], args['button'], args.get('dialog'))
+         if op == 'program.shown':return shown(kernel, principal, args['path'], args['window'])
+     except Refused as why:
++        try:
++            from . import hand_door      # 1.0 F1: refused halfway, she still gives back what was yours (a menu she opened is closed)
++            if hand_door.DOOR.driving('program'):hand_door.DOOR.finish('refused')
++        except Exception:  # noqa: BLE001
++            pass
+         _tell(kernel, state='refused', words=str(why).split(': ', 1)[-1][:300], program='', title='', act='', how='')
+         raise ValueError(str(why)) from None
+     raise ValueError('Unknown program operation')
+diff --git a/workbench/activity.py b/workbench/activity.py
+index 09b9a62..261d6c1 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -65,6 +65,8 @@ OBSERVER_OPERATIONS=frozenset({
+  'appfile.list',
+  # 1.0 K9: her hand's state and her window read inside, read when her column or a step looks; reading is not an event
+  'program.status','program.look','program.find',
++ # 1.0 F1: where her hand drives and whether it waits for your word, read when her column looks; reading is not an event
++ 'hand.door',
+  # 1.0 K2: the registry of her tools, receipts, and a look at the windows, read when her column or a step is shown; reading is not an event
+  'tools.list','tools.receipts','windows.observe',
+  # 1.0 K3: the grants in force and a grant's words, read when her column or the Grants page is shown; HALT's state, read by its button
+diff --git a/workbench/desk_doers.py b/workbench/desk_doers.py
+index 28d6a24..bfb027b 100644
+--- a/workbench/desk_doers.py
++++ b/workbench/desk_doers.py
+@@ -19,8 +19,8 @@ Approve. What always asks still asks.
+ 
+ Her door (Kasandra's hand, first slice): door 'her' runs only inside a turn the owner started (`turn`, her hand's own
+ record of it); owner-only acts and a `by` are refused at the door; at Ask first an act that moves the window is offered,
+-not done (journal OFFERED), unless the owner's Go ahead authorised exactly that act; a change is refused in this slice
+-(NOT_OFFERED: "changes on the desk through my hand come next"). Her hand's stop flag is read before the act and between
++not done (journal OFFERED), unless the owner's Go ahead authorised exactly that act; a change goes at the owner's dial (1.0 F1:
++done with its card, trail line and Undo when it is hers there, else staged to wait for Approve; a step from the list stays his). Her hand's stop flag is read before the act and between
+ presses: in each press of `key`, each character of `type_text`, each segment of `walk`, each wait of `wait_until`; a stop
+ refuses with STOPPED between presses, never halfway through a click (journal STOPPED). read.desk also says what a planner
+ needs and the window did not say before: where the keyboard is, whether the line's words are an act's, whether an
+@@ -77,9 +77,15 @@ _HER = []
+ def stopped(host):
+     """Whether her hand's stop flag is set on this window (Stop on her card, hand.stop, Master Stop, the owner's touch)."""
+     hand = getattr(host, 'her_hand', None)
+-    try:return bool(hand is not None and hand.stop_flag)
++    try:
++        if hand is not None and hand.stop_flag:return True
+     except RuntimeError:  # the hand's QObject is gone with its window
+         return False
++    try:      # 1.0 F1: one stop rule: the door paused her hand on this window (your input, your word, HALT)
++        from .hand_door import DOOR
++        return hand is not None and DOOR.paused('desk')
++    except Exception:  # noqa: BLE001
++        return False
+ 
+ 
+ def check_stop():
+@@ -773,6 +779,7 @@ def stage_change(c, title, words, operation, arguments, why, asked=True):
+     from .engineering_kernel import CAPABILITIES
+     from .field_do import Step, op
+     face = c.host.shell2.face
++    asked = asked and getattr(c, 'asked', True)      # 1.0 F1: a change through her door that is not hers at your dial waits
+     card = face.stage(title, Step(words, 'write', op(operation, **arguments), why, CAPABILITIES[operation]), asked=asked, word=c.word)
+     c.card = card
+     return card
+@@ -791,7 +798,8 @@ def card_said(c, card, operation=None, arguments=None):
+         try:operation, arguments = call(card.step.line)
+         except Exception:  # noqa: BLE001
+             pass
+-        out['why'] = stacy_hand.why_waits(place, CAPABILITIES.get(operation, 'approve'), operation, arguments)
++        out['why'] = stacy_hand.why_waits(place, CAPABILITIES.get(operation, 'approve'), operation, arguments,
++                                          getattr(getattr(c, 'turn', None), 'basis', None))      # 1.0 F1: a change through her door says the model's pick
+     else:out['why'] = ''
+     return out
+ 
+@@ -1374,7 +1382,7 @@ def hand_trash(c):
+ def hand_cell(c):
+     from .field_page import stage_set
+     host = c.host;page, view = the_field(host);obj = chosen(view);c.by = 'direct'
+-    card = stage_set(host, obj, c.args['cell'], c.args['value'], c.word)
++    card = stage_set(host, obj, c.args['cell'], c.args['value'], c.word, asked=c.asked)      # 1.0 F1: through her door, at your dial
+     if card is None:raise Refusal('FAILED', REFUSALS['FAILED'] % 'that sheet has no number there')
+     c.card = card;settle(host);result = card_said(c, card);result['go'] = view.go
+     return change_words(result, 'set %s to %s' % (c.args['cell'], c.args['value'])), result
+@@ -1563,9 +1571,15 @@ def her_door(host, name, args, turn):
+     if isinstance(args, dict) and 'by' in args:raise Refusal('BAD_ARGUMENTS', REFUSALS['BY_YOURS'])
+     clean = desk_acts.check(name, args)
+     act = ACTS[name]
+-    if act.mark == 'changes':raise Refusal('NOT_OFFERED', REFUSALS['NOT_YET'])      # this slice: navigation and reads only
+     place = stacy_hand.level(host)
+     hers, why = desk_acts.desk_hers(place, name, clean, basis=getattr(turn, 'basis', None))   # 0.8.7 B1: a turn the model picked
++    if act.mark == 'changes':
++        # 1.0 F1 (0.8.8's changes through her hand): a change goes at your dial. Hers there: done at once, with its card, its line
++        # in her trail and its Undo. Not hers (Ask first, what always asks, the model's pick alone): it is put up on its card and
++        # waits for your Approve, whatever she planned (the doer stages it with asked=False). Never done halfway.
++        if not hers and name == 'hand.step':raise Refusal('NOT_OFFERED', why[:1].upper() + why[1:] + '.')      # a step's own card is your word: it stays yours
++        turn._f1_waits = not hers
++        return clean
+     if not hers and not hand.authorised(turn, name, clean):
+         if act.mark == 'navigates' and place == 'ask' and why == 'it moves your window, and my hand is at Ask first':
+             raise Refusal('OFFERED', REFUSALS['OFFERED'])
+@@ -1590,7 +1604,8 @@ def run(host, name, args=None, *, door, by=None, origin=None, word='', turn=None
+         else:clean = desk_acts.check(name, args)
+         act = ACTS[name]
+         c = Ctx(host, name, clean, door, word or ('the act %s' % name), origin, form_for(act, clean, by),
+-                asked=getattr(turn, 'asked', True) if door == 'her' else True, turn=turn if door == 'her' else None)
++                asked=(getattr(turn, 'asked', True) and not getattr(turn, '_f1_waits', False)) if door == 'her' else True,      # 1.0 F1: not hers -> it waits
++                turn=turn if door == 'her' else None)
+         if door == 'her':_HER.append(c)
+         try:
+             with watching() as seen, no_dialogs() as reached:
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 737a7e2..29364d2 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -131,6 +131,7 @@ def schemas():
+     from .network_governed import FIELDS as WEB_FIELDS  # 1.0 K8 (the network, governed): web.*
+     from .app_files import FIELDS as APP_FILES_FIELDS  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
+     from .a11y_hand import FIELDS as A11Y_HAND_FIELDS  # 1.0 K9 (her hand in other programs): program.status, .look, .find, .open, .type, .press, .save, .answer, .shown
++    from .hand_door import FIELDS as HAND_DOOR_FIELDS  # 1.0 F1 (the door's mechanics): hand.door, hand.door.continue, hand.door.stop
+     from .stac_words import FIELDS as WORD_FIELDS
+     from .agent_operations import FIELDS
+     from .hardware_proof import FIELDS as PROOF_FIELDS
+@@ -263,6 +264,7 @@ def schemas():
+         **WEB_FIELDS,  # 1.0 K8 (the network, governed): web.*
+         **APP_FILES_FIELDS,  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
+         **A11Y_HAND_FIELDS,  # 1.0 K9 (her hand in other programs): program.status, .look, .find, .open, .type, .press, .save, .answer, .shown
++        **HAND_DOOR_FIELDS,  # 1.0 F1 (the door's mechanics): hand.door, hand.door.continue, hand.door.stop
+         **WORD_FIELDS,
+         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
+         **NATIVE_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 9d38df8..89e239b 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -96,6 +96,7 @@ from . import a11y_reader  # 1.0 K7 (reading other programs): accessibility.stat
+ from . import network_governed  # 1.0 K8 (the network, governed): web.state, web.words, web.pages, web.page (read); web.lookup, web.get (execute); web.search (approve, always asks) (recorded additions)
+ from . import app_files  # 1.0 A1 (programs by window and file): appfile.list (read); appfile.open, appfile.look (execute: a file of Files opened in its program, its window, saves and close) (recorded additions)
+ from . import a11y_hand  # 1.0 K9 (her hand in other programs): program.status, .look, .find (read); program.open, .type, .press, .save (execute); program.answer, .shown (approve) (recorded additions)
++from . import hand_door  # 1.0 F1 (the door's mechanics): hand.door (read); hand.door.continue, hand.door.stop (approve: your Continue, your Stop) (recorded additions)
+ 
+ PROGRAM_HANDLERS = {
+     op: service
+@@ -299,6 +300,7 @@ CAPABILITIES = {
+     **network_governed.SCOPES,  # 1.0 K8 (the network, governed): a page fetched into quarantine is execute (your press or your grant for its site); search words are approve and always ask
+     **app_files.SCOPES,  # 1.0 A1 (programs by window and file): the list is a read; opening a file in its program and looking at it are execute
+     **a11y_hand.SCOPES,  # 1.0 K9 (her hand in other programs): three reads; four acts in her window (a grant: work in a program on the file); a dialog answered and a window shown are your press
++    **hand_door.SCOPES,  # 1.0 F1 (the door's mechanics): where her hand drives is a read; your Continue and your Stop (the window put back) are your press
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+     **{name:'read' for name in workspace_services.FIELDS},
+@@ -751,6 +753,7 @@ class Kernel:
+         if op in network_governed.FIELDS:return network_governed.dispatch(self,op,a,p)   # 1.0 K8 (the network, governed): a page kept in quarantine and read as data; a step blocked while the network is down
+         if op in app_files.FIELDS:return app_files.dispatch(self,op,a,p)   # 1.0 A1 (programs by window and file): its window named, each save recorded through revisions.record, its close said
+         if op in a11y_hand.FIELDS:return a11y_hand.dispatch(self,op,a,p)   # 1.0 K9 (her hand in other programs): only in her window, guarded at each act, stopped by your touch or HALT
++        if op in hand_door.FIELDS:return hand_door.dispatch(self,op,a,p)   # 1.0 F1 (the door's mechanics): one stop rule wherever her hand drives; the window put back as it was
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+         if op in workspace_services.FIELDS:
+diff --git a/workbench/field_page.py b/workbench/field_page.py
+index 4b7d300..1cbacf6 100644
+--- a/workbench/field_page.py
++++ b/workbench/field_page.py
+@@ -504,7 +504,7 @@ def brief(host):
+     return card
+ 
+ 
+-def stage_set(host, obj, cell, value, word=''):
++def stage_set(host, obj, cell, value, word='', asked=True):      # 1.0 F1: asked=False from her door when it is not hers at your dial
+     """“Set B3 to 300”, asked of Stacy with a sheet (or a calculation, which stands for its sheet) selected: the change is
+     put up with its exact line and waits for Approve, and meanwhile the Field marks what it would move, as a what-if does.
+     Approving saves the sheet through the same operation the owner's own edit uses; then the records are read again."""
+@@ -525,7 +525,7 @@ def stage_set(host, obj, cell, value, word=''):
+                 '%s says %s%s now. The sheet is saved with the new value and everything worked from it waits for a recheck; the Field marks what would move' % (
+                     cell, held.get('value'), ' ' + unit if unit else ''), 'execute')
+     done = lambda ok, result, obj=obj:_after(host, obj, ok, result)
+-    card = face.stage(title, step, done=done, asked=True, word=word)      # asked of her: it follows her hand (done at once, or waiting)
++    card = face.stage(title, step, done=done, asked=asked, word=word)      # asked of her: it follows her hand (done at once, or waiting)
+     if card.ran is None:_await_go(host, '%s on “%s”' % (words[:1].lower() + words[1:], title), lambda:face.run_staged(card, done))
+     elif card.ran is False:                    # she tried at once and it was refused: nothing would move, so nothing is marked
+         page.view.would = {};page.view.would_said = '';page.view.update()
+diff --git a/workbench/hand_door.py b/workbench/hand_door.py
+new file mode 100644
+index 0000000..9af9535
+--- /dev/null
++++ b/workbench/hand_door.py
+@@ -0,0 +1,656 @@
++"""The door's mechanics (Graphite 1.0, F1): one stop rule for her hand wherever it drives, the window put back as it was, and
++her changes at your dial with one Undo.
++
++The owner's paper, section 13: "A task should also be stoppable ... An interrupted task should retain enough evidence for the
++owner to understand what completed, what remains uncertain, and whether restarting is safe." The plan's F1: "A touch stops
++her: any owner input in the window while her hand drives it pauses the hand at once (the stop between presses); she puts the
++window back as it was (focus, tab, selection, scroll) when she finishes or stops; changes through her hand at the owner's
++dial with one Undo."
++
++"The window" is either of two, and one rule covers both (DOOR, one per process):
++  desk      Graphite's own window, driven by her hand on the desk (her_hand_qt.HerHand, her door in desk_doers). Your input
++            there is a press of the mouse, a key or a touch that the window system delivers (her own presses go to widgets,
++            never to a window), seen by her_hand_qt's filter.
++  program   a program window of yours that her hand drives (a11y_hand, K9). Your input is any key, button or pointer move
++            the X server sees that is not in her ledger of synthetic events (a11y_hand.Touch).
++
++THE STOP RULE. While her hand drives (begin() .. finish()), your input pauses it at once: touched() marks the door paused, and
++her next press is refused (check(), the stop between presses: never halfway through a click, never between the two halves of
++a replace). A paused hand holds the window exactly as it is, and waits for your word:
++  Continue  (carry_on(), your press: her column's Continue, a press of yours that carries her work on) — she goes on from
++            where the window is now; nothing she did is repeated without being looked at first (K1's resume does that).
++  Stop      (stop(), your press: her card's or her column's Stop, hand.door.stop) — the window is put back as it was when she
++            began: what she opened over it is closed, the focus, the tab, the selection, the text cursor and the scroll are
++            back. What she changed stays changed (a change is taken back by its own Undo, below); the words say what came back
++            and what could not.
++HALT stops her the same way (its words: stopped by HALT), and nothing is put back while HALT holds: putting back is acting.
++When she finishes a sequence herself (finish()), she gives back what was yours and not hers to keep: your keyboard focus and
++the text cursor in it, the window that was in front, and anything she left open over it. What she was asked to show stays.
++
++PUTTING A PROGRAM WINDOW BACK (program_snapshot, program_put_back; through accessibility, as K9 acts):
++  - the menus she opened are closed: a menu is open when its node is SELECTED; it is closed with the Escape key (XTest, in her
++    ledger, so it is never taken for your touch), one level at a time, looking again after each, and only while her program
++    has the keyboard (else her window is brought forward first, and yours brought back after). Never one Escape more than a
++    menu is open (one more would clear your selection in the document);
++  - the control that had the focus gets it back (Component.GrabFocus); the text cursor (Text.SetCaretOffset) and the
++    selection (Text.SetSelection / AddSelection) come back where they were, read back to be sure;
++  - its place on the screen (Component.GetExtents of that control: how far the view is scrolled) is compared, and scrolled
++    back (Text.ScrollSubstringTo) where the program offers it;
++  - the window that was in front is in front again (windows_x11, _NET_ACTIVE_WINDOW).
++  A dialog open over her window is never answered or closed by a put back: it stays yours.
++Its own allow-list (PUT_BACK): the reader's reads, a few reads of the text cursor and selection, and four acts that only put
++back (GrabFocus, SetCaretOffset, SetSelection, AddSelection); nothing here presses a control or types a word.
++
++PUTTING GRAPHITE'S WINDOW BACK is hand_door_qt's (focus and its text cursor, the work tabs, the selection in the lists and
++trees, every scroll, the Field's zoom), after the planner's own put back (what is in front, the selected sheet, what is over
++the work: her_hand_qt.HerHand.put_back).
++
++CHANGES AT YOUR DIAL, WITH ONE UNDO (the desk; 0.8.8's "Changes through her hand"): her door lets a change act through only as
++her dial says (desk_acts.desk_hers, stacy_hand.hers): at Do and show and Free hand an ordinary change is done at once, with its
++card and its line in her trail; at Ask first, or for what always asks, or on the model's pick alone, the change waits on its
++card for your Approve, whatever she planned. Each change she made in a turn can be taken back, and her card's "Undo my
++changes" takes back all of that turn's changes at once, the latest first, each by its own guarded Undo line (changes_of,
++undo_lines): one Undo.
++
++Kernel operations (registered in engineering_kernel and engineering_cli under "1.0 F1"):
++  hand.door           {}   read     where her hand drives, whether it is paused and why, what it did, what came back
++  hand.door.continue  {}   approve  your Continue: a paused hand may go on
++  hand.door.stop      {}   approve  your Stop: the window put back as it was
++
++No floating point in anything checked: times are whole milliseconds, places and scrolls whole pixels and whole steps.
++"""
++from __future__ import annotations
++
++import json
++import os
++import re
++import subprocess
++import threading
++import time
++from pathlib import Path
++
++SCHEMA = 'graphite.hand-door/1'
++HANDS = ('desk', 'program')
++STATES = ('resting', 'driving', 'paused', 'stopped', 'finished')
++WHERE = {'desk': "Graphite's window", 'program': 'your program'}
++FINISH_PARTS = ('menus', 'focus', 'caret', 'selection', 'window')       # what she gives back when she finishes herself
++ALL_PARTS = ('menus', 'focus', 'caret', 'selection', 'place', 'window', 'tabs', 'scroll', 'zoom', 'lists')
++SETTLE_MS = 250
++ESCAPES_MOST = 6
++KEPT_ACTS = 24
++
++
++class Paused(Exception):
++    """Her next press is refused: your input paused her hand (or HALT stopped it). Nothing more is pressed."""
++
++    def __init__(self, why, words):
++        super().__init__(words);self.why = why;self.words = words
++
++
++def _now_ms():
++    return time.time_ns() // 1000000
++
++
++def _word(key):
++    try:
++        from . import state_words
++        return state_words.said(key)
++    except Exception:  # noqa: BLE001 - the words without the shape are still the words
++        return {'stopped': 'stopped by you', 'stopped_halt': 'stopped by HALT', 'done': 'done (verified)'}.get(key, key)
++
++
++class Door:
++    """Her hand's door in this process: which window she drives, whether your input paused her, and what puts it back."""
++
++    def __init__(self):
++        self.lock = threading.RLock();self.watchers = []
++        self._reset()
++
++    def _reset(self):
++        self.hand = '';self.state = 'resting';self.why = '';self.what = '';self.words = '';self.program = '';self.title = ''
++        self.acts = [];self.snapshot = None;self.restore = None;self.carry = None;self.since = 0;self.touched_at = 0;self.touches = 0
++        self.back = None;self.assignment = '';self.step = '';self.paused_after = None
++
++    # ---------------------------------------------------------------- her hand takes the window
++    def begin(self, hand, words='', snapshot=None, restore=None, carry=None, program='', title='', assignment='', step=''):
++        """Her hand starts a sequence of presses in this window. A pause not yet answered holds: she does not start again
++        until you said Continue or Stop (PAUSED). `restore(snapshot, parts)` puts the window back; `carry()` goes on."""
++        if hand not in HANDS:raise ValueError('HAND: her hand drives the desk or a program window')
++        with self.lock:
++            if self.state == 'paused':
++                raise Paused(self.why or 'touch', 'PAUSED: my hand waits for your word since %s (%s): Continue, or Stop to put the window back'
++                             % ('HALT stopped it' if self.why == 'halt' else 'your touch', self.what or WHERE.get(self.hand, 'the window')))
++            self._reset()
++            self.hand = hand;self.state = 'driving';self.words = str(words or '')[:300];self.snapshot = snapshot;self.restore = restore
++            self.carry = carry;self.program = str(program or '')[:120];self.title = str(title or '')[:300];self.since = _now_ms()
++            self.assignment = str(assignment or '');self.step = str(step or '')
++        self._tell()
++        return self.view()
++
++    def driving(self, hand=None):
++        with self.lock:return self.state == 'driving' and (hand is None or self.hand == hand)
++
++    def paused(self, hand=None):
++        with self.lock:return self.state == 'paused' and (hand is None or self.hand == hand)
++
++    # ---------------------------------------------------------------- your input, between two of her presses
++    def touched(self, hand, what='your touch'):
++        """Your input in the window her hand drives: paused at once (her next press is refused). True when it paused her
++        now; a touch while she rests, or in a window she does not drive, is yours alone and changes nothing."""
++        with self.lock:
++            if self.state != 'driving' or (hand and self.hand != hand):
++                if self.state == 'paused' and (not hand or self.hand == hand):self.touches += 1
++                return False
++            self.state = 'paused';self.why = 'touch';self.what = str(what or 'your touch')[:120];self.touched_at = _now_ms()
++            self.touches += 1;self.paused_after = len(self.acts)
++        self._tell()
++        return True
++
++    def halted(self, hand=None):
++        """HALT: her hand is stopped before its next press, like a touch, with HALT's words; nothing is put back while HALT holds."""
++        with self.lock:
++            if self.state != 'driving' or (hand and self.hand != hand):return False
++            self.state = 'paused';self.why = 'halt';self.what = 'HALT';self.touched_at = _now_ms();self.paused_after = len(self.acts)
++        self._tell()
++        return True
++
++    def check(self, act=''):
++        """Before each of her presses: Paused when your input paused her, with what was done and what was not."""
++        with self.lock:
++            if self.state != 'paused':return
++            done = ('done: ' + '; '.join(self.acts[-3:])) if self.acts else 'nothing of it was done'
++            words = '%s (%s): %s; “%s” was not done' % (_word('stopped_halt' if self.why == 'halt' else 'stopped'), self.what, done, act or 'the next press')
++            raise Paused(self.why or 'touch', words)
++
++    def acted(self, words):
++        with self.lock:
++            self.acts.append(str(words or '')[:160]);self.acts = self.acts[-KEPT_ACTS:]
++        self._tell()
++
++    # ---------------------------------------------------------------- your word
++    def carry_on(self, hand=None):
++        """Your Continue: a paused hand goes on from where the window is now (its own carry, when it has one)."""
++        with self.lock:
++            if self.state != 'paused' or (hand and self.hand != hand):return {'carried': False, 'words': 'My hand is not paused; nothing to carry on.'}
++            if self.why == 'halt' and _halt_holds():return {'carried': False, 'words': 'HALT holds my work: lift it first (RESUME), then Continue.'}
++            carry = self.carry;self.state = 'driving' if carry is not None else 'resting';self.why = '';self.what = ''
++        out = {'carried': True, 'words': 'My hand goes on from where the window is now.', 'hand': self.hand}
++        if carry is not None:
++            try:
++                said = carry()
++                if said:out['words'] = str(said)[:300]
++            except Exception as exc:  # noqa: BLE001 - her hand going on never takes the window down
++                out['words'] = 'My hand could not go on: %s' % str(exc)[:200]
++        self._tell()
++        return out
++
++    def stop(self, parts=ALL_PARTS):
++        """Your Stop: she stops for good and the window is put back as it was when she began (what came back, in words)."""
++        with self.lock:
++            if self.state not in ('driving', 'paused'):
++                return {'back': None, 'words': 'My hand is not moving; the window is yours as it is.', 'state': self.state}
++            if self.why == 'halt' and _halt_holds():
++                return {'back': False, 'words': 'HALT holds my work, and putting the window back is acting: lift HALT first, then Stop.', 'state': self.state}
++            restore, snap = self.restore, self.snapshot
++            self.state = 'stopped';self.why = self.why or 'stop'
++        back = _run_restore(restore, snap, parts)
++        with self.lock:self.back = back
++        self._tell()
++        return dict(back, state='stopped')
++
++    def finish(self, words='', parts=FINISH_PARTS):
++        """Her sequence ended by itself: what was yours is given back (your focus, your cursor, the window in front, anything
++        she left open over it); what she was asked to show stays."""
++        with self.lock:
++            if self.state != 'driving':return {'back': None, 'words': '', 'state': self.state}
++            restore, snap = self.restore, self.snapshot
++            self.state = 'finished';self.words = str(words or self.words)[:300]
++        back = _run_restore(restore, snap, parts)
++        with self.lock:self.back = back
++        self._tell()
++        return dict(back, state='finished')
++
++    def leave(self, hand=None):
++        """Her sequence ends with nothing to give back (a refusal before her first press): the door rests."""
++        with self.lock:
++            if self.state == 'driving' and (hand is None or self.hand == hand):self.state = 'finished'
++        self._tell()
++
++    def forget(self):
++        """Your own new request starts afresh: an earlier pause is settled as it stands (nothing more is put back)."""
++        with self.lock:
++            if self.state == 'paused':self.state = 'stopped';self.why = self.why or 'touch'
++        self._tell()
++
++    # ---------------------------------------------------------------- what her column and the Kernel read
++    def view(self):
++        with self.lock:
++            key = {'paused': 'stopped_halt' if self.why == 'halt' else 'stopped', 'stopped': 'stopped', 'finished': 'done'}.get(self.state, '')
++            if self.state == 'driving':said = '▸ my hand drives %s' % (self.program or WHERE.get(self.hand, 'the window'))
++            elif self.state == 'paused':said = '%s, in %s: Continue, or Stop to put the window back' % (_word(key), self.program or WHERE.get(self.hand, 'the window'))
++            elif self.state == 'stopped':said = (self.back or {}).get('words') or _word('stopped')
++            elif self.state == 'finished':said = (self.back or {}).get('words') or ''
++            else:said = ''
++            return {'schema': SCHEMA, 'hand': self.hand, 'state': self.state, 'why': self.why, 'what': self.what, 'word': _word(key) if key else '',
++                    'words': said, 'doing': self.words, 'program': self.program, 'title': self.title, 'acts': list(self.acts),
++                    'paused_after': self.paused_after, 'touches': self.touches, 'since': self.since, 'back': self.back,
++                    'assignment': self.assignment, 'step': self.step, 'snapshot': _said_snapshot(self.snapshot)}
++
++    def _tell(self):
++        view = self.view()
++        for hook in list(self.watchers):
++            try:hook(view)
++            except Exception:  # noqa: BLE001 - a watcher of the door never stops it
++                pass
++
++
++DOOR = Door()
++
++
++def _halt_holds():
++    """Whether HALT holds her work now (read through K3's gate where a Kernel is at hand; else the door's own word)."""
++    kernel = _KERNEL.get('kernel')
++    if kernel is None:return False
++    try:
++        from . import halt_gate
++        return bool(halt_gate.held(kernel))
++    except Exception:  # noqa: BLE001
++        return False
++
++
++_KERNEL = {}
++
++
++def _run_restore(restore, snap, parts):
++    if restore is None or snap is None:return {'back': None, 'words': 'There was nothing to put back.', 'parts': {}}
++    try:
++        out = restore(snap, tuple(parts)) or {}
++    except Exception as exc:  # noqa: BLE001 - a put back that fails says so; the window is never taken down by it
++        out = {'back': False, 'words': 'I could not put the window back: %s' % (str(exc)[:200] or type(exc).__name__), 'parts': {}}
++    out.setdefault('parts', {})
++    if 'back' not in out:out['back'] = all(v.get('back', True) for v in out['parts'].values()) if out['parts'] else True
++    if not out.get('words'):out['words'] = _words_of(out)
++    return out
++
++
++def _words_of(out):
++    parts = out.get('parts') or {}
++    back = [p['words'] for p in parts.values() if p.get('back') and p.get('words')]
++    not_back = [p['words'] for p in parts.values() if p.get('back') is False and p.get('words')]
++    if out.get('back') and back:return 'The window is back as it was: %s.' % '; '.join(back)
++    if out.get('back'):return 'The window is back as it was.'
++    return 'I put back what I could%s; not back: %s.' % ((': ' + '; '.join(back)) if back else '', '; '.join(not_back) or 'the window is not as it was')
++
++
++def _said_snapshot(snap):
++    """The snapshot as plain words and values (no live objects, no text of yours)."""
++    if not isinstance(snap, dict):return None
++    keep = {}
++    for k, v in snap.items():
++        if k.startswith('_'):continue
++        if isinstance(v, (str, int, bool)) or v is None:keep[k] = v
++        elif isinstance(v, dict):keep[k] = {kk: vv for kk, vv in v.items() if isinstance(vv, (str, int, bool, list, tuple)) or vv is None}
++        elif isinstance(v, (list, tuple)):keep[k] = [x for x in v if isinstance(x, (str, int, list, tuple))][:16]
++    return keep
++
++
++# ================================================================== a program window, through accessibility (K9's window)
++
++TEXT, COMPONENT = 'org.a11y.atspi.Text', 'org.a11y.atspi.Component'
++PUT_BACK_READS = frozenset({(TEXT, 'GetNSelections'), (TEXT, 'GetSelection')})
++PUT_BACK_ACTS = frozenset({(COMPONENT, 'GrabFocus'), (TEXT, 'SetCaretOffset'), (TEXT, 'SetSelection'), (TEXT, 'AddSelection')})
++ST_FOCUSED, ST_SELECTED, ST_SHOWING = 12, 23, 25
++SNAP_NODES = 900              # the focus looked for in at most this many objects of her window
++SNAP_MS = 4000
++
++
++def _allowed():
++    from . import a11y_reader as reader
++    return reader.READ_ONLY | PUT_BACK_READS | PUT_BACK_ACTS
++
++
++def _call(conn, ref, iface, method, *args, timeout=1500):
++    """One call on the accessibility bus, only from PUT_BACK's own list (and the reader's reads)."""
++    if (iface, method) not in _allowed():raise PermissionError('PUT_BACK_ALLOWED: %s.%s is not one of the put back\'s methods' % (iface, method))
++    from PySide6.QtDBus import QDBus, QDBusMessage
++    from . import a11y_reader as reader
++    message = QDBusMessage.createMethodCall(ref[0], ref[1], iface, method)
++    if args:message.setArguments(list(args))
++    reply = conn.call(message, QDBus.CallMode.Block, max(1, int(timeout)))
++    if reply.type() == QDBusMessage.MessageType.ErrorMessage:
++        raise reader.CallFailed(reply.errorName() or '', (reply.errorMessage() or '').strip()[:200])
++    return [reader.plain(v) for v in reply.arguments()]
++
++
++def _caret(conn, ref):
++    from . import a11y_reader as reader
++    try:return int((_call(conn, ref, reader.PROPS, 'Get', TEXT, 'CaretOffset') or [-1])[0])
++    except (reader.CallFailed, TypeError, ValueError):return None
++
++
++def _selections(conn, ref):
++    from . import a11y_reader as reader
++    try:n = int((_call(conn, ref, TEXT, 'GetNSelections') or [0])[0] or 0)
++    except (reader.CallFailed, TypeError, ValueError):return None
++    out = []
++    for i in range(min(n, 4)):
++        try:got = _call(conn, ref, TEXT, 'GetSelection', int(i))
++        except reader.CallFailed:break
++        try:
++            start, end = (int(got[0]), int(got[1])) if len(got) >= 2 else (int(got[0][0]), int(got[0][1]))
++        except (TypeError, ValueError, IndexError):continue
++        if 0 <= start < end:out.append([start, end])
++    return out
++
++
++def _open_menus(look, top):
++    """The menus open now in her window's menu bar, outermost first: a menu is open while its node is SELECTED."""
++    from . import a11y_hand as H
++    bars = H._bfs(look, top, lambda n: n['role'] == 'menu bar', skip=frozenset({'document text', 'tool bar', 'menu', 'paragraph'}), most=1)
++    if not bars:return []
++    out = [];holder = bars[0]
++    for _ in range(ESCAPES_MOST):
++        kids = [look.node(r) for r in look.children(holder['ref'])[:80]]
++        nxt = next((k for k in kids if k is not None and k['role'] == 'menu' and ST_SELECTED in k['states']), None)
++        if nxt is None:break
++        out.append({'ref': list(nxt['ref']), 'name': nxt['name']})
++        holder = nxt
++    return out
++
++
++def _focus_node(look, top):
++    """The control with the focus in her window (its node), or None."""
++    from . import a11y_reader as reader
++    queue = [(top, 0)];start = look.nodes
++    while queue:
++        node, depth = queue.pop(0)
++        if node is not top and ST_FOCUSED in node['states']:return node
++        if look.nodes - start >= SNAP_NODES:return None
++        if depth >= 20 or (node is not top and node['role'] in ('menu', 'menu bar', 'popup menu', 'tool bar', 'status bar', 'scroll bar')) or reader.DEFUNCT in node['states']:continue
++        if node is not top and node['states'] and ST_SHOWING not in node['states']:continue
++        try:kids = look.children(node['ref'])[:400]
++        except reader.OutOfTime:return None
++        for ref in kids:
++            try:child = look.node(ref)
++            except reader.OutOfTime:return None
++            if child is not None:queue.append((child, depth + 1))
++    return None
++
++
++def _active_window():
++    try:
++        from . import windows_x11
++        watcher = windows_x11.shared()
++        if not watcher.start():return 0, ''
++        snap = watcher.refresh()
++        active = int(snap.get('active') or 0)
++        title = next((w['title'] for w in snap.get('windows') or () if w['window'] == active), '')
++        return active, title
++    except Exception:  # noqa: BLE001 - no window list: the window in front is not looked after
++        return 0, ''
++
++
++def program_snapshot(look, top, row, rel=''):
++    """Her program window as it is before her first press: the control with the focus, its text cursor and selection, its
++    place on the screen, the menus open (yours, left alone), and the window in front. Read only."""
++    from . import a11y_hand as H
++    from . import a11y_reader as reader
++    from .a11y_hand import extents
++    look = H.Look(look.conn, budget_ms=SNAP_MS, max_nodes=SNAP_NODES)      # a look of its own, bounded: the snapshot never holds her up long
++    focus = None
++    try:node = _focus_node(look, top)
++    except reader.OutOfTime:node = None
++    if node is not None and not H.private(node):
++        ifaces = look.interfaces(node['ref'])
++        focus = {'ref': list(node['ref']), 'role': node['role'], 'name': node['name'][:120], 'caret': None, 'selections': None, 'place': None}
++        if TEXT in ifaces:
++            focus['caret'] = _caret(look.conn, node['ref']);focus['selections'] = _selections(look.conn, node['ref'])
++        box = extents(tuple(node['ref']))
++        focus['place'] = list(box) if box else None
++    try:menus = _open_menus(look, top)
++    except reader.OutOfTime:menus = []
++    active, active_title = _active_window()
++    return {'kind': 'program', 'window': row.get('id'), 'pid': row.get('pid'), 'title': str(row.get('title') or '')[:200], 'path': rel,
++            'focus': focus, 'menus': [m['name'] for m in menus], 'active': active, 'active_title': active_title[:200], 'at': _now_ms()}
++
++
++def _input_in(row):
++    """Whether her program's window has the keyboard now (the X input focus is in it)."""
++    import ctypes
++    from . import a11y_hand as H
++    if not H.KEYS.ready():return False
++    x = H.KEYS.x
++    x.XGetInputFocus.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ulong), ctypes.POINTER(ctypes.c_int)]
++    w = ctypes.c_ulong();r = ctypes.c_int()
++    x.XGetInputFocus(H.KEYS.dpy, ctypes.byref(w), ctypes.byref(r))
++    if w.value in (0, 1):return False      # None, PointerRoot
++    try:return H.KEYS.top_of(int(w.value)) == H.KEYS.top_of(int(str(row.get('id')), 16))
++    except (TypeError, ValueError):return False
++
++
++def _escape():
++    from . import a11y_hand as H
++    code = H.KEYS.named('Escape')
++    if not code:raise RuntimeError('this keyboard has no key that closes a menu')
++    H.KEYS.press(code)      # written in her ledger first (Touch.expecting): never taken for your touch
++
++
++def _close_menus(look, top, row, before):
++    """Close the menus she left open over her window (one Escape a level, looked at after each); yours stay."""
++    from . import a11y_hand as H
++    menus = _open_menus(look, top)
++    mine = [m for m in menus if m['name'] not in (before or [])] if before else menus
++    if not mine:return {'back': True, 'words': ''}
++    brought = 0
++    if not _input_in(row):
++        try:
++            from . import windows_x11
++            got = windows_x11.shared().activate(int(str(row.get('id')), 16), wait=1.0)
++            brought = 1 if got.get('verified') else 0
++        except Exception:  # noqa: BLE001
++            brought = 0
++        if not _input_in(row):
++            return {'back': False, 'words': 'the menu “%s” I opened is still open: my program does not have the keyboard, so I sent no key' % mine[-1]['name'][:40]}
++    if not H.KEYS.ready():return {'back': False, 'words': 'the menu “%s” is still open: %s' % (mine[-1]['name'][:40], H.KEYS.reason)}
++    sent = 0
++    for _ in range(min(ESCAPES_MOST, len(menus) + 1)):
++        H._fresh(look)
++        menus = _open_menus(look, top)
++        if not [m for m in menus if m['name'] not in (before or [])]:break
++        _escape();sent += 1
++        time.sleep(SETTLE_MS / 1000)
++    H._fresh(look)
++    left = [m for m in _open_menus(look, top) if m['name'] not in (before or [])]
++    if left:return {'back': False, 'words': 'the menu “%s” is still open after I tried %d time%s to close it' % (left[-1]['name'][:40], sent, '' if sent == 1 else 's'), 'escapes': sent}
++    return {'back': True, 'words': 'the %s menu I opened is closed' % ' › '.join(m['name'] for m in mine)[:80], 'escapes': sent, 'brought_forward': brought}
++
++
++def program_put_back(snap, parts=ALL_PARTS):
++    """Her program window put back as the snapshot says, as far as accessibility and the window list allow: each part read
++    back to be sure. Returns {'back', 'parts': {part: {'back', 'words'}}, 'words'}."""
++    from . import a11y_hand as H
++    from . import a11y_reader as reader
++    out = {}
++    try:
++        _, winsnap = H._windows()
++        row = next((w for w in winsnap.get('windows') or () if w['id'] == snap.get('window')), None)
++    except H.Refused as why:
++        return {'back': False, 'parts': {'window': {'back': False, 'words': str(why).split(': ', 1)[-1][:160]}}}
++    if row is None:
++        return {'back': False, 'parts': {'window': {'back': False, 'words': 'my window “%s” is closed' % snap.get('title', '')[:60]}}}
++    look = H.Look(H._conn())
++    try:app, top = H._frame(look, row, snap.get('path') or '')
++    except H.Refused as why:
++        return {'back': False, 'parts': {'window': {'back': False, 'words': str(why).split(': ', 1)[-1][:160]}}}
++    if 'menus' in parts:
++        try:out['menus'] = _close_menus(look, top, row, snap.get('menus'))
++        except (reader.CallFailed, reader.OutOfTime, RuntimeError) as why:out['menus'] = {'back': False, 'words': 'the menus could not be looked at (%s)' % str(why)[:80]}
++        if not out['menus'].get('words'):out.pop('menus')
++    dialogs = []
++    try:
++        H._fresh(look);dialogs = H._dialogs(look, app, top)
++    except (reader.CallFailed, reader.OutOfTime):
++        pass
++    if dialogs:
++        out['dialog'] = {'back': None, 'words': 'the dialog “%s” is open over the window: it stays yours' % (dialogs[0]['name'] or '')[:60]}
++    focus = snap.get('focus')
++    if focus and not dialogs:
++        ref = tuple(focus['ref']);conn = look.conn
++        H._fresh(look)
++        node = look.node(ref)
++        if node is None:
++            if 'focus' in parts:out['focus'] = {'back': False, 'words': 'the %s that had the focus is gone' % (focus['role'] or 'control')}
++        else:
++            if 'focus' in parts and ST_FOCUSED not in node['states']:
++                try:_call(conn, ref, COMPONENT, 'GrabFocus')
++                except reader.CallFailed:pass
++                time.sleep(SETTLE_MS / 1000);H._fresh(look);node = look.node(ref) or node
++            if 'focus' in parts:
++                ok = ST_FOCUSED in node['states']
++                out['focus'] = {'back': ok, 'words': ('the focus is back in the %s%s' % (focus['role'], (' “%s”' % focus['name'][:40]) if focus['name'] and focus['role'] not in ('paragraph', 'text') else ''))
++                                if ok else 'the focus did not come back to the %s' % focus['role']}
++            sels = focus.get('selections')
++            if 'selection' in parts and sels is not None:
++                now = _selections(conn, ref)
++                if now != sels:
++                    try:
++                        if sels:
++                            if now:_call(conn, ref, TEXT, 'SetSelection', 0, int(sels[0][0]), int(sels[0][1]))
++                            else:_call(conn, ref, TEXT, 'AddSelection', int(sels[0][0]), int(sels[0][1]))
++                        elif focus.get('caret') is not None and focus['caret'] >= 0:
++                            _call(conn, ref, TEXT, 'SetCaretOffset', int(focus['caret']))      # a caret set clears a selection
++                    except reader.CallFailed:
++                        pass
++                    time.sleep(SETTLE_MS / 1000);now = _selections(conn, ref)
++                if sels:out['selection'] = {'back': now == sels, 'words': ('your selection is back (characters %d to %d)' % (sels[0][0], sels[0][1])) if now == sels
++                                            else 'your selection did not come back'}
++            caret = focus.get('caret')
++            if 'caret' in parts and caret is not None and caret >= 0:
++                now = _caret(conn, ref)
++                if now != caret and not sels:
++                    try:_call(conn, ref, TEXT, 'SetCaretOffset', int(caret))
++                    except reader.CallFailed:pass
++                    time.sleep(SETTLE_MS / 1000);now = _caret(conn, ref)
++                out['caret'] = {'back': now == caret, 'words': ('the text cursor is back at character %d' % caret) if now == caret else
++                                'the text cursor is at %s, not %d' % (now, caret)}
++            if 'place' in parts and focus.get('place'):
++                from .a11y_hand import extents
++                box = extents(ref)
++                if box and list(box) != focus['place']:
++                    _scroll_to(ref, caret if caret is not None and caret >= 0 else 0)
++                    time.sleep(SETTLE_MS / 1000);box = extents(ref)
++                same = bool(box) and list(box) == focus['place']
++                out['place'] = {'back': same, 'words': 'the view is scrolled as it was' if same else 'the view is not scrolled as it was'}
++    if 'window' in parts and snap.get('active'):
++        now, _ = _active_window()
++        if now != snap['active']:
++            try:
++                from . import windows_x11
++                got = windows_x11.shared().activate(snap['active'], wait=1.0)
++                ok = bool(got.get('verified'))
++            except Exception:  # noqa: BLE001
++                ok = False
++            out['window'] = {'back': ok, 'words': ('“%s” is in front again' % (snap.get('active_title') or 'your window')[:60]) if ok else
++                             'the window that was in front (“%s”) could not be brought back' % (snap.get('active_title') or '')[:60]}
++        else:
++            out['window'] = {'back': True, 'words': '“%s” is in front, as it was' % (snap.get('active_title') or 'the window')[:60]}
++    back = all(p.get('back') is not False for p in out.values())
++    return {'back': back, 'parts': out}
++
++
++def _scroll_to(ref, at):
++    """Text.ScrollSubstringTo(start, end, ANYWHERE): its type is an unsigned number, which QtDBus cannot send from Python, so it
++    goes through dbus-send on the accessibility bus, typed (as K9's GetExtents). A program that does not offer it says no."""
++    from . import a11y_reader as reader
++    address = reader._BUS.get('address')
++    if not address:return False
++    try:
++        done = subprocess.run(['dbus-send', '--bus=' + address, '--print-reply=literal', '--reply-timeout=1500', '--dest=' + ref[0], ref[1],
++                               TEXT + '.ScrollSubstringTo', 'int32:%d' % int(at), 'int32:%d' % (int(at) + 1), 'uint32:6'],
++                              capture_output=True, text=True, timeout=4)
++    except (OSError, subprocess.TimeoutExpired):
++        return False
++    return done.returncode == 0
++
++
++def carry_assignment(call, ident):
++    """Your Continue for her hand in a program (her column's press): the step of her assignment that your touch stopped is
++    authorised again by that press and the assignment carries on; K1 looks at what was done before anything is repeated.
++    `call(op, args)` is your press through the Kernel: (result, why). Returns her words, or '' when nothing waited."""
++    if not ident:return ''
++    view, why = call('assignment.status', {'id': ident})
++    if not view:return ''
++    step = next((s for s in view.get('steps') or () if s.get('status') == 'needs review' and 'stopped by your touch' in str(s.get('reason') or '')), None)
++    if step is None:return ''
++    planned, why = call('assignment.plan', {'id': ident, 'authorise': [step['key']], 'expected_digest': view.get('plan_digest')})
++    if planned is None:return 'Step %s could not be authorised again: %s' % (step.get('n'), why)
++    ran, why = call('assignment.step', {'id': ident, 'until': 'end'})
++    if ran is None:return 'My hand could not go on: %s' % why
++    said = [str(w) for w in ran.get('said') or () if w]
++    return ' '.join(said)[:400] or 'My hand went on from step %s.' % step.get('n')
++
++
++# ================================================================== her changes in a turn, and the one Undo (the desk)
++
++def changes_of(trail_entries):
++    """Her changes of one turn that can be taken back: the trail's entries (stacy_hand.trail order, latest first) that are done
++    and carry an Undo line."""
++    return [e for e in trail_entries if isinstance(e, dict) and e.get('state') == 'done' and e.get('undo')]
++
++
++def undo_words(n_back, n_left, said=()):
++    if not n_back and not n_left:return 'Nothing I changed in this turn can be taken back.'
++    words = 'Taken back: %d change%s of mine, the latest first.' % (n_back, '' if n_back == 1 else 's')
++    if n_left:words += ' %d could not be taken back: %s' % (n_left, '; '.join(s for s in said if s)[:200] or 'it changed since')
++    return words
++
++
++# ================================================================== the Kernel's operations (1.0 F1)
++
++FIELDS = {'hand.door': ({}, []), 'hand.door.continue': ({}, []), 'hand.door.stop': ({}, [])}
++SCOPES = {'hand.door': 'read', 'hand.door.continue': 'approve', 'hand.door.stop': 'approve'}
++OBSERVERS = ('hand.door',)
++
++
++def dispatch(kernel, op, args, principal):
++    _KERNEL['kernel'] = kernel
++    if op == 'hand.door':return DOOR.view()
++    if op == 'hand.door.continue':
++        out = DOOR.carry_on()
++        _tell_program(kernel, out)
++        return dict(out, door=DOOR.view())
++    if op == 'hand.door.stop':
++        out = DOOR.stop()
++        _tell_program(kernel, out, stopped=True)
++        return dict(out, door=DOOR.view())
++    raise ValueError('Unknown hand door operation')
++
++
++def _tell_program(kernel, out, stopped=False):
++    """Her column's hand line (K9's live state) says what your word did, for a program window."""
++    if DOOR.hand != 'program':return
++    try:
++        from . import a11y_hand as H
++        if stopped:H._tell(kernel, state='done' if out.get('back') else 'not verified', words=out.get('words') or '', program=DOOR.program,
++                           title=DOOR.title, act='', how='put back')
++        elif out.get('carried'):H._tell(kernel, state='resting', words=out.get('words') or '', program=DOOR.program, title=DOOR.title, act='', how='')
++    except Exception:  # noqa: BLE001
++        pass
++
++
++def _halt_stop(kernel, principal):
++    """halt_gate's stop hook: her hand, wherever it drives, stops before its next press."""
++    _KERNEL['kernel'] = kernel
++    return ('her hand stopped in %s' % (DOOR.program or WHERE.get(DOOR.hand, 'the window'))) if DOOR.halted() else ''
++
++
++def _join():
++    try:
++        from . import halt_gate
++        halt_gate.register_stop('her hand, wherever it drives', _halt_stop)
++    except Exception:  # noqa: BLE001
++        pass
++    return True
++
++
++JOINED = _join()
+diff --git a/workbench/hand_door_qt.py b/workbench/hand_door_qt.py
+new file mode 100644
+index 0000000..1ef12a4
+--- /dev/null
++++ b/workbench/hand_door_qt.py
+@@ -0,0 +1,239 @@
++"""Graphite's own window as it was, kept and put back (Graphite 1.0, F1; the door's rule is hand_door).
++
++When her hand starts on the desk, snapshot() keeps what is yours in the window: the keyboard's focus and the text cursor and
++selection in it, the tab chosen in every row of tabs, the current row and the selection in every list and tree, the place of
++every scroll bar, and the Field's size and place (its zoom and scroll). restore() puts back the parts asked for and reads each
++one back, so it says what came back and what could not ("a step is done only when its effect is verified").
++
++What is in front, the selected sheet and what is over the work are the planner's (her_hand_qt.HerHand.put_back, through her
++door, as acts a person would make); this module puts back what a person would put back by hand afterwards, directly, without
++acts: none of it changes a record. A widget that is gone, or a row that is no longer there, is said, never guessed.
++
++Only what is shown is kept: a hidden page keeps its own state. Whole numbers are compared (scroll steps, rows, characters);
++the Field's zoom and place are compared in thousandths, as whole numbers.
++"""
++from __future__ import annotations
++
++FOCUS_PARTS = ('focus',)
++MOST_LISTS = 40
++MOST_SCROLLS = 80
++MOST_SELECTED = 200
++
++
++def _alive(widget):
++    try:
++        import shiboken6
++        return widget is not None and shiboken6.isValid(widget)
++    except Exception:  # noqa: BLE001
++        return widget is not None
++
++
++def _name(widget):
++    try:
++        name = widget.accessibleName() or widget.objectName() or type(widget).__name__
++        return name.split(':', 1)[0].strip() or name      # 'Writing line: Line, Terminal, ...' is said as 'Writing line'
++    except RuntimeError:
++        return 'a part of the window'
++
++
++def _cursor_of(widget):
++    """(position, anchor) of a text widget's cursor, or None."""
++    from PySide6.QtWidgets import QLineEdit, QPlainTextEdit, QTextEdit
++    try:
++        if isinstance(widget, QLineEdit):
++            start = widget.selectionStart()
++            if start >= 0 and widget.hasSelectedText():
++                end = start + len(widget.selectedText())
++                return (start, end) if widget.cursorPosition() == start else (end, start)
++            return (widget.cursorPosition(), widget.cursorPosition())
++        if isinstance(widget, (QTextEdit, QPlainTextEdit)):
++            c = widget.textCursor()
++            return (c.position(), c.anchor())
++    except RuntimeError:
++        return None
++    return None
++
++
++def _set_cursor(widget, cursor):
++    from PySide6.QtGui import QTextCursor
++    from PySide6.QtWidgets import QLineEdit, QPlainTextEdit, QTextEdit
++    position, anchor = cursor
++    if isinstance(widget, QLineEdit):
++        size = len(widget.text());position = min(position, size);anchor = min(anchor, size)
++        if position == anchor:widget.setCursorPosition(position)
++        else:widget.setSelection(anchor, position - anchor)
++    elif isinstance(widget, (QTextEdit, QPlainTextEdit)):
++        c = widget.textCursor();size = len(widget.toPlainText())
++        c.setPosition(min(anchor, size));c.setPosition(min(position, size), QTextCursor.KeepAnchor);widget.setTextCursor(c)
++
++
++def _field_place(view):
++    """The Field's size and place, in thousandths (whole numbers), and its own flags."""
++    try:
++        return {'zoom': int(round(float(view.zoom) * 1000)), 'x': int(round(float(view.scroll_x) * 1000)), 'y': int(round(float(view.scroll_y) * 1000)),
++                'fitted': bool(getattr(view, '_fitted', False)), 'auto': bool(getattr(view, 'auto_fit', False))}
++    except (AttributeError, TypeError, ValueError, RuntimeError):
++        return None
++
++
++def snapshot(host):
++    """What is yours in Graphite's window now. Live widgets are kept under keys that start with '_' (never written anywhere)."""
++    from PySide6.QtCore import QPersistentModelIndex
++    from PySide6.QtWidgets import QAbstractItemView, QAbstractScrollArea, QApplication, QTabBar
++    snap = {'kind': 'desk', 'focus': None, 'tabs': [], 'lists': [], 'scrolls': [], 'field': None}
++    focus = QApplication.focusWidget()
++    if focus is not None and (focus is host or host.isAncestorOf(focus)):
++        snap['focus'] = {'name': _name(focus), 'cursor': _cursor_of(focus)};snap['_focus'] = focus
++    tabs = []
++    for bar in host.findChildren(QTabBar):
++        if bar.isVisible() and bar.count() > 0:
++            tabs.append({'_w': bar, 'index': bar.currentIndex(), 'text': bar.tabText(bar.currentIndex()).replace('&', ''), 'count': bar.count()})
++    snap['_tabs'] = tabs;snap['tabs'] = [t['text'] for t in tabs]
++    lists = []
++    for view in host.findChildren(QAbstractItemView):
++        if len(lists) >= MOST_LISTS:break
++        model = view.model() if view.isVisible() else None
++        sel = view.selectionModel() if model is not None else None
++        if sel is None:continue
++        chosen = [QPersistentModelIndex(i) for i in sel.selectedIndexes()[:MOST_SELECTED]]
++        lists.append({'_w': view, 'current': QPersistentModelIndex(view.currentIndex()), 'selected': chosen, 'n': len(chosen), 'name': _name(view)})
++    snap['_lists'] = lists;snap['lists'] = [l['name'] for l in lists]
++    scrolls = []
++    for area in host.findChildren(QAbstractScrollArea):
++        if len(scrolls) >= MOST_SCROLLS:break
++        if area.isVisible():
++            scrolls.append({'_w': area, 'h': area.horizontalScrollBar().value(), 'v': area.verticalScrollBar().value(), 'name': _name(area)})
++    snap['_scrolls'] = scrolls;snap['scrolls'] = [[s['name'], s['h'], s['v']] for s in scrolls]
++    page = getattr(host, 'field_page', None)
++    view = getattr(page, 'view', None) if page is not None else None
++    if view is not None and view.isVisible():
++        snap['field'] = _field_place(view);snap['_field'] = view
++    return snap
++
++
++def _put_tabs(snap):
++    out = {'back': True, 'words': '', 'n': 0}
++    for t in snap.get('_tabs') or ():
++        bar = t['_w']
++        if not _alive(bar) or not bar.isVisible():continue
++        if bar.currentIndex() == t['index'] and bar.tabText(t['index']).replace('&', '') == t['text']:continue
++        if t['index'] >= bar.count() or bar.tabText(t['index']).replace('&', '') != t['text']:
++            out['back'] = False;continue      # that tab is not there now: it is said, never guessed
++        bar.setCurrentIndex(t['index']);out['n'] += 1
++        if bar.currentIndex() != t['index']:out['back'] = False
++    out['words'] = ('%d tab%s chosen again' % (out['n'], '' if out['n'] == 1 else 's')) if out['n'] else ('' if out['back'] else 'a tab could not be chosen again')
++    return out
++
++
++def _put_lists(snap):
++    from PySide6.QtCore import QItemSelection, QItemSelectionModel, QModelIndex
++    out = {'back': True, 'words': '', 'n': 0}
++    for l in snap.get('_lists') or ():
++        view = l['_w']
++        if not _alive(view) or view.selectionModel() is None:continue
++        sel = view.selectionModel()
++        want = [QModelIndex(p) for p in l['selected'] if p.isValid()]
++        if len(want) != l['n']:out['back'] = False      # a row that was selected is no longer there
++        now = set((i.row(), i.column(), i.internalId()) for i in sel.selectedIndexes())
++        target = set((i.row(), i.column(), i.internalId()) for i in want)
++        current = QModelIndex(l['current']) if l['current'].isValid() else QModelIndex()
++        if now == target and view.currentIndex() == current:continue
++        block = QItemSelection()
++        for i in want:block.select(i, i)
++        if current.isValid():sel.setCurrentIndex(current, QItemSelectionModel.NoUpdate)
++        sel.select(block, QItemSelectionModel.ClearAndSelect)
++        out['n'] += 1
++        if set((i.row(), i.column(), i.internalId()) for i in sel.selectedIndexes()) != target:out['back'] = False
++    out['words'] = ('the selection is back in %d list%s' % (out['n'], '' if out['n'] == 1 else 's')) if out['n'] else ('' if out['back'] else 'a selection could not come back')
++    return out
++
++
++def _clamped(bar, value):
++    return max(bar.minimum(), min(int(value), bar.maximum()))
++
++
++def _put_scrolls(snap, keep=()):
++    """Every scrolled part back where it was, as far as its content now reaches (a list that grew shorter scrolls as far as it
++    goes). A part that holds what her hand just said (her card, `keep`) stays where it is, so you can read it."""
++    out = {'back': True, 'words': '', 'n': 0, 'not': []}
++    kept = [w for w in keep if _alive(w)]
++    for s in snap.get('_scrolls') or ():
++        area = s['_w']
++        if not _alive(area) or not area.isVisible():continue
++        if any(area.isAncestorOf(w) for w in kept):continue
++        h, v = area.horizontalScrollBar(), area.verticalScrollBar()
++        want = (_clamped(h, s['h']), _clamped(v, s['v']))
++        if (h.value(), v.value()) == want:continue
++        h.setValue(want[0]);v.setValue(want[1]);out['n'] += 1
++        if (h.value(), v.value()) != want:out['back'] = False;out['not'].append(s['name'])
++    out['words'] = ('%d scrolled part%s back where %s were' % (out['n'], '' if out['n'] == 1 else 's', 'it' if out['n'] == 1 else 'they')) if out['n'] and out['back'] else (
++        '' if out['back'] else 'not scrolled back: %s' % ', '.join(out['not'][:3]))
++    return out
++
++
++def _put_field(snap):
++    view = snap.get('_field');want = snap.get('field')
++    if want is None or not _alive(view) or not view.isVisible():return None
++    if _field_place(view) == want:return {'back': True, 'words': ''}
++    try:
++        view.zoom = want['zoom'] / 1000;view._fitted = want['fitted'];view.auto_fit = want['auto']
++        view.scroll_x = want['x'] / 1000;view.scroll_y = want['y'] / 1000
++        view._layout();view.scroll_x = want['x'] / 1000;view.scroll_y = want['y'] / 1000;view.update()
++    except (AttributeError, RuntimeError):
++        return {'back': False, 'words': 'the Field could not be brought back to its size and place'}
++    now = _field_place(view)
++    ok = now is not None and now['zoom'] == want['zoom'] and abs(now['x'] - want['x']) <= 1000 and abs(now['y'] - want['y']) <= 1000
++    return {'back': ok, 'words': 'the Field is at its size and place again' if ok else 'the Field is not at its size and place'}
++
++
++def _put_focus(snap):
++    want = snap.get('focus')
++    if want is None:return None
++    from PySide6.QtCore import Qt
++    from PySide6.QtWidgets import QApplication
++    widget = snap.get('_focus')
++    if not _alive(widget) or not widget.isVisible() or not widget.isEnabled():
++        return {'back': False, 'words': 'the place that had your keyboard (%s) is not shown now' % want['name'][:40]}
++    widget.setFocus(Qt.OtherFocusReason)
++    if want.get('cursor') is not None:
++        try:_set_cursor(widget, want['cursor'])
++        except RuntimeError:pass
++    QApplication.processEvents()
++    has = QApplication.focusWidget() is widget or widget.hasFocus()
++    cursor_ok = want.get('cursor') is None or _cursor_of(widget) == tuple(want['cursor'])
++    if has and cursor_ok:return {'back': True, 'words': 'your keyboard is back in %s%s' % (want['name'][:40], ', the cursor where it was' if want.get('cursor') else '')}
++    if has:return {'back': False, 'words': 'your keyboard is back in %s, but its cursor is not where it was' % want['name'][:40]}
++    # an offscreen or inactive window keeps no focus widget: what would have the keyboard when the window is in front
++    try:
++        if widget.window().focusWidget() is widget:return {'back': True, 'words': 'your keyboard is back in %s (when the window is in front)' % want['name'][:40]}
++    except RuntimeError:
++        pass
++    return {'back': False, 'words': 'your keyboard could not go back to %s' % want['name'][:40]}
++
++
++def restore(host, snap, parts=('focus', 'tabs', 'lists', 'scroll', 'zoom'), keep=()):
++    """Put back the parts asked for, each read back: {'back', 'parts': {part: {'back', 'words'}}, 'words'}. The focus last."""
++    from PySide6.QtWidgets import QApplication
++    if not isinstance(snap, dict) or snap.get('kind') != 'desk':return {'back': None, 'parts': {}, 'words': ''}
++    out = {}
++    if 'tabs' in parts:out['tabs'] = _put_tabs(snap)
++    if 'lists' in parts or 'selection' in parts:out['lists'] = _put_lists(snap)
++    QApplication.processEvents()
++    if 'zoom' in parts or 'scroll' in parts:
++        field = _put_field(snap)
++        if field is not None and field.get('words'):out['zoom'] = field
++    if 'scroll' in parts:out['scroll'] = _put_scrolls(snap, keep)
++    if 'focus' in parts:
++        focus = _put_focus(snap)
++        if focus is not None:out['focus'] = focus
++    quiet = {k: v for k, v in out.items() if v.get('words')}
++    back = all(v.get('back') is not False for v in quiet.values())
++    return {'back': back, 'parts': quiet, 'words': ''}
++
++
++def said(out):
++    """The words of a restore: what came back, and what did not."""
++    parts = (out or {}).get('parts') or {}
++    back = [p['words'] for p in parts.values() if p.get('back') and p.get('words')]
++    not_back = [p['words'] for p in parts.values() if p.get('back') is False and p.get('words')]
++    return '; '.join(back + not_back)
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index cdfc032..10ab8bf 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -554,13 +554,22 @@ def hand_words(live, now_ms=None):
+     program = plain(live.get('program') or 'a program')
+     if state == 'acting':
+         return '▸ My hand in %s: %s' % (program, plain(live.get('act') or live.get('words') or ''))      # how she acts: in the tooltip
+-    if state == 'stopped by your touch':return '■ Stopped by your touch, in %s' % program      # what was done and not: the row's note
+-    if state == 'stopped by HALT':return '■ Stopped by HALT, in %s' % program
++    if state == 'stopped by your touch':return '▮▮ Stopped by your touch, in %s' % program      # what was done and not: the row's note (1.0 F1: D1's shape)
++    if state == 'stopped by HALT':return '▮▮ Stopped by HALT, in %s' % program
+     if state == 'waiting for you':return '◆ A dialog in %s is yours to answer' % program
+     lead = {'done': '✓ My hand', 'not verified': '◆ Not verified', 'refused': '■ I did not act'}[state]
+     return '%s · %s' % (lead, plain(live.get('words') or ''))
+ 
+ 
++def _door_view():
++    """1.0 F1: the door of her hand in this process (hand_door), or nothing."""
++    try:
++        from .hand_door import DOOR
++        return DOOR.view()
++    except Exception:  # noqa: BLE001 - a column never takes the window down
++        return {}
++
++
+ class WorkLine(QWidget):
+     """The progress line under the exchange: the working assignment's verified steps as check rows, then "Running…" with its
+     bar, whole percent, step and time left. While her model answers, "Running…" with no number. Hidden when she rests."""
+@@ -577,7 +586,15 @@ class WorkLine(QWidget):
+         box.addLayout(line)
+         self.detail = row_label(host, '', quiet=True, size=12);box.addWidget(self.detail)
+         self.hand = row_label(host, '', size=12);self.hand.setObjectName('HerHandLine');self.hand.hide()  # 1.0 K9
+-        box.addWidget(self.hand);self.resting = True
++        hand_row = QHBoxLayout();hand_row.setSpacing(px(host, 6));hand_row.addWidget(self.hand, 1)      # 1.0 F1: her hand's line and your word to it, one row
++        box.addLayout(hand_row);self.resting = True
++        self.door = QWidget();door = QHBoxLayout(self.door);door.setContentsMargins(0, 0, 0, 0);door.setSpacing(px(host, 4))  # 1.0 F1: your word to a paused hand
++        self.door_go = small_button(host, 'Continue', 'Let my hand go on from where your window is now')
++        self.door_stop = small_button(host, 'Stop', 'Stop my hand for good: your window goes back as it was (menus I opened closed, your focus, cursor and selection back)')
++        self.door_go.setObjectName('HerDoorContinue');self.door_stop.setObjectName('HerDoorStop')
++        for b in (self.door_go, self.door_stop):b.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)      # their words in full, beside each other
++        self.door_go.clicked.connect(self.door_continue);self.door_stop.clicked.connect(self.door_put_back)
++        door.addWidget(self.door_go);door.addWidget(self.door_stop);hand_row.addWidget(self.door);self.door.hide()
+         self.hide()
+ 
+     def show_work(self, view, most_checks=2):
+@@ -604,6 +621,10 @@ class WorkLine(QWidget):
+     def show_hand(self, live):
+         """1.0 K9: her hand in another program, as it acts, or why it stopped (a shape and a word, never colour alone)."""
+         words = hand_words(live)
++        door = _door_view()      # 1.0 F1: a hand paused by your touch waits for your word: Continue, or Stop to put the window back
++        paused = door.get('hand') == 'program' and door.get('state') == 'paused'
++        if paused:words = '%s, in %s' % (door.get('word') or '▮▮ stopped by you', plain(door.get('program') or 'your program'))
++        self.door.setVisible(paused)
+         tip = plain((live or {}).get('words') or '') + ((' (%s)' % plain(live.get('how'))) if (live or {}).get('how') else '')
+         self.hand.setText(words);self.hand.setToolTip(tip if words else '');self.hand.setVisible(bool(words))
+         if words and self.resting:
+@@ -611,6 +632,22 @@ class WorkLine(QWidget):
+             for w in (self.who, self.words, self.bar, self.percent, self.detail):w.hide()
+             self.show()
+ 
++    def door_continue(self):
++        """1.0 F1: your Continue: the door lets her hand go on, and the step your touch stopped is authorised again and carried on."""
++        from . import hand_door
++        host = self.column.host
++        done, why = press(host, 'hand.door.continue', {})
++        words = (done or {}).get('words') or why
++        if done is not None and done.get('carried'):
++            more = hand_door.carry_assignment(lambda op, args: press(host, op, args), (done.get('door') or {}).get('assignment') or '')
++            if more:words = more
++        self.column.say_words(words);self.column.refresh(force=True)
++
++    def door_put_back(self):
++        """1.0 F1: your Stop: her hand stops for good and your program window goes back as it was."""
++        done, why = press(self.column.host, 'hand.door.stop', {})
++        self.column.say_words((done or {}).get('words') or why);self.column.refresh(force=True)
++
+     def _checks(self, rows):
+         host = self.column.host
+         while len(self.checks) < len(rows):
+diff --git a/workbench/her_hand_qt.py b/workbench/her_hand_qt.py
+index c876cd2..7fcc91d 100644
+--- a/workbench/her_hand_qt.py
++++ b/workbench/her_hand_qt.py
+@@ -157,10 +157,12 @@ class HandCard(QFrame):
+         self.stop_button = button('Stop', 'quiet', 'Stop my hand before its next press')
+         self.again = button('Continue', 'quiet', 'Let my hand go on from where the window is now')
+         self.back = button('Put my window back', 'quiet', 'Back to what was in front, the selection and what was over the work when I started')
++        self.undo = button('Undo my changes', 'quiet', 'Take back every change my hand made for these words, the latest first')      # 1.0 F1: one Undo
+         self.go.setObjectName('HerHandGo');self.stop_button.setObjectName('HerHandStop');self.again.setObjectName('HerHandContinue');self.back.setObjectName('HerHandBack')
+-        self.go.clicked.connect(lambda: hand.go_ahead(by_owner=True));self.stop_button.clicked.connect(lambda: hand.stop('card'))
+-        self.again.clicked.connect(hand.carry_on);self.back.clicked.connect(lambda: hand.put_back())
+-        for b in (self.go, self.stop_button, self.again, self.back):row.addWidget(b)
++        self.undo.setObjectName('HerHandUndo')
++        self.go.clicked.connect(lambda: hand.go_ahead(by_owner=True));self.stop_button.clicked.connect(lambda: hand.stop_for_good())      # 1.0 F1
++        self.again.clicked.connect(hand.carry_on);self.back.clicked.connect(lambda: hand.put_back());self.undo.clicked.connect(lambda: hand.undo_changes())
++        for b in (self.go, self.stop_button, self.again, self.back, self.undo):row.addWidget(b)
+         row.addStretch(1);self.box.addLayout(row)
+         self.closing = self._label('');self.closing.hide()
+         self.refresh()
+@@ -189,9 +191,13 @@ class HandCard(QFrame):
+             label.setWordWrap(True);label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);self.act_box.addWidget(label)
+         state = t.state
+         self.go.setVisible(state == 'waits' and bool(t.offered) and not t.authorised)
+-        self.stop_button.setVisible(state in ('thinking', 'acting'))
++        paused = state == 'stopped' and not t.putting_back and t.stopped_after is not None and t.closing == ''      # 1.0 F1: stopped by you, waiting for your word
++        self.stop_button.setVisible(state in ('thinking', 'acting') or paused)
++        self.stop_button.setToolTip('Stop for good: your window goes back as it was (what is in front, the selection, the tabs, the scroll and your keyboard)'
++                                    if paused else 'Stop my hand before its next press; then your window goes back as it was')
+         self.again.setVisible(state == 'stopped' and not t.putting_back)
+-        self.back.setVisible(state in ('stopped', 'finished') and self.hand.snapshot is not None and t.done > 0)
++        self.back.setVisible(state in ('stopped', 'finished') and not paused and self.hand.snapshot is not None and t.done > 0)
++        self.undo.setVisible(state in ('stopped', 'finished') and not t.putting_back and bool(self.hand.changes()))
+         if t.why:self.note.setText(t.why);self.note.show()
+         else:self.note.hide()
+         if t.closing:self.closing.setText(t.closing);self.closing.show()
+@@ -214,6 +220,7 @@ class HerHand(QObject):
+         self.timer = QTimer(self);self.timer.setSingleShot(True);self.timer.timeout.connect(self.tick)
+         self.pointer = HerPointer(host);self.filter = _Touch(self);self._filtering = False
+         self.state_changed.connect(self._hologram)
++        self._full_stop = False;self._door_snap = None;self._last_back = None      # 1.0 F1: your Stop puts the window back; the window as it was
+ 
+     # -- what the door asks ----------------------------------------------------------------------------------------------
+     @property
+@@ -256,6 +263,7 @@ class HerHand(QObject):
+             except RuntimeError:  # the card left with Talk's earlier exchanges
+                 self.card = None
+         self.state_changed.emit(state)
++        if state == 'stopped' and self.card is not None:QTimer.singleShot(0, self._door_buttons_seen)      # 1.0 F1: Continue and Stop in sight
+ 
+     def _hologram(self, state):
+         """Her picture follows her hand: thinking and acting are at work, waits waits for you, stopped and finished end."""
+@@ -367,6 +375,7 @@ class HerHand(QObject):
+         state_now = getattr(self.host.session, 'state', {})
+         t.trail_before = len(state_now.get(stacy_hand.TRAIL) or []);t.desk_trail_before = len(state_now.get(stacy_hand.DESK_TRAIL) or [])
+         self.turn = t;self.snapshot = state;self.snapshot_world = t.world;self.stop_flag = False
++        self._door_begin(t)      # 1.0 F1
+         self.card = HandCard(self, t)
+         face = getattr(getattr(self.host, 'shell2', None), 'face', None)
+         if face is not None:face.add(self.card)
+@@ -393,6 +402,7 @@ class HerHand(QObject):
+         self.stop_flag = True
+         t = self.turn
+         if t is None:return
++        self._door_stop(why)      # 1.0 F1: the door hears it (one stop rule): paused, or stopped by HALT
+         self.pointer.clear()
+         if t.state == 'waits':
+             t.offered = [];t.authorised = [];t.stopped_after = t.done
+@@ -403,6 +413,9 @@ class HerHand(QObject):
+         """Continue from where the window is now."""
+         t = self.turn
+         if t is None or t.state != 'stopped':return
++        from . import hand_door      # 1.0 F1: your Continue goes through the door (it calls this back, the door driving again)
++        if hand_door.DOOR.hand == 'desk' and hand_door.DOOR.paused('desk'):
++            hand_door.DOOR.carry_on('desk');return
+         self.stop_flag = False;t.surprises = 0;t.pending = None
+         self.set_state('thinking', '');self.timer.start(self.pace_ms)
+ 
+@@ -420,12 +433,14 @@ class HerHand(QObject):
+         t = self.turn
+         t.closing = words or G.closing(t.goals, t.done)
+         self.pointer.clear();self.set_state('finished', '')
++        self._door_finish(t.closing)      # 1.0 F1: your keyboard and its cursor given back; what she was asked to show stays
+ 
+     def halt(self, why):
+         """The turn stops with words (a budget, a repeat, a plan that cannot be made)."""
+         t = self.turn
+         t.stopped_after = t.done;self.pointer.clear()
+         self.set_state('stopped', why)
++        self._door_finish(why)      # 1.0 F1: she stopped herself: what was yours is given back
+ 
+     def tick(self):
+         t = self.turn
+@@ -516,7 +531,10 @@ class HerHand(QObject):
+             if row is not None:row['state'] = 'stopped'
+             t.stopped_after = t.done;t.plan = None
+             self._count_trails()
+-            return self.set_state('stopped', named('You took the window back, so my hand stopped after %d act%s. Continue goes on from here; Put my window back returns it as it was.') % (t.done, '' if t.done == 1 else 's'))
++            self.set_state('stopped', named('You took the window back, so my hand stopped after %d act%s. Continue goes on from here; Stop puts your window back as it was.') % (t.done, '' if t.done == 1 else 's'))
++            if self._full_stop:      # 1.0 F1: your Stop on her card: once she stopped between presses, the window goes back
++                self._full_stop = False;QTimer.singleShot(0, self.put_back)
++            return
+         if t.authorised and t.authorised[0] == step.fingerprint():t.authorised.pop(0)
+         if not envelope.get('ok'):
+             if row is not None:row['state'] = 'refused'
+@@ -546,7 +564,24 @@ class HerHand(QObject):
+ 
+     # -- putting the window back -----------------------------------------------------------------------------------------------
+     def put_back(self):
+-        """Back to the window as the turn found it: a plan of navigation, run through her door now (at most 12 moves)."""
++        """Back to the window as the turn found it. 1.0 F1: through the door (hand_door) while her hand drives or is paused: your
++        Stop; else at once (Put my window back after she finished)."""
++        from . import hand_door
++        door = hand_door.DOOR
++        if self.turn is not None and door.hand == 'desk' and door.state in ('driving', 'paused'):
++            self._last_back = None
++            out = door.stop()
++            if self._last_back is not None:return self._last_back
++            t = self.turn;t.closing = out.get('words') or ''
++            if self.card is not None:
++                try:self.card.refresh()
++                except RuntimeError:self.card = None
++            return {'back': False, 'acts': 0, 'words': t.closing}
++        return self._put_back_now()
++
++    def _put_back_now(self):
++        """Back to the window as the turn found it: a plan of navigation, run through her door now (at most 12 moves); then
++        (1.0 F1) the tabs, the lists' selection, the scroll, the Field's size and your keyboard (hand_door_qt), read back."""
+         from .desk_doers import run, settle
+         t = self.turn;snap = self.snapshot
+         if t is None or snap is None:return {'back': False, 'words': 'There is nothing to put back.'}
+@@ -571,13 +606,121 @@ class HerHand(QObject):
+                 moved += 1;settle(self.host, 20, 2)
+         finally:
+             t.putting_back = False
++        qt = self._door_qt_restore()      # 1.0 F1: what a person puts back by hand: tabs, lists, scroll, the Field's size, the keyboard
+         desk, state, _ = self.read()
+         back = planner.back_to(state, snap)
+-        said = ('The window is back as it was: %s.' % self._where(snap)) if back else ('I could not put it all back: %s' % (words or 'the window is not as it was'))
++        from . import hand_door_qt
++        more = hand_door_qt.said(qt) if qt else ''
++        whole = back and (qt is None or qt.get('back') is not False)
++        said = ('The window is back as it was: %s%s.' % (self._where(snap), ('; ' + more) if more else '')) if whole else \
++            ('I could not put it all back: %s' % (words or more or 'the window is not as it was'))
+         t.closing = said;self._count_trails()
+         self.set_state('finished' if back else 'stopped', '' if back else said)
+-        return {'back': back, 'acts': moved, 'words': said, 'surface': state.surface, 'selected': state.sel,
+-                'over': list(state.over) if state.over else None, 'snapshot': {'surface': snap.surface, 'selected': snap.sel, 'over': list(snap.over) if snap.over else None}}
++        out = {'back': whole, 'acts': moved, 'words': said, 'surface': state.surface, 'selected': state.sel,
++               'over': list(state.over) if state.over else None, 'snapshot': {'surface': snap.surface, 'selected': snap.sel, 'over': list(snap.over) if snap.over else None},
++               'door_parts': dict((qt or {}).get('parts') or {}, desk={'back': back, 'words': self._where(snap) if back else (words or 'not as it was')})}
++        self._last_back = out
++        return out
++
++    # -- 1.0 F1: the door (hand_door): one stop rule, the window as it was, your changes with one Undo ------------------------------
++    def _door_begin(self, t):
++        """Her hand takes Graphite's window: what is yours in it now is kept (hand_door_qt), and the door knows how to put it
++        back and how to go on. Your new request settles an earlier pause as it stands."""
++        from . import hand_door, hand_door_qt
++        try:
++            self._door_snap = hand_door_qt.snapshot(self.host)
++        except Exception:  # noqa: BLE001 - a window that cannot be read is driven all the same; it is said not put back
++            self._door_snap = None
++        hand_door.DOOR.forget()
++        kernel = getattr(getattr(self.host, 'ledger_bridge', None), 'kernel', None)
++        if kernel is not None:hand_door._KERNEL['kernel'] = kernel      # HALT's hold is read through it: nothing is put back while HALT holds
++        try:hand_door.DOOR.begin('desk', t.text, snapshot=self._door_snap or {'kind': 'desk'}, restore=self._door_restore, carry=self.carry_on,
++                                 program="Graphite's window", title=t.text)
++        except hand_door.Paused:
++            pass
++
++    def _door_stop(self, why):
++        from . import hand_door
++        door = hand_door.DOOR
++        if door.hand != 'desk':return
++        if why == 'HALT':door.halted('desk')
++        elif why in ('a new request', 'the scene ended'):door.leave('desk');door.forget()
++        else:door.touched('desk', {'touch': 'a press of yours on the window', 'card': 'your Stop', 'owner': 'your Stop',
++                                   'Master Stop': 'Master Stop'}.get(why, str(why)[:60]))
++
++    def _door_finish(self, words):
++        from . import hand_door
++        if hand_door.DOOR.driving('desk'):
++            try:hand_door.DOOR.finish(words)
++            except Exception:  # noqa: BLE001 - giving back the keyboard never takes the window down
++                pass
++
++    def _door_restore(self, snap, parts):
++        """The door's put back for Graphite's window: your Stop (every part) runs the whole put back; her own finish gives back
++        your keyboard and its cursor."""
++        from . import hand_door_qt
++        if 'tabs' in parts or 'scroll' in parts:
++            out = self._put_back_now()
++            return {'back': out['back'], 'parts': out.get('door_parts') or {}, 'words': out['words']}
++        got = hand_door_qt.restore(self.host, snap, hand_door_qt.FOCUS_PARTS)
++        return {'back': got.get('back'), 'parts': got.get('parts') or {}, 'words': hand_door_qt.said(got)}
++
++    def _door_qt_restore(self):
++        from . import hand_door_qt
++        if not self._door_snap:return None
++        try:return hand_door_qt.restore(self.host, self._door_snap, ('tabs', 'lists', 'scroll', 'zoom', 'focus'), keep=(self.card,))
++        except Exception as exc:  # noqa: BLE001
++            return {'back': False, 'parts': {'window': {'back': False, 'words': str(exc)[:120]}}}
++
++    def _door_buttons_seen(self):
++        """Her card's Continue and Stop brought into sight in the exchange while she waits for your word."""
++        face = getattr(getattr(self.host, 'shell2', None), 'face', None);card = self.card
++        if face is None or card is None or getattr(face, 'scroll', None) is None:return
++        try:
++            shown = card.again if card.again.isVisibleTo(card) else card.stop_button
++            face.scroll.ensureWidgetVisible(shown)
++        except (AttributeError, RuntimeError):  # the card left with Talk's earlier exchanges
++            pass
++
++    def stop_for_good(self):
++        """Your Stop on her card: she stops for good, and the window goes back as it was when she began (while she moves, once
++        she has stopped between two presses)."""
++        t = self.turn
++        if t is None:return
++        if t.state in ('thinking', 'acting'):
++            self._full_stop = True;self.stop('card');return
++        if t.state == 'waits':self.stop('card')
++        if t.state in ('stopped', 'waits'):QTimer.singleShot(0, self.put_back)
++
++    def changes(self):
++        """Her changes in this turn that can be taken back, the latest first."""
++        from . import hand_door
++        t = self.turn
++        if t is None:return []
++        self._count_trails()
++        return hand_door.changes_of(stacy_hand.trail(getattr(self.host.session, 'state', {}))[:t.trail_added])
++
++    def undo_changes(self):
++        """One Undo for the turn: every change of hers in it that can be taken back, the latest first, each by its own guarded
++        Undo line (an Undo that no longer fits, because the thing changed since, is refused and said)."""
++        from . import hand_door
++        from .desk_doers import settle
++        entries = self.changes();back = 0;left = 0;said = []
++        for entry in entries:
++            try:card = self.host.shell2.face.undo_entry(entry);settle(self.host, 20, 2)
++            except Exception as exc:  # noqa: BLE001
++                left += 1;said.append(str(exc)[:80]);continue
++            now = next((e for e in stacy_hand.trail(self.host.session.state) if e.get('at') == entry.get('at') and e.get('line') == entry.get('line')), entry)
++            if now.get('state') == 'undone':back += 1
++            else:
++                left += 1;said.append(getattr(getattr(card, 'text', None), 'text', lambda: '')().replace('\u200b', '')[:80])
++        words = hand_door.undo_words(back, left, said)
++        if self.turn is not None:
++            self.turn.closing = words
++            if self.card is not None:
++                try:self.card.refresh()
++                except RuntimeError:self.card = None
++        return {'undone': back, 'left': left, 'words': words}
+ 
+     def _where(self, snap):
+         if snap.surface != 'field':return {'home': 'Today in front', 'workspace': 'your work in front'}.get(snap.surface, 'as it was')

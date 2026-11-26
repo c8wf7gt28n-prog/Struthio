@@ -96,6 +96,7 @@ from . import a11y_reader  # 1.0 K7 (reading other programs): accessibility.stat
 from . import network_governed  # 1.0 K8 (the network, governed): web.state, web.words, web.pages, web.page (read); web.lookup, web.get (execute); web.search (approve, always asks) (recorded additions)
 from . import app_files  # 1.0 A1 (programs by window and file): appfile.list (read); appfile.open, appfile.look (execute: a file of Files opened in its program, its window, saves and close) (recorded additions)
 from . import a11y_hand  # 1.0 K9 (her hand in other programs): program.status, .look, .find (read); program.open, .type, .press, .save (execute); program.answer, .shown (approve) (recorded additions)
+from . import hand_door  # 1.0 F1 (the door's mechanics): hand.door (read); hand.door.continue, hand.door.stop (approve: your Continue, your Stop) (recorded additions)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -299,6 +300,7 @@ CAPABILITIES = {
     **network_governed.SCOPES,  # 1.0 K8 (the network, governed): a page fetched into quarantine is execute (your press or your grant for its site); search words are approve and always ask
     **app_files.SCOPES,  # 1.0 A1 (programs by window and file): the list is a read; opening a file in its program and looking at it are execute
     **a11y_hand.SCOPES,  # 1.0 K9 (her hand in other programs): three reads; four acts in her window (a grant: work in a program on the file); a dialog answered and a window shown are your press
+    **hand_door.SCOPES,  # 1.0 F1 (the door's mechanics): where her hand drives is a read; your Continue and your Stop (the window put back) are your press
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -751,6 +753,7 @@ class Kernel:
         if op in network_governed.FIELDS:return network_governed.dispatch(self,op,a,p)   # 1.0 K8 (the network, governed): a page kept in quarantine and read as data; a step blocked while the network is down
         if op in app_files.FIELDS:return app_files.dispatch(self,op,a,p)   # 1.0 A1 (programs by window and file): its window named, each save recorded through revisions.record, its close said
         if op in a11y_hand.FIELDS:return a11y_hand.dispatch(self,op,a,p)   # 1.0 K9 (her hand in other programs): only in her window, guarded at each act, stopped by your touch or HALT
+        if op in hand_door.FIELDS:return hand_door.dispatch(self,op,a,p)   # 1.0 F1 (the door's mechanics): one stop rule wherever her hand drives; the window put back as it was
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

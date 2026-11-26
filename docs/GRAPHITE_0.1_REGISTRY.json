@@ -260,6 +260,9 @@
    "halt.press": "workbench/halt_gate.py#dispatch",
    "halt.release": "workbench/halt_gate.py#dispatch",
    "halt.status": "workbench/halt_gate.py#dispatch",
+   "hand.door": "workbench/hand_door.py#dispatch",
+   "hand.door.continue": "workbench/hand_door.py#dispatch",
+   "hand.door.stop": "workbench/hand_door.py#dispatch",
    "hardware.checks.inspect": "workbench/hardware_coverage.py#dispatch",
    "hardware.component_nets": "workbench/agent_operations.py#dispatch",
    "hardware.coverage.inspect": "workbench/hardware_coverage.py#dispatch",
@@ -1127,9 +1130,9 @@
   }
  },
  "counts": {
-  "adapters": 909,
+  "adapters": 912,
   "job_tools": 113,
-  "operations": 909,
+  "operations": 912,
   "settings": 53
  },
  "formulas": {
@@ -3636,6 +3639,21 @@
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
    "scope": "read"
+  },
+  "hand.door": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "hand.door.continue": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "approve"
+  },
+  "hand.door.stop": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "approve"
   },
   "hardware.checks.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
@@ -8924,7 +8942,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "9eb65b396cc2bf56bee20679c657741dc5a1b86b91254c320f77c4fc41708f22",
+ "schema_digest": "49d921be23c8a4c4458b305290cab765a9e953cdd6ad1c7c0660631b8e1c5416",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

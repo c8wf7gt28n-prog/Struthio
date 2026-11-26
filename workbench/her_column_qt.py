@@ -543,11 +543,20 @@ def hand_words(live, now_ms=None):
     program = plain(live.get('program') or 'a program')
     if state == 'acting':
         return '▸ My hand in %s: %s' % (program, plain(live.get('act') or live.get('words') or ''))      # how she acts: in the tooltip
-    if state == 'stopped by your touch':return '■ Stopped by your touch, in %s' % program      # what was done and not: the row's note
-    if state == 'stopped by HALT':return '■ Stopped by HALT, in %s' % program
+    if state == 'stopped by your touch':return '▮▮ Stopped by your touch, in %s' % program      # what was done and not: the row's note (1.0 F1: D1's shape)
+    if state == 'stopped by HALT':return '▮▮ Stopped by HALT, in %s' % program
     if state == 'waiting for you':return '◆ A dialog in %s is yours to answer' % program
     lead = {'done': '✓ My hand', 'not verified': '◆ Not verified', 'refused': '■ I did not act'}[state]
     return '%s · %s' % (lead, plain(live.get('words') or ''))
+
+
+def _door_view():
+    """1.0 F1: the door of her hand in this process (hand_door), or nothing."""
+    try:
+        from .hand_door import DOOR
+        return DOOR.view()
+    except Exception:  # noqa: BLE001 - a column never takes the window down
+        return {}
 
 
 class WorkLine(QWidget):
@@ -566,7 +575,15 @@ class WorkLine(QWidget):
         box.addLayout(line)
         self.detail = row_label(host, '', quiet=True, size=12);box.addWidget(self.detail)
         self.hand = row_label(host, '', size=12);self.hand.setObjectName('HerHandLine');self.hand.hide()  # 1.0 K9
-        box.addWidget(self.hand);self.resting = True
+        hand_row = QHBoxLayout();hand_row.setSpacing(px(host, 6));hand_row.addWidget(self.hand, 1)      # 1.0 F1: her hand's line and your word to it, one row
+        box.addLayout(hand_row);self.resting = True
+        self.door = QWidget();door = QHBoxLayout(self.door);door.setContentsMargins(0, 0, 0, 0);door.setSpacing(px(host, 4))  # 1.0 F1: your word to a paused hand
+        self.door_go = small_button(host, 'Continue', 'Let my hand go on from where your window is now')
+        self.door_stop = small_button(host, 'Stop', 'Stop my hand for good: your window goes back as it was (menus I opened closed, your focus, cursor and selection back)')
+        self.door_go.setObjectName('HerDoorContinue');self.door_stop.setObjectName('HerDoorStop')
+        for b in (self.door_go, self.door_stop):b.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)      # their words in full, beside each other
+        self.door_go.clicked.connect(self.door_continue);self.door_stop.clicked.connect(self.door_put_back)
+        door.addWidget(self.door_go);door.addWidget(self.door_stop);hand_row.addWidget(self.door);self.door.hide()
         self.hide()
 
     def show_work(self, view, most_checks=2):
@@ -593,12 +610,32 @@ class WorkLine(QWidget):
     def show_hand(self, live):
         """1.0 K9: her hand in another program, as it acts, or why it stopped (a shape and a word, never colour alone)."""
         words = hand_words(live)
+        door = _door_view()      # 1.0 F1: a hand paused by your touch waits for your word: Continue, or Stop to put the window back
+        paused = door.get('hand') == 'program' and door.get('state') == 'paused'
+        if paused:words = '%s, in %s' % (door.get('word') or '▮▮ stopped by you', plain(door.get('program') or 'your program'))
+        self.door.setVisible(paused)
         tip = plain((live or {}).get('words') or '') + ((' (%s)' % plain(live.get('how'))) if (live or {}).get('how') else '')
         self.hand.setText(words);self.hand.setToolTip(tip if words else '');self.hand.setVisible(bool(words))
         if words and self.resting:
             self._checks([])
             for w in (self.who, self.words, self.bar, self.percent, self.detail):w.hide()
             self.show()
+
+    def door_continue(self):
+        """1.0 F1: your Continue: the door lets her hand go on, and the step your touch stopped is authorised again and carried on."""
+        from . import hand_door
+        host = self.column.host
+        done, why = press(host, 'hand.door.continue', {})
+        words = (done or {}).get('words') or why
+        if done is not None and done.get('carried'):
+            more = hand_door.carry_assignment(lambda op, args: press(host, op, args), (done.get('door') or {}).get('assignment') or '')
+            if more:words = more
+        self.column.say_words(words);self.column.refresh(force=True)
+
+    def door_put_back(self):
+        """1.0 F1: your Stop: her hand stops for good and your program window goes back as it was."""
+        done, why = press(self.column.host, 'hand.door.stop', {})
+        self.column.say_words((done or {}).get('words') or why);self.column.refresh(force=True)
 
     def _checks(self, rows):
         host = self.column.host
