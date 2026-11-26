@@ -377,6 +377,17 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 16:13 UTC: **The 5-hour limit stopped X3, X4 and F2b at about 13:05; reset 16:00.** Hourly wake-ups at
+  13:10, 14:11 and 15:10 found nothing to do (the session's worker restarted three times). Partial diffs saved
+  (`partial/X3` 507 lines, `X4` 408, `F2b` 252), and all three resumed by message at 16:12. **1.0 X2 merged** (fb024e1:
+  three Guide pages, The Living Desktop, Kasandra and Your First Evening (docs/ACCEPTANCE_1.0.md); GETTING_STARTED,
+  KAS_MIND_EVENING and THINKPAD_FIRST_INSTALL brought to 1.0). The coordinator filled the F2 block (the 0.8.7
+  workspace as it is; the stall log) and the M2 blocks (the quick model, optional, --quick). The acceptance page joins
+  the name sweep, clean on a copy. One assertion in test_one_name moved, not run. X2's notes for R2: the install
+  folder is `~/Applications/Graphite-1.0`; the Guide still has "What's New in 0.8.7" and the old Keyboard Shortcuts
+  entry; README and DAILY_GUIDE are pre-1.0 in places. **M1b launched.** Running: X3, X4, F2b, M1b. Queue: D2 after
+  those; X1; R2. 42 slices: 34 merged, P5 cancelled.
+
 - 26 Nov 12:57 UTC: **1.0 M2 merged** (d4e03f8: a quick model beside her model. It answers a kind only when that
   kind is offered to it, it passed that kind's exam on its own key, and her clock prices it faster; Undo puts every
   kind back. The Brain room's Quick model page explains each kind. The memory sum counts both, and the model check
