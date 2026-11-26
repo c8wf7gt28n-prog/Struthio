@@ -316,6 +316,13 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 08:45 UTC: The owner asked why no model ever runs: answered (the 35B cannot fit here; builders used stand-ins);
+  taken: the real 4B in the loop from K4 on (K4 told), and **K9 added** (her hand in other programs). **1.0 K6 merged**
+  (3b8c435: the utility sandbox: network namespace, Landlock, seccomp, limits; Apply always asks; smoke 41/41), with
+  the coordinator's fix in grants.py so 'try utilities on copies of files' can be given. Its notes: bubblewrap fallback
+  and the non-root path not exercised here. **K8 launched** (the network governed; agent a3077a7c023055a1d). Running:
+  K4, K7, P3, K8. Still to start: K9 (after K7), F1, F2, A1, X1, X2, R1, R2.
+
 - 26 Nov 08:05 UTC: **1.0 K3 merged** (d96ff2a: grants per operation/target/scope enforced at dispatch, 'needs your
   grant' with one press, HALT's own hold apart from Stop all, stop hooks, Stop all spares programs in their own
   sessions; smoke 47/47, frames 48/48). K6 and K4 told. Its notes: Night Shift orders and the Agenda runner still answer
