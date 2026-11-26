@@ -222,6 +222,7 @@ def mark_board(desk):
         entry = entries.get(ident)
         name = entry.get('name') if entry else Path(str(latest.get('path') or '')).name
         said = 'revision %d%s' % (latest['n'], (', saved in ' + latest['program']) if latest.get('program') else ', saved elsewhere')
+        desk.file_said = dict(getattr(desk, 'file_said', None) or {}, **{ident: said})      # 1.0 D2 (X3): a FILE tile brought in later says it too
         if ident in desk.objects:
             obj = desk.objects[ident]
             desk.objects[ident] = replace(obj, lines=(said,) + tuple(obj.lines[1:3]))

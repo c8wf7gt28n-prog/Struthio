@@ -193,6 +193,7 @@ class OneBar(QObject):
             for b in group:row.addWidget(b);self.work.append(b)
         self.more = QToolButton(bar);self.more.setObjectName('CentreMore');self.more.setText('More ▾');self.more.setAccessibleName('More controls')
         self.more.setToolTip('The controls this narrow bar has no room for: each does what it does on the bar');self.more.setCursor(Qt.PointingHandCursor)
+        self._standing = []      # 1.0 D2: the controls that may show their glyph alone (fold)
         self.more.setPopupMode(QToolButton.InstantPopup);self.more.setFocusPolicy(Qt.TabFocus);self.more.setMenu(QMenu(self.more))
         self.more.menu().aboutToShow.connect(self.fill_more);self.more.setStyleSheet(
             'QToolButton#CentreMore {font-family:"%s";color:%s;background:transparent;border:1px solid %s;padding:2px 8px;border-radius:2px;} '
@@ -240,10 +241,13 @@ class OneBar(QObject):
             pass
 
     # ---- a narrow centre: what does not fit goes behind More, from the least used; nothing is lost ----------------------------
-    FOLD_ORDER = (('CentreFullProgram',), ('CentreSplit',), ('CentreSaveReturn',), ('CentreRedo', 'CentreUndo'), ('CentreLarger', 'CentreSmaller'))
+    FOLD_ORDER = (('CentreLarger', 'CentreSmaller'), ('CentreFullProgram',), ('CentreRedo', 'CentreUndo'), ('CentreSplit',), ('CentreSaveReturn',))      # 1.0 D2: − + go first; Save and Return and Split stay longest
+    BARE_FIRST = ('CentreSaveReturn', 'CentreSplit', 'CentreFullProgram')      # 1.0 D2: before anything folds, these show their glyphs alone
 
-    def need(self, on):
-        """The row's width with these widgets shown (on: widget -> shown), the breadcrumb at its least."""
+    def need(self, on, alone=()):
+        """The row's width with these widgets shown (on: widget -> shown), the breadcrumb at its least. 1.0 D2: `alone`, the
+        controls counted at their glyph's width (tool_faces: a glyph alone)."""
+        from . import tool_faces
         row = self.row;total = row.contentsMargins().left() + row.contentsMargins().right() + 4;pending = 0
         crumbs = self.crumbs;always = (crumbs.back, crumbs.forward, crumbs.words) if crumbs is not None else ()
         gaps = {id(g[0]): g[1] for g in self.gaps}
@@ -255,21 +259,46 @@ class OneBar(QObject):
                 continue
             if not (w in always or on.get(w, False)):
                 pending = 0;continue
-            total += pending + row.spacing() + (w.minimumWidth() if crumbs is not None and w is crumbs.words else w.sizeHint().width());pending = 0
+            wide = max(w.minimumWidth(), min(w.sizeHint().width(), w.maximumWidth()))      # 1.0 D2: the width the row gives it (a glyph's face is fixed)
+            if w in self._standing:wide = tool_faces.face_width(w, w in alone)
+            total += pending + row.spacing() + (w.minimumWidth() if crumbs is not None and w is crumbs.words else wide);pending = 0
         return total
 
     def fold(self, shown):
         """The work's controls to put behind More so that the row fits the bar, the least used first."""
         room = self.bar.width()
         on = dict(shown);on.update({b: True for b in self.work});on[self.more] = False
-        if room < 50 or self.need(on) <= room:return []
+        alone = self._standing = self.can_stand_alone()
+        bare = {b: False for b in alone}
+        try:
+            if room < 50 or self.need(on) <= room:return []
+            bare = {b: True for b in alone}      # 1.0 D2: their glyphs alone first (the coordinator: Save and Return and Split stayed behind More)
+            if self.need(on, alone) <= room:return []
+        finally:
+            self.bare_faces(bare)
         folded = [];on[self.more] = True;by_name = {b.objectName(): b for b in self.work}
         for names in self.FOLD_ORDER:      # a pair (Undo and Redo, − and +) goes together
             for name in names:
                 b = by_name.get(name)
                 if b is not None:on[b] = False;folded.append(b)
-            if self.need(on) <= room:break
+            if self.need(on, alone) <= room:break
         return folded
+
+    def can_stand_alone(self):
+        """1.0 D2: the controls that can show their glyph alone now (icons chosen, a glyph of their own)."""
+        from . import tool_faces
+        if tool_faces.mode() != 'icons':return []
+        return [b for b in self.work if b.objectName() in self.BARE_FIRST and tool_faces.glyph_of(b) is not None]
+
+    def bare_faces(self, which):
+        """1.0 D2: Save and Return, Split and Full program as their glyphs alone, or with their words ({button: alone})."""
+        from . import tool_faces
+        for b, on in which.items():
+            if bool(b.property('faceBare')) != bool(on):
+                b.setProperty('faceBare', bool(on))
+                try:tool_faces.fit(b)
+                except RuntimeError:
+                    pass
 
     def fill_more(self):
         menu = self.more.menu();menu.clear()

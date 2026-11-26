@@ -27,6 +27,7 @@ beside Files' reading (extra), and the board, the breadcrumb, Back and Open find
 """
 from __future__ import annotations
 
+import time  # 1.0 D2: the launch's tree kept at its top
 import weakref
 from pathlib import Path
 
@@ -172,12 +173,26 @@ class Crumbs(QWidget):
         if not parts:
             self.words.setText('');self.words.setAccessibleName('Where you are: nothing in focus yet');return
         metrics = QFontMetrics(self.words.font());room = max(80, self.words.width() - 4)
+        from PySide6.QtGui import QFont
+        bold = QFont(self.words.font());bold.setWeight(QFont.DemiBold);strong = QFontMetrics(bold)      # 1.0 D2: the name is drawn bold
         shown = list(enumerate(parts));tail = ''
-        def width(rows):return metrics.horizontalAdvance(SEPARATOR.join(label for _, (label, _) in rows))
+
+        def width(rows):      # 1.0 D2: the name measured in the weight it is drawn in (it was measured regular, so it was clipped)
+            words = [label for _, (label, _) in rows]
+            if not words:return 0
+            named = rows[-1][0] == len(parts) - 1
+            head = SEPARATOR.join(words[:-1]) + (SEPARATOR if len(words) > 1 else '')
+            return metrics.horizontalAdvance(head) + (strong if named else metrics).horizontalAdvance(words[-1]) + 2
         if len(shown) > 2 and width(shown) > room:      # the first folder and the name stay; the middle gives way first
             for cut in range(2, len(shown)):
                 trial = [shown[0], (-1, ('…', ''))] + shown[cut:]
                 if width(trial) <= room or cut == len(shown) - 1:shown = trial;break
+        if width(shown) > room and len(shown) > 1:      # 1.0 D2: still too long: only the name, behind "… /"
+            shown = [(-1, ('…', ''))] + shown[-1:]
+        if width(shown) > room:      # 1.0 D2: the name itself, shortened at its end in its own weight, never cut mid-letter
+            at, (label, node) = shown[-1]
+            lead = width(shown[:-1] + [(-1, ('', ''))]) if len(shown) > 1 else 0
+            shown[-1] = (at, ((strong if at == len(parts) - 1 else metrics).elidedText(label, Qt.ElideRight, max(24, room - lead - 2)), node))
         if note:          # what happened to it (renamed from …) has the room the trail leaves, shortened in its middle
             left = room - width(shown) - metrics.horizontalAdvance('  ·  ')
             if left >= metrics.horizontalAdvance('renamed from …'):tail = '  ·  ' + metrics.elidedText(note, Qt.ElideMiddle, left)
@@ -622,7 +637,13 @@ class LivingNav(QObject):
             elif depth == 'board' and not from_board and not board_object and not self.on_board():
                 from . import field_page
                 field_page.show_field(self.host);self.hook_field()
-            if via not in ('tree', 'start'):self.reveal(ident, node)      # 1.0 L6: at start the tree lands on Home
+            if via not in ('tree', 'start'):
+                self.reveal(ident, node)      # 1.0 L6: at start the tree lands on Home
+                if time.monotonic() < getattr(self.host, 'launch_top_until', 0.0):      # 1.0 D2: the launch's first focus is revealed, the tree kept at "This computer /"
+                    tree = getattr(getattr(self.host, 'cabinet_page', None), 'tree', None)
+                    if tree is not None:      # after the reveal's own scroll, which Qt makes once the rows are laid out
+                        tree.scrollToTop()
+                        for ms in (0, 150, 600, 1500):QTimer.singleShot(ms, tree.scrollToTop)
             if depth == 'board' and self.on_board() and not same:entry.board = self.board_state() or entry.board
         self.with_applying(apply)
         self.show_crumbs()

@@ -1,0 +1,849 @@
+diff --git a/workbench/arc_desktop.py b/workbench/arc_desktop.py
+index afe97e2..a06f2ec 100644
+--- a/workbench/arc_desktop.py
++++ b/workbench/arc_desktop.py
+@@ -213,7 +213,7 @@ class ArcInspector(QWidget):
+             section('Qualification','Model measurements do not verify<br>engineering answers.<br>Owner host and GPU qualification<br>remain separate.')
+         elif activity == 'home':
+             self.heading.setText('Your workshop')
+-            section('ARC-1 / R10', 'The Silicon Federation<br>One project. Many ways to explore.')
++            section('Graphite', 'One desk. Many ways to explore.')      # 1.0 D2: the old workshop name
+             section('Pick up a thread', '<a href="issues">Review the command-parser finding</a><br>Isolated candidate · review pending')
+             recent = host.session.state.get('recent', [])[:4]
+             if recent:
+diff --git a/workbench/board_model.py b/workbench/board_model.py
+index 155889b..111013c 100644
+--- a/workbench/board_model.py
++++ b/workbench/board_model.py
+@@ -166,8 +166,10 @@ class Board:
+ 
+     def counts(self):
+         shown = [t for t in self.tiles if t.id != MORE]
++        roomless = [m for t in self.tiles if t.id == MORE for m in t.members if getattr(m, 'for_room', False)]      # 1.0 D2: grouped for the window's room only
++        shown += roomless
+         return {'recorded': sum(1 for t in shown if t.recorded), 'possible': sum(1 for t in shown if not t.recorded),
+-                'grouped': sum(len(t.members) for t in self.tiles if t.id == MORE)}
++                'grouped': sum(len(t.members) for t in self.tiles if t.id == MORE) - len(roomless)}
+ 
+     def as_data(self):
+         def tile(t):
+@@ -362,9 +364,18 @@ class Desk:
+     def add_file(self, ident):
+         for e in (self.files or {}).get('entries') or ():
+             if e.get('id') == ident and ident not in self.objects:
+-                self.objects[ident] = file_object(e, (self.files or {}).get('root'));self._df = None
++                self.objects[ident] = self._file_object(e, (self.files or {}).get('root'));self._df = None      # 1.0 D2
+         return ident in self.objects
+ 
++    def _file_object(self, entry, root):
++        """1.0 D2 (X3): a plain file's object, saying its revision when it was saved again (depths.mark_board read it), also
++        when it is brought onto the desk after that reading (the letter in focus said only its size after an outside save)."""
++        obj = file_object(entry, root);said = (getattr(self, 'file_said', None) or {}).get(entry.get('id'))
++        if said and not (obj.lines and str(obj.lines[0]).startswith('revision')):
++            from dataclasses import replace as _replace
++            obj = _replace(obj, lines=(said,) + tuple(obj.lines[1:3]))
++        return obj
++
+     def _plain_files(self):
+         """A plain file in Files with the same bytes as an admitted source (its name first, then its digest)."""
+         entries = list((self.files or {}).get('entries') or ())
+@@ -472,7 +483,7 @@ class Desk:
+         for e in (self.files or {}).get('entries') or ():
+             if e.get('kind') != 'file' or e['id'] in self.objects:continue
+             if added >= limit:break
+-            self.objects[e['id']] = file_object(e, root);added += 1
++            self.objects[e['id']] = self._file_object(e, root);added += 1      # 1.0 D2
+         self._df = None
+ 
+ 
+@@ -520,7 +531,10 @@ def file_object(entry, root):
+         folder_like = entry.get('kind') == 'folder'
+         suffix = Path(str(entry.get('name') or '')).suffix
+         said = 'a folder' if folder_like else (('%s file · %s' % (suffix[1:].upper(), _size_words(entry.get('size')))) if suffix else _size_words(entry.get('size')))
+-        return FieldObject(entry['id'], 'folder' if folder_like else 'source', entry.get('name') or 'a file', 'a %s %s' % ('folder' if folder_like else 'file', role),
++        name = entry.get('name') or 'a file'
++        if folder_like and place.startswith('/') and tilde(place) == '~':      # 1.0 D2 (X3): the home folder is "Home", never its folder's own name or path
++            name, said, where, role = 'Home', 'your home folder', 'on this computer', 'on this computer'
++        return FieldObject(entry['id'], 'folder' if folder_like else 'source', name, 'a %s %s' % ('folder' if folder_like else 'file', role),
+                            '', (said, where), tilde(place) if place.startswith('/') else 'Files/' + place, {'kind': 'file', 'id': entry['id'], 'path': path},
+                            'FOLDER' if folder_like else 'FILE')
+     suffix = Path(str(entry.get('name') or '')).suffix
+diff --git a/workbench/board_qt.py b/workbench/board_qt.py
+index bc84683..c4624e1 100644
+--- a/workbench/board_qt.py
++++ b/workbench/board_qt.py
+@@ -30,7 +30,8 @@ from . import boss_theme as t
+ from . import board_model as bm
+ 
+ ZOOM = (0.5, 1.6)                 # the board's sizes; below the least, the whole desk (the Field)
+-AUTO_LEAST = 0.74                 # shown whole only down to this size: below it the words are too small, and the board scrolls
++AUTO_LEAST = 0.5                  # shown whole only down to this size, and the board scrolls (1.0 D2: was 0.74; its words now read at 11 px or more at any size, least_px)
++ROOM_LEAST = 0.8                  # 1.0 D2: the outer tiles are grouped (fit_room) until the board is seen whole at this size or more, its titles larger than its notes
+ SETTLED_WORDS = ('CURRENT', 'SUPPORTED', 'HOLDS', 'UP', 'RUNNING')
+ ATTENTION_WORDS = ('RECHECK', 'OPEN', 'HELD', 'REFUTED', 'WAITING', 'FAILED', 'DOES NOT HOLD', 'CANNOT TELL', 'DEPENDS', 'NOT READ')
+ QUIET_WORDS = ('ARCHIVED', 'REPLACED', 'UNAVAILABLE', 'ELSEWHERE')
+@@ -212,13 +213,20 @@ class BoardView(QWidget):
+ 
+     # ---- measures ------------------------------------------------------------------------------------------------------
+     def scale(self):
++        if t.LAUNCH:      # 1.0 D2: Day and Night on the type scale: titles 13 to 17 px, KIND • STATE 11, the basis 12 (at the default size)
++            return max(0.85, min(3.5, self.fontInfo().pixelSize() / 18.67))
+         return max(0.85, min(3.5, self.fontInfo().pixelSize() / 16.0))
+ 
++    def least_px(self, value):
++        """1.0 D2: a size of words that reads at 11 px or more on screen, the board's own size (zoom) taken into account while
++        its tiles are drawn (nothing under 11 px; the tiles' words were 8 to 9 px)."""
++        return max(11, round(value), math.ceil(getattr(self, '_least', 0.0) - 0.01))
++
+     def mono(self, px, weight=QFont.Normal):
+-        f = QFont(t.MONO);f.setStyleHint(QFont.Monospace);f.setPixelSize(max(9, round(px * self.scale())));f.setWeight(weight);return f
++        f = QFont(t.MONO);f.setStyleHint(QFont.Monospace);f.setPixelSize(self.least_px(px * self.scale()));f.setWeight(weight);return f      # 1.0 D2
+ 
+     def sans(self, px, weight=QFont.Medium):
+-        f = QFont(t.FACE);f.setPixelSize(max(9, round(px * (0.97 if t.FACE != 'IBM Plex Sans' else 1.0) * self.scale())))
++        f = QFont(t.FACE);f.setPixelSize(self.least_px(px * (0.97 if t.FACE != 'IBM Plex Sans' else 1.0) * self.scale()))      # 1.0 D2
+         f.setWeight(weight if t.FACE == 'IBM Plex Sans' else QFont.Normal)
+         if t.FACE != 'IBM Plex Sans':f.setLetterSpacing(QFont.AbsoluteSpacing, -0.35)
+         return f
+@@ -245,12 +253,52 @@ class BoardView(QWidget):
+ 
+     def fit(self):
+         """The size at which the whole board is in the window around its focus, at most the ordinary size, and never so small
+-        that its words cannot be read (AUTO_LEAST): then the board scrolls, the focus in the middle."""
++        that its words cannot be read (AUTO_LEAST): then the board scrolls, the focus in the middle. 1.0 D2: when it does not
++        fit round its focus, it is seen round the middle of its extent (fit_centre), so it is seen whole where it can be."""
+         x0, y0, x1, y1 = self.bounds;b = self.body()
+-        half_w = max(-x0, x1, 1.0);half_h = max(-y0, y1, 1.0)
+         if b.width() < 10:return 1.0
++        cx, cy = self.fit_centre()
++        half_w = max(cx - x0, x1 - cx, 1.0);half_h = max(cy - y0, y1 - cy, 1.0)
+         return max(AUTO_LEAST, min(1.0, (b.width() - 16) / (2 * half_w), (b.height() - 8) / (2 * half_h)))
+ 
++    def around_focus(self):
++        """1.0 D2: the size at which the whole board fits with its focus in the middle (unbounded)."""
++        x0, y0, x1, y1 = self.bounds;b = self.body()
++        return min((b.width() - 16) / (2 * max(-x0, x1, 1.0)), (b.height() - 8) / (2 * max(-y0, y1, 1.0)))
++
++    def needed_zoom(self):
++        """1.0 D2: the size at which the whole board fits round the middle of its extent (unbounded)."""
++        x0, y0, x1, y1 = self.bounds;b = self.body()
++        return min((b.width() - 16) / max(1.0, x1 - x0), (b.height() - 8) / max(1.0, y1 - y0))
++
++    def fit_centre(self):
++        """1.0 D2: where the board is seen round, in its own coordinates: its focus (0, 0) when the whole board fits so at a
++        size its words read at; else the middle of its extent (the rings' outer tiles were cut at the window's edges)."""
++        b = self.body()
++        if b.width() < 10 or self.board.focus is None or self.around_focus() >= AUTO_LEAST:return (0.0, 0.0)
++        x0, y0, x1, y1 = self.bounds
++        return ((x0 + x1) / 2.0, (y0 + y1) / 2.0)
++
++    def fit_room(self):
++        """1.0 D2: a board that cannot be seen whole at a size its words read at shows its nearer tiles and groups the least
++        relevant as the count that opens (PLAN_1.0: "peripheral material is grouped as a count that opens"), until it fits.
++        The grouped ones still count in the bar's numbers; a wider window shows them again (resizeEvent rebuilds)."""
++        b = self.body();self._for_room = 0
++        if self.board.focus is None or b.width() < 240 or b.height() < 200:return
++        for _ in range(48):
++            if self.needed_zoom() >= ROOM_LEAST - 1e-6:return
++            movable = [x for x in self.board.tiles if x.id != bm.MORE and not x.pinned]
++            if len(movable) <= 4:return
++            last = movable[-1];more = next((x for x in self.board.tiles if x.id == bm.MORE), None)
++            if more is None:
++                obj = bm.FieldObject(bm.MORE, 'more', 'and 0 more', 'grouped', '', (), '')
++                more = bm.Tile(bm.MORE, 'more', 'and 0 more', '', 'MORE', '', '', '', 1, True, 2, 'near', obj=obj, members=[], group=True)
++                self.board.tiles.append(more)
++            self.board.tiles.remove(last);last.group = True;last.for_room = True;more.members.insert(0, last)
++            more.title = 'and %d more' % len(more.members);self._for_room += 1
++            more.basis = 'opens: ' + ', '.join(m.title for m in more.members[:3])[:60]
++            self.relayout()
++
+     # ---- the reading and the focus ---------------------------------------------------------------------------------------
+     def desk_read(self, field, reader):
+         """The page read the workspace (its work face): the board is drawn from this reading from now on."""
+@@ -306,8 +354,9 @@ class BoardView(QWidget):
+             if self.board.focus is not None:self.ident = self.board.focus.id
+         self._stale = False
+         self.relayout()
++        if self.auto:self.fit_room()      # 1.0 D2
+         if self.auto:self.zoom = self.fit()
+-        if not keep_place:self.pan_x = self.pan_y = 0.0
++        if not keep_place:self.pan_x, self.pan_y = self._auto_pan = self.fit_centre()      # 1.0 D2: round its extent where it must be
+         self.describe();self.update()
+         one = getattr(self.host, 'one_bar', None)      # 1.0 D1: the board's counts are in the one centre bar
+         if one is not None:one.board_changed()
+@@ -427,11 +476,15 @@ class BoardView(QWidget):
+             p.save();p.setClipRect(body)
+             self._ring_layer(p)      # 1.0 F2b: the rings drawn once for this size, zoom and place, then laid down at each paint
+             c = self.centre();p.translate(c);p.scale(self.zoom, self.zoom);p.translate(-self.pan_x, -self.pan_y)
+-            self._wires(p)
+-            for tile in sorted(self.board.all(), key=lambda t: t.size):
+-                if tile.id in self.placed:self._tile(p, tile)
+-            self._wire_words(p)
+-            if not self.board.tiles and self.board.note:self._alone(p)      # 1.0 D1: one tile and no links says why
++            self._least = 11.0 / max(0.05, self.zoom)      # 1.0 D2: words drawn at this size or more read at 11 px on screen
++            try:
++                self._wires(p)
++                for tile in sorted(self.board.all(), key=lambda t: t.size):
++                    if tile.id in self.placed:self._tile(p, tile)
++                self._wire_words(p)
++                if not self.board.tiles and self.board.note:self._alone(p)      # 1.0 D1: one tile and no links says why
++            finally:
++                self._least = 0.0
+             p.restore()
+             if self.head_height():self._head(p)      # 1.0 D1
+         except Exception as exc:  # noqa: BLE001 - said on the surface, never taking the window down
+@@ -677,10 +730,14 @@ class BoardView(QWidget):
+             finally:p.restore()
+             lead = side + 6 * s
+         kind = tile.kind_word or 'THING';state = tile.state_word
++        if state:      # 1.0 D2: a state word is never cut short: the kind word gives way first (its glyph still says the kind)
++            room_kind = inner.width() - lead - fm.horizontalAdvance(' • ' + state) - 15 * s
++            if fm.horizontalAdvance(kind) > room_kind:
++                kind = ''      # whole or not at all: never "SOUR…" (the glyph before it still says the kind)
+         p.setPen(ink(kind_ink, 1.0));p.drawText(QPointF(inner.left() + lead, y), kind)
+         x = inner.left() + lead + fm.horizontalAdvance(kind)
+         if state:
+-            colour = state_ink(state);dot = ' • ';p.setPen(ink(t.FAINT, 1.0));p.drawText(QPointF(x, y), dot);x += fm.horizontalAdvance(dot)
++            colour = state_ink(state);dot = ' • ' if kind else '';p.setPen(ink(t.FAINT, 1.0));p.drawText(QPointF(x, y), dot);x += fm.horizontalAdvance(dot)      # 1.0 D2
+             mark = 8 * s;room = inner.right() - x - mark - 6 * s
+             p.setPen(ink(colour, 1.0));shown = fm.elidedText(state, Qt.ElideRight, max(10.0, room));p.drawText(QPointF(x, y), shown)
+             draw_mark(p, QRectF(min(inner.right() - mark, x + fm.horizontalAdvance(shown) + 7 * s), y - fm.ascent() / 2 - mark / 2 + 1, mark, mark), state, ink(colour, 1.0))
+@@ -789,9 +846,21 @@ class BoardView(QWidget):
+ 
+     def resizeEvent(self, event):
+         super().resizeEvent(event)
+-        if self.auto:self.zoom = self.fit()
++        if self.auto:
++            self.zoom = self.fit()
++            if (self.pan_x, self.pan_y) == getattr(self, '_auto_pan', (0.0, 0.0)):      # 1.0 D2: not moved by hand: seen round its place again
++                self.pan_x, self.pan_y = self._auto_pan = self.fit_centre()
++            if getattr(self, '_for_room', 0) or self.needed_zoom() < ROOM_LEAST:self._room_soon()      # 1.0 D2: the grouped tiles follow the room
+         if self.inspector.isVisible():self.close_inspector()
+ 
++    def _room_soon(self):
++        """1.0 D2: once the window has its size, the board is built again for the room it has."""
++        timer = getattr(self, '_room_timer', None)
++        if timer is None:
++            timer = self._room_timer = QTimer(self);timer.setSingleShot(True);timer.setInterval(250)
++            timer.timeout.connect(lambda: self.rebuild(keep_place=False) if self.isVisible() and self.auto else None)
++        timer.start()
++
+     def keyPressEvent(self, event):
+         key = event.key()
+         if key == Qt.Key_Escape:
+diff --git a/workbench/cabinet_qt.py b/workbench/cabinet_qt.py
+index 1791fa8..0dd630a 100644
+--- a/workbench/cabinet_qt.py
++++ b/workbench/cabinet_qt.py
+@@ -231,6 +231,8 @@ class CabinetPage(QWidget):
+                 else:self.tree.addTopLevelItem(item)
+                 if node['id'] in expanded:item.setExpanded(True)
+             if selected in self.items:self.tree.setCurrentItem(self.items[selected])
++        import time  # 1.0 D2: through the launch the tree stays at "This computer /"
++        if time.monotonic()<getattr(self.host,'launch_top_until',0.0):scroll=0
+         self.loading=False;self.filtered(self.query.text());self.tree.verticalScrollBar().setValue(scroll)
+         self.status.setText(('Some records are outside this bounded view. Existing views and workspace search remain available.' if model['partial'] else
+                              str(sum(r['owning'] for r in model['nodes']))+' saved records · '+model['sort_policy']+' order')+
+@@ -254,8 +256,13 @@ class CabinetPage(QWidget):
+                 if hidden(item):self.query.clear()
+                 parent=item.parent()
+                 while parent:parent.setExpanded(True);parent=parent.parent()
++            import time      # 1.0 D2: the launch's first focus is selected and its folders opened, the tree kept at "This computer /"
++            launching = time.monotonic() < getattr(self.host, 'launch_top_until', 0.0)
++            scrolls = self.tree.hasAutoScroll()
++            if launching:self.tree.setAutoScroll(False)
+             self.tree.setCurrentItem(item)
+-            if reveal:self.tree.scrollToItem(item)
++            if launching:self.tree.setAutoScroll(scrolls)
++            if reveal and not launching:self.tree.scrollToItem(item)
+         self.remember()
+ 
+     def clicked(self,item,column=0):
+diff --git a/workbench/centre_one_qt.py b/workbench/centre_one_qt.py
+index 3a28a8b..c8c3350 100644
+--- a/workbench/centre_one_qt.py
++++ b/workbench/centre_one_qt.py
+@@ -193,6 +193,7 @@ class OneBar(QObject):
+             for b in group:row.addWidget(b);self.work.append(b)
+         self.more = QToolButton(bar);self.more.setObjectName('CentreMore');self.more.setText('More ▾');self.more.setAccessibleName('More controls')
+         self.more.setToolTip('The controls this narrow bar has no room for: each does what it does on the bar');self.more.setCursor(Qt.PointingHandCursor)
++        self._standing = []      # 1.0 D2: the controls that may show their glyph alone (fold)
+         self.more.setPopupMode(QToolButton.InstantPopup);self.more.setFocusPolicy(Qt.TabFocus);self.more.setMenu(QMenu(self.more))
+         self.more.menu().aboutToShow.connect(self.fill_more);self.more.setStyleSheet(
+             'QToolButton#CentreMore {font-family:"%s";color:%s;background:transparent;border:1px solid %s;padding:2px 8px;border-radius:2px;} '
+@@ -240,10 +241,13 @@ class OneBar(QObject):
+             pass
+ 
+     # ---- a narrow centre: what does not fit goes behind More, from the least used; nothing is lost ----------------------------
+-    FOLD_ORDER = (('CentreFullProgram',), ('CentreSplit',), ('CentreSaveReturn',), ('CentreRedo', 'CentreUndo'), ('CentreLarger', 'CentreSmaller'))
++    FOLD_ORDER = (('CentreLarger', 'CentreSmaller'), ('CentreFullProgram',), ('CentreRedo', 'CentreUndo'), ('CentreSplit',), ('CentreSaveReturn',))      # 1.0 D2: − + go first; Save and Return and Split stay longest
++    BARE_FIRST = ('CentreSaveReturn', 'CentreSplit', 'CentreFullProgram')      # 1.0 D2: before anything folds, these show their glyphs alone
+ 
+-    def need(self, on):
+-        """The row's width with these widgets shown (on: widget -> shown), the breadcrumb at its least."""
++    def need(self, on, alone=()):
++        """The row's width with these widgets shown (on: widget -> shown), the breadcrumb at its least. 1.0 D2: `alone`, the
++        controls counted at their glyph's width (tool_faces: a glyph alone)."""
++        from . import tool_faces
+         row = self.row;total = row.contentsMargins().left() + row.contentsMargins().right() + 4;pending = 0
+         crumbs = self.crumbs;always = (crumbs.back, crumbs.forward, crumbs.words) if crumbs is not None else ()
+         gaps = {id(g[0]): g[1] for g in self.gaps}
+@@ -255,22 +259,47 @@ class OneBar(QObject):
+                 continue
+             if not (w in always or on.get(w, False)):
+                 pending = 0;continue
+-            total += pending + row.spacing() + (w.minimumWidth() if crumbs is not None and w is crumbs.words else w.sizeHint().width());pending = 0
++            wide = max(w.minimumWidth(), min(w.sizeHint().width(), w.maximumWidth()))      # 1.0 D2: the width the row gives it (a glyph's face is fixed)
++            if w in self._standing:wide = tool_faces.face_width(w, w in alone)
++            total += pending + row.spacing() + (w.minimumWidth() if crumbs is not None and w is crumbs.words else wide);pending = 0
+         return total
+ 
+     def fold(self, shown):
+         """The work's controls to put behind More so that the row fits the bar, the least used first."""
+         room = self.bar.width()
+         on = dict(shown);on.update({b: True for b in self.work});on[self.more] = False
+-        if room < 50 or self.need(on) <= room:return []
++        alone = self._standing = self.can_stand_alone()
++        bare = {b: False for b in alone}
++        try:
++            if room < 50 or self.need(on) <= room:return []
++            bare = {b: True for b in alone}      # 1.0 D2: their glyphs alone first (the coordinator: Save and Return and Split stayed behind More)
++            if self.need(on, alone) <= room:return []
++        finally:
++            self.bare_faces(bare)
+         folded = [];on[self.more] = True;by_name = {b.objectName(): b for b in self.work}
+         for names in self.FOLD_ORDER:      # a pair (Undo and Redo, − and +) goes together
+             for name in names:
+                 b = by_name.get(name)
+                 if b is not None:on[b] = False;folded.append(b)
+-            if self.need(on) <= room:break
++            if self.need(on, alone) <= room:break
+         return folded
+ 
++    def can_stand_alone(self):
++        """1.0 D2: the controls that can show their glyph alone now (icons chosen, a glyph of their own)."""
++        from . import tool_faces
++        if tool_faces.mode() != 'icons':return []
++        return [b for b in self.work if b.objectName() in self.BARE_FIRST and tool_faces.glyph_of(b) is not None]
++
++    def bare_faces(self, which):
++        """1.0 D2: Save and Return, Split and Full program as their glyphs alone, or with their words ({button: alone})."""
++        from . import tool_faces
++        for b, on in which.items():
++            if bool(b.property('faceBare')) != bool(on):
++                b.setProperty('faceBare', bool(on))
++                try:tool_faces.fit(b)
++                except RuntimeError:
++                    pass
++
+     def fill_more(self):
+         menu = self.more.menu();menu.clear()
+         for b in self.folded:
+diff --git a/workbench/depths.py b/workbench/depths.py
+index 3878118..5f25d0d 100644
+--- a/workbench/depths.py
++++ b/workbench/depths.py
+@@ -222,6 +222,7 @@ def mark_board(desk):
+         entry = entries.get(ident)
+         name = entry.get('name') if entry else Path(str(latest.get('path') or '')).name
+         said = 'revision %d%s' % (latest['n'], (', saved in ' + latest['program']) if latest.get('program') else ', saved elsewhere')
++        desk.file_said = dict(getattr(desk, 'file_said', None) or {}, **{ident: said})      # 1.0 D2 (X3): a FILE tile brought in later says it too
+         if ident in desk.objects:
+             obj = desk.objects[ident]
+             desk.objects[ident] = replace(obj, lines=(said,) + tuple(obj.lines[1:3]))
+diff --git a/workbench/depths_qt.py b/workbench/depths_qt.py
+index 41ec1f0..8bca346 100644
+--- a/workbench/depths_qt.py
++++ b/workbench/depths_qt.py
+@@ -387,7 +387,7 @@ class Depths(QObject):
+             if said:button.setAccessibleName(said)
+             button.clicked.connect(lambda: (does(), self.sync()))
+             return wear(button, glyph) if glyph else button
+-        self.save_return = control('Save and Return', 'CentreSaveReturn', self.save_and_return)
++        self.save_return = control('Save and Return', 'CentreSaveReturn', self.save_and_return, 'save_return', 'Save and Return')      # 1.0 D2: its own glyph
+         self.full = control('Full program', 'CentreFullProgram', self.full_program, 'window', 'Open in the full program')
+         self.close_button = control('Close', 'CentreClose', self.close_view, 'close', 'Close this view')
+         row.addSpacing(8);row.addWidget(self.save_return);row.addSpacing(8);row.addWidget(self.full);row.addWidget(self.close_button)
+@@ -437,6 +437,12 @@ class Depths(QObject):
+         name = name_of(self.host, page);dirty = is_dirty(page)
+         target = return_target(self.host, page);where = 'the board' if target.get('focus') or living(self.host) is not None else 'where you were'
+         self.save_return.setEnabled(True)
++        words = 'Save and Return' if (dirty or can_save(page) or saves_itself(page)) else 'Return'      # 1.0 D2 (X3): a read-only view (a photo) offers no Save
++        if self.save_return.text() != words:
++            self.save_return.setText(words);self.save_return.setAccessibleName(words)
++            self.save_return.setProperty('glyph', 'save_return' if words != 'Return' else 'return_to')
++            one = getattr(self.host, 'one_bar', None)
++            if one is not None:one.sync_soon()
+         self.save_return.setToolTip(('Save “%s” and go back to %s' % (name, where)) if dirty and can_save(page) else
+                                     ('Nothing to save: back to %s' % where) if not saves_itself(page) else 'Saved as you write: back to %s' % where)
+         path = path_of(page);kind = kind_of(page)
+diff --git a/workbench/desktop_header_qt.py b/workbench/desktop_header_qt.py
+index bb847aa..787d479 100644
+--- a/workbench/desktop_header_qt.py
++++ b/workbench/desktop_header_qt.py
+@@ -79,7 +79,7 @@ class DesktopMonitors(QWidget):
+         super().__init__();self.host = host;self.setObjectName('DesktopMonitors');self._scale = None
+         self.setToolTip(MONITORS_NOTE)
+         from .neon_meters import RingMeter
+-        row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(0);row.addStretch(1)
++        row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(0);row.addStretch(1)      # 1.0 D2: no spacing here (the meters' least width sets the panes'); the separators keep their own air (paintEvent)
+         self.values = {};self.labels = {};self.setProperty('paperFunctionalInk', True)
+         for key in self.KEYS:
+             # the key word is drawn by its meter under the ring; the label stays (out of sight) for what reads it
+@@ -90,7 +90,7 @@ class DesktopMonitors(QWidget):
+             else:value = RingMeter(key, self)
+             label.setAccessibleName(key + ' monitor');value.setAccessibleName(key + ' reading');value.setProperty('paperFunctionalInk', True)
+             row.addWidget(value);row.addStretch(1);self.values[key] = value;self.labels[key] = label      # evenly spaced: the same air between them and at both ends
+-        self.values['TXT'].reserve = 'TXT —'      # 1.0 D1: TXT has no reading in this build (render): its room is its dash, so NET fits beside it
++        self.values['TXT'].reserve = ' TXT — '      # 1.0 D1: TXT has no reading in this build (render): its room is its dash, so NET fits beside it; 1.0 D2: and a space each side, so the bars beside it have air ("TXT —|NET")
+         self.setCursor(Qt.PointingHandCursor)      # 0.7.0: each meter is a door (meter_cards): a click opens what it is about
+         self.restyle()
+         self.previous = None;self.timer = QTimer(self, interval=2000)
+@@ -144,14 +144,19 @@ class DesktopMonitors(QWidget):
+         from .neon_meters import SEPARATOR, words_only
+         if not words_only():return
+         from PySide6.QtGui import QPainter, QColor
+-        from PySide6.QtCore import QRectF
++        from PySide6.QtCore import QPointF, QRectF  # noqa: F401 - 1.0 D2: QPointF for the drawn bar
+         from . import boss_theme as look
+         shown = [self.values[k] for k in self.KEYS if self.values[k].isVisible()]
+         if len(shown) < 2:return
+         p = QPainter(self);p.setPen(QColor(look.FAINT));p.setFont(shown[0].words_font())
++        from PySide6.QtGui import QFontMetricsF
++        fm = QFontMetricsF(shown[0].words_font());tall = fm.ascent() + fm.descent() * 0.5      # 1.0 D2: a hairline the words' height
+         for a, b in zip(shown, shown[1:]):
+             x = (a.geometry().left() + a.words_span()[1] + b.geometry().left() + b.words_span()[0]) / 2.0      # midway between the words
+-            p.drawText(QRectF(x - 8, a.geometry().top(), 16, a.geometry().height()), Qt.AlignCenter, SEPARATOR)
++            room = b.geometry().left() + b.words_span()[0] - (a.geometry().left() + a.words_span()[1])
++            if room < 9:continue      # 1.0 D2: no separator pressed against the words; the gap alone says it
++            cy = a.geometry().center().y() + 0.5;x = round(x) + 0.5
++            p.drawLine(QPointF(x, cy - tall / 2.0), QPointF(x, cy + tall / 2.0))      # 1.0 D2: the picture's thin bar, drawn, so it centres in the gap
+         p.end()
+ 
+     def event(self, event):
+diff --git a/workbench/field_page.py b/workbench/field_page.py
+index 1cbacf6..58eedca 100644
+--- a/workbench/field_page.py
++++ b/workbench/field_page.py
+@@ -152,10 +152,13 @@ def open_on_work(host):
+         reading = read_field(kernel, operator(), title='')
+     except Exception:  # noqa: BLE001 - a launch never fails because the overview could not be read
+         return None
+-    if not reading[0].objects:
+-        return None
++    import time
++    host.launch_top_until = time.monotonic() + 5.0      # 1.0 D2: the launch's first focus is revealed with the tree kept at "This computer /"
+     page = show_field(host, reading=reading)
+     from . import board_qt
++    if not reading[0].objects:      # 1.0 D2 (X3): a fresh desk never opens on a blank centre: the board's Home and its one line
++        board_qt.to_board(page, None)
++        return page
+     board_qt.home(page)          # 1.0 L2: the centre's home is the board, on the desk's first object
+     return page
+ 
+diff --git a/workbench/glyph_set.py b/workbench/glyph_set.py
+index 2112cb6..952e0cb 100644
+--- a/workbench/glyph_set.py
++++ b/workbench/glyph_set.py
+@@ -86,6 +86,20 @@ def save(p, ink, accent):
+     line(p, (6.5, 3.5), (6.5, 7.5), (12.5, 7.5), (12.5, 3.5));line(p, (6.5, 16.5), (6.5, 11.5), (13.5, 11.5), (13.5, 16.5))
+ 
+ 
++def save_return(p, ink, accent):
++    """1.0 D2: Save and Return: the disk, smaller, and the way back under it (the centre bar's glyph for it at 1366x768)."""
++    facet(p, accent, (5.0, 2.5), (9.5, 2.5), (9.5, 5.5), (5.0, 5.5))
++    pen(p, ink);line(p, (2.5, 2.5), (10.5, 2.5), (12.5, 4.5), (12.5, 12.0), (2.5, 12.0), close=True)
++    line(p, (16.5, 5.5), (16.5, 16.0), (9.5, 16.0))
++    facet(p, ink, (5.5, 16.0), (9.8, 12.2), (9.8, 19.8))
++
++
++def return_to(p, ink, accent):
++    """1.0 D2: Return (a view that saves nothing): the way back."""
++    pen(p, ink);line(p, (16.0, 3.5), (16.0, 13.5), (8.5, 13.5))
++    facet(p, ink, (4.0, 13.5), (8.8, 9.0), (8.8, 18.0))
++
++
+ # ---- a page of a document --------------------------------------------------------------------------------------------
+ 
+ def previous(p, ink, accent):
+@@ -470,6 +484,7 @@ GLYPHS = {
+     'previous': previous, 'next': following, 'cite': cite, 'table': table, 'more': more, 'note': note,
+     'report': report, 'recalc': recalc, 'export': export, 'cell': cell, 'source': source,
+     'document': document, 'again': again, 'stop': stop, 'pin': pin,
++    'save_return': save_return, 'return_to': return_to,      # 1.0 D2
+     'copy': copy, 'paste': paste, 'cut': cut, 'select': select, 'full': full, 'home': home, 'sliders': sliders, 'prompt': prompt,
+     'lines': lines, 'info': info, 'close': close, 'receive': receive, 'chip': chip, 'book': book, 'key': key, 'stack': stack,
+     'delta': delta, 'agenda': agenda, 'chain': chain, 'star': star, 'split': split, 'picture': picture,
+diff --git a/workbench/grants.py b/workbench/grants.py
+index 656b9b2..145d591 100644
+--- a/workbench/grants.py
++++ b/workbench/grants.py
+@@ -537,7 +537,9 @@ def covering(kernel, owner, operation, arguments, assignment=None, include_built
+ 
+ def _where(kernel, operation, found):
+     if found['paths']:
+-        folders = sorted({(p.rsplit('/', 1)[0] if '/' in p else '(the top of Files)') for p in found['paths'] if p is not None})
++        from .home_reach import tilde      # 1.0 D2 (X3): "in ~/Downloads", as the grant's own words say it, not the whole path
++        folders = sorted({((tilde(p.rsplit('/', 1)[0] or '/') if p.startswith('/') else p.rsplit('/', 1)[0]) if '/' in p else '(the top of Files)')
++                          for p in found['paths'] if p is not None})
+         return 'in ' + ', '.join(folders)
+     if found['objects']:return 'on ' + ', '.join(object_words(kernel, o) for o in found['objects'][:2])
+     return 'on what it names'
+diff --git a/workbench/grants_qt.py b/workbench/grants_qt.py
+index 814b1db..6daf4f8 100644
+--- a/workbench/grants_qt.py
++++ b/workbench/grants_qt.py
+@@ -205,6 +205,9 @@ class GrantsTab(QWidget):
+         for words, kind in PERIODS:when.addItem(words, kind)
+         open_rows = (call(self.host, 'assignment.list', {'open': True, 'limit': 10}) or {}).get('assignments') or []
+         for r in open_rows:when.addItem('for the assignment “%s”' % r['title'][:60], 'assignment:' + r['id'])
++        for box_, least in ((what, 14), (when, 16)):      # 1.0 D2: a combo as wide as a short choice, not its longest one (an assignment's
++            box_.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon);box_.setMinimumContentsLength(least)      # title made the page wider than the centre, its words cut at the right)
++        where.setMinimumWidth(80)
+         for w, words in ((what, 'Do'), (where, 'in'), (when, 'for')):
+             row.addWidget(QLabel(words));row.addWidget(w, 1 if w is where else 0)
+         col.addLayout(row)
+diff --git a/workbench/halt.py b/workbench/halt.py
+index b7c3e47..83e3ebf 100644
+--- a/workbench/halt.py
++++ b/workbench/halt.py
+@@ -35,8 +35,8 @@ WORDS = {
+     'hand': ' My hand stopped before its next press.',
+     'turns': ' My model’s answer was closed.',
+     'not_held': 'HALT could not hold my work: %s. Use Stop all on the meters if anything of mine is still running.',
+-    'released': 'RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, '
+-                'which checks every step first.',
++    'released': 'RESUME: the hold is lifted. Nothing stopped was restarted: what HALT stopped waits for your Resume on it '
++                '(in “Waits for you”), which checks every step first.',      # 1.0 D2 (X3): say that her work waits for that press
+     'released_jobs': ' Graphite’s jobs are still held by Stop all; lift that on its own card.',
+     'not_released': 'The hold stays: %s.',
+ }
+diff --git a/workbench/handbook.py b/workbench/handbook.py
+index 3301af2..ef95fe6 100644
+--- a/workbench/handbook.py
++++ b/workbench/handbook.py
+@@ -82,7 +82,7 @@ def ensure(root):
+     generation = folder/'generations'/stamp
+     generation.mkdir(parents=True,exist_ok=True)
+     document = '<!doctype html><html lang="en"><meta charset="utf-8"><title>The Orange Book</title><style>'+CSS+'</style><body>'
+-    document += '<h1>The Orange Book</h1><p>ARC-1 · The Silicon Federation workshop</p><nav>'
++    document += '<h1>The Orange Book</h1><p>Graphite</p><nav>'      # 1.0 D2: the old workshop name read on screen (as X3 found in the window's title)
+     document += '<br>'.join('<a href="#'+p['id']+'">'+html.escape(p['title'])+'</a>' for p in pages)+'</nav>'
+     document += ''.join('<section class="page" id="'+p['id']+'">'+p['html']+'</section>' for p in pages)+'</body></html>'
+     io.write_json(generation/'pages.json',pages)
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index e729cdc..2537c63 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -154,7 +154,7 @@ def colour(name):
+ 
+ def ink(widget, size, colour_=None, weight=None, family=None, extra=''):
+     """A widget's own words: its own style sheet, so the window's larger sizes for her column do not reach it."""
+-    css = 'font-size:%dpx;' % size
++    css = 'font-size:%dpx;' % max(11, size)      # 1.0 D2: nothing under 11 px (her headings and command words were 9 to 10 px in Day)
+     if colour_:css += 'color:%s;' % colour_
+     if weight:css += 'font-weight:%d;' % weight
+     if family:css += 'font-family:"%s";' % family
+@@ -292,9 +292,8 @@ class ColumnEqualizer(Equalizer):
+     def sizeHint(self):return QSize(160, 64)
+ 
+     def geometry_(self):
+-        if bt.LAUNCH:      # 1.0 P4: Day and Night: room under the tubes for their numbers at 11 px (nothing under 11 px)
+-            return self.height() - 15, 5.0
+-        return super().geometry_()
++        # 1.0 P4: Day and Night: room under the tubes for their numbers at 11 px (nothing under 11 px); 1.0 D2: in every look
++        return self.height() - 16, 5.0
+ 
+     def places(self):
+         key = (self.width(), tuple(self.sizes), self.hole)
+@@ -333,7 +332,7 @@ class ColumnEqualizer(Equalizer):
+         if not self.shown or self.height() < 24:return
+         try:
+             xs, wide = self.places();base, _ = self.geometry_()
+-            p = QPainter(self);font = QFont(bt.MONO);font.setPixelSize(11 if bt.LAUNCH else max(7, min(8, (self.height() - base) - 3)));p.setFont(font)      # 1.0 P4: 11 px in Day and Night
++            p = QPainter(self);font = QFont(bt.MONO);font.setPixelSize(11);p.setFont(font)      # 1.0 P4: 11 px in Day and Night; 1.0 D2: in every look (it was 7 to 8 px in Graphite and Kasandra)
+             fm = QFontMetrics(font);p.setPen(QColor(bt.FAINT))
+             cpu = self.sizes[0] if self.sizes else 0;y = self.height() - 2;pitch = (xs[1] - xs[0]) if len(xs) > 1 else wide
+             every = 1 if fm.horizontalAdvance('00') + 2 <= pitch else 4
+@@ -856,8 +855,10 @@ class CommandRow(QWidget):
+             b.setObjectName('HerCommand');b.setAccessibleName(words.title() + ': ' + tip);b.setFocusPolicy(Qt.TabFocus)
+             b.setStyleSheet('QPushButton {font-size:%dpx;font-family:"%s";font-weight:600;color:%s;background:transparent;min-height:0px;min-width:0px;'
+                             'border:1px solid %s;border-radius:3px;padding:%dpx %dpx;} QPushButton:hover {background:%s;border-color:%s;color:%s;}' % (
+-                                px(host, 11), bt.MONO, bt.QUIET, bt.LINE, px(host, 2), px(host, 3), bt.RAISED, bt.LINE_STRONG, bt.TEXT))
++                                px(host, 11), bt.MONO, bt.QUIET, bt.LINE, px(host, 2), px(host, 2), bt.RAISED, bt.LINE_STRONG, bt.TEXT))      # 1.0 D2: 2 px each side (was 3)
+             b.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
++            face = QFont(bt.MONO);face.setPixelSize(px(host, 11));face.setWeight(QFont.DemiBold)      # 1.0 D2: never narrower than its word ("CHECK ALI" at 1366x768)
++            b.setMinimumWidth(QFontMetrics(face).horizontalAdvance(words) + 2 * px(host, 2) + 3)
+             b.clicked.connect(lambda checked=False, key=key: self.column.command(key))
+             row.addWidget(b, len(words) + 2);self.buttons[key] = b
+ 
+@@ -1186,8 +1187,13 @@ class HerColumn(QObject):
+     def size_parts(self):
+         # 1.0 P4 no avatar: the equalizer is a compact band (about 72 to 96 px at 1920x1200, less at 1366x768), the column's
+         # height kept for the work below
+-        h = self.face.height();tall = px(self.host, 48) if self.compact() else max(56, min(px(self.host, 88), round(h * 0.085)))
++        h = self.face.height()
++        # 1.0 D2 (the coordinator: "very short"): a calm band whose tubes read, its numbers at 11 px under them, her name and
++        # state word clear below it; about 108 px tall on a tall column, 64 px at 1366x768
++        tall = max(64, px(self.host, 64)) if self.compact() else max(88, min(px(self.host, 112), round(h * 0.11)))      # 1.0 D2: 64 at 1366x768 (it was 48), so the exchange keeps its room
+         if self.head.stage.height() != tall:self.head.stage.setFixedHeight(tall)
++        air = px(self.host, 6)
++        if self.head.layout().spacing() != air:self.head.layout().setSpacing(air)      # 1.0 D2: her name and state word stand clear under it
+         spacing = px(self.host, 5 if self.compact() else 9)
+         if self.face.layout().spacing() != spacing:self.face.layout().setSpacing(spacing)
+ 
+diff --git a/workbench/living_nav_qt.py b/workbench/living_nav_qt.py
+index d01bf98..63d5df8 100644
+--- a/workbench/living_nav_qt.py
++++ b/workbench/living_nav_qt.py
+@@ -27,6 +27,7 @@ beside Files' reading (extra), and the board, the breadcrumb, Back and Open find
+ """
+ from __future__ import annotations
+ 
++import time  # 1.0 D2: the launch's tree kept at its top
+ import weakref
+ from pathlib import Path
+ 
+@@ -172,12 +173,26 @@ class Crumbs(QWidget):
+         if not parts:
+             self.words.setText('');self.words.setAccessibleName('Where you are: nothing in focus yet');return
+         metrics = QFontMetrics(self.words.font());room = max(80, self.words.width() - 4)
++        from PySide6.QtGui import QFont
++        bold = QFont(self.words.font());bold.setWeight(QFont.DemiBold);strong = QFontMetrics(bold)      # 1.0 D2: the name is drawn bold
+         shown = list(enumerate(parts));tail = ''
+-        def width(rows):return metrics.horizontalAdvance(SEPARATOR.join(label for _, (label, _) in rows))
++
++        def width(rows):      # 1.0 D2: the name measured in the weight it is drawn in (it was measured regular, so it was clipped)
++            words = [label for _, (label, _) in rows]
++            if not words:return 0
++            named = rows[-1][0] == len(parts) - 1
++            head = SEPARATOR.join(words[:-1]) + (SEPARATOR if len(words) > 1 else '')
++            return metrics.horizontalAdvance(head) + (strong if named else metrics).horizontalAdvance(words[-1]) + 2
+         if len(shown) > 2 and width(shown) > room:      # the first folder and the name stay; the middle gives way first
+             for cut in range(2, len(shown)):
+                 trial = [shown[0], (-1, ('…', ''))] + shown[cut:]
+                 if width(trial) <= room or cut == len(shown) - 1:shown = trial;break
++        if width(shown) > room and len(shown) > 1:      # 1.0 D2: still too long: only the name, behind "… /"
++            shown = [(-1, ('…', ''))] + shown[-1:]
++        if width(shown) > room:      # 1.0 D2: the name itself, shortened at its end in its own weight, never cut mid-letter
++            at, (label, node) = shown[-1]
++            lead = width(shown[:-1] + [(-1, ('', ''))]) if len(shown) > 1 else 0
++            shown[-1] = (at, ((strong if at == len(parts) - 1 else metrics).elidedText(label, Qt.ElideRight, max(24, room - lead - 2)), node))
+         if note:          # what happened to it (renamed from …) has the room the trail leaves, shortened in its middle
+             left = room - width(shown) - metrics.horizontalAdvance('  ·  ')
+             if left >= metrics.horizontalAdvance('renamed from …'):tail = '  ·  ' + metrics.elidedText(note, Qt.ElideMiddle, left)
+@@ -622,7 +637,13 @@ class LivingNav(QObject):
+             elif depth == 'board' and not from_board and not board_object and not self.on_board():
+                 from . import field_page
+                 field_page.show_field(self.host);self.hook_field()
+-            if via not in ('tree', 'start'):self.reveal(ident, node)      # 1.0 L6: at start the tree lands on Home
++            if via not in ('tree', 'start'):
++                self.reveal(ident, node)      # 1.0 L6: at start the tree lands on Home
++                if time.monotonic() < getattr(self.host, 'launch_top_until', 0.0):      # 1.0 D2: the launch's first focus is revealed, the tree kept at "This computer /"
++                    tree = getattr(getattr(self.host, 'cabinet_page', None), 'tree', None)
++                    if tree is not None:      # after the reveal's own scroll, which Qt makes once the rows are laid out
++                        tree.scrollToTop()
++                        for ms in (0, 150, 600, 1500):QTimer.singleShot(ms, tree.scrollToTop)
+             if depth == 'board' and self.on_board() and not same:entry.board = self.board_state() or entry.board
+         self.with_applying(apply)
+         self.show_crumbs()
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index cd6ab4d..64d3201 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -143,8 +143,9 @@ def rebuild(host):
+         host.a_project_desk = make('Project Desk', lambda:open_destination(host, 'project_desk'))
+         host.a_changes = make('Changes', lambda:open_destination(host, 'changes'))
+         host.a_continuing = make('Continuing work', lambda:open_destination(host,'continuing'))
+-        host.a_deployment = make('Exchange & deployment', lambda:open_destination(host,'deployment'))
+-        host.a_slate_panel = make('Graphite', lambda:host.shell2.show_slate_face())
++        host.a_deployment = make('Exchange && deployment', lambda:open_destination(host,'deployment'))      # 1.0 D2: && (a lone & was taken as a key mark: "Exchange  deployment")
++        from .assistant_identity import named      # 1.0 D2: the row that shows her column says her name, not "Graphite"
++        host.a_slate_panel = make(named('Stacy'), lambda:host.shell2.show_slate_face())
+         host.a_getting_started = make('Getting Started', lambda:host.open_in_viewer(program / 'GETTING_STARTED.md'))
+         release_notes = program / 'docs' / ('RELEASE_NOTES_%s.md' % SHORT)
+         if not release_notes.is_file(): release_notes = program / 'docs' / 'STAGE6.md'
+diff --git a/workbench/neon_meters.py b/workbench/neon_meters.py
+index 522f13c..0d255f4 100644
+--- a/workbench/neon_meters.py
++++ b/workbench/neon_meters.py
+@@ -117,7 +117,7 @@ class RingMeter(QLabel):
+         return QSize(self.ring + 4, self.ring + 14)
+ 
+     def words_font(self):
+-        f = QFont(t.MONO);f.setPixelSize(max(12, self.number_font.pixelSize() + 1));return f
++        f = QFont(t.MONO);f.setPixelSize(12 if t.LAUNCH else max(12, self.number_font.pixelSize() + 1));return f      # 1.0 D2: the tokens' mono role, 12 px
+ 
+     def words_size(self):
+         """Day: room for the key and the widest reading ('100%' and its mark), on one line."""
+diff --git a/workbench/network_qt.py b/workbench/network_qt.py
+index 2a95df2..d2256f0 100644
+--- a/workbench/network_qt.py
++++ b/workbench/network_qt.py
+@@ -230,7 +230,7 @@ class ColumnLine(QWidget):
+         self.setObjectName('HerNetLine')
+         row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(px(self.host, 6))
+         self.shape = ShapeDot(self.host);row.addWidget(self.shape, 0, Qt.AlignVCenter)
+-        self.words = row_label(self.host, '', size=12);row.addWidget(self.words, 1)
++        self.words = QLabel();self.words.setTextFormat(Qt.PlainText);self.words.setWordWrap(True);row.addWidget(self.words, 1)      # 1.0 D2 (X3): it folds, so a long host name is never cut short
+         ink(self.words, px(self.host, 12), t.QUIET, 500, t.MONO);self.words.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+         self.button = small_button(self.host, say('try_now'), 'Your press: the step is authorised by its name and carried on')
+         self.button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+@@ -271,7 +271,8 @@ class ColumnLine(QWidget):
+         self.press_call = call
+         if key != self.shown:
+             self.shown = key
+-            self.shape.set(kind);self.words.setText(words);self.words.setToolTip(tip);self.setAccessibleName('Her network use: ' + words)
++            from .shell2 import breakable_path
++            self.shape.set(kind);self.words.setText(breakable_path(words));self.words.setToolTip(tip);self.setAccessibleName('Her network use: ' + words)      # 1.0 D2: a long host folds
+             self.button.setText(button or say('see_it'));self.button.setVisible(bool(button))
+         self.show()
+ 
+diff --git a/workbench/notify_qt.py b/workbench/notify_qt.py
+index 79e7d51..80d567b 100644
+--- a/workbench/notify_qt.py
++++ b/workbench/notify_qt.py
+@@ -139,7 +139,7 @@ class Toast(QFrame):
+         self.setFixedWidth(width)
+         m = self.layout().contentsMargins();spacing = self.layout().itemAt(0).layout().spacing()
+         room = width - m.left() - m.right() - self.kind.sizeHint().width() - self.close_.sizeHint().width() - 2 * spacing
+-        self.who.setText(self.who.fontMetrics().elidedText(self.who_full, Qt.ElideRight, max(20, room)))
++        self.who.setText(self.who.fontMetrics().elidedText(self.who_full, Qt.ElideRight, max(20, room - 6)))      # 1.0 D2: 6 px for the label's own edges (its ellipsis was clipped by 3 px)
+         h = self.layout().totalHeightForWidth(width) if self.layout().hasHeightForWidth() else -1
+         h = h if h > 0 else self.sizeHint().height()
+         self.setFixedHeight(h)
+diff --git a/workbench/pane_qt.py b/workbench/pane_qt.py
+index a79da67..eb07305 100644
+--- a/workbench/pane_qt.py
++++ b/workbench/pane_qt.py
+@@ -533,7 +533,9 @@ class BranchTree(QTreeWidget):
+         # 0.8.1: the lit path breathes (breath): a quiet repaint of this tree's own rows a few times a second, only while it
+         # is shown on a desk that glows and the owner has not asked for less motion.
+         from PySide6.QtCore import QTimer
+-        self.breathing = True;self._breath = QTimer(self);self._breath.setInterval(140);self._breath.timeout.connect(self._breathe);self._breath.start()
++        from . import boss_theme as _bt
++        self.breathing = True;self._breath = QTimer(self);self._breath.setInterval(140);self._breath.timeout.connect(self._breathe)
++        if not _bt.LAUNCH:self._breath.start()      # 1.0 D2: Day and Night have no glow (DESIGN_DIRECTION section 9), so nothing breathes there
+ 
+     def set_metrics(self, row, indent):
+         from . import boss_theme as _bt
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 94a8474..39a4798 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -365,7 +365,9 @@ def chrome_css(profile, assets):
+         'QWidget#TimelineHead QPushButton {border-bottom:3px solid %s;} QWidget#TimelineHead QPushButton:hover {background:%s;border-bottom:3px solid %s;}' % (ERASER_MARK, TEAL_SOFT, TEAL_EDGE),
+         'QWidget#SlateFace QLabel, QFrame#SlateMine QLabel, QFrame#SlateTheirs QLabel {font-size:%s;}' % px(18),
+         'QLineEdit#SlateInput, QPlainTextEdit#SlateInput, QPlainTextEdit#Capture {font-size:%s;}' % px(18),
+-    ])
++    ] + ([      # 1.0 D2: Day and Night: her exchange at the type scale's body size (it was 18 px, larger than body type)
++        'QFrame#SlateMine QLabel, QFrame#SlateTheirs QLabel {font-size:%dpx;}' % max(13, round(13 * s)),
++    ] if bt.LAUNCH else []))
+ 
+ 
+ def line_icon(kind, color=QUIET, size=16):
+@@ -2036,7 +2038,7 @@ class SlateFace(QWidget):
+             self.folding = Folding(self.thread, lambda:self.fold_earlier())      # her words fold at the column's width, a name whole where it fits a line
+         else:self.lines.setContentsMargins(0, 0, 14, 0);self.lines.setSpacing(10)
+         self.scroll.setWidget(self.thread);outer.addWidget(self.scroll, 1)
+-        self.say('Ask about what is open. In the Field, say “this” and I take the selected sheet. What I read, I show as a line you can run yourself.')
++        self.say('Ask about what is open. Say “this” and I take what is in the middle of the board. What I read, I show as a line you can run yourself.')      # 1.0 D2: no "Field", no "sheet" (X3)
+         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
+         self.input.returnPressed.connect(self.send);self.input.setAccessibleName(named('Message Stacy'));self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
+         hint = role(QLabel('Write in your own words; finishing the line sends it'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button
+diff --git a/workbench/tool_faces.py b/workbench/tool_faces.py
+index e00f856..b59ae74 100644
+--- a/workbench/tool_faces.py
++++ b/workbench/tool_faces.py
+@@ -62,8 +62,19 @@ def said(text):
+     return text.strip().lstrip('‹').rstrip('›▾…').strip()
+ 
+ 
++def bare(button, key):
++    """Whether the glyph stands alone: one every program draws (BARE), or a tool a narrow bar shows by its glyph alone
++    (1.0 D2: the centre bar at 1366x768 gives Save and Return, Split and Full program their glyphs before it folds them)."""
++    return key in BARE or bool(button.property('faceBare'))
++
++
++def face_width(button, alone):
++    """1.0 D2: the width this button's face takes with its glyph alone, or with its words beside the glyph."""
++    return SIDE + 10 if alone else 7 + SIDE + 6 + button.fontMetrics().horizontalAdvance(said(button.text())) + 9
++
++
+ def signature(button, key):
+-    return '%s|%s|%s|%s' % (STATE['mode'], key, button.text(), button.font().toString())
++    return '%s|%s|%s|%s|%s' % (STATE['mode'], key, button.text(), button.font().toString(), bool(button.property('faceBare')))      # 1.0 D2
+ 
+ 
+ def fit(button):
+@@ -78,7 +89,7 @@ def fit(button):
+             button.setMinimumWidth(low);button.setMaximumWidth(high);button.setProperty('facedWidths', None)
+     else:
+         if not button.property('facedWidths'):button.setProperty('facedWidths', '%d,%d' % (button.minimumWidth(), button.maximumWidth()))
+-        wide = SIDE + 10 if key in BARE else 7 + SIDE + 6 + button.fontMetrics().horizontalAdvance(said(button.text())) + 9
++        wide = SIDE + 10 if bare(button, key) else 7 + SIDE + 6 + button.fontMetrics().horizontalAdvance(said(button.text())) + 9      # 1.0 D2: bare()
+         button.setFixedWidth(wide);button.setAttribute(Qt.WA_Hover, True)
+     button.updateGeometry();button.update()
+ 
+@@ -113,8 +124,8 @@ def paint(button, key):
+     if ground:p.fillRect(r, QColor(ground))
+     if edge:
+         p.setPen(QPen(QColor(edge), 1));p.setBrush(Qt.NoBrush);p.drawRect(r.adjusted(0.5, 0.5, -0.5, -0.5))
+-    size = min(SIDE, int(r.height()) - 4);bare = key in BARE
+-    x = round((r.width() - size) / 2) if bare else 7;y = round((r.height() - size) / 2)
++    size = min(SIDE, int(r.height()) - 4);alone = bare(button, key)      # 1.0 D2
++    x = round((r.width() - size) / 2) if alone else 7;y = round((r.height() - size) / 2)
+     draw = GLYPHS[key]
+ 
+     def glyph(dx, dy, line, fill):
+@@ -129,7 +140,7 @@ def paint(button, key):
+             far = QColor(t.READY);far.setAlphaF(min(0.16, 0.035 * level))
+             for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2), (-2, -2), (2, 2), (-2, 2), (2, -2)):glyph(dx, dy, far, far)
+     glyph(0, 0, QColor(ink), QColor(accent))
+-    if not bare:
++    if not alone:      # 1.0 D2
+         p.setFont(button.font());p.setPen(QColor(ink))
+         p.drawText(QRectF(x + size + 6, 0, r.width() - x - size - 6, r.height()), Qt.AlignVCenter | Qt.AlignLeft, said(button.text()))
+     p.end()
+@@ -150,7 +161,7 @@ class Face(QObject):
+             paint(button, key);return True
+         if kind == QEvent.ToolTip:
+             key = glyph_of(button)
+-            if key in BARE:                       # a glyph alone says its name first
++            if key is not None and bare(button, key):      # a glyph alone says its name first (1.0 D2: bare())
+                 name = NAMES.get(button.text().strip(), said(button.text()));tip = button.toolTip()
+                 words = tip if tip.lower().startswith(name.lower()) else (name + ' · ' + tip if tip else name)
+                 QToolTip.showText(event.globalPos(), words, button);return True
+diff --git a/workbench/typebar_qt.py b/workbench/typebar_qt.py
+index 215c6ec..3551db4 100644
+--- a/workbench/typebar_qt.py
++++ b/workbench/typebar_qt.py
+@@ -44,6 +44,8 @@ HINTS = {'line': 'a line, an operation by name after /, or an address  ·  words
+          'shell': 'a command, in your Files folder',
+          'web': 'an address to open, or words to search for, in your own browser',
+          'log': "words in Graphite's events"}
++PLACEHOLDERS = {'line': 'a line, an operation, an address', 'shell': 'a command for the Terminal',      # 1.0 D2: what each mode takes
++                'find': 'words to look for', 'web': 'an address, or words to search for', 'log': 'words to find in the Log'}
+ SENDS = {'line': 'Run this line', 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
+ READS = ('stac', 'inspect', 'word')      # what the line can be read as that the arrow runs itself, instead of asking
+ TIPS = {'line': named('Line: a Graphite line, an operation by name, or an address. Words for Stacy are offered to her column, never run here.'),
+@@ -333,6 +335,8 @@ class TypeBar(QWidget):
+         elif self.target == 'shell':hint = destination_hint('shell', self.labels['shell'], HINTS['shell'] + ' (' + self.shell + ')')
+         else:hint = destination_hint('kernel' if kernel or (self.target == 'line' and self.box.text().startswith('/')) else self.target)
+         writing_prompt(self.box, hint)
++        said = PLACEHOLDERS.get(self.target)      # 1.0 D2: the empty line says what it takes, not "prompt"
++        if said and self.box.placeholderText() != said:self.box.setPlaceholderText(said)
+ 
+     @staticmethod
+     def address_of(words):
+@@ -469,7 +473,9 @@ class TypeBar(QWidget):
+         """Keep a status message visible beside the console while writing retains its invitation; no message lingers:
+         after NOTE_MS the destination hint is back."""
+         self.message = message or ''
+-        if message:writing_prompt(self.box, message)
++        if message:
++            writing_prompt(self.box, message)
++            if PLACEHOLDERS.get(self.target):self.box.setPlaceholderText(PLACEHOLDERS[self.target])      # 1.0 D2: never "prompt"
+         else:self.mode_hint()
+         self.box.setToolTip(message or self._box_tip)
+         self.console.hint.setTextFormat(Qt.PlainText)

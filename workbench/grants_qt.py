@@ -205,6 +205,9 @@ class GrantsTab(QWidget):
         for words, kind in PERIODS:when.addItem(words, kind)
         open_rows = (call(self.host, 'assignment.list', {'open': True, 'limit': 10}) or {}).get('assignments') or []
         for r in open_rows:when.addItem('for the assignment “%s”' % r['title'][:60], 'assignment:' + r['id'])
+        for box_, least in ((what, 14), (when, 16)):      # 1.0 D2: a combo as wide as a short choice, not its longest one (an assignment's
+            box_.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon);box_.setMinimumContentsLength(least)      # title made the page wider than the centre, its words cut at the right)
+        where.setMinimumWidth(80)
         for w, words in ((what, 'Do'), (where, 'in'), (when, 'for')):
             row.addWidget(QLabel(words));row.addWidget(w, 1 if w is where else 0)
         col.addLayout(row)

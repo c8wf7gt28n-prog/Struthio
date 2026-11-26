@@ -152,10 +152,13 @@ def open_on_work(host):
         reading = read_field(kernel, operator(), title='')
     except Exception:  # noqa: BLE001 - a launch never fails because the overview could not be read
         return None
-    if not reading[0].objects:
-        return None
+    import time
+    host.launch_top_until = time.monotonic() + 5.0      # 1.0 D2: the launch's first focus is revealed with the tree kept at "This computer /"
     page = show_field(host, reading=reading)
     from . import board_qt
+    if not reading[0].objects:      # 1.0 D2 (X3): a fresh desk never opens on a blank centre: the board's Home and its one line
+        board_qt.to_board(page, None)
+        return page
     board_qt.home(page)          # 1.0 L2: the centre's home is the board, on the desk's first object
     return page
 

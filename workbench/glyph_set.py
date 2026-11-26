@@ -86,6 +86,20 @@ def save(p, ink, accent):
     line(p, (6.5, 3.5), (6.5, 7.5), (12.5, 7.5), (12.5, 3.5));line(p, (6.5, 16.5), (6.5, 11.5), (13.5, 11.5), (13.5, 16.5))
 
 
+def save_return(p, ink, accent):
+    """1.0 D2: Save and Return: the disk, smaller, and the way back under it (the centre bar's glyph for it at 1366x768)."""
+    facet(p, accent, (5.0, 2.5), (9.5, 2.5), (9.5, 5.5), (5.0, 5.5))
+    pen(p, ink);line(p, (2.5, 2.5), (10.5, 2.5), (12.5, 4.5), (12.5, 12.0), (2.5, 12.0), close=True)
+    line(p, (16.5, 5.5), (16.5, 16.0), (9.5, 16.0))
+    facet(p, ink, (5.5, 16.0), (9.8, 12.2), (9.8, 19.8))
+
+
+def return_to(p, ink, accent):
+    """1.0 D2: Return (a view that saves nothing): the way back."""
+    pen(p, ink);line(p, (16.0, 3.5), (16.0, 13.5), (8.5, 13.5))
+    facet(p, ink, (4.0, 13.5), (8.8, 9.0), (8.8, 18.0))
+
+
 # ---- a page of a document --------------------------------------------------------------------------------------------
 
 def previous(p, ink, accent):
@@ -470,6 +484,7 @@ GLYPHS = {
     'previous': previous, 'next': following, 'cite': cite, 'table': table, 'more': more, 'note': note,
     'report': report, 'recalc': recalc, 'export': export, 'cell': cell, 'source': source,
     'document': document, 'again': again, 'stop': stop, 'pin': pin,
+    'save_return': save_return, 'return_to': return_to,      # 1.0 D2
     'copy': copy, 'paste': paste, 'cut': cut, 'select': select, 'full': full, 'home': home, 'sliders': sliders, 'prompt': prompt,
     'lines': lines, 'info': info, 'close': close, 'receive': receive, 'chip': chip, 'book': book, 'key': key, 'stack': stack,
     'delta': delta, 'agenda': agenda, 'chain': chain, 'star': star, 'split': split, 'picture': picture,

@@ -62,8 +62,19 @@ def said(text):
     return text.strip().lstrip('‹').rstrip('›▾…').strip()
 
 
+def bare(button, key):
+    """Whether the glyph stands alone: one every program draws (BARE), or a tool a narrow bar shows by its glyph alone
+    (1.0 D2: the centre bar at 1366x768 gives Save and Return, Split and Full program their glyphs before it folds them)."""
+    return key in BARE or bool(button.property('faceBare'))
+
+
+def face_width(button, alone):
+    """1.0 D2: the width this button's face takes with its glyph alone, or with its words beside the glyph."""
+    return SIDE + 10 if alone else 7 + SIDE + 6 + button.fontMetrics().horizontalAdvance(said(button.text())) + 9
+
+
 def signature(button, key):
-    return '%s|%s|%s|%s' % (STATE['mode'], key, button.text(), button.font().toString())
+    return '%s|%s|%s|%s|%s' % (STATE['mode'], key, button.text(), button.font().toString(), bool(button.property('faceBare')))      # 1.0 D2
 
 
 def fit(button):
@@ -78,7 +89,7 @@ def fit(button):
             button.setMinimumWidth(low);button.setMaximumWidth(high);button.setProperty('facedWidths', None)
     else:
         if not button.property('facedWidths'):button.setProperty('facedWidths', '%d,%d' % (button.minimumWidth(), button.maximumWidth()))
-        wide = SIDE + 10 if key in BARE else 7 + SIDE + 6 + button.fontMetrics().horizontalAdvance(said(button.text())) + 9
+        wide = SIDE + 10 if bare(button, key) else 7 + SIDE + 6 + button.fontMetrics().horizontalAdvance(said(button.text())) + 9      # 1.0 D2: bare()
         button.setFixedWidth(wide);button.setAttribute(Qt.WA_Hover, True)
     button.updateGeometry();button.update()
 
@@ -113,8 +124,8 @@ def paint(button, key):
     if ground:p.fillRect(r, QColor(ground))
     if edge:
         p.setPen(QPen(QColor(edge), 1));p.setBrush(Qt.NoBrush);p.drawRect(r.adjusted(0.5, 0.5, -0.5, -0.5))
-    size = min(SIDE, int(r.height()) - 4);bare = key in BARE
-    x = round((r.width() - size) / 2) if bare else 7;y = round((r.height() - size) / 2)
+    size = min(SIDE, int(r.height()) - 4);alone = bare(button, key)      # 1.0 D2
+    x = round((r.width() - size) / 2) if alone else 7;y = round((r.height() - size) / 2)
     draw = GLYPHS[key]
 
     def glyph(dx, dy, line, fill):
@@ -129,7 +140,7 @@ def paint(button, key):
             far = QColor(t.READY);far.setAlphaF(min(0.16, 0.035 * level))
             for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2), (-2, -2), (2, 2), (-2, 2), (2, -2)):glyph(dx, dy, far, far)
     glyph(0, 0, QColor(ink), QColor(accent))
-    if not bare:
+    if not alone:      # 1.0 D2
         p.setFont(button.font());p.setPen(QColor(ink))
         p.drawText(QRectF(x + size + 6, 0, r.width() - x - size - 6, r.height()), Qt.AlignVCenter | Qt.AlignLeft, said(button.text()))
     p.end()
@@ -150,7 +161,7 @@ class Face(QObject):
             paint(button, key);return True
         if kind == QEvent.ToolTip:
             key = glyph_of(button)
-            if key in BARE:                       # a glyph alone says its name first
+            if key is not None and bare(button, key):      # a glyph alone says its name first (1.0 D2: bare())
                 name = NAMES.get(button.text().strip(), said(button.text()));tip = button.toolTip()
                 words = tip if tip.lower().startswith(name.lower()) else (name + ' · ' + tip if tip else name)
                 QToolTip.showText(event.globalPos(), words, button);return True

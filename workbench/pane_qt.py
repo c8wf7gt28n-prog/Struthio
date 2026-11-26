@@ -533,7 +533,9 @@ class BranchTree(QTreeWidget):
         # 0.8.1: the lit path breathes (breath): a quiet repaint of this tree's own rows a few times a second, only while it
         # is shown on a desk that glows and the owner has not asked for less motion.
         from PySide6.QtCore import QTimer
-        self.breathing = True;self._breath = QTimer(self);self._breath.setInterval(140);self._breath.timeout.connect(self._breathe);self._breath.start()
+        from . import boss_theme as _bt
+        self.breathing = True;self._breath = QTimer(self);self._breath.setInterval(140);self._breath.timeout.connect(self._breathe)
+        if not _bt.LAUNCH:self._breath.start()      # 1.0 D2: Day and Night have no glow (DESIGN_DIRECTION section 9), so nothing breathes there
 
     def set_metrics(self, row, indent):
         from . import boss_theme as _bt

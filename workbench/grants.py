@@ -537,7 +537,9 @@ def covering(kernel, owner, operation, arguments, assignment=None, include_built
 
 def _where(kernel, operation, found):
     if found['paths']:
-        folders = sorted({(p.rsplit('/', 1)[0] if '/' in p else '(the top of Files)') for p in found['paths'] if p is not None})
+        from .home_reach import tilde      # 1.0 D2 (X3): "in ~/Downloads", as the grant's own words say it, not the whole path
+        folders = sorted({((tilde(p.rsplit('/', 1)[0] or '/') if p.startswith('/') else p.rsplit('/', 1)[0]) if '/' in p else '(the top of Files)')
+                          for p in found['paths'] if p is not None})
         return 'in ' + ', '.join(folders)
     if found['objects']:return 'on ' + ', '.join(object_words(kernel, o) for o in found['objects'][:2])
     return 'on what it names'

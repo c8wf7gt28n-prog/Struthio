@@ -166,8 +166,10 @@ class Board:
 
     def counts(self):
         shown = [t for t in self.tiles if t.id != MORE]
+        roomless = [m for t in self.tiles if t.id == MORE for m in t.members if getattr(m, 'for_room', False)]      # 1.0 D2: grouped for the window's room only
+        shown += roomless
         return {'recorded': sum(1 for t in shown if t.recorded), 'possible': sum(1 for t in shown if not t.recorded),
-                'grouped': sum(len(t.members) for t in self.tiles if t.id == MORE)}
+                'grouped': sum(len(t.members) for t in self.tiles if t.id == MORE) - len(roomless)}
 
     def as_data(self):
         def tile(t):
@@ -362,8 +364,17 @@ class Desk:
     def add_file(self, ident):
         for e in (self.files or {}).get('entries') or ():
             if e.get('id') == ident and ident not in self.objects:
-                self.objects[ident] = file_object(e, (self.files or {}).get('root'));self._df = None
+                self.objects[ident] = self._file_object(e, (self.files or {}).get('root'));self._df = None      # 1.0 D2
         return ident in self.objects
+
+    def _file_object(self, entry, root):
+        """1.0 D2 (X3): a plain file's object, saying its revision when it was saved again (depths.mark_board read it), also
+        when it is brought onto the desk after that reading (the letter in focus said only its size after an outside save)."""
+        obj = file_object(entry, root);said = (getattr(self, 'file_said', None) or {}).get(entry.get('id'))
+        if said and not (obj.lines and str(obj.lines[0]).startswith('revision')):
+            from dataclasses import replace as _replace
+            obj = _replace(obj, lines=(said,) + tuple(obj.lines[1:3]))
+        return obj
 
     def _plain_files(self):
         """A plain file in Files with the same bytes as an admitted source (its name first, then its digest)."""
@@ -472,7 +483,7 @@ class Desk:
         for e in (self.files or {}).get('entries') or ():
             if e.get('kind') != 'file' or e['id'] in self.objects:continue
             if added >= limit:break
-            self.objects[e['id']] = file_object(e, root);added += 1
+            self.objects[e['id']] = self._file_object(e, root);added += 1      # 1.0 D2
         self._df = None
 
 
@@ -520,7 +531,10 @@ def file_object(entry, root):
         folder_like = entry.get('kind') == 'folder'
         suffix = Path(str(entry.get('name') or '')).suffix
         said = 'a folder' if folder_like else (('%s file · %s' % (suffix[1:].upper(), _size_words(entry.get('size')))) if suffix else _size_words(entry.get('size')))
-        return FieldObject(entry['id'], 'folder' if folder_like else 'source', entry.get('name') or 'a file', 'a %s %s' % ('folder' if folder_like else 'file', role),
+        name = entry.get('name') or 'a file'
+        if folder_like and place.startswith('/') and tilde(place) == '~':      # 1.0 D2 (X3): the home folder is "Home", never its folder's own name or path
+            name, said, where, role = 'Home', 'your home folder', 'on this computer', 'on this computer'
+        return FieldObject(entry['id'], 'folder' if folder_like else 'source', name, 'a %s %s' % ('folder' if folder_like else 'file', role),
                            '', (said, where), tilde(place) if place.startswith('/') else 'Files/' + place, {'kind': 'file', 'id': entry['id'], 'path': path},
                            'FOLDER' if folder_like else 'FILE')
     suffix = Path(str(entry.get('name') or '')).suffix

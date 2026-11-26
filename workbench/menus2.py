@@ -143,8 +143,9 @@ def rebuild(host):
         host.a_project_desk = make('Project Desk', lambda:open_destination(host, 'project_desk'))
         host.a_changes = make('Changes', lambda:open_destination(host, 'changes'))
         host.a_continuing = make('Continuing work', lambda:open_destination(host,'continuing'))
-        host.a_deployment = make('Exchange & deployment', lambda:open_destination(host,'deployment'))
-        host.a_slate_panel = make('Graphite', lambda:host.shell2.show_slate_face())
+        host.a_deployment = make('Exchange && deployment', lambda:open_destination(host,'deployment'))      # 1.0 D2: && (a lone & was taken as a key mark: "Exchange  deployment")
+        from .assistant_identity import named      # 1.0 D2: the row that shows her column says her name, not "Graphite"
+        host.a_slate_panel = make(named('Stacy'), lambda:host.shell2.show_slate_face())
         host.a_getting_started = make('Getting Started', lambda:host.open_in_viewer(program / 'GETTING_STARTED.md'))
         release_notes = program / 'docs' / ('RELEASE_NOTES_%s.md' % SHORT)
         if not release_notes.is_file(): release_notes = program / 'docs' / 'STAGE6.md'

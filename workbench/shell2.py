@@ -365,7 +365,9 @@ def chrome_css(profile, assets):
         'QWidget#TimelineHead QPushButton {border-bottom:3px solid %s;} QWidget#TimelineHead QPushButton:hover {background:%s;border-bottom:3px solid %s;}' % (ERASER_MARK, TEAL_SOFT, TEAL_EDGE),
         'QWidget#SlateFace QLabel, QFrame#SlateMine QLabel, QFrame#SlateTheirs QLabel {font-size:%s;}' % px(18),
         'QLineEdit#SlateInput, QPlainTextEdit#SlateInput, QPlainTextEdit#Capture {font-size:%s;}' % px(18),
-    ])
+    ] + ([      # 1.0 D2: Day and Night: her exchange at the type scale's body size (it was 18 px, larger than body type)
+        'QFrame#SlateMine QLabel, QFrame#SlateTheirs QLabel {font-size:%dpx;}' % max(13, round(13 * s)),
+    ] if bt.LAUNCH else []))
 
 
 def line_icon(kind, color=QUIET, size=16):
@@ -2036,7 +2038,7 @@ class SlateFace(QWidget):
             self.folding = Folding(self.thread, lambda:self.fold_earlier())      # her words fold at the column's width, a name whole where it fits a line
         else:self.lines.setContentsMargins(0, 0, 14, 0);self.lines.setSpacing(10)
         self.scroll.setWidget(self.thread);outer.addWidget(self.scroll, 1)
-        self.say('Ask about what is open. In the Field, say “this” and I take the selected sheet. What I read, I show as a line you can run yourself.')
+        self.say('Ask about what is open. Say “this” and I take what is in the middle of the board. What I read, I show as a line you can run yourself.')      # 1.0 D2: no "Field", no "sheet" (X3)
         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
         self.input.returnPressed.connect(self.send);self.input.setAccessibleName(named('Message Stacy'));self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
         hint = role(QLabel('Write in your own words; finishing the line sends it'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button

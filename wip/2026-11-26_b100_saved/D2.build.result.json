@@ -1,0 +1,71 @@
+{
+ "item": "D2",
+ "status": "done",
+ "summary": "The polish pass: every main surface framed in Day, Night, Graphite and Kasandra at 1920x1200 and 1366x768 on Rail Demo (plus a fresh empty desk), read, and fixed in place (24 window files, 52 hunks, each marked 1.0 D2). The board is now seen whole at both sizes (its least relevant tiles grouped as \"and N more\" where the room is short) and its words never under 11 px; her equalizer is a calm band (about 108 px / 64 px) with 11 px numbers in every look; her words are body size in Day and Night; the foot meters have air round drawn separators; the Line says what it takes; the breadcrumb measures its bold name; Save and Return and Split stay on the 1366 bar as glyphs; a fresh desk opens on the board's Home; the tree opens at \"This computer /\"; the left tree no longer breathes in Day/Night. Frame atlas of 152 frames at b100/D2/atlas/index.html. Built, not tested; nothing ran on the ThinkPad.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/D2.patch",
+ "notes_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/D2.progress.md",
+ "files_changed": [
+  "workbench/arc_desktop.py",
+  "workbench/board_model.py",
+  "workbench/board_qt.py",
+  "workbench/cabinet_qt.py",
+  "workbench/centre_one_qt.py",
+  "workbench/depths.py",
+  "workbench/depths_qt.py",
+  "workbench/desktop_header_qt.py",
+  "workbench/field_page.py",
+  "workbench/glyph_set.py",
+  "workbench/grants.py",
+  "workbench/grants_qt.py",
+  "workbench/halt.py",
+  "workbench/handbook.py",
+  "workbench/her_column_qt.py",
+  "workbench/living_nav_qt.py",
+  "workbench/menus2.py",
+  "workbench/neon_meters.py",
+  "workbench/network_qt.py",
+  "workbench/notify_qt.py",
+  "workbench/pane_qt.py",
+  "workbench/shell2.py",
+  "workbench/tool_faces.py",
+  "workbench/typebar_qt.py"
+ ],
+ "smoke": {
+  "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/D2/frames.py (frames and widget audit, run by D2/batch.sh in the wrapper on a throwaway copy; contrast by P4/smoke.py checks, rerun)",
+  "output": "Summary in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/D2.smoke.out. 0 FAIL. Frames: 152 in 4 looks x 2 sizes, RESULT 3/3 in each run. Launch tree top row \"This computer /\" scroll 0 in every look and size. An empty desk opens on the board's Home with its one line: PASS x8. Board zoom at 1920x1200 0.89-0.90 (whole), at 1366x768 0.5-0.52 (whole, outer tiles grouped). Widget audit (labels, buttons, fields, tabs): no word under 11 px, no key printed, no \"Programs\"/\"staC\"/\"Lain\", foot placeholder \"a line, an operation, an address\"; left: the PDF note fields' own \"prompt\" placeholder (the owner's writing-field word, kept). P4 contrast checks rerun: RESULT 16/16 (least pair Day 4.56, Night 4.71; no Day/Night colour literal outside design_tokens). Patch: APPLY CHECK OK (24 files) on a clean copy of HEAD.\n\nrames_night_1920x1200.log\nPASS  [night] the look in force is the one asked for  -- night\nPASS  [night] the split: two panes side by side or stacked  -- True\nRESULT 2/2\nSAY [night] board: zoom 0.87 scale 1.02 bounds (-635, -329, 635, 444) body 1126x1042 font 19px\nSAY [night] foot line placeholder: ['a line, an operation, an address']\nSAY [night] her head: Kasandra ◆ NEEDS YOUR WORD equalizer 364x112 stage 112\n#### out_empty_day_1920x1200_1366x768.log\nPASS  [day] an empty desk opens on the board's Home with its one line (1366x768)  -- Select something on the left; what it is connected to appears here.\nPASS  [day] an empty desk opens on the board's Home with its one line (1920x1200)  -- Select something on the left; what it is connected to appears here.\nPASS  [day] the look in force is the one asked for  -- day\nRESULT 3/3\nSAY [day] board: zoom 1.00 scale 1.02 bounds (-1, -1, 1, 1) body 1126x1042 font 19px\nSAY [day] board: zoom 1.00 scale 1.02 bounds (-1, -1, 1, 1) body 688x610 font 19px\nSAY [day] foot line placeholder: ['a line, an operation, an address']\nSAY [day] her head: Kasandra ○ QUIET equalizer 306x64 stage 64\nSAY [day] her head: Kasandra ○ QUIET equalizer 364x112 stage 112\n#### out_empty_night_1920x1200_1366x768.log\nPASS  [night] an empty desk opens on the board's Home with its one line (1366x768)  -- Select something on the left; what it is connected to appears here.\nPASS  [night] an empty desk opens on the board's Home with its one line (1920x1200)  -- Select something on the left; what it is connected to appears here.\nPASS  [night] the look in force is the one asked for  -- night\nRESULT 3/3\nSAY [night] board: zoom 1.00 scale 1.02 bounds (-1, -1, 1, 1) body 1126x1042 font 19px\nSAY [night] board: zoom 1.00 scale 1.02 bounds (-1, -1, 1, 1) body 688x610 font 19px\nSAY [night] foot line placeholder: ['a line, an operation, an address']\nSAY [night] her head: Kasandra ○ QUIET equalizer 306x64 stage 64\nSAY [night] her head: Kasandra ○ QUIET equalizer 364x112 stage 112\n#### out_empty_graphite_1920x1200_1366x768.log\nPASS  [graphite] an empty desk opens on the board's Home with its one line (1366x768)  -- Select something on the left; what it is connected to appears here.\nPASS  [graphite] an empty desk opens on the board's Home with its one line (1920x1200)  -- Select something on the left; what it is connected to appears here.\nPASS  [graphite] the look in force is the one asked for  -- graphite\nRESULT 3/3\nSAY [graphite] board: zoom 1.00 scale 1.19 bounds (-1, -1, 1, 1) body 1342x1041 font 19px\nSAY [graphite] board: zoom 1.00 scale 1.19 bounds (-1, -1, 1, 1) body 788x609 font 19px\nSAY [graphite] foot line placeholder: ['a line, an operation, an address']\nSAY [graphite] her head: Kasandra ○ QUIET equalizer 256x112 stage 112\nSAY [graphite] her head: Kasandra ○ QUIET equalizer 256x64 stage 64\n#### out_empty_kasandra_1920x1200_1366x768.log\nAUDIT cut [kasandra] empty_workspace 1366x768: 1  QPushButton#StacyHand \"does and shows\" needs 106 has 106\nAUDIT cut [kasandra] empty_workspace 1920x1200: 1  QPushButton#StacyHand \"does and shows\" needs 106 has 106\nPASS  [kasandra] an empty desk opens on the board's Home with its one line (1366x768)  -- Select something on the left; what it is connected to appears here.\nPASS  [kasandra] an empty desk opens on the board's Home with its one line (1920x1200)  -- Select something on the left; what it is connected to appears here.\nPASS  [kasandra] the look in force is the one asked for  -- kasandra\nRESULT 3/3\nSAY [kasandra] board: zoom 1.00 scale 1.19 bounds (-1, -1, 1, 1) body 1284x1044 font 19px\nSAY [kasandra] board: zoom 1.00 scale 1.19 bounds (-1, -1, 1, 1) body 730x612 font 19px\nSAY [kasandra] foot line placeholder: ['a line, an operation, an address']\nSAY [kasandra] her head: Kasandra ○ QUIET equalizer 285x112 stage 112\nSAY [kasandra] her head: Kasandra ○ QUIET equalizer 285x64 stage 64\n#### out_checks_-_1920x1200.log\nPASS  [-] Inter bundled: Regular, Medium, SemiBold, Display SemiBold, with its licence and notice  -- ['Inter-Regular.otf', 'Inter-Medium.otf', 'Inter-SemiBold.otf', 'InterDisplay-SemiBold.otf']\nPASS  [-] boss_theme's Day and Night entries hold no literal (both are design_tokens.palette)  --     'day': _tokens.palette('day'),      # 1.0 P4\nPASS  [-] day: every role pair the window lays words in (144 pairs) >= 4.5:1  -- least 4.56 (AMBER_EDGE on RAISED); next 4.56 BAND_MARK/RAISED, 4.75 READY/RAISED, 4.77 RED/RAISED\nPASS  [-] day: every text pair of the tokens measured >= 4.5:1 (90 pairs)  -- least 4.56 (accent on raised); next 4.69 tertiary/pressed, 4.75 live/raised, 4.76 tertiary/selection_side\nPASS  [-] day: its palette has every role Graphite's has  -- set()\nPASS  [-] day: its palette is the tokens' (boss_theme builds it from design_tokens.palette)\nPASS  [-] night: every role pair the window lays words in (144 pairs) >= 4.5:1  -- least 4.71 (AMBER_EDGE on RAISED); next 4.71 BAND_MARK/RAISED, 5.12 RED/RAISED, 5.12 STOP/RAISED\nPASS  [-] night: every text pair of the tokens measured >= 4.5:1 (90 pairs)  -- least 4.71 (accent on raised); next 4.83 tertiary/pressed, 5.12 danger/raised, 5.22 tertiary/waiting_tint\nPASS  [-] night: its palette has every role Graphite's has  -- set()\nPASS  [-] night: its palette is the tokens' (boss_theme builds it from design_tokens.palette)\nPASS  [-] no avatar: every place that draws a still asks still(), never the catalog's choose()  -- []\nPASS  [-] no avatar: no still of her is given to any place (her office, her rail) in any state (kasandra_art.still)  -- the wires over the rooftops stay: field_wires\nPASS  [-] no avatar: the \"Kasandra after midnight\" plate is never given (her face, her portrait)\nPASS  [-] no colour literal for Day or Night outside design_tokens.py (600 modules scanned: Day/Night branches and lines)  -- []\nPASS  [-] the literal check finds a Day or Night colour written by hand (a made-up module: 2 of 2)  -- 2\nPASS  [-] the shipped art files stay in the tree (R2 decides about pruning)\nRESULT 16/16\n"
+ },
+ "existing_tests_changed": [],
+ "decisions": [
+  "Board fit: the words are floored at 11 px on screen at any zoom (least_px), so the fit floor went from 0.74 to 0.5; the least relevant tiles are grouped into the \"and N more\" count until the board fits at 0.8 or more (ROOM_LEAST), never below 4 tiles; grouped-for-room tiles still count in the bar's numbers; a resize rebuilds for the new room. When it does not fit round its focus it is seen round the middle of its extent.",
+  "Day/Night board scale on the type scale (titles 13-17 px at the default size; Graphite/Kasandra keep theirs).",
+  "KIND word whole or dropped (its glyph stays); the state word is never cut.",
+  "Centre bar: before folding, Save and Return, Split and Full program show their glyphs alone (new save_return glyph); fold order now − + first, then Full program, Undo/Redo, Split, Save and Return.",
+  "A read-only working view (a photo) says \"Return\" instead of \"Save and Return\" (return_to glyph); a self-saving view keeps \"Save and Return\".",
+  "Launch: the first focus is selected and its folders opened, but for 5 s after launch the tree keeps \"This computer /\" at its top (cabinet select/refresh, living_nav reveal).",
+  "Her equalizer: 64 px at 1366x768 (not more) so her exchange keeps its room in Graphite/Kasandra; ~108 px at 1920x1200.",
+  "Foot meters (Day/Night): 12 px (the tokens' mono), separators drawn as hairlines only where there is air; TXT reserves a space each side. This sets the panes at 396 px (1920) and 338 px (1366), the meters being what the panes must hold.",
+  "The Arrange row that shows her column is named Kasandra (it read \"Graphite\").",
+  "Tree breathing: off in Day and Night (timer never started); kept in Graphite and Kasandra (F2 limited it to the lit path, F2b keeps the halos as pictures).",
+  "The window title's old name (arc_desktop) is X3's fix; I did not repeat it, to avoid a merge conflict; I fixed two other on-screen spots of the old name."
+ ],
+ "findings_for_the_coordinator": [
+  "Her state word reads WORKING while Graphite's own reads run (kasandra_art.working takes the equalizer's busy flag), beside \"No assignment is open\": a semantics question, not polished here.",
+  "The Field's \"?\" card prints keys (by design since 0.5), like the Guide's Keyboard Shortcuts (R2).",
+  "The whole desk (the Field) at 1366x768 still cuts tiles at its edges (field_qt's own fit, AUTO_LEAST 0.8): not changed.",
+  "The Arrange menu is about 770 px tall: at 1366x768 Qt lays it in two columns.",
+  "A pane width computed at one window size is saved as the owner's width (TypeBar.pane_owner), so a profile moved to a smaller screen keeps wider panes (pre-existing; my frames use one profile per size).",
+  "X3 and X4 changes are not in my tree (everyday_demo, home_files_qt Copy to, X4's TrashTab): X3 items were fixed where the code is shared; reconcile at merge. Files I touched that X3/X4 may also touch: her_column_qt, shell2, grants, depths_qt, living_nav_qt.",
+  "X4's account had not landed when I finished: its \"for D2\" list is not covered beyond the two early notes (DELETE rows: not touched; tree single-select: a feature, not built)."
+ ],
+ "not_done": [
+  "X3 S1: a photo's FILE tile shows no picture of it (a thumbnail in tiles is a feature, and decoding images on the window's thread is a stall risk).",
+  "X3 S1: the Universal Viewer's Investigate, Receive into Office and Hex stay offered on a household photo (removing offers is behaviour; only Save became Return).",
+  "X3 S2: \"Open in its program…\" names no program for a PDF here: container artefact (no PDF reader installed).",
+  "X3 S3: the drive's whole mount path in the copy line: that line is X3's own new code (home_files_qt), not in my tree; a drive label wording belongs there.",
+  "X3 S5: the receipt under the fold was not re-walked (everyday_desk is not in my tree); her words are now 13 px in Day/Night instead of 18, which shortens every bubble.",
+  "X3 S6: duplicates sorted, not pointed out (a feature); the 16-step plan bubble is shorter at body size but not folded.",
+  "X4 item 5 (tree multi-select): a feature, not built.",
+  "Section 9's 4 px grid, radii and focus rings were not re-audited control by control; only what the frames and the widget audit showed was fixed."
+ ],
+ "release_note": "The polish pass (builder's design, D2): the board is always seen whole, its farthest tiles gathered as \"and N more\" when the window is small, and none of its words is smaller than 11 px; Kasandra's column opens with a calm equalizer band, its numbers legible in every look, her words at body size in Day and Night; the foot's meters read CPU | GPU | RAM | TXT | NET with air between them; the Line says what it takes; at 1366x768 Save and Return and Split stay on the centre bar as icons; a fresh desk opens on Home, the tree on \"This computer /\"; Day and Night stay still where nothing is live."
+}

@@ -231,6 +231,8 @@ class CabinetPage(QWidget):
                 else:self.tree.addTopLevelItem(item)
                 if node['id'] in expanded:item.setExpanded(True)
             if selected in self.items:self.tree.setCurrentItem(self.items[selected])
+        import time  # 1.0 D2: through the launch the tree stays at "This computer /"
+        if time.monotonic()<getattr(self.host,'launch_top_until',0.0):scroll=0
         self.loading=False;self.filtered(self.query.text());self.tree.verticalScrollBar().setValue(scroll)
         self.status.setText(('Some records are outside this bounded view. Existing views and workspace search remain available.' if model['partial'] else
                              str(sum(r['owning'] for r in model['nodes']))+' saved records · '+model['sort_policy']+' order')+
@@ -254,8 +256,13 @@ class CabinetPage(QWidget):
                 if hidden(item):self.query.clear()
                 parent=item.parent()
                 while parent:parent.setExpanded(True);parent=parent.parent()
+            import time      # 1.0 D2: the launch's first focus is selected and its folders opened, the tree kept at "This computer /"
+            launching = time.monotonic() < getattr(self.host, 'launch_top_until', 0.0)
+            scrolls = self.tree.hasAutoScroll()
+            if launching:self.tree.setAutoScroll(False)
             self.tree.setCurrentItem(item)
-            if reveal:self.tree.scrollToItem(item)
+            if launching:self.tree.setAutoScroll(scrolls)
+            if reveal and not launching:self.tree.scrollToItem(item)
         self.remember()
 
     def clicked(self,item,column=0):

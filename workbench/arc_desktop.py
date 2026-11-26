@@ -213,7 +213,7 @@ class ArcInspector(QWidget):
             section('Qualification','Model measurements do not verify<br>engineering answers.<br>Owner host and GPU qualification<br>remain separate.')
         elif activity == 'home':
             self.heading.setText('Your workshop')
-            section('ARC-1 / R10', 'The Silicon Federation<br>One project. Many ways to explore.')
+            section('Graphite', 'One desk. Many ways to explore.')      # 1.0 D2: the old workshop name
             section('Pick up a thread', '<a href="issues">Review the command-parser finding</a><br>Isolated candidate · review pending')
             recent = host.session.state.get('recent', [])[:4]
             if recent:

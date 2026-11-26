@@ -154,7 +154,7 @@ def colour(name):
 
 def ink(widget, size, colour_=None, weight=None, family=None, extra=''):
     """A widget's own words: its own style sheet, so the window's larger sizes for her column do not reach it."""
-    css = 'font-size:%dpx;' % size
+    css = 'font-size:%dpx;' % max(11, size)      # 1.0 D2: nothing under 11 px (her headings and command words were 9 to 10 px in Day)
     if colour_:css += 'color:%s;' % colour_
     if weight:css += 'font-weight:%d;' % weight
     if family:css += 'font-family:"%s";' % family
@@ -292,9 +292,8 @@ class ColumnEqualizer(Equalizer):
     def sizeHint(self):return QSize(160, 64)
 
     def geometry_(self):
-        if bt.LAUNCH:      # 1.0 P4: Day and Night: room under the tubes for their numbers at 11 px (nothing under 11 px)
-            return self.height() - 15, 5.0
-        return super().geometry_()
+        # 1.0 P4: Day and Night: room under the tubes for their numbers at 11 px (nothing under 11 px); 1.0 D2: in every look
+        return self.height() - 16, 5.0
 
     def places(self):
         key = (self.width(), tuple(self.sizes), self.hole)
@@ -333,7 +332,7 @@ class ColumnEqualizer(Equalizer):
         if not self.shown or self.height() < 24:return
         try:
             xs, wide = self.places();base, _ = self.geometry_()
-            p = QPainter(self);font = QFont(bt.MONO);font.setPixelSize(11 if bt.LAUNCH else max(7, min(8, (self.height() - base) - 3)));p.setFont(font)      # 1.0 P4: 11 px in Day and Night
+            p = QPainter(self);font = QFont(bt.MONO);font.setPixelSize(11);p.setFont(font)      # 1.0 P4: 11 px in Day and Night; 1.0 D2: in every look (it was 7 to 8 px in Graphite and Kasandra)
             fm = QFontMetrics(font);p.setPen(QColor(bt.FAINT))
             cpu = self.sizes[0] if self.sizes else 0;y = self.height() - 2;pitch = (xs[1] - xs[0]) if len(xs) > 1 else wide
             every = 1 if fm.horizontalAdvance('00') + 2 <= pitch else 4
@@ -856,8 +855,10 @@ class CommandRow(QWidget):
             b.setObjectName('HerCommand');b.setAccessibleName(words.title() + ': ' + tip);b.setFocusPolicy(Qt.TabFocus)
             b.setStyleSheet('QPushButton {font-size:%dpx;font-family:"%s";font-weight:600;color:%s;background:transparent;min-height:0px;min-width:0px;'
                             'border:1px solid %s;border-radius:3px;padding:%dpx %dpx;} QPushButton:hover {background:%s;border-color:%s;color:%s;}' % (
-                                px(host, 11), bt.MONO, bt.QUIET, bt.LINE, px(host, 2), px(host, 3), bt.RAISED, bt.LINE_STRONG, bt.TEXT))
+                                px(host, 11), bt.MONO, bt.QUIET, bt.LINE, px(host, 2), px(host, 2), bt.RAISED, bt.LINE_STRONG, bt.TEXT))      # 1.0 D2: 2 px each side (was 3)
             b.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+            face = QFont(bt.MONO);face.setPixelSize(px(host, 11));face.setWeight(QFont.DemiBold)      # 1.0 D2: never narrower than its word ("CHECK ALI" at 1366x768)
+            b.setMinimumWidth(QFontMetrics(face).horizontalAdvance(words) + 2 * px(host, 2) + 3)
             b.clicked.connect(lambda checked=False, key=key: self.column.command(key))
             row.addWidget(b, len(words) + 2);self.buttons[key] = b
 
@@ -1186,8 +1187,13 @@ class HerColumn(QObject):
     def size_parts(self):
         # 1.0 P4 no avatar: the equalizer is a compact band (about 72 to 96 px at 1920x1200, less at 1366x768), the column's
         # height kept for the work below
-        h = self.face.height();tall = px(self.host, 48) if self.compact() else max(56, min(px(self.host, 88), round(h * 0.085)))
+        h = self.face.height()
+        # 1.0 D2 (the coordinator: "very short"): a calm band whose tubes read, its numbers at 11 px under them, her name and
+        # state word clear below it; about 108 px tall on a tall column, 64 px at 1366x768
+        tall = max(64, px(self.host, 64)) if self.compact() else max(88, min(px(self.host, 112), round(h * 0.11)))      # 1.0 D2: 64 at 1366x768 (it was 48), so the exchange keeps its room
         if self.head.stage.height() != tall:self.head.stage.setFixedHeight(tall)
+        air = px(self.host, 6)
+        if self.head.layout().spacing() != air:self.head.layout().setSpacing(air)      # 1.0 D2: her name and state word stand clear under it
         spacing = px(self.host, 5 if self.compact() else 9)
         if self.face.layout().spacing() != spacing:self.face.layout().setSpacing(spacing)
 

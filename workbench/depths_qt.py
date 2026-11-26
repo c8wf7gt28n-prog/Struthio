@@ -387,7 +387,7 @@ class Depths(QObject):
             if said:button.setAccessibleName(said)
             button.clicked.connect(lambda: (does(), self.sync()))
             return wear(button, glyph) if glyph else button
-        self.save_return = control('Save and Return', 'CentreSaveReturn', self.save_and_return)
+        self.save_return = control('Save and Return', 'CentreSaveReturn', self.save_and_return, 'save_return', 'Save and Return')      # 1.0 D2: its own glyph
         self.full = control('Full program', 'CentreFullProgram', self.full_program, 'window', 'Open in the full program')
         self.close_button = control('Close', 'CentreClose', self.close_view, 'close', 'Close this view')
         row.addSpacing(8);row.addWidget(self.save_return);row.addSpacing(8);row.addWidget(self.full);row.addWidget(self.close_button)
@@ -437,6 +437,12 @@ class Depths(QObject):
         name = name_of(self.host, page);dirty = is_dirty(page)
         target = return_target(self.host, page);where = 'the board' if target.get('focus') or living(self.host) is not None else 'where you were'
         self.save_return.setEnabled(True)
+        words = 'Save and Return' if (dirty or can_save(page) or saves_itself(page)) else 'Return'      # 1.0 D2 (X3): a read-only view (a photo) offers no Save
+        if self.save_return.text() != words:
+            self.save_return.setText(words);self.save_return.setAccessibleName(words)
+            self.save_return.setProperty('glyph', 'save_return' if words != 'Return' else 'return_to')
+            one = getattr(self.host, 'one_bar', None)
+            if one is not None:one.sync_soon()
         self.save_return.setToolTip(('Save “%s” and go back to %s' % (name, where)) if dirty and can_save(page) else
                                     ('Nothing to save: back to %s' % where) if not saves_itself(page) else 'Saved as you write: back to %s' % where)
         path = path_of(page);kind = kind_of(page)

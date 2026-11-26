@@ -30,7 +30,8 @@ from . import boss_theme as t
 from . import board_model as bm
 
 ZOOM = (0.5, 1.6)                 # the board's sizes; below the least, the whole desk (the Field)
-AUTO_LEAST = 0.74                 # shown whole only down to this size: below it the words are too small, and the board scrolls
+AUTO_LEAST = 0.5                  # shown whole only down to this size, and the board scrolls (1.0 D2: was 0.74; its words now read at 11 px or more at any size, least_px)
+ROOM_LEAST = 0.8                  # 1.0 D2: the outer tiles are grouped (fit_room) until the board is seen whole at this size or more, its titles larger than its notes
 SETTLED_WORDS = ('CURRENT', 'SUPPORTED', 'HOLDS', 'UP', 'RUNNING')
 ATTENTION_WORDS = ('RECHECK', 'OPEN', 'HELD', 'REFUTED', 'WAITING', 'FAILED', 'DOES NOT HOLD', 'CANNOT TELL', 'DEPENDS', 'NOT READ')
 QUIET_WORDS = ('ARCHIVED', 'REPLACED', 'UNAVAILABLE', 'ELSEWHERE')
@@ -212,13 +213,20 @@ class BoardView(QWidget):
 
     # ---- measures ------------------------------------------------------------------------------------------------------
     def scale(self):
+        if t.LAUNCH:      # 1.0 D2: Day and Night on the type scale: titles 13 to 17 px, KIND • STATE 11, the basis 12 (at the default size)
+            return max(0.85, min(3.5, self.fontInfo().pixelSize() / 18.67))
         return max(0.85, min(3.5, self.fontInfo().pixelSize() / 16.0))
 
+    def least_px(self, value):
+        """1.0 D2: a size of words that reads at 11 px or more on screen, the board's own size (zoom) taken into account while
+        its tiles are drawn (nothing under 11 px; the tiles' words were 8 to 9 px)."""
+        return max(11, round(value), math.ceil(getattr(self, '_least', 0.0) - 0.01))
+
     def mono(self, px, weight=QFont.Normal):
-        f = QFont(t.MONO);f.setStyleHint(QFont.Monospace);f.setPixelSize(max(9, round(px * self.scale())));f.setWeight(weight);return f
+        f = QFont(t.MONO);f.setStyleHint(QFont.Monospace);f.setPixelSize(self.least_px(px * self.scale()));f.setWeight(weight);return f      # 1.0 D2
 
     def sans(self, px, weight=QFont.Medium):
-        f = QFont(t.FACE);f.setPixelSize(max(9, round(px * (0.97 if t.FACE != 'IBM Plex Sans' else 1.0) * self.scale())))
+        f = QFont(t.FACE);f.setPixelSize(self.least_px(px * (0.97 if t.FACE != 'IBM Plex Sans' else 1.0) * self.scale()))      # 1.0 D2
         f.setWeight(weight if t.FACE == 'IBM Plex Sans' else QFont.Normal)
         if t.FACE != 'IBM Plex Sans':f.setLetterSpacing(QFont.AbsoluteSpacing, -0.35)
         return f
@@ -245,11 +253,51 @@ class BoardView(QWidget):
 
     def fit(self):
         """The size at which the whole board is in the window around its focus, at most the ordinary size, and never so small
-        that its words cannot be read (AUTO_LEAST): then the board scrolls, the focus in the middle."""
+        that its words cannot be read (AUTO_LEAST): then the board scrolls, the focus in the middle. 1.0 D2: when it does not
+        fit round its focus, it is seen round the middle of its extent (fit_centre), so it is seen whole where it can be."""
         x0, y0, x1, y1 = self.bounds;b = self.body()
-        half_w = max(-x0, x1, 1.0);half_h = max(-y0, y1, 1.0)
         if b.width() < 10:return 1.0
+        cx, cy = self.fit_centre()
+        half_w = max(cx - x0, x1 - cx, 1.0);half_h = max(cy - y0, y1 - cy, 1.0)
         return max(AUTO_LEAST, min(1.0, (b.width() - 16) / (2 * half_w), (b.height() - 8) / (2 * half_h)))
+
+    def around_focus(self):
+        """1.0 D2: the size at which the whole board fits with its focus in the middle (unbounded)."""
+        x0, y0, x1, y1 = self.bounds;b = self.body()
+        return min((b.width() - 16) / (2 * max(-x0, x1, 1.0)), (b.height() - 8) / (2 * max(-y0, y1, 1.0)))
+
+    def needed_zoom(self):
+        """1.0 D2: the size at which the whole board fits round the middle of its extent (unbounded)."""
+        x0, y0, x1, y1 = self.bounds;b = self.body()
+        return min((b.width() - 16) / max(1.0, x1 - x0), (b.height() - 8) / max(1.0, y1 - y0))
+
+    def fit_centre(self):
+        """1.0 D2: where the board is seen round, in its own coordinates: its focus (0, 0) when the whole board fits so at a
+        size its words read at; else the middle of its extent (the rings' outer tiles were cut at the window's edges)."""
+        b = self.body()
+        if b.width() < 10 or self.board.focus is None or self.around_focus() >= AUTO_LEAST:return (0.0, 0.0)
+        x0, y0, x1, y1 = self.bounds
+        return ((x0 + x1) / 2.0, (y0 + y1) / 2.0)
+
+    def fit_room(self):
+        """1.0 D2: a board that cannot be seen whole at a size its words read at shows its nearer tiles and groups the least
+        relevant as the count that opens (PLAN_1.0: "peripheral material is grouped as a count that opens"), until it fits.
+        The grouped ones still count in the bar's numbers; a wider window shows them again (resizeEvent rebuilds)."""
+        b = self.body();self._for_room = 0
+        if self.board.focus is None or b.width() < 240 or b.height() < 200:return
+        for _ in range(48):
+            if self.needed_zoom() >= ROOM_LEAST - 1e-6:return
+            movable = [x for x in self.board.tiles if x.id != bm.MORE and not x.pinned]
+            if len(movable) <= 4:return
+            last = movable[-1];more = next((x for x in self.board.tiles if x.id == bm.MORE), None)
+            if more is None:
+                obj = bm.FieldObject(bm.MORE, 'more', 'and 0 more', 'grouped', '', (), '')
+                more = bm.Tile(bm.MORE, 'more', 'and 0 more', '', 'MORE', '', '', '', 1, True, 2, 'near', obj=obj, members=[], group=True)
+                self.board.tiles.append(more)
+            self.board.tiles.remove(last);last.group = True;last.for_room = True;more.members.insert(0, last)
+            more.title = 'and %d more' % len(more.members);self._for_room += 1
+            more.basis = 'opens: ' + ', '.join(m.title for m in more.members[:3])[:60]
+            self.relayout()
 
     # ---- the reading and the focus ---------------------------------------------------------------------------------------
     def desk_read(self, field, reader):
@@ -306,8 +354,9 @@ class BoardView(QWidget):
             if self.board.focus is not None:self.ident = self.board.focus.id
         self._stale = False
         self.relayout()
+        if self.auto:self.fit_room()      # 1.0 D2
         if self.auto:self.zoom = self.fit()
-        if not keep_place:self.pan_x = self.pan_y = 0.0
+        if not keep_place:self.pan_x, self.pan_y = self._auto_pan = self.fit_centre()      # 1.0 D2: round its extent where it must be
         self.describe();self.update()
         one = getattr(self.host, 'one_bar', None)      # 1.0 D1: the board's counts are in the one centre bar
         if one is not None:one.board_changed()
@@ -427,11 +476,15 @@ class BoardView(QWidget):
             p.save();p.setClipRect(body)
             self._ring_layer(p)      # 1.0 F2b: the rings drawn once for this size, zoom and place, then laid down at each paint
             c = self.centre();p.translate(c);p.scale(self.zoom, self.zoom);p.translate(-self.pan_x, -self.pan_y)
-            self._wires(p)
-            for tile in sorted(self.board.all(), key=lambda t: t.size):
-                if tile.id in self.placed:self._tile(p, tile)
-            self._wire_words(p)
-            if not self.board.tiles and self.board.note:self._alone(p)      # 1.0 D1: one tile and no links says why
+            self._least = 11.0 / max(0.05, self.zoom)      # 1.0 D2: words drawn at this size or more read at 11 px on screen
+            try:
+                self._wires(p)
+                for tile in sorted(self.board.all(), key=lambda t: t.size):
+                    if tile.id in self.placed:self._tile(p, tile)
+                self._wire_words(p)
+                if not self.board.tiles and self.board.note:self._alone(p)      # 1.0 D1: one tile and no links says why
+            finally:
+                self._least = 0.0
             p.restore()
             if self.head_height():self._head(p)      # 1.0 D1
         except Exception as exc:  # noqa: BLE001 - said on the surface, never taking the window down
@@ -677,10 +730,14 @@ class BoardView(QWidget):
             finally:p.restore()
             lead = side + 6 * s
         kind = tile.kind_word or 'THING';state = tile.state_word
+        if state:      # 1.0 D2: a state word is never cut short: the kind word gives way first (its glyph still says the kind)
+            room_kind = inner.width() - lead - fm.horizontalAdvance(' • ' + state) - 15 * s
+            if fm.horizontalAdvance(kind) > room_kind:
+                kind = ''      # whole or not at all: never "SOUR…" (the glyph before it still says the kind)
         p.setPen(ink(kind_ink, 1.0));p.drawText(QPointF(inner.left() + lead, y), kind)
         x = inner.left() + lead + fm.horizontalAdvance(kind)
         if state:
-            colour = state_ink(state);dot = ' • ';p.setPen(ink(t.FAINT, 1.0));p.drawText(QPointF(x, y), dot);x += fm.horizontalAdvance(dot)
+            colour = state_ink(state);dot = ' • ' if kind else '';p.setPen(ink(t.FAINT, 1.0));p.drawText(QPointF(x, y), dot);x += fm.horizontalAdvance(dot)      # 1.0 D2
             mark = 8 * s;room = inner.right() - x - mark - 6 * s
             p.setPen(ink(colour, 1.0));shown = fm.elidedText(state, Qt.ElideRight, max(10.0, room));p.drawText(QPointF(x, y), shown)
             draw_mark(p, QRectF(min(inner.right() - mark, x + fm.horizontalAdvance(shown) + 7 * s), y - fm.ascent() / 2 - mark / 2 + 1, mark, mark), state, ink(colour, 1.0))
@@ -789,8 +846,20 @@ class BoardView(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        if self.auto:self.zoom = self.fit()
+        if self.auto:
+            self.zoom = self.fit()
+            if (self.pan_x, self.pan_y) == getattr(self, '_auto_pan', (0.0, 0.0)):      # 1.0 D2: not moved by hand: seen round its place again
+                self.pan_x, self.pan_y = self._auto_pan = self.fit_centre()
+            if getattr(self, '_for_room', 0) or self.needed_zoom() < ROOM_LEAST:self._room_soon()      # 1.0 D2: the grouped tiles follow the room
         if self.inspector.isVisible():self.close_inspector()
+
+    def _room_soon(self):
+        """1.0 D2: once the window has its size, the board is built again for the room it has."""
+        timer = getattr(self, '_room_timer', None)
+        if timer is None:
+            timer = self._room_timer = QTimer(self);timer.setSingleShot(True);timer.setInterval(250)
+            timer.timeout.connect(lambda: self.rebuild(keep_place=False) if self.isVisible() and self.auto else None)
+        timer.start()
 
     def keyPressEvent(self, event):
         key = event.key()

@@ -117,7 +117,7 @@ class RingMeter(QLabel):
         return QSize(self.ring + 4, self.ring + 14)
 
     def words_font(self):
-        f = QFont(t.MONO);f.setPixelSize(max(12, self.number_font.pixelSize() + 1));return f
+        f = QFont(t.MONO);f.setPixelSize(12 if t.LAUNCH else max(12, self.number_font.pixelSize() + 1));return f      # 1.0 D2: the tokens' mono role, 12 px
 
     def words_size(self):
         """Day: room for the key and the widest reading ('100%' and its mark), on one line."""

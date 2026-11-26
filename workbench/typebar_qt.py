@@ -44,6 +44,8 @@ HINTS = {'line': 'a line, an operation by name after /, or an address  ·  words
          'shell': 'a command, in your Files folder',
          'web': 'an address to open, or words to search for, in your own browser',
          'log': "words in Graphite's events"}
+PLACEHOLDERS = {'line': 'a line, an operation, an address', 'shell': 'a command for the Terminal',      # 1.0 D2: what each mode takes
+                'find': 'words to look for', 'web': 'an address, or words to search for', 'log': 'words to find in the Log'}
 SENDS = {'line': 'Run this line', 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
 READS = ('stac', 'inspect', 'word')      # what the line can be read as that the arrow runs itself, instead of asking
 TIPS = {'line': named('Line: a Graphite line, an operation by name, or an address. Words for Stacy are offered to her column, never run here.'),
@@ -333,6 +335,8 @@ class TypeBar(QWidget):
         elif self.target == 'shell':hint = destination_hint('shell', self.labels['shell'], HINTS['shell'] + ' (' + self.shell + ')')
         else:hint = destination_hint('kernel' if kernel or (self.target == 'line' and self.box.text().startswith('/')) else self.target)
         writing_prompt(self.box, hint)
+        said = PLACEHOLDERS.get(self.target)      # 1.0 D2: the empty line says what it takes, not "prompt"
+        if said and self.box.placeholderText() != said:self.box.setPlaceholderText(said)
 
     @staticmethod
     def address_of(words):
@@ -469,7 +473,9 @@ class TypeBar(QWidget):
         """Keep a status message visible beside the console while writing retains its invitation; no message lingers:
         after NOTE_MS the destination hint is back."""
         self.message = message or ''
-        if message:writing_prompt(self.box, message)
+        if message:
+            writing_prompt(self.box, message)
+            if PLACEHOLDERS.get(self.target):self.box.setPlaceholderText(PLACEHOLDERS[self.target])      # 1.0 D2: never "prompt"
         else:self.mode_hint()
         self.box.setToolTip(message or self._box_tip)
         self.console.hint.setTextFormat(Qt.PlainText)

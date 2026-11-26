@@ -35,8 +35,8 @@ WORDS = {
     'hand': ' My hand stopped before its next press.',
     'turns': ' My model’s answer was closed.',
     'not_held': 'HALT could not hold my work: %s. Use Stop all on the meters if anything of mine is still running.',
-    'released': 'RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, '
-                'which checks every step first.',
+    'released': 'RESUME: the hold is lifted. Nothing stopped was restarted: what HALT stopped waits for your Resume on it '
+                '(in “Waits for you”), which checks every step first.',      # 1.0 D2 (X3): say that her work waits for that press
     'released_jobs': ' Graphite’s jobs are still held by Stop all; lift that on its own card.',
     'not_released': 'The hold stays: %s.',
 }

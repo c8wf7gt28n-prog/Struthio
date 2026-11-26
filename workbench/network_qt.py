@@ -230,7 +230,7 @@ class ColumnLine(QWidget):
         self.setObjectName('HerNetLine')
         row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(px(self.host, 6))
         self.shape = ShapeDot(self.host);row.addWidget(self.shape, 0, Qt.AlignVCenter)
-        self.words = row_label(self.host, '', size=12);row.addWidget(self.words, 1)
+        self.words = QLabel();self.words.setTextFormat(Qt.PlainText);self.words.setWordWrap(True);row.addWidget(self.words, 1)      # 1.0 D2 (X3): it folds, so a long host name is never cut short
         ink(self.words, px(self.host, 12), t.QUIET, 500, t.MONO);self.words.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.button = small_button(self.host, say('try_now'), 'Your press: the step is authorised by its name and carried on')
         self.button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -271,7 +271,8 @@ class ColumnLine(QWidget):
         self.press_call = call
         if key != self.shown:
             self.shown = key
-            self.shape.set(kind);self.words.setText(words);self.words.setToolTip(tip);self.setAccessibleName('Her network use: ' + words)
+            from .shell2 import breakable_path
+            self.shape.set(kind);self.words.setText(breakable_path(words));self.words.setToolTip(tip);self.setAccessibleName('Her network use: ' + words)      # 1.0 D2: a long host folds
             self.button.setText(button or say('see_it'));self.button.setVisible(bool(button))
         self.show()
 

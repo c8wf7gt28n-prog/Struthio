@@ -139,7 +139,7 @@ class Toast(QFrame):
         self.setFixedWidth(width)
         m = self.layout().contentsMargins();spacing = self.layout().itemAt(0).layout().spacing()
         room = width - m.left() - m.right() - self.kind.sizeHint().width() - self.close_.sizeHint().width() - 2 * spacing
-        self.who.setText(self.who.fontMetrics().elidedText(self.who_full, Qt.ElideRight, max(20, room)))
+        self.who.setText(self.who.fontMetrics().elidedText(self.who_full, Qt.ElideRight, max(20, room - 6)))      # 1.0 D2: 6 px for the label's own edges (its ellipsis was clipped by 3 px)
         h = self.layout().totalHeightForWidth(width) if self.layout().hasHeightForWidth() else -1
         h = h if h > 0 else self.sizeHint().height()
         self.setFixedHeight(h)

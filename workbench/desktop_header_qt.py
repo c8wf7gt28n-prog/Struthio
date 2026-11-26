@@ -79,7 +79,7 @@ class DesktopMonitors(QWidget):
         super().__init__();self.host = host;self.setObjectName('DesktopMonitors');self._scale = None
         self.setToolTip(MONITORS_NOTE)
         from .neon_meters import RingMeter
-        row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(0);row.addStretch(1)
+        row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(0);row.addStretch(1)      # 1.0 D2: no spacing here (the meters' least width sets the panes'); the separators keep their own air (paintEvent)
         self.values = {};self.labels = {};self.setProperty('paperFunctionalInk', True)
         for key in self.KEYS:
             # the key word is drawn by its meter under the ring; the label stays (out of sight) for what reads it
@@ -90,7 +90,7 @@ class DesktopMonitors(QWidget):
             else:value = RingMeter(key, self)
             label.setAccessibleName(key + ' monitor');value.setAccessibleName(key + ' reading');value.setProperty('paperFunctionalInk', True)
             row.addWidget(value);row.addStretch(1);self.values[key] = value;self.labels[key] = label      # evenly spaced: the same air between them and at both ends
-        self.values['TXT'].reserve = 'TXT —'      # 1.0 D1: TXT has no reading in this build (render): its room is its dash, so NET fits beside it
+        self.values['TXT'].reserve = ' TXT — '      # 1.0 D1: TXT has no reading in this build (render): its room is its dash, so NET fits beside it; 1.0 D2: and a space each side, so the bars beside it have air ("TXT —|NET")
         self.setCursor(Qt.PointingHandCursor)      # 0.7.0: each meter is a door (meter_cards): a click opens what it is about
         self.restyle()
         self.previous = None;self.timer = QTimer(self, interval=2000)
@@ -144,14 +144,19 @@ class DesktopMonitors(QWidget):
         from .neon_meters import SEPARATOR, words_only
         if not words_only():return
         from PySide6.QtGui import QPainter, QColor
-        from PySide6.QtCore import QRectF
+        from PySide6.QtCore import QPointF, QRectF  # noqa: F401 - 1.0 D2: QPointF for the drawn bar
         from . import boss_theme as look
         shown = [self.values[k] for k in self.KEYS if self.values[k].isVisible()]
         if len(shown) < 2:return
         p = QPainter(self);p.setPen(QColor(look.FAINT));p.setFont(shown[0].words_font())
+        from PySide6.QtGui import QFontMetricsF
+        fm = QFontMetricsF(shown[0].words_font());tall = fm.ascent() + fm.descent() * 0.5      # 1.0 D2: a hairline the words' height
         for a, b in zip(shown, shown[1:]):
             x = (a.geometry().left() + a.words_span()[1] + b.geometry().left() + b.words_span()[0]) / 2.0      # midway between the words
-            p.drawText(QRectF(x - 8, a.geometry().top(), 16, a.geometry().height()), Qt.AlignCenter, SEPARATOR)
+            room = b.geometry().left() + b.words_span()[0] - (a.geometry().left() + a.words_span()[1])
+            if room < 9:continue      # 1.0 D2: no separator pressed against the words; the gap alone says it
+            cy = a.geometry().center().y() + 0.5;x = round(x) + 0.5
+            p.drawLine(QPointF(x, cy - tall / 2.0), QPointF(x, cy + tall / 2.0))      # 1.0 D2: the picture's thin bar, drawn, so it centres in the gap
         p.end()
 
     def event(self, event):

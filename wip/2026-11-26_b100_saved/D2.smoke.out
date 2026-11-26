@@ -1,0 +1,164 @@
+#### out_frames_day_1920x1200_1366x768.log
+AUDIT cut [day] toast 1920x1200: 1  QLabel "· “Rail Demo ben…" needs 139 has 136
+AUDIT name [day] split 1366x768: 1  QLineEdit placeholder "prompt"
+AUDIT name [day] split 1920x1200: 1  QLineEdit placeholder "prompt"
+PASS  [day] the look in force is the one asked for  -- day
+PASS  [day] the split: two panes side by side or stacked  -- True
+RESULT 3/3
+SAY [day] board: zoom 0.53 scale 1.02 bounds (-635, -324, 635, 444) body 688x610 font 19px
+SAY [day] board: zoom 0.87 scale 1.02 bounds (-635, -329, 635, 444) body 1126x1042 font 19px
+SAY [day] board: zoom 0.87 scale 1.02 bounds (-635, -464, 619, 454) body 1126x1042 font 19px
+SAY [day] board: zoom 1.00 scale 1.02 bounds (-328, -138, 328, 138) body 688x610 font 19px
+SAY [day] foot line placeholder: ['a line, an operation, an address']
+SAY [day] her head: Kasandra ◆ NEEDS YOUR WORD equalizer 364x112 stage 112
+SAY [day] her head: Kasandra ● WORKING equalizer 306x64 stage 64
+SAY [day] launch tree top row: 'This computer /' scroll 0 current 'References page'
+SAY [day] launch tree top row: 'This computer /' scroll 0 current 'Why does startup take longer than 40 ms?'
+#### out_frames_night_1920x1200_1366x768.log
+AUDIT cut [night] toast 1920x1200: 1  QLabel "· “Rail Demo ben…" needs 139 has 136
+AUDIT name [night] split 1366x768: 1  QLineEdit placeholder "prompt"
+AUDIT name [night] split 1920x1200: 1  QLineEdit placeholder "prompt"
+PASS  [night] the look in force is the one asked for  -- night
+PASS  [night] the split: two panes side by side or stacked  -- True
+RESULT 3/3
+SAY [night] board: zoom 0.53 scale 1.02 bounds (-635, -324, 635, 444) body 688x610 font 19px
+SAY [night] board: zoom 0.87 scale 1.02 bounds (-635, -329, 635, 444) body 1126x1042 font 19px
+SAY [night] board: zoom 0.87 scale 1.02 bounds (-635, -464, 619, 329) body 1126x1042 font 19px
+SAY [night] board: zoom 1.00 scale 1.02 bounds (-328, -138, 328, 138) body 688x610 font 19px
+SAY [night] foot line placeholder: ['a line, an operation, an address']
+SAY [night] her head: Kasandra ◆ NEEDS YOUR WORD equalizer 364x112 stage 112
+SAY [night] her head: Kasandra ● WORKING equalizer 306x64 stage 64
+SAY [night] launch tree top row: 'This computer /' scroll 0 current 'References page'
+SAY [night] launch tree top row: 'This computer /' scroll 0 current 'Why does startup take longer than 40 ms?'
+#### out_frames_graphite_1920x1200_1366x768.log
+AUDIT name [graphite] split 1366x768: 1  QLineEdit placeholder "prompt"
+AUDIT name [graphite] split 1920x1200: 1  QLineEdit placeholder "prompt"
+PASS  [graphite] the look in force is the one asked for  -- graphite
+PASS  [graphite] the split: two panes side by side or stacked  -- True
+RESULT 3/3
+SAY [graphite] board: zoom 0.52 scale 1.19 bounds (-741, -378, 741, 518) body 788x609 font 19px
+SAY [graphite] board: zoom 0.89 scale 1.19 bounds (-741, -384, 741, 518) body 1342x1041 font 19px
+SAY [graphite] board: zoom 0.89 scale 1.19 bounds (-741, -397, 722, 518) body 1342x1041 font 19px
+SAY [graphite] board: zoom 1.00 scale 1.19 bounds (-382, -162, 382, 162) body 788x609 font 19px
+SAY [graphite] foot line placeholder: ['a line, an operation, an address']
+SAY [graphite] her head: Kasandra ◆ NEEDS YOUR WORD equalizer 256x112 stage 112
+SAY [graphite] her head: Kasandra ● WORKING equalizer 256x64 stage 64
+SAY [graphite] launch tree top row: 'This computer /' scroll 0 current 'References page'
+SAY [graphite] launch tree top row: 'This computer /' scroll 0 current 'Why does startup take longer than 40 ms?'
+#### out_frames_kasandra_1920x1200_1366x768.log
+AUDIT cut [kasandra] board 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] board 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] first_start 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] first_start 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] foot_line 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] foot_line 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] grants 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] grants 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] her_column 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] her_column 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] launch 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] launch 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] machine 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] machine 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] sandbox 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] sandbox 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] settings 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] settings 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] split 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] split 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] toast 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] toast 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] whole_desk 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] whole_desk 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] working_view 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] working_view 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT name [kasandra] split 1366x768: 1  QLineEdit placeholder "prompt"
+AUDIT name [kasandra] split 1920x1200: 1  QLineEdit placeholder "prompt"
+PASS  [kasandra] the look in force is the one asked for  -- kasandra
+PASS  [kasandra] the split: two panes side by side or stacked  -- True
+RESULT 3/3
+SAY [kasandra] board: zoom 0.50 scale 1.19 bounds (-741, -378, 741, 518) body 730x612 font 19px
+SAY [kasandra] board: zoom 0.86 scale 1.19 bounds (-741, -384, 741, 518) body 1284x1044 font 19px
+SAY [kasandra] board: zoom 0.86 scale 1.19 bounds (-741, -397, 722, 518) body 1284x1044 font 19px
+SAY [kasandra] board: zoom 0.93 scale 1.19 bounds (-382, -162, 382, 162) body 730x612 font 19px
+SAY [kasandra] foot line placeholder: ['a line, an operation, an address']
+SAY [kasandra] her head: Kasandra ◆ NEEDS YOUR WORD equalizer 285x112 stage 112
+SAY [kasandra] her head: Kasandra ● WORKING equalizer 285x112 stage 112
+SAY [kasandra] her head: Kasandra ● WORKING equalizer 285x64 stage 64
+SAY [kasandra] launch tree top row: 'This computer /' scroll 0 current 'References page'
+SAY [kasandra] launch tree top row: 'This computer /' scroll 0 current 'Why does startup take longer than 40 ms?'
+#### out_frames_day_1920x1200.log
+PASS  [day] the look in force is the one asked for  -- day
+PASS  [day] the split: two panes side by side or stacked  -- True
+RESULT 2/2
+SAY [day] board: zoom 0.87 scale 1.02 bounds (-635, -329, 635, 444) body 1126x1042 font 19px
+SAY [day] foot line placeholder: ['a line, an operation, an address']
+SAY [day] her head: Kasandra ◆ NEEDS YOUR WORD equalizer 364x112 stage 112
+SAY [day] her head: Kasandra ● WORKING equalizer 364x112 stage 112
+#### out_frames_night_1920x1200.log
+PASS  [night] the look in force is the one asked for  -- night
+PASS  [night] the split: two panes side by side or stacked  -- True
+RESULT 2/2
+SAY [night] board: zoom 0.87 scale 1.02 bounds (-635, -329, 635, 444) body 1126x1042 font 19px
+SAY [night] foot line placeholder: ['a line, an operation, an address']
+SAY [night] her head: Kasandra ◆ NEEDS YOUR WORD equalizer 364x112 stage 112
+#### out_empty_day_1920x1200_1366x768.log
+PASS  [day] an empty desk opens on the board's Home with its one line (1366x768)  -- Select something on the left; what it is connected to appears here.
+PASS  [day] an empty desk opens on the board's Home with its one line (1920x1200)  -- Select something on the left; what it is connected to appears here.
+PASS  [day] the look in force is the one asked for  -- day
+RESULT 3/3
+SAY [day] board: zoom 1.00 scale 1.02 bounds (-1, -1, 1, 1) body 1126x1042 font 19px
+SAY [day] board: zoom 1.00 scale 1.02 bounds (-1, -1, 1, 1) body 688x610 font 19px
+SAY [day] foot line placeholder: ['a line, an operation, an address']
+SAY [day] her head: Kasandra ○ QUIET equalizer 306x64 stage 64
+SAY [day] her head: Kasandra ○ QUIET equalizer 364x112 stage 112
+#### out_empty_night_1920x1200_1366x768.log
+PASS  [night] an empty desk opens on the board's Home with its one line (1366x768)  -- Select something on the left; what it is connected to appears here.
+PASS  [night] an empty desk opens on the board's Home with its one line (1920x1200)  -- Select something on the left; what it is connected to appears here.
+PASS  [night] the look in force is the one asked for  -- night
+RESULT 3/3
+SAY [night] board: zoom 1.00 scale 1.02 bounds (-1, -1, 1, 1) body 1126x1042 font 19px
+SAY [night] board: zoom 1.00 scale 1.02 bounds (-1, -1, 1, 1) body 688x610 font 19px
+SAY [night] foot line placeholder: ['a line, an operation, an address']
+SAY [night] her head: Kasandra ○ QUIET equalizer 306x64 stage 64
+SAY [night] her head: Kasandra ○ QUIET equalizer 364x112 stage 112
+#### out_empty_graphite_1920x1200_1366x768.log
+PASS  [graphite] an empty desk opens on the board's Home with its one line (1366x768)  -- Select something on the left; what it is connected to appears here.
+PASS  [graphite] an empty desk opens on the board's Home with its one line (1920x1200)  -- Select something on the left; what it is connected to appears here.
+PASS  [graphite] the look in force is the one asked for  -- graphite
+RESULT 3/3
+SAY [graphite] board: zoom 1.00 scale 1.19 bounds (-1, -1, 1, 1) body 1342x1041 font 19px
+SAY [graphite] board: zoom 1.00 scale 1.19 bounds (-1, -1, 1, 1) body 788x609 font 19px
+SAY [graphite] foot line placeholder: ['a line, an operation, an address']
+SAY [graphite] her head: Kasandra ○ QUIET equalizer 256x112 stage 112
+SAY [graphite] her head: Kasandra ○ QUIET equalizer 256x64 stage 64
+#### out_empty_kasandra_1920x1200_1366x768.log
+AUDIT cut [kasandra] empty_workspace 1366x768: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+AUDIT cut [kasandra] empty_workspace 1920x1200: 1  QPushButton#StacyHand "does and shows" needs 106 has 106
+PASS  [kasandra] an empty desk opens on the board's Home with its one line (1366x768)  -- Select something on the left; what it is connected to appears here.
+PASS  [kasandra] an empty desk opens on the board's Home with its one line (1920x1200)  -- Select something on the left; what it is connected to appears here.
+PASS  [kasandra] the look in force is the one asked for  -- kasandra
+RESULT 3/3
+SAY [kasandra] board: zoom 1.00 scale 1.19 bounds (-1, -1, 1, 1) body 1284x1044 font 19px
+SAY [kasandra] board: zoom 1.00 scale 1.19 bounds (-1, -1, 1, 1) body 730x612 font 19px
+SAY [kasandra] foot line placeholder: ['a line, an operation, an address']
+SAY [kasandra] her head: Kasandra ○ QUIET equalizer 285x112 stage 112
+SAY [kasandra] her head: Kasandra ○ QUIET equalizer 285x64 stage 64
+#### out_checks_-_1920x1200.log
+PASS  [-] Inter bundled: Regular, Medium, SemiBold, Display SemiBold, with its licence and notice  -- ['Inter-Regular.otf', 'Inter-Medium.otf', 'Inter-SemiBold.otf', 'InterDisplay-SemiBold.otf']
+PASS  [-] boss_theme's Day and Night entries hold no literal (both are design_tokens.palette)  --     'day': _tokens.palette('day'),      # 1.0 P4
+PASS  [-] day: every role pair the window lays words in (144 pairs) >= 4.5:1  -- least 4.56 (AMBER_EDGE on RAISED); next 4.56 BAND_MARK/RAISED, 4.75 READY/RAISED, 4.77 RED/RAISED
+PASS  [-] day: every text pair of the tokens measured >= 4.5:1 (90 pairs)  -- least 4.56 (accent on raised); next 4.69 tertiary/pressed, 4.75 live/raised, 4.76 tertiary/selection_side
+PASS  [-] day: its palette has every role Graphite's has  -- set()
+PASS  [-] day: its palette is the tokens' (boss_theme builds it from design_tokens.palette)
+PASS  [-] night: every role pair the window lays words in (144 pairs) >= 4.5:1  -- least 4.71 (AMBER_EDGE on RAISED); next 4.71 BAND_MARK/RAISED, 5.12 RED/RAISED, 5.12 STOP/RAISED
+PASS  [-] night: every text pair of the tokens measured >= 4.5:1 (90 pairs)  -- least 4.71 (accent on raised); next 4.83 tertiary/pressed, 5.12 danger/raised, 5.22 tertiary/waiting_tint
+PASS  [-] night: its palette has every role Graphite's has  -- set()
+PASS  [-] night: its palette is the tokens' (boss_theme builds it from design_tokens.palette)
+PASS  [-] no avatar: every place that draws a still asks still(), never the catalog's choose()  -- []
+PASS  [-] no avatar: no still of her is given to any place (her office, her rail) in any state (kasandra_art.still)  -- the wires over the rooftops stay: field_wires
+PASS  [-] no avatar: the "Kasandra after midnight" plate is never given (her face, her portrait)
+PASS  [-] no colour literal for Day or Night outside design_tokens.py (600 modules scanned: Day/Night branches and lines)  -- []
+PASS  [-] the literal check finds a Day or Night colour written by hand (a made-up module: 2 of 2)  -- 2
+PASS  [-] the shipped art files stay in the tree (R2 decides about pruning)
+RESULT 16/16
