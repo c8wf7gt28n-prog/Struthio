@@ -365,6 +365,16 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 13:00 UTC: **1.0 D1 merged** (6c62cf2: the design direction applied. The foot reads Line · Terminal · Search ·
+  Web · Log with Line the default, and words meant for her are offered as "Ask Kasandra →". NET joins the meters. The one
+  table of state words and shapes is `workbench/state_words.py`. There is one centre bar and the "Waits for you" band.
+  Day is a fresh profile's look, and the empty states teach. Four existing tests were changed to the new truth, not run).
+  Three frames are in `frames_D1/`; they show the shipped hologram art only. **P5 was stopped by the owner**: on hold,
+  not to be restarted unless they ask. Its partial patch (code only) is in `partial/P5.partial.patch`, and its cut
+  pictures stay in scratch. **P4 launched** (the launch look: tokens, Inter, Day refined, Night; agent af72b9555e72b4fc7)
+  and **F1 launched** (a touch stops her, the window put back; agent abc30044db271061b). Running: M1, L6b, P4, F1.
+  Next: X3 after L6b; F2 and M2 after M1; then D2, X1, X2, R1, R2. 39 slices; 26 merged (P5 on hold).
+
 - 26 Nov 12:30 UTC: **1.0 L6 merged** (135a9cd: the whole computer in the tree; Kas's changes only inside Home; smoke
   24/24 and 10/10 per look). **L6b added and launched** (Home's files, whole: open in programs, watchers, rename, move,
   Trash with Undo, every change of hers through home_reach; agent ae074eeb6fae78a9b). 39 slices; 25 merged. Running:
