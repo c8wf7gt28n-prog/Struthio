@@ -302,6 +302,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 06:25 UTC: **1.0 K2 merged** (d1bb614: the tool registry, 22 numbered tools with slots for K5-K8; receipts
+  dispatched/verified; tools.use and window operations; smoke 52/52). Its notes: K5 fills `office.read`/`office.edit`
+  via `tools_registry.fill` (K5 told); K3 plugs in at `tools_registry.GRANT_CHECK`; K4 uses `menu()`, `as_step()`,
+  `unmet()`; `apps.open` (S2) reports done when the process starts (K2's check waits for the window). **K3 launched**
+  (grants, HALT extended, HALT apart from Stop all jobs; agent a1e94cc3f47483116). Running: S5, L5, K5, K3.
+
 - 26 Nov 06:02 UTC: **The 5-hour usage limit stopped all four builders at about 05:10** (S5, L5, K2, K5). Their partial
   diffs saved to `wip/2026-11-26_b100_saved/partial/` (S5 1,873 lines, L5 1,266, K2 1,472, K5 361). Their worktrees
   and agents are kept; resumed now with SendMessage (S5 ac23db279a7ed37c3, L5 a5fd90fb1dbbc0d74, K2 a2990cd9e7f088ef1,
