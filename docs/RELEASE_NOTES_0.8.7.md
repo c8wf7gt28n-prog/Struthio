@@ -71,8 +71,8 @@ read and write of it (the 4B on the Radeon, say, as plan B).
 - **"I took it as …".** When her dictionary cannot read your words, the model may, but only into desk verbs and only
   from words you typed outside quotes and pastes, so a pasted landlord's sentence cannot come out of the model at all.
   The card shows what she took and from which of your words, underlined, with **Do** and **Not that**.
-- **The one question.** One card per request: "Which limits: Rev B (current) or Rev A (older)? Both are called
-  limits." A typed answer such as "the new one" is placed by rule. Which revision applies, a tolerance, a counting
+- **The one question.** One card per request when something is yours to settle, with its choices (on Rail Demo,
+  "show the limits" asks "Which of these did you mean?"). A typed answer such as "the new one" is placed by rule. Which revision applies, a tolerance, a counting
   rule, a legal or medical choice never reach a model's options. **Leave it** now runs the reads it names.
 - **Your words, remembered.** What you agree to is kept; the same words next time cost no model, and the card says
   "(your words, agreed 20 Nov)". **Not that** stores nothing; **Retire** takes a saying back; a verb the model keeps
@@ -171,5 +171,8 @@ Before any model, the exam was sat here on a stand-in that answers every questio
   references ("that one", "the earlier one") and four steps in one request; the sitting for her character file; and
   Check it in your Library beside a Talk answer. "Think more" was dropped.
 - The model's own wordings are not built, so the exam's twelve wording questions are not run.
+- Her voice floor speaks in her column's Why and Either way; a maths line run from the writing line still shows 0.8.5's
+  words. Words her 0.8.6 dictionary already reads (such as "where the bench numbers came from" on Rail Demo) still go to
+  its card, not to "I took it as".
 - The sealed exam items and the full-size page and wording sets wait for the test pass.
 - The test pass, with the tests and reviews 0.8.6 and 0.8.7 skipped.
