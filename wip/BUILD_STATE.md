@@ -309,6 +309,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 08:05 UTC: **1.0 K3 merged** (d96ff2a: grants per operation/target/scope enforced at dispatch, 'needs your
+  grant' with one press, HALT's own hold apart from Stop all, stop hooks, Stop all spares programs in their own
+  sessions; smoke 47/47, frames 48/48). K6 and K4 told. Its notes: Night Shift orders and the Agenda runner still answer
+  only to Stop all's hold; a Talk reply asked for under HALT still goes out as a job; no Settings/Rules entry for
+  grants (a GRANTS fold in her column). Running: K6, K4, K7, P3.
+
 - 26 Nov 07:40 UTC: **The owner asked for Kas as a full-figure hologram** (not the circle). P3 added to the plan and
   **launched** (agent a6d69fd4878888b64). Running: K3, K6, K4, K7, P3.
 
