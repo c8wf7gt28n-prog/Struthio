@@ -382,6 +382,18 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 21:43 UTC: **1.0 X1 merged** (9d74955: the §18 day in the window, following ACCEPTANCE Part 4. The real 4B
+  ran once in Day and the stand-in replayed it in four looks and at 1366. Fixed from the 4B walk: a review question is
+  answered from the desk's findings ("So I cannot call it sufficient"); she notices the summary and the report still
+  say 3 W and offers Update; a model plan that drops an asked change is not used; "settles at 300 mA, which is 3.6 W";
+  Carry on keeps its place; "Last: …, done. Its journal" after a restart; Try Rail Demo places the report .odt, which
+  she updates through LibreOffice and verifies. Part 4 was rewritten to match). Coordinator fix at merge: her model's
+  name never shows a raw id ("a model"). X1's ranked findings, for after 1.0: the updated page and report are not
+  shown as recorded outputs on the board; at 1366 the board groups 13 as "and 13 more" with its lower half empty;
+  Office panels clip at the split's edge; her state reads NEEDS YOUR WORD with any waiting card. **The coordinator is
+  re-walking the day with the real 4B on the merged tree** (X1's real-run frames were overwritten), for the release's
+  frames. Running: X4 (waits on the owner's permission prompt). Then R2. 43 slices: 40 merged, P5 cancelled.
+
 - 26 Nov 21:13 UTC: **The 5-hour limit stopped X1 and X4 at about 20:00; reset 21:10.** The 20:10 wake-up found
   nothing to do. Partial diffs saved (`partial/X1` 364 lines, `X4` 495), and both resumed by message at 21:12. **R2
   drafts:** `docs/RELEASE_NOTES_1.0.md` (b8632e2; its walkthroughs section waits for X1 and X4),
