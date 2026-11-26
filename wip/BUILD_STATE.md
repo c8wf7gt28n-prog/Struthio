@@ -256,6 +256,13 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 13:10 (the owner: "No kas avatar anymore"): **no picture of Kas anywhere on screen in 1.0, in any look.** Her
+  column's top is the equalizer across its full width, then her name, her model and her state word with its shape. Gone
+  from the screen: P3's hologram, the left pane's 0.8.3 hologram, the art stills by state, the BOSS plates of her, and
+  the portrait's right-click offers. P5 is cancelled. The shipped art files stay in the tree unused (R2 may prune them).
+  `kasandra.portrait.admit` stays registered but nothing on screen calls it. The kit carries no picture of her. Folded
+  into P4, which owns her column's look (told by message). PLAN_1.0 §3/§8/P3/P4/P5 and DESIGN_DIRECTION §1/§4/§8/§9
+  amended.
 - 26 Nov 11:20 (the owner's photo of the ThinkPad's label, "Check photo"): the target machine is a **ThinkPad E16 Gen 2
   AMD, machine type 21M5** (Lenovo lists Ryzen 7535HS / 7735HS with Radeon 660M / 680M, RDNA2, and DDR5-4800 in two
   SO-DIMM slots, dual channel, up to 64 GB). Earlier notes that said "780M" are corrected; M1 told (RDNA2: no MMA flash
@@ -364,6 +371,9 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 13:10 UTC: The owner: "No kas avatar anymore". Recorded under Decisions; given to P4 (running); plan and
+  design direction amended. P5 cancelled.
 
 - 26 Nov 13:00 UTC: **1.0 D1 merged** (6c62cf2: the design direction applied. The foot reads Line · Terminal · Search ·
   Web · Log with Line the default, and words meant for her are offered as "Ask Kasandra →". NET joins the meters. The one

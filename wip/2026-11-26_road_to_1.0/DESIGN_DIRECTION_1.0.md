@@ -15,7 +15,7 @@ Graphite is four things at once, and the window gives each one a fixed place:
 | **Head** | the session and the authority | HALT (upper left), the menus, Apps ⊕ (upper right) |
 | **Left** | where things are | Files (from "This computer /", Home open), Machine, Settings; the Desk drawer of records; DELETE |
 | **Centre** | the thing, its neighbourhood, and working on it | the board (focus + neighbours), the working view, tabs and the split |
-| **Right** | who works with you | Kas: her hologram, what waits for you, what she is doing, what she found, what comes next, her ask line |
+| **Right** | who works with you | Kas: her name and state over the equalizer (no picture of her), what waits for you, what she is doing, what she found, what comes next, her ask line |
 | **Foot** | the computer's own line and vital signs | Line, Terminal, Search, Web, Log; the writing line; CPU GPU RAM TXT NET |
 
 Nothing lives in two places. Kas is spoken to in her column only; the foot is the computer's line.
@@ -55,7 +55,7 @@ window it appears only when no dock can be made.
 
 ## 4. Kas's column orders by what needs you
 
-From the top: her hologram with the equalizer behind her, her name, model and state word; then **"Waits for you"**, a
+From the top: the equalizer across the column, her name, model and state word (no picture of her: the owner, 26 Nov, "No kas avatar anymore"); then **"Waits for you"**, a
 band that appears only when something does (a step that needs your word, your grant or your review; a question card),
 each with its one press; then the exchange (last turns); ACTIVE WORK; FINDINGS (live); NEXT STEPS (up to four); the
 six commands; her ask line. GRANTS and earlier turns are folds. When space is short (1366x768), the exchange gives way
@@ -84,7 +84,7 @@ added (Brain room → Add file). A board with one tile and no links says why ("n
 
 ## 8. Motion
 
-Motion means something: her shimmer while she works, static at a state change, a tile easing to its new size when
+Motion means something: the equalizer's shimmer while she works, static at a state change, a tile easing to its new size when
 relevance moves it (never for less than the hysteresis band), wires drawing in when a focus changes. Nothing loops for
 decoration. Reduce motion stills all of it.
 
@@ -131,8 +131,9 @@ only for state.
 **Motion.** 160 ms ease-out for hover and press; 220 ms for panels and depth changes; 240 ms for a tile easing to a new
 size. Reduce motion turns all of it off.
 
-**Her presence.** In Day, her hologram stands on its dark glass, edged with a hairline and level-1 elevation; in Night
-she floats on the column as in the dark looks. The equalizer's bars take the accent and live colours.
+**Her presence.** No picture of her in any look (the owner, 26 Nov: "No kas avatar anymore"). She is present as her
+name, her state word and shape, and the equalizer across the top of her column, whose bars take the accent and live
+colours. Her shimmer while she works moves to the equalizer and her state word.
 
 **HALT** keeps the owner's green triangle and word in Day (red in Night would read as an error; it keeps the live
 green there too); while held it reads RESUME with the triangle turned to ▶.

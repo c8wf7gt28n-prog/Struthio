@@ -52,7 +52,8 @@ the ThinkPad.
    program is noticed, never shown stale. Open in the full program, and back, with the revision recognised.
 7. **Tabs and the split.** Several working tabs; at most two panes side by side; only the pane with the focus drives the
    tree's highlight and her "this".
-8. **Her column, as in the owner's picture.** A compact portrait with the equalizer's sixteen bars behind it; her name
+8. **Her column, as in the owner's picture, without her picture** (the owner, 26 Nov: "No kas avatar anymore"). The
+   equalizer's sixteen bars across the top; her name
    and state word (QUIET, WORKING, …); a short exchange (Your: / Kasandra:) with check rows; a progress line while she
    works; ACTIVE WORK with each assignment's progress and time left; FINDINGS (live); NEXT STEPS as up to four numbered
    buttons; an "ask Kasandra…" line at the foot of her column. DO, DOUBT, TRACE, BRIEF, LINE and CHECK ALL live in her
@@ -123,10 +124,14 @@ the send arrows), blue for wires and the board's rings.
 The picture's numbers and sentences are illustrative (some are garbled); the builders take the layout, the kinds of
 content and the look, never its numbers.
 
-**Her portrait (decision taken).** The owner's own pictures stay out of the repository (the standing rule). So her
-portrait in every look is drawn from `kasandra/portrait.png` (or .jpg) in the owner's workspace when the owner puts
-one there and admits it, like her character file; until then the shipped art is used. The owner can drop the hat
-portrait in that folder on the ThinkPad.
+**No picture of her (the owner, 26 Nov: "No kas avatar anymore").** This replaces the portrait decision, P3's
+hologram and P5's poses. Graphite 1.0 shows no picture of Kas anywhere, in any look. Her column's top is the
+equalizer across its full width, then her name, her model and her state word with its shape. The portrait's
+on-screen offers are gone. The shipped art files stay in the tree unused (R2 may prune them), and the kit carries no
+picture of her. P4 does this as part of the launch look.
+
+*Superseded, kept for the record:* her portrait was to come from `kasandra/portrait.png` in the owner's workspace
+once admitted, the shipped art until then.
 
 ## 4. What is already built and reused (from the code, 26 Nov)
 
@@ -293,7 +298,7 @@ foot's meters as words and numbers; every meaningful colour also has a word or a
 keep their character but take the same layout. *Acceptance:* frames of the same Rail Demo board and column in all three
 looks at both sizes.
 
-**P3 · Kas as a hologram** (the owner, 26 Nov: "Use her as the on screen kas, like she is a hologram. Not the circle
+**P3 · Kas as a hologram** (merged, then superseded by the owner on 26 Nov: "No kas avatar anymore"; P4 removes it from the screen) (the owner, 26 Nov: "Use her as the on screen kas, like she is a hologram. Not the circle
 picture", with a tall full-figure picture of her: a glowing blue wireframe figure in a wide white-and-blue hat with
 green trim, on black). Her column's portrait becomes a standing hologram, not a circle: the figure cut free of its
 black ground (the picture's dark pixels become see-through, so she floats over the column), drawn with a soft glow,
@@ -323,7 +328,7 @@ may be any folder in Home (not only the workspace's Files). *Acceptance:* the tr
 and selected at start, a USB drive under Drives; /proc shown but not read; a grant for a folder in Home outside the
 workspace lets her note step run there; a step targeting /etc stops as "outside your home: never".
 
-**P5 · Kas's poses and faces** (the owner, 26 Nov, five pictures: Kas as a blue hologram in a dark tee with the
+**P5 · Kas's poses and faces** (cancelled: the owner stopped it, then on 26 Nov: "No kas avatar anymore") (the owner, 26 Nov, five pictures: Kas as a blue hologram in a dark tee with the
 Struthio circuit-ostrich on it, jeans and sneakers; a sheet of full-figure poses (standing with a hand on her hip,
 walking, turned away, seated thinking with her chin on her hand, crouching, arms crossed, hands behind her head,
 pointing), close faces (smiling, winking, eyes closed, a knowing look), a small walking sprite cycle, and a kit: the
@@ -497,7 +502,10 @@ for Day and Night; Inter bundled (Regular, Medium, SemiBold, Display SemiBold, w
 IBM Plex Mono; Day rebuilt on the tokens and Night made from them; every surface reads the tokens; the move to Day on
 1.0's first start. *Acceptance:* frames of every main surface (board, working view, split, her column, Apps, Machine,
 Settings, menus, the dock, a toast, the Grants page, the sandbox tab, an empty workspace) in Day and Night at 1920x1200
-and 1366x768; every text pair measured ≥ 4.5:1; no colour literal for Day or Night outside the tokens.
+and 1366x768; every text pair measured ≥ 4.5:1; no colour literal for Day or Night outside the tokens. **And no picture of
+Kas** (the owner, 26 Nov: "No kas avatar anymore"): her column's top is the equalizer, her name, her model and her
+state word; the left pane's hologram, the art stills, the BOSS plates of her and the portrait's offers are gone, in
+every look.
 
 **X3 · Everyday sessions** (the owner, 26 Nov: "Should we simulate general user operations instead of the same rail
 tests?"). An invented everyday Home (`workbench/everyday_demo.py`, built through its own door in a throwaway folder):
