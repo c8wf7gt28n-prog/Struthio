@@ -630,6 +630,11 @@ class BoardView(QWidget):
         pos = event.position();self._mouse = pos
         if self._press is not None and event.buttons() & Qt.LeftButton:
             start, px, py = self._press
+            if not self._panned and (pos - start).manhattanLength() > 6 and getattr(self.host, 'l5_split', None) is not None:
+                tile = self.tile_at(start)      # 1.0 L5: a tile carried off the board goes onto the empty half; the board itself still pans
+                if tile is not None and tile.id != bm.MORE:
+                    self._press = None;self.setCursor(Qt.ArrowCursor)
+                    self.host.l5_split.drag_tile(self, tile.id, tile.title);return
             if self._panned or (pos - start).manhattanLength() > 6:
                 self._panned = True;self.pan_x = px - (pos.x() - start.x()) / self.zoom;self.pan_y = py - (pos.y() - start.y()) / self.zoom
                 self.setCursor(Qt.ClosedHandCursor);self.update();return
@@ -740,6 +745,9 @@ class BoardView(QWidget):
             return self.more_menu(tile, at)
         if tile.id != self.ident:menu.addAction('Focus here', lambda i=tile.id: self.choose(i))
         menu.addAction('Open', lambda i=tile.id: self.open_tile(i))
+        if getattr(self.host, 'l5_split', None) is not None:  # 1.0 L5: its working view beside the view in front (the split)
+            from .split_qt import open_beside
+            menu.addAction('Open beside', lambda i=tile.id: open_beside(self.host, i))
         wire = self.board.wire(tile.id, self.ident) or (self.board.wire(tile.id, tile.bridge) if tile.bridge else None)
         if wire is not None:menu.addAction('The link\'s basis', lambda w=wire: self.open_wire(w))
         module = bm.relevance_module()          # 1.0 L3's: shown only when relevance is there

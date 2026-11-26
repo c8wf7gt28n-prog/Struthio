@@ -79,7 +79,7 @@ def room(row):
 def same(row):
     """What makes two saved rows one tab: not whether it was pinned, where its cursor was or what it was called; and a
     room is one room wherever it was looking."""
-    return json.dumps({k:v for k,v in row.items() if k not in ('pinned','line','column','pdf_page','title','folder','library')},sort_keys=True,default=str)
+    return json.dumps({k:v for k,v in row.items() if k not in ('pinned','working','line','column','pdf_page','title','folder','library')},sort_keys=True,default=str)  # 1.0 L5: 'working'
 
 
 def kept(rows,open_rows=()):
@@ -121,13 +121,28 @@ class WorkspaceTabs(QTabWidget):
         return [self.widget(i) for i in range(self.count()) if self.widget(i).property('ledgerPinned') and not self.widget(i).property('ledgerRoom')]
 
     def preview(self):
-        return next((self.widget(i) for i in range(self.count()) if not self.widget(i).property('ledgerPinned') and not self.widget(i).property('ledgerRoom')),None)
+        # 1.0 L5: a working tab (a view the navigation opened: the board, the tree, Search) is never the Preview
+        return next((self.widget(i) for i in range(self.count()) if not self.widget(i).property('ledgerPinned') and not self.widget(i).property('ledgerRoom')
+                     and not self.widget(i).property('ledgerWorking')),None)
+
+    def working(self,widget,retitle=True):
+        """1.0 L5: this view is a named working tab: it stays open beside the others; the next opening does not replace it."""
+        if widget is None:return
+        widget.setProperty('ledgerWorking',True)
+        index=self.indexOf(widget)
+        if retitle and index>=0:self.setTabText(index,widget.property('ledgerTitle') or self.tabText(index).replace('Preview · ','',1))
+
+    def tabRemoved(self,index):
+        super().tabRemoved(index)
+        from .split_qt import tab_removed  # 1.0 L5: the pane in focus lost its last view while the other pane holds some: one pane again
+        tab_removed(self.host)
 
     def setTabText(self,index,text):
         widget=self.widget(index)
         if widget is None:return
         widget.setProperty('ledgerTitle',text)
         if widget.property('ledgerRoom'):super().setTabText(index,text);return
+        if widget.property('ledgerWorking') and not widget.property('ledgerPinned'):super().setTabText(index,text);return  # 1.0 L5: a working tab is named plainly
         super().setTabText(index,('◆ ' if widget.property('ledgerPinned') else 'Preview · ')+text)
 
     def dirty_choice(self,widget):
@@ -161,6 +176,9 @@ class WorkspaceTabs(QTabWidget):
     def addTab(self,widget,*args):
         self.last_open_cancelled=False
         if self.indexOf(widget)>=0:return self.indexOf(widget)
+        from .split_qt import duplicate  # 1.0 L5: an object already open in the other pane is not opened twice: that pane comes into focus with it
+        if duplicate(self.host,widget) is not None:
+            widget.deleteLater();return -1
         if widget.property('ledgerRoom'):
             # Rooms sit at the left, in the order they were opened.
             rooms=sum(1 for i in range(self.count()) if self.widget(i).property('ledgerRoom'))
@@ -199,6 +217,7 @@ class WorkspaceTabs(QTabWidget):
 
     def descriptor(self,widget):
         row={'kind':type(widget).__name__,'pinned':bool(widget.property('ledgerPinned'))}
+        if widget.property('ledgerWorking'):row['working']=True  # 1.0 L5: a working tab reopens as one
         if isinstance(widget.property('ledgerTitle'),str) and widget.property('ledgerTitle'):row['title']=widget.property('ledgerTitle')      # its name in what restoring says
         if type(widget).__name__=='FilesTab' and isinstance(getattr(widget,'folder',None),str):row['folder']=widget.folder
         if type(widget).__name__=='LibraryTab' and isinstance(getattr(widget,'kind',None),str):row['library']=widget.kind
@@ -222,7 +241,8 @@ class WorkspaceTabs(QTabWidget):
         return row
 
     def snapshot(self):
-        tabs=[self.descriptor(self.widget(i)) for i in range(self.count())]
+        from .split_qt import other_tabs  # 1.0 L5: the other pane's views are kept with the session too
+        tabs=[self.descriptor(self.widget(i)) for i in range(self.count())]+[self.descriptor(w) for w in other_tabs(self.host)]
         return dict(tabs=tabs,active=self.currentIndex(),deferred=kept(getattr(self,'deferred',[]),tabs))
 
     def open_record(self,row):
@@ -295,7 +315,7 @@ class WorkspaceTabs(QTabWidget):
             i,row=self.waiting.pop(0)
             if row.get('kind') in NOTHING_TO_REOPEN:continue
             if row.get('pinned') and len(self.pinned())>=5:self.set_aside(row,'five pins were already open');continue
-            if not row.get('pinned') and not room(row) and self.preview() is not None:self.set_aside(row,'another tab was already in the Preview');continue
+            if not row.get('pinned') and not row.get('working') and not room(row) and self.preview() is not None:self.set_aside(row,'another tab was already in the Preview');continue  # 1.0 L5: working tabs are not the Preview
             why=None
             try:tab=self.open_record(row)
             except (KeyError,ValueError,OSError):tab=None;why='it is no longer there'
@@ -306,6 +326,7 @@ class WorkspaceTabs(QTabWidget):
                 gone=any(row.get(k) for k in ('path','pdf_item','concern','device'))
                 self.set_aside(row,why or ('it is no longer there' if gone else 'Graphite cannot reopen this kind of tab'));continue
             if isinstance(row.get('concern_context'),str):tab.setProperty('concern_context',row['concern_context'])
+            if row.get('working') and not row.get('pinned'):self.working(tab)  # 1.0 L5
             if row.get('pinned'):self.pin(tab)
             self.restored.append((i,tab))
         self.restored=[(i,tab) for i,tab in self.restored if self.indexOf(tab)>=0]

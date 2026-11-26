@@ -402,6 +402,8 @@ def expand_this(host, text):
     found = THIS.match(str(text).strip())
     if not found:return text
     page = getattr(host, 'field_page', None);obj = page.view.selected() if page is not None else None
+    from .split_qt import this_object
+    obj = this_object(host) or obj  # 1.0 L5: at work depth "this" is the object of the view in the pane in focus
     if obj is None or not obj.stac:
         raise ValueError("“this” is the sheet selected in the Field, and nothing is selected there")
     lead = found.group(1) or '';rest = found.group(2)
@@ -663,6 +665,8 @@ def open_object(host, obj):
     target = getattr(obj, 'target', None) or {}
     kind = target.get('kind') if isinstance(target, dict) else None
     opened = None
+    from .split_qt import bring_object
+    bring_object(host, getattr(obj, 'id', ''))  # 1.0 L5: already open in the other pane: that pane comes into focus, never a second tab
     try:
         if kind == 'office':
             from .office_qt import open_office

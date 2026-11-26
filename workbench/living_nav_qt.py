@@ -501,6 +501,7 @@ class LivingNav(QObject):
         tab = self.host.tabs.currentWidget()
         if tab is not None and not self.on_board():
             tab._living_oid = obj.id;self.pending = ('open', None);self.sync_soon()
+            if hasattr(self.host.tabs, 'working'):self.host.tabs.working(tab)  # 1.0 L5: a named working tab, not the Preview
 
     # ---- the work depth ----------------------------------------------------------------------------------------------------
     def oid_of_tab(self, tab):
@@ -523,12 +524,15 @@ class LivingNav(QObject):
     def open(self, ident, node=None):
         """The object's working view, in a tab (the work depth): a file in the editor or the viewer, a desk object through the
         board's own opener. A folder has no working view of its own: it is focused on the board."""
+        from .split_qt import bring_object
+        bring_object(self.host, ident)  # 1.0 L5: open in the other pane: that pane comes into focus, and the opener finds the tab there
         entry = self.files_by_id.get(ident)
         if entry is not None:
             if entry['kind'] == 'folder':return self.go(ident, 'open', 'board', title=entry['name'], node=node)
             tab = open_path(self.host, Path(self.files['root']) / entry['path'])
             if tab is not None:
                 tab._living_oid = ident;self.pending = ('open', node);self.sync_soon()
+                if hasattr(self.host.tabs, 'working'):self.host.tabs.working(tab)  # 1.0 L5
             return tab
         page = self.page()
         obj = page.view.field.get(ident) if page is not None else None
@@ -538,6 +542,7 @@ class LivingNav(QObject):
             tab = field_page.open_object(self.host, obj)
             if tab is not None and hasattr(tab, 'objectName'):
                 tab._living_oid = ident;self.pending = ('open', node);self.sync_soon()
+                if hasattr(self.host.tabs, 'working') and self.host.tabs.indexOf(tab) >= 0:self.host.tabs.working(tab)  # 1.0 L5
             return tab
         return None
 
@@ -565,10 +570,11 @@ class LivingNav(QObject):
             tab = self.host.tabs.currentWidget()
             if tab is None:return
             split = getattr(self.host, 'split_panel', None)
-            depth = 'split' if split is not None and split.isVisible() else 'work'
+            from .split_qt import is_on, pane_of  # 1.0 L5: the two panes are depth 'split'; the pane in focus (host.tabs) is the entry's pane
+            depth = 'split' if is_on(self.host) or (split is not None and split.isVisible()) else 'work'
             ident = self.oid_of_tab(tab)
             title = (self.nodes.get(self.node_of(ident)) or {}).get('label') if ident else ''
-            self.go(ident, via or ('start' if self.nav.current is None else 'tab'), depth, title=title or self.tab_title(tab), node=node, tab=tab)
+            self.go(ident, via or ('start' if self.nav.current is None else 'tab'), depth, title=title or self.tab_title(tab), node=node, tab=tab, pane=pane_of(self.host))
         else:
             self.show_crumbs()
 
@@ -585,7 +591,7 @@ class LivingNav(QObject):
         if current.depth in ('work', 'split') and tab is not None and self.host.tabs.currentWidget() is tab and not self.on_board():
             current.doc = doc_position(tab)
 
-    def go(self, ident, via, depth='board', title='', node=None, tab=None, from_board=False, board_object=True):
+    def go(self, ident, via, depth='board', title='', node=None, tab=None, from_board=False, board_object=True, pane='main'):
         """A new place in the history, and the window kept to it: the board shows it (unless the board moved first), the tree
         reveals it (unless the tree moved first), and the breadcrumb says where it is."""
         if self.applying:return None
@@ -595,7 +601,7 @@ class LivingNav(QObject):
             self.snapshot()
             if current is None or current.focus != ident:self.note = ''
         node = node or self.node_of(ident) or ''
-        entry = self.nav.go(ident, via, depth, title=title or self.title_of(ident), node=node, tab=weakref.ref(tab) if tab is not None else None)
+        entry = self.nav.go(ident, via, depth, pane=pane, title=title or self.title_of(ident), node=node, tab=weakref.ref(tab) if tab is not None else None)  # 1.0 L5: pane
         def apply():
             if depth == 'board' and not from_board and board_object:self.show_on_board(ident)
             elif depth == 'board' and not from_board and not board_object and not self.on_board():
@@ -632,6 +638,8 @@ class LivingNav(QObject):
                 self.set_board(entry.board)
             else:
                 tab = alive(entry.tab)
+                from .split_qt import bring_tab
+                bring_tab(self.host, tab)  # 1.0 L5: a view in the other pane: that pane comes into focus with it
                 if tab is None or self.host.tabs.indexOf(tab) < 0:
                     tab = self.open(entry.focus) if entry.focus else None
                     if tab is not None and hasattr(tab, 'objectName'):entry.tab = weakref.ref(tab)

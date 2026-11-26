@@ -3494,6 +3494,8 @@ class Shell2(QObject):
         install_living_nav(host)  # 1.0 L1: one navigation state: the tree and the centre share one focus; the breadcrumb, Back, Forward
         from .depths_qt import install as install_depths
         install_depths(host)  # 1.0 L4: depths: Board on the breadcrumb, Save and Return, Full program, Close, the line, open files watched
+        from .split_qt import install as install_split
+        install_split(host)  # 1.0 L5: working tabs and the split: two panes, the one in focus drives the tree and her "this"
         from .her_column_qt import install as install_her_column
         install_her_column(host)  # 1.0 P1: her column as in the owner's picture; the equalizer moves into it, the ask line into the right foot
         try:  # 1.0 S5: Graphite as the session's notification server (toasts at her column's foot, kept in Log), and the app strip as a dock

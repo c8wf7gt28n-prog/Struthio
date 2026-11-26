@@ -3484,8 +3484,8 @@ class WorkbenchWindow(QMainWindow):
 
     def save_all(self):
         ok = True
-        for i in range(self.tabs.count()):
-            w = self.tabs.widget(i)
+        from .split_qt import all_tabs
+        for w in all_tabs(self):  # 1.0 L5: both panes' views
             if hasattr(w, "save_concern_note") and w.is_dirty():
                 ok = w.save_concern_note() and ok
             if hasattr(w, "can_close_pdf") and w.is_dirty():
@@ -5049,6 +5049,8 @@ class WorkbenchWindow(QMainWindow):
         source=self.current_editor()
         if source is None:
             self.statusBar().showMessage('Open a source document to split it; then select another tab on the left.',6000);return
+        from .split_qt import before_old_split
+        before_old_split(self)  # 1.0 L5: one split at a time: the two panes become one before one text is shown twice
         top=QHBoxLayout();label=QLabel(source.path.name+' · shared document');label.setWordWrap(True)
         close=QPushButton('Close split');close.clicked.connect(self._close_split)
         top.addWidget(label,1);top.addWidget(close);self.split_layout.addLayout(top)
@@ -5289,6 +5291,8 @@ class WorkbenchWindow(QMainWindow):
                      '"python arc1 agent".' % (VERSION, qt_version())).exec()
 
     def closeEvent(self, event):
+        from .split_qt import collapse
+        collapse(self)  # 1.0 L5: one pane first, so every view (the other pane's too) is asked about and kept with the session
         for i in range(self.tabs.count()):
             tab = self.tabs.widget(i)
             if hasattr(tab, "can_close_concern") and not tab.can_close_concern():

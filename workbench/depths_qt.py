@@ -564,8 +564,9 @@ class Depths(QObject):
     def watch_all(self):
         """Every open view's file is watched; a file no view shows any longer is not."""
         wanted = set()
-        for i in range(self.host.tabs.count()):
-            tab = self.host.tabs.widget(i);path = path_of(tab)
+        from .split_qt import all_tabs
+        for tab in all_tabs(self.host):  # 1.0 L5: the other pane's views are watched too
+            path = path_of(tab)
             if path is None:continue
             wanted.add(str(path))
             if digest_of(tab) is None and path.is_file():
@@ -585,8 +586,8 @@ class Depths(QObject):
         paths, self.changed = self.changed, set()
         for key in paths:
             self.watch(key)        # a program that writes a new file over the old one ends the watch on the old: it is taken up again
-            for i in range(self.host.tabs.count()):
-                tab = self.host.tabs.widget(i)
+            from .split_qt import all_tabs
+            for tab in all_tabs(self.host):  # 1.0 L5: both panes
                 if path_of(tab) is not None and str(path_of(tab)) == key:self.look(tab)
 
     def look(self, tab, why='watcher'):
@@ -798,6 +799,8 @@ def closing(host, tab):
         if getattr(host, '_closing', False) or getattr(host.tabs, 'replacing', False):return None
         if not (getattr(tab, '_living_oid', None) or getattr(tab, '_l4_return', False)):return None
         if getattr(host, '_field_active', False) or getattr(host, '_home_active', False):return None
+        from .split_qt import keeps_split
+        if keeps_split(host, tab):return None  # 1.0 L5: in the split, the views still open there take its place, not the board
         return return_target(host, tab)
     except RuntimeError:
         return None

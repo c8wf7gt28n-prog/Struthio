@@ -550,6 +550,8 @@ def refresh(host):
     bar = getattr(host, 'centre_bar', None)
     if bar is not None:bar.sync()                # above the work, whenever the work is in the centre
     documents = type(tab).__name__ == 'CodeEditor' or host.tabs.count() > 1
+    from .split_qt import is_on
+    documents = documents or is_on(host)  # 1.0 L5: while the centre is split, each pane shows its strip (its mark, and tabs to drag)
     host.tabs.tabBar().setVisible(documents)
     host.tabs.pin_button.setVisible(documents)
 
