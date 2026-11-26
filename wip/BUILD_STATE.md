@@ -377,6 +377,16 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 12:48 UTC: **1.0 F2 merged** (f2b2821: the floor. floor.py moves reads off the window's thread, timers skip
+  while her work holds the database, the board bisects and caches, and one event-filter hub replaces ten.
+  GRAPHITE_STALL_LOG is the owner's stall log. Longest stall in a Rail Demo assignment: 341-750 ms → 234-354 ms, so
+  the 100 ms floor is NOT met. Cold start: 7.0-8.4 s → 4.7-6.0 s. Migration drill 16/16: a 0.8.7 workspace (ddf0aed)
+  opens in 1.0 with everything intact; no schema step). The remaining cause: the workspace lock admits one connection
+  at a time, so reads on the window's thread wait while she writes. **F2b written into the plan** (finish the floor;
+  list a 0.8.x running assignment in ACTIVE WORK). The owner's cold-start budget was never stated: measured, left to
+  them. **X4 launched** (the twelve power-user sessions; agent a1e714fd3333c5bfd). Running: X3, M2, X2, X4. Queue: F2b
+  at the next free slot; D2 after X3, X4, M2 and F2b; X1; R2. 41 slices: 32 merged, P5 cancelled.
+
 - 26 Nov 12:42 UTC: **1.0 R1 merged** (75e46f9: the 1.0 System set, 136 Debian 13 amd64 packages (42.9 MB) added
   to 0.8.x's 396. The 14 planned names are unchanged. Added for a no-recommends install: libpam-systemd, wpasupplicant,
   wireless-regdb, eject, librsvg2-common and the ALSA UCM/topology files. LibreOffice stays 25.2.3 deb13u9. Each deb

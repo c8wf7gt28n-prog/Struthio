@@ -482,6 +482,15 @@ drill: a 0.8.x workspace opens in 1.0 with its records, words and grants intact 
 *Acceptance:* the longest stall during a Rail Demo assignment measured offscreen and reported; a 0.8.7 seed workspace
 opens and its records read.
 
+**F2b · The floor, finished** (added at F2's merge, 26 Nov). F2 shortened the stalls (longest 234 to 354 ms, from 341 to
+750) but did not reach 100 ms. The workspace's lock admits one connection at a time, readers included, so a read on the
+window's thread waits while she writes. Move the rest off the window's thread: the head control's tick, the board's
+rebuild on a tile click, opening the Field, the left tree's paint under load. Or give read-only operations a shared
+read path (WAL readers beside the one writer) if that is safe for the journal. Also list a 0.8.x assignment left
+running in ACTIVE WORK (F2's drill found only the new kind listed). *Acceptance:* F2's measured Rail Demo assignment,
+before and after, in Day at 1920x1200 and 1366x768, with the longest stall at or under 100 ms or its remaining cause
+named; F2's migration drill still 16/16.
+
 **A1 · Programs by window and file.** For Firefox, GIMP, KiCad, Blender and Godot (whatever is installed): open a file
 in the program from the board, watch for its save, record the new revision and mark the dependants for recheck; KiCad
 and Godot's existing bridges joined to the board; the "Open in the full program" route of L4 for each. *Acceptance:* a
