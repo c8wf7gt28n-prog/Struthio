@@ -302,6 +302,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 04:40 UTC: wake-up (carry on). **K2 launched** (tools registry and observation receipts; agent
+  a2990cd9e7f088ef1). **1.0 L4 merged** (166dbbf: one click focuses, double click opens; Board control; Save and
+  Return, Full program, Close; the file watcher; revisions.record/list; smoke 48/48 and 38/38). **L5 launched** (tabs
+  and split; agent a5fd90fb1dbbc0d74; told to make her "this" follow the active pane). Running: P2, S5, K2, L5.
+
 - 26 Nov 04:05 UTC: **1.0 S4 merged** (128e375: the Machine through udisks2, UPower, NetworkManager, wpctl, xrandr;
   smoke 42/42 on stand-ins). Decision noted: the Wi-Fi password is typed into Graphite's page and handed to
   NetworkManager once, then cleared (PySide6 cannot be a secret agent); Graphite never keeps it. Not done: D-Bus signals
