@@ -424,6 +424,18 @@ in the program from the board, watch for its save, record the new revision and m
 and Godot's existing bridges joined to the board; the "Open in the full program" route of L4 for each. *Acceptance:* a
 stand-in program that writes a file → the board's tile shows the new revision and its dependants marked.
 
+**D1 · The design direction, applied** (the owner, 26 Nov: "Bottom left no longer need a kasandra option, because that
+exists already in the right Kasandra column" and "take more control of how the desktop is designed"). Apply
+`DESIGN_DIRECTION_1.0.md` sections 2 to 7: the foot's chooser Line · Terminal · Search · Web · Log with Line the default
+(lines, operations by name, addresses) and "Ask Kasandra →" for words meant for her; NET in the meters; one table of
+state words and shapes (`workbench/state_words.py`) read by tiles, wires, steps, her state and the dock; one centre bar;
+the "Waits for you" band at the top of her column; Day as a fresh profile's look; the empty and first states.
+*Acceptance:* the foot has no Kasandra; a Graphite line typed in Line runs; "recheck the startup power" typed in Line
+offers Ask Kasandra → and, pressed, lands in her column as a plan (K4); frames in three looks at two sizes.
+
+**D2 · The polish pass** (after every feature slice, before X1): every surface in three looks at two sizes, fixed in
+place to the design direction; a frame atlas for the owner.
+
 ### Wave 6 — the day, the kit
 
 **X1 · The day (paper §18) in the window**, with the real 4B loaded (her model ready). On Rail Demo, scripted through the desk's own doors: select the project;

@@ -256,6 +256,13 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 10:40 (the owner: the foot's Kasandra option goes, she has her column; "take more control of how the desktop
+  is designed"): the builder's design direction written, `wip/2026-11-26_road_to_1.0/DESIGN_DIRECTION_1.0.md` (places
+  and their one job, one language of states, one centre bar, her column ordered by what waits for you, the foot as the
+  computer's line with Line as default and NET in the meters, Day as a fresh profile's look, teaching empty states,
+  motion with meaning). D1 applies it; D2 polishes every surface before X1. Labelled as the builder's design in the
+  release notes.
+
 - 26 Nov 10:25 (L6, the owner asked "Shouldn't the files part of the left tree start at root /?"): yes. The Files tab
   starts at "This computer /", Home open and selected at start, Drives near the top, system folders collapsed,
   /proc /sys /dev /run shown but never read, hidden files hidden by default (a switch shows them); Graphite's records
@@ -321,6 +328,9 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 10:40 UTC: **D1 and D2 added** (the design direction; the foot without Kasandra). Order after the running
+  four (K8, K9, K4b, A1): L6, D1, F1, F2, then D2, X1, X2, R1, R2.
 
 - 26 Nov 10:25 UTC: **L6 added** (the whole computer in the Files tree, from /). Starts when a builder slot frees.
 
