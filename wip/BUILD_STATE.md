@@ -256,12 +256,12 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
-- 26 Nov 14:30 (the owner: "Double the casual user deep scenarios to power user situations"): **X4 added**, twelve
+- 26 Nov 12:02 (the owner: "Double the casual user deep scenarios to power user situations"): **X4 added**, twelve
   power-user sessions beside X3's twelve casual ones. They cover: lines and Terminal, search everything, bulk files,
   three assignments under grants, split and recheck, a sandbox utility, her hand across two programs, the network
   adversarial, crash and resume, the board at scale, her model, and the machine under load with a keyboard-only pass.
   It runs after F1 and F2 are merged, so it walks their work. Written into PLAN_1.0 §5 after X3.
-- 26 Nov 13:10 (the owner: "No kas avatar anymore"): **no picture of Kas anywhere on screen in 1.0, in any look.** Her
+- 26 Nov 11:38 (the owner: "No kas avatar anymore"): **no picture of Kas anywhere on screen in 1.0, in any look.** Her
   column's top is the equalizer across its full width, then her name, her model and her state word with its shape. Gone
   from the screen: P3's hologram, the left pane's 0.8.3 hologram, the art stills by state, the BOSS plates of her, and
   the portrait's right-click offers. P5 is cancelled. The shipped art files stay in the tree unused (R2 may prune them).
@@ -377,7 +377,10 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
-- 26 Nov 15:10 UTC: **1.0 P4 merged** (e04347b: the launch look; and no picture of Kas). design_tokens.py drives Day
+- 26 Nov 12:10 UTC: Hourly wake-up while F1, F2, X3 and M2 run: carry on. The log's times from 11:17 on were
+  corrected to the commit clock (they had been estimated ahead).
+
+- 26 Nov 12:08 UTC: **1.0 P4 merged** (e04347b: the launch look; and no picture of Kas). design_tokens.py drives Day
   and Night. Inter is bundled. Night is a fourth look. An existing profile moves to Day once, with one line. Every text
   pair is ≥ 4.5:1 (lowest 4.56 Day, 4.71 Night; three of §9's colours darkened to pass), and no Day/Night colour literal
   is outside the tokens. Her column's top is the equalizer, her name, model and state word; every picture of her is off
@@ -388,10 +391,10 @@ instruction); no other new tests or reviews.
   look at the frames: the tree opens scrolled to /mnt rather than at the top, the Line field's placeholder reads
   "prompt", and the equalizer band is very short.
 
-- 26 Nov 14:30 UTC: The owner asked for power-user scenarios: **X4** written into the plan (twelve sessions). Queue:
+- 26 Nov 12:02 UTC: The owner asked for power-user scenarios: **X4** written into the plan (twelve sessions). Queue:
   M2 at the next free slot; X4 once F1 and F2 are merged; then D2, X1, X2, R1, R2. 40 slices.
 
-- 26 Nov 14:20 UTC: **1.0 L6b merged** (f709d77: Home's files, whole. A Home file opens in its program and its saves
+- 26 Nov 11:57 UTC: **1.0 L6b merged** (f709d77: Home's files, whole. A Home file opens in its program and its saves
   become revisions, watched and found again by inode. The tree has Rename, Move to, Delete (to the system's own
   freedesktop.org bin, with Undo and Restore), New folder and drag to move. files.trash refuses Home itself and the
   workspace's folder. Her program opens, LibreOffice edits and hand check home_reach. Smoke 29/29, and 13/13 per look).
@@ -399,7 +402,7 @@ instruction); no other new tests or reviews.
   **X3 launched** (twelve everyday sessions in an invented Home; agent a8a2780467f1ec010). Running: P4, F1, F2, X3.
   Next: M2 when a slot frees; then D2, X1, X2, R1, R2. 39 slices: 28 merged, P5 cancelled.
 
-- 26 Nov 13:40 UTC: **1.0 M1 merged** (ce6306f: her runtime is llama.cpp v1.0.0, b12359. Both official archives are
+- 26 Nov 11:45 UTC: **1.0 M1 merged** (ce6306f: her runtime is llama.cpp v1.0.0, b12359. Both official archives are
   sha256-checked and replace b11669. The seal was rebuilt from v1.0.0's help. runtime_tuning.py gives five owner launch
   defaults. MTP comes only from the model's own head, and --cache-ram is sized to her kept prompts. The model check's
   S2T sweep predicts whether reading and writing reach 99 tok/s. The machine is named as the E16 Gen 2 AMD with a 680M.
@@ -410,10 +413,10 @@ instruction); no other new tests or reviews.
   and BRIEF_HEADER now points at it. **F2 launched** (the floor: stalls, cold start, the 0.8.7 migration drill; agent
   a18bb6d5d0d788e5c). Running: L6b, P4, F1, F2. Next: X3 after L6b; M2 when a slot frees.
 
-- 26 Nov 13:10 UTC: The owner: "No kas avatar anymore". Recorded under Decisions; given to P4 (running); plan and
+- 26 Nov 11:38 UTC: The owner: "No kas avatar anymore". Recorded under Decisions; given to P4 (running); plan and
   design direction amended. P5 cancelled.
 
-- 26 Nov 13:00 UTC: **1.0 D1 merged** (6c62cf2: the design direction applied. The foot reads Line · Terminal · Search ·
+- 26 Nov 11:37 UTC: **1.0 D1 merged** (6c62cf2: the design direction applied. The foot reads Line · Terminal · Search ·
   Web · Log with Line the default, and words meant for her are offered as "Ask Kasandra →". NET joins the meters. The one
   table of state words and shapes is `workbench/state_words.py`. There is one centre bar and the "Waits for you" band.
   Day is a fresh profile's look, and the empty states teach. Four existing tests were changed to the new truth, not run).
@@ -423,12 +426,12 @@ instruction); no other new tests or reviews.
   and **F1 launched** (a touch stops her, the window put back; agent abc30044db271061b). Running: M1, L6b, P4, F1.
   Next: X3 after L6b; F2 and M2 after M1; then D2, X1, X2, R1, R2. 39 slices; 26 merged (P5 on hold).
 
-- 26 Nov 12:30 UTC: **1.0 L6 merged** (135a9cd: the whole computer in the tree; Kas's changes only inside Home; smoke
+- 26 Nov 11:23 UTC: **1.0 L6 merged** (135a9cd: the whole computer in the tree; Kas's changes only inside Home; smoke
   24/24 and 10/10 per look). **L6b added and launched** (Home's files, whole: open in programs, watchers, rename, move,
   Trash with Undo, every change of hers through home_reach; agent ae074eeb6fae78a9b). 39 slices; 25 merged. Running:
   D1, M1, P5, L6b.
 
-- 26 Nov 11:55 UTC: **1.0 K9 merged** (865b6c2: her hand in other programs: accessibility first, XTest aimed at reported
+- 26 Nov 11:17 UTC: **1.0 K9 merged** (865b6c2: her hand in other programs: accessibility first, XTest aimed at reported
   positions, a touch stops her, never the dangerous buttons; smoke 36/36 with a real LibreOffice window under Xvfb and a
   stand-in accessibility bus). Merged by hand: grants (K8 and K9 both kept) and the plan menu (her hand's tools on K4b's
   primed menu when the desk holds documents). R1 gains libreoffice-gtk3. **P5 launched** (agent a0a9b7f9caa679a10; it cuts the
