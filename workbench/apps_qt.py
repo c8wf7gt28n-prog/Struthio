@@ -554,6 +554,8 @@ def file_of(host, t):
         return lambda:str(t.ident)
     if t.surface == 'cabinet':
         node = (t.data or {}).get('node') or {}
+        if node.get('provider') == 'living_nav' and node.get('role') == 'file' and str(node.get('canonical_id', '')).startswith('path:/'):
+            return lambda path=str(node['canonical_id'])[len('path:'):]:path      # 1.0 L6: a file anywhere, by its path until it is focused
         if node.get('provider') == 'living_nav' and node.get('role') == 'file' and str(node.get('canonical_id', '')).startswith('fileid:'):
             def resolve(ident=node['canonical_id']):
                 found = call(host, 'objects.get', {'id': ident})

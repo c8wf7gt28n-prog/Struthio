@@ -2269,7 +2269,8 @@ class SlateFace(QWidget):
         try:
             operation, arguments = line_call(card.step.line)
             from .session_power import sleep_held
-            with sleep_held('Kasandra is writing “%s”' % str(card.title)[:80]):  # 1.0 S1: a suspend waits until her write is done
+            from .home_reach import hers  # 1.0 L6: her card: inside your home by a grant or your Approve, never outside it
+            with sleep_held('Kasandra is writing “%s”' % str(card.title)[:80]), hers(operation, arguments, pressed=not getattr(card, 'hers', False)):  # 1.0 S1: a suspend waits until her write is done
                 r = engineering(self.host.root).dispatch(operation, arguments, operator())
         except Exception as exc:  # noqa: BLE001 - a line that cannot be run is said as a refusal, never raised into the window
             r = {'ok': False, 'error': {'message': str(exc)[:300]}}

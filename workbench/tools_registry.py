@@ -493,6 +493,10 @@ def _revision_named(origins, name, rel):
 def _pre_files(kernel, tool, a, origins):
     from . import files_service
     unmet = []
+    if tool.undo == 'change':  # 1.0 L6: her changes reach only inside your home, at every place of the dial
+        from . import home_reach
+        never = home_reach.never_words(kernel, (tool.operations or ('',))[0], a)
+        if never:return [never]
     try:path = _inside(kernel, a.get('path'))
     except ValueError as why:return ['the path is not inside Files (%s)' % str(why)[:120]]
     rel = a.get('path') or ''
@@ -678,7 +682,7 @@ class Relocate(_asg.Check):
         out = {'path': arguments['path'], 'digest': tree_digest(source), 'folder': source.is_dir(), 'name': source.name}
         if self.operation == 'files.rename':
             target = source.with_name(files_service.clean_name(arguments['name']))
-            out['to'] = files_service.rel_of(kernel, target)
+            out['to'] = files_service.place_of(kernel, target)  # 1.0 L6: in your home, its whole path
         else:
             out['into'] = arguments['to']
         return out
@@ -691,7 +695,7 @@ class Relocate(_asg.Check):
 
     def _observed(self, kernel, prepared, target):
         from . import files_service
-        rel = files_service.rel_of(kernel, target)
+        rel = files_service.place_of(kernel, target)  # 1.0 L6
         ident = ''
         try:
             from . import living_nav
@@ -733,7 +737,7 @@ class FolderMake(_asg.Check):
     def prepare(self, kernel, read, arguments):
         from . import files_service
         target = _inside(kernel, arguments.get('path', '')) / files_service.clean_name(arguments['name'])
-        return {'path': files_service.rel_of(kernel, target)}
+        return {'path': files_service.place_of(kernel, target)}  # 1.0 L6
 
     def find(self, kernel, read, arguments, prepared):
         target = _inside(kernel, prepared['path'])
@@ -1207,7 +1211,8 @@ def use(kernel, tool, arguments, principal, origins=None, basis='owner_words', o
     if missing:return finish('blocked', 'not used: ' + '; '.join(missing) + '. Nothing was sent.')
     if GRANT_CHECK is not None:
         need = GRANT_CHECK(kernel, tool, op, arguments, principal)
-        if need:return finish('blocked', 'needs your grant: %s. Nothing was sent.' % str(need)[:300])
+        from .home_reach import NEVER  # 1.0 L6: "outside your home: never" is said as it is, not as a grant to ask for
+        if need:return finish('blocked', ('not used: %s. Nothing was sent.' if str(need).startswith(NEVER) else 'needs your grant: %s. Nothing was sent.') % str(need)[:300])
     check = _asg.check_for(op)
     read = _reader(kernel, principal)
     try:

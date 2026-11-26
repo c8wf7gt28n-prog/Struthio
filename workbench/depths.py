@@ -93,6 +93,7 @@ def _place(kernel, args):
     if args.get('id'):
         found = living_nav.get(kernel, ident=args['id'])
         rel = found['path']
+        if str(rel).startswith('/'):raise ValueError('REVISIONS_OUTSIDE: only a file in Files has its revisions recorded')  # 1.0 L6: an id elsewhere on this computer
     else:
         raw = str(args.get('path') or '')
         given = Path(raw)
@@ -101,6 +102,7 @@ def _place(kernel, args):
             except ValueError:raise ValueError('REVISIONS_OUTSIDE: only a file in Files has its revisions recorded') from None
         else:rel = raw
         found = living_nav.get(kernel, path=rel)
+        if str(found['path']).startswith('/'):raise ValueError('REVISIONS_OUTSIDE: only a file in Files has its revisions recorded')  # 1.0 L6
     target = resolve(kernel, found['path'])
     if found.get('kind') != 'file' or not target.is_file():raise ValueError('REVISIONS_NOT_A_FILE: %s is not a file in Files' % found['path'][:200])
     return found['id'], found['path'], target

@@ -1243,6 +1243,10 @@ def apply(kernel, args, principal):
             raise Refused('SANDBOX_TAKEN: a file is already at %s now; nothing was applied' % m['target'])
         steps.append((name, sha, m, target, before, data_path))
     applied = []
+    from . import home_reach  # 1.0 L6: what a utility made reaches only inside your home, even by your Apply
+    for name, sha, m, target, before, data_path in steps:
+        never = home_reach.her_change(kernel, target)
+        if never:raise Refused('SANDBOX_OUTSIDE_HOME: %s. Nothing was applied.' % never)
     for name, sha, m, target, before, data_path in steps:
         files_service.may_change(kernel, target, principal)
         sent = tr.receipt('sandbox.run', 'sandbox.apply', 'files:' + m['target'], 'dispatched', 'observed', False,

@@ -511,6 +511,17 @@ def file_object(entry, root):
     """A plain file of Files as the board draws it: a FILE tile (as living_nav_qt.LivingNav.with_focus draws it on the Field)."""
     folder = str(entry.get('path') or '').rpartition('/')[0]
     path = str(Path(root) / entry['path']) if root and entry.get('path') else ''
+    if str(entry.get('path') or '').startswith('/') or entry.get('kind') == 'folder':      # 1.0 L6: elsewhere on this computer; a folder
+        from .home_reach import folder_words, role_words, tilde
+        place = str(entry.get('path') or '')
+        where = folder_words(place) if place.startswith('/') else ('in ' + ('Files/' + folder if folder else 'Files'))
+        role = role_words(place) if place.startswith('/') else 'in Files'
+        folder_like = entry.get('kind') == 'folder'
+        suffix = Path(str(entry.get('name') or '')).suffix
+        said = 'a folder' if folder_like else (('%s file · %s' % (suffix[1:].upper(), _size_words(entry.get('size')))) if suffix else _size_words(entry.get('size')))
+        return FieldObject(entry['id'], 'folder' if folder_like else 'source', entry.get('name') or 'a file', 'a %s %s' % ('folder' if folder_like else 'file', role),
+                           '', (said, where), tilde(place) if place.startswith('/') else 'Files/' + place, {'kind': 'file', 'id': entry['id'], 'path': path},
+                           'FOLDER' if folder_like else 'FILE')
     suffix = Path(str(entry.get('name') or '')).suffix
     said = ('%s file · %s' % (suffix[1:].upper(), _size_words(entry.get('size')))) if suffix else _size_words(entry.get('size'))
     return FieldObject(entry['id'], 'source', entry.get('name') or 'a file', 'a file in Files', '', (said, 'in ' + ('Files/' + folder if folder else 'Files')),

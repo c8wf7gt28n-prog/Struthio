@@ -19,6 +19,11 @@
 
 Nothing here writes a file or a record (the identity index aside, through objects.files). The window's own Back of the
 Field (Backspace, its trail) is the Field's and stays as it was.
+
+1.0 L6, the whole computer: the Files drawer gave way to the computer's rows (computer_tree_qt): "This computer /" at the
+top, Home open and selected at start (the workspace and its Files are in it, where they live), Drives near the top; the
+Desk drawer stays. A row anywhere is focused like a file of Files: it is given its id when it is chosen (lazily), held
+beside Files' reading (extra), and the board, the breadcrumb, Back and Open find it.
 """
 from __future__ import annotations
 
@@ -206,6 +211,7 @@ class LivingNav(QObject):
         self.host = host;self.nav = ln.Navigator();self.applying = 0;self.user_input = False;self.pending = None
         self.files = None;self.files_by_id = {};self.files_by_abs = {};self.nodes = {};self.by_canonical = {}
         self.desk = None;self.desk_raw = None;self.desk_objects = [];self.note = '';self.hooked = None;self.problem = ''
+        self.extra = {};self.computer = None      # 1.0 L6: objects held beside Files' reading; the computer's rows
         self.watcher = QFileSystemWatcher(self);self.watcher.directoryChanged.connect(self.disk_changed)
         self.reread = QTimer(self);self.reread.setSingleShot(True);self.reread.setInterval(150);self.reread.timeout.connect(self.read_again)
         self.syncing = QTimer(self);self.syncing.setSingleShot(True);self.syncing.setInterval(0);self.syncing.timeout.connect(self.sync_from_window)
@@ -219,6 +225,8 @@ class LivingNav(QObject):
         for keys, go in (('Alt+Left', self.back), ('Alt+Right', self.forward)):
             QShortcut(QKeySequence(keys), host, activated=go)
         self.hook_field()
+        from .computer_tree_qt import install as computer
+        self.computer = computer(self)      # 1.0 L6: the Files tab from "This computer /", Home open at start
 
     # ---- the Kernel --------------------------------------------------------------------------------------------------------
     def call(self, op, args=None):
@@ -235,6 +243,7 @@ class LivingNav(QObject):
         history; the focus said 'renamed from …' until it moves."""
         before = self.files_by_id;reading = self.call('objects.files')
         if reading is None:return self.files
+        if self.computer is not None:reading = self.computer.merged(reading)      # 1.0 L6: what is held beside it
         self.files = reading;root = Path(reading['root'])
         self.files_by_id = {e['id']: e for e in reading['entries']}
         self.files_by_abs = {str(root / e['path']) if e['path'] else str(root): e['id'] for e in reading['entries']}
@@ -293,16 +302,11 @@ class LivingNav(QObject):
             mine.append(dict(id=ident, parent=parent, role=role, label=caption(label), target={'kind': 'living', 'id': canonical}, scope='owner_private',
                              provider='living_nav', canonical_id=canonical, owning=False, description=description, **extra))
             taken.add(ident)
-        reading = self.read_files()
-        if reading and reading['entries']:
-            top = reading['entries'][0]
-            add(LIVING + top['id'], root, 'folder', 'Files', top['id'], 'Files, the folder on this computer: ' + reading['root'])
-            for entry in reading['entries'][1:]:
-                add(LIVING + entry['id'], LIVING + (entry['parent'] or top['id']), entry['kind'], entry['name'], entry['id'],
-                    '%s · %s' % (kind_words(entry['name'], entry['kind']), 'Files/' + entry['path']))
-            if reading['partial']:
-                add('living:files-more', LIVING + top['id'], 'note', '%d more not listed here' % reading['left_out'], 'living:files-more',
-                    'Files holds more than the tree lists; the Finder lists all of it')
+        self.read_files()
+        # 1.0 L6: the Files drawer gave way to the whole computer: "This computer /" first (Home open, the workspace and its
+        # Files where they live in it), then Drives; the cabinet and its Desk drawer after them
+        first = self.computer.nodes() if self.computer is not None else []
+        taken.update(n['id'] for n in first)
         objects = self.read_desk()
         if objects:
             add(DESK, root, 'drawer', 'Desk', DESK, 'The work on this desk, as the board shows it')
@@ -311,8 +315,8 @@ class LivingNav(QObject):
                 key, label = words.get(obj.kind, (obj.kind, str(obj.kind).title()))
                 add('living:desk:' + key, DESK, 'folder_view', label, 'living:desk:' + key, 'The %s on this desk' % label.lower())
                 add(LIVING + obj.id, 'living:desk:' + key, obj.kind, obj.title, obj.id, ' · '.join(x for x in (obj.role, obj.where) if x))
-        model = dict(model, nodes=nodes + mine)
-        model['signature'] = digest([model.get('signature'), [(n['id'], n['label'], n['parent']) for n in mine]])
+        model = dict(model, nodes=first + nodes + mine)      # 1.0 L6: the computer's rows first
+        model['signature'] = digest([model.get('signature'), [(n['id'], n['label'], n['parent']) for n in first + mine]])
         self.nodes = {n['id']: n for n in model['nodes']}
         self.by_canonical = {}
         for node in model['nodes']:
@@ -333,6 +337,7 @@ class LivingNav(QObject):
         if page is None or not ident:return False
         row = node if node in self.nodes and self.nodes[node]['canonical_id'] == ident else self.node_of(ident)
         if row is None or row not in page.items:
+            if self.computer is not None:self.computer.open_to(ident)      # 1.0 L6: the folders on its way listed and opened
             page.refresh(force=True);row = self.node_of(ident)
         if row is None or row not in page.items:return False
         if page.using_legacy:return False
@@ -356,6 +361,7 @@ class LivingNav(QObject):
     def go_node(self, node_id, via='tree'):
         node = self.nodes.get(node_id)
         if node is None:return False
+        if self.computer is not None and self.computer.owns(node_id):return self.computer.go(node_id, via)      # 1.0 L6
         if node.get('provider') != 'living_nav':
             page = getattr(self.host, 'cabinet_page', None)
             if page is None:return False
@@ -368,6 +374,7 @@ class LivingNav(QObject):
     def open_node(self, node_id):
         node = self.nodes.get(node_id)
         if node is None:return None
+        if self.computer is not None and self.computer.owns(node_id):return self.computer.open(node_id)      # 1.0 L6
         return self.open(node['canonical_id'], node=node_id)
 
     # ---- the board (the Field, until L2) ---------------------------------------------------------------------------------
@@ -416,6 +423,14 @@ class LivingNav(QObject):
         from .field_source import stac_json
         root = Path(self.files['root']) if self.files else None
         folder = entry['path'].rpartition('/')[0]
+        if str(entry['path']).startswith('/'):      # 1.0 L6: a file or folder elsewhere on this computer
+            from .home_reach import folder_words, role_words, tilde
+            folder_like = entry['kind'] == 'folder'
+            lines = ('a folder' if folder_like else '%s · %s' % (kind_words(entry['name']), size_words(entry['size'])), folder_words(entry['path']))
+            tile = FieldObject(focus, 'folder' if folder_like else 'source', entry['name'], 'a %s %s' % ('folder' if folder_like else 'file', role_words(entry['path'])),
+                               '', lines, tilde(entry['path']), {'kind': 'file', 'id': focus, 'path': entry['path']}, 'FOLDER' if folder_like else 'FILE',
+                               'objects.get ' + stac_json(id=focus))
+            return replace(field, objects=list(field.objects) + [tile], selected=focus)
         if entry['kind'] == 'folder':
             inside = sum(1 for e in self.files_by_id.values() if e['parent'] == entry['id'])
             lines = ('%d thing%s in it' % (inside, '' if inside == 1 else 's'), 'in ' + ('Files/' + folder if folder else 'Files') if entry['path'] else 'on this computer')
@@ -607,7 +622,7 @@ class LivingNav(QObject):
             elif depth == 'board' and not from_board and not board_object and not self.on_board():
                 from . import field_page
                 field_page.show_field(self.host);self.hook_field()
-            if via != 'tree':self.reveal(ident, node)
+            if via not in ('tree', 'start'):self.reveal(ident, node)      # 1.0 L6: at start the tree lands on Home
             if depth == 'board' and self.on_board() and not same:entry.board = self.board_state() or entry.board
         self.with_applying(apply)
         self.show_crumbs()

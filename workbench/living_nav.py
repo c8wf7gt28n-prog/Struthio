@@ -41,6 +41,11 @@ Kernel operations (one block in engineering_kernel.py and engineering_cli.py, co
                                                    whether it is still there, its earlier paths
 Both are observers (activity.OBSERVER_OPERATIONS): the tree reads them each time it is drawn.
 
+1.0 L6, the whole computer: the ids extend to any path lazily. objects.get {path} also takes a path named from / or ~
+(home_reach): a file or folder outside Files is given its id when it is focused, opened or linked (that one call), never
+by scanning the disk; it is kept under its whole path ('/home/…'), by the same rules (its inode, its digest), and a
+reading of Files never marks it missing. The system folders (/proc, /sys, /dev, /run) are never given an id.
+
 No floating point is used for anything that is checked: sizes and times are integers (nanoseconds), digests are hex.
 """
 from __future__ import annotations
@@ -142,7 +147,13 @@ def parent_rel(rel):
 
 def under(rel, folder):
     """Whether rel is folder itself or inside it ('' is the Files folder)."""
+    if str(rel).startswith('/') and not str(folder).startswith('/'):return False  # 1.0 L6: a path outside Files is in no folder of it
     return folder == '' or rel == folder or rel.startswith(folder + '/')
+
+
+def outside(path):
+    """1.0 L6: whether a path as the store keeps it is outside Files (kept whole, from /)."""
+    return str(path or '').startswith('/')
 
 
 def in_delete(rel):
@@ -278,7 +289,7 @@ def resolve(db, observed, base, scope='', now=None, full=True, budget=None):
         row = dict(row, digest=digest[0], digest_kind=digest[1]);rows[row['id']] = row;_save(db, row)
     if full:
         for row in rows.values():
-            if row['id'] in claimed or row['state'] != PRESENT or not under(row['path'], scope) or in_delete(row['path']):continue
+            if row['id'] in claimed or row['state'] != PRESENT or outside(row['path']) or not under(row['path'], scope) or in_delete(row['path']):continue  # 1.0 L6
             _save(db, dict(row, state=MISSING))
     return results, moved
 
@@ -308,6 +319,11 @@ def get(kernel, ident=None, path=None):
     """objects.get: one object by its id, or the object at a path of Files (given an id there if it has none yet)."""
     base = files_root(kernel)
     if ident is None and path is None:raise ValueError('OBJECTS_ASK: give an id or a path')
+    if path is not None and str(path).startswith(('/', '~')):      # 1.0 L6: anywhere on this computer
+        found = elsewhere(kernel, base, path)
+        if found is not None:return found
+        from . import home_reach
+        path = home_reach.real(home_reach.expand(path)).relative_to(Path(base).resolve()).as_posix()      # inside Files after all
     with kernel.db() as db:
         ensure(db)
         if path is not None:
@@ -323,6 +339,7 @@ def get(kernel, ident=None, path=None):
             if row is None:raise ValueError('OBJECTS_UNKNOWN: no object has this id here')
         state = row['state']
         if state == PRESENT and not _exists(base, row):state = MISSING
+        if outside(row['path']):return described(row, base, state)      # 1.0 L6: kept outside Files: its folders by name
         rows = _rows(db)
     by_path = {r['path']: r for r in rows.values() if r['state'] == PRESENT}
     trail = [];folder = parent_rel(row['path'])
@@ -335,12 +352,73 @@ def get(kernel, ident=None, path=None):
             'digest': row['digest'], 'digest_kind': row['digest_kind'], 'earlier': json.loads(row['names'] or '[]'), 'root': str(base)}
 
 
+def key_of(base, path):
+    """1.0 L6: how the store keeps a path: inside Files, its path there; elsewhere, its whole path (links followed)."""
+    from . import home_reach
+    actual = home_reach.real(Path(path))
+    try:return rel_of(Path(base).resolve(), actual)
+    except ValueError:
+        return str(actual)
+
+
+def elsewhere(kernel, base, path):
+    """objects.get for a path named from / or ~ outside Files: its object, given an id now if it has none (this one file or
+    folder, never what is around it); None when the path is inside Files (the caller reads it as Files)."""
+    from . import home_reach
+    named = home_reach.expand(path)
+    if named is None:raise ValueError('OBJECTS_PATH: a path with no ".."')
+    refusal = home_reach.read_refusal(named)
+    if refusal:raise ValueError('OBJECTS_SYSTEM: ' + refusal)
+    key = key_of(base, named)
+    if not outside(key):return None
+    try:st = os.lstat(key)
+    except OSError:
+        raise ValueError('OBJECTS_NOT_FOUND: ' + home_reach.tilde(named)[:200]) from None
+    if not (statmod.S_ISDIR(st.st_mode) or statmod.S_ISREG(st.st_mode)):raise ValueError('OBJECTS_KIND: only a file or a folder has an id here')
+    obs = dict(_observe(Path(key), st, Path(key)), rel=key)
+    with kernel.db() as db:
+        ensure(db)
+        entries, _ = resolve(db, [obs], base, full=False)
+        row = _rows(db).get(entries[0]['id'])
+    return described(row, base, PRESENT if row['state'] == PRESENT else row['state'])
+
+
+def described(row, base, state):
+    """objects.get's answer for an object kept outside Files (1.0 L6): its trail is its folders, by name."""
+    from . import home_reach
+    folders = [str(p) for p in reversed(PurePosixPath(row['path']).parents)]
+    trail = [{'id': None, 'name': home_reach.tilde(f) if f == str(home_reach.home()) else (PurePosixPath(f).name or 'This computer'), 'path': f}
+             for f in folders]
+    return {'schema': 'living.object/1', 'id': row['id'], 'kind': row['kind'], 'name': PurePosixPath(row['path']).name or '/', 'path': row['path'],
+            'state': state, 'state_words': STATE_WORDS.get(state, state), 'trail': trail, 'size': row['size'],
+            'digest': row['digest'], 'digest_kind': row['digest_kind'], 'earlier': json.loads(row['names'] or '[]'), 'root': str(base),
+            'where': home_reach.role_words(row['path']), 'place': home_reach.tilde(row['path'])}
+
+
+def known_outside(kernel):
+    """1.0 L6: {whole path: id} of the objects outside Files that have an id and are where they were (the tree names its rows
+    by them; nothing is made here)."""
+    try:
+        with kernel.db() as db:
+            ensure(db)
+            return {r[0]: r[1] for r in db.execute("SELECT path, id FROM living_objects WHERE state=? AND path LIKE '/%'", (PRESENT,))}
+    except Exception:  # noqa: BLE001 - no store yet: no ids
+        return {}
+
+
+def entry_outside(found):
+    """1.0 L6: an object outside Files (objects.get's answer) as an entry of a Files reading, so the board and the tree
+    can hold it beside Files' own."""
+    return {'id': found['id'], 'kind': found['kind'], 'name': found['name'], 'path': found['path'], 'parent': None, 'size': found.get('size') or 0,
+            'modified_ns': 0, 'state': found['state'], 'was': None, 'outside': True}
+
+
 def moved(kernel, old, new):
     """Graphite's own file operation moved or renamed something (files_service): its object, and everything inside it, keeps its
     id at the new place at once, without waiting for the next reading. Into DELETE it is 'deleted'; back out of it, present."""
     try:
         base = files_root(kernel, create=False)
-        was = rel_of(base, old);now = rel_of(base, new)
+        was = _kept_as(base, old);now = _kept_as(base, new)  # 1.0 L6: inside Files or elsewhere
     except (ValueError, OSError):
         return 0
     count = 0
@@ -352,6 +430,15 @@ def moved(kernel, old, new):
             state = DELETED if in_delete(path) else PRESENT
             _save(db, dict(row, path=path, state=state, names=_earlier(row, row['path'])));count += 1
     return count
+
+
+def _kept_as(base, path):
+    """1.0 L6: a path Graphite just moved, as the store keeps it (inside Files: its path there; elsewhere: whole)."""
+    try:return rel_of(base, path)
+    except ValueError:
+        try:return rel_of(Path(base).resolve(), Path(path))
+        except ValueError:
+            return str(Path(path))
 
 
 def dispatch(kernel, op, args, principal):

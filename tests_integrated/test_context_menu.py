@@ -451,7 +451,9 @@ class Window(unittest.TestCase):
 
     def test_the_trees_refresh_view_as_new_idea_new_project_import_export(self):
         nav=self.w.settings_navigator;nav.show_view('cabinet');settle(60);page=self.w.cabinet_page;page.refresh(force=True);settle()
-        tree=page.tree;item=tree.topLevelItem(0)
+        tree=page.tree;item=next(tree.topLevelItem(i) for i in range(tree.topLevelItemCount())  # 1.0 L6: This computer / is the first row now; the cabinet's own top row is asked for
+                                 if not str((tree.topLevelItem(i).data(0,__import__('PySide6.QtCore',fromlist=['Qt']).Qt.UserRole) or {}).get('id','')).startswith('living:'))
+        tree.scrollToItem(item);settle()
         menu=right_click(tree.viewport(),tree.visualItemRect(item).center());t=menu.target
         self.assertEqual((t.kind,t.surface),('cabinet','cabinet'));self.assertEqual(t.ident,item.data(0,__import__('PySide6.QtCore',fromlist=['Qt']).Qt.UserRole)['id'])
         from workbench.cabinet_actions_qt import model

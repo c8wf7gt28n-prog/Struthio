@@ -10,7 +10,9 @@ A grant (graphite.grant/1, in the Kernel's own database: kas_grants, and kas_gra
   operation  a family (FAMILIES: "edit files", "set values on a sheet", ...), a tool of the registry (tools_registry, by its
              key) or one registered Kernel operation; it covers exactly the Kernel operations it names.
   target     a folder inside Files ("Rail Demo/notes": that folder and what is in it), or an object: a Kernel record (a
-             sheet, a page), an App, a window. Every target of a call must be inside it.
+             sheet, a page), an App, a window. Every target of a call must be inside it. 1.0 L6: a folder may be any folder
+             in your home ("~/Rail notes"), named from ~ or /; never one outside your home, never all of it, never
+             Graphite's own records or program ("outside your home: never", home_reach).
   scope      this assignment (it ends when the assignment is done), until a time (whole milliseconds), or always (until
              you revoke it).
   words      what you read before you give it, e.g. "edit files in Rail Demo/notes, for this assignment".
@@ -40,6 +42,10 @@ The model can never create or widen a grant: giving and revoking take the approv
 steps, never Tutor), the words are the desk's own (a target is named from the records, never from text handed in), the
 digest of the words you saw must match, grant.* is never a step, a tool or the model's choice, and a grant is never given
 from inside her work (a call inside a step's dispatch is refused).
+
+1.0 L6, her reach: a change of hers lands only inside your home (and the workspace's Files, by its own rules), at every
+place of the dial: a step, a tool use or her hand's card whose target is outside it stops as "outside your home: never",
+before any grant or press is asked for (check_step, authorise, check_tool, and Files' own may_change at dispatch).
 
 The floor stays under all of this (a grant never widens it): what always asks (stacy_hand.ALWAYS_ASKS: sending,
 deleting, stopping, the session) is never granted; a change whose only basis is the model's pick is never authorised by
@@ -174,8 +180,15 @@ def _rows(db, owner, every=False):
 
 # ---------------------------------------------------------------- paths and targets
 
-def clean_folder(text):
-    """A folder inside Files, as a relative path with no '..', or a refusal."""
+def clean_folder(text, kernel=None):
+    """A folder inside Files, as a relative path with no '..', or a refusal. 1.0 L6: named from ~ or /, a folder in your
+    home ('~/Rail notes'; one inside Files is named as Files names it), never one outside it."""
+    if str(text or '').strip().startswith(('/', '~')):  # 1.0 L6
+        from . import home_reach
+        if kernel is None:raise NotGrantable('GRANT_FOLDER: a folder in your home is named with its workspace')
+        value, why = home_reach.grant_folder(kernel, str(text).strip())
+        if why:raise NotGrantable(why)
+        return value
     parts = [p for p in PurePosixPath(str(text or '').replace('\\', '/')).parts if p not in ('', '/', '.')]
     if not parts:raise NotGrantable('GRANT_FOLDER: name a folder inside Files (a grant over all of Files is never given)')
     if any(p == '..' or '\0' in p for p in parts):raise NotGrantable('GRANT_FOLDER: a folder inside Files, with no ".."')
@@ -184,9 +197,12 @@ def clean_folder(text):
 
 
 def _clean_path(text):
-    parts = [p for p in PurePosixPath(str(text or '').replace('\\', '/')).parts if p not in ('', '/', '.')]
+    raw = str(text or '').replace('\\', '/')
+    lead = '~' if raw == '~' or raw.startswith('~/') else '/' if raw.startswith('/') else ''  # 1.0 L6: from ~ or /, kept so
+    parts = [p for p in PurePosixPath(raw[1:] if lead == '~' else raw).parts if p not in ('', '/', '.')]
     if any(p == '..' for p in parts):return None
-    return '/'.join(parts)
+    if lead == '~':return '~/' + '/'.join(parts) if parts else '~'
+    return lead + '/'.join(parts)
 
 
 def _bare(ident):
@@ -201,7 +217,7 @@ def targets(operation, arguments):
     if operation == 'files.mkdir':
         name = a.get('name')
         if isinstance(name, str):
-            joined = _clean_path((a.get('path') or '') + '/' + name)
+            joined = _clean_path(((a.get('path') or '').rstrip('/') + '/' + name) if a.get('path') else name)  # 1.0 L6: '' + '/x' is not /x
             paths.append(joined)
     elif operation == 'sandbox.run':  # 1.0 K6 (coordinator): a utility's run lands on (copies of) its inputs
         for item in a.get('inputs') or ():
@@ -223,6 +239,18 @@ def targets(operation, arguments):
 
 def inside(path, folder):
     return path is not None and (path == folder or path.startswith(folder.rstrip('/') + '/'))
+
+
+def _within(kernel, path, folder):
+    """1.0 L6: whether a path (as a call names it: inside Files, from ~ or from /) is the folder or inside it, compared as
+    the places they are on this computer (a Files folder and the same folder named from ~ are one place)."""
+    if path is None or folder is None:return False
+    try:
+        from . import home_reach
+        a, b = home_reach.absolute(kernel, path), home_reach.absolute(kernel, folder)
+    except Exception:  # noqa: BLE001 - a place that cannot be named is inside nothing
+        return False
+    return a is not None and b is not None and home_reach.within(a, b)
 
 
 def _has_reference(value):
@@ -267,7 +295,11 @@ def object_words(kernel, ident):
         doc = got.get('document') or got
         if doc.get('title'):return 'the page “%s”' % str(doc['title'])[:120]
     got = _read(kernel, 'objects.get', {'id': ident})
-    if isinstance(got, dict) and got.get('path'):return '“%s” in Files' % str(got['path'])[:160]
+    if isinstance(got, dict) and got.get('path'):
+        if str(got['path']).startswith('/'):  # 1.0 L6: a file elsewhere on this computer
+            from . import home_reach
+            return '“%s”' % home_reach.tilde(got['path'])[:160]
+        return '“%s” in Files' % str(got['path'])[:160]
     if ident.endswith('.desktop'):
         try:
             from . import apps_catalog
@@ -344,10 +376,10 @@ def describe(kernel, args, principal):
     """The grant as it would be given: its words, its digest and what it covers. NotGrantable says why not."""
     name = args['operation'];doing, ops = _operations(name)
     folder, obj = args.get('folder'), args.get('object')
-    if bool(folder) == bool(obj):raise NotGrantable('GRANT_TARGET: name one target: a folder inside Files, or an object')
+    if bool(folder) == bool(obj):raise NotGrantable('GRANT_TARGET: name one target: a folder inside Files or in your home, or an object')
     if folder:
         if any(op.startswith(('windows.', 'apps.', 'field.')) for op in ops):raise NotGrantable('GRANT_TARGET: this works on an object, not a folder')
-        value = clean_folder(folder)
+        value = clean_folder(folder, kernel)  # 1.0 L6: or a folder in your home
         target = {'kind': 'folder', 'value': value, 'words': 'in %s' % value}
     else:
         value = _bare(obj)
@@ -474,7 +506,7 @@ def _covers(kernel, grant, operation, found):
     target = grant['target']
     if not found['paths'] and not found['objects']:return False
     if target['kind'] == 'folder':
-        return not found['objects'] and all(inside(p, target['value']) for p in found['paths'])
+        return not found['objects'] and all(_within(kernel, p, target['value']) for p in found['paths'])  # 1.0 L6: as places
     if found['objects']:return not found['paths'] and all(o == target['value'] for o in found['objects'])
     # a file object: every path is that file
     for path in found['paths']:
@@ -530,8 +562,11 @@ def _why(kernel, owner, operation, arguments, assignment=None):
 # ---------------------------------------------------------------- enforcement (the Kernel's path)
 
 def check_step(kernel, value, step, arguments, principal):
-    """assignments.GRANT_CHECK: '' when this step may run as it is now, else why it needs your grant."""
+    """assignments.GRANT_CHECK: '' when this step may run as it is now, else why it needs your grant. 1.0 L6: a change
+    outside your home stops here, whatever was pressed or granted: "outside your home: never"."""
     if step.get('scope') == 'read':return ''
+    never = _never(kernel, step['operation'], arguments)  # 1.0 L6
+    if never:raise ValueError(never)
     if step.get('scope') == 'approve':return ''      # K1 already requires your press on it by name, its inputs fixed then
     op = step['operation'];auth = step.get('authorised') or {}
     if auth.get('by') == principal.identity and not auth.get('grant'):      # your press on this step, as it was shown to you
@@ -541,6 +576,15 @@ def check_step(kernel, value, step, arguments, principal):
     if grant is not None and _from_the_owner(kernel, step, principal):return ''      # 1.0 K8: a page's address, never one taken from a page
     if grant is not None:return 'its address came from a page, not from you: fetching it needs your press on this step'
     return _why(kernel, principal.identity, op, arguments, value['id'])
+
+
+def _never(kernel, operation, arguments):
+    """1.0 L6: '' unless the call is a change that would land outside your home (or on Graphite's own): why it never may."""
+    try:
+        from . import home_reach
+        return home_reach.never_words(kernel, operation, arguments)
+    except Exception:  # noqa: BLE001 - a place that cannot be named is refused by Files' own check at dispatch
+        return ''
 
 
 def _from_the_owner(kernel, step, principal):
@@ -562,6 +606,8 @@ def check_tool(kernel, tool, operation, arguments, principal):
     """tools_registry.GRANT_CHECK: a change through tools.use needs a grant in force ("until" or "always"; her own area
     is hers by the Files rules)."""
     if getattr(tool, 'undo', 'change') != 'change':return ''
+    never = _never(kernel, operation, arguments)  # 1.0 L6: outside your home, never (tools_registry says it as it is)
+    if never:return never
     if covering(kernel, principal.identity, operation, arguments, None) is not None:return ''
     return _why(kernel, principal.identity, operation, arguments)
 
@@ -608,12 +654,7 @@ def permitted(kernel, path):
     """files_service.may_change: whether the call being made now is one a grant (or your press) let through for this path."""
     permit = _PERMIT.get()
     if not permit or permit['root'] != str(getattr(kernel, 'root', '')):return False
-    try:
-        from .files_service import rel_of
-        rel = rel_of(kernel, path)
-    except (ValueError, OSError):
-        return False
-    return any(inside(rel, p) for p in permit['paths'])
+    return any(_within(kernel, str(path), p) for p in permit['paths'])  # 1.0 L6: as places (inside Files or in your home)
 
 
 def permitted_object(kernel, operation, ident):
@@ -666,6 +707,10 @@ def authorise(kernel, ident, principal, runner=False):
         if not _from_the_owner(kernel, step, principal):continue      # 1.0 K8: an address from a page waits for your press
         arguments = _resolved(value, step)
         if arguments is None:continue
+        never = _never(kernel, step['operation'], arguments)  # 1.0 L6: outside your home it stops, before any grant is asked for
+        if never:
+            if runner and nxt is not None and step['key'] == nxt['key']:plans[step['key']] = ('never', never, A.digest(step['arguments']))
+            continue
         grant = covering(kernel, principal.identity, step['operation'], arguments, value['id'], include_built_in=False)
         if grant is not None:
             plans[step['key']] = ('grant', grant, A.digest(step['arguments']))
@@ -686,6 +731,10 @@ def authorise(kernel, ident, principal, runner=False):
                                                                        'explicit': False, 'arguments': plan[2], 'again': False})
                 words = 'Step %d (%s) is authorised by your grant: %s.' % (step['n'], step['title'], grant['words'])
                 A._save(db, value);A._journal(db, value, step, 'AUTHORISED', words, {'grant': grant['id'], 'by_grant': True})
+            elif plan[0] == 'never':  # 1.0 L6
+                step.update(status='blocked', reason=plan[1])
+                words = 'Step %d (%s) stops: %s. Nothing was sent.' % (step['n'], step['title'], plan[1])
+                A._save(db, value);A._journal(db, value, step, 'BLOCKED', words)
             else:
                 step.update(status='blocked', reason=NEEDS + plan[1])
                 words = 'Step %d (%s) needs your grant: %s. Nothing was sent.' % (step['n'], step['title'], plan[1])

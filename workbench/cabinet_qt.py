@@ -219,6 +219,8 @@ class CabinetPage(QWidget):
             for node in model['nodes']:
                 item=QTreeWidgetItem([node['label']]);item.setData(0,Qt.UserRole,node);self.items[node['id']]=item
                 item.setToolTip(0,node.get('description','')+'\n'+node['canonical_id'])
+                if node.get('glyph')=='graphite':  # 1.0 L6: Graphite's workspace, where it lives in Home, wears Graphite's mark
+                    from .graphite_brand import mark_icon;item.setIcon(0,mark_icon(16))
                 if node['target']:item.setForeground(0,QColor(INK))
                 if node['parent']:self.items[node['parent']].addChild(item)
                 else:self.tree.addTopLevelItem(item)

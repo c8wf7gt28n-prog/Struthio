@@ -16,6 +16,11 @@ Rules the code enforces:
     ask is files.propose, which waits in his Agenda for your decision.
   - Egress holds copies, with SHA256SUMS; the originals stay as they are.
   - Machine files (caches, object files, lock files, hidden dot-files) are hidden unless you ask for all files.
+  - 1.0 L6, the whole computer: a path named from / or from ~ ('/etc/hosts', '~/Rail notes/note.txt') is that path on this
+    computer (home_reach). It is read where the owner's account can read (the system folders /proc, /sys, /dev and /run
+    never). A change there by the owner's own press follows the system's permissions; a change of hers (her steps, her
+    tools, her hand's cards) reaches only inside your home, by a grant of yours or your press, and never outside it:
+    "outside your home: never". Its versions are kept in Files/.versions/~home/… (or ~root/…), so Undo stays as it was.
 """
 from __future__ import annotations
 import contextlib
@@ -85,8 +90,21 @@ def root(kernel, create=True):
 
 
 def resolve(kernel, rel, must_exist=True):
-    """A path inside Files, or a refusal. Symbolic links are never followed out of the folder."""
+    """A path inside Files, or a refusal. Symbolic links are never followed out of the folder. 1.0 L6: a path named from /
+    or ~ is that path on this computer (inside Files, it is the Files path it is); a system folder is never read."""
     base = root(kernel).resolve()
+    if isinstance(rel, str) and rel.startswith(('/', '~')):  # 1.0 L6: the whole computer
+        from . import home_reach
+        named = home_reach.expand(rel)
+        if named is None:raise ValueError('FILES_PATH_INVALID: a path with no ".."')
+        refusal = home_reach.read_refusal(named)
+        if refusal:raise ValueError('FILES_SYSTEM_FOLDER: ' + refusal)
+        actual = home_reach.real(named)
+        if actual == base or base in actual.parents:
+            rel = actual.relative_to(base).as_posix() if actual != base else ''
+        else:
+            if must_exist and not (named.exists() or named.is_symlink()):raise ValueError('FILES_NOT_FOUND: ' + home_reach.tilde(named)[:200])
+            return named
     parts = [p for p in PurePosixPath((rel or '').replace('\\', '/')).parts if p not in ('', '/', '.')]
     if any(p == '..' or '\0' in p for p in parts):raise ValueError('FILES_PATH_OUTSIDE: stay inside Files')
     path = base.joinpath(*parts)
@@ -99,6 +117,29 @@ def resolve(kernel, rel, must_exist=True):
 
 def rel_of(kernel, path):
     return Path(path).relative_to(root(kernel)).as_posix()
+
+
+def place_of(kernel, path):
+    """1.0 L6: a path as the Kernel keeps it: its path inside Files, or (elsewhere on this computer) the whole path."""
+    try:return rel_of(kernel, path)
+    except ValueError:
+        try:return Path(path).relative_to(root(kernel).resolve()).as_posix()
+        except ValueError:
+            return str(Path(path))
+
+
+def version_dir(kernel, path):
+    """Where the versions of a file are kept: Files/.versions/<its path in Files>; 1.0 L6: for a file elsewhere,
+    Files/.versions/~home/<its path in your home> (outside your home: ~root/<its whole path>)."""
+    try:return root(kernel) / VERSIONS / rel_of(kernel, path)
+    except ValueError:
+        pass
+    place = Path(place_of(kernel, path))
+    if not place.is_absolute():return root(kernel) / VERSIONS / place
+    from . import home_reach
+    try:return root(kernel) / VERSIONS / '~home' / place.relative_to(home_reach.home())
+    except ValueError:
+        return root(kernel) / VERSIONS / '~root' / place.relative_to('/')
 
 
 def clean_name(name):
@@ -130,7 +171,7 @@ KIND_WORDS = {'folder': 'Folder', 'pdf': 'PDF', 'image': 'Image', 'document': 'D
 
 def entry(kernel, path):
     stat = path.stat();kind = 'smart' if path.suffix == SMART and path.is_file() else kind_of(path)
-    rel = rel_of(kernel, path)
+    rel = place_of(kernel, path)  # 1.0 L6: elsewhere on this computer, the whole path
     value = {'name': path.name, 'path': rel, 'kind': kind, 'kind_words': KIND_WORDS.get(kind, kind.title()), 'modified': stat.st_mtime,
              'size': None if path.is_dir() else stat.st_size, 'machine': machine(path), 'address': '@files:' + rel}
     if path.is_dir():
@@ -151,7 +192,17 @@ def opened(kernel):
 
 
 def may_change(kernel, path, principal):
-    """Slate's own area is his; anything else needs the approve scope (yours)."""
+    """Slate's own area is his; anything else needs the approve scope (yours). 1.0 L6: outside Files, a change of hers
+    (in_her_work) reaches only inside your home, by a grant of yours or your press, never outside it nor Graphite's own;
+    your own press follows the system's permissions."""
+    from . import home_reach
+    if home_reach.area(kernel, path) != home_reach.FILES:  # 1.0 L6
+        if not home_reach.in_her_work(principal):return
+        why = home_reach.her_change(kernel, path)
+        if why:raise ValueError(('FILES_GRAPHITE_OWN: ' if why.startswith(home_reach.OWN_WORDS) else 'FILES_OUTSIDE_HOME: ') + why)
+        from .grants import permitted
+        if permitted(kernel, path) or home_reach.let_through(kernel, principal, path):return
+        raise ValueError('FILES_NEEDS_GRANT: needs your grant: a change in your home outside Files (%s) is hers only under a grant of yours or by your press' % home_reach.tilde(path)[:200])
     area = root(kernel) / SLATE
     inside = path == area or area in path.parents
     if not inside and 'approve' not in principal.scopes:
@@ -167,13 +218,13 @@ def keep_version(kernel, path):
     """The version before a change, under .versions/<path>/<time>."""
     if not path.is_file():return None
     stamp = time.strftime('%Y%m%dT%H%M%S', time.gmtime()) + '-%06d' % (time.time_ns() // 1000 % 1_000_000)
-    target = root(kernel) / VERSIONS / rel_of(kernel, path) / stamp
+    target = version_dir(kernel, path) / stamp  # 1.0 L6
     target.parent.mkdir(parents=True, mode=0o700, exist_ok=True);shutil.copy2(path, target)
     return stamp
 
 
 def versions(kernel, path):
-    folder = root(kernel) / VERSIONS / rel_of(kernel, path)
+    folder = version_dir(kernel, path)  # 1.0 L6
     if not folder.is_dir():return []
     return [{'version': p.name, 'size': p.stat().st_size, 'kept': p.stat().st_mtime} for p in sorted(folder.iterdir(), reverse=True) if p.is_file()]
 
@@ -201,7 +252,7 @@ def as_csv(rows):
 def story(kernel, path, principal):
     """One file's history from Ledger's own records, newest first: where it came from, its versions, proposals, working
     copies and their updates, Trash, and the Agenda. Each line is something that was recorded, never inferred."""
-    rel = rel_of(kernel, path);events = []
+    rel = place_of(kernel, path);events = []  # 1.0 L6
     def add(at, what):
         if at:events.append({'at': at, 'what': what})
     if path.exists():add(path.stat().st_mtime, 'last changed on disk')
@@ -365,21 +416,21 @@ def compare(kernel, args, principal):
     """Two files, a file and one of its versions, or a file and Slate's proposed change."""
     path = resolve(kernel, args['path'])
     if path.is_dir():raise ValueError('FILES_IS_A_FOLDER')
-    label_b = rel_of(kernel, path)
+    label_b = place_of(kernel, path)  # 1.0 L6
     if args.get('proposal'):
         with opened(kernel) as db:
             row = db.execute('SELECT * FROM files_proposals WHERE id=? AND owner=?', (args['proposal'], principal.identity)).fetchone()
-        if row is None or row['path'] != rel_of(kernel, path):raise ValueError('FILES_PROPOSAL_NOT_FOUND')
+        if row is None or row['path'] != place_of(kernel, path):raise ValueError('FILES_PROPOSAL_NOT_FOUND')  # 1.0 L6
         before_text = path.read_text(encoding='utf-8', errors='replace');after_text = row['text']
         return {'kind': 'text', 'before': label_b, 'after': 'Graphite\'s proposal: ' + row['why'], **text_diff(before_text, after_text)}
     if args.get('version'):
-        other = root(kernel) / VERSIONS / rel_of(kernel, path) / clean_name(args['version'])
+        other = version_dir(kernel, path) / clean_name(args['version'])  # 1.0 L6
         if not other.is_file():raise ValueError('FILES_VERSION_NOT_FOUND')
         older, newer, label_a = other, path, 'version ' + args['version']
     elif args.get('other'):
         older, newer, label_a = resolve(kernel, args['other']), path, None
         if older.is_dir():raise ValueError('FILES_IS_A_FOLDER')
-        label_a, label_b = rel_of(kernel, older), rel_of(kernel, path)
+        label_a, label_b = place_of(kernel, older), place_of(kernel, path)  # 1.0 L6
     else:raise ValueError('FILES_COMPARE_WHAT: give other, version or proposal')
     return compare_paths(older, newer, label_a, label_b)
 
@@ -414,6 +465,8 @@ SMART = '.find'
 def find(kernel, args):
     """Files whose name or words match, of a kind, changed recently: the answer to a search or a smart folder."""
     import time as clock
+    if str(args.get('under') or '').startswith(('/', '~')):  # 1.0 L6: the tree reaches the rest of the computer; Find looks in Files
+        raise ValueError('FILES_FIND_IN_FILES: Find looks inside Files; the tree reaches the rest of this computer')
     base = resolve(kernel, args.get('under', ''));needle = (args.get('text') or '').strip().casefold()
     kind = (args.get('kind') or '').strip().lower();since = clock.time() - args['days'] * 86400 if args.get('days') else None
     limit = args.get('limit', 200);found = [];looked = 0
@@ -458,10 +511,14 @@ def dispatch(kernel, op, args, principal):
     if op == 'files.list':
         folder = resolve(kernel, args.get('path', ''))
         if not folder.is_dir():raise ValueError('FILES_NOT_A_FOLDER')
-        rows = [entry(kernel, p) for p in folder.iterdir() if not (folder == root(kernel) and p.name in (TRASH, VERSIONS))]
+        rows = []
+        for p in folder.iterdir():
+            if folder == root(kernel) and p.name in (TRASH, VERSIONS):continue
+            try:rows.append(entry(kernel, p))
+            except OSError:continue  # 1.0 L6: elsewhere on this computer, an entry the account cannot read is left out
         shown = rows if args.get('all') else [r for r in rows if not r['machine']]
         order = lambda r:(r['kind'] not in ('folder', 'smart'), r['name'].casefold())
-        return {'schema': 'arc.files/1', 'root': str(root(kernel)), 'path': rel_of(kernel, folder) if folder != root(kernel) else '',
+        return {'schema': 'arc.files/1', 'root': str(root(kernel)), 'path': place_of(kernel, folder) if folder != root(kernel) else '',  # 1.0 L6
                 'entries': sorted(shown, key=order), 'hidden': len(rows) - len(shown), 'slate_area': SLATE, 'exports': EXPORTS}
     if op == 'files.get':
         path = resolve(kernel, args['path']);value = entry(kernel, path)
@@ -518,7 +575,7 @@ def dispatch(kernel, op, args, principal):
         path = resolve(kernel, args['path']);may_change(kernel, path, principal)
         if path == root(kernel) or path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: this folder stays')
         ident = uuid.uuid4().hex;stored = root(kernel) / TRASH / ident
-        stored.mkdir(mode=0o700);original = rel_of(kernel, path);shutil.move(str(path), str(stored / path.name));carried(kernel, path, stored / path.name)
+        stored.mkdir(mode=0o700);original = place_of(kernel, path);shutil.move(str(path), str(stored / path.name));carried(kernel, path, stored / path.name)
         with opened(kernel) as db:db.execute('INSERT INTO files_trash VALUES(?,?,?,?,?,NULL)', (ident, owner, original, ident + '/' + path.name, time.time()))
         return {'trashed': original, 'id': ident, 'note': 'In DELETE. Restore puts it back.'}
     if op == 'files.trash_list':
@@ -534,7 +591,7 @@ def dispatch(kernel, op, args, principal):
             with contextlib.suppress(OSError):(root(kernel) / TRASH / args['id']).rmdir()
             db.execute('UPDATE files_trash SET restored=? WHERE id=?', (time.time(), args['id']))
         carried(kernel, source, target)  # 1.0 L1: after the restore is written, never inside its transaction
-        return {'restored': rel_of(kernel, target)}
+        return {'restored': place_of(kernel, target)}  # 1.0 L6
     if op == 'files.write':
         path = resolve(kernel, args['path'], must_exist=False);may_change(kernel, path, principal)
         if path.is_dir():raise ValueError('FILES_IS_A_FOLDER')
@@ -553,8 +610,8 @@ def dispatch(kernel, op, args, principal):
         base = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
         ident = uuid.uuid4().hex
         with opened(kernel) as db:
-            db.execute('INSERT INTO files_proposals VALUES(?,?,?,?,?,?,?,?,NULL)', (ident, owner, rel_of(kernel, path), args['text'], args['why'], base, 'WAITING', time.time()))
-        return {'proposal': ident, 'path': rel_of(kernel, path), 'state': 'WAITING', 'note': 'Waiting for your decision.'}
+            db.execute('INSERT INTO files_proposals VALUES(?,?,?,?,?,?,?,?,NULL)', (ident, owner, place_of(kernel, path), args['text'], args['why'], base, 'WAITING', time.time()))
+        return {'proposal': ident, 'path': place_of(kernel, path), 'state': 'WAITING', 'note': 'Waiting for your decision.'}  # 1.0 L6
     if op == 'files.proposals':
         with opened(kernel) as db:
             return {'proposals': [dict(r) for r in db.execute("SELECT id, path, why, at, length(text) AS size FROM files_proposals WHERE owner=? AND state='WAITING' ORDER BY at",
@@ -573,15 +630,16 @@ def dispatch(kernel, op, args, principal):
             return {'state': 'APPLIED', 'path': row['path'], 'kept_version': kept}
     if op == 'files.revert':
         path = resolve(kernel, args['path']);may_change(kernel, path, principal)
-        version = root(kernel) / VERSIONS / rel_of(kernel, path) / clean_name(args['version'])
+        version = version_dir(kernel, path) / clean_name(args['version'])  # 1.0 L6
         if not version.is_file():raise ValueError('FILES_VERSION_NOT_FOUND')
         kept = keep_version(kernel, path);shutil.copy2(version, path)
-        return {'reverted': rel_of(kernel, path), 'to': args['version'], 'kept_version': kept}
+        return {'reverted': place_of(kernel, path), 'to': args['version'], 'kept_version': kept}
     if op == 'files.compare':return compare(kernel, args, principal)
     if op == 'files.find':return find(kernel, args)
     if op == 'files.smart':
         question = {k: v for k, v in args['find'].items() if k in FIND_KEYS}
         if not question:raise ValueError('FILES_SMART_EMPTY: say what it should find')
+        if str(args.get('path') or '').startswith(('/', '~')):raise ValueError('FILES_FIND_IN_FILES: a smart folder is kept inside Files')  # 1.0 L6
         find(kernel, {**question, 'limit': 1})  # the question must work before it is kept
         folder = resolve(kernel, args.get('path', ''));target = folder / (clean_name(args['name']) + SMART)
         may_change(kernel, target, principal)
