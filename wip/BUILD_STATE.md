@@ -382,6 +382,15 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 19:22 UTC: **1.0 K10 merged** (8734411: her reach in Home. She reads a Home document's pages through the
+  doorway and names the page. The plan menu gains the file tools (24-27) and up to eight steps; bin, copy and rename
+  need the owner's own words, and repeats are refused. grant.give.set gives one press for several grants in one folder
+  (owner only, digest of the shown words, each stored and checked separately). Her state word ignores Graphite's own
+  jobs. Smoke 32/32, windows 10 × 11/11). Its live 4B tidy put everything in the bin; nothing ran, and that answer is now
+  refused. **The coordinator re-runs K10's live check once on the merged tree** (under the lock, after X1's turn).
+  Decisions K10 took: the PLAN answer cap 48 → 64 tokens; NEEDS YOUR WORD when work waits. Running: X4, X1, K10's live
+  re-run. Then R2. 43 slices: 39 merged, P5 cancelled.
+
 - 26 Nov 19:11 UTC: Hourly wake-up while X4, X1 and K10 run: carry on. **R2 prepared:** `wip/build_tools/cut_1.0.sh`
   (cut.sh with the 1.0 inventory from kit_1.0, the 136 new debs checked against it and packed in their own
   `Graphite_1.0_system_add_part_NN.zip` under 15 MB, rooted at Graphite_Transfer/App/debs/, and the 1.0 start page
