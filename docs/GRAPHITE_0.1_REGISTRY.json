@@ -527,6 +527,8 @@
    "notes.exchange.preview": "workbench/notes_exchange.py#dispatch",
    "notes.exchange.profiles": "workbench/notes_exchange.py#dispatch",
    "notes.exchange.resolve": "workbench/notes_exchange.py#dispatch",
+   "objects.files": "workbench/living_nav.py#dispatch",
+   "objects.get": "workbench/living_nav.py#dispatch",
    "office.bom.compare": "workbench/office_service.py#dispatch",
    "office.bom.preview": "workbench/office_service.py#dispatch",
    "office.candidate.commit": "workbench/office_service.py#dispatch",
@@ -1035,9 +1037,9 @@
   }
  },
  "counts": {
-  "adapters": 837,
+  "adapters": 839,
   "job_tools": 113,
-  "operations": 837,
+  "operations": 839,
   "settings": 48
  },
  "formulas": {
@@ -5703,6 +5705,23 @@
    },
    "scope": "approve"
   },
+  "objects.files": {
+   "arguments": "888e1d4ac19b109232723c581420ec44aea5cb7722a244e90b4fe815c4973445",
+   "properties": {
+    "depth": "049413350c4892f5",
+    "limit": "9f42e6299187b11e",
+    "path": "333f67ffab65d3ef"
+   },
+   "scope": "read"
+  },
+  "objects.get": {
+   "arguments": "5348d3997bff908bb221db96267271830e67b6c025e1adcd785798c19095b0e9",
+   "properties": {
+    "id": "61d17f98bc93de8b",
+    "path": "333f67ffab65d3ef"
+   },
+   "scope": "read"
+  },
   "office.bom.compare": {
    "arguments": "d61e48ad81043c8d8f98fd35f913a821a8ce131b0859ada31930c162d7e7e1e8",
    "properties": {
@@ -8232,7 +8251,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "28b4fe31b9609f08b77d76aab9af2aa3bb485cf7497c52c2ae797cd5bd9c495e",
+ "schema_digest": "c2462586dfcb9aff52754c42e29e2510ff38d84cd8c1d808706070748d176ede",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

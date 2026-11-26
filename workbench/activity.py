@@ -44,7 +44,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 0.8.7 W7: her answers through her voice floor, and a page's cross-references, read each time a card or a page is shown
  'voice.say','library.links',
  # 1.0 K1: an assignment's status and the list, read each time her column or the Agenda is shown; reading is not an event
- 'assignment.status','assignment.list'})
+ 'assignment.status','assignment.list',
+ # 1.0 L1: Files with the stable ids of its objects, read each time the tree is drawn; reading is not an event
+ 'objects.files','objects.get'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

@@ -664,6 +664,8 @@ def reveal_record(host, ident):
     page = getattr(host, 'cabinet_page', None);nav = getattr(host, 'settings_navigator', None)
     if page is None:return
     if nav is not None:nav.show_view('cabinet')
+    from .living_nav_qt import found
+    if found(host, ident):return  # 1.0 L1: a file or a desk object found is focused as a click in the tree focuses it
     if page.using_legacy:page.set_legacy(False)
     page.select(ident, reveal=True);page.open(ident)
 

@@ -442,6 +442,15 @@ def find(kernel, args):
     return {'records': found, 'looked_at': looked, 'question': {k: args[k] for k in FIND_KEYS if k in args}}
 
 
+def carried(kernel, old, new):
+    """1.0 L1: a file or folder Graphite moved keeps its object's id at the new place (living_nav.moved). Never fails the move."""
+    try:
+        from .living_nav import moved
+        moved(kernel, old, new)
+    except Exception:  # noqa: BLE001 - the next reading of Files finds it by its inode all the same
+        pass
+
+
 def dispatch(kernel, op, args, principal):
     owner = principal.identity
     if op == 'files.list':
@@ -490,7 +499,7 @@ def dispatch(kernel, op, args, principal):
         may_change(kernel, path, principal);may_change(kernel, target, principal)
         if path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: the Slate folder (Graphite’s area) and Egress keep their names')
         if target.exists():raise ValueError('FILES_EXISTS: that name is taken here')
-        path.rename(target);return entry(kernel, target)
+        path.rename(target);carried(kernel, path, target);return entry(kernel, target)
     if op in ('files.copy', 'files.move'):
         path = resolve(kernel, args['path']);folder = resolve(kernel, args['to'])
         if not folder.is_dir():raise ValueError('FILES_NOT_A_FOLDER')
@@ -499,7 +508,7 @@ def dispatch(kernel, op, args, principal):
         if op == 'files.move':
             may_change(kernel, path, principal)
             if path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: the Slate folder (Graphite’s area) and Egress stay where they are')
-            shutil.move(str(path), str(target))
+            shutil.move(str(path), str(target));carried(kernel, path, target)
         elif path.is_dir():shutil.copytree(path, target, symlinks=True)
         else:shutil.copy2(path, target)
         return entry(kernel, target)
@@ -507,7 +516,7 @@ def dispatch(kernel, op, args, principal):
         path = resolve(kernel, args['path']);may_change(kernel, path, principal)
         if path == root(kernel) or path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: this folder stays')
         ident = uuid.uuid4().hex;stored = root(kernel) / TRASH / ident
-        stored.mkdir(mode=0o700);original = rel_of(kernel, path);shutil.move(str(path), str(stored / path.name))
+        stored.mkdir(mode=0o700);original = rel_of(kernel, path);shutil.move(str(path), str(stored / path.name));carried(kernel, path, stored / path.name)
         with opened(kernel) as db:db.execute('INSERT INTO files_trash VALUES(?,?,?,?,?,NULL)', (ident, owner, original, ident + '/' + path.name, time.time()))
         return {'trashed': original, 'id': ident, 'note': 'In DELETE. Restore puts it back.'}
     if op == 'files.trash_list':
@@ -522,7 +531,8 @@ def dispatch(kernel, op, args, principal):
             target = free_name(original.parent, original.name);shutil.move(str(source), str(target))
             with contextlib.suppress(OSError):(root(kernel) / TRASH / args['id']).rmdir()
             db.execute('UPDATE files_trash SET restored=? WHERE id=?', (time.time(), args['id']))
-            return {'restored': rel_of(kernel, target)}
+        carried(kernel, source, target)  # 1.0 L1: after the restore is written, never inside its transaction
+        return {'restored': rel_of(kernel, target)}
     if op == 'files.write':
         path = resolve(kernel, args['path'], must_exist=False);may_change(kernel, path, principal)
         if path.is_dir():raise ValueError('FILES_IS_A_FOLDER')

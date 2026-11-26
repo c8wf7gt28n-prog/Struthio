@@ -112,6 +112,7 @@ def schemas():
     from .crossrefs import FIELDS as CROSSREF_FIELDS  # 0.8.7 C6b (cross-references)
     from .model_exam import FIELDS as EXAM_FIELDS  # 0.8.7 A5 (the exam and the model key)
     from .voice_column import FIELDS as VOICE_COLUMN_FIELDS  # 0.8.7 W7 (the window wiring): voice.say
+    from .living_nav import FIELDS as LIVING_NAV_FIELDS  # 1.0 L1 (one navigation state): objects.files, objects.get
     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
     from .assignments import FIELDS as ASSIGNMENT_FIELDS  # 1.0 K1 (assignments and the journal)
     from .stac_words import FIELDS as WORD_FIELDS
@@ -227,6 +228,7 @@ def schemas():
         **CROSSREF_FIELDS,  # 0.8.7 C6b (cross-references)
         **EXAM_FIELDS,  # 0.8.7 A5 (the exam and the model key)
         **VOICE_COLUMN_FIELDS,  # 0.8.7 W7 (the window wiring): voice.say
+        **LIVING_NAV_FIELDS,  # 1.0 L1 (one navigation state): objects.files, objects.get
         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
         **ASSIGNMENT_FIELDS,  # 1.0 K1 (assignments and the journal)
         **WORD_FIELDS,

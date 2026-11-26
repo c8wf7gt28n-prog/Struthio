@@ -80,6 +80,7 @@ from . import assignments  # 1.0 K1 (assignments and the journal): assignment.st
 from . import program_mail, program_build, program_transfer, program_cartridge
 from . import program_vector, program_media, program_freecad
 from . import program_print, program_delivery
+from . import living_nav  # 1.0 L1 (one navigation state): objects.files, objects.get, the stable ids of plain files (reads; recorded additions)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -266,6 +267,7 @@ CAPABILITIES = {
     **voice_column.SCOPES,  # 0.8.7 W7 (the window wiring): voice.say, a read; nothing written, no model
     **voice_character.SCOPES,  # 0.8.7 C5 (her character file)
     **assignments.SCOPES,  # 1.0 K1 (assignments and the journal)
+    **living_nav.SCOPES,  # 1.0 L1 (one navigation state): two reads; nothing written but the identity index of Files
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -701,6 +703,7 @@ class Kernel:
         if op in model_exam.FIELDS:return model_exam.dispatch(self,op,a,p)   # 0.8.7 A5 (the exam and the model key): the exam card per model, read
         if op in voice_column.FIELDS:return voice_column.dispatch(self,op,a,p)   # 0.8.7 W7 (the window wiring): a card's answers said through her voice floor, read
         if op in assignments.FIELDS:return assignments.dispatch(self,op,a,p)   # 1.0 K1 (assignments and the journal): a plan of steps, written before and after each effect
+        if op in living_nav.FIELDS:return living_nav.dispatch(self,op,a,p)   # 1.0 L1 (one navigation state): a plain file's stable id, by inode with its digest as the check
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

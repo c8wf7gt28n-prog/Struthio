@@ -675,6 +675,9 @@ def open_object(host, obj):
         elif kind == 'job':
             from .context_menu import show_job
             opened = show_job(host, target['id'])
+        elif kind == 'file':                       # 1.0 L1: a FILE tile (a plain file in Files): its editor or viewer
+            from .living_nav_qt import open_file
+            opened = open_file(host, target)
         elif kind in ('goal', 'rule', 'word'):      # 0.8.6 W: a card of her mind has no room of its own: opening it is its Why
             from .mind_panel_qt import show_why
             return show_why(host, obj)

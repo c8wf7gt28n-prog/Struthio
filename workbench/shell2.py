@@ -3467,6 +3467,8 @@ class Shell2(QObject):
         install_navigation(host)
         from .pane_qt import install as install_panes
         install_panes(host)  # HATCH DESK D1b: both panes: three tabs, the active tree or face, the foot (Trash and its empty mirror)
+        from .living_nav_qt import install as install_living_nav
+        install_living_nav(host)  # 1.0 L1: one navigation state: the tree and the centre share one focus; the breadcrumb, Back, Forward
         host.tabs.currentChanged.connect(self.sync_worksheet)
         host.central_stack.currentChanged.connect(self.sync_worksheet)
         from .graphite_brand import use_pointer

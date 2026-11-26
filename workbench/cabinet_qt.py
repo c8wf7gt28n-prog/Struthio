@@ -208,6 +208,7 @@ class CabinetPage(QWidget):
         response=self.host.ledger_bridge.kernel.dispatch('ledger.cabinet',{},operator())
         if not response['ok']:self.status.setText(response['error']['message']);return
         model=response['result']
+        from .living_nav_qt import extend;model=extend(self.host,model)  # 1.0 L1: the Files and Desk drawers, each row by its object's id
         if not force and self.model and self.model['signature']==model['signature']:return
         current=self.tree.currentItem();selected=(current.data(0,Qt.UserRole)['id'] if current else self.saved.get('selected'))
         expanded=([ident for ident,item in self.items.items() if item.isExpanded()] if self.model and not self.query.text() else
@@ -252,6 +253,8 @@ class CabinetPage(QWidget):
 
     def clicked(self,item,column=0):
         node=item.data(0,Qt.UserRole);self.remember()
+        from .living_nav_qt import clicked as living_clicked
+        if living_clicked(self.host,node):return  # 1.0 L1: a file or a desk object is focused on the board, not opened
         # UI-04: a project node that names a folder on disk tells the Finder (while Home is active) before its record opens.
         finder=getattr(self.host,'finder',None)
         if finder is not None and node.get('role')=='project':
@@ -261,6 +264,8 @@ class CabinetPage(QWidget):
         self.open(node['id'])
 
     def open(self,ident):
+        if str(ident).startswith('living:'):  # 1.0 L1: a file or a desk object opens its own working view
+            from .living_nav_qt import open_node;return open_node(self.host,ident)
         bridge=self.host.ledger_bridge
         room=bridge.add_tab(CabinetRecordTab,lambda:CabinetRecordTab(self.host))
         return room if room.open(ident) else None
