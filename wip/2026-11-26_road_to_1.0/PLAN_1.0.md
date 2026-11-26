@@ -405,6 +405,27 @@ the model has a part (K4's plans, K6's utilities, K9's acts, X1's day) run their
 (under the model lock; this machine cannot hold the 35B), and frames show her with the model ready. X1's day runs with
 the 4B loaded.
 
+**M1 · Her model's runtime, current** (the owner, 26 Nov: "to manipulate the LLM let's make sure we're using the
+latest and best technologies"). Graphite has bundled llama.cpp b11669; the project released **v1.0.0 on 13 Nov 2026**
+(tag v1.0.0 = build b12359, commit b1b770d90d94cad9e9ea5b993bdbc383a522fb28; its first stable release with a promise
+not to break its interface), and its official Ubuntu Vulkan and CPU archives are downloadable here. Move the bundled
+runtime to v1.0.0 the way b11669 is shipped (`runtimes/llama.cpp/<build>/`: both archives, LICENSE, runtime.json with
+the archive sha256 and the source commit), and put its newer capabilities to work where they help her, each measured
+here with the 4B before it is on by default and each a setting the model check (A5) measures on the ThinkPad:
+**multi-token prediction** (MTP speculative decoding for Qwen3.6 with an MTP GGUF: reported about 1.85x faster
+writing on the 35B-A3B; the first evening names the exact MTP file and its hash if one exists for the owner's model);
+the **host-memory prompt cache** (`--cache-ram`, sized from the memory sum, so PLAN's and READ's kept prompts both
+survive: K4b's finding); **flash attention** and the **quantized KV cache** where the Vulkan path on the Radeon 780M
+supports them (the model check judges them; defaults stay safe); **load-mode auto** for the integrated GPU (no double
+memory through mmap); the model's own **jinja chat template** with thinking off; structured output through the
+server's JSON-schema path where it is at least as strict as her own grammars (her GBNF grammars stay where they are
+stricter). Bring every other place up to date: the seal's allow-list and refused-argument list from v1.0.0's own
+`--help` (brain_seal.py; the seal checked again with a real start), the memory sum (A2) for the new KV types and the
+MTP head, her clock's rates, the model check's stages and predictions, the pins (I04/I05, hatch readiness), and the
+kit's first-evening page. *Acceptance:* the sealed 4B starts on v1.0.0 here and passes every wall; PLAN and READ kept
+prompts both survive a priming round (cache-ram); the second PLAN turn's time on Rail Demo against K4b's 3,300 ms;
+MTP's effect measured if a 4B or 2B MTP GGUF exists (else said); every refused argument still refused.
+
 ### Wave 5 — the door, the floor, the Apps by hand
 
 **F1 · The door's mechanics.** A touch stops her: any owner input in the window while her hand drives it pauses the

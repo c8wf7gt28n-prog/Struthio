@@ -256,6 +256,13 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 12:05 (M1, the owner: "to manipulate the LLM let's make sure we're using the latest and best technologies"):
+  the bundled runtime moves from llama.cpp b11669 to **v1.0.0** (b12359, commit b1b770d9, 13 Nov 2026; checked from the
+  project's own tags; its Ubuntu Vulkan and CPU archives download here; the newest nightly b12767 publishes no Ubuntu
+  archives). Its MTP speculative decoding, host-memory prompt cache, flash attention, quantized KV cache, load-mode
+  auto and jinja templates are taken where measured to help, each a setting the model check measures on the ThinkPad.
+  The model stays the owner's choice (Qwen3.6-35B-A3B); an MTP variant is named on the first-evening page if one exists.
+
 - 26 Nov 11:45 (X3, the owner: "Should we simulate general user operations instead of the same rail tests?"): yes.
   X3 builds an invented everyday Home and walks twelve ordinary sessions end to end in the window (files, a USB
   drive, a letter, the budget, tidying Downloads with Kas, the web, programs and the dock, settings, HALT, her hand,
@@ -340,6 +347,10 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 12:05 UTC: **1.0 A1 merged** (4c5f14e: programs by window and file; smoke 71/71 with stand-in programs).
+  **M1 added and launched** (the model's runtime to llama.cpp v1.0.0 and its newer capabilities). Running: K9, L6, D1,
+  M1. Next: X3, P4, F1, F2, then D2, X1, X2, R1, R2. 36 slices; 23 merged.
 
 - 26 Nov 11:45 UTC: **X3 added** (everyday sessions). Order: after the running four (K9, A1, L6, D1): X3 with P4,
   F1, F2; then D2 (with X3's findings), X1, X2, R1, R2. 35 slices in all; 22 merged.
