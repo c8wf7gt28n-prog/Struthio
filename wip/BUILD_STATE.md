@@ -302,6 +302,9 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 02:12 UTC: wake-up (carry on). **L3 launched** (relevance; agent a7847a8b4b5b09d1f), building exactly the
+  `relevance.rank/why/pin/turn_down/clear` interface L2 was told to call. Running: P1, L2, S2, L3.
+
 - 26 Nov 03:00 UTC: **1.0 S1 merged** (98f5dd0: the supervised session, programs in sessions of their own, Lock and
   Suspend, the sleep inhibitor; smoke 28/28 on stand-ins). Its notes for later slices: S5 starts lxpolkit in
   LS_XSESSION.sh and relaxes the dedicated session's "asking actions unavailable" rule; S2 launches through
