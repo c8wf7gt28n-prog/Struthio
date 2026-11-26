@@ -302,6 +302,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 07:10 UTC: **1.0 K5 merged** (57e2eb7: LibreOffice Writer and Calc through UNO, her own hidden soffice per
+  piece of work, changes verified by reading content.xml back; smoke 28/28). Its notes: changes need approval by name
+  (K4 plans the report update after the value is checked); edits only .odt/.ods (.docx/.xlsx read only);
+  `GRAPHITE_LIBREOFFICE=off` switches the bridge off. **K4 launched** (objective to plan, the PLAN model kind, settle
+  agent_loop.py; agent af04de9bd1f52a02e). Running: L5, K3, K6, K4.
+
 - 26 Nov 06:50 UTC: **1.0 S5 merged** (1567c80: notification server, lxpolkit, Settings 'This computer', the dock, the
   leave flow; smoke as expected on stand-ins). The session lane S1-S5 is done. Its notes: Fluxbox, lxpolkit and
   notify-send are not here (stand-ins used); `test_context_menu` (~line 472) now right-clicks 'Default apps' first (by
