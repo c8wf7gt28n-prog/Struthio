@@ -74,7 +74,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 K6: the utility sandbox's status, its utilities and their runs, read when the utility's tab or her column is shown; reading is not an event
  'sandbox.status','sandbox.list','sandbox.get',
  # 1.0 K8: the network's state, the words a request would send, and the pages kept in quarantine, read by the head, her column and the Web reading page; reading is not an event
- 'web.state','web.words','web.pages','web.page'})
+ 'web.state','web.words','web.pages','web.page',
+ # 1.0 M2: which model answers which kind and why, read by her column's model line and the Brain room; reading is not an event
+ 'brain.quick.status'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

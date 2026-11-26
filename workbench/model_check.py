@@ -40,6 +40,11 @@ STAGES (design 6.1; the times are estimates, shown before it starts):
                                         only: the room measures its own event loop and writes desk_stalls.json)
     S5  the short exam                  model_exam's papers, short form (twice on Vulkan: "agreed with itself on x of
                                         y"), plus the owner's own paper if he allowed it (results kept on this computer)
+    SQ  optional: a quick model (1.0 M2) --quick FILE: a small model loaded beside hers through the same sealed start
+                                        (both in the memory sum), both measured on her typical question, the small one's
+                                        exam for the quick kinds (READ PLAN NEXT MARKS ASK) on its own key, and the split
+                                        proposed: a kind for the quick model only where it passed and is faster
+                                        (quick_model.pair_stage; its results reach the exam record from the Brain room)
     S6  optional                        another model (--also FILE): a read of 1,200 and a write of 64 (the 35B on the
                                         processor, or the 4B on the Radeon as plan B)
     S7  optional, overnight, on mains   the full exam, then the I05 arms through the shipped workbench.i05_arms --kit
@@ -86,6 +91,7 @@ GIB = 1024 * MIB
 STAGES = (('S0', 'the machine, no model', 1, 1), ('S1', 'first load and the seal', 1, 3), ('S2', 'speeds', 6, 8),
           ('S2T', 'tuning: the settings that matter (1.0 M1)', 4, 5),
           ('S3', 'reuse and Stop', 2, 3), ('S4', 'the desk (from the Brain room)', 1, 1), ('S5', 'the short exam', 5, 10),
+          ('SQ', 'optional: a quick model beside it (1.0 M2)', 4, 8),     # 1.0 M2: with --quick FILE
           ('S6', 'optional: another model', 3, 5), ('S7', 'optional, overnight, on mains: the full exam and the I05 arms', 60, 180))
 AWAKE = ('S0', 'S1', 'S2', 'S2T', 'S3', 'S4', 'S5')
 # 1.0 M1: the owner's machine is a ThinkPad E16 Gen 2 AMD (21M5) with a Radeon 680M (RDNA2), not a 780M: K3 expects the
@@ -113,14 +119,15 @@ FILLER = ('The Rail Demo bench supply gives twelve volts to the cable tray rail;
 
 
 # == plan, power, pause ==============================================================================================
-def plan(overnight=False, also=False):
-    rows = [s for s in STAGES if s[0] in AWAKE or (s[0] == 'S6' and also) or (s[0] == 'S7' and overnight)]
+def plan(overnight=False, also=False, quick=False):
+    rows = [s for s in STAGES if s[0] in AWAKE or (s[0] == 'S6' and also) or (s[0] == 'S7' and overnight)
+            or (s[0] == 'SQ' and quick)]      # 1.0 M2: the quick model beside it, when one is named
     return rows
 
 
-def plan_text(overnight=False, also=False):
+def plan_text(overnight=False, also=False, quick=False):
     lines = ['Check her model on this machine: the stages and their estimated times.']
-    for key, words, lo, hi in plan(overnight, also):
+    for key, words, lo, hi in plan(overnight, also, quick):
         lines.append('  %s  %-62s %s' % (key, words, '%d min' % lo if lo == hi else '%d to %d min' % (lo, hi) if hi < 60 else
                                           '%d to %d h' % (lo // 60, hi // 60)))
     lines.append('The awake part, S0 to S5, takes about 20 to 30 minutes (estimated).')
@@ -668,6 +675,13 @@ class Check:
         if not papers:out.update(state='NOT_RUN', why='only your own paper; no exam papers in this build')
         return out
 
+    # -- SQ (1.0 M2) --
+    def sq(self):
+        """The quick model beside hers (--quick FILE): both measured on her typical question, the quick model's exam for the
+        quick kinds on its own key, and the split proposed (quick_model.pair_stage). It is stopped at the end with hers."""
+        from . import quick_model
+        return quick_model.pair_stage(self)
+
     # -- S6 --
     def s6(self):
         if not self.args.also:return {'state': 'NOT_RUN', 'why': 'optional, and not asked (--also FILE)'}
@@ -717,7 +731,7 @@ class Check:
         if not self.model or not self.model.is_file():raise SystemExit('--model must name an existing model file')
         if not self.args.allow_battery and power()['on_mains'] is False:
             raise SystemExit('The model check runs on mains power only. Plug the computer in and start it again.')
-        self.say(plan_text(self.args.overnight, bool(self.args.also)))
+        self.say(plan_text(self.args.overnight, bool(self.args.also), bool(getattr(self.args, 'quick', None))))   # 1.0 M2: and SQ
         self.canaries = []
         today = datetime.date.today().isoformat()
         self.report = {'schema': SCHEMA, 'graphite': VERSION, 'date': today, 'stages': {}, 'model': {'file': self.model.name},
@@ -725,16 +739,17 @@ class Check:
         with Work(self.run / '.work') as self.work:
             s0 = self.stage('S0', self.s0)
             if s0.get('stop') or s0['state'] == 'FAILED':
-                for key in ('S1', 'S2', 'S2T', 'S3', 'S4', 'S5', 'S6', 'S7'):
+                for key in ('S1', 'S2', 'S2T', 'S3', 'S4', 'S5', 'SQ', 'S6', 'S7'):     # 1.0 M2: SQ
                     self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'S0 stopped the run: ' + (s0.get('why') or '')}
             else:
                 s1 = self.stage('S1', self.s1)
                 if s1['state'] != 'PASSED':
-                    for key in ('S2', 'S2T', 'S3', 'S4', 'S5', 'S6', 'S7'):
+                    for key in ('S2', 'S2T', 'S3', 'S4', 'S5', 'SQ', 'S6', 'S7'):     # 1.0 M2: SQ
                         self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'the model did not load: ' + (s1.get('why') or '')}
                 else:
                     wanted = set((self.args.stages or ','.join(k for k, *_ in STAGES)).split(','))
-                    for key, fn in (('S2', self.s2), ('S2T', self.s2t), ('S3', self.s3), ('S4', self.s4), ('S5', self.s5), ('S6', self.s6), ('S7', self.s7)):
+                    for key, fn in (('S2', self.s2), ('S2T', self.s2t), ('S3', self.s3), ('S4', self.s4), ('S5', self.s5),
+                                    ('SQ', self.sq), ('S6', self.s6), ('S7', self.s7)):     # 1.0 M2: SQ, the quick model beside it
                         if key in wanted:self.stage(key, fn)
                         else:self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'not asked in this run (--stages)'}
         self.report['paused_ms'] = self.gate.paused_ms
@@ -919,6 +934,8 @@ def card(report):
         lines.append('%-4s %s: %s%s' % (key, held, PREDICTIONS[key], (' (%s)' % v['why']) if v.get('why') and v.get('held') is None else ''))
     exam = _get(report, 'stages', 'S5', 'card')
     if exam:lines += ['', 'The short exam:'] + ['  ' + l for l in exam]
+    quick = _get(report, 'stages', 'SQ', 'card')        # 1.0 M2: the quick model beside it, and the split it proposes
+    if quick:lines += ['', 'A quick model beside it:'] + ['  ' + l for l in quick]
     if report.get('findings'):lines += ['', 'What it found:'] + ['  ' + f for f in report['findings']]
     if report.get('proposals'):lines += ['', 'Use the measured settings? Each is yours to apply, with Undo:'] + ['  ' + p['words'] for p in report['proposals']]
     lines += ['', summary_line(report), '']
@@ -998,6 +1015,7 @@ def main(argv=None):
     ap.add_argument('--overnight', action='store_true', help='also S7: the full exam and the I05 arms (hours, on mains)')
     ap.add_argument('--also', type=Path, help='S6: another model file (the 35B on the processor, or the 4B on the Radeon)')
     ap.add_argument('--also-backend', default='CPU', choices=['AUTO', 'CPU', 'VULKAN'])
+    ap.add_argument('--quick', type=Path, help='SQ: a small model file to measure beside it, and the split to propose (1.0 M2)')
     ap.add_argument('--context', type=int, default=6144)
     ap.add_argument('--threads', type=int, default=min(4, os.cpu_count() or 1))
     ap.add_argument('--memory-mb', type=int, default=0, help='the memory cap (default Auto)')
@@ -1011,7 +1029,7 @@ def main(argv=None):
     ap.add_argument('--progress-json', action='store_true', help=argparse.SUPPRESS)
     ap.add_argument('--allow-battery', action='store_true', help=argparse.SUPPRESS)   # a dry run where no mains can be read
     args = ap.parse_args(argv)
-    if args.plan:print(plan_text(args.overnight, bool(args.also)));return 0
+    if args.plan:print(plan_text(args.overnight, bool(args.also), bool(args.quick)));return 0     # 1.0 M2: and SQ
     if not args.model:ap.error('--model is needed (or --plan)')
     args.out = args.out or default_out()
     def progress(**kw):

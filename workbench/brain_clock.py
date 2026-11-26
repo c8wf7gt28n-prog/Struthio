@@ -203,7 +203,9 @@ def asking_now(request, now_ms=None):
     asking = getattr(request, 'now_asking', None)
     if not asking:return ''
     now = request.now_ms() if now_ms is None else int(now_ms)
-    return asking_line(now - asking['began_ms'], asking['price_ms'])
+    line = asking_line(now - asking['began_ms'], asking['price_ms'])
+    if asking.get('quick'):line = line.replace('Asking the model', 'Asking the quick model', 1)   # 1.0 M2: priced on the quick model
+    return line
 
 
 # -- why it was slow, from the meters -------------------------------------------------------------------------------------

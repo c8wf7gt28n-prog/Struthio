@@ -34,7 +34,8 @@ def freeze_launch(kernel,value,supplied,db=None):
     options={key:value for key,value in saved.items() if key!='memory_mb' or value}
     options.update(copy.deepcopy(supplied or {}))
     from .resource_control import reclaimable,reserve_setting
-    config=brain.configuration(value,options,kernel.root,reclaimable(kernel,db),reserve_setting(kernel,db))
+    credit=0 if options.get('slot')=='quick' else reclaimable(kernel,db)   # 1.0 M2: beside hers, her model's memory is no credit
+    config=brain.configuration(value,options,kernel.root,credit,reserve_setting(kernel,db))
     resolved={**options,**{key:config[key] for key in ('context','threads','memory_mb')},'model_id':value['id']}
     frozen=dict(schema='arc.brain-launch-settings/1',options=resolved,saved_defaults=saved,
                 basis='SAVED_DEFAULTS_WITH_EXPLICIT_REQUEST_OVERRIDES')

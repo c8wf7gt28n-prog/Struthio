@@ -69,13 +69,26 @@ class CheckPanel(QWidget):
             return None
         return next((Path(f['path']) for f in value.get('files') or [] if f.get('role') == 'weights'), None)
 
+    def quick_file(self):
+        """1.0 M2: the weights of the quick model chosen beside hers (brain.quick_selection), or None."""
+        from . import local_brain, quick_model
+        ident = (local_brain.get(self.kernel, quick_model.SELECTION, {}) or {}).get('model_id')
+        if not ident or ident == getattr(self.tab, '_selected_id', None):return None
+        try:
+            value = local_brain.model(self.kernel, ident)
+        except (ValueError, KeyError):
+            return None
+        found = next((Path(f['path']) for f in value.get('files') or [] if f.get('role') == 'weights'), None)
+        return found if found is not None and found.is_file() else None
+
     def begin(self):
         model = self.model_file()
         if model is None or not model.is_file():
             self.stage_line.setText('Choose a registered model above first; the check measures that one.');return
         if model_check.power()['on_mains'] is False:
             self.stage_line.setText('The check runs on mains power only. Plug the computer in, then start it.');return
-        text = model_check.plan_text(self.overnight.isChecked())
+        quick = self.quick_file()      # 1.0 M2: the quick model loaded beside hers is measured beside it (stage SQ)
+        text = model_check.plan_text(self.overnight.isChecked(), quick=bool(quick))
         if QMessageBox.question(self, BUTTON, text + '\n\nStart it now?') != QMessageBox.Yes:return
         self.run = model_check.default_out();self.run.mkdir(parents=True, exist_ok=True)
         args = ['-B', '-m', 'workbench.model_check', '--model', str(model), '--out', str(self.run), '--from-room', '--progress-json',
@@ -83,6 +96,7 @@ class CheckPanel(QWidget):
                 str(self.tab.threads.value()), '--backend', str(self.tab.backend.currentData() or 'AUTO')]
         if self.tab.memory.value():args += ['--memory-mb', str(self.tab.memory.value())]
         if self.overnight.isChecked():args.append('--overnight')
+        if quick:args += ['--quick', str(quick)]      # 1.0 M2
         if self.own.isChecked():
             from . import model_exam
             paper, why = model_exam.own_paper(self.kernel, self.principal.identity)
@@ -152,6 +166,8 @@ class CheckPanel(QWidget):
         self.folder.setEnabled(True)
         self.stage_line.setText('Done. This is exactly what the file for sending holds; nothing has left this computer.')
         self.keep_exam()
+        from . import quick_model      # 1.0 M2: the quick model's exam on its own key, and both models' measured rates
+        quick_model.keep_pair(self.kernel, self.run)
         self.offer()
 
     def keep_exam(self):
@@ -173,6 +189,8 @@ class CheckPanel(QWidget):
 
     def offer(self):
         self.clear_proposals()
+        from . import quick_model_qt      # 1.0 M2: the split the check proposes for the quick model, with Use it and Undo
+        quick_model_qt.offer_split(self, self.report)
         offered = model_check.offered(self.kernel, self.report or {})
         if not offered:return
         head = QLabel('Use the measured settings? Each is yours to apply, and Undo puts it back.');head.setWordWrap(True)

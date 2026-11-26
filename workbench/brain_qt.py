@@ -82,6 +82,8 @@ class BrainTab(ServiceTab):
         for title,widget in [('Model / launch',self.launch_scroll),('Hardware / Vulkan',hardware),('GGUF metadata',self.metadata),('Tensor inspector',self.tensors)]:self.pages.addTab(widget,title)
         from . import model_check_qt  # 0.8.7 A5: "Check her model on this machine" (one button), the exam card and the measured settings
         self.model_check=model_check_qt.CheckPanel(self);self.pages.addTab(self.model_check,'Check her model')
+        from . import quick_model_qt  # 1.0 M2: a quick model beside hers: which model answers which kind and why, one Undo
+        self.quick_model=quick_model_qt.QuickPanel(self);self.pages.addTab(self.quick_model,quick_model_qt.TITLE)
         # 0.8.7 A3: what the model may do, a switch per kind of question; with every switch off Kas is exactly 0.8.6.
         self.help_page=QWidget();help_layout=QVBoxLayout(self.help_page);help_layout.setContentsMargins(6,6,6,6)
         intro=QLabel('Which questions Kas may put to the model on this computer. Off means she answers as she does with no model.')

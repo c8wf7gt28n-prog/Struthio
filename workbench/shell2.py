@@ -3206,6 +3206,9 @@ class SlateFace(QWidget):
         counts = (call(self.host, 'matrix.status') or {}).get('counts', {})
         learned = sum(v for k, v in counts.items() if k != 'PROPOSED')
         said = ((name or 'a model') if brain.get('state') == 'READY' else 'no model yet')      # 0.8.0: the language is never named
+        if brain.get('state') == 'READY':      # 1.0 M2: the quick model beside hers and the kinds it answers ("quick Qwen3.5 2B: NEXT")
+            quick = (call(self.host, 'brain.quick.status', {'brief': True}) or {}).get('line')
+            if quick:said += ' · ' + quick
         self.model.setText(said)
         if getattr(self, 'masthead', None) is not None:      # the masthead shortens it in the middle: its tip is the whole name, and what she learns from
             self.model.setToolTip(said + '\nLearning from %d outcomes you marked or ran' % learned)

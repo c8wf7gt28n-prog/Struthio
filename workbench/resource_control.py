@@ -186,6 +186,10 @@ def request(job,priority=None):
     handover=tool in ('brain.activate','brain.qualify')
     if handover:
         options=(job.get('brain_launch') or {}).get('options') or spec.get('brain',{})
+        handover=options.get('slot')!='quick'      # 1.0 M2: the quick model starts beside hers: no handover, no credit
+        if not handover:
+            return dict(priority=priority,lane='inference',memory_bytes=options.get('memory_mb',1024)*MIB,
+                        basis='FROZEN_MODEL_MEMORY_BUDGET',model_handover=False)
         headroom=(job.get('brain_launch') or {}).get('auto_headroom_mb') or 0      # Auto's headroom stays with its budget
         budget=(options.get('memory_mb',1024)+headroom)*MIB;lane='inference';basis='FROZEN_MODEL_MEMORY_BUDGET'
     elif tool in local_brain.JOB_TOOLS and tool!='brain.inspect':
@@ -255,7 +259,7 @@ def _view(kernel,db,host,exclude=None,handover=False):
         commitments.append(dict(kind='job',id=job['id'],owner=job['owner'],tool=job['tool'],lane=demand['lane'],
             priority=demand['priority'],budget_bytes=demand['memory_bytes'],**observed))
     model_seen=set()
-    for key in ('brain.worker','brain.trial_worker'):
+    for key in ('brain.worker','brain.trial_worker','brain.quick_worker'):   # 1.0 M2: the quick model counts in the sum too
         worker=read(db,key,{}) or {};identity=(worker.get('pid'),worker.get('start'))
         if identity in model_seen or not local_brain.worker_live(worker):continue
         model_seen.add(identity)

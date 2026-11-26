@@ -1296,7 +1296,7 @@ def keep_plan(i, request):
     """Before a PLAN question: prime its messages 1 to 3 (the brief and this desk's menu) unless the worker keeps them.
     Returns brain_briefs.open_desk's {state, desk, ...}, or None when nothing is primed (no port that keeps briefs, choosing
     switched off, PLAN stopped by the honest null)."""
-    port = getattr(request, 'port', None)
+    port = request.port_for(PLAN.name) if hasattr(request, 'port_for') else getattr(request, 'port', None)   # 1.0 M2: the answering model's
     if port is None or not hasattr(port, 'read_prime') or not request.switch_on(PLAN.switch):return None
     if PLAN.name in getattr(request, 'stopped', ()):return None
     try:

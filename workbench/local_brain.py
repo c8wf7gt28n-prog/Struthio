@@ -27,6 +27,7 @@ OPTIONS={'type':'object','additionalProperties':False,'properties':{
  'flash_attn':{'type':'string','enum':['auto','on','off']},'kv_type':{'type':'string','enum':['f16','q8_0','f8_e4m3']},
  'load_mode':{'type':'string','enum':['none','auto']},'mtp_draft':{'type':'integer','minimum':0,'maximum':8},
  'prime':{'type':'boolean'},   # 1.0 M1: false only for the model check's tuning launches (each measured, none primed)
+ 'slot':{'type':'string','enum':['quick']},   # 1.0 M2: the quick model beside hers (quick_model.run_job), never a handover
  'message':{'type':'string','maxLength':8000},'max_tokens':{'type':'integer','minimum':1,'maximum':512},
  'mode':{'type':'string','enum':['chat','plan']},'conversation':{'type':'string','pattern':'^[0-9a-f]{32}$','maxLength':32}}}
 OPTIONS['properties']['reference_packet']={'type':'string','pattern':'^[0-9a-f]{32}$','maxLength':32}
@@ -258,6 +259,9 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
     def fits(term):
         need=-(-term['estimate']//MIB)
         if memory_mb is None:return need<=AUTO_CEILING_MB and need+AUTO_HEADROOM_MB<=room//MIB
+        if options.get('slot')=='quick':   # 1.0 M2: the quick model's cap holds its rung's estimate and its address-space slack
+            from .quick_model import cap_mb
+            return cap_mb(term['estimate'])<=memory_mb
         return term['estimate']<=memory_mb*MIB
     chosen=next((term for term in ladder if fits(term)),ladder[-1])  # none fits: the last rung's numbers are refused below
     kv_bytes=chosen['kv'];estimate=chosen['estimate']
@@ -355,7 +359,7 @@ def terminate(kernel,worker,reason='STOPPED'):
     forget_socket(worker)
     with kernel.db() as db:
         db.execute('BEGIN IMMEDIATE')
-        for slot in ('worker', 'trial_worker'):
+        for slot in ('worker', 'trial_worker', 'quick_worker'):   # 1.0 M2: and the quick model's slot
             if worker_identity(get(kernel,slot,{},db)) == worker_identity(worker):
                 put(kernel,slot,{},reason,db)
         if get(kernel,'prepared_context',{},db).get('worker') == worker_identity(worker):
@@ -373,7 +377,7 @@ def stop(kernel,reason='OWNER_STOP'):
         db.execute('BEGIN IMMEDIATE')
         put(kernel,'stop_epoch',get(kernel,'stop_epoch',0,db)+1,db=db)
         put(kernel,'prepared_context',{},db=db)
-        workers = [get(kernel,slot,{},db) for slot in ('worker','trial_worker')]
+        workers = [get(kernel,slot,{},db) for slot in ('worker','trial_worker','quick_worker')]   # 1.0 M2: Stop brain stops both
     for worker in workers:
         if worker:
             terminate(kernel,worker,reason)
@@ -640,6 +644,9 @@ def checkpoint(kernel,ident,previous):
 def run_model_job(kernel,job):
     from .model_settings import job_options
     ident=job['id'];check_job(kernel,ident);options=job_options(job);value=model(kernel,options['model_id'])
+    if options.get('slot')=='quick':   # 1.0 M2: the quick model starts beside hers; hers is never stopped for it
+        from . import quick_model
+        return quick_model.run_job(kernel,job,options,value)
     from .resource_control import await_room,reclaimable,reserve_setting
     headroom=(job.get('brain_launch') or {}).get('auto_headroom_mb') or 0
     config=configuration(value,options,kernel.root,reclaimable(kernel),reserve_setting(kernel),headroom);control_claim(kernel,ident)

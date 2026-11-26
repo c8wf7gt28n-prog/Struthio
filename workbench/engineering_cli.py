@@ -132,6 +132,7 @@ def schemas():
     from .app_files import FIELDS as APP_FILES_FIELDS  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
     from .a11y_hand import FIELDS as A11Y_HAND_FIELDS  # 1.0 K9 (her hand in other programs): program.status, .look, .find, .open, .type, .press, .save, .answer, .shown
     from .hand_door import FIELDS as HAND_DOOR_FIELDS  # 1.0 F1 (the door's mechanics): hand.door, hand.door.continue, hand.door.stop
+    from .quick_model import FIELDS as QUICK_MODEL_FIELDS  # 1.0 M2 (a quick model beside hers): brain.quick.status, .use, .stop, .split
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -265,6 +266,7 @@ def schemas():
         **APP_FILES_FIELDS,  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
         **A11Y_HAND_FIELDS,  # 1.0 K9 (her hand in other programs): program.status, .look, .find, .open, .type, .press, .save, .answer, .shown
         **HAND_DOOR_FIELDS,  # 1.0 F1 (the door's mechanics): hand.door, hand.door.continue, hand.door.stop
+        **QUICK_MODEL_FIELDS,  # 1.0 M2 (a quick model beside hers): brain.quick.status, .use, .stop, .split
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

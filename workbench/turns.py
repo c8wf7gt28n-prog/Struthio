@@ -80,6 +80,10 @@ Added by A4 (the ledger, the marks and the account; backward compatible: new nam
     the record also holds 'without' (the code of the no-model answer this turn was asked against) and 'differs' (True
              when the value used differs from that answer: what the account counts as help); a tombstone keeps those two,
              the switch and the deadline (counts only, never words), so the account stays exact after Forget
+Added by 1.0 M2 (a quick model beside hers; backward compatible: new names only):
+    TurnRequest.routes {kind: port} and .port_for(kind): request_for routes a quick kind to the quick model (quick_model.routes:
+             offered, its exam passed on its own key, measured faster); ask() takes port_for(kind), so the price, the record's
+             key and model, and her line ("Asking the quick model") are the answering model's; now_asking has 'quick'
 ====================================================================================================================
 
 Only this module calls local_brain.completion (local_brain's own ready probe excepted). This module, model_words.py and
@@ -410,8 +414,16 @@ class TurnRequest:
         self.receipt_shown = False          # A3: her receipt sentence is on screen (a wording turn waits for it)
         self.now_asking = None              # A3: {kind, price_ms, deadline_ms, began_ms} while a turn runs
         self.stopped = frozenset()          # A4: kinds the honest null stopped asking (request_for reads them)
+        self.routes = {};self.routes_base = None    # 1.0 M2: {kind: the quick model's port}, routed by request_for
 
     def switch_on(self, name):return bool(self.switches.get(name, False))
+
+    def port_for(self, kind_name):
+        """1.0 M2: the port that answers this kind: the quick model's when request_for routed the kind to it (quick_model:
+        offered, its exam passed on its own key, measured faster), else this request's own. A port replaced after
+        request_for (HALT's guard, a wrapper) answers every kind itself; a quick model that stopped hands back to hers."""
+        quick = self.routes.get(kind_name) if self.routes and self.port is not None and self.routes_base is self.port else None
+        return quick if quick is not None and quick.live() else self.port
 
     def remaining_ms(self):return max(0, self.budget_ms - self.spent_ms)
 
@@ -479,6 +491,12 @@ def request_for(kernel, principal, **options):
     options.setdefault('clock', default_clock(kernel))
     request = TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
                           **options)
+    if port is not None:      # 1.0 M2: the quick model beside hers, for the kinds it passed its exam for and answers faster
+        try:
+            from . import quick_model
+            request.routes = quick_model.routes(kernel, port, request.clock);request.routes_base = port
+        except Exception:  # noqa: BLE001 - no quick model: her model answers every kind, as before
+            request.routes = {}
     if port is not None:      # A4: the honest null, read once per request
         try:
             from . import model_account
@@ -620,7 +638,7 @@ def ask(kind, inputs, request):
     if not request.switch_on(kind.switch):return _without(kind, inputs, 'SWITCH_OFF')
     if kind.name in getattr(request, 'stopped', ()):return _without(kind, inputs, 'NO_HELP')      # A4: the honest null
     if kind.switch in RECEIPT_FIRST_SWITCHES and not request.receipt_shown:return _without(kind, inputs, 'RECEIPT_FIRST')
-    port = request.port
+    port = request.port_for(kind.name) if hasattr(request, 'port_for') else request.port      # 1.0 M2: the model that answers it
     if port is None or not port.live():
         return _without(kind, inputs, request.off_reason if port is None else getattr(port, 'not_live_reason', lambda: 'NO_MODEL')())
     if request.cancelled():return _without(kind, inputs, 'STOPPED')
@@ -650,7 +668,8 @@ def ask(kind, inputs, request):
     # 4 · the call
     if caps.foreground:request.turns_used += 1
     began = request.now_ms();late = False;failed = None;text = None;finish = None;timings = {};odds = None
-    request.now_asking = {'kind': kind.name, 'price_ms': price, 'deadline_ms': deadline, 'began_ms': began}   # A3: her line
+    request.now_asking = {'kind': kind.name, 'price_ms': price, 'deadline_ms': deadline, 'began_ms': began,   # A3: her line
+                          'quick': bool(getattr(port, 'quick', False))}      # 1.0 M2: "Asking the quick model"
     try:
         got = port.complete(messages, answer_tokens=caps.answer_tokens, grammar=grammar, deadline_ms=deadline,
                             odds=caps.odds, prompt_tokens=prompt, on_progress=request.on_progress,
@@ -884,6 +903,11 @@ def forget(kernel, owner, ident, principal=None):
         from . import brain_briefs
         brain_briefs.forgotten(kernel, value, principal)
     except Exception:  # noqa: BLE001 - the tombstone stands; brain.status shows a worker that could not be marked
+        pass
+    try:      # 1.0 M2: a quick model beside hers that may hold it is stopped at once (its memory goes with it)
+        from . import quick_model
+        quick_model.forgotten(kernel, value, principal)
+    except Exception:  # noqa: BLE001
         pass
     return stone
 

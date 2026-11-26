@@ -1173,7 +1173,7 @@ def keep_desk(i, request):
     """Before a READ question: prime its messages 1 to 3 (READ's brief and this desk's list) unless the worker keeps them.
     Returns brain_briefs.open_desk's {state, desk, ...}, or None when nothing is primed (no question, no port that keeps
     briefs, understanding switched off)."""
-    port = getattr(request, 'port', None)
+    port = request.port_for(READ.name) if hasattr(request, 'port_for') else getattr(request, 'port', None)   # 1.0 M2: the answering model's
     if i.grammar is None or port is None or not hasattr(port, 'read_prime') or not request.switch_on(READ.switch):return None
     try:
         if not port.live():return None
