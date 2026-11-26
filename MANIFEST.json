@@ -38,8 +38,8 @@
       "sha256": "dca005334107edca693c3cce1da7ffafa240737d56137b633046e7db74934f28"
     },
     "INSTALL_DEBIAN.sh": {
-      "bytes": 5806,
-      "sha256": "52b1af320cbac2d7d04eb7b262aa5d6c9fd36c6b499e87fdbebdfdadb0a266d2"
+      "bytes": 6374,
+      "sha256": "0cb194ba5608b056a0bf252172146e9e7bbb177d64358e426795f712eee0fb90"
     },
     "INSTALL_LEDGER.sh": {
       "bytes": 6398,
@@ -66,8 +66,8 @@
       "sha256": "ec4c06bfd533684e42d8429d0dd6dc87cbae65d3906ffee4b1fc9dccbea34c01"
     },
     "PREPARE_DEBIAN.sh": {
-      "bytes": 2514,
-      "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
+      "bytes": 4711,
+      "sha256": "86ebd78b0610520f9d6c0dccd0a729a586623aded0435fec7faa4a1afe14bbb0"
     },
     "README.md": {
       "bytes": 18007,
@@ -1490,8 +1490,8 @@
       "sha256": "bdafec41683d9e8f7aa9da21e457591d50912c3fd77d88f2af79cad5163ec986"
     },
     "docs/MINIMAL_DEBIAN_INSTALL_01.md": {
-      "bytes": 17435,
-      "sha256": "41d4cd321335a408cdeb73a60f108f30bc9e5f087d931d19207a8623ff7f1101"
+      "bytes": 18425,
+      "sha256": "5121ed69a05f4b5fab02db3fde73e75fffb32185bd934a522c5c6ab3f73aa8e0"
     },
     "docs/MODEL_01/control-flow-comparison.json": {
       "bytes": 485,
@@ -2258,16 +2258,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 2089306,
-      "sha256": "eaaf2b4229466df1ada3fbd8063046880d349c1f103b57f7a1f52028d61b3dc6"
+      "bytes": 2090298,
+      "sha256": "88b5a8c0667a93de6ad1d9d1b49b2ba97332509483a76619a65c4e11b0cf87ef"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4730880,
-      "sha256": "63d6305e4f11b179b70454e5f3322b8d7d17b6b61a8b6df1012b8a1f9e280f90"
+      "sha256": "f15cdc9712a7c785d1c0f9b5fb0f0e92d898489eb1ed612c9bdf36d87dca0814"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "d3401965a8e384e06e9608c09a1e3e0cb6e21755d63a457e2cf480d03bb0dffe"
+      "sha256": "822109ef2bb8ca0ca177d663b6877651cca84a25b447addf5bff0d19b7fbfc7e"
     },
     "requirements-experiments.txt": {
       "bytes": 70,

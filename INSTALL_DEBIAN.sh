@@ -50,6 +50,9 @@ if [[ "$skip_apt" == 0 ]]; then
   if [[ "$experiment_tools" == 1 ]]; then packages+=(kicad); fi
   if [[ "$workers" == 1 ]]; then packages+=(bubblewrap dbus-user-session libpam-systemd); fi
   if [[ "$minimal_session" == 1 ]]; then packages+=(xserver-xorg xinit fluxbox x11-xserver-utils xauth dbus-x11 fonts-dejavu-core network-manager libgl1-mesa-dri); fi
+  # 1.0 R1: the 1.0 System set, the same packages the offline set carries (the Machine, Lock, permission prompts, reading programs)
+  if [[ "$minimal_session" == 1 ]]; then packages+=(udisks2 upower pipewire pipewire-pulse wireplumber xsecurelock lxpolkit xdg-utils x11-utils at-spi2-core python3-pyatspi libpam-systemd wpasupplicant wireless-regdb eject librsvg2-common alsa-ucm-conf alsa-topology-conf); fi
+  if [[ "$calc" == 1 || "$math_tools" == 1 ]]; then packages+=(libreoffice-writer python3-uno libreoffice-gtk3); fi  # 1.0 R1: her LibreOffice bridge and hand
   if [[ "$network_capture" == 1 ]]; then packages+=(wireshark-common); fi  # dumpcap for the optional packet capture (docs/NETWORK_01.md)
   if [[ "$vulkan" == 1 ]]; then packages+=(libvulkan1 mesa-vulkan-drivers firmware-amd-graphics vulkan-tools libstdc++6 libgomp1 libssl3t64 zlib1g libzstd1 libgcc-s1 libc6); fi
   echo "Prerequisites: ${packages[*]}"

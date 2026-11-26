@@ -1,0 +1,1133 @@
+{
+ "schema": "graphite.system-set-record/1",
+ "set": "1.0",
+ "made": "2026-11-26",
+ "target": "Debian 13 (trixie) amd64",
+ "sources": [
+  "deb.debian.org trixie, trixie-updates, trixie-security (signatures checked with debian-archive-keyring 2025.1)",
+  "snapshot.debian.org 20250810T000000Z trixie (the 13.0 base; 3 superseded 0.8.x debs, sha256 = the 0.8.x inventory)"
+ ],
+ "asked_for": {
+  "udisks2": "plan s.4; S4 (USB drives)",
+  "upower": "plan s.4; S4 (battery)",
+  "pipewire": "plan s.4; S4 (sound)",
+  "pipewire-pulse": "plan s.4; S4 (sound)",
+  "wireplumber": "plan s.4; S4 (wpctl)",
+  "xsecurelock": "plan s.4; S1 (Lock)",
+  "lxpolkit": "plan s.4; S5 (permission prompts)",
+  "xdg-utils": "plan s.4 (default programs)",
+  "x11-utils": "plan s.4; S3 (xprop fallback), hatch_readiness (xdpyinfo)",
+  "libreoffice-writer": "plan s.4; K5/K6",
+  "python3-uno": "plan s.4; K5 (office_bridge)",
+  "at-spi2-core": "plan s.4; K7, K9",
+  "libreoffice-gtk3": "plan s.4; K9",
+  "python3-pyatspi": "plan s.4 (K7: not needed by its reader; kept as the plan lists it)",
+  "libpam-systemd": "R1: a logind session at login (S1 Lock/Suspend, polkit \"active\" rules for udisks2 and NetworkManager, XDG_RUNTIME_DIR and the user manager that starts PipeWire); recommended by udisks2 and network-manager",
+  "wpasupplicant": "R1: NetworkManager cannot do Wi-Fi without it (only recommended, so the 0.8.x set lacks it); S4 Wi-Fi",
+  "wireless-regdb": "R1: the Wi-Fi regulatory database NetworkManager recommends",
+  "eject": "R1: udisks2 Drive.Eject runs it (S4 eject when power-off is not offered)",
+  "librsvg2-common": "R1: GTK3 needs the SVG icon loader (lxpolkit, LibreOffice gtk3); only recommended",
+  "alsa-ucm-conf": "R1: laptop sound cards under PipeWire (recommended by libasound2-data)",
+  "alsa-topology-conf": "R1: as alsa-ucm-conf"
+ },
+ "already_in_0.8.x": {
+  "dbus-bin": "K9 (dbus-send)",
+  "network-manager": "S4",
+  "x11-xserver-utils": "S4 (xrandr), xsecurelock",
+  "libx11-6": "S3 (window list through ctypes)"
+ },
+ "libreoffice": "pinned to the 0.8.x set's 4:25.2.3-2+deb13u9 (trixie point release); trixie-security has deb13u12, not carried",
+ "resolved_against": "13.0 required+important with dependencies (144) + the 0.8.x set (396) + 5 base partners it forces (util-linux, systemd-sysv, fdisk, libfdisk1, liblastlog2-2), --no-install-recommends",
+ "plan_on_the_owner_system": "3 upgraded (bsdutils, init, login: 13.0 base packages), 133 newly installed, 0 to remove",
+ "files": [
+  {
+   "file": "debs/adwaita-icon-theme_48.1-1_all.deb",
+   "package": "adwaita-icon-theme",
+   "version": "48.1-1",
+   "suite": "trixie",
+   "bytes": 504356,
+   "asked": false
+  },
+  {
+   "file": "debs/alsa-topology-conf_1.2.5.1-3_all.deb",
+   "package": "alsa-topology-conf",
+   "version": "1.2.5.1-3",
+   "suite": "trixie",
+   "bytes": 15276,
+   "asked": true
+  },
+  {
+   "file": "debs/alsa-ucm-conf_1.2.14-1_all.deb",
+   "package": "alsa-ucm-conf",
+   "version": "1.2.14-1",
+   "suite": "trixie",
+   "bytes": 92476,
+   "asked": true
+  },
+  {
+   "file": "debs/at-spi2-common_2.56.2-1+deb13u2_all.deb",
+   "package": "at-spi2-common",
+   "version": "2.56.2-1+deb13u2",
+   "suite": "trixie",
+   "bytes": 170748,
+   "asked": false
+  },
+  {
+   "file": "debs/at-spi2-core_2.56.2-1+deb13u2_amd64.deb",
+   "package": "at-spi2-core",
+   "version": "2.56.2-1+deb13u2",
+   "suite": "trixie",
+   "bytes": 62124,
+   "asked": true
+  },
+  {
+   "file": "debs/bsdutils_1%3a2.41.5-0+deb13u1_amd64.deb",
+   "package": "bsdutils",
+   "version": "1:2.41.5-0+deb13u1",
+   "suite": "trixie",
+   "bytes": 110208,
+   "asked": false
+  },
+  {
+   "file": "debs/dconf-gsettings-backend_0.40.0-5_amd64.deb",
+   "package": "dconf-gsettings-backend",
+   "version": "0.40.0-5",
+   "suite": "trixie",
+   "bytes": 28636,
+   "asked": false
+  },
+  {
+   "file": "debs/dconf-service_0.40.0-5_amd64.deb",
+   "package": "dconf-service",
+   "version": "0.40.0-5",
+   "suite": "trixie",
+   "bytes": 32364,
+   "asked": false
+  },
+  {
+   "file": "debs/dmsetup_2%3a1.02.205-2_amd64.deb",
+   "package": "dmsetup",
+   "version": "2:1.02.205-2",
+   "suite": "trixie",
+   "bytes": 82344,
+   "asked": false
+  },
+  {
+   "file": "debs/eject_2.41.5-0+deb13u1_amd64.deb",
+   "package": "eject",
+   "version": "2.41.5-0+deb13u1",
+   "suite": "trixie",
+   "bytes": 61104,
+   "asked": true
+  },
+  {
+   "file": "debs/gir1.2-atspi-2.0_2.56.2-1+deb13u2_amd64.deb",
+   "package": "gir1.2-atspi-2.0",
+   "version": "2.56.2-1+deb13u2",
+   "suite": "trixie",
+   "bytes": 23892,
+   "asked": false
+  },
+  {
+   "file": "debs/gir1.2-freedesktop_1.84.0-1_amd64.deb",
+   "package": "gir1.2-freedesktop",
+   "version": "1.84.0-1",
+   "suite": "trixie",
+   "bytes": 60544,
+   "asked": false
+  },
+  {
+   "file": "debs/gir1.2-girepository-2.0_1.84.0-1_amd64.deb",
+   "package": "gir1.2-girepository-2.0",
+   "version": "1.84.0-1",
+   "suite": "trixie",
+   "bytes": 39724,
+   "asked": false
+  },
+  {
+   "file": "debs/gir1.2-glib-2.0_2.84.4-3~deb13u5_amd64.deb",
+   "package": "gir1.2-glib-2.0",
+   "version": "2.84.4-3~deb13u5",
+   "suite": "trixie",
+   "bytes": 200680,
+   "asked": false
+  },
+  {
+   "file": "debs/gsettings-desktop-schemas_48.0-1_all.deb",
+   "package": "gsettings-desktop-schemas",
+   "version": "48.0-1",
+   "suite": "trixie",
+   "bytes": 699668,
+   "asked": false
+  },
+  {
+   "file": "debs/gtk-update-icon-cache_4.18.6+ds-2_amd64.deb",
+   "package": "gtk-update-icon-cache",
+   "version": "4.18.6+ds-2",
+   "suite": "trixie",
+   "bytes": 52700,
+   "asked": false
+  },
+  {
+   "file": "debs/hicolor-icon-theme_0.18-2_all.deb",
+   "package": "hicolor-icon-theme",
+   "version": "0.18-2",
+   "suite": "trixie",
+   "bytes": 11832,
+   "asked": false
+  },
+  {
+   "file": "debs/init_1.69~deb13u1_amd64.deb",
+   "package": "init",
+   "version": "1.69~deb13u1",
+   "suite": "trixie",
+   "bytes": 6408,
+   "asked": false
+  },
+  {
+   "file": "debs/libabw-0.1-1_0.1.3-1+b2_amd64.deb",
+   "package": "libabw-0.1-1",
+   "version": "0.1.3-1+b2",
+   "suite": "trixie",
+   "bytes": 123632,
+   "asked": false
+  },
+  {
+   "file": "debs/libasound2-data_1.2.14-1+deb13u1_all.deb",
+   "package": "libasound2-data",
+   "version": "1.2.14-1+deb13u1",
+   "suite": "trixie",
+   "bytes": 21188,
+   "asked": false
+  },
+  {
+   "file": "debs/libasound2t64_1.2.14-1+deb13u1_amd64.deb",
+   "package": "libasound2t64",
+   "version": "1.2.14-1+deb13u1",
+   "suite": "trixie",
+   "bytes": 380896,
+   "asked": false
+  },
+  {
+   "file": "debs/libasyncns0_0.8-6+b5_amd64.deb",
+   "package": "libasyncns0",
+   "version": "0.8-6+b5",
+   "suite": "trixie",
+   "bytes": 12028,
+   "asked": false
+  },
+  {
+   "file": "debs/libatasmart4_0.19-5+b2_amd64.deb",
+   "package": "libatasmart4",
+   "version": "0.19-5+b2",
+   "suite": "trixie",
+   "bytes": 22720,
+   "asked": false
+  },
+  {
+   "file": "debs/libatk-adaptor_2.56.2-1+deb13u2_amd64.deb",
+   "package": "libatk-adaptor",
+   "version": "2.56.2-1+deb13u2",
+   "suite": "trixie",
+   "bytes": 11804,
+   "asked": false
+  },
+  {
+   "file": "debs/libatk-bridge2.0-0t64_2.56.2-1+deb13u2_amd64.deb",
+   "package": "libatk-bridge2.0-0t64",
+   "version": "2.56.2-1+deb13u2",
+   "suite": "trixie",
+   "bytes": 68516,
+   "asked": false
+  },
+  {
+   "file": "debs/libatk1.0-0t64_2.56.2-1+deb13u2_amd64.deb",
+   "package": "libatk1.0-0t64",
+   "version": "2.56.2-1+deb13u2",
+   "suite": "trixie",
+   "bytes": 51996,
+   "asked": false
+  },
+  {
+   "file": "debs/libatspi2.0-0t64_2.56.2-1+deb13u2_amd64.deb",
+   "package": "libatspi2.0-0t64",
+   "version": "2.56.2-1+deb13u2",
+   "suite": "trixie",
+   "bytes": 81056,
+   "asked": false
+  },
+  {
+   "file": "debs/libblockdev-crypto3_3.3.0-2.1_amd64.deb",
+   "package": "libblockdev-crypto3",
+   "version": "3.3.0-2.1",
+   "suite": "trixie",
+   "bytes": 25892,
+   "asked": false
+  },
+  {
+   "file": "debs/libblockdev-fs3_3.3.0-2.1_amd64.deb",
+   "package": "libblockdev-fs3",
+   "version": "3.3.0-2.1",
+   "suite": "trixie",
+   "bytes": 39460,
+   "asked": false
+  },
+  {
+   "file": "debs/libblockdev-loop3_3.3.0-2.1_amd64.deb",
+   "package": "libblockdev-loop3",
+   "version": "3.3.0-2.1",
+   "suite": "trixie",
+   "bytes": 10592,
+   "asked": false
+  },
+  {
+   "file": "debs/libblockdev-mdraid3_3.3.0-2.1_amd64.deb",
+   "package": "libblockdev-mdraid3",
+   "version": "3.3.0-2.1",
+   "suite": "trixie",
+   "bytes": 17668,
+   "asked": false
+  },
+  {
+   "file": "debs/libblockdev-nvme3_3.3.0-2.1_amd64.deb",
+   "package": "libblockdev-nvme3",
+   "version": "3.3.0-2.1",
+   "suite": "trixie",
+   "bytes": 22456,
+   "asked": false
+  },
+  {
+   "file": "debs/libblockdev-part3_3.3.0-2.1_amd64.deb",
+   "package": "libblockdev-part3",
+   "version": "3.3.0-2.1",
+   "suite": "trixie",
+   "bytes": 20252,
+   "asked": false
+  },
+  {
+   "file": "debs/libblockdev-swap3_3.3.0-2.1_amd64.deb",
+   "package": "libblockdev-swap3",
+   "version": "3.3.0-2.1",
+   "suite": "trixie",
+   "bytes": 12980,
+   "asked": false
+  },
+  {
+   "file": "debs/libblockdev-utils3_3.3.0-2.1_amd64.deb",
+   "package": "libblockdev-utils3",
+   "version": "3.3.0-2.1",
+   "suite": "trixie",
+   "bytes": 18588,
+   "asked": false
+  },
+  {
+   "file": "debs/libblockdev3_3.3.0-2.1_amd64.deb",
+   "package": "libblockdev3",
+   "version": "3.3.0-2.1",
+   "suite": "trixie",
+   "bytes": 47632,
+   "asked": false
+  },
+  {
+   "file": "debs/libbytesize-common_2.11-2_all.deb",
+   "package": "libbytesize-common",
+   "version": "2.11-2",
+   "suite": "trixie",
+   "bytes": 8252,
+   "asked": false
+  },
+  {
+   "file": "debs/libbytesize1_2.11-2_amd64.deb",
+   "package": "libbytesize1",
+   "version": "2.11-2",
+   "suite": "trixie",
+   "bytes": 12356,
+   "asked": false
+  },
+  {
+   "file": "debs/libcloudproviders0_0.3.6-2_amd64.deb",
+   "package": "libcloudproviders0",
+   "version": "0.3.6-2",
+   "suite": "trixie",
+   "bytes": 29232,
+   "asked": false
+  },
+  {
+   "file": "debs/libcolord2_1.4.7-3_amd64.deb",
+   "package": "libcolord2",
+   "version": "1.4.7-3",
+   "suite": "trixie",
+   "bytes": 139204,
+   "asked": false
+  },
+  {
+   "file": "debs/libconfig++11_1.7.3-2_amd64.deb",
+   "package": "libconfig++11",
+   "version": "1.7.3-2",
+   "suite": "trixie",
+   "bytes": 44624,
+   "asked": false
+  },
+  {
+   "file": "debs/libcryptsetup12_2%3a2.7.5-2_amd64.deb",
+   "package": "libcryptsetup12",
+   "version": "2:2.7.5-2",
+   "suite": "trixie",
+   "bytes": 254056,
+   "asked": false
+  },
+  {
+   "file": "debs/libdevmapper1.02.1_2%3a1.02.205-2_amd64.deb",
+   "package": "libdevmapper1.02.1",
+   "version": "2:1.02.205-2",
+   "suite": "trixie",
+   "bytes": 134640,
+   "asked": false
+  },
+  {
+   "file": "debs/libduktape207_2.7.0-2+b2_amd64.deb",
+   "package": "libduktape207",
+   "version": "2.7.0-2+b2",
+   "suite": "trixie",
+   "bytes": 134688,
+   "asked": false
+  },
+  {
+   "file": "debs/libe-book-0.1-1_0.1.3-2+b4_amd64.deb",
+   "package": "libe-book-0.1-1",
+   "version": "0.1.3-2+b4",
+   "suite": "trixie",
+   "bytes": 205264,
+   "asked": false
+  },
+  {
+   "file": "debs/libebur128-1_1.2.6-1+b2_amd64.deb",
+   "package": "libebur128-1",
+   "version": "1.2.6-1+b2",
+   "suite": "trixie",
+   "bytes": 14964,
+   "asked": false
+  },
+  {
+   "file": "debs/libepubgen-0.1-1_0.1.1-1+b2_amd64.deb",
+   "package": "libepubgen-0.1-1",
+   "version": "0.1.1-1+b2",
+   "suite": "trixie",
+   "bytes": 156140,
+   "asked": false
+  },
+  {
+   "file": "debs/libffado2_2.4.9-2_amd64.deb",
+   "package": "libffado2",
+   "version": "2.4.9-2",
+   "suite": "trixie",
+   "bytes": 678980,
+   "asked": false
+  },
+  {
+   "file": "debs/libfftw3-single3_3.3.10-2+b1_amd64.deb",
+   "package": "libfftw3-single3",
+   "version": "3.3.10-2+b1",
+   "suite": "trixie",
+   "bytes": 809296,
+   "asked": false
+  },
+  {
+   "file": "debs/libflac14_1.5.0+ds-2_amd64.deb",
+   "package": "libflac14",
+   "version": "1.5.0+ds-2",
+   "suite": "trixie",
+   "bytes": 209588,
+   "asked": false
+  },
+  {
+   "file": "debs/libgirepository-1.0-1_1.84.0-1_amd64.deb",
+   "package": "libgirepository-1.0-1",
+   "version": "1.84.0-1",
+   "suite": "trixie",
+   "bytes": 115648,
+   "asked": false
+  },
+  {
+   "file": "debs/libglibmm-2.4-1t64_2.66.8-1_amd64.deb",
+   "package": "libglibmm-2.4-1t64",
+   "version": "2.66.8-1",
+   "suite": "trixie",
+   "bytes": 630408,
+   "asked": false
+  },
+  {
+   "file": "debs/libgtk-3-0t64_3.24.49-3_amd64.deb",
+   "package": "libgtk-3-0t64",
+   "version": "3.24.49-3",
+   "suite": "trixie",
+   "bytes": 2768812,
+   "asked": false
+  },
+  {
+   "file": "debs/libgtk-3-common_3.24.49-3_all.deb",
+   "package": "libgtk-3-common",
+   "version": "3.24.49-3",
+   "suite": "trixie",
+   "bytes": 4908188,
+   "asked": false
+  },
+  {
+   "file": "debs/libiec61883-0_1.2.0-7_amd64.deb",
+   "package": "libiec61883-0",
+   "version": "1.2.0-7",
+   "suite": "trixie",
+   "bytes": 30580,
+   "asked": false
+  },
+  {
+   "file": "debs/libimobiledevice-1.0-6_1.3.0+git20250228-2_amd64.deb",
+   "package": "libimobiledevice-1.0-6",
+   "version": "1.3.0+git20250228-2",
+   "suite": "trixie",
+   "bytes": 134628,
+   "asked": false
+  },
+  {
+   "file": "debs/libimobiledevice-glue-1.0-0_1.3.1-1_amd64.deb",
+   "package": "libimobiledevice-glue-1.0-0",
+   "version": "1.3.1-1",
+   "suite": "trixie",
+   "bytes": 31048,
+   "asked": false
+  },
+  {
+   "file": "debs/libjson-c5_0.18+ds-1_amd64.deb",
+   "package": "libjson-c5",
+   "version": "0.18+ds-1",
+   "suite": "trixie",
+   "bytes": 45956,
+   "asked": false
+  },
+  {
+   "file": "debs/liblilv-0-0_0.24.26-1_amd64.deb",
+   "package": "liblilv-0-0",
+   "version": "0.24.26-1",
+   "suite": "trixie",
+   "bytes": 43464,
+   "asked": false
+  },
+  {
+   "file": "debs/liblua5.4-0_5.4.7-1+b2_amd64.deb",
+   "package": "liblua5.4-0",
+   "version": "5.4.7-1+b2",
+   "suite": "trixie",
+   "bytes": 146640,
+   "asked": false
+  },
+  {
+   "file": "debs/libmp3lame0_3.100-6+b3_amd64.deb",
+   "package": "libmp3lame0",
+   "version": "3.100-6+b3",
+   "suite": "trixie",
+   "bytes": 362660,
+   "asked": false
+  },
+  {
+   "file": "debs/libmpg123-0t64_1.32.10-1+deb13u1_amd64.deb",
+   "package": "libmpg123-0t64",
+   "version": "1.32.10-1+deb13u1",
+   "suite": "trixie",
+   "bytes": 149184,
+   "asked": false
+  },
+  {
+   "file": "debs/libmysofa1_1.3.3+dfsg-1_amd64.deb",
+   "package": "libmysofa1",
+   "version": "1.3.3+dfsg-1",
+   "suite": "trixie",
+   "bytes": 1158180,
+   "asked": false
+  },
+  {
+   "file": "debs/libnl-3-200_3.7.0-2_amd64.deb",
+   "package": "libnl-3-200",
+   "version": "3.7.0-2",
+   "suite": "trixie",
+   "bytes": 59432,
+   "asked": false
+  },
+  {
+   "file": "debs/libnl-genl-3-200_3.7.0-2_amd64.deb",
+   "package": "libnl-genl-3-200",
+   "version": "3.7.0-2",
+   "suite": "trixie",
+   "bytes": 18136,
+   "asked": false
+  },
+  {
+   "file": "debs/libnl-route-3-200_3.7.0-2_amd64.deb",
+   "package": "libnl-route-3-200",
+   "version": "3.7.0-2",
+   "suite": "trixie",
+   "bytes": 181704,
+   "asked": false
+  },
+  {
+   "file": "debs/libnvme1t64_1.13-2_amd64.deb",
+   "package": "libnvme1t64",
+   "version": "1.13-2",
+   "suite": "trixie",
+   "bytes": 81324,
+   "asked": false
+  },
+  {
+   "file": "debs/libogg0_1.3.5-3+b2_amd64.deb",
+   "package": "libogg0",
+   "version": "1.3.5-3+b2",
+   "suite": "trixie",
+   "bytes": 23812,
+   "asked": false
+  },
+  {
+   "file": "debs/libopenfec1_1.4.2.11+dfsg-1_amd64.deb",
+   "package": "libopenfec1",
+   "version": "1.4.2.11+dfsg-1",
+   "suite": "trixie",
+   "bytes": 118084,
+   "asked": false
+  },
+  {
+   "file": "debs/libopus0_1.5.2-2_amd64.deb",
+   "package": "libopus0",
+   "version": "1.5.2-2",
+   "suite": "trixie",
+   "bytes": 2851932,
+   "asked": false
+  },
+  {
+   "file": "debs/libpam-systemd_257.13-1~deb13u1_amd64.deb",
+   "package": "libpam-systemd",
+   "version": "257.13-1~deb13u1",
+   "suite": "trixie",
+   "bytes": 297256,
+   "asked": true
+  },
+  {
+   "file": "debs/libparted2t64_3.6-5+deb13u1_amd64.deb",
+   "package": "libparted2t64",
+   "version": "3.6-5+deb13u1",
+   "suite": "trixie",
+   "bytes": 300276,
+   "asked": false
+  },
+  {
+   "file": "debs/libpcsclite1_2.3.3-1_amd64.deb",
+   "package": "libpcsclite1",
+   "version": "2.3.3-1",
+   "suite": "trixie",
+   "bytes": 55248,
+   "asked": false
+  },
+  {
+   "file": "debs/libpipewire-0.3-0t64_1.4.2-1_amd64.deb",
+   "package": "libpipewire-0.3-0t64",
+   "version": "1.4.2-1",
+   "suite": "trixie",
+   "bytes": 289872,
+   "asked": false
+  },
+  {
+   "file": "debs/libpipewire-0.3-modules_1.4.2-1_amd64.deb",
+   "package": "libpipewire-0.3-modules",
+   "version": "1.4.2-1",
+   "suite": "trixie",
+   "bytes": 809764,
+   "asked": false
+  },
+  {
+   "file": "debs/libplist-2.0-4_2.6.0-2+b1_amd64.deb",
+   "package": "libplist-2.0-4",
+   "version": "2.6.0-2+b1",
+   "suite": "trixie",
+   "bytes": 49524,
+   "asked": false
+  },
+  {
+   "file": "debs/libpolkit-agent-1-0_126-2_amd64.deb",
+   "package": "libpolkit-agent-1-0",
+   "version": "126-2",
+   "suite": "trixie",
+   "bytes": 26380,
+   "asked": false
+  },
+  {
+   "file": "debs/libpolkit-gobject-1-0_126-2_amd64.deb",
+   "package": "libpolkit-gobject-1-0",
+   "version": "126-2",
+   "suite": "trixie",
+   "bytes": 47960,
+   "asked": false
+  },
+  {
+   "file": "debs/libpulse0_17.0+dfsg1-2+b1_amd64.deb",
+   "package": "libpulse0",
+   "version": "17.0+dfsg1-2+b1",
+   "suite": "trixie",
+   "bytes": 275632,
+   "asked": false
+  },
+  {
+   "file": "debs/libpython3.13_3.13.5-2+deb13u5_amd64.deb",
+   "package": "libpython3.13",
+   "version": "3.13.5-2+deb13u5",
+   "suite": "trixie",
+   "bytes": 2159760,
+   "asked": false
+  },
+  {
+   "file": "debs/libraw1394-11_2.1.2-2+b2_amd64.deb",
+   "package": "libraw1394-11",
+   "version": "2.1.2-2+b2",
+   "suite": "trixie",
+   "bytes": 38788,
+   "asked": false
+  },
+  {
+   "file": "debs/libreoffice-gtk3_4%3a25.2.3-2+deb13u9_amd64.deb",
+   "package": "libreoffice-gtk3",
+   "version": "4:25.2.3-2+deb13u9",
+   "suite": "trixie",
+   "bytes": 509764,
+   "asked": true
+  },
+  {
+   "file": "debs/libreoffice-uiconfig-writer_4%3a25.2.3-2+deb13u9_all.deb",
+   "package": "libreoffice-uiconfig-writer",
+   "version": "4:25.2.3-2+deb13u9",
+   "suite": "trixie",
+   "bytes": 301544,
+   "asked": false
+  },
+  {
+   "file": "debs/libreoffice-writer_4%3a25.2.3-2+deb13u9_amd64.deb",
+   "package": "libreoffice-writer",
+   "version": "4:25.2.3-2+deb13u9",
+   "suite": "trixie",
+   "bytes": 9852140,
+   "asked": true
+  },
+  {
+   "file": "debs/libroc0.4_0.4.0+dfsg-5_amd64.deb",
+   "package": "libroc0.4",
+   "version": "0.4.0+dfsg-5",
+   "suite": "trixie",
+   "bytes": 369708,
+   "asked": false
+  },
+  {
+   "file": "debs/librsvg2-common_2.60.0+dfsg-1+deb13u1_amd64.deb",
+   "package": "librsvg2-common",
+   "version": "2.60.0+dfsg-1+deb13u1",
+   "suite": "trixie",
+   "bytes": 154452,
+   "asked": true
+  },
+  {
+   "file": "debs/libserd-0-0_0.32.4-1_amd64.deb",
+   "package": "libserd-0-0",
+   "version": "0.32.4-1",
+   "suite": "trixie",
+   "bytes": 46964,
+   "asked": false
+  },
+  {
+   "file": "debs/libsigc++-2.0-0v5_2.12.1-3_amd64.deb",
+   "package": "libsigc++-2.0-0v5",
+   "version": "2.12.1-3",
+   "suite": "trixie",
+   "bytes": 24672,
+   "asked": false
+  },
+  {
+   "file": "debs/libsndfile1_1.2.2-2+deb13u1_amd64.deb",
+   "package": "libsndfile1",
+   "version": "1.2.2-2+deb13u1",
+   "suite": "trixie",
+   "bytes": 199172,
+   "asked": false
+  },
+  {
+   "file": "debs/libsord-0-0_0.16.18-1_amd64.deb",
+   "package": "libsord-0-0",
+   "version": "0.16.18-1",
+   "suite": "trixie",
+   "bytes": 17964,
+   "asked": false
+  },
+  {
+   "file": "debs/libspa-0.2-modules_1.4.2-1_amd64.deb",
+   "package": "libspa-0.2-modules",
+   "version": "1.4.2-1",
+   "suite": "trixie",
+   "bytes": 1032404,
+   "asked": false
+  },
+  {
+   "file": "debs/libspeexdsp1_1.2.1-3_amd64.deb",
+   "package": "libspeexdsp1",
+   "version": "1.2.1-3",
+   "suite": "trixie",
+   "bytes": 42864,
+   "asked": false
+  },
+  {
+   "file": "debs/libsratom-0-0_0.6.18-1_amd64.deb",
+   "package": "libsratom-0-0",
+   "version": "0.6.18-1",
+   "suite": "trixie",
+   "bytes": 17692,
+   "asked": false
+  },
+  {
+   "file": "debs/libudisks2-0_2.10.1-12.1+deb13u2_amd64.deb",
+   "package": "libudisks2-0",
+   "version": "2.10.1-12.1+deb13u2",
+   "suite": "trixie",
+   "bytes": 154496,
+   "asked": false
+  },
+  {
+   "file": "debs/libupower-glib3_1.90.9-1_amd64.deb",
+   "package": "libupower-glib3",
+   "version": "1.90.9-1",
+   "suite": "trixie",
+   "bytes": 38968,
+   "asked": false
+  },
+  {
+   "file": "debs/libusbmuxd-2.0-7_2.1.0-1+b1_amd64.deb",
+   "package": "libusbmuxd-2.0-7",
+   "version": "2.1.0-1+b1",
+   "suite": "trixie",
+   "bytes": 17048,
+   "asked": false
+  },
+  {
+   "file": "debs/libuv1t64_1.50.0-2_amd64.deb",
+   "package": "libuv1t64",
+   "version": "1.50.0-2",
+   "suite": "trixie",
+   "bytes": 153752,
+   "asked": false
+  },
+  {
+   "file": "debs/libvolume-key1_0.3.12-9_amd64.deb",
+   "package": "libvolume-key1",
+   "version": "0.3.12-9",
+   "suite": "trixie",
+   "bytes": 119956,
+   "asked": false
+  },
+  {
+   "file": "debs/libvorbis0a_1.3.7-3_amd64.deb",
+   "package": "libvorbis0a",
+   "version": "1.3.7-3",
+   "suite": "trixie",
+   "bytes": 89960,
+   "asked": false
+  },
+  {
+   "file": "debs/libvorbisenc2_1.3.7-3_amd64.deb",
+   "package": "libvorbisenc2",
+   "version": "1.3.7-3",
+   "suite": "trixie",
+   "bytes": 75432,
+   "asked": false
+  },
+  {
+   "file": "debs/libwayland-cursor0_1.23.1-3_amd64.deb",
+   "package": "libwayland-cursor0",
+   "version": "1.23.1-3",
+   "suite": "trixie",
+   "bytes": 11880,
+   "asked": false
+  },
+  {
+   "file": "debs/libwayland-egl1_1.23.1-3_amd64.deb",
+   "package": "libwayland-egl1",
+   "version": "1.23.1-3",
+   "suite": "trixie",
+   "bytes": 5860,
+   "asked": false
+  },
+  {
+   "file": "debs/libwebrtc-audio-processing-1-3_1.3-3+b1_amd64.deb",
+   "package": "libwebrtc-audio-processing-1-3",
+   "version": "1.3-3+b1",
+   "suite": "trixie",
+   "bytes": 385136,
+   "asked": false
+  },
+  {
+   "file": "debs/libwireplumber-0.5-0_0.5.8-2_amd64.deb",
+   "package": "libwireplumber-0.5-0",
+   "version": "0.5.8-2",
+   "suite": "trixie",
+   "bytes": 277024,
+   "asked": false
+  },
+  {
+   "file": "debs/libwpd-0.10-10_0.10.3-2+b2_amd64.deb",
+   "package": "libwpd-0.10-10",
+   "version": "0.10.3-2+b2",
+   "suite": "trixie",
+   "bytes": 262988,
+   "asked": false
+  },
+  {
+   "file": "debs/libwpg-0.3-3_0.3.4-3+b2_amd64.deb",
+   "package": "libwpg-0.3-3",
+   "version": "0.3.4-3+b2",
+   "suite": "trixie",
+   "bytes": 81328,
+   "asked": false
+  },
+  {
+   "file": "debs/libxcb-shape0_1.17.0-2+b1_amd64.deb",
+   "package": "libxcb-shape0",
+   "version": "1.17.0-2+b1",
+   "suite": "trixie",
+   "bytes": 105624,
+   "asked": false
+  },
+  {
+   "file": "debs/libxcomposite1_1%3a0.4.6-1_amd64.deb",
+   "package": "libxcomposite1",
+   "version": "1:0.4.6-1",
+   "suite": "trixie",
+   "bytes": 16348,
+   "asked": false
+  },
+  {
+   "file": "debs/libxdamage1_1%3a1.1.6-1+b2_amd64.deb",
+   "package": "libxdamage1",
+   "version": "1:1.1.6-1+b2",
+   "suite": "trixie",
+   "bytes": 15460,
+   "asked": false
+  },
+  {
+   "file": "debs/libxml++2.6-2v5_2.42.3-2_amd64.deb",
+   "package": "libxml++2.6-2v5",
+   "version": "2.42.3-2",
+   "suite": "trixie",
+   "bytes": 82440,
+   "asked": false
+  },
+  {
+   "file": "debs/libxss1_1%3a1.2.3-1+b3_amd64.deb",
+   "package": "libxss1",
+   "version": "1:1.2.3-1+b3",
+   "suite": "trixie",
+   "bytes": 16984,
+   "asked": false
+  },
+  {
+   "file": "debs/libxtst6_2%3a1.2.5-1_amd64.deb",
+   "package": "libxtst6",
+   "version": "2:1.2.5-1",
+   "suite": "trixie",
+   "bytes": 25756,
+   "asked": false
+  },
+  {
+   "file": "debs/libxv1_2%3a1.0.11-1.1+b3_amd64.deb",
+   "package": "libxv1",
+   "version": "2:1.0.11-1.1+b3",
+   "suite": "trixie",
+   "bytes": 23356,
+   "asked": false
+  },
+  {
+   "file": "debs/libxxf86dga1_2%3a1.1.5-1+b3_amd64.deb",
+   "package": "libxxf86dga1",
+   "version": "2:1.1.5-1+b3",
+   "suite": "trixie",
+   "bytes": 20780,
+   "asked": false
+  },
+  {
+   "file": "debs/libzix-0-0_0.6.2-1_amd64.deb",
+   "package": "libzix-0-0",
+   "version": "0.6.2-1",
+   "suite": "trixie",
+   "bytes": 23088,
+   "asked": false
+  },
+  {
+   "file": "debs/login_1%3a4.16.0-2+really2.41.5-0+deb13u1_amd64.deb",
+   "package": "login",
+   "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+   "suite": "trixie",
+   "bytes": 114952,
+   "asked": false
+  },
+  {
+   "file": "debs/lxpolkit_0.5.6-2_amd64.deb",
+   "package": "lxpolkit",
+   "version": "0.5.6-2",
+   "suite": "trixie",
+   "bytes": 12024,
+   "asked": true
+  },
+  {
+   "file": "debs/lxsession-data_0.5.6-2_all.deb",
+   "package": "lxsession-data",
+   "version": "0.5.6-2",
+   "suite": "trixie",
+   "bytes": 125820,
+   "asked": false
+  },
+  {
+   "file": "debs/parted_3.6-5+deb13u1_amd64.deb",
+   "package": "parted",
+   "version": "3.6-5+deb13u1",
+   "suite": "trixie",
+   "bytes": 40184,
+   "asked": false
+  },
+  {
+   "file": "debs/pipewire-bin_1.4.2-1_amd64.deb",
+   "package": "pipewire-bin",
+   "version": "1.4.2-1",
+   "suite": "trixie",
+   "bytes": 600352,
+   "asked": false
+  },
+  {
+   "file": "debs/pipewire-pulse_1.4.2-1_amd64.deb",
+   "package": "pipewire-pulse",
+   "version": "1.4.2-1",
+   "suite": "trixie",
+   "bytes": 24696,
+   "asked": true
+  },
+  {
+   "file": "debs/pipewire_1.4.2-1_amd64.deb",
+   "package": "pipewire",
+   "version": "1.4.2-1",
+   "suite": "trixie",
+   "bytes": 117876,
+   "asked": true
+  },
+  {
+   "file": "debs/polkitd_126-2_amd64.deb",
+   "package": "polkitd",
+   "version": "126-2",
+   "suite": "trixie",
+   "bytes": 122468,
+   "asked": false
+  },
+  {
+   "file": "debs/python3-gi_3.50.0-4+b1_amd64.deb",
+   "package": "python3-gi",
+   "version": "3.50.0-4+b1",
+   "suite": "trixie",
+   "bytes": 235504,
+   "asked": false
+  },
+  {
+   "file": "debs/python3-pyatspi_2.46.1-1_all.deb",
+   "package": "python3-pyatspi",
+   "version": "2.46.1-1",
+   "suite": "trixie",
+   "bytes": 42124,
+   "asked": true
+  },
+  {
+   "file": "debs/python3-uno_4%3a25.2.3-2+deb13u9_amd64.deb",
+   "package": "python3-uno",
+   "version": "4:25.2.3-2+deb13u9",
+   "suite": "trixie",
+   "bytes": 173684,
+   "asked": true
+  },
+  {
+   "file": "debs/sgml-base_1.31+nmu1_all.deb",
+   "package": "sgml-base",
+   "version": "1.31+nmu1",
+   "suite": "trixie",
+   "bytes": 10868,
+   "asked": false
+  },
+  {
+   "file": "debs/udisks2_2.10.1-12.1+deb13u2_amd64.deb",
+   "package": "udisks2",
+   "version": "2.10.1-12.1+deb13u2",
+   "suite": "trixie",
+   "bytes": 450236,
+   "asked": true
+  },
+  {
+   "file": "debs/upower_1.90.9-1_amd64.deb",
+   "package": "upower",
+   "version": "1.90.9-1",
+   "suite": "trixie",
+   "bytes": 94296,
+   "asked": true
+  },
+  {
+   "file": "debs/wireless-regdb_2026.09.03-1~deb13u1_all.deb",
+   "package": "wireless-regdb",
+   "version": "2026.09.03-1~deb13u1",
+   "suite": "trixie",
+   "bytes": 12548,
+   "asked": true
+  },
+  {
+   "file": "debs/wireplumber_0.5.8-2_amd64.deb",
+   "package": "wireplumber",
+   "version": "0.5.8-2",
+   "suite": "trixie",
+   "bytes": 106952,
+   "asked": true
+  },
+  {
+   "file": "debs/wpasupplicant_2%3a2.10-24_amd64.deb",
+   "package": "wpasupplicant",
+   "version": "2:2.10-24",
+   "suite": "trixie",
+   "bytes": 1426452,
+   "asked": true
+  },
+  {
+   "file": "debs/x11-utils_7.7+7_amd64.deb",
+   "package": "x11-utils",
+   "version": "7.7+7",
+   "suite": "trixie",
+   "bytes": 181524,
+   "asked": true
+  },
+  {
+   "file": "debs/xdg-utils_1.2.1-2_all.deb",
+   "package": "xdg-utils",
+   "version": "1.2.1-2",
+   "suite": "trixie",
+   "bytes": 75840,
+   "asked": true
+  },
+  {
+   "file": "debs/xml-core_0.19_all.deb",
+   "package": "xml-core",
+   "version": "0.19",
+   "suite": "trixie",
+   "bytes": 20088,
+   "asked": false
+  },
+  {
+   "file": "debs/xsecurelock_1.9.0-1_amd64.deb",
+   "package": "xsecurelock",
+   "version": "1.9.0-1",
+   "suite": "trixie",
+   "bytes": 72640,
+   "asked": true
+  }
+ ],
+ "bytes": 42920136
+}
