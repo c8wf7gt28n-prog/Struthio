@@ -302,6 +302,16 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 03:20 UTC: **Wave 2 merged.** S2 (e9bfda4: Apps from what is installed, Open with, defaults; smoke 45/45),
+  L2 (3344797: the bulletin board; smoke all OK in both looks), P1 (74660b4: her column as in the picture; smoke 58/58;
+  a real conflict in shell2's install lines resolved by keeping both). Coordinator frames of the board and her column
+  together (`wip/2026-11-26_b100_saved/frames_wave2/`) sent to the owner. Notes: the window checks (not run) will expect
+  the Field after launch, the old head equalizer and masthead; L2: Rail Demo's build sometimes lacks the refuted
+  finding's check step (the Field varies; the board reads the investigation's checks); her column shows an empty gap
+  above ACTIVE WORK when there is no exchange yet (P2 to polish). **Wave 3 launched:** L4 (depths; agent
+  aa404cdc3e51b08b7), S4 (the Machine; agent a0e03a4dfe43b7a72); S3 still running (agent a5b15e74052f12b98). Next:
+  P2 (the Day look), L5 (tabs and split), S5.
+
 - 26 Nov 02:30 UTC: **1.0 L3 merged** (f2bf15e: relevance with reasons, four sizes, hysteresis, pin / turn down / why;
   smoke 36/36). L2 told it is in. Its notes: `relation` reads "candidate <relation> focus"; relevance.why answers from
   the window's memory (the command line gets "not on this board now"); P1 may call `note_request` from its own ask line.
