@@ -834,16 +834,10 @@ def build_from_model(i, steps):
             'left_out': [], 'more': []}
 
 
-<<<<<<< ours
-def inputs_for(desk, objective, desk_plan=None, clauses=None):
-    """One PLAN question: the tools a step may use here, the desk's things (those their words name first), the spans of their
-    words a step may take (numbers and quoted names), what "that one" and "the earlier one" are (the desk's deduction)."""
-=======
 def menu(desk):
     """1.0 K4b: the PLAN menu for this desk: ((number, key, short words, what it takes), ...), the step tools that are here
     and whose things are on the desk (USES), in number order. It depends only on the registry and on the kinds of things
     the desk holds, so it is the same for every request on a desk, and is primed with the brief."""
->>>>>>> theirs
     from . import tools_registry
     kinds = {t.kind for t in desk.things} | {'Writer' for t in desk.things if t.kind == 'document' and t.data.get('format') == 'Writer'}
     tools = []
@@ -890,7 +884,7 @@ def named(desk, objective, clauses=None):
 
 def inputs_for(desk, objective, desk_plan=None, clauses=None):
     """One PLAN question: the tools a step may use here (the menu), the desk's things the request names (1.0 K4b: only
-    those), the spans of his words a step may take (numbers and quoted names), what "that one" and "the earlier one" are
+    those), the spans of their words a step may take (numbers and quoted names), what "that one" and "the earlier one" are
     (the desk's deduction)."""
     clauses = read(objective) if clauses is None else clauses
     tools = list(menu(desk))                                  # 1.0 K4b
