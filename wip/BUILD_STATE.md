@@ -306,7 +306,9 @@ instruction); no other new tests or reviews.
   Desktop and the Ghost in the Shell" and a picture of the desktop). Defaults taken (desktop first; tool use with a
   sealed sandbox, real files always ask; compact portrait). Plan written: `wip/2026-11-26_road_to_1.0/PLAN_1.0.md`,
   builders' header `BRIEF_HEADER.md`, helpers saved to `wip/build_tools/`. The wake-up re-enabled. Wave 1 launched:
-  S1 (the session that survives), L1 (one navigation state), K1 (assignments and the journal).
+  S1 (the session that survives), L1 (one navigation state), K1 (assignments and the journal). Agents (for SendMessage after
+  a usage limit): S1 a56f6500c0c1ee84e, L1 a593030a3555ebc40, K1 add06fc8b99aba012. Next: wave 2 (L2, L3, P1, S2) as
+  wave 1 lands.
 
 - 26 Nov 01:15 UTC: **0.8.7 RELEASED, NOT TESTED** (the owner's rule). **X7b merged** (83332a6: Home Demo READ primed and
   sent, page marks scored on a subset with precision and recall, asking is not harm, STEER through the order test and
