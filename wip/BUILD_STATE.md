@@ -316,6 +316,14 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 09:40 UTC: Talk for the owner: `wip/2026-11-26_TALK_how_1.0_works.md` (sent). **1.0 K4 merged** (c834287:
+  objective to plan; desk plan and PLAN model turn; AGENT-01 retired behind a pointer; the real 4B came LATE at 20 s and
+  the desk's plan was offered honestly). **1.0 K7 merged** (ef17efb: AT-SPI reading over QtDBus, read-only; a dialog
+  during a change step means 'needs review'; merged by hand with K3/K4 in the step runner: four places, both kept; the
+  three-step plan run once after: all done). **K9 launched** (her hand in other programs; agent afe1617df2381a0a2).
+  **K4b added and launched** (prime PLAN's brief at Ready so the real 4B answers in time; agent ab9b88e2d44b0178b).
+  Running: P3, K8, K9, K4b. Still to start: F1, F2, A1, X1, X2, R1, R2.
+
 - 26 Nov 08:45 UTC: The owner asked why no model ever runs: answered (the 35B cannot fit here; builders used stand-ins);
   taken: the real 4B in the loop from K4 on (K4 told), and **K9 added** (her hand in other programs). **1.0 K6 merged**
   (3b8c435: the utility sandbox: network namespace, Landlock, seccomp, limits; Apply always asks; smoke 41/41), with

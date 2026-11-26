@@ -377,6 +377,13 @@ accessibility): open the invented report, find the sentence through the accessib
 menu's Save, and verify the file on disk; a dialog 'Keep current format?' read and answered only as granted; a key
 press from the owner stops her between two acts.
 
+**K4b · Her plan in time on a slow machine** (found by K4: with the real 4B here the PLAN turn was priced at 15.8 s
+and came late at its 20 s deadline, so the desk's plan was offered). Prime PLAN's standing instructions and the tool
+menu into the model's kept prompt when the model becomes ready (0.8.7's A2 prompt reuse; X7b did the same for READ),
+keyed so a changed desk or registry primes again; keep the PLAN prompt lean (the menu as short numbered lines; only the
+desk's handles the request names); measure the second PLAN turn with the real 4B here. Never raise a deadline or the
+request's ceiling to make it fit: if it is still late, say so and leave the desk's plan as the fallback.
+
 **The model in the loop** (the owner, 26 Nov: "How come we never have a LLM running?"). From K4 on, the slices where
 the model has a part (K4's plans, K6's utilities, K9's acts, X1's day) run their acceptance once with the real 4B here
 (under the model lock; this machine cannot hold the 35B), and frames show her with the model ready. X1's day runs with
