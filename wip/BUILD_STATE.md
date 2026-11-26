@@ -65,16 +65,13 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 
 | Release | State |
 |---|---|
-| 0.8.4 · Tests you can believe | **DELIVERED 20 Nov 03:35 UTC** (commit b6bdb50; kit sent; `wip/2026-11-20_release_084/`) |
-| 0.8.5 · Maths in lines (the owner's new order) | **in progress** (see the log) |
-| 0.8.6 · Her door on the Field | not started (half-build saved: `wip/2026-11-14/hand_s1/`) |
-| 0.8.7 · Her hand in a program (LibreOffice) | not started |
-| 0.8.8 · Maths in lines | not started (design: `wip/2026-11-14/pal/judge_one-math-core.md`) |
-| 0.8.9 · Goals, quarantine and the web | not started |
-| 0.8.10 · Changes through her hand | not started |
-| 0.8.11 · Her question, and the experiment | not started |
-| 0.8.12 · The floor | not started |
-| 0.9.0 candidate | not started (its gates close only on the ThinkPad) |
+| 0.8.4 · Tests you can believe | **DELIVERED 20 Nov 03:35 UTC** (commit b6bdb50; `wip/2026-11-20_release_084/`) |
+| 0.8.5 · Maths in lines | **DELIVERED 20 Nov** |
+| 0.8.6 · Kas's mind without a model | **RELEASED UNTESTED 20 Nov 15:21 UTC** (kit from d97127c; `wip/2026-11-20_release_086/`) |
+| 0.8.7 · Kas's mind with the model, interwoven | **RELEASED UNTESTED 26 Nov** (kit from ddf0aed; `wip/2026-11-26_release_087/`) |
+| the test pass | **waiting for the owner's model results** ("We test before 88"); then a talk sets 0.8.8's goal |
+| 0.8.8 · One united pass: floor, door mechanics, hand | not started; brings 0.9.0 |
+| 0.9.x · Apps (web, LibreOffice, Godot, GIMP) | not started; until 1.0 |
 
 ## 0.8.4 steps
 
@@ -277,6 +274,17 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 01:15 UTC: **0.8.7 RELEASED, NOT TESTED** (the owner's rule). **X7b merged** (83332a6: Home Demo READ primed and
+  sent, page marks scored on a subset with precision and recall, asking is not harm, STEER through the order test and
+  tripwire, brief.vocabulary reads the 4B, `tests_integrated/data/exam/DISAGREEMENTS.md`; on a stand-in the short exam
+  asks 114 of 127 at the 35B's rates). Release commit f86f8a9, then ddf0aed (two examples corrected to what the window
+  does, from W7's own notes). **Kit cut from ddf0aed:** 10 parts and START_HERE, every ZIP under 15 MB; restored with
+  INSTALL_LS identical to the commit except wip/, tools/planted_bugs/, tools/i05_kit/; release check PASSED on the
+  restored tree (1,471 files). Start page, cut log, sums and two new screenshots of the Brain room's Check her model
+  tab in `wip/2026-11-26_release_087/`. Not built (listed in the notes): C6c, B7, C6d, A6 (if room), A7 dropped, the
+  FRAME kind. **Next: wait for the owner's model check results** (the two files in `for-sending/`), then the test pass,
+  then a talk that sets 0.8.8's goal. The "if room" slices are not started: the owner said "let's just finish 0.8.7".
 
 - 26 Nov 01:05 UTC: The weekly limit reset. Since the last entry: **W7 merged** (0a9de1b: voice floor in her column,
   Ask the Library and Read this table in the window, cross-references, Leave it, her clock line, Remember and Retire;
