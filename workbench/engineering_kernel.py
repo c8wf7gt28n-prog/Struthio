@@ -98,6 +98,7 @@ from . import app_files  # 1.0 A1 (programs by window and file): appfile.list (r
 from . import a11y_hand  # 1.0 K9 (her hand in other programs): program.status, .look, .find (read); program.open, .type, .press, .save (execute); program.answer, .shown (approve) (recorded additions)
 from . import hand_door  # 1.0 F1 (the door's mechanics): hand.door (read); hand.door.continue, hand.door.stop (approve: your Continue, your Stop) (recorded additions)
 from . import quick_model  # 1.0 M2 (a quick model beside hers): brain.quick.status (read); brain.quick.stop, brain.quick.split (execute); brain.quick.use (approve) (recorded additions)
+from . import everyday_desk  # noqa: F401  1.0 X3 (everyday sessions): the desk's planner learns tidy and put back (K4's PLAN_VERBS hook); no operation of its own
 
 PROGRAM_HANDLERS = {
     op: service

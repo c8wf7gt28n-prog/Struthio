@@ -525,7 +525,7 @@ def install(host):
     host.installEventFilter(host.arc_controller)
     host.toolbar.installEventFilter(host.arc_controller)  # the ribbon narrows when the navigator widens
     host.arc_controller.resize()
-    host.setWindowTitle('Graphite · The Silicon Federation workshop')
+    host.setWindowTitle('Graphite')  # 1.0 X3: the dock, the window list and the leave dialog name the window by this (it said "The Silicon Federation workshop")
     # The dock retitle renames its toggle action; refresh the icon-only favourites' accessible names.
     host._refresh_favorite_buttons()
 

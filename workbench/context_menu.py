@@ -1788,7 +1788,8 @@ TARGET_GLYPH = {'table': 'table', 'datasheet': 'page', 'file': 'page', 'drawing'
                 'passage': 'cell', 'page': 'document', 'library': 'stack', 'cabinet': 'folder', 'tree': 'folder', 'work': 'folder', 'machine': 'chip',
                 'setting': 'sliders', 'job': 'running', 'queued': 'agenda', 'event': 'lines', 'connection': 'port', 'packet': 'port',
                 'program': 'rooms', 'command': 'prompt',
-                'home-file': 'page', 'home-folder': 'folder'}      # 1.0 L6b: a file or folder of your home, in the tree
+                'home-file': 'page', 'home-folder': 'folder',      # 1.0 L6b: a file or folder of your home, in the tree
+                'drive-file': 'page', 'drive-folder': 'folder'}    # 1.0 X3: a file or folder on a removable drive (copied home)
 GLYPH_EXACT = {
     'open:outside': 'window', 'process': 'window', 'open:viewer': 'page', 'job:show': 'source', 'copy:original': 'source', 'viewer:folder': 'source',
     'show:folder': 'source', 'show:files': 'source', 'show:finder': 'source', 'show:log': 'source', 'change:files': 'source', 'change:none': 'info',
@@ -1869,6 +1870,7 @@ REST = {
     'work': ('open', 'export', 'new:idea', 'new:project', 'import', 'refresh'), 'machine': ('show:finder', 'open', 'copy:row', 'refresh'),
     'setting': ('open', 'search', 'copy:key', 'expand'),
     'home-file': ('open:outside', 'rename', 'move:to', 'trash'), 'home-folder': ('new:folder', 'rename', 'move:to', 'trash'),  # 1.0 L6b
+    'drive-file': ('open:outside', 'copy:to', 'copy:path'), 'drive-folder': ('copy:to', 'open', 'copy:path'),  # 1.0 X3
     'program': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas'),
     'command': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas')}
 

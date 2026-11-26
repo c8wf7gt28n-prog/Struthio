@@ -1,0 +1,66 @@
+{
+  "item": "X3",
+  "status": "built; 11 of the 12 everyday sessions walked in the window (session 11, her hand in a program, not walked: see not_done); nothing tested in the owner's sense",
+  "summary": "An invented everyday Home (workbench/everyday_demo.py, its own door: python -m workbench.everyday_demo FOLDER, a throwaway folder; Documents with a letter, a lease PDF, a manual PDF and a Calc budget; a dozen photos drawn with Qt; a messy Downloads with duplicates, an .ods and a .zip; Music; Desktop; a HOLIDAY stick's photos). Sessions 1-10 and 12 walked end to end in Graphite's window under Xvfb with the stand-in window manager, in the Day look, with frames and a plain account (b100/X3.account.md). Two ordinary requests had no route and now go through the desk (workbench/everyday_desk.py): \"what did we spend on groceries this month?\" (read through registered tool 18 with receipts, summed exactly: 244.65) and \"tidy my Downloads … sort the files by type\" with \"put … back\" (a desk plan of registered tools 7 and 6, authorised, verified step by step). Small fixes marked 1.0 X3: Copy to… (also from a removable drive), the tree re-reading drives after Mount/Eject, Files shown again after a Machine page, Authorise all for long plans, the one-press grant for a move into a subfolder, the window title. Her language parts ran once with the real 4B (v1.0.0 runtime) under the model lock.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/X3.patch",
+  "notes_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/X3.progress.md",
+  "account_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/X3.account.md",
+  "frames": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/X3/frames",
+  "files_changed": [
+    "workbench/everyday_demo.py (new)",
+    "workbench/everyday_desk.py (new)",
+    "workbench/home_files_qt.py",
+    "workbench/context_menu.py",
+    "workbench/machine_room_qt.py",
+    "workbench/settings_qt.py",
+    "workbench/shell2.py (2 lines)",
+    "workbench/engineering_kernel.py (1 import line)",
+    "workbench/assignments.py",
+    "workbench/grants.py",
+    "workbench/arc_desktop.py"
+  ],
+  "smoke": {
+    "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/X3/walk.py (with /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/X3/walk_more.py and /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/X3/run.sh, run inside /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/X3/wrap.sh: Xvfb, the stand-in window manager, stand-in udisks2/UPower/NetworkManager, wpctl, xrandr, a local stand-in web, logind patched; the copy's seed made current first); the real-4B run: /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/X3/run_model.sh",
+    "output": [
+      "S1 first start 6.6-8.1 s; Home selected; photo focused (FILE tile), opened (image view), Board; manual opened (PDF view), Board: all as a person does; centre blank at first start",
+      "S2 [ok] New folder \"Taxes 2026\"; three PDFs dragged from Downloads into it; renamed one; Undo: \"Undone: the old name is back.\"",
+      "S3 [ok] stick plugged in (seen without a press), Mount (read back), 100DEMO copied to ~/Pictures (4 photos, after the Copy to… fix), Eject safely: \"Safe to remove … (it has left the list)\"",
+      "S4 [ok] Apps -> LibreOffice Writer (real soffice window); letter saved as ~/Documents/Letter to the council.odt; its tile on the board; saved again in Writer: \"was saved by another program at 17:20: revision 2 is recorded.\"",
+      "S5 [ok] \"We spent 244.65 on groceries in November 2026: 7 rows of the sheet “Spending” … (cells D11:D12, D14:D15, D17:D18, D20), read at revision 18e54dd964cb. Receipt: office.read (tool 18), …, complete, verified.\" (same with the 4B ready)",
+      "S6 [ok] \"I would do it in 16 steps …\"; Authorise all, Carry on: every step done (verified); Downloads sorted into Archives, PDFs, Pictures, Spreadsheets, Text; \"put my Downloads folder back\": 11 steps done (verified), 11 of 11 files back (folders left empty)",
+      "S7 [ok] offline: \"blocked: needs the network … Nothing was sent. Search words, from your words only\"; online (stand-in): Try it now -> done; the recipe page in quarantine with the injected line withheld and outlined",
+      "S8 two programs (xterm, uxterm) from Apps; the dock lists them; a press brings one forward; a notify-send-shaped notification shows as a toast without taking the focus; \"Graphite\" in the dock brings Graphite back (verified)",
+      "S9 Default apps: PDF -> Demo PDF Reader (mimeapps.list); Sound 40 % -> 65 % (read back); Screens Mirror (read back) with Keep / Go back, Go back -> extend",
+      "S10 [ok] HALT mid-tidy: \"Stopped by you with HALT. Done (verified): steps 1, 2, 3 and 4. Not started: 5 … 16.\"; nothing ran while held; RESUME, then Resume and Carry on: all 16 done, 1-4 not redone",
+      "S12 [ok] Log out: \"Leave Graphite?\" (Keep and close), the leave dialog names XTerm and UXTerm, asks them to close: \"All the apps have closed.\", the confirmation, then (stand-in logind) loginctl terminate-session 7",
+      "S13 (real 4B, started in 59 s, READY) \"is there anything in this manual about the machine draining slowly?\": 18.9 s; the file's record, then the model's own words (marked as such): \"They do not contain any information about the machine draining slowly.\" (wrong for the person: page 3 says so; her read of a Home PDF is its record only)",
+      "every run: walk exit 0, no traceback on stderr"
+    ]
+  },
+  "existing_tests_changed": [],
+  "decisions": [
+    "The everyday Home is built by its own door into FOLDER/home (never the person's real home); the window walking it runs with HOME=FOLDER/home and Graphite's workspace at ~/Concern/Ledger as a fresh install keeps it. Not offered in Guide ▸ Try (a demo there would write into the owner's real home folder).",
+    "Files are written directly (PDFs byte by byte like Home Demo, ODT/ODS with K5's package helpers, photos with QImage/QPainter shapes only, sounds as integer square waves): deterministic, no LibreOffice or window system needed to build.",
+    "The two missing routes were added as the desk's own work (no model): the spending question as a read through registered tool 18 with its receipts; tidy/put back through K4's PLAN_VERBS hook (as K9's replace), registry tools 6 and 7 only, origins as deductions said in words. No new Kernel operation, so no registry change.",
+    "\"Authorise all n steps\" is offered first only for more than three waiting steps; the Kernel's \"all\" still leaves a step that must be authorised by its own name.",
+    "The one-press grant for a move into a subfolder is the grant on the outer folder (a folder grant already covers its subfolders); it never widens beyond the folders the step names.",
+    "In the walk: typing and saving in LibreOffice were stood in by UNO over the window's pipe (no keyboard here); the network state was reported as K8's frames did; logind was patched (nothing issued); move steps were slowed 0.6 s in session 10 so HALT had a middle to land in; the walk placed Graphite below its dock because the stand-in manager reads no strut. Each is said in the account.",
+    "My throwaway copy's seed is made current (package_graphite.py --manifest-only, in the copy only) before each walk, as a merge does: without it her desk answered \"Graphite seed/source binding is not current\"."
+  ],
+  "findings_for_the_coordinator": [
+    "Her reading of Home files: a question about a PDF of your home reads only its record; with the 4B ready she said the records hold nothing about draining slowly while the manual's page 3 does (session 13). Ranked first.",
+    "Session 11 (her hand in a program, a touch stops her) not walked: needs K9's stand-in AT-SPI bridge, and F1 is merged on main but not in this tree; walk it on the merged tree.",
+    "The model's PLAN menu has no file tools and plans at most four steps: a tidy with a model is the desk's plan only.",
+    "Grants are per operation: under \"Grant it\" for moves, the same tidy's folder steps still waited; the files.organise family could be the one-press grant for such a plan.",
+    "The stand-in window manager reads no strut; on the ThinkPad check the dock's strut and that program windows do not open over HALT.",
+    "For D2 (ranked in the account): blank centre at first start and through tree work; receipts and plans under the fold of her exchange; \"the Field\"/\"the selected sheet\"/\"prompt\" words; whole /tmp-style paths in her lines; engineering verbs on household files; tile wording (photo without picture, \"a folder, in ~ ~/Downloads\", \"home\"); breadcrumb elided with room free.",
+    "For F2: a spreadsheet read through LibreOffice ~10 s (direct read <1 s); first paint 6.6-8.1 s here; the 4B start 59 s and first answer 18.9 s on this CPU."
+  ],
+  "not_done": [
+    "Session 11 (her hand in a program: fill a field, a touch stops her): not walked (reasons above).",
+    "No Graphite or Kasandra look frames: the brief for X3 asks the Day look only (1920x1200 all sessions; 1366x768 for 1, 5, 6), as walked.",
+    "Her portrait is in the frames (P4 removes it; ignored as the coordinator said).",
+    "Registry not regenerated: no Kernel operation or setting was added (one import line in engineering_kernel)."
+  ],
+  "release_note": "Everyday sessions: an invented everyday home (letters, a lease, a manual, photos, a messy Downloads, a household budget, a USB stick) walked in the window as a person would. Kasandra now answers \"what did we spend on groceries this month?\" from your budget with the exact total and its receipt, and tidies a folder by type on your word (and puts it back), every step a registered tool, verified. Copy to… in the Files tree, also from a USB stick; the tree shows a mounted stick at once; one press authorises a long plan."
+}

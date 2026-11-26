@@ -44,6 +44,7 @@ UNDO_MS = 45000                                   # the line with Undo stays thi
 FOCUS_MS = 900                                    # how often the focus is glanced at (a string compared; nothing read)
 CALM_MS = 300                                     # a burst of file events is looked at once
 KINDS = ('home-file', 'home-folder')
+DRIVE_KINDS = ('drive-file', 'drive-folder')      # 1.0 X3: a removable drive's rows: Open, Copy to…, Copy the path
 
 
 def kernel_of(host):
@@ -113,8 +114,12 @@ def target_for(host, page, node):
     kernel = kernel_of(host);path = path_of_row(ident)
     if kernel is None or not path:return None
     where, why = changeable(kernel, path)
-    if not where:return None
     from .context_menu import Target
+    if not where and ident[len(ct.FS):].startswith('drive:'):  # 1.0 X3: a file or folder on a mounted removable drive: copy it home
+        folder = node.get('role') == 'folder'
+        return Target('drive-folder' if folder else 'drive-file', node.get('label') or Path(path).name, '%s on a removable drive' % ('folder' if folder else 'file'),
+                      ident=ident, data=dict(node=node, path=str(path), area='drive'), surface='cabinet', owner=page, icon='files')
+    if not where:return None
     folder = node.get('role') == 'folder'
     noun = '%s %s' % ('folder' if folder else 'file', hr.AREA_WORDS[where])
     return Target('home-folder' if folder else 'home-file', node.get('label') or Path(path).name, noun, ident=ident,
@@ -123,9 +128,9 @@ def target_for(host, page, node):
 
 def entries(host, t):
     """context_menu's provider: what a person does to a file or folder of your home, from the tree."""
-    if t.surface != 'cabinet' or t.kind not in KINDS:return []
+    if t.surface != 'cabinet' or t.kind not in KINDS + DRIVE_KINDS:return []  # 1.0 X3: and a drive's files, to copy home
     from .context_menu import Entry, Refused, copy_text
-    path = Path(t.data['path']);folder = t.kind == 'home-folder';files = t.data.get('area') == hr.FILES
+    path = Path(t.data['path']);folder = t.kind in ('home-folder', 'drive-folder');files = t.data.get('area') == hr.FILES
 
     def run(do, *args):
         def go():
@@ -140,6 +145,11 @@ def entries(host, t):
                          tip='In its own program, in a window of its own; when the program saves it, the new revision is recorded here'))
     out.append(Entry('open', 'Open here' if not folder else 'Show it on the board', 'open', run(open_here, t.ident), operation='objects.get',
                      tip='Its working view in the centre' if not folder else 'The folder in the middle of the board'))
+    copy = Entry('copy:to', 'Copy to…', 'modify', run(copy_to, path), operation='files.copy',  # 1.0 X3: a copy, the original stays
+                 tip='A copy in another folder of your home; the original stays where it is. Undo puts the copy in DELETE')
+    if t.kind in DRIVE_KINDS:  # 1.0 X3: a removable drive's files are copied home, never changed from here
+        return out + [copy, Entry('copy:path', 'Copy the path', 'edit', lambda: copy_text(host, str(path), 'Copied the path'))]
+    out.append(copy)
     out.append(Entry('rename', 'Rename…', 'modify', run(rename, path), operation='files.rename',
                      tip='A new name in the same folder; it keeps its identity. Undo puts the old name back'))
     out.append(Entry('move:to', 'Move to…', 'modify', run(move_to, path), operation='files.move',
@@ -214,6 +224,20 @@ def move_to(host, path, folder=None):
     new = folder / str(moved.get('name') or path.name)
     return after(host, ident, new, 'Moved %s to %s.' % (path.name, shown(folder)),
                  undo=lambda: _move_back(host, new, path), undo_words='it is back in %s' % shown(path.parent))
+
+
+def copy_to(host, path, folder=None):
+    """1.0 X3: Copy to…, on your press: a copy in a folder of your home (from your home, Files or a removable drive); the
+    original stays. Undo puts the copy in DELETE."""
+    path = Path(path)
+    if folder is None:
+        folder = QFileDialog.getExistingDirectory(host, 'Copy %s to' % path.name, str(hr.home()))
+        if not folder:return None
+    folder = Path(folder)
+    made = act(host, 'files.copy', {'path': str(path), 'to': str(folder)})
+    new = folder / str(made.get('name') or path.name)
+    return after(host, '', new, 'Copied %s to %s; the original stays in %s.' % (path.name, shown(folder), shown(path.parent)),
+                 undo=lambda: (act(host, 'files.trash', {'path': str(new)}), None)[1], undo_words='the copy is in DELETE')
 
 
 def _move_back(host, new, old):

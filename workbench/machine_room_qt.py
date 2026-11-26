@@ -272,6 +272,12 @@ class MachineRoom(QWidget):
         self.busy = None;self.last = result
         if after is not None:after(result)
         self.reload(force=True)
+        if self.key == 'storage':  # 1.0 X3: a drive mounted, unmounted or ejected here shows so in the Files tree at once
+            tree = getattr(getattr(self.host, 'living_nav', None), 'computer', None)
+            if tree is not None:
+                tree.drives = None
+                page = tree.page()
+                if page is not None:page.refresh(force=True)
 
     # ---------------------------------------------------------------- drawing
     def draw(self):

@@ -755,6 +755,9 @@ def step_request(kernel, value, step, arguments=None):
     args = {'operation': step['operation'], 'scope': 'assignment', 'assignment': value['id']}
     if found['paths'] and not found['objects']:
         folders = {p.rsplit('/', 1)[0] if '/' in p else '' for p in found['paths'] if p is not None}
+        outer = min(folders, key=len) if folders and '' not in folders else ''
+        if len(folders) > 1 and outer and all(f == outer or f.startswith(outer.rstrip('/') + '/') for f in folders):
+            folders = {outer}  # 1.0 X3: a move into a folder inside the same folder (a tidy of Downloads) is one grant on that folder
         if len(folders) != 1 or '' in folders:return None
         args['folder'] = folders.pop()
     elif found['objects'] and not found['paths'] and len(set(found['objects'])) == 1:

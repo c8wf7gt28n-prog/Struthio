@@ -343,7 +343,10 @@ class SettingsNavigator:
 
     def return_to_cabinet(self):
         navigation=getattr(self.host,'navigation_controller',None)
-        if navigation:return navigation.cabinet()
+        if navigation:
+            opened=navigation.cabinet()
+            if self.current_view()!='cabinet':self.show_view('cabinet')  # 1.0 X3: Files pressed after a Machine page shows the Files tree
+            return opened
         self.show(False)
 
     def select(self,key=None,reveal=True):

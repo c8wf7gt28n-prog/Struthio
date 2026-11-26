@@ -2836,6 +2836,8 @@ class SlateFace(QWidget):
         if library_asked(self, text):return
         from .network_qt import asked as web_asked      # 1.0 K8: "look up …" on the web: the step planned from your words, sent only by your press
         if web_asked(self, text):return
+        from .everyday_desk import asked as everyday_asked  # 1.0 X3: "what did we spend on groceries this month?" from a spreadsheet of your home
+        if everyday_asked(self, text):return
         if self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
         if self.made_asked(text):return
         if self.set_asked(text):return

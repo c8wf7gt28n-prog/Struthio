@@ -1,0 +1,940 @@
+diff --git a/workbench/arc_desktop.py b/workbench/arc_desktop.py
+index afe97e2..a010c93 100644
+--- a/workbench/arc_desktop.py
++++ b/workbench/arc_desktop.py
+@@ -525,7 +525,7 @@ def install(host):
+     host.installEventFilter(host.arc_controller)
+     host.toolbar.installEventFilter(host.arc_controller)  # the ribbon narrows when the navigator widens
+     host.arc_controller.resize()
+-    host.setWindowTitle('Graphite · The Silicon Federation workshop')
++    host.setWindowTitle('Graphite')  # 1.0 X3: the dock, the window list and the leave dialog name the window by this (it said "The Silicon Federation workshop")
+     # The dock retitle renames its toggle action; refresh the icon-only favourites' accessible names.
+     host._refresh_favorite_buttons()
+ 
+diff --git a/workbench/assignments.py b/workbench/assignments.py
+index 973b2cf..4fe50e8 100644
+--- a/workbench/assignments.py
++++ b/workbench/assignments.py
+@@ -1300,6 +1300,11 @@ def _actions(value, words, nxt, stop_call):
+     if nxt is not None and nxt['status'] == 'proposed' and words not in ('interrupted', 'held', STOPPED_BY_YOU):
+         out.append({'words': 'Authorise step %d' % nxt['n'], 'operation': 'assignment.plan', 'yours': True,
+                     'arguments': {'id': ident, 'authorise': [nxt['key']], 'expected_digest': plan_digest(value)}})
++        waiting = [s for s in value['steps'] if s['status'] == 'proposed']
++        if len(waiting) > 3:  # 1.0 X3: a long plan (a tidy of Downloads: 16 steps) in one press, offered first ("Waits for you" shows the
++            # first Authorise); "all" still leaves a step that asks by its own name (always asks, the model's pick, your approval)
++            out.insert(len(out) - 1, {'words': 'Authorise all %d steps' % len(waiting), 'operation': 'assignment.plan', 'yours': True,
++                                      'arguments': {'id': ident, 'authorise': ['all'], 'expected_digest': plan_digest(value)}})
+     if words in ('interrupted', 'held', STOPPED_BY_YOU):
+         out.append({'words': 'Resume', 'operation': 'assignment.resume', 'arguments': {'id': ident}})
+     elif words == 'ready':
+diff --git a/workbench/context_menu.py b/workbench/context_menu.py
+index 1d246af..38e8a32 100644
+--- a/workbench/context_menu.py
++++ b/workbench/context_menu.py
+@@ -1788,7 +1788,8 @@ TARGET_GLYPH = {'table': 'table', 'datasheet': 'page', 'file': 'page', 'drawing'
+                 'passage': 'cell', 'page': 'document', 'library': 'stack', 'cabinet': 'folder', 'tree': 'folder', 'work': 'folder', 'machine': 'chip',
+                 'setting': 'sliders', 'job': 'running', 'queued': 'agenda', 'event': 'lines', 'connection': 'port', 'packet': 'port',
+                 'program': 'rooms', 'command': 'prompt',
+-                'home-file': 'page', 'home-folder': 'folder'}      # 1.0 L6b: a file or folder of your home, in the tree
++                'home-file': 'page', 'home-folder': 'folder',      # 1.0 L6b: a file or folder of your home, in the tree
++                'drive-file': 'page', 'drive-folder': 'folder'}    # 1.0 X3: a file or folder on a removable drive (copied home)
+ GLYPH_EXACT = {
+     'open:outside': 'window', 'process': 'window', 'open:viewer': 'page', 'job:show': 'source', 'copy:original': 'source', 'viewer:folder': 'source',
+     'show:folder': 'source', 'show:files': 'source', 'show:finder': 'source', 'show:log': 'source', 'change:files': 'source', 'change:none': 'info',
+@@ -1869,6 +1870,7 @@ REST = {
+     'work': ('open', 'export', 'new:idea', 'new:project', 'import', 'refresh'), 'machine': ('show:finder', 'open', 'copy:row', 'refresh'),
+     'setting': ('open', 'search', 'copy:key', 'expand'),
+     'home-file': ('open:outside', 'rename', 'move:to', 'trash'), 'home-folder': ('new:folder', 'rename', 'move:to', 'trash'),  # 1.0 L6b
++    'drive-file': ('open:outside', 'copy:to', 'copy:path'), 'drive-folder': ('copy:to', 'open', 'copy:path'),  # 1.0 X3
+     'program': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas'),
+     'command': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas')}
+ 
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 9d38df8..27cca50 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -96,6 +96,7 @@ from . import a11y_reader  # 1.0 K7 (reading other programs): accessibility.stat
+ from . import network_governed  # 1.0 K8 (the network, governed): web.state, web.words, web.pages, web.page (read); web.lookup, web.get (execute); web.search (approve, always asks) (recorded additions)
+ from . import app_files  # 1.0 A1 (programs by window and file): appfile.list (read); appfile.open, appfile.look (execute: a file of Files opened in its program, its window, saves and close) (recorded additions)
+ from . import a11y_hand  # 1.0 K9 (her hand in other programs): program.status, .look, .find (read); program.open, .type, .press, .save (execute); program.answer, .shown (approve) (recorded additions)
++from . import everyday_desk  # noqa: F401  1.0 X3 (everyday sessions): the desk's planner learns tidy and put back (K4's PLAN_VERBS hook); no operation of its own
+ 
+ PROGRAM_HANDLERS = {
+     op: service
+diff --git a/workbench/everyday_demo.py b/workbench/everyday_demo.py
+new file mode 100644
+index 0000000..e5fff47
+--- /dev/null
++++ b/workbench/everyday_demo.py
+@@ -0,0 +1,375 @@
++"""Everyday Home: an invented household home folder, for walking Graphite as a person uses a computer (Graphite 1.0 X3).
++
++The owner, 26 November 2026: "Should we simulate general user operations instead of the same rail tests?" Rail Demo is the
++engineering desk; Everyday Home is the ordinary computer around it: letters, a lease, a manual, photos, a messy Downloads
++folder, a household budget in Calc, a little music, a USB stick with holiday photos. Every name, address, amount, picture
++and sentence in it was made up for the purpose, and the papers say so (NOTICE on every page and in every file that has
++words). Nothing here is anyone's real data.
++
++What it holds ("today" is TODAY, Thursday 26 November 2026):
++
++    Documents   "Letter to the landlord.odt" (a Writer letter), "Lease - Flat 3 Orchard Row.pdf" (three pages),
++                "Washing machine manual.pdf" (four pages), "Household budget 2026.ods" (a Calc budget: a "Spending" sheet of
++                dated rows with a category and an exact amount, October and November, and a "Plan" sheet)
++    Pictures    a dozen small photos, drawn here with Qt (no camera, no EXIF): their captions are their file names
++    Downloads   a messy mix: bills and statements as PDFs (one bill twice), photos (one twice), a screenshot, an .ods
++                template, a .zip of three photos, a recipe as text
++    Music       two short sounds (WAV, made here from whole numbers)
++    Desktop     a shopping list and a to-do list
++    the USB stick   a folder of its own (DCIM/100DEMO with four photos) that a stand-in drive shows when it is mounted
++
++The groceries of November in the budget come to GROCERIES_NOVEMBER (244.65) exactly; October's to 204.60. Amounts are
++written as decimal text and summed here as Fractions, never as floating point.
++
++The door: `python -m workbench.everyday_demo FOLDER` builds it in FOLDER (a new or empty throwaway folder): the home folder
++in FOLDER/home, the stick's contents in FOLDER/usb, Graphite's workspace where a fresh install keeps it (FOLDER/home/Concern
++/Ledger) and a profile of its own in FOLDER/profile. It never writes into the home folder of the person at the computer:
++the window that walks it is started with environment(FOLDER), whose HOME is FOLDER/home. Deterministic: the same bytes
++every time (digests()). No network, no model, no LibreOffice needed (the OpenDocument files are written directly).
++
++    from workbench import everyday_demo
++    made = everyday_demo.build(folder)             # the home, the stick, the workspace's folder -> what was made
++    env = everyday_demo.environment(folder, 'day') # the environment a window walking it starts with
++"""
++from __future__ import annotations
++
++import hashlib
++import io
++import json
++import os
++import struct
++import sys
++import zipfile
++from datetime import date
++from fractions import Fraction
++from pathlib import Path
++
++NAME = 'Everyday Home'
++NOTICE = 'Invented example: no real person, place, account or address.'
++REVISION = 1                 # bump when what build() makes changes
++TODAY = date(2026, 11, 26)   # "today" in every Everyday Home example: Thursday 26 November 2026
++PHOTO_SIZE = (320, 240)      # small photos: a few kilobytes each
++FOLDERS = ('Documents', 'Pictures', 'Downloads', 'Music', 'Desktop')
++LETTER = 'Documents/Letter to the landlord.odt'
++LEASE = 'Documents/Lease - Flat 3 Orchard Row.pdf'
++MANUAL = 'Documents/Washing machine manual.pdf'
++BUDGET = 'Documents/Household budget 2026.ods'
++USB_LABEL = 'HOLIDAY'
++USB_FOLDER = 'DCIM/100DEMO'
++
++# ---- the photos: a scene each, drawn with Qt. Each: (sky top, sky bottom, horizon in % of the height, ground colour,
++#      shapes as (kind, colour, x, y, w, h) in % of the picture). Kinds: ellipse, rect, tri (a triangle up), tridown.
++SCENES = {
++    'Beach at dusk': ('#f7a35c', '#fcd7a1', 55, '#e9cf9b', (('ellipse', '#ff7b39', 62, 30, 16, 20), ('rect', '#3d6f9e', 0, 55, 100, 18),
++                                                            ('rect', '#5b8bb8', 0, 60, 100, 4))),
++    'Garden tomatoes': ('#9fd38a', '#6fae5a', 0, '#4f8a3c', (('ellipse', '#d8352a', 20, 30, 18, 22), ('ellipse', '#e2452f', 45, 45, 20, 24),
++                                                             ('ellipse', '#c92e24', 68, 22, 16, 20), ('rect', '#2f6b25', 28, 18, 2, 14))),
++    'Cat asleep on the sofa': ('#efe3d0', '#e4d4bb', 60, '#7a4f3a', (('rect', '#a0522d', 8, 40, 84, 40), ('rect', '#8b4513', 8, 30, 12, 50),
++                                                                     ('ellipse', '#8c8c8c', 35, 38, 32, 18), ('ellipse', '#7a7a7a', 60, 34, 12, 12))),
++    'Birthday cake with seven candles': ('#fbe9f0', '#f6d3e1', 70, '#d9c2a5', (('rect', '#f4c2d7', 25, 45, 50, 30), ('rect', '#ffffff', 25, 42, 50, 6),
++                                                                               ('rect', '#5aa0e6', 30, 30, 2, 12), ('rect', '#5aa0e6', 37, 30, 2, 12),
++                                                                               ('rect', '#5aa0e6', 44, 30, 2, 12), ('rect', '#5aa0e6', 51, 30, 2, 12),
++                                                                               ('rect', '#5aa0e6', 58, 30, 2, 12), ('rect', '#5aa0e6', 65, 30, 2, 12),
++                                                                               ('rect', '#5aa0e6', 71, 30, 2, 12), ('ellipse', '#ffb300', 29, 25, 4, 5))),
++    'Mountain lake in the morning': ('#a9d2f0', '#e5f1fa', 58, '#3b6f8f', (('tri', '#6b7c8c', 5, 18, 45, 40), ('tri', '#7d8e9e', 38, 10, 50, 48),
++                                                                           ('tri', '#ffffff', 56, 10, 14, 12), ('rect', '#5e9bc2', 0, 58, 100, 8))),
++    'Snowy street at night': ('#0d1b3a', '#1d2f5c', 70, '#e8edf5', (('rect', '#3b3b4f', 8, 40, 22, 30), ('rect', '#4a4a60', 36, 34, 26, 36),
++                                                                    ('rect', '#ffd36b', 42, 44, 6, 8), ('rect', '#ffd36b', 14, 50, 5, 7),
++                                                                    ('ellipse', '#ffffff', 70, 12, 3, 3), ('ellipse', '#ffffff', 82, 26, 2, 2))),
++    'Bicycle by the canal': ('#c7e2f5', '#eaf4fb', 50, '#46708f', (('ellipse', '#222222', 25, 42, 18, 24), ('ellipse', '#222222', 55, 42, 18, 24),
++                                                                   ('rect', '#c0392b', 33, 46, 30, 3), ('rect', '#8d8d8d', 0, 66, 100, 6))),
++    'Apples at the market stall': ('#f3e7cf', '#e8d7b3', 65, '#8a6a43', (('rect', '#a47a4a', 10, 50, 80, 30), ('ellipse', '#c0392b', 15, 40, 14, 16),
++                                                                         ('ellipse', '#27ae60', 30, 38, 14, 16), ('ellipse', '#e74c3c', 45, 40, 14, 16),
++                                                                         ('ellipse', '#2ecc71', 60, 38, 14, 16), ('ellipse', '#c0392b', 74, 40, 14, 16))),
++    'Autumn leaves in the park': ('#f5d08a', '#f0b25c', 62, '#7b4a1e', (('ellipse', '#d35400', 15, 30, 20, 14), ('ellipse', '#e67e22', 45, 20, 24, 16),
++                                                                        ('ellipse', '#c0392b', 70, 40, 18, 12), ('rect', '#5d3a1a', 52, 30, 4, 34))),
++    'Kitchen window with herbs': ('#dff0fb', '#c9e4f5', 72, '#f2f2f2', (('rect', '#ffffff', 10, 8, 80, 4), ('rect', '#ffffff', 48, 8, 4, 64),
++                                                                       ('rect', '#b5651d', 18, 60, 14, 14), ('rect', '#b5651d', 44, 60, 14, 14),
++                                                                       ('rect', '#b5651d', 70, 60, 14, 14), ('ellipse', '#3c9a3c', 16, 46, 18, 18),
++                                                                       ('ellipse', '#4caf50', 42, 44, 18, 20), ('ellipse', '#2e7d32', 68, 46, 18, 18))),
++    'Harbour boats': ('#bfe0f7', '#e7f3fc', 55, '#2f6d99', (('tridown', '#e74c3c', 15, 55, 26, 10), ('tridown', '#f1c40f', 55, 58, 28, 10),
++                                                            ('rect', '#ecf0f1', 26, 30, 2, 25), ('tri', '#ffffff', 28, 32, 12, 22))),
++    'Sunflowers by the fence': ('#8ec9f0', '#cfe8f8', 60, '#6a8f3c', (('rect', '#c8a165', 0, 50, 100, 22), ('ellipse', '#f4c20d', 15, 22, 18, 18),
++                                                                      ('ellipse', '#f4c20d', 45, 16, 20, 20), ('ellipse', '#f4c20d', 74, 24, 16, 16),
++                                                                      ('ellipse', '#6b3e1e', 20, 27, 8, 8), ('ellipse', '#6b3e1e', 51, 22, 8, 8))),
++}
++# the stick's four photos (a holiday by the sea), drawn the same way
++USB_SCENES = {
++    'Lighthouse on the point': ('#9ccdf0', '#d9eefb', 60, '#3a6d8c', (('rect', '#ffffff', 44, 18, 10, 42), ('rect', '#d0312d', 44, 28, 10, 6),
++                                                                      ('rect', '#d0312d', 44, 44, 10, 6), ('rect', '#7f8c8d', 30, 58, 40, 8))),
++    'Sandcastle with a flag': ('#a8d8f0', '#e6f5fc', 50, '#e8cf98', (('rect', '#d9b36c', 30, 50, 40, 20), ('rect', '#d9b36c', 44, 36, 12, 14),
++                                                                     ('rect', '#555555', 49, 20, 1, 16), ('rect', '#e74c3c', 50, 20, 8, 5))),
++    'Fish and chips on the harbour wall': ('#cfe7f7', '#eef7fc', 55, '#9aa5ad', (('rect', '#f5f0e1', 25, 48, 50, 20), ('ellipse', '#e0a84a', 30, 50, 24, 12),
++                                                                                 ('rect', '#f2c14e', 55, 52, 3, 12), ('rect', '#f2c14e', 60, 50, 3, 14))),
++    'Sunset over the bay': ('#f39c5a', '#fbd3a0', 58, '#2b4f74', (('ellipse', '#ff6f2c', 40, 40, 20, 24), ('rect', '#2b4f74', 0, 58, 100, 42))),
++}
++PHOTOS = {'Pictures/%s.jpg' % name: name for name in SCENES}
++USB_PHOTOS = {'%s/%s.jpg' % (USB_FOLDER, name): name for name in USB_SCENES}
++
++# ---- the budget: the "Spending" sheet's rows (date, category, item, amount) and the "Plan" sheet's (category, a month)
++SPENDING = (('2026-10-01', 'Rent', 'Rent for October', '950.00'), ('2026-10-03', 'Groceries', 'Supermarket', '58.20'),
++            ('2026-10-08', 'Groceries', 'Market', '21.75'), ('2026-10-12', 'Transport', 'Bus pass', '45.00'),
++            ('2026-10-15', 'Groceries', 'Supermarket', '66.40'), ('2026-10-20', 'Electricity', 'Electricity, October', '74.18'),
++            ('2026-10-24', 'Groceries', 'Bakery', '8.35'), ('2026-10-29', 'Groceries', 'Supermarket', '49.90'),
++            ('2026-11-01', 'Rent', 'Rent for November', '950.00'), ('2026-11-02', 'Groceries', 'Market', '23.40'),
++            ('2026-11-05', 'Groceries', 'Supermarket', '61.85'), ('2026-11-07', 'Phone', 'Phone bill', '18.99'),
++            ('2026-11-09', 'Groceries', 'Bakery', '7.20'), ('2026-11-12', 'Groceries', 'Supermarket', '54.10'),
++            ('2026-11-14', 'Transport', 'Bus pass', '45.00'), ('2026-11-16', 'Groceries', 'Market', '18.95'),
++            ('2026-11-19', 'Groceries', 'Supermarket', '72.35'), ('2026-11-21', 'Household', 'Light bulbs', '12.60'),
++            ('2026-11-23', 'Groceries', 'Bakery', '6.80'))
++PLAN = (('Rent', '950.00'), ('Groceries', '260.00'), ('Electricity', '80.00'), ('Phone', '20.00'), ('Transport', '45.00'),
++        ('Household', '40.00'))
++GROCERIES_NOVEMBER = '244.65'
++GROCERIES_OCTOBER = '204.60'
++
++LETTER_LINES = ('Flat 3, Orchard Row (invented)', '26 November 2026', 'Dear Orchard Row Lettings,',
++                'The kitchen tap in Flat 3 has been dripping since the start of the month, and the washing machine drains slowly.',
++                'Could someone come and look at both? I am at home on weekday mornings.', 'With thanks,', 'The tenant of Flat 3',
++                NOTICE)
++LEASE_PAGES = (
++    ('Lease of Flat 3, Orchard Row (invented), page 1', ('Landlord: Orchard Row Lettings (invented).', 'Tenant: the tenant of Flat 3 (invented).',
++                                                         'Term: twelve months from 1 March 2026 to 28 February 2027.',
++                                                         'Rent: 950.00 a month, paid on the first day of each month.',
++                                                         'Deposit: 1200.00, held in a deposit scheme.')),
++    ('Lease of Flat 3, Orchard Row (invented), page 2', ('Repairs: the landlord keeps the plumbing, heating and appliances in repair.',
++                                                         'The tenant reports a fault in writing as soon as it is noticed.',
++                                                         'Access: the landlord gives at least 24 hours notice before a visit.')),
++    ('Lease of Flat 3, Orchard Row (invented), page 3', ('Ending the lease: either side gives two months notice in writing.',
++                                                         'Signed for both sides on 20 February 2026 (invented).')),
++)
++MANUAL_PAGES = (
++    ('Demo WashMaster 7 washing machine (invented): manual, page 1', ('Contents: 1 Safety. 2 Programmes. 3 Cleaning the filter. 4 Faults.',
++                                                                      '1 Safety: unplug the machine before cleaning it.')),
++    ('Demo WashMaster 7 (invented): page 2, programmes', ('Cotton 40: 2 h 50 min. Quick 30: 30 min. Wool 30: 55 min.',
++                                                         'Eco 40-60: 3 h 20 min, the least energy per load.')),
++    ('Demo WashMaster 7 (invented): page 3, cleaning the filter', ('If the machine drains slowly, clean the drain filter:',
++                                                                   'open the flap at the lower right, put a shallow dish below,',
++                                                                   'turn the filter anticlockwise, rinse it, and turn it back firmly.')),
++    ('Demo WashMaster 7 (invented): page 4, faults', ('E21: the water does not drain. Clean the filter (page 3).',
++                                                     'E31: the door is not closed. Close it until it clicks.')),
++)
++DOWNLOAD_PDFS = {
++    'Downloads/electricity-bill-2026-10.pdf': ('Demo Power Co (invented): electricity bill, October 2026', ('Account: DEMO-0042 (invented).',
++                                                                                                           'Used: 412 kWh. Amount due: 74.18.')),
++    'Downloads/bank-statement-2026-10.pdf': ('Demo Bank (invented): statement, October 2026', ('Account ending 0000 (invented).',
++                                                                                              'Opening 2310.55, closing 1873.72.')),
++    'Downloads/council-tax-2026-27.pdf': ('Demo Council (invented): council tax 2026-27', ('Band B (invented). Ten instalments of 128.40.',)),
++    'Downloads/train-tickets-2026-12-19.pdf': ('Demo Rail (invented): two tickets, 19 December 2026', ('Coach C, seats 41 and 42 (invented).',)),
++}
++TEXTS = {
++    'Downloads/recipe-lentil-soup.txt': 'Lentil soup (invented recipe)\n200 g red lentils, 1 onion, 2 carrots, 1 l stock.\nSimmer 25 minutes.\n',
++    'Desktop/Shopping list.txt': 'Shopping list\n- milk\n- bread\n- apples\n- washing-up liquid\n',
++    'Desktop/To do this week.txt': 'To do this week\n- send the letter to the landlord\n- sort the photos from the holiday\n- pay the council tax\n',
++}
++DUPLICATES = {'Downloads/electricity-bill-2026-10 (1).pdf': 'Downloads/electricity-bill-2026-10.pdf',
++              'Downloads/IMG_2041 (1).jpg': 'Downloads/IMG_2041.jpg'}
++DOWNLOAD_PHOTOS = {'Downloads/IMG_2041.jpg': 'Harbour boats', 'Downloads/screenshot-2026-11-02.png': 'Kitchen window with herbs'}
++ZIP = 'Downloads/holiday-photos.zip'
++ZIPPED = ('Lighthouse on the point', 'Sandcastle with a flag', 'Sunset over the bay')
++TEMPLATE = 'Downloads/budget-template.ods'
++SOUNDS = {'Music/Morning tune.wav': (440, 554, 659), 'Music/Rain on the roof.wav': (196, 220, 196)}
++
++
++class Unavailable(RuntimeError):
++    """The Everyday Home could not be built here; the message says why."""
++
++
++# ---- making the files -----------------------------------------------------------------------------------------------------
++def _qt():
++    """Qt's image classes. A picture is drawn with shapes only, so no window system is needed (no text is drawn)."""
++    try:
++        from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QPointF, QRectF, Qt
++        from PySide6.QtGui import QBrush, QColor, QImage, QLinearGradient, QPainter, QPolygonF
++    except ImportError as exc:  # pragma: no cover - PySide6 is part of Graphite
++        raise Unavailable('Everyday Home draws its photos with Qt, and PySide6 is not here (%s).' % exc) from exc
++    return locals()
++
++
++def photo(scene, size=PHOTO_SIZE, fmt='JPG'):
++    """The bytes of one invented photo (JPEG, or PNG for a screenshot), drawn from its scene."""
++    q = _qt();QColor = q['QColor'];w, h = size
++    top, bottom, horizon, ground, shapes = (SCENES.get(scene) or USB_SCENES[scene])
++    image = q['QImage'](w, h, q['QImage'].Format_RGB32);image.fill(QColor(bottom))
++    painter = q['QPainter'](image);painter.setRenderHint(q['QPainter'].Antialiasing, True);painter.setPen(q['Qt'].NoPen)
++    sky = q['QLinearGradient'](0, 0, 0, h * (horizon or 100) / 100);sky.setColorAt(0, QColor(top));sky.setColorAt(1, QColor(bottom))
++    painter.fillRect(q['QRectF'](0, 0, w, h), q['QBrush'](sky))
++    if horizon:painter.fillRect(q['QRectF'](0, h * horizon / 100, w, h), QColor(ground))
++    for kind, colour, x, y, sw, sh in shapes:
++        painter.setBrush(QColor(colour));r = q['QRectF'](w * x / 100, h * y / 100, w * sw / 100, h * sh / 100)
++        if kind == 'ellipse':painter.drawEllipse(r)
++        elif kind == 'rect':painter.drawRect(r)
++        else:
++            P = q['QPointF']
++            points = ([P(r.left(), r.bottom()), P(r.center().x(), r.top()), P(r.right(), r.bottom())] if kind == 'tri'
++                      else [P(r.left(), r.top()), P(r.right(), r.top()), P(r.center().x(), r.bottom())])
++            painter.drawPolygon(q['QPolygonF'](points))
++    painter.end()
++    data = q['QByteArray']();buffer = q['QBuffer'](data);buffer.open(q['QIODevice'].WriteOnly)
++    if not image.save(buffer, fmt, 82 if fmt == 'JPG' else -1):
++        if fmt != 'PNG' and image.save(buffer, 'PNG'):
++            return bytes(data)
++        raise Unavailable('Qt could not write the photo "%s".' % scene)
++    return bytes(data)
++
++
++def pdf(pages):
++    """A PDF of (heading, lines) pages, written byte by byte as Home Demo's sources are (no clock, no id)."""
++    from .home_demo import LEFT, LINE, TOP, pages_pdf
++    out = []
++    for heading, lines in pages:
++        items = [(LEFT, TOP, 14, heading), (LEFT, TOP - 18, 9, NOTICE)];y = TOP - 54
++        for line in lines:
++            items.append((LEFT, y, 11, line));y -= LINE + 5
++        out.append(items + [(LEFT, 40, 9, NOTICE)])
++    return pages_pdf(out)
++
++
++def letter_odt():
++    """The letter to the landlord, a Writer document (the same bytes every time)."""
++    from xml.sax.saxutils import escape
++    from .office_bridge import ODT_TYPE, _NS, _package
++    body = ''.join('<text:p>%s</text:p>' % escape(line) for line in LETTER_LINES)
++    return _package(ODT_TYPE, '<office:document-content %s office:version="1.3"><office:body><office:text>%s</office:text>'
++                              '</office:body></office:document-content>' % (_NS, body))
++
++
++def _date_cell(day):
++    return '<table:table-cell office:value-type="date" office:date-value="%s"><text:p>%s</text:p></table:table-cell>' % (day, day)
++
++
++def _amount_cell(amount):
++    return '<table:table-cell office:value-type="float" office:value="%s"><text:p>%s</text:p></table:table-cell>' % (amount, amount)
++
++
++def budget_ods(rows=SPENDING, plan=PLAN):
++    """The household budget, a Calc spreadsheet: "Spending" (Date, Category, Item, Amount) and "Plan" (Category, A month)."""
++    from .office_bridge import ODS_TYPE, _NS, _package, _string_cell
++
++    def table(name, columns, body):
++        head = '<table:table-row>%s</table:table-row>' % ''.join(_string_cell(c) for c in columns)
++        return ('<table:table table:name="%s"><table:table-column table:number-columns-repeated="%d"/>%s%s</table:table>'
++                % (name, len(columns), head, ''.join('<table:table-row>%s</table:table-row>' % r for r in body)))
++    spending = [_date_cell(d) + _string_cell(c) + _string_cell(i) + _amount_cell(a) for d, c, i, a in rows]
++    spending.append(_string_cell(NOTICE))
++    planned = [_string_cell(c) + _amount_cell(a) for c, a in plan]
++    return _package(ODS_TYPE, '<office:document-content %s office:version="1.3"><office:body><office:spreadsheet>%s%s'
++                              '</office:spreadsheet></office:body></office:document-content>'
++                    % (_NS, table('Spending', ('Date', 'Category', 'Item', 'Amount'), spending), table('Plan', ('Category', 'A month'), planned)))
++
++
++def sound(notes, rate=8000, each=2400):
++    """A short sound (8-bit mono WAV) of whole-number square waves: no floating point, the same bytes every time."""
++    frames = bytearray()
++    for hz in notes:
++        half = max(1, rate // (2 * hz))
++        frames.extend((176 if (n // half) % 2 == 0 else 80) for n in range(each))
++    head = b'RIFF' + struct.pack('<I', 36 + len(frames)) + b'WAVEfmt ' + struct.pack('<IHHIIHH', 16, 1, 1, rate, rate, 1, 8)
++    return head + b'data' + struct.pack('<I', len(frames)) + bytes(frames)
++
++
++def _zip(names):
++    """The holiday photos, zipped as a download is (a fixed date on every member, so the same bytes every time)."""
++    out = io.BytesIO()
++    with zipfile.ZipFile(out, 'w', zipfile.ZIP_STORED) as z:
++        for name in names:
++            info = zipfile.ZipInfo('holiday/%s.jpg' % name, date_time=(2026, 8, 14, 12, 0, 0));z.writestr(info, photo(name))
++    return out.getvalue()
++
++
++def home_files():
++    """{path in the home folder: bytes} for everything the Everyday Home holds (the stick apart)."""
++    out = {LETTER: letter_odt(), LEASE: pdf(LEASE_PAGES), MANUAL: pdf(MANUAL_PAGES), BUDGET: budget_ods()}
++    for path, scene in PHOTOS.items():out[path] = photo(scene)
++    for path, (heading, lines) in DOWNLOAD_PDFS.items():out[path] = pdf(((heading, lines),))
++    for path, scene in DOWNLOAD_PHOTOS.items():out[path] = photo(scene, fmt='PNG' if path.endswith('.png') else 'JPG')
++    for path, words in TEXTS.items():out[path] = (words + NOTICE + '\n').encode('utf-8')
++    for path, original in DUPLICATES.items():out[path] = out[original]
++    out[ZIP] = _zip(ZIPPED)
++    out[TEMPLATE] = budget_ods(rows=(), plan=tuple((c, '0.00') for c, _ in PLAN))
++    for path, notes in SOUNDS.items():out[path] = sound(notes)
++    return out
++
++
++def usb_files():
++    """{path on the stick: bytes}: four holiday photos under DCIM/100DEMO."""
++    return {path: photo(scene) for path, scene in USB_PHOTOS.items()}
++
++
++def _write(folder, files):
++    made = {}
++    for rel, data in sorted(files.items()):
++        target = Path(folder) / rel;target.parent.mkdir(parents=True, exist_ok=True)
++        if target.exists():
++            raise Unavailable('Everyday Home is built only in an empty folder: %s is already there.' % target)
++        temporary = target.with_name('.' + target.name + '.writing');temporary.write_bytes(data);os.replace(temporary, target)
++        made[rel] = hashlib.sha256(data).hexdigest()
++    return made
++
++
++# ---- the door ------------------------------------------------------------------------------------------------------------
++def places(base):
++    """Where the Everyday Home lives under `base`: the home folder, the stick's contents, the workspace, the profile."""
++    base = Path(base)
++    home = base / 'home'
++    return {'base': base, 'home': home, 'usb': base / 'usb', 'concern': home / 'Concern', 'workspace': home / 'Concern' / 'Ledger',
++            'profile': base / 'profile'}
++
++
++def environment(base, appearance='', environ=None):
++    """The environment a window walking the Everyday Home starts with: HOME is its home folder, Graphite's workspace and
++    Concern folder where a fresh install keeps them in that home, a profile of its own, and the look asked for."""
++    where = places(base);env = dict(os.environ if environ is None else environ)
++    env.update(HOME=str(where['home']), ARC1_WORKBENCH_CONFIG_HOME=str(where['profile']), ARC_LEDGER_WORKSPACE=str(where['workspace']),
++               ARC_LEDGER_CONCERN=str(where['concern']))
++    env.pop('ARC_LEDGER_EDITION', None)
++    if appearance:env['GRAPHITE_APPEARANCE'] = appearance
++    return env
++
++
++def build(base):
++    """Build the Everyday Home in `base` (a new or empty throwaway folder): the home folder with its five folders and their
++    files, the stick's contents, and an empty Graphite workspace in the home's Concern folder. Never the home folder of the
++    person at the computer. Returns {'home', 'usb', 'workspace', 'profile', 'files': {path: sha256}, 'usb_files': {...}}."""
++    where = places(base);base = where['base']
++    real_home = Path(os.path.expanduser('~')).resolve()
++    if where['home'].resolve() == real_home or real_home.is_relative_to(base.resolve()):
++        raise Unavailable('Everyday Home is never built in your own home folder: give it a new throwaway folder.')
++    base.mkdir(parents=True, exist_ok=True)
++    for name in FOLDERS:(where['home'] / name).mkdir(parents=True, exist_ok=True)
++    files = _write(where['home'], home_files());stick = _write(where['usb'], usb_files())
++    from .locations import ensure_workspace
++    ensure_workspace(where['workspace']);where['profile'].mkdir(parents=True, exist_ok=True)
++    return {'home': str(where['home']), 'usb': str(where['usb']), 'workspace': str(where['workspace']), 'profile': str(where['profile']),
++            'files': files, 'usb_files': stick}
++
++
++def digests():
++    """The SHA-256 of every file the Everyday Home holds, as made now (the same every time)."""
++    return {**{rel: hashlib.sha256(data).hexdigest() for rel, data in home_files().items()},
++            **{'usb/' + rel: hashlib.sha256(data).hexdigest() for rel, data in usb_files().items()}}
++
++
++def spent(category, month, rows=SPENDING):
++    """What the budget's rows say was spent on `category` in `month` ('2026-11'): (total as text, the rows), exactly."""
++    picked = [r for r in rows if r[1].casefold() == category.casefold() and r[0].startswith(month)]
++    cents = sum((Fraction(r[3]) for r in picked), Fraction(0)) * 100
++    if cents.denominator != 1:
++        raise ValueError('An amount in the budget is not in whole cents.')
++    return '%d.%02d' % divmod(int(cents), 100), picked
++
++
++def main(argv=None):
++    argv = list(sys.argv[1:] if argv is None else argv)
++    if len(argv) != 1:
++        print(json.dumps({'ok': False, 'why': 'usage: python -m workbench.everyday_demo FOLDER'}));return 2
++    try:
++        made = build(Path(argv[0]))
++    except (Unavailable, OSError, ValueError) as exc:
++        print(json.dumps({'ok': False, 'why': str(exc)[:300]}));return 1
++    print(json.dumps({'ok': True, **{k: v for k, v in made.items() if k not in ('files', 'usb_files')},
++                      'files': len(made['files']), 'usb_files': len(made['usb_files'])}))
++    return 0
++
++
++if __name__ == '__main__':
++    sys.exit(main())
+diff --git a/workbench/everyday_desk.py b/workbench/everyday_desk.py
+new file mode 100644
+index 0000000..170a29f
+--- /dev/null
++++ b/workbench/everyday_desk.py
+@@ -0,0 +1,359 @@
++"""Everyday questions and the tidy of a folder, from the desk (Graphite 1.0 X3).
++
++Found by the everyday walkthrough (X3): two ordinary requests of a household had no route at all. With no model she
++answered "I have no brain running yet" to the second, and to the first she showed what the records say about the file,
++not what was spent. Both are the desk's own work, so they need no model; with a model loaded they go the same way (the
++model proposes, the desk disposes: here there is nothing for the model to propose).
++
++  "what did we spend on groceries this month?"   (also "how much did we spend on … last month / in November")
++        The spreadsheet is the one in focus when it is one, else the one spreadsheet in your Documents whose name says
++        budget. It is read through the registered read tool (K2's tool 18, libreoffice.read: through LibreOffice where it is
++        here, else its content.xml), so the read has its receipts (dispatched, then verified at the revision on disk). Its
++        header row names the columns (Date, Category, Amount); the rows of that category in that month are summed exactly
++        (Fraction over the decimal text the cells hold, never floating point). Her answer names the total, the rows, the
++        sheet, the file and its revision, and the receipt.
++  "tidy my Downloads folder: sort the files by type into folders"   (tidy, sort, organise, clean up)
++        A verb of the desk's planner (K4's PLAN_VERBS hook): the folder is the one of your home your words name (or the one in
++        focus); each file at its top is given a folder by its kind (PDFs, Pictures, Spreadsheets, Documents, Archives, Text,
++        Music, Other, by the end of its name: a deduction, said as such); the plan is registered steps only, tool 7
++        (files.folder.new) for each folder not there yet and tool 6 (files.move) for each file, under your grant
++        ("rename, move and copy files and make folders" in that folder, this assignment). Each step is verified as K2 verifies
++        it (the folder is there; the same content in the new place and gone from the old). At most MOST_FILES files.
++  "put my Downloads folder back as it was"   (put … back, undo the tidy)
++        The undo of the last tidy of that folder, from its journal: each verified move moved back, as a plan of tool 6 steps
++        under the same kind of grant. The folders it made are left, empty, for you to delete from the tree (deleting is
++        yours: DELETE keeps them).
++
++Her words are fixed templates (WORDS, registered with mind_words); every number arrives through a slot that names its
++record.
++"""
++from __future__ import annotations
++
++import re
++import threading
++from datetime import date
++from fractions import Fraction
++from pathlib import Path
++
++MONTHS = ('january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')
++SPENT = re.compile(r'^\s*(?:(?:kas|kasandra)\s*[,:]\s*)?(?:what|how\s+much)\s+(?:did|have|do)\s+(?:we|i)\s+(?:spend|spent)\s+on\s+'
++                   r'(?P<what>[a-z][a-z \-]{1,40}?)\s+(?P<when>this\s+month|last\s+month|in\s+(?P<month>%s)(?:\s+(?P<year>\d{4}))?)\s*\??\s*$'
++                   % '|'.join(MONTHS), re.I)
++NUMBER = re.compile(r'^-?\d{1,12}(?:\.\d{1,6})?$')
++TIDY = r'tidy(?:\s+up)?|sort\s+out|sort|organi[sz]e|clean\s+up'
++PUT_BACK = r'put\s+(?:\S+\s+){0,4}?back|undo\s+the\s+(?:tidy|sort)'
++MOST_FILES = 24               # files one tidy moves at most (a step each; K1 keeps at most 32 steps)
++KINDS = (('PDFs', ('.pdf',)), ('Pictures', ('.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tif', '.tiff', '.heic', '.svg')),
++         ('Spreadsheets', ('.ods', '.xlsx', '.xls', '.csv', '.tsv')), ('Documents', ('.odt', '.docx', '.doc', '.rtf', '.odp', '.pptx')),
++         ('Archives', ('.zip', '.tar', '.gz', '.tgz', '.xz', '.bz2', '.7z', '.rar')), ('Text', ('.txt', '.md')),
++         ('Music', ('.mp3', '.ogg', '.oga', '.flac', '.wav', '.m4a', '.opus')))
++OTHER = 'Other'
++
++WORDS = {
++    'reading': 'I am reading “{file}” for {what} in {month}.',
++    'spent': 'We spent {total} on {what} in {month}: {count} rows of the sheet “{sheet}” in “{file}” ({rows}), read at revision {revision}.',
++    'none_spent': 'Nothing was spent on {what} in {month}: no row of the sheet “{sheet}” in “{file}” says so, read at revision {revision}.',
++    'receipt': 'Receipt: {tool}, {object}, sheet {sheet}, revision {revision}, {complete}, {status}.',
++    'no_budget': 'I found no spreadsheet to read for that: put the budget in focus, or keep one spreadsheet named budget in Documents.',
++    'two_budgets': 'Two spreadsheets could be meant, “{one}” and “{two}”: put the one you mean in focus and ask again.',
++    'no_columns': 'The sheet “{sheet}” in “{file}” has no header row naming Date, Category and Amount, so I do not add it up.',
++    'not_read': 'I could not read “{file}”: {why}',
++    'odd_amount': 'Row {row} of “{sheet}” holds “{text}” as an amount, which is not a number, so I give no total.',
++}
++try:
++    from . import mind_words
++    mind_words.register('everyday_desk', WORDS, kind='sentence')
++except Exception:  # noqa: BLE001 - the words stand without the check
++    pass
++
++
++def say(key, **slots):
++    return WORDS[key].format(**slots)
++
++
++# ---------------------------------------------------------------- the spending question
++def month_of(match, today):
++    """(year, month) the words name: this month, last month, or a month (of this year, or the year said)."""
++    when = match.group('when').lower()
++    if when.startswith('this'):return today.year, today.month
++    if when.startswith('last'):return (today.year - 1, 12) if today.month == 1 else (today.year, today.month - 1)
++    month = MONTHS.index(match.group('month').lower()) + 1
++    year = int(match.group('year')) if match.group('year') else (today.year if month <= today.month else today.year - 1)
++    return year, month
++
++
++def month_words(year, month):
++    return '%s %d' % (MONTHS[month - 1].capitalize(), year)
++
++
++def _focused_path(host):
++    living = getattr(host, 'living_nav', None)
++    try:
++        focus = living.nav.focus if living is not None else ''
++        found = living.call('objects.get', {'id': focus}) if focus else None
++        path = (found or {}).get('path') or (found or {}).get('abs') or ''
++        return Path(path) if path and str(path).startswith('/') else None
++    except Exception:  # noqa: BLE001 - no focus: the budget is looked for in Documents
++        return None
++
++
++def budget_for(host):
++    """(path, '') of the spreadsheet to read, or (None, her words why not)."""
++    from . import home_reach
++    focus = _focused_path(host)
++    if focus is not None and focus.suffix.lower() in ('.ods', '.xlsx', '.xls') and focus.is_file():return focus, ''
++    docs = home_reach.home() / 'Documents'
++    found = sorted(p for p in docs.glob('*') if p.is_file() and p.suffix.lower() in ('.ods', '.xlsx') and 'budget' in p.name.lower()) if docs.is_dir() else []
++    if len(found) == 1:return found[0], ''
++    if len(found) > 1:return None, say('two_budgets', one=found[0].name, two=found[1].name)
++    return None, say('no_budget')
++
++
++def _cell(ref):
++    m = re.match(r'^([A-Z]{1,3})(\d{1,7})$', ref)
++    return (m.group(1), int(m.group(2))) if m else (None, None)
++
++
++ISO_DAY = re.compile(r'^(\d{4})-(\d{2})-(\d{2})')
++SERIAL = re.compile(r'^(\d{1,6})(?:\.0+)?$')
++
++
++def day_of(cell):
++    """A date cell's day as YYYY-MM-DD: the date the file holds (office:date-value), or Calc's day number (days from
++    30 December 1899, as LibreOffice gives a date cell's value), or ISO text; '' when it is none of these."""
++    from datetime import timedelta
++    number = cell.get('value') if cell.get('value') is not None else (cell.get('formula') if cell.get('type') == 'value' else None)
++    for raw, may_be_number in ((cell.get('value'), False), (number, True), (cell.get('text'), False)):
++        text = str(raw if raw is not None else '').strip()
++        if ISO_DAY.match(text):return text[:10]
++        m = SERIAL.match(text)
++        if m and may_be_number:return (date(1899, 12, 30) + timedelta(days=int(m.group(1)))).isoformat()
++    return ''
++
++
++def add_up(cells, what, year, month):
++    """From a sheet's cells ({ref: {text, value, type}}): {'total', 'rows', 'count', 'column'}, or {'why': key, ...}."""
++    grid = {}
++    for ref, cell in (cells or {}).items():
++        col, row = _cell(ref)
++        if col:grid.setdefault(row, {})[col] = cell
++    head = None
++    for row in sorted(grid)[:5]:
++        names = {str(c.get('text') or '').strip().casefold(): col for col, c in grid[row].items()}
++        if {'date', 'category', 'amount'} <= set(names):head = (row, names);break
++    if head is None:return {'why': 'no_columns'}
++    at, names = head
++    want = what.strip().casefold()
++    stem = want[:-1] if want.endswith('s') else want
++    prefix = '%04d-%02d' % (year, month)
++    total, rows = Fraction(0), []
++    for row in sorted(r for r in grid if r > at):
++        cells_ = grid[row]
++        category = str((cells_.get(names['category']) or {}).get('text') or '').strip().casefold()
++        if not category or not (category == want or category.rstrip('s') == stem or category.startswith(stem)):continue
++        if not day_of(cells_.get(names['date']) or {}).startswith(prefix):continue
++        amount = cells_.get(names['amount']) or {}
++        held = amount.get('value') if amount.get('value') is not None else (amount.get('formula') if amount.get('type') == 'value' else None)
++        text = str(held if held is not None and NUMBER.match(str(held).strip()) else amount.get('text') or '').strip().replace(',', '')
++        if not NUMBER.match(text):return {'why': 'odd_amount', 'row': row, 'text': text[:40]}
++        total += Fraction(text);rows.append(row)
++    cents = total * 100
++    if cents.denominator != 1:return {'why': 'odd_amount', 'row': rows[-1] if rows else at, 'text': str(total)}
++    sign = '-' if cents < 0 else ''
++    return {'total': '%s%d.%02d' % ((sign,) + divmod(abs(int(cents)), 100)), 'rows': rows, 'count': len(rows),
++            'column': names['amount']}
++
++
++def _rows_words(rows, column):
++    if not rows:return 'no rows'
++    runs, start = [], rows[0]
++    for a, b in zip(rows, rows[1:] + [None]):
++        if b != a + 1:runs.append('%s%d' % (column, start) if start == a else '%s%d:%s%d' % (column, start, column, a));start = b
++    return 'cells ' + ', '.join(runs)
++
++
++def answer_spent(kernel, principal, path, what, year, month):
++    """The question worked out: {'words', 'receipt_words', 'total', 'receipts'} (the read through tool 18, with receipts)."""
++    from . import home_reach
++    shown = home_reach.tilde(path)
++    used = kernel.dispatch('tools.use', {'number': 18, 'arguments': {'path': shown},
++                                         'origins': {'path': {'kind': 'DEDUCTION', 'proof': 'the spreadsheet in focus, or the one budget in your Documents'}}},
++                           principal)
++    if not used.get('ok'):
++        return {'words': say('not_read', file=path.name, why=str((used.get('error') or {}).get('message') or 'refused')[:200])}
++    got = used['result']
++    read = got.get('result') or {}
++    if got.get('status') != 'verified' or not read.get('cells'):
++        return {'words': say('not_read', file=path.name, why=str(got.get('words') or 'the read was not verified')[:200])}
++    sheet = read.get('sheet') or ''
++    if sheet.casefold() != 'spending' and 'Spending' in (read.get('sheets') or ()):      # a budget's spending sheet, when it has one
++        again = kernel.dispatch('tools.use', {'number': 18, 'arguments': {'path': shown, 'sheet': 'Spending'},
++                                              'origins': {'path': {'kind': 'DEDUCTION', 'proof': 'the same spreadsheet'}}}, principal)
++        if again.get('ok') and again['result'].get('status') == 'verified':got = again['result'];read = got.get('result') or {};sheet = read.get('sheet') or sheet
++    revision = str(read.get('revision') or '')[:12]
++    summed = add_up(read.get('cells'), what, year, month)
++    month_ = month_words(year, month)
++    if 'why' in summed:
++        return {'words': say(summed['why'], sheet=sheet, file=path.name, row=summed.get('row', ''), text=summed.get('text', ''))}
++    key = 'spent' if summed['count'] else 'none_spent'
++    words = say(key, total=summed['total'], what=what.strip(), month=month_, count=summed['count'], sheet=sheet, file=path.name,
++                rows=_rows_words(summed['rows'], summed['column']), revision=revision)
++    last = (got.get('receipts') or [{}])[-1]
++    receipt = say('receipt', tool='%s (tool %s)' % (last.get('tool', ''), last.get('number', '')), object=last.get('object', ''), sheet=sheet,
++                  revision=str(last.get('revision') or '')[:12], complete='complete' if last.get('complete') else 'partial',
++                  status=last.get('status_words') or last.get('status', ''))
++    return {'words': words, 'receipt_words': receipt, 'total': summed['total'], 'rows': summed['rows'], 'receipts': got.get('receipts') or []}
++
++
++def asked(face, text):
++    """Shell2's ask: True when the words are a spending question; the answer is worked off the window's thread."""
++    m = SPENT.match(text or '')
++    if not m:return False
++    from PySide6.QtCore import QTimer
++    from .engineering_kernel import Kernel, operator
++    host = face.host
++    path, why = budget_for(host)
++    face.thing = None;face.mine(text)
++    if path is None:
++        face.say(why);return True
++    year, month = month_of(m, date.today())
++    what = m.group('what').strip()
++    card = face.say(say('reading', file=path.name, what=what, month=month_words(year, month)))
++    try:root = host.ledger_bridge.kernel.root
++    except AttributeError:
++        from .locations import default_root
++        root = default_root()
++    result = {}
++
++    def work():
++        try:result['answer'] = answer_spent(Kernel(root), operator(), path, what, year, month)
++        except Exception as exc:  # noqa: BLE001 - said in her words, never raised into the window
++            result['answer'] = {'words': say('not_read', file=path.name, why=str(exc)[:200])}
++    thread = threading.Thread(target=work, name='her-everyday-read', daemon=True);thread.start()
++
++    def done():
++        if thread.is_alive():
++            QTimer.singleShot(150, done);return
++        answer = result.get('answer') or {}
++        words = answer.get('words', '') + ((' ' + answer['receipt_words']) if answer.get('receipt_words') else '')
++        try:card.set_text(words)
++        except Exception:  # noqa: BLE001 - the card went: said again
++            face.say(words)
++        face.last_everyday = answer
++    QTimer.singleShot(150, done)
++    return True
++
++
++# ---------------------------------------------------------------- the tidy of a folder (K4's desk planner)
++def kind_of(name):
++    suffix = Path(name).suffix.lower()
++    return next((folder for folder, ends in KINDS if suffix in ends), OTHER)
++
++
++def folder_named(words, desk=None):
++    """The folder of your home the words name ("my Downloads folder", "Downloads", "~/Downloads"), or None."""
++    from . import home_reach
++    home = home_reach.home()
++    if not home.is_dir():return None
++    names = {p.name.casefold(): p for p in home.iterdir() if p.is_dir() and not p.name.startswith('.')}
++    for token in re.findall(r"[~/\w][\w .\-/]*", words or ''):
++        for word in re.split(r'[\s/]+', token.strip()):
++            hit = names.get(word.casefold().strip('~'))
++            if hit is not None:return hit
++    return None
++
++
++def _span_of(objective, name):
++    m = re.search(re.escape(name), objective, re.I)
++    return {'kind': 'OWNER_WORDS', 'start': m.start(), 'end': m.end()} if m else None
++
++
++def plan_tidy(b, clause, objective, desk, seen, thing):
++    """PLAN_VERBS['tidy']: folders by kind and a move for each file at the folder's top (registered tools 7 and 6)."""
++    from .objective_plan import Refusal
++    folder = folder_named(clause.words) or folder_named(objective)
++    if folder is None:raise Refusal('say which folder of your home: tidy my Downloads, for one')
++    if any(getattr(s, 'tidied', None) == folder for s in seen):return None        # "tidy Downloads: sort the files …" is one tidy
++    files = sorted((p for p in folder.iterdir() if p.is_file() and not p.name.startswith('.')), key=lambda p: p.name.casefold())
++    if not files:raise Refusal('%s has no files at its top to sort' % folder.name)
++    if len(files) > MOST_FILES:raise Refusal('%s has %d files at its top; I sort at most %d at a time' % (folder.name, len(files), MOST_FILES))
++    from . import home_reach
++    where = home_reach.tilde(folder)
++    named = _span_of(objective, folder.name) or {'kind': 'DEDUCTION', 'proof': 'the folder in focus'}
++    groups = {}
++    for p in files:groups.setdefault(kind_of(p.name), []).append(p)
++    if len(groups) == 1 and (folder / next(iter(groups))).is_dir():raise Refusal('everything in %s is already one kind' % folder.name)
++    for kind, members in sorted(groups.items()):
++        target = folder / kind
++        if not target.exists():
++            b.add({'key': b.key('folder_' + kind), 'title': 'Make the folder %s in %s' % (kind, where), 'operation': 'files.mkdir',
++                   'tool_key': 'files.folder.new', 'arguments': {'path': str(folder), 'name': kind},
++                   'origins': {'path': named, 'name': {'kind': 'DEDUCTION', 'proof': 'the kind of %d file(s) here, by the end of their names' % len(members)}},
++                   'basis': 'owner_words', 'expected': 'the folder %s in %s' % (kind, where)})
++        elif not target.is_dir():raise Refusal('%s in %s is a file, not a folder' % (kind, where))
++        for p in members:
++            b.add({'key': b.key('move_' + p.stem), 'title': 'Move %s into %s' % (p.name, kind), 'operation': 'files.move', 'tool_key': 'files.move',
++                   'arguments': {'path': str(p), 'to': str(target)},
++                   'origins': {'path': {'kind': 'DEDUCTION', 'proof': 'a file at the top of %s, listed now' % where},
++                               'to': {'kind': 'DEDUCTION', 'proof': 'the folder for %s files (its name ends %s)' % (kind, p.suffix.lower() or 'with no ending')}},
++                   'basis': 'owner_words', 'expected': '%s in %s/%s' % (p.name, where, kind)})
++    return _Tidied(folder)
++
++
++class _Tidied:
++    """What a tidy clause was about, for the clauses after it (the same folder is not planned twice)."""
++    handle = ''
++
++    def __init__(self, folder):
++        self.tidied = folder;self.handle = str(folder);self.kind = 'folder';self.title = folder.name
++
++
++def _last_moves(desk, folder):
++    """The verified moves of the last tidy of `folder`, from the journals: [(where it is now, where it was)]."""
++    from .engineering_kernel import Kernel, operator
++    from .locations import default_root
++    kernel, principal = Kernel(default_root()), operator()
++    listed = kernel.dispatch('assignment.list', {}, principal)
++    rows = (listed.get('result') or {}).get('assignments') or [] if listed.get('ok') else []
++    for row in sorted(rows, key=lambda r: -(r.get('created') or 0)):
++        got = kernel.dispatch('assignment.status', {'id': row['id']}, principal)
++        view = got.get('result') or {} if got.get('ok') else {}
++        moves = []
++        for step in view.get('steps') or ():
++            a = step.get('inputs') or step.get('resolved') or step.get('arguments') or {}
++            a = {k: (v.get('value') if isinstance(v, dict) and 'value' in v else v) for k, v in a.items()}
++            if step.get('operation') == 'files.move' and step.get('status') == 'done' and str(a.get('to', '')).startswith(str(folder) + '/'):
++                moves.append((Path(a['to']) / Path(a['path']).name, Path(a['path'])))
++        if moves:return moves
++    return []
++
++
++def plan_put_back(b, clause, objective, desk, seen, thing):
++    """PLAN_VERBS['put back']: each verified move of the last tidy of the folder, moved back (tool 6)."""
++    from .objective_plan import Refusal
++    folder = folder_named(clause.words) or folder_named(objective)
++    if folder is None:raise Refusal('say which folder of your home to put back')
++    moves = [(now, was) for now, was in _last_moves(desk, folder) if now.is_file() and not was.exists()]
++    if not moves:raise Refusal('I find no tidy of %s to put back' % folder.name)
++    for now, was in moves:
++        b.add({'key': b.key('back_' + now.stem), 'title': 'Move %s back to %s' % (now.name, folder.name), 'operation': 'files.move',
++               'tool_key': 'files.move', 'arguments': {'path': str(now), 'to': str(was.parent)},
++               'origins': {'path': {'kind': 'DEDUCTION', 'proof': 'where the tidy put it, from its journal'},
++                           'to': {'kind': 'DEDUCTION', 'proof': 'where it was before the tidy, from its journal'}},
++               'basis': 'owner_words', 'expected': '%s back in %s' % (now.name, folder.name)})
++    return _Tidied(folder)
++
++
++def _install():
++    """Her desk's planner learns the two verbs (K4's PLAN_VERBS hook, as K9's replace)."""
++    try:
++        from . import objective_plan as op
++    except Exception:  # noqa: BLE001 - K4 is not in this Graphite
++        return
++    have = {v[0] for v in op.VERBS}
++    more = tuple(v for v in (('put back', PUT_BACK, (6,), True), ('tidy', TIDY, (7, 6), True)) if v[0] not in have)
++    if more:op.VERBS = more + tuple(op.VERBS)      # before 'read' and 'check': "put … back" holds no verb of theirs
++    if hasattr(op, 'PLAN_VERBS'):op.PLAN_VERBS.update({'tidy': plan_tidy, 'put back': plan_put_back})
++
++
++_install()
+diff --git a/workbench/grants.py b/workbench/grants.py
+index 656b9b2..70090a7 100644
+--- a/workbench/grants.py
++++ b/workbench/grants.py
+@@ -753,6 +753,9 @@ def step_request(kernel, value, step, arguments=None):
+     args = {'operation': step['operation'], 'scope': 'assignment', 'assignment': value['id']}
+     if found['paths'] and not found['objects']:
+         folders = {p.rsplit('/', 1)[0] if '/' in p else '' for p in found['paths'] if p is not None}
++        outer = min(folders, key=len) if folders and '' not in folders else ''
++        if len(folders) > 1 and outer and all(f == outer or f.startswith(outer.rstrip('/') + '/') for f in folders):
++            folders = {outer}  # 1.0 X3: a move into a folder inside the same folder (a tidy of Downloads) is one grant on that folder
+         if len(folders) != 1 or '' in folders:return None
+         args['folder'] = folders.pop()
+     elif found['objects'] and not found['paths'] and len(set(found['objects'])) == 1:
+diff --git a/workbench/home_files_qt.py b/workbench/home_files_qt.py
+index 4a2a140..4badbbf 100644
+--- a/workbench/home_files_qt.py
++++ b/workbench/home_files_qt.py
+@@ -44,6 +44,7 @@ UNDO_MS = 45000                                   # the line with Undo stays thi
+ FOCUS_MS = 900                                    # how often the focus is glanced at (a string compared; nothing read)
+ CALM_MS = 300                                     # a burst of file events is looked at once
+ KINDS = ('home-file', 'home-folder')
++DRIVE_KINDS = ('drive-file', 'drive-folder')      # 1.0 X3: a removable drive's rows: Open, Copy to…, Copy the path
+ 
+ 
+ def kernel_of(host):
+@@ -113,8 +114,12 @@ def target_for(host, page, node):
+     kernel = kernel_of(host);path = path_of_row(ident)
+     if kernel is None or not path:return None
+     where, why = changeable(kernel, path)
+-    if not where:return None
+     from .context_menu import Target
++    if not where and ident[len(ct.FS):].startswith('drive:'):  # 1.0 X3: a file or folder on a mounted removable drive: copy it home
++        folder = node.get('role') == 'folder'
++        return Target('drive-folder' if folder else 'drive-file', node.get('label') or Path(path).name, '%s on a removable drive' % ('folder' if folder else 'file'),
++                      ident=ident, data=dict(node=node, path=str(path), area='drive'), surface='cabinet', owner=page, icon='files')
++    if not where:return None
+     folder = node.get('role') == 'folder'
+     noun = '%s %s' % ('folder' if folder else 'file', hr.AREA_WORDS[where])
+     return Target('home-folder' if folder else 'home-file', node.get('label') or Path(path).name, noun, ident=ident,
+@@ -123,9 +128,9 @@ def target_for(host, page, node):
+ 
+ def entries(host, t):
+     """context_menu's provider: what a person does to a file or folder of your home, from the tree."""
+-    if t.surface != 'cabinet' or t.kind not in KINDS:return []
++    if t.surface != 'cabinet' or t.kind not in KINDS + DRIVE_KINDS:return []  # 1.0 X3: and a drive's files, to copy home
+     from .context_menu import Entry, Refused, copy_text
+-    path = Path(t.data['path']);folder = t.kind == 'home-folder';files = t.data.get('area') == hr.FILES
++    path = Path(t.data['path']);folder = t.kind in ('home-folder', 'drive-folder');files = t.data.get('area') == hr.FILES
+ 
+     def run(do, *args):
+         def go():
+@@ -140,6 +145,11 @@ def entries(host, t):
+                          tip='In its own program, in a window of its own; when the program saves it, the new revision is recorded here'))
+     out.append(Entry('open', 'Open here' if not folder else 'Show it on the board', 'open', run(open_here, t.ident), operation='objects.get',
+                      tip='Its working view in the centre' if not folder else 'The folder in the middle of the board'))
++    copy = Entry('copy:to', 'Copy to…', 'modify', run(copy_to, path), operation='files.copy',  # 1.0 X3: a copy, the original stays
++                 tip='A copy in another folder of your home; the original stays where it is. Undo puts the copy in DELETE')
++    if t.kind in DRIVE_KINDS:  # 1.0 X3: a removable drive's files are copied home, never changed from here
++        return out + [copy, Entry('copy:path', 'Copy the path', 'edit', lambda: copy_text(host, str(path), 'Copied the path'))]
++    out.append(copy)
+     out.append(Entry('rename', 'Rename…', 'modify', run(rename, path), operation='files.rename',
+                      tip='A new name in the same folder; it keeps its identity. Undo puts the old name back'))
+     out.append(Entry('move:to', 'Move to…', 'modify', run(move_to, path), operation='files.move',
+@@ -216,6 +226,20 @@ def move_to(host, path, folder=None):
+                  undo=lambda: _move_back(host, new, path), undo_words='it is back in %s' % shown(path.parent))
+ 
+ 
++def copy_to(host, path, folder=None):
++    """1.0 X3: Copy to…, on your press: a copy in a folder of your home (from your home, Files or a removable drive); the
++    original stays. Undo puts the copy in DELETE."""
++    path = Path(path)
++    if folder is None:
++        folder = QFileDialog.getExistingDirectory(host, 'Copy %s to' % path.name, str(hr.home()))
++        if not folder:return None
++    folder = Path(folder)
++    made = act(host, 'files.copy', {'path': str(path), 'to': str(folder)})
++    new = folder / str(made.get('name') or path.name)
++    return after(host, '', new, 'Copied %s to %s; the original stays in %s.' % (path.name, shown(folder), shown(path.parent)),
++                 undo=lambda: (act(host, 'files.trash', {'path': str(new)}), None)[1], undo_words='the copy is in DELETE')
++
++
+ def _move_back(host, new, old):
+     back = act(host, 'files.move', {'path': str(new), 'to': str(old.parent)})
+     return old.parent / str(back.get('name') or old.name)
+diff --git a/workbench/machine_room_qt.py b/workbench/machine_room_qt.py
+index 21502a3..351ad58 100644
+--- a/workbench/machine_room_qt.py
++++ b/workbench/machine_room_qt.py
+@@ -252,6 +252,12 @@ class MachineRoom(QWidget):
+         self.busy = None;self.last = result
+         if after is not None:after(result)
+         self.reload(force=True)
++        if self.key == 'storage':  # 1.0 X3: a drive mounted, unmounted or ejected here shows so in the Files tree at once
++            tree = getattr(getattr(self.host, 'living_nav', None), 'computer', None)
++            if tree is not None:
++                tree.drives = None
++                page = tree.page()
++                if page is not None:page.refresh(force=True)
+ 
+     # ---------------------------------------------------------------- drawing
+     def draw(self):
+diff --git a/workbench/settings_qt.py b/workbench/settings_qt.py
+index 7a3f41f..2cc209e 100644
+--- a/workbench/settings_qt.py
++++ b/workbench/settings_qt.py
+@@ -343,7 +343,10 @@ class SettingsNavigator:
+ 
+     def return_to_cabinet(self):
+         navigation=getattr(self.host,'navigation_controller',None)
+-        if navigation:return navigation.cabinet()
++        if navigation:
++            opened=navigation.cabinet()
++            if self.current_view()!='cabinet':self.show_view('cabinet')  # 1.0 X3: Files pressed after a Machine page shows the Files tree
++            return opened
+         self.show(False)
+ 
+     def select(self,key=None,reveal=True):
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index de0c7f8..6d42ca5 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -2827,6 +2827,8 @@ class SlateFace(QWidget):
+         if library_asked(self, text):return
+         from .network_qt import asked as web_asked      # 1.0 K8: "look up …" on the web: the step planned from your words, sent only by your press
+         if web_asked(self, text):return
++        from .everyday_desk import asked as everyday_asked  # 1.0 X3: "what did we spend on groceries this month?" from a spreadsheet of your home
++        if everyday_asked(self, text):return
+         if self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
+         if self.made_asked(text):return
+         if self.set_asked(text):return

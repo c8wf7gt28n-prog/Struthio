@@ -1300,6 +1300,11 @@ def _actions(value, words, nxt, stop_call):
     if nxt is not None and nxt['status'] == 'proposed' and words not in ('interrupted', 'held', STOPPED_BY_YOU):
         out.append({'words': 'Authorise step %d' % nxt['n'], 'operation': 'assignment.plan', 'yours': True,
                     'arguments': {'id': ident, 'authorise': [nxt['key']], 'expected_digest': plan_digest(value)}})
+        waiting = [s for s in value['steps'] if s['status'] == 'proposed']
+        if len(waiting) > 3:  # 1.0 X3: a long plan (a tidy of Downloads: 16 steps) in one press, offered first ("Waits for you" shows the
+            # first Authorise); "all" still leaves a step that asks by its own name (always asks, the model's pick, your approval)
+            out.insert(len(out) - 1, {'words': 'Authorise all %d steps' % len(waiting), 'operation': 'assignment.plan', 'yours': True,
+                                      'arguments': {'id': ident, 'authorise': ['all'], 'expected_digest': plan_digest(value)}})
     if words in ('interrupted', 'held', STOPPED_BY_YOU):
         out.append({'words': 'Resume', 'operation': 'assignment.resume', 'arguments': {'id': ident}})
     elif words == 'ready':
