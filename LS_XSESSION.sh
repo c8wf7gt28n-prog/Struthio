@@ -2,8 +2,8 @@
 # The dedicated session's supervisor (Graphite 1.0 S1, the session that survives). Private session client: Debian login
 # files and other desktops stay untouched.
 #
-# For the whole session it keeps the D-Bus session (dbus-run-session, below) and Fluxbox (started again if it ends), and it
-# runs Graphite's window (START_OFFICE.sh) as its child:
+# For the whole session it keeps the D-Bus session (dbus-run-session, below), Fluxbox (started again if it ends) and the
+# permission prompt agent lxpolkit when it is installed (1.0 S5), and it runs Graphite's window (START_OFFICE.sh) as its child:
 #   - Graphite ends with status 0 (Return to Debian, or the ordinary close after Log out, Restart or Shut down asked the
 #     system): the session ends;
 #   - Graphite asked to be started again (a hand-over request in the session folder, workbench/session_launch.py) and ended
@@ -78,8 +78,25 @@ ledger_start_window_manager() {
 ledger_graphite_pid=''
 ledger_pause_pid=''
 ledger_ending=''
+# 1.0 S5: the permission prompt agent, so the system's own permission questions (a restart, a drive, a network) can be
+# answered in this session: lxpolkit, when it is installed, for the whole session. Graphite reads its process id
+# (ARC_LEDGER_POLKIT_AGENT_PID) to know the questions can be answered; the password is typed into the agent's prompt
+# (the system's own), never into Graphite.
+ledger_polkit_pid=''
+ledger_start_polkit_agent() {
+  if command -v lxpolkit >/dev/null 2>&1; then
+    lxpolkit >/dev/null 2>&1 &
+    ledger_polkit_pid=$!
+    export ARC_LEDGER_POLKIT_AGENT_PID="$ledger_polkit_pid"
+    ledger_log_line "permission prompt agent lxpolkit started (process $ledger_polkit_pid)"
+  else
+    unset ARC_LEDGER_POLKIT_AGENT_PID
+    ledger_log_line "no permission prompt agent: lxpolkit is not installed, so the system cannot ask for permission here"
+  fi
+}
 ledger_session_cleanup() {
   if [[ -n "$ledger_pause_pid" ]]; then kill "$ledger_pause_pid" 2>/dev/null || true; fi
+  if [[ -n "$ledger_polkit_pid" ]]; then kill "$ledger_polkit_pid" 2>/dev/null || true; fi  # 1.0 S5
   if [[ -n "$ledger_window_manager_pid" ]]; then
     kill "$ledger_window_manager_pid" 2>/dev/null || true
     wait "$ledger_window_manager_pid" 2>/dev/null || true
@@ -146,6 +163,7 @@ ledger_read_hand_over() { # the hand-over request (NUL-separated +NAME=value and
 
 export ARC_LEDGER_FULLSCREEN=1 ARC_LEDGER_XSESSION=1
 ledger_start_window_manager
+ledger_start_polkit_agent  # 1.0 S5
 ledger_restarts=0
 ledger_failures=0
 ledger_status=0

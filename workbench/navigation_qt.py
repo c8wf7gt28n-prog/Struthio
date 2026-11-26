@@ -102,7 +102,16 @@ class NavigationController(QObject):
                     self.reveal_record(tab.current)
                     path=self.trail(tab.current)
                     if path:tab.breadcrumb.setText('FILED IN / '+' / '.join(row['label'] for row in (path[:-1] or path)))
-            elif type(tab).__name__=='MachineRoom':nav.show_view('machine')  # 1.0 S4: a Machine page keeps the Machine tab in the left pane
+            elif callable(getattr(tab,'settings_row',None)):  # 1.0 S5: a page of Settings ▸ This computer keeps Settings, on its row
+                nav.show_view('settings')
+                from .system_settings_qt import select_row
+                select_row(self.host,tab.key)
+            elif type(tab).__name__=='MachineRoom':
+                kept=nav.current_view()=='settings' and tab.key in ('sound','screens','network','power')  # 1.0 S5: opened from Settings ▸ This computer
+                nav.show_view('settings' if kept else 'machine')  # 1.0 S4: a Machine page keeps the Machine tab in the left pane (1.0 S5: or Settings)
+                if kept:  # 1.0 S5
+                    from .system_settings_qt import select_row
+                    select_row(self.host,tab.key)
             else:
                 # Other workspaces retain a cabinet anchor; this is not ownership.
                 nav.show(False)

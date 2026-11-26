@@ -264,6 +264,16 @@ class SettingsTab(QWidget):
     def toggle_detail(self):self.detail.setVisible(not self.detail.isVisible())
 
 
+def system_nodes():
+    """1.0 S5: the computer's own settings (system_settings_qt): default apps, sound, screens, network, power, the session,
+    notifications. None when the module is not there."""
+    try:
+        from .system_settings_qt import nodes
+        return nodes()
+    except ImportError:
+        return []
+
+
 class SettingsNavigator:
     """Separate left view; the cabinet widget, selection and scrolling survive."""
     def __init__(self,host,box,footer_line=None,footer_settings=None):
@@ -295,12 +305,12 @@ class SettingsNavigator:
         self.strip=MachineStrip(host);host.machine_strip=self.strip
         box.insertWidget(0,self.stack,1);box.insertWidget(0,self.bar);box.insertWidget(0,self.strip)
         self.items={}
-        for node in settings_registry.nodes():
+        for node in system_nodes()+settings_registry.nodes():  # 1.0 S5: This computer first, then Graphite's own
             item=QTreeWidgetItem([node['label']]);item.setData(0,Qt.UserRole,node);self.items[node['id']]=item
             if node['parent']:self.items[node['parent']].addChild(item)
             else:self.tree.addTopLevelItem(item)
-            if node['target']:
-                item.setForeground(0,QColor(INK));item.setToolTip(0,node['target'])
+            if node['target'] or node.get('page'):  # 1.0 S5: a page row is chosen as a setting is
+                item.setForeground(0,QColor(INK));item.setToolTip(0,node['target'] or node.get('tip',''))
         expanded=self.saved.get('expanded')
         for ident,item in self.items.items():
             if item.childCount():item.setExpanded(ident in expanded if expanded is not None else True)
@@ -360,6 +370,11 @@ class SettingsNavigator:
     def selected(self):
         self.remember();key=self.selected_key()
         if key:self.host.ledger_bridge.show_settings(key=key)
+        else:  # 1.0 S5: a row of This computer opens its page in the centre
+            item=self.tree.currentItem();node=item.data(0,Qt.UserRole) if item else {}
+            if node and node.get('page'):
+                from .system_settings_qt import open_page
+                open_page(self.host,node['page'])
 
     def remember(self,*_):
         if self.remembering:return

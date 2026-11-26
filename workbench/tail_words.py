@@ -17,6 +17,8 @@ WORDS = {
 STATES = {'REQUEST_COMPLETED': '', 'COMPLETED': '', 'READY': '', 'FOCUSED': '', 'SET_ASIDE': '', 'REQUEST_RECEIVED': '…',
           'DENIED_OR_FAILED': '· failed', 'Completed': '· done', 'completed': '· done', 'Failed': '· failed', 'Queued': '· queued', 'Running': '· running', 'FAILED': '· failed', 'DENIED': '· refused', 'CANCELLED': '· cancelled', 'BLOCKED': '· waiting for a project'}
 QUIET_ORIGINS = {'GUI', 'DESKTOP', 'desktop-owner', 'owner', 'Kernel', 'KERNEL'}
+WORDS['notification'] = 'Notification from an app'      # 1.0 S5: what an app told you (notify_server), kept in Log
+STATES['SHOWN'] = ''                                     # 1.0 S5
 
 
 def shown_origin(origin):

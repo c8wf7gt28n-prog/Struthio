@@ -328,6 +328,8 @@ class WindowStrip(QWidget):
 
     # -- the layout (called by TopBar.place)
     def room(self, scale):
+        dock = getattr(self.host, 'system_dock', None)  # 1.0 S5: the dock (system_dock_qt) carries the strip while it is the one in sight
+        if dock is not None and not getattr(self, 'in_dock', False) and dock.carries_strip():return 0  # 1.0 S5
         return slim(scale) if self.wanted else 0
 
     def place(self, d, y, height):

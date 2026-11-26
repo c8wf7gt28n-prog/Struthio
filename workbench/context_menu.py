@@ -897,6 +897,9 @@ def settings_entries(host, t):
     if key:
         out.append(Entry('open', 'Open this setting', 'open', lambda:host.ledger_bridge.show_settings(key=key), icon='settings', operation='ledger.settings'))
         out.append(Entry('copy:key', 'Copy the key', 'edit', lambda:copy_text(host, key, 'Copied the key'), icon='copy'))
+    elif node.get('page'):  # 1.0 S5: a row of Settings ▸ This computer opens its page
+        from .system_settings_qt import open_page
+        out.append(Entry('open', 'Open this page', 'open', lambda:open_page(host, node['page']), icon='settings'))
     nav = host.settings_navigator
     out.append(Entry('expand', 'Expand all', 'tree', nav.tree.expandAll));out.append(Entry('collapse', 'Collapse all', 'tree', nav.tree.collapseAll))
     out.append(Entry('search', 'Search settings…', 'tree', lambda:search_words(host, node.get('label', '')), icon='investigations',

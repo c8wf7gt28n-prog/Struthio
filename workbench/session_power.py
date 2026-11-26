@@ -8,7 +8,8 @@ owner's confirmation, and it uses only the system's own interfaces:
 
   availability   systemd-logind on the system D-Bus (org.freedesktop.login1, in this process, nothing started): the Manager's
                  CanReboot and CanPowerOff ('yes' is offered; 'challenge' is offered where the system can ask for permission,
-                 but not in the dedicated session, which has no permission prompt; 'na' and 'no' show the action unavailable
+                 but not in the dedicated session unless its permission prompt agent runs (1.0 S5: LS_XSESSION.sh starts
+                 lxpolkit; polkit_agent says whether it runs); 'na' and 'no' show the action unavailable
                  with the reason) and this program's own login session (the session object 'self' and its Id)
   Log out        loginctl terminate-session <this session's id>       scope: this login session
   Restart        systemctl reboot                                     scope: this computer
@@ -231,9 +232,9 @@ def availability(platform=None, environ=None, only=None):
     (the locker and a display), Suspend, Log out, Restart and Shut down (from logind), and the leave row (always available,
     with its label). `only`: the actions wanted (run_action asks for its own alone). No session: Suspend, Log out, Restart and
     Shut down unavailable with NO_SESSION. 'challenge' (the system asks for permission itself) is offered, except in the
-    dedicated session: it starts no permission agent (LS_XSESSION.sh runs fluxbox and Graphite only) and the command runs
-    without a terminal, so nothing could answer the system's question, and Graphite would have closed for nothing. Suspend
-    needs Lock: no locker, no suspend."""
+    dedicated session when no permission agent runs there (1.0 S5: LS_XSESSION.sh starts lxpolkit when it is installed; with
+    none, the command runs without a terminal, so nothing could answer the system's question, and Graphite would have closed
+    for nothing). Suspend needs Lock: no locker, no suspend."""
     environ = os.environ if environ is None else environ
     wanted = [key for key in GROUP if only is None or key in only]
     out = {}
@@ -261,16 +262,27 @@ def availability(platform=None, environ=None, only=None):
         try:value = str(system(('logind', *MANAGER, method)) or '')
         except Exception as exc:  # noqa: BLE001 - an answer that cannot be read is 'unavailable', with what went wrong
             out[action] = dict(available=False, reason='logind did not answer %s: %s' % (method, str(exc).strip()[:160] or type(exc).__name__), value=None, session=session);continue
-        offered = value == 'yes' or (value == 'challenge' and not dedicated(environ))
+        prompts = _prompt_agent(environ) if value == 'challenge' and dedicated(environ) else None  # 1.0 S5: lxpolkit answers 'challenge'
+        offered = value == 'yes' or (value == 'challenge' and (not dedicated(environ) or bool(prompts and prompts['running'])))  # 1.0 S5
         if value == 'yes':reason = 'Allowed for your account (logind %s: yes).' % method
-        elif offered:reason = 'Allowed after the system asks for permission (logind %s: challenge).' % method
-        elif value == 'challenge':reason = WORDS[action] + ' is unavailable here: ' + NO_PROMPT % {'restart':'reboot', 'shutdown':'poweroff', 'suspend':'suspend'}[action] + '.'
+        elif offered:reason = 'Allowed after the system asks for permission (logind %s: challenge).' % method + (' ' + prompts['words'] if prompts else '')  # 1.0 S5
+        elif value == 'challenge':reason = WORDS[action] + ' is unavailable here: ' + NO_PROMPT % {'restart':'reboot', 'shutdown':'poweroff', 'suspend':'suspend'}[action] + '.' + (' ' + prompts['words'] if prompts else '')  # 1.0 S5
         else:reason = WORDS[action] + ' is unavailable: ' + LOGIND_WORDS.get(value, 'logind answered %r' % value) + '.'
         if action == 'suspend' and offered and not lock['available']:
             offered = False;reason = 'Suspend is unavailable here: it locks the screen first. ' + lock['reason']
         elif action == 'suspend' and offered:reason += ' The screen is locked first, with ' + LOCKERS[0] + '.'
         out[action] = dict(available=offered, reason=reason, value=value, session=session)
     return _ordered(out)
+
+
+def _prompt_agent(environ):
+    """1.0 S5: the session's permission prompt agent (polkit_agent; the dedicated session starts lxpolkit), or None when it
+    cannot be read. With one running, the actions logind answers 'challenge' are offered: the system asks in its own prompt."""
+    try:
+        from .polkit_agent import agent
+        return agent(environ, scan=environ is os.environ)
+    except Exception:  # noqa: BLE001 - reading the agent never fails the menu; without it 'challenge' stays unavailable
+        return None
 
 
 def command(action, state):
@@ -351,7 +363,27 @@ def confirm(host, action):
     text = (EFFECTS[action] + '\n\nGraphite closes first, the ordinary way: the return copy and your open files as you chose, running '
             'assignments paused (or continued by the Graphite service), the local model and the tracked command stopped, the session '
             'saved. Then ' + THEN[action] + '.\n\nCancel leaves Graphite open as it is: nothing has been stopped.')
+    text += _apps_words(action)  # 1.0 S5: the apps still open, asked to close politely after you confirm
     return QMessageBox.question(host, title, text, QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel) == QMessageBox.Yes
+
+
+def _apps_words(action):
+    """1.0 S5: the confirmation's line naming the apps still open ('' with none, or with no window list here)."""
+    try:
+        from .leave_apps import confirm_words
+        return confirm_words(action)
+    except Exception:  # noqa: BLE001 - the confirmation never fails for want of the window list
+        return ''
+
+
+def _apps_closed(host, action):
+    """1.0 S5: the leave flow's apps step (leave_apps): the apps still open are named and, on your word, asked to close
+    politely before the session ends. False only when you cancelled there."""
+    try:
+        from . import leave_apps
+        return leave_apps.before_leaving(host, action) != leave_apps.CANCEL
+    except ImportError:
+        return True
 
 
 def tell(host, title, text):
@@ -387,6 +419,9 @@ def run_action(host, action, platform=None):
     if not confirm(host, action):
         undo_leave(left);_say(host, WORDS[action] + ' cancelled · Graphite stays open; nothing was stopped')
         return dict(state='CANCELLED', step='confirm', left=left, closed=False)
+    if not _apps_closed(host, action):  # 1.0 S5: the apps still open, asked to close politely first (never killed)
+        undo_leave(left);_say(host, WORDS[action] + ' cancelled · Graphite stays open')
+        return dict(state='CANCELLED', step='apps', left=left, closed=False)
     state = availability(platform, only=(action,))[action]  # again: the session or the permission may have changed while the questions were open
     if not state['available']:
         undo_leave(left);tell(host, WORDS[action] + ' is unavailable', state['reason'] + '\nGraphite stays open; nothing was stopped.')
@@ -423,6 +458,7 @@ def run_action(host, action, platform=None):
 def leave(host):
     """Return to Debian or Exit Graphite: the existing leave, the return-thread review (default Continue working), then the
     window's own close with its save prompts. No command is issued."""
+    if dedicated() and not _apps_closed(host, 'leave'):return False  # 1.0 S5: the apps end with this session: named, asked to close first
     thread = getattr(host, 'return_thread', None)
     if thread is not None and hasattr(thread, 'review_exit'):return thread.review_exit()
     return host.close()

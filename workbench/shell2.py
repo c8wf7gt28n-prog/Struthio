@@ -3496,6 +3496,13 @@ class Shell2(QObject):
         install_depths(host)  # 1.0 L4: depths: Board on the breadcrumb, Save and Return, Full program, Close, the line, open files watched
         from .her_column_qt import install as install_her_column
         install_her_column(host)  # 1.0 P1: her column as in the owner's picture; the equalizer moves into it, the ask line into the right foot
+        try:  # 1.0 S5: Graphite as the session's notification server (toasts at her column's foot, kept in Log), and the app strip as a dock
+            from .notify_qt import install as install_notifications
+            install_notifications(host)  # 1.0 S5
+            from .system_dock_qt import install as install_dock
+            install_dock(host)  # 1.0 S5
+        except ImportError:  # 1.0 S5
+            pass
         host.tabs.currentChanged.connect(self.sync_worksheet)
         host.central_stack.currentChanged.connect(self.sync_worksheet)
         from .graphite_brand import use_pointer

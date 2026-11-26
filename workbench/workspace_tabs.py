@@ -261,6 +261,9 @@ class WorkspaceTabs(QTabWidget):
         if row.get('kind')=='MachineRoom':      # 1.0 S4: a Machine page (Storage, Power, Network, Sound, Screens), by its title
             from .machine_room_qt import reopen
             return reopen(self.host,row)
+        if row.get('kind')=='SystemSettingsRoom':      # 1.0 S5: a page of Settings ▸ This computer, by its title
+            from .system_settings_qt import reopen as reopen_settings
+            return reopen_settings(self.host,row)
         if row.get('kind') in ('ComputerTab','PillsTab'):      # This Computer, and Pills and Paired Computers (menus2)
             from importlib import import_module
             return import_module({'ComputerTab':'.computer_qt','PillsTab':'.pills_qt'}[row['kind']],__package__).show(self.host)
