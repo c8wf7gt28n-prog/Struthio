@@ -302,6 +302,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 02:05 UTC: **1.0 K1 merged** (9d1f5ac: assignments and the journal; smoke 30 of 30). Its notes: a recheck run
+  again on an already-replaced page makes a second page (K1 guards it; the operation is unchanged); `agent_loop.py`
+  (AGENT-01) is an older assignment model, for K4 to settle; hooks ready: `active_work()`, status `actions` (P1),
+  `GRANT_CHECK` (K3), `CHECKS` (K2), `rail_demo_plan()` (P1, X1). **P1 launched** (her column; agent ae14b118f850218e1).
+  Running: S1, L1, P1. Next: S2 when one lands; L2 and L3 after L1.
+
 - 26 Nov 01:35 UTC: **The owner changed the road: straight to 1.0, no testing, no stops** (their paper "The Living
   Desktop and the Ghost in the Shell" and a picture of the desktop). Defaults taken (desktop first; tool use with a
   sealed sandbox, real files always ask; compact portrait). Plan written: `wip/2026-11-26_road_to_1.0/PLAN_1.0.md`,
