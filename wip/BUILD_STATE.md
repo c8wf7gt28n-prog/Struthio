@@ -302,6 +302,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 04:05 UTC: **1.0 S4 merged** (128e375: the Machine through udisks2, UPower, NetworkManager, wpctl, xrandr;
+  smoke 42/42 on stand-ins). Decision noted: the Wi-Fi password is typed into Graphite's page and handed to
+  NetworkManager once, then cleared (PySide6 cannot be a secret agent); Graphite never keeps it. Not done: D-Bus signals
+  (timers instead; their reads on the window's thread, for F2), encrypted drives, enterprise/hidden Wi-Fi. **S5
+  launched** (notifications, polkit, Settings, the dock, the leave flow; agent ac23db279a7ed37c3). Running: L4, P2, S5.
+
 - 26 Nov 03:45 UTC: **1.0 S3 merged** (fd378a7: the window list through libX11, the strip under the head; smoke under
   Xvfb with a stand-in window manager). Its notes: the strip is hidden when a program covers Graphite (added to S5: the
   strip as a dock window with a strut; S5 also gets S1's leave-flow warning and polite closes); this container lacks the
