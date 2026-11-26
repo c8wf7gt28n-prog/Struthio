@@ -225,6 +225,9 @@ def icon(key, tone=None):
                   (QIcon.Disabled, t.LINE_MID, t.LINE, 0.0))
     if t.APPEARANCE == 'kasandra':      # 0.8.3: the line it is on is her solid burnt-yellow bar: the glyph in its dark ink, no light
         states = (states[0], (QIcon.Active, t.ON_BAR, t.ON_BAR, 0.0), (QIcon.Selected, t.ON_BAR, t.ON_BAR, 0.0), states[3])
+    if t.LAUNCH:      # 1.0 P4: Day and Night: one family of monochrome line glyphs, colour only for state; white on the accent row
+        rest = (QIcon.Normal, t.QUIET, t.QUIET, 0.0) if own is None else (QIcon.Normal, own[0], own[1], 0.0)
+        states = (rest, (QIcon.Active, t.ON_BAR, t.ON_BAR, 0.0), (QIcon.Selected, t.ON_BAR, t.ON_BAR, 0.0), states[3])
     for state, line, fill, lit in states:
         for ratio in (1, 2):
             image = QPixmap(SIDE * ratio, SIDE * ratio);image.fill(Qt.transparent)

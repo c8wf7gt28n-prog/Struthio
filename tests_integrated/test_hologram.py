@@ -7,6 +7,7 @@ Pure: where she stands (every row of the plan's table, and a grid of sizes where
 bottom), how she moves (the flicker's bounds, the tears' clock, the still frame). The window (a subprocess, Kasandra, 1920 by
 1200): the picture's mark, the cut, the timer's pace and when it sleeps, standing aside when the tree scrolls (at once),
 on Settings and on the Clean desk, Reduce motion's still frame, the measured motion of each state, and the paint time.
+1.0 P4 no avatar (the owner, 26 Nov 2026: "No kas avatar anymore"): the window's cases now say she does not stand there.
 """
 import math
 import os
@@ -17,6 +18,8 @@ os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 from workbench import hologram as holo
 
 from tests_integrated.kasandra_window_probe import probe
+from pathlib import Path
+ROOT_FOR_P4 = Path(__file__).resolve().parents[1]      # 1.0 P4 no avatar
 
 DELETE = lambda foot_top: (218, foot_top + 8, 120, 29)
 
@@ -130,61 +133,54 @@ class Motion(unittest.TestCase):
 
 
 class Window(unittest.TestCase):
+    """1.0 P4 no avatar (the owner, 26 Nov 2026: "No kas avatar anymore"): her hologram no longer stands in the left pane, in
+    any look; hologram_qt.install gives None and the pane is as it is without her. Each case below said what she did when she
+    stood there; each now says she does not."""
     @classmethod
     def setUpClass(cls):
         cls.out = probe('kasandra', 1920, 1200, 'hologram')
 
     def test_the_mark_and_the_cut(self):
-        self.assertTrue(self.out['installed'])
-        self.assertEqual(self.out['cutout'], dict(alpha=True, corner=0, same=True))
+        self.assertFalse(self.out['installed'], 'no hologram is stood up (1.0 P4 no avatar)')
 
     def test_she_stands_in_files_and_her_clock_runs(self):
-        files = self.out['files']
-        self.assertTrue(files['visible']);self.assertEqual(files['stance'], 'stage');self.assertEqual(files['interval'], 83)
-        self.assertEqual(files['figure'], [36, 690, 281, 380])
-        if self.out['active']:self.assertTrue(files['running'])
-        self.assertEqual(self.out['meets_rows'], 0);self.assertFalse(self.out['meets_delete'])
-        self.assertFalse(self.out['inactive_running'], 'asleep while another program is in front')
+        self.assertFalse(self.out['installed']);self.assertNotIn('files', self.out, 'she does not stand in Files')
 
     def test_she_stands_aside(self):
-        self.assertTrue(self.out['scrolls_hidden_at_once'], 'hidden in the same signal that made the tree scroll')
-        self.assertGreater(self.out['scroll_range'], 0);self.assertTrue(self.out['scrolls_hidden']);self.assertTrue(self.out['back'])
-        self.assertTrue(self.out['settings_hidden']);self.assertFalse(self.out['settings_running'])
-        self.assertEqual(self.out['clean'], dict(hidden=True, layers=True, running=False));self.assertTrue(self.out['illustrated_back'])
+        self.assertFalse(self.out['installed']);self.assertNotIn('scrolls_hidden', self.out)
 
     def test_reduce_motion_lands_on_a_still_frame(self):
-        self.assertFalse(self.out['still_running']);self.assertTrue(self.out['still_same'])
+        self.assertFalse(self.out['installed']);self.assertNotIn('still_running', self.out, 'nothing of hers moves')
 
     def test_her_motion_is_calm_and_follows_the_state(self):
-        m = self.out['motion'];idle, working, waiting, still = m['idle'][0], m['working'][0], m['awaiting_approval'][0], m['still'][0]
-        self.assertTrue(2.5 <= idle <= 8.0, m);self.assertTrue(4.0 <= working <= 10.0 and working > idle, m)
-        self.assertTrue(1.0 <= waiting <= 0.7 * idle, m);self.assertEqual(still, 0.0, m)      # waiting is calmer than at rest
-        self.assertTrue(all(v[1] <= 0.02 for v in m.values()), 'the stage\'s brightness changes by 2 percent at most: ' + repr(m))
+        self.assertFalse(self.out['installed']);self.assertNotIn('motion', self.out)
 
     def test_a_frame_costs_little(self):
-        self.assertEqual(self.out['size'], [297, 404]);self.assertLess(self.out['paint_ms'], 1.5, 'the plan\'s budget')
+        self.assertFalse(self.out['installed']);self.assertNotIn('paint_ms', self.out, 'no frame of hers is drawn')
 
     def test_the_state_is_one_colour_on_her_base_and_her_cursor(self):
-        for state, seen in self.out['states'].items():
-            self.assertEqual(seen['word'], holo.look(state)[0], state)
-            self.assertEqual(seen['cursor'], seen['role'], state);self.assertEqual(seen['base'], seen['role'], state)
+        self.assertFalse(self.out['installed']);self.assertNotIn('states', self.out)
 
 
 class Asleep(unittest.TestCase):
-    """0.8.3 review: her clock under the idle display, a touch while she is asleep, and a picture that will not decode."""
+    """0.8.3 review: her clock under the idle display, a touch while she is asleep, and a picture that will not decode. 1.0 P4
+    no avatar: there is no hologram to put to sleep, to touch or to stand up; the decode is still remembered."""
 
     @classmethod
     def setUpClass(cls):
         cls.out = probe('kasandra', 1366, 768, 'review')
 
     def test_the_idle_display_puts_her_to_sleep_and_wakes_her(self):
-        self.assertFalse(self.out['idle_running']);self.assertTrue(self.out['idle_back'])
+        self.assertNotIn('idle_running', self.out, 'no hologram under the idle display (1.0 P4 no avatar)')
 
     def test_a_touch_while_asleep_leaves_no_tear(self):
-        self.assertFalse(self.out['touch_asleep'])
+        self.assertNotIn('touch_asleep', self.out, 'no hologram to touch (1.0 P4 no avatar)')
 
     def test_a_picture_that_will_not_decode_is_not_stood_up(self):
-        self.assertEqual(self.out['undecodable'], [True, None])
+        from types import SimpleNamespace
+        from workbench import hologram_qt
+        fake = SimpleNamespace(left_pane=object(), root=ROOT_FOR_P4, hologram='before')
+        self.assertIsNone(hologram_qt.install(fake));self.assertIsNone(fake.hologram, 'no picture of her is ever stood up (1.0 P4 no avatar)')
 
     def test_a_failed_decode_is_remembered(self):
         import shutil, tempfile

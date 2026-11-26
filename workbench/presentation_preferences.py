@@ -7,9 +7,10 @@ LAYOUT_RANGES = {'navigator_width':(160,600), 'output_height':(80,700)}
 # The whole window's looks (0.8.0), each with the word it is chosen by: the one list of them (0.8.4). The theme draws
 # them (boss_theme.APPEARANCES is this list, with a palette for each) and the session keeps one for the next start; the
 # session reads the list here, so it never imports the theme.
-APPEARANCES = (('graphite', 'Graphite'), ('kasandra', 'Kasandra'), ('day', 'Day'))      # 1.0 P2: Day, the light look from the owner's picture
+APPEARANCES = (('graphite', 'Graphite'), ('kasandra', 'Kasandra'), ('day', 'Day'), ('night', 'Night'))      # 1.0 P2: Day, the light look from the owner's picture; 1.0 P4: Night, Day's dark twin from the same tokens
 APPEARANCE_DEFAULT = 'day'          # 1.0 D1: Day (the owner's picture) is the look of a fresh profile (no session file yet)
 APPEARANCE_EARLIER = 'graphite'     # 1.0 D1: a profile from before, with no look of its own saved, keeps the one it has had
+LAUNCH_MARK, LAUNCH_MARKED = 'launch_look', '1.0'      # 1.0 P4: this profile has had 1.0's one move to Day (boss_theme.launch_move_due)
 
 
 def appearance(value):

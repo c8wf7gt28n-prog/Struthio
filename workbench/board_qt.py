@@ -465,7 +465,7 @@ class BoardView(QWidget):
             if right - w - line - 10 * s < x + 90 * s:break
             p.setPen(QColor(t.QUIET));p.drawText(QPointF(right - w, base), label)
             pen = QPen(ink(t.TEAL_EDGE if t.APPEARANCE == 'kasandra' else t.LINE_STRONG, 0.95), 1.6)
-            if t.APPEARANCE == 'day':pen = QPen(ink(day_wire(dashed), 1.0), 1.6)      # 1.0 P2: the picture's blue wires
+            if t.LAUNCH:pen = QPen(ink(day_wire(dashed), 1.0), 1.6)      # 1.0 P2: the picture's blue wires (1.0 P4: Day and Night)
             if dashed:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 3])
             p.setPen(pen);y = base - fm2.ascent() / 2 + 1;p.drawLine(QPointF(right - w - line - 8 * s, y), QPointF(right - w - 8 * s, y))
             right -= w + line + 26 * s
@@ -479,7 +479,13 @@ class BoardView(QWidget):
         if self.board.note == bm.HOME_LINE:      # 1.0 D1: a fresh desk: Home, with one line, never an empty grey centre
             from .glyph_set import KIND as KIND_GLYPH
             w, h = 300 * s, 92 * s;r = QRectF(body.center().x() - w / 2, body.center().y() - h / 2 - 24 * s, w, h)
-            p.setPen(QPen(ink(t.LINE_STRONG, 1.0), 2));p.setBrush(QColor(t.CARD));p.drawRect(r)
+            if t.LAUNCH:      # 1.0 P4: Day and Night: a card at elevation 1 (radius 10, the hairline ring), from the tokens
+                from . import design_tokens as dt
+                rad = dt.RADIUS['tile'] * s;p.setPen(Qt.NoPen);p.setBrush(ink(t.DAY_MARKS['SHADOW'], dt.shadow_alpha(1) / 255.0))
+                p.drawRoundedRect(r.adjusted(-1, 0, 1, 2 * s), rad + 1, rad + 1)
+                p.setPen(QPen(ink(t.LINE_MID, 1.0), 1));p.setBrush(QColor(t.CARD));p.drawRoundedRect(r, rad, rad)
+            else:
+                p.setPen(QPen(ink(t.LINE_STRONG, 1.0), 2));p.setBrush(QColor(t.CARD));p.drawRect(r)
             inner = r.adjusted(16 * s, 12 * s, -16 * s, -12 * s);p.setFont(self.mono(12, QFont.Medium));fm = QFontMetricsF(p.font())
             draw = KIND_GLYPH.get('folder') or KIND_GLYPH.get('file');lead = 0.0
             if draw is not None:
@@ -493,7 +499,10 @@ class BoardView(QWidget):
             p.setFont(self.mono(11));p.setPen(QColor(t.FAINT))
             p.drawText(QPointF(inner.left(), inner.bottom() - 2 * s), 'where your files are')
             p.setFont(self.sans(15));p.setPen(QColor(t.QUIET))
-            p.drawText(QRectF(body.left() + 40 * s, r.bottom() + 18 * s, body.width() - 80 * s, 60 * s), Qt.AlignHCenter | Qt.AlignTop | Qt.TextWordWrap, self.board.note)
+            if t.LAUNCH:      # 1.0 P4: the empty state's words in the display role (design_tokens.TYPE: Inter Display, empty states only)
+                from . import design_tokens as dt
+                big = QFont(dt.FONT['display']);big.setPixelSize(round(dt.TYPE['title2'][0] * s));big.setWeight(QFont.DemiBold);p.setFont(big);p.setPen(QColor(t.TEXT))
+            p.drawText(QRectF(body.left() + 40 * s, r.bottom() + 18 * s, body.width() - 80 * s, 80 * s), Qt.AlignHCenter | Qt.AlignTop | Qt.TextWordWrap, self.board.note)
             return
         p.setFont(self.sans(15));p.setPen(QColor(t.QUIET))
         p.drawText(body.adjusted(40 * s, 40 * s, -40 * s, -40 * s), Qt.AlignCenter | Qt.TextWordWrap, self.board.note or 'Nothing in focus.')
@@ -510,7 +519,7 @@ class BoardView(QWidget):
         small square handle at each end, as in the owner's picture."""
         s = self.scale()
         blue = t.TEAL_EDGE;green = t.READY
-        day = t.APPEARANCE == 'day'      # 1.0 P2: Day's rings are the picture's green and blue, drawn whole on white paper
+        day = t.LAUNCH      # 1.0 P2: Day's rings are the picture's green and blue, drawn whole on white paper (1.0 P4: Day and Night, from the tokens)
         if day:blue, green = t.DAY_MARKS['RING_BLUE'], t.DAY_MARKS['RING_GREEN']
         radii = list(self.ring_radii)
         if not radii:return
@@ -562,9 +571,9 @@ class BoardView(QWidget):
             hovered = self.hover_wire == wire.key() or (self.hover and self.hover in (wire.source, wire.target))
             chosen = self.chosen_wire == wire.key()
             base = t.TEAL_EDGE if t.APPEARANCE == 'kasandra' else t.LINE_STRONG
-            if t.APPEARANCE == 'day':base = day_wire(wire.dashed)      # 1.0 P2: blue wires, as in the picture
+            if t.LAUNCH:base = day_wire(wire.dashed)      # 1.0 P2: blue wires, as in the picture (1.0 P4: Day and Night)
             colour = t.AMBER_EDGE if chosen else t.READY if hovered else t.RECHECK if wire.stale else base
-            strength = 1.0 if (touching or hovered or chosen or wire.stale) else (0.62 if t.APPEARANCE != 'day' else 0.8)
+            strength = 1.0 if (touching or hovered or chosen or wire.stale) else (0.62 if not t.LAUNCH else 0.8)      # 1.0 P4
             width = (2.4 if chosen else 1.8 if (touching or hovered) else 1.3)
             pen = QPen(ink(colour, strength), width, Qt.SolidLine, Qt.RoundCap)
             if wire.dashed:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([5, 4])
@@ -580,7 +589,7 @@ class BoardView(QWidget):
                 from . import state_words as sw
                 word = wire.label if not wire.dashed else sw.word('possible')      # 1.0 D1: the table's word for an inferred link
                 if wire.stale and 'recheck' not in word:word = word + ' · recheck'
-                if t.APPEARANCE == 'day' and colour == day_wire(True):colour = day_wire(False)      # 1.0 P2: words in the blue that reads (5:1)
+                if t.LAUNCH and colour in (day_wire(True), day_wire(False)):colour = t.DAY_MARKS['WIRE_WORDS']      # 1.0 P2: words in the blue that reads (1.0 P4: the tokens' accent words, 4.5:1 or more)
                 self._labels.append((path.pointAtPercent(0.5), word, colour))
 
     def _wire_words(self, p):
@@ -598,17 +607,29 @@ class BoardView(QWidget):
         s = self.scale();r = self.rect_of(tile.id);focus = tile.id == self.board.focus.id
         over = self.hover == tile.id and not focus
         lit = focus and self.hasFocus()
-        if t.APPEARANCE == 'day':      # 1.0 P2: a soft shadow under each tile on white paper, as in the picture
+        launch = t.LAUNCH;radius = 0.0      # 1.0 P4: Day and Night: a tile is a card, radius 10, at elevation 1 (design_tokens)
+        if launch:
+            from . import design_tokens as dt
+            radius = dt.RADIUS['tile'] * s;x0, y0, blur, alpha, _ = dt.ELEVATION[1]
             p.setPen(Qt.NoPen)
-            for grow, alpha in ((3.0, 0.035), (1.5, 0.05)):p.setBrush(ink(t.DAY_MARKS['SHADOW'], alpha));p.drawRect(r.adjusted(-grow + 1, -grow + 2.5, grow + 1, grow + 2.5))
+            for grow, share in ((blur * s, 0.5), (blur * s / 2.0, 1.0)):      # elevation 1: 0 1px 2px, as a soft edge of two steps
+                p.setBrush(ink(t.DAY_MARKS['SHADOW'], alpha / 255.0 * share))
+                p.drawRoundedRect(r.adjusted(-grow + x0 * s, -grow + y0 * s, grow + x0 * s, grow + y0 * s), radius + grow, radius + grow)
         p.setBrush(QColor(t.CARD if tile.size >= 2 or focus else t.PANEL))
-        edge = t.AMBER_EDGE if lit else t.READY if over else (t.LINE_STRONG if (focus or tile.size >= 3) else t.LINE_MID)
-        pen = QPen(ink(edge, 1.0 if (focus or over) else 0.85), 2 if focus else 1)
+        edge = t.AMBER_EDGE if lit else (t.LINE_STRONG if launch else t.READY) if over else (t.LINE_STRONG if (focus or tile.size >= 3) else t.LINE_MID)
+        if launch and not (lit or over):edge = t.AMBER_EDGE if focus else t.LINE_MID      # 1.0 P4: the hairline ring; the focus in the accent
+        pen = QPen(ink(edge, 1.0 if (focus or over) else 0.85), (1.5 if launch else 2) if focus else 1)
         if tile.id == bm.MORE:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([2, 3])
-        p.setPen(pen);p.drawRect(r)
+        p.setPen(pen)
+        if launch:p.drawRoundedRect(r, radius, radius)
+        else:p.drawRect(r)
         if focus:
             # the striped corner of the picture's focus tile, and the corner ticks that say "in focus" without colour
-            p.save();p.setClipRect(r);p.setPen(QPen(ink(t.TEAL_EDGE, 0.55), 1.4 * s));k = 34 * s
+            p.save()
+            if launch:
+                clip = QPainterPath();clip.addRoundedRect(r, radius, radius);p.setClipPath(clip)
+            else:p.setClipRect(r)
+            p.setPen(QPen(ink(t.TEAL_EDGE, 0.55), 1.4 * s));k = 34 * s
             for i in range(5):
                 o = i * 7 * s;p.drawLine(QPointF(r.right() - k + o, r.top()), QPointF(r.right(), r.top() + k - o))
             p.restore()

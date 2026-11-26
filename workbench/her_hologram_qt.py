@@ -1,4 +1,6 @@
-"""Kas as a hologram (Graphite 1.0, P3).
+"""Kas as a hologram (Graphite 1.0, P3). 1.0 P4 no avatar (the owner, 26 Nov: "No kas avatar anymore"): nothing on screen calls
+this module any more (her_column_qt draws no picture of her); it stays in the program, unused, and its Day glass reads the
+design tokens (design_tokens.GLASS).
 
 The owner, 26 November 2026, with a tall full-figure picture of her (a glowing blue figure in a wide hat, on black): "Use
 her as the on screen kas, like she is a hologram. Not the circle picture." Her column's portrait (her_column_qt.Portrait,
@@ -60,7 +62,7 @@ EQ_TOP_COMPACT = 0.20           # in a short one, from under her hat's crown
 HOLE = 0.48                     # the bars' hole, as a share of her width: they stand behind her edges and beside her
 SCAN_ALPHA = 62                 # one device row in three darkened this much: her scan lines
 GLOW = '#62b8ff'                # her glow when her picture's own colour cannot be told (a white or grey picture)
-GLASS = ('#0c1322', '#16233a', '#3a74b8')      # Day's projector glass: its top, its foot, its edge
+from .design_tokens import GLASS      # Day's projector glass: its top, its foot, its edge (1.0 P4: a token)
 KEEP = 2                        # pictures kept cut
 _KEYED = {}                     # picture key -> Keyed
 _SCAN = []
@@ -227,7 +229,7 @@ def glass(p, r, tint):
     """Day's projector glass: a dark panel of her own (soft shadow, deep gradient, a sheen, a thin edge, the projector's
     light at its foot)."""
     p.save();p.setRenderHint(QPainter.Antialiasing)
-    shadow = QColor(bt.DAY_MARKS.get('SHADOW', '#1b2420') if hasattr(bt, 'DAY_MARKS') else '#1b2420');shadow.setAlpha(34)
+    shadow = QColor(bt.DAY_MARKS['SHADOW']);shadow.setAlpha(34)      # 1.0 P4: the tokens' shadow
     p.setPen(Qt.NoPen);p.setBrush(shadow);p.drawRoundedRect(r.translated(0, 2).adjusted(1, 1, -1, 0), 9, 9)
     path = QPainterPath();path.addRoundedRect(r, 8, 8)
     g = QLinearGradient(r.topLeft(), r.bottomLeft());g.setColorAt(0, QColor(GLASS[0]));g.setColorAt(1, QColor(GLASS[1]))

@@ -94,10 +94,11 @@ class Toast(QFrame):
         self.note = note;s = scale_of(self.shelf.host)
         urgent = note['urgency'] == 2
         edge = bt.STOP if urgent else bt.READY
-        self.setStyleSheet('QFrame#GraphiteToast {background:%s; border:1px solid %s; border-left:%dpx solid %s; border-radius:6px;}'
+        from .design_tokens import RADIUS      # 1.0 P4: Day and Night: a hairline stroke and the tokens' toast radius
+        self.setStyleSheet('QFrame#GraphiteToast {background:%s; border:1px solid %s; border-left:%dpx solid %s; border-radius:%dpx;}'
                            ' QLabel {background:transparent; border:0;}'
                            ' QToolButton {color:%s; background:transparent; border:0; padding:0 4px;} QToolButton:hover {color:%s;}'
-                           % (bt.CARD, bt.LINE_STRONG, max(3, round(3 * s)), edge, bt.QUIET, bt.TEXT))
+                           % (bt.CARD, bt.LINE_MID if bt.LAUNCH else bt.LINE_STRONG, max(3, round(3 * s)), edge, RADIUS['toast'] if bt.LAUNCH else 6, bt.QUIET, bt.TEXT))
         self.kind.setText('▲ URGENT' if urgent else '◆ NOTIFICATION')
         self.kind.setStyleSheet('QLabel {color:%s; font-family:"%s"; letter-spacing:1px;}' % (edge, bt.MONO))
         self.who_full = '· “%s” · %s' % (note['app'] or 'an app', ns.clock(note['at']));self.who.setText(self.who_full)

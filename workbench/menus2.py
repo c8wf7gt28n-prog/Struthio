@@ -22,7 +22,7 @@ FILE = ['new', '@new_idea', '@new_project', 'open', 'viewer', 'quick', '@recent'
         None, '@leave']      # 0.7.0: leaving at the foot of the first menu; it was the System menu's last group (1.0 S1: Lock, Suspend, Log out, Restart, Shut down, Exit Graphite)
 EDIT = ['undo', 'redo', None, 'cut', 'copy', 'paste', 'select', None, 'find', 'find_next', 'replace', 'goto']
 VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda', '@slate_panel', None, '@console_sizes', '@cabinet', '@machine_refresh', None,
-        'fullscreen', 'reading', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9)
+        'fullscreen', 'reading', '@appearance', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9); 1.0 P4: Appearance here too
 TOOLS = ['discovery','algorithms','atlas', '@type_to', '@chain', 'ledger_commands', None,
          'ledger_settings', 'doctor', '@computer', '@pills', None, 'master_stop', None, '@engineering', '@service']
 HELP = ['@getting_started', '@whats_new', None, '@kas_evening', '@try_rail', '@try_home', None, 'keys', 'setup_guide', None, 'orange_book', None, 'about']      # 0.8.6 W: the evening with her mind, and its two demos
@@ -241,6 +241,9 @@ def rebuild(host):
             from .shell2 import hand_menu
             menu.addMenu(appearance_menu(host));menu.addMenu(buttons_menu(host));menu.addMenu(hand_menu(host));return      # the desk's art, its buttons (words or glyphs), and how far Stacy acts by herself
         if key == '@targets' and hasattr(host, 'target_menu'):menu.addMenu(host.target_menu);return
+        if key == '@appearance':      # 1.0 P4: Arrange ▸ Appearance, where 1.0's one line about the move to Day sends you
+            from .boss_qt import looks_menu
+            menu.addMenu(looks_menu(host, menu));return
         if key == '@cabinet':  # HATCH DESK D1b: how the cabinet is arranged (it was the left pane's own words)
             sub = QMenu('Cabinet', host);host.cabinet_menu = sub
             def fill(sub=sub):

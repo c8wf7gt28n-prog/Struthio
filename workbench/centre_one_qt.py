@@ -80,7 +80,7 @@ class Counts(QWidget):
         try:
             f = self.font_();p.setFont(f);fm = QFontMetricsF(f);s = self.one.scale();x = 0.0;cy = self.height() / 2.0
             for key, words in self.parts(self.form()):      # whole words, or fewer of them: never a word cut short
-                line = 22 * s;colour = bt.DAY_MARKS['WIRE_SOFT' if key == 'possible' else 'WIRE'] if bt.APPEARANCE == 'day' else (bt.TEAL_EDGE if bt.APPEARANCE == 'kasandra' else bt.LINE_STRONG)
+                line = 22 * s;colour = bt.DAY_MARKS['WIRE_SOFT' if key == 'possible' else 'WIRE'] if bt.LAUNCH else (bt.TEAL_EDGE if bt.APPEARANCE == 'kasandra' else bt.LINE_STRONG)      # 1.0 P4: Day and Night
                 sw.paint(p, QRectF(x, cy - 4, line, 8), key, colour, 1.6);x += line + 6 * s
                 p.setPen(QColor(bt.QUIET));p.drawText(QRectF(x, 0, fm.horizontalAdvance(words) + 2, self.height()), Qt.AlignLeft | Qt.AlignVCenter, words)
                 x += fm.horizontalAdvance(words) + 16 * s

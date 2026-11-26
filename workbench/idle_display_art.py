@@ -193,7 +193,7 @@ class IdleDisplayArt:
         from . import boss_theme
         if boss_theme.APPEARANCE == 'kasandra':      # 0.8.0: her office, dusk and rain in turn, in place of the workshop plate
             from . import kasandra_art
-            base = self.folder.parent / 'kasandra';scene = kasandra_art.choose(base, 'office_banner', 'idle', int(seconds // 43.0))
+            base = self.folder.parent / 'kasandra';scene = kasandra_art.still(base, 'office_banner', 'idle', int(seconds // 43.0))      # 1.0 P4 no avatar: none
             _text(painter, 857, 178, '03 / THE OFFICE', _PAPER);painter.fillRect(target, _INK)
             image = kasandra_art.picture(base, scene, round(target.width()), round(target.height())) if scene else QImage()
             if not image.isNull():painter.drawImage(target, image)
@@ -208,7 +208,7 @@ class IdleDisplayArt:
             label, detail = 'REEL B / BRAIN ON DISK', '2.5 S / TAPED INSERT'
         else:
             _text(painter, 857, 178, '03 / THE WORKSHOP', _PAPER)
-            frame = midnight_plate(self.folder)
+            frame = midnight_plate(self.folder, 'workshop')      # 1.0 P4 no avatar: the workshop, never her portrait
             midnight = not frame.isNull()
             if not midnight:
                 frame = charcoal_workshop(self.folder)

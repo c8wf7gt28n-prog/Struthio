@@ -4,6 +4,7 @@ Preserve the licence and provenance files beside bundled upstream source.
 
 - OpenDyslexic: branding/ux17/fonts/OFL.txt.
 - IBM Plex Sans and IBM Plex Mono (interface fonts, SIL Open Font License 1.1, © IBM Corp.): branding/fonts/plex/LICENSE.txt and NOTICE.md.
+- Inter and Inter Display (the interface fonts of the Day and Night looks, SIL Open Font License 1.1, © The Inter Project Authors): branding/fonts/inter/LICENSE.txt and NOTICE.md.
 - Parisienne (the script for short greetings and pleasantries, SIL Open Font License 1.1, © 2012 Brian J. Bonislawsky DBA Astigmatic): branding/fonts/script/OFL-Parisienne.txt.
 - Special Elite (the typewriter face of the Kasandra appearance, Apache License 2.0, Astigmatic): branding/fonts/typewriter/SpecialElite-LICENSE.txt and NOTICE.md. Two faces are derived from it under the same licence, with their changes stated in NOTICE.md: KasandraElite-Regular.ttf and KasandraEliteMono-Regular.ttf (tools/derive_typewriter.py).
 

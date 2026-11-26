@@ -205,7 +205,7 @@ class SearchBar(QWidget):
         self.plus.setFixedSize(tall, tall);self.plus.scale = m.scale;self.line.setFixedHeight(tall)
         self.line.setStyleSheet('QLineEdit#AppsSearchLine {background:%s;color:%s;border:1px solid %s;border-radius:3px;padding:0 %dpx;'
                                 'font-family:"%s";font-size:%dpx;} QLineEdit#AppsSearchLine:focus {border:1px solid %s;}'
-                                % (t.RAISED, t.TEXT, t.LINE_STRONG, m.pad // 2, SANS, m.px, t.CUE_EDGE))
+                                % (t.RAISED, t.TEXT, t.LINE_MID if t.LAUNCH else t.LINE_STRONG, m.pad // 2, SANS, m.px, t.AMBER_EDGE if t.LAUNCH else t.CUE_EDGE))      # 1.0 P4: Day and Night: the stroke, and the accent's focus
 
     def refont(self):self.restyle()
 

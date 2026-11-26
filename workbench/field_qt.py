@@ -1018,7 +1018,7 @@ class FieldView(QWidget):
         host = getattr(self.parentWidget(), 'host', None)
         if host is None:return None
         from . import kasandra_art
-        try:return kasandra_art.choose(kasandra_art.folder(host.root), slot, state)
+        try:return kasandra_art.still(kasandra_art.folder(host.root), slot, state)      # 1.0 P4 no avatar: never a still of her
         except Exception:  # noqa: BLE001 - art is never worth an error: the rail gives way
             return None
 

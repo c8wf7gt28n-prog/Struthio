@@ -335,8 +335,13 @@ def paint_band(widget, painter):
     window's left edge, so their columns of grain line up and neither looks lighter)."""
     from PySide6.QtGui import QBrush, QColor
     from .boss_theme import CUE_EDGE as AMBER_EDGE      # 0.8.3: the band's rule is a cue (Graphite's amber, her cyan line)
-    painter.save();painter.setBrushOrigin(0, 0);painter.fillRect(widget.rect(), QBrush(grain_tile()))
+    from . import boss_theme as _look
     top = widget.objectName() == 'TopBar2'
+    if _look.LAUNCH:      # 1.0 P4: Day and Night: the band is the window's ground, flat, with a hairline at its edge (no grain, no glow)
+        painter.save();painter.fillRect(widget.rect(), QColor(_look.GROUND))
+        painter.fillRect(0, getattr(widget, 'command_band_height', widget.height()) - 1 if top else 0, widget.width(), 1, QColor(_look.LINE))
+        painter.restore();return
+    painter.save();painter.setBrushOrigin(0, 0);painter.fillRect(widget.rect(), QBrush(grain_tile()))
     y = getattr(widget, 'command_band_height', widget.height()) - 2 if top else 0
     # The band's amber rule throws its light into the band (0.5.1: "I want way more glow effect"): a short fall of amber
     # from the rule, deeper and stronger as the desk's glow is turned up; none on the Clean desk.

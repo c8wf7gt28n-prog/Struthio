@@ -480,6 +480,7 @@ def install(host):
     """host.hologram: her stage in the left pane, in Kasandra only and only when the picture's bytes are the owner's
     (kasandra_art.mark); else None, and the left pane is as it was."""
     host.hologram = None
+    return None      # 1.0 P4 no avatar: her hologram never stands in the left pane (the owner, 26 Nov: "No kas avatar anymore")
     if t.APPEARANCE != 'kasandra':return None
     pane = getattr(host, 'left_pane', None)
     if pane is None:return None

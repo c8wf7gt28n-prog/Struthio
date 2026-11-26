@@ -236,7 +236,7 @@ class TypeBar(QWidget):
         self.send.setParent(self)
         self.send.setObjectName('WritingSubmit')
         self.send.setIcon(QIcon(arrow));self.send.setIconSize(QSize(19, 19))
-        if _bt.APPEARANCE in ('kasandra', 'day'):self.send.setProperty('paperIcon', True)      # keep its own ink: menus2 would make it one grey (1.0 P2: Day's white arrow on green)
+        if _bt.APPEARANCE in ('kasandra', 'day', 'night'):self.send.setProperty('paperIcon', True)      # keep its own ink: menus2 would make it one grey (1.0 P2: Day's white arrow on green; 1.0 P4: Night's dark arrow on its green)
         self.send.setFocusPolicy(Qt.TabFocus)
         self.send.setAccessibleName('Submit writing line')
         self.send.setToolTip(SENDS['line'])
@@ -502,7 +502,7 @@ class TypeBar(QWidget):
             'QWidget#TypeBar QPushButton#WritingSubmit:hover {border:2px solid %s;} '      # under the pointer: the pointer's green edge
             'QWidget#TypeBar QPushButton#WritingSubmit[reads="true"] {background:%s;border:1px solid %s;} '      # the line reads as staC: the arrow is live
             'QWidget#TypeBar QLabel#TypeContext {font-size:%dpx;}'
-            % (TEXT, px, TERMINAL_GROUND, TEXT, QUIET, LINE, MONO, px, AMBER_EDGE,
+            % (TEXT, px, _bt.CARD if _bt.LAUNCH else TERMINAL_GROUND, TEXT, QUIET, _bt.LINE_MID if _bt.LAUNCH else LINE, MONO, px, AMBER_EDGE,      # 1.0 P4: Day and Night: the field on the surface, a stroke
                # 0.8.6, the owner: send cyan in the Kasandra look, orange still in Graphite: a primary button's cue colour
                # (CUE_EDGE) in both, its dark arrow on it; 0.8.1 to 0.8.5 it was red in Kasandra
                _bt.CUE_EDGE, TERMINAL_GROUND, _bt.CUE_EDGE, _bt.CUE_TEXT,

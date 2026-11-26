@@ -59,7 +59,7 @@ class HaltButton(QToolButton):
         s = min(max(self.scale, 0.8), 1.4)
         if t.APPEARANCE == 'kasandra':
             f = QFont(t.DISPLAY);f.setPixelSize(max(15, round(18 * s)));f.setLetterSpacing(QFont.AbsoluteSpacing, 1.2 * s)
-        elif t.APPEARANCE == 'day':
+        elif t.LAUNCH:      # 1.0 P4: Day and Night
             f = QFont(t.FACE);f.setPixelSize(max(14, round(17 * s)));f.setWeight(QFont.DemiBold);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.4 * s)
         else:
             f = QFont(t.MONO);f.setPixelSize(max(14, round(16 * s)));f.setWeight(QFont.DemiBold);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.0 * s)
@@ -68,7 +68,7 @@ class HaltButton(QToolButton):
     def colours(self):
         """(the triangle, the word) in the look in force."""
         if self.held:return t.OWNER, t.ERASED
-        if t.APPEARANCE == 'day':return t.DAY_MARKS['HALT'], t.ERASED
+        if t.LAUNCH:return t.DAY_MARKS['HALT'], t.ERASED      # 1.0 P4: the live green in Day and Night (red in Night would read as an error)
         return t.STOP, t.ERASED
 
     def need(self, height):

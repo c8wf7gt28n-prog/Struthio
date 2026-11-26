@@ -98,14 +98,17 @@ class Session:
                 return
             data = json.loads(self.path.read_text(encoding='utf-8'))
         except FileNotFoundError:      # 1.0 D1: a fresh profile: its look is Day (boss_theme read the same), kept from its first save
-            from .presentation_preferences import APPEARANCE_DEFAULT
+            from .presentation_preferences import APPEARANCE_DEFAULT, LAUNCH_MARK, LAUNCH_MARKED
             self.state['appearance'] = APPEARANCE_DEFAULT
+            self.state[LAUNCH_MARK] = LAUNCH_MARKED      # 1.0 P4: a fresh profile starts in Day: there is no move to make
             return
         except (OSError, ValueError, TypeError, RecursionError):      # RecursionError: a value nested past reading (0.8.4)
             return
         if not isinstance(data, dict) or data.get('schema') != SCHEMA:
             return
         if saved_appearance(data.get('appearance')):self.state['appearance'] = data['appearance']     # the whole window's look (presentation_preferences.APPEARANCES): this computer's, not a project's
+        from .presentation_preferences import LAUNCH_MARK, LAUNCH_MARKED      # 1.0 P4: 1.0's move to Day is made once per profile
+        if data.get(LAUNCH_MARK) == LAUNCH_MARKED:self.state[LAUNCH_MARK] = LAUNCH_MARKED
         # Documents belong to one project; a different project starts clean.
         if self.project and data.get('project') not in (None, self.project):
             return

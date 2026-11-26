@@ -25,6 +25,7 @@ from datetime import date
 from pathlib import Path, PurePosixPath
 
 SLOTS = ('office_banner', 'field_edge', 'worksheet_strip', 'assistant_rail')
+HER_SLOTS = ('office_banner', 'assistant_rail')      # 1.0 P4 no avatar: the slots whose stills show her (the wires over the rooftops stay)
 STATES = ('idle', 'viewing', 'working', 'awaiting_approval', 'completed', 'blocked')
 PICTURES = ('.webp', '.png', '.jpg', '.jpeg')
 HOLD = {'completed': 20.0, 'blocked': 45.0}     # how long an outcome stays in the picture after it happened (seconds)
@@ -140,6 +141,14 @@ def choose(base, slot, state, turn=0):
         scene = found['scenes'].get(name) if name else None
         if scene is not None and usable(base, scene):return scene
     return None
+
+
+def still(base, slot, state, turn=0):
+    """1.0 P4 no avatar (the owner, 26 Nov: "No kas avatar anymore"): the still a place of the window shows, which is never one
+    of her (HER_SLOTS: her office, her rail), whatever the catalog would choose; the wires over the rooftops stay. Every
+    place that draws a still asks this, never choose()."""
+    if slot in HER_SLOTS:return None
+    return choose(base, slot, state, turn)
 
 
 def suggestion(base, slot, state, offered_id, token, current_token):

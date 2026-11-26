@@ -4,9 +4,10 @@ The owner's picture of the desktop (PLAN_1.0 section 3) and their paper (section
 compete"): the right column is her operating area, not an endless transcript. Read top to bottom it says what she is
 examining, what she found, what she intends to do next and whether a decision is yours:
 
-    the stage            her compact portrait, with the equalizer's bars (the processor's threads numbered 01 to 16, then
-                         the kernel, memory, disks, network and graphics) standing behind and beside her. The equalizer
-                         moved here from the head's upper left, which is left empty (HALT's place, K3).
+    the stage            the equalizer's bars across the column's whole width (the processor's threads numbered 01 to 16,
+                         then the kernel, memory, disks, network and graphics), a compact band. The equalizer moved here
+                         from the head's upper left, which is left empty (HALT's place, K3). 1.0 P4 no avatar: no picture of
+                         her stands here or anywhere (the owner, 26 Nov: "No kas avatar anymore").
     her name             "Kasandra" with a ring for her model (○ none loaded, ● ready) and her state word, each with its
                          own shape: ○ QUIET, ● WORKING, ◆ WAITS FOR YOU, ✓ DONE, ■ STOPPED. Under it what she speaks
                          with and her hand (a link: click to change it).
@@ -31,16 +32,14 @@ examining, what she found, what she intends to do next and whether a decision is
                          to Talk exactly as the writing line's do (shell2.Shell2.ask), so with no model she answers what the
                          records can answer.
 
-The full art and its static are kept for the moments that matter (a finding refuted, an assignment done, HALT): a card over
-her exchange for a few seconds (still with Reduce motion), with the moment in words; it goes at a click. In Kasandra the
-hologram no longer stands in the left pane at rest (hologram_qt asks moment_on()). K3 calls moment(host, 'halt') when
-HALT is pressed; until then a hold of her managed work (work_trail) is read as HALT.
+The moments that matter (a finding refuted, an assignment done, HALT) are a card over her exchange for a few seconds, the
+moment in words; it goes at a click. K3 calls moment(host, 'halt') when HALT is pressed; until then a hold of her managed
+work (work_trail) is read as HALT.
 
-Her portrait is your kasandra/portrait.png (or .jpg) once you admit it (her_portrait, kasandra.portrait.admit, approve:
-offered on the portrait's right-click), else the shipped art: Graphite's plate after midnight in the Graphite look, her
-hologram's figure in Kasandra. 1.0 P3: a picture taller than it is wide (the owner's full figure, or the shipped hologram's
-figure, now the shipped art in every look) stands as a hologram in a tall slot (her_hologram_qt); a wide or square one
-keeps the circle; a moment shows her full figure, larger.
+1.0 P4 no avatar (the owner, 26 Nov: "No kas avatar anymore"): no picture of her is drawn, in any look. Her column's top is
+the equalizer across its width, then her name, her model and her state word with its shape (state_words). The portrait's
+right-click offers and its question are gone; the kernel's kasandra.portrait.admit stays registered (records only), and
+nothing on screen calls it. P3's hologram (her_hologram_qt) and the left pane's (hologram_qt) are not drawn.
 
 Her rules hold here: nothing in this column writes a record by being shown (every read is an observer); a press is yours
 (Stop, Authorise, Resume, Carry on, a desk act); sending anything out still asks where it always asks. Every colour that
@@ -95,9 +94,6 @@ WORDS = {
     'moment_done': 'An assignment is done, every step verified: “{title}”.',
     'moment_halt': 'HALT: her managed work is stopped. Your programs and the desktop go on.',
     'moment_hint': 'A click puts this away.',
-    'portrait_use': 'Use your picture as her portrait',
-    'portrait_shipped': 'Go back to the shipped art',
-    'portrait_ask': 'Admit {name} as her portrait? Its exact bytes are kept in her folder; your picture itself is not changed.',
     'model_none': 'no model loaded',
     'model_ready': 'her model is ready',
 }
@@ -279,10 +275,10 @@ def press(host, operation, arguments):
 
 # ---------------------------------------------------------------------------------------------------------- the stage
 class ColumnEqualizer(Equalizer):
-    """The head's equalizer, in her column (1.0 P1): the same readings and card, its tubes laid either side of her portrait
-    (`hole`, the portrait's width, in the middle) and the processor's tubes numbered 01 to 16 under them where the numbers
-    fit (the others: every fourth, the first and the last). The grid floor and the trace of the last two minutes run behind
-    her. `in_column` tells the head's placing to leave it be."""
+    """The head's equalizer, in her column (1.0 P1): the same readings and card, the processor's tubes numbered 01 to 16 under
+    them where the numbers fit (the others: every fourth, the first and the last), the grid floor and the trace of the last
+    two minutes behind them. `hole` (a gap in the middle) is 0: 1.0 P4 no avatar, the tubes span the column's whole width.
+    `in_column` tells the head's placing to leave it be."""
     in_column = True
 
     def __init__(self, host):
@@ -291,12 +287,26 @@ class ColumnEqualizer(Equalizer):
 
     def sizeHint(self):return QSize(160, 64)
 
+    def geometry_(self):
+        if bt.LAUNCH:      # 1.0 P4: Day and Night: room under the tubes for their numbers at 11 px (nothing under 11 px)
+            return self.height() - 15, 5.0
+        return super().geometry_()
+
     def places(self):
         key = (self.width(), tuple(self.sizes), self.hole)
         if self._places is not None and self._places[0] == key:return self._places[1]
         owner = []      # the group of each tube, in order
         for g, size in enumerate(self.sizes):owner += [g] * size
         n = len(owner) or 1;w = self.width();hole = max(0, min(self.hole, w - 40))
+        if hole <= 0:      # 1.0 P4 no avatar: the tubes spread across the column's whole width, a little more room between groups
+            bounds = sum(1 for i in range(1, n) if owner[i] != owner[i - 1]);extra = 6;margin = 6
+            pitch = max(3.0, (w - 2 * margin - bounds * extra) / float(n));wide = max(2, min(14, int(pitch * 0.62)))
+            xs = [];x = margin + (pitch - wide) / 2.0
+            for i in range(n):
+                if i and owner[i] != owner[i - 1]:x += extra
+                xs.append(int(round(x)));x += pitch
+            self._places = (key, (xs, wide))
+            return xs, wide
         left_n = (n + 1) // 2;right_n = n - left_n
         side = max(10, (w - hole) // 2 - 3)
         gap, between = (2, 5) if side / max(1, left_n) >= 6 else (1, 3)
@@ -319,7 +329,7 @@ class ColumnEqualizer(Equalizer):
         if not self.shown or self.height() < 24:return
         try:
             xs, wide = self.places();base, _ = self.geometry_()
-            p = QPainter(self);font = QFont(bt.MONO);font.setPixelSize(max(7, min(8, (self.height() - base) - 3)));p.setFont(font)
+            p = QPainter(self);font = QFont(bt.MONO);font.setPixelSize(11 if bt.LAUNCH else max(7, min(8, (self.height() - base) - 3)));p.setFont(font)      # 1.0 P4: 11 px in Day and Night
             fm = QFontMetrics(font);p.setPen(QColor(bt.FAINT))
             cpu = self.sizes[0] if self.sizes else 0;y = self.height() - 2;pitch = (xs[1] - xs[0]) if len(xs) > 1 else wide
             every = 1 if fm.horizontalAdvance('00') + 2 <= pitch else 4
@@ -343,19 +353,22 @@ class ColumnEqualizer(Equalizer):
 
 
 class Portrait(QWidget):
-    """Her compact portrait: a circle with a ring in the colour of her state (the state's word says it too). Your admitted
-    picture, else the shipped art (Graphite: the plate after midnight, her face; Kasandra: her hologram's figure). A
-    right-click offers your picture when one waits in the workspace, and the shipped art back."""
+    """1.0 P4 no avatar: her portrait is no longer drawn (the owner, 26 Nov: "No kas avatar anymore"). The widget stays,
+    hidden and empty, for what still asks it her state; it offers nothing on a right-click."""
 
     def __init__(self, column):
         super().__init__();self.column = column;self.host = column.host;self.state = 'idle';self._image = None;self._key = None
         self.setObjectName('HerPortrait');self.setAccessibleName(named('Stacy') + ', her portrait')
-        self.setContextMenuPolicy(Qt.CustomContextMenu);self.customContextMenuRequested.connect(self.menu)
-        self.holo = None;self.figure = None;self.arranged = None      # 1.0 P3: her hologram (her_hologram_qt), a tall picture's
+        self.setContextMenuPolicy(Qt.NoContextMenu)      # 1.0 P4 no avatar: no "Use your picture" / "Go back to the shipped art"
+        self.holo = None;self.figure = None;self.arranged = None
+        self.hide()
 
     # -- which picture
     def source(self):
-        """(image, focal x, focal y, zoom, key): what is drawn, cropped to the circle round the focal point."""
+        """(image, focal x, focal y, zoom, key): 1.0 P4 no avatar, always none."""
+        return QImage(), 0.5, 0.5, 1.0, 'none'
+
+    def old_source(self):      # 0.8.x/P3's choice of picture, kept unread (1.0 P4 no avatar)
         found = self.column.portrait_state or {}
         mine = (found.get('in_force') or {}).get('path')
         if mine:
@@ -390,8 +403,7 @@ class Portrait(QWidget):
             if self.holo is not None:self.holo.changed()      # 1.0 P3: a brief static at a change of her state
 
     def paintEvent(self, event):
-        from . import her_hologram_qt      # 1.0 P3: a picture taller than it is wide stands as a hologram
-        if her_hologram_qt.paint_portrait(self):return
+        return      # 1.0 P4 no avatar: nothing is drawn
         side = min(self.width(), self.height()) - 4
         if side < 12:return
         box = QRectF((self.width() - side) / 2.0, (self.height() - side) / 2.0, side, side)
@@ -414,50 +426,27 @@ class Portrait(QWidget):
         p.setBrush(Qt.NoBrush);p.setPen(QPen(ring, max(2.0, side / 40.0)));p.drawEllipse(box.adjusted(1, 1, -1, -1))
         p.end()
 
-    def menu(self, point):
-        found = read(self.host, 'kasandra.portrait') or {}
-        menu = QMenu(self)
-        file = found.get('file')
-        use = menu.addAction(say('portrait_use'));use.setEnabled(bool(found.get('waiting')))
-        use.triggered.connect(lambda checked=False, f=file: self.admit(f))
-        back = menu.addAction(say('portrait_shipped'));back.setEnabled(bool(found.get('in_force')))
-        back.triggered.connect(lambda checked=False: self.shipped())
-        for words in found.get('words') or ():
-            note = menu.addAction(plain(words));note.setEnabled(False)
-        menu.exec(self.mapToGlobal(point))
-
-    def admit(self, file):
-        if not file:return
-        if QMessageBox.question(self, named('Stacy'), say('portrait_ask', name=file['name'])) != QMessageBox.Yes:return
-        done, why = press(self.host, 'kasandra.portrait.admit', {'expected_sha256': file['sha256']})
-        self.column.say_words(done['words'][0] if done else say('press_refused', why=why))
-        self.column.read_portrait()
-
-    def shipped(self):
-        done, why = press(self.host, 'kasandra.portrait.admit', {'shipped': True})
-        self.column.say_words(done['words'][0] if done else say('press_refused', why=why))
-        self.column.read_portrait()
+    # 1.0 P4 no avatar: the right-click offers (your picture as her portrait, the shipped art back) and their question are
+    # gone; kasandra.portrait.admit stays registered in the kernel, and nothing on screen calls it.
 
 
 class Stage(QWidget):
-    """The top of her column: the equalizer filling it, her portrait in its middle, over it."""
+    """The top of her column: the equalizer across its whole width (1.0 P4 no avatar: no portrait in its middle)."""
 
     def __init__(self, column, equalizer):
         super().__init__();self.column = column;self.equalizer = equalizer;self.setObjectName('HerStage')
         equalizer.setParent(self);equalizer.show()
-        self.portrait = Portrait(column);self.portrait.setParent(self);self.portrait.raise_()
+        self.portrait = Portrait(column);self.portrait.setParent(self);self.portrait.hide()      # 1.0 P4 no avatar
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
     def resizeEvent(self, event):
         super().resizeEvent(event);self.arrange()
 
     def arrange(self):
-        from . import her_hologram_qt      # 1.0 P3: her hologram's box, the bars behind and beside her
-        if her_hologram_qt.arrange(self):return
-        w, h = self.width(), self.height();side = h
-        self.equalizer.hole = side + 4;self.equalizer.setGeometry(0, 0, w, h);self.equalizer._places = None
+        w, h = self.width(), self.height()      # 1.0 P4 no avatar: the bars span the column, no gap left for her
+        self.equalizer.hole = 0;self.equalizer.setGeometry(0, 0, w, h);self.equalizer._places = None
         self.equalizer._floor = None;self.equalizer._scope = None;self.equalizer._sprites = None
-        self.portrait.setGeometry((w - side) // 2, 0, side, side);self.portrait.raise_()
+        self.portrait.setGeometry(0, 0, 0, 0);self.portrait.hide()
 
 
 class Head(QWidget):
@@ -838,7 +827,8 @@ class AskLine(QWidget):
         self.edit = QLineEdit();self.edit.setObjectName('HerAsk');self.edit.setPlaceholderText(say('ask'))
         self.edit.setAccessibleName(named('Ask Stacy'));self.edit.returnPressed.connect(self.send)
         self.edit.setStyleSheet('QLineEdit {font-size:%dpx;font-family:"%s";color:%s;background:%s;border:1px solid %s;border-radius:4px;padding:%dpx %dpx;} '
-                                'QLineEdit:focus {border-color:%s;}' % (px(host, 14), bt.FACE, bt.TEXT, bt.PANEL, bt.LINE, px(host, 4), px(host, 6), bt.READY))
+                                'QLineEdit:focus {border-color:%s;}' % (px(host, 14), bt.FACE, bt.TEXT, bt.CARD if bt.LAUNCH else bt.PANEL, bt.LINE_MID if bt.LAUNCH else bt.LINE, px(host, 4), px(host, 6),
+                                                                        bt.AMBER_EDGE if bt.LAUNCH else bt.READY))      # 1.0 P4: Day and Night: a field on the surface, the accent's focus (style only)
         self.arrow = QToolButton();self.arrow.setObjectName('HerAskSend');self.arrow.setText('➤');self.arrow.setCursor(Qt.PointingHandCursor)
         self.arrow.setToolTip(say('send'));self.arrow.setAccessibleName(named('Send to Stacy'));self.arrow.clicked.connect(self.send)
         self.arrow.setStyleSheet('QToolButton {font-size:%dpx;color:%s;background:transparent;border:0;padding:0 %dpx;} QToolButton:hover {color:%s;}' % (
@@ -862,6 +852,7 @@ class Moment(QWidget):
         self.setCursor(Qt.PointingHandCursor);self.hide()
 
     def full_art(self):
+        return QImage()      # 1.0 P4 no avatar: a moment is said in words only
         found = self.column.portrait_state or {}
         mine = (found.get('in_force') or {}).get('path')
         if mine:
@@ -883,13 +874,12 @@ class Moment(QWidget):
             return QImage()
 
     def hologram(self):
-        """Kasandra's hologram in the left pane, when this window has it: then it is the full art, and this card says the
-        moment in words only."""
+        """Kasandra's hologram in the left pane: 1.0 P4 no avatar, never there (hologram_qt.install gives None)."""
         return getattr(self.host, 'hologram', None)
 
     def start(self, kind, words):
         self.kind = kind;self.words = words;self.until = time.monotonic() + MOMENT_MS / 1000.0;self.frame = 0
-        if self.art is None:self.art = QImage() if self.hologram() is not None else self.full_art()
+        if self.art is None:self.art = QImage()      # 1.0 P4 no avatar: words only
         self.place();self.show();self.raise_()
         _MOMENT[id(self.host)] = self.until
         if not self.still():self.timer.start()
@@ -904,10 +894,7 @@ class Moment(QWidget):
             return True
 
     def place(self):
-        from . import her_hologram_qt      # 1.0 P3: her full figure, larger, in her stage's place
-        box = her_hologram_qt.moment_box(self)
-        if box is not None:self.setGeometry(box);return
-        face = self.column.face;head = self.column.head
+        face = self.column.face;head = self.column.head      # 1.0 P4 no avatar: a card of words under her head
         top = head.geometry().bottom() + 4 if head is not None else 0
         tall = max(120, min(face.height() - top - 8, round(face.height() * 0.46)))
         if self.art is not None and self.art.isNull():tall = px(self.host, 92)      # words only: the hologram is the art
@@ -929,9 +916,7 @@ class Moment(QWidget):
         self.until = 0.0;self.end()
 
     def paintEvent(self, event):
-        from . import her_hologram_qt      # 1.0 P3: her full figure as a hologram, the moment in words under her
-        if her_hologram_qt.paint_moment(self):return
-        p = QPainter(self);p.setRenderHint(QPainter.SmoothPixmapTransform);p.setRenderHint(QPainter.Antialiasing)
+        p = QPainter(self)      # 1.0 P4 no avatar: the moment in words, no figure;p.setRenderHint(QPainter.SmoothPixmapTransform);p.setRenderHint(QPainter.Antialiasing)
         r = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
         p.setBrush(QColor(bt.TERMINAL_GROUND));p.setPen(QPen(QColor(bt.LINE_STRONG), 1));p.drawRoundedRect(r, 6, 6)
         name = {'refuted': 'RED', 'done': 'HONEY', 'halt': 'RED'}.get(self.kind, 'TEXT')
@@ -1152,18 +1137,18 @@ class HerColumn(QObject):
         return waits is not None and bool(getattr(waits, 'shown', ())) and self.face.height() - self.head.height() < px(self.host, 800)
 
     def size_parts(self):
-        h = self.face.height();tall = px(self.host, 58) if self.compact() else max(64, min(px(self.host, 108), round(h * 0.12)))
-        from . import her_hologram_qt
-        tall = her_hologram_qt.slot_height(self, h, tall)      # 1.0 P3: the tall slot when she stands as a hologram
+        # 1.0 P4 no avatar: the equalizer is a compact band (about 72 to 96 px at 1920x1200, less at 1366x768), the column's
+        # height kept for the work below
+        h = self.face.height();tall = px(self.host, 48) if self.compact() else max(56, min(px(self.host, 88), round(h * 0.085)))
         if self.head.stage.height() != tall:self.head.stage.setFixedHeight(tall)
         spacing = px(self.host, 5 if self.compact() else 9)
         if self.face.layout().spacing() != spacing:self.face.layout().setSpacing(spacing)
 
     # -- reading ------------------------------------------------------------------------------------------------------------
     def read_portrait(self):
-        self.portrait_state = read(self.host, 'kasandra.portrait') or {}
-        self.head.stage.portrait._key = None;self.head.stage.portrait.update();self.moment.art = None
-        try:self.size_parts();self.head.stage.arrange()      # 1.0 P3: a tall picture stands in the tall slot at once
+        self.portrait_state = {}      # 1.0 P4 no avatar: no picture of her is read or drawn
+        self.head.stage.portrait._key = None;self.moment.art = None
+        try:self.size_parts();self.head.stage.arrange()
         except Exception:  # noqa: BLE001 - laid out again at the next tick
             pass
 

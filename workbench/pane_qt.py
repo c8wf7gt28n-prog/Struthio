@@ -47,6 +47,10 @@ from .boss_theme import AMBER_SOFT, AMBER_EDGE, AMBER_TEXT, ON_AMBER
 # width, so a row's words do not move when it is chosen); Graphite keeps its eraser wash.
 ROW, SELECTED = (('padding:0 2px 0 0;border:0;border-left:2px solid transparent;', 'background:%s;color:%s;border-left:2px solid %s;' % (AMBER_SOFT, AMBER_TEXT, AMBER_EDGE))
                  if APPEARANCE == 'kasandra' else ('padding:0 2px;border:0;', 'background:%s;color:%s;' % (ERASER, TEXT)))
+from .boss_theme import LAUNCH as _LAUNCH
+if _LAUNCH:      # 1.0 P4: Day and Night: the selected row an inset rounded fill at accent 12 %, its words in the accent (style only)
+    from .design_tokens import RADIUS as _RADIUS
+    ROW, SELECTED = ('padding:0 4px;border:0;border-radius:%dpx;' % _RADIUS['row'], 'background:%s;color:%s;border:0;border-radius:%dpx;' % (AMBER_SOFT, AMBER_TEXT, _RADIUS['row']))
 TREE_STYLE = ('QTreeWidget {border:0;background:transparent;color:%s;show-decoration-selected:0;} QTreeWidget::item {%s} '
               'QTreeWidget::item:selected {%s} QTreeWidget::branch, QTreeWidget::branch:selected {background:transparent;border:0;image:none;}'
               % (TEXT, ROW, SELECTED))
@@ -182,7 +186,7 @@ class PaneTab(QPushButton):
     def paintEvent(self, event):
         p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing)
         font = QFont(self.font());font.setWeight(QFont.DemiBold if self.isChecked() and APPEARANCE != 'kasandra' else QFont.Normal)
-        p.setFont(font);p.setPen(QColor(ON_AMBER if self.isChecked() else QUIET))      # the chosen tab's words: her burnt yellow (Graphite's ink)
+        p.setFont(font);p.setPen(QColor((TEXT if _LAUNCH else ON_AMBER) if self.isChecked() else QUIET))      # the chosen tab's words: her burnt yellow (Graphite's ink; 1.0 P4: the text ink in Day and Night, the rule says it)
         p.drawText(self.rect().adjusted(0, MARK, 0, -MARK), Qt.AlignCenter, self.text())
         colour = self.mark_colour()
         if colour is not None and self.mark[1]:p.fillRect(self.mark_rect(), QColor(colour))

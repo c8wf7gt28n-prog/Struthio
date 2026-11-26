@@ -37,6 +37,7 @@ import re
 # The list of them is kept once, beside the session's other presentation defaults (0.8.4): the session, which keeps the
 # choice, reads the same list without importing the theme. Each of them has a palette here.
 from .presentation_preferences import APPEARANCES, APPEARANCE_DEFAULT, APPEARANCE_EARLIER, appearance as saved_appearance
+from . import design_tokens as _tokens      # 1.0 P4: Day and Night are made from the design tokens
 APPEARANCE_KEY = 'appearance'
 PALETTES = {
     'graphite': dict(
@@ -65,32 +66,18 @@ PALETTES = {
         ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff', ROYAL_TEXT='#b9a1f6', RED='#ff3b5c', ON_RED='#fff1f4',
         CUE='#1d3d63', CUE_EDGE='#83eaff', CUE_TEXT='#b9f4ff',
         BAR='#e2a72e', ON_BAR='#171b3c', BAR_EDGE='#ffd27a', ON_BAR_QUIET='#4a3d2a', ON_AMBER='#ffd27a'),
-    # 1.0 P2: Day, the owner's picture of the Living Desktop (PLAN_1.0.md section 3): white and very light grey panels,
-    # green for what is live (state words, progress, the send arrows, the chosen tab's underline), blue for what is
-    # selected and has the keyboard, and for the board's wires and rings (DAY_MARKS). Every ink measured on every ground it
-    # is laid on (CARD #ffffff, GROUND, PANEL, RAISED, the bands, TERMINAL_GROUND): TEXT 13.8-15.9:1, QUIET 7.2-8.3:1, FAINT
-    # 5.3-6.1:1, READY and CUE_EDGE 4.6-5.4:1, AMBER_TEXT 8.9-10.3:1, STOP 5.7-6.6:1, OWNER 5.0-5.8:1, RECHECK 5.8-6.7:1,
-    # HONEY 5.1-5.9:1; AMBER_TEXT on AMBER_SOFT 8.3:1, TEAL_TEXT on TEAL_SOFT 5.8:1, white words on READY 5.4:1. No dark
-    # look's text colour is laid on a light ground: the inks here are their own.
-    'day': dict(
-        GROUND='#f3f5f4', PANEL='#f9faf9', CARD='#ffffff', RAISED='#eceff0', TERMINAL_GROUND='#fbfcfc',
-        LINE='#d5dbd8', LINE_STRONG='#6d7973', LINE_MID='#9aa4a0', TEXT='#1b2420', QUIET='#45514b', FAINT='#59655f',
-        AMBER='#dde9f7', AMBER_SOFT='#dde9f7', AMBER_EDGE='#2a64ad', AMBER_TEXT='#164175',
-        PENCIL_DEEP='#e9eef3', ERASER='#f8ebe3', ERASER_DEEP='#f1dccf', ERASER_MARK='#b65a26',
-        TEAL='#1a773c', TEAL_SOFT='#e0f2e6', TEAL_EDGE='#2f9a55', TEAL_TEXT='#17693a', READY='#1a773c', STOP='#b42318',
-        OWNER='#a34e00', ON_OWNER='#ffffff', RECHECK='#6847b2',
-        BAND=(250, 251, 250), ERASED='#1b2420', ERASED_QUIET='#4a5650', BAND_MARK='#2a64ad', BAND_PENCIL='#1a773c',
-        DESK_LIGHT='#ffffff', VEIL='#ffffff', DISPLAY='IBM Plex Sans', FACE='IBM Plex Sans', MONO='IBM Plex Mono',
-        HONEY='#8a5a00', VIOLET='#45514b', VIOLET_DEEP='#c9d6e6', VIOLET_PALE='#1b2420', VIOLET_SOFT='#edf3fa',
-        ROYAL='#1a773c', ROYAL_SOFT='#e0f2e6', ROYAL_INK='#17693a', ROYAL_TEXT='#17693a', RED='#b42318', ON_RED='#ffffff',
-        CUE='#eef5f0', CUE_EDGE='#1a773c', CUE_TEXT='#17693a',
-        BAR='#dde9f7', ON_BAR='#1b2420', BAR_EDGE='#2a64ad', ON_BAR_QUIET='#45514b', ON_AMBER='#164175'),
+    # 1.0 P2: Day, the owner's picture of the Living Desktop (PLAN_1.0.md section 3): light panels, green for what is live
+    # (state words, progress, the send arrows), blue for what is selected and has the keyboard, and for the board's wires
+    # and rings (DAY_MARKS). 1.0 P4: Day rebuilt on the design tokens (design_tokens.py, DESIGN_DIRECTION_1.0.md section 9),
+    # and Night, its dark twin, made from the same tokens: no colour of either is written here, every text pair measured
+    # at 4.5:1 or more (design_tokens.TEXT_PAIRS).
+    'day': _tokens.palette('day'),      # 1.0 P4
+    'night': _tokens.palette('night'),      # 1.0 P4
 }
 # 1.0 P2: the Day look's own marks, beside its palette: the board's blue wires (WIRE; WIRE_SOFT for a possible link,
 # dashed and said "not verified"), its rings (RING_BLUE outer, RING_GREEN inner, as in the picture), HALT's green triangle,
-# the soft shadow under a panel or a tile (SHADOW, drawn with alpha). Used only where APPEARANCE is 'day'.
-DAY_MARKS = dict(WIRE='#2f6fb6', WIRE_SOFT='#6f9bd0', RING_BLUE='#a9c6e8', RING_GREEN='#a6d8b6', HALT='#1f8a46',
-                 SHADOW='#1b2420')
+# the soft shadow under a panel or a tile (SHADOW, drawn with alpha). 1.0 P4: from the tokens, for the launch look in force
+# (Day or Night); used only where LAUNCH is true (APPEARANCE is 'day' or 'night').
 # 0.8.3, the owner: "I'm kinda thinking that highlighting should be in our burnt yellow??? Like especially in menus???",
 # "You measure what is visually pleasing", and "we have to be careful how that makes the graphite not look green". So, in
 # Kasandra only (Graphite keeps every colour it had):
@@ -170,7 +157,34 @@ def chosen_appearance(environ=None, path=None):
         return APPEARANCE_EARLIER
 
 
+from .presentation_preferences import LAUNCH_MARK, LAUNCH_MARKED      # 1.0 P4: this profile has had 1.0's move to Day
+
+
+def launch_move_due(environ=None, path=None):
+    """1.0 P4: whether this start is 1.0's first on a profile from before, which moves it to Day once (DESIGN_DIRECTION_1.0.md
+    section 9: "on the first start of 1.0 an existing profile moves to Day once, with one line"). True only when no look is
+    asked for in the environment (a check or a test chooses its own and moves nothing), the session file is there and
+    reads as an object, and it has no LAUNCH_MARK yet. A fresh profile has no file (Day already, nothing to move); a file
+    that cannot be read is left as 0.8.4 left it (Graphite)."""
+    environ = os.environ if environ is None else environ
+    if str(environ.get('GRAPHITE_APPEARANCE', '')).strip().lower() in PALETTES:return False
+    try:
+        if path is None:
+            override = environ.get('ARC1_WORKBENCH_CONFIG_HOME')
+            base = override if override else os.path.join(environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'arc1-workbench')
+            path = os.path.join(base, 'session-r10.json')
+        with open(path, encoding='utf-8') as stream:
+            data = json.load(stream)
+        return isinstance(data, dict) and data.get(LAUNCH_MARK) != LAUNCH_MARKED
+    except (OSError, ValueError, AttributeError, RecursionError):
+        return False
+
+
 APPEARANCE = chosen_appearance()
+MOVED_TO_DAY = launch_move_due()      # 1.0 P4: 1.0's first start on a profile from before moves it to Day, once
+if MOVED_TO_DAY:APPEARANCE = 'day'
+LAUNCH = APPEARANCE in _tokens.LOOKS      # 1.0 P4: Day or Night, the launch look, drawn from the design tokens
+DAY_MARKS = _tokens.marks(APPEARANCE if LAUNCH else 'day')      # 1.0 P4: the launch look's marks (Night's own in Night)
 globals().update(PALETTES[APPEARANCE])
 # The roles, by meaning (0.8.0). In Graphite they are the colours they always were; in Kasandra they part:
 # FOCUS what is selected or has the keyboard; LIVE what is current, the pointer, what the pointer is over;
@@ -187,11 +201,11 @@ GLOW_OPENS = 'neon'         # 0.5.2: the owner, having seen the three: "I like n
 GLOW = [3.0]        # the level in force (boss_qt.set_glow keeps it in step with the session)
 
 
-DAY_GLOW = 0.6      # 1.0 P2: in Day a glow is a soft shadow on white paper, never a neon halo, whatever the dial says
+DAY_GLOW = _tokens.GLOW      # 1.0 P2: in Day a glow is never a neon halo, whatever the dial says; 1.0 P4: none at all in Day or Night (depth comes from elevation)
 
 
 def glow():
-    return min(GLOW[0], DAY_GLOW) if APPEARANCE == 'day' else GLOW[0]
+    return min(GLOW[0], DAY_GLOW) if LAUNCH else GLOW[0]      # 1.0 P4: Day and Night
 
 
 def lays_light(painter):
@@ -372,3 +386,4 @@ QSpinBox, QDoubleSpinBox, QDateTimeEdit, QPlainTextEdit, QTextEdit, QTextBrowser
 QPushButton[arcButton="filter"]:checked, QPushButton[arcButton="segment"]:checked {color:%(AMBER_TEXT)s; border-bottom:2px solid %(AMBER_EDGE)s;}
 ''' % globals()) if APPEARANCE == 'kasandra' else ''
 CHROME_OVERRIDES += HIGHLIGHTS
+if LAUNCH:CHROME_OVERRIDES += _tokens.sheet(APPEARANCE)      # 1.0 P4: Day and Night's controls, from the tokens, have the last word

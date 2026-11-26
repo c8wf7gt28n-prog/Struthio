@@ -63,8 +63,11 @@ DEEP = 30000      # a value nested this far is past what json reads here (Recurs
 
 
 def saved(folder, value):
+    # 1.0 P4: a profile that has had 1.0's one move to Day (its launch mark): its saved look is read as before. Without the
+    # mark, 1.0's first start moves a profile from before to Day once (boss_theme.launch_move_due), which the start below
+    # would see instead of the look it reads.
     path = Path(folder) / 'session-r10.json'
-    path.write_text(json.dumps({'schema': SCHEMA, 'appearance': value}), encoding='utf-8');return path
+    path.write_text(json.dumps({'schema': SCHEMA, 'appearance': value, 'launch_look': '1.0'}), encoding='utf-8');return path
 
 
 class SavedAppearance(unittest.TestCase):

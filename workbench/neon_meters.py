@@ -55,15 +55,18 @@ def palette():
         _palette[look] = dict(low=low, mid=mid, high=high, hot=QColor(t.AMBER_EDGE), peak=QColor(t.TEAL_TEXT if her else t.TEXT),
                               rest=mix(ground, low, 0.24 if her else 0.16), grid=QColor(t.LINE) if her else mix(ground, low, 0.3),
                               text=QColor(t.TEXT), label=QColor(t.TEAL_TEXT), dim=mix(ground, t.TEXT, 0.42), trace=high)
-        if look == 'day':      # 1.0 P2: on light paper, near its limit is the colour of what waits for you (blue is a selection
+        if t.LAUNCH:      # 1.0 P2: on light paper, near its limit is the colour of what waits for you (blue is a selection
             # there), and a dash or "no reading" is FAINT, an ink that reads (5.3:1 or more), never a pale mix
-            _palette[look].update(hot=QColor(t.OWNER), dim=QColor(t.FAINT), label=QColor(t.QUIET), rest=mix(ground, low, 0.28))
+            # 1.0 P4: Day and Night: the bars take the accent and the live colours (design_tokens.marks)
+            m = t.DAY_MARKS;low = QColor(m['EQ_LOW'])
+            _palette[look].update(low=low, mid=QColor(m['EQ_MID']), high=QColor(m['EQ_HIGH']), hot=QColor(m['EQ_HOT']), trace=QColor(m['EQ_MID']),
+                                  peak=QColor(t.TEXT), dim=QColor(t.FAINT), label=QColor(t.QUIET), rest=mix(ground, low, 0.28), grid=QColor(t.LINE))
     return _palette[look]
 
 
 def words_only():
     """1.0 P2: in Day the foot's meters are words and numbers (the owner's picture: CPU 34% | GPU 24% | RAM 62% | TXT 18%)."""
-    return t.APPEARANCE == 'day'
+    return t.LAUNCH      # 1.0 P4: Day and Night
 
 
 SEPARATOR = '|'

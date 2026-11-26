@@ -58,6 +58,10 @@ def load_fonts(root):
     for name in PLEX:
         path = folder / name
         if path.is_file():QFontDatabase.addApplicationFont(str(path))
+    from .design_tokens import FONT_FILES      # 1.0 P4: Inter, the interface face of Day and Night, bundled beside Plex
+    for name in FONT_FILES['inter']:
+        path = locations.program(root) / 'branding' / 'fonts' / 'inter' / name
+        if path.is_file():QFontDatabase.addApplicationFont(str(path))
     script = locations.program(root) / 'branding' / 'fonts' / 'script' / 'Parisienne-Regular.ttf'
     if script.is_file():QFontDatabase.addApplicationFont(str(script))
     # Kasandra's faces (boss_theme.FACE, MONO), and Special Elite itself, so a face the owner chose stays there to choose;
@@ -87,7 +91,7 @@ def apps_mark(button, host):
     from . import struthio_mark
     image = struthio_mark.image(host.root)
     button.logo = None;button.setStyleSheet('')
-    if bt.APPEARANCE == 'day':      # 1.0 P2: Day, as in the owner's picture: the word Apps, the circled plus beside it
+    if bt.LAUNCH:      # 1.0 P2: Day, as in the owner's picture: the word Apps, the circled plus beside it (1.0 P4: Night too)
         button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('Apps');button.update();return False
     if image.isNull():
         button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('[#] Apps ▾');button.update();return False
@@ -3532,6 +3536,8 @@ class Shell2(QObject):
             pass
         from .app_files_qt import install as install_app_files
         install_app_files(host)  # 1.0 A1: files open in other programs: the window named on the board's tile, each save recorded, the close said
+        from .launch_look import install as install_launch_look
+        install_launch_look(host)  # 1.0 P4: 1.0's one move to Day on a profile from before, said in one line, once
         host.tabs.currentChanged.connect(self.sync_worksheet)
         host.central_stack.currentChanged.connect(self.sync_worksheet)
         from .graphite_brand import use_pointer

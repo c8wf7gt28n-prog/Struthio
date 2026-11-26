@@ -85,8 +85,8 @@ def _root(host):
 
 
 def colour_of(name):
-    if t.APPEARANCE == 'day' and name == 'READY':return t.DAY_MARKS.get('HALT', t.READY)
-    if t.APPEARANCE == 'day' and name == 'WIRE':return t.DAY_MARKS.get('WIRE', getattr(t, 'WIRE', t.READY))
+    if t.LAUNCH and name == 'READY':return t.DAY_MARKS.get('HALT', t.READY)      # 1.0 P4: Day and Night
+    if t.LAUNCH and name == 'WIRE':return t.DAY_MARKS.get('WIRE_WORDS', t.DAY_MARKS.get('WIRE', t.READY))      # 1.0 P4: the accent's words (4.5:1)
     return getattr(t, name, t.TEXT)
 
 
@@ -161,7 +161,7 @@ class NetWord(QToolButton):
     def word_font(self):
         s = min(max(self.scale, 0.8), 1.4)
         if t.APPEARANCE == 'kasandra':f = QFont(t.DISPLAY);f.setPixelSize(max(13, round(15 * s)))
-        elif t.APPEARANCE == 'day':f = QFont(t.FACE);f.setPixelSize(max(13, round(15 * s)));f.setWeight(QFont.DemiBold)
+        elif t.LAUNCH:f = QFont(t.FACE);f.setPixelSize(max(13, round(15 * s)));f.setWeight(QFont.DemiBold)      # 1.0 P4: Day and Night
         else:f = QFont(t.MONO);f.setPixelSize(max(12, round(14 * s)))
         f.setLetterSpacing(QFont.AbsoluteSpacing, 0.6 * s)
         return f

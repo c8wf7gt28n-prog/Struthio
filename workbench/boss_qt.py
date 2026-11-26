@@ -41,6 +41,7 @@ def charcoal_workshop(folder):
 
 @lru_cache(maxsize=4)
 def midnight_plate(folder, scene='portrait'):
+    if scene != 'workshop':return QImage()      # 1.0 P4 no avatar: "Kasandra after midnight" is never drawn (the owner, 26 Nov: "No kas avatar anymore")
     name = MIDNIGHT_WORKSHOP if scene == 'workshop' else MIDNIGHT_PORTRAIT
     return QImage(str(folder / 'plates' / name))
 
@@ -62,7 +63,7 @@ def kasandra_still(painter, target, host, slot, state, turn=0, zoom=1.0, matte=T
     True when a still was drawn; with none, the target gets the plain panel ground when `matte`."""
     from . import kasandra_art as art
     base = art.folder(host.root)
-    scene = art.choose(base, slot, state, turn)
+    scene = art.still(base, slot, state, turn)      # 1.0 P4 no avatar: never a still of her
     width, height = round(target.width()), round(target.height())
     try:dpr = painter.device().devicePixelRatioF()
     except AttributeError:
@@ -117,7 +118,7 @@ class WorkshopStrip(QWidget):
         painter.drawText(29, 18, '[ WORKSHEET · LOCAL WORKSPACE ]')
         target = QRectF(0, 28, self.width() - 1, self.height() - 33)
         image = midnight_plate(self.folder, 'workshop')
-        if t.APPEARANCE == 'kasandra':      # her wires and rooftops above the worksheet
+        if t.APPEARANCE == 'kasandra':      # her wires and rooftops above the worksheet (no figure: 1.0 P4 no avatar keeps it)
             kasandra_still(painter, target, self.host, 'worksheet_strip', 'viewing')
         elif image.isNull():
             draw_plate(painter, target, charcoal_workshop(self.folder), 0.22)
@@ -168,9 +169,8 @@ class ArtPanel(QWidget):
         p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
         p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(0, self.height()-1, self.width(), self.height()-1)
         if self.mode == 'illustrated' and t.APPEARANCE == 'kasandra':
-            from .kasandra_art import daily_turn
             area = QRectF(0, 0, self.width(), self.height()-3)
-            kasandra_still(p, area, self.host, 'office_banner', 'idle', daily_turn(self.opened))
+            p.fillRect(area, QColor(t.PANEL))      # 1.0 P4 no avatar: no still of her office (she was in it); her ground and the wordmark
             draw_wordmark(p, area, self.host, min(88.0, area.height() * 0.26))      # the owner's wordmark, at the foot of her office
         elif self.mode == 'illustrated':
             image = midnight_plate(self.art_folder, 'workshop')
@@ -240,6 +240,7 @@ class PanelInk(QWidget):
     def refresh(self):
         self.mode = self.host.session.state.get('desk_art', 'illustrated')
         visible = self.available and self.mode != 'clean'
+        if self.kind in ('portrait', 'face', 'journal'):visible = False      # 1.0 P4 no avatar: these are pictures of her, never shown now
         if self.kind == 'face':              # the assistant's face in Talk: a small still square beside her name, or nothing
             visible = visible and (t.APPEARANCE == 'kasandra' or not midnight_plate(self.art_folder).isNull())
             self.setFixedWidth(self.plate_height() if visible else 0)
@@ -267,7 +268,7 @@ class PanelInk(QWidget):
     def portrait(self):
         if t.APPEARANCE == 'kasandra' and self.kind != 'face':      # the ASCII rail samples her quiet still
             from . import kasandra_art as art
-            base = art.folder(self.host.root);scene = art.choose(base, 'assistant_rail', 'idle')
+            base = art.folder(self.host.root);scene = art.still(base, 'assistant_rail', 'idle')      # 1.0 P4 no avatar: none
             path = art.usable(base, scene) if scene is not None else None
             if path is not None:return art.source(path, scene['id'])
         image = midnight_plate(self.art_folder)
@@ -369,19 +370,13 @@ def appearance_menu(host):
         line.triggered.connect(lambda checked=False, key=key:choose_glow(host, key))
     glow.aboutToShow.connect(lambda:lit.get(host.session.state.get('glow', t.GLOW_OPENS), lit[t.GLOW_OPENS]).setChecked(True))
     menu.addMenu(glow)
-    looks = QMenu('Appearance', menu);kinds = QActionGroup(looks);kinds.setExclusive(True);looked = {}
-    for key, word in t.APPEARANCES:      # the whole window: Graphite (pencil and amber) or Kasandra (indigo, her art follows the work)
-        line = looks.addAction(word);line.setCheckable(True);kinds.addAction(line);looked[key] = line
-        line.setToolTip(APPEARANCE_WORDS[key]);line.setStatusTip(APPEARANCE_WORDS[key])
-        line.triggered.connect(lambda checked=False, key=key:choose_appearance(host, key))
-    looks.aboutToShow.connect(lambda:looked.get(chosen_look(host), looked['graphite']).setChecked(True))
-    menu.addMenu(looks)
+    menu.addMenu(looks_menu(host, menu))      # 1.0 P4: the same choice as Arrange ▸ Appearance
     menu.addSeparator()
     menu.addMenu(host.idle_display.menu(menu))
     plates = QMenu('Art plates', menu)
     menu.addMenu(plates)
     folder = program(host.root) / 'branding' / 'boss' / 'plates'
-    names = tuple(name for name in (MIDNIGHT_PORTRAIT, MIDNIGHT_WORKSHOP, CHARCOAL_PLATE)
+    names = tuple(name for name in (MIDNIGHT_WORKSHOP, CHARCOAL_PLATE)      # 1.0 P4 no avatar: "Kasandra after midnight" is not offered
                   if (folder / name).is_file()) + ART_PLATES
     for name in names:
         asset = folder / name
@@ -396,8 +391,21 @@ def appearance_menu(host):
 
 
 APPEARANCE_WORDS = {'graphite': 'Graphite: pencil, paper and amber, as it has always been',
-                    'kasandra': 'Kasandra: indigo, a typewriter face for headings, and her art following the state of the work',
-                    'day': 'Day: light paper, green for what is live, blue for the board\'s wires and what is selected'}      # 1.0 P2
+                    'kasandra': 'Kasandra: indigo and a typewriter face for headings',      # 1.0 P4 no avatar: her art no longer follows the work
+                    'day': 'Day: the launch look, light and calm; green for what is live, blue for the board\'s wires and what is selected',      # 1.0 P2, P4
+                    'night': 'Night: Day\'s dark twin, from the same design tokens'}      # 1.0 P4
+
+
+def looks_menu(host, parent=None):
+    """1.0 P4: the Appearance menu (Arrange ▸ Appearance, and Rules ▸ Desk artwork ▸ Appearance): the whole window's look,
+    kept for the next start."""
+    looks = QMenu('Appearance', parent or host);kinds = QActionGroup(looks);kinds.setExclusive(True);looked = {}
+    for key, word in t.APPEARANCES:      # the whole window: Day, Night, Graphite or Kasandra
+        line = looks.addAction(word);line.setCheckable(True);kinds.addAction(line);looked[key] = line
+        line.setToolTip(APPEARANCE_WORDS[key]);line.setStatusTip(APPEARANCE_WORDS[key])
+        line.triggered.connect(lambda checked=False, key=key:choose_appearance(host, key))
+    looks.aboutToShow.connect(lambda:looked.get(chosen_look(host), looked['graphite']).setChecked(True))
+    return looks
 
 
 def chosen_look(host):
