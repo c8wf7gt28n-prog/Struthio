@@ -302,6 +302,13 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 05:05 UTC: **1.0 P2 merged** (19614b6: the Day look, HALT in every look with `workbench/halt.py`, her column's
+  gap gone; smoke Day 24/24, Graphite 20/20, Kasandra 20/20). The merge check (`finish_merge.sh`) now opens the window
+  in Day too. Day frames sent to the owner. Its notes: HALT reads the same work hold as Stop all (K3 may keep them
+  apart); `tools/run_tiers.py` lists only two looks; `test_session_start.py` will open Day too (not run); the board is
+  cut off at the edges at 1366x768 in every look (it scrolls, by L2's design). **K5 launched** (LibreOffice through UNO;
+  agent adac4901859e6d943). Running: S5, K2, L5, K5.
+
 - 26 Nov 04:40 UTC: wake-up (carry on). **K2 launched** (tools registry and observation receipts; agent
   a2990cd9e7f088ef1). **1.0 L4 merged** (166dbbf: one click focuses, double click opens; Board control; Save and
   Return, Full program, Close; the file watcher; revisions.record/list; smoke 48/48 and 38/38). **L5 launched** (tabs
