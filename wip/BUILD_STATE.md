@@ -256,6 +256,16 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 11:20 (the owner's photo of the ThinkPad's label, "Check photo"): the target machine is a **ThinkPad E16 Gen 2
+  AMD, machine type 21M5** (Lenovo lists Ryzen 7535HS / 7735HS with Radeon 660M / 680M, RDNA2, and DDR5-4800 in two
+  SO-DIMM slots, dual channel, up to 64 GB). Earlier notes that said "780M" are corrected; M1 told (RDNA2: no MMA flash
+  attention; writing bounded by ~60-70 GB/s). The label's serial number is recorded nowhere.
+- 26 Nov 11:20 (P5, the owner's five pictures of Kas as a hologram in a Struthio tee): her hologram becomes a set of
+  poses by state, faces for small slots and a walking sprite in the dock, read from `kasandra/hologram/` in the owner's
+  workspace (their pictures stay out of the repository); the coordinator cuts the sheets into that folder in scratch
+  (`$S/in/kas_set/` holds the originals) and the kit carries it outside the source. The hat picture (P3) stays as the
+  fallback single figure.
+
 - 26 Nov 12:20 (the owner's speed goal, "99 tokens per second, up and down....if possible"): taken as two
   predictions the model check judges on the ThinkPad (reads >= 99, writes >= 99), with M1's tuning sweep proposing the
   best runtime settings (lossless only), and **M2** added: a small quick model beside the 35B for the short kinds, used
@@ -354,6 +364,12 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 11:25 UTC: **The 5-hour limit stopped all four builders at about 08:30** (M1, D1, K9, L6); reset at 11:00.
+  Partial diffs saved (`wip/2026-11-26_b100_saved/partial/`: L6 1,545 lines, D1 1,848, K9 2,000); D1, K9, L6 resumed;
+  M1's worktree had not kept (it had changed no tree file), so **M1 restarted** (agent a1918b1bb11e2fc67) from its kept
+  downloads, with the speed sweep and the E16 Gen 2 AMD correction. Scratch cleaned (old r085 and kit_087 copies; disk
+  79 % -> 76 %). **P5 added** (Kas's poses and faces). 38 slices; 23 merged. Running: D1, K9, L6, M1.
 
 - 26 Nov 12:20 UTC: The owner's goal 99 tokens a second up and down: M1 told to add the tuning sweep and the two
   predictions; **M2 added** (a quick model beside the 35B). 37 slices; 23 merged. Running: K9, L6, D1, M1.

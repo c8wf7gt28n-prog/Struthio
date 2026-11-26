@@ -1,0 +1,1545 @@
+diff --git a/workbench/apps_qt.py b/workbench/apps_qt.py
+index 7e7fcff..ebcf10b 100644
+--- a/workbench/apps_qt.py
++++ b/workbench/apps_qt.py
+@@ -550,6 +550,8 @@ def file_of(host, t):
+         return lambda:str(t.ident)
+     if t.surface == 'cabinet':
+         node = (t.data or {}).get('node') or {}
++        if node.get('provider') == 'living_nav' and node.get('role') == 'file' and str(node.get('canonical_id', '')).startswith('path:/'):
++            return lambda path=str(node['canonical_id'])[len('path:'):]:path      # 1.0 L6: a file anywhere, by its path until it is focused
+         if node.get('provider') == 'living_nav' and node.get('role') == 'file' and str(node.get('canonical_id', '')).startswith('fileid:'):
+             def resolve(ident=node['canonical_id']):
+                 found = call(host, 'objects.get', {'id': ident})
+diff --git a/workbench/board_model.py b/workbench/board_model.py
+index 33e340a..0637360 100644
+--- a/workbench/board_model.py
++++ b/workbench/board_model.py
+@@ -507,6 +507,17 @@ def file_object(entry, root):
+     """A plain file of Files as the board draws it: a FILE tile (as living_nav_qt.LivingNav.with_focus draws it on the Field)."""
+     folder = str(entry.get('path') or '').rpartition('/')[0]
+     path = str(Path(root) / entry['path']) if root and entry.get('path') else ''
++    if str(entry.get('path') or '').startswith('/') or entry.get('kind') == 'folder':      # 1.0 L6: elsewhere on this computer; a folder
++        from .home_reach import folder_words, role_words, tilde
++        place = str(entry.get('path') or '')
++        where = folder_words(place) if place.startswith('/') else ('in ' + ('Files/' + folder if folder else 'Files'))
++        role = role_words(place) if place.startswith('/') else 'in Files'
++        folder_like = entry.get('kind') == 'folder'
++        suffix = Path(str(entry.get('name') or '')).suffix
++        said = 'a folder' if folder_like else (('%s file · %s' % (suffix[1:].upper(), _size_words(entry.get('size')))) if suffix else _size_words(entry.get('size')))
++        return FieldObject(entry['id'], 'folder' if folder_like else 'source', entry.get('name') or 'a file', 'a %s %s' % ('folder' if folder_like else 'file', role),
++                           '', (said, where), tilde(place) if place.startswith('/') else 'Files/' + place, {'kind': 'file', 'id': entry['id'], 'path': path},
++                           'FOLDER' if folder_like else 'FILE')
+     suffix = Path(str(entry.get('name') or '')).suffix
+     said = ('%s file · %s' % (suffix[1:].upper(), _size_words(entry.get('size')))) if suffix else _size_words(entry.get('size'))
+     return FieldObject(entry['id'], 'source', entry.get('name') or 'a file', 'a file in Files', '', (said, 'in ' + ('Files/' + folder if folder else 'Files')),
+diff --git a/workbench/cabinet_qt.py b/workbench/cabinet_qt.py
+index e065f9e..7f54cad 100644
+--- a/workbench/cabinet_qt.py
++++ b/workbench/cabinet_qt.py
+@@ -219,6 +219,8 @@ class CabinetPage(QWidget):
+             for node in model['nodes']:
+                 item=QTreeWidgetItem([node['label']]);item.setData(0,Qt.UserRole,node);self.items[node['id']]=item
+                 item.setToolTip(0,node.get('description','')+'\n'+node['canonical_id'])
++                if node.get('glyph')=='graphite':  # 1.0 L6: Graphite's workspace, where it lives in Home, wears Graphite's mark
++                    from .graphite_brand import mark_icon;item.setIcon(0,mark_icon(16))
+                 if node['target']:item.setForeground(0,QColor(INK))
+                 if node['parent']:self.items[node['parent']].addChild(item)
+                 else:self.tree.addTopLevelItem(item)
+diff --git a/workbench/computer_tree_qt.py b/workbench/computer_tree_qt.py
+new file mode 100644
+index 0000000..d95c505
+--- /dev/null
++++ b/workbench/computer_tree_qt.py
+@@ -0,0 +1,379 @@
++"""The whole computer in the Files tree (Graphite 1.0 L6).
++
++The owner, 26 November 2026: "Shouldn't the files part of the left tree start at root /?" The Files tab's tree (the cabinet
++tree, cabinet_qt, with L1's rows by identity, living_nav_qt) now starts at the computer:
++
++    This computer /             the top row: the folder /, so every folder the owner's account can read is reachable
++      Home                      the owner's home folder: open at start, and where the tree lands (selected)
++        …                       its folders and files, listed when a folder is opened, one level at a time; never deeper
++        Rail Demo  (the mark)   Graphite's workspace where it lives in Home, marked with Graphite's glyph; its Files
++                                folder keeps its own rules (her own area, Slate); its records are the Desk drawer below
++      bin, boot, etc, …         the other folders of /, collapsed
++      dev · system, …           the pseudo-filesystems /proc, /sys, /dev and /run: shown as such, never read (never
++                                opened, never on the board, never given an id)
++    Drives                      the removable drives (S4, udisks2): each drive, its volumes; a mounted one is a folder
++                                like any other, an unmounted one opens Storage in the centre
++    Concern …  Desk             the cabinet, and the Desk drawer of records as L1 built it
++
++Dot-names are left out unless the owner turns on "Show hidden" in the tab's header. Nothing here scans the disk: a
++folder is read when it is opened (and while it stays open, each time the tree is read), one level, at most
++home_reach.MOST_ROWS rows. A row's identity is its path until it is focused, opened or linked: then it is given L1's
++stable id (objects.get with its path, lazily), and the board can focus it like any file of Files (a FILE or FOLDER tile).
++A row of the workspace's Files carries the id L1's reading of Files gave it.
++
++The owner's own actions anywhere follow the system's permissions; her changes reach only inside Home (home_reach, the
++Files rules and K3's grants enforce it in the Kernel's path, not here).
++"""
++from __future__ import annotations
++
++import time
++from pathlib import Path
++
++from PySide6.QtCore import QObject, Qt, QTimer
++from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget
++
++from . import boss_theme as bt
++from . import home_reach as hr
++
++COMPUTER = 'living:computer'
++DRIVES = 'living:drives'
++FS = 'living:fs:'                 # FS + branch + ':' + path: a folder or file row (branch: home, root, drive)
++NOTE = 'living:fs-note:'          # a row that only says something (more not listed, not readable, no drive)
++WAIT = 'living:fs-wait:'          # the row under a folder not read yet, so it can be opened
++DRIVE = 'living:drive:'
++JUMP = 'living:fs-home:'          # the owner's own folder seen under /home: a way to Home
++PATH = 'path:'                    # a row's identity until it is given an id
++DRIVE_SECONDS = 10                # the drives are read again at most this often (the Machine tab shares the reading)
++KEY = 'computer_tree'             # the cabinet's saved state: what is open, Show hidden
++
++
++def mine(node_id):
++    return str(node_id).startswith((COMPUTER, DRIVES, FS, NOTE, WAIT, DRIVE, JUMP))
++
++
++class ComputerTree(QObject):
++    """The rows of the computer for the cabinet's model, read lazily; the start on Home; Show hidden; the way to a path."""
++
++    def __init__(self, living):
++        super().__init__(living)
++        self.living = living;self.host = living.host
++        self.home = hr.home();self.home_id = FS + 'home:' + str(self.home)
++        page = self.page()
++        try:saved = dict(self.host.session.state.get(KEY) or {})
++        except Exception:  # noqa: BLE001 - no session: nothing remembered
++            saved = {}
++        self.listed = set(saved.get('listed') or ()) | {COMPUTER, self.home_id}
++        self.hidden = bool(saved.get('hidden'));self.landed = False
++        self.paths = {}               # row id -> its path
++        self.drives = None;self.drives_at = 0.0
++        self.switch = None
++        if page is not None:
++            page.tree.itemExpanded.connect(self.expanded);page.tree.itemCollapsed.connect(self.collapsed)
++            self.add_switch(page)
++        QTimer.singleShot(0, self.land)
++
++    def page(self):
++        return getattr(self.host, 'cabinet_page', None)
++
++    # ---- the tab's header: Show hidden -------------------------------------------------------------------------------------
++    def add_switch(self, page):
++        holder = page.stack.widget(0) if page.stack.count() else None
++        layout = holder.layout() if holder is not None else None
++        if layout is None:return
++        row = QWidget(holder);row.setObjectName('ComputerTreeHeader');row.setAccessibleName('The Files tab: what it shows')
++        box = QHBoxLayout(row);box.setContentsMargins(2, 0, 2, 2);box.setSpacing(6);box.addStretch(1)
++        self.switch = QCheckBox('Show hidden', row);self.switch.setObjectName('ComputerShowHidden')
++        self.switch.setAccessibleName('Show hidden files and folders (names that start with a dot)')
++        self.switch.setToolTip('Files and folders whose names start with a dot are hidden; tick to show them in the tree')
++        self.switch.setChecked(self.hidden);self.switch.setCursor(Qt.PointingHandCursor);self.switch.toggled.connect(self.show_hidden)
++        box.addWidget(self.switch);layout.insertWidget(0, row);self.restyle()
++
++    def restyle(self):
++        if self.switch is None:return
++        from .living_nav_qt import scale_of
++        px = max(12, round(13 * scale_of(self.host)))
++        self.switch.setStyleSheet('QCheckBox#ComputerShowHidden {font-family:"%s";font-size:%dpx;color:%s;background:transparent;spacing:6px;}' % (bt.FACE, px, bt.QUIET))
++
++    def show_hidden(self, on):
++        self.hidden = bool(on);self.remember()
++        page = self.page()
++        if page is not None:page.refresh(force=True)
++
++    def remember(self):
++        try:
++            self.host.session.state[KEY] = {'listed': sorted(self.listed)[:400], 'hidden': self.hidden};self.host.session.save()
++        except Exception:  # noqa: BLE001 - what is open is remembered when it can be
++            pass
++
++    # ---- the start: Home open and selected --------------------------------------------------------------------------------
++    def land(self):
++        page = self.page()
++        if self.landed or page is None or getattr(self.host, '_closing', False):return
++        self.landed = True
++        self.listed |= {COMPUTER, self.home_id}
++        self.keep_open([COMPUTER, self.home_id])
++        page.refresh(force=True)
++        if page.using_legacy:return
++        page.select(self.home_id, reveal=True)
++        page.tree.scrollToTop()
++
++    def keep_open(self, ids):
++        """These rows stay open through the cabinet's own reading (its saved expanded list wins over the items)."""
++        page = self.page()
++        if page is None:return
++        saved = dict(page.saved or {});expanded = list(saved.get('expanded') or [])
++        for ident in ids:
++            if ident not in expanded:expanded.append(ident)
++        saved['expanded'] = expanded;page.saved = saved
++
++    # ---- opening and closing a folder in the tree -------------------------------------------------------------------------
++    def expanded(self, item):
++        try:node = item.data(0, Qt.UserRole) or {}
++        except RuntimeError:
++            return
++        ident = str(node.get('id', ''))
++        if not ident.startswith((COMPUTER, DRIVES, FS)) or ident in self.listed or node.get('role') == 'file':return
++        self.listed.add(ident);self.remember()
++        QTimer.singleShot(0, lambda: self.page() is not None and self.page().refresh(force=True))
++
++    def collapsed(self, item):
++        try:node = item.data(0, Qt.UserRole) or {}
++        except RuntimeError:
++            return
++        ident = str(node.get('id', ''))
++        if ident.startswith(FS) and ident in self.listed and ident != self.home_id:
++            self.listed.discard(ident);self.remember()
++
++    # ---- the rows ---------------------------------------------------------------------------------------------------------
++    def nodes(self):
++        """The rows for the cabinet's model, in order: This computer and what is open under it, then Drives."""
++        out = [];self.paths = {}
++        workspace = self.workspace()
++        known = dict(self.living.files_by_abs or {})
++        kernel = self.kernel()
++        if kernel is not None:
++            from . import living_nav
++            known.update(living_nav.known_outside(kernel))
++        for entry in (getattr(self.living, 'extra', None) or {}).values():
++            path = self.whole(entry)
++            if path:known.setdefault(path, entry['id'])
++        self.known = known
++
++        def add(ident, parent, role, label, canonical, description='', **extra):
++            out.append(dict(id=ident, parent=parent, role=role, label=label, target={'kind': 'living', 'id': canonical}, scope='owner_private',
++                            provider='living_nav', canonical_id=canonical, owning=False, description=description, **extra))
++
++        add(COMPUTER, None, 'drawer', 'This computer /', COMPUTER, 'This computer, from its top folder /: every folder your account can read')
++        if COMPUTER in self.listed:
++            self.folder_row(add, 'home', self.home, COMPUTER, 'Home', workspace, home=True)
++            self.children(add, 'root', Path('/'), COMPUTER, workspace, skip={str(self.home)})
++        else:
++            add(WAIT + COMPUTER, COMPUTER, 'note', '…', WAIT + COMPUTER, 'Open it to list what is in it')
++        self.drive_nodes(add, workspace)
++        return out
++
++    def kernel(self):
++        return getattr(getattr(self.host, 'ledger_bridge', None), 'kernel', None)
++
++    def workspace(self):
++        """The folder Graphite's workspace keeps its Files in (marked with Graphite's glyph where it is in the tree)."""
++        files = getattr(self.living, 'files', None) or {}
++        root = files.get('root')
++        return str(Path(root).parent) if root else ''
++
++    def whole(self, entry):
++        path = str(entry.get('path') or '')
++        if path.startswith('/'):return path
++        root = (getattr(self.living, 'files', None) or {}).get('root')
++        return str(Path(root) / path) if root and path else (str(root) if root else '')
++
++    def canonical(self, path):
++        return self.known.get(str(path)) or PATH + str(path)
++
++    def folder_row(self, add, branch, path, parent, label, workspace, home=False):
++        ident = FS + branch + ':' + str(path);self.paths[ident] = str(path)
++        if home:
++            words = 'Home, your own folder (%s): every folder and file in it, as your account sees them' % str(path)
++        elif str(path) == workspace:
++            words = "Graphite's workspace (%s): its Files folder and its records; the records are also in the Desk drawer" % hr.tilde(path)
++        else:
++            words = 'Folder · %s' % hr.tilde(path)
++        extra = {'glyph': 'graphite'} if str(path) == workspace else {}
++        add(ident, parent, 'folder', label, self.canonical(path), words, **extra)
++        if ident in self.listed:self.children(add, branch, Path(path), ident, workspace)
++        else:add(WAIT + ident, ident, 'note', '…', WAIT + ident, 'Open it to list what is in it')
++        return ident
++
++    def children(self, add, branch, folder, parent, workspace, skip=()):
++        from .living_nav_qt import kind_words
++        read = hr.listing(folder, hidden=self.hidden)
++        if read['error']:
++            add(NOTE + parent, parent, 'note', read['error'], NOTE + parent, '%s: %s' % (hr.tilde(folder), read['error']));return
++        if not read['rows']:
++            add(NOTE + parent, parent, 'note', 'empty' if not read['hidden'] else 'only hidden names (Show hidden lists them)', NOTE + parent,
++                'Nothing in %s%s' % (hr.tilde(folder), ' but names that start with a dot' if read['hidden'] else ''))
++        for row in read['rows']:
++            path = row['path']
++            if path in skip:continue
++            if row['kind'] == 'system':
++                ident = FS + branch + ':' + path;self.paths[ident] = path
++                add(ident, parent, 'system', '%s · system' % row['name'], ident, '%s: %s; Graphite never reads it' % (path, hr.SYSTEM_WORDS))
++                continue
++            if row['kind'] == 'folder' and branch == 'root' and Path(path) == self.home:
++                add(JUMP + path, parent, 'note', '%s · Home' % row['name'], JUMP + path, 'Your home folder: it is Home, at the top of this computer');continue
++            if row['kind'] == 'folder':
++                label = row['name'] + (' →' if row['link'] else '')
++                self.folder_row(add, branch, path, parent, label, workspace)
++                continue
++            ident = FS + branch + ':' + path;self.paths[ident] = path
++            add(ident, parent, 'file', row['name'], self.canonical(path), '%s · %s%s' % (kind_words(row['name']), hr.tilde(path), ' (a link)' if row['link'] else ''))
++        if read['left']:
++            add(NOTE + 'more:' + parent, parent, 'note', '%d more not listed here' % read['left'], NOTE + 'more:' + parent,
++                'This folder holds more than the tree lists; the Finder lists all of it')
++
++    # ---- Drives (S4) ------------------------------------------------------------------------------------------------------
++    def storage(self):
++        now = time.monotonic()
++        if self.drives is None or now - self.drives_at > DRIVE_SECONDS:
++            try:
++                from . import machine_room_qt
++                self.drives = machine_room_qt.reading(self.host, 'storage')
++            except Exception as exc:  # noqa: BLE001 - the tree stands without the drives
++                self.drives = {'available': False, 'short': 'not available', 'why': str(exc)[:200], 'drives': []}
++            self.drives_at = now
++        return self.drives
++
++    def drive_nodes(self, add, workspace):
++        data = self.storage() or {}
++        drives = data.get('drives') or [] if data.get('available') else []
++        add(DRIVES, None, 'drawer', 'Drives', DRIVES, 'The removable drives: USB sticks, cards and discs (udisks2)')
++        if not data.get('available'):
++            add(NOTE + DRIVES, DRIVES, 'note', str(data.get('short') or 'not available'), NOTE + DRIVES, str(data.get('why') or 'Removable drives are not read here'))
++            return
++        if not drives:
++            add(NOTE + DRIVES, DRIVES, 'note', 'no removable drive', NOTE + DRIVES, 'No removable drive is plugged in')
++            return
++        for drive in drives:
++            mounted = [v for v in drive.get('volumes') or () if v.get('mounted')]
++            ident = DRIVE + str(drive['id'])
++            add(ident, DRIVES, 'drive', '%s · %s' % (drive['name'], 'mounted' if mounted else 'not mounted'), ident,
++                'A removable drive: choose it to open Storage in the centre (Mount, Open in Files, Unmount, Eject safely)')
++            for volume in drive.get('volumes') or ():
++                name = volume.get('label') or Path(str(volume.get('device') or 'volume')).name
++                if volume.get('mounted'):
++                    place = volume['mounted'][0]
++                    self.folder_row(add, 'drive', Path(place), ident, name, workspace)
++                else:
++                    add(NOTE + ident + ':' + str(volume.get('id')), ident, 'note', '%s · not mounted' % name, DRIVE + str(drive['id']),
++                        'Not mounted: choose it to open Storage in the centre, where Mount is')
++
++    # ---- choosing a row ---------------------------------------------------------------------------------------------------
++    def owns(self, node_id):
++        return mine(node_id)
++
++    def say(self, words, ms=7000):
++        bar = getattr(self.host, 'statusBar', None)
++        if callable(bar):self.host.statusBar().showMessage(words, ms)
++
++    def go(self, node_id, via='tree'):
++        """A click on one of the computer's rows: a folder or a file is focused on the board (given its id now if it has
++        none), a system folder says it is never read, a drive opens Storage, This computer and Drives keep the board."""
++        living = self.living;node = living.nodes.get(node_id) or {}
++        role = node.get('role');label = node.get('label') or ''
++        if role == 'system':
++            self.say('%s is %s.' % (self.paths.get(node_id, label), hr.SYSTEM_WORDS));return True
++        if node_id.startswith(JUMP):
++            page = self.page()
++            if page is not None:page.select(self.home_id, reveal=True)
++            return living.go_node(self.home_id, via)
++        if role == 'drive' or (role == 'note' and str(node.get('canonical_id', '')).startswith(DRIVE)):
++            try:
++                from . import machine_room_qt
++                machine_room_qt.show(self.host, 'storage')
++            except Exception as exc:  # noqa: BLE001
++                self.say('Storage could not be opened: %s' % str(exc)[:160])
++            return True
++        if role in ('drawer', 'note'):
++            living.go(node.get('canonical_id') or node_id, via, 'board', title=label, node=node_id, board_object=False);return True
++        ident = self.identify(node_id)
++        if not ident:return True
++        living.go(ident, via, 'board', title=label.rstrip(' →'), node=node_id)
++        return True
++
++    def open(self, node_id):
++        node = self.living.nodes.get(node_id) or {}
++        if node.get('role') in ('file', 'folder'):
++            ident = self.identify(node_id)
++            return self.living.open(ident, node=node_id) if ident else None
++        self.go(node_id, 'open');return None
++
++    def identify(self, node_id):
++        """The row's stable id, made now when it has none (objects.get with its path): the board and the history hold it."""
++        living = self.living;node = living.nodes.get(node_id) or {}
++        canonical = str(node.get('canonical_id') or '')
++        from . import living_nav as ln
++        if ln.is_file_id(canonical) and canonical in (living.files_by_id or {}):return canonical
++        path = self.paths.get(node_id) or (canonical[len(PATH):] if canonical.startswith(PATH) else '')
++        if not path:return canonical if ln.is_file_id(canonical) else ''
++        found = living.call('objects.get', {'path': path})
++        if found is None:
++            self.say('%s could not be focused: %s' % (hr.tilde(path), living.problem or 'not read'));return ''
++        self.hold(found)
++        node['canonical_id'] = found['id'];node['target'] = {'kind': 'living', 'id': found['id']}
++        living.by_canonical[found['id']] = node_id
++        return found['id']
++
++    def hold(self, found):
++        """An object found outside Files' reading (elsewhere on this computer, or a name Files' reading leaves out) is held
++        beside it, so the board, the breadcrumb and Open find it like any file of Files."""
++        from . import living_nav as ln
++        living = self.living
++        if found['id'] in (living.files_by_id or {}) and not (living.extra or {}).get(found['id']):return
++        entry = ln.entry_outside(found)
++        if not str(found.get('path') or '').startswith('/'):entry['outside'] = False
++        living.extra[found['id']] = entry
++        if living.files is not None:living.files = self.merged(dict(living.files, entries=[e for e in living.files['entries'] if not e.get('held')]))
++        root = Path((living.files or {}).get('root') or '/')
++        living.files_by_id = dict(living.files_by_id or {}, **{found['id']: entry})
++        living.files_by_abs = dict(living.files_by_abs or {}, **{self.whole(entry) or str(root / entry['path']): found['id']})
++
++    def merged(self, reading):
++        """Files' reading with the objects held beside it (living_nav_qt.read_files)."""
++        extra = getattr(self.living, 'extra', None) or {}
++        if not extra or not isinstance(reading, dict):return reading
++        have = {e['id'] for e in reading.get('entries') or ()}
++        added = [dict(e, held=True) for i, e in extra.items() if i not in have]
++        return dict(reading, entries=list(reading.get('entries') or ()) + added) if added else reading
++
++    # ---- the way to an object -----------------------------------------------------------------------------------------------
++    def open_to(self, ident):
++        """The tree is to show this object: every folder on its way is listed and kept open (Home's branch for a path in
++        Home, the drive's for a path on a mounted drive, else from /)."""
++        living = self.living;entry = (living.files_by_id or {}).get(ident)
++        if entry is None:return False
++        path = Path(self.whole(entry))
++        if not str(path).startswith('/'):return False
++        branch, top, first = 'root', Path('/'), [COMPUTER]
++        if hr.within(path, self.home):branch, top, first = 'home', self.home, [COMPUTER, self.home_id]
++        else:
++            for drive in (self.storage() or {}).get('drives') or ():
++                for volume in drive.get('volumes') or ():
++                    for place in volume.get('mounted') or ():
++                        if hr.within(path, Path(place)):branch, top, first = 'drive', Path(place), [DRIVES, DRIVE + str(drive['id'])]
++        opened = list(first)
++        folder = path.parent if path != top else None
++        chain = []
++        while folder is not None and hr.within(folder, top):
++            chain.append(FS + branch + ':' + str(folder))
++            if folder == top or folder == folder.parent:break
++            folder = folder.parent
++        if branch == 'root':chain = [c for c in chain if c != FS + 'root:/']
++        opened += list(reversed(chain))
++        self.listed |= set(o for o in opened if o.startswith((COMPUTER, DRIVES, FS)))
++        self.keep_open(opened);self.remember()
++        return True
++
++
++def install(living):
++    """LivingNav (living_nav_qt) calls this once: the computer's rows in its tree."""
++    return ComputerTree(living)
+diff --git a/workbench/files_service.py b/workbench/files_service.py
+index 0cb9225..dc51574 100644
+--- a/workbench/files_service.py
++++ b/workbench/files_service.py
+@@ -16,6 +16,11 @@ Rules the code enforces:
+     ask is files.propose, which waits in his Agenda for your decision.
+   - Egress holds copies, with SHA256SUMS; the originals stay as they are.
+   - Machine files (caches, object files, lock files, hidden dot-files) are hidden unless you ask for all files.
++  - 1.0 L6, the whole computer: a path named from / or from ~ ('/etc/hosts', '~/Rail notes/note.txt') is that path on this
++    computer (home_reach). It is read where the owner's account can read (the system folders /proc, /sys, /dev and /run
++    never). A change there by the owner's own press follows the system's permissions; a change of hers (her steps, her
++    tools, her hand's cards) reaches only inside your home, by a grant of yours or your press, and never outside it:
++    "outside your home: never". Its versions are kept in Files/.versions/~home/… (or ~root/…), so Undo stays as it was.
+ """
+ from __future__ import annotations
+ import contextlib
+@@ -85,8 +90,21 @@ def root(kernel, create=True):
+ 
+ 
+ def resolve(kernel, rel, must_exist=True):
+-    """A path inside Files, or a refusal. Symbolic links are never followed out of the folder."""
++    """A path inside Files, or a refusal. Symbolic links are never followed out of the folder. 1.0 L6: a path named from /
++    or ~ is that path on this computer (inside Files, it is the Files path it is); a system folder is never read."""
+     base = root(kernel).resolve()
++    if isinstance(rel, str) and rel.startswith(('/', '~')):  # 1.0 L6: the whole computer
++        from . import home_reach
++        named = home_reach.expand(rel)
++        if named is None:raise ValueError('FILES_PATH_INVALID: a path with no ".."')
++        refusal = home_reach.read_refusal(named)
++        if refusal:raise ValueError('FILES_SYSTEM_FOLDER: ' + refusal)
++        actual = home_reach.real(named)
++        if actual == base or base in actual.parents:
++            rel = actual.relative_to(base).as_posix() if actual != base else ''
++        else:
++            if must_exist and not (named.exists() or named.is_symlink()):raise ValueError('FILES_NOT_FOUND: ' + home_reach.tilde(named)[:200])
++            return named
+     parts = [p for p in PurePosixPath((rel or '').replace('\\', '/')).parts if p not in ('', '/', '.')]
+     if any(p == '..' or '\0' in p for p in parts):raise ValueError('FILES_PATH_OUTSIDE: stay inside Files')
+     path = base.joinpath(*parts)
+@@ -101,6 +119,29 @@ def rel_of(kernel, path):
+     return Path(path).relative_to(root(kernel)).as_posix()
+ 
+ 
++def place_of(kernel, path):
++    """1.0 L6: a path as the Kernel keeps it: its path inside Files, or (elsewhere on this computer) the whole path."""
++    try:return rel_of(kernel, path)
++    except ValueError:
++        try:return Path(path).relative_to(root(kernel).resolve()).as_posix()
++        except ValueError:
++            return str(Path(path))
++
++
++def version_dir(kernel, path):
++    """Where the versions of a file are kept: Files/.versions/<its path in Files>; 1.0 L6: for a file elsewhere,
++    Files/.versions/~home/<its path in your home> (outside your home: ~root/<its whole path>)."""
++    try:return root(kernel) / VERSIONS / rel_of(kernel, path)
++    except ValueError:
++        pass
++    place = Path(place_of(kernel, path))
++    if not place.is_absolute():return root(kernel) / VERSIONS / place
++    from . import home_reach
++    try:return root(kernel) / VERSIONS / '~home' / place.relative_to(home_reach.home())
++    except ValueError:
++        return root(kernel) / VERSIONS / '~root' / place.relative_to('/')
++
++
+ def clean_name(name):
+     name = name.strip()
+     if not name or name in ('.', '..') or '/' in name or '\\' in name or '\0' in name:raise ValueError('FILES_NAME_INVALID')
+@@ -130,7 +171,7 @@ KIND_WORDS = {'folder': 'Folder', 'pdf': 'PDF', 'image': 'Image', 'document': 'D
+ 
+ def entry(kernel, path):
+     stat = path.stat();kind = 'smart' if path.suffix == SMART and path.is_file() else kind_of(path)
+-    rel = rel_of(kernel, path)
++    rel = place_of(kernel, path)  # 1.0 L6: elsewhere on this computer, the whole path
+     value = {'name': path.name, 'path': rel, 'kind': kind, 'kind_words': KIND_WORDS.get(kind, kind.title()), 'modified': stat.st_mtime,
+              'size': None if path.is_dir() else stat.st_size, 'machine': machine(path), 'address': '@files:' + rel}
+     if path.is_dir():
+@@ -151,7 +192,17 @@ def opened(kernel):
+ 
+ 
+ def may_change(kernel, path, principal):
+-    """Slate's own area is his; anything else needs the approve scope (yours)."""
++    """Slate's own area is his; anything else needs the approve scope (yours). 1.0 L6: outside Files, a change of hers
++    (in_her_work) reaches only inside your home, by a grant of yours or your press, never outside it nor Graphite's own;
++    your own press follows the system's permissions."""
++    from . import home_reach
++    if home_reach.area(kernel, path) != home_reach.FILES:  # 1.0 L6
++        if not home_reach.in_her_work(principal):return
++        why = home_reach.her_change(kernel, path)
++        if why:raise ValueError(('FILES_GRAPHITE_OWN: ' if why.startswith(home_reach.OWN_WORDS) else 'FILES_OUTSIDE_HOME: ') + why)
++        from .grants import permitted
++        if permitted(kernel, path) or home_reach.let_through(kernel, principal, path):return
++        raise ValueError('FILES_NEEDS_GRANT: needs your grant: a change in your home outside Files (%s) is hers only under a grant of yours or by your press' % home_reach.tilde(path)[:200])
+     area = root(kernel) / SLATE
+     inside = path == area or area in path.parents
+     if not inside and 'approve' not in principal.scopes:
+@@ -167,13 +218,13 @@ def keep_version(kernel, path):
+     """The version before a change, under .versions/<path>/<time>."""
+     if not path.is_file():return None
+     stamp = time.strftime('%Y%m%dT%H%M%S', time.gmtime()) + '-%06d' % (time.time_ns() // 1000 % 1_000_000)
+-    target = root(kernel) / VERSIONS / rel_of(kernel, path) / stamp
++    target = version_dir(kernel, path) / stamp  # 1.0 L6
+     target.parent.mkdir(parents=True, mode=0o700, exist_ok=True);shutil.copy2(path, target)
+     return stamp
+ 
+ 
+ def versions(kernel, path):
+-    folder = root(kernel) / VERSIONS / rel_of(kernel, path)
++    folder = version_dir(kernel, path)  # 1.0 L6
+     if not folder.is_dir():return []
+     return [{'version': p.name, 'size': p.stat().st_size, 'kept': p.stat().st_mtime} for p in sorted(folder.iterdir(), reverse=True) if p.is_file()]
+ 
+@@ -201,7 +252,7 @@ def as_csv(rows):
+ def story(kernel, path, principal):
+     """One file's history from Ledger's own records, newest first: where it came from, its versions, proposals, working
+     copies and their updates, Trash, and the Agenda. Each line is something that was recorded, never inferred."""
+-    rel = rel_of(kernel, path);events = []
++    rel = place_of(kernel, path);events = []  # 1.0 L6
+     def add(at, what):
+         if at:events.append({'at': at, 'what': what})
+     if path.exists():add(path.stat().st_mtime, 'last changed on disk')
+@@ -365,21 +416,21 @@ def compare(kernel, args, principal):
+     """Two files, a file and one of its versions, or a file and Slate's proposed change."""
+     path = resolve(kernel, args['path'])
+     if path.is_dir():raise ValueError('FILES_IS_A_FOLDER')
+-    label_b = rel_of(kernel, path)
++    label_b = place_of(kernel, path)  # 1.0 L6
+     if args.get('proposal'):
+         with opened(kernel) as db:
+             row = db.execute('SELECT * FROM files_proposals WHERE id=? AND owner=?', (args['proposal'], principal.identity)).fetchone()
+-        if row is None or row['path'] != rel_of(kernel, path):raise ValueError('FILES_PROPOSAL_NOT_FOUND')
++        if row is None or row['path'] != place_of(kernel, path):raise ValueError('FILES_PROPOSAL_NOT_FOUND')  # 1.0 L6
+         before_text = path.read_text(encoding='utf-8', errors='replace');after_text = row['text']
+         return {'kind': 'text', 'before': label_b, 'after': 'Graphite\'s proposal: ' + row['why'], **text_diff(before_text, after_text)}
+     if args.get('version'):
+-        other = root(kernel) / VERSIONS / rel_of(kernel, path) / clean_name(args['version'])
++        other = version_dir(kernel, path) / clean_name(args['version'])  # 1.0 L6
+         if not other.is_file():raise ValueError('FILES_VERSION_NOT_FOUND')
+         older, newer, label_a = other, path, 'version ' + args['version']
+     elif args.get('other'):
+         older, newer, label_a = resolve(kernel, args['other']), path, None
+         if older.is_dir():raise ValueError('FILES_IS_A_FOLDER')
+-        label_a, label_b = rel_of(kernel, older), rel_of(kernel, path)
++        label_a, label_b = place_of(kernel, older), place_of(kernel, path)  # 1.0 L6
+     else:raise ValueError('FILES_COMPARE_WHAT: give other, version or proposal')
+     return compare_paths(older, newer, label_a, label_b)
+ 
+@@ -414,6 +465,8 @@ SMART = '.find'
+ def find(kernel, args):
+     """Files whose name or words match, of a kind, changed recently: the answer to a search or a smart folder."""
+     import time as clock
++    if str(args.get('under') or '').startswith(('/', '~')):  # 1.0 L6: the tree reaches the rest of the computer; Find looks in Files
++        raise ValueError('FILES_FIND_IN_FILES: Find looks inside Files; the tree reaches the rest of this computer')
+     base = resolve(kernel, args.get('under', ''));needle = (args.get('text') or '').strip().casefold()
+     kind = (args.get('kind') or '').strip().lower();since = clock.time() - args['days'] * 86400 if args.get('days') else None
+     limit = args.get('limit', 200);found = [];looked = 0
+@@ -458,10 +511,14 @@ def dispatch(kernel, op, args, principal):
+     if op == 'files.list':
+         folder = resolve(kernel, args.get('path', ''))
+         if not folder.is_dir():raise ValueError('FILES_NOT_A_FOLDER')
+-        rows = [entry(kernel, p) for p in folder.iterdir() if not (folder == root(kernel) and p.name in (TRASH, VERSIONS))]
++        rows = []
++        for p in folder.iterdir():
++            if folder == root(kernel) and p.name in (TRASH, VERSIONS):continue
++            try:rows.append(entry(kernel, p))
++            except OSError:continue  # 1.0 L6: elsewhere on this computer, an entry the account cannot read is left out
+         shown = rows if args.get('all') else [r for r in rows if not r['machine']]
+         order = lambda r:(r['kind'] not in ('folder', 'smart'), r['name'].casefold())
+-        return {'schema': 'arc.files/1', 'root': str(root(kernel)), 'path': rel_of(kernel, folder) if folder != root(kernel) else '',
++        return {'schema': 'arc.files/1', 'root': str(root(kernel)), 'path': place_of(kernel, folder) if folder != root(kernel) else '',  # 1.0 L6
+                 'entries': sorted(shown, key=order), 'hidden': len(rows) - len(shown), 'slate_area': SLATE, 'exports': EXPORTS}
+     if op == 'files.get':
+         path = resolve(kernel, args['path']);value = entry(kernel, path)
+@@ -518,7 +575,7 @@ def dispatch(kernel, op, args, principal):
+         path = resolve(kernel, args['path']);may_change(kernel, path, principal)
+         if path == root(kernel) or path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: this folder stays')
+         ident = uuid.uuid4().hex;stored = root(kernel) / TRASH / ident
+-        stored.mkdir(mode=0o700);original = rel_of(kernel, path);shutil.move(str(path), str(stored / path.name));carried(kernel, path, stored / path.name)
++        stored.mkdir(mode=0o700);original = place_of(kernel, path);shutil.move(str(path), str(stored / path.name));carried(kernel, path, stored / path.name)
+         with opened(kernel) as db:db.execute('INSERT INTO files_trash VALUES(?,?,?,?,?,NULL)', (ident, owner, original, ident + '/' + path.name, time.time()))
+         return {'trashed': original, 'id': ident, 'note': 'In DELETE. Restore puts it back.'}
+     if op == 'files.trash_list':
+@@ -534,7 +591,7 @@ def dispatch(kernel, op, args, principal):
+             with contextlib.suppress(OSError):(root(kernel) / TRASH / args['id']).rmdir()
+             db.execute('UPDATE files_trash SET restored=? WHERE id=?', (time.time(), args['id']))
+         carried(kernel, source, target)  # 1.0 L1: after the restore is written, never inside its transaction
+-        return {'restored': rel_of(kernel, target)}
++        return {'restored': place_of(kernel, target)}  # 1.0 L6
+     if op == 'files.write':
+         path = resolve(kernel, args['path'], must_exist=False);may_change(kernel, path, principal)
+         if path.is_dir():raise ValueError('FILES_IS_A_FOLDER')
+@@ -553,8 +610,8 @@ def dispatch(kernel, op, args, principal):
+         base = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+         ident = uuid.uuid4().hex
+         with opened(kernel) as db:
+-            db.execute('INSERT INTO files_proposals VALUES(?,?,?,?,?,?,?,?,NULL)', (ident, owner, rel_of(kernel, path), args['text'], args['why'], base, 'WAITING', time.time()))
+-        return {'proposal': ident, 'path': rel_of(kernel, path), 'state': 'WAITING', 'note': 'Waiting for your decision.'}
++            db.execute('INSERT INTO files_proposals VALUES(?,?,?,?,?,?,?,?,NULL)', (ident, owner, place_of(kernel, path), args['text'], args['why'], base, 'WAITING', time.time()))
++        return {'proposal': ident, 'path': place_of(kernel, path), 'state': 'WAITING', 'note': 'Waiting for your decision.'}  # 1.0 L6
+     if op == 'files.proposals':
+         with opened(kernel) as db:
+             return {'proposals': [dict(r) for r in db.execute("SELECT id, path, why, at, length(text) AS size FROM files_proposals WHERE owner=? AND state='WAITING' ORDER BY at",
+@@ -573,15 +630,16 @@ def dispatch(kernel, op, args, principal):
+             return {'state': 'APPLIED', 'path': row['path'], 'kept_version': kept}
+     if op == 'files.revert':
+         path = resolve(kernel, args['path']);may_change(kernel, path, principal)
+-        version = root(kernel) / VERSIONS / rel_of(kernel, path) / clean_name(args['version'])
++        version = version_dir(kernel, path) / clean_name(args['version'])  # 1.0 L6
+         if not version.is_file():raise ValueError('FILES_VERSION_NOT_FOUND')
+         kept = keep_version(kernel, path);shutil.copy2(version, path)
+-        return {'reverted': rel_of(kernel, path), 'to': args['version'], 'kept_version': kept}
++        return {'reverted': place_of(kernel, path), 'to': args['version'], 'kept_version': kept}
+     if op == 'files.compare':return compare(kernel, args, principal)
+     if op == 'files.find':return find(kernel, args)
+     if op == 'files.smart':
+         question = {k: v for k, v in args['find'].items() if k in FIND_KEYS}
+         if not question:raise ValueError('FILES_SMART_EMPTY: say what it should find')
++        if str(args.get('path') or '').startswith(('/', '~')):raise ValueError('FILES_FIND_IN_FILES: a smart folder is kept inside Files')  # 1.0 L6
+         find(kernel, {**question, 'limit': 1})  # the question must work before it is kept
+         folder = resolve(kernel, args.get('path', ''));target = folder / (clean_name(args['name']) + SMART)
+         may_change(kernel, target, principal)
+diff --git a/workbench/grants.py b/workbench/grants.py
+index 5c43ec4..ad66873 100644
+--- a/workbench/grants.py
++++ b/workbench/grants.py
+@@ -10,7 +10,9 @@ A grant (graphite.grant/1, in the Kernel's own database: kas_grants, and kas_gra
+   operation  a family (FAMILIES: "edit files", "set values on a sheet", ...), a tool of the registry (tools_registry, by its
+              key) or one registered Kernel operation; it covers exactly the Kernel operations it names.
+   target     a folder inside Files ("Rail Demo/notes": that folder and what is in it), or an object: a Kernel record (a
+-             sheet, a page), an App, a window. Every target of a call must be inside it.
++             sheet, a page), an App, a window. Every target of a call must be inside it. 1.0 L6: a folder may be any folder
++             in your home ("~/Rail notes"), named from ~ or /; never one outside your home, never all of it, never
++             Graphite's own records or program ("outside your home: never", home_reach).
+   scope      this assignment (it ends when the assignment is done), until a time (whole milliseconds), or always (until
+              you revoke it).
+   words      what you read before you give it, e.g. "edit files in Rail Demo/notes, for this assignment".
+@@ -41,6 +43,10 @@ steps, never Tutor), the words are the desk's own (a target is named from the re
+ digest of the words you saw must match, grant.* is never a step, a tool or the model's choice, and a grant is never given
+ from inside her work (a call inside a step's dispatch is refused).
+ 
++1.0 L6, her reach: a change of hers lands only inside your home (and the workspace's Files, by its own rules), at every
++place of the dial: a step, a tool use or her hand's card whose target is outside it stops as "outside your home: never",
++before any grant or press is asked for (check_step, authorise, check_tool, and Files' own may_change at dispatch).
++
+ The floor stays under all of this (a grant never widens it): what always asks (stacy_hand.ALWAYS_ASKS: sending,
+ deleting, stopping, the session) is never granted; a change whose only basis is the model's pick is never authorised by
+ a grant; what the records mark for your approval stays yours by its own name; reading needs no grant; her hand on the
+@@ -171,8 +177,15 @@ def _rows(db, owner, every=False):
+ 
+ # ---------------------------------------------------------------- paths and targets
+ 
+-def clean_folder(text):
+-    """A folder inside Files, as a relative path with no '..', or a refusal."""
++def clean_folder(text, kernel=None):
++    """A folder inside Files, as a relative path with no '..', or a refusal. 1.0 L6: named from ~ or /, a folder in your
++    home ('~/Rail notes'; one inside Files is named as Files names it), never one outside it."""
++    if str(text or '').strip().startswith(('/', '~')):  # 1.0 L6
++        from . import home_reach
++        if kernel is None:raise NotGrantable('GRANT_FOLDER: a folder in your home is named with its workspace')
++        value, why = home_reach.grant_folder(kernel, str(text).strip())
++        if why:raise NotGrantable(why)
++        return value
+     parts = [p for p in PurePosixPath(str(text or '').replace('\\', '/')).parts if p not in ('', '/', '.')]
+     if not parts:raise NotGrantable('GRANT_FOLDER: name a folder inside Files (a grant over all of Files is never given)')
+     if any(p == '..' or '\0' in p for p in parts):raise NotGrantable('GRANT_FOLDER: a folder inside Files, with no ".."')
+@@ -181,9 +194,12 @@ def clean_folder(text):
+ 
+ 
+ def _clean_path(text):
+-    parts = [p for p in PurePosixPath(str(text or '').replace('\\', '/')).parts if p not in ('', '/', '.')]
++    raw = str(text or '').replace('\\', '/')
++    lead = '~' if raw == '~' or raw.startswith('~/') else '/' if raw.startswith('/') else ''  # 1.0 L6: from ~ or /, kept so
++    parts = [p for p in PurePosixPath(raw[1:] if lead == '~' else raw).parts if p not in ('', '/', '.')]
+     if any(p == '..' for p in parts):return None
+-    return '/'.join(parts)
++    if lead == '~':return '~/' + '/'.join(parts) if parts else '~'
++    return lead + '/'.join(parts)
+ 
+ 
+ def _bare(ident):
+@@ -198,7 +214,7 @@ def targets(operation, arguments):
+     if operation == 'files.mkdir':
+         name = a.get('name')
+         if isinstance(name, str):
+-            joined = _clean_path((a.get('path') or '') + '/' + name)
++            joined = _clean_path(((a.get('path') or '').rstrip('/') + '/' + name) if a.get('path') else name)  # 1.0 L6: '' + '/x' is not /x
+             paths.append(joined)
+     elif operation == 'sandbox.run':  # 1.0 K6 (coordinator): a utility's run lands on (copies of) its inputs
+         for item in a.get('inputs') or ():
+@@ -222,6 +238,18 @@ def inside(path, folder):
+     return path is not None and (path == folder or path.startswith(folder.rstrip('/') + '/'))
+ 
+ 
++def _within(kernel, path, folder):
++    """1.0 L6: whether a path (as a call names it: inside Files, from ~ or from /) is the folder or inside it, compared as
++    the places they are on this computer (a Files folder and the same folder named from ~ are one place)."""
++    if path is None or folder is None:return False
++    try:
++        from . import home_reach
++        a, b = home_reach.absolute(kernel, path), home_reach.absolute(kernel, folder)
++    except Exception:  # noqa: BLE001 - a place that cannot be named is inside nothing
++        return False
++    return a is not None and b is not None and home_reach.within(a, b)
++
++
+ def _has_reference(value):
+     if isinstance(value, dict):
+         if '$step' in value:return True
+@@ -264,7 +292,11 @@ def object_words(kernel, ident):
+         doc = got.get('document') or got
+         if doc.get('title'):return 'the page “%s”' % str(doc['title'])[:120]
+     got = _read(kernel, 'objects.get', {'id': ident})
+-    if isinstance(got, dict) and got.get('path'):return '“%s” in Files' % str(got['path'])[:160]
++    if isinstance(got, dict) and got.get('path'):
++        if str(got['path']).startswith('/'):  # 1.0 L6: a file elsewhere on this computer
++            from . import home_reach
++            return '“%s”' % home_reach.tilde(got['path'])[:160]
++        return '“%s” in Files' % str(got['path'])[:160]
+     if ident.endswith('.desktop'):
+         try:
+             from . import apps_catalog
+@@ -341,10 +373,10 @@ def describe(kernel, args, principal):
+     """The grant as it would be given: its words, its digest and what it covers. NotGrantable says why not."""
+     name = args['operation'];doing, ops = _operations(name)
+     folder, obj = args.get('folder'), args.get('object')
+-    if bool(folder) == bool(obj):raise NotGrantable('GRANT_TARGET: name one target: a folder inside Files, or an object')
++    if bool(folder) == bool(obj):raise NotGrantable('GRANT_TARGET: name one target: a folder inside Files or in your home, or an object')
+     if folder:
+         if any(op.startswith(('windows.', 'apps.', 'field.')) for op in ops):raise NotGrantable('GRANT_TARGET: this works on an object, not a folder')
+-        value = clean_folder(folder)
++        value = clean_folder(folder, kernel)  # 1.0 L6: or a folder in your home
+         target = {'kind': 'folder', 'value': value, 'words': 'in %s' % value}
+     else:
+         value = _bare(obj)
+@@ -471,7 +503,7 @@ def _covers(kernel, grant, operation, found):
+     target = grant['target']
+     if not found['paths'] and not found['objects']:return False
+     if target['kind'] == 'folder':
+-        return not found['objects'] and all(inside(p, target['value']) for p in found['paths'])
++        return not found['objects'] and all(_within(kernel, p, target['value']) for p in found['paths'])  # 1.0 L6: as places
+     if found['objects']:return not found['paths'] and all(o == target['value'] for o in found['objects'])
+     # a file object: every path is that file
+     for path in found['paths']:
+@@ -527,8 +559,11 @@ def _why(kernel, owner, operation, arguments, assignment=None):
+ # ---------------------------------------------------------------- enforcement (the Kernel's path)
+ 
+ def check_step(kernel, value, step, arguments, principal):
+-    """assignments.GRANT_CHECK: '' when this step may run as it is now, else why it needs your grant."""
++    """assignments.GRANT_CHECK: '' when this step may run as it is now, else why it needs your grant. 1.0 L6: a change
++    outside your home stops here, whatever was pressed or granted: "outside your home: never"."""
+     if step.get('scope') == 'read':return ''
++    never = _never(kernel, step['operation'], arguments)  # 1.0 L6
++    if never:raise ValueError(never)
+     if step.get('scope') == 'approve':return ''      # K1 already requires your press on it by name, its inputs fixed then
+     op = step['operation'];auth = step.get('authorised') or {}
+     if auth.get('by') == principal.identity and not auth.get('grant'):      # your press on this step, as it was shown to you
+@@ -540,6 +575,15 @@ def check_step(kernel, value, step, arguments, principal):
+     return _why(kernel, principal.identity, op, arguments, value['id'])
+ 
+ 
++def _never(kernel, operation, arguments):
++    """1.0 L6: '' unless the call is a change that would land outside your home (or on Graphite's own): why it never may."""
++    try:
++        from . import home_reach
++        return home_reach.never_words(kernel, operation, arguments)
++    except Exception:  # noqa: BLE001 - a place that cannot be named is refused by Files' own check at dispatch
++        return ''
++
++
+ def _from_the_owner(kernel, step, principal):
+     """1.0 K8: a grant covers a fetch (web.get) only of an address you typed or of a page already kept in quarantine; an
+     address that came from a page (a link) or anywhere else needs your press on the step. Every other operation: True."""
+@@ -559,6 +603,8 @@ def check_tool(kernel, tool, operation, arguments, principal):
+     """tools_registry.GRANT_CHECK: a change through tools.use needs a grant in force ("until" or "always"; her own area
+     is hers by the Files rules)."""
+     if getattr(tool, 'undo', 'change') != 'change':return ''
++    never = _never(kernel, operation, arguments)  # 1.0 L6: outside your home, never (tools_registry says it as it is)
++    if never:return never
+     if covering(kernel, principal.identity, operation, arguments, None) is not None:return ''
+     return _why(kernel, principal.identity, operation, arguments)
+ 
+@@ -604,12 +650,7 @@ def permitted(kernel, path):
+     """files_service.may_change: whether the call being made now is one a grant (or your press) let through for this path."""
+     permit = _PERMIT.get()
+     if not permit or permit['root'] != str(getattr(kernel, 'root', '')):return False
+-    try:
+-        from .files_service import rel_of
+-        rel = rel_of(kernel, path)
+-    except (ValueError, OSError):
+-        return False
+-    return any(inside(rel, p) for p in permit['paths'])
++    return any(_within(kernel, str(path), p) for p in permit['paths'])  # 1.0 L6: as places (inside Files or in your home)
+ 
+ 
+ def permitted_object(kernel, operation, ident):
+@@ -662,6 +703,10 @@ def authorise(kernel, ident, principal, runner=False):
+         if not _from_the_owner(kernel, step, principal):continue      # 1.0 K8: an address from a page waits for your press
+         arguments = _resolved(value, step)
+         if arguments is None:continue
++        never = _never(kernel, step['operation'], arguments)  # 1.0 L6: outside your home it stops, before any grant is asked for
++        if never:
++            if runner and nxt is not None and step['key'] == nxt['key']:plans[step['key']] = ('never', never, A.digest(step['arguments']))
++            continue
+         grant = covering(kernel, principal.identity, step['operation'], arguments, value['id'], include_built_in=False)
+         if grant is not None:
+             plans[step['key']] = ('grant', grant, A.digest(step['arguments']))
+@@ -682,6 +727,10 @@ def authorise(kernel, ident, principal, runner=False):
+                                                                        'explicit': False, 'arguments': plan[2], 'again': False})
+                 words = 'Step %d (%s) is authorised by your grant: %s.' % (step['n'], step['title'], grant['words'])
+                 A._save(db, value);A._journal(db, value, step, 'AUTHORISED', words, {'grant': grant['id'], 'by_grant': True})
++            elif plan[0] == 'never':  # 1.0 L6
++                step.update(status='blocked', reason=plan[1])
++                words = 'Step %d (%s) stops: %s. Nothing was sent.' % (step['n'], step['title'], plan[1])
++                A._save(db, value);A._journal(db, value, step, 'BLOCKED', words)
+             else:
+                 step.update(status='blocked', reason=NEEDS + plan[1])
+                 words = 'Step %d (%s) needs your grant: %s. Nothing was sent.' % (step['n'], step['title'], plan[1])
+diff --git a/workbench/home_reach.py b/workbench/home_reach.py
+new file mode 100644
+index 0000000..af3821a
+--- /dev/null
++++ b/workbench/home_reach.py
+@@ -0,0 +1,333 @@
++"""The whole computer, and Kasandra's reach in it (Graphite 1.0 L6).
++
++The owner, 26 November 2026: "Shouldn't the files part of the left tree start at root /?" The Files tab starts at "This
++computer /", so every folder the owner's account can read is reachable; Home (the owner's home folder) is where the tree
++lands. This module is the rule book behind it, with no Qt:
++
++  where a path is   area(): 'files' (the workspace's Files folder: its own rules, her own area Files/Slate, as before),
++                    'own' (Graphite's own records and program, outside Files: they change only through the desk, never as
++                    files), 'home' (the owner's home folder), 'system' (the pseudo-filesystems /proc, /sys, /dev and /run:
++                    shown in the tree as such, never read for the board, relevance or ids; a removable drive mounted under
++                    /run/media is a drive, not a system folder), 'outside' (everything else on this computer).
++  reading           anywhere the owner's account can read (the system's own permissions decide; Graphite never asks for
++                    more), the system folders apart. Her reads never send anything out: her model is local and sealed.
++  her changes       her file tools (K2), her steps under grants (K3), what a utility made (K6's Apply) and her hand in
++                    other programs (A1) reach only inside Home (and the workspace's Files, by its own rules), under grants
++                    as before, and never outside it, at any place of the dial: her_change() says "outside your home: never".
++                    Inside Home, Graphite's own records and program are never hers to change as files.
++  your own press    a change the owner makes by their own press follows the system's permissions anywhere.
++  names             a path is named from / or from ~ ('/etc/hosts', '~/Rail notes/note.txt'); a path with no leading / or ~
++                    is inside Files, as it always was.
++
++It also lists one folder for the tree (listing()): one level, never deeper, folders first, dot-names left out unless the
++owner shows them. Nothing here writes anything.
++"""
++from __future__ import annotations
++
++import contextlib
++import contextvars
++import os
++import stat as statmod
++from pathlib import Path, PurePosixPath
++
++NEVER = 'outside your home: never'
++SYSTEM_FOLDERS = ('/proc', '/sys', '/dev', '/run')
++DRIVES_UNDER_RUN = ('/run/media',)          # where some systems mount removable drives: a drive, not a system folder
++SYSTEM_WORDS = 'a system folder: shown, never read'
++OWN_WORDS = "Graphite's own records and program change only through the desk, never as files: never"
++FILES, OWN, HOME, SYSTEM, OUTSIDE = 'files', 'own', 'home', 'system', 'outside'
++AREA_WORDS = {FILES: 'in Files', OWN: "Graphite's own", HOME: 'in your home', SYSTEM: 'a system folder', OUTSIDE: 'outside your home'}
++MOST_ROWS = 400                             # rows one folder lists in the tree, at most (the rest are counted)
++# what a change lands on: the arguments that name a place it writes (files.copy reads its 'path' and writes into 'to')
++WRITES = {'files.copy': ('to',)}
++READS_ONLY = ('sandbox.run',)               # a utility runs on copies, in its own sealed folder
++
++
++# ---- names ---------------------------------------------------------------------------------------------------------------
++def home():
++    """The owner's home folder, as the system names it (HOME), with its links followed."""
++    named = Path(os.path.expanduser('~'))
++    try:return named.resolve()
++    except (OSError, RuntimeError):
++        return named
++
++
++def named_absolute(text):
++    """Whether the words name a path from / or from ~ (anything else is a path inside Files)."""
++    return isinstance(text, str) and (text.startswith('/') or text == '~' or text.startswith('~/'))
++
++
++def expand(text):
++    """The path the words name ('/…' or '~/…'), normalised; None when it climbs ('..') or holds a NUL."""
++    raw = str(text or '').replace('\\', '/')
++    if raw == '~' or raw.startswith('~/'):
++        base, rest = home(), raw[1:]
++    else:
++        base, rest = Path('/'), raw
++    parts = [p for p in PurePosixPath(rest).parts if p not in ('', '/', '.')]
++    if any(p == '..' or '\0' in p for p in parts):return None
++    return base.joinpath(*parts)
++
++
++def real(path):
++    """The path as the system finds it, its links followed (a path not there yet: its folder's, with its own name)."""
++    path = Path(path)
++    try:
++        if path.exists() or path.is_symlink():return path.resolve()
++        return path.parent.resolve() / path.name
++    except (OSError, RuntimeError):
++        return path
++
++
++def tilde(path):
++    """A path as the owner reads it: ~/… inside the home folder, else the whole path."""
++    path = Path(path);h = home()
++    if path == h:return '~'
++    try:return '~/' + path.relative_to(h).as_posix()
++    except ValueError:
++        return str(path)
++
++
++def within(path, folder):
++    path, folder = Path(path), Path(folder)
++    return path == folder or folder in path.parents
++
++
++def is_system(path):
++    """/proc, /sys, /dev and /run, and anything in them (a removable drive mounted under /run/media apart)."""
++    text = os.path.normpath(str(path))
++    if any(text == d or text.startswith(d + '/') for d in DRIVES_UNDER_RUN):return False
++    return any(text == s or text.startswith(s + '/') for s in SYSTEM_FOLDERS)
++
++
++def files_root(kernel):
++    from . import files_service
++    return files_service.root(kernel, create=False)
++
++
++def own_folders(kernel):
++    """Graphite's own: the workspace's records folder (its Files is the owner's, by its own rules) and the program."""
++    out = []
++    try:out.append(Path(kernel.root).resolve())
++    except (OSError, RuntimeError, AttributeError, TypeError):
++        pass
++    try:
++        from . import locations
++        out.append(Path(locations.PACKAGE).resolve())
++    except (OSError, RuntimeError, ImportError):
++        pass
++    return out
++
++
++def absolute(kernel, text):
++    """The absolute path a path argument names: from / or ~, or inside Files (None when it climbs out)."""
++    if named_absolute(text):return expand(text)
++    parts = [p for p in PurePosixPath(str(text or '').replace('\\', '/')).parts if p not in ('', '/', '.')]
++    if any(p == '..' or '\0' in p for p in parts):return None
++    try:base = files_root(kernel).resolve()
++    except (OSError, RuntimeError):
++        base = files_root(kernel)
++    return base.joinpath(*parts)
++
++
++def area(kernel, path):
++    """Where a path is: FILES, OWN, HOME, SYSTEM or OUTSIDE (by the path as named and as the system finds it)."""
++    named = Path(path);actual = real(named)
++    if is_system(named) or is_system(actual):return SYSTEM
++    try:files = files_root(kernel).resolve()
++    except (OSError, RuntimeError):
++        files = files_root(kernel)
++    if within(actual, files):return FILES
++    if any(within(actual, own) for own in own_folders(kernel)):return OWN
++    if within(actual, home()):return HOME
++    return OUTSIDE
++
++
++def place_words(kernel, path):
++    """Where a path is, in words: 'Files/notes/x.md', '~/Rail notes/x.md', '/etc/hosts'."""
++    path = Path(path)
++    try:
++        rel = path.relative_to(files_root(kernel).resolve()).as_posix()
++        return 'Files' if rel == '.' else 'Files/' + rel
++    except (ValueError, OSError, RuntimeError):
++        return tilde(path)
++
++
++def folder_words(text):
++    """'in Files/…', 'in ~/…' or 'in /…': the folder a file's path (as the Kernel keeps it) is in."""
++    text = str(text or '')
++    if text.startswith('/'):
++        folder = str(PurePosixPath(text).parent)
++        return 'in ' + tilde(folder)
++    folder = text.rpartition('/')[0]
++    return 'in ' + ('Files/' + folder if folder else 'Files')
++
++
++def role_words(text):
++    """'a file in Files', 'a file in your home' or 'a file on this computer', for a path as the Kernel keeps it."""
++    text = str(text or '')
++    if not text.startswith('/'):return 'in Files'
++    return 'in your home' if within(Path(text), home()) else 'on this computer'
++
++
++# ---- reading -------------------------------------------------------------------------------------------------------------
++def read_refusal(path):
++    """'' when the path may be read for the board, relevance and ids; else why not (a system folder)."""
++    if is_system(path) or is_system(real(path)):return '%s (%s)' % (SYSTEM_WORDS, os.path.normpath(str(path))[:200])
++    return ''
++
++
++# ---- her changes ---------------------------------------------------------------------------------------------------------
++def her_change(kernel, path):
++    """'' when a change of hers may land on this path by the rules that still apply there (the Files rules, a grant of
++    yours, your press on her step); else why it never may, at any place of the dial."""
++    where = area(kernel, path)
++    if where in (FILES, HOME):return ''
++    if where == OWN:return OWN_WORDS + ' (%s)' % tilde(path)
++    if where == SYSTEM:return '%s (%s is a system folder; her changes reach only inside your home, at every place of the dial)' % (NEVER, tilde(path))
++    return '%s (%s is outside your home; her changes reach only inside it, at every place of the dial)' % (NEVER, tilde(path))
++
++
++def change_paths(operation, arguments):
++    """The path arguments a change lands on (as given): 'path' and 'to', a new folder's place and name."""
++    a = arguments if isinstance(arguments, dict) else {}
++    if operation in READS_ONLY:return []
++    if operation == 'files.mkdir':
++        name = a.get('name')
++        if not isinstance(name, str):return []
++        base = a.get('path') or ''
++        return [(base.rstrip('/') + '/' + name) if base else name]
++    keys = WRITES.get(operation, ('path', 'to'))
++    return [a[k] for k in keys if isinstance(a.get(k), str)]
++
++
++def never_words(kernel, operation, arguments):
++    """'' unless this call is a change that would land outside your home (or on Graphite's own): then why it never may."""
++    try:
++        from .engineering_kernel import CAPABILITIES
++        scope = CAPABILITIES.get(operation)
++    except ImportError:
++        scope = None
++    if scope in (None, 'read'):return ''
++    for text in change_paths(operation, arguments):
++        path = absolute(kernel, text)
++        if path is None:continue
++        why = her_change(kernel, path)
++        if why:return why
++    return ''
++
++
++_HERS = contextvars.ContextVar('kas_hers', default=None)
++
++
++@contextlib.contextmanager
++def hers(operation='', arguments=None, pressed=False):
++    """Around a change of hers that is dispatched with your principal (her hand's card in Talk, done by her dial, or by
++    your Approve when `pressed`): inside your home a grant of yours or your Approve on that very card decides; outside it,
++    never. Files keeps its own rules."""
++    token = _HERS.set({'operation': str(operation or ''), 'arguments': dict(arguments or {}), 'pressed': bool(pressed)})
++    try:
++        yield
++    finally:
++        _HERS.reset(token)
++
++
++def in_her_work(principal):
++    """Whether the call being made now is her work: inside a step or a tool use (a grant's permit is in force), inside her
++    hand's card (hers()), or by a principal without your approve scope."""
++    try:
++        from .grants import _PERMIT
++        if _PERMIT.get() is not None:return True
++    except ImportError:
++        pass
++    if _HERS.get() is not None:return True
++    return 'approve' not in getattr(principal, 'scopes', ())
++
++
++def let_through(kernel, principal, path):
++    """Inside your home, outside Files: whether this change of hers is let through, by your Approve on her very card (its
++    own targets) or by a grant of yours in force that covers the call (her hand's card has no assignment)."""
++    held = _HERS.get()
++    if held is None:return False
++    target = Path(path)
++    if held['pressed']:
++        for text in change_paths(held['operation'], held['arguments']):
++            named = absolute(kernel, text)
++            if named is not None and within(target, named):return True
++    try:
++        from .grants import covering
++        return covering(kernel, principal.identity, held['operation'], held['arguments'], None, include_built_in=False) is not None
++    except Exception:  # noqa: BLE001 - grants that cannot be read let nothing through
++        return False
++
++
++def grant_folder(kernel, text):
++    """A grant's folder named from / or ~: (its value, '') — the folder inside Files as Files names it, or '~/…' in your
++    home — or ('', why no grant can be given for it)."""
++    path = expand(text)
++    if path is None:return '', 'GRANT_FOLDER: a folder in your home, with no ".."'
++    actual = real(path)
++    if actual.exists() and not actual.is_dir():return '', 'GRANT_FOLDER: %s is a file; a grant names a folder' % tilde(path)
++    where = area(kernel, path)
++    if where == FILES:
++        try:base = files_root(kernel).resolve()
++        except (OSError, RuntimeError):
++            base = files_root(kernel)
++        rel = actual.relative_to(base).as_posix() if within(actual, base) else ''
++        if rel in ('', '.'):return '', 'GRANT_FOLDER: name a folder inside Files (a grant over all of Files is never given)'
++        if rel.split('/')[0] in ('.trash', '.versions'):return '', 'GRANT_FOLDER: DELETE and kept versions keep their own words'
++        return rel, ''
++    if where == HOME:
++        if actual == home():return '', 'GRANT_FOLDER: a grant over all of your home is never given; name a folder in it'
++        return tilde(actual), ''
++    if where == OWN:return '', 'GRANT_FOLDER: ' + OWN_WORDS
++    return '', 'GRANT_FOLDER: %s is %s: never (her changes reach only inside your home)' % (tilde(path), 'a system folder' if where == SYSTEM else 'outside your home')
++
++
++# ---- one folder, for the tree --------------------------------------------------------------------------------------------
++def listing(folder, hidden=False, most=MOST_ROWS):
++    """One folder's rows, one level only: {'rows': [{name, path, kind ('folder', 'file', 'system'), link}], 'left': rows
++    not listed past `most`, 'hidden': dot-names left out, 'error': why it could not be read, or ''}. Folders first, then
++    files, each by name. A system folder is listed as such, never read; the folder itself is read only when it is not one."""
++    out = {'rows': [], 'left': 0, 'hidden': 0, 'error': ''}
++    refusal = read_refusal(folder)
++    if refusal:
++        out['error'] = refusal;return out
++    try:
++        entries = list(os.scandir(folder))
++    except PermissionError:
++        out['error'] = 'not readable with your account';return out
++    except OSError as exc:
++        out['error'] = 'not readable here (%s)' % (exc.strerror or type(exc).__name__);return out
++    rows = []
++    for entry in entries:
++        if entry.name.startswith('.') and not hidden:
++            out['hidden'] += 1;continue
++        path = os.path.join(str(folder), entry.name)
++        try:link = entry.is_symlink()
++        except OSError:
++            link = False
++        if is_system(path):
++            rows.append((0, entry.name.casefold(), {'name': entry.name, 'path': path, 'kind': 'system', 'link': link}));continue
++        try:
++            folder_like = entry.is_dir()
++            plain = not folder_like and entry.is_file()
++        except OSError:
++            folder_like = plain = False
++        if not (folder_like or plain):
++            if link:      # a link that leads nowhere (or somewhere unreadable): shown as a file, for what it is
++                rows.append((1, entry.name.casefold(), {'name': entry.name, 'path': path, 'kind': 'file', 'link': True}))
++            continue
++        rows.append((0 if folder_like else 1, entry.name.casefold(), {'name': entry.name, 'path': path, 'kind': 'folder' if folder_like else 'file', 'link': link}))
++    rows.sort(key=lambda r: (r[0], r[1]))
++    out['rows'] = [r[2] for r in rows[:most]];out['left'] = max(0, len(rows) - most)
++    return out
++
++
++def size_of(path):
++    """A file's size in bytes, without following a link out (0 when it cannot be read)."""
++    try:
++        st = os.stat(path)
++        return int(st.st_size) if statmod.S_ISREG(st.st_mode) else 0
++    except OSError:
++        return 0
+diff --git a/workbench/living_nav.py b/workbench/living_nav.py
+index 0a2ebd8..742a97f 100644
+--- a/workbench/living_nav.py
++++ b/workbench/living_nav.py
+@@ -41,6 +41,11 @@ Kernel operations (one block in engineering_kernel.py and engineering_cli.py, co
+                                                    whether it is still there, its earlier paths
+ Both are observers (activity.OBSERVER_OPERATIONS): the tree reads them each time it is drawn.
+ 
++1.0 L6, the whole computer: the ids extend to any path lazily. objects.get {path} also takes a path named from / or ~
++(home_reach): a file or folder outside Files is given its id when it is focused, opened or linked (that one call), never
++by scanning the disk; it is kept under its whole path ('/home/…'), by the same rules (its inode, its digest), and a
++reading of Files never marks it missing. The system folders (/proc, /sys, /dev, /run) are never given an id.
++
+ No floating point is used for anything that is checked: sizes and times are integers (nanoseconds), digests are hex.
+ """
+ from __future__ import annotations
+@@ -142,9 +147,15 @@ def parent_rel(rel):
+ 
+ def under(rel, folder):
+     """Whether rel is folder itself or inside it ('' is the Files folder)."""
++    if str(rel).startswith('/') and not str(folder).startswith('/'):return False  # 1.0 L6: a path outside Files is in no folder of it
+     return folder == '' or rel == folder or rel.startswith(folder + '/')
+ 
+ 
++def outside(path):
++    """1.0 L6: whether a path as the store keeps it is outside Files (kept whole, from /)."""
++    return str(path or '').startswith('/')
++
++
+ def in_delete(rel):
+     from .files_service import TRASH
+     return rel == TRASH or rel.startswith(TRASH + '/')
+@@ -278,7 +289,7 @@ def resolve(db, observed, base, scope='', now=None, full=True, budget=None):
+         row = dict(row, digest=digest[0], digest_kind=digest[1]);rows[row['id']] = row;_save(db, row)
+     if full:
+         for row in rows.values():
+-            if row['id'] in claimed or row['state'] != PRESENT or not under(row['path'], scope) or in_delete(row['path']):continue
++            if row['id'] in claimed or row['state'] != PRESENT or outside(row['path']) or not under(row['path'], scope) or in_delete(row['path']):continue  # 1.0 L6
+             _save(db, dict(row, state=MISSING))
+     return results, moved
+ 
+@@ -308,6 +319,11 @@ def get(kernel, ident=None, path=None):
+     """objects.get: one object by its id, or the object at a path of Files (given an id there if it has none yet)."""
+     base = files_root(kernel)
+     if ident is None and path is None:raise ValueError('OBJECTS_ASK: give an id or a path')
++    if path is not None and str(path).startswith(('/', '~')):      # 1.0 L6: anywhere on this computer
++        found = elsewhere(kernel, base, path)
++        if found is not None:return found
++        from . import home_reach
++        path = home_reach.real(home_reach.expand(path)).relative_to(Path(base).resolve()).as_posix()      # inside Files after all
+     with kernel.db() as db:
+         ensure(db)
+         if path is not None:
+@@ -323,6 +339,7 @@ def get(kernel, ident=None, path=None):
+             if row is None:raise ValueError('OBJECTS_UNKNOWN: no object has this id here')
+         state = row['state']
+         if state == PRESENT and not _exists(base, row):state = MISSING
++        if outside(row['path']):return described(row, base, state)      # 1.0 L6: kept outside Files: its folders by name
+         rows = _rows(db)
+     by_path = {r['path']: r for r in rows.values() if r['state'] == PRESENT}
+     trail = [];folder = parent_rel(row['path'])
+@@ -335,12 +352,73 @@ def get(kernel, ident=None, path=None):
+             'digest': row['digest'], 'digest_kind': row['digest_kind'], 'earlier': json.loads(row['names'] or '[]'), 'root': str(base)}
+ 
+ 
++def key_of(base, path):
++    """1.0 L6: how the store keeps a path: inside Files, its path there; elsewhere, its whole path (links followed)."""
++    from . import home_reach
++    actual = home_reach.real(Path(path))
++    try:return rel_of(Path(base).resolve(), actual)
++    except ValueError:
++        return str(actual)
++
++
++def elsewhere(kernel, base, path):
++    """objects.get for a path named from / or ~ outside Files: its object, given an id now if it has none (this one file or
++    folder, never what is around it); None when the path is inside Files (the caller reads it as Files)."""
++    from . import home_reach
++    named = home_reach.expand(path)
++    if named is None:raise ValueError('OBJECTS_PATH: a path with no ".."')
++    refusal = home_reach.read_refusal(named)
++    if refusal:raise ValueError('OBJECTS_SYSTEM: ' + refusal)
++    key = key_of(base, named)
++    if not outside(key):return None
++    try:st = os.lstat(key)
++    except OSError:
++        raise ValueError('OBJECTS_NOT_FOUND: ' + home_reach.tilde(named)[:200]) from None
++    if not (statmod.S_ISDIR(st.st_mode) or statmod.S_ISREG(st.st_mode)):raise ValueError('OBJECTS_KIND: only a file or a folder has an id here')
++    obs = dict(_observe(Path(key), st, Path(key)), rel=key)
++    with kernel.db() as db:
++        ensure(db)
++        entries, _ = resolve(db, [obs], base, full=False)
++        row = _rows(db).get(entries[0]['id'])
++    return described(row, base, PRESENT if row['state'] == PRESENT else row['state'])
++
++
++def described(row, base, state):
++    """objects.get's answer for an object kept outside Files (1.0 L6): its trail is its folders, by name."""
++    from . import home_reach
++    folders = [str(p) for p in reversed(PurePosixPath(row['path']).parents)]
++    trail = [{'id': None, 'name': home_reach.tilde(f) if f == str(home_reach.home()) else (PurePosixPath(f).name or 'This computer'), 'path': f}
++             for f in folders]
++    return {'schema': 'living.object/1', 'id': row['id'], 'kind': row['kind'], 'name': PurePosixPath(row['path']).name or '/', 'path': row['path'],
++            'state': state, 'state_words': STATE_WORDS.get(state, state), 'trail': trail, 'size': row['size'],
++            'digest': row['digest'], 'digest_kind': row['digest_kind'], 'earlier': json.loads(row['names'] or '[]'), 'root': str(base),
++            'where': home_reach.role_words(row['path']), 'place': home_reach.tilde(row['path'])}
++
++
++def known_outside(kernel):
++    """1.0 L6: {whole path: id} of the objects outside Files that have an id and are where they were (the tree names its rows
++    by them; nothing is made here)."""
++    try:
++        with kernel.db() as db:
++            ensure(db)
++            return {r[0]: r[1] for r in db.execute("SELECT path, id FROM living_objects WHERE state=? AND path LIKE '/%'", (PRESENT,))}
++    except Exception:  # noqa: BLE001 - no store yet: no ids
++        return {}
++
++
++def entry_outside(found):
++    """1.0 L6: an object outside Files (objects.get's answer) as an entry of a Files reading, so the board and the tree
++    can hold it beside Files' own."""
++    return {'id': found['id'], 'kind': found['kind'], 'name': found['name'], 'path': found['path'], 'parent': None, 'size': found.get('size') or 0,
++            'modified_ns': 0, 'state': found['state'], 'was': None, 'outside': True}
++
++
+ def moved(kernel, old, new):
+     """Graphite's own file operation moved or renamed something (files_service): its object, and everything inside it, keeps its
+     id at the new place at once, without waiting for the next reading. Into DELETE it is 'deleted'; back out of it, present."""
+     try:
+         base = files_root(kernel, create=False)
+-        was = rel_of(base, old);now = rel_of(base, new)
++        was = _kept_as(base, old);now = _kept_as(base, new)  # 1.0 L6: inside Files or elsewhere
+     except (ValueError, OSError):
+         return 0
+     count = 0
+@@ -354,6 +432,15 @@ def moved(kernel, old, new):
+     return count
+ 
+ 
++def _kept_as(base, path):
++    """1.0 L6: a path Graphite just moved, as the store keeps it (inside Files: its path there; elsewhere: whole)."""
++    try:return rel_of(base, path)
++    except ValueError:
++        try:return rel_of(Path(base).resolve(), Path(path))
++        except ValueError:
++            return str(Path(path))
++
++
+ def dispatch(kernel, op, args, principal):
+     if op == 'objects.files':return files(kernel, args.get('path', ''), int(args.get('depth', DEEPEST)), int(args.get('limit', MOST)))
+     if op == 'objects.get':return get(kernel, args.get('id'), args.get('path'))
+diff --git a/workbench/living_nav_qt.py b/workbench/living_nav_qt.py
+index a9610be..d01bf98 100644
+--- a/workbench/living_nav_qt.py
++++ b/workbench/living_nav_qt.py
+@@ -19,6 +19,11 @@
+ 
+ Nothing here writes a file or a record (the identity index aside, through objects.files). The window's own Back of the
+ Field (Backspace, its trail) is the Field's and stays as it was.
++
++1.0 L6, the whole computer: the Files drawer gave way to the computer's rows (computer_tree_qt): "This computer /" at the
++top, Home open and selected at start (the workspace and its Files are in it, where they live), Drives near the top; the
++Desk drawer stays. A row anywhere is focused like a file of Files: it is given its id when it is chosen (lazily), held
++beside Files' reading (extra), and the board, the breadcrumb, Back and Open find it.
+ """
+ from __future__ import annotations
+ 
+@@ -206,6 +211,7 @@ class LivingNav(QObject):
+         self.host = host;self.nav = ln.Navigator();self.applying = 0;self.user_input = False;self.pending = None
+         self.files = None;self.files_by_id = {};self.files_by_abs = {};self.nodes = {};self.by_canonical = {}
+         self.desk = None;self.desk_raw = None;self.desk_objects = [];self.note = '';self.hooked = None;self.problem = ''
++        self.extra = {};self.computer = None      # 1.0 L6: objects held beside Files' reading; the computer's rows
+         self.watcher = QFileSystemWatcher(self);self.watcher.directoryChanged.connect(self.disk_changed)
+         self.reread = QTimer(self);self.reread.setSingleShot(True);self.reread.setInterval(150);self.reread.timeout.connect(self.read_again)
+         self.syncing = QTimer(self);self.syncing.setSingleShot(True);self.syncing.setInterval(0);self.syncing.timeout.connect(self.sync_from_window)
+@@ -219,6 +225,8 @@ class LivingNav(QObject):
+         for keys, go in (('Alt+Left', self.back), ('Alt+Right', self.forward)):
+             QShortcut(QKeySequence(keys), host, activated=go)
+         self.hook_field()
++        from .computer_tree_qt import install as computer
++        self.computer = computer(self)      # 1.0 L6: the Files tab from "This computer /", Home open at start
+ 
+     # ---- the Kernel --------------------------------------------------------------------------------------------------------
+     def call(self, op, args=None):
+@@ -235,6 +243,7 @@ class LivingNav(QObject):
+         history; the focus said 'renamed from …' until it moves."""
+         before = self.files_by_id;reading = self.call('objects.files')
+         if reading is None:return self.files
++        if self.computer is not None:reading = self.computer.merged(reading)      # 1.0 L6: what is held beside it
+         self.files = reading;root = Path(reading['root'])
+         self.files_by_id = {e['id']: e for e in reading['entries']}
+         self.files_by_abs = {str(root / e['path']) if e['path'] else str(root): e['id'] for e in reading['entries']}
+@@ -293,16 +302,11 @@ class LivingNav(QObject):
+             mine.append(dict(id=ident, parent=parent, role=role, label=caption(label), target={'kind': 'living', 'id': canonical}, scope='owner_private',
+                              provider='living_nav', canonical_id=canonical, owning=False, description=description, **extra))
+             taken.add(ident)
+-        reading = self.read_files()
+-        if reading and reading['entries']:
+-            top = reading['entries'][0]
+-            add(LIVING + top['id'], root, 'folder', 'Files', top['id'], 'Files, the folder on this computer: ' + reading['root'])
+-            for entry in reading['entries'][1:]:
+-                add(LIVING + entry['id'], LIVING + (entry['parent'] or top['id']), entry['kind'], entry['name'], entry['id'],
+-                    '%s · %s' % (kind_words(entry['name'], entry['kind']), 'Files/' + entry['path']))
+-            if reading['partial']:
+-                add('living:files-more', LIVING + top['id'], 'note', '%d more not listed here' % reading['left_out'], 'living:files-more',
+-                    'Files holds more than the tree lists; the Finder lists all of it')
++        self.read_files()
++        # 1.0 L6: the Files drawer gave way to the whole computer: "This computer /" first (Home open, the workspace and its
++        # Files where they live in it), then Drives; the cabinet and its Desk drawer after them
++        first = self.computer.nodes() if self.computer is not None else []
++        taken.update(n['id'] for n in first)
+         objects = self.read_desk()
+         if objects:
+             add(DESK, root, 'drawer', 'Desk', DESK, 'The work on this desk, as the board shows it')
+@@ -311,8 +315,8 @@ class LivingNav(QObject):
+                 key, label = words.get(obj.kind, (obj.kind, str(obj.kind).title()))
+                 add('living:desk:' + key, DESK, 'folder_view', label, 'living:desk:' + key, 'The %s on this desk' % label.lower())
+                 add(LIVING + obj.id, 'living:desk:' + key, obj.kind, obj.title, obj.id, ' · '.join(x for x in (obj.role, obj.where) if x))
+-        model = dict(model, nodes=nodes + mine)
+-        model['signature'] = digest([model.get('signature'), [(n['id'], n['label'], n['parent']) for n in mine]])
++        model = dict(model, nodes=first + nodes + mine)      # 1.0 L6: the computer's rows first
++        model['signature'] = digest([model.get('signature'), [(n['id'], n['label'], n['parent']) for n in first + mine]])
+         self.nodes = {n['id']: n for n in model['nodes']}
+         self.by_canonical = {}
+         for node in model['nodes']:
+@@ -333,6 +337,7 @@ class LivingNav(QObject):
+         if page is None or not ident:return False
+         row = node if node in self.nodes and self.nodes[node]['canonical_id'] == ident else self.node_of(ident)
+         if row is None or row not in page.items:
++            if self.computer is not None:self.computer.open_to(ident)      # 1.0 L6: the folders on its way listed and opened
+             page.refresh(force=True);row = self.node_of(ident)
+         if row is None or row not in page.items:return False
+         if page.using_legacy:return False
+@@ -356,6 +361,7 @@ class LivingNav(QObject):
+     def go_node(self, node_id, via='tree'):
+         node = self.nodes.get(node_id)
+         if node is None:return False
++        if self.computer is not None and self.computer.owns(node_id):return self.computer.go(node_id, via)      # 1.0 L6
+         if node.get('provider') != 'living_nav':
+             page = getattr(self.host, 'cabinet_page', None)
+             if page is None:return False
+@@ -368,6 +374,7 @@ class LivingNav(QObject):
+     def open_node(self, node_id):
+         node = self.nodes.get(node_id)
+         if node is None:return None
++        if self.computer is not None and self.computer.owns(node_id):return self.computer.open(node_id)      # 1.0 L6
+         return self.open(node['canonical_id'], node=node_id)
+ 
+     # ---- the board (the Field, until L2) ---------------------------------------------------------------------------------
+@@ -416,6 +423,14 @@ class LivingNav(QObject):
+         from .field_source import stac_json
+         root = Path(self.files['root']) if self.files else None
+         folder = entry['path'].rpartition('/')[0]
++        if str(entry['path']).startswith('/'):      # 1.0 L6: a file or folder elsewhere on this computer
++            from .home_reach import folder_words, role_words, tilde
++            folder_like = entry['kind'] == 'folder'
++            lines = ('a folder' if folder_like else '%s · %s' % (kind_words(entry['name']), size_words(entry['size'])), folder_words(entry['path']))
++            tile = FieldObject(focus, 'folder' if folder_like else 'source', entry['name'], 'a %s %s' % ('folder' if folder_like else 'file', role_words(entry['path'])),
++                               '', lines, tilde(entry['path']), {'kind': 'file', 'id': focus, 'path': entry['path']}, 'FOLDER' if folder_like else 'FILE',
++                               'objects.get ' + stac_json(id=focus))
++            return replace(field, objects=list(field.objects) + [tile], selected=focus)
+         if entry['kind'] == 'folder':
+             inside = sum(1 for e in self.files_by_id.values() if e['parent'] == entry['id'])
+             lines = ('%d thing%s in it' % (inside, '' if inside == 1 else 's'), 'in ' + ('Files/' + folder if folder else 'Files') if entry['path'] else 'on this computer')
+@@ -607,7 +622,7 @@ class LivingNav(QObject):
+             elif depth == 'board' and not from_board and not board_object and not self.on_board():
+                 from . import field_page
+                 field_page.show_field(self.host);self.hook_field()
+-            if via != 'tree':self.reveal(ident, node)
++            if via not in ('tree', 'start'):self.reveal(ident, node)      # 1.0 L6: at start the tree lands on Home
+             if depth == 'board' and self.on_board() and not same:entry.board = self.board_state() or entry.board
+         self.with_applying(apply)
+         self.show_crumbs()
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index f11f396..254175a 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -2269,7 +2269,8 @@ class SlateFace(QWidget):
+         try:
+             operation, arguments = line_call(card.step.line)
+             from .session_power import sleep_held
+-            with sleep_held('Kasandra is writing “%s”' % str(card.title)[:80]):  # 1.0 S1: a suspend waits until her write is done
++            from .home_reach import hers  # 1.0 L6: her card: inside your home by a grant or your Approve, never outside it
++            with sleep_held('Kasandra is writing “%s”' % str(card.title)[:80]), hers(operation, arguments, pressed=not getattr(card, 'hers', False)):  # 1.0 S1: a suspend waits until her write is done
+                 r = engineering(self.host.root).dispatch(operation, arguments, operator())
+         except Exception as exc:  # noqa: BLE001 - a line that cannot be run is said as a refusal, never raised into the window
+             r = {'ok': False, 'error': {'message': str(exc)[:300]}}
+diff --git a/workbench/tools_registry.py b/workbench/tools_registry.py
+index d3904b4..c0298ab 100644
+--- a/workbench/tools_registry.py
++++ b/workbench/tools_registry.py
+@@ -493,6 +493,10 @@ def _revision_named(origins, name, rel):
+ def _pre_files(kernel, tool, a, origins):
+     from . import files_service
+     unmet = []
++    if tool.undo == 'change':  # 1.0 L6: her changes reach only inside your home, at every place of the dial
++        from . import home_reach
++        never = home_reach.never_words(kernel, (tool.operations or ('',))[0], a)
++        if never:return [never]
+     try:path = _inside(kernel, a.get('path'))
+     except ValueError as why:return ['the path is not inside Files (%s)' % str(why)[:120]]
+     rel = a.get('path') or ''
+@@ -678,7 +682,7 @@ class Relocate(_asg.Check):
+         out = {'path': arguments['path'], 'digest': tree_digest(source), 'folder': source.is_dir(), 'name': source.name}
+         if self.operation == 'files.rename':
+             target = source.with_name(files_service.clean_name(arguments['name']))
+-            out['to'] = files_service.rel_of(kernel, target)
++            out['to'] = files_service.place_of(kernel, target)  # 1.0 L6: in your home, its whole path
+         else:
+             out['into'] = arguments['to']
+         return out
+@@ -691,7 +695,7 @@ class Relocate(_asg.Check):
+ 
+     def _observed(self, kernel, prepared, target):
+         from . import files_service
+-        rel = files_service.rel_of(kernel, target)
++        rel = files_service.place_of(kernel, target)  # 1.0 L6
+         ident = ''
+         try:
+             from . import living_nav
+@@ -733,7 +737,7 @@ class FolderMake(_asg.Check):
+     def prepare(self, kernel, read, arguments):
+         from . import files_service
+         target = _inside(kernel, arguments.get('path', '')) / files_service.clean_name(arguments['name'])
+-        return {'path': files_service.rel_of(kernel, target)}
++        return {'path': files_service.place_of(kernel, target)}  # 1.0 L6
+ 
+     def find(self, kernel, read, arguments, prepared):
+         target = _inside(kernel, prepared['path'])
+@@ -1207,7 +1211,8 @@ def use(kernel, tool, arguments, principal, origins=None, basis='owner_words', o
+     if missing:return finish('blocked', 'not used: ' + '; '.join(missing) + '. Nothing was sent.')
+     if GRANT_CHECK is not None:
+         need = GRANT_CHECK(kernel, tool, op, arguments, principal)
+-        if need:return finish('blocked', 'needs your grant: %s. Nothing was sent.' % str(need)[:300])
++        from .home_reach import NEVER  # 1.0 L6: "outside your home: never" is said as it is, not as a grant to ask for
++        if need:return finish('blocked', ('not used: %s. Nothing was sent.' if str(need).startswith(NEVER) else 'needs your grant: %s. Nothing was sent.') % str(need)[:300])
+     check = _asg.check_for(op)
+     read = _reader(kernel, principal)
+     try:
+diff --git a/workbench/utility_sandbox.py b/workbench/utility_sandbox.py
+index 1efb420..0a85afb 100644
+--- a/workbench/utility_sandbox.py
++++ b/workbench/utility_sandbox.py
+@@ -1243,6 +1243,10 @@ def apply(kernel, args, principal):
+             raise Refused('SANDBOX_TAKEN: a file is already at %s now; nothing was applied' % m['target'])
+         steps.append((name, sha, m, target, before, data_path))
+     applied = []
++    from . import home_reach  # 1.0 L6: what a utility made reaches only inside your home, even by your Apply
++    for name, sha, m, target, before, data_path in steps:
++        never = home_reach.her_change(kernel, target)
++        if never:raise Refused('SANDBOX_OUTSIDE_HOME: %s. Nothing was applied.' % never)
+     for name, sha, m, target, before, data_path in steps:
+         files_service.may_change(kernel, target, principal)
+         sent = tr.receipt('sandbox.run', 'sandbox.apply', 'files:' + m['target'], 'dispatched', 'observed', False,

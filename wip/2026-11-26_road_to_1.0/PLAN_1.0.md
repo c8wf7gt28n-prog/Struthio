@@ -323,6 +323,22 @@ may be any folder in Home (not only the workspace's Files). *Acceptance:* the tr
 and selected at start, a USB drive under Drives; /proc shown but not read; a grant for a folder in Home outside the
 workspace lets her note step run there; a step targeting /etc stops as "outside your home: never".
 
+**P5 · Kas's poses and faces** (the owner, 26 Nov, five pictures: Kas as a blue hologram in a dark tee with the
+Struthio circuit-ostrich on it, jeans and sneakers; a sheet of full-figure poses (standing with a hand on her hip,
+walking, turned away, seated thinking with her chin on her hand, crouching, arms crossed, hands behind her head,
+pointing), close faces (smiling, winking, eyes closed, a knowing look), a small walking sprite cycle, and a kit: the
+ostrich badge, the KAS wordmark, a ring, a panel frame, an equalizer). Her hologram becomes a **set**: a pose for each
+state (quiet: standing; working: walking; thinking: chin on hand; waits for you: pointing; done: arms crossed; HALT:
+turned away; asleep / no model: eyes closed), a face for the small slots (her name line, a toast, the dock), the
+walking sprite in the dock while her hand works in another program, chosen from her state as P1 and K-slices set it,
+with P3's treatment (keyed ground, glow, scan lines, shimmer, static at a change; Reduce motion stills it). The pictures
+are the owner's and stay out of the repository: the app reads a pose set from the owner's workspace
+(`kasandra/hologram/`: `quiet.png`, `working.png`, `thinking.png`, `waiting.png`, `done.png`, `halt.png`,
+`asleep.png`, `faces/`, `walk/`), admitted once like the portrait; any pose missing falls back to the one picture or
+the shipped art. The coordinator cuts the owner's sheets into that folder (in scratch, never the tree) and the 1.0 kit
+carries it to the owner outside the source. *Acceptance:* with the set admitted, each state shows its pose in every
+look; frames of four states; with no set, P3's single figure.
+
 ### Wave 4 — the ghost acting
 
 **K2 · Tools and observation receipts.** `workbench/tools_registry.py`: every tool Kas may use (the Kernel operations,
@@ -415,7 +431,7 @@ here with the 4B before it is on by default and each a setting the model check (
 **multi-token prediction** (MTP speculative decoding for Qwen3.6 with an MTP GGUF: reported about 1.85x faster
 writing on the 35B-A3B; the first evening names the exact MTP file and its hash if one exists for the owner's model);
 the **host-memory prompt cache** (`--cache-ram`, sized from the memory sum, so PLAN's and READ's kept prompts both
-survive: K4b's finding); **flash attention** and the **quantized KV cache** where the Vulkan path on the Radeon 780M
+survive: K4b's finding); **flash attention** and the **quantized KV cache** where the Vulkan path on the Radeon 680M
 supports them (the model check judges them; defaults stay safe); **load-mode auto** for the integrated GPU (no double
 memory through mmap); the model's own **jinja chat template** with thinking off; structured output through the
 server's JSON-schema path where it is at least as strict as her own grammars (her GBNF grammars stay where they are
@@ -427,7 +443,7 @@ prompts both survive a priming round (cache-ram); the second PLAN turn's time on
 MTP's effect measured if a 4B or 2B MTP GGUF exists (else said); every refused argument still refused.
 
 **M2 · A quick model beside the 35B, for 99 tokens a second** (the owner, 26 Nov: "The goal is 99 tokens per second,
-up and down....if possible"). Reading at 99+ is likely on the Radeon 780M with the 35B-A3B; writing at 99 is not (its
+up and down....if possible"). Reading at 99+ is likely on the Radeon 680M with the 35B-A3B; writing at 99 is not (its
 memory bandwidth bounds the 35B's writing to roughly 20 to 30 tokens a second, perhaps 40 to 55 with MTP; to be
 measured by M1's sweep on the ThinkPad). Her questions are short (20 to 60 tokens of answer over kept prompts), so the
 way to 99 writing is a second, small model for the quick kinds (READ, PLAN, NEXT, MARKS, ASK) held beside the 35B

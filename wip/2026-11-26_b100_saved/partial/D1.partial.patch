@@ -1,0 +1,1848 @@
+diff --git a/workbench/board_model.py b/workbench/board_model.py
+index 33e340a..350de37 100644
+--- a/workbench/board_model.py
++++ b/workbench/board_model.py
+@@ -804,6 +804,9 @@ def archived(obj):
+     return obj.state in ('replaced',) or state_word(obj) == 'ARCHIVED'
+ 
+ 
++HOME_LINE = 'Select something on the left; what it is connected to appears here.'      # 1.0 D1: the empty board's one line
++
++
+ def build(desk, focus, kernel=None, task=None, first=None):
+     """The board of one focus on this desk. `first` names the object to focus when `focus` is empty (the desk's own first)."""
+     board = Board(task=task or '')
+@@ -811,7 +814,7 @@ def build(desk, focus, kernel=None, task=None, first=None):
+     desk.add_files()
+     if focus and focus not in desk.objects:desk.add_file(focus)        # a plain file of Files in focus, past those read for words
+     if not focus or focus not in desk.objects:
+-        board.note = ('Nothing on this desk is in focus. Choose something in the tree, or on the whole desk.' if not focus else
++        board.note = (HOME_LINE if not focus else      # 1.0 D1: the first state teaches
+                       'That is not on this desk now. Choose something in the tree, or on the whole desk.')
+         return board
+     fobj = desk.objects[focus]
+@@ -886,7 +889,7 @@ def build(desk, focus, kernel=None, task=None, first=None):
+             label, sentences = basis(desk, edge)
+             board.wires.append(Wire(focus, ident, INFERRED, edge.relation, label, sentences, False, '', edge.said))
+     if not board.tiles:
+-        board.note = 'Nothing is linked to it on this desk, and nothing here names what it names.'
++        board.note = 'Nothing recorded links to it yet, and nothing here names what it names.'      # 1.0 D1: says why
+     return board
+ 
+ 
+diff --git a/workbench/board_qt.py b/workbench/board_qt.py
+index 6736727..276c322 100644
+--- a/workbench/board_qt.py
++++ b/workbench/board_qt.py
+@@ -62,7 +62,10 @@ def state_ink(word):
+ def draw_mark(p, box, word, colour):
+     """One mark per state, different in shape and not only in hue (as the Field's): settled a filled square, recheck half
+     filled, open hollow, held or refuted crossed, waiting a dot, archived or replaced a dash."""
+-    word = str(word or '').upper();p.save();p.setPen(QPen(colour, 1.4));p.setBrush(Qt.NoBrush)
++    word = str(word or '').upper()
++    from . import state_words as sw      # 1.0 D1: a state the one table names is drawn in the table's shape (■ □ — ⊘)
++    if sw.of_tile(word) and sw.paint(p, box, sw.of_tile(word), colour, 1.4):return
++    p.save();p.setPen(QPen(colour, 1.4));p.setBrush(Qt.NoBrush)
+     if word in SETTLED_WORDS:
+         p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(box)
+     elif word == 'RECHECK':
+@@ -213,6 +216,7 @@ class BoardView(QWidget):
+         f = QFont(t.DISPLAY);f.setPixelSize(max(12, round(px * 1.12 * self.scale())));return f
+ 
+     def head_height(self):
++        if getattr(self.host, 'one_bar', None) is not None:return 0      # 1.0 D1: the board's head is in the one centre bar
+         return round(max(40.0, 44 * self.scale()))
+ 
+     def body(self):
+@@ -292,6 +296,8 @@ class BoardView(QWidget):
+         if self.auto:self.zoom = self.fit()
+         if not keep_place:self.pan_x = self.pan_y = 0.0
+         self.describe();self.update()
++        one = getattr(self.host, 'one_bar', None)      # 1.0 D1: the board's counts are in the one centre bar
++        if one is not None:one.board_changed()
+ 
+     def relayout(self):
+         self.placed, self.ring_radii, self.bounds = bm.layout(self.board, self.scale())
+@@ -403,7 +409,8 @@ class BoardView(QWidget):
+             self._paths = []
+             body = self.body()
+             if self.board.focus is None:
+-                self._head(p);self._empty(p, body);return
++                if self.head_height():self._head(p)      # 1.0 D1: no head of its own under the one centre bar
++                self._empty(p, body);return
+             p.save();p.setClipRect(body)
+             c = self.centre();p.translate(c);p.scale(self.zoom, self.zoom);p.translate(-self.pan_x, -self.pan_y)
+             self._rings(p)
+@@ -411,8 +418,9 @@ class BoardView(QWidget):
+             for tile in sorted(self.board.all(), key=lambda t: t.size):
+                 if tile.id in self.placed:self._tile(p, tile)
+             self._wire_words(p)
++            if not self.board.tiles and self.board.note:self._alone(p)      # 1.0 D1: one tile and no links says why
+             p.restore()
+-            self._head(p)
++            if self.head_height():self._head(p)      # 1.0 D1
+         except Exception as exc:  # noqa: BLE001 - said on the surface, never taking the window down
+             p.setClipping(False);p.setPen(QColor(t.CUE_TEXT));p.setFont(self.mono(12))
+             p.drawText(QRectF(24, self.head_height() + 12, self.width() - 48, 40), Qt.AlignLeft | Qt.AlignVCenter, 'The board could not be drawn: %s' % str(exc)[:160])
+@@ -455,9 +463,36 @@ class BoardView(QWidget):
+             p.drawText(QPointF(x, h / 2 + fm3.ascent() / 2 - 2), fm3.elidedText(f.title, Qt.ElideRight, max(40.0, right - x - 10 * s)))
+ 
+     def _empty(self, p, body):
+-        s = self.scale();p.setFont(self.sans(15));p.setPen(QColor(t.QUIET))
++        s = self.scale()
++        if self.board.note == bm.HOME_LINE:      # 1.0 D1: a fresh desk: Home, with one line, never an empty grey centre
++            from .glyph_set import KIND as KIND_GLYPH
++            w, h = 300 * s, 92 * s;r = QRectF(body.center().x() - w / 2, body.center().y() - h / 2 - 24 * s, w, h)
++            p.setPen(QPen(ink(t.LINE_STRONG, 1.0), 2));p.setBrush(QColor(t.CARD));p.drawRect(r)
++            inner = r.adjusted(16 * s, 12 * s, -16 * s, -12 * s);p.setFont(self.mono(12, QFont.Medium));fm = QFontMetricsF(p.font())
++            draw = KIND_GLYPH.get('folder') or KIND_GLYPH.get('file');lead = 0.0
++            if draw is not None:
++                side = fm.height() * 1.1;p.save();p.translate(inner.left(), inner.top());p.scale(side / 20.0, side / 20.0);p.setPen(Qt.NoPen)
++                try:draw(p, ink(t.QUIET, 1.0), ink(t.FAINT, 1.0))
++                finally:p.restore()
++                lead = side + 6 * s
++            p.setPen(QColor(t.QUIET));p.drawText(QPointF(inner.left() + lead, inner.top() + fm.ascent()), 'FOLDER')
++            p.setFont(self.sans(17));fm2 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
++            p.drawText(QPointF(inner.left(), inner.top() + fm.height() + 6 * s + fm2.ascent()), 'Home')
++            p.setFont(self.mono(11));p.setPen(QColor(t.FAINT))
++            p.drawText(QPointF(inner.left(), inner.bottom() - 2 * s), 'where your files are')
++            p.setFont(self.sans(15));p.setPen(QColor(t.QUIET))
++            p.drawText(QRectF(body.left() + 40 * s, r.bottom() + 18 * s, body.width() - 80 * s, 60 * s), Qt.AlignHCenter | Qt.AlignTop | Qt.TextWordWrap, self.board.note)
++            return
++        p.setFont(self.sans(15));p.setPen(QColor(t.QUIET))
+         p.drawText(body.adjusted(40 * s, 40 * s, -40 * s, -40 * s), Qt.AlignCenter | Qt.TextWordWrap, self.board.note or 'Nothing in focus.')
+ 
++    def _alone(self, p):
++        """1.0 D1: a board with one tile and no links says why, under the tile (the surface's own coordinates)."""
++        f = self.board.focus
++        if f is None or f.id not in self.placed:return
++        s = self.scale();r = self.rect_of(f.id);p.setFont(self.sans(14));p.setPen(QColor(t.QUIET))
++        p.drawText(QRectF(r.left() - 120 * s, r.bottom() + 22 * s, r.width() + 240 * s, 60 * s), Qt.AlignHCenter | Qt.AlignTop | Qt.TextWordWrap, self.board.note)
++
+     def _rings(self, p):
+         """The rings round the focus (green the inner, the wires' ink the outer ones) and the axis through the middle, with a
+         small square handle at each end, as in the owner's picture."""
+@@ -530,7 +565,8 @@ class BoardView(QWidget):
+             stroker = QPainterPathStroker();stroker.setWidth(max(10.0, 12.0 / self.zoom))
+             self._paths.append((stroker.createStroke(path), wire))
+             if touching or hovered or chosen or wire.stale:
+-                word = wire.label if not wire.dashed else 'possible · not verified'
++                from . import state_words as sw
++                word = wire.label if not wire.dashed else sw.word('possible')      # 1.0 D1: the table's word for an inferred link
+                 if wire.stale and 'recheck' not in word:word = word + ' · recheck'
+                 if t.APPEARANCE == 'day' and colour == day_wire(True):colour = day_wire(False)      # 1.0 P2: words in the blue that reads (5:1)
+                 self._labels.append((path.pointAtPercent(0.5), word, colour))
+diff --git a/workbench/boss_theme.py b/workbench/boss_theme.py
+index e377de8..5a634bd 100644
+--- a/workbench/boss_theme.py
++++ b/workbench/boss_theme.py
+@@ -36,7 +36,7 @@ import re
+ # so a check or a test can choose without touching anyone's profile.
+ # The list of them is kept once, beside the session's other presentation defaults (0.8.4): the session, which keeps the
+ # choice, reads the same list without importing the theme. Each of them has a palette here.
+-from .presentation_preferences import APPEARANCES, APPEARANCE_DEFAULT, appearance as saved_appearance
++from .presentation_preferences import APPEARANCES, APPEARANCE_DEFAULT, APPEARANCE_EARLIER, appearance as saved_appearance
+ APPEARANCE_KEY = 'appearance'
+ PALETTES = {
+     'graphite': dict(
+@@ -149,7 +149,7 @@ def eye(line):
+ 
+ def chosen_appearance(environ=None, path=None):
+     """'graphite', 'kasandra' or 'day' (1.0 P2): GRAPHITE_APPEARANCE in the environment, else the session file's 'appearance', else
+-    Graphite. Reads the file with plain json (the session module imports far more than a colour needs). Whatever the file
++    Graphite; with no session file at all (a fresh profile), Day (1.0 D1). Reads the file with plain json (the session module imports far more than a colour needs). Whatever the file
+     holds, the answer is a look: a saved value that is not one of them as text (a list or an object, from a damaged or
+     hand-edited file) is Graphite. 0.8.3 looked such a value up among the palettes, a list cannot be looked up, and
+     Graphite could not start (0.8.4)."""
+@@ -163,9 +163,11 @@ def chosen_appearance(environ=None, path=None):
+             path = os.path.join(base, 'session-r10.json')
+         with open(path, encoding='utf-8') as stream:
+             value = saved_appearance(json.load(stream).get(APPEARANCE_KEY))
+-        return value if value in PALETTES else APPEARANCE_DEFAULT
+-    except (OSError, ValueError, AttributeError, RecursionError):      # no file, not JSON, not an object, nested past reading
++        return value if value in PALETTES else APPEARANCE_EARLIER      # 1.0 D1: a profile with no look of its own keeps Graphite
++    except FileNotFoundError:      # 1.0 D1: a fresh profile (no session file yet) starts in Day
+         return APPEARANCE_DEFAULT
++    except (OSError, ValueError, AttributeError, RecursionError):      # not readable, not JSON, not an object, nested past reading
++        return APPEARANCE_EARLIER
+ 
+ 
+ APPEARANCE = chosen_appearance()
+diff --git a/workbench/centre_one_qt.py b/workbench/centre_one_qt.py
+new file mode 100644
+index 0000000..d4782ee
+--- /dev/null
++++ b/workbench/centre_one_qt.py
+@@ -0,0 +1,266 @@
++"""One centre bar (Graphite 1.0 D1; the design direction's section 3: chrome that never stacks).
++
++Above the centre there were three rows: L1's breadcrumb row (Back, Forward, the breadcrumb, and L4's Board on it), the bar
++above a working view (centre_bar: ‹ Field, the name of what is open, Find, − +, Undo, Redo, Save, and L4's Save and Return,
++Full program, Close, L5's Split), and, at board depth, the board's own head painted on the board (BOARD, the focus's title,
++"7 recorded · 3 possible, not verified", Whole desk). They are one bar now, at every depth, left to right:
++
++    ‹ ›  the breadcrumb (the focus's folders and its name)   [whether it is saved]
++         at board depth:  ━ 7 recorded  ┄ 3 possible, not verified   Whole desk
++         on the whole desk (the Field):  Board
++         at work depth:   Board   Find   − +   Undo  Redo   Save   Save and Return   Full program   Split   Close
++
++Nothing is lost: each control is the very one it was (the same object, its click, its tip, its dimming with a reason), moved
++into the one row; ‹ Field is the board's Whole desk one press away (and the Field stays on its menus and keys); the name of
++what is open is the breadcrumb's last part, and whether it is saved stays beside it. The board draws no head of its own
++(board_qt asks one_bar), so its rings have the room. The line under the bar that says what happened to a file (L4) and the
++line Find opens are not bars: they come only when there is something to say.
++"""
++from __future__ import annotations
++
++from PySide6.QtCore import QEvent, QObject, QPointF, QRectF, QSize, Qt, QTimer
++from PySide6.QtGui import QColor, QFont, QFontMetricsF, QIcon, QPainter
++from PySide6.QtWidgets import QPushButton, QSizePolicy, QToolButton, QWidget
++
++from . import boss_theme as bt
++from . import state_words as sw
++
++
++def depth(host):
++    """'work' (a working view in front), 'board', 'map' (the whole desk, the Field), or '' (Home, or the centre before it is set)."""
++    bar = getattr(host, 'centre_bar', None)
++    try:
++        if bar is not None and bar.page() is not None:return 'work'
++    except RuntimeError:
++        return ''
++    if getattr(host, '_field_active', False):
++        page = getattr(host, 'field_page', None)
++        return 'board' if getattr(page, 'mode', 'map') == 'board' else 'map'
++    return ''
++
++
++class Counts(QWidget):
++    """The board's counts, as the board's head said them, each with its wire's shape: ━ recorded, ┄ possible, not verified."""
++
++    def __init__(self, one):
++        super().__init__();self.one = one;self.counts = (0, 0);self.setObjectName('CentreBoardCounts')
++        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
++
++    def font_(self):
++        f = QFont(bt.MONO);f.setPixelSize(max(12, round(12 * self.one.scale())));return f
++
++    def parts(self):
++        recorded, possible = self.counts
++        return (('recorded', '%d %s' % (recorded, sw.word('recorded'))), ('possible', '%d %s' % (possible, 'possible, not verified')))
++
++    def set_counts(self, recorded, possible):
++        if (recorded, possible) != self.counts:
++            self.counts = (recorded, possible);self.updateGeometry();self.update()
++        said = ', '.join(words for _, words in self.parts())
++        self.setToolTip('The links on this board: %s. A solid wire is recorded; a dashed one is only possible until you keep it.' % said)
++        self.setAccessibleName('Board links: ' + said)
++
++    def sizeHint(self):
++        fm = QFontMetricsF(self.font_());line = 22 * self.one.scale()
++        return QSize(round(sum(fm.horizontalAdvance(w) + line + 22 * self.one.scale() for _, w in self.parts())), round(fm.height() + 8))
++
++    def minimumSizeHint(self):
++        return self.sizeHint()
++
++    def paintEvent(self, event):
++        p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
++        try:
++            f = self.font_();p.setFont(f);fm = QFontMetricsF(f);s = self.one.scale();x = 0.0;cy = self.height() / 2.0
++            for key, words in self.parts():
++                line = 22 * s;colour = bt.DAY_MARKS['WIRE_SOFT' if key == 'possible' else 'WIRE'] if bt.APPEARANCE == 'day' else (bt.TEAL_EDGE if bt.APPEARANCE == 'kasandra' else bt.LINE_STRONG)
++                sw.paint(p, QRectF(x, cy - 4, line, 8), key, colour, 1.6);x += line + 6 * s
++                p.setPen(QColor(bt.QUIET));p.drawText(QRectF(x, 0, fm.horizontalAdvance(words) + 2, self.height()), Qt.AlignLeft | Qt.AlignVCenter, words)
++                x += fm.horizontalAdvance(words) + 16 * s
++        finally:
++            p.end()
++
++
++class OneBar(QObject):
++    """The one bar: centre_bar's CentreBar, with the breadcrumb's parts and the board's head moved into it."""
++
++    def __init__(self, host):
++        super().__init__(host)
++        self.host = host;self.bar = bar = host.centre_bar;self.nav = getattr(host, 'living_nav', None);self.watched = set()
++        self.crumbs = getattr(self.nav, 'crumbs', None);self.row = bar.layout().itemAt(0).layout()
++        depths = getattr(host, 'l4_depths', None) or getattr(host, 'depths', None)
++        self.depth_board = getattr(depths, 'board', None) or self.find(QToolButton, 'DepthBoard')
++        self.counts = Counts(self)
++        self.whole = self.plate('Whole desk', 'CentreWholeDesk', self.to_whole, 'The whole desk: every record as tiles and wires; the board comes back on its selection')
++        self.board = self.board_button()
++        self.arrange()
++        bar.setAccessibleName('The centre: where you are, and the controls for what is in front')
++        original = bar.sync
++
++        def sync(_original=original):
++            _original();self.sync()
++        bar.sync = sync
++        fit = bar.fit_title
++
++        def fit_title(_fit=fit):
++            _fit();self.fit_title()
++        bar.fit_title = fit_title
++        if self.crumbs is not None:
++            self.crumbs.words.installEventFilter(self)
++        field_button = getattr(getattr(host, 'field_page', None), 'board_button', None)
++        if field_button is not None:field_button.hide()
++        self.sync()
++
++    # ---- the parts -----------------------------------------------------------------------------------------------------------
++    def find(self, kind, name):
++        for w in self.host.findChildren(kind):
++            if w.objectName() == name:return w
++        return None
++
++    def scale(self):
++        return float((getattr(self.host, 'reading_profile', None) or {}).get('ui_pt', 14.0)) / 14.0
++
++    def plate(self, words, name, does, tip):
++        b = QPushButton(words);b.setObjectName(name);b.setCursor(Qt.PointingHandCursor);b.setFocusPolicy(Qt.TabFocus)
++        b.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed);b.setToolTip(tip);b.setAccessibleName(words);b.clicked.connect(does)
++        return b
++
++    def board_button(self):
++        """Board on the whole desk: the board on the Field's selection (it was a button on the Field's own corner)."""
++        b = QToolButton();b.setObjectName('CentreToBoard');b.setText('Board');b.setAccessibleName('Board')
++        b.setToolTip('The board: the selected sheet in the middle, what is linked to it around it')
++        b.setToolButtonStyle(Qt.ToolButtonTextBesideIcon);b.setCursor(Qt.PointingHandCursor);b.setFocusPolicy(Qt.TabFocus)
++        b.clicked.connect(self.to_board)
++        if self.depth_board is not None:
++            b.setIcon(self.depth_board.icon());b.setIconSize(self.depth_board.iconSize());b.setStyleSheet(self.depth_board.styleSheet().replace('DepthBoard', 'CentreToBoard'))
++        return b
++
++    def arrange(self):
++        """The row, left to right: Back, Forward, the breadcrumb, whether it is saved; the board's counts and Whole desk; Board
++        (the whole desk's, and the working view's); then the work's controls in the direction's order."""
++        bar = self.bar;row = self.row
++        while row.count():
++            item = row.takeAt(0)
++            if item.widget() is not None:item.widget().setParent(bar)
++        crumbs = self.crumbs
++        if crumbs is not None:
++            crumbs.back.setParent(bar);crumbs.forward.setParent(bar);crumbs.words.setParent(bar)
++            row.addWidget(crumbs.back);row.addWidget(crumbs.forward);row.addSpacing(6);row.addWidget(crumbs.words, 1)
++            crumbs.hide();crumbs.setMaximumHeight(0)      # its parts live in the bar now; the row itself is not shown
++        bar.field.hide()      # ‹ Field: the board's Whole desk is one press away; the Field keeps its menus and keys
++        row.addWidget(bar.title, 0 if crumbs is not None else 1)
++        if crumbs is not None:bar.title.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
++        row.addSpacing(8);row.addWidget(self.counts);row.addSpacing(10);row.addWidget(self.whole)
++        row.addWidget(self.board)
++        if self.depth_board is not None:
++            self.depth_board.setParent(bar);row.addSpacing(4);row.addWidget(self.depth_board)
++        depths = self.find_depths()
++        split = getattr(getattr(self.host, 'l5_split', None), 'button', None)
++        groups = ((bar.find,), (bar.smaller, bar.larger), (bar.undo, bar.redo), (bar.save,),
++                  (getattr(depths, 'save_return', None),), (getattr(depths, 'full', None),), (split,), (getattr(depths, 'close_button', None),))
++        self.work = []
++        for group in groups:
++            group = [b for b in group if b is not None]
++            if not group:continue
++            row.addSpacing(8)
++            for b in group:row.addWidget(b);self.work.append(b)
++
++    def find_depths(self):
++        from . import depths_qt
++        try:return depths_qt.depths_of(self.host)
++        except Exception:  # noqa: BLE001
++            return None
++
++    # ---- what shows ----------------------------------------------------------------------------------------------------------
++    def sync(self):
++        """Every depth has the bar: the breadcrumb always; the board's counts and Whole desk at board depth; Board on the whole
++        desk; the work's controls at work depth (each as the view in front can serve it, as before)."""
++        try:
++            where = depth(self.host);bar = self.bar
++            if not bar.isVisible() and not getattr(self.host, '_closing', False):bar.setVisible(True)
++            for b in self.work:b.setVisible(where == 'work')
++            if self.depth_board is not None:self.depth_board.setVisible(where == 'work')
++            bar.title.setVisible(where == 'work' and bool(bar.title.text()))
++            board = self.board_view()
++            self.counts.setVisible(where == 'board' and board is not None)
++            self.whole.setVisible(where == 'board' and board is not None)
++            self.board.setVisible(where == 'map' and board is not None)
++            if board is not None:
++                self.watch(board);self.watch(getattr(board.page, 'view', None))
++                if where == 'board':
++                    counts = board.board.counts();self.counts.set_counts(int(counts.get('recorded', 0)), int(counts.get('possible', 0)))
++                field_button = getattr(board.page, 'board_button', None)
++                if field_button is not None and field_button.isVisible():field_button.hide()
++        except RuntimeError:      # the window is closing
++            pass
++
++    def sync_soon(self):
++        QTimer.singleShot(0, self.sync)
++
++    def board_view(self):
++        page = getattr(self.host, 'field_page', None)
++        return getattr(page, 'board', None) if page is not None else None
++
++    def watch(self, widget):
++        if widget is None or id(widget) in self.watched:return
++        self.watched.add(id(widget));widget.installEventFilter(self)
++
++    def eventFilter(self, watched, event):
++        kind = event.type()
++        if kind in (QEvent.Show, QEvent.Hide):self.sync_soon()      # the board or the whole desk came to the front
++        elif kind == QEvent.Resize and self.crumbs is not None and watched is self.crumbs.words:
++            QTimer.singleShot(0, lambda: self.crumbs.show_parts(self.crumbs.parts, self.crumbs.note))
++        return False
++
++    def fit_title(self):
++        """Beside the breadcrumb, the name of what is open only when the breadcrumb does not say it already; its saved state
++        always ("not saved yet", "read only")."""
++        bar = self.bar;crumbs = self.crumbs
++        if crumbs is None:return
++        said = str(getattr(bar, '_said', '') or '');name = str(getattr(bar, '_name', '') or '')
++        last = crumbs.parts[-1][0] if crumbs.parts else ''
++        state = said[len(name):].strip(' ·') if name and said.startswith(name) else ''
++        shown = ('· ' + state) if (last and name and last.strip() == name.strip()) else said
++        if not state and last and name and last.strip() == name.strip():shown = ''
++        if bar.title.text() != shown:bar.title.setText(shown)
++        bar.title.setVisible(depth(self.host) == 'work' and bool(shown))
++
++    # ---- the presses -----------------------------------------------------------------------------------------------------------
++    def to_whole(self):
++        board = self.board_view()
++        if board is not None:board.whole.emit()
++        self.sync_soon()
++
++    def to_board(self):
++        board = self.board_view()
++        if board is None:return
++        from . import board_qt
++        page = board.page;board_qt.to_board(page, page.view.field.selected, said=True);self.sync_soon()
++
++    def board_changed(self):
++        """board_qt: the board was built again (its counts may have changed)."""
++        if depth(self.host) == 'board':self.sync_soon()
++
++    def describe(self):
++        """What the bar shows now, in words, left to right (for a reader of the window: frames, the smoke)."""
++        out = []
++        for i in range(self.row.count()):
++            w = self.row.itemAt(i).widget()
++            if w is None or not w.isVisible():continue
++            if w is getattr(self.crumbs, 'words', None):out.append('breadcrumb: ' + self.crumbs.text())
++            elif w is self.counts:out.append('counts: ' + ', '.join(words for _, words in self.counts.parts()))
++            elif isinstance(w, (QPushButton, QToolButton)):out.append(w.text() or w.accessibleName() or w.toolTip().split('\n')[0][:30])
++            elif hasattr(w, 'text'):out.append(w.text())
++        return out
++
++
++def install(host):
++    """shell2's start, after the breadcrumb (L1), the depths (L4) and the split (L5): host.one_bar. When it cannot be made, the
++    rows stay as they were."""
++    if getattr(host, 'one_bar', None) is not None:return host.one_bar
++    if getattr(host, 'centre_bar', None) is None:return None
++    try:
++        host.one_bar = OneBar(host)
++    except Exception:  # noqa: BLE001 - the window starts with its rows as they were rather than not at all
++        import traceback
++        traceback.print_exc();host.one_bar = None
++    return host.one_bar
+diff --git a/workbench/desktop_header_qt.py b/workbench/desktop_header_qt.py
+index 6b93c79..e2f60f8 100644
+--- a/workbench/desktop_header_qt.py
++++ b/workbench/desktop_header_qt.py
+@@ -23,7 +23,7 @@ from PySide6.QtCore import QEvent, QPoint, QSize, Qt, QTimer
+ from PySide6.QtWidgets import (QAbstractItemView, QCheckBox, QFrame, QHBoxLayout,
+     QLabel, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QSlider, QToolButton, QVBoxLayout, QWidget,QMenu)
+ 
+-MONITORS_NOTE = 'Current Graphite host · CPU / GPU / RAM / TXT'   # the old column note's words, now the pulse's tooltip
++MONITORS_NOTE = 'Current Graphite host · CPU / GPU / RAM / TXT / NET'      # 1.0 D1: NET, the fifth   # the old column note's words, now the pulse's tooltip
+ KILL_WORDS = 'Stop all jobs'                                     # the kill switch: the Master Stop (HATCH DESK D2: the System menu's
+                                                                  # second row, under Game, scoped in words to the work Graphite manages)
+ TIERS = ('now', 'normal', 'background')                          # agenda.NICE left to right: more urgent → nicer
+@@ -73,7 +73,7 @@ class DesktopMonitors(QWidget):
+     4 display a lot more kewl"): each is drawn in style H, a glowing ring with the number inside and a small trace of the
+     last minute ending in a bright dot (neon_meters.RingMeter); a meter with no reading stays dim with its dash and "no
+     reading". They stand centred and evenly spaced under the right column (typebar_qt.place gives them its width)."""
+-    KEYS = ('CPU', 'GPU', 'RAM', 'TXT')
++    KEYS = ('CPU', 'GPU', 'RAM', 'TXT', 'NET')      # 1.0 D1: NET, the network's state (net_meter)
+ 
+     def __init__(self, host):
+         super().__init__();self.host = host;self.setObjectName('DesktopMonitors');self._scale = None
+@@ -83,7 +83,11 @@ class DesktopMonitors(QWidget):
+         self.values = {};self.labels = {};self.setProperty('paperFunctionalInk', True)
+         for key in self.KEYS:
+             # the key word is drawn by its meter under the ring; the label stays (out of sight) for what reads it
+-            label = QLabel(key, self);label.hide();value = RingMeter(key, self)
++            label = QLabel(key, self);label.hide()
++            if key == 'NET':      # 1.0 D1: a state (a shape and a word), not a share
++                from .net_meter import install as install_net
++                value = install_net(self)
++            else:value = RingMeter(key, self)
+             label.setAccessibleName(key + ' monitor');value.setAccessibleName(key + ' reading');value.setProperty('paperFunctionalInk', True)
+             row.addWidget(value);row.addStretch(1);self.values[key] = value;self.labels[key] = label      # evenly spaced: the same air between them and at both ends
+         self.setCursor(Qt.PointingHandCursor)      # 0.7.0: each meter is a door (meter_cards): a click opens what it is about
+@@ -169,6 +173,9 @@ class DesktopMonitors(QWidget):
+         gpu=sample['gpu']['percent'];self.values['GPU'].setText(str(gpu)+'%' if gpu is not None else '—')
+         self.values['GPU'].setToolTip('Current host GPU · busiest reported adapter' if gpu is not None else 'GPU utilization unavailable from this driver')
+         self.values['TXT'].setText('—');self.values['TXT'].setToolTip(sample['txt']['reason'])
++        try:self.values['NET'].read()      # 1.0 D1: K8's state, read as its head word read it
++        except Exception:  # noqa: BLE001 - NET says not known at its next reading
++            pass
+         from .neon_meters import NEAR
+         for value in self.values.values():
+             live = value.text() != '—'
+diff --git a/workbench/foot_line.py b/workbench/foot_line.py
+new file mode 100644
+index 0000000..00a01dd
+--- /dev/null
++++ b/workbench/foot_line.py
+@@ -0,0 +1,137 @@
++"""The foot is the computer's line (Graphite 1.0 D1; the design direction's section 5).
++
++The owner, 26 November 2026: "Bottom left no longer need a kasandra option, because that exists already in the right
++Kasandra column." So the chooser at the foot reads Line · Terminal · Search · Web · Log, and Line is the default. Line does
++what the old mode did for lines, and only that:
++
++    a Graphite line          this | count, @files: | rows: run by Enter, the arrow, or the deliberate key, on the working
++                             area's line page (a line reads; anything that would change something asks there, as ever)
++    an operation by name     /files.list path=Slate: run on the operations page (an approve-scope one asks for a second press)
++    an address               https://…, www.…, localhost:8080: opened in this computer's own browser (Web's way)
++
++Words that read as a request to her (K4's objective reading, or plain words that are not a line) are never run here: the
++line offers "Ask Kasandra →" (under the line, and as the arrow's own words), which moves the words into her column's ask line
++and sends them there, where she plans an objective (K4) or answers. Kas is spoken to in her column only.
++
++Nothing here decides for the owner: the offer is shown, and only their press (Enter on the offer, the arrow, or a click)
++gives the words to her. No key is named in any words here.
++"""
++from __future__ import annotations
++
++from .assistant_identity import named
++
++ASK = named('Ask Stacy →')                      # "Ask Kasandra →": the offer, everywhere it is shown
++FOR_HER = named('FOR STACY · HER COLUMN')       # the section of the list under the line that holds the offer
++RUN = 'Run this line'
++GIVEN = named('Given to Stacy in her column.')
++LEADS = ('@', '/', '?', '$')
++
++
++def reading(host, text, page=None):
++    """What the words typed in Line are: 'address', 'operation' (a lead character: / ? $), 'line' (a Graphite line that
++    reads), 'hers' (words for Kasandra) or '' (nothing typed). page: the console page the box gives (OneBox.console_page)."""
++    words = str(text or '').replace('​', '').strip()
++    if not words:return ''
++    from .typebar_qt import TypeBar, stac_hint_kind, READS
++    if TypeBar.plain_address(words):return 'address'
++    if page is None:
++        box = getattr(getattr(getattr(host, 'shell2', None), 'top', None), 'box', None)
++        try:page = box.console_page(words) if box is not None else None
++        except Exception:  # noqa: BLE001 - read as words
++            page = None
++    if words[:1] in ('/', '?', '$') or page in ('kernel', 'find', 'shell'):return 'operation'
++    if words.startswith('@'):return 'line'
++    try:      # K4's objective reading first: "recheck the startup power" is hers even where a line could be read from it
++        from .objective_plan import reads_as_objective
++        if reads_as_objective(words):return 'hers'
++    except Exception:  # noqa: BLE001 - the reading is the line's own
++        pass
++    written = words
++    try:
++        from .field_page import expand_this
++        from .stac_words import command, expand, known_to
++        written = expand_this(host, command(written) or expand(known_to(host), written))
++    except Exception:  # noqa: BLE001 - read as typed
++        written = words
++    return 'line' if stac_hint_kind(written) in READS else 'hers'
++
++
++def ask_kasandra(host, text):
++    """Ask Kasandra →: the words into her column's ask line, sent there (her column plans an objective, K4, or she answers).
++    The keyboard goes to her ask line, where the talk goes on. True when they were given."""
++    words = str(text or '').replace('​', '').strip()
++    if not words:return False
++    column = getattr(host, 'her_column', None);line = getattr(column, 'ask_line', None) if column is not None else None
++    if line is not None:
++        try:
++            line.edit.setText(words);line.send()
++            try:
++                from PySide6.QtCore import Qt
++                line.edit.setFocus(Qt.OtherFocusReason)
++            except Exception:  # noqa: BLE001
++                pass
++            return True
++        except RuntimeError:      # her column went with the window
++            pass
++    shell = getattr(host, 'shell2', None)
++    if shell is None or not callable(getattr(shell, 'ask', None)):return False
++    shell.ask(words);return True
++
++
++def run_line(host, text):
++    """Run a line typed in Line (the list's "Run this line"), as the arrow and the deliberate key run it: the owner's words
++    and `this` written out first, so what runs is what shows; a lead character's page for / ? $."""
++    from .shell2 import to_console
++    words = str(text or '').replace('​', '').strip()
++    if not words:return False
++    try:
++        from .field_page import expand_this
++        from .stac_words import written_out
++        words = expand_this(host, written_out(host, words))
++    except ValueError as exc:
++        bar = getattr(host, 'type_bar', None)
++        if bar is not None and callable(getattr(bar, 'note', None)):bar.note(str(exc))
++        return False
++    except Exception:  # noqa: BLE001 - run as typed
++        pass
++    box = getattr(getattr(getattr(host, 'shell2', None), 'top', None), 'box', None)
++    page = box.console_page(words) if box is not None else None
++    page = page if page in ('kernel', 'find', 'shell') else 'stac'
++    to_console(host, page, words[1:].strip() if page == 'find' and words.startswith('?') else words)
++    return True
++
++
++def rows(box, text, preview=False):
++    """The list under the line in Line (OneBox.results): a line first with "Run this line", then the offer to her; words for
++    her: the offer first (what Enter takes), then the rest as before (keep it as a note, what worked before, files,
++    commands)."""
++    from .shell2 import call, capture, preview_rows
++    host = box.host;out = [];words = str(text or '')
++    short = words if len(words) < 48 else words[:46] + '…'
++    kind = reading(host, words, box.console_page(words))
++    bar = getattr(host, 'type_bar', None)
++    if kind == 'address' and callable(getattr(bar, 'open_web', None)):
++        out.append(('section', 'AN ADDRESS', None))
++        out.append(('search', 'Open it in your browser  ' + short, ('', lambda: bar.open_web(words))))
++    if kind in ('line',):
++        out.append(('section', 'A LINE · THE ARROW RUNS IT', None))
++        out.append(('stac', RUN + '  ' + short, ('', lambda: run_line(host, words))))
++        if preview and words.startswith('@'):out += preview_rows(host, words)
++    out.append(('section', FOR_HER, None))
++    out.append(('ask', ASK + '  ' + short, ('', lambda: ask_kasandra(host, words))))
++    out.append(('keep', 'Keep as a note in Notes', ('', lambda: capture(host, words))))
++    learned = call(host, 'matrix.examples', {'text': words[:600]}) or {}
++    worked = learned.get('worked') or []
++    if worked:
++        out.append(('section', 'WORKED BEFORE · FROM THE INSTRUCTION MATRIX', None))
++        for row in worked[:2]:
++            program = row['program']
++            out.append(('stac', program, ('Use', lambda p=program: box.use_program(p))))
++    files = box.file_rows(words.casefold())
++    if files:
++        out.append(('section', 'FILES', None));out += files[:6]
++    commands = box.commands(words)
++    if commands:
++        out.append(('section', 'COMMANDS', None))
++        out += [('command', label, (hint, fn)) for label, hint, fn in commands[:6]]
++    return out
+diff --git a/workbench/grants_qt.py b/workbench/grants_qt.py
+index 3bf9d4f..814b1db 100644
+--- a/workbench/grants_qt.py
++++ b/workbench/grants_qt.py
+@@ -74,6 +74,7 @@ class GrantFold(QWidget):
+         for row in rows or ():
+             action = next((a for a in row.get('actions') or () if a.get('operation') == 'grant.give'), None)
+             if action:ask = (row, action);break
++        if getattr(self.column, 'waits', None) is not None:ask = None      # 1.0 D1: a grant asked for is in "Waits for you" (one place)
+         self.ask = ask;compact = self.column.compact();host = self.column.host
+         if ask:
+             row, action = ask
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index 12d3f05..eb811db 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -108,16 +108,23 @@ NUMBERS = {'active_count': {'count': 'the open assignments (assignment.list)'},
+ mind_words.register('her_column_qt', WORDS, kind='sentence', numbers=NUMBERS)
+ 
+ # The state of the work: (word, shape, the palette's name for its colour). Her model's ring: ○ none, ● ready.
+-STATES = {'idle': ('QUIET', '○', 'QUIET'), 'working': ('WORKING', '●', 'READY'), 'awaiting_approval': ('WAITS FOR YOU', '◆', 'OWNER'),
+-          'completed': ('DONE', '✓', 'HONEY'), 'blocked': ('STOPPED', '■', 'RED')}
++# 1.0 D1: the words and shapes that mean a state of the table (state_words) are the table's: ◆ NEEDS YOUR WORD, ✓ DONE,
++# ▮▮ STOPPED, ‖ HELD (her work under HALT); QUIET and WORKING are her own and stay.
++from . import state_words as _sw
++STATES = {'idle': ('QUIET', '○', 'QUIET'), 'working': ('WORKING', '●', 'READY'),
++          'awaiting_approval': (_sw.word('needs_word'), _sw.shape('needs_word'), 'OWNER'),
++          'completed': ('DONE', _sw.shape('done'), 'HONEY'), 'blocked': ('STOPPED', _sw.shape('stopped'), 'RED'),
++          'held': ('HELD', _sw.shape('held'), 'RED')}
+ # An assignment's state word (K1) -> its shape and colour name.
+ WORK_LOOK = {'working': ('●', 'READY'), 'ready': ('▸', 'TEXT'), 'waiting for your word': ('◆', 'OWNER'), 'held': ('■', 'RED'),
+              'interrupted': ('■', 'RED'), 'stopped by you': ('■', 'QUIET'), 'blocked': ('■', 'RED'), 'needs review': ('◆', 'OWNER'),
+              'no steps yet': ('○', 'QUIET'), 'done': ('✓', 'HONEY'),
+              'needs your grant': ('◆', 'OWNER')}      # 1.0 K3
++for _words, _look in list(WORK_LOOK.items()):      # 1.0 D1: a step's state that the table names takes the table's shape
++    if _sw.of_step(_words):WORK_LOOK[_words] = (_sw.shape(_sw.of_step(_words)), _look[1])
+ # A finding's evidence state -> (word, shape, colour name), in the order they are shown.
+-FINDING_LOOK = (('REFUTED', ('REFUTED', '✕', 'RED')), ('CONTESTED', ('CONTESTED', '◆', 'OWNER')), ('SUPPORTED', ('SUPPORTED', '✓', 'READY')),
+-                ('UNKNOWN', ('OPEN', '?', 'QUIET')))
++FINDING_LOOK = (('REFUTED', ('REFUTED', _sw.shape('refuted'), 'RED')), ('CONTESTED', ('CONTESTED', '◆', 'OWNER')),
++                ('SUPPORTED', ('SUPPORTED', _sw.shape('supported'), 'READY')), ('UNKNOWN', ('OPEN', _sw.shape('open'), 'QUIET')))      # 1.0 D1: the table's shapes
+ COMMANDS = (('DO', 'do', 'What can be done about the card selected on the Field: the steps, numbered; nothing runs by being offered'),
+             ('DOUBT', 'doubt', 'What a plausible result on the selected card may hide, worst first; nothing is changed'),
+             ('TRACE', 'trace', 'Where the selected card comes from and what rests on it, hop by hop'),
+@@ -1002,6 +1009,11 @@ class HerColumn(QObject):
+         self.head.take(model, hand)
+         related = getattr(face, 'related', None)
+         outer.addWidget(self.head)
++        try:      # 1.0 D1: "Waits for you", under her hologram, only when something waits (waits_qt)
++            from .waits_qt import install as install_waits
++            self.waits = install_waits(self, outer)
++        except Exception:  # noqa: BLE001 - the column is whole without it
++            self.waits = None
+         outer.addWidget(face.scroll, 1)
+         outer.addWidget(self.work_line)
+         try:      # 1.0 K8: her network use, one line (her fetch, a step that needs the network, her last fetch)
+@@ -1121,6 +1133,10 @@ class HerColumn(QObject):
+         try:self.read_work()
+         except Exception:  # noqa: BLE001 - a column never takes the window down
+             pass
++        try:      # 1.0 D1: what waits for you, read with the work
++            if getattr(self, 'waits', None) is not None:self.waits.refresh()
++        except Exception:  # noqa: BLE001
++            pass
+         if force or self.ticks % DESK_EVERY == 1:
+             try:self.read_desk()
+             except Exception:  # noqa: BLE001
+@@ -1197,7 +1213,7 @@ class HerColumn(QObject):
+         """An Approve that waits for you, a fresh stop, her work (her model answering, a job, an assignment running), a
+         fresh outcome, the Agenda's count of what waits for you, else quiet (kasandra_art's order, with K1's assignments)."""
+         from .kasandra_art import column_state, current_state
+-        if self.seen_held:return 'blocked'      # 1.0 K3: while HALT holds her work her state word is ■ STOPPED
++        if self.seen_held:return 'held'      # 1.0 K3: while HALT holds her work; 1.0 D1: the table's word for it, ‖ HELD
+         try:
+             state = current_state(self.host)
+             if state in ('idle', 'viewing', 'completed') and any(r.get('state_words') == 'working' for r in self.rows):state = 'working'
+@@ -1209,6 +1225,13 @@ class HerColumn(QObject):
+     def show_state(self):
+         state = self.state();ready = getattr(self.host, '_status_brain', '') == 'ready'
+         self.head.show_state(state, ready);self.head.stage.portrait.set_state(state)
++        if state != getattr(self, 'shown_state', None):      # 1.0 D1: the dock says it too when it needs you (state_words)
++            self.shown_state = state
++            dock = getattr(self.host, 'system_dock', None)
++            try:
++                if dock is not None:dock.arrange()
++            except Exception:  # noqa: BLE001 - the dock is whole without it
++                pass
+ 
+     # -- NEXT STEPS ---------------------------------------------------------------------------------------------------------
+     def next_steps(self):
+@@ -1220,6 +1243,8 @@ class HerColumn(QObject):
+             for action in row.get('actions') or ():
+                 if action.get('words') == 'Stop':continue
+                 if action.get('words') == 'Carry on':continue
++                from .waits_qt import carried      # 1.0 D1: an Authorise or a grant is in "Waits for you" (said in one place)
++                if carried(self, action):continue
+                 if action.get('words') == 'Resume' and row.get('state_words') == 'stopped by you':
+                     later.append(row);continue      # you stopped it: Resume is offered, after what waits for you
+                 title = plain(row.get('title') or '')
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index ef6f476..1c034a3 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -163,18 +163,18 @@ def rebuild(host):
+         # Run an operation…, Kernel's home on this menu. host.a_talk keeps the old keys for callers.
+         talk = QActionGroup(host);host.a_talk = {}
+         bar_words = getattr(getattr(host, 'type_bar', None), 'labels', {})
+-        for key, word, number in (('slate', 'Assistant', 1), ('shell', bar_words.get('shell', 'Terminal'), 5), ('find', 'Search', 4), ('log', 'Log', 6)):
++        for key, word, number in (('line', 'Line', 1), ('shell', bar_words.get('shell', 'Terminal'), 5), ('find', 'Search', 4), ('log', 'Log', 6)):      # 1.0 D1: Line
+             a = make('%s\tAlt+%d' % (word, number), lambda key=key:host.type_bar.set_target(key) if hasattr(host, 'type_bar') else None)
+             a.setCheckable(True);a.setShortcut('Alt+%d' % number);host.addAction(a);talk.addAction(a);host.a_talk[key] = a
+         host.a_talk_stac = make('A line (Assignment)', lambda:host.type_bar.set_target('stac') if hasattr(host, 'type_bar') else None)
+-        host.a_talk_stac.setShortcut('Alt+2');host.addAction(host.a_talk_stac);host.a_talk['stac'] = host.a_talk['slate']
++        host.a_talk_stac.setShortcut('Alt+2');host.addAction(host.a_talk_stac);host.a_talk['stac'] = host.a_talk['slate'] = host.a_talk['line']      # 1.0 D1
+         host.a_run_operation = make('Run an operation…\tAlt+3', lambda:host.type_bar.run_operation() if hasattr(host, 'type_bar') else None)
+         host.a_run_operation.setShortcut('Alt+3');host.addAction(host.a_run_operation);host.a_talk['kernel'] = host.a_run_operation
+         host.a_run_operation.setToolTip('An operation by name in the writing line (Kernel\'s home): help NAME and ops WORD answer')
+         def sync():  # the checks say what is true now
+-            console = getattr(host, 'console', None);target = getattr(host, 'type_target', 'slate')
++            console = getattr(host, 'console', None);target = getattr(host, 'type_target', 'line')
+             if console is not None:host.a_sizes[console.size_level].setChecked(True)
+-            if target in ('slate', 'shell', 'find', 'log'):host.a_talk[target].setChecked(True)
++            if target in ('line', 'shell', 'find', 'log'):host.a_talk[target].setChecked(True)      # 1.0 D1
+         host._menus_sync = sync
+     if not hasattr(host, 'a_new_idea'):
+         # HATCH DESK D2 (the brief: "Put New Idea and New Project under Work or on the relevant tree"): creation left the cat's
+diff --git a/workbench/meter_cards.py b/workbench/meter_cards.py
+index 3e1eeb4..2a686b9 100644
+--- a/workbench/meter_cards.py
++++ b/workbench/meter_cards.py
+@@ -32,6 +32,8 @@ DOORS = {'CPU': 'Graphite’s work: what runs and waits, and Stop all jobs',
+          'GPU': named('Stacy’s model and Graphite’s services'),
+          'RAM': 'Memory, and this computer',
+          'TXT': named('The conversation, and what Stacy has in view')}
++from .net_meter import DOOR as _NET_DOOR, net_card      # 1.0 D1: NET, the fifth meter
++DOORS['NET'] = _NET_DOOR
+ 
+ 
+ class MeterCard(QFrame):
+@@ -140,7 +142,7 @@ def txt_card(host, anchor):
+     return card
+ 
+ 
+-CARDS = {'CPU': cpu_card, 'GPU': gpu_card, 'RAM': ram_card, 'TXT': txt_card}
++CARDS = {'CPU': cpu_card, 'GPU': gpu_card, 'RAM': ram_card, 'TXT': txt_card, 'NET': net_card}      # 1.0 D1: NET
+ 
+ 
+ def open_card(host, anchor, key):
+diff --git a/workbench/net_meter.py b/workbench/net_meter.py
+new file mode 100644
+index 0000000..edcf93a
+--- /dev/null
++++ b/workbench/net_meter.py
+@@ -0,0 +1,156 @@
++"""NET, the fifth meter at the foot (Graphite 1.0 D1; the design direction's section 5).
++
++The meters are the computer's vital signs: CPU GPU RAM TXT and now NET, the network as K8 governs it (network_governed):
++online, offline, not known, or "Kas: <host>" while her fetch runs. Each has a shape as well as a word (state_words: ●
++online, ⊘ offline, ◌ not known, ⇣ her fetch), so the state never rests on colour. In each look's meter style: in Graphite
++and Kasandra the shape stands where a ring's number stands, NET under it, and the word beside it where a ring keeps its
++minute of history; in Day it is words, as the other four are ("NET ● online").
++
++The head said the network's state left of Apps (K8's NetWord); the meter carries it now, so the head no longer does (one
++place: network_qt.place_head). A click opens NET's card: the state and why, her fetch or her last fetch, and her web
++reading (network_qt.show), where anything she fetches waits for your press.
++
++It reads the network as K8's word did (network_qt.reading: a short local read when the last is stale); it changes nothing.
++"""
++from __future__ import annotations
++
++from PySide6.QtCore import QPointF, QRectF, QSize, Qt
++from PySide6.QtGui import QFont, QFontMetrics, QFontMetricsF, QPainter, QPen
++
++from . import boss_theme as t
++from . import state_words as sw
++from .neon_meters import RingMeter, faint, glow_level, palette, words_only
++
++KEY = 'NET'
++DOOR = 'The network: online or not, her fetch, and her web reading'
++LONGEST = 22            # a host is shortened in its middle past this many letters ("Kas: datasheets.exa…le.org"), whole in the tip
++
++
++def net_reading(host):
++    """(state key of the table, the word shown, why) from K8's reading; ('net_unknown', 'not known', why) when it cannot be read."""
++    try:
++        from . import network_qt
++        r = network_qt.reading(host)
++        kind = network_qt.kind_of(r)
++    except Exception as exc:  # noqa: BLE001 - a state that cannot be read is said not known
++        return 'net_unknown', sw.word('net_unknown'), 'the network could not be read here: %s' % str(exc)[:120]
++    key = sw.NET.get(kind, 'net_unknown')
++    if key == 'net_fetching':
++        where = str((r.get('fetching') or {}).get('host') or '')
++        if len(where) > LONGEST:where = where[:LONGEST // 2] + '…' + where[-(LONGEST // 2 - 1):]
++        words = 'Kas: %s' % where if where else 'Kas: fetching'
++    else:
++        words = sw.word(key)
++    return key, words, str(r.get('why') or '')
++
++
++class NetMeter(RingMeter):
++    """The NET meter: a RingMeter in size and place, drawn as a state (a shape and a word), not a share."""
++
++    def __init__(self, host, parent=None):
++        super().__init__(KEY, parent);self.host = host;self.state_key = 'net_unknown';self.state_words = sw.word('net_unknown');self.why = ''
++        self.setText('—');self.setAccessibleName('NET reading')
++
++    # a state, never a number: the ring's arc and the hot mark have nothing to read
++    def value(self):
++        return None
++
++    def read(self):
++        key, words, why = net_reading(self.host)
++        changed = (key, words, why) != (self.state_key, self.state_words, self.why)
++        self.state_key, self.state_words, self.why = key, words, why
++        self.setText(words)
++        tip = 'NET: %s %s. %s' % (sw.shape(key), words, (why[0].upper() + why[1:] + '.') if why else '')
++        self.setToolTip(tip.strip() + '\nClick: ' + DOOR + '.');self.setAccessibleDescription(self.toolTip())
++        self.setProperty('liveReading', key == 'net_online')
++        if changed:self.updateGeometry();self.update()
++        return changed
++
++    def colour(self):
++        from . import network_qt
++        return network_qt.colour_of(network_qt.SHAPE_COLOUR.get({'net_online': 'online', 'net_offline': 'offline',
++                                                                  'net_fetching': 'fetching'}.get(self.state_key, 'unknown'), 'ERASED_QUIET'))
++
++    def word_room(self):
++        fm = QFontMetrics(self.word_font());return fm.horizontalAdvance(self.state_words) + 6
++
++    def word_font(self):
++        f = QFont(self.key_font);f.setPixelSize(max(12, self.number_font.pixelSize()));return f
++
++    def sizeHint(self):
++        if words_only():return self.words_size()
++        return QSize(self.ring + 8 + self.word_room(), self.ring + 18)
++
++    def minimumSizeHint(self):
++        if words_only():return self.words_size()
++        return QSize(self.ring + 6 + self.word_room(), self.ring + 14)
++
++    # Day: words and numbers, as the other four ("NET ● online"; the shape drawn, not a letter of a font)
++    def words(self):
++        return self.key + ' ', self.state_words, ''
++
++    def words_size(self):
++        fm = QFontMetrics(self.words_font());side = fm.ascent()
++        return QSize(fm.horizontalAdvance(self.key + ' ') + side + fm.horizontalAdvance(' ' + self.state_words) + 4, max(self.ring, fm.height() + 8))
++
++    def words_span(self):
++        fm = QFontMetricsF(self.words_font());side = fm.ascent()
++        total = fm.horizontalAdvance(self.key + ' ') + side + fm.horizontalAdvance(' ' + self.state_words)
++        x = max(0.0, (self.width() - total) / 2.0);return x, x + total
++
++    def paint_words(self, p):
++        c = palette();f = self.words_font();p.setFont(f);fm = QFontMetricsF(f)
++        x = self.words_span()[0];base = (self.height() + fm.ascent() - fm.descent()) / 2.0;side = fm.ascent() * 0.92
++        p.setPen(c['label']);p.drawText(QPointF(x, base), self.key + ' ');x += fm.horizontalAdvance(self.key + ' ')
++        sw.paint(p, QRectF(x, base - fm.ascent() + (fm.ascent() - side) / 2.0 + 1, side, side), self.state_key, self.colour());x += fm.ascent()
++        p.setPen(c['text'] if self.state_key != 'net_unknown' else c['dim']);p.drawText(QPointF(x, base), ' ' + self.state_words)
++
++    def paintEvent(self, event):
++        c = palette();level = glow_level(self) if self.glow else 0.0
++        p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
++        try:
++            if words_only():
++                self.paint_words(p);return
++            key_h = self.key_font.pixelSize() + 3;d = min(float(self.ring), self.height() - key_h - 8.0)
++            above = max(2.0, (self.height() - d - 2.0 - key_h) / 2.0 + 1.0)
++            r = d / 2.0;cx = r + 3.0;cy = above + r;box = QRectF(cx - r, cy - r, d, d)
++            width = max(2.0, d / 10.0);ink = self.colour()
++            p.setPen(QPen(c['rest'], width));p.setBrush(Qt.NoBrush);p.drawEllipse(box.adjusted(width / 2, width / 2, -width / 2, -width / 2))
++            shape = box.adjusted(d * 0.27, d * 0.27, -d * 0.27, -d * 0.27)
++            if level > 0 and self.state_key == 'net_online':
++                p.setPen(Qt.NoPen);p.setBrush(faint(ink, min(0.35, 0.09 * level)));p.drawEllipse(shape.adjusted(-d * 0.1, -d * 0.1, d * 0.1, d * 0.1))
++            sw.paint(p, shape, self.state_key, ink)
++            p.setFont(self.key_font);p.setPen(c['label'] if self.state_key != 'net_unknown' else c['dim'])
++            p.drawText(QRectF(cx - r - 6, cy + r + 2.0, d + 12, key_h), Qt.AlignHCenter | Qt.AlignTop, self.key)
++            x0 = cx + r + 5.0;x1 = self.width() - 2.0
++            f = self.word_font();p.setFont(f);fm = QFontMetricsF(f)
++            if x1 - x0 >= fm.horizontalAdvance(self.state_words):      # the word whole, or not at all (its shape and tip say it)
++                p.setPen(c['text'] if self.state_key != 'net_unknown' else c['dim'])
++                p.drawText(QRectF(x0, cy - fm.height() / 2.0, x1 - x0, fm.height()), Qt.AlignLeft | Qt.AlignVCenter, self.state_words)
++        finally:
++            p.end()
++
++
++def net_card(host, anchor):
++    """NET's card: the state in words with its shape, why, her fetch or her last fetch, and her web reading."""
++    from .meter_cards import MeterCard
++    card = MeterCard(host, 'NET · THE NETWORK')
++    key, words, why = net_reading(host)
++    card.line('%s %s%s' % (sw.shape(key), words, ('. ' + why[0].upper() + why[1:] + '.') if why else '.'))
++    try:
++        from . import network_qt
++        r = network_qt.reading(host, read=False);last = r.get('last') or {}
++        if last.get('host'):
++            card.line(('Her last fetch: %s.' % last['host']) if last.get('ok') else ('Her last fetch from %s did not come: %s.' % (last['host'], last.get('why', ''))), quiet=True)
++        card.line('Search words are only the words you type, shown before they are sent; a page she fetches is read as data.', quiet=True)
++        card.word('Her web reading', lambda: network_qt.show(host), 'What she fetched, kept in quarantine; search words and addresses wait for your press')
++    except Exception:  # noqa: BLE001 - the card says the state alone
++        pass
++    return card
++
++
++def install(monitors):
++    """desktop_header_qt.DesktopMonitors: NET beside CPU GPU RAM TXT (its fifth meter), and host.net_meter."""
++    meter = NetMeter(monitors.host, monitors)
++    monitors.host.net_meter = meter
++    return meter
+diff --git a/workbench/network_qt.py b/workbench/network_qt.py
+index 923344e..7082270 100644
+--- a/workbench/network_qt.py
++++ b/workbench/network_qt.py
+@@ -205,6 +205,10 @@ def place_head(top, x, h, gap, d):
+     """shell2's head placement: the network's word to the left of Apps; returns the x the menus may reach."""
+     word = getattr(top, 'net_word', None)
+     if word is None:return x
++    if getattr(top.host, 'net_meter', None) is not None:      # 1.0 D1: NET at the foot carries the state now (one place)
++        if word.isVisible():word.hide()
++        if word.timer.isActive():word.timer.stop()
++        return x
+     word.scale = min(d.scale, 1.4)
+     tall = max(22, h - 2 * round(8 * min(d.scale, 1.4)));wide = word.need(tall)
+     x -= wide;word.setGeometry(x, (h - tall) // 2, wide, tall);word.show();word.raise_()
+@@ -563,7 +567,8 @@ def install_column(column):
+     """Her column: the network line under the progress line (1.0 K8); her ACTIVE WORK's shape for a step that needs it."""
+     try:
+         from . import her_column_qt
+-        her_column_qt.WORK_LOOK.setdefault(ng.NEEDS, ('⊘', 'STOP'))
++        from . import state_words      # 1.0 D1: a step blocked on the network has the table's blocked shape (⊘ is NET's offline)
++        her_column_qt.WORK_LOOK.setdefault(ng.NEEDS, (state_words.shape('blocked', '⊘'), 'STOP'))
+     except Exception:  # noqa: BLE001
+         pass
+     column.net_line = ColumnLine(column)
+diff --git a/workbench/presentation_preferences.py b/workbench/presentation_preferences.py
+index 9f043db..03e5c84 100644
+--- a/workbench/presentation_preferences.py
++++ b/workbench/presentation_preferences.py
+@@ -8,7 +8,8 @@ LAYOUT_RANGES = {'navigator_width':(160,600), 'output_height':(80,700)}
+ # them (boss_theme.APPEARANCES is this list, with a palette for each) and the session keeps one for the next start; the
+ # session reads the list here, so it never imports the theme.
+ APPEARANCES = (('graphite', 'Graphite'), ('kasandra', 'Kasandra'), ('day', 'Day'))      # 1.0 P2: Day, the light look from the owner's picture
+-APPEARANCE_DEFAULT = 'graphite'
++APPEARANCE_DEFAULT = 'day'          # 1.0 D1: Day (the owner's picture) is the look of a fresh profile (no session file yet)
++APPEARANCE_EARLIER = 'graphite'     # 1.0 D1: a profile from before, with no look of its own saved, keeps the one it has had
+ 
+ 
+ def appearance(value):
+diff --git a/workbench/session.py b/workbench/session.py
+index c10f44e..ccdfddb 100644
+--- a/workbench/session.py
++++ b/workbench/session.py
+@@ -27,7 +27,7 @@ MAX_RECENT = 10
+ from .presentation_preferences import DEFAULTS, OUTPUT_TABS, appearance as saved_appearance
+ SELF_TREE_IDS = {'root', 'interface', 'source', 'clip', 'tools', 'simulator', 'tests', 'settings', 'recovery'}
+ # Desktop fields restored with bounds since INTEGRATION-01 (they were written on every save but never read back).
+-TYPE_TARGETS = ('slate', 'stac', 'kernel', 'find', 'shell', 'web', 'log')   # typebar_qt.MAPPED keys (D3: the four modes and the old targets); Qt-free
++TYPE_TARGETS = ('line', 'slate', 'stac', 'kernel', 'find', 'shell', 'web', 'log')      # 1.0 D1: Line   # typebar_qt.MAPPED keys (D3: the four modes and the old targets); Qt-free
+ LOG_STREAMS = ('events', 'network')                                  # log_qt.STREAMS: the Log view's remembered stream (D3)
+ CONSOLE_PAGES = ('log', 'stac', 'kernel', 'find', 'shell')    # console_qt.MODES keys
+ CONSOLE_HISTORY_LINES = 50                                    # typed console lines kept per page on disk
+@@ -97,6 +97,10 @@ class Session:
+             if self.path.stat().st_size > MAX_FILE:
+                 return
+             data = json.loads(self.path.read_text(encoding='utf-8'))
++        except FileNotFoundError:      # 1.0 D1: a fresh profile: its look is Day (boss_theme read the same), kept from its first save
++            from .presentation_preferences import APPEARANCE_DEFAULT
++            self.state['appearance'] = APPEARANCE_DEFAULT
++            return
+         except (OSError, ValueError, TypeError, RecursionError):      # RecursionError: a value nested past reading (0.8.4)
+             return
+         if not isinstance(data, dict) or data.get('schema') != SCHEMA:
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index f11f396..3626a78 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -1062,7 +1062,7 @@ class KeyedWords(QuietWords):
+ 
+ 
+ # 0.5.3: what the list under the line is, with no key named (the keys work as they did).
+-CAPTIONS = {'slate': named('Your words go to Stacy · a line you type is run by the arrow · / an operation'),
++CAPTIONS = {'line': named('A line runs · words for Stacy are offered to her column · / an operation'),      # 1.0 D1: Line
+             'find': 'Choose a result, or search the whole workspace',
+             'shell': 'Runs in your shell',
+             'log': 'Filters the stream'}
+@@ -1076,14 +1076,14 @@ class OneBox(QLineEdit):
+     def __init__(self, host):
+         super().__init__();self.host = host;self.setObjectName('OneBox')
+         writing_prompt(self, 'Run a line, a command, or search · @ / ? $')
+-        self.setToolTip(named('The one line you type on. The name lit at its left says who the words go to: Stacy, the Terminal, Search, the Web or the Log.'))
+-        self.setAccessibleName('Writing line: Assignment, Shell, Search and Log');self.setClearButtonEnabled(True);self.setMinimumWidth(220)
++        self.setToolTip(named('The one line you type on. The name lit at its left says where the words go: Line, the Terminal, Search, the Web or the Log. Words for Stacy go to her column.'))      # 1.0 D1
++        self.setAccessibleName('Writing line: Line, Terminal, Search, Web and Log');self.setClearButtonEnabled(True);self.setMinimumWidth(220)
+         self.popup = ResultsPopup(host, self);self.textEdited.connect(self.update_results);self.returnPressed.connect(self.popup.activate_current)
+         self._catalog = [];self._catalog_at = 0
+         self.preview_timer = QTimer(self, singleShot=True, interval=350);self.preview_timer.timeout.connect(self.show_preview)
+ 
+     def mode(self):
+-        return getattr(self.host, 'type_target', 'slate')
++        return getattr(self.host, 'type_target', 'line')      # 1.0 D1: Line
+ 
+     def focusInEvent(self, event):
+         super().focusInEvent(event)
+@@ -1120,7 +1120,7 @@ class OneBox(QLineEdit):
+         if page:return page
+         walked = self._walked
+         if walked is not None and walked[0] == self.mode() and walked[2] == text:return walked[1]
+-        if self.mode() == 'slate' and not text.strip():return 'stac'
++        if self.mode() == 'line' and not text.strip():return 'stac'      # 1.0 D1
+         return None
+ 
+     def keyPressEvent(self, event):
+@@ -1131,7 +1131,7 @@ class OneBox(QLineEdit):
+         elif enter and mode == 'log' and bar is not None:bar.log_enter();return
+         if (bar is not None and mode != 'shell' and not self.text() and event.text() in ('@', '/', '?', '$')
+                 and not event.modifiers() & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier)):
+-            jump = {'@': 'slate', '/': 'slate', '?': 'find', '$': 'shell'}[event.text()]
++            jump = {'@': 'line', '/': 'line', '?': 'find', '$': 'shell'}[event.text()]      # 1.0 D1
+             bar.set_target(jump, focus=False)
+             if event.text() in '?$':return  # the mode is chosen; its character is not part of the line
+         console = getattr(self.host, 'console', None);page = self.console_page(self.text()) if console is not None else None
+@@ -1150,11 +1150,11 @@ class OneBox(QLineEdit):
+         text = text.replace('\u200b', '').strip()  # break points copied out of a Graphite bubble
+         if not text or self.mode() == 'log':self.popup.hide();return
+         self.popup.show_results(self.results(text))
+-        if text.startswith('@') and '|' in text and self.mode() == 'slate':self.preview_timer.start()  # a pause in typing runs it once, read-only
++        if text.startswith('@') and '|' in text and self.mode() == 'line':self.preview_timer.start()  # a pause in typing runs it once, read-only (1.0 D1: Line)
+ 
+     def show_preview(self):
+         text = self.text().replace('\u200b', '').strip()
+-        if self.hasFocus() and text.startswith('@') and '|' in text and self.mode() == 'slate':self.popup.show_results(self.results(text, preview=True))
++        if self.hasFocus() and text.startswith('@') and '|' in text and self.mode() == 'line':self.popup.show_results(self.results(text, preview=True))  # 1.0 D1
+ 
+     def catalog(self):
+         """Cataloged files by name, refreshed at most every 15 seconds."""
+@@ -1166,7 +1166,7 @@ class OneBox(QLineEdit):
+     def use_program(self, program):
+         """A staC program that worked before goes into the line, ready for Ctrl+Enter (D3: only Ctrl+Enter runs typed staC)."""
+         bar = getattr(self.host, 'type_bar', None)
+-        if bar is not None:bar.set_target('slate', focus=False)
++        if bar is not None:bar.set_target('line', focus=False)      # 1.0 D1
+         self.setText(program);self.setFocus();self.end(False);self.popup.hide()
+ 
+     def results(self, text, preview=False):
+@@ -1187,6 +1187,9 @@ class OneBox(QLineEdit):
+             rows.append(('section', 'IN THE WORKING AREA', None))
+             rows.append(('stac', word + text, ('Enter', lambda:to_console(self.host, page, text))))
+             return rows
++        if mode == 'line':      # 1.0 D1: Line runs lines; words for her are offered to her column (foot_line)
++            from .foot_line import rows as line_rows
++            return line_rows(self, text, preview)
+         if page == 'stac' or parses_as_stac(text):
+             rows.append(('section', 'A LINE · THE ARROW RUNS IT', None))
+             if preview and text.startswith('@'):rows += preview_rows(self.host, text)
+@@ -1352,7 +1355,7 @@ class ResultsPopup(QFrame):
+         self.hint = hint;self.actions = {}  # D3: the caption says what the keys do in the mode, in the script with its keys printed
+ 
+     def show_results(self, rows):
+-        caption = CAPTIONS.get(getattr(self.host, 'type_target', 'slate'), CAPTIONS['slate'])
++        caption = CAPTIONS.get(getattr(self.host, 'type_target', 'line'), CAPTIONS['line'])      # 1.0 D1
+         if self.hint.note != caption:self.hint.explain(caption)
+         self.list.clear();self.actions = {};first = None
+         for kind, text, extra in rows:
+@@ -3515,6 +3518,8 @@ class Shell2(QObject):
+         install_depths(host)  # 1.0 L4: depths: Board on the breadcrumb, Save and Return, Full program, Close, the line, open files watched
+         from .split_qt import install as install_split
+         install_split(host)  # 1.0 L5: working tabs and the split: two panes, the one in focus drives the tree and her "this"
++        from .centre_one_qt import install as install_one_bar
++        install_one_bar(host)  # 1.0 D1: one centre bar: the breadcrumb row, the bar above the work and the board's head in one
+         from .her_column_qt import install as install_her_column
+         install_her_column(host)  # 1.0 P1: her column as in the owner's picture; the equalizer moves into it, the ask line into the right foot
+         try:  # 1.0 S5: Graphite as the session's notification server (toasts at her column's foot, kept in Log), and the app strip as a dock
+diff --git a/workbench/state_words.py b/workbench/state_words.py
+new file mode 100644
+index 0000000..ed710e6
+--- /dev/null
++++ b/workbench/state_words.py
+@@ -0,0 +1,223 @@
++"""One language of states (Graphite 1.0 D1; the design direction's section 2).
++
++Every state that matters has one word and one shape, the same everywhere (the board's tiles and wires, her column's steps
++and her own state, the "Waits for you" band, the dock, the meters), and a colour only as a third cue:
++
++    state                 shape            word                                  where
++    recorded link         solid line       recorded                              board wires
++    inferred link         dashed line      possible · not verified               board wires
++    current / supported   ■ filled square  CURRENT · SUPPORTED                   tiles, findings
++    archived              — dash           ARCHIVED                              tiles
++    refuted               ⊘                REFUTED                               tiles, findings
++    open question         □ empty square   OPEN                                  tiles
++    verified (done)       ✓                done (verified)                       steps, receipts
++    prepared              ○                prepared                              steps
++    sent, being checked   →                sent                                  steps
++    waits for your word   ◆                NEEDS YOUR WORD                       steps, her state
++    waits for your grant  ◆ with a key     NEEDS YOUR GRANT                      steps, grants
++    needs your review     ◆ with an eye    NEEDS REVIEW                          steps (a dialog seen)
++    blocked               ▭ hollow bar     blocked: <why>                        steps
++    stopped               ▮▮               stopped by you · stopped by HALT      steps, her state
++    held                  ‖                held                                  her work under HALT
++
++and the network's own states (K8), which the foot's NET meter shows: ● online, ⊘ offline, ◌ not known, ⇣ her fetch.
++
++This module is the table and nothing else: it reads no record and changes nothing. Each surface keeps its own words where
++they already say the same thing (an assignment's "waiting for your word" is NEEDS YOUR WORD's own words in a sentence); what
++it draws as a shape comes from here (`shape`, `paint`), so a state never rests on colour alone. Qt is imported only by the
++drawing (`paint`, `Mark`), so the table itself can be read without a window.
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass
++
++
++@dataclass(frozen=True)
++class State:
++    key: str
++    shape: str          # the shape in words: what a line of text shows before the word
++    word: str           # the word, as it is shown
++    mark: str           # how a painted surface draws it (paint)
++    colour: str         # the palette's name for its colour (boss_theme), the third cue
++    where: tuple = ()
++
++
++TABLE = (
++    State('recorded', '━', 'recorded', 'solid', 'LINE_STRONG', ('board wires',)),
++    State('possible', '┄', 'possible · not verified', 'dashed', 'LINE_STRONG', ('board wires',)),
++    State('current', '■', 'CURRENT', 'filled', 'READY', ('tiles', 'findings')),
++    State('supported', '■', 'SUPPORTED', 'filled', 'READY', ('tiles', 'findings')),
++    State('archived', '—', 'ARCHIVED', 'dash', 'QUIET', ('tiles',)),
++    State('refuted', '⊘', 'REFUTED', 'slashed', 'RED', ('tiles', 'findings')),
++    State('open', '□', 'OPEN', 'hollow', 'OWNER', ('tiles',)),
++    State('done', '✓', 'done (verified)', 'check', 'READY', ('steps', 'receipts')),
++    State('prepared', '○', 'prepared', 'ring', 'QUIET', ('steps',)),
++    State('sent', '→', 'sent', 'arrow', 'TEXT', ('steps',)),
++    State('needs_word', '◆', 'NEEDS YOUR WORD', 'diamond', 'OWNER', ('steps', 'her state')),
++    State('needs_grant', '◆', 'NEEDS YOUR GRANT', 'diamond_key', 'OWNER', ('steps', 'grants')),
++    State('needs_review', '◆', 'NEEDS REVIEW', 'diamond_eye', 'OWNER', ('steps',)),
++    State('blocked', '▭', 'blocked', 'bar', 'RED', ('steps',)),
++    State('stopped', '▮▮', 'stopped by you', 'pause', 'QUIET', ('steps', 'her state')),
++    State('stopped_halt', '▮▮', 'stopped by HALT', 'pause', 'RED', ('steps', 'her state')),
++    State('held', '‖', 'held', 'held', 'RED', ('her work under HALT',)),
++    # the network (1.0 K8), as NET says it at the foot and the head said it before
++    State('net_online', '●', 'online', 'dot', 'READY', ('NET',)),
++    State('net_offline', '⊘', 'offline', 'slashed', 'STOP', ('NET',)),
++    State('net_unknown', '◌', 'not known', 'dotted', 'ERASED_QUIET', ('NET',)),
++    State('net_fetching', '⇣', 'Kas: {host}', 'down', 'READY', ('NET',)),
++)
++STATES = {s.key: s for s in TABLE}
++
++# Each surface's own words for a state, read as the table's key. A word that is not here keeps the surface's own shape.
++TILE = {'CURRENT': 'current', 'SUPPORTED': 'supported', 'HOLDS': 'current', 'UP': 'current', 'RUNNING': 'current',
++        'ARCHIVED': 'archived', 'REPLACED': 'archived', 'REFUTED': 'refuted', 'DOES NOT HOLD': 'refuted', 'OPEN': 'open',
++        'UNKNOWN': 'open', 'CANNOT TELL': 'open', 'DEPENDS': 'open'}
++# An assignment's state words (assignments._state_words) and a step's status (assignments.STATUSES).
++STEP = {'done': 'done', 'waiting for your word': 'needs_word', 'proposed': 'needs_word', 'needs your grant': 'needs_grant',
++        'needs review': 'needs_review', 'blocked': 'blocked', 'needs the network': 'blocked', 'stopped by you': 'stopped',
++        'held': 'held', 'interrupted': 'prepared', 'prepared': 'prepared', 'sent': 'sent', 'dispatched': 'sent'}
++# Her own state (her column's head, the dock): her_column_qt.STATES' keys.
++HER = {'awaiting_approval': 'needs_word', 'blocked': 'stopped', 'held': 'held', 'completed': 'done'}
++# The network's kinds (network_qt.kind_of).
++NET = {'online': 'net_online', 'offline': 'net_offline', 'unknown': 'net_unknown', 'fetching': 'net_fetching'}
++
++
++def state(key):
++    return STATES.get(key)
++
++
++def shape(key, default=''):
++    s = STATES.get(key);return s.shape if s is not None else default
++
++
++def word(key, default=''):
++    s = STATES.get(key);return s.word if s is not None else default
++
++
++def said(key, why=''):
++    """The shape and the word together, as a line of text shows them ("◆ NEEDS YOUR GRANT", "▭ blocked: needs the network")."""
++    s = STATES.get(key)
++    if s is None:return why
++    if key == 'blocked' and why:return '%s blocked: %s' % (s.shape, why)
++    return '%s %s' % (s.shape, s.word)
++
++
++def of_tile(word_):
++    """A tile's or a finding's state word (KIND • STATE) as the table's key, or ''."""
++    return TILE.get(str(word_ or '').strip().upper(), '')
++
++
++def of_step(words):
++    """An assignment's or a step's state words as the table's key, or ''."""
++    words = str(words or '').strip().lower()
++    if words.startswith('needs your grant'):return 'needs_grant'
++    if words.startswith('blocked') or words.startswith('needs the network'):return 'blocked'
++    return STEP.get(words, '')
++
++
++def of_her(state_):
++    """Her state (her column's head, the dock) as the table's key, or '' where her own word stands (QUIET, WORKING)."""
++    return HER.get(str(state_ or ''), '')
++
++
++def colour_of(key, palette=None):
++    """The state's colour in the look in force (the third cue only)."""
++    s = STATES.get(key)
++    if palette is None:
++        from . import boss_theme as palette
++    if s is None:return getattr(palette, 'TEXT', '#000000')
++    return getattr(palette, s.colour, getattr(palette, 'TEXT', '#000000'))
++
++
++# ---------------------------------------------------------------------------------------------------------------- drawing
++def paint(p, rect, key_or_mark, colour, width=None):
++    """Draw a state's shape in rect (a QRectF) with this colour: the same shape on every surface. key_or_mark is a key of the
++    table or one of its marks. Returns False when there is nothing to draw for it."""
++    from PySide6.QtCore import QPointF, QRectF, Qt
++    from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen, QPolygonF
++    s = STATES.get(key_or_mark);mark = s.mark if s is not None else str(key_or_mark or '')
++    c = QColor(colour);r = QRectF(rect);side = min(r.width(), r.height())
++    box = QRectF(r.center().x() - side / 2, r.center().y() - side / 2, side, side)
++    w = width or max(1.3, side / 7.5)
++    p.save();p.setRenderHint(QPainter.Antialiasing, True)
++    pen = QPen(c, w);pen.setCapStyle(Qt.RoundCap);pen.setJoinStyle(Qt.RoundJoin);p.setPen(pen);p.setBrush(Qt.NoBrush)
++    inner = box.adjusted(w / 2, w / 2, -w / 2, -w / 2)
++    try:
++        if mark == 'filled':
++            p.setPen(Qt.NoPen);p.setBrush(c);p.drawRect(inner)
++        elif mark == 'hollow':
++            p.drawRect(inner)
++        elif mark == 'dash':
++            p.drawLine(QPointF(inner.left(), inner.center().y()), QPointF(inner.right(), inner.center().y()))
++        elif mark == 'slashed':
++            p.drawEllipse(inner);d = inner.width() * 0.35
++            p.drawLine(QPointF(inner.center().x() - d, inner.center().y() + d), QPointF(inner.center().x() + d, inner.center().y() - d))
++        elif mark == 'check':
++            path = QPainterPath();path.moveTo(inner.left(), inner.center().y());path.lineTo(inner.left() + inner.width() * 0.38, inner.bottom())
++            path.lineTo(inner.right(), inner.top());p.drawPath(path)
++        elif mark == 'ring':
++            p.drawEllipse(inner)
++        elif mark == 'dot':
++            p.setPen(Qt.NoPen);p.setBrush(c);p.drawEllipse(inner.adjusted(side * 0.1, side * 0.1, -side * 0.1, -side * 0.1))
++        elif mark == 'dotted':
++            dotted = QPen(c, w);dotted.setStyle(Qt.DotLine);p.setPen(dotted);p.drawEllipse(inner.adjusted(side * 0.06, side * 0.06, -side * 0.06, -side * 0.06))
++        elif mark in ('arrow', 'down'):
++            y = inner.center().y();x = inner.center().x()
++            if mark == 'arrow':
++                p.drawLine(QPointF(inner.left(), y), QPointF(inner.right(), y))
++                p.drawPolyline(QPolygonF([QPointF(inner.right() - side * 0.32, y - side * 0.3), QPointF(inner.right(), y), QPointF(inner.right() - side * 0.32, y + side * 0.3)]))
++            else:
++                p.drawLine(QPointF(x, inner.top()), QPointF(x, inner.bottom()))
++                p.drawPolyline(QPolygonF([QPointF(x - side * 0.3, inner.bottom() - side * 0.32), QPointF(x, inner.bottom()), QPointF(x + side * 0.3, inner.bottom() - side * 0.32)]))
++        elif mark.startswith('diamond'):
++            cx, cy = inner.center().x(), inner.center().y();h = inner.width() / 2
++            diamond = QPolygonF([QPointF(cx, cy - h), QPointF(cx + h, cy), QPointF(cx, cy + h), QPointF(cx - h, cy)])
++            if mark == 'diamond':
++                p.setPen(Qt.NoPen);p.setBrush(c);p.drawPolygon(diamond)
++            else:      # the diamond's outline with what it waits for inside: a key (a grant) or an eye (a review)
++                p.drawPolygon(diamond);thin = QPen(c, max(1.0, w * 0.8));thin.setCapStyle(Qt.RoundCap);p.setPen(thin)
++                if mark == 'diamond_key':
++                    ring = h * 0.28;p.drawEllipse(QPointF(cx - h * 0.22, cy), ring, ring)
++                    p.drawLine(QPointF(cx - h * 0.22 + ring, cy), QPointF(cx + h * 0.42, cy))
++                    p.drawLine(QPointF(cx + h * 0.3, cy), QPointF(cx + h * 0.3, cy + h * 0.22))
++                else:
++                    eye = QPainterPath();eye.moveTo(cx - h * 0.5, cy);eye.quadTo(cx, cy - h * 0.42, cx + h * 0.5, cy)
++                    eye.quadTo(cx, cy + h * 0.42, cx - h * 0.5, cy);p.drawPath(eye)
++                    p.setPen(Qt.NoPen);p.setBrush(c);p.drawEllipse(QPointF(cx, cy), h * 0.14, h * 0.14)
++        elif mark == 'bar':
++            p.drawRect(QRectF(inner.left(), inner.center().y() - inner.height() * 0.22, inner.width(), inner.height() * 0.44))
++        elif mark in ('pause', 'held'):
++            p.setPen(Qt.NoPen);p.setBrush(c);bw = inner.width() * (0.26 if mark == 'pause' else 0.14)
++            for x in (inner.left() + inner.width() * 0.18, inner.right() - inner.width() * 0.18 - bw):
++                p.drawRect(QRectF(x, inner.top(), bw, inner.height()))
++        elif mark in ('solid', 'dashed'):
++            line = QPen(c, w);line.setCapStyle(Qt.FlatCap)
++            if mark == 'dashed':line.setStyle(Qt.CustomDashLine);line.setDashPattern([3, 2.5])
++            p.setPen(line);p.drawLine(QPointF(r.left(), r.center().y()), QPointF(r.right(), r.center().y()))
++        else:
++            return False
++        return True
++    finally:
++        p.restore()
++
++
++def Mark(key, colour=None, side=14, parent=None):
++    """A small widget that draws one state's shape (her column's band, a legend); its tip and name are the state's word."""
++    from PySide6.QtCore import QRectF, QSize
++    from PySide6.QtGui import QPainter
++    from PySide6.QtWidgets import QWidget
++
++    class _Mark(QWidget):
++        def __init__(self):
++            super().__init__(parent);self.key = key;self.colour = colour;self.setFixedSize(QSize(side, side))
++            self.setAccessibleName(word(key, key));self.setToolTip(word(key, key))
++
++        def set(self, key_, colour_=None):
++            if (key_, colour_) == (self.key, self.colour):return
++            self.key = key_;self.colour = colour_;self.setAccessibleName(word(key_, key_));self.setToolTip(word(key_, key_));self.update()
++
++        def paintEvent(self, event):
++            p = QPainter(self)
++            try:paint(p, QRectF(1, 1, self.width() - 2, self.height() - 2), self.key, self.colour or colour_of(self.key))
++            finally:p.end()
++    return _Mark()
+diff --git a/workbench/system_dock_qt.py b/workbench/system_dock_qt.py
+index 6f1e05f..2b4fd59 100644
+--- a/workbench/system_dock_qt.py
++++ b/workbench/system_dock_qt.py
+@@ -161,9 +161,19 @@ class GraphiteEntry(QAbstractButton):
+         self.setAccessibleName('Graphite: bring Graphite\'s window forward')
+         self.setToolTip('Graphite\nPress to bring Graphite\'s window forward.')
+ 
++    def her_state(self):
++        """1.0 D1: what her state says when it needs you (the one table: ◆ NEEDS YOUR WORD, ‖ held, ▮▮ stopped by you), else
++        None: so an app in front still shows that something waits in Graphite."""
++        from . import state_words as sw
++        column = getattr(self.dock.host, 'her_column', None)
++        key = sw.of_her(getattr(column, 'shown_state', '')) if column is not None else ''
++        return key if key in ('needs_word', 'held', 'stopped') else None
++
+     def natural(self, h):
+         fm = QFontMetrics(self.font())
+-        return h + fm.horizontalAdvance('▸ Graphite') + 24
++        key = self.her_state()      # 1.0 D1
++        from . import state_words as sw
++        return h + fm.horizontalAdvance('▸ Graphite') + 24 + ((h // 2 + 6 + fm.horizontalAdvance(sw.word(key)) + 8) if key else 0)
+ 
+     def sizeHint(self):
+         return QSize(self.natural(30), 30)
+@@ -181,6 +191,14 @@ class GraphiteEntry(QAbstractButton):
+         mark_icon(px).paint(p, QRect(x, (h - px) // 2, px, px));x += px + 6
+         p.setPen(QColor(bt.TEXT if self.active or self.underMouse() else bt.QUIET))
+         p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, 'Graphite')
++        key = self.her_state()      # 1.0 D1: her state when it needs you, its shape and its word (state_words)
++        if key:
++            from PySide6.QtCore import QRectF
++            from . import state_words as sw
++            x += fm.horizontalAdvance('Graphite') + 10;side = max(10, h // 2 - 2)
++            sw.paint(p, QRectF(x, (h - side) / 2.0, side, side), key, sw.colour_of(key));x += side + 5
++            p.setPen(QColor(sw.colour_of(key)));p.drawText(QRect(x, 0, max(0, w - x), h - 2), Qt.AlignLeft | Qt.AlignVCenter, sw.word(key))
++            self.setToolTip('Graphite: %s\nPress to bring Graphite\'s window forward.' % sw.said(key))
+         if self.active:p.fillRect(0, h - 2, w, 2, QColor(bt.FOCUS))
+         p.fillRect(w - 1, round(h * 0.22), 1, round(h * 0.56), QColor(bt.LINE_MID))
+         p.end()
+diff --git a/workbench/typebar_qt.py b/workbench/typebar_qt.py
+index e69fe8b..811e5e3 100644
+--- a/workbench/typebar_qt.py
++++ b/workbench/typebar_qt.py
+@@ -1,13 +1,14 @@
+-"""The desk's lower writing band and its four input modes.
++"""The desk's lower writing band and its five input modes.
+ 
+-Assistant gives ordinary language to staC on Enter. Ctrl+Enter sends typed
+-staC through the console. Prefix `explain` to preview a plan. A leading slash
+-selects a Kernel operation. Terminal uses the account's configured shell.
+-Search opens workspace results. Log filters the Events or Network stream.
++1.0 D1 (the owner, 26 Nov 2026: "Bottom left no longer need a kasandra option, because that exists already in the right
++Kasandra column"): the chooser reads Line · Terminal · Search · Web · Log, Line the default. Line runs a Graphite line, an
++operation by name (a leading slash) or opens an address; words that read as a request to her are not run: the line offers
++Ask Kasandra →, which moves them into her column's ask line (foot_line). Ctrl+Enter still runs typed staC through the
++console. Prefix `explain` to preview a plan. Terminal uses the account's configured shell. Search opens workspace results.
++Log filters the Events or Network stream.
+ 
+-Assistant, Terminal, and Log have visible controls. Ctrl+K and a leading `?`
+-open Search. The saved mode keys also preserve older targets and histories.
+-The active mode supplies the field's accessible hint. `prompt` is the placeholder.
++Ctrl+K and a leading `?` open Search. The saved mode keys also preserve older targets and histories ('slate', 'stac' and
++'kernel' are Line now). The active mode supplies the field's accessible hint. `prompt` is the placeholder.
+ """
+ from __future__ import annotations
+ from . import boss_theme as _bt
+@@ -23,28 +24,29 @@ STREAMS_WORDS = (('events', 'Events'), ('network', 'Network'))  # log_qt.STREAMS
+ # I'm typing to ... terminal console open, communication with the assistant, a log, system log, network log, web
+ # search, system search, URL". All five stand to the left of the line now, by name: Stacy, Terminal, Search, Web, Log.
+ # (Search was reached only by a key or a leading ?; Web is new.) An address typed in any of them goes to Web by itself.
+-MODES = (('slate', 'Assistant'), ('shell', 'Terminal'), ('find', 'Search'), ('web', 'Web'), ('log', 'Log'))
++# 1.0 D1: Line in Kasandra's place (her name stays everywhere else; she is spoken to in her column only).
++MODES = (('line', 'Line'), ('shell', 'Terminal'), ('find', 'Search'), ('web', 'Web'), ('log', 'Log'))
+ TARGETS = MODES                                   # Preserve the mode keys used by existing callers.
+-PRIMARY_TARGETS = ('slate', 'shell', 'find', 'web', 'log')
+-SHOWN = {'slate': named('Stacy')}                        # the word on the strip where it is not the mode's own label
++PRIMARY_TARGETS = ('line', 'shell', 'find', 'web', 'log')
++SHOWN = {}                                        # the word on the strip where it is not the mode's own label (1.0 D1: none)
+ WEB_SEARCH = 'https://duckduckgo.com/?q='         # where words typed to Web are searched for: in the owner's own browser
+ ADDRESS_STARTS = ('http://', 'https://', 'www.')
+ # Endings that are a file's far more often than a site's: a bare name ending so is words, not an address.
+ FILE_ENDINGS = frozenset('txt md pdf py gd json csv tsv png jpg jpeg gif svg zip tar gz log sh c h cpp rs go js ts html htm css xml yml yaml toml ini cfg doc docx odt ods xls xlsx ppt tscn godot wav mp3 mp4'.split())
+ QUIET_TARGETS = ()                                # Find and Kernel were the quiet words; Kernel's home is Commands now
+-MAPPED = {'slate': 'slate', 'stac': 'slate', 'kernel': 'slate', 'shell': 'shell', 'find': 'find', 'web': 'web', 'log': 'log'}  # old targets -> modes
+-CONSOLE_PAGE = {'slate': 'stac', 'shell': 'shell', 'find': 'find', 'log': 'log'}  # the working area's page for each mode
++MAPPED = {'line': 'line', 'slate': 'line', 'stac': 'line', 'kernel': 'line', 'shell': 'shell', 'find': 'find', 'web': 'web', 'log': 'log'}  # old targets -> modes (1.0 D1: Line)
++CONSOLE_PAGE = {'line': 'stac', 'shell': 'shell', 'find': 'find', 'log': 'log'}  # the working area's page for each mode
+ JUMPS = {'@': 'stac', '/': 'kernel', '?': 'find', '$': 'shell'}  # a first character typed into an empty line
+ # 0.5.3: the hints say what to type and name no key (the owner, 13 November 2026: no key printed anywhere; every key still works).
+-HINTS = {'slate': 'ask in your own words, or type a line and the arrow runs it  ·  / runs an operation by name',
++HINTS = {'line': 'a line, an operation by name after /, or an address  ·  words for Kasandra are offered to her column',      # 1.0 D1
+          'kernel': 'an operation by name: ' + 'files.list path=Slate  ·  help copies.review  ·  ops agenda',  # the example: an operation's real argument
+          'find': 'files and their words, the cabinet, settings, commands and the Timeline',
+          'shell': 'a command, in your Files folder',
+          'web': 'an address to open, or words to search for, in your own browser',
+          'log': "words in Graphite's events"}
+-SENDS = {'slate': named('Ask Stacy'), 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
++SENDS = {'line': 'Run this line', 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
+ READS = ('stac', 'inspect', 'word')      # what the line can be read as that the arrow runs itself, instead of asking
+-TIPS = {'slate': named('Stacy: ask in your own words, or type a line yourself'),
++TIPS = {'line': named('Line: a Graphite line, an operation by name, or an address. Words for Stacy are offered to her column, never run here.'),
+         'shell': 'Terminal: type to Debian through your configured shell, in your Files folder',
+         'find': 'Search: files and their words across the workspace',
+         'web': 'Web: an address is opened, and words are searched for, in this computer’s own browser. Graphite itself fetches nothing.',
+@@ -95,7 +97,7 @@ def fit_secondary(widths, room):
+ 
+ def destination_hint(key, word=None, hint=None):
+     """Combine the mode label with its instructions or the supplied detail."""
+-    mode = MAPPED.get(key, 'slate')
++    mode = MAPPED.get(key, 'line')
+     hint_key = 'kernel' if key == 'kernel' else mode
+     return (word or SHOWN.get(mode, dict(TARGETS)[mode])) + ' · ' + (hint or HINTS[hint_key])
+ 
+@@ -237,7 +239,7 @@ class TypeBar(QWidget):
+         if _bt.APPEARANCE in ('kasandra', 'day'):self.send.setProperty('paperIcon', True)      # keep its own ink: menus2 would make it one grey (1.0 P2: Day's white arrow on green)
+         self.send.setFocusPolicy(Qt.TabFocus)
+         self.send.setAccessibleName('Submit writing line')
+-        self.send.setToolTip(SENDS['slate'])
++        self.send.setToolTip(SENDS['line'])
+         self.send.clicked.connect(self.submit_line)
+         self.expand = ExpandButton(self)      # 0.7.0: the room above the line, opened and closed from the line itself
+         # The context word (CM01): the active work context, in quiet lettering at the right end of the line.
+@@ -252,10 +254,10 @@ class TypeBar(QWidget):
+         self.targets = {}
+         for key, _ in TARGETS:
+             label = self.labels[key]
+-            word = SHOWN.get(key, label)       # 0.5.3: names alone (they were "Assistant", "[>_] Terminal", "[=] Log")
++            word = SHOWN.get(key, label)       # 0.5.3: names alone; 1.0 D1: Line, Terminal, Search, Web, Log
+             b = button(word, 'filter');b.setParent(self.right);b.setCheckable(True);b.clicked.connect(lambda checked=False, k=key:self.set_target(k))
+             b.setToolTip(TIPS[key] + ('' if key != 'shell' else ' (%s)' % self.shell));self.targets[key] = b;self.words[b] = word;InkWord.install(b)
+-            b.setAccessibleName('Writing line mode: ' + label);b.setProperty('arcPrimary', True);b.setProperty('hers', key == 'slate')
++            b.setAccessibleName('Writing line mode: ' + label);b.setProperty('arcPrimary', True);b.setProperty('hers', False)      # 1.0 D1: none of them is hers
+         self.hatch.hide()
+         for control in console.sizes.values():control.hide()
+         for key, control in self.targets.items():
+@@ -269,7 +271,14 @@ class TypeBar(QWidget):
+         self.pane_owner = None;self.owner = {};self._requested = None;self.message = ''
+         box.textChanged.connect(self.typed)
+         state = host.session.state.get('type_target') if hasattr(host, 'session') else None
+-        self.set_target(MAPPED.get(state, 'slate'), focus=False)  # the remembered target, an old one mapped to its mode
++        self.ask_offer = None      # 1.0 D1: Ask Kasandra →, at the line's right end while the words are hers
++        try:
++            ask = button(named('Ask Stacy →'), 'filter');ask.setParent(box);ask.setObjectName('TypeAskOffer');ask.setCursor(Qt.PointingHandCursor)
++            ask.setFocusPolicy(Qt.TabFocus);ask.setToolTip(named('These words read as words for Stacy: this gives them to her column, where she plans or answers. Nothing is run here.'))
++            ask.setAccessibleName(named('Ask Stacy: give these words to her column'));ask.clicked.connect(self.ask_kasandra);ask.hide();self.ask_offer = ask
++        except Exception:  # noqa: BLE001 - the list under the line still offers it
++            self.ask_offer = None
++        self.set_target(MAPPED.get(state, 'line'), focus=False)  # the remembered target, an old one mapped to its mode
+         self.timer = QTimer(self, interval=500);self.timer.timeout.connect(self.align);self.timer.start()
+ 
+     def sizeHint(self):return QSize(800, 60)
+@@ -280,14 +289,14 @@ class TypeBar(QWidget):
+         """Choose a mode (an old target maps to its mode: MAPPED). kernel is Commands ▸ Run an operation…: Assignment with the
+         / lead in the line. The working area shows the mode's page (CONSOLE_PAGE: Assignment the console's answers, Shell its
+         output, Search its results, Log the Log view); choosing a mode never opens or closes it."""
+-        mode = MAPPED.get(key, 'slate');changed = mode != getattr(self, 'target', None)
++        mode = MAPPED.get(key, 'line');changed = mode != getattr(self, 'target', None)
+         self.target = mode;self.host.type_target = mode
+         for k, b in self.targets.items():
+             if b.isChecked() != (k == mode):b.setChecked(k == mode)      # 0.5.3: Search has its own name on the strip; Stacy's no longer stands for it
+             b.setAccessibleDescription('Current mode' if k == mode else '')
+         if hasattr(self.host, 'session'):self.host.session.state['type_target'] = mode
+         page = CONSOLE_PAGE.get(mode)      # Web has no page above the line: what it opens is in the browser
+-        if page is not None and self.console.mode != page and not (mode == 'slate' and self.console.mode in ('stac', 'kernel')):self.console.set_mode(page)
++        if page is not None and self.console.mode != page and not (mode == 'line' and self.console.mode in ('stac', 'kernel')):self.console.set_mode(page)
+         if changed:
+             popup = getattr(self.box, 'popup', None)
+             if popup is not None:popup.hide()
+@@ -322,7 +331,7 @@ class TypeBar(QWidget):
+         view = getattr(self.host, 'log_view', None)
+         if self.target == 'log' and view is not None:hint = destination_hint('log', 'Log · ' + dict(STREAMS_WORDS).get(view.stream, ''), view.hint())
+         elif self.target == 'shell':hint = destination_hint('shell', self.labels['shell'], HINTS['shell'] + ' (' + self.shell + ')')
+-        else:hint = destination_hint('kernel' if kernel or (self.target == 'slate' and self.box.text().startswith('/')) else self.target)
++        else:hint = destination_hint('kernel' if kernel or (self.target == 'line' and self.box.text().startswith('/')) else self.target)
+         writing_prompt(self.box, hint)
+ 
+     @staticmethod
+@@ -373,17 +382,17 @@ class TypeBar(QWidget):
+         return went
+ 
+     def typed(self, text):
+-        """Update the Assistant hint and work context as the line changes."""
++        """Update Line's hint and work context as the line changes."""
+         # (0.5.3 switched to Web as soon as the line began with an address. Another reader showed what that did: a sentence
+         # for Stacy that begins with an address was sent to a search engine. The name that is lit is never changed by
+         # typing now; a line that is nothing but one address is opened when it is entered: eventFilter.)
+         if self.target == 'web':
+             popup = getattr(self.box, 'popup', None)
+             if popup is not None and popup.isVisible():popup.hide()
+-        if self.target == 'slate':self.mode_hint();self.refresh_context()
++        if self.target == 'line':self.mode_hint();self.refresh_context()
+ 
+     def ctrl_enter(self):
+-        """Ctrl+Enter sends Assistant's staC commands and explain previews to the console.
++        """Ctrl+Enter sends Line's staC commands and explain previews to the console.
+         A line led by / ? or $ runs on its page as Enter does.
+         Log: in the Network stream a capture with the line's filter (log_qt.LogView.start_capture, the owner's own action,
+         confirmed first), in Events the filter. True when it was handled."""
+@@ -395,7 +404,7 @@ class TypeBar(QWidget):
+             if view.stream == 'network':view.start_capture(text)
+             else:view.apply_filter(text)
+             self.refresh_context();return True
+-        if self.target != 'slate':return False
++        if self.target != 'line':return False
+         if not text:return True
+         try:                                  # the owner's own words, then `this` (the sheet selected in the Field): written out here, so what runs is what shows
+             from .field_page import expand_this
+@@ -421,21 +430,37 @@ class TypeBar(QWidget):
+         self.refresh_context()
+ 
+     def submit_line(self):
+-        """The arrow at the line's end. It does what its tip says: opens an address, filters the Log, and with Stacy chosen
+-        it runs a line that reads as staC (as Ctrl+Enter does) and gives any other line to her (as Enter does)."""
+-        if self.target == 'web' or (self.target in ('slate', 'find') and TypeBar.plain_address(self.box.text())):
++        """The arrow at the line's end. It does what its tip says: opens an address, filters the Log, and in Line it runs a
++        line that reads as staC or an operation by name (as Ctrl+Enter does); words for her are not run: it is Ask Kasandra →
++        (1.0 D1), which gives them to her column."""
++        if self.target == 'web' or (self.target in ('line', 'find') and TypeBar.plain_address(self.box.text())):
+             self.open_web(self.box.text())
+         elif self.target == 'log':
+             self.log_enter()
+-        elif self.target == 'slate' and getattr(self, 'context_kind', None) in READS and self.box.text().strip():
++        elif self.target == 'line' and self.box.text().strip() and (getattr(self, 'context_kind', None) in READS or self.box.console_page(self.box.text())):
+             self.ctrl_enter()
++        elif self.target == 'line' and self.box.text().strip():
++            self.ask_kasandra()      # 1.0 D1
+         elif self.box.text().strip():
+             self.box.returnPressed.emit()
+ 
++    def ask_kasandra(self):
++        """1.0 D1, Ask Kasandra →: the words typed here move into her column's ask line and are sent there (foot_line)."""
++        from .foot_line import ask_kasandra, GIVEN
++        text = self.box.text();popup = getattr(self.box, 'popup', None)
++        if not text.strip():return False
++        if popup is not None:popup.hide()
++        if ask_kasandra(self.host, text):
++            self.box.clear()
++            if callable(getattr(self, 'note', None)):self.note(GIVEN)
++            return True
++        return False
++
+     def send_says(self):
+         """The arrow's tip and colour: green while the line reads as staC and the arrow would run it, amber otherwise."""
+-        reads = self.target == 'slate' and getattr(self, 'context_kind', None) in READS
+-        tip = {'stac': 'Run this line', 'inspect': 'Show this plan', 'word': 'Do this to your words'}[self.context_kind] if reads else SENDS.get(self.target, SENDS['slate'])
++        reads = self.target == 'line' and getattr(self, 'context_kind', None) in READS
++        tip = {'stac': 'Run this line', 'inspect': 'Show this plan', 'word': 'Do this to your words'}[self.context_kind] if reads else SENDS.get(self.target, SENDS['line'])
++        if self.target == 'line' and getattr(self, 'context_kind', None) == 'hers':tip = named('Ask Stacy →: give these words to her column')      # 1.0 D1
+         if self.send.toolTip() != tip:self.send.setToolTip(tip);self.send.setAccessibleDescription(tip)
+         if bool(self.send.property('reads')) != reads:
+             self.send.setProperty('reads', reads);self.send.style().unpolish(self.send);self.send.style().polish(self.send);self.send.update()
+@@ -678,7 +703,7 @@ class TypeBar(QWidget):
+         kind, words = 'context', None
+         view = getattr(self.host, 'log_view', None)
+         if getattr(self, 'target', None) in ('find', 'web'):kind, words = 'context', ''
+-        elif getattr(self, 'target', None) == 'slate':
++        elif getattr(self, 'target', None) == 'line':
+             written = self.box.text()
+             try:
+                 from .field_page import expand_this
+@@ -689,13 +714,19 @@ class TypeBar(QWidget):
+             words = {'stac': 'runs as a line', 'inspect': 'a plan to look at'}.get(kind)
+             if written.startswith(('/words.keep ', '/words.forget ')):      # a line about the owner's own words: it changes them, and says so
+                 kind, words = 'word', 'keeps this word' if written.startswith('/words.keep ') else 'forgets this word'
++            elif self.box.text().strip():      # 1.0 D1: not a line (or K4's objective): words for her, offered to her column
++                try:
++                    from .foot_line import reading
++                    if reading(self.host, self.box.text()) == 'hers':kind, words = 'hers', ''
++                except Exception:  # noqa: BLE001 - the context word stays
++                    pass
+         elif getattr(self, 'target', None) == 'log' and view is not None:
+             filtered = view.filters.get(view.stream, '')
+             kind, words = 'log', view.summary() if self.console.size_level == 0 else (('filter · ' + filtered) if filtered else '')
+         if words is None:words = self.context_words()
+         if (kind, words) != (getattr(self, 'context_kind', None), self.context_text):
+             self.context_text = words;self.context_kind = kind
+-            tip = {'stac': named('This reads as a line: the arrow runs it. To ask Stacy about it instead, say it in your own words.'),
++            tip = {'stac': named('This reads as a line: the arrow runs it. Ask Stacy → in the list under the line gives it to her column instead.'),
+                    'inspect': 'The arrow shows this plan without running it. Remove explain when you are ready to run it.',
+                    'log': 'Log: ' + words + '\nThe stream above the line; Half or Tall shows it.' if words else 'Log'}.get(kind)
+             self.context.setToolTip(tip or (('Active work context: ' + words + '\n' if words else '') + 'The selected cabinet record, else the current workspace.'))
+@@ -706,8 +737,19 @@ class TypeBar(QWidget):
+ 
+     def place_context(self):
+         """The context word takes at most a third of the line (260 px at the default size), elided in the middle, clear of the
+-        line's own clear button; typed text keeps a right margin so it never runs under the word."""
++        line's own clear button; typed text keeps a right margin so it never runs under the word. 1.0 D1: while the words
++        are hers, Ask Kasandra → stands there instead (a press)."""
+         box = self.box;words = self.context_text;fm = self.context.fontMetrics();clear = 30
++        offer = getattr(self, 'ask_offer', None)
++        if offer is not None:
++            hers = getattr(self, 'target', None) == 'line' and getattr(self, 'context_kind', None) == 'hers' and bool(box.text().strip())
++            if hers:
++                offer.adjustSize();h = max(10, box.height() - 6);w = offer.sizeHint().width() + 8
++                offer.setFixedSize(w, h);offer.move(box.width() - w - clear, 3);offer.show();offer.raise_()
++                if self.context.isVisible():self.context.hide()
++                if box.textMargins().right() != w + clear - 4:box.setTextMargins(0, 0, w + clear - 4, 0)
++                return
++            if offer.isVisible():offer.hide()
+         from .shell2 import scale_of
+         room = min(round(260 * scale_of(self.host)), box.width() // 3) if getattr(self, 'context_kind', None) != 'log' else box.width() // 2  # Log's summary: half
+         text = fm.elidedText('· ' + words, Qt.ElideMiddle, room) if words else ''
+@@ -725,8 +767,8 @@ class TypeBar(QWidget):
+         if watched is self.box and event.type() == QEvent.KeyPress and event.key() in (Qt.Key_Return, Qt.Key_Enter) and not (event.modifiers() & Qt.ControlModifier):
+             if self.target == 'web':
+                 self.open_web(self.box.text());return True      # Web: Enter opens it in the browser
+-            if self.target in ('slate', 'find') and TypeBar.plain_address(self.box.text()):
+-                self.open_web(self.box.text());return True      # with Stacy or Search lit, a line that is one address and nothing else is opened; words stay with whom they were typed to
++            if self.target in ('line', 'find') and TypeBar.plain_address(self.box.text()):
++                self.open_web(self.box.text());return True      # with Line (1.0 D1) or Search lit, a line that is one address and nothing else is opened; words stay with whom they were typed to
+         if watched is self.box and event.type() == QEvent.Resize:self.place_context()
+         if watched is self.box and event.type() in (QEvent.FocusIn, QEvent.FocusOut):self.update()      # the lit edge comes and goes with the keyboard
+         return super().eventFilter(watched, event)
+diff --git a/workbench/waits_qt.py b/workbench/waits_qt.py
+new file mode 100644
+index 0000000..483ee5f
+--- /dev/null
++++ b/workbench/waits_qt.py
+@@ -0,0 +1,196 @@
++"""“Waits for you”: the band at the top of her column, under her hologram (Graphite 1.0 D1; the design direction's section 4).
++
++Her column orders by what needs you. Under her hologram, her name and her state word, this band appears only when something
++waits for you, and each thing in it has its one press:
++
++    ◆ NEEDS YOUR WORD     a step of an assignment proposed and not yet authorised: "Authorise step n" (assignment.plan with
++                          that step's name and the plan's digest, your press)
++    ◆ NEEDS YOUR GRANT    a step that stopped for a grant (K3): the grant in plain words, exactly as it would be given, and
++                          "Grant this for this assignment" (grant.give, then the assignment carries on)
++    ◆ NEEDS REVIEW        a step whose effect was not verified, or a dialog seen in a program while it ran (K7): what it saw,
++                          and "Review it" (its steps and journal, in the exchange)
++    ◆ NEEDS YOUR WORD     her one question (0.8.7 B4), when a request of yours waits on it: "Answer it" (her card in the
++                          exchange, with its choices)
++
++The shapes are state_words' (◆, ◆ with a key, ◆ with an eye), so what waits never rests on colour. What is here is said only
++here: NEXT STEPS no longer repeats an Authorise or a grant, and the grants' fold keeps only its "GRANTS [n] · see them".
++When space is short (1366x768) the exchange gives way first and findings fold; this band never folds.
++
++Every press is the owner's and goes through the same call her column always made (HerColumn.take_step, show_journal);
++nothing here writes a record by being shown. No key is named in any of its words.
++"""
++from __future__ import annotations
++
++import re
++
++from PySide6.QtCore import Qt
++from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
++
++from . import boss_theme as bt
++from . import state_words as sw
++from .her_column_qt import heading, ink, plain, px, row_label, small_button
++
++MOST = 3                # at most this many rows; the rest are counted (they stand in ACTIVE WORK too)
++WORDS = {'head': 'WAITS FOR YOU', 'head_count': 'WAITS FOR YOU [{count}]', 'more': 'and {count} more in ACTIVE WORK',
++         'grant': 'Grant this for this assignment', 'review': 'Review it', 'answer': 'Answer it',
++         'grant_words': 'It asks to {words}. Nothing was sent.', 'question': 'Her question: {words}',
++         'no_model': 'No model is loaded. She still reads the records, checks the desk and plans from it. Her model is added in the Brain room → Add file.',
++         'brain_room': 'Brain room'}
++
++
++def items(column):
++    """What waits for you now, in the order it is shown: (state key, title, words, press words, press, tip)."""
++    out = []
++    for row in getattr(column, 'rows', None) or ():
++        title = plain(row.get('title') or '');words_ = str(row.get('state_words') or '');line = plain(row.get('line') or '')
++        actions = list(row.get('actions') or ())
++        grant = next((a for a in actions if a.get('operation') == 'grant.give'), None)
++        authorise = next((a for a in actions if str(a.get('words') or '').startswith('Authorise')), None)
++        if grant is not None:
++            said = plain(grant.get('grant_words') or '')
++            if column.compact():said = re.sub(r' \(“[^”]*”\)', '', said)
++            out.append(('needs_grant', title, WORDS['grant_words'].format(words=said) if said else line, WORDS['grant'],
++                        lambda r=row, a=grant: column.take_step({'kind': 'assignment', 'call': a, 'title': plain(r.get('title') or '')}),
++                        'Your press: gives exactly the grant in these words, for this assignment only, and carries on. What always asks still asks.'))
++        elif words_ == 'needs review':
++            short = line.replace(' needs review: ', ': ', 1) if line.startswith('Step ') else line
++            out.append(('needs_review', title, short if len(short) <= 220 else short[:219] + '…', WORDS['review'],
++                        lambda r=row: column.show_journal(r['id']), 'Its steps and its journal, in the exchange: what it did and what it saw'))
++        elif authorise is not None:
++            out.append(('needs_word', title, line, str(authorise.get('words')),
++                        lambda r=row, a=authorise: column.take_step({'kind': 'assignment', 'call': a, 'title': plain(r.get('title') or '')}),
++                        '%s of “%s”: your press. Nothing runs until you give it.' % (authorise.get('words'), title)))
++    question = her_question(column.host)
++    if question:
++        out.append(('needs_word', '', WORDS['question'].format(words=question), WORDS['answer'], lambda: show_question(column),
++                    'Her one question, in the exchange with its choices: your answer, or Leave it'))
++    return out
++
++
++def her_question(host):
++    """The words of her one question when a request of yours waits on it, else ''. Reads her hand as it is; never makes it."""
++    hand = getattr(host, 'her_hand', None);turn = getattr(hand, 'turn', None) if hand is not None else None
++    question = getattr(turn, 'question', None) if turn is not None else None
++    if question is None or getattr(turn, 'answered', False) or getattr(turn, 'state', '') == 'finished':return ''
++    return plain(str(getattr(question, 'words', '') or ''))[:200]
++
++
++def show_question(column):
++    """Answer it: her exchange in front, at its newest turn, where the card with the choices stands."""
++    try:
++        shell = column.host.shell2
++        if column.host.console_pages.currentWidget() is not column.face:shell.show_slate_face()
++        bar = column.face.scroll.verticalScrollBar();bar.setValue(bar.maximum())
++    except Exception:  # noqa: BLE001
++        pass
++
++
++class WaitRow(QFrame):
++    """One thing that waits: its shape and word, what it is about, its words, its one press."""
++
++    def __init__(self, band):
++        super().__init__();self.band = band;host = band.column.host;self.press_fn = None
++        self.setObjectName('HerWaitRow')
++        self.setStyleSheet('QFrame#HerWaitRow {border:1px solid %s;border-left:3px solid %s;border-radius:4px;background:transparent;}' % (bt.LINE_MID, bt.OWNER))
++        box = QVBoxLayout(self);box.setContentsMargins(px(host, 8), px(host, 3), px(host, 6), px(host, 4));box.setSpacing(px(host, 2))
++        top = QHBoxLayout();top.setSpacing(px(host, 5))
++        self.mark = sw.Mark('needs_word', bt.OWNER, px(host, 13));top.addWidget(self.mark, 0, Qt.AlignVCenter)
++        self.word = ink(QLabel(), px(host, 11), bt.OWNER, 600, bt.MONO, 'letter-spacing:1px;')
++        self.title = row_label(host, '', quiet=True, size=12)
++        top.addWidget(self.word);top.addWidget(self.title, 10);box.addLayout(top)
++        self.words = QLabel();self.words.setWordWrap(True);self.words.setTextFormat(Qt.PlainText)
++        ink(self.words, px(host, 12), bt.TEXT, None, bt.FACE);self.words.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++        box.addWidget(self.words)
++        row = QHBoxLayout();row.setSpacing(px(host, 6))
++        self.press = small_button(host, '', '', primary=True);self.press.setObjectName('HerWaitPress')
++        self.press.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed);self.press.clicked.connect(self.pressed)
++        row.addWidget(self.press);row.addStretch(1);box.addLayout(row)
++
++    def show_item(self, item, compact):
++        key, title, words, press, fn, tip = item
++        self.mark.set(key, bt.OWNER);self.word.setText(sw.word(key))
++        self.title.setText(title);self.title.setVisible(bool(title) and not compact)
++        self.words.setText(words);self.words.setVisible(bool(words));self.words.setAccessibleName(words)
++        if self.press.text() != press:self.press.setText(press);self.press.adjustSize()
++        self.press.setToolTip(tip);self.press_fn = fn
++        self.setAccessibleName('%s: %s. %s' % (sw.word(key), title, words))
++
++    def pressed(self):
++        fn = self.press_fn
++        if fn is None:return
++        fn();self.band.column.refresh(force=True)
++
++
++class WaitsBand(QWidget):
++    """The band: a heading and up to MOST rows; hidden when nothing waits."""
++
++    def __init__(self, column):
++        super().__init__();self.column = column;host = column.host;self.setObjectName('HerWaits');self.shown = []
++        box = QVBoxLayout(self);box.setContentsMargins(0, 0, 0, 0);box.setSpacing(px(host, 3))
++        self.head = heading(host, WORDS['head']);self.head.setStyleSheet(self.head.styleSheet() + 'color:%s;' % bt.OWNER)
++        box.addWidget(self.head)
++        self.list = QVBoxLayout();self.list.setSpacing(px(host, 3));box.addLayout(self.list);self.rows = []
++        self.more = row_label(host, '', quiet=True, size=12);box.addWidget(self.more);self.more.hide()
++        self.hide()
++
++    def refresh(self):
++        try:found = items(self.column)
++        except Exception:  # noqa: BLE001 - the column is whole without the band
++            found = []
++        self.shown = found;compact = self.column.compact()
++        while len(self.rows) < min(len(found), MOST):
++            row = WaitRow(self);self.rows.append(row);self.list.addWidget(row)
++        for i, row in enumerate(self.rows):
++            if i < min(len(found), MOST):row.show_item(found[i], compact);row.show()
++            else:row.hide()
++        hidden = max(0, len(found) - MOST)
++        self.more.setText(WORDS['more'].format(count=hidden) if hidden else '');self.more.setVisible(bool(hidden))
++        self.head.setText(WORDS['head_count'].format(count=len(found)) if len(found) > 1 else WORDS['head'])
++        self.setVisible(bool(found))
++        no_model = getattr(self.column, 'no_model', None)
++        if no_model is not None:no_model.refresh()
++        return found
++
++    def describe(self):
++        return [(sw.word(k), t, w, p) for k, t, w, p, _, _ in self.shown]
++
++
++class NoModel(QWidget):
++    """Her column with no model (the design direction's section 7): what she can still do, and where her model is added."""
++
++    def __init__(self, column):
++        super().__init__();self.column = column;host = column.host;self.setObjectName('HerNoModel')
++        row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(px(host, 6))
++        self.words = QLabel(WORDS['no_model']);self.words.setWordWrap(True);self.words.setTextFormat(Qt.PlainText)
++        ink(self.words, px(host, 12), bt.QUIET, None, bt.FACE);self.words.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++        self.words.setAccessibleName(WORDS['no_model']);row.addWidget(self.words, 1)
++        self.room = small_button(host, WORDS['brain_room'], 'The Brain room: Add file there adds her model (a file on this computer); nothing is downloaded')
++        self.room.setObjectName('HerNoModelRoom');self.room.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed);self.room.clicked.connect(self.open_room)
++        row.addWidget(self.room, 0, Qt.AlignTop);self.hide()
++
++    def refresh(self):
++        said = str(getattr(self.column.host, '_status_brain', '') or '')
++        ready = said.startswith('ready')
++        known = bool(said) and said != 'unknown'      # said once the brain's state has been read, never before
++        self.setVisible(known and not ready)
++
++    def open_room(self):
++        try:
++            from .shell2 import open_destination
++            open_destination(self.column.host, 'slate')
++        except Exception:  # noqa: BLE001
++            pass
++
++
++def install(column, outer):
++    """her_column_qt.HerColumn.rebuild: the band right under her head (her hologram, name and state); under it, with no model,
++    what she can still do (NoModel)."""
++    band = WaitsBand(column);outer.addWidget(band)
++    column.no_model = NoModel(column);outer.addWidget(column.no_model)
++    return band
++
++
++def carried(column, action):
++    """Whether NEXT STEPS should leave this assignment press to the band (it is said in one place)."""
++    if getattr(column, 'waits', None) is None:return False
++    return action.get('operation') == 'grant.give' or str(action.get('words') or '').startswith('Authorise')
