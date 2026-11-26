@@ -525,6 +525,39 @@ programs open (polite close). Kas's language parts run once with the real 4B und
 what is small and clearly broken in place and lists the rest, ranked, for D2 and F2. Not a test suite: a walkthrough,
 like X1, by the owner's rule.
 
+**X4 · Power-user sessions** (the owner, 26 Nov: "Double the casual user deep scenarios to power user situations").
+X3's method, applied to twelve deeper sessions by someone who uses the whole system: the everyday Home grown to a busy
+one (200+ files in Downloads, a desk of 300+ records beside Rail Demo, two drives), in the Day look, under Xvfb with
+the stand-in window manager. Each session has frames and a plain account.
+1. **Lines and the Terminal:** chain a line, keep it, run it again on another folder; maths in a line on the budget
+   (money exact); the same work in Terminal with a real shell; every output in Log.
+2. **Search everything:** the Search tab across Home's files, the desk's records and the Log; open a hit in place;
+   narrow it; come back to it.
+3. **Bulk files:** select many, move a pattern's worth with a line, Undo the whole move as one; delete 50, restore 3
+   from DELETE.
+4. **Three assignments at once** under different grants: one waits for a grant, granted from "Waits for you"; a grant
+   revoked mid-run; one stopped; HALT holds all; RESUME restarts nothing by itself.
+5. **Split and recheck:** the specification left, the worksheet right; a value changed; the dependants marked; TRACE a
+   finding back to its cells; CHECK ALL.
+6. **A utility in the sandbox:** a job no tool fits (dedupe photos by content and rename them by date); Kas drafts the
+   utility; its code read; run sealed on copies; applied only when asked; Undo.
+7. **Her hand across two programs:** a table from Calc into a Writer report under grants; a dialog that needs review;
+   a touch stops her; both windows put back.
+8. **The network, adversarial:** a fetched page carrying a line aimed at an assistant (withheld, outlined); the
+   network dropped mid-fetch, so the step reads "blocked: needs the network"; search words only from typed words.
+9. **Crash and resume:** the window killed mid-assignment; the supervisor brings it back; programs stay open; the
+   journal resumes without repeating a step; a suspend (stand-in) in the middle.
+10. **The board at scale:** relevance, Pin, Turn down, Why am I shown?; ten hops back and forward; tabs; the longest
+    stall reported.
+11. **Her model:** the Brain room; the model check's tuning sweep on the 4B; the measured settings applied, then Undo;
+    HALT during a model turn; the model removed, so she says what she can still do.
+12. **The machine under load:** two screens, extend and mirror, with the timed revert; default programs by type; a
+    drive ejected while a file on it is open (refused, naming the program); Log out with unsaved work in LibreOffice
+    (asked politely, never killed); one whole pass by keyboard alone, the focus always visible.
+Kas's language parts run once with the real 4B under the model lock. Runs after F1 and F2 are merged, so it walks
+their work. Small, clear fixes are made in place; the rest is ranked for D2 and the coordinator. A walkthrough, not a
+test suite, by the owner's rule.
+
 **D2 · The polish pass** (after every feature slice, before X1): every surface in three looks at two sizes, fixed in
 place to the design direction; a frame atlas for the owner.
 

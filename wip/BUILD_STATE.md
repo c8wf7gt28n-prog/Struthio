@@ -256,6 +256,11 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 14:30 (the owner: "Double the casual user deep scenarios to power user situations"): **X4 added**, twelve
+  power-user sessions beside X3's twelve casual ones. They cover: lines and Terminal, search everything, bulk files,
+  three assignments under grants, split and recheck, a sandbox utility, her hand across two programs, the network
+  adversarial, crash and resume, the board at scale, her model, and the machine under load with a keyboard-only pass.
+  It runs after F1 and F2 are merged, so it walks their work. Written into PLAN_1.0 §5 after X3.
 - 26 Nov 13:10 (the owner: "No kas avatar anymore"): **no picture of Kas anywhere on screen in 1.0, in any look.** Her
   column's top is the equalizer across its full width, then her name, her model and her state word with its shape. Gone
   from the screen: P3's hologram, the left pane's 0.8.3 hologram, the art stills by state, the BOSS plates of her, and
@@ -371,6 +376,9 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 14:30 UTC: The owner asked for power-user scenarios: **X4** written into the plan (twelve sessions). Queue:
+  M2 at the next free slot; X4 once F1 and F2 are merged; then D2, X1, X2, R1, R2. 40 slices.
 
 - 26 Nov 14:20 UTC: **1.0 L6b merged** (f709d77: Home's files, whole. A Home file opens in its program and its saves
   become revisions, watched and found again by inode. The tree has Rename, Move to, Delete (to the system's own
