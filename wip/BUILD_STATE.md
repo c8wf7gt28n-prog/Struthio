@@ -382,6 +382,10 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 17:42 UTC: **D2 launched early** (the polish pass, agent a9d3552b50ed7df22), while X3 and X4 still run, so that
+  two slots are not idle. It has every earlier note. X3's and X4's "for D2" lists go to it by message as they land;
+  conflicts with their in-place fixes are reconciled at merge. Running: X3, X4, D2. Queue: X1 after D2; R2 last.
+
 - 26 Nov 17:42 UTC: **1.0 F2b merged** (reads beside her writes in WAL mode; the old path for writes and non-WAL. The
   longest Day stall is 109-129 ms at 1920 and 101-116 ms at 1366, from 154-248; none waits on her writes now; the
   rest is the window's own work: the board's build on a click and her NEXT STEPS. K1 smoke 30/30. A 0.8.x running
