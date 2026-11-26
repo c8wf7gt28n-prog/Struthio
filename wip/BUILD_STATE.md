@@ -377,6 +377,21 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 12:42 UTC: **1.0 R1 merged** (75e46f9: the 1.0 System set, 136 Debian 13 amd64 packages (42.9 MB) added
+  to 0.8.x's 396. The 14 planned names are unchanged. Added for a no-recommends install: libpam-systemd, wpasupplicant,
+  wireless-regdb, eject, librsvg2-common and the ALSA UCM/topology files. LibreOffice stays 25.2.3 deb13u9. Each deb
+  was checked against the signed lists. PREPARE_DEBIAN.sh now never downgrades (0.8.7's preview would have downgraded
+  11 to 32 packages and failed), shows apt's reasons, and asks for a fresh login. Smoke 15/15, apt simulation only).
+  The kit files are in `wip/build_tools/kit_1.0/` (OFFLINE_FILES.json and DEBIAN_USB.sha256 with 540 entries,
+  INSTALL_GRAPHITE.sh, the start-page section, SYSTEM_SET_1.0.json). **The 136 debs are only in scratch**
+  (`$S/work/b100/R1/debs_new/`); if scratch is lost, re-fetch them from SYSTEM_SET_1.0.json before R2. R2's cut must
+  take the inventory from kit_1.0 and zip the new debs (each under 15 MB). Findings: a ThinkPad updated online
+  (LibreOffice included) can't take the set's Writer: the preview says so, and the start page gives the online
+  command. The 0.8.x set needs a recent 13.x medium. The owned Calc sessions (native_sessions, gen) and her hidden
+  LibreOffice (svp) expose nothing to accessibility; X4 was told. **X2 launched** (the guide and docs/ACCEPTANCE_1.0.md;
+  F2 and M2 left as marked blocks for the coordinator; agent a5009ce9a06b60407). Running: F2, X3, M2, X2. Queue: X4
+  after F2; D2; X1; R2. 40 slices: 31 merged, P5 cancelled.
+
 - 26 Nov 12:16 UTC: **1.0 F1 merged** (75b07a8: a touch stops her; Stop puts the window back. hand_door.py holds one
   stop rule for a program window (K9) and Graphite's own window. A touch pauses her between acts. Stop restores the
   focus, selection, cursor and scroll, and closes her open menu with Escape, one level at a time. HALT holds her with
