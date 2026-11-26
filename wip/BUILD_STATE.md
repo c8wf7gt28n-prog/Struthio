@@ -382,6 +382,10 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 17:11 UTC: Hourly wake-up while X3, X4 and F2b run: carry on. D2's brief drafted (`$S/work/briefs/100_D2.md`)
+  with every note left for it (P4, D1, F2, the coordinator's), to launch once X3, X4 and F2b are merged; it will take
+  their "for D2" lists. X4 was waiting on a permission prompt the owner must answer.
+
 - 26 Nov 16:46 UTC: **1.0 M1b merged** (her model's address-space room; the Brain room and the model check say before
   loading whether she fits; the tuned rates reach her clock, console runs included. Live 4B: loaded under a cap near
   its estimate, primed, a PLAN turn in 4.5 s). The cap decision is above. X4 waits on a permission prompt the owner
