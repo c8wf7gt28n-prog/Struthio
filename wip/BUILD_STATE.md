@@ -302,6 +302,13 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 03:45 UTC: **1.0 S3 merged** (fd378a7: the window list through libX11, the strip under the head; smoke under
+  Xvfb with a stand-in window manager). Its notes: the strip is hidden when a program covers Graphite (added to S5: the
+  strip as a dock window with a strut; S5 also gets S1's leave-flow warning and polite closes); this container lacks the
+  xcb libraries Qt needs to draw on X (the builder extracted them to `$S/work/b100/S3/xcblibs` for LD_LIBRARY_PATH;
+  INSTALL_DEBIAN.sh already lists libxcb-cursor0 for the ThinkPad). **P2 launched** (the Day look, and HALT's button
+  with a minimal `workbench/halt.py` that K3 extends; agent adb0323a28c03f24b). Running: L4, S4, P2.
+
 - 26 Nov 03:20 UTC: **Wave 2 merged.** S2 (e9bfda4: Apps from what is installed, Open with, defaults; smoke 45/45),
   L2 (3344797: the bulletin board; smoke all OK in both looks), P1 (74660b4: her column as in the picture; smoke 58/58;
   a real conflict in shell2's install lines resolved by keeping both). Coordinator frames of the board and her column

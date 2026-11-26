@@ -280,7 +280,11 @@ appears, mounts, ejects; the battery reads; Wi-Fi lists two networks; with no se
 over QtDBus: Notify, CloseNotification, GetCapabilities, the signals), shown quietly (a line in her column's foot or a
 toast that never steals focus, kept in Log); the session starts a polkit agent (lxpolkit) so system prompts are
 answerable; the Settings tree on real settings (default programs from S2, sound and screens and network and power from
-S4, the session from S1, Graphite's own). *Acceptance:* `notify-send`-shaped D-Bus calls appear and are kept in Log;
+S4, the session from S1, Graphite's own). **The strip as a dock** (found by S3): the program-window strip and a
+"Graphite" entry live in a slim window of their own of the dock type with a strut (_NET_WM_WINDOW_TYPE_DOCK,
+_NET_WM_STRUT_PARTIAL), so it stays visible above every program and one press always brings Graphite back; programs
+are placed below it. **The leave flow** (found by S1) warns which programs are open before Return to Debian, Log out,
+Restart or Shut down, and closes them politely (S3's close) before the session ends. *Acceptance:* `notify-send`-shaped D-Bus calls appear and are kept in Log;
 the Settings tree's rows reach the S2/S4 functions.
 
 **P2 · The Day look.** A third appearance from the owner's picture (section 3): the light palette, HALT upper left, the
