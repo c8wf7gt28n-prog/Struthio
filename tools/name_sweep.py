@@ -80,7 +80,9 @@ KEYS_KEPT = (
     ('Arrow keys move, Z selects, X returns, and Enter leaves a game.', 'a console game is played with keys: there is nothing to click in their place'),
 )
 # The pages Guide opens in the program (Getting Started, Installation Guide): what they say is read on screen.
-GUIDE_PAGES = ('GETTING_STARTED.md', 'docs/WORKSHOP.md')
+GUIDE_PAGES = ('GETTING_STARTED.md', 'docs/WORKSHOP.md',
+               'docs/GUIDE_LIVING_DESKTOP.md', 'docs/GUIDE_KASANDRA.md', 'docs/KAS_MIND_EVENING.md',
+               'docs/ACCEPTANCE_1.0.md')      # 1.0 X2: the Guide's pages (the acceptance page joined when its F2 block was filled)
 
 # name -> (what must not be read, why). A word here is a whole word: 'stack' and 'Stacy' are not the language's name.
 NEVER = {'language': (re.compile(r'\bstac\b', re.I), 'the language is never named on screen: a pipeline is "a line"'),

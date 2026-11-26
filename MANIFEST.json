@@ -14,8 +14,8 @@
       "sha256": "a6d99f372c01dc9ef4d3f7a782fcabc44afd309afc9a7e29f2d59a733547958d"
     },
     "GETTING_STARTED.md": {
-      "bytes": 4970,
-      "sha256": "7a84def43b7a2977c63a9730a59cdf3541081202d8651b3cfa6aee029dcf10b2"
+      "bytes": 5268,
+      "sha256": "ffbb8f41b008f37e214f11730b1aa1685d89abcc20855a0b37e90281bf98fa8f"
     },
     "HATCH_CHECK.sh": {
       "bytes": 181,
@@ -1037,6 +1037,10 @@
       "bytes": 14033,
       "sha256": "0b8f95fd2c9737236dbc6fb8c13c55f56920d4e0222516405b09d165369f01f6"
     },
+    "docs/ACCEPTANCE_1.0.md": {
+      "bytes": 19953,
+      "sha256": "157129fdbe301db9df792e9c02c6992eebb06f957bee793db2402245e5b58afd"
+    },
     "docs/ACTIONS_01/actions01-registry-comparison.json": {
       "bytes": 341,
       "sha256": "99ac5a8e41fa16ec22d427eaa532d459a223d088a905bd9b515cdbbba08f78f7"
@@ -1321,6 +1325,14 @@
       "bytes": 147608,
       "sha256": "018160616182715170db4a2912157c8ace02c35e0fb9c5a3e4f8911f08a2177e"
     },
+    "docs/GUIDE_KASANDRA.md": {
+      "bytes": 11520,
+      "sha256": "a5d6dd7ec453dfe664324ae7043848e92cd548cdd90ad44f34f8549addc5187a"
+    },
+    "docs/GUIDE_LIVING_DESKTOP.md": {
+      "bytes": 12163,
+      "sha256": "3ebd9c5fe6c065e62148e9585a7172f665295c1f5c4ec8e7eca197cdb9d0018b"
+    },
     "docs/HATCH_ACTIONS_01.md": {
       "bytes": 5345,
       "sha256": "8a1984ac6d7819b8fdc83b7327e446277f37f2ae87efbcf4b6bd71cd6d2137d0"
@@ -1458,8 +1470,8 @@
       "sha256": "e3e570d62ad080bcf7b9997e60ececda137c168cbafb0f5e0733fe76925064b6"
     },
     "docs/KAS_MIND_EVENING.md": {
-      "bytes": 5642,
-      "sha256": "7642341b6e912adf622da5e1c0c1db655e5e29b32e0d933f3a2fe6bedf9d8463"
+      "bytes": 6072,
+      "sha256": "b7ba776cda2dbf939022ba97ed62131b4cfe82a726eb1827503ab1e3d2d8ee22"
     },
     "docs/LEDGER_SLATE_COMPLETE_PROJECT_SPEC_01.md": {
       "bytes": 67197,
@@ -1846,8 +1858,8 @@
       "sha256": "20ad18f8e9d0b4133c4d6784e94cc9798008be093ea93b3ce147aa294b5907a4"
     },
     "docs/THINKPAD_FIRST_INSTALL.md": {
-      "bytes": 11443,
-      "sha256": "09ed0e2ffb0f9ab59c9647fdffc8eb6daed7bf05f14047f8c4f96a599184de7e"
+      "bytes": 14733,
+      "sha256": "7789f080778625a15aa1cc7f55956963451e169c6ea6871bc5741e53da7a4bbd"
     },
     "docs/THINKPAD_VULKAN_P05.md": {
       "bytes": 8880,
@@ -2259,7 +2271,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 2094543,
-      "sha256": "c84c81334083e3e8d3902766d89bca092c918b94f96191cf254d6bd0fcd06cd0"
+      "sha256": "707719460fd79023fed49b592a2044e038435b9ef3172eb7715fec7339379421"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4743168,
@@ -2267,7 +2279,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "bdc032b90764e3640a82bedc0de439f66e06996b6c864c8c481a500eaa77aa9b"
+      "sha256": "e53fac3b83aaefcc841e2e29babade01bceda3aefdb993f98ec42bd5da56240b"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3138,8 +3150,8 @@
       "sha256": "3d0a5e6b3eff828dd4cafe584b72aaba5070c185d6003d8ca39bc24450c7f030"
     },
     "tests_integrated/test_one_name.py": {
-      "bytes": 27724,
-      "sha256": "3d6ea3e76bad9d4c947d552cdd4e5c30ac98a179de7b7b6fa67ad434a4ba988d"
+      "bytes": 27775,
+      "sha256": "c8aadb3a7b1068a70455ed0244aefd67941daad978650c8e1eb93c77a9b68aea"
     },
     "tests_integrated/test_operations.py": {
       "bytes": 13624,
@@ -3482,8 +3494,8 @@
       "sha256": "07fb02e804a821f260ed7b1f31688b5591a17d22d655f2f51c47abc1b8126d9b"
     },
     "tools/name_sweep.py": {
-      "bytes": 28686,
-      "sha256": "bed980a41868db593459a0f9e7ff1e461bf29a2b035cba2d26b84eb5a57171f1"
+      "bytes": 28919,
+      "sha256": "8f0834b18db876e9bfd121a70f7b649cfbfe632e6bf6c1bf68f056dd358b2bd9"
     },
     "tools/package_graphite.py": {
       "bytes": 11390,
@@ -4313,6 +4325,10 @@
       "bytes": 32124,
       "sha256": "2c6648d13109aeabee9680c908379c7aa60fdb95675575f03f8940edbc4b8229"
     },
+    "workbench/guide_pages.py": {
+      "bytes": 2146,
+      "sha256": "79ecfd2cf2035b0a6bb9c5f5c543e8bda966fdd2be5184aedabfe5726b9fc1fe"
+    },
     "workbench/halt.py": {
       "bytes": 8000,
       "sha256": "e1e5af837994d053b36721208985563ddd0496f851eef7addbf910178f06149f"
@@ -4782,8 +4798,8 @@
       "sha256": "c4d36d645d196c69911f6310b049eae942b6d166ebbfcf5789af4c87a12be0b2"
     },
     "workbench/menus2.py": {
-      "bytes": 25691,
-      "sha256": "1229d6753eaae01a3963b22cc8fc6a498f8570f03bd2393324840110a319da73"
+      "bytes": 26166,
+      "sha256": "705bad1a5d339e5a22e81a279b9a0ca7c156216611a9cb8c47e0a2e13fcb210d"
     },
     "workbench/meter_cards.py": {
       "bytes": 9149,

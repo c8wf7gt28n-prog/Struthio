@@ -1,0 +1,991 @@
+diff --git a/GETTING_STARTED.md b/GETTING_STARTED.md
+index 5dfb47e..9d9d6b8 100644
+--- a/GETTING_STARTED.md
++++ b/GETTING_STARTED.md
+@@ -1,60 +1,65 @@
+-# Getting started with Graphite 0.1
++# Getting started with Graphite 1.0
+ 
+-Graphite is the workspace and its AI under one name (before November 6, 2026: Ledger & Slate; folders, scripts and settings
+-keys keep the earlier names). This page is the first ten minutes. The daily guide (docs/DAILY_GUIDE.md) is the fuller
+-tour; the README says how to install, start, back up and check.
++Graphite is the whole desktop and its assistant, Kasandra (Kas), under one name (before November 6, 2026: Ledger & Slate;
++folders, scripts and settings keys keep the earlier names). This page is the first ten minutes. Guide ▸ The Living Desktop
++is the tour of the window, Guide ▸ Kasandra, the Ghost in the Shell is hers, and Guide ▸ Your First Evening with 1.0 is the
++acceptance evening on the ThinkPad.
++
++*Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on the ThinkPad
++yet. The first real proof is that evening.*
+ 
+ ## Install and start
+ 
+-1. Install into a new folder and keep your previous program and every workspace: `python3 INSTALL_LS.py --usb . --target
+-   "$HOME/Applications/Graphite_0.1" --minimal-session --yes` from the release volumes, or `bash INSTALL_DEBIAN.sh --quick`
+-   in an extracted folder (it asks before sudo; `bash INSTALL_LEDGER.sh --quick` when the prerequisites are already there).
+-   Add `--math` for exact maths and the office round trip.
+-2. Close any earlier program and make a complete backup before opening an existing workspace (`bash LEDGER.sh backup create
+-   --root ~/Concern/Office --out ~/Graphite-backups/office`; restore always writes new folders).
+-3. Start: `bash START_MINIMAL_DEBIAN.sh` from a text login (the dedicated fullscreen session), or `bash START_OFFICE.sh`
+-   from an existing desktop.
++1. On the ThinkPad, from the kit: the Debian packages first, as root (`bash INSTALL_GRAPHITE.sh --plan` to preview, then
++   `bash INSTALL_GRAPHITE.sh --system`), log out and log in again, then `bash INSTALL_GRAPHITE.sh` from your ordinary
++   account. Graphite always installs into a new folder; your earlier folders and every workspace stay as they are.
++   docs/THINKPAD_FIRST_INSTALL.md has the details, and docs/ACCEPTANCE_1.0.md the evening.
++2. Make a complete backup before opening an existing workspace in a new version (`bash LEDGER.sh backup create --root
++   ~/Concern/Office --out ~/Graphite-backups/office`; restore always writes new folders).
++3. Start: `bash START_MINIMAL_DEBIAN.sh` from a text login (the dedicated session, where Graphite is the whole desktop), or
++   `bash START_OFFICE.sh` from another desktop.
+ 
+ ## The first ten minutes
+ 
+-1. The window has five parts: the left column (Cabinet · Machine · Settings), the centre where the work opens, the right
+-   column (Operations and Graphite's face), the head (Graphite, the menu words, the CPU · GPU · RAM · TXT readings
+-   and the pale Graphite symbol, the System menu: Game, then Stop all jobs), and the typing strip at the bottom.
+-2. With nothing open the centre is the Finder: choose Today, a disk under Machine or a project folder on the left and the
+-   centre lists it. It looks and opens; it never changes files.
+-3. Drop a few files into `~/Concern/Office/Ingress` (or onto the Office) and receive them; Today counts what arrived.
+-4. Apps, at the upper right (in Kasandra's look, her kp logo there), opens the list of apps. Documents in the list opens a page: write, select
+-   words and ask Kasandra in the strip, `make these words bold`. Saying `undo` in the strip takes any change back.
+-5. On a page with quantities ask `add up the numbers on this page`: Graphite works it as an assignment you can watch, pause,
+-   resume and stop under its face.
+-6. A local model is optional. Menu → Configuration → Local model opens the Brain room; the daily guide names the small file
+-   to fetch.
+-
+-## Working copies, Changes and continuing work
+-
+-- Arrange → Changes: choose a project folder or ZIP, review the import list and accept its working copy. Edit or stage files
+-  or cells and freeze a proposal. Apply to the copy first; updating originals is a separate preview and owner action (close
+-  other programs writing those originals). Changes → Export working copy as new ZIP keeps a reviewed configuration; ZIP
+-  originals are never overwritten, and the copy and original have separate undo histories.
+-- Arrange → Continuing work: select an assignment and a profiled working copy delegated to Graphite, prepare a text read or
+-  draft, freeze the plan, review its calls and budgets, and authorize it once. If you include working-copy application, that
+-  exact application is part of the grant; publishing originals stays a separate Changes action. A finished result waits for
+-  review. Pause and revoke are always there; after Stop all jobs, resume global work explicitly and inspect or resume the
+-  affected order.
+-- Protected checks, parsers and model drafts stay paused until their actual worker profile qualifies
+-  (`bash INSTALL_DEBIAN.sh --workers`, then Continuing work → Worker protection, or `python3 -m workbench.continuing_checks
+-  --workers`). Unavailable isolation is a refusal, not a pass.
+-- Arrange → Exchange & deployment holds paired requests and results, offline release preview and inert launch files. Verify
+-  both full TLS-card fingerprints before pairing; returned edits are staged in Changes and reviewed. Use Offline updates
+-  only after confirming the real UTC clock and bootstrapping a publisher root yourself; no production publisher key is
+-  included. docs/STAGE6.md explains pairing, interruption, trust, clock rules and update recovery.
+-- Project Desk → Problem sheet keeps a durable question, explicit unknowns and the receipts of real source reads; Calculate
++1. **The window.** HALT upper left; the menus across the head (Work, Revise, Tools, Arrange, Commands, Rules, Properties,
++   Guide); Apps ⊕ upper right. On the left the tabs Files, Machine and Settings, with DELETE at their foot; the board in the
++   centre; Kasandra's column on the right; at the foot Line · Terminal · Search · Web · Log, the writing line and the meters
++   CPU GPU RAM TXT NET. In the dedicated session a slim dock across the top holds Graphite and your app windows.
++2. **Files** starts at "This computer /" with Home open. Select a file and it becomes the focus of the board, with what it
++   is connected to around it: solid wires are recorded, dashed ones only possible and "not verified". A double-click opens
++   it in the centre; use Save and Return to come back to the same board.
++3. **Apps** lists what is installed on this computer. Open one: its window appears in the dock, and one press there brings
++   it forward. Right-click a file for Open with.
++4. **The Machine tab** reads the computer itself: USB drives (eject safely), the battery, the network and Wi-Fi, sound and
++   screens. Where a service is missing it says so, and why.
++5. **Ask Kasandra in her column**: the ask line at the foot of her column, with its send arrow. With no model she answers
++   what your records can answer and plans from them; words typed in Line at the foot are offered to her with Ask
++   Kasandra →. Every change of hers waits for your word or a grant you gave, and is done only when it is verified.
++6. **Try Rail Demo** (Guide ▸ Try Rail Demo): an invented 12 V rail, built in a new folder of its own and opened in a
++   window of its own. Nothing of it reaches your workspace.
++7. **Her model is optional.** The Brain room (the GPU meter's card at the foot) ▸ Add file. The ThinkPad page names the
++   file and its checksum.
++8. **HALT** stops all of her work at once and nothing else; it reads RESUME while held, and RESUME restarts nothing by
++   itself.
++9. **Leaving:** the session group at the foot of the Work menu reads Lock, Suspend, Log out, Restart, Shut down, Return to
++   Debian. Before you leave, Graphite names the apps still open and asks each to close politely.
++
++## The older rooms, still there
++
++- Arrange ▸ Changes: a reviewed working copy of a project folder or ZIP; changes apply to the copy first, and updating the
++  originals is a separate preview and your own action. ZIP originals are never overwritten.
++- Arrange ▸ Continuing work: an assignment delegated to Graphite on a profiled working copy, under a plan you review and
++  authorise once; pause and revoke are always there. After Stop all jobs, resume global work explicitly.
++- Arrange ▸ Exchange & deployment: paired requests and results, offline release preview and inert launch files
++  (docs/STAGE6.md explains pairing, interruption, trust, clock rules and update recovery).
++- Project Desk ▸ Problem sheet: a durable question, explicit unknowns and the receipts of real source reads; Calculate
+   there gives exact units and bounded symbolic and constraint tools (docs/INTEGRATED_I01.md and docs/INTEGRATED_I02.md).
++- Arrange ▸ Field: the whole desk as sheets with what feeds what (the board's Whole desk shows it too).
+ 
+ ## Checking the installation
+ 
+ `python3 tools/check_release.py` (with the installed Python, `.venv/bin/python`, when installed there) verifies the payload,
+ the seed and the live program against the recorded Graphite 0.1 registry; `--self-test` adds the focused tests one module at
+ a time. Exit 0 means every section passed: integrity, not readiness or acceptance. It starts no job, model, worker,
+-provider request or native tool. Worker qualification, real-model trials and the walkthrough on the owner's own display are
+-separate.
++provider request or native tool. The model check (the Brain room, or `MODEL_CHECK.sh`) and the acceptance evening on the
++owner's own display are separate.
+diff --git a/docs/ACCEPTANCE_1.0.md b/docs/ACCEPTANCE_1.0.md
+new file mode 100644
+index 0000000..14a49bb
+--- /dev/null
++++ b/docs/ACCEPTANCE_1.0.md
+@@ -0,0 +1,291 @@
++# Graphite 1.0 · your first evening on the ThinkPad
++
++**Built, not tested.** By your rule ("No testing") nothing in Graphite 1.0 has been through a test, a tier or a window
++check, and nothing of it has run on your ThinkPad. It was built in a cloud machine with no screen, no USB port, no sound,
++no Wi-Fi, no suspend and no Radeon, and seen working there offscreen and against stand-ins. **The first real proof of
++1.0 is this evening.** Whatever you see that differs from this page is a result: photograph it and send it.
++
++The evening has five parts. Each step says what to do, what you should see, and which photo to take. The photos are
++numbered; name each file by its number (for example `photo-07.jpg`).
++
++1. **Install from the kit** (about 30 minutes).
++2. **Graphite as the computer, with no model**: your paper, section 2 (about 45 minutes).
++3. **Her model**: the 35B with its MTP head, the model check and its tuning (60 to 90 minutes, most of it waiting).
++4. **The day**: your paper, section 18, on Rail Demo, with her model ready (about 45 minutes).
++5. **Leave, and what to send back** (about 15 minutes).
++
++Two evenings are fine: parts 1 and 2, then 3 to 5.
++
++**The machine.** ThinkPad E16 Gen 2 AMD (machine type 21M5), Ryzen 7 7735HS, Radeon 680M, Debian 13. Keep it on mains for
++the whole evening (the model check waits while it runs on battery). Have your phone or a camera for the photos, and a USB
++stick with a few ordinary files on it (not the kit's drive).
++
++**Where the details are.** `docs/THINKPAD_FIRST_INSTALL.md` (the ThinkPad page: the install, the model file, the console
++route if the screen stops answering) and `docs/MINIMAL_DEBIAN_INSTALL_01.md` (the dedicated session). This page points to
++them rather than repeating them. In Graphite, Guide ▸ The Living Desktop and Guide ▸ Kasandra, the Ghost in the Shell say
++what each part of the window is.
++
++---
++
++## Part 1 · Install from the kit
++
++The kit's start page (`START_HERE.md`) says where its files go in your Graphite_Transfer folder; the 1.0 System set's own
++section there says what the 136 new Debian packages are for. Then, in `App`:
++
++```sh
++sha256sum --check --strict --quiet DEBIAN_USB.sha256
++bash INSTALL_GRAPHITE.sh --plan        # as root: preview the Debian packages (PREPARE_DEBIAN.sh --plan)
++bash INSTALL_GRAPHITE.sh --system      # as root: install them (PREPARE_DEBIAN.sh)
++```
++
++1. The check prints nothing and ends without an error.
++2. The preview should end with `3 upgraded, 133 newly installed, 0 to remove` on the ThinkPad as 0.8.x left it. apt uses
++   only the files on the USB; nothing is downloaded. **Photo 1:** the last lines of the preview.
++3. Install them with `--system`. **Then log out and log in again** before anything else: your login session, the sound
++   services and the system's permission prompts start at login.
++4. From your ordinary account, in the same `App` folder:
++
++   ```sh
++   bash INSTALL_GRAPHITE.sh               # installs Graphite 1.0 into a new folder under ~/Applications
++   ```
++
++   The installer names the folder it made (`~/Applications/Graphite-1.0`). Your 0.8.x folders and your workspace stay as
++   they are.
++
++**Before you open your own workspace in 1.0**, make a complete backup of it (restore always writes new folders):
++
++```sh
++bash "$HOME/Applications/Graphite-1.0/LEDGER.sh" backup create --root ~/Concern/Office --out ~/Graphite-backups/office-before-1.0
++```
++
++<!-- COORDINATOR: fill after F2 merges -->
++**Your 0.8.7 workspace in 1.0, the cold start, and stalls** (being built when this page was written). Until this paragraph
++is rewritten: note how long the first start takes from the start command to the window (a photo of a clock at each end is
++enough), and open your own workspace only after parts 2 to 4, which run on Graphite's own invented desks.
++<!-- /COORDINATOR -->
++
++## Part 2 · Graphite as the computer, with no model (your paper, section 2)
++
++Your paper's test: start the machine without a model, open two unrelated apps, exchange material between them, connect a
++USB drive, suspend and resume, then return to the console deliberately. And 1.0's own promise beside it: if Graphite's
++window ends, your apps stay open and Graphite comes back.
++
++### 2.1 Start
++
++From the text login:
++
++```sh
++bash "$HOME/Applications/Graphite-1.0/START_MINIMAL_DEBIAN.sh"
++```
++
++You should see: the window in **Day** (light, calm), with one line saying that Graphite 1.0 starts in Day and that your
++earlier look is in Arrange ▸ Appearance; HALT upper left; Apps ⊕ upper right; Files on the left, starting at "This
++computer /" with Home open and chosen; the board in the centre; Kasandra's column on the right with the equalizer across
++its top and no picture of her; at the foot Line · Terminal · Search · Web · Log and the meters CPU GPU RAM TXT NET; and the
++slim dock across the very top.
++
++**No model.** Her column must show ○ beside her name and say that no model is loaded and what she can still do. If it
++shows ● with a model ready, stop the model in the Brain room (the GPU meter's card at the foot) before you go on.
++
++**Photo 2:** the whole screen.
++
++### 2.2 Two apps, and material between them
++
++1. Open **Apps** (upper right). It lists what is installed on this computer by kind, with a search line. **Photo 3.**
++2. Open LibreOffice Writer, then a second app that is not LibreOffice (a text editor, Firefox, an image viewer: whatever
++   Apps lists). If only LibreOffice is installed, use Writer and Calc, and say so.
++3. The dock shows both windows with their titles, the active one marked. Press each in the dock: it comes forward. Press
++   the dock's Graphite entry: Graphite comes back. **Photo 4:** the dock with both apps.
++4. Exchange material: copy a passage from one app and paste it into the other (each app's own Edit menu); then save a
++   file in one and open the saved file in the other. Say whether both ways worked.
++5. In Graphite, find the saved file in Files (under Home), right-click it, Open with: the apps that take that kind of file
++   are listed, the default first.
++
++### 2.3 Graphite comes back; your apps stay
++
++With both apps still open, choose Terminal at the foot and run:
++
++```sh
++pkill --oldest --signal KILL --full workbench.launch
++```
++
++This ends Graphite's window the hard way, as a crash would. You should see: Graphite's window gone for a few seconds, then
++back, with a line saying it was started again; both apps still open, their windows untouched. **Photo 5:** Graphite back,
++with the line, and the dock with both apps.
++
++### 2.4 A USB drive
++
++1. Plug in your USB stick. You should see it under **Drives** in Files, and in the Machine tab under **Storage**.
++   **Photo 6.**
++2. Open it, open a file from it in its app, and save a copy into your home from that app. Close the app.
++3. Eject it safely: choose the drive under Drives (or Machine ▸ Storage), and on its page in the centre press Eject
++   safely. "safe to remove" should appear only once the stick is released. **Photo 7:** "safe to remove". Then pull it out: its row goes.
++
++### 2.5 Suspend and resume
++
++1. From the foot of the **Work** menu: the session group reads Lock, Suspend, Log out, Restart, Shut down, Return to
++   Debian. **Photo 8:** the Work menu open.
++2. Choose **Lock** first: the screen locker shows; type your password into it (never into Graphite); you are back.
++3. Choose **Suspend**: the screen locks first, then the computer sleeps. Wake it, type your password into the locker.
++   You should see Graphite and your open apps exactly as they were. **Photo 9:** after the wake.
++
++### 2.6 A few minutes in the Machine (if you can)
++
++Each is optional; take a photo of whatever reads wrong.
++
++- **Power:** the battery and the mains read correctly.
++- **Network:** the Wi-Fi networks listed; NET at the foot reads ● online. With Wi-Fi as your only connection, turning it
++  off makes NET read ⊘ offline.
++  Joining a network asks for its password in Graphite's page, and the system's network service keeps it.
++- **Sound:** the volume and mute change the real sound.
++- **Screens:** with a second screen plugged in, mirror or extend; the change goes back by itself after 15 seconds unless
++  you press Keep.
++- **Settings ▸ This computer:** default apps, sound, screens, network, power, the session, notifications.
++
++### 2.7 Return to the console
++
++Choose **Return to Debian** at the foot of the Work menu with an app still open. You should see Graphite name the apps
++still open and ask each to close politely (an app may ask you to save; nothing is killed). **Photo 10:** that question.
++Then the text console, with `Graphite ended with status 0` and a line saying how many times Graphite was started again in
++this session (one, from 2.3). **Photo 11:** the console.
++
++## Part 3 · Her model
++
++### 3.1 The 35B with its MTP head
++
++The model file that carries its own multi-token prediction head, its exact name, size and checksum are on the ThinkPad
++page, `docs/THINKPAD_FIRST_INSTALL.md`, section "The first evening with the model (Graphite 1.0)". Download it on a
++computer with the network, check its checksum with `sha256sum` before anything else, and copy it to the ThinkPad. If you
++do not have it, the 35B file you used with 0.8.7 does for everything here; the card will then say that multi-token
++prediction was not tried.
++
++Start Graphite again (2.1). In the **Brain room** (the GPU meter's card at the foot): **Add file**, choose the model, and
++select it in the list. A new model file is a new model to her: her exam is sat again for it in the check below. Her
++column should show ● beside her name, with the model's name. **Photo 12:** the Brain room with the model ready, its
++runtime line naming llama.cpp b12359.
++
++### 3.2 The model check and its tuning
++
++In the Brain room: the tab **Check her model** ▸ **Check her model on this machine**. It shows its stages and their
++estimated times first and asks before it starts. It runs on an invented workspace of its own, never yours, and only on
++mains power. Touching the desk pauses it; leave the ThinkPad alone while it runs (about 20 to 30 minutes by the design's
++estimate, then the tuning stage).
++
++The tuning stage tries, one at a time: flash attention, the type of her prompt memory (the KV cache), reading batches,
++threads, full or partial offload to the Radeon and, with the MTP file, multi-token prediction and its draft length. It
++keeps a setting only when the answer is the same as without it, and says how far reading and writing are from your goal of
++99 tokens a second. Its time box is 4 minutes; if the card says the box ran out before every setting was tried, run it
++once more from the console with a longer box:
++
++```sh
++bash "$HOME/Applications/Graphite-1.0/MODEL_CHECK.sh" --model /path/to/the-model.gguf --tuning-seconds 900
++```
++
++At the end it shows a card, exactly what the file for sending holds, and **Use the measured settings?**: each proposal
++one at a time, each with Undo. Apply what you like and write down which. **Photo 13:** the card. **Photo 14:** "Use the
++measured settings?". **Show the folder** opens `for-sending/`, where the two files to send are.
++
++If it stops early, the card says at which stage and why. Send that card too: it is a result.
++
++<!-- COORDINATOR: fill after M2 merges -->
++**A quick model beside the 35B** (being built when this page was written: a small model for her short questions, used for
++a kind only after it passes that kind's exam and is measured faster). Until this paragraph is rewritten, there is nothing
++to do here.
++<!-- /COORDINATOR -->
++
++## Part 4 · The day (your paper, section 18), on Rail Demo
++
++Rail Demo is an invented desk: a 12 V rail on a bench, with bench readings (12 V, settled current 250 mA, startup current
++900 mA, startup 45 ms), its limits in two revisions (Rev A, archived; Rev B, current: settled power at most 4 W, startup at
++most 40 ms), the calculations made from them, four findings, a summary page and one open question. Every number in it is
++made up. In this part its limits sheet (Rev B) plays the specification, and its bench readings sheet plays the
++worksheet.
++
++Her model should be ready (Part 3). Where a step says what she should answer, the words will differ; what matters is what
++the answer claims.
++
++1. **Guide ▸ Try Rail Demo**, then **Build it** on her card. It is built in a new folder of its own under
++   `~/Graphite demos`, never in your workspace, and opens in a window of its own. Her card names the folder: write it down.
++   **Photo 15:** Rail Demo's window.
++2. **Select the project.** In the Desk drawer on the left, choose its concern, "Rail Demo (invented data)". The board
++   shows its material around it, sized by relevance.
++3. **Select the specification:** the sheet "Rail Demo limits Rev B CURRENT". The tree shows where it is; the board puts it
++   in the middle with its neighbours around it; the Rev A sheet is smaller and marked — ARCHIVED. Click a wire: it says
++   why it is there, naming the values and the revision (a dashed one says "not verified"). **Photo 16:** the board with a
++   wire's basis open.
++4. **Open it:** double-click it. Its working view fills the centre; Kasandra's column stays beside it.
++5. **Ask her,** in her ask line at the foot of her column: *Kas, review this assembly and tell me whether the proposed
++   power supply is sufficient.* What she must claim: settled power holds (3 W against the 4 W limit, supported), and
++   startup is **not** cleared (45 ms against 40 ms does not hold under Rev B, or it stays an open question). She must not
++   say "sufficient" without that condition. **Photo 17:** her column with the answer, its check rows and FINDINGS.
++6. **Open the worksheet beside it:** press Board on the centre bar, right-click the tile "Rail Demo bench readings" and
++   choose Open beside (or press Split on the centre bar and open the readings into the empty half). The specification on
++   one side, the readings on the other. Press in the readings' pane: the tree's
++   highlight moves to the readings, and the other pane says "Beside · another object". **Photo 18:** the split.
++7. **Change a value:** in the readings, set the settled current from 250 mA to 300 mA, and Save. You should see that the
++   settled-power calculation and what rests on it are marked for a recheck (it works out at 3.6 W). **Photo 19.**
++8. **The summary is out of date.** Does she notice by herself that "Rail Demo summary" still says 3 W (a line in her
++   column, or a NEXT STEPS button)? Write down whether she did. If she did not, ask her in her ask line: *recheck the
++   settled power and update the summary page*.
++9. **Her plan.** You should see a task in ACTIVE WORK with its steps, each through a registered tool; reading steps run;
++   the step that changes the summary waits for you in "Waits for you" (◆ needs your word, or ◆ with a key: needs your
++   grant). **Photo 20:** her column with the plan and what waits for you. Approve it.
++10. **Done means verified.** The summary step should read ✓ done (verified) only after its new revision is on disk; the
++    summary page on the board shows a new revision with the new value, and the old revision is kept. **Photo 21.**
++11. **The startup question is still open.** Her column must show the summary update done while startup is still not
++    cleared: finishing one part must not become an all-clear. **Photo 22:** FINDINGS and ACTIVE WORK together.
++12. **Close the working views** (Close on the centre bar, or One pane and then Close). You should be back on the board with
++    the same object in focus and its links as before. **Photo 23.**
++13. **Close Rail Demo for the evening, and come back.** Close Rail Demo's window. Then choose Terminal at Graphite's foot
++    and open it again on the same folder, with the folder her card named between the first quotes (the one below is an
++    example):
++
++    ```sh
++    d="/home/you/Graphite demos/Rail Demo 2026-12-01 20.15.00"; cd "$HOME/Applications/Graphite-1.0" && env -u ARC_LEDGER_EDITION ARC1_WORKBENCH_CONFIG_HOME="$d/profile" ARC_LEDGER_WORKSPACE="$d/workspace" ARC_LEDGER_CONCERN="$d/Concern" setsid -f .venv/bin/python -m workbench.launch
++    ```
++
++    You should see the desk as you left it: the sources, the two revisions of the summary, the changed reading, the
++    calculations, the findings, the open startup question, and her task in ACTIVE WORK with its journal (press its title):
++    what was done, verified, and nothing done twice. **Photo 24:** the task's journal.
++
++Optional, if there is time: in Rail Demo, press **HALT** while a task of hers runs. Everything of hers stops and says so;
++the desktop and your apps keep running; HALT reads RESUME. Press RESUME: nothing restarts by itself. **Photo 25.**
++
++## Part 5 · Leave, and what to send back
++
++Choose **Return to Debian** (or Shut down) from the foot of the Work menu.
++
++**Send back:**
++
++1. **The photos**, by their numbers (1 to 25), and any other photo of something that read badly, with a word on what.
++2. **The model check's two files** from `for-sending/`: `model-check-<date>.json` and `model-check-<date>.txt`. They are
++   in the run folder under `~/.config/arc1-workbench/model-check/` (the Brain room's Show the folder opens it; the console
++   run prints where). They are written only if their privacy scan is clean: no path beyond the model's file name, no host or
++   user name, none of your work. Send the card of every run (3.2), and say which measured settings you applied.
++3. **The session's own record**, from `~/.local/state/ledger-slate/`: `session.log` (one line for each start and end of
++   Graphite and Fluxbox in each session), `last-session.json` (the last session's status and restarts) and
++   `launch-error.log` if there is one. Look at them first: they hold times, statuses and process numbers, and
++   `launch-error.log` can name folders in your home.
++4. **Rail Demo's records and her task's journal**: the whole Rail Demo folder her card named (only invented data, though
++   folder paths in it can carry your account's name). From Terminal:
++
++   ```sh
++   tar -czf ~/rail-demo-evening.tar.gz -C "$HOME/Graphite demos" "Rail Demo 2026-12-01 20.15.00"
++   ```
++
++   (with the folder's own name in place of the example's).
++
++5. **A few lines** for each part: as written; different (what); failed (what, and the photo). The parts and steps are
++   numbered above; "2.4 step 3: no 'safe to remove'" is all it needs.
++
++**Never send** your own workspace (`~/Concern`), your profile (`~/.config/arc1-workbench` beyond the two `for-sending`
++files), or a backup.
++
++## If something goes wrong
++
++- **Graphite's window ends by itself:** the session starts it again after 2 seconds, then 4, then 8, at most three times in
++  a row; after that it returns to the text console with a plain message. Photograph the message; `session.log` has the
++  rest.
++- **The screen stops answering:** the console route is in `docs/THINKPAD_FIRST_INSTALL.md`, section "If the screen stops
++  answering".
++- **Anything else:** your 0.8.7 folder is untouched. Return to Debian and start 0.8.7 from its own folder as before.
+diff --git a/docs/GUIDE_KASANDRA.md b/docs/GUIDE_KASANDRA.md
+new file mode 100644
+index 0000000..ac2279d
+--- /dev/null
++++ b/docs/GUIDE_KASANDRA.md
+@@ -0,0 +1,149 @@
++# Kasandra, the Ghost in the Shell
++
++*Graphite 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
++the ThinkPad yet. The first real proof is your first evening (Guide ▸ Your First Evening with 1.0).*
++
++Kasandra (Kas) works beside you on the same material, through the same doors you use. Her rule is the desk's rule:
++**the model proposes; the desk disposes.** Nothing a model writes becomes a fact, a decision or a change without the desk's
++check; a change only the model chose is never done, at any place of her dial; sending anything out always asks; a step is
++done only when its effect is verified. With no model loaded she is still there: her dictionary reads most requests, the
++maths and the checks are the desk's, and she plans from your records.
++
++The window around her is Guide ▸ The Living Desktop.
++
++## Her column, top to bottom
++
++- **The equalizer**: sixteen bars across the top of the column (the processor's threads, 01 to 16), then the kernel,
++  memory, disks, network and graphics. It moves while she works. There is no picture of her, in any look.
++- **Her name**, "Kasandra", with a ring for her model (○ none loaded, ● ready), the name of her model, and her state word
++  with its shape: ○ QUIET, ● WORKING, ◆ WAITS FOR YOU, ✓ DONE, ■ STOPPED, and ‖ HELD while HALT holds her work. Under it,
++  what she speaks with and her hand (press it to change it).
++- **Waits for you**: a band that appears only when something waits for you (a step that needs your word ◆, your grant ◆
++  with a key, or your review ◆ with an eye; a question card), each with its one press. It never folds away.
++- **The exchange**: "Your:" and "Kasandra:", the last few turns, the earlier ones behind "earlier", with check rows (✓)
++  under what she checked.
++- **The progress line**, while she works: the steps done as check rows, then "Running…" with its bar, its percent, the step
++  and the time left.
++- **ACTIVE WORK [n]**: her tasks, numbered, each with its state word, its bar, its percent, its time left and its own
++  **Stop**. A title opens the task's steps and its journal.
++- **GRANTS [n] · see them**: what you have allowed her; it opens the Grants page, where each grant shows its uses and has
++  **Revoke**.
++- **FINDINGS (live)**: ⊘ refuted first, then ■ supported, then what each line of enquiry would do next. A row selects its
++  card.
++- **NEXT STEPS**: up to four numbered buttons; the one to take is marked ▸. Each is one press: Authorise step 2, Resume,
++  Carry on, or one act on one card.
++- **DO · DOUBT · TRACE · BRIEF · LINE · CHECK ALL**: her six commands, on what is selected ("this").
++- **› ask Kasandra…** and its send arrow, at the foot of her column: where you speak to her. Words typed in Line at the
++  screen's foot reach her here through **Ask Kasandra →**.
++- The moments that matter (a finding refuted, a task done, HALT) show as a short card over the exchange, in words.
++- With no model she says so: "No model is loaded. She still reads the records, checks the desk and plans from it. Her model
++  is added in the Brain room → Add file."
++
++On a small screen the exchange gives way first, then the findings fold to their first two; what waits for you never
++folds.
++
++## How she does a task
++
++Say you ask: *"Recheck the startup power and update the summary page"* (on Rail Demo: Guide ▸ Try Rail Demo).
++
++1. **She reads your words.** Her dictionary reads most requests with no model. When it cannot, the model may read them,
++   only into the desk's verbs and only from words you typed: "I took it as: …", with **Do** and **Not that**.
++2. **She makes a plan.** Each step uses one of her registered tools, from one numbered list: Graphite's records and maths,
++   files, LibreOffice, the sandbox, windows, Apps, the Machine's state, the network. With no model the desk's own planner
++   makes the plan. With a model, the model picks each step *by number* from that list and the desk checks every step's
++   inputs and conditions; a step that is not on the list is left out, and she says so.
++3. **The plan appears in ACTIVE WORK.** Reading never asks. **Every change waits** for your press, or for a grant you have
++   given.
++4. **Grants.** A grant names what she may do, where (a folder in your home, or one object) and for how long (this task,
++   until a time, or always). You read it in plain words before your press, and the desk enforces it at every step: the
++   model cannot widen it. A step outside it stops as "needs your grant", with one press to grant it for that task.
++5. **Done means verified.** Each step has two records: *sent*, then *done (verified)*, written only when its effect is
++   confirmed (the new revision's digest is on disk, the saved document read back). A report is changed in her own hidden
++   LibreOffice (never in your LibreOffice windows), saved, read back, compared and recorded as a new revision; the old one
++   is kept. If you have that document open in LibreOffice she does not touch it, and says why. Without LibreOffice she
++   offers the change as prepared text.
++6. **The journal.** A crash, a suspend, a Stop or HALT leaves a journal of what was done (✓ verified) and what was only
++   prepared (○). When you resume, she checks each step's result before repeating anything, so nothing is done twice.
++7. **On a failure** she reads the receipt, takes another registered route inside your grant, or marks the step blocked
++   with the reason ("blocked: needs the network").
++
++## Her hand in your apps
++
++She can work in an app's window while you watch: open a document in its app, find a sentence through the app's
++accessibility, replace it, save with the app's own Save, and count the save only when the new file is on disk.
++
++- She acts only in windows she opened or that you showed her, through accessibility first (a named button, a menu item by
++  its path, a named field); keys and pointer only where an app exposes nothing, aimed at what she can see.
++- Each act needs your grant ("work in LibreOffice on this file, this task") and is checked afterwards.
++- **A touch stops her.** Any key or press of yours pauses her at once, between two of her acts: ▮▮ stopped by you.
++  **Continue** lets her go on; **Stop** puts your window back as it was (the menus she opened closed, your focus, cursor,
++  selection, tabs and scroll), each part checked and said. When she finishes she gives your keyboard and pointer back.
++- Her changes on the desk follow her dial (Rules ▸ Kasandra's hand), and one Undo on her card takes back all of one
++  request's changes.
++- This needs the desktop's accessibility service and LibreOffice's GTK plugin, both in the 1.0 System set.
++
++## Reading your apps
++
++Where the desktop's accessibility is there, she reads the active app's window, its focused control and a dialog's title,
++words and buttons, read only. If a dialog appears while one of her steps runs (a "Save changes?" question, an error), the
++step waits for your review (◆ with an eye) and her column shows the dialog's words. Without accessibility she says she
++cannot see inside that app, and relies on its files and windows.
++
++## A utility of her own, sealed
++
++When none of her tools fits, she can draft a small utility (or the desk drafts one from your words, with no model):
++Tools ▸ A Utility on Copies…. You see it first, with what it reads and what it writes. It runs only sealed: on copies of
++its input files, with no network, no other folder, no other app, and limits on time and memory. Its output and its
++difference to your files are shown; **applying it to your real files always asks**, at every place of her dial. A utility
++you keep becomes a tool of yours, with its own grant.
++
++## The network
++
++Offline first. When she uses the network it shows: NET at the foot reads ⇣ "Kas: <site>", and her column says so.
++
++- A search shows its words first, made only from words you typed ("this" is never sent), and is sent only by your press.
++- A page she fetches is kept in quarantine and read as data, never as instructions: a line in it written to an assistant
++  is withheld from her model and shown to you outlined.
++- While the network is down, a step that needs it is "blocked: needs the network", never done.
++- A site you grant may be fetched again under that grant; search words always ask. HALT stops her fetch.
++
++## What she never does
++
++Act on the model's choice alone for a change; widen her own grants; type a password; press Send, Pay, Delete, Install or
++the like in another app (those are always yours); act in a window she did not open or was not shown; apply a utility's
++output without asking; read a web page as instructions; change anything outside your home folder ("outside your home:
++never"), at any place of her dial. She may read wherever you can read; reading sends nothing out, because her model is
++on this computer and sealed.
++
++## HALT and Stop
++
++**HALT** (upper left) holds all of her managed work at once: her tasks, her hand, her model's answers, her sandboxes,
++her fetch. Each journal says what was done and what was only prepared. The desktop, your apps and Graphite's own jobs keep
++running. **RESUME** lifts the hold and restarts nothing by itself. Each task in ACTIVE WORK also has its own **Stop**.
++
++## Her model
++
++- Her model runs on this computer, sealed (only the settings it needs, a private socket, its agent tools refused), through
++  the bundled runtime, llama.cpp v1.0.0 (build b12359). On the ThinkPad: the 35B (Qwen3.6-35B-A3B), the 4B as the fallback.
++- **The Brain room** (from the GPU meter's card at the foot): Add file, choose, stop. A new model file is a new model to
++  her: its exam is sat again.
++- **Check her model** (a tab of the Brain room): *Check her model on this machine* measures the model on this computer, on
++  an invented workspace of its own, on mains power only; touching the desk pauses it. Its tuning stage tries flash
++  attention, the type of her prompt memory (the KV cache), reading batches, threads, how much of the model the graphics chip holds and, with a
++  model file that carries its own MTP head, multi-token prediction; it keeps a setting only when the answer is the same
++  as without it, and says how far reading and writing are from your goal of 99 tokens a second. At the end, **Use the
++  measured settings?** offers each best setting, one at a time, each with Undo. Nothing changes until you press it.
++
++<!-- COORDINATOR: fill after M2 merges -->
++**A quick model beside the big one** (being built when this page was written). The plan: a second, small model held beside
++the 35B for her short kinds of question, used for a kind only after it has passed the exam for that kind and measured
++faster; the 35B keeps the rest; the Brain room shows which model answers which kind, and Undo puts every kind back on the
++35B. Until this paragraph is rewritten, it is not in 1.0.
++<!-- /COORDINATOR -->
++
++## What she cannot do yet, said plainly
++
++- She edits only .odt and .ods documents in LibreOffice (.docx and .xlsx are read only).
++- In other apps she never presses the dangerous buttons; where an app exposes nothing to accessibility, her reach there is
++  keys and pointer aimed at what she can see, never guesses.
++- Nothing is tested. Her model's speed on the ThinkPad, the Radeon and the 35B are shown only by your first evening.
+diff --git a/docs/GUIDE_LIVING_DESKTOP.md b/docs/GUIDE_LIVING_DESKTOP.md
+new file mode 100644
+index 0000000..f31dba6
+--- /dev/null
++++ b/docs/GUIDE_LIVING_DESKTOP.md
+@@ -0,0 +1,165 @@
++# The Living Desktop
++
++*Graphite 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
++the ThinkPad yet. Where this page says what you see, it says what was built and seen working on the build machine, with
++no screen and with stand-ins for the USB drive, the sound, the Wi-Fi and the battery. The first real proof is your first
++evening (Guide ▸ Your First Evening with 1.0).*
++
++Graphite is the whole desktop: the session, your files, your apps, the machine, and Kasandra (Kas), on one screen. With
++no model loaded, everything on this page works. Her own page is Guide ▸ Kasandra, the Ghost in the Shell.
++
++## The screen at a glance
++
++- **The head**, the session and the authority: HALT upper left; the menus Work, Revise, Tools, Arrange, Commands, Rules,
++  Properties and Guide; Apps ⊕ upper right.
++- **The left**, where things are: the tabs Files, Machine and Settings; the Desk drawer of records; DELETE at the foot.
++- **The centre**, the thing, what it is connected to, and working on it: the board, the working view, tabs and the split.
++- **The right**, who works with you: Kasandra's column.
++- **The foot**, the computer's own line and its vital signs: Line · Terminal · Search · Web · Log, the writing line, and
++  the meters CPU GPU RAM TXT NET.
++- **The dock**, in the dedicated session: a slim band above everything, with a Graphite entry and the windows of your
++  apps.
++
++Nothing lives in two places. Kas is spoken to in her column; the foot is the computer's line.
++
++## The session
++
++- **Graphite is the session.** Fluxbox runs hidden underneath for the whole session and you should never need it. If
++  Graphite's window ends unexpectedly, the session starts it again after a short wait (2 seconds, then 4, then 8, at most
++  30), up to three times in a row; after that it returns to the text console with a plain message. Your apps stay open
++  meanwhile, because each app starts in a session of its own.
++- **The dock.** A slim band across the top of the screen, above every app: the Graphite entry always brings Graphite back;
++  each open app window stands there with its icon and title, the active one marked. One press brings a window forward; a
++  right-click minimises it or asks it to close (the app may ask to save; nothing is forced). Where there is no window list,
++  the strip stays away and says so.
++- **The session group**, at the foot of the Work menu: Lock, Suspend, Log out, Restart, Shut down, Return to Debian. Lock
++  starts the system's screen locker; your password is typed into it, never into Graphite. Suspend always locks first, then
++  puts the computer to sleep, and waits until a file Kas is writing is finished. Before Log out, Restart, Shut down or
++  Return to Debian, Graphite names the apps still open and asks each to close politely; it never kills one.
++- **Notifications** from your apps appear quietly at the foot of Kasandra's column (they never take your keyboard) and are
++  kept in Log.
++- **The system's own permission prompts** (a password asked for by the system) appear inside the session and are answered
++  there.
++
++## Apps ⊕
++
++- **Apps** (upper right) lists what is installed on this computer, from the apps' own desktop entries, by kind, with their
++  own icons and a search line. Graphite's own rooms stand under their own heading. **⊕** beside it puts any app, or a
++  command of your own, on your list.
++- Every app starts in a session of its own, never through a shell, so it stays open if Graphite starts again.
++- **Open with** (a file's right-click, or the viewer's Open with…) lists the apps that take that kind of file, the default
++  first. *Always open PDF files with this* (and the same for any kind) sets the default in your own settings, and it is read
++  back before it is said to be done.
++- Large apps (Firefox, GIMP, KiCad, Blender, Godot) are not shipped with Graphite: it finds whatever you install.
++
++## Files: the whole computer
++
++- The Files tab starts at **This computer /**. **Home** (your home folder) is open and chosen when Graphite starts;
++  **Drives** stands right under it (USB sticks, cards and discs). Every other folder your account can read is one press
++  away. The system's own pseudo-folders (/proc, /sys, /dev, /run) are shown but never read. Names that start with a dot
++  appear when you turn on **Show hidden** in the tab's header.
++- Graphite's own workspace is a folder in Home like any other, marked with Graphite's sign. Its records stand in the
++  **Desk** drawer: the concern, its sources, sheets, calculations, findings and questions.
++- In Home you can open a file in its app (its saves are recorded as revisions), rename it, move it (also by dragging it
++  onto a folder), make a new folder beside it, and delete it, each with Undo.
++- **DELETE**, at the foot of the left column, is the system's own bin, shared with your other apps: a file deleted from
++  your home goes there with where it was and when, DELETE lists it under *From your home*, and restore puts it back, never
++  over another file.
++- A file renamed or moved, by Graphite or by another app, stays the same object: its new name shows in the tree, on the
++  board and in the breadcrumb.
++
++## The Machine and Settings
++
++The Machine tab has five rows, each opening its page in the centre. Every state is said as a word (MOUNTED, CONNECTED,
++IN USE, MUTED, PRIMARY), never by a colour alone. Where a service is missing, the row and the page say "not available on
++this computer" and why.
++
++- **Storage:** USB drives and cards: mount, open in Files, unmount, eject safely. "safe to remove" is said only once the
++  drive has really been released.
++- **Power:** the battery and the mains.
++- **Network:** on or off, the Wi-Fi networks, join and disconnect. A Wi-Fi password is typed into Graphite's page once and
++  handed to the system's network service, which keeps it; Graphite never stores it.
++- **Sound:** volume, mute, the output.
++- **Screens:** which screens, their modes, the primary one, mirror or extend. A change goes back by itself after 15
++  seconds unless you press Keep.
++
++**Settings ▸ This computer** reaches the same things as settings: default apps, sound, screens, network, power, the
++session and notifications, beside Graphite's own settings.
++
++## The centre: the bulletin board
++
++- **Select something** in Files, in the Desk drawer or in a search result, and it becomes the focus of the board: the large
++  tile in the middle, with what is connected to it around it on rings (its sources, the revisions of a limit, the
++  calculations made from it, the findings about it, open questions, pages that quote it). Select a tile and the tree opens
++  its folders to it without closing the others.
++- **A tile** says, on its first line, its kind and its state word with its shape (■ CURRENT, ■ SUPPORTED, — ARCHIVED,
++  ⊘ REFUTED, □ OPEN); then its title, the basis of its link ("reviewed from page 1, version 1") and its source. A file open
++  in another app says so (▣ OPEN IN GIMP, for example).
++- **Wires.** A solid wire is *recorded*: the records say so. A dashed wire is *possible · not verified*: guessed from the
++  same component named, the same words, or use together. Click a wire and it says why it is there ("Used 300 mA from Rail
++  Demo bench readings, version 2, to calculate settled power"). A possible link becomes recorded only by your word.
++- **Size is relevance**, to the focus and to what you are doing now (the task in her column, or your last request). There
++  are four sizes and they stay put while scores wobble: a small change never moves a tile. Material at the edge is grouped
++  as "and 12 more", which opens. Right-click a tile for **Why am I shown?** (the reasons in words), **Pin** ("pinned by
++  you": drawn large, first), **Turn down** (put with the group at the edge, its link kept; Turn up again undoes it) and
++  **Open beside**. Truth, confidence and authority keep their own marks: a large tile is relevant, not true.
++- **The centre bar**, one bar at every depth: Back, Forward and the breadcrumb (where you are); on the board, its counts
++  ("7 recorded · 3 possible, not verified") and **Whole desk**, the whole desk as sheets with what feeds what.
++- An empty board says what to do: "Select something on the left; what it is connected to appears here." A tile with no
++  links says why.
++
++## Opening and working
++
++- One press focuses; a double-click opens the object's working view in the centre (a sheet, a page, a calculation, a
++  reference, a picture, a question, a text). The centre bar then reads: Board, Find, zoom, Undo, Redo, Save, Save and
++  Return, Full program, Split, Close.
++- Save writes. Use Save and Return to save, close the view and come back to the same board at the same zoom; what
++  depended on your change is marked for a recheck. Closing with unsaved changes asks: Save, Don't save or Cancel.
++- If another app saves a file you have open, Graphite notices at once: an untouched view reloads and says so; an edited one
++  offers Compare, Keep yours, or Take the one on disk.
++- **Full program** opens the file in its default app. When that app saves, the new revision is recorded (checked on disk)
++  and the board marks what rested on the earlier revision for a recheck.
++- **Back and Forward** return you to exactly where you were: the focus, the board's zoom, the place in the document.
++
++## Tabs and the split
++
++- What you open stays open as a named working tab, and an object is never opened twice.
++- **Split** (on the centre bar, on a tab's right-click, as a tile's Open beside, or by dragging a tab or a tile onto the
++  empty half) shows two views side by side, stacked on a narrow screen. The pane you click in is the one in focus: it
++  drives the tree's highlight and Kasandra's "this". The other keeps its place and says quietly "Beside · another object".
++  **One pane** brings them together and keeps every tab.
++
++## The foot: the computer's line
++
++- The chooser reads **Line · Terminal · Search · Web · Log**. **Line** is the default: a Graphite line (`this | count`,
++  where "this" is what is in focus), an operation by name (`/files.list`), or an address (it opens in this computer's
++  browser). Words that read
++  as a request to Kasandra are not run: the line offers **Ask Kasandra →**, which moves them into her ask line and sends
++  them there.
++- **Terminal** is your account's own shell. **Search** finds files and their words across the workspace, the records,
++  settings, commands and the timeline. **Web** opens addresses in this computer's browser. **Log** shows the events and the
++  network.
++- **The meters**, as words and numbers: CPU, GPU, RAM, TXT and NET. NET reads ● online, ⊘ offline, ◌ not known, or
++  ⇣ "Kas: <site>" while her fetch runs. The GPU meter's card leads to the Brain room, where her model is chosen.
++
++## HALT
++
++Upper left: the green triangle and the word **HALT**. One press holds all of Kasandra's managed work at once (her tasks,
++her hand, her model's answers, her sandboxes, her fetch) and says in her column what it stopped. It never stops the
++desktop, your apps or Graphite's own jobs. While held it reads **RESUME**, the triangle turned to ▶; RESUME lifts the hold
++and restarts nothing by itself.
++
++## Looks
++
++**Day** is the launch look: light and calm, green for what is live, blue for the wires, the rings and what is selected.
++**Night** is Day's dark twin. **Graphite** and **Kasandra** stay as characterful alternatives in the same layout.
++Choose in Arrange ▸ Appearance. In every look each state keeps its word and its shape, so no colour has to be told
++apart. No picture of Kasandra appears in any look.
++
++## What 1.0 does not do, said plainly
++
++- Nothing is tested (the owner's rule). Only the ThinkPad can show the dock on a real screen, real USB drives, Wi-Fi,
++  sound, suspend and lock, the system's permission prompts, the Radeon and the 35B's speed.
++- The split is not restored at the next start (its tabs are). No encrypted drives; no enterprise or hidden Wi-Fi.
++- The older rooms (Changes, Continuing work, Exchange & deployment, the Project Desk, the Field) are still there, under
++  Arrange; the board is the centre's home.
+diff --git a/docs/KAS_MIND_EVENING.md b/docs/KAS_MIND_EVENING.md
+index f66aaff..2e1ed93 100644
+--- a/docs/KAS_MIND_EVENING.md
++++ b/docs/KAS_MIND_EVENING.md
+@@ -4,6 +4,11 @@ Graphite 0.8.6, "Kas's mind, no model". Kasandra reads your words from the desk'
+ with the maths, says what would settle what she cannot tell, and asks a model only one small numbered question, or shows
+ you the same choices as buttons when no model is loaded. Everything here works with no model.
+ 
++*Since 1.0:* you speak to her in her ask line, at the foot of her column ("ask Kasandra…", with its send arrow); words
++typed in Line at the foot of the window are offered to her with Ask Kasandra →. Her column has no picture of her in any
++look. The rest of the window is Guide ▸ The Living Desktop; what she does beyond these ten things is Guide ▸ Kasandra, the
++Ghost in the Shell.
++
+ Two invented desks carry the examples. **Rail Demo** (a 12 V rail: bench readings, and limits in Rev A, archived, and
+ Rev B, current) is built by Guide ▸ Try Rail Demo. **Home Demo** is an invented household: a tenancy under the *Demoland
+ Tenancy Act (invented)*, a bank sheet and two typed money sheets, built by Guide ▸ Try Home Demo. Each is built through the
+@@ -22,7 +27,8 @@ steps back. Next and Back walk the proof card by card from the source end; the l
+ 
+ ## 2. Ask in your own words
+ 
+-Type in the writing line: *How much current can the rail settle at and stay under the current limit?*
++Type in her ask line, at the foot of her column: *How much current can the rail settle at and stay under the current
++limit?*
+ 
+ Under it she marks each word with what it meant, greys the words she did not use, and says the request as she understood
+ it. No limit in amps is on the desk, so she reads "current limit" as Rev B's settled power limit, 4 W, and says that she
+@@ -79,7 +85,8 @@ not checked. A letter that says "the last day was 20 October" gets *20 October:
+ 
+ ## 10. One small question, or buttons, and your words remembered
+ 
+-Type *pop the bench readings' trace up*. She understands "bench readings" and "trace", but not "pop … up".
++Type in her ask line *pop the bench readings' trace up*. She understands "bench readings" and "trace", but not
++"pop … up".
+ 
+ - With no model loaded, the choices are buttons: *1 Trace “Rail Demo bench readings”: show where it comes from and what
+   rests on it* · *2 Select “Rail Demo bench readings” in the Field* · *None of these*. Your press is your own approval.
+diff --git a/docs/THINKPAD_FIRST_INSTALL.md b/docs/THINKPAD_FIRST_INSTALL.md
+index 0ca831f..5d04f06 100644
+--- a/docs/THINKPAD_FIRST_INSTALL.md
++++ b/docs/THINKPAD_FIRST_INSTALL.md
+@@ -1,6 +1,13 @@
+ # Graphite on the ThinkPad
+ 
+-This build starts from the approved Visual Pass 1 and targets a fresh Graphite installation on an existing Debian 13 x86-64 system. The first launch opens the native desk with an empty model slot. Use the ordinary Debian account for the application and its workspace.
++Graphite 1.0 targets a fresh Graphite installation on an existing Debian 13 x86-64 system, where it is the whole desktop
++(the dedicated session from a text login). The first launch opens in Day with no model loaded: Home on the board, and
++Kasandra's column saying what she can do without one. Use the ordinary Debian account for the application and its
++workspace.
++
++**Built, not tested.** Nothing in 1.0 has run on this ThinkPad yet. The acceptance evening, `docs/ACCEPTANCE_1.0.md`
++(Guide ▸ Your First Evening with 1.0), walks through the install, your paper's test, her model and the day on Rail Demo,
++and says what to send back; this page holds the details it points to.
+ 
+ ## Observed hardware
+ 
+@@ -10,30 +17,42 @@ The starting policy uses one resident local worker, automatic Radeon discovery w
+ 
+ ## Offline USB setup
+ 
+-Extract the First Boot kit and copy its folder to your USB drive. The kit includes `START_HERE.md` with the short installation commands. The USB directory contains `PREPARE_DEBIAN.sh`, `DEBIAN_USB.sha256`, `INSTALL_LS.py`, `RELEASE_PARTS.json`, all numbered application parts, `OFFLINE_FILES.json`, `debs/`, and `wheels/`.
++Put the kit in place as its `START_HERE.md` says: the `App` folder of your Graphite_Transfer kit holds `INSTALL_GRAPHITE.sh`, `PREPARE_DEBIAN.sh`, `DEBIAN_USB.sha256`, `INSTALL_LS.py`, `RELEASE_PARTS.json`, all numbered application parts, `OFFLINE_FILES.json`, `debs/`, and `wheels/`. The 1.0 System set adds 136 Debian 13 packages (42.9 MB) to the 396 the 0.8.x set has, and removes nothing: USB drives (udisks2), the battery (upower), sound (PipeWire, WirePlumber), Wi-Fi (wpasupplicant), Lock (xsecurelock), the system's permission prompts (polkitd, lxpolkit), your login session (libpam-systemd), reading other programs (at-spi2-core, LibreOffice's GTK plugin), and LibreOffice Writer with its Python bridge (python3-uno). Their files go into the same `debs/` folder beside the 0.8.x ones.
+ 
+-Use `lsblk -f` to identify the USB filesystem from the Debian console. Mount that partition and use the Graphite folder on the USB as the working directory for both installation phases.
++Use `lsblk -f` to identify the USB filesystem from the Debian console. Mount that partition and use the `App` folder on the USB as the working directory for both installation phases.
+ 
+-At the Debian root prompt, change into that directory and preview the dependency step:
++At the Debian root prompt, change into that directory, check every file and preview the package step (it runs `PREPARE_DEBIAN.sh --plan`):
+ 
+ ```bash
+-bash PREPARE_DEBIAN.sh --plan
++sha256sum --check --strict --quiet DEBIAN_USB.sha256
++bash INSTALL_GRAPHITE.sh --plan
+ ```
+ 
+-Apply the verified local Debian packages:
++On the ThinkPad as 0.8.x left it, the preview should end with `3 upgraded, 133 newly installed, 0 to remove`. Apply the verified local Debian packages (it runs `PREPARE_DEBIAN.sh`; a package already installed at the same or a newer version stays as it is):
+ 
+ ```bash
+-bash PREPARE_DEBIAN.sh
++bash INSTALL_GRAPHITE.sh --system
+ ```
+ 
+-Log into your ordinary Debian account. From the same USB directory install the app and its pinned local Python wheels:
++**Log out and log in again** before you start Graphite: your login session, the sound services and the system's permission prompts start at login. Then, from your ordinary Debian account and the same USB directory, install the app and its pinned local Python wheels into a new folder, and start it from a text login:
+ 
+ ```bash
+-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.8.7" --offline --system-ready --minimal-session --vulkan --calc
+-bash "$HOME/Applications/Graphite-0.8.7/START_MINIMAL_DEBIAN.sh"
++bash INSTALL_GRAPHITE.sh
++bash "$HOME/Applications/Graphite-1.0/START_MINIMAL_DEBIAN.sh"
+ ```
+ 
+-Use a new target folder for a first install. The root script checks the whole dependency cache and can install Python on a bare Debian console. APT uses an empty repository list and the verified local Debian files. The application phase checks every release part and uses pip with its package index disabled.
++Use a new target folder for every install; your 0.8.x folders and your workspace stay as they are. The root phase checks the whole dependency cache and can install Python on a bare Debian console. APT uses an empty repository list and the verified local Debian files; nothing is downloaded. The application phase checks every release part and uses pip with its package index disabled. If LibreOffice was updated from the network since 0.8.x, the offline set cannot add Writer to it: the preview says so before anything changes (with the network: `apt install libreoffice-writer libreoffice-gtk3 python3-uno`).
++
++## If the screen stops answering
++
++The dedicated session keeps a console route. If Graphite's window ends by itself, the session starts it again after 2, 4 and 8 seconds (at most 30), at most three times in a row, and then returns to the text console with a plain message; your apps stay open while it tries. If the screen itself stops answering:
++
++- **Ctrl+Alt+F2** gives a second text console. Log in there with your ordinary account.
++- `pkill --oldest --signal KILL --full workbench.launch` ends Graphite's window; the session starts it again.
++- `pkill --signal TERM -x Xorg` ends the whole graphical session (unsaved work in open apps is lost); the first console then prints how Graphite ended.
++- **Ctrl+Alt+F1** (the number of the console you started the session from) goes back to the session's screen.
++
++The session's own record is in `~/.local/state/ledger-slate/`: `session.log` (each start and end), `last-session.json` (the last status and how many times Graphite was started again) and `launch-error.log` when a start failed. `docs/MINIMAL_DEBIAN_INSTALL_01.md` describes the dedicated session in full.
+ 
+ ## First-run workshop
+ 
+@@ -45,16 +64,18 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
+ 
+ ## First work in the desk
+ 
+-- Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the line that reads the selected sheet in the writing strip and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
++Since 1.0 the centre's home is the board: select the workshop's sheet in Files or in the Desk drawer and it stands in the middle with its source, report and findings around it; a double-click opens it, and Save and Return to the board brings you back. Kasandra is spoken to in her ask line at the foot of her column; the line at the window's foot is the computer's (Line, Terminal, Search, Web, Log). Guide ▸ The Living Desktop is the tour. The Field below is the whole desk as sheets (the board's Whole desk, or Arrange ▸ Field).
++
++- Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the line that reads the selected sheet in Line at the foot and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
+ 
+ - From a worksheet, open **Full spreadsheet**, save in Calc, then choose **Return to sheet**.
+ - In a reviewed PDF sheet, select a row and choose **Open source row** to view the original passage. Pin the sheet first if you want to keep it open beside the PDF. A changed working value can be rechecked in the report.
+ - Find **Night Shift** in the command search. Open the saved checkpoint, inspect the grant and progress, and resume explicitly.
+ - In a stock sheet with Part, Required, Available, and Unit columns, select reviewed rows and use **Method Press** to retain or replay a shortage method. The method requires the reviewed unit on the new rows.
+-- When a local GGUF is available, open **Brain** to add the model and qualify its effective backend.
++- When a local GGUF is available, open the **Brain room** (the GPU meter's card at the foot) to add the model and qualify its effective backend.
+ - In the Field press **P** for every program and room as a shelf; **Enter** opens one.
+ - In the Field press **X** on a sheet and Kasandra doubts it: what does not hold, what she cannot tell, what holds.
+-- In the Field press **T** on a sheet to trace it back to its source, and with a calculation selected ask "what if B3 were 320?". In the writing strip `this` is the selected sheet: `this | count`, then **Ctrl+Enter**.
++- In the Field press **T** on a sheet to trace it back to its source, and with a calculation selected ask "what if B3 were 320?". In Line at the foot `this` is the selected sheet: `this | count`, then **Enter**.
+ - In the Field press **D** on a sheet for what can be done about it, and **C** to check the whole desk. A digit chooses a step; a step that changes something waits for **G**, your go.
+ 
+ ## The first model
+@@ -107,7 +128,7 @@ placeholders. Read on that day from the publisher's and the runtime's own pages,
+ - Start small. A 2B and a 4B file of the same family answered in Graphite in 5 to 25 seconds on a slower processor than
+   this one (`docs/MODEL_TRIAL_03.md`). Kasandra reads the records herself and asks the model only for the words, so a small
+   model is useful from the first day.
+-- Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in the writing strip. **Ctrl+Enter** runs the local read. Prefix it with `explain` to preview the plan.
++- Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in Line at the foot. **Enter** runs the local read. Prefix it with `explain` to preview the plan.
+ 
+ ## Background job admission
+ 
+@@ -115,10 +136,10 @@ Graphite checks current RAM headroom and the owner's foreground turn before appl
+ 
+ ## Desk artwork
+ 
+-After Midnight gives Kasandra copper curls, green eyes, and an ink-and-screentone portrait under CRT light. The illustrated overview uses the wider workshop scene. The worksheet and journal show the still close portrait beside the work. Open **Work → Arrange → Desk artwork → Art plates** to view either image on its own. Illustrated, ASCII, and Clean modes remain available in the same menu.
++Since 1.0 no picture of Kasandra appears anywhere, in any look (the owner, 26 November 2026: "No kas avatar anymore"): her column opens with the equalizer, her name, her model and her state word. The look itself is chosen in **Arrange → Appearance**: Day (the launch look), Night, Graphite or Kasandra. **Rules → Desk artwork** keeps the workshop's art plates (**Art plates**), the glow, and the Illustrated, ASCII and Clean modes.
+ 
+ ## Fast-forward screensaver
+ 
+-Open **Work → Arrange → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The operator appears in the workshop, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Graphite controls.
++Open **Rules → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The workshop scene shows, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Graphite controls.
+ 
+ Automatic start is off by default. The same menu offers five, fifteen, and thirty minutes of idle time while Graphite is active. Move the pointer, click, or press a key to return to the same desk. **Reduce optional motion** shows a still frame. For a password-protected lock, use the system's lock screen.
+diff --git a/tests_integrated/test_one_name.py b/tests_integrated/test_one_name.py
+index 6858c60..962f763 100644
+--- a/tests_integrated/test_one_name.py
++++ b/tests_integrated/test_one_name.py
+@@ -231,7 +231,7 @@ class TheCode(unittest.TestCase):
+         pattern=name_sweep.NEVER['stacy'][0]
+         for name in ('GETTING_STARTED.md','docs/WORKSHOP.md'):
+             self.assertEqual([line for line in (ROOT/name).read_text(encoding='utf-8').splitlines() if pattern.search(line)],[],name)
+-        self.assertIn('ask Kasandra in the strip',(ROOT/'GETTING_STARTED.md').read_text(encoding='utf-8'))
++        self.assertIn('Ask Kasandra in her column',(ROOT/'GETTING_STARTED.md').read_text(encoding='utf-8'))      # 1.0 X2: the foot has no Kasandra mode (D1)
+         # The owner's guides beside the program say what the window says. A line may still say Stacy where it says what
+         # changed (it then says Kasandra too) or points to the legal note (RIGHTS.md keeps Stacy as a name the owner holds).
+         for name in ('README.md','docs/DAILY_GUIDE.md','docs/THINKPAD_FIRST_INSTALL.md'):
+diff --git a/tools/name_sweep.py b/tools/name_sweep.py
+index caf7c3d..c59d11b 100644
+--- a/tools/name_sweep.py
++++ b/tools/name_sweep.py
+@@ -80,7 +80,8 @@ KEYS_KEPT = (
+     ('Arrow keys move, Z selects, X returns, and Enter leaves a game.', 'a console game is played with keys: there is nothing to click in their place'),
+ )
+ # The pages Guide opens in the program (Getting Started, Installation Guide): what they say is read on screen.
+-GUIDE_PAGES = ('GETTING_STARTED.md', 'docs/WORKSHOP.md')
++GUIDE_PAGES = ('GETTING_STARTED.md', 'docs/WORKSHOP.md',
++               'docs/GUIDE_LIVING_DESKTOP.md', 'docs/GUIDE_KASANDRA.md', 'docs/KAS_MIND_EVENING.md')      # 1.0 X2: the Guide's pages (docs/ACCEPTANCE_1.0.md joins when its F2 block is filled)
+ 
+ # name -> (what must not be read, why). A word here is a whole word: 'stack' and 'Stacy' are not the language's name.
+ NEVER = {'language': (re.compile(r'\bstac\b', re.I), 'the language is never named on screen: a pipeline is "a line"'),
+diff --git a/workbench/guide_pages.py b/workbench/guide_pages.py
+new file mode 100644
+index 0000000..2495339
+--- /dev/null
++++ b/workbench/guide_pages.py
+@@ -0,0 +1,42 @@
++"""The Guide menu's pages for Graphite 1.0 (slice X2): the Living Desktop, Kasandra as the ghost in the shell, and the
++owner's first evening with 1.0 on the ThinkPad.
++
++Each page is a Markdown file of the program, opened read-only in the universal viewer (host.open_in_viewer), the same form
++as the Guide's other pages (Getting Started, An Evening with Kas's Mind). menus2 makes one QAction for each entry here and
++places them in the Guide menu after What's New.
++
++What the pages say is read on screen: "Apps", never the other word; no keyboard shortcut named; a pipeline is "a line";
++her name is Kasandra (Kas); every colour named has its word or shape (tools/name_sweep.GUIDE_PAGES reads them).
++"""
++from __future__ import annotations
++
++from pathlib import Path
++
++# (menu key, the words in the Guide menu, the page in the program, the tip)
++PAGES = (
++    ('@living_desktop', 'The Living Desktop', 'docs/GUIDE_LIVING_DESKTOP.md',
++     'The whole desktop on one screen: the session, Apps, Files from This computer, the Machine, the board, the foot, HALT'),
++    ('@kas_ghost', 'Kasandra, the Ghost in the Shell', 'docs/GUIDE_KASANDRA.md',
++     'Her column, how she does a task, grants and HALT, her hand in your apps, the network, her model'),
++    ('@first_evening', 'Your First Evening with 1.0', 'docs/ACCEPTANCE_1.0.md',
++     "The acceptance evening on the ThinkPad: the install, your paper's test, her model, the day on Rail Demo, what to send back"),
++)
++KEYS = tuple(key for key, _, _, _ in PAGES)
++
++
++def page(program, key):
++    """The page's file in the program folder for a menu key, or None."""
++    for k, _, path, _ in PAGES:
++        if k == key:return Path(program) / path
++    return None
++
++
++def actions(host, program):
++    """One action per page, owned by the window: {menu key: QAction}, each opening its page in the viewer, with its tip."""
++    from PySide6.QtGui import QAction
++    out = {}
++    for key, words, path, tip in PAGES:
++        a = QAction(words, host)
++        a.triggered.connect(lambda checked=False, path=path: host.open_in_viewer(Path(program) / path))
++        a.setToolTip(tip);a.setStatusTip(tip);out[key] = a
++    return out
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index 9b94946..cd6ab4d 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -25,7 +25,8 @@ VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@c
+         'fullscreen', 'reading', '@appearance', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9); 1.0 P4: Appearance here too
+ TOOLS = ['discovery','algorithms','atlas', '@type_to', '@chain', 'ledger_commands', None,
+          'ledger_settings', 'doctor', '@computer', '@pills', None, 'master_stop', None, '@engineering', '@service']
+-HELP = ['@getting_started', '@whats_new', None, '@kas_evening', '@try_rail', '@try_home', None, 'keys', 'setup_guide', None, 'orange_book', None, 'about']      # 0.8.6 W: the evening with her mind, and its two demos
++HELP = ['@getting_started', '@whats_new', None, '@living_desktop', '@kas_ghost', '@first_evening',      # 1.0 X2: the Guide's 1.0 pages (guide_pages)
++        None, '@kas_evening', '@try_rail', '@try_home', None, 'keys', 'setup_guide', None, 'orange_book', None, 'about']      # 0.8.6 W: the evening with her mind, and its two demos
+ ENGINEERING = [('Projects and code', ['definition', 'completion', 'engineering', 'development', 'ledger', 'desk', 'native_game', 'newgame', 'browse', 'refresh', 'project_search',
+                                       'engineering_layout', 'focus_layout', 'object_glass', 'output', 'problems', 'dual', 'developer_tools', 'arcos', 'trace', 'register', 'cartdock']),
+                ('Build and run', ['build', 'build_all', 'tests', 'run', 'stop', 'next', 'prev', 'boot', '@targets']),
+@@ -209,6 +210,10 @@ def rebuild(host):
+         host.a_utility = QAction('A Utility on Copies…', host)
+         host.a_utility.triggered.connect(lambda checked=False: __import__('workbench.utility_sandbox_qt', fromlist=['open_panel']).open_panel(host))
+     extras['@utility'] = host.a_utility  # 1.0 K6
++    if not hasattr(host, 'a_guide_pages'):  # 1.0 X2: the Living Desktop, Kasandra, your first evening (workbench/guide_pages.py)
++        from pathlib import Path as _Path
++        host.a_guide_pages = __import__('workbench.guide_pages', fromlist=['actions']).actions(host, _Path(__file__).resolve().parents[1])
++    extras.update(host.a_guide_pages)  # 1.0 X2
+     placed = {service} if service is not None else set()
+ 
+     def add(menu, key):

@@ -1,6 +1,13 @@
 # Graphite on the ThinkPad
 
-This build starts from the approved Visual Pass 1 and targets a fresh Graphite installation on an existing Debian 13 x86-64 system. The first launch opens the native desk with an empty model slot. Use the ordinary Debian account for the application and its workspace.
+Graphite 1.0 targets a fresh Graphite installation on an existing Debian 13 x86-64 system, where it is the whole desktop
+(the dedicated session from a text login). The first launch opens in Day with no model loaded: Home on the board, and
+Kasandra's column saying what she can do without one. Use the ordinary Debian account for the application and its
+workspace.
+
+**Built, not tested.** Nothing in 1.0 has run on this ThinkPad yet. The acceptance evening, `docs/ACCEPTANCE_1.0.md`
+(Guide ▸ Your First Evening with 1.0), walks through the install, your paper's test, her model and the day on Rail Demo,
+and says what to send back; this page holds the details it points to.
 
 ## Observed hardware
 
@@ -10,30 +17,42 @@ The starting policy uses one resident local worker, automatic Radeon discovery w
 
 ## Offline USB setup
 
-Extract the First Boot kit and copy its folder to your USB drive. The kit includes `START_HERE.md` with the short installation commands. The USB directory contains `PREPARE_DEBIAN.sh`, `DEBIAN_USB.sha256`, `INSTALL_LS.py`, `RELEASE_PARTS.json`, all numbered application parts, `OFFLINE_FILES.json`, `debs/`, and `wheels/`.
+Put the kit in place as its `START_HERE.md` says: the `App` folder of your Graphite_Transfer kit holds `INSTALL_GRAPHITE.sh`, `PREPARE_DEBIAN.sh`, `DEBIAN_USB.sha256`, `INSTALL_LS.py`, `RELEASE_PARTS.json`, all numbered application parts, `OFFLINE_FILES.json`, `debs/`, and `wheels/`. The 1.0 System set adds 136 Debian 13 packages (42.9 MB) to the 396 the 0.8.x set has, and removes nothing: USB drives (udisks2), the battery (upower), sound (PipeWire, WirePlumber), Wi-Fi (wpasupplicant), Lock (xsecurelock), the system's permission prompts (polkitd, lxpolkit), your login session (libpam-systemd), reading other programs (at-spi2-core, LibreOffice's GTK plugin), and LibreOffice Writer with its Python bridge (python3-uno). Their files go into the same `debs/` folder beside the 0.8.x ones.
 
-Use `lsblk -f` to identify the USB filesystem from the Debian console. Mount that partition and use the Graphite folder on the USB as the working directory for both installation phases.
+Use `lsblk -f` to identify the USB filesystem from the Debian console. Mount that partition and use the `App` folder on the USB as the working directory for both installation phases.
 
-At the Debian root prompt, change into that directory and preview the dependency step:
-
-```bash
-bash PREPARE_DEBIAN.sh --plan
-```
-
-Apply the verified local Debian packages:
+At the Debian root prompt, change into that directory, check every file and preview the package step (it runs `PREPARE_DEBIAN.sh --plan`):
 
 ```bash
-bash PREPARE_DEBIAN.sh
+sha256sum --check --strict --quiet DEBIAN_USB.sha256
+bash INSTALL_GRAPHITE.sh --plan
 ```
 
-Log into your ordinary Debian account. From the same USB directory install the app and its pinned local Python wheels:
+On the ThinkPad as 0.8.x left it, the preview should end with `3 upgraded, 133 newly installed, 0 to remove`. Apply the verified local Debian packages (it runs `PREPARE_DEBIAN.sh`; a package already installed at the same or a newer version stays as it is):
 
 ```bash
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.8.7" --offline --system-ready --minimal-session --vulkan --calc
-bash "$HOME/Applications/Graphite-0.8.7/START_MINIMAL_DEBIAN.sh"
+bash INSTALL_GRAPHITE.sh --system
 ```
 
-Use a new target folder for a first install. The root script checks the whole dependency cache and can install Python on a bare Debian console. APT uses an empty repository list and the verified local Debian files. The application phase checks every release part and uses pip with its package index disabled.
+**Log out and log in again** before you start Graphite: your login session, the sound services and the system's permission prompts start at login. Then, from your ordinary Debian account and the same USB directory, install the app and its pinned local Python wheels into a new folder, and start it from a text login:
+
+```bash
+bash INSTALL_GRAPHITE.sh
+bash "$HOME/Applications/Graphite-1.0/START_MINIMAL_DEBIAN.sh"
+```
+
+Use a new target folder for every install; your 0.8.x folders and your workspace stay as they are. The root phase checks the whole dependency cache and can install Python on a bare Debian console. APT uses an empty repository list and the verified local Debian files; nothing is downloaded. The application phase checks every release part and uses pip with its package index disabled. If LibreOffice was updated from the network since 0.8.x, the offline set cannot add Writer to it: the preview says so before anything changes (with the network: `apt install libreoffice-writer libreoffice-gtk3 python3-uno`).
+
+## If the screen stops answering
+
+The dedicated session keeps a console route. If Graphite's window ends by itself, the session starts it again after 2, 4 and 8 seconds (at most 30), at most three times in a row, and then returns to the text console with a plain message; your apps stay open while it tries. If the screen itself stops answering:
+
+- **Ctrl+Alt+F2** gives a second text console. Log in there with your ordinary account.
+- `pkill --oldest --signal KILL --full workbench.launch` ends Graphite's window; the session starts it again.
+- `pkill --signal TERM -x Xorg` ends the whole graphical session (unsaved work in open apps is lost); the first console then prints how Graphite ended.
+- **Ctrl+Alt+F1** (the number of the console you started the session from) goes back to the session's screen.
+
+The session's own record is in `~/.local/state/ledger-slate/`: `session.log` (each start and end), `last-session.json` (the last status and how many times Graphite was started again) and `launch-error.log` when a start failed. `docs/MINIMAL_DEBIAN_INSTALL_01.md` describes the dedicated session in full.
 
 ## First-run workshop
 
@@ -45,16 +64,18 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
 
 ## First work in the desk
 
-- Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the line that reads the selected sheet in the writing strip and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
+Since 1.0 the centre's home is the board: select the workshop's sheet in Files or in the Desk drawer and it stands in the middle with its source, report and findings around it; a double-click opens it, and Save and Return to the board brings you back. Kasandra is spoken to in her ask line at the foot of her column; the line at the window's foot is the computer's (Line, Terminal, Search, Web, Log). Guide ▸ The Living Desktop is the tour. The Field below is the whole desk as sheets (the board's Whole desk, or Arrange ▸ Field).
+
+- Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the line that reads the selected sheet in Line at the foot and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
 
 - From a worksheet, open **Full spreadsheet**, save in Calc, then choose **Return to sheet**.
 - In a reviewed PDF sheet, select a row and choose **Open source row** to view the original passage. Pin the sheet first if you want to keep it open beside the PDF. A changed working value can be rechecked in the report.
 - Find **Night Shift** in the command search. Open the saved checkpoint, inspect the grant and progress, and resume explicitly.
 - In a stock sheet with Part, Required, Available, and Unit columns, select reviewed rows and use **Method Press** to retain or replay a shortage method. The method requires the reviewed unit on the new rows.
-- When a local GGUF is available, open **Brain** to add the model and qualify its effective backend.
+- When a local GGUF is available, open the **Brain room** (the GPU meter's card at the foot) to add the model and qualify its effective backend.
 - In the Field press **P** for every program and room as a shelf; **Enter** opens one.
 - In the Field press **X** on a sheet and Kasandra doubts it: what does not hold, what she cannot tell, what holds.
-- In the Field press **T** on a sheet to trace it back to its source, and with a calculation selected ask "what if B3 were 320?". In the writing strip `this` is the selected sheet: `this | count`, then **Ctrl+Enter**.
+- In the Field press **T** on a sheet to trace it back to its source, and with a calculation selected ask "what if B3 were 320?". In Line at the foot `this` is the selected sheet: `this | count`, then **Enter**.
 - In the Field press **D** on a sheet for what can be done about it, and **C** to check the whole desk. A digit chooses a step; a step that changes something waits for **G**, your go.
 
 ## The first model
@@ -107,7 +128,7 @@ placeholders. Read on that day from the publisher's and the runtime's own pages,
 - Start small. A 2B and a 4B file of the same family answered in Graphite in 5 to 25 seconds on a slower processor than
   this one (`docs/MODEL_TRIAL_03.md`). Kasandra reads the records herself and asks the model only for the words, so a small
   model is useful from the first day.
-- Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in the writing strip. **Ctrl+Enter** runs the local read. Prefix it with `explain` to preview the plan.
+- Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in Line at the foot. **Enter** runs the local read. Prefix it with `explain` to preview the plan.
 
 ## Background job admission
 
@@ -115,10 +136,10 @@ Graphite checks current RAM headroom and the owner's foreground turn before appl
 
 ## Desk artwork
 
-After Midnight gives Kasandra copper curls, green eyes, and an ink-and-screentone portrait under CRT light. The illustrated overview uses the wider workshop scene. The worksheet and journal show the still close portrait beside the work. Open **Work → Arrange → Desk artwork → Art plates** to view either image on its own. Illustrated, ASCII, and Clean modes remain available in the same menu.
+Since 1.0 no picture of Kasandra appears anywhere, in any look (the owner, 26 November 2026: "No kas avatar anymore"): her column opens with the equalizer, her name, her model and her state word. The look itself is chosen in **Arrange → Appearance**: Day (the launch look), Night, Graphite or Kasandra. **Rules → Desk artwork** keeps the workshop's art plates (**Art plates**), the glow, and the Illustrated, ASCII and Clean modes.
 
 ## Fast-forward screensaver
 
-Open **Work → Arrange → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The operator appears in the workshop, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Graphite controls.
+Open **Rules → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The workshop scene shows, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Graphite controls.
 
 Automatic start is off by default. The same menu offers five, fifteen, and thirty minutes of idle time while Graphite is active. Move the pointer, click, or press a key to return to the same desk. **Reduce optional motion** shows a still frame. For a password-protected lock, use the system's lock screen.

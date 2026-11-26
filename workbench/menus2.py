@@ -25,7 +25,8 @@ VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@c
         'fullscreen', 'reading', '@appearance', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9); 1.0 P4: Appearance here too
 TOOLS = ['discovery','algorithms','atlas', '@type_to', '@chain', 'ledger_commands', None,
          'ledger_settings', 'doctor', '@computer', '@pills', None, 'master_stop', None, '@engineering', '@service']
-HELP = ['@getting_started', '@whats_new', None, '@kas_evening', '@try_rail', '@try_home', None, 'keys', 'setup_guide', None, 'orange_book', None, 'about']      # 0.8.6 W: the evening with her mind, and its two demos
+HELP = ['@getting_started', '@whats_new', None, '@living_desktop', '@kas_ghost', '@first_evening',      # 1.0 X2: the Guide's 1.0 pages (guide_pages)
+        None, '@kas_evening', '@try_rail', '@try_home', None, 'keys', 'setup_guide', None, 'orange_book', None, 'about']      # 0.8.6 W: the evening with her mind, and its two demos
 ENGINEERING = [('Projects and code', ['definition', 'completion', 'engineering', 'development', 'ledger', 'desk', 'native_game', 'newgame', 'browse', 'refresh', 'project_search',
                                       'engineering_layout', 'focus_layout', 'object_glass', 'output', 'problems', 'dual', 'developer_tools', 'arcos', 'trace', 'register', 'cartdock']),
                ('Build and run', ['build', 'build_all', 'tests', 'run', 'stop', 'next', 'prev', 'boot', '@targets']),
@@ -209,6 +210,10 @@ def rebuild(host):
         host.a_utility = QAction('A Utility on Copies…', host)
         host.a_utility.triggered.connect(lambda checked=False: __import__('workbench.utility_sandbox_qt', fromlist=['open_panel']).open_panel(host))
     extras['@utility'] = host.a_utility  # 1.0 K6
+    if not hasattr(host, 'a_guide_pages'):  # 1.0 X2: the Living Desktop, Kasandra, your first evening (workbench/guide_pages.py)
+        from pathlib import Path as _Path
+        host.a_guide_pages = __import__('workbench.guide_pages', fromlist=['actions']).actions(host, _Path(__file__).resolve().parents[1])
+    extras.update(host.a_guide_pages)  # 1.0 X2
     placed = {service} if service is not None else set()
 
     def add(menu, key):

@@ -231,7 +231,7 @@ class TheCode(unittest.TestCase):
         pattern=name_sweep.NEVER['stacy'][0]
         for name in ('GETTING_STARTED.md','docs/WORKSHOP.md'):
             self.assertEqual([line for line in (ROOT/name).read_text(encoding='utf-8').splitlines() if pattern.search(line)],[],name)
-        self.assertIn('ask Kasandra in the strip',(ROOT/'GETTING_STARTED.md').read_text(encoding='utf-8'))
+        self.assertIn('Ask Kasandra in her column',(ROOT/'GETTING_STARTED.md').read_text(encoding='utf-8'))      # 1.0 X2: the foot has no Kasandra mode (D1)
         # The owner's guides beside the program say what the window says. A line may still say Stacy where it says what
         # changed (it then says Kasandra too) or points to the legal note (RIGHTS.md keeps Stacy as a name the owner holds).
         for name in ('README.md','docs/DAILY_GUIDE.md','docs/THINKPAD_FIRST_INSTALL.md'):

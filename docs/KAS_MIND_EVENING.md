@@ -4,6 +4,11 @@ Graphite 0.8.6, "Kas's mind, no model". Kasandra reads your words from the desk'
 with the maths, says what would settle what she cannot tell, and asks a model only one small numbered question, or shows
 you the same choices as buttons when no model is loaded. Everything here works with no model.
 
+*Since 1.0:* you speak to her in her ask line, at the foot of her column ("ask Kasandra…", with its send arrow); words
+typed in Line at the foot of the window are offered to her with Ask Kasandra →. Her column has no picture of her in any
+look. The rest of the window is Guide ▸ The Living Desktop; what she does beyond these ten things is Guide ▸ Kasandra, the
+Ghost in the Shell.
+
 Two invented desks carry the examples. **Rail Demo** (a 12 V rail: bench readings, and limits in Rev A, archived, and
 Rev B, current) is built by Guide ▸ Try Rail Demo. **Home Demo** is an invented household: a tenancy under the *Demoland
 Tenancy Act (invented)*, a bank sheet and two typed money sheets, built by Guide ▸ Try Home Demo. Each is built through the
@@ -22,7 +27,8 @@ steps back. Next and Back walk the proof card by card from the source end; the l
 
 ## 2. Ask in your own words
 
-Type in the writing line: *How much current can the rail settle at and stay under the current limit?*
+Type in her ask line, at the foot of her column: *How much current can the rail settle at and stay under the current
+limit?*
 
 Under it she marks each word with what it meant, greys the words she did not use, and says the request as she understood
 it. No limit in amps is on the desk, so she reads "current limit" as Rev B's settled power limit, 4 W, and says that she
@@ -79,7 +85,8 @@ not checked. A letter that says "the last day was 20 October" gets *20 October: 
 
 ## 10. One small question, or buttons, and your words remembered
 
-Type *pop the bench readings' trace up*. She understands "bench readings" and "trace", but not "pop … up".
+Type in her ask line *pop the bench readings' trace up*. She understands "bench readings" and "trace", but not
+"pop … up".
 
 - With no model loaded, the choices are buttons: *1 Trace “Rail Demo bench readings”: show where it comes from and what
   rests on it* · *2 Select “Rail Demo bench readings” in the Field* · *None of these*. Your press is your own approval.

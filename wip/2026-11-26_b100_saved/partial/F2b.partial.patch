@@ -1,0 +1,252 @@
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index cf30e15..403032c 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -432,7 +432,8 @@ class Kernel:
+         self.state.mkdir(mode=0o700, exist_ok=True)
+         self.dbpath = self.state / "engineering.sqlite3"
+         self._workers = {}
+-        with self.db() as db:
++        from . import read_beside      # 1.0 F2b: the schema check may make tables: it takes the guard, even inside a read
++        with read_beside.suspended(), self.db() as db:
+             db.executescript("""
+               CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY, owner TEXT, state TEXT, payload TEXT);
+               CREATE TABLE IF NOT EXISTS candidates(id TEXT PRIMARY KEY, owner TEXT, state TEXT, payload TEXT);
+@@ -468,6 +469,15 @@ class Kernel:
+     def db(self):
+         # sqlite3 context managers commit but do not close the connection.
+         from .database_guard import connection
++        from .read_beside import beside      # 1.0 F2b: inside a read (read_beside.first), a read-only snapshot beside the writer
++        reader = beside(self.dbpath)
++        if reader is not None:
++            try:
++                with reader:
++                    yield reader
++            finally:
++                reader.close()
++            return
+         with connection(self.dbpath):
+             db = sqlite3.connect(self.dbpath, timeout=10)
+             try:
+@@ -600,8 +610,10 @@ class Kernel:
+                 activity.record(self.root,p.identity,operation,'REQUEST_RECEIVED',correlation_id=correlation_id)
+             outer=instruction_matrix.begin(operation)
+             try:
++                from . import read_beside      # 1.0 F2b: an observer's read is made beside her writes (again under the guard if it wrote)
+                 result = (project_context.unavailable(operation)
+                           if project_context.detached(self.root) and project_context.requires_project(operation,params)
++                          else read_beside.first(self._dispatch, operation, params, p) if read_beside.operation(operation)
+                           else self._dispatch(operation, params, p))
+             except (ValueError, OSError, KeyError, TypeError, sqlite3.Error) as exc:
+                 if outer is not None:instruction_matrix.observe(self,p,operation,params,error=exc)
+diff --git a/workbench/host_service.py b/workbench/host_service.py
+index 4c59107..fadec26 100644
+--- a/workbench/host_service.py
++++ b/workbench/host_service.py
+@@ -237,6 +237,10 @@ class Coordinator:
+             # a bounded worker call owns the ordinary service dispatch lock.
+             if args['operation'] in ('work.pause','work.revoke','work.get','work.list','workers.status','workers.runs','workers.run','workers.stop'):
+                 return self.kernel.dispatch(args['operation'],args['params'],principal)
++            from . import read_beside      # 1.0 F2b: an observer's read is made beside the step in flight, never waits for it
++            if read_beside.operation(args['operation']):
++                if self.closing.is_set(): raise ValueError('Host is stopping; reconcile the request before retrying')
++                return self.kernel.dispatch(args['operation'], args['params'], principal)
+             with self.dispatch_lock:
+                 if self.closing.is_set(): raise ValueError('Host is stopping; reconcile the request before retrying')
+                 return self.kernel.dispatch(args['operation'], args['params'], principal)
+diff --git a/workbench/read_beside.py b/workbench/read_beside.py
+new file mode 100644
+index 0000000..6251619
+--- /dev/null
++++ b/workbench/read_beside.py
+@@ -0,0 +1,190 @@
++"""Graphite 1.0 F2b · Reads beside her writes: the window's reads never wait for her work.
++
++PLAN_1.0.md, F2b: "give read-only operations a shared read path (WAL readers beside the one writer) if that is safe for
++the journal."
++
++Why the window still waited after F2. database_guard lets one Kernel connection of a workspace in at a time, across
++threads and processes, readers included. So a read the window made on its own thread (the board's rebuild on a tile
++click, the Field on its open, the head's control) waited while her step wrote its journal, and waited as long again while
++one of the floor's own readers held the workspace. The workspace's database is in WAL mode, where SQLite itself lets any
++number of readers read a committed snapshot beside the one writer, neither waiting for the other.
++
++What is here.
++
++  reading()          a context: while it is open, this thread's Kernel connections (Kernel.db) read beside the writer:
++                     no guard, a connection SQLite keeps read-only (PRAGMA query_only), one snapshot for the connection's
++                     whole block (BEGIN). A connection this thread opens while it already holds the guard (inside a
++                     writer's block) is still the writer's, as before.
++  suspended()        a context inside reading(): this thread's connections take the guard again (a Kernel's own schema
++                     check, which may make its tables).
++  first(fn, ...)     fn() read beside the writer. If anything in it tried to write (SQLite refused it: a table made on
++                     first use, a mark kept while reading), what it read is put aside and fn() runs once more the old way,
++                     under the guard. A caller always gets either a pure read or exactly what it got before.
++  operation(op)      whether a Kernel operation is read beside the writer: an observer (activity.OBSERVER_OPERATIONS)
++                     whose scope is read. Kernel.dispatch runs such an operation's handler through first(); the Ledger
++                     service lets it past its dispatch lock (host_service), so both modes of the window read beside her.
++
++Why the journal stays safe (K1: a step's "sent" and "confirmed" records; resume without doing anything twice).
++  - A reader never writes. Its connection is query_only, so SQLite refuses any write in it (SQLITE_READONLY), and a
++    "BEGIN IMMEDIATE" or "BEGIN EXCLUSIVE" in it is refused here before SQLite sees it; first() then runs the whole read
++    again under the guard. The journal's records are written only under the guard, as before.
++  - Writers are unchanged: one at a time under the guard, across threads and processes (the Ledger service and the
++    window); each transaction is atomic and commits or not as a whole.
++  - A reader sees only committed transactions, all of one snapshot for its block: a step's "sent" without its
++    "confirmed" only while that is how the journal stands.
++  - Nothing that decides reads beside: resume, a step's verification, a grant's check and every press are write
++    operations (their scope is not read) and read under the guard inside their own work, so what they decide on is what
++    the guard gave them before. The activity journal was already read beside the writer (activity._read, mode=ro).
++  - A database not in WAL mode (rollback journal) is read the old way.
++
++GRAPHITE_READ_BESIDE=0 turns it off: every connection takes the guard again, as in 0.8.7 and F2.
++"""
++from __future__ import annotations
++
++import contextlib
++import os
++import sqlite3
++import threading
++from pathlib import Path
++
++_local = threading.local()
++READONLY = sqlite3.SQLITE_READONLY
++
++
++def enabled():
++    return os.environ.get('GRAPHITE_READ_BESIDE', '').strip() != '0'
++
++
++class _State:
++    __slots__ = ('refused',)
++
++    def __init__(self):
++        self.refused = False
++
++
++def _refuse():
++    state = getattr(_local, 'state', None)
++    if state is not None:state.refused = True
++
++
++def _checked(run, sql, *args):
++    """Run a statement on a reader; a write SQLite refuses (or a writer's BEGIN) marks this reading as refused."""
++    head = sql.lstrip()[:24].upper() if isinstance(sql, str) else ''
++    if head.startswith('BEGIN') and ('IMMEDIATE' in head or 'EXCLUSIVE' in head):
++        _refuse()
++        raise sqlite3.OperationalError('attempt to write a readonly database')
++    try:
++        return run(sql, *args)
++    except sqlite3.OperationalError as exc:
++        if (getattr(exc, 'sqlite_errorcode', 0) or 0) & 0xff == READONLY or 'readonly database' in str(exc):_refuse()
++        raise
++
++
++class _ReaderCursor(sqlite3.Cursor):
++    def execute(self, sql, *args):
++        return _checked(super().execute, sql, *args)
++
++    def executemany(self, sql, *args):
++        return _checked(super().executemany, sql, *args)
++
++    def executescript(self, script):
++        return _checked(super().executescript, script)
++
++
++class _Reader(sqlite3.Connection):
++    """A Kernel connection that reads beside the writer: every statement is watched for a write SQLite refuses."""
++
++    def cursor(self, factory=None):
++        return super().cursor(factory or _ReaderCursor)
++
++    def execute(self, sql, *args):
++        head = sql.lstrip()[:8].upper() if isinstance(sql, str) else ''
++        if head.startswith('BEGIN') and self.in_transaction and 'IMMEDIATE' not in sql.upper() and 'EXCLUSIVE' not in sql.upper():
++            return super().execute('SELECT 1 WHERE 0')      # a reader's own BEGIN: already in one snapshot
++        return _checked(super().execute, sql, *args)
++
++    def executemany(self, sql, *args):
++        return _checked(super().executemany, sql, *args)
++
++    def executescript(self, script):
++        return _checked(super().executescript, script)
++
++
++@contextlib.contextmanager
++def reading():
++    """This thread's Kernel connections read beside the writer while this is open (nested: the outer reading's state)."""
++    depth = getattr(_local, 'depth', 0)
++    outer = getattr(_local, 'state', None)
++    state = outer if outer is not None else _State()
++    _local.depth = depth + 1;_local.state = state
++    try:
++        yield state
++    finally:
++        _local.depth = depth
++        if outer is None:_local.state = None
++
++
++@contextlib.contextmanager
++def suspended():
++    """Inside reading(): this thread's connections take the guard again until this closes."""
++    depth = getattr(_local, 'depth', 0)
++    _local.depth = 0
++    try:
++        yield
++    finally:
++        _local.depth = depth
++
++
++def active():
++    return bool(getattr(_local, 'depth', 0))
++
++
++def beside(path):
++    """Kernel.db: a read-only connection beside the writer on this database, in one snapshot, or None (the old way): not
++    reading, turned off, this thread already holds the guard (a writer's block), not WAL, or it cannot be opened so."""
++    if not getattr(_local, 'depth', 0) or not enabled():return None
++    try:
++        key = str(Path(path).resolve())
++        from . import database_guard
++        if key in (getattr(database_guard._local, 'held', None) or {}):return None
++        if not Path(key).is_file():return None
++        db = sqlite3.connect(Path(key).as_uri() + '?mode=rw', uri=True, timeout=10, factory=_Reader)
++    except (OSError, ValueError, sqlite3.Error):
++        return None
++    try:
++        db.execute('PRAGMA query_only=1')
++        mode = db.execute('PRAGMA journal_mode').fetchone()
++        if not mode or str(mode[0]).lower() != 'wal':
++            db.close();return None
++        sqlite3.Connection.execute(db, 'BEGIN')      # one snapshot for the block (it starts at the first read)
++        return db
++    except sqlite3.Error:
++        db.close();return None
++
++
++def first(fn, *args, **kwargs):
++    """fn(*args) read beside the writer; when something in it tried to write, run again the old way (under the guard)."""
++    if not enabled():return fn(*args, **kwargs)
++    with reading() as state:
++        before = state.refused;state.refused = False
++        error = None;result = None
++        try:
++            result = fn(*args, **kwargs)
++        except Exception as exc:  # noqa: BLE001 - raised again below unless the read is made again the old way
++            error = exc
++        wanted = state.refused
++        state.refused = before
++    if wanted:
++        with suspended():
++            return fn(*args, **kwargs)
++    if error is not None:raise error
++    return result
++
++
++def operation(op):
++    """Whether Kernel.dispatch reads this operation beside the writer: an observer whose scope is read."""
++    if not enabled():return False
++    from .activity import OBSERVER_OPERATIONS
++    if op not in OBSERVER_OPERATIONS:return False
++    from .engineering_kernel import CAPABILITIES
++    return CAPABILITIES.get(op) == 'read'
