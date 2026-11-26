@@ -1,0 +1,120 @@
+Rail Demo built through its own door in 29 s, in tmp5tlrauou
+
+== A. The registry: every tool, numbered, with its arguments, preconditions, undo class, grant and check ==
+   1 kernel.read           read     here  Read a record through the Kernel: a sheet, a page, a finding, a source, the board, the Agenda, by any of its r
+   2 files.read            read     here  Read a file in Files: its kind, its text or its table, at the digest it has on disk.
+   3 files.write.new       change   here  Write a new file in Files, holding the text given.
+   4 files.write.revision  change   here  Save a new revision of a file in Files: the text given replaces its text, and the revision before is kept.
+   5 files.rename          change   here  Rename a file or a folder in Files; it keeps its identity.
+   6 files.move            change   here  Move a file or a folder into another folder of Files; it keeps its identity.
+   7 files.folder.new      change   here  Make a folder in Files.
+   8 calculation.recheck   change   here  Work a calculation page again from its sheet as it is now: a new page replaces the old one.
+   9 sheet.set             change   here  Set a value in a cell of a sheet.
+  10 desk.navigate         navigate not   Graphite's window is not open in this process: a desk act is done on the window, in her hand's turn
+  11 desk.change           change   not   Graphite's window is not open in this process: a desk act is done on the window, in her hand's turn
+  12 windows.observe       read     not   no window list on this computer: there is no X display here (DISPLAY is not set)
+  13 windows.activate      navigate not   no window list on this computer: there is no X display here (DISPLAY is not set)
+  14 windows.minimise      navigate not   no window list on this computer: there is no X display here (DISPLAY is not set)
+  15 windows.close         change   not   no window list on this computer: there is no X display here (DISPLAY is not set)
+  16 apps.open             change   here  Open one of the Apps, with files when it takes them.
+  17 machine.state         read     here  Read this computer's storage, power, network, sound and screens.
+  18 office.read           read     not   not built yet: slice K5 is not in this Graphite
+  19 office.edit           change   not   not built yet: slice K5 is not in this Graphite
+  20 sandbox.run           change   not   not built yet: slice K6 is not in this Graphite
+  21 accessibility.read    read     not   not built yet: slice K7 is not in this Graphite
+  22 network.fetch         send     not   not built yet: slice K8 is not in this Graphite
+PASS  22 tools, numbered 1 to 22, each key once
+PASS  each says what it does, its undo class, its grant and how it is verified
+PASS  reads need no grant; changes need a grant on a target; a send needs your press
+PASS  the model's pick alone: never for a change, a send or a move of your program windows; a read may  [beyond reads, only: ['desk.navigate']]
+PASS  named slots for the LibreOffice bridge, the sandbox, the accessibility reader and the network fetch, each saying why not  [office.read: not built yet: slice K5 is not in this Graphite; office.edit: not built yet: slice K5 is not in this Graphite; sandbox.run: not built yet: slice K6 is not in this Graphite; accessibility.read: not built yet: slice K7 is not in this Graphite; network.fetch: not built yet: slice K8 is not]
+PASS  the Kernel's reads are one family (1), her own controls left out  [447 reads]
+PASS  desk acts are a family too, available only on the window, and say why here  [30 acts; Graphite's window is not open in this process: a desk act is done on the window, in her hand's turn]
+PASS  statuses: dispatched and verified are two words  [{'dispatched': 'sent, not yet verified', 'verified': 'verified', 'not verified': 'sent, not verified', 'refused': 'refused', 'observed': 'observed', 'inferred': 'inferred, not established', 'unavailable': 'unavailable here', 'changed since': 'verified once, changed since'}]
+
+== B. K1's three-step assignment on Rail Demo, run with K2's checks; receipts linked to the journal ==
+  Step 1 done (verified): Read the Rail Demo bench readings. read, and read again: the same revision | Step 2 done (verified): Recompute the settled power. page 6382d81d replaces 1c543466: 3 W exactly, from the sheet as it is now | Step 3 done (verified): Write a note of the settled power. a new file: the file on disk has the digest c0c0dfb65e2d
+PASS  the assignment is done, every step verified  [Step 1 done (verified); step 2 done (verified); step 3 done (verified).]
+  step 1 Read the Rail Demo bench readings (office.get):
+    dispatched   observed  partial  kernel.read            office:owner:e5840f73ebc64680b00bba8c9c64fd8 rev                place {} | Step 1 sent; its effect is not yet verified.
+    verified     observed  complete kernel.read            office:owner:e5840f73ebc64680b00bba8c9c64fd8 rev 800131bd6914d9 place {"sheet": "owner:e5840f73ebc64680b00bba8c9c64fd82"} | read, and read again: the same revision
+  step 2 Recompute the settled power (office.datasheet.recheck):
+    dispatched   observed  partial  calculation.recheck    documents:1c54346671754f4898e39b5bc96d7d4b   rev                place {} | Step 2 sent; its effect is not yet verified.
+    verified     observed  complete calculation.recheck    documents:6382d81dad4c4f6caf04e5b45eb619e6   rev 1              place {"page": "6382d81dad4c4f6caf04e5b45eb619e6", "sheet": "owner:e5840f73ebc64680b00bba8c9c64f | page 6382d81d replaces 1c543466: 3 W exactly, from the sheet as it is now
+  step 3 Write a note of the settled power (files.write):
+    dispatched   observed  partial  files.write.new        files:Slate/Rail Demo/Settled power note.txt rev                place {"path": "Slate/Rail Demo/Settled power note.txt"} | Step 3 sent; its effect is not yet verified.
+    verified     observed  complete files.write.new        files:Slate/Rail Demo/Settled power note.txt rev c0c0dfb65e2df3 place {"path": "Slate/Rail Demo/Settled power note.txt"} | a new file: the file on disk has the digest c0c0dfb65e2d
+PASS  step 3's note: dispatched, then verified, two receipts  [['dispatched', 'verified']]
+PASS  step 3 verified by its digest on disk  [c0c0dfb65e2df323 on disk; receipt c0c0dfb65e2df323]
+PASS  the verified receipt follows the dispatched one
+PASS  each receipt is linked to its journal row (SENT -> dispatched, DONE -> verified)
+PASS  each step names its tool from the registry  [['kernel.read', 'calculation.recheck', 'files.write.new']]
+PASS  step 2's receipts name the page (dispatched and verified) and the sheet it was worked from  [{'page': '6382d81dad4c4f6caf04e5b45eb619e6', 'sheet': 'owner:e5840f73ebc64680b00bba8c9c64fd82'}]
+PASS  tools.receipts gives them back, each matching its digest  [6]
+PASS  a step whose tool's precondition does not hold is blocked; nothing sent  [its precondition does not hold: a file is already there at Slate/Rail Demo/Settled power note.txt: saving over it is a new revision, not a new file]
+PASS  a step naming a tool that does not go through its operation is refused  [PLAN_TOOL: the tool files.rename does not go through files.write]
+
+== C. "Save the note" through the file tool: dispatched, then verified when the new revision's digest is on disk ==
+    dispatched   observed  partial  files.write.revision   files:Slate/Rail Demo/Settled power note.txt rev                place {"path": "Slate/Rail Demo/Settled power note.txt"} | sent; its effect is not yet verified
+    verified     observed  complete files.write.revision   files:Slate/Rail Demo/Settled power note.txt rev 6b05ee84e7bc8d place {"path": "Slate/Rail Demo/Settled power note.txt"} | a new revision: the file on disk has the digest 6b05ee84e7bc; the one before is kept as version 20261126T060256
+PASS  saved: two receipts, dispatched then verified  [a new revision: the file on disk has the digest 6b05ee84e7bc; the one before is kept as version 20261126T060256]
+PASS  the dispatched receipt is not a verification: 'sent, not yet verified', partial, no revision
+PASS  verified: the new revision's digest is on disk  [was c0c0dfb65e2d, now 6b05ee84e7bc]
+PASS  the revision before is kept as a version  [a new revision: the file on disk has the digest 6b05ee84e7bc; the one before is kept as version 20261126T060256]
+PASS  through tools.use by number: dispatched, then verified at the new digest  [a new revision: the file on disk has the digest 8bb8d592d81c; the one before is kept as version 20261126T060257]
+PASS  a revision the file is no longer at: blocked, nothing sent, nothing written  [not used: the file is no longer at the revision the plan read (c0c0dfb65e2d); it changed since. Nothing was sent.]
+PASS  a change only the model chose is refused  [TOOL_MODEL_PICK: the model suggested this; nothing you said asks for it, so it is yours to say]
+PASS  an argument from the model's words is refused  [ORIGIN_MODEL: no argument of a change comes from the model’s words]
+PASS  a change whose arguments do not say where they came from is refused  [ORIGIN_MISSING: path does not say where it came from]
+    dispatched   observed  partial  files.write.revision   files:Slate/Rail Demo/Settled power note.txt rev                place {"path": "Slate/Rail Demo/Settled power note.txt"} | sent; its effect is not yet verified
+    not verified observed  partial  files.write.revision   files:Slate/Rail Demo/Settled power note.txt rev                place {"path": "Slate/Rail Demo/Settled power note.txt"} | the file on disk does not hold the prepared text
+PASS  changed by another program before the check: dispatched, then NOT verified, never done  [sent, and not verified: the file on disk does not hold the prepared text. It is not called done.]
+PASS  a new file: dispatched, then verified (the receipt says a new file)  [a new file: the file on disk has the digest 496d3bcbe629]
+PASS  a new file where one is already: blocked (that is a new revision, another tool)  [not used: a file is already there at Slate/Rail Demo/Bench check.txt: saving over it is a new revision, not a new file. Nothing was sent.]
+PASS  the same new file again: found there, verified, not written again (no dispatched receipt)  [already there; it was not made again: it already held exactly this text: the file on disk has the digest 496d3bcbe629]
+PASS  rename: dispatched, then verified (same digest, same object id, old name gone)  [Slate/Rail Demo/Bench check.txt is now Slate/Rail Demo/Bench check, kept.txt, the same content (digest 496d3bcbe629); nothing is left at the old place]
+PASS  move into a folder: dispatched, then verified at the new place  [Slate/Rail Demo/Bench check, kept.txt is now Slate/Kept checks/Bench check, kept.txt, the same content (digest 496d3bcbe629); nothing is left at the old place]
+PASS  every receipt kept so far matches its digest
+
+== C2. Resume of the first assignment looks at each step again: still there is verified again; the note saved since is "changed since" ==
+    verified     observed  complete kernel.read            office:owner:e5840f73ebc64680b00bba8c9c64fd8 rev 800131bd6914d9 place {"sheet": "owner:e5840f73ebc64680b00bba8c9c64fd82"} | looked at again on resume: read, and read again: the same revision
+    verified     observed  complete calculation.recheck    documents:6382d81dad4c4f6caf04e5b45eb619e6   rev 1              place {"page": "6382d81dad4c4f6caf04e5b45eb619e6", "sheet": "owner:e5840f73ebc64680b00bba8c9c64f | looked at again on resume: page 6382d81d replaces 1c543466: 3 W exactly, from the sheet as it is now
+    changed since observed  partial  files.write.new        files:Slate/Rail Demo/Settled power note.txt rev c0c0dfb65e2df3 place {"path": "Slate/Rail Demo/Settled power note.txt"} | Step 3 was done, and the file has changed since it was written. It is not done again by itself: yours to look at.
+PASS  steps 1 and 2 looked at again on resume: verified again, linked to their STILL_DONE rows
+PASS  step 3, the note saved since: "changed since", never verified again  [Step 3 was done, and the file has changed since it was written. It is not done again by itself: yours to look at.]
+
+== D. Windows with no X, and the Machine ==
+    unavailable  unavailable partial  windows.observe        windows                                      rev                place {} | no window list on this computer: there is no X display here (DISPLAY is not set)
+PASS  no window list: the look says why, as an unavailable receipt  [no window list on this computer: there is no X display here (DISPLAY is not set)]
+PASS  used as a tool: kept as unavailable, with the reason  [no window list on this computer: there is no X display here (DISPLAY is not set)]
+    dispatched   observed  partial  machine.state          machine:all                                  rev                place {} | sent; its effect is not yet verified
+    verified     observed  partial  machine.state          machine:all                                  rev 944f91b35ec877 place {} | read now: nothing; not available here: storage (Not available on this computer: there is no system D-Bus here (Failed to connect to socket /run/dbus/s
+PASS  machine.state: dispatched, then verified, partial where a service is not here  [read now: nothing; not available here: storage (Not available on this computer: there is no system D-Bus here (Failed to connect to socket /run/dbus/system_bus_socket: ); power (Not available on this computer: there is no system D-Bus here (Failed to connect to socket /run/dbus/system_bus_socket: );]
+PASS  an App that is not installed: blocked, nothing started  [not used: no-such-app.desktop is not installed here. Nothing was sent.]
+
+== E. Under Xvfb with a stand-in window manager: a possible "Save changes?" dialog is marked inferred ==
+PASS  Xvfb and the stand-in window manager are up  [:0]
+    observed     observed  complete windows.observe        windows                                      rev 32d5fd7710b81f place {"window": "0x0400001", "title": "Rail Demo summary.odt - LibreOffice Writer", "program":  | 1 program window open; active: "Rail Demo summary.odt - LibreOffice Writer" (Libreoffice writer)
+PASS  a look at the windows is an observed receipt, complete, naming the active window  [1 program window open; active: "Rail Demo summary.odt - LibreOffice Writer" (Libreoffice writer)]
+PASS  no prompt, nothing inferred
+    observed     observed  complete windows.observe        windows                                      rev 66a457d512118c place {"window": "0x0400002", "title": "Save changes to document \"Rail Demo summary.odt\" befor | 2 program windows open; active: "Save changes to document "Rail Demo summary.odt" before closing?" (RailDemoDialog)
+    inferred     inferred  partial  windows.observe        window:0x0400002                             rev 0x0400002      place {"window": "0x0400002", "title": "Save changes to document \"Rail Demo summary.odt\" befor | Possibly a "Save changes?" prompt in RailDemoDialog: its title reads "Save changes to document "Rail Demo summary.odt" before closing?" and it is a di
+    events: a new dialog appeared "Save changes to document "Rail Demo summary.odt" before clos"; became active "Save changes to document "Rail Demo summary.odt" before clos"
+PASS  the new dialog is seen (observed: a new dialog appeared)
+PASS  a possible "Save changes?" dialog is marked inferred, never observed  [Possibly a "Save changes?" prompt in RailDemoDialog: its title reads "Save changes to document "Rail Demo summary.odt" before closing?" and it is a dialog, and it appeared since the last look. This is an inference from the title: its text and buttons were not read (no accessibility reader in this Gr]
+PASS  the inference says what it rests on and what was not read
+    dispatched   observed  partial  windows.observe        windows                                      rev                place {} | Step 1 sent; its effect is not yet verified.
+    verified     observed  complete windows.observe        windows                                      rev 66a457d512118c place {"program": "RailDemoDialog", "title": "Save changes to document \"Rail Demo summary.odt\" | 2 program windows open; active: "Save changes to document "Rail Demo summary.odt" before closing?" (RailDemoDialog)
+    inferred     inferred  partial  windows.observe        window:0x0400002                             rev 0x0400002      place {"program": "RailDemoDialog", "title": "Save changes to document \"Rail Demo summary.odt\" | Possibly a "Save changes?" prompt in RailDemoDialog: its title reads "Save changes to document "Rail Demo summary.odt" before closing?" and it is a di
+PASS  as a step: dispatched, verified (observed), and the dialog inferred, all kept and linked  [['dispatched', 'verified', 'inferred']]
+    dispatched   observed  partial  windows.activate       window:0x0400001                             rev                place {"window": "0x0400001"} | sent; its effect is not yet verified
+    verified     observed  complete windows.activate       window:0x0400001                             rev 0x0400001      place {"window": "0x0400001", "title": "Rail Demo summary.odt - LibreOffice Writer", "program":  | "Rail Demo summary.odt - LibreOffice Writer" (Libreoffice writer) is the active window
+PASS  bring the Writer window forward: dispatched, then verified when a fresh look shows it active  ["Rail Demo summary.odt - LibreOffice Writer" (Libreoffice writer) is the active window]
+PASS  moving your desktop on the model's pick alone is refused  [TOOL_MODEL_PICK: the model suggested this; nothing you said asks for it, so it is yours to say]
+    dispatched   observed  partial  windows.close          window:0x0400002                             rev                place {"window": "0x0400002"} | sent; its effect is not yet verified
+    verified     observed  complete windows.close          window:0x0400002                             rev 0x0400002      place {"window": "0x0400002", "title": "Save changes to document \"Rail Demo summary.odt\" befor | "Save changes to document "Rail Demo summary.odt" before closing?" (RailDemoDialog) is no longer listed
+PASS  close the dialog, politely: dispatched, then verified when it is no longer listed  ["Save changes to document "Rail Demo summary.odt" before closing?" (RailDemoDialog) is no longer listed]
+PASS  a window that is not open: blocked, nothing sent  [not used: the window 0x0400002 is not open now. Nothing was sent.]
+PASS  closing a window is not hers: it needs the approve scope (your press, by name)  [Operation is outside the authorized mode/scope]
+
+52 of 52 checks passed

@@ -121,6 +121,7 @@ def schemas():
     from .her_portrait import FIELDS as PORTRAIT_FIELDS  # 1.0 P1 (her column): her portrait, admitted
     from .machine_real import FIELDS as MACHINE_REAL_FIELDS  # 1.0 S4 (the Machine, real): machine.state
     from .depths import FIELDS as DEPTH_FIELDS  # 1.0 L4 (depths): revisions.record, revisions.list
+    from .tools_registry import FIELDS as TOOLS_REGISTRY_FIELDS  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -243,6 +244,7 @@ def schemas():
         **PORTRAIT_FIELDS,  # 1.0 P1 (her column): her portrait, admitted
         **MACHINE_REAL_FIELDS,  # 1.0 S4 (the Machine, real): machine.state
         **DEPTH_FIELDS,  # 1.0 L4 (depths): revisions.record, revisions.list
+        **TOOLS_REGISTRY_FIELDS,  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

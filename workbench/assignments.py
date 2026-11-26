@@ -214,9 +214,15 @@ def _journal(db, value, step, entry, words, detail=None):
                'revision': value['revision']}
     if len(canonical(payload).encode()) > 4 * MAX_OUTPUT:payload['detail'] = {'note': 'detail too long to keep; its digest',
                                                                               'digest': digest(detail)}
-    db.execute('INSERT INTO asg_journal(assignment, step, operation, entry, words, payload, digest, at) VALUES(?,?,?,?,?,?,?,?)',
-               (value['id'], payload['step'], step['operation'] if step else '', entry, words, canonical(payload), digest(payload),
-                time.time()))
+    row = db.execute('INSERT INTO asg_journal(assignment, step, operation, entry, words, payload, digest, at) VALUES(?,?,?,?,?,?,?,?)',
+                     (value['id'], payload['step'], step['operation'] if step else '', entry, words, canonical(payload), digest(payload),
+                      time.time()))
+    # 1.0 K2: the row's observation receipts (dispatched, verified, ...), in the same transaction, linked by the row's number
+    try:
+        from . import tools_registry
+        tools_registry.journalled(db, value, step, entry, payload, row.lastrowid)
+    except Exception:  # noqa: BLE001 - a receipt that cannot be written never undoes the journal row: the row is the record
+        pass
 
 
 def _entries(db, ident, limit=None):
@@ -318,7 +324,7 @@ def _plan_step(source, objective, earlier, index):
     from .engineering_kernel import CAPABILITIES
     from . import stacy_hand
     if not isinstance(source, dict):raise ValueError('PLAN_STEP: a step is an object')
-    allowed = {'key', 'title', 'operation', 'arguments', 'origins', 'outputs', 'expected', 'require', 'basis', 'estimate_ms'}
+    allowed = {'key', 'title', 'operation', 'arguments', 'origins', 'outputs', 'expected', 'require', 'basis', 'estimate_ms', 'tool_key'}  # 1.0 K2: tool_key
     if set(source) - allowed:raise ValueError('PLAN_STEP: a step does not take %s' % sorted(set(source) - allowed)[0])
     key = source.get('key') or 's%d' % index
     if not isinstance(key, str) or not KEY_RE.match(key):raise ValueError('PLAN_KEY: a step key is a short lower-case name')
@@ -327,6 +333,12 @@ def _plan_step(source, objective, earlier, index):
     if not isinstance(operation, str) or operation not in CAPABILITIES:
         raise ValueError('PLAN_OPERATION: %s is not a registered operation; nothing else runs' % str(operation)[:80])
     if operation.startswith(NOT_HERE):raise ValueError('PLAN_OPERATION: %s is not a step of an assignment' % operation)
+    tool_key = source.get('tool_key')  # 1.0 K2: the registry's tool the step uses (its preconditions); it must go through this operation
+    if tool_key is not None:
+        from . import tools_registry
+        tool = tools_registry.entry(tool_key)
+        if operation not in tools_registry.members(tool) or tool.family == 'desk':
+            raise ValueError('PLAN_TOOL: the tool %s does not go through %s' % (str(tool_key)[:64], operation))
     scope = CAPABILITIES[operation]
     arguments = source.get('arguments', {})
     if not isinstance(arguments, dict):raise ValueError('PLAN_ARGUMENTS: arguments are named')
@@ -387,6 +399,7 @@ def _plan_step(source, objective, earlier, index):
             'arguments': arguments, 'inputs': inputs, 'outputs': outputs, 'require': require,
             'expected': source.get('expected') or check.expected, 'verify': {'kind': check.kind, 'words': check.how},
             'effect': check.effect, 'grant': grant, 'basis': basis, 'always_asks': always, 'estimate_ms': estimate,
+            **({'tool_key': tool_key} if tool_key is not None else {}),  # 1.0 K2
             'status': 'authorised' if scope == 'read' else 'proposed', 'reason': '',
             'authorised': {'by': 'a read never asks', 'at': time.time(), 'explicit': False} if scope == 'read' else None,
             'prepared': None, 'resolved': None, 'observation': None, 'output': None, 'runner': None, 'attempts': 0,
@@ -394,7 +407,8 @@ def _plan_step(source, objective, earlier, index):
 
 
 def _definition(step):
-    return {k: step[k] for k in ('key', 'title', 'operation', 'arguments', 'inputs', 'outputs', 'require', 'expected', 'basis', 'grant')}
+    return {k: step[k] for k in ('key', 'title', 'operation', 'arguments', 'inputs', 'outputs', 'require', 'expected', 'basis', 'grant')
+            + (('tool_key',) if step.get('tool_key') else ())}  # 1.0 K2: the tool, when the plan names it
 
 
 def plan_digest(value):
@@ -886,6 +900,9 @@ def _run_one(kernel, ident, principal, epoch=None):
         if GRANT_CHECK is not None:
             why = GRANT_CHECK(kernel, value, step, arguments, principal)
             if why:raise Blocked('needs your grant: ' + str(why)[:300])
+        from . import tools_registry  # 1.0 K2: the preconditions of the step's tool, from the registry
+        unmet = tools_registry.step_unmet(kernel, step, arguments)
+        if unmet:raise Blocked('its precondition does not hold: ' + unmet)
         prepared = check.prepare(kernel, read, arguments)
         try:found = check.find(kernel, read, arguments, prepared) if step['scope'] != 'read' else None
         except Unknowable:found = None            # nothing to look for before the first time: it has not been sent
@@ -921,7 +938,9 @@ def _run_one(kernel, ident, principal, epoch=None):
             if still['state'] in (STOPPED, HELD) or gate_now['held'] or gate_now['epoch'] != gate['epoch']:
                 outcome = 'not sent'
             else:
-                answer = kernel.dispatch(step['operation'], arguments, _bounded(principal, step['scope']))
+                from . import tools_registry  # 1.0 K2: a tool that writes a file holds off a suspend while it writes (S1's sleep lock)
+                with tools_registry.holding(step['operation'], step['title']):
+                    answer = kernel.dispatch(step['operation'], arguments, _bounded(principal, step['scope']))
                 sent = True
                 if not answer.get('ok'):
                     outcome = 'refused';result = answer.get('error') or {}
@@ -1173,8 +1192,10 @@ def status(kernel, ident, principal):
         value = _load(db, ident, principal)
         entries = _entries(db, ident)
         percent, left, timings = _progress(kernel, value, db)
+        from . import tools_registry  # 1.0 K2: each step's observation receipts (dispatched and verified are two)
+        receipts = tools_registry.of_assignment(db, ident)
     says = journal_says(value, entries)
-    steps = [_step_view(s, says[s['key']], t) for s, t in zip(value['steps'], timings)]
+    steps = [dict(_step_view(s, says[s['key']], t), receipts=receipts.get(s['key'], [])) for s, t in zip(value['steps'], timings)]
     nxt = _next(value)
     summary = '; '.join('step %d %s' % (s['n'], says[s['key']]) for s in value['steps'])
     words = _state_words(value)

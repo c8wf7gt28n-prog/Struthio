@@ -58,7 +58,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 S4: the machine's storage, power, network, sound and screens, read when the Machine tab or a page shows; reading is not an event
  'machine.state',
  # 1.0 L4: the revisions of files saved elsewhere, read each time the board is drawn; reading is not an event
- 'revisions.list'})
+ 'revisions.list',
+ # 1.0 K2: the registry of her tools, receipts, and a look at the windows, read when her column or a step is shown; reading is not an event
+ 'tools.list','tools.receipts','windows.observe'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

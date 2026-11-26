@@ -87,6 +87,7 @@ from . import apps_catalog  # 1.0 S2 (apps from what is installed): apps.list, a
 from . import board_model  # 1.0 L2 (the bulletin board): board.read, board.links (reads); board.keep (approve, the owner's word on a link) (recorded additions)
 from . import machine_real  # 1.0 S4 (the Machine, real): machine.state (read) from udisks2, UPower, NetworkManager, wpctl, xrandr; changes are the owner's press only, never an operation (recorded additions)
 from . import depths  # 1.0 L4 (depths): revisions.list (read); revisions.record (execute, only the bytes verified on disk) (recorded additions)
+from . import tools_registry  # 1.0 K2 (tools and observation receipts): tools.list, tools.receipts, windows.observe (read); tools.use, windows.activate, windows.minimise (execute); windows.close (approve) (recorded additions)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -280,6 +281,7 @@ CAPABILITIES = {
     **her_portrait.SCOPES,  # 1.0 P1 (her column): her portrait from your workspace, admitted
     **machine_real.SCOPES,  # 1.0 S4 (the Machine, real): machine.state is a read
     **depths.SCOPES,  # 1.0 L4 (depths): a file's revisions saved by another program; recorded only when the bytes on disk are the ones named
+    **tools_registry.SCOPES,  # 1.0 K2 (tools and observation receipts): the registry and receipts are reads; a window is closed only by name
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -722,6 +724,7 @@ class Kernel:
         if op in her_portrait.FIELDS:return her_portrait.dispatch(self,op,a,p)   # 1.0 P1 (her column): kasandra/portrait.png, admitted like her character file
         if op in machine_real.FIELDS:return machine_real.dispatch(self,op,a,p)   # 1.0 S4 (the Machine, real): storage, power, network, sound and screens, read now
         if op in depths.FIELDS:return depths.dispatch(self,op,a,p)   # 1.0 L4 (depths): a file's revision saved elsewhere, verified on disk before it is recorded
+        if op in tools_registry.FIELDS:return tools_registry.dispatch(self,op,a,p)   # 1.0 K2 (tools and observation receipts): one tool through its door, dispatched then verified
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

@@ -800,6 +800,9 @@
    "tolerances.list": "workbench/tolerances.py#dispatch",
    "tolerances.set": "workbench/tolerances.py#dispatch",
    "tolerances.set_cell": "workbench/tolerances.py#dispatch",
+   "tools.list": "workbench/tools_registry.py#dispatch",
+   "tools.receipts": "workbench/tools_registry.py#dispatch",
+   "tools.use": "workbench/tools_registry.py#dispatch",
    "trellis.inspect": "workbench/pnr_tools.py#dispatch",
    "trellis.report": "workbench/pnr_tools.py#dispatch",
    "ux.catalog": "workbench/ux_services.py#dispatch",
@@ -813,6 +816,10 @@
    "voice.character.admit": "workbench/voice_character.py#dispatch",
    "voice.character.start": "workbench/voice_character.py#dispatch",
    "voice.say": "workbench/voice_column.py#dispatch",
+   "windows.activate": "workbench/tools_registry.py#dispatch",
+   "windows.close": "workbench/tools_registry.py#dispatch",
+   "windows.minimise": "workbench/tools_registry.py#dispatch",
+   "windows.observe": "workbench/tools_registry.py#dispatch",
    "word.get": "workbench/your_word.py#dispatch",
    "word.list": "workbench/your_word.py#dispatch",
    "word.set": "workbench/your_word.py#dispatch",
@@ -1055,9 +1062,9 @@
   }
  },
  "counts": {
-  "adapters": 857,
+  "adapters": 864,
   "job_tools": 113,
-  "operations": 857,
+  "operations": 864,
   "settings": 48
  },
  "formulas": {
@@ -7939,6 +7946,40 @@
    },
    "scope": "approve"
   },
+  "tools.list": {
+   "arguments": "4405fa7ece3a7d4e6e787363827407dbc25b8c2369bb44665af709cb24fb1f7a",
+   "properties": {
+    "family": "520c691f88f728d6",
+    "key": "520c691f88f728d6",
+    "members": "7cb541e84f226754",
+    "number": "e2fcb7580bba1b0b"
+   },
+   "scope": "read"
+  },
+  "tools.receipts": {
+   "arguments": "a87c4c7a1385807693325c6093e81fca8cde3b37d86cbd3d9db0bc8fd9f6ddd8",
+   "properties": {
+    "assignment": "1a75c379fb0fafe6",
+    "limit": "dfbe8dfe1b8e5376",
+    "object": "12e647809f9542e7",
+    "offset": "70cdb1142279086c",
+    "step": "7f098ef8f5620bd8",
+    "tool": "520c691f88f728d6"
+   },
+   "scope": "read"
+  },
+  "tools.use": {
+   "arguments": "55bbd210cd3cda0daf8d9c2aae5bcf49741f970f26e7b37792d2b61240d9c56b",
+   "properties": {
+    "arguments": "a2c799262a3ce3c1",
+    "basis": "ea9a10a6ce001bdd",
+    "number": "e2fcb7580bba1b0b",
+    "operation": "d6e25d5c4e0ea921",
+    "origins": "a2c799262a3ce3c1",
+    "tool": "520c691f88f728d6"
+   },
+   "scope": "execute"
+  },
   "trellis.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
@@ -8032,6 +8073,34 @@
     "on": "97ff1836f9f6cc3c",
     "reading": "cee1c4dc227b697c",
     "sheet": "a197705b0fea6cee"
+   },
+   "scope": "read"
+  },
+  "windows.activate": {
+   "arguments": "aa4caf63400a990e4eaf68d962fb03a94881f2224cc2c25a95a07fcc259e9a0f",
+   "properties": {
+    "window": "b745d46bf87893d9"
+   },
+   "scope": "execute"
+  },
+  "windows.close": {
+   "arguments": "aa4caf63400a990e4eaf68d962fb03a94881f2224cc2c25a95a07fcc259e9a0f",
+   "properties": {
+    "window": "b745d46bf87893d9"
+   },
+   "scope": "approve"
+  },
+  "windows.minimise": {
+   "arguments": "aa4caf63400a990e4eaf68d962fb03a94881f2224cc2c25a95a07fcc259e9a0f",
+   "properties": {
+    "window": "b745d46bf87893d9"
+   },
+   "scope": "execute"
+  },
+  "windows.observe": {
+   "arguments": "d9d85a19444f772d065ef8e2f2c3fcfb50264ebdcf2c608d12d305886ccfe0c2",
+   "properties": {
+    "since": "7e83520094f45158"
    },
    "scope": "read"
   },
@@ -8419,7 +8488,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "c273d3f6bc44aee181af64a27244846c772fe941828fe00c51800923b1f16b83",
+ "schema_digest": "14be7ef5aeb93ab37f0ad9e1004d403b47c16e9a9c0aa20266d637c6b43b79ad",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
