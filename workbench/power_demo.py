@@ -1,0 +1,402 @@
+"""Power Home: an invented busy home folder beside Rail Demo, for walking Graphite as someone who uses all of it (Graphite 1.0 X4).
+
+The owner, 26 November 2026: "Double the casual user deep scenarios to power user situations." The everyday home grown to a
+busy one: a Downloads folder of more than two hundred files, a desk of more than three hundred records beside Rail Demo in
+the same workspace, a household budget kept both as a Calc file and as plain tables a line can read, a camera folder with
+copies of the same photo under other names, a Calc table and a Writer report for her hand, and two drives (a USB stick of
+holiday photos and a backup disk). Every name, amount, picture and sentence here was made up for the purpose (NOTICE is
+in every file that has words). Nothing here is anyone's real data.
+
+What it holds ("today" is TODAY, Thursday 26 November 2026):
+
+    Documents   "Household budget 2026.ods" (Calc: "Spending" of dated rows, category, item, an exact amount), "Bench
+                table.ods" (Calc: a small table of invented bench readings), "Rail Demo report.odt" (Writer: a report with a
+                place for that table), "Letter to the bank.odt"
+    Pictures    Camera: CAMERA_COUNT photos named as a camera names them (DSC_0001.jpg ...), some of them the very same
+                picture under another name; each carries the time it was "taken" in its own bytes (a JPEG comment
+                "Taken: YYYY-MM-DD hh:mm:ss"), so a utility can rename them by date without a clock or a library
+    Downloads   more than two hundred files: invoices, statements, photos, screenshots, notes, table exports, archives,
+                and the copies a browser makes ("... (1).pdf")
+    Music, Desktop  a few files each
+    the drives  drives/HOLIDAY (a USB stick: DCIM/100DEMO, eight photos) and drives/BACKUP (a backup disk: Backups 2026,
+                a dozen files and an "Open on the disk.odt" to have open when it is ejected)
+    the desk    Graphite's workspace in Concern/Ledger: Rail Demo (built through its own door), the budget's tables in Files
+                (Budget 2026/spending.csv, Budget 2025/spending.csv, the same columns), and DESK_PAGES pages, DESK_IDEAS
+                ideas and an investigation of DESK_CLAIMS findings and questions about the invented bench, all made through
+                Kernel.dispatch with the owner's principal: more than three hundred records
+
+The groceries of November in the budget come to GROCERIES_NOVEMBER exactly; the amounts are written as decimal text and
+summed here as Fractions, never as floating point.
+
+The door: `python -m workbench.power_demo FOLDER [--no-desk]` builds it in FOLDER (a new or empty throwaway folder): the home
+folder in FOLDER/home, the drives' contents in FOLDER/drives/<LABEL>, Graphite's workspace where a fresh install keeps it
+(FOLDER/home/Concern/Ledger) and a profile of its own in FOLDER/profile. It never writes into the home folder of the person
+at the computer: the window that walks it is started with environment(FOLDER), whose HOME is FOLDER/home. The files are the
+same bytes every time; the desk's records carry the workspace's own ids and times.
+
+    from workbench import power_demo
+    made = power_demo.build(folder)             # the home, the drives, the workspace with Rail Demo and the busy desk
+    env = power_demo.environment(folder, 'day') # the environment a window walking it starts with
+"""
+from __future__ import annotations
+
+import hashlib
+import io
+import json
+import os
+import sys
+import time
+import zipfile
+from datetime import date
+from fractions import Fraction
+from pathlib import Path
+
+NAME = 'Power Home'
+NOTICE = 'Invented example: no real person, place, account or address.'
+REVISION = 1                 # bump when what build() makes changes
+TODAY = date(2026, 11, 26)   # "today" in every Power Home example: Thursday 26 November 2026
+FOLDERS = ('Documents', 'Pictures', 'Pictures/Camera', 'Downloads', 'Music', 'Desktop')
+BUDGET = 'Documents/Household budget 2026.ods'
+TABLE = 'Documents/Bench table.ods'
+REPORT = 'Documents/Rail Demo report.odt'
+LETTER = 'Documents/Letter to the bank.odt'
+DRIVES = {'HOLIDAY': 'a USB stick', 'BACKUP': 'a backup disk'}
+STICK_FOLDER = 'DCIM/100DEMO'
+BACKUP_FOLDER = 'Backups 2026'
+OPEN_ON_DISK = 'Open on the disk.odt'
+CAMERA_COUNT = 24            # photos in Pictures/Camera
+CAMERA_UNIQUE = 16           # of them, this many different pictures (the rest are the same bytes under another name)
+DESK_PAGES = 240
+DESK_IDEAS = 40
+DESK_CLAIMS = 30
+PHOTO = (96, 72)             # small photos: a couple of kilobytes each
+
+# ---- the budget: (date, category, item, amount); amounts as decimal text, chosen so a sum in floating point would not be exact
+_SHOPS = ('Supermarket', 'Market', 'Bakery', 'Corner shop')
+_FIXED = (('01', 'Rent', 'Rent', '950.00'), ('07', 'Phone', 'Phone bill', '18.99'), ('14', 'Transport', 'Bus pass', '45.00'),
+          ('20', 'Electricity', 'Electricity', '74.18'), ('21', 'Household', 'Light bulbs', '12.60'))
+_GROCERIES = ('23.40', '61.85', '7.20', '54.10', '18.95', '72.35', '6.80', '0.10', '0.20', '19.99', '33.33', '4.35')
+
+
+def spending(year):
+    """The budget's rows for `year` (2026: October and November; 2025: the same months a year before, a little less)."""
+    rows = []
+    for month in ('10', '11'):
+        for day, category, item, amount in _FIXED:
+            rows.append(('%d-%s-%s' % (year, month, day), category, '%s %s' % (item, 'October' if month == '10' else 'November'), amount))
+        for n, amount in enumerate(_GROCERIES):
+            value = Fraction(amount) - (Fraction(1, 10) if year == 2025 and Fraction(amount) > 1 else 0)
+            text = '%d.%02d' % divmod(int(value * 100), 100)
+            rows.append(('%d-%s-%02d' % (year, month, 2 + n * 2), 'Groceries', _SHOPS[n % len(_SHOPS)], text))
+    return tuple(sorted(rows))
+
+
+SPENDING = spending(2026)
+SPENDING_2025 = spending(2025)
+
+
+def spent(category, month, rows=SPENDING):
+    """What the rows say was spent on `category` in `month` ('2026-11'): (total as text, the rows), exactly."""
+    picked = [r for r in rows if r[1].casefold() == category.casefold() and r[0].startswith(month)]
+    cents = sum((Fraction(r[3]) for r in picked), Fraction(0)) * 100
+    if cents.denominator != 1:
+        raise ValueError('An amount in the budget is not in whole cents.')
+    return '%d.%02d' % divmod(int(cents), 100), picked
+
+
+GROCERIES_NOVEMBER = spent('Groceries', '2026-11')[0]
+GROCERIES_ALL_2026 = spent('Groceries', '2026')[0]
+GROCERIES_ALL_2025 = spent('Groceries', '2025', SPENDING_2025)[0]
+
+# ---- the bench table (for her hand: Calc into the Writer report)
+BENCH = (('Parameter', 'Value', 'Unit'), ('Rail voltage', '12', 'V'), ('Settled current', '250', 'mA'), ('Startup current', '900', 'mA'),
+         ('Startup duration', '45', 'ms'))
+REPORT_LINES = ('Rail Demo report (invented data)', 'Section 1. The bench readings', 'TABLE GOES HERE',
+                'Section 2. Settled power is 3.0 W at 12 V.', NOTICE)
+
+
+class Unavailable(RuntimeError):
+    """The Power Home could not be built here; the message says why."""
+
+
+# ---- making the files -----------------------------------------------------------------------------------------------------
+def _qt():
+    try:
+        from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QRectF, Qt
+        from PySide6.QtGui import QColor, QImage, QPainter
+    except ImportError as exc:  # pragma: no cover - PySide6 is part of Graphite
+        raise Unavailable('Power Home draws its photos with Qt, and PySide6 is not here (%s).' % exc) from exc
+    return locals()
+
+
+_COLOURS = ('#f7a35c', '#9fd38a', '#a9d2f0', '#efe3d0', '#c7e2f5', '#f5d08a', '#dff0fb', '#bfe0f7', '#8ec9f0', '#fbe9f0',
+            '#0d1b3a', '#f3e7cf', '#d9c2a5', '#3b6f8f', '#6fae5a', '#e9cf9b')
+_INKS = ('#d8352a', '#3d6f9e', '#2f6b25', '#8b4513', '#c0392b', '#f4c20d', '#5aa0e6', '#6b7c8c')
+
+
+def photo(n, taken='', size=PHOTO, fmt='JPG'):
+    """The bytes of invented picture number n: a ground and three shapes placed by whole-number rules (no randomness);
+    `taken` is written into the picture's own bytes as 'Taken: <taken>' (a JPEG comment) when given."""
+    q = _qt();QColor = q['QColor'];w, h = size
+    image = q['QImage'](w, h, q['QImage'].Format_RGB32);image.fill(QColor(_COLOURS[n % len(_COLOURS)]))
+    painter = q['QPainter'](image);painter.setPen(q['Qt'].NoPen)
+    for k in range(3):
+        painter.setBrush(QColor(_INKS[(n * 3 + k) % len(_INKS)]))
+        x, y = (n * 37 + k * 29) % 70, (n * 23 + k * 41) % 50
+        rect = q['QRectF'](w * x // 100, h * y // 100, w * (20 + k * 6) // 100, h * (24 + k * 5) // 100)
+        (painter.drawEllipse if (n + k) % 2 else painter.drawRect)(rect)
+    painter.end()
+    if taken:image.setText('Taken', taken)
+    data = q['QByteArray']();buffer = q['QBuffer'](data);buffer.open(q['QIODevice'].WriteOnly)
+    if not image.save(buffer, fmt, 80 if fmt == 'JPG' else -1):
+        raise Unavailable('Qt could not write picture %d.' % n)
+    return bytes(data)
+
+
+def taken_of(data):
+    """The 'Taken: ...' time a photo of this module carries in its bytes, or ''."""
+    at = data.find(b'Taken: ')
+    return data[at + 7:at + 26].decode('ascii', 'replace') if at >= 0 else ''
+
+
+def pdf(pages):
+    """A PDF of (heading, lines) pages, written byte by byte as Home Demo's sources are (no clock, no id)."""
+    from .home_demo import LEFT, LINE, TOP, pages_pdf
+    out = []
+    for heading, lines in pages:
+        items = [(LEFT, TOP, 14, heading), (LEFT, TOP - 18, 9, NOTICE)];y = TOP - 54
+        for line in lines:
+            items.append((LEFT, y, 11, line));y -= LINE + 5
+        out.append(items + [(LEFT, 40, 9, NOTICE)])
+    return pages_pdf(out)
+
+
+def odt(lines):
+    from xml.sax.saxutils import escape
+    from .office_bridge import ODT_TYPE, _NS, _package
+    body = ''.join('<text:p>%s</text:p>' % escape(line) for line in lines)
+    return _package(ODT_TYPE, '<office:document-content %s office:version="1.3"><office:body><office:text>%s</office:text>'
+                              '</office:body></office:document-content>' % (_NS, body))
+
+
+def _number_cell(value):
+    return '<table:table-cell office:value-type="float" office:value="%s"><text:p>%s</text:p></table:table-cell>' % (value, value)
+
+
+def ods(tables):
+    """A Calc spreadsheet of {name: (columns, rows)}; a cell that is exactly a decimal number is a number cell."""
+    import re
+    from .office_bridge import ODS_TYPE, _NS, _package, _string_cell
+    number = re.compile(r'^-?[0-9]+(\.[0-9]+)?$')
+    out = []
+    for name, (columns, rows) in tables.items():
+        head = '<table:table-row>%s</table:table-row>' % ''.join(_string_cell(c) for c in columns)
+        body = ''.join('<table:table-row>%s</table:table-row>' % ''.join(_number_cell(v) if number.match(v) else _string_cell(v) for v in row)
+                       for row in rows)
+        out.append('<table:table table:name="%s"><table:table-column table:number-columns-repeated="%d"/>%s%s</table:table>'
+                   % (name, len(columns), head, body))
+    return _package(ODS_TYPE, '<office:document-content %s office:version="1.3"><office:body><office:spreadsheet>%s'
+                              '</office:spreadsheet></office:body></office:document-content>' % (_NS, ''.join(out)))
+
+
+def csv_text(rows):
+    lines = ['Date,Category,Item,Amount'] + ['%s,%s,%s,%s' % r for r in rows]
+    return '\n'.join(lines) + '\n'
+
+
+def camera():
+    """{'Pictures/Camera/DSC_nnnn.jpg': (picture number, taken)}: CAMERA_COUNT names, CAMERA_UNIQUE pictures. A copy is the
+    very same bytes (the same picture and the same time taken) under a later camera number."""
+    out = {}
+    for k in range(CAMERA_COUNT):
+        n = k if k < CAMERA_UNIQUE else (k * 5) % CAMERA_UNIQUE
+        day, minute = 10 + n // 4, (n * 7) % 60
+        out['Pictures/Camera/DSC_%04d.jpg' % (k + 1)] = (n, '2026-08-%02d %02d:%02d:00' % (day, 9 + n % 9, minute))
+    return out
+
+
+def downloads():
+    """{path: bytes} for Downloads: more than two hundred files of every kind a browser leaves there."""
+    out = {}
+    for k in range(1, 49):
+        amount = '%d.%02d' % (20 + (k * 17) % 180, (k * 37) % 100)
+        out['Downloads/invoice-2026-%03d.pdf' % k] = pdf((('Demo Supplies Ltd (invented): invoice 2026-%03d' % k,
+                                                            ('Amount due: %s.' % amount, 'Due within 30 days.')),))
+    for year in (2025, 2026):
+        for month in range(1, 13):
+            if year == 2026 and month > 11:break
+            out['Downloads/bank-statement-%d-%02d.pdf' % (year, month)] = pdf((('Demo Bank (invented): statement %d-%02d' % (year, month),
+                                                                                ('Account ending 0000 (invented).',)),))
+    for k in range(1, 41):
+        out['Downloads/IMG_2026%04d.jpg' % (1000 + k)] = photo(100 + k)
+    for k in range(1, 31):
+        out['Downloads/Screenshot 2026-11-%02d at %02d.%02d.png' % (1 + k % 26, 8 + k % 10, (k * 7) % 60)] = photo(200 + k, fmt='PNG')
+    for k in range(1, 26):
+        out['Downloads/note-%02d.txt' % k] = ('Note %d (invented): call the plumber, buy stamps, renew the bus pass.\n%s\n' % (k, NOTICE)).encode()
+    for k in range(1, 21):
+        rows = ['Date,Item,Amount'] + ['2026-%02d-%02d,Item %d,%d.%02d' % (1 + k % 11, 1 + j, j, j * 3, (j * 11) % 100) for j in range(1, 6)]
+        out['Downloads/export-%02d.csv' % k] = ('\n'.join(rows) + '\n').encode()
+    for k in range(1, 11):
+        data = io.BytesIO()
+        with zipfile.ZipFile(data, 'w', zipfile.ZIP_STORED) as z:
+            z.writestr(zipfile.ZipInfo('archive-%02d/readme.txt' % k, date_time=(2026, 11, 1, 12, 0, 0)), NOTICE)
+        out['Downloads/archive-%02d.zip' % k] = data.getvalue()
+    for k in (3, 7, 12, 19, 25, 31):                   # the copies a browser makes
+        out['Downloads/invoice-2026-%03d (1).pdf' % k] = out['Downloads/invoice-2026-%03d.pdf' % k]
+    for k in (2, 9, 15):
+        out['Downloads/IMG_2026%04d (1).jpg' % (1000 + k)] = out['Downloads/IMG_2026%04d.jpg' % (1000 + k)]
+    return out
+
+
+def home_files():
+    """{path in the home folder: bytes} for everything the Power Home holds (the drives apart)."""
+    out = {BUDGET: ods({'Spending': (('Date', 'Category', 'Item', 'Amount'), SPENDING + ((NOTICE, '', '', ''),))}),
+           TABLE: ods({'Bench': (BENCH[0], BENCH[1:] + ((NOTICE, '', ''),))}),
+           REPORT: odt(REPORT_LINES),
+           LETTER: odt(('Demo Bank (invented)', '26 November 2026', 'Please send me the statement for October again.', NOTICE)),
+           'Desktop/To do.txt': ('To do\n- sort Downloads\n- check the budget\n- back up the photos\n' + NOTICE + '\n').encode(),
+           'Music/Tune.wav': _sound(), 'Documents/budget-2026.csv': csv_text(SPENDING).encode()}
+    for path, (n, taken) in camera().items():out[path] = photo(n, taken)
+    out.update(downloads())
+    return out
+
+
+def _sound(rate=8000, each=1600):
+    import struct
+    frames = bytearray()
+    for hz in (440, 554, 659):
+        half = max(1, rate // (2 * hz))
+        frames.extend((176 if (n // half) % 2 == 0 else 80) for n in range(each))
+    head = b'RIFF' + struct.pack('<I', 36 + len(frames)) + b'WAVEfmt ' + struct.pack('<IHHIIHH', 16, 1, 1, rate, rate, 1, 8)
+    return head + b'data' + struct.pack('<I', len(frames)) + bytes(frames)
+
+
+def drive_files():
+    """{label: {path on the drive: bytes}} for the two drives."""
+    stick = {'%s/Beach %02d.jpg' % (STICK_FOLDER, k): photo(300 + k, '2026-08-%02d 1%d:00:00' % (14 + k // 3, k % 10)) for k in range(1, 9)}
+    disk = {'%s/backup-%02d.txt' % (BACKUP_FOLDER, k): ('Backup list %d (invented).\n%s\n' % (k, NOTICE)).encode() for k in range(1, 13)}
+    disk[OPEN_ON_DISK] = odt(('A note kept on the backup disk (invented).', NOTICE))
+    return {'HOLIDAY': stick, 'BACKUP': disk}
+
+
+def _write(folder, files):
+    made = {}
+    for rel, data in sorted(files.items()):
+        target = Path(folder) / rel;target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            raise Unavailable('Power Home is built only in an empty folder: %s is already there.' % target)
+        temporary = target.with_name('.' + target.name + '.writing');temporary.write_bytes(data);os.replace(temporary, target)
+        made[rel] = hashlib.sha256(data).hexdigest()
+    return made
+
+
+# ---- the door ------------------------------------------------------------------------------------------------------------
+def places(base):
+    """Where the Power Home lives under `base`: the home folder, the drives, the workspace, the profile."""
+    base = Path(base);home = base / 'home'
+    return {'base': base, 'home': home, 'drives': base / 'drives', 'concern': home / 'Concern', 'workspace': home / 'Concern' / 'Ledger',
+            'profile': base / 'profile'}
+
+
+def environment(base, appearance='', environ=None):
+    """The environment a window walking the Power Home starts with: HOME is its home folder, Graphite's workspace and
+    Concern folder where a fresh install keeps them in that home, a profile of its own, and the look asked for."""
+    where = places(base);env = dict(os.environ if environ is None else environ)
+    env.update(HOME=str(where['home']), ARC1_WORKBENCH_CONFIG_HOME=str(where['profile']), ARC_LEDGER_WORKSPACE=str(where['workspace']),
+               ARC_LEDGER_CONCERN=str(where['concern']))
+    env.pop('ARC_LEDGER_EDITION', None)
+    if appearance:env['GRAPHITE_APPEARANCE'] = appearance
+    return env
+
+
+def _desk(kernel, principal, counts):
+    """The busy desk beside Rail Demo: the budget's tables in Files, pages, ideas and an investigation's claims, through
+    Kernel.dispatch. Returns {kind: how many made}."""
+    def call(op, args):
+        got = kernel.dispatch(op, args, principal)
+        if not got.get('ok'):
+            raise Unavailable('Power Home could not be built: %s said %s' % (op, str(got.get('error'))[:300]))
+        return got.get('result') or {}
+    made = {'files': 0, 'pages': 0, 'ideas': 0, 'claims': 0}
+    for folder, rows in (('Budget 2026', SPENDING), ('Budget 2025', SPENDING_2025)):
+        call('files.write', {'path': '%s/spending.csv' % folder, 'text': csv_text(rows)});made['files'] += 1
+    topics = ('bench log', 'rail check', 'supply note', 'fuse note', 'cable run', 'load test', 'meter reading', 'board photo')
+    for k in range(1, counts['pages'] + 1):
+        topic = topics[k % len(topics)]
+        call('documents.create', {'title': 'Bench %s %03d (invented)' % (topic, k),
+                                  'text': 'Bench %s %03d. Rail at 12 V, %d mA measured on day %d (invented). %s' % (topic, k, 200 + (k * 13) % 120, 1 + k % 28, NOTICE),
+                                  'origin': 'HUMAN'})
+        made['pages'] += 1
+    for k in range(1, counts['ideas'] + 1):
+        call('ideas.capture', {'text': 'Idea %02d (invented): try a %s fuse on the %s rail.' % (k, ('slow', 'fast', 'resettable')[k % 3], ('12 V', '5 V', '3.3 V')[k % 3]),
+                               'origin': 'HUMAN'})
+        made['ideas'] += 1
+    if counts['claims']:
+        inv = call('investigation.create', {'question': 'Bench log review (invented data)', 'objective': NOTICE + ' Do the bench logs agree with one another?'})
+        for k in range(1, counts['claims'] + 1):
+            role = 'QUESTION' if k % 3 == 0 else 'FINDING'
+            text = ('Does bench log %03d agree with the rail check of the same day?' % k if role == 'QUESTION'
+                    else 'Bench log %03d reads within 5 %% of the rail check (invented).' % k)
+            call('investigation.claim', {'id': inv['id'], 'text': text, 'role': role})
+            made['claims'] += 1
+    return made
+
+
+def build(base, desk=True, counts=None):
+    """Build the Power Home in `base` (a new or empty throwaway folder): the home folder, the drives' contents, and Graphite's
+    workspace in the home's Concern folder with Rail Demo and the busy desk in it (desk=False leaves the workspace empty).
+    Never the home folder of the person at the computer. The process's environment is pointed at the Power Home's places
+    while the desk is built (as rail_demo.workspace does) and put back after. Returns what was made."""
+    where = places(base);base = where['base']
+    real_home = Path(os.path.expanduser('~')).resolve()
+    if where['home'].resolve() == real_home or real_home.is_relative_to(base.resolve()):
+        raise Unavailable('Power Home is never built in your own home folder: give it a new throwaway folder.')
+    base.mkdir(parents=True, exist_ok=True)
+    for name in FOLDERS:(where['home'] / name).mkdir(parents=True, exist_ok=True)
+    started = time.monotonic()
+    files = _write(where['home'], home_files())
+    drives = {label: _write(where['drives'] / label, content) for label, content in drive_files().items()}
+    from .locations import ensure_workspace
+    ensure_workspace(where['workspace']);where['profile'].mkdir(parents=True, exist_ok=True)
+    out = {'home': str(where['home']), 'drives': str(where['drives']), 'workspace': str(where['workspace']), 'profile': str(where['profile']),
+           'files': files, 'drive_files': drives, 'downloads': sum(1 for p in files if p.startswith('Downloads/')), 'desk': None}
+    if desk:
+        before = dict(os.environ)
+        try:
+            os.environ.update(environment(base), ARC_LEDGER_EMBEDDED='1', ARC_LEDGER_DISABLE_BOOK_WATCHER='1')
+            from . import rail_demo
+            from .engineering_kernel import Kernel, operator
+            kernel = Kernel(where['workspace']);principal = operator()
+            rail = rail_demo.build(kernel, principal)
+            made = _desk(kernel, principal, counts or {'pages': DESK_PAGES, 'ideas': DESK_IDEAS, 'claims': DESK_CLAIMS})
+            out['desk'] = {'rail_demo': sorted(rail), **made}
+        finally:
+            os.environ.clear();os.environ.update(before)
+    out['seconds'] = int(time.monotonic() - started)
+    return out
+
+
+def digests():
+    """The SHA-256 of every file the Power Home holds, as made now (the same every time)."""
+    out = {rel: hashlib.sha256(data).hexdigest() for rel, data in home_files().items()}
+    for label, content in drive_files().items():
+        out.update({'drives/%s/%s' % (label, rel): hashlib.sha256(data).hexdigest() for rel, data in content.items()})
+    return out
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    desk = '--no-desk' not in argv;argv = [a for a in argv if a != '--no-desk']
+    if len(argv) != 1:
+        print(json.dumps({'ok': False, 'why': 'usage: python -m workbench.power_demo FOLDER [--no-desk]'}));return 2
+    try:
+        made = build(Path(argv[0]), desk=desk)
+    except (Unavailable, OSError, ValueError) as exc:
+        print(json.dumps({'ok': False, 'why': str(exc)[:300]}));return 1
+    print(json.dumps({'ok': True, **{k: v for k, v in made.items() if k not in ('files', 'drive_files')},
+                      'files': len(made['files']), 'drive_files': {k: len(v) for k, v in made['drive_files'].items()}}))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

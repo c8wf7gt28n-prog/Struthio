@@ -495,7 +495,14 @@ class TrashTab(QWidget):
 
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('LibraryTab');self.setProperty('ledgerRoom', True)
-        self.box = QVBoxLayout(self);self.box.setContentsMargins(28, 18, 28, 12);self.box.setSpacing(10);self.reload()
+        # 1.0 X4: the rows scroll. With fifty deletions from your home the room's rows were squeezed into one another
+        # (a plain column has no room to grow into); now they stand in a scrolling column of their own.
+        from PySide6.QtWidgets import QFrame, QScrollArea
+        outer = QVBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0)
+        self.scroll = QScrollArea(self);self.scroll.setWidgetResizable(True);self.scroll.setFrameShape(QFrame.NoFrame)
+        self.scroll.setStyleSheet('QScrollArea, QScrollArea > QWidget > QWidget {background: transparent;}')
+        inner = QWidget();inner.setObjectName('DeleteRoomRows');self.scroll.setWidget(inner);outer.addWidget(self.scroll)
+        self.box = QVBoxLayout(inner);self.box.setContentsMargins(28, 18, 28, 12);self.box.setSpacing(10);self.reload()
 
     def title(self):return 'DELETE'
 

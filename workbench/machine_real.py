@@ -310,13 +310,61 @@ def mount(block, bus=None):
     return dict(ok=True, verified=False, said='udisks2 said it mounted it at %s, but reading it back shows %s.' % (place or 'no place', ', '.join(points) or 'no mount point'), path=place)
 
 
+PROGRAM_NAMES = {'soffice.bin': 'LibreOffice', 'soffice': 'LibreOffice', 'oosplash': 'LibreOffice', 'gimp': 'GIMP', 'firefox': 'Firefox',
+                 'firefox-esr': 'Firefox', 'kicad': 'KiCad', 'blender': 'Blender', 'godot': 'Godot', 'evince': 'Document Viewer',
+                 'eog': 'Image Viewer', 'vlc': 'VLC', 'bash': 'a terminal shell', 'python3': 'a Python program'}
+
+
+def holders(places, proc='/proc'):
+    """1.0 X4: the programs of this account that hold something under one of `places` open (a file, or their working folder),
+    read from /proc: [(pid, program words)]. Only your own processes are looked at; Graphite's own process is left out."""
+    roots = [str(p).rstrip('/') for p in places or () if p]
+    if not roots:return []
+    mine, me, found = os.getuid(), os.getpid(), []
+    try:pids = [p for p in os.listdir(proc) if p.isdigit()]
+    except OSError:return []
+    for pid in pids:
+        if int(pid) == me:continue
+        try:
+            if os.stat(os.path.join(proc, pid)).st_uid != mine:continue
+            links = [os.readlink(os.path.join(proc, pid, 'cwd'))]
+            fds = os.path.join(proc, pid, 'fd')
+            links += [os.readlink(os.path.join(fds, fd)) for fd in os.listdir(fds)]
+        except OSError:
+            continue
+        if any(link == root or link.startswith(root + '/') for link in links for root in roots):
+            try:
+                with open(os.path.join(proc, pid, 'comm'), encoding='utf-8', errors='replace') as f:comm = f.read().strip()
+            except OSError:
+                comm = ''
+            found.append((int(pid), PROGRAM_NAMES.get(comm, comm or 'a program')))
+    return found
+
+
+def holders_words(places):
+    """1.0 X4: '' or a sentence naming the programs that keep the drive busy ("LibreOffice (process 4242) has a file on it open")."""
+    held = holders(places)
+    if not held:return ''
+    names = sorted({name for _, name in held})
+    pids = ', '.join(str(pid) for pid, _ in held[:4])
+    return '%s %s a file on it open (process %s): close it there first, then eject again. Nothing was forced.' % (
+        ' and '.join(names), 'has' if len(names) == 1 else 'have', pids)
+
+
 def unmount(block, bus=None):
     """Unmount one filesystem; done when udisks2 reads it back as mounted nowhere (every write to it is then finished)."""
     doing = 'Unmounting did not happen'
     try:
+        before = _mount_points(block, bus) or []      # 1.0 X4: where it is, to name what keeps it busy if it is refused
+    except Exception:  # noqa: BLE001
+        before = []
+    try:
         call(UDISKS, block, UD + 'Filesystem', 'Unmount', {}, bus=bus, timeout=ACT_TIMEOUT_MS)
     except (Unavailable, Refused) as exc:
-        return failure(exc, doing)
+        out = failure(exc, doing)
+        held = holders_words(before) if isinstance(exc, Refused) else ''      # 1.0 X4: a busy drive names the program holding it
+        if held:out['said'] = '%s: it is in use. %s' % (doing, held);out['held_by'] = [name for _, name in holders(before)];out['service_said'] = exc.message
+        return out
     points = _mount_points(block, bus)
     if points == []:
         return dict(ok=True, verified=True, said='Unmounted (read back: mounted nowhere).')
