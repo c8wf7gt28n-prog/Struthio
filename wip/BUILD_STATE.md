@@ -377,6 +377,16 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 12:57 UTC: **1.0 M2 merged** (d4e03f8: a quick model beside her model. It answers a kind only when that
+  kind is offered to it, it passed that kind's exam on its own key, and her clock prices it faster; Undo puts every
+  kind back. The Brain room's Quick model page explains each kind. The memory sum counts both, and the model check
+  proposes the split. Live here: the 2B was about 2x faster but failed every exam (READ 2/20 with 3 harmful, ASK 9/20,
+  NEXT 14/20), so it took no kind; routing was shown with stand-ins only. Three live runs were needed: the
+  address-space cap is now the estimate plus max(2 GiB, half)). **F2b launched** (agent af25ae3cb528484d6). **M1b
+  written into the plan** (her own model's cap needs M2's fix; M1's tuned rates are lost with the model check's
+  temporary profile). Its brief is ready for the next slot. Running: X3, X4, X2, F2b. Queue: M1b; D2 after the
+  walkthroughs and F2b; X1; R2. 42 slices: 33 merged, P5 cancelled.
+
 - 26 Nov 12:48 UTC: **1.0 F2 merged** (f2b2821: the floor. floor.py moves reads off the window's thread, timers skip
   while her work holds the database, the board bisects and caches, and one event-filter hub replaces ten.
   GRAPHITE_STALL_LOG is the owner's stall log. Longest stall in a Rail Demo assignment: 341-750 ms → 234-354 ms, so

@@ -468,6 +468,17 @@ room shows which model answers which kind and why; Undo puts every kind back on 
 pair and proposes the split. *Acceptance:* with the 4B and 2B here, the 2B takes a kind only after passing its exam
 items, and her clock and the Brain room show the split; the speeds here said to mean nothing for the ThinkPad.
 
+**M1b · Her model's memory cap and her measured rates** (added at M2's merge, 26 Nov, from M2's findings). (1) On
+the processor the runtime's memory cap limits address space, and llama-server sits about 930 MiB over its estimate at
+Ready. M2 fixed the cap for the quick model (the estimate plus the larger of 2 GiB and half the estimate, with cap and
+tier agreeing). Her own model needs the same treatment wherever the owner sets an explicit cap, so a cap near the
+estimate cannot crash her as M1's larger prompt cache fills. Where the owner's cap is too tight, say so in the Brain
+room with the numbers before loading. (2) M1's tuning stage saves its measured rates in the model check's temporary
+profile, which is deleted, so her clock never sees them. Carry them out the way M2 carries the pair's rates, so her
+clock starts from what this machine measured. *Acceptance:* the 4B loaded once under the lock with an explicit cap
+near its estimate, staying up through a primed READ and PLAN, or refused beforehand with the numbers; the tuning
+stage's rates seen by her clock after the model check closes.
+
 ### Wave 5 — the door, the floor, the Apps by hand
 
 **F1 · The door's mechanics.** A touch stops her: any owner input in the window while her hand drives it pauses the
