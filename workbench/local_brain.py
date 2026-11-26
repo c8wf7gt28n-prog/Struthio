@@ -494,9 +494,11 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
         key.unlink(missing_ok=True)
         if sock_folder:sock_folder.rmdir()
         raise
+    from .brain_cap import address_space_mb   # 1.0 M1b: on the processor, address space with room above her rung's estimate
+    space=address_space_mb(config,backend)
     argv=[sys.executable,'-m','workbench.brain_worker','--memory-mb',str(config['memory_mb']),'--backend',backend,
           '--reserve-mb',str(max(128,room['reserve_bytes']//1024**2)),'--seal','network' if network_seal else 'none',
-          str(executable)]+line
+          *(['--address-space-mb',str(space)] if space else []),str(executable)]+line
     cache=kernel.state/'brain'/'shader-cache' if backend=='VULKAN' else None
     unsealed=None if network_seal else 'VULKAN_NOT_SEEN_IN_ITS_OWN_NETWORK' if sock and possible else \
         'NO_PRIVATE_SOCKET' if possible else 'NO_NETWORK_NAMESPACES_ON_THIS_SYSTEM'
@@ -518,6 +520,7 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
                     'job_id':ident,'started':time.time(),'backend':backend,'requested_backend':config.get('requested_backend','CPU'),
                     'device':config.get('device'),'fallback_reason':config.get('fallback_reason'),
                     'resource_guard':config.get('resource_guard',resource_guard(backend)),
+                    'address_space_mb':space,   # 1.0 M1b: the guard's address-space limit on the processor (None on the Radeon)
                     'verified_files':verified,'batch_size':max(256,_batch(config)),'microbatch_size':_batch(config),
                     'context_basis':'REQUESTED_LIMIT','context_reuse':'PINNED_SINGLE_SLOT',
                     # 0.8.7 A2: kept briefs (brain_briefs) over one slot, its checkpoints and its RAM prompt cache

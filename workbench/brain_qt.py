@@ -60,6 +60,9 @@ class BrainTab(ServiceTab):
             widget.setAccessibleName(label)
         controls.addLayout(options)
         self.launch_defaults_note=QLabel();self.launch_defaults_note.setWordWrap(True);controls.addWidget(self.launch_defaults_note)
+        # 1.0 M1b: what the memory cap gives her, before loading, with the numbers (brain_cap.plan)
+        self.cap_line=QLabel('');self.cap_line.setWordWrap(True);self.cap_line.setAccessibleName('What the memory cap gives her')
+        controls.addWidget(self.cap_line);self._cap_key=None
         self.launch_fields={'context':self.context,'threads':self.threads,'memory_mb':self.memory,
                             'backend':self.backend,'gpu_layers':self.gpu_layers,'cpu_fallback':self.cpu_fallback}
         for key,widget in self.launch_fields.items():
@@ -180,6 +183,27 @@ class BrainTab(ServiceTab):
         if hasattr(self,'acceleration_launch'):
             self.acceleration_launch.setText('Next load: '+self.backend.currentText()+' · GPU layers '+self.gpu_layers.text()+
                 ' · host budget '+self.memory.text()+' MiB · CPU fallback '+('allowed' if self.cpu_fallback.isChecked() else 'disabled'))
+        if hasattr(self,'cap_line'):self.show_cap()   # 1.0 M1b
+
+    def show_cap(self):
+        """1.0 M1b: what these fields give the selected model, before loading (brain_cap.plan); worked out again only when the
+        model, the fields or the saved defaults change."""
+        value=next((r for r in self._models if r['id']==self._selected_id),None)
+        if not value:self.cap_line.setText('');self._cap_key=None;return
+        try:
+            from .model_settings import preferences
+            opts={k:v for k,v in preferences(self.kernel).items() if k!='memory_mb'}
+            opts.update({key:self.field_value(widget) for key,widget in self.launch_fields.items() if key!='memory_mb'})
+            if self.memory.value():opts['memory_mb']=self.memory.value()
+            key=(value['id'],json.dumps(opts,sort_keys=True),(local_brain.get(self.kernel,'worker',{}) or {}).get('pid'))
+            if key==self._cap_key:return
+            self._cap_key=key
+            from . import brain_cap
+            from .resource_control import reclaimable,reserve_setting
+            got=brain_cap.plan(value,opts,self.kernel.root,reclaimable(self.kernel),reserve_setting(self.kernel))
+            self.cap_line.setText(got.get('words') or '')
+        except Exception:  # noqa: BLE001 - a line that cannot be worked out is left empty, never a broken room
+            self.cap_line.setText('')
 
     def refresh_launch_defaults(self,force=False):
         from .model_settings import preferences
@@ -298,6 +322,7 @@ class BrainTab(ServiceTab):
             'task_trials':self.kernel.dispatch('slate.qualifications',{'model_id':ident},self.principal).get('result',{}).get('records',[])[:3],
             'note':'A load/chat probe is separate from answer, plan, exact-edit and clarification trials.'},indent=2))
         self.metadata.setPlainText(json.dumps(metadata,indent=2));self.tensors.setPlainText(json.dumps({'tensor_count':info['tensor_count'],'preview_truncated':info['tensor_preview_truncated'],'tensors':info['tensor_preview']},indent=2))
+        self.show_cap()   # 1.0 M1b: what the cap gives this model
     def inspect(self):self.selected()
     def locate(self):
         if self._selected_id:

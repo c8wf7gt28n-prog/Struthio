@@ -157,6 +157,8 @@ class CheckPanel(QWidget):
         self.pause_timer.stop();self.meter.stop();self.start.setEnabled(True);self.stop_button.setEnabled(False)
         if self.run is None:return
         (self.run / 'pause').unlink(missing_ok=True)
+        from . import tuning_rates      # 1.0 M1b: the rates it measured, for her clock, even when it ended early
+        kept = tuning_rates.keep(self.run)
         sent = sorted((self.run / 'for-sending').glob('model-check-*.json')) if (self.run / 'for-sending').is_dir() else []
         if not sent:
             self.stage_line.setText('The check ended without a file for sending (stopped, or the privacy scan held it back).');return
@@ -164,7 +166,8 @@ class CheckPanel(QWidget):
         card = sent[-1].with_suffix('.txt')
         self.card.setPlainText(card.read_text(encoding='utf-8') if card.exists() else '')
         self.folder.setEnabled(True)
-        self.stage_line.setText('Done. This is exactly what the file for sending holds; nothing has left this computer.')
+        self.stage_line.setText('Done. This is exactly what the file for sending holds; nothing has left this computer.'
+                                + (' ' + tuning_rates.words(kept) if kept and kept.get('kept') else ''))   # 1.0 M1b
         self.keep_exam()
         from . import quick_model      # 1.0 M2: the quick model's exam on its own key, and both models' measured rates
         quick_model.keep_pair(self.kernel, self.run)

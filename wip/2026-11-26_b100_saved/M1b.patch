@@ -1,0 +1,403 @@
+diff --git a/workbench/brain_cap.py b/workbench/brain_cap.py
+new file mode 100644
+index 0000000..86ed53d
+--- /dev/null
++++ b/workbench/brain_cap.py
+@@ -0,0 +1,116 @@
++"""Her model's memory cap on the processor, and what the owner's cap gives her, said before loading (1.0 M1b).
++
++On the processor the worker guard (brain_worker) caps the runtime's address space (RLIMIT_AS) as well as watching its
++resident memory, and llama-server's address space runs past the memory sum's estimate: some 930 MiB at Ready with the 4B
++and the 2B here (M2, measured from /proc), more as the prompt cache fills. A cap the owner set near her estimate could
++therefore end in std::bad_alloc as M1's larger prompt cache filled, though her resident memory stayed at the estimate
++(4,645 MiB at Ready against the 4B's 4,669 MiB, M2).
++
++Her cap stays the owner's: it is the budget the memory rule admits and the resident memory the guard holds her to. What
++changes is the address-space limit on the processor: the larger of her cap and her rung's estimate with the room M2 gives
++the quick model (quick_model.cap_mb, the one formula: the estimate and the larger of 2,048 MiB and half of it). The rung is
++the one her cap holds (local_brain.configuration), and the room is that rung's, so the limit and the rung agree. On the
++Radeon the guard watches resident memory only, as before.
++
++plan() says, before loading, what the launch fields give her, with the numbers: every kept prompt with room above her
++estimate; every kept prompt but close to it; fewer kept prompts; or not loaded, with the least cap that loads. The Brain
++room shows it under the launch fields, and the model check's S0 records it.
++"""
++from __future__ import annotations
++
++MIB = 1024 * 1024
++
++
++def _mib(n):
++    return '{:,} MiB'.format(int(n))
++
++
++def _up(n_bytes):
++    """Bytes in whole MiB, rounded up (the memory rule's own rounding)."""
++    return -(-int(n_bytes) // MIB)
++
++
++def room_mb(estimate_bytes):
++    """Her rung's estimate with the quick model's room above it, in whole MiB (quick_model.cap_mb: M2's one formula)."""
++    from .quick_model import cap_mb
++    return cap_mb(estimate_bytes)
++
++
++def address_space_mb(config, backend=None):
++    """The worker guard's address-space limit for this launch: on the processor the larger of the budget and the rung's
++    estimate with its room; None on the Radeon, where the guard watches resident memory only."""
++    backend = backend or (config or {}).get('backend') or 'CPU'
++    if backend != 'CPU':return None
++    budget = int((config or {}).get('memory_mb') or 0)
++    estimate = int((config or {}).get('estimated_peak_bytes') or 0)
++    if not estimate:return budget or None
++    return max(budget, room_mb(estimate))
++
++
++def _rung_words(config, full, rungs):
++    if rungs <= 1:return ''
++    if (config.get('checkpoints'), config.get('prompt_cache_mb')) == (full.get('checkpoints'), full.get('cache_mb')):
++        return ' with every kept prompt'
++    if not config.get('checkpoints') and not config.get('prompt_cache_mb'):
++        return ' with no kept prompt (reuse off)'
++    return ' with %s checkpoints and a %s prompt cache' % (config.get('checkpoints'), _mib(config.get('prompt_cache_mb') or 0))
++
++
++def plan(value, options=None, root=None, reclaimable_bytes=0, reserve_mb=None):
++    """What these launch options give her model, before anything loads: a dict with state (AUTO, ROOMY, CLOSE, FEWER or
++    NOT_LOADED), the numbers in whole MiB and her words. Never starts anything; never raises for a refusal."""
++    from . import local_brain, resource_control, runtime_tuning
++    options = dict(options or {})
++    cap = int(options.get('memory_mb') or 0) or None
++    context = int(options.get('context') or 2048)
++    out = {'cap_mb': cap, 'context': context}
++    full = least = None;rungs = 0
++    try:
++        tuned = runtime_tuning.settings(options)
++        head = runtime_tuning.mtp_layers(value['inspection']) if tuned['mtp_draft'] else 0
++        ladder = resource_control.reuse_ladder(value['inspection'], value['total_bytes'], context, tuned['kv_type'], head)
++        if options.get('reuse') is False:ladder = ladder[-1:]
++        full, least, rungs = ladder[0], ladder[-1], len(ladder)
++        out.update(full_mb=_up(full['estimate']), least_mb=_up(least['estimate']), room_mb=room_mb(full['estimate']))
++    except (ValueError, KeyError, TypeError):
++        pass
++    tokens = '{:,}'.format(context)
++    try:
++        config = local_brain.configuration(value, options, root, reclaimable_bytes, reserve_mb)
++    except ValueError as exc:
++        code, _, rest = str(exc).partition(': ')
++        out.update(state='NOT_LOADED', code=code)
++        if cap and full is not None and code == 'MODEL_MEMORY_BUDGET_TOO_SMALL' and cap < out['least_mb']:
++            out['words'] = ("She will not load: your %s cap is below her model's %s estimate at %s tokens%s. Set at least %s%s." % (
++                _mib(cap), _mib(out['least_mb']), tokens, ' even with no kept prompt' if rungs > 1 else '', _mib(out['least_mb']),
++                ('; %s keeps every prompt' % _mib(out['full_mb'])) if rungs > 1 else ''))
++        else:
++            text = rest or code
++            out['words'] = 'She will not load with these fields: ' + text[:1].lower() + text[1:] + '.'
++        return out
++    need = _up(config['estimated_peak_bytes'])
++    space = address_space_mb(config)
++    out.update(backend=config['backend'], memory_mb=config['memory_mb'], estimate_mb=need, checkpoints=config.get('checkpoints'),
++               prompt_cache_mb=config.get('prompt_cache_mb'), address_space_mb=space)
++    held = _rung_words(config, full or {}, rungs)
++    every = full is None or need >= out['full_mb']
++    if not cap:
++        out['state'] = 'AUTO'
++        words = 'Auto gives her %s for her %s estimate at %s tokens%s.' % (_mib(config['memory_mb']), _mib(need), tokens, held)
++    elif every and cap >= out.get('room_mb', 0):
++        out['state'] = 'ROOMY'
++        words = 'Fits with room: your %s cap holds her %s estimate at %s tokens%s.' % (_mib(cap), _mib(need), tokens, held)
++    elif every:
++        out['state'] = 'CLOSE'
++        words = ('Close: your %s cap holds her %s estimate at %s tokens%s, %s above it. If her memory grows past your cap she is '
++                 'stopped; %s gives her the room her quick model is given.' % (
++                     _mib(cap), _mib(need), tokens, held, _mib(cap - need), _mib(out['room_mb'])))
++    else:
++        out['state'] = 'FEWER'
++        words = ('Fewer kept prompts: your %s cap is below the %s she needs with every kept prompt at %s tokens, so she loads%s '
++                 '(%s). %s keeps every one.' % (_mib(cap), _mib(out['full_mb']), tokens, held, _mib(need), _mib(out['full_mb'])))
++    if space and space > int(config['memory_mb']):
++        words += (' On the processor her address space may reach %s (her runtime reserves more than it uses) while her memory '
++                  'is held to %s.' % (_mib(space), _mib(config['memory_mb'])))
++    out['words'] = words
++    return out
+diff --git a/workbench/brain_qt.py b/workbench/brain_qt.py
+index c272772..be4974a 100644
+--- a/workbench/brain_qt.py
++++ b/workbench/brain_qt.py
+@@ -60,6 +60,9 @@ class BrainTab(ServiceTab):
+             widget.setAccessibleName(label)
+         controls.addLayout(options)
+         self.launch_defaults_note=QLabel();self.launch_defaults_note.setWordWrap(True);controls.addWidget(self.launch_defaults_note)
++        # 1.0 M1b: what the memory cap gives her, before loading, with the numbers (brain_cap.plan)
++        self.cap_line=QLabel('');self.cap_line.setWordWrap(True);self.cap_line.setAccessibleName('What the memory cap gives her')
++        controls.addWidget(self.cap_line);self._cap_key=None
+         self.launch_fields={'context':self.context,'threads':self.threads,'memory_mb':self.memory,
+                             'backend':self.backend,'gpu_layers':self.gpu_layers,'cpu_fallback':self.cpu_fallback}
+         for key,widget in self.launch_fields.items():
+@@ -180,6 +183,27 @@ class BrainTab(ServiceTab):
+         if hasattr(self,'acceleration_launch'):
+             self.acceleration_launch.setText('Next load: '+self.backend.currentText()+' · GPU layers '+self.gpu_layers.text()+
+                 ' · host budget '+self.memory.text()+' MiB · CPU fallback '+('allowed' if self.cpu_fallback.isChecked() else 'disabled'))
++        if hasattr(self,'cap_line'):self.show_cap()   # 1.0 M1b
++
++    def show_cap(self):
++        """1.0 M1b: what these fields give the selected model, before loading (brain_cap.plan); worked out again only when the
++        model, the fields or the saved defaults change."""
++        value=next((r for r in self._models if r['id']==self._selected_id),None)
++        if not value:self.cap_line.setText('');self._cap_key=None;return
++        try:
++            from .model_settings import preferences
++            opts={k:v for k,v in preferences(self.kernel).items() if k!='memory_mb'}
++            opts.update({key:self.field_value(widget) for key,widget in self.launch_fields.items() if key!='memory_mb'})
++            if self.memory.value():opts['memory_mb']=self.memory.value()
++            key=(value['id'],json.dumps(opts,sort_keys=True),(local_brain.get(self.kernel,'worker',{}) or {}).get('pid'))
++            if key==self._cap_key:return
++            self._cap_key=key
++            from . import brain_cap
++            from .resource_control import reclaimable,reserve_setting
++            got=brain_cap.plan(value,opts,self.kernel.root,reclaimable(self.kernel),reserve_setting(self.kernel))
++            self.cap_line.setText(got.get('words') or '')
++        except Exception:  # noqa: BLE001 - a line that cannot be worked out is left empty, never a broken room
++            self.cap_line.setText('')
+ 
+     def refresh_launch_defaults(self,force=False):
+         from .model_settings import preferences
+@@ -298,6 +322,7 @@ class BrainTab(ServiceTab):
+             'task_trials':self.kernel.dispatch('slate.qualifications',{'model_id':ident},self.principal).get('result',{}).get('records',[])[:3],
+             'note':'A load/chat probe is separate from answer, plan, exact-edit and clarification trials.'},indent=2))
+         self.metadata.setPlainText(json.dumps(metadata,indent=2));self.tensors.setPlainText(json.dumps({'tensor_count':info['tensor_count'],'preview_truncated':info['tensor_preview_truncated'],'tensors':info['tensor_preview']},indent=2))
++        self.show_cap()   # 1.0 M1b: what the cap gives this model
+     def inspect(self):self.selected()
+     def locate(self):
+         if self._selected_id:
+diff --git a/workbench/brain_worker.py b/workbench/brain_worker.py
+index ef8fe7d..0cc9765 100644
+--- a/workbench/brain_worker.py
++++ b/workbench/brain_worker.py
+@@ -4,6 +4,10 @@ CPU retains its address-space cap. Vulkan needs a larger virtual address range
+ for driver mappings, so its supervisor watches resident memory and host/cgroup
+ headroom instead. That observation is not a hard cap on GPU allocations.
+ 
++1.0 M1b: on the processor the address-space cap may be given above the resident budget (--address-space-mb: her rung's
++estimate with the quick model's room, brain_cap), since the runtime reserves address space it does not use; the
++supervisor still holds resident memory to the budget.
++
+ 0.8.7, the sealed room (brain_seal): the native runtime gets only allow-listed environment names, a 077 umask and,
+ unless asked otherwise, its own empty network (a user and a network namespace unshared before exec). Where the computer
+ refuses, the child says so in the runtime log (GRAPHITE_NETWORK_NOT_SEALED) and still starts, offline.
+@@ -83,12 +87,14 @@ def _child_setup(parent,memory_mb=None,seal=False):
+     if os.getppid()!=parent:os.kill(os.getpid(),signal.SIGKILL)
+ 
+ 
+-def supervise(command,memory_mb,backend='VULKAN',reserve_mb=None,seal=False):
++def supervise(command,memory_mb,backend='VULKAN',reserve_mb=None,seal=False,address_space_mb=None):
+     if not sys.platform.startswith('linux'):raise ValueError('Shared-memory resource guard requires Linux')
+     parent=os.getpid()
+     # The runtime's environment is the allow-list only (brain_seal): this supervisor's PYTHONPATH stays here.
++    # 1.0 M1b: on the processor the address-space cap may sit above the resident budget (address_space_mb); resident
++    # memory is still held to memory_mb below.
+     child=subprocess.Popen(command,stdin=subprocess.DEVNULL,env=child_environment(os.environ),
+-                           preexec_fn=lambda:_child_setup(parent,memory_mb if backend=='CPU' else None,seal))
++                           preexec_fn=lambda:_child_setup(parent,(address_space_mb or memory_mb) if backend=='CPU' else None,seal))
+     def stop(signum,_frame):
+         if child.poll() is None:child.send_signal(signum)
+     signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop)
+@@ -113,13 +119,17 @@ def main():
+     parser.add_argument('--reserve-mb',type=int,default=2048)
+     # The sealed room: its own network unless the launch asks for none (the Radeon not seen inside one, open question 4).
+     parser.add_argument('--seal',choices=('network','none'),default='network')
++    # 1.0 M1b: the processor's address-space cap, when the launch gives one above the budget (brain_cap.address_space_mb)
++    parser.add_argument('--address-space-mb',type=int,default=0)
+     parser.add_argument('command',nargs=argparse.REMAINDER);args=parser.parse_args()
+     if not 512<=args.memory_mb<=262144 or not 128<=args.reserve_mb<=16384 or not args.command:raise ValueError('Worker resource contract')
+-    if sys.platform.startswith('linux'):return supervise(args.command,args.memory_mb,args.backend,args.reserve_mb,args.seal=='network')
++    if args.address_space_mb and not args.memory_mb<=args.address_space_mb<=524288:raise ValueError('Worker resource contract')
++    if sys.platform.startswith('linux'):
++        return supervise(args.command,args.memory_mb,args.backend,args.reserve_mb,args.seal=='network',args.address_space_mb or None)
+     if args.backend=='VULKAN':raise ValueError('Vulkan resource guard requires Linux')
+     if os.name!='nt':
+         import resource
+-        limit=args.memory_mb*1024*1024;resource.setrlimit(resource.RLIMIT_AS,(limit,limit))
++        limit=(args.address_space_mb or args.memory_mb)*1024*1024;resource.setrlimit(resource.RLIMIT_AS,(limit,limit))
+         resource.setrlimit(resource.RLIMIT_CORE,(0,0))
+     # Windows is monitored by the supervisor; a hard Job Object cap remains a qualification limit.
+     os.execve(args.command[0],args.command,child_environment(os.environ))
+diff --git a/workbench/local_brain.py b/workbench/local_brain.py
+index f3462a1..b8eb5ea 100644
+--- a/workbench/local_brain.py
++++ b/workbench/local_brain.py
+@@ -494,9 +494,11 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
+         key.unlink(missing_ok=True)
+         if sock_folder:sock_folder.rmdir()
+         raise
++    from .brain_cap import address_space_mb   # 1.0 M1b: on the processor, address space with room above her rung's estimate
++    space=address_space_mb(config,backend)
+     argv=[sys.executable,'-m','workbench.brain_worker','--memory-mb',str(config['memory_mb']),'--backend',backend,
+           '--reserve-mb',str(max(128,room['reserve_bytes']//1024**2)),'--seal','network' if network_seal else 'none',
+-          str(executable)]+line
++          *(['--address-space-mb',str(space)] if space else []),str(executable)]+line
+     cache=kernel.state/'brain'/'shader-cache' if backend=='VULKAN' else None
+     unsealed=None if network_seal else 'VULKAN_NOT_SEEN_IN_ITS_OWN_NETWORK' if sock and possible else \
+         'NO_PRIVATE_SOCKET' if possible else 'NO_NETWORK_NAMESPACES_ON_THIS_SYSTEM'
+@@ -518,6 +520,7 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
+                     'job_id':ident,'started':time.time(),'backend':backend,'requested_backend':config.get('requested_backend','CPU'),
+                     'device':config.get('device'),'fallback_reason':config.get('fallback_reason'),
+                     'resource_guard':config.get('resource_guard',resource_guard(backend)),
++                    'address_space_mb':space,   # 1.0 M1b: the guard's address-space limit on the processor (None on the Radeon)
+                     'verified_files':verified,'batch_size':max(256,_batch(config)),'microbatch_size':_batch(config),
+                     'context_basis':'REQUESTED_LIMIT','context_reuse':'PINNED_SINGLE_SLOT',
+                     # 0.8.7 A2: kept briefs (brain_briefs) over one slot, its checkpoints and its RAM prompt cache
+diff --git a/workbench/model_check.py b/workbench/model_check.py
+index f4baf63..469eaaf 100644
+--- a/workbench/model_check.py
++++ b/workbench/model_check.py
+@@ -460,6 +460,10 @@ class Check:
+         out['memory_rule'] = {'backend': config['backend'], 'memory_mb': config['memory_mb'],
+                               'estimate_bytes': config['estimated_peak_bytes'], 'checkpoints': config.get('checkpoints'),
+                               'prompt_cache_mb': config.get('prompt_cache_mb')}
++        from . import brain_cap      # 1.0 M1b: what the cap gives her, before loading, with the numbers
++        cap = brain_cap.plan(self.value, self.options(), self.work.kernel.root, reclaimable(self.work.kernel), reserve_setting(self.work.kernel))
++        out['memory_rule']['cap'] = {k: cap.get(k) for k in ('state', 'address_space_mb', 'full_mb', 'least_mb', 'room_mb')}
++        if cap.get('words'):self.say('   ' + cap['words'])
+         gtt = max((c['gtt_total'] or 0 for c in cards), default=0)
+         if gtt and config['estimated_peak_bytes'] > gtt:
+             out['gtt_short'] = {'need_mib': -(-config['estimated_peak_bytes'] // MIB), 'window_mib': gtt // MIB,
+@@ -544,8 +548,13 @@ class Check:
+ 
+     # -- S2T (1.0 M1) --
+     def s2t(self):
+-        from . import runtime_tuning
+-        return runtime_tuning.sweep(self, int(getattr(self.args, 'tuning_seconds', 0) or runtime_tuning.SWEEP_SECONDS))
++        from . import runtime_tuning, tuning_rates
++        try:
++            out = runtime_tuning.sweep(self, int(getattr(self.args, 'tuning_seconds', 0) or runtime_tuning.SWEEP_SECONDS))
++        finally:      # 1.0 M1b: its rates, out of this run's throwaway profile and beside the run, for her clock
++            carried = tuning_rates.carry_out(self.run)
++        out['rates_carried'] = carried
++        return out
+ 
+     # -- S3 --
+     def s3(self):
+@@ -752,6 +761,10 @@ class Check:
+                                     ('SQ', self.sq), ('S6', self.s6), ('S7', self.s7)):     # 1.0 M2: SQ, the quick model beside it
+                         if key in wanted:self.stage(key, fn)
+                         else:self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'not asked in this run (--stages)'}
++            from . import tuning_rates      # 1.0 M1b: every rate this run measured (the pair's too), carried out before its
++            tuning_rates.carry_out(self.run)     # profile is removed with its workspace
++        kept = tuning_rates.keep(self.run)      # 1.0 M1b: and kept in this computer's profile for her clock, console runs too
++        if kept and kept.get('kept'):self.say(tuning_rates.words(kept))
+         self.report['paused_ms'] = self.gate.paused_ms
+         judge(self.report)
+         return self.write()
+diff --git a/workbench/model_check_qt.py b/workbench/model_check_qt.py
+index 36bacb5..fd9e77a 100644
+--- a/workbench/model_check_qt.py
++++ b/workbench/model_check_qt.py
+@@ -157,6 +157,8 @@ class CheckPanel(QWidget):
+         self.pause_timer.stop();self.meter.stop();self.start.setEnabled(True);self.stop_button.setEnabled(False)
+         if self.run is None:return
+         (self.run / 'pause').unlink(missing_ok=True)
++        from . import tuning_rates      # 1.0 M1b: the rates it measured, for her clock, even when it ended early
++        kept = tuning_rates.keep(self.run)
+         sent = sorted((self.run / 'for-sending').glob('model-check-*.json')) if (self.run / 'for-sending').is_dir() else []
+         if not sent:
+             self.stage_line.setText('The check ended without a file for sending (stopped, or the privacy scan held it back).');return
+@@ -164,7 +166,8 @@ class CheckPanel(QWidget):
+         card = sent[-1].with_suffix('.txt')
+         self.card.setPlainText(card.read_text(encoding='utf-8') if card.exists() else '')
+         self.folder.setEnabled(True)
+-        self.stage_line.setText('Done. This is exactly what the file for sending holds; nothing has left this computer.')
++        self.stage_line.setText('Done. This is exactly what the file for sending holds; nothing has left this computer.'
++                                + (' ' + tuning_rates.words(kept) if kept and kept.get('kept') else ''))   # 1.0 M1b
+         self.keep_exam()
+         from . import quick_model      # 1.0 M2: the quick model's exam on its own key, and both models' measured rates
+         quick_model.keep_pair(self.kernel, self.run)
+diff --git a/workbench/runtime_tuning.py b/workbench/runtime_tuning.py
+index ce56a8a..757885c 100644
+--- a/workbench/runtime_tuning.py
++++ b/workbench/runtime_tuning.py
+@@ -165,6 +165,9 @@ _MEASURED: dict = {}
+ def measured(key):
+     """(read, write) tokens a second as Fractions, measured for this model key by the model check; None when never."""
+     if not key:return None
++    try:stamp = _rates_path().stat().st_mtime_ns      # 1.0 M1b: rates kept by another process (the model check) are seen
++    except (OSError, ImportError):stamp = None
++    if _MEASURED.get(' stamp') != stamp:_MEASURED.clear();_MEASURED[' stamp'] = stamp
+     if key not in _MEASURED:
+         try:
+             got = json.loads(_rates_path().read_text(encoding='utf-8')).get(str(key))
+diff --git a/workbench/tuning_rates.py b/workbench/tuning_rates.py
+new file mode 100644
+index 0000000..d149d9e
+--- /dev/null
++++ b/workbench/tuning_rates.py
+@@ -0,0 +1,69 @@
++"""The rates the model check measured, carried out of its throwaway profile so her clock starts from them (1.0 M1b).
++
++The model check runs on an invented workspace with a profile of its own (model_check.Work), removed when it closes. Its
++tuning stage (S2T, 1.0 M1) and the pair stage (SQ, 1.0 M2) keep each launch's measured rates there
++(runtime_tuning.remember, per model key: the key names the launch line's shape, so each setting tried has its own), and
++so her clock (brain_clock, through runtime_tuning.measured) never saw them in the owner's profile.
++
++carry_out() runs inside the check while its workspace is open: every rate it remembered, written beside the run as
++tuning_rates.local.json (never for sending). keep() runs in the owner's profile: by the check itself once its workspace
++is closed (so a run from the console reaches her clock too) and by the Brain room when the check it started ends (as
++quick_model.keep_pair does for the pair); each rate is kept as measured, with what measured it. Keeping twice changes
++nothing but the time it was kept.
++"""
++from __future__ import annotations
++
++import json
++import os
++import time
++from pathlib import Path
++
++FILE = 'tuning_rates.local.json'
++SCHEMA = 'graphite.tuning-rates/1'
++
++
++def carry_out(run):
++    """Inside the model check: the rates its own profile holds, written to the run folder. Returns how many."""
++    from . import runtime_tuning
++    try:
++        held = json.loads(runtime_tuning._rates_path().read_text(encoding='utf-8'))
++    except (OSError, ValueError):
++        return 0
++    rates = {str(k): v for k, v in (held.items() if isinstance(held, dict) else ())
++             if isinstance(v, dict) and isinstance(v.get('read'), int) and isinstance(v.get('write'), int) and v['read'] > 0 and v['write'] > 0}
++    if not rates:return 0
++    path = Path(run) / FILE
++    path.parent.mkdir(parents=True, exist_ok=True)
++    tmp = path.with_suffix('.tmp')
++    tmp.write_text(json.dumps({'schema': SCHEMA, 'carried_at': int(time.time()), 'rates': rates}, indent=1, sort_keys=True) + '\n',
++                   encoding='utf-8')
++    os.chmod(tmp, 0o600);os.replace(tmp, path)
++    return len(rates)
++
++
++def keep(run):
++    """In the owner's profile: each carried rate kept for her clock. Returns {'kept': n, 'by': [...]} or None when the run
++    carried none."""
++    from . import runtime_tuning
++    path = Path(run) / FILE
++    try:
++        held = json.loads(path.read_text(encoding='utf-8'))
++    except (OSError, ValueError):
++        return None
++    if not isinstance(held, dict) or held.get('schema') != SCHEMA:return None
++    kept = 0;by = set()
++    for key, r in sorted((held.get('rates') or {}).items()):
++        try:
++            done = runtime_tuning.remember(key, int(r['read']), int(r['write']), r.get('settings') or {},
++                                           measured_on=str(r.get('by') or 'model check'))
++        except (KeyError, TypeError, ValueError, OSError):
++            done = None
++        if done:kept += 1;by.add(str(r.get('by') or 'model check'))
++    return {'kept': kept, 'by': sorted(by)}
++
++
++def words(kept):
++    """One line for the check's console and the Brain room."""
++    if not kept or not kept.get('kept'):return ''
++    return ('Her clock now starts from the rates measured here: %d launch%s kept on this computer.' % (
++        kept['kept'], '' if kept['kept'] == 1 else 'es'))

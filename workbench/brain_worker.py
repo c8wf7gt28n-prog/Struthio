@@ -4,6 +4,10 @@ CPU retains its address-space cap. Vulkan needs a larger virtual address range
 for driver mappings, so its supervisor watches resident memory and host/cgroup
 headroom instead. That observation is not a hard cap on GPU allocations.
 
+1.0 M1b: on the processor the address-space cap may be given above the resident budget (--address-space-mb: her rung's
+estimate with the quick model's room, brain_cap), since the runtime reserves address space it does not use; the
+supervisor still holds resident memory to the budget.
+
 0.8.7, the sealed room (brain_seal): the native runtime gets only allow-listed environment names, a 077 umask and,
 unless asked otherwise, its own empty network (a user and a network namespace unshared before exec). Where the computer
 refuses, the child says so in the runtime log (GRAPHITE_NETWORK_NOT_SEALED) and still starts, offline.
@@ -83,12 +87,14 @@ def _child_setup(parent,memory_mb=None,seal=False):
     if os.getppid()!=parent:os.kill(os.getpid(),signal.SIGKILL)
 
 
-def supervise(command,memory_mb,backend='VULKAN',reserve_mb=None,seal=False):
+def supervise(command,memory_mb,backend='VULKAN',reserve_mb=None,seal=False,address_space_mb=None):
     if not sys.platform.startswith('linux'):raise ValueError('Shared-memory resource guard requires Linux')
     parent=os.getpid()
     # The runtime's environment is the allow-list only (brain_seal): this supervisor's PYTHONPATH stays here.
+    # 1.0 M1b: on the processor the address-space cap may sit above the resident budget (address_space_mb); resident
+    # memory is still held to memory_mb below.
     child=subprocess.Popen(command,stdin=subprocess.DEVNULL,env=child_environment(os.environ),
-                           preexec_fn=lambda:_child_setup(parent,memory_mb if backend=='CPU' else None,seal))
+                           preexec_fn=lambda:_child_setup(parent,(address_space_mb or memory_mb) if backend=='CPU' else None,seal))
     def stop(signum,_frame):
         if child.poll() is None:child.send_signal(signum)
     signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop)
@@ -113,13 +119,17 @@ def main():
     parser.add_argument('--reserve-mb',type=int,default=2048)
     # The sealed room: its own network unless the launch asks for none (the Radeon not seen inside one, open question 4).
     parser.add_argument('--seal',choices=('network','none'),default='network')
+    # 1.0 M1b: the processor's address-space cap, when the launch gives one above the budget (brain_cap.address_space_mb)
+    parser.add_argument('--address-space-mb',type=int,default=0)
     parser.add_argument('command',nargs=argparse.REMAINDER);args=parser.parse_args()
     if not 512<=args.memory_mb<=262144 or not 128<=args.reserve_mb<=16384 or not args.command:raise ValueError('Worker resource contract')
-    if sys.platform.startswith('linux'):return supervise(args.command,args.memory_mb,args.backend,args.reserve_mb,args.seal=='network')
+    if args.address_space_mb and not args.memory_mb<=args.address_space_mb<=524288:raise ValueError('Worker resource contract')
+    if sys.platform.startswith('linux'):
+        return supervise(args.command,args.memory_mb,args.backend,args.reserve_mb,args.seal=='network',args.address_space_mb or None)
     if args.backend=='VULKAN':raise ValueError('Vulkan resource guard requires Linux')
     if os.name!='nt':
         import resource
-        limit=args.memory_mb*1024*1024;resource.setrlimit(resource.RLIMIT_AS,(limit,limit))
+        limit=(args.address_space_mb or args.memory_mb)*1024*1024;resource.setrlimit(resource.RLIMIT_AS,(limit,limit))
         resource.setrlimit(resource.RLIMIT_CORE,(0,0))
     # Windows is monitored by the supervisor; a hard Job Object cap remains a qualification limit.
     os.execve(args.command[0],args.command,child_environment(os.environ))

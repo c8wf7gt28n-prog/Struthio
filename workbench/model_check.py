@@ -460,6 +460,10 @@ class Check:
         out['memory_rule'] = {'backend': config['backend'], 'memory_mb': config['memory_mb'],
                               'estimate_bytes': config['estimated_peak_bytes'], 'checkpoints': config.get('checkpoints'),
                               'prompt_cache_mb': config.get('prompt_cache_mb')}
+        from . import brain_cap      # 1.0 M1b: what the cap gives her, before loading, with the numbers
+        cap = brain_cap.plan(self.value, self.options(), self.work.kernel.root, reclaimable(self.work.kernel), reserve_setting(self.work.kernel))
+        out['memory_rule']['cap'] = {k: cap.get(k) for k in ('state', 'address_space_mb', 'full_mb', 'least_mb', 'room_mb')}
+        if cap.get('words'):self.say('   ' + cap['words'])
         gtt = max((c['gtt_total'] or 0 for c in cards), default=0)
         if gtt and config['estimated_peak_bytes'] > gtt:
             out['gtt_short'] = {'need_mib': -(-config['estimated_peak_bytes'] // MIB), 'window_mib': gtt // MIB,
@@ -544,8 +548,13 @@ class Check:
 
     # -- S2T (1.0 M1) --
     def s2t(self):
-        from . import runtime_tuning
-        return runtime_tuning.sweep(self, int(getattr(self.args, 'tuning_seconds', 0) or runtime_tuning.SWEEP_SECONDS))
+        from . import runtime_tuning, tuning_rates
+        try:
+            out = runtime_tuning.sweep(self, int(getattr(self.args, 'tuning_seconds', 0) or runtime_tuning.SWEEP_SECONDS))
+        finally:      # 1.0 M1b: its rates, out of this run's throwaway profile and beside the run, for her clock
+            carried = tuning_rates.carry_out(self.run)
+        out['rates_carried'] = carried
+        return out
 
     # -- S3 --
     def s3(self):
@@ -752,6 +761,10 @@ class Check:
                                     ('SQ', self.sq), ('S6', self.s6), ('S7', self.s7)):     # 1.0 M2: SQ, the quick model beside it
                         if key in wanted:self.stage(key, fn)
                         else:self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'not asked in this run (--stages)'}
+            from . import tuning_rates      # 1.0 M1b: every rate this run measured (the pair's too), carried out before its
+            tuning_rates.carry_out(self.run)     # profile is removed with its workspace
+        kept = tuning_rates.keep(self.run)      # 1.0 M1b: and kept in this computer's profile for her clock, console runs too
+        if kept and kept.get('kept'):self.say(tuning_rates.words(kept))
         self.report['paused_ms'] = self.gate.paused_ms
         judge(self.report)
         return self.write()

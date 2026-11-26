@@ -165,6 +165,9 @@ _MEASURED: dict = {}
 def measured(key):
     """(read, write) tokens a second as Fractions, measured for this model key by the model check; None when never."""
     if not key:return None
+    try:stamp = _rates_path().stat().st_mtime_ns      # 1.0 M1b: rates kept by another process (the model check) are seen
+    except (OSError, ImportError):stamp = None
+    if _MEASURED.get(' stamp') != stamp:_MEASURED.clear();_MEASURED[' stamp'] = stamp
     if key not in _MEASURED:
         try:
             got = json.loads(_rates_path().read_text(encoding='utf-8')).get(str(key))
