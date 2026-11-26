@@ -382,6 +382,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 23:46 UTC: **1.0 L6c merged** (bulk files: the tree's multi-selection; Move/Copy/Delete for a choice with one
+  Undo for the batch, done off the window's thread; lines ending in move/copy/delete asking first; the sandbox up to 64
+  files with Apply's Undo; the DELETE page's crash on an empty bin fixed. Smoke 21/21 Kernel and 16/16 window).
+  Findings: dragging many rows was never exercised (no real drag offscreen); the sandbox tab's buttons clip in Kasandra
+  at 1366; opening Downloads takes about 1.06 s. Running: F3. Then R2. 45 slices: 42 merged, P5 cancelled.
+
 - 26 Nov 23:10 UTC: Hourly wake-up while F3 and L6c run: carry on. The release notes' walkthroughs section is filled
   (d92fdda). **At R2, check that section's last paragraph and "What 1.0 does not do yet" against what F3 and L6c
   actually deliver**: it already names their fixes. The seed is rebuilt at the next merge.
