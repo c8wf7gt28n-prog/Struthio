@@ -382,6 +382,14 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 17:42 UTC: **1.0 F2b merged** (reads beside her writes in WAL mode; the old path for writes and non-WAL. The
+  longest Day stall is 109-129 ms at 1920 and 101-116 ms at 1366, from 154-248; none waits on her writes now; the
+  rest is the window's own work: the board's build on a click and her NEXT STEPS. K1 smoke 30/30. A 0.8.x running
+  assignment shows in ACTIVE WORK with its own Stop. Migration 16/16 + 5/5). The floor is near 100 ms but not under it
+  in every run; the next step would be building the board on a worker (focus_on's callers read its answer at once),
+  left for after 1.0 unless D2 finds it cheap. test_lit_controls may now read its receipt early (unchanged, not run).
+  Running: X3, X4. Queue: D2 after both; X1; R2. 42 slices: 36 merged, P5 cancelled.
+
 - 26 Nov 17:11 UTC: Hourly wake-up while X3, X4 and F2b run: carry on. D2's brief drafted (`$S/work/briefs/100_D2.md`)
   with every note left for it (P4, D1, F2, the coordinator's), to launch once X3, X4 and F2b are merged; it will take
   their "for D2" lists. X4 was waiting on a permission prompt the owner must answer.
