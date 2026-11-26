@@ -339,6 +339,15 @@ the shipped art. The coordinator cuts the owner's sheets into that folder (in sc
 carries it to the owner outside the source. *Acceptance:* with the set admitted, each state shows its pose in every
 look; frames of four states; with no set, P3's single figure.
 
+**L6b · Home's files, whole** (found by L6). Everything a person does to a file works in Home, not only in the
+workspace's Files: open in its program (A1's door; its saves noticed and its revisions recorded through L4), the
+working view's watcher on a focused or open Home file, rename, move (drag in the tree), new folder, and DELETE to the
+system's Trash (the freedesktop Trash in `~/.local/share/Trash`, restorable, never an unrecoverable delete) on the
+owner's press with Undo; Kas's changes (K2's file tools, A1, K5, K9, K6's Apply) all pass `home_reach.her_change` first,
+so nothing of hers lands outside Home. *Acceptance:* a letter in ~/Documents opened in LibreOffice from the board, its
+save recorded as a revision; a Home file renamed, moved and deleted to the Trash from the tree, then restored; her
+note step under a grant for ~/Documents runs; one aimed at /etc stops.
+
 ### Wave 4 — the ghost acting
 
 **K2 · Tools and observation receipts.** `workbench/tools_registry.py`: every tool Kas may use (the Kernel operations,

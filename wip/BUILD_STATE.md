@@ -365,6 +365,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 12:30 UTC: **1.0 L6 merged** (135a9cd: the whole computer in the tree; Kas's changes only inside Home; smoke
+  24/24 and 10/10 per look). **L6b added and launched** (Home's files, whole: open in programs, watchers, rename, move,
+  Trash with Undo, every change of hers through home_reach; agent ae074eeb6fae78a9b). 39 slices; 25 merged. Running:
+  D1, M1, P5, L6b.
+
 - 26 Nov 11:55 UTC: **1.0 K9 merged** (865b6c2: her hand in other programs: accessibility first, XTest aimed at reported
   positions, a touch stops her, never the dangerous buttons; smoke 36/36 with a real LibreOffice window under Xvfb and a
   stand-in accessibility bus). Merged by hand: grants (K8 and K9 both kept) and the plan menu (her hand's tools on K4b's
