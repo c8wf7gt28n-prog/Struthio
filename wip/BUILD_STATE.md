@@ -382,6 +382,10 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 23:10 UTC: Hourly wake-up while F3 and L6c run: carry on. The release notes' walkthroughs section is filled
+  (d92fdda). **At R2, check that section's last paragraph and "What 1.0 does not do yet" against what F3 and L6c
+  actually deliver**: it already names their fixes. The seed is rebuilt at the next merge.
+
 - 26 Nov 23:03 UTC: **1.0 X4 merged** (81b949d: twelve power-user sessions; power_demo.py; the DELETE room scrolls; a busy
   eject names the program). Its account is in `X4.account.md`. Its faults break items of section 2, so **two last
   slices were written and launched**:
