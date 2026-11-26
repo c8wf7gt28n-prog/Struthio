@@ -1,0 +1,106 @@
+Rail Demo built through its own door in 6 s, in tmp_21caw2_
+
+== The plan: every input says where it came from; only registered operations; your press authorises ==
+PASS  an input from the model's words is refused  [ORIGIN_MODEL: no argument of a change comes from the model’s words]
+PASS  an operation outside the registry is refused  [PLAN_OPERATION: shell.run is not a registered operation; nothing else runs]
+PASS  a span of your words must say what you said  [ORIGIN_SPAN: the span does not say "Write all"]
+
+== A. Three steps on Rail Demo, run to the second step and killed; then resumed ==
+  objective (your words): Read the Rail Demo bench readings, recompute the settled power, and write a note of it.
+  step 1  Read the Rail Demo bench readings    office.get                 status=authorised grant: none: reading needs no grant
+          inputs: id from the record owner:81b583305cde4046a82fb9568d0f25c1 at revision 76d6b328570b
+          expected: the readings sheet with its rail voltage (B2) and settled current (B3), at its current revision | verified by: read again: the same revision | estimate 1000 ms
+  step 2  Recompute the settled power          office.datasheet.recheck   status=proposed   grant: work a calculation again on the record 8576e1436f9447caa231cab8e9bc99aa, for this assignment (the records mark it for your approval)
+          inputs: expected_revision from the record 8576e1436f9447caa231cab8e9bc99aa at revision 2; id from the record 8576e1436f9447caa231cab8e9bc99aa at revision 2
+          expected: a new settled power page replacing the old one, worked from the readings read in step 1, exact | verified by: a new calculation page replaces the old one, worked from the sheet as it is now, with an exact result | estimate 3000 ms
+  step 3  Write a note of the settled power    files.write                status=proposed   grant: write a file in Files, in Slate/Rail Demo/, for this assignment
+          inputs: path from a deduction: her notes go in her own area in Files, where her hand may write; text from the outputs of steps 1 and 2
+          expected: the note in her area in Files, holding the recomputed settled power | verified by: the file on disk has the digest of the text prepared for it | estimate 1000 ms
+PASS  a read step is authorised as planned; the two changes are proposed  [['authorised', 'proposed', 'proposed']]
+  time left at the start: 00:05 (progress 0%); line: Step 1 (Read the Rail Demo bench readings) is ready.
+PASS  time left per step comes from her clock (whole ms; the sum is the assignment's)
+PASS  authorising is the owner's press (a caller without the approve scope is refused)  [AUTHORISE_IS_YOURS: only your own press authorises a step]
+PASS  authorising needs the digest of the plan as it is now  [PLAN_CHANGED: authorise the plan as it is now (read it again; its digest changed)]
+  said: ['You authorised step 2 (Recompute the settled power).']
+  the child running the assignment ended with signal 9
+PASS  the process running the assignment was killed mid-step
+  after the kill: state "interrupted"; Graphite stopped while step 2 was prepared; nothing after it ran. Resume inspects it first.
+  the journal says: Step 1 done (verified); step 2 prepared; step 3 proposed.
+PASS  ACCEPTANCE: the journal says step 1 done (verified), step 2 prepared, step 3 proposed  [{'read': 'done (verified)', 'recompute': 'prepared', 'note': 'proposed'}]
+PASS  the journal is readable and intact after the kill
+PASS  the step that was prepared made no effect (no page replaces the old one yet)
+PASS  an interrupted assignment does not run on before it is inspected  [['Step 2 was interrupted while it ran; resume the assignment so it is inspected first.']]
+  said: ['You authorised step 3 (Write a note of the settled power).']
+  resume: Step 1 checked: its output is still there (read, and read again: the same revision); it is not done again.
+  resume: Step 2 was prepared and its effect is not there: it will be done now.
+  resume: Step 2 done (verified): Recompute the settled power. page 25e11429 replaces 8576e143: 3 W exactly, from the sheet as it is now
+  resume: Step 3 done (verified): Write a note of the settled power. the file on disk has the digest c0c0dfb65e2d
+  the journal says: Step 1 done (verified); step 2 done (verified); step 3 done (verified). | state: done | progress 100% | left 00:00
+PASS  ACCEPTANCE: resume verifies step 1's output (still there) and does not redo it
+PASS  ACCEPTANCE: resume finishes the assignment (every step done, verified)  [{'read': 'done (verified)', 'recompute': 'done (verified)', 'note': 'done (verified)'}]
+PASS  step 2 was made once: one new page replaces the old settled power page  [['25e1142904504ede8f5c452625a7501c']]
+PASS  step 3 is verified by the digest of the note on disk  [('c0c0dfb65e2df323b44e27edc990937cd8831daa1e784e3445fe67def41df759', {'by': 'sha256', 'complete': True, 'how': 'observed', 'object': 'files:Slate/Rail Demo/Settled power note.txt', 'revision': 'c0c0dfb65e2df323b44e27edc990937cd8831daa1e784e3445fe67def41df759', 'words': 'the file on disk has the dige]
+  the note, as written:
+    Rail Demo settled power: 3 W (exact value 3 W).
+    Worked again from the bench readings: 12 V and 250 mA.
+    Invented demonstration data. Nothing here was measured.
+    
+  --- journal of "Rail Demo: settled power, read, recomputed and noted" (after the kill and resume) ---
+    1 -      STARTED       You set the assignment: "Read the Rail Demo bench readings, recompute the settled power, and write a note of it."
+    2 -      PLANNED       Planned: 1. Read the Rail Demo bench readings; 2. Recompute the settled power; 3. Write a note of the settled power
+    3 recompute AUTHORISED    You authorised step 2 (Recompute the settled power).
+    4 read   PREPARED      Step 1 prepared: Read the Rail Demo bench readings, a read.
+    5 read   SENT          Step 1 sent; checking it now.
+    6 read   DONE          Step 1 done (verified): Read the Rail Demo bench readings. read, and read again: the same revision
+    7 recompute PREPARED      Step 2 prepared: Recompute the settled power, work a calculation again on the record 8576e1436f9447caa231cab8e9bc99aa, for this assignment (the records mark it for your a
+    8 note   AUTHORISED    You authorised step 3 (Write a note of the settled power).
+    9 -      RESUMED       You resumed it after Graphite stopped mid-step; each step is inspected before anything is repeated.
+   10 read   STILL_DONE    Step 1 checked: its output is still there (read, and read again: the same revision); it is not done again.
+   11 recompute NOT_FOUND     Step 2 was prepared and its effect is not there: it will be done now.
+   12 recompute PREPARED      Step 2 prepared: Recompute the settled power, work a calculation again on the record 8576e1436f9447caa231cab8e9bc99aa, for this assignment (the records mark it for your a
+   13 recompute SENT          Step 2 sent; checking it now.
+   14 recompute DONE          Step 2 done (verified): Recompute the settled power. page 25e11429 replaces 8576e143: 3 W exactly, from the sheet as it is now
+   15 note   PREPARED      Step 3 prepared: Write a note of the settled power, write a file in Files, in Slate/Rail Demo/, for this assignment.
+   16 note   SENT          Step 3 sent; checking it now.
+   17 note   DONE          Step 3 done (verified): Write a note of the settled power. the file on disk has the digest c0c0dfb65e2d
+   18 -      FINISHED      Every step is done (verified).
+
+== B. Killed after step 2's effect was made, before it was recorded: resume finds it and does not make it again ==
+PASS  the process was killed right after the recompute came back
+  after the kill: the journal says: Step 1 done (verified); step 2 prepared; step 3 authorised.
+PASS  the effect was made once (one page replaces the one step 2 named)
+  resume: Step 1 checked: its output is still there (read, and read again: the same revision); it is not done again.
+  resume: Step 2 done (verified): it was prepared before Graphite stopped, and its effect is there: page 63c8565e replaces 25e11429: 3 W exactly, from the sheet as it is now. It is not made again.
+  resume: Step 3 done (verified): its effect was already there and was not made again. the file on disk has the digest c0c0dfb65e2d
+PASS  resume found step 2's effect and recorded it done without making it again  [(1, ['AUTHORISED', 'PREPARED', 'FOUND_DONE'])]
+PASS  B finishes  [Step 1 done (verified); step 2 done (verified); step 3 done (verified).]
+
+== C. Stop pressed while step 2 is in flight ==
+  Stop pressed: "Stopped by you. Done (verified): step 1. Step 2 was running: what it does is recorded as it ends. Not started: step 3."
+  run: Step 1 done (verified): Read the Rail Demo bench readings. read, and read again: the same revision
+  run: Step 2 done (verified): Recompute the settled power. page 58159214 replaces 63c8565e: 3 W exactly, from the sheet as it is now
+  state: "stopped by you"; Stopped by you. Done (verified): steps 1 and 2. Not started: step 3.
+  the journal says: Step 1 done (verified); step 2 done (verified); step 3 authorised.
+PASS  ACCEPTANCE: Stop mid-step leaves "stopped by you"
+PASS  ACCEPTANCE: ... with what was done (the call in flight recorded done and verified; step 3 not started)  [{'read': 'done (verified)', 'recompute': 'done (verified)', 'note': 'authorised'}]
+PASS  a stopped assignment starts nothing more until you resume it  [['This assignment is stopped by you.']]
+
+== D. Stop all (the work hold, as HALT will use it): nothing starts; the journal says so ==
+  while held: All of her work is held (HALT or Stop all): nothing was started. | state: held
+PASS  while her work is held, no step starts  [{'read': 'authorised', 'recompute': 'proposed', 'note': 'proposed'}]
+PASS  resume waits for the hold to be lifted  [WORK_HELD: all of her work is held; lift the hold first, then resume this assignment]
+  after the hold was lifted and you resumed it: Step 2 (Recompute the settled power) waits for your word. | Step 1 done (verified); step 2 proposed; step 3 proposed.
+PASS  after the hold, it carries on to the step that needs your word
+
+== Her column's ACTIVE WORK and the Agenda ==
+  ACTIVE WORK  Rail Demo: settled power, read, recomputed and noted       WAITING FOR YOUR WORD    0%  left 00:04  | Step 2 (Recompute the settled power) waits for your word.
+  ACTIVE WORK  Rail Demo: settled power, read, recomputed and noted       STOPPED BY YOU          80%  left 00:01  | Stopped by you. Done (verified): steps 1 and 2. Not started: step 3.
+  D offers: ['Authorise step 2', 'Stop'] | C offers: ['Resume']
+PASS  the presses each offers: the next step's authorisation and Stop; a stopped one, Resume
+  Agenda WAITING: Rail Demo: settled power, read, recomputed and noted · Step 2 (Recompute the settled power) waits for your word.
+  Agenda WAITING: Rail Demo: settled power, read, recomputed and noted · Stopped by you. Done (verified): steps 1 and 2. Not started: step 3.
+PASS  an assignment that needs you is among the Agenda's WAITING rows
+PASS  assignment.list lists the four, newest first  [4]
+PASS  each done step keeps the time it took (her clock learns from them)
+
+K1 smoke: 30 of 30 checks passed.

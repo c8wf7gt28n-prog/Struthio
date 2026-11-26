@@ -42,7 +42,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 0.8.6 W: the goals you kept, read and checked when the Field is shown (goal cards); showing the desk is not an event
  'goals.list','goals.get','goals.check',
  # 0.8.7 W7: her answers through her voice floor, and a page's cross-references, read each time a card or a page is shown
- 'voice.say','library.links'})
+ 'voice.say','library.links',
+ # 1.0 K1: an assignment's status and the list, read each time her column or the Agenda is shown; reading is not an event
+ 'assignment.status','assignment.list'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

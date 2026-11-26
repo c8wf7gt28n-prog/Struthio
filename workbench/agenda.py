@@ -168,6 +168,8 @@ def view(kernel, principal, clock=None):
     live = kernel_rows(kernel, principal)
     from . import continuing_work
     live['waiting'] += continuing_work.agenda_rows(kernel,principal)
+    from . import assignments  # 1.0 K1: an assignment that needs you waits here; a running one is shown under NOW
+    mine = assignments.agenda_rows(kernel, principal);live['now'] += mine['now'];live['waiting'] += mine['waiting']
     by_id = {r['id']: r for r in rows}
     for r in rows:  # an item waiting on one that failed says so, instead of waiting silently
         before = by_id.get(r['after']) if r['after'] else None

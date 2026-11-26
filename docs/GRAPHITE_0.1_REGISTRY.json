@@ -29,6 +29,13 @@
    "algo.lookup": "workbench/algorithm_atlas.py#dispatch",
    "artifacts.get": "workbench/typed_artifacts.py#dispatch",
    "artifacts.list": "workbench/typed_artifacts.py#dispatch",
+   "assignment.list": "workbench/assignments.py#dispatch",
+   "assignment.plan": "workbench/assignments.py#dispatch",
+   "assignment.resume": "workbench/assignments.py#dispatch",
+   "assignment.start": "workbench/assignments.py#dispatch",
+   "assignment.status": "workbench/assignments.py#dispatch",
+   "assignment.step": "workbench/assignments.py#dispatch",
+   "assignment.stop": "workbench/assignments.py#dispatch",
    "assignments.create": "workbench/project_desk.py#dispatch",
    "assignments.get": "workbench/project_desk.py#dispatch",
    "assignments.list": "workbench/project_desk.py#dispatch",
@@ -1028,9 +1035,9 @@
   }
  },
  "counts": {
-  "adapters": 830,
+  "adapters": 837,
   "job_tools": 113,
-  "operations": 830,
+  "operations": 837,
   "settings": 48
  },
  "formulas": {
@@ -1710,6 +1717,64 @@
     "problem": "1a75c379fb0fafe6"
    },
    "scope": "read"
+  },
+  "assignment.list": {
+   "arguments": "41ceede3164d1de393345aff383b271404ce2b16fd7fa654a995611199696814",
+   "properties": {
+    "limit": "e238f277e0a04179",
+    "offset": "70cdb1142279086c",
+    "open": "7cb541e84f226754"
+   },
+   "scope": "read"
+  },
+  "assignment.plan": {
+   "arguments": "6345e706736b52d613a80d1fa5aa20ac01234db622a4246c3c0d652598ef7e86",
+   "properties": {
+    "authorise": "1320c9083129be3b",
+    "expected_digest": "7e3f7236ab75c8d7",
+    "id": "1a75c379fb0fafe6",
+    "steps": "ce2a614e3c295033"
+   },
+   "scope": "execute"
+  },
+  "assignment.resume": {
+   "arguments": "a1b4ae037e0293e8a895112d6cda936889b0b08dc5e3407c9142a99b9718201c",
+   "properties": {
+    "carry_on": "7cb541e84f226754",
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "execute"
+  },
+  "assignment.start": {
+   "arguments": "208fb22e098505b713186044369104610c47e339bd2b611bdc5b3b8f01dc78d4",
+   "properties": {
+    "objective": "e5b3001aa5951151",
+    "steps": "ce2a614e3c295033",
+    "title": "52ba84a4bbf396ba"
+   },
+   "scope": "execute"
+  },
+  "assignment.status": {
+   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+   "properties": {
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "read"
+  },
+  "assignment.step": {
+   "arguments": "74820677218a830ba2cf9bda915a1158314298c4ede37d73637313d20ae44e77",
+   "properties": {
+    "id": "1a75c379fb0fafe6",
+    "until": "0d1716aff27bb1d8"
+   },
+   "scope": "execute"
+  },
+  "assignment.stop": {
+   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+   "properties": {
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "execute"
   },
   "assignments.create": {
    "arguments": "7e92fd849ef9a6729d3b23de91afaae129c617fd87062c98aad6328a1b24b885",
@@ -8167,7 +8232,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "ed6634d2953b2ad97c401f2d79193a9aafb418c962684db8e2056eeb0eeb7f90",
+ "schema_digest": "28b4fe31b9609f08b77d76aab9af2aa3bb485cf7497c52c2ae797cd5bd9c495e",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
