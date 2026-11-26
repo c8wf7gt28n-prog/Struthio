@@ -1,0 +1,49 @@
+{
+ "item": "K7",
+ "status": "built",
+ "summary": "Reading other programs, read only. workbench/a11y_reader.py reads AT-SPI 2 through its own D-Bus interfaces with PySide6's QtDBus (org.a11y.Bus GetAddress on the session bus, then the registry, Accessible and Text on the accessibility bus; no pyatspi, only at-spi2-core needed): the active program's window, its focused control (role and name, never a field's contents), the dialogs open (title, what they say, their buttons with the default marked). Every call passes a READ_ONLY whitelist (DoAction, EditableText, GrabFocus, property Set are refused before they are sent); each reading is bounded (500 ms a call, 3 s and 600 objects a reading) and says when it is partial. Without AT-SPI it says why ('I cannot see inside that program: ... I rely on its files and its windows'). Kernel ops accessibility.status and accessibility.read (reads, observers). K2's slot 21 accessibility.read filled (its check: observed; a dialog's meaning inferred; unavailable with the reason); K2's ACCESSIBILITY hook set, so a look at the windows now reads a prompt's buttons. K1: a dialog that appears in a program while one of her change steps runs (new in the window list, or new in the accessible tree) makes the step 'needs review' with the dialog's words; a DIALOG_SEEN journal row and receipts (observed through accessibility, or inferred from the title alone) are written in the same transaction; authorised again, the step is not made twice. Her column shows a needs-review step's words under its ACTIVE WORK row.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K7.patch",
+ "notes_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K7.progress.md",
+ "files_changed": [
+  "workbench/a11y_reader.py (new)",
+  "workbench/assignments.py (1.0 K7 hooks)",
+  "workbench/her_column_qt.py (1.0 K7 note line)",
+  "workbench/engineering_kernel.py (1.0 K7 block)",
+  "workbench/engineering_cli.py (1.0 K7 block)",
+  "workbench/activity.py (two observers, inside the list)",
+  "docs/GRAPHITE_0.1_REGISTRY.json (regenerated in the copy)"
+ ],
+ "smoke": {
+  "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K7/smoke/smoke.py (with standin_atspi.py: a stand-in AT-SPI on a private bus; xworld.py copied from K2)",
+  "output": "31 of 31 passed | PASS  A1 without AT-SPI the reader says why (at-spi2-core, the session D-Bus) ; PASS  A2 the Kernel's accessibility.read: one receipt, unavailable, with the reason ; PASS  A3 the registry's slot 21 is filled by K7 and says it cannot be used here, and why ; PASS  A4 K2 records the observation as unavailable (kept, with the reason) ; PASS  A5 as a step of an assignment: blocked with the reason, nothing sent ; PASS  A6 with no session D-Bus at all it says that ; PASS  B1 with the stand-in: available, two programs show themselves, accessibility on ; PASS  B2 the active window and its focused control ; PASS  B3 the focused paragraph's text is not read (its role and name only) ; PASS  B4 a dialog that appeared: its title, its words, its buttons (the default marked, no mnemonic mark) ; PASS  B5 what is typed in a field is never read (the field is counted, not read) ; PASS  B6 the focus is read in the dialog now: its default button ; PASS  B7 receipts: the reading observed, the dialog's words observed, what it probably is inferred, each following the last ; PASS  B8 through K2's tools.use: dispatched, verified (observed from the accessible tree), the prompt inferred; kept ; PASS  B9 the Kernel's accessibility.read (a read, an observer): observed, not kept ; PASS  B10 a press (Action.DoAction) is refused before it is sent: read only ; PASS  B11 a program that answers late: the reading keeps its bounds and says it is partial ; PASS  B12 only reading methods reached the stand-in: no DoAction, no property Set ; PASS  C0 Xvfb and the stand-in window manager are up ; PASS  C1 K2's look at the windows: the prompt still inferred, and now with its buttons read through accessibility ; PASS  C2 one window of the window list read inside: matched to the accessible dialog by its title ; PASS  C3 her step: its effect verified, and a dialog that appeared while it ran makes it need review, with the dialog's words ; PASS  C4 the step's receipts say so: dispatched, verified, the dialog observed (accessibility), what it is inferred; linked ; PASS  C5 nothing was pressed in the dialog (no DoAction reached the program) ; PASS  C6 authorised again by its name: found already there, not made again; the assignment is done ; PASS  D1 the step needs review: the dialog's title, and that she cannot see inside that program, and why ; PASS  D2 its receipts: dispatched, verified, the dialog inferred from its title (the window list), never observed inside ; PASS  E1 with no window list, the new dialog in the accessible tree makes the step need review, with its words and buttons ; PASS  E2 its receipts: dispatched, verified, observed (accessibility), inferred ; PASS  E3 with no dialog appearing, the step is simply done (verified); the look took its settle time only ; PASS  E4 her column's ACTIVE WORK reads the needs-review line (assignment.list)",
+  "frames": [
+   "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K7/frames/k7_needs_review_day_1920x1200.png",
+   "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K7/frames/k7_needs_review_graphite_1366x768.png",
+   "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K7/frames/k7_needs_review_graphite_1920x1200.png",
+   "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K7/frames/k7_needs_review_kasandra_1920x1200.png"
+  ]
+ },
+ "existing_tests_changed": [],
+ "decisions": [
+  "The registry's slot is 'accessibility.read' (number 21, as K2 built it), not 'a11y.read' as the coordinator's note said: filled with fill('accessibility.read', ...).",
+  "A dialog after one of her steps: the step's effect stays verified (DONE row and verified receipt kept); the step becomes 'needs review' with a DIALOG_SEEN journal row ('a dialog appeared while it ran') and its own receipts, rather than marking the effect 'not verified', which would not be true.",
+  "Only change steps are watched (a read never is); the look waits up to 600 ms after the change was sent for a dialog to appear; any new dialog (not Graphite's own) counts, since she cannot establish that it is unrelated; she says she pressed nothing and that it is the owner's to answer.",
+  "Authorising a needs-review step again re-runs it through K1's own find(); for a check that cannot look (apps.open), the effect verified before the dialog is taken as found, so it is never made twice.",
+  "Privacy: a field's contents and any password field are never read (counted only); the focused control gives its role and name, not its text.",
+  "Accessibility being off in the session (org.a11y.Status.IsEnabled false) is said, never turned on: it is the owner's setting.",
+  "available() is kept for 3 s, so the registry's list does not ask D-Bus for every row."
+ ],
+ "findings_for_the_coordinator": [
+  "assignments.py edits overlap the area K3 (grants/HALT) and K4 (plans) may touch in _run_one: five small marked lines (mark before dispatch, notice after the check, the needs-review update, the DIALOG_SEEN row, carry stops) plus _journal now returns its row id and a _watch() helper.",
+  "Programs like Firefox and Qt programs show their insides only when org.a11y.Status.IsEnabled is true (or QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1 for Qt). The session script (S1) could set it on the owner's choice; K7 does not.",
+  "Her column (P1) WorkRow gained one wrapped note label, shown only for a needs-review assignment; frames in graphite, kasandra, day at 1920x1200 and graphite 1366x768 read well.",
+  "The 1.0 System set must carry at-spi2-core; python3-pyatspi is not needed by this reader.",
+  "docs/GRAPHITE_0.1_REGISTRY.json regenerated in my copy with two new operations (872 operations); regenerate at merge."
+ ],
+ "not_done": [
+  "Nothing ran on a real AT-SPI or on the ThinkPad: only a stand-in accessible tree (dbus-python on a private bus) and Xvfb with a stand-in window manager. Real toolkits (GTK3, LibreOffice VCL, Firefox, Qt) may name roles and dialogs differently.",
+  "K2's tools.use (one tool outside a plan) does not watch for dialogs; only assignment steps do.",
+  "No clicking through accessibility (by the plan for 1.0)."
+ ],
+ "release_note": "Reading other programs: where the desktop's accessibility (AT-SPI) is there, Kasandra reads the active program's window, its focused control and a dialog's title, words and buttons, read only: she never presses or types through it. If a dialog appears in one of your programs while one of her steps runs (a 'Save changes?' prompt, an error), the step waits for your review and her column shows the dialog's words. Without AT-SPI she says she cannot see inside that program and relies on its files and windows."
+}

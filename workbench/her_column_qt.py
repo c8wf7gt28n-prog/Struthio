@@ -589,6 +589,9 @@ class WorkRow(QWidget):
         self.stop = small_button(host, '■ ' + say('stop'), 'Stop this assignment: nothing more of it starts; what was done stays done')
         self.stop.setStyleSheet(self.stop.styleSheet().replace('font-size:%dpx' % px(host, 13), 'font-size:%dpx' % px(host, 11), 1))
         self.stop.setObjectName('HerWorkStop');self.stop.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed);self.stop.clicked.connect(self.press_stop)
+        self.note = ink(QLabel(), px(host, 12), bt.TEXT, None, bt.FACE);self.note.setObjectName('HerWorkNote')  # 1.0 K7: a step that needs review, in its words
+        self.note.setWordWrap(True);self.note.setTextFormat(Qt.PlainText);self.note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Minimum)
+        self.note.setContentsMargins(px(host, 14), 0, 0, 0);self.note.hide();box.addWidget(self.note)
         self.arrange(False)
 
     def arrange(self, compact):
@@ -619,6 +622,9 @@ class WorkRow(QWidget):
         self.bar.set(row.get('progress', 0));self.percent.setText('%d%%' % int(row.get('progress', 0) or 0))
         self.left.setText(str(row.get('time_left') or ''));self.left.setToolTip(say('left', time=row.get('time_left') or ''))
         self.stop.setVisible(bool(row.get('stop')))
+        note = plain(row.get('line') or '') if words == 'needs review' else ''  # 1.0 K7: e.g. a dialog's words and buttons, read through accessibility
+        short = note.replace(' needs review: ', ': ', 1) if note.startswith('Step ') else note      # the row's state word says it already
+        self.note.setText(short if len(short) <= 200 else short[:199] + '…');self.note.setToolTip(note if len(short) > 200 else '');self.note.setVisible(bool(note))
         self.setAccessibleName('%s, %s, %d%%, %s' % (row.get('title'), words, int(row.get('progress', 0) or 0), say('left', time=row.get('time_left') or '')))
 
     def press_stop(self):

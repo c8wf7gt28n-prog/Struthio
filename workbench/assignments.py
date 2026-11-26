@@ -89,6 +89,8 @@ GRANT_CHECK = None           # K3 sets it: callable(kernel, assignment, step, ar
 GRANTED = None
 AUTHORISE = None
 GRANT_ACTION = None
+DIALOG_WATCH = None          # 1.0 K7 sets it (a11y_reader.DialogWatch): mark() before a change is sent, notice() after its check: a
+                             # dialog that appeared in a program meanwhile ({'words', 'dialogs', 'receipts'}); the step then needs review
 
 ID = {'type': 'string', 'minLength': 32, 'maxLength': 32}
 SHA = {'type': 'string', 'minLength': 64, 'maxLength': 64}
@@ -230,6 +232,15 @@ def _journal(db, value, step, entry, words, detail=None):
         tools_registry.journalled(db, value, step, entry, payload, row.lastrowid)
     except Exception:  # noqa: BLE001 - a receipt that cannot be written never undoes the journal row: the row is the record
         pass
+    return row.lastrowid  # 1.0 K7: the row's number, for receipts written with it
+
+
+def _watch(kind, *args):
+    """1.0 K7: the dialog watch (DIALOG_WATCH), when it is here. A watch that fails never changes what the step did."""
+    if DIALOG_WATCH is None:return None
+    try:return getattr(DIALOG_WATCH, kind)(*args)
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _entries(db, ident, limit=None):
@@ -919,7 +930,7 @@ def _run_one(kernel, ident, principal, epoch=None):
         if unmet:raise Blocked('its precondition does not hold: ' + unmet)
         prepared = check.prepare(kernel, read, arguments)
         try:found = check.find(kernel, read, arguments, prepared) if step['scope'] != 'read' else None
-        except Unknowable:found = None            # nothing to look for before the first time: it has not been sent
+        except Unknowable:found = step['observation'] if step.get('dialog_seen') == step['attempts'] and step['observation'] else None  # 1.0 K7: verified before a dialog came; never made twice
     except Exception as why:  # noqa: BLE001 - whatever stops a step before it starts blocks it, with the reason; nothing was sent
         reason = str(why)[:400]
         with _writing(kernel) as db:
@@ -943,6 +954,7 @@ def _run_one(kernel, ident, principal, epoch=None):
         _journal(db, value, live, 'PREPARED', 'Step %d prepared: %s, %s.' % (live['n'], live['title'], live['grant']['words'] if live['scope'] != 'read' else 'a read'),
                  {'arguments': digest(arguments), 'prepared': prepared, 'attempt': live['attempts'], 'estimate_ms': estimate})
     began = _now_ms();observation = None;result = None;sent = False;outcome = '';output = {}
+    watch = None  # 1.0 K7: the windows and dialogs as they were before the change was sent
     try:
         if found is not None:
             observation = found;outcome = 'found'
@@ -956,6 +968,7 @@ def _run_one(kernel, ident, principal, epoch=None):
             else:
                 from . import tools_registry  # 1.0 K2: a tool that writes a file holds off a suspend while it writes (S1's sleep lock)
                 granted = GRANTED(kernel, value, step, arguments, principal) if GRANTED is not None else contextlib.nullcontext()  # 1.0 K3
+                watch = _watch('mark', kernel, step)  # 1.0 K7
                 with tools_registry.holding(step['operation'], step['title']), granted:
                     answer = kernel.dispatch(step['operation'], arguments, _bounded(principal, step['scope']))
                 sent = True
@@ -977,6 +990,7 @@ def _run_one(kernel, ident, principal, epoch=None):
     except Exception as why:  # noqa: BLE001 - a step that went wrong is recorded as such, never left running or called done
         outcome = 'not verified' if sent else 'failed';result = {'reason': str(why)[:400] or type(why).__name__}
     elapsed = _now_ms() - began
+    noticed = _watch('notice', kernel, step, watch) if watch and outcome in ('verified', 'not verified') else None  # 1.0 K7: a dialog seen meanwhile
     # Written after the effect.
     with _writing(kernel) as db:
         value = _load(db, ident, principal);live = next(s for s in value['steps'] if s['key'] == step['key'])
@@ -1003,14 +1017,21 @@ def _run_one(kernel, ident, principal, epoch=None):
             live.update(status='needs review', reason=(result or {}).get('reason', 'not verified'))
             entry, words, detail = 'NOT_VERIFIED', 'Step %d was sent and is not verified: %s. It is not called done.' % (live['n'], live['reason']), {'elapsed_ms': elapsed}
         after = _after_step(kernel, db, value, live, entry) if entry in ('DONE', 'FOUND_DONE', 'BLOCKED', 'REFUSED') else []  # 1.0 K4
+        if noticed:  # 1.0 K7: a dialog appeared in a program while it ran: its words are yours to see, and the step waits for your review
+            before = live['reason'] + ' ' if live['status'] == 'needs review' and live['reason'] else ''
+            live.update(status='needs review', reason=(before + noticed['words'])[:900], dialog_seen=live['attempts'])
+            words += ' It needs your review: ' + noticed['words']
         _finish_state(value)
         gate_after = _gate(kernel)
         if value['state'] not in (STOPPED, DONE) and (gate_after['held'] or gate_after['epoch'] != gate['epoch']):
             value.update(state=HELD, reason='Her work was held while step %d ran; what it did is recorded.' % live['n'])
         _save(db, value);_journal(db, value, live, entry, words, detail)
         for row in after:_journal(db, value, *row)  # 1.0 K4: the step that follows from it, or another route, journalled after it
+        if noticed:  # 1.0 K7: its own journal row, and the dialog's receipts linked to it, in the same transaction
+            seq = _journal(db, value, live, 'DIALOG_SEEN', noticed['words'], {'dialogs': noticed.get('dialogs') or []})
+            _watch('keep', db, value, live, noticed, seq)
         if value['state'] == DONE:_journal(db, value, None, 'FINISHED', 'Every step is done (verified).')
-        carry = (entry in ('DONE', 'FOUND_DONE') or any(row[1] == 'REVISED' for row in after)) and value['state'] == OPEN
+        carry = (entry in ('DONE', 'FOUND_DONE') or any(row[1] == 'REVISED' for row in after)) and value['state'] == OPEN and not noticed  # 1.0 K4, K7
         words += ''.join(' ' + row[2] for row in after)  # 1.0 K4
     return (words, carry)
 

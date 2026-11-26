@@ -1,6 +1,8 @@
 {
  "adapters": {
   "operations": {
+   "accessibility.read": "workbench/a11y_reader.py#dispatch",
+   "accessibility.status": "workbench/a11y_reader.py#dispatch",
    "agenda.accept": "workbench/agenda.py#dispatch",
    "agenda.add": "workbench/agenda.py#dispatch",
    "agenda.cancel": "workbench/agenda.py#dispatch",
@@ -1086,9 +1088,9 @@
   }
  },
  "counts": {
-  "adapters": 888,
+  "adapters": 890,
   "job_tools": 113,
-  "operations": 888,
+  "operations": 890,
   "settings": 48
  },
  "formulas": {
@@ -1551,6 +1553,19 @@
   ]
  },
  "operations": {
+  "accessibility.read": {
+   "arguments": "6d88f46a741e132588549a9153285f575d9cc899eb7c62b4fd3e0fb40aa9b685",
+   "properties": {
+    "focus": "7cb541e84f226754",
+    "window": "b745d46bf87893d9"
+   },
+   "scope": "read"
+  },
+  "accessibility.status": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
   "agenda.accept": {
    "arguments": "7692bd7a403eb8792fc6597f4e24c491dcd8e19d77d50a5b92b831ead7258cd1",
    "properties": {
@@ -8718,7 +8733,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "f999f5b7dbf4e9c5c5d8b859b87aee66207df8b2792387a78f2f56f697e579ee",
+ "schema_digest": "ec7271f280697ba175f3f6c861670d322cf20fe60a4aa9f504b99250f2b88ab5",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
