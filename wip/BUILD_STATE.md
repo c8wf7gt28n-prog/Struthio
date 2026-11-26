@@ -382,6 +382,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 21:13 UTC: **The 5-hour limit stopped X1 and X4 at about 20:00; reset 21:10.** The 20:10 wake-up found
+  nothing to do. Partial diffs saved (`partial/X1` 364 lines, `X4` 495), and both resumed by message at 21:12. **R2
+  drafts:** `docs/RELEASE_NOTES_1.0.md` (b8632e2; its walkthroughs section waits for X1 and X4),
+  `wip/build_tools/kit_START_HERE_1.0.md`, `wip/build_tools/cut_1.0.sh`. X4 is waiting on a permission prompt the owner
+  must answer. Remaining for 1.0: X4, X1, then R2 (version 1.0, What's New in 1.0, README, the cut, the atlas, sent).
+
 - 26 Nov 19:24 UTC: **K10's live re-run on the merged tree** (coordinator, once, under the lock; log in
   `K10.live_rerun_coordinator.log`): the 4B sealed and primed in 58 s, and PLAN's prompt with the file tools stayed
   kept (312 of 314). Asked to tidy Downloads, it answered "24 D1" eight times. The desk took step 1 (look at
