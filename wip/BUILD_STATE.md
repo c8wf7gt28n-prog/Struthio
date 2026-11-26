@@ -372,6 +372,17 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 13:40 UTC: **1.0 M1 merged** (ce6306f: her runtime is llama.cpp v1.0.0, b12359. Both official archives are
+  sha256-checked and replace b11669. The seal was rebuilt from v1.0.0's help. runtime_tuning.py gives five owner launch
+  defaults. MTP comes only from the model's own head, and --cache-ram is sized to her kept prompts. The model check's
+  S2T sweep predicts whether reading and writing reach 99 tok/s. The machine is named as the E16 Gen 2 AMD with a 680M.
+  Smoke: the 4B sealed on v1.0.0, and both kept prompts survived. On this CPU: reads 47→67 tok/s, writes 5 (meaningless
+  for the ThinkPad). test_resource_rules' AutoCap numbers were changed, not run). The ThinkPad's MTP file
+  (unsloth Qwen3.6-35B-A3B-MTP, UD-Q4_K_M) is on the first-evening page. The saved patch is text only
+  (`M1.text.patch`; the archives are in the commit). The runtime is unpacked for builders at `$S/work/rt/llama-b12359/`,
+  and BRIEF_HEADER now points at it. **F2 launched** (the floor: stalls, cold start, the 0.8.7 migration drill; agent
+  a18bb6d5d0d788e5c). Running: L6b, P4, F1, F2. Next: X3 after L6b; M2 when a slot frees.
+
 - 26 Nov 13:10 UTC: The owner: "No kas avatar anymore". Recorded under Decisions; given to P4 (running); plan and
   design direction amended. P5 cancelled.
 
