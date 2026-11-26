@@ -55,7 +55,19 @@ def palette():
         _palette[look] = dict(low=low, mid=mid, high=high, hot=QColor(t.AMBER_EDGE), peak=QColor(t.TEAL_TEXT if her else t.TEXT),
                               rest=mix(ground, low, 0.24 if her else 0.16), grid=QColor(t.LINE) if her else mix(ground, low, 0.3),
                               text=QColor(t.TEXT), label=QColor(t.TEAL_TEXT), dim=mix(ground, t.TEXT, 0.42), trace=high)
+        if look == 'day':      # 1.0 P2: on light paper, near its limit is the colour of what waits for you (blue is a selection
+            # there), and a dash or "no reading" is FAINT, an ink that reads (5.3:1 or more), never a pale mix
+            _palette[look].update(hot=QColor(t.OWNER), dim=QColor(t.FAINT), label=QColor(t.QUIET), rest=mix(ground, low, 0.28))
     return _palette[look]
+
+
+def words_only():
+    """1.0 P2: in Day the foot's meters are words and numbers (the owner's picture: CPU 34% | GPU 24% | RAM 62% | TXT 18%)."""
+    return t.APPEARANCE == 'day'
+
+
+SEPARATOR = '|'
+HOT_MARK = '▲'      # near its limit: a shape beside the number, as well as its colour and the words in its tip
 
 
 def ramp(value, colours=None):
@@ -93,9 +105,43 @@ class RingMeter(QLabel):
         self.ring = int(ring);self.number_font.setPixelSize(int(number_px));self.key_font.setPixelSize(int(key_px))
         self.updateGeometry();self.update()
 
-    def sizeHint(self):return QSize(self.ring + 6 + self.trace, self.ring + 18)
+    def sizeHint(self):
+        if words_only():return self.words_size()
+        return QSize(self.ring + 6 + self.trace, self.ring + 18)
 
-    def minimumSizeHint(self):return QSize(self.ring + 4, self.ring + 14)
+    def minimumSizeHint(self):
+        if words_only():return self.words_size()
+        return QSize(self.ring + 4, self.ring + 14)
+
+    def words_font(self):
+        f = QFont(t.MONO);f.setPixelSize(max(12, self.number_font.pixelSize() + 1));return f
+
+    def words_size(self):
+        """Day: room for the key and the widest reading ('100%' and its mark), on one line."""
+        from PySide6.QtGui import QFontMetrics
+        fm = QFontMetrics(self.words_font())
+        return QSize(fm.horizontalAdvance('%s 100%%%s' % (self.key, HOT_MARK)) + 4, max(self.ring, fm.height() + 8))
+
+    def words(self):
+        """(key, reading, mark) as Day shows them."""
+        v = self.value();hot = v is not None and v >= NEAR
+        return self.key + ' ', ('—' if v is None else str(round(v * 100)) + '%'), (HOT_MARK if hot else '')
+
+    def words_span(self):
+        """Day: where the words stand in the meter, (left, right) in its own pixels (the separators stand between)."""
+        from PySide6.QtGui import QFontMetricsF
+        fm = QFontMetricsF(self.words_font());total = fm.horizontalAdvance(''.join(self.words()))
+        x = max(0.0, (self.width() - total) / 2.0);return x, x + total
+
+    def paint_words(self, p):
+        """Day: 'CPU 34%' in plain words and numbers; '—' with no reading (honest, in FAINT), and near its limit the number
+        in the colour of what waits for you with ▲ beside it."""
+        c = palette();v = self.value();f = self.words_font();p.setFont(f);fm = p.fontMetrics()
+        key, shown, mark = self.words();hot = bool(mark)
+        x = self.words_span()[0]
+        base = (self.height() + fm.ascent() - fm.descent()) / 2.0
+        p.setPen(c['label'] if v is not None else c['dim']);p.drawText(QPointF(x, base), key);x += fm.horizontalAdvance(key)
+        p.setPen(c['hot'] if hot else (c['text'] if v is not None else c['dim']));p.drawText(QPointF(x, base), shown + mark)
 
     def value(self):
         """The reading as a share 0 to 1, or None when there is none."""
@@ -113,6 +159,10 @@ class RingMeter(QLabel):
     def paintEvent(self, event):
         c = palette();v = self.value();level = glow_level(self) if self.glow else 0.0
         p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
+        if words_only():      # 1.0 P2
+            try:self.paint_words(p)
+            finally:p.end()
+            return
         try:
             key_h = self.key_font.pixelSize() + 3;d = min(float(self.ring), self.height() - key_h - 8.0)
             above = max(2.0, (self.height() - d - 2.0 - key_h) / 2.0 + 1.0)      # the ring and its word, centred in the band

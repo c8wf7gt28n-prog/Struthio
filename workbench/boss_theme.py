@@ -65,7 +65,32 @@ PALETTES = {
         ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff', ROYAL_TEXT='#b9a1f6', RED='#ff3b5c', ON_RED='#fff1f4',
         CUE='#1d3d63', CUE_EDGE='#83eaff', CUE_TEXT='#b9f4ff',
         BAR='#e2a72e', ON_BAR='#171b3c', BAR_EDGE='#ffd27a', ON_BAR_QUIET='#4a3d2a', ON_AMBER='#ffd27a'),
+    # 1.0 P2: Day, the owner's picture of the Living Desktop (PLAN_1.0.md section 3): white and very light grey panels,
+    # green for what is live (state words, progress, the send arrows, the chosen tab's underline), blue for what is
+    # selected and has the keyboard, and for the board's wires and rings (DAY_MARKS). Every ink measured on every ground it
+    # is laid on (CARD #ffffff, GROUND, PANEL, RAISED, the bands, TERMINAL_GROUND): TEXT 13.8-15.9:1, QUIET 7.2-8.3:1, FAINT
+    # 5.3-6.1:1, READY and CUE_EDGE 4.6-5.4:1, AMBER_TEXT 8.9-10.3:1, STOP 5.7-6.6:1, OWNER 5.0-5.8:1, RECHECK 5.8-6.7:1,
+    # HONEY 5.1-5.9:1; AMBER_TEXT on AMBER_SOFT 8.3:1, TEAL_TEXT on TEAL_SOFT 5.8:1, white words on READY 5.4:1. No dark
+    # look's text colour is laid on a light ground: the inks here are their own.
+    'day': dict(
+        GROUND='#f3f5f4', PANEL='#f9faf9', CARD='#ffffff', RAISED='#eceff0', TERMINAL_GROUND='#fbfcfc',
+        LINE='#d5dbd8', LINE_STRONG='#6d7973', LINE_MID='#9aa4a0', TEXT='#1b2420', QUIET='#45514b', FAINT='#59655f',
+        AMBER='#dde9f7', AMBER_SOFT='#dde9f7', AMBER_EDGE='#2a64ad', AMBER_TEXT='#164175',
+        PENCIL_DEEP='#e9eef3', ERASER='#f8ebe3', ERASER_DEEP='#f1dccf', ERASER_MARK='#b65a26',
+        TEAL='#1a773c', TEAL_SOFT='#e0f2e6', TEAL_EDGE='#2f9a55', TEAL_TEXT='#17693a', READY='#1a773c', STOP='#b42318',
+        OWNER='#a34e00', ON_OWNER='#ffffff', RECHECK='#6847b2',
+        BAND=(250, 251, 250), ERASED='#1b2420', ERASED_QUIET='#4a5650', BAND_MARK='#2a64ad', BAND_PENCIL='#1a773c',
+        DESK_LIGHT='#ffffff', VEIL='#ffffff', DISPLAY='IBM Plex Sans', FACE='IBM Plex Sans', MONO='IBM Plex Mono',
+        HONEY='#8a5a00', VIOLET='#45514b', VIOLET_DEEP='#c9d6e6', VIOLET_PALE='#1b2420', VIOLET_SOFT='#edf3fa',
+        ROYAL='#1a773c', ROYAL_SOFT='#e0f2e6', ROYAL_INK='#17693a', ROYAL_TEXT='#17693a', RED='#b42318', ON_RED='#ffffff',
+        CUE='#eef5f0', CUE_EDGE='#1a773c', CUE_TEXT='#17693a',
+        BAR='#dde9f7', ON_BAR='#1b2420', BAR_EDGE='#2a64ad', ON_BAR_QUIET='#45514b', ON_AMBER='#164175'),
 }
+# 1.0 P2: the Day look's own marks, beside its palette: the board's blue wires (WIRE; WIRE_SOFT for a possible link,
+# dashed and said "not verified"), its rings (RING_BLUE outer, RING_GREEN inner, as in the picture), HALT's green triangle,
+# the soft shadow under a panel or a tile (SHADOW, drawn with alpha). Used only where APPEARANCE is 'day'.
+DAY_MARKS = dict(WIRE='#2f6fb6', WIRE_SOFT='#6f9bd0', RING_BLUE='#a9c6e8', RING_GREEN='#a6d8b6', HALT='#1f8a46',
+                 SHADOW='#1b2420')
 # 0.8.3, the owner: "I'm kinda thinking that highlighting should be in our burnt yellow??? Like especially in menus???",
 # "You measure what is visually pleasing", and "we have to be careful how that makes the graphite not look green". So, in
 # Kasandra only (Graphite keeps every colour it had):
@@ -123,7 +148,7 @@ def eye(line):
 
 
 def chosen_appearance(environ=None, path=None):
-    """'graphite' or 'kasandra': GRAPHITE_APPEARANCE in the environment, else the session file's 'appearance', else
+    """'graphite', 'kasandra' or 'day' (1.0 P2): GRAPHITE_APPEARANCE in the environment, else the session file's 'appearance', else
     Graphite. Reads the file with plain json (the session module imports far more than a colour needs). Whatever the file
     holds, the answer is a look: a saved value that is not one of them as text (a list or an object, from a damaged or
     hand-edited file) is Graphite. 0.8.3 looked such a value up among the palettes, a list cannot be looked up, and
@@ -160,8 +185,11 @@ GLOW_OPENS = 'neon'         # 0.5.2: the owner, having seen the three: "I like n
 GLOW = [3.0]        # the level in force (boss_qt.set_glow keeps it in step with the session)
 
 
+DAY_GLOW = 0.6      # 1.0 P2: in Day a glow is a soft shadow on white paper, never a neon halo, whatever the dial says
+
+
 def glow():
-    return GLOW[0]
+    return min(GLOW[0], DAY_GLOW) if APPEARANCE == 'day' else GLOW[0]
 
 
 def lays_light(painter):

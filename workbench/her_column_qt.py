@@ -986,6 +986,11 @@ class HerColumn(QObject):
         if related is not None:outer.addWidget(related)
         outer.addWidget(self.next)
         outer.addWidget(self.commands)
+        # 1.0 P2: the room the exchange does not need, below the sections (they follow the exchange in order; fit_exchange)
+        from PySide6.QtWidgets import QSpacerItem
+        self.room = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding);outer.addItem(self.room)
+        face.exchange_room = self.exchange_room      # SlateFace.fold_earlier keeps the turns that fit this room
+        face.thread.installEventFilter(self)
         for w in (face.input, getattr(face, 'input_hint', None)):
             if w is not None:outer.addWidget(w)
         outer.setSpacing(px(self.host, 8))
@@ -1007,12 +1012,50 @@ class HerColumn(QObject):
         self.ask_line.setGeometry(inset, y, max(60, foot.width() - 2 * inset), tall)
 
     def eventFilter(self, watched, event):
+        if watched is getattr(self.face, 'thread', None):      # 1.0 P2: a turn added, folded or shown
+            if event.type() in (QEvent.LayoutRequest, QEvent.Resize, QEvent.ChildRemoved):self.fit_soon()
+            return False
         if event.type() == QEvent.Resize:
             if watched is self.face:
                 self.size_parts()
                 if self.moment.isVisible():self.moment.place()
-            elif watched is self.ask_line.parentWidget():QTimer.singleShot(0, self.fit_ask)
+                self.fit_soon()      # 1.0 P2
+            elif getattr(self, 'ask_line', None) is not None and watched is self.ask_line.parentWidget():QTimer.singleShot(0, self.fit_ask)
         return False
+
+    # -- 1.0 P2: the exchange takes the room its turns need ---------------------------------------------------------------
+    def exchange_room(self):
+        """The height the exchange and the free room below the sections have together: what the turns may take."""
+        room = getattr(self, 'room', None)
+        if room is None:return self.face.scroll.viewport().height()
+        return self.face.scroll.geometry().height() + room.geometry().height()
+
+    def fit_soon(self):
+        if getattr(self, '_fit_pending', False):return
+        self._fit_pending = True
+        QTimer.singleShot(0, self.fit_exchange)
+
+    def fit_exchange(self):
+        """No empty gap above ACTIVE WORK: the exchange is as tall as its turns (the welcome card alone, at first) and the
+        sections follow it in order, the room left over at the column's foot. When the turns need more than the room, the
+        exchange takes all of it and the earlier turns fold behind "earlier" (SlateFace.fold_earlier) as before."""
+        self._fit_pending = False
+        face = self.face;scroll = face.scroll;outer = face.layout();room = getattr(self, 'room', None)
+        if room is None or getattr(self.host, '_closing', False):return
+        try:
+            lines = face.lines;width = max(120, scroll.viewport().width())
+            need = lines.totalHeightForWidth(width) if lines.hasHeightForWidth() else face.thread.sizeHint().height()
+            need += 2 * scroll.frameWidth() + 2
+            fits = need <= self.exchange_room()
+            cap = need if fits else 16777215
+            if scroll.maximumHeight() != cap:
+                scroll.setMaximumHeight(cap);QTimer.singleShot(150, self.fit_soon)      # once more, when the turns have wrapped at the new size
+            for i in range(outer.count()):
+                item = outer.itemAt(i)
+                if item.widget() is scroll and outer.stretch(i) != (0 if fits else 1):outer.setStretch(i, 0 if fits else 1)
+                elif item.spacerItem() is room and outer.stretch(i) != (1 if fits else 0):outer.setStretch(i, 1 if fits else 0)
+        except RuntimeError:      # the window is closing
+            pass
 
     def compact(self):
         return self.face.height() < 700
@@ -1036,7 +1079,7 @@ class HerColumn(QObject):
         if getattr(self.host, '_closing', False):return
         if not force and not self.face.isVisible():return
         self.ticks += 1
-        self.size_parts()
+        self.size_parts();self.fit_soon()      # 1.0 P2: the sections follow the exchange
         try:self.read_work()
         except Exception:  # noqa: BLE001 - a column never takes the window down
             pass

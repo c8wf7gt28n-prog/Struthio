@@ -134,6 +134,21 @@ class DesktopMonitors(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event);self.elide_keys()
 
+    def paintEvent(self, event):
+        """1.0 P2: in Day the meters are words and numbers with a '|' between each two, as in the owner's picture."""
+        from .neon_meters import SEPARATOR, words_only
+        if not words_only():return
+        from PySide6.QtGui import QPainter, QColor
+        from PySide6.QtCore import QRectF
+        from . import boss_theme as look
+        shown = [self.values[k] for k in self.KEYS if self.values[k].isVisible()]
+        if len(shown) < 2:return
+        p = QPainter(self);p.setPen(QColor(look.FAINT));p.setFont(shown[0].words_font())
+        for a, b in zip(shown, shown[1:]):
+            x = (a.geometry().left() + a.words_span()[1] + b.geometry().left() + b.words_span()[0]) / 2.0      # midway between the words
+            p.drawText(QRectF(x - 8, a.geometry().top(), 16, a.geometry().height()), Qt.AlignCenter, SEPARATOR)
+        p.end()
+
     def event(self, event):
         if event.type() == QEvent.StyleChange:QTimer.singleShot(0, self.restyle)  # the interface size changed: follow it now, not at the next sample
         return super().event(event)
@@ -171,7 +186,7 @@ class DesktopMonitors(QWidget):
             if DOORS[key] not in tip:self.values[key].setToolTip(tip + '\nClick: ' + DOORS[key] + '.')
             self.labels[key].setToolTip('Click: ' + DOORS[key] + '.')
             self.values[key].setAccessibleDescription(self.values[key].toolTip())
-        self.relight()
+        self.relight();self.update()      # 1.0 P2: Day's separators follow the words
         self.setAccessibleDescription('Current Graphite host observation at '+str(sample['sampled_at'])+'; owner-host qualification remains separate.')
 
 

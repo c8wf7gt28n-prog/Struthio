@@ -1,0 +1,140 @@
+== day 1920x1200: exit 0
+PASS  [day 1920x1200] the look in force is the one asked for (GRAPHITE_APPEARANCE)  -- day
+PASS  [day 1920x1200] Day: every ink for words reads at 4.5:1 or more on every Day ground  -- worst 4.85:1 (CUE_EDGE on RAISED)
+PASS  [day 1920x1200] Day: words on its fills (highlight, menu bar, live, owner, stop, writing, yours) at 4.5:1 or more  -- (5.45, 'TERMINAL_GROUND', 'CUE_EDGE')
+PASS  [day 1920x1200] Day: no dark look's text colour reused on the light ground  -- []
+PASS  [day 1920x1200] Day: the board's wires blue, a possible link a lighter blue (and dashed), the rings green and blue  -- {'WIRE': '#2f6fb6', 'WIRE_SOFT': '#6f9bd0', 'RING_BLUE': '#a9c6e8', 'RING_GREEN': '#a6d8b6', 'HALT': '#1f8a46'}
+PASS  [day 1920x1200] K1's Rail Demo assignment running: step 1 done (verified), step 2 in flight  -- ('working', ['done', 'running', 'authorised'])
+PASS  [day 1920x1200] the board in front, Rail Demo bench readings in focus  -- Rail Demo bench readings
+PASS  [day 1920x1200] HALT in the head's upper-left slot (over the left column, inside the band), with its name for readers  -- (16, 6, 118, 48, 'left column ends at', 329, 'HALT')
+PASS  [day 1920x1200] the menus from the middle column's left edge  -- [('Work', 337), ('Revise', 396), ('Tools', 465)]
+PASS  [day 1920x1200] Apps and the circled plus upper right (⊕ at the right end, Apps to its left), Apps as the word  -- ('Apps', 1800, 1863)
+PASS  [day 1920x1200] Day: the foot's meters as words and numbers, "—" where there is no reading  -- CPU 20% | GPU — | RAM 10% | TXT —
+PASS  [day 1920x1200] ACTIVE WORK shows the running assignment WORKING, with its Stop  -- [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True)]
+PASS  [day 1920x1200] her column, running: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 142, 'turns_need': 140, 'gap_below_exchange': 10, 'room_at_foot': 283, 'order': ['HerHead', 'QScrollArea', 'HerWorkLine', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCo
+PASS  [day 1920x1200] frame saved: running  -- p2_day_1920x1200_1_running.png
+PASS  [day 1920x1200] HALT holds her work (the work gate) and the button reads RESUME  -- ({'held': True, 'epoch': 1}, 'RESUME')
+PASS  [day 1920x1200] HALT stopped the running assignment through assignment.stop ("stopped by you", what was done kept)  -- ('stopped by you', 'Stopped by you. Done (verified): step 1. Step 2 was running: what it does is recorded as it ends. Not started: step 3.')
+PASS  [day 1920x1200] her column says what HALT stopped  -- HALT: I stopped “Rail Demo: settled power, read, recomputed and noted” and held all of my work. No step starts until you press RESUME; the desktop and your apps keep running.
+PASS  [day 1920x1200] the moment that matters is shown (P1's moment, "halt")  -- HALT: her managed work is stopped. Your programs and the desktop go on.
+PASS  [day 1920x1200] her column, halted: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 340, 'turns_need': 338, 'gap_below_exchange': 10, 'room_at_foot': 150, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'room']
+PASS  [day 1920x1200] frame saved: halted  -- p2_day_1920x1200_2_halted.png
+PASS  [day 1920x1200] RESUME lifts the hold, the button reads HALT again, and nothing stopped was restarted  -- ({'held': False, 'epoch': 2}, 'HALT')
+PASS  [day 1920x1200] her column says the hold is lifted  -- RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, which checks every step first.
+PASS  [day 1920x1200] her column, released: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 374, 'turns_need': 372, 'gap_below_exchange': 10, 'room_at_foot': 116, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'room
+PASS  [day 1920x1200] frame saved: released  -- p2_day_1920x1200_3_released.png
+[day 1920x1200] 24 of 24 checks passed
+== day 1366x768: exit 0
+PASS  [day 1366x768] the look in force is the one asked for (GRAPHITE_APPEARANCE)  -- day
+PASS  [day 1366x768] Day: every ink for words reads at 4.5:1 or more on every Day ground  -- worst 4.85:1 (CUE_EDGE on RAISED)
+PASS  [day 1366x768] Day: words on its fills (highlight, menu bar, live, owner, stop, writing, yours) at 4.5:1 or more  -- (5.45, 'TERMINAL_GROUND', 'CUE_EDGE')
+PASS  [day 1366x768] Day: no dark look's text colour reused on the light ground  -- []
+PASS  [day 1366x768] Day: the board's wires blue, a possible link a lighter blue (and dashed), the rings green and blue  -- {'WIRE': '#2f6fb6', 'WIRE_SOFT': '#6f9bd0', 'RING_BLUE': '#a9c6e8', 'RING_GREEN': '#a6d8b6', 'HALT': '#1f8a46'}
+PASS  [day 1366x768] K1's Rail Demo assignment running: step 1 done (verified), step 2 in flight  -- ('working', ['done', 'running', 'authorised'])
+PASS  [day 1366x768] the board in front, Rail Demo bench readings in focus  -- Rail Demo bench readings
+PASS  [day 1366x768] HALT in the head's upper-left slot (over the left column, inside the band), with its name for readers  -- (16, 6, 118, 48, 'left column ends at', 329, 'HALT')
+PASS  [day 1366x768] the menus from the middle column's left edge  -- [('Work', 337), ('Revise', 396), ('Tools', 465)]
+PASS  [day 1366x768] Apps and the circled plus upper right (⊕ at the right end, Apps to its left), Apps as the word  -- ('Apps', 1246, 1309)
+PASS  [day 1366x768] Day: the foot's meters as words and numbers, "—" where there is no reading  -- CPU 18% | GPU — | RAM 9% | TXT —
+PASS  [day 1366x768] ACTIVE WORK shows the running assignment WORKING, with its Stop  -- [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True)]
+PASS  [day 1366x768] her column, running: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 127, 'turns_need': 140, 'gap_below_exchange': 6, 'room_at_foot': 0, 'order': ['HerHead', 'QScrollArea', 'HerWorkLine', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerComman
+PASS  [day 1366x768] frame saved: running  -- p2_day_1366x768_1_running.png
+PASS  [day 1366x768] HALT holds her work (the work gate) and the button reads RESUME  -- ({'held': True, 'epoch': 1}, 'RESUME')
+PASS  [day 1366x768] HALT stopped the running assignment through assignment.stop ("stopped by you", what was done kept)  -- ('stopped by you', 'Stopped by you. Done (verified): step 1. Step 2 was running: what it does is recorded as it ends. Not started: step 3.')
+PASS  [day 1366x768] her column says what HALT stopped  -- HALT: I stopped “Rail Demo: settled power, read, recomputed and noted” and held all of my work. No step starts until you press RESUME; the desktop and your apps keep running.
+PASS  [day 1366x768] the moment that matters is shown (P1's moment, "halt")  -- HALT: her managed work is stopped. Your programs and the desktop go on.
+PASS  [day 1366x768] her column, halted: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 185, 'turns_need': 222, 'gap_below_exchange': 6, 'room_at_foot': 0, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'room']}
+PASS  [day 1366x768] frame saved: halted  -- p2_day_1366x768_2_halted.png
+PASS  [day 1366x768] RESUME lifts the hold, the button reads HALT again, and nothing stopped was restarted  -- ({'held': False, 'epoch': 2}, 'HALT')
+PASS  [day 1366x768] her column says the hold is lifted  -- RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, which checks every step first.
+PASS  [day 1366x768] her column, released: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 185, 'turns_need': 198, 'gap_below_exchange': 6, 'room_at_foot': 0, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'room']}
+PASS  [day 1366x768] frame saved: released  -- p2_day_1366x768_3_released.png
+[day 1366x768] 24 of 24 checks passed
+== graphite 1920x1200: exit 0
+PASS  [graphite 1920x1200] the look in force is the one asked for (GRAPHITE_APPEARANCE)  -- graphite
+PASS  [graphite 1920x1200] K1's Rail Demo assignment running: step 1 done (verified), step 2 in flight  -- ('working', ['done', 'running', 'authorised'])
+PASS  [graphite 1920x1200] the board in front, Rail Demo bench readings in focus  -- Rail Demo bench readings
+PASS  [graphite 1920x1200] HALT in the head's upper-left slot (over the left column, inside the band), with its name for readers  -- (16, 6, 106, 48, 'left column ends at', 327, 'HALT')
+PASS  [graphite 1920x1200] the menus from the middle column's left edge  -- [('Work', 335), ('Revise', 395), ('Tools', 475)]
+PASS  [graphite 1920x1200] Apps and the circled plus upper right (⊕ at the right end, Apps to its left)  -- ('Struthio', 1805, 1863)
+PASS  [graphite 1920x1200] the dark looks keep their ring meters  -- CPU 19% | GPU — | RAM 9% | TXT —
+PASS  [graphite 1920x1200] ACTIVE WORK shows the running assignment WORKING, with its Stop  -- [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True)]
+PASS  [graphite 1920x1200] her column, running: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 142, 'turns_need': 140, 'gap_below_exchange': 10, 'room_at_foot': 283, 'order': ['HerHead', 'QScrollArea', 'HerWorkLine', 'HerActiveWork', 'HerFindings', 'HerNextSteps', '
+PASS  [graphite 1920x1200] frame saved: running  -- p2_graphite_1920x1200_1_running.png
+PASS  [graphite 1920x1200] HALT holds her work (the work gate) and the button reads RESUME  -- ({'held': True, 'epoch': 1}, 'RESUME')
+PASS  [graphite 1920x1200] HALT stopped the running assignment through assignment.stop ("stopped by you", what was done kept)  -- ('stopped by you', 'Stopped by you. Done (verified): step 1. Step 2 was running: what it does is recorded as it ends. Not started: step 3.')
+PASS  [graphite 1920x1200] her column says what HALT stopped  -- HALT: I stopped “Rail Demo: settled power, read, recomputed and noted” and held all of my work. No step starts until you press RESUME; the desktop and your apps keep running.
+PASS  [graphite 1920x1200] the moment that matters is shown (P1's moment, "halt")  -- HALT: her managed work is stopped. Your programs and the desktop go on.
+PASS  [graphite 1920x1200] her column, halted: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 340, 'turns_need': 338, 'gap_below_exchange': 10, 'room_at_foot': 150, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'r
+PASS  [graphite 1920x1200] frame saved: halted  -- p2_graphite_1920x1200_2_halted.png
+PASS  [graphite 1920x1200] RESUME lifts the hold, the button reads HALT again, and nothing stopped was restarted  -- ({'held': False, 'epoch': 2}, 'HALT')
+PASS  [graphite 1920x1200] her column says the hold is lifted  -- RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, which checks every step first.
+PASS  [graphite 1920x1200] her column, released: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 374, 'turns_need': 372, 'gap_below_exchange': 10, 'room_at_foot': 116, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 
+PASS  [graphite 1920x1200] frame saved: released  -- p2_graphite_1920x1200_3_released.png
+[graphite 1920x1200] 20 of 20 checks passed
+== graphite 1366x768: exit 0
+PASS  [graphite 1366x768] the look in force is the one asked for (GRAPHITE_APPEARANCE)  -- graphite
+PASS  [graphite 1366x768] K1's Rail Demo assignment running: step 1 done (verified), step 2 in flight  -- ('working', ['done', 'running', 'authorised'])
+PASS  [graphite 1366x768] the board in front, Rail Demo bench readings in focus  -- Rail Demo bench readings
+PASS  [graphite 1366x768] HALT in the head's upper-left slot (over the left column, inside the band), with its name for readers  -- (16, 6, 106, 48, 'left column ends at', 327, 'HALT')
+PASS  [graphite 1366x768] the menus from the middle column's left edge  -- [('Work', 335), ('Revise', 395), ('Tools', 475)]
+PASS  [graphite 1366x768] Apps and the circled plus upper right (⊕ at the right end, Apps to its left)  -- ('Struthio', 1251, 1309)
+PASS  [graphite 1366x768] the dark looks keep their ring meters  -- CPU 18% | GPU — | RAM 9% | TXT —
+PASS  [graphite 1366x768] ACTIVE WORK shows the running assignment WORKING, with its Stop  -- [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True)]
+PASS  [graphite 1366x768] her column, running: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 127, 'turns_need': 140, 'gap_below_exchange': 6, 'room_at_foot': 0, 'order': ['HerHead', 'QScrollArea', 'HerWorkLine', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerC
+PASS  [graphite 1366x768] frame saved: running  -- p2_graphite_1366x768_1_running.png
+PASS  [graphite 1366x768] HALT holds her work (the work gate) and the button reads RESUME  -- ({'held': True, 'epoch': 1}, 'RESUME')
+PASS  [graphite 1366x768] HALT stopped the running assignment through assignment.stop ("stopped by you", what was done kept)  -- ('stopped by you', 'Stopped by you. Done (verified): step 1. Step 2 was running: what it does is recorded as it ends. Not started: step 3.')
+PASS  [graphite 1366x768] her column says what HALT stopped  -- HALT: I stopped “Rail Demo: settled power, read, recomputed and noted” and held all of my work. No step starts until you press RESUME; the desktop and your apps keep running.
+PASS  [graphite 1366x768] the moment that matters is shown (P1's moment, "halt")  -- HALT: her managed work is stopped. Your programs and the desktop go on.
+PASS  [graphite 1366x768] her column, halted: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 185, 'turns_need': 222, 'gap_below_exchange': 6, 'room_at_foot': 0, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'room'
+PASS  [graphite 1366x768] frame saved: halted  -- p2_graphite_1366x768_2_halted.png
+PASS  [graphite 1366x768] RESUME lifts the hold, the button reads HALT again, and nothing stopped was restarted  -- ({'held': False, 'epoch': 2}, 'HALT')
+PASS  [graphite 1366x768] her column says the hold is lifted  -- RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, which checks every step first.
+PASS  [graphite 1366x768] her column, released: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 185, 'turns_need': 198, 'gap_below_exchange': 6, 'room_at_foot': 0, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'roo
+PASS  [graphite 1366x768] frame saved: released  -- p2_graphite_1366x768_3_released.png
+[graphite 1366x768] 20 of 20 checks passed
+== kasandra 1920x1200: exit 0
+PASS  [kasandra 1920x1200] the look in force is the one asked for (GRAPHITE_APPEARANCE)  -- kasandra
+PASS  [kasandra 1920x1200] K1's Rail Demo assignment running: step 1 done (verified), step 2 in flight  -- ('working', ['done', 'running', 'authorised'])
+PASS  [kasandra 1920x1200] the board in front, Rail Demo bench readings in focus  -- Rail Demo bench readings
+PASS  [kasandra 1920x1200] HALT in the head's upper-left slot (over the left column, inside the band), with its name for readers  -- (16, 6, 118, 48, 'left column ends at', 355, 'HALT')
+PASS  [kasandra 1920x1200] the menus from the middle column's left edge  -- [('Work', 363), ('Revise', 424), ('Tools', 501)]
+PASS  [kasandra 1920x1200] Apps and the circled plus upper right (⊕ at the right end, Apps to its left)  -- ('Struthio', 1805, 1863)
+PASS  [kasandra 1920x1200] the dark looks keep their ring meters  -- CPU 19% | GPU — | RAM 9% | TXT —
+PASS  [kasandra 1920x1200] ACTIVE WORK shows the running assignment WORKING, with its Stop  -- [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True)]
+PASS  [kasandra 1920x1200] her column, running: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 135, 'turns_need': 133, 'gap_below_exchange': 10, 'room_at_foot': 340, 'order': ['HerHead', 'QScrollArea', 'HerWorkLine', 'HerActiveWork', 'HerFindings', 'HerNextSteps', '
+PASS  [kasandra 1920x1200] frame saved: running  -- p2_kasandra_1920x1200_1_running.png
+PASS  [kasandra 1920x1200] HALT holds her work (the work gate) and the button reads RESUME  -- ({'held': True, 'epoch': 1}, 'RESUME')
+PASS  [kasandra 1920x1200] HALT stopped the running assignment through assignment.stop ("stopped by you", what was done kept)  -- ('stopped by you', 'Stopped by you. Done (verified): step 1. Step 2 was running: what it does is recorded as it ends. Not started: step 3.')
+PASS  [kasandra 1920x1200] her column says what HALT stopped  -- HALT: I stopped “Rail Demo: settled power, read, recomputed and noted” and held all of my work. No step starts until you press RESUME; the desktop and your apps keep running.
+PASS  [kasandra 1920x1200] the moment that matters is shown (P1's moment, "halt")  -- HALT: her managed work is stopped. Your programs and the desktop go on.
+PASS  [kasandra 1920x1200] her column, halted: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 302, 'turns_need': 300, 'gap_below_exchange': 10, 'room_at_foot': 234, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'r
+PASS  [kasandra 1920x1200] frame saved: halted  -- p2_kasandra_1920x1200_2_halted.png
+PASS  [kasandra 1920x1200] RESUME lifts the hold, the button reads HALT again, and nothing stopped was restarted  -- ({'held': False, 'epoch': 2}, 'HALT')
+PASS  [kasandra 1920x1200] her column says the hold is lifted  -- RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, which checks every step first.
+PASS  [kasandra 1920x1200] her column, released: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 447, 'turns_need': 445, 'gap_below_exchange': 10, 'room_at_foot': 89, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', '
+PASS  [kasandra 1920x1200] frame saved: released  -- p2_kasandra_1920x1200_3_released.png
+[kasandra 1920x1200] 20 of 20 checks passed
+== kasandra 1366x768: exit 0
+PASS  [kasandra 1366x768] the look in force is the one asked for (GRAPHITE_APPEARANCE)  -- kasandra
+PASS  [kasandra 1366x768] K1's Rail Demo assignment running: step 1 done (verified), step 2 in flight  -- ('working', ['done', 'running', 'authorised'])
+PASS  [kasandra 1366x768] the board in front, Rail Demo bench readings in focus  -- Rail Demo bench readings
+PASS  [kasandra 1366x768] HALT in the head's upper-left slot (over the left column, inside the band), with its name for readers  -- (16, 6, 118, 48, 'left column ends at', 355, 'HALT')
+PASS  [kasandra 1366x768] the menus from the middle column's left edge  -- [('Work', 363), ('Revise', 424), ('Tools', 501)]
+PASS  [kasandra 1366x768] Apps and the circled plus upper right (⊕ at the right end, Apps to its left)  -- ('Struthio', 1251, 1309)
+PASS  [kasandra 1366x768] the dark looks keep their ring meters  -- CPU 19% | GPU — | RAM 9% | TXT —
+PASS  [kasandra 1366x768] ACTIVE WORK shows the running assignment WORKING, with its Stop  -- [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True)]
+PASS  [kasandra 1366x768] her column, running: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 135, 'turns_need': 133, 'gap_below_exchange': 6, 'room_at_foot': 36, 'order': ['HerHead', 'QScrollArea', 'HerWorkLine', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'Her
+PASS  [kasandra 1366x768] frame saved: running  -- p2_kasandra_1366x768_1_running.png
+PASS  [kasandra 1366x768] HALT holds her work (the work gate) and the button reads RESUME  -- ({'held': True, 'epoch': 1}, 'RESUME')
+PASS  [kasandra 1366x768] HALT stopped the running assignment through assignment.stop ("stopped by you", what was done kept)  -- ('stopped by you', 'Stopped by you. Done (verified): step 1. Step 2 was running: what it does is recorded as it ends. Not started: step 3.')
+PASS  [kasandra 1366x768] her column says what HALT stopped  -- HALT: I stopped “Rail Demo: settled power, read, recomputed and noted” and held all of my work. No step starts until you press RESUME; the desktop and your apps keep running.
+PASS  [kasandra 1366x768] the moment that matters is shown (P1's moment, "halt")  -- HALT: her managed work is stopped. Your programs and the desktop go on.
+PASS  [kasandra 1366x768] her column, halted: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 187, 'turns_need': 185, 'gap_below_exchange': 6, 'room_at_foot': 40, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'room
+PASS  [kasandra 1366x768] frame saved: halted  -- p2_kasandra_1366x768_2_halted.png
+PASS  [kasandra 1366x768] RESUME lifts the hold, the button reads HALT again, and nothing stopped was restarted  -- ({'held': False, 'epoch': 2}, 'HALT')
+PASS  [kasandra 1366x768] her column says the hold is lifted  -- RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, which checks every step first.
+PASS  [kasandra 1366x768] her column, released: the sections follow the exchange with no empty gap above them; the room left is at the foot  -- {'exchange_h': 165, 'turns_need': 163, 'gap_below_exchange': 6, 'room_at_foot': 62, 'order': ['HerHead', 'QScrollArea', 'HerActiveWork', 'HerFindings', 'HerNextSteps', 'HerCommands', 'ro
+PASS  [kasandra 1366x768] frame saved: released  -- p2_kasandra_1366x768_3_released.png
+[kasandra 1366x768] 20 of 20 checks passed

@@ -234,7 +234,7 @@ class TypeBar(QWidget):
         self.send.setParent(self)
         self.send.setObjectName('WritingSubmit')
         self.send.setIcon(QIcon(arrow));self.send.setIconSize(QSize(19, 19))
-        if _bt.APPEARANCE == 'kasandra':self.send.setProperty('paperIcon', True)      # keep its own ink: menus2 would make it one grey
+        if _bt.APPEARANCE in ('kasandra', 'day'):self.send.setProperty('paperIcon', True)      # keep its own ink: menus2 would make it one grey (1.0 P2: Day's white arrow on green)
         self.send.setFocusPolicy(Qt.TabFocus)
         self.send.setAccessibleName('Submit writing line')
         self.send.setToolTip(SENDS['slate'])

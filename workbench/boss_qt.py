@@ -396,7 +396,8 @@ def appearance_menu(host):
 
 
 APPEARANCE_WORDS = {'graphite': 'Graphite: pencil, paper and amber, as it has always been',
-                    'kasandra': 'Kasandra: indigo, a typewriter face for headings, and her art following the state of the work'}
+                    'kasandra': 'Kasandra: indigo, a typewriter face for headings, and her art following the state of the work',
+                    'day': 'Day: light paper, green for what is live, blue for the board\'s wires and what is selected'}      # 1.0 P2
 
 
 def chosen_look(host):

@@ -4,7 +4,7 @@ S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratch
 cd /home/user/Struthio || exit 9; export QT_QPA_PLATFORM=offscreen
 for f in $(git diff --name-only HEAD -- '*.py'; git ls-files --others --exclude-standard -- '*.py'); do [ -f "$f" ] && { $PY -m py_compile "$f" || { echo "COMPILE FAIL $f"; BAD=1; }; }; done
 $PY tools/package_graphite.py --manifest-only >/dev/null 2>&1 && $PY tools/record_registry.py >/dev/null 2>&1 && $PY tools/package_graphite.py --manifest-only >/dev/null 2>&1 && $PY tools/record_registry.py --check >/dev/null 2>&1; rc=$?; echo "seed rc=$rc"; [ $rc -ne 0 ] && BAD=1
-for look in graphite kasandra; do h=$(mktemp -d); env HOME=$h GRAPHITE_APPEARANCE=$look timeout 120 $PY -B -c "
+for look in graphite kasandra day; do h=$(mktemp -d); env HOME=$h GRAPHITE_APPEARANCE=$look timeout 120 $PY -B -c "
 import sys;sys.path.insert(0,'.')
 from workbench.qt_app import make_app, WorkbenchWindow
 from workbench import locations

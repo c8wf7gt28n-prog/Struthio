@@ -87,6 +87,8 @@ def apps_mark(button, host):
     from . import struthio_mark
     image = struthio_mark.image(host.root)
     button.logo = None;button.setStyleSheet('')
+    if bt.APPEARANCE == 'day':      # 1.0 P2: Day, as in the owner's picture: the word Apps, the circled plus beside it
+        button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('Apps');button.update();return False
     if image.isNull():
         button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('[#] Apps ▾');button.update();return False
     s = scale_of(host);d = getattr(host, 'desk', None)
@@ -643,6 +645,7 @@ class TopBar(QWidget):
         apps_mark(self.programs, host)      # the owner's Struthio, the Apps button's whole face (0.8.6)
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
         from .apps_qt import install_head; install_head(self)      # 1.0 S2: ⊕ beside Apps, "Add an app to the list"
+        from .halt_qt import install_head as install_halt; install_halt(self)      # 1.0 P2: HALT in the upper-left slot, every look
         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
         # no longer stand here (the bar above the work says the name; Ctrl+L still brings the address, here, to be typed);
@@ -802,6 +805,7 @@ class TopBar(QWidget):
             if not getattr(self.equalizer, 'in_column', False):      # 1.0 P1: once it is in her column the upper left stays empty (HALT's place, K3)
                 self.equalizer.setGeometry(o, (h - tall) // 2, wide, tall)
                 self.equalizer.setVisible(wide >= 48)
+            from .halt_qt import place_head as place_halt; place_halt(self, d)      # 1.0 P2: HALT upper left
             self.folded_menus = self.headings()
             self.plan = None
         finally:self._placing = False
@@ -2086,7 +2090,7 @@ class SlateFace(QWidget):
         if getattr(self, 'unfolded', False):return
         # 0.8.0 (the owner: "if we can really try to eliminate or reduce [scrolling] as much as possible"): the latest
         # exchanges that fit in the pane's height stay in view, at most KEEP_BUBBLES; the latest one always does.
-        room = max(160, self.scroll.viewport().height() - 24);width = max(120, self.thread.width() - self.lines.contentsMargins().right());used = 0;kept = 0
+        room = max(160, (self.exchange_room() if hasattr(self, 'exchange_room') else self.scroll.viewport().height()) - 24);width = max(120, self.thread.width() - self.lines.contentsMargins().right());used = 0;kept = 0  # 1.0 P2: her column's room for the turns
         for w in reversed(items):
             if kept >= self.KEEP_BUBBLES:break
             box = w.layout()

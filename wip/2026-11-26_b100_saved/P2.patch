@@ -1,0 +1,717 @@
+diff --git a/workbench/board_qt.py b/workbench/board_qt.py
+index 4909a00..5e4451f 100644
+--- a/workbench/board_qt.py
++++ b/workbench/board_qt.py
+@@ -45,6 +45,12 @@ def ink(colour, alpha=1.0):
+     c = QColor(colour);c.setAlphaF(max(0.0, min(1.0, alpha)));return c
+ 
+ 
++def day_wire(dashed=False):
++    """1.0 P2: Day's wire ink: the picture's blue for a recorded link, a lighter blue for a possible one (dashed, and said
++    "not verified", so the colour is never alone)."""
++    return t.DAY_MARKS['WIRE_SOFT' if dashed else 'WIRE']
++
++
+ def state_ink(word):
+     word = str(word or '').upper()
+     if word in SETTLED_WORDS:return t.READY
+@@ -439,6 +445,7 @@ class BoardView(QWidget):
+             if right - w - line - 10 * s < x + 90 * s:break
+             p.setPen(QColor(t.QUIET));p.drawText(QPointF(right - w, base), label)
+             pen = QPen(ink(t.TEAL_EDGE if t.APPEARANCE == 'kasandra' else t.LINE_STRONG, 0.95), 1.6)
++            if t.APPEARANCE == 'day':pen = QPen(ink(day_wire(dashed), 1.0), 1.6)      # 1.0 P2: the picture's blue wires
+             if dashed:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 3])
+             p.setPen(pen);y = base - fm2.ascent() / 2 + 1;p.drawLine(QPointF(right - w - line - 8 * s, y), QPointF(right - w - 8 * s, y))
+             right -= w + line + 26 * s
+@@ -456,6 +463,8 @@ class BoardView(QWidget):
+         small square handle at each end, as in the owner's picture."""
+         s = self.scale()
+         blue = t.TEAL_EDGE;green = t.READY
++        day = t.APPEARANCE == 'day'      # 1.0 P2: Day's rings are the picture's green and blue, drawn whole on white paper
++        if day:blue, green = t.DAY_MARKS['RING_BLUE'], t.DAY_MARKS['RING_GREEN']
+         radii = list(self.ring_radii)
+         if not radii:return
+         fw, fh = bm.FOCUS_DIMS[0] * s, bm.FOCUS_DIMS[1] * s
+@@ -466,11 +475,13 @@ class BoardView(QWidget):
+             for x, y in pts[1:]:path.lineTo(QPointF(x, y))
+             path.closeSubpath()
+             colour = green if n == 1 else blue
+-            p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(colour, 0.34 if n == 1 else 0.26), (1.6 if n == 1 else 1.1) / max(0.6, self.zoom)));p.drawPath(path)
++            strength = (0.95 if n == 1 else 0.8) if day else (0.34 if n == 1 else 0.26)
++            p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(colour, strength), (1.6 if n == 1 else 1.1) / max(0.6, self.zoom)));p.drawPath(path)
+         top = -radii[-1][1] - 26 * s;bottom = radii[-1][1] + 26 * s
+-        p.setPen(QPen(ink(blue, 0.3), 1.0 / max(0.6, self.zoom)))
++        if day:blue = t.DAY_MARKS['WIRE_SOFT']
++        p.setPen(QPen(ink(blue, 0.3 if not day else 0.6), 1.0 / max(0.6, self.zoom)))
+         p.drawLine(QPointF(0, top), QPointF(0, -fh / 2 - 6 * s));p.drawLine(QPointF(0, fh / 2 + 6 * s), QPointF(0, bottom))
+-        k = 7 * s;p.setBrush(ink(blue, 0.55));p.setPen(Qt.NoPen)
++        k = 7 * s;p.setBrush(ink(blue, 0.55 if not day else 0.9));p.setPen(Qt.NoPen)
+         for y in (top, bottom):p.drawRect(QRectF(-k / 2, y - k / 2, k, k))
+ 
+     def rect_of(self, ident):
+@@ -504,8 +515,9 @@ class BoardView(QWidget):
+             hovered = self.hover_wire == wire.key() or (self.hover and self.hover in (wire.source, wire.target))
+             chosen = self.chosen_wire == wire.key()
+             base = t.TEAL_EDGE if t.APPEARANCE == 'kasandra' else t.LINE_STRONG
++            if t.APPEARANCE == 'day':base = day_wire(wire.dashed)      # 1.0 P2: blue wires, as in the picture
+             colour = t.AMBER_EDGE if chosen else t.READY if hovered else t.RECHECK if wire.stale else base
+-            strength = 1.0 if (touching or hovered or chosen or wire.stale) else 0.62
++            strength = 1.0 if (touching or hovered or chosen or wire.stale) else (0.62 if t.APPEARANCE != 'day' else 0.8)
+             width = (2.4 if chosen else 1.8 if (touching or hovered) else 1.3)
+             pen = QPen(ink(colour, strength), width, Qt.SolidLine, Qt.RoundCap)
+             if wire.dashed:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([5, 4])
+@@ -520,6 +532,7 @@ class BoardView(QWidget):
+             if touching or hovered or chosen or wire.stale:
+                 word = wire.label if not wire.dashed else 'possible · not verified'
+                 if wire.stale and 'recheck' not in word:word = word + ' · recheck'
++                if t.APPEARANCE == 'day' and colour == day_wire(True):colour = day_wire(False)      # 1.0 P2: words in the blue that reads (5:1)
+                 self._labels.append((path.pointAtPercent(0.5), word, colour))
+ 
+     def _wire_words(self, p):
+@@ -537,6 +550,9 @@ class BoardView(QWidget):
+         s = self.scale();r = self.rect_of(tile.id);focus = tile.id == self.board.focus.id
+         over = self.hover == tile.id and not focus
+         lit = focus and self.hasFocus()
++        if t.APPEARANCE == 'day':      # 1.0 P2: a soft shadow under each tile on white paper, as in the picture
++            p.setPen(Qt.NoPen)
++            for grow, alpha in ((3.0, 0.035), (1.5, 0.05)):p.setBrush(ink(t.DAY_MARKS['SHADOW'], alpha));p.drawRect(r.adjusted(-grow + 1, -grow + 2.5, grow + 1, grow + 2.5))
+         p.setBrush(QColor(t.CARD if tile.size >= 2 or focus else t.PANEL))
+         edge = t.AMBER_EDGE if lit else t.READY if over else (t.LINE_STRONG if (focus or tile.size >= 3) else t.LINE_MID)
+         pen = QPen(ink(edge, 1.0 if (focus or over) else 0.85), 2 if focus else 1)
+diff --git a/workbench/boss_qt.py b/workbench/boss_qt.py
+index 20b87e7..642b303 100644
+--- a/workbench/boss_qt.py
++++ b/workbench/boss_qt.py
+@@ -396,7 +396,8 @@ def appearance_menu(host):
+ 
+ 
+ APPEARANCE_WORDS = {'graphite': 'Graphite: pencil, paper and amber, as it has always been',
+-                    'kasandra': 'Kasandra: indigo, a typewriter face for headings, and her art following the state of the work'}
++                    'kasandra': 'Kasandra: indigo, a typewriter face for headings, and her art following the state of the work',
++                    'day': 'Day: light paper, green for what is live, blue for the board\'s wires and what is selected'}      # 1.0 P2
+ 
+ 
+ def chosen_look(host):
+diff --git a/workbench/boss_theme.py b/workbench/boss_theme.py
+index 2bb529a..e377de8 100644
+--- a/workbench/boss_theme.py
++++ b/workbench/boss_theme.py
+@@ -65,7 +65,32 @@ PALETTES = {
+         ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff', ROYAL_TEXT='#b9a1f6', RED='#ff3b5c', ON_RED='#fff1f4',
+         CUE='#1d3d63', CUE_EDGE='#83eaff', CUE_TEXT='#b9f4ff',
+         BAR='#e2a72e', ON_BAR='#171b3c', BAR_EDGE='#ffd27a', ON_BAR_QUIET='#4a3d2a', ON_AMBER='#ffd27a'),
++    # 1.0 P2: Day, the owner's picture of the Living Desktop (PLAN_1.0.md section 3): white and very light grey panels,
++    # green for what is live (state words, progress, the send arrows, the chosen tab's underline), blue for what is
++    # selected and has the keyboard, and for the board's wires and rings (DAY_MARKS). Every ink measured on every ground it
++    # is laid on (CARD #ffffff, GROUND, PANEL, RAISED, the bands, TERMINAL_GROUND): TEXT 13.8-15.9:1, QUIET 7.2-8.3:1, FAINT
++    # 5.3-6.1:1, READY and CUE_EDGE 4.6-5.4:1, AMBER_TEXT 8.9-10.3:1, STOP 5.7-6.6:1, OWNER 5.0-5.8:1, RECHECK 5.8-6.7:1,
++    # HONEY 5.1-5.9:1; AMBER_TEXT on AMBER_SOFT 8.3:1, TEAL_TEXT on TEAL_SOFT 5.8:1, white words on READY 5.4:1. No dark
++    # look's text colour is laid on a light ground: the inks here are their own.
++    'day': dict(
++        GROUND='#f3f5f4', PANEL='#f9faf9', CARD='#ffffff', RAISED='#eceff0', TERMINAL_GROUND='#fbfcfc',
++        LINE='#d5dbd8', LINE_STRONG='#6d7973', LINE_MID='#9aa4a0', TEXT='#1b2420', QUIET='#45514b', FAINT='#59655f',
++        AMBER='#dde9f7', AMBER_SOFT='#dde9f7', AMBER_EDGE='#2a64ad', AMBER_TEXT='#164175',
++        PENCIL_DEEP='#e9eef3', ERASER='#f8ebe3', ERASER_DEEP='#f1dccf', ERASER_MARK='#b65a26',
++        TEAL='#1a773c', TEAL_SOFT='#e0f2e6', TEAL_EDGE='#2f9a55', TEAL_TEXT='#17693a', READY='#1a773c', STOP='#b42318',
++        OWNER='#a34e00', ON_OWNER='#ffffff', RECHECK='#6847b2',
++        BAND=(250, 251, 250), ERASED='#1b2420', ERASED_QUIET='#4a5650', BAND_MARK='#2a64ad', BAND_PENCIL='#1a773c',
++        DESK_LIGHT='#ffffff', VEIL='#ffffff', DISPLAY='IBM Plex Sans', FACE='IBM Plex Sans', MONO='IBM Plex Mono',
++        HONEY='#8a5a00', VIOLET='#45514b', VIOLET_DEEP='#c9d6e6', VIOLET_PALE='#1b2420', VIOLET_SOFT='#edf3fa',
++        ROYAL='#1a773c', ROYAL_SOFT='#e0f2e6', ROYAL_INK='#17693a', ROYAL_TEXT='#17693a', RED='#b42318', ON_RED='#ffffff',
++        CUE='#eef5f0', CUE_EDGE='#1a773c', CUE_TEXT='#17693a',
++        BAR='#dde9f7', ON_BAR='#1b2420', BAR_EDGE='#2a64ad', ON_BAR_QUIET='#45514b', ON_AMBER='#164175'),
+ }
++# 1.0 P2: the Day look's own marks, beside its palette: the board's blue wires (WIRE; WIRE_SOFT for a possible link,
++# dashed and said "not verified"), its rings (RING_BLUE outer, RING_GREEN inner, as in the picture), HALT's green triangle,
++# the soft shadow under a panel or a tile (SHADOW, drawn with alpha). Used only where APPEARANCE is 'day'.
++DAY_MARKS = dict(WIRE='#2f6fb6', WIRE_SOFT='#6f9bd0', RING_BLUE='#a9c6e8', RING_GREEN='#a6d8b6', HALT='#1f8a46',
++                 SHADOW='#1b2420')
+ # 0.8.3, the owner: "I'm kinda thinking that highlighting should be in our burnt yellow??? Like especially in menus???",
+ # "You measure what is visually pleasing", and "we have to be careful how that makes the graphite not look green". So, in
+ # Kasandra only (Graphite keeps every colour it had):
+@@ -123,7 +148,7 @@ def eye(line):
+ 
+ 
+ def chosen_appearance(environ=None, path=None):
+-    """'graphite' or 'kasandra': GRAPHITE_APPEARANCE in the environment, else the session file's 'appearance', else
++    """'graphite', 'kasandra' or 'day' (1.0 P2): GRAPHITE_APPEARANCE in the environment, else the session file's 'appearance', else
+     Graphite. Reads the file with plain json (the session module imports far more than a colour needs). Whatever the file
+     holds, the answer is a look: a saved value that is not one of them as text (a list or an object, from a damaged or
+     hand-edited file) is Graphite. 0.8.3 looked such a value up among the palettes, a list cannot be looked up, and
+@@ -160,8 +185,11 @@ GLOW_OPENS = 'neon'         # 0.5.2: the owner, having seen the three: "I like n
+ GLOW = [3.0]        # the level in force (boss_qt.set_glow keeps it in step with the session)
+ 
+ 
++DAY_GLOW = 0.6      # 1.0 P2: in Day a glow is a soft shadow on white paper, never a neon halo, whatever the dial says
++
++
+ def glow():
+-    return GLOW[0]
++    return min(GLOW[0], DAY_GLOW) if APPEARANCE == 'day' else GLOW[0]
+ 
+ 
+ def lays_light(painter):
+diff --git a/workbench/desk_acts.py b/workbench/desk_acts.py
+index ed8d657..7fac9db 100644
+--- a/workbench/desk_acts.py
++++ b/workbench/desk_acts.py
+@@ -170,7 +170,7 @@ def _acts():
+         Act('hand.putback', named("Put the window back as it was when Stacy's hand started: what is in front, the selection, what is over the work."),
+             schema_of({})),
+         Act('look.set', 'Choose the appearance (from the next start), the glow, the desk art, the buttons, or less motion.',
+-            schema_of({'appearance': E('graphite', 'kasandra'), 'glow': E('soft', 'bright', 'neon'), 'art': E('illustrated', 'ascii', 'clean'),
++            schema_of({'appearance': E('graphite', 'kasandra', 'day'), 'glow': E('soft', 'bright', 'neon'), 'art': E('illustrated', 'ascii', 'clean'),
+                        'buttons': E('words', 'icons'), 'motion': E('normal', 'reduced')}),
+             at_least=('appearance', 'glow', 'art', 'buttons', 'motion')),
+         Act('read.desk', 'Read back what the window shows now.',
+diff --git a/workbench/desktop_header_qt.py b/workbench/desktop_header_qt.py
+index b1c37df..6b93c79 100644
+--- a/workbench/desktop_header_qt.py
++++ b/workbench/desktop_header_qt.py
+@@ -134,6 +134,21 @@ class DesktopMonitors(QWidget):
+     def resizeEvent(self, event):
+         super().resizeEvent(event);self.elide_keys()
+ 
++    def paintEvent(self, event):
++        """1.0 P2: in Day the meters are words and numbers with a '|' between each two, as in the owner's picture."""
++        from .neon_meters import SEPARATOR, words_only
++        if not words_only():return
++        from PySide6.QtGui import QPainter, QColor
++        from PySide6.QtCore import QRectF
++        from . import boss_theme as look
++        shown = [self.values[k] for k in self.KEYS if self.values[k].isVisible()]
++        if len(shown) < 2:return
++        p = QPainter(self);p.setPen(QColor(look.FAINT));p.setFont(shown[0].words_font())
++        for a, b in zip(shown, shown[1:]):
++            x = (a.geometry().left() + a.words_span()[1] + b.geometry().left() + b.words_span()[0]) / 2.0      # midway between the words
++            p.drawText(QRectF(x - 8, a.geometry().top(), 16, a.geometry().height()), Qt.AlignCenter, SEPARATOR)
++        p.end()
++
+     def event(self, event):
+         if event.type() == QEvent.StyleChange:QTimer.singleShot(0, self.restyle)  # the interface size changed: follow it now, not at the next sample
+         return super().event(event)
+@@ -171,7 +186,7 @@ class DesktopMonitors(QWidget):
+             if DOORS[key] not in tip:self.values[key].setToolTip(tip + '\nClick: ' + DOORS[key] + '.')
+             self.labels[key].setToolTip('Click: ' + DOORS[key] + '.')
+             self.values[key].setAccessibleDescription(self.values[key].toolTip())
+-        self.relight()
++        self.relight();self.update()      # 1.0 P2: Day's separators follow the words
+         self.setAccessibleDescription('Current Graphite host observation at '+str(sample['sampled_at'])+'; owner-host qualification remains separate.')
+ 
+ 
+diff --git a/workbench/halt.py b/workbench/halt.py
+new file mode 100644
+index 0000000..53c1cf5
+--- /dev/null
++++ b/workbench/halt.py
+@@ -0,0 +1,152 @@
++"""HALT, the master stop of her managed work (1.0 P2; the plan's "complete", item 10: "HALT (upper left) stops all of her
++managed work and nothing else: never the desktop, never the owner's programs").
++
++One function behind the button in the head's upper-left slot, and one to lift what it did:
++
++  press(host)    the owner's press. In this order:
++                   1. her work is held (the Night Shift's work gate, work_trail.hold, which K1's assignments obey): no step
++                      starts while it is held, and a run that sees the hold stops at its next look;
++                   2. every assignment that is running now is stopped through assignment.stop (K1), so its journal says
++                      "stopped by you" with what was done and what was only prepared;
++                   3. her hand is stopped before its next press, if it is acting (her_hand_qt.HerHand.stop);
++                   4. the moment that matters is shown in her column (her_column_qt.moment(host, 'halt'), P1);
++                   5. her column says in words what was stopped.
++                 Returns {'held', 'stopped' (titles), 'hand' (bool), 'words', 'error'}.
++  release(host)  lifts the hold (ledger.work.resume, the owner's approve scope). Nothing stopped is restarted: each
++                 assignment is resumed by its own Resume, which inspects before it repeats anything.
++  held(host)     whether her work is held now (by HALT or by Stop all): the button reads RESUME while it is.
++
++What HALT never touches: the desktop, Graphite's window, the owner's programs and their windows, builds and the console
++(those are Stop all's, on the meters' card), the network, the machine. Nothing here asks the model anything.
++
++K3 widens press() later (grants, the model's turns, the utility sandboxes) and keeps this one small module.
++"""
++from __future__ import annotations
++
++WORDS = {
++    'stopped': 'HALT: I stopped %s and held all of my work. No step starts until you press RESUME; the desktop and your '
++               'apps keep running.',
++    'nothing': 'HALT: nothing of mine was running. All of my work is held until you press RESUME; the desktop and your apps '
++               'keep running.',
++    'hand': ' My hand stopped before its next press.',
++    'not_held': 'HALT could not hold my work: %s. Use Stop all on the meters if anything of mine is still running.',
++    'released': 'RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, '
++                'which checks every step first.',
++    'not_released': 'The hold stays: %s.',
++}
++
++
++def _kernel(host):
++    from .engineering_kernel import operator
++    kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++    if kernel is None:
++        from .engine import engineering
++        kernel = engineering(host.root)
++    return kernel, operator()
++
++
++def _say(host, words):
++    """Her column says it (P1's exchange); without her column, the status line does."""
++    column = getattr(host, 'her_column', None)
++    try:
++        if column is not None:column.say_words(words);return
++    except Exception:  # noqa: BLE001 - saying it never undoes the stop
++        pass
++    try:host.statusBar().showMessage(words, 12000)
++    except Exception:  # noqa: BLE001
++        pass
++
++
++def held(host):
++    """True while her managed work is held (HALT, or Stop all); False when it is not, or when the gate cannot be read."""
++    try:
++        from . import work_trail
++        kernel, _ = _kernel(host)
++        if getattr(kernel, 'is_host_client', False):
++            answer = kernel.dispatch('ledger.work.status', {}, _kernel(host)[1])
++            return bool((answer.get('result') or {}).get('held')) if answer.get('ok') else False
++        return bool(work_trail.work_status(kernel).get('held'))
++    except Exception:  # noqa: BLE001 - a gate that cannot be read is not said to be held
++        return False
++
++
++def press(host):
++    """HALT: hold her work, stop what of hers runs, stop her hand, show the moment, say what was stopped."""
++    kernel, owner = _kernel(host)
++    out = {'held': False, 'stopped': [], 'hand': False, 'words': '', 'error': ''}
++    try:
++        if getattr(kernel, 'is_host_client', False):kernel.rpc('hold')
++        else:
++            from . import work_trail
++            work_trail.hold(kernel, owner)
++        out['held'] = True
++    except Exception as exc:  # noqa: BLE001 - said in words, and the rest still stops what it can
++        out['error'] = str(exc)[:200] or type(exc).__name__
++    try:
++        listing = kernel.dispatch('assignment.list', {'open': True, 'limit': 50}, owner)
++        rows = (listing.get('result') or {}).get('assignments') or () if listing.get('ok') else ()
++    except Exception:  # noqa: BLE001 - K1 absent or unreadable: the hold still holds
++        rows = ()
++    for row in rows:
++        if row.get('state') != 'running':continue
++        try:
++            answer = kernel.dispatch('assignment.stop', {'id': row['id']}, owner)
++            if answer.get('ok'):out['stopped'].append(str(row.get('title') or 'an assignment'))
++        except Exception:  # noqa: BLE001
++            pass
++    hand = getattr(host, 'her_hand', None)
++    try:
++        if hand is not None and hand.active():
++            hand.stop('HALT');out['hand'] = True
++    except Exception:  # noqa: BLE001
++        pass
++    column = getattr(host, 'her_column', None)
++    if column is not None:column.seen_held = True      # the column's own watch on the gate must not show the moment twice
++    try:
++        from .her_column_qt import moment
++        moment(host, 'halt')
++    except Exception:  # noqa: BLE001
++        pass
++    if out['held']:
++        names = ['“%s”' % t for t in out['stopped']]
++        words = WORDS['stopped'] % (', '.join(names[:-1]) + ' and ' + names[-1] if len(names) > 1 else names[0]) if names else WORDS['nothing']
++    else:
++        words = WORDS['not_held'] % out['error']
++    if out['hand']:words += WORDS['hand']
++    out['words'] = words
++    _say(host, words)
++    _refresh(host)
++    return out
++
++
++def release(host):
++    """RESUME: lift the hold. Nothing that was stopped is started again here."""
++    kernel, owner = _kernel(host)
++    try:
++        answer = kernel.dispatch('ledger.work.resume', {}, owner)
++    except Exception as exc:  # noqa: BLE001
++        answer = {'ok': False, 'error': {'message': str(exc)}}
++    if answer.get('ok'):
++        words = WORDS['released'];done = True
++    else:
++        error = answer.get('error') or {}
++        why = str(error.get('message') if isinstance(error, dict) else error or 'refused')
++        words = WORDS['not_released'] % why.split(': ', 1)[-1][:200];done = False
++    column = getattr(host, 'her_column', None)
++    if column is not None and done:column.seen_held = False
++    _say(host, words)
++    _refresh(host)
++    return {'released': done, 'words': words}
++
++
++def _refresh(host):
++    button = getattr(getattr(getattr(host, 'shell2', None), 'top', None), 'halt', None)
++    try:
++        if button is not None:button.refresh()
++    except Exception:  # noqa: BLE001
++        pass
++    column = getattr(host, 'her_column', None)
++    try:
++        if column is not None:column.refresh(force=True)
++    except Exception:  # noqa: BLE001
++        pass
+diff --git a/workbench/halt_qt.py b/workbench/halt_qt.py
+new file mode 100644
+index 0000000..055c06c
+--- /dev/null
++++ b/workbench/halt_qt.py
+@@ -0,0 +1,126 @@
++"""HALT in the head's upper-left slot (1.0 P2), in every look: a triangle and the word HALT; RESUME while her work is held.
++
++The press is halt.press(host) (hold her work, stop what of hers runs, stop her hand, say what was stopped); RESUME is
++halt.release(host). The button reads the gate every two seconds, so a hold made elsewhere (Stop all) reads RESUME too.
++
++Day (the owner's picture): a green triangle and the word HALT in the band's ink. Graphite: the triangle in its amber
++stop colour, the word in the band's pale lettering. Kasandra: the triangle in her raspberry, the word in her typewriter
++face. Held, in every look: a right-pointing triangle (the shape of "go on") in the colour of what waits for the owner, the
++word RESUME, and a short mark under it. The colour is never alone: the shape and the word say the same.
++"""
++from __future__ import annotations
++
++from PySide6.QtCore import QPointF, QRectF, QSize, Qt, QTimer
++from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPainterPath
++from PySide6.QtWidgets import QToolButton
++
++from . import boss_theme as t
++
++POLL_MS = 2000
++NAMES = {False: ('HALT', "HALT: stop all of Kasandra's work now. The desktop and your apps keep running."),
++         True: ('RESUME', "RESUME: lift the hold on Kasandra's work. Nothing stopped is restarted by this.")}
++
++
++class HaltButton(QToolButton):
++    """The master stop of her managed work, upper left."""
++
++    def __init__(self, host, parent=None):
++        super().__init__(parent);self.host = host;self.scale = 1.0;self.held = False;self.busy = False
++        self.setObjectName('HaltButton');self.setCursor(Qt.PointingHandCursor);self.setFocusPolicy(Qt.StrongFocus)
++        self.setAttribute(Qt.WA_Hover, True);self.setProperty('paperFunctionalInk', True);self.setAutoRaise(True)
++        self.clicked.connect(self.act);self._name()
++        self.timer = QTimer(self);self.timer.setInterval(POLL_MS);self.timer.timeout.connect(self.refresh);self.timer.start()
++        QTimer.singleShot(0, self.refresh)
++
++    def _name(self):
++        word, said = NAMES[self.held]
++        self.setText(word);self.setAccessibleName(word);self.setAccessibleDescription(said);self.setToolTip(said)
++
++    def refresh(self):
++        if getattr(self.host, '_closing', False):return
++        from .halt import held
++        now = held(self.host)
++        if now != self.held:
++            self.held = now;self._name();self.update()
++
++    def act(self):
++        if self.busy:return
++        self.busy = True
++        try:
++            from . import halt
++            if self.held:halt.release(self.host)
++            else:halt.press(self.host)
++        finally:
++            self.busy = False;self.refresh()
++
++    # -- the face ---------------------------------------------------------------------------------------------------------
++    def word_font(self):
++        s = min(max(self.scale, 0.8), 1.4)
++        if t.APPEARANCE == 'kasandra':
++            f = QFont(t.DISPLAY);f.setPixelSize(max(15, round(18 * s)));f.setLetterSpacing(QFont.AbsoluteSpacing, 1.2 * s)
++        elif t.APPEARANCE == 'day':
++            f = QFont(t.FACE);f.setPixelSize(max(14, round(17 * s)));f.setWeight(QFont.DemiBold);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.4 * s)
++        else:
++            f = QFont(t.MONO);f.setPixelSize(max(14, round(16 * s)));f.setWeight(QFont.DemiBold);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.0 * s)
++        return f
++
++    def colours(self):
++        """(the triangle, the word) in the look in force."""
++        if self.held:return t.OWNER, t.ERASED
++        if t.APPEARANCE == 'day':return t.DAY_MARKS['HALT'], t.ERASED
++        return t.STOP, t.ERASED
++
++    def need(self, height):
++        """The width the face needs at this height: the triangle, a gap and the longer of the two words (so it never jumps)."""
++        fm = QFontMetricsF(self.word_font());side = self.side(height)
++        return round(side + side * 0.55 + max(fm.horizontalAdvance(w) for w in ('HALT', 'RESUME')) + 2 * self.pad())
++
++    def side(self, height):
++        return max(12.0, round(height * 0.36))
++
++    def pad(self):
++        return round(8 * min(max(self.scale, 0.8), 1.4))
++
++    def sizeHint(self):
++        h = max(28, round(40 * self.scale));return QSize(self.need(h), h)
++
++    def paintEvent(self, event):
++        p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
++        edge = max(2, round(2 * self.scale));w, h = self.width(), self.height()
++        if self.underMouse() and not self.isDown():
++            p.fillRect(self.rect(), QColor(t.TEAL_SOFT));p.fillRect(0, h - edge, w, edge, QColor(t.READY))
++        elif self.hasFocus() or self.isDown():
++            p.fillRect(self.rect(), QColor(t.AMBER_SOFT));p.fillRect(0, h - edge, w, edge, QColor(t.AMBER_EDGE))
++        shape, ink = self.colours()
++        side = self.side(h);x = self.pad();cy = h / 2.0
++        path = QPainterPath()
++        if self.held:      # ▶: go on
++            path.moveTo(QPointF(x, cy - side / 2));path.lineTo(QPointF(x + side * 0.9, cy));path.lineTo(QPointF(x, cy + side / 2))
++        else:              # ▲: the stop sign of the picture
++            path.moveTo(QPointF(x + side / 2, cy - side * 0.48));path.lineTo(QPointF(x + side, cy + side * 0.42));path.lineTo(QPointF(x, cy + side * 0.42))
++        path.closeSubpath();p.setPen(Qt.NoPen);p.setBrush(QColor(shape));p.drawPath(path)
++        font = self.word_font();p.setFont(font);fm = QFontMetricsF(font)
++        tx = x + side + side * 0.55;p.setPen(QColor(ink))
++        rect = QRectF(tx, 0, max(0.0, w - tx - self.pad() / 2), h)
++        p.drawText(rect, Qt.AlignLeft | Qt.AlignVCenter, fm.elidedText(self.text(), Qt.ElideRight, rect.width()))
++        if self.held and not (self.hasFocus() or self.isDown() or self.underMouse()):      # held: a short mark under the word
++            mark = max(2, round(2 * self.scale));y = round(cy + fm.ascent() / 2 + 4 * min(self.scale, 1.4))
++            p.fillRect(QRectF(tx, min(h - mark - 1, y), fm.horizontalAdvance(self.text()), mark), QColor(shape))
++        p.end()
++
++
++def install_head(top):
++    """shell2's head: HALT in the upper-left slot (1.0 P2). Returns the button."""
++    button = HaltButton(top.host, top.first_row);top.halt = button;button.show()
++    return button
++
++
++def place_head(top, d):
++    """shell2's head placement: HALT at the band's inset in the upper-left slot, no wider than the left column's room (the
++    menus start at the middle column's edge)."""
++    button = getattr(top, 'halt', None)
++    if button is None:return
++    button.scale = min(d.scale, 1.4);h = d.band;o = d.inset
++    tall = max(24, h - 2 * round(6 * min(d.scale, 1.4)));room = max(0, d.pane - 2 * o)
++    wide = min(room, button.need(tall))
++    button.setGeometry(o, (h - tall) // 2, wide, tall);button.setVisible(wide >= 40);button.raise_()
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index 166a2b6..d9381dc 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -986,6 +986,11 @@ class HerColumn(QObject):
+         if related is not None:outer.addWidget(related)
+         outer.addWidget(self.next)
+         outer.addWidget(self.commands)
++        # 1.0 P2: the room the exchange does not need, below the sections (they follow the exchange in order; fit_exchange)
++        from PySide6.QtWidgets import QSpacerItem
++        self.room = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding);outer.addItem(self.room)
++        face.exchange_room = self.exchange_room      # SlateFace.fold_earlier keeps the turns that fit this room
++        face.thread.installEventFilter(self)
+         for w in (face.input, getattr(face, 'input_hint', None)):
+             if w is not None:outer.addWidget(w)
+         outer.setSpacing(px(self.host, 8))
+@@ -1007,13 +1012,51 @@ class HerColumn(QObject):
+         self.ask_line.setGeometry(inset, y, max(60, foot.width() - 2 * inset), tall)
+ 
+     def eventFilter(self, watched, event):
++        if watched is getattr(self.face, 'thread', None):      # 1.0 P2: a turn added, folded or shown
++            if event.type() in (QEvent.LayoutRequest, QEvent.Resize, QEvent.ChildRemoved):self.fit_soon()
++            return False
+         if event.type() == QEvent.Resize:
+             if watched is self.face:
+                 self.size_parts()
+                 if self.moment.isVisible():self.moment.place()
+-            elif watched is self.ask_line.parentWidget():QTimer.singleShot(0, self.fit_ask)
++                self.fit_soon()      # 1.0 P2
++            elif getattr(self, 'ask_line', None) is not None and watched is self.ask_line.parentWidget():QTimer.singleShot(0, self.fit_ask)
+         return False
+ 
++    # -- 1.0 P2: the exchange takes the room its turns need ---------------------------------------------------------------
++    def exchange_room(self):
++        """The height the exchange and the free room below the sections have together: what the turns may take."""
++        room = getattr(self, 'room', None)
++        if room is None:return self.face.scroll.viewport().height()
++        return self.face.scroll.geometry().height() + room.geometry().height()
++
++    def fit_soon(self):
++        if getattr(self, '_fit_pending', False):return
++        self._fit_pending = True
++        QTimer.singleShot(0, self.fit_exchange)
++
++    def fit_exchange(self):
++        """No empty gap above ACTIVE WORK: the exchange is as tall as its turns (the welcome card alone, at first) and the
++        sections follow it in order, the room left over at the column's foot. When the turns need more than the room, the
++        exchange takes all of it and the earlier turns fold behind "earlier" (SlateFace.fold_earlier) as before."""
++        self._fit_pending = False
++        face = self.face;scroll = face.scroll;outer = face.layout();room = getattr(self, 'room', None)
++        if room is None or getattr(self.host, '_closing', False):return
++        try:
++            lines = face.lines;width = max(120, scroll.viewport().width())
++            need = lines.totalHeightForWidth(width) if lines.hasHeightForWidth() else face.thread.sizeHint().height()
++            need += 2 * scroll.frameWidth() + 2
++            fits = need <= self.exchange_room()
++            cap = need if fits else 16777215
++            if scroll.maximumHeight() != cap:
++                scroll.setMaximumHeight(cap);QTimer.singleShot(150, self.fit_soon)      # once more, when the turns have wrapped at the new size
++            for i in range(outer.count()):
++                item = outer.itemAt(i)
++                if item.widget() is scroll and outer.stretch(i) != (0 if fits else 1):outer.setStretch(i, 0 if fits else 1)
++                elif item.spacerItem() is room and outer.stretch(i) != (1 if fits else 0):outer.setStretch(i, 1 if fits else 0)
++        except RuntimeError:      # the window is closing
++            pass
++
+     def compact(self):
+         return self.face.height() < 700
+ 
+@@ -1036,7 +1079,7 @@ class HerColumn(QObject):
+         if getattr(self.host, '_closing', False):return
+         if not force and not self.face.isVisible():return
+         self.ticks += 1
+-        self.size_parts()
++        self.size_parts();self.fit_soon()      # 1.0 P2: the sections follow the exchange
+         try:self.read_work()
+         except Exception:  # noqa: BLE001 - a column never takes the window down
+             pass
+diff --git a/workbench/neon_meters.py b/workbench/neon_meters.py
+index 42ec9ff..9f2ce25 100644
+--- a/workbench/neon_meters.py
++++ b/workbench/neon_meters.py
+@@ -55,9 +55,21 @@ def palette():
+         _palette[look] = dict(low=low, mid=mid, high=high, hot=QColor(t.AMBER_EDGE), peak=QColor(t.TEAL_TEXT if her else t.TEXT),
+                               rest=mix(ground, low, 0.24 if her else 0.16), grid=QColor(t.LINE) if her else mix(ground, low, 0.3),
+                               text=QColor(t.TEXT), label=QColor(t.TEAL_TEXT), dim=mix(ground, t.TEXT, 0.42), trace=high)
++        if look == 'day':      # 1.0 P2: on light paper, near its limit is the colour of what waits for you (blue is a selection
++            # there), and a dash or "no reading" is FAINT, an ink that reads (5.3:1 or more), never a pale mix
++            _palette[look].update(hot=QColor(t.OWNER), dim=QColor(t.FAINT), label=QColor(t.QUIET), rest=mix(ground, low, 0.28))
+     return _palette[look]
+ 
+ 
++def words_only():
++    """1.0 P2: in Day the foot's meters are words and numbers (the owner's picture: CPU 34% | GPU 24% | RAM 62% | TXT 18%)."""
++    return t.APPEARANCE == 'day'
++
++
++SEPARATOR = '|'
++HOT_MARK = '▲'      # near its limit: a shape beside the number, as well as its colour and the words in its tip
++
++
+ def ramp(value, colours=None):
+     """A height's colour: rising from low through mid to high; NEAR or more is hot."""
+     c = colours or palette();v = max(0.0, min(1.0, float(value)))
+@@ -93,9 +105,43 @@ class RingMeter(QLabel):
+         self.ring = int(ring);self.number_font.setPixelSize(int(number_px));self.key_font.setPixelSize(int(key_px))
+         self.updateGeometry();self.update()
+ 
+-    def sizeHint(self):return QSize(self.ring + 6 + self.trace, self.ring + 18)
+-
+-    def minimumSizeHint(self):return QSize(self.ring + 4, self.ring + 14)
++    def sizeHint(self):
++        if words_only():return self.words_size()
++        return QSize(self.ring + 6 + self.trace, self.ring + 18)
++
++    def minimumSizeHint(self):
++        if words_only():return self.words_size()
++        return QSize(self.ring + 4, self.ring + 14)
++
++    def words_font(self):
++        f = QFont(t.MONO);f.setPixelSize(max(12, self.number_font.pixelSize() + 1));return f
++
++    def words_size(self):
++        """Day: room for the key and the widest reading ('100%' and its mark), on one line."""
++        from PySide6.QtGui import QFontMetrics
++        fm = QFontMetrics(self.words_font())
++        return QSize(fm.horizontalAdvance('%s 100%%%s' % (self.key, HOT_MARK)) + 4, max(self.ring, fm.height() + 8))
++
++    def words(self):
++        """(key, reading, mark) as Day shows them."""
++        v = self.value();hot = v is not None and v >= NEAR
++        return self.key + ' ', ('—' if v is None else str(round(v * 100)) + '%'), (HOT_MARK if hot else '')
++
++    def words_span(self):
++        """Day: where the words stand in the meter, (left, right) in its own pixels (the separators stand between)."""
++        from PySide6.QtGui import QFontMetricsF
++        fm = QFontMetricsF(self.words_font());total = fm.horizontalAdvance(''.join(self.words()))
++        x = max(0.0, (self.width() - total) / 2.0);return x, x + total
++
++    def paint_words(self, p):
++        """Day: 'CPU 34%' in plain words and numbers; '—' with no reading (honest, in FAINT), and near its limit the number
++        in the colour of what waits for you with ▲ beside it."""
++        c = palette();v = self.value();f = self.words_font();p.setFont(f);fm = p.fontMetrics()
++        key, shown, mark = self.words();hot = bool(mark)
++        x = self.words_span()[0]
++        base = (self.height() + fm.ascent() - fm.descent()) / 2.0
++        p.setPen(c['label'] if v is not None else c['dim']);p.drawText(QPointF(x, base), key);x += fm.horizontalAdvance(key)
++        p.setPen(c['hot'] if hot else (c['text'] if v is not None else c['dim']));p.drawText(QPointF(x, base), shown + mark)
+ 
+     def value(self):
+         """The reading as a share 0 to 1, or None when there is none."""
+@@ -113,6 +159,10 @@ class RingMeter(QLabel):
+     def paintEvent(self, event):
+         c = palette();v = self.value();level = glow_level(self) if self.glow else 0.0
+         p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
++        if words_only():      # 1.0 P2
++            try:self.paint_words(p)
++            finally:p.end()
++            return
+         try:
+             key_h = self.key_font.pixelSize() + 3;d = min(float(self.ring), self.height() - key_h - 8.0)
+             above = max(2.0, (self.height() - d - 2.0 - key_h) / 2.0 + 1.0)      # the ring and its word, centred in the band
+diff --git a/workbench/presentation_preferences.py b/workbench/presentation_preferences.py
+index 2d8c0e2..9f043db 100644
+--- a/workbench/presentation_preferences.py
++++ b/workbench/presentation_preferences.py
+@@ -7,7 +7,7 @@ LAYOUT_RANGES = {'navigator_width':(160,600), 'output_height':(80,700)}
+ # The whole window's looks (0.8.0), each with the word it is chosen by: the one list of them (0.8.4). The theme draws
+ # them (boss_theme.APPEARANCES is this list, with a palette for each) and the session keeps one for the next start; the
+ # session reads the list here, so it never imports the theme.
+-APPEARANCES = (('graphite', 'Graphite'), ('kasandra', 'Kasandra'))
++APPEARANCES = (('graphite', 'Graphite'), ('kasandra', 'Kasandra'), ('day', 'Day'))      # 1.0 P2: Day, the light look from the owner's picture
+ APPEARANCE_DEFAULT = 'graphite'
+ 
+ 
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index cdecce1..2101244 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -87,6 +87,8 @@ def apps_mark(button, host):
+     from . import struthio_mark
+     image = struthio_mark.image(host.root)
+     button.logo = None;button.setStyleSheet('')
++    if bt.APPEARANCE == 'day':      # 1.0 P2: Day, as in the owner's picture: the word Apps, the circled plus beside it
++        button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('Apps');button.update();return False
+     if image.isNull():
+         button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('[#] Apps ▾');button.update();return False
+     s = scale_of(host);d = getattr(host, 'desk', None)
+@@ -643,6 +645,7 @@ class TopBar(QWidget):
+         apps_mark(self.programs, host)      # the owner's Struthio, the Apps button's whole face (0.8.6)
+         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
+         from .apps_qt import install_head; install_head(self)      # 1.0 S2: ⊕ beside Apps, "Add an app to the list"
++        from .halt_qt import install_head as install_halt; install_halt(self)      # 1.0 P2: HALT in the upper-left slot, every look
+         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
+         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
+         # no longer stand here (the bar above the work says the name; Ctrl+L still brings the address, here, to be typed);
+@@ -802,6 +805,7 @@ class TopBar(QWidget):
+             if not getattr(self.equalizer, 'in_column', False):      # 1.0 P1: once it is in her column the upper left stays empty (HALT's place, K3)
+                 self.equalizer.setGeometry(o, (h - tall) // 2, wide, tall)
+                 self.equalizer.setVisible(wide >= 48)
++            from .halt_qt import place_head as place_halt; place_halt(self, d)      # 1.0 P2: HALT upper left
+             self.folded_menus = self.headings()
+             self.plan = None
+         finally:self._placing = False
+@@ -2086,7 +2090,7 @@ class SlateFace(QWidget):
+         if getattr(self, 'unfolded', False):return
+         # 0.8.0 (the owner: "if we can really try to eliminate or reduce [scrolling] as much as possible"): the latest
+         # exchanges that fit in the pane's height stay in view, at most KEEP_BUBBLES; the latest one always does.
+-        room = max(160, self.scroll.viewport().height() - 24);width = max(120, self.thread.width() - self.lines.contentsMargins().right());used = 0;kept = 0
++        room = max(160, (self.exchange_room() if hasattr(self, 'exchange_room') else self.scroll.viewport().height()) - 24);width = max(120, self.thread.width() - self.lines.contentsMargins().right());used = 0;kept = 0  # 1.0 P2: her column's room for the turns
+         for w in reversed(items):
+             if kept >= self.KEEP_BUBBLES:break
+             box = w.layout()
+diff --git a/workbench/typebar_qt.py b/workbench/typebar_qt.py
+index be7260f..e69fe8b 100644
+--- a/workbench/typebar_qt.py
++++ b/workbench/typebar_qt.py
+@@ -234,7 +234,7 @@ class TypeBar(QWidget):
+         self.send.setParent(self)
+         self.send.setObjectName('WritingSubmit')
+         self.send.setIcon(QIcon(arrow));self.send.setIconSize(QSize(19, 19))
+-        if _bt.APPEARANCE == 'kasandra':self.send.setProperty('paperIcon', True)      # keep its own ink: menus2 would make it one grey
++        if _bt.APPEARANCE in ('kasandra', 'day'):self.send.setProperty('paperIcon', True)      # keep its own ink: menus2 would make it one grey (1.0 P2: Day's white arrow on green)
+         self.send.setFocusPolicy(Qt.TabFocus)
+         self.send.setAccessibleName('Submit writing line')
+         self.send.setToolTip(SENDS['slate'])

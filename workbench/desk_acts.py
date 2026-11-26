@@ -170,7 +170,7 @@ def _acts():
         Act('hand.putback', named("Put the window back as it was when Stacy's hand started: what is in front, the selection, what is over the work."),
             schema_of({})),
         Act('look.set', 'Choose the appearance (from the next start), the glow, the desk art, the buttons, or less motion.',
-            schema_of({'appearance': E('graphite', 'kasandra'), 'glow': E('soft', 'bright', 'neon'), 'art': E('illustrated', 'ascii', 'clean'),
+            schema_of({'appearance': E('graphite', 'kasandra', 'day'), 'glow': E('soft', 'bright', 'neon'), 'art': E('illustrated', 'ascii', 'clean'),
                        'buttons': E('words', 'icons'), 'motion': E('normal', 'reduced')}),
             at_least=('appearance', 'glow', 'art', 'buttons', 'motion')),
         Act('read.desk', 'Read back what the window shows now.',

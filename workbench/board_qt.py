@@ -45,6 +45,12 @@ def ink(colour, alpha=1.0):
     c = QColor(colour);c.setAlphaF(max(0.0, min(1.0, alpha)));return c
 
 
+def day_wire(dashed=False):
+    """1.0 P2: Day's wire ink: the picture's blue for a recorded link, a lighter blue for a possible one (dashed, and said
+    "not verified", so the colour is never alone)."""
+    return t.DAY_MARKS['WIRE_SOFT' if dashed else 'WIRE']
+
+
 def state_ink(word):
     word = str(word or '').upper()
     if word in SETTLED_WORDS:return t.READY
@@ -439,6 +445,7 @@ class BoardView(QWidget):
             if right - w - line - 10 * s < x + 90 * s:break
             p.setPen(QColor(t.QUIET));p.drawText(QPointF(right - w, base), label)
             pen = QPen(ink(t.TEAL_EDGE if t.APPEARANCE == 'kasandra' else t.LINE_STRONG, 0.95), 1.6)
+            if t.APPEARANCE == 'day':pen = QPen(ink(day_wire(dashed), 1.0), 1.6)      # 1.0 P2: the picture's blue wires
             if dashed:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 3])
             p.setPen(pen);y = base - fm2.ascent() / 2 + 1;p.drawLine(QPointF(right - w - line - 8 * s, y), QPointF(right - w - 8 * s, y))
             right -= w + line + 26 * s
@@ -456,6 +463,8 @@ class BoardView(QWidget):
         small square handle at each end, as in the owner's picture."""
         s = self.scale()
         blue = t.TEAL_EDGE;green = t.READY
+        day = t.APPEARANCE == 'day'      # 1.0 P2: Day's rings are the picture's green and blue, drawn whole on white paper
+        if day:blue, green = t.DAY_MARKS['RING_BLUE'], t.DAY_MARKS['RING_GREEN']
         radii = list(self.ring_radii)
         if not radii:return
         fw, fh = bm.FOCUS_DIMS[0] * s, bm.FOCUS_DIMS[1] * s
@@ -466,11 +475,13 @@ class BoardView(QWidget):
             for x, y in pts[1:]:path.lineTo(QPointF(x, y))
             path.closeSubpath()
             colour = green if n == 1 else blue
-            p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(colour, 0.34 if n == 1 else 0.26), (1.6 if n == 1 else 1.1) / max(0.6, self.zoom)));p.drawPath(path)
+            strength = (0.95 if n == 1 else 0.8) if day else (0.34 if n == 1 else 0.26)
+            p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(colour, strength), (1.6 if n == 1 else 1.1) / max(0.6, self.zoom)));p.drawPath(path)
         top = -radii[-1][1] - 26 * s;bottom = radii[-1][1] + 26 * s
-        p.setPen(QPen(ink(blue, 0.3), 1.0 / max(0.6, self.zoom)))
+        if day:blue = t.DAY_MARKS['WIRE_SOFT']
+        p.setPen(QPen(ink(blue, 0.3 if not day else 0.6), 1.0 / max(0.6, self.zoom)))
         p.drawLine(QPointF(0, top), QPointF(0, -fh / 2 - 6 * s));p.drawLine(QPointF(0, fh / 2 + 6 * s), QPointF(0, bottom))
-        k = 7 * s;p.setBrush(ink(blue, 0.55));p.setPen(Qt.NoPen)
+        k = 7 * s;p.setBrush(ink(blue, 0.55 if not day else 0.9));p.setPen(Qt.NoPen)
         for y in (top, bottom):p.drawRect(QRectF(-k / 2, y - k / 2, k, k))
 
     def rect_of(self, ident):
@@ -504,8 +515,9 @@ class BoardView(QWidget):
             hovered = self.hover_wire == wire.key() or (self.hover and self.hover in (wire.source, wire.target))
             chosen = self.chosen_wire == wire.key()
             base = t.TEAL_EDGE if t.APPEARANCE == 'kasandra' else t.LINE_STRONG
+            if t.APPEARANCE == 'day':base = day_wire(wire.dashed)      # 1.0 P2: blue wires, as in the picture
             colour = t.AMBER_EDGE if chosen else t.READY if hovered else t.RECHECK if wire.stale else base
-            strength = 1.0 if (touching or hovered or chosen or wire.stale) else 0.62
+            strength = 1.0 if (touching or hovered or chosen or wire.stale) else (0.62 if t.APPEARANCE != 'day' else 0.8)
             width = (2.4 if chosen else 1.8 if (touching or hovered) else 1.3)
             pen = QPen(ink(colour, strength), width, Qt.SolidLine, Qt.RoundCap)
             if wire.dashed:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([5, 4])
@@ -520,6 +532,7 @@ class BoardView(QWidget):
             if touching or hovered or chosen or wire.stale:
                 word = wire.label if not wire.dashed else 'possible · not verified'
                 if wire.stale and 'recheck' not in word:word = word + ' · recheck'
+                if t.APPEARANCE == 'day' and colour == day_wire(True):colour = day_wire(False)      # 1.0 P2: words in the blue that reads (5:1)
                 self._labels.append((path.pointAtPercent(0.5), word, colour))
 
     def _wire_words(self, p):
@@ -537,6 +550,9 @@ class BoardView(QWidget):
         s = self.scale();r = self.rect_of(tile.id);focus = tile.id == self.board.focus.id
         over = self.hover == tile.id and not focus
         lit = focus and self.hasFocus()
+        if t.APPEARANCE == 'day':      # 1.0 P2: a soft shadow under each tile on white paper, as in the picture
+            p.setPen(Qt.NoPen)
+            for grow, alpha in ((3.0, 0.035), (1.5, 0.05)):p.setBrush(ink(t.DAY_MARKS['SHADOW'], alpha));p.drawRect(r.adjusted(-grow + 1, -grow + 2.5, grow + 1, grow + 2.5))
         p.setBrush(QColor(t.CARD if tile.size >= 2 or focus else t.PANEL))
         edge = t.AMBER_EDGE if lit else t.READY if over else (t.LINE_STRONG if (focus or tile.size >= 3) else t.LINE_MID)
         pen = QPen(ink(edge, 1.0 if (focus or over) else 0.85), 2 if focus else 1)
