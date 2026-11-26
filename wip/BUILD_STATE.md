@@ -377,6 +377,17 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 15:10 UTC: **1.0 P4 merged** (e04347b: the launch look; and no picture of Kas). design_tokens.py drives Day
+  and Night. Inter is bundled. Night is a fourth look. An existing profile moves to Day once, with one line. Every text
+  pair is ≥ 4.5:1 (lowest 4.56 Day, 4.71 Night; three of §9's colours darkened to pass), and no Day/Night colour literal
+  is outside the tokens. Her column's top is the equalizer, her name, model and state word; every picture of her is off
+  the screen. test_session_start and test_hologram were changed, not run. Frames are in `frames_P4/`, and the merge
+  check now opens Night too. **M2 launched** (the quick model beside the big one; agent a8e133b68a5acdbdb). Running:
+  F1, F2, X3, M2. Queue: X4 once F1 and F2 are merged; then D2, X1, X2, R1, R2. 40 slices: 29 merged, P5 cancelled.
+  P4's notes for D2: the icons for Save and Return and Split at 1366 (still behind More ▾). For D2 from the coordinator's
+  look at the frames: the tree opens scrolled to /mnt rather than at the top, the Line field's placeholder reads
+  "prompt", and the equalizer band is very short.
+
 - 26 Nov 14:30 UTC: The owner asked for power-user scenarios: **X4** written into the plan (twelve sessions). Queue:
   M2 at the next free slot; X4 once F1 and F2 are merged; then D2, X1, X2, R1, R2. 40 slices.
 
