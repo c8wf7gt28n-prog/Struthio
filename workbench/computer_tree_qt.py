@@ -153,7 +153,8 @@ class ComputerTree(QObject):
         kernel = self.kernel()
         if kernel is not None:
             from . import living_nav
-            known.update(living_nav.known_outside(kernel))
+            from . import read_beside      # 1.0 F2b: read beside her writes
+            known.update(read_beside.first(living_nav.known_outside, kernel))
         for entry in (getattr(self.living, 'extra', None) or {}).values():
             path = self.whole(entry)
             if path:known.setdefault(path, entry['id'])

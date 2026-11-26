@@ -85,9 +85,25 @@ class ActivityTail(QWidget):
         self.expand.setText('Collapse' if on else 'Expand');self.search.setVisible(on);self.resize_lines();self.refresh(True)
 
     def refresh(self,force=False):
-        stream=activity.tail(self.bridge.host.root,query=self.search.text(),limit=200)
+        # 1.0 F2b: the journal's tail (200 events) and her awareness are read again when the journal moved or the words changed,
+        # else every 4th tick; on the tick they are read on a floor worker and drawn when they land (a press reads at once).
+        from . import floor, read_beside
         from .stacy_awareness import inspect
-        awareness=inspect(self.bridge.kernel)
+        root=self.bridge.host.root;kernel=self.bridge.kernel
+        mark=floor.head(root);self._f2b_ticks=getattr(self,'_f2b_ticks',0)+1;query=self.search.text()
+        kept=getattr(self,'_f2b_kept',None)
+        if not force and mark is not None and kept is not None and kept[0]==(mark,query) and self._f2b_ticks%4:stream,awareness=kept[1],kept[2]
+        elif not force and read_beside.enabled():
+            def work():return activity.tail(root,query=query,limit=200),read_beside.first(inspect,read_beside.worker_kernel(kernel))
+            def landed(result,error):
+                if error is not None or result is None or self.bridge.host._closing:return
+                self._f2b_kept=((mark,query),result[0],result[1]);self._draw(result[0],result[1],False)
+            floor.submit(work,landed,key=('f2b-timeline',id(self)));return
+        else:
+            stream=activity.tail(root,query=query,limit=200);awareness=read_beside.first(inspect,kernel);self._f2b_kept=((mark,query),stream,awareness)
+        self._draw(stream,awareness,force)
+
+    def _draw(self,stream,awareness,force):      # 1.0 F2b: what refresh drew, from a reading made here or on a worker
         signature=(stream['cursor'],self.search.text(),awareness['cursor'],awareness['state'])
         if signature==self.signature and not force:return
         self.signature=signature;bar=self.list.verticalScrollBar();old=bar.value();self.list.clear();self._last_words=None
@@ -327,7 +343,8 @@ class LedgerBridge(QObject):
             self.host.set_workspace_layout(state['view_preferences']['mode'],persist=False)
         self.host.view_preferences['startup']=state['view_preferences']['startup']
         if not state['layout']['stacy_reactions']:self.host.clip.presence.dismiss()
-        for row in ledger_control.settings(self.kernel,'Workspace')['settings']:
+        from . import read_beside      # 1.0 F2b: read beside her writes
+        for row in read_beside.first(ledger_control.settings,self.kernel,'Workspace')['settings']:
             key=row['key']
             if key not in self._layout_revisions or self._layout_revisions[key]==row['revision']:continue
             self._layout_requested[key]=row['stored'];self._layout_revisions[key]=row['revision']
@@ -368,7 +385,8 @@ class LedgerBridge(QObject):
         concern=getattr(self.host,'concern',None)
         if concern is None or concern.store is None:return
         from .catalog_settings import read
-        try:view,_=read(self.kernel)
+        from . import read_beside      # 1.0 F2b: read beside her writes
+        try:view,_=read_beside.first(read,self.kernel)
         except ValueError:return
         if concern.view==view:return
         concern.remember();concern.view=view
@@ -412,7 +430,8 @@ class LedgerBridge(QObject):
         self._f2_receipts=getattr(self,'_f2_receipts',0)+1
         if said==getattr(self,'_f2_said',None) and self._f2_receipts%4:return
         self._f2_said=said
-        ledger_control.publish_settings_runtime(self.kernel,self.desktop_id,values)
+        from . import read_beside      # 1.0 F2b: the receipt is written on a floor worker, never waits on the window's thread for her
+        read_beside.off_thread(self.kernel,lambda kernel,d=self.desktop_id,v=values:ledger_control.publish_settings_runtime(kernel,d,v),'control-readback',self._said_back)
 
     def publish(self):
         from .operation_stop import process_identity
@@ -447,21 +466,27 @@ class LedgerBridge(QObject):
         serialized=json.dumps([data,context],sort_keys=True)
         if serialized==self._published:return
         self._published=serialized
-        with self.kernel.db() as db:
-            for key,value in (('ledger.desktop_catalog',data),('ledger.desktop_context',context)):
-                db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',(key,json.dumps(value)))
+        def write(kernel,rows=(('ledger.desktop_catalog',json.dumps(data)),('ledger.desktop_context',json.dumps(context)))):
+            with kernel.db() as db:
+                for key,value in rows:db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',(key,value))
+        from . import read_beside      # 1.0 F2b: written on a floor worker, never waits on the window's thread for her
+        read_beside.off_thread(self.kernel,write,'control-publish',self._said_back)
+
+    def _said_back(self,result,error):      # 1.0 F2b: a write made on a worker says its failure as the tick did
+        if error is not None and not self.host._closing:self.host.statusBar().showMessage('Graphite control: '+activity.redact(error),5000)
 
     def tick(self):
         if self.host._closing:return
         from . import floor      # 1.0 F2: while her work holds the workspace, this read waits for the next tick, not for her
-        if floor.held_elsewhere(self.kernel):return
+        from . import read_beside      # 1.0 F2b: its reads are beside her writes and its writes on a worker: it skips no tick
+        if not read_beside.enabled() and floor.held_elsewhere(self.kernel):return
         try:
             self.sync_profile();self.sync_provider();self.publish_settings_readback();self.publish()
             from .stacy_awareness import catch_up
             mark=floor.head(self.kernel.root);self._f2_ticks=getattr(self,'_f2_ticks',0)+1  # 1.0 F2: when the journal moved (else every 4th tick)
             if mark is None or mark!=getattr(self,'_f2_head',None) or self._f2_ticks%4==0:
-                catch_up(self.kernel,limit=200);self._f2_head=mark
-            for request in ledger_control.pending(self.kernel):
+                read_beside.off_thread(self.kernel,lambda kernel:catch_up(kernel,limit=200),'awareness-catch-up',self._said_back);self._f2_head=mark  # 1.0 F2b: it writes its cursor: on a worker
+            for request in read_beside.first(ledger_control.pending,self.kernel):  # 1.0 F2b: read beside her writes
                 if request.get('desktop_id') not in (None,self.desktop_id):continue
                 if time.time()-request['created']>30:
                     ledger_control.acknowledge(self.kernel,request,'EXPIRED','No desktop acknowledgment within 30 seconds');continue

@@ -432,7 +432,8 @@ class Kernel:
         self.state.mkdir(mode=0o700, exist_ok=True)
         self.dbpath = self.state / "engineering.sqlite3"
         self._workers = {}
-        with self.db() as db:
+        from . import read_beside      # 1.0 F2b: the schema check may make tables: it takes the guard, even inside a read
+        with read_beside.suspended(), self.db() as db:
             db.executescript("""
               CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY, owner TEXT, state TEXT, payload TEXT);
               CREATE TABLE IF NOT EXISTS candidates(id TEXT PRIMARY KEY, owner TEXT, state TEXT, payload TEXT);
@@ -468,6 +469,16 @@ class Kernel:
     def db(self):
         # sqlite3 context managers commit but do not close the connection.
         from .database_guard import connection
+        from .read_beside import beside, release      # 1.0 F2b: inside a read (read_beside.first), a read-only snapshot beside the writer
+        reader = beside(self.dbpath)
+        if reader is not None:
+            try:
+                with reader:
+                    yield reader
+            except BaseException:
+                reader.close();raise
+            release(reader)      # kept open for this thread's next read
+            return
         with connection(self.dbpath):
             db = sqlite3.connect(self.dbpath, timeout=10)
             try:
@@ -600,8 +611,10 @@ class Kernel:
                 activity.record(self.root,p.identity,operation,'REQUEST_RECEIVED',correlation_id=correlation_id)
             outer=instruction_matrix.begin(operation)
             try:
+                from . import read_beside      # 1.0 F2b: an observer's read is made beside her writes (again under the guard if it wrote)
                 result = (project_context.unavailable(operation)
                           if project_context.detached(self.root) and project_context.requires_project(operation,params)
+                          else read_beside.first(self._dispatch, operation, params, p) if read_beside.operation(operation)
                           else self._dispatch(operation, params, p))
             except (ValueError, OSError, KeyError, TypeError, sqlite3.Error) as exc:
                 if outer is not None:instruction_matrix.observe(self,p,operation,params,error=exc)

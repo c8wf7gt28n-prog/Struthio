@@ -237,6 +237,10 @@ class Coordinator:
             # a bounded worker call owns the ordinary service dispatch lock.
             if args['operation'] in ('work.pause','work.revoke','work.get','work.list','workers.status','workers.runs','workers.run','workers.stop'):
                 return self.kernel.dispatch(args['operation'],args['params'],principal)
+            from . import read_beside      # 1.0 F2b: an observer's read is made beside the step in flight, never waits for it
+            if read_beside.operation(args['operation']):
+                if self.closing.is_set(): raise ValueError('Host is stopping; reconcile the request before retrying')
+                return self.kernel.dispatch(args['operation'], args['params'], principal)
             with self.dispatch_lock:
                 if self.closing.is_set(): raise ValueError('Host is stopping; reconcile the request before retrying')
                 return self.kernel.dispatch(args['operation'], args['params'], principal)

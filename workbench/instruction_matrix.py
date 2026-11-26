@@ -141,7 +141,8 @@ def observe(kernel, principal, operation, arguments, result=None, error=None):
                 if row is None:return None
                 outcome, reason = ('FAILED', str(error)[:300]) if error is not None else ('SUCCESS', 'applied on the page')
                 db.execute('UPDATE instruction_matrix SET outcome=?,reason=?,updated=? WHERE id=?', (outcome, reason, time.time(), row[0]));return row[0]
-        if operation in PROPOSABLE and not pending(kernel, principal.identity, program):return None
+        from . import read_beside      # 1.0 F2b: whether it was proposed is read beside her writes (what follows writes, the old way)
+        if operation in PROPOSABLE and not read_beside.first(pending, kernel, principal.identity, program):return None
         outcome, reason = ('FAILED', str(error)[:300]) if error is not None else classify(result)
         now = time.time();detail = {'result_type': result_type(result) if error is None else None,
                                     'error_code': type(error).__name__ if error is not None else None}

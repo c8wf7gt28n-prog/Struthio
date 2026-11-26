@@ -115,7 +115,8 @@ STATES = {'idle': ('QUIET', '○', 'QUIET'), 'working': ('WORKING', '●', 'READ
 WORK_LOOK = {'working': ('●', 'READY'), 'ready': ('▸', 'TEXT'), 'waiting for your word': ('◆', 'OWNER'), 'held': ('■', 'RED'),
              'interrupted': ('■', 'RED'), 'stopped by you': ('■', 'QUIET'), 'blocked': ('■', 'RED'), 'needs review': ('◆', 'OWNER'),
              'no steps yet': ('○', 'QUIET'), 'done': ('✓', 'HONEY'),
-             'needs your grant': ('◆', 'OWNER')}      # 1.0 K3
+             'needs your grant': ('◆', 'OWNER'),      # 1.0 K3
+             'running': ('●', 'READY'), 'paused': ('■', 'QUIET'), 'needs you': ('◆', 'OWNER')}      # 1.0 F2b: a 0.8.x assignment's own words (older_work)
 for _words, _look in list(WORK_LOOK.items()):      # 1.0 D1: a step's state that the table names takes the table's shape
     if _sw.of_step(_words):WORK_LOOK[_words] = (_sw.shape(_sw.of_step(_words)), _look[1])
 # A finding's evidence state -> (word, shape, colour name), in the order they are shown.
@@ -705,12 +706,17 @@ class WorkRow(QWidget):
         self.state.setText(str(row.get('state_word') or words.upper()))
         self.bar.set(row.get('progress', 0));self.percent.setText('%d%%' % int(row.get('progress', 0) or 0))
         self.left.setText(str(row.get('time_left') or ''));self.left.setToolTip(say('left', time=row.get('time_left') or ''))
+        older = bool(row.get('older'))      # 1.0 F2b: a 0.8.x assignment keeps no bar or time left: the steps it took, and why it waits
+        self.bar.setVisible(not older);self.percent.setVisible(not older)
+        if older:self.left.setToolTip(plain(row.get('line') or '') or str(row.get('time_left') or ''))
+        if older and compact:self.left.setText(str(row.get('steps_short') or row.get('time_left') or ''))      # one line: room for its words
         self.stop.setVisible(bool(row.get('stop')))
         note = plain(row.get('line') or '') if words == 'needs review' else ''  # 1.0 K7: e.g. a dialog's words and buttons, read through accessibility
         if getattr(self.column, 'waits', None) is not None:note = ''      # 1.0 D1: said in "Waits for you", with its press (one place)
         short = note.replace(' needs review: ', ': ', 1) if note.startswith('Step ') else note      # the row's state word says it already
         self.note.setText(short if len(short) <= 200 else short[:199] + '…');self.note.setToolTip(note if len(short) > 200 else '');self.note.setVisible(bool(note))
         self.setAccessibleName('%s, %s, %d%%, %s' % (row.get('title'), words, int(row.get('progress', 0) or 0), say('left', time=row.get('time_left') or '')))
+        if older:self.setAccessibleName('%s, %s, %s' % (row.get('title'), words, row.get('time_left') or ''))      # 1.0 F2b
 
     def press_stop(self):
         call = (self.row or {}).get('stop')
@@ -1235,7 +1241,9 @@ class HerColumn(QObject):
         rows.sort(key=lambda r: order.get(r.get('state_words'), 3))
         self.rows = rows;compact = self.compact()
         waits = getattr(self, 'waits', None);busy = waits is not None and len(getattr(waits, 'shown', ())) > 1 and self.squeezed()      # 1.0 D1
-        self.active.show_rows(rows, 1 if busy else (2 if compact else 3), int(listing.get('total') or len(rows)), compact)      # 1.0 D1: a column where things wait shows them there
+        from . import older_work      # 1.0 F2b: a 0.8.x assignment left running, with its own words and its own Stop (the old path)
+        older = older_work.rows(lambda op, args=None: read(self.host, op, args))
+        self.active.show_rows(rows + older, 1 if busy else (2 if compact else 3), int(listing.get('total') or len(rows)) + len(older), compact)      # 1.0 D1: a column where things wait shows them there
         working = next((r for r in rows if r.get('state_words') == 'working'), None)
         view = read(self.host, 'assignment.status', {'id': working['id']}) if working else None
         self.work_line.show_work(view, 1 if compact else 2)
@@ -1462,7 +1470,11 @@ class HerColumn(QObject):
 
     def show_journal(self, ident):
         view = read(self.host, 'assignment.status', {'id': ident})
-        if not view:return
+        if not view:      # 1.0 F2b: a 0.8.x assignment: its own words, through the old path (agent.status)
+            from . import older_work
+            words = older_work.journal_words(read(self.host, 'agent.status', {'id': ident}))
+            if words:self.say_words(words)
+            return
         lines = [say('journal_head', title=plain(view['title']), state=view['state_words'], line=plain(view['line']))]
         for step in view.get('steps') or ():
             lines.append(say('journal_step', n=step['n'], title=plain(step['title']), says=step['journal_says']))

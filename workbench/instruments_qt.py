@@ -337,7 +337,9 @@ class ClipDock(QWidget):
         if getattr(self.window(),'_closing',False):return
         if not hasattr(self.window(),'root') or self.busy:return
         from .engine import engineering
-        jobs=engineering(self.window().root).listing('jobs')
+        from . import read_beside      # 1.0 F2b: the window's own Kernel (embedded, engineering() made a new one each tick), read beside her writes
+        kernel=getattr(getattr(self.window(),'ledger_bridge',None),'kernel',None) or engineering(self.window().root)
+        jobs=read_beside.first(kernel.listing,'jobs')
         active=[j for j in jobs if j['state'] in ('Queued','Running','Paused','Waiting for Approval','Interrupted','Waiting for Agent','Waiting for Execution Approval')]
         self.active_job=active[0] if active else None
         self.latest_job=jobs[0] if jobs else None  # newest first; Stacy's companion reads real states only

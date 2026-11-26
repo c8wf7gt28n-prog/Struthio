@@ -176,6 +176,9 @@ def head(root):
     to it), read without the guard on a read-only connection (one index lookup). None when it cannot be read."""
     import sqlite3
     from pathlib import Path
+    from . import read_beside      # 1.0 F2b: on this thread's kept reader (no path walk, no schema read each time)
+    got = read_beside.mark(root)
+    if got is not read_beside.MISSING:return got
     try:
         path = Path(root).resolve() / '.ledger/engineering.sqlite3'
         db = sqlite3.connect(path.as_uri() + '?mode=ro', uri=True, timeout=1)
@@ -276,6 +279,7 @@ def column_plan(ident, seen, desk, force=False):
             for gone in seen or ():
                 if gone not in here:read('assignment.status', {'id': gone})
             read('grant.list', {'waiting': False})
+            read('agent.list')      # 1.0 F2b: a 0.8.x assignment left running, listed in ACTIVE WORK (older_work)
             try:
                 from . import halt_gate
                 read.extra['halt'] = halt_gate.status(read.kernel)

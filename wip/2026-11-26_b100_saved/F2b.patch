@@ -1,0 +1,980 @@
+diff --git a/workbench/board_qt.py b/workbench/board_qt.py
+index 1b29a16..bc84683 100644
+--- a/workbench/board_qt.py
++++ b/workbench/board_qt.py
+@@ -295,13 +295,14 @@ class BoardView(QWidget):
+         return self.desk
+ 
+     def rebuild(self, keep_place=True):
+-        desk = self.make_desk()
++        from . import read_beside      # 1.0 F2b: the desk and the board are read beside her writes (never waiting for her step)
++        desk = read_beside.first(self.make_desk)
+         kernel = kernel_of(self.host)
+         if desk is None:
+             self.board = bm.Board(note=self.problem or 'Graphite\'s records are not available in this window.')
+         else:
+             first = self.page.view.field.selected if getattr(self.page, 'view', None) is not None else ''
+-            self.board = bm.build(desk, self.ident, kernel, self.task, first=first)
++            self.board = read_beside.first(bm.build, desk, self.ident, kernel, self.task, first=first)      # 1.0 F2b
+             if self.board.focus is not None:self.ident = self.board.focus.id
+         self._stale = False
+         self.relayout()
+@@ -424,8 +425,8 @@ class BoardView(QWidget):
+                 if self.head_height():self._head(p)      # 1.0 D1: no head of its own under the one centre bar
+                 self._empty(p, body);return
+             p.save();p.setClipRect(body)
++            self._ring_layer(p)      # 1.0 F2b: the rings drawn once for this size, zoom and place, then laid down at each paint
+             c = self.centre();p.translate(c);p.scale(self.zoom, self.zoom);p.translate(-self.pan_x, -self.pan_y)
+-            self._rings(p)
+             self._wires(p)
+             for tile in sorted(self.board.all(), key=lambda t: t.size):
+                 if tile.id in self.placed:self._tile(p, tile)
+@@ -514,6 +515,27 @@ class BoardView(QWidget):
+         s = self.scale();r = self.rect_of(f.id);p.setFont(self.sans(14));p.setPen(QColor(t.QUIET))
+         p.drawText(QRectF(r.left() - 120 * s, r.bottom() + 22 * s, r.width() + 240 * s, 60 * s), Qt.AlignHCenter | Qt.AlignTop | Qt.TextWordWrap, self.board.note)
+ 
++    def _ring_layer(self, p):
++        """1.0 F2b: the rings (antialiased paths of 720 points each) are drawn into a picture of the board's size once for its
++        size, zoom, place and rings, and that picture is laid down at each paint (the hover, the breath and a tile's change
++        repaint the board many times a second; the rings do not change then)."""
++        from PySide6.QtGui import QPixmap
++        dpr = self.devicePixelRatioF()
++        key = (self.width(), self.height(), dpr, self.zoom, self.pan_x, self.pan_y, tuple(self.ring_radii), self.scale(), self.head_height(),
++               t.LAUNCH, str(t.READY), str(t.TEAL_EDGE), str(getattr(t, 'DAY_MARKS', {}).get('RING_BLUE', '')))
++        kept = getattr(self, '_f2b_rings', None)
++        if kept is None or kept[0] != key:
++            pix = QPixmap(max(1, round(self.width() * dpr)), max(1, round(self.height() * dpr)));pix.setDevicePixelRatio(dpr);pix.fill(Qt.transparent)
++            q = QPainter(pix)
++            try:
++                q.setRenderHint(QPainter.Antialiasing)
++                c = self.centre();q.translate(c);q.scale(self.zoom, self.zoom);q.translate(-self.pan_x, -self.pan_y)
++                self._rings(q)
++            finally:
++                q.end()
++            kept = self._f2b_rings = (key, pix)
++        p.drawPixmap(0, 0, kept[1])
++
+     def _rings(self, p):
+         """The rings round the focus (green the inner, the wires' ink the outer ones) and the axis through the middle, with a
+         small square handle at each end, as in the owner's picture."""
+@@ -912,15 +934,21 @@ def attach(page):
+     def refresh(force=False, reading=None, _original=original_refresh):
+         kernel = kernel_of(page.host)
+         if reading is None and page.face == 'work' and kernel is not None:
++            from . import read_beside      # 1.0 F2b: the Field shown again keeps its drawing; the desk is read on a worker, drawn when it lands
++            if not force and read_beside.desk_later(page, kernel, lambda got: page.refresh(reading=got)):return
++            reading, stale = read_beside.desk_kept(page.host, kernel) if not force else (None, False)      # 1.0 F2b: read on a worker at the start
+             from .engineering_kernel import operator
+             if force:page.unread = set()
+-            try:reading = bm.read_desk(kernel, operator(), skip=page.unread)
++            try:reading = reading if reading is not None else bm.read_desk(kernel, operator(), skip=page.unread)
+             except Exception:  # noqa: BLE001 - the page reads as it always did, and says what it could not
+                 reading = None
++        else:
++            stale = False
+         _original(force=force, reading=reading)
+         if page.face == 'work':
+             if reading is not None:board.desk_read(*reading)
+             elif getattr(view, 'field', None) is not None:board.desk_read(view.field, None)
++        if stale:read_beside.desk_later(page, kernel, lambda got: page.refresh(reading=got))      # 1.0 F2b: changed since: read again on a worker
+     page.refresh = refresh
+     original_update = view.update
+ 
+diff --git a/workbench/computer_tree_qt.py b/workbench/computer_tree_qt.py
+index 9eb1e9a..81cfc70 100644
+--- a/workbench/computer_tree_qt.py
++++ b/workbench/computer_tree_qt.py
+@@ -153,7 +153,8 @@ class ComputerTree(QObject):
+         kernel = self.kernel()
+         if kernel is not None:
+             from . import living_nav
+-            known.update(living_nav.known_outside(kernel))
++            from . import read_beside      # 1.0 F2b: read beside her writes
++            known.update(read_beside.first(living_nav.known_outside, kernel))
+         for entry in (getattr(self.living, 'extra', None) or {}).values():
+             path = self.whole(entry)
+             if path:known.setdefault(path, entry['id'])
+diff --git a/workbench/control_qt.py b/workbench/control_qt.py
+index 6bf5561..628696c 100644
+--- a/workbench/control_qt.py
++++ b/workbench/control_qt.py
+@@ -85,9 +85,25 @@ class ActivityTail(QWidget):
+         self.expand.setText('Collapse' if on else 'Expand');self.search.setVisible(on);self.resize_lines();self.refresh(True)
+ 
+     def refresh(self,force=False):
+-        stream=activity.tail(self.bridge.host.root,query=self.search.text(),limit=200)
++        # 1.0 F2b: the journal's tail (200 events) and her awareness are read again when the journal moved or the words changed,
++        # else every 4th tick; on the tick they are read on a floor worker and drawn when they land (a press reads at once).
++        from . import floor, read_beside
+         from .stacy_awareness import inspect
+-        awareness=inspect(self.bridge.kernel)
++        root=self.bridge.host.root;kernel=self.bridge.kernel
++        mark=floor.head(root);self._f2b_ticks=getattr(self,'_f2b_ticks',0)+1;query=self.search.text()
++        kept=getattr(self,'_f2b_kept',None)
++        if not force and mark is not None and kept is not None and kept[0]==(mark,query) and self._f2b_ticks%4:stream,awareness=kept[1],kept[2]
++        elif not force and read_beside.enabled():
++            def work():return activity.tail(root,query=query,limit=200),read_beside.first(inspect,read_beside.worker_kernel(kernel))
++            def landed(result,error):
++                if error is not None or result is None or self.bridge.host._closing:return
++                self._f2b_kept=((mark,query),result[0],result[1]);self._draw(result[0],result[1],False)
++            floor.submit(work,landed,key=('f2b-timeline',id(self)));return
++        else:
++            stream=activity.tail(root,query=query,limit=200);awareness=read_beside.first(inspect,kernel);self._f2b_kept=((mark,query),stream,awareness)
++        self._draw(stream,awareness,force)
++
++    def _draw(self,stream,awareness,force):      # 1.0 F2b: what refresh drew, from a reading made here or on a worker
+         signature=(stream['cursor'],self.search.text(),awareness['cursor'],awareness['state'])
+         if signature==self.signature and not force:return
+         self.signature=signature;bar=self.list.verticalScrollBar();old=bar.value();self.list.clear();self._last_words=None
+@@ -327,7 +343,8 @@ class LedgerBridge(QObject):
+             self.host.set_workspace_layout(state['view_preferences']['mode'],persist=False)
+         self.host.view_preferences['startup']=state['view_preferences']['startup']
+         if not state['layout']['stacy_reactions']:self.host.clip.presence.dismiss()
+-        for row in ledger_control.settings(self.kernel,'Workspace')['settings']:
++        from . import read_beside      # 1.0 F2b: read beside her writes
++        for row in read_beside.first(ledger_control.settings,self.kernel,'Workspace')['settings']:
+             key=row['key']
+             if key not in self._layout_revisions or self._layout_revisions[key]==row['revision']:continue
+             self._layout_requested[key]=row['stored'];self._layout_revisions[key]=row['revision']
+@@ -368,7 +385,8 @@ class LedgerBridge(QObject):
+         concern=getattr(self.host,'concern',None)
+         if concern is None or concern.store is None:return
+         from .catalog_settings import read
+-        try:view,_=read(self.kernel)
++        from . import read_beside      # 1.0 F2b: read beside her writes
++        try:view,_=read_beside.first(read,self.kernel)
+         except ValueError:return
+         if concern.view==view:return
+         concern.remember();concern.view=view
+@@ -412,7 +430,8 @@ class LedgerBridge(QObject):
+         self._f2_receipts=getattr(self,'_f2_receipts',0)+1
+         if said==getattr(self,'_f2_said',None) and self._f2_receipts%4:return
+         self._f2_said=said
+-        ledger_control.publish_settings_runtime(self.kernel,self.desktop_id,values)
++        from . import read_beside      # 1.0 F2b: the receipt is written on a floor worker, never waits on the window's thread for her
++        read_beside.off_thread(self.kernel,lambda kernel,d=self.desktop_id,v=values:ledger_control.publish_settings_runtime(kernel,d,v),'control-readback',self._said_back)
+ 
+     def publish(self):
+         from .operation_stop import process_identity
+@@ -447,21 +466,27 @@ class LedgerBridge(QObject):
+         serialized=json.dumps([data,context],sort_keys=True)
+         if serialized==self._published:return
+         self._published=serialized
+-        with self.kernel.db() as db:
+-            for key,value in (('ledger.desktop_catalog',data),('ledger.desktop_context',context)):
+-                db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',(key,json.dumps(value)))
++        def write(kernel,rows=(('ledger.desktop_catalog',json.dumps(data)),('ledger.desktop_context',json.dumps(context)))):
++            with kernel.db() as db:
++                for key,value in rows:db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',(key,value))
++        from . import read_beside      # 1.0 F2b: written on a floor worker, never waits on the window's thread for her
++        read_beside.off_thread(self.kernel,write,'control-publish',self._said_back)
++
++    def _said_back(self,result,error):      # 1.0 F2b: a write made on a worker says its failure as the tick did
++        if error is not None and not self.host._closing:self.host.statusBar().showMessage('Graphite control: '+activity.redact(error),5000)
+ 
+     def tick(self):
+         if self.host._closing:return
+         from . import floor      # 1.0 F2: while her work holds the workspace, this read waits for the next tick, not for her
+-        if floor.held_elsewhere(self.kernel):return
++        from . import read_beside      # 1.0 F2b: its reads are beside her writes and its writes on a worker: it skips no tick
++        if not read_beside.enabled() and floor.held_elsewhere(self.kernel):return
+         try:
+             self.sync_profile();self.sync_provider();self.publish_settings_readback();self.publish()
+             from .stacy_awareness import catch_up
+             mark=floor.head(self.kernel.root);self._f2_ticks=getattr(self,'_f2_ticks',0)+1  # 1.0 F2: when the journal moved (else every 4th tick)
+             if mark is None or mark!=getattr(self,'_f2_head',None) or self._f2_ticks%4==0:
+-                catch_up(self.kernel,limit=200);self._f2_head=mark
+-            for request in ledger_control.pending(self.kernel):
++                read_beside.off_thread(self.kernel,lambda kernel:catch_up(kernel,limit=200),'awareness-catch-up',self._said_back);self._f2_head=mark  # 1.0 F2b: it writes its cursor: on a worker
++            for request in read_beside.first(ledger_control.pending,self.kernel):  # 1.0 F2b: read beside her writes
+                 if request.get('desktop_id') not in (None,self.desktop_id):continue
+                 if time.time()-request['created']>30:
+                     ledger_control.acknowledge(self.kernel,request,'EXPIRED','No desktop acknowledgment within 30 seconds');continue
+diff --git a/workbench/desktop_header_qt.py b/workbench/desktop_header_qt.py
+index 2a1b06b..bb847aa 100644
+--- a/workbench/desktop_header_qt.py
++++ b/workbench/desktop_header_qt.py
+@@ -214,7 +214,8 @@ class SlateSwitch(QToolButton):
+     def refresh(self):
+         from .ledger_control import value
+         try:
+-            enabled = value(self.host.ledger_bridge.kernel, 'stacy.enabled')
++            from . import read_beside      # 1.0 F2b: read beside her writes
++            enabled = read_beside.first(value, self.host.ledger_bridge.kernel, 'stacy.enabled')
+             self.setChecked(enabled);self.setText('AI ON' if enabled else 'AI OFF');self.setEnabled(True)
+             self.setToolTip('Allow new Graphite AI requests. Files, tools and lines remain available when OFF. An already running request may finish. ON does not start or download a model.')
+         except Exception:
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index cf30e15..3f88256 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -432,7 +432,8 @@ class Kernel:
+         self.state.mkdir(mode=0o700, exist_ok=True)
+         self.dbpath = self.state / "engineering.sqlite3"
+         self._workers = {}
+-        with self.db() as db:
++        from . import read_beside      # 1.0 F2b: the schema check may make tables: it takes the guard, even inside a read
++        with read_beside.suspended(), self.db() as db:
+             db.executescript("""
+               CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY, owner TEXT, state TEXT, payload TEXT);
+               CREATE TABLE IF NOT EXISTS candidates(id TEXT PRIMARY KEY, owner TEXT, state TEXT, payload TEXT);
+@@ -468,6 +469,16 @@ class Kernel:
+     def db(self):
+         # sqlite3 context managers commit but do not close the connection.
+         from .database_guard import connection
++        from .read_beside import beside, release      # 1.0 F2b: inside a read (read_beside.first), a read-only snapshot beside the writer
++        reader = beside(self.dbpath)
++        if reader is not None:
++            try:
++                with reader:
++                    yield reader
++            except BaseException:
++                reader.close();raise
++            release(reader)      # kept open for this thread's next read
++            return
+         with connection(self.dbpath):
+             db = sqlite3.connect(self.dbpath, timeout=10)
+             try:
+@@ -600,8 +611,10 @@ class Kernel:
+                 activity.record(self.root,p.identity,operation,'REQUEST_RECEIVED',correlation_id=correlation_id)
+             outer=instruction_matrix.begin(operation)
+             try:
++                from . import read_beside      # 1.0 F2b: an observer's read is made beside her writes (again under the guard if it wrote)
+                 result = (project_context.unavailable(operation)
+                           if project_context.detached(self.root) and project_context.requires_project(operation,params)
++                          else read_beside.first(self._dispatch, operation, params, p) if read_beside.operation(operation)
+                           else self._dispatch(operation, params, p))
+             except (ValueError, OSError, KeyError, TypeError, sqlite3.Error) as exc:
+                 if outer is not None:instruction_matrix.observe(self,p,operation,params,error=exc)
+diff --git a/workbench/floor.py b/workbench/floor.py
+index e56bf0c..a9c0a8f 100644
+--- a/workbench/floor.py
++++ b/workbench/floor.py
+@@ -176,6 +176,9 @@ def head(root):
+     to it), read without the guard on a read-only connection (one index lookup). None when it cannot be read."""
+     import sqlite3
+     from pathlib import Path
++    from . import read_beside      # 1.0 F2b: on this thread's kept reader (no path walk, no schema read each time)
++    got = read_beside.mark(root)
++    if got is not read_beside.MISSING:return got
+     try:
+         path = Path(root).resolve() / '.ledger/engineering.sqlite3'
+         db = sqlite3.connect(path.as_uri() + '?mode=ro', uri=True, timeout=1)
+@@ -276,6 +279,7 @@ def column_plan(ident, seen, desk, force=False):
+             for gone in seen or ():
+                 if gone not in here:read('assignment.status', {'id': gone})
+             read('grant.list', {'waiting': False})
++            read('agent.list')      # 1.0 F2b: a 0.8.x assignment left running, listed in ACTIVE WORK (older_work)
+             try:
+                 from . import halt_gate
+                 read.extra['halt'] = halt_gate.status(read.kernel)
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index 010d023..e729cdc 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -115,7 +115,8 @@ STATES = {'idle': ('QUIET', '○', 'QUIET'), 'working': ('WORKING', '●', 'READ
+ WORK_LOOK = {'working': ('●', 'READY'), 'ready': ('▸', 'TEXT'), 'waiting for your word': ('◆', 'OWNER'), 'held': ('■', 'RED'),
+              'interrupted': ('■', 'RED'), 'stopped by you': ('■', 'QUIET'), 'blocked': ('■', 'RED'), 'needs review': ('◆', 'OWNER'),
+              'no steps yet': ('○', 'QUIET'), 'done': ('✓', 'HONEY'),
+-             'needs your grant': ('◆', 'OWNER')}      # 1.0 K3
++             'needs your grant': ('◆', 'OWNER'),      # 1.0 K3
++             'running': ('●', 'READY'), 'paused': ('■', 'QUIET'), 'needs you': ('◆', 'OWNER')}      # 1.0 F2b: a 0.8.x assignment's own words (older_work)
+ for _words, _look in list(WORK_LOOK.items()):      # 1.0 D1: a step's state that the table names takes the table's shape
+     if _sw.of_step(_words):WORK_LOOK[_words] = (_sw.shape(_sw.of_step(_words)), _look[1])
+ # A finding's evidence state -> (word, shape, colour name), in the order they are shown.
+@@ -705,12 +706,17 @@ class WorkRow(QWidget):
+         self.state.setText(str(row.get('state_word') or words.upper()))
+         self.bar.set(row.get('progress', 0));self.percent.setText('%d%%' % int(row.get('progress', 0) or 0))
+         self.left.setText(str(row.get('time_left') or ''));self.left.setToolTip(say('left', time=row.get('time_left') or ''))
++        older = bool(row.get('older'))      # 1.0 F2b: a 0.8.x assignment keeps no bar or time left: the steps it took, and why it waits
++        self.bar.setVisible(not older);self.percent.setVisible(not older)
++        if older:self.left.setToolTip(plain(row.get('line') or '') or str(row.get('time_left') or ''))
++        if older and compact:self.left.setText(str(row.get('steps_short') or row.get('time_left') or ''))      # one line: room for its words
+         self.stop.setVisible(bool(row.get('stop')))
+         note = plain(row.get('line') or '') if words == 'needs review' else ''  # 1.0 K7: e.g. a dialog's words and buttons, read through accessibility
+         if getattr(self.column, 'waits', None) is not None:note = ''      # 1.0 D1: said in "Waits for you", with its press (one place)
+         short = note.replace(' needs review: ', ': ', 1) if note.startswith('Step ') else note      # the row's state word says it already
+         self.note.setText(short if len(short) <= 200 else short[:199] + '…');self.note.setToolTip(note if len(short) > 200 else '');self.note.setVisible(bool(note))
+         self.setAccessibleName('%s, %s, %d%%, %s' % (row.get('title'), words, int(row.get('progress', 0) or 0), say('left', time=row.get('time_left') or '')))
++        if older:self.setAccessibleName('%s, %s, %s' % (row.get('title'), words, row.get('time_left') or ''))      # 1.0 F2b
+ 
+     def press_stop(self):
+         call = (self.row or {}).get('stop')
+@@ -1235,7 +1241,9 @@ class HerColumn(QObject):
+         rows.sort(key=lambda r: order.get(r.get('state_words'), 3))
+         self.rows = rows;compact = self.compact()
+         waits = getattr(self, 'waits', None);busy = waits is not None and len(getattr(waits, 'shown', ())) > 1 and self.squeezed()      # 1.0 D1
+-        self.active.show_rows(rows, 1 if busy else (2 if compact else 3), int(listing.get('total') or len(rows)), compact)      # 1.0 D1: a column where things wait shows them there
++        from . import older_work      # 1.0 F2b: a 0.8.x assignment left running, with its own words and its own Stop (the old path)
++        older = older_work.rows(lambda op, args=None: read(self.host, op, args))
++        self.active.show_rows(rows + older, 1 if busy else (2 if compact else 3), int(listing.get('total') or len(rows)) + len(older), compact)      # 1.0 D1: a column where things wait shows them there
+         working = next((r for r in rows if r.get('state_words') == 'working'), None)
+         view = read(self.host, 'assignment.status', {'id': working['id']}) if working else None
+         self.work_line.show_work(view, 1 if compact else 2)
+@@ -1462,7 +1470,11 @@ class HerColumn(QObject):
+ 
+     def show_journal(self, ident):
+         view = read(self.host, 'assignment.status', {'id': ident})
+-        if not view:return
++        if not view:      # 1.0 F2b: a 0.8.x assignment: its own words, through the old path (agent.status)
++            from . import older_work
++            words = older_work.journal_words(read(self.host, 'agent.status', {'id': ident}))
++            if words:self.say_words(words)
++            return
+         lines = [say('journal_head', title=plain(view['title']), state=view['state_words'], line=plain(view['line']))]
+         for step in view.get('steps') or ():
+             lines.append(say('journal_step', n=step['n'], title=plain(step['title']), says=step['journal_says']))
+diff --git a/workbench/host_service.py b/workbench/host_service.py
+index 4c59107..fadec26 100644
+--- a/workbench/host_service.py
++++ b/workbench/host_service.py
+@@ -237,6 +237,10 @@ class Coordinator:
+             # a bounded worker call owns the ordinary service dispatch lock.
+             if args['operation'] in ('work.pause','work.revoke','work.get','work.list','workers.status','workers.runs','workers.run','workers.stop'):
+                 return self.kernel.dispatch(args['operation'],args['params'],principal)
++            from . import read_beside      # 1.0 F2b: an observer's read is made beside the step in flight, never waits for it
++            if read_beside.operation(args['operation']):
++                if self.closing.is_set(): raise ValueError('Host is stopping; reconcile the request before retrying')
++                return self.kernel.dispatch(args['operation'], args['params'], principal)
+             with self.dispatch_lock:
+                 if self.closing.is_set(): raise ValueError('Host is stopping; reconcile the request before retrying')
+                 return self.kernel.dispatch(args['operation'], args['params'], principal)
+diff --git a/workbench/instruction_matrix.py b/workbench/instruction_matrix.py
+index 11c2b68..6236e39 100644
+--- a/workbench/instruction_matrix.py
++++ b/workbench/instruction_matrix.py
+@@ -141,7 +141,8 @@ def observe(kernel, principal, operation, arguments, result=None, error=None):
+                 if row is None:return None
+                 outcome, reason = ('FAILED', str(error)[:300]) if error is not None else ('SUCCESS', 'applied on the page')
+                 db.execute('UPDATE instruction_matrix SET outcome=?,reason=?,updated=? WHERE id=?', (outcome, reason, time.time(), row[0]));return row[0]
+-        if operation in PROPOSABLE and not pending(kernel, principal.identity, program):return None
++        from . import read_beside      # 1.0 F2b: whether it was proposed is read beside her writes (what follows writes, the old way)
++        if operation in PROPOSABLE and not read_beside.first(pending, kernel, principal.identity, program):return None
+         outcome, reason = ('FAILED', str(error)[:300]) if error is not None else classify(result)
+         now = time.time();detail = {'result_type': result_type(result) if error is None else None,
+                                     'error_code': type(error).__name__ if error is not None else None}
+diff --git a/workbench/instruments_qt.py b/workbench/instruments_qt.py
+index 96eca09..cdc30cf 100644
+--- a/workbench/instruments_qt.py
++++ b/workbench/instruments_qt.py
+@@ -337,7 +337,9 @@ class ClipDock(QWidget):
+         if getattr(self.window(),'_closing',False):return
+         if not hasattr(self.window(),'root') or self.busy:return
+         from .engine import engineering
+-        jobs=engineering(self.window().root).listing('jobs')
++        from . import read_beside      # 1.0 F2b: the window's own Kernel (embedded, engineering() made a new one each tick), read beside her writes
++        kernel=getattr(getattr(self.window(),'ledger_bridge',None),'kernel',None) or engineering(self.window().root)
++        jobs=read_beside.first(kernel.listing,'jobs')
+         active=[j for j in jobs if j['state'] in ('Queued','Running','Paused','Waiting for Approval','Interrupted','Waiting for Agent','Waiting for Execution Approval')]
+         self.active_job=active[0] if active else None
+         self.latest_job=jobs[0] if jobs else None  # newest first; Stacy's companion reads real states only
+diff --git a/workbench/network_qt.py b/workbench/network_qt.py
+index f0023e7..2a95df2 100644
+--- a/workbench/network_qt.py
++++ b/workbench/network_qt.py
+@@ -75,7 +75,8 @@ def say(key, **slots):
+ def _kernel(host):
+     from .engine import engineering
+     from .engineering_kernel import operator
+-    return engineering(host.root), operator()
++    kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)      # 1.0 F2b: the window's own Kernel (embedded, engineering()
++    return (kernel if kernel is not None else engineering(host.root)), operator()      # made a new one, its schema check under the guard, each read)
+ 
+ 
+ def _root(host):
+diff --git a/workbench/office_service.py b/workbench/office_service.py
+index 09dae3b..4fbb87e 100644
+--- a/workbench/office_service.py
++++ b/workbench/office_service.py
+@@ -32,7 +32,17 @@ SCOPES={op:'read' if op in READ else 'execute' if op=='office.operation.run' els
+ JOB_TOOLS={'references.office.convert','references.office.edit'}
+ OPTIONS={'type':'object','additionalProperties':False,'properties':REVIEW,'required':list(REVIEW)}
+ def path():return config_dir()/'concern/catalog.sqlite3'
+-def store():return core.Office(Catalog(path()))
++_STORES={}  # 1.0 F2b: (path, device, inode) -> the Office made on it: its schema check and the catalogue's defaults once a process, not at every read
++def store():
++    p=path()
++    try:st=p.stat();key=(str(p),st.st_dev,st.st_ino)
++    except OSError:key=None
++    kept=_STORES.get(key) if key is not None else None
++    if kept is not None:return kept
++    made=core.Office(Catalog(p))      # a catalogue made afresh (or put back from elsewhere) is checked and made ready, as before
++    try:st=p.stat();_STORES[(str(p),st.st_dev,st.st_ino)]=made
++    except OSError:pass
++    return made
+ def source_state(saved,kernel=None,principal=None):
+     if saved['origin'].get('profile')==datasheet_work.SHEET and kernel is not None and principal is not None:
+         return datasheet_work.sheet_state(kernel,principal,saved['origin'])
+diff --git a/workbench/older_work.py b/workbench/older_work.py
+new file mode 100644
+index 0000000..2e2fc26
+--- /dev/null
++++ b/workbench/older_work.py
+@@ -0,0 +1,66 @@
++"""Graphite 1.0 F2b · A 0.8.x assignment left running, in ACTIVE WORK.
++
++PLAN_1.0.md, F2b: "Also list a 0.8.x assignment left running in ACTIVE WORK (F2's drill found only the new kind listed)."
++The coordinator's note: "show it in ACTIVE WORK with its own words and its own Stop, through the old path."
++
++A workspace from 0.8.x can hold an assignment of hers made by the old loop (agent.assign; agent_loop), still RUNNING,
++READY, PAUSED or waiting for the owner. 1.0's ACTIVE WORK lists K1's assignments (assignment.list); the old one was
++reachable only through the old Work block and Today. Here it becomes one more row of ACTIVE WORK, shaped as her column's
++rows are, read through the old path's own observer (agent.list), with:
++
++  - its own words: the request as it was given (working_on), and the old path's own state word (agent_qt.STATE_WORDS:
++    running, ready, paused, needs you), with a shape beside the word;
++  - no bar and no time left of K1's (the old loop keeps neither): the steps it has taken, and why it waits or paused;
++  - its own Stop: the row's stop is agent.stop on its id, the old path's write, pressed by the owner like any Stop.
++
++Nothing here steps, resumes or changes an old assignment; it only lists what agent.list says and offers its Stop.
++"""
++from __future__ import annotations
++
++OPEN = ('RUNNING', 'READY', 'WAITING', 'PAUSED')      # agent_loop.STATES that are not finished (DONE, STOPPED, FAILED)
++ORDER = {'RUNNING': 0, 'WAITING': 1, 'PAUSED': 2, 'READY': 3}
++
++
++def words(state):
++    """The old path's own word for a state (agent_qt.STATE_WORDS)."""
++    try:
++        from .agent_qt import STATE_WORDS
++    except Exception:  # noqa: BLE001 - the words as agent_qt has them, kept here if it cannot be imported
++        STATE_WORDS = {'READY': 'ready', 'RUNNING': 'running', 'PAUSED': 'paused', 'WAITING': 'needs you'}
++    return STATE_WORDS.get(state, str(state or '').lower())
++
++
++def steps_words(n):
++    return '%d step%s taken' % (n, '' if n == 1 else 's')
++
++
++def row_of(summary):
++    """An agent.list row as one of ACTIVE WORK's rows (its keys as K1's rows have them, marked older)."""
++    state = str(summary.get('state') or '')
++    said = words(state);used = int(summary.get('steps_used') or 0)
++    why = str((summary.get('paused_reason') or summary.get('reason') or '') if state in ('PAUSED', 'WAITING') else '')
++    title = str(summary.get('working_on') or summary.get('request') or 'An assignment from Graphite 0.8')
++    return {'id': summary['id'], 'older': True, 'title': title, 'state': state, 'state_words': said, 'state_word': said.upper(),
++            'progress': 0, 'time_left': steps_words(used), 'steps_short': '%d step%s' % (used, '' if used == 1 else 's'), 'line': why,
++            'stop': {'operation': 'agent.stop', 'arguments': {'id': summary['id'], 'reason': 'Stop'}}}
++
++
++def rows(read):
++    """The open 0.8.x assignments, as rows: read('agent.list') as the column reads (None when it cannot be read)."""
++    listing = read('agent.list', None) or {}
++    found = [r for r in (listing.get('assignments') or ()) if isinstance(r, dict) and r.get('id') and r.get('state') in OPEN]
++    found.sort(key=lambda r: (ORDER.get(r.get('state'), 9), -float(r.get('updated') or 0)))
++    return [row_of(r) for r in found]
++
++
++def journal_words(view):
++    """agent.status's row in words for the exchange (a click on its title): what it works on, its state, what it does now."""
++    rows = (view or {}).get('assignments') or []
++    row = next((r for r in rows if isinstance(r, dict)), None)
++    if row is None:return ''
++    lines = ['“%s”, %s (an assignment from Graphite 0.8).' % (row.get('working_on') or '', words(row.get('state')))]
++    if row.get('doing_now'):lines.append('Now: %s' % row['doing_now'])
++    for item in (row.get('found') or ())[:4]:lines.append('Found: %s (%s)' % (item.get('text'), str(item.get('evidence_state') or '').lower()))
++    for item in (row.get('needs_you') or ())[:3]:lines.append('Needs you: %s' % (item.get('text') if isinstance(item, dict) else item))
++    lines.append(steps_words(int(row.get('steps_used') or 0)) + '.')
++    return '\n'.join(lines)
+diff --git a/workbench/paint_kept.py b/workbench/paint_kept.py
+new file mode 100644
+index 0000000..2a08999
+--- /dev/null
++++ b/workbench/paint_kept.py
+@@ -0,0 +1,54 @@
++"""Graphite 1.0 F2b · Drawings kept as pictures: the left tree's paint under load.
++
++PLAN_1.0.md, F2b: "Move the rest off the window's thread: ... the left tree's paint under load."
++
++A painting cannot leave the window's thread (Qt paints there), so what can be kept is the work: on a desk that glows the
++tree's words carry a faint light of their own, drawn as sixteen copies of each row's words around it (two radii, eight
++directions) at every paint of every row. The tree repaints as it breathes and as her work moves the current row, and with
++64 rows that was the window's longest wait in the Graphite and Kasandra looks once her other reads stopped waiting.
++
++  halo(painter, box, font, words, align, colour, strength)   the same sixteen copies, drawn once into a picture for these
++      words, this font, this box and this strength (in steps of 1/400, finer than the eye can tell), then laid down; the
++      pictures are kept for the last MOST rows drawn.
++
++Nothing here changes what is drawn, only that it is drawn once.
++"""
++from __future__ import annotations
++
++import collections
++import math
++
++MOST = 600
++STEPS = 400
++DIRECTIONS = ((-1, 0), (1, 0), (0, -1), (0, 1), (-0.7, -0.7), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7))
++RADII = ((2.4, 0.55), (1.3, 1.0))
++PAD = 4
++_kept = collections.OrderedDict()
++
++
++def halo(painter, box, font, words, align, colour, strength):
++    from PySide6.QtCore import QPointF, QRectF, Qt
++    from PySide6.QtGui import QColor, QPainter, QPixmap
++    device = painter.device()
++    dpr = device.devicePixelRatioF() if device is not None else 1.0
++    step = round(max(0.0, strength) * STEPS)
++    w, h = max(1, math.ceil(box.width())), max(1, math.ceil(box.height()))
++    key = (words, font.key(), w, h, int(align), QColor(colour).rgba(), step, dpr)
++    picture = _kept.get(key)
++    if picture is None:
++        picture = QPixmap(math.ceil((w + 2 * PAD) * dpr), math.ceil((h + 2 * PAD) * dpr))
++        picture.setDevicePixelRatio(dpr);picture.fill(Qt.transparent)
++        p = QPainter(picture)
++        try:
++            p.setFont(font);p.setRenderHint(QPainter.TextAntialiasing)
++            ink = QColor(colour);place = QRectF(PAD, PAD, box.width(), box.height())
++            for radius, share in RADII:
++                ink.setAlphaF(min(0.3, step / STEPS * share));p.setPen(ink)
++                for dx, dy in DIRECTIONS:p.drawText(place.translated(dx * radius, dy * radius), int(align), words)
++        finally:
++            p.end()
++        _kept[key] = picture
++        if len(_kept) > MOST:_kept.popitem(last=False)
++    else:
++        _kept.move_to_end(key)
++    painter.drawPixmap(QPointF(box.x() - PAD, box.y() - PAD), picture)
+diff --git a/workbench/pane_qt.py b/workbench/pane_qt.py
+index 9a27f1d..a79da67 100644
+--- a/workbench/pane_qt.py
++++ b/workbench/pane_qt.py
+@@ -518,12 +518,8 @@ class RowDelegate(QStyledItemDelegate):
+                 # faint on every row, brighter on the path to the current row (breathing with it) and under the pointer
+                 halo = QColor(LIVE);strength = (0.075 if here else 0.06 if over else 0.028) * level * (breath(view) if here else 1.0)
+                 shown = QFontMetrics(opt.font).elidedText(text, Qt.ElideRight, box.width())
+-                painter.save();painter.setFont(opt.font);painter.setRenderHint(QPainter.TextAntialiasing)
+-                for radius, share in ((2.4, 0.55), (1.3, 1.0)):
+-                    halo.setAlphaF(min(0.3, strength * share));painter.setPen(halo)
+-                    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (-0.7, -0.7), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7)):
+-                        painter.drawText(QRectF(box).translated(dx * radius, dy * radius), int(opt.displayAlignment | Qt.AlignVCenter), shown)
+-                painter.restore()
++                from . import paint_kept      # 1.0 F2b: the sixteen copies drawn once into a picture, then laid down at each paint
++                paint_kept.halo(painter, QRectF(box), opt.font, shown, int(opt.displayAlignment | Qt.AlignVCenter), halo, strength)
+         super().paint(painter, option, index)
+ 
+ 
+diff --git a/workbench/qt_app.py b/workbench/qt_app.py
+index cd3dbbd..71cf6e8 100644
+--- a/workbench/qt_app.py
++++ b/workbench/qt_app.py
+@@ -2426,6 +2426,8 @@ class WorkbenchWindow(QMainWindow):
+         if restore and self.view_preferences.get('startup') != 'home':
+             from .field_page import open_on_work
+             open_on_work(self)       # Graphite opens on the work: the Field when this workspace has any; "always Home" is still Home
++        from . import read_beside      # 1.0 F2b: a window that did not open on the Field reads the desk on a worker meanwhile
++        QTimer.singleShot(0, lambda: read_beside.prefetch_desk(self))
+         if self.recovery.entries():
+             QTimer.singleShot(0, self.show_recovery)
+ 
+diff --git a/workbench/qt_master_stop.py b/workbench/qt_master_stop.py
+index fd51af7..b87e2fd 100644
+--- a/workbench/qt_master_stop.py
++++ b/workbench/qt_master_stop.py
+@@ -62,7 +62,8 @@ class MasterStop(QObject):
+         return [p for p in self.host.findChildren(QProcess) if p is not helper and p.state()!=QProcess.NotRunning]
+ 
+     def operations(self):
+-        rows=job_operations(self.kernel.listing('jobs'))
++        from . import read_beside      # 1.0 F2b: read beside her writes
++        rows=job_operations(read_beside.first(self.kernel.listing,'jobs'))
+         for p in self.processes():
+             main=p is self.host.process
+             label=(getattr(self.host.plan,'label','Command') if self.host.plan else 'Command') if main else type(p.parent()).__name__
+@@ -96,7 +97,8 @@ class MasterStop(QObject):
+         detail+='\n\nClick: confirm Stop all\nRight-click: score details\nSilence alone does not raise the score.'
+         try:
+             from .work_trail import work_status
+-            if work_status(self.kernel)['held']:
++            from . import read_beside      # 1.0 F2b: read beside her writes
++            if read_beside.first(work_status,self.kernel)['held']:
+                 detail+='\nNew Kernel jobs are held. Open Work trail for explicit Resume.'
+         except (ValueError,OSError,sqlite3.Error):detail+='\nWork admission state unavailable; reconcile before starting jobs.'
+         try:
+diff --git a/workbench/read_beside.py b/workbench/read_beside.py
+new file mode 100644
+index 0000000..e677d3d
+--- /dev/null
++++ b/workbench/read_beside.py
+@@ -0,0 +1,345 @@
++"""Graphite 1.0 F2b · Reads beside her writes: the window's reads never wait for her work.
++
++PLAN_1.0.md, F2b: "give read-only operations a shared read path (WAL readers beside the one writer) if that is safe for
++the journal."
++
++Why the window still waited after F2. database_guard lets one Kernel connection of a workspace in at a time, across
++threads and processes, readers included. So a read the window made on its own thread (the board's rebuild on a tile
++click, the Field on its open, the head's control) waited while her step wrote its journal, and waited as long again while
++one of the floor's own readers held the workspace. The workspace's database is in WAL mode, where SQLite itself lets any
++number of readers read a committed snapshot beside the one writer, neither waiting for the other.
++
++What is here.
++
++  reading()          a context: while it is open, this thread's Kernel connections (Kernel.db) read beside the writer:
++                     no guard, a connection SQLite keeps read-only (PRAGMA query_only), one snapshot for the connection's
++                     whole block (BEGIN). A connection this thread opens while it already holds the guard (inside a
++                     writer's block) is still the writer's, as before.
++  suspended()        a context inside reading(): this thread's connections take the guard again (a Kernel's own schema
++                     check, which may make its tables).
++  first(fn, ...)     fn() read beside the writer. If anything in it tried to write (SQLite refused it: a table made on
++                     first use, a mark kept while reading), what it read is put aside and fn() runs once more the old way,
++                     under the guard. A caller always gets either a pure read or exactly what it got before.
++  operation(op)      whether a Kernel operation is read beside the writer: an observer (activity.OBSERVER_OPERATIONS)
++                     whose scope is read. Kernel.dispatch runs such an operation's handler through first(); the Ledger
++                     service lets it past its dispatch lock (host_service), so both modes of the window read beside her.
++
++Why the journal stays safe (K1: a step's "sent" and "confirmed" records; resume without doing anything twice).
++  - A reader never writes. Its connection is query_only, so SQLite refuses any write in it (SQLITE_READONLY), and a
++    "BEGIN IMMEDIATE" or "BEGIN EXCLUSIVE" in it is refused here before SQLite sees it; first() then runs the whole read
++    again under the guard. The journal's records are written only under the guard, as before.
++  - Writers are unchanged: one at a time under the guard, across threads and processes (the Ledger service and the
++    window); each transaction is atomic and commits or not as a whole.
++  - A reader sees only committed transactions, all of one snapshot for its block: a step's "sent" without its
++    "confirmed" only while that is how the journal stands.
++  - Nothing that decides reads beside: resume, a step's verification, a grant's check and every press are write
++    operations (their scope is not read) and read under the guard inside their own work, so what they decide on is what
++    the guard gave them before. The activity journal was already read beside the writer (activity._read, mode=ro).
++  - A database not in WAL mode (rollback journal) is read the old way.
++
++GRAPHITE_READ_BESIDE=0 turns it off: every connection takes the guard again, as in 0.8.7 and F2.
++"""
++from __future__ import annotations
++
++import contextlib
++import os
++import sqlite3
++import threading
++from pathlib import Path
++
++_local = threading.local()
++READONLY = sqlite3.SQLITE_READONLY
++
++
++def enabled():
++    return os.environ.get('GRAPHITE_READ_BESIDE', '').strip() != '0'
++
++
++class _State:
++    __slots__ = ('refused',)
++
++    def __init__(self):
++        self.refused = False
++
++
++def _refuse():
++    state = getattr(_local, 'state', None)
++    if state is not None:state.refused = True
++
++
++def _checked(run, sql, *args):
++    """Run a statement on a reader; a write SQLite refuses (or a writer's BEGIN) marks this reading as refused."""
++    head = sql.lstrip()[:24].upper() if isinstance(sql, str) else ''
++    if head.startswith('BEGIN') and ('IMMEDIATE' in head or 'EXCLUSIVE' in head):
++        _refuse()
++        raise sqlite3.OperationalError('attempt to write a readonly database')
++    try:
++        return run(sql, *args)
++    except sqlite3.OperationalError as exc:
++        if (getattr(exc, 'sqlite_errorcode', 0) or 0) & 0xff == READONLY or 'readonly database' in str(exc):_refuse()
++        raise
++
++
++class _ReaderCursor(sqlite3.Cursor):
++    def execute(self, sql, *args):
++        return _checked(super().execute, sql, *args)
++
++    def executemany(self, sql, *args):
++        return _checked(super().executemany, sql, *args)
++
++    def executescript(self, script):
++        return _checked(super().executescript, script)
++
++
++class _Reader(sqlite3.Connection):
++    """A Kernel connection that reads beside the writer: every statement is watched for a write SQLite refuses."""
++
++    def cursor(self, factory=None):
++        return super().cursor(factory or _ReaderCursor)
++
++    def execute(self, sql, *args):
++        head = sql.lstrip()[:8].upper() if isinstance(sql, str) else ''
++        if head.startswith('BEGIN') and self.in_transaction and 'IMMEDIATE' not in sql.upper() and 'EXCLUSIVE' not in sql.upper():
++            return super().execute('SELECT 1 WHERE 0')      # a reader's own BEGIN: already in one snapshot
++        return _checked(super().execute, sql, *args)
++
++    def executemany(self, sql, *args):
++        return _checked(super().executemany, sql, *args)
++
++    def executescript(self, script):
++        return _checked(super().executescript, script)
++
++
++@contextlib.contextmanager
++def reading():
++    """This thread's Kernel connections read beside the writer while this is open (nested: the outer reading's state)."""
++    depth = getattr(_local, 'depth', 0)
++    outer = getattr(_local, 'state', None)
++    state = outer if outer is not None else _State()
++    _local.depth = depth + 1;_local.state = state
++    try:
++        yield state
++    finally:
++        _local.depth = depth
++        if outer is None:_local.state = None
++
++
++@contextlib.contextmanager
++def suspended():
++    """Inside reading(): this thread's connections take the guard again until this closes."""
++    depth = getattr(_local, 'depth', 0)
++    _local.depth = 0
++    try:
++        yield
++    finally:
++        _local.depth = depth
++
++
++def active():
++    return bool(getattr(_local, 'depth', 0))
++
++
++_names = {}
++
++
++def _named(path):
++    """The database's resolved path (database_guard's key) and its URI, worked out once per path: resolving walks every
++    folder of the path, each a call to the system that gives up Python's lock, and the window's thread waits to take it back
++    while other threads run Python."""
++    raw = str(path)
++    got = _names.get(raw)
++    if got is None:
++        key = str(Path(raw).resolve())
++        got = _names[raw] = (key, Path(key).as_uri() + '?mode=rw')
++    return got
++
++
++def _file_id(key):
++    st = os.stat(key)
++    return st.st_dev, st.st_ino
++
++
++def _kept_reader(key):
++    """This thread's idle reader on this database, made ready for a new block, or None. Opening a connection costs its
++    files and the whole schema read again (183 tables and indexes on Rail Demo); a reader kept open costs neither. It is
++    dropped when the database file is not the one it opened (a database put back from elsewhere)."""
++    kept = getattr(_local, 'kept', None)
++    db = kept.pop(key, None) if kept else None
++    if db is None:return None
++    try:
++        if db.in_transaction or _file_id(key) != db._f2b_file:raise sqlite3.OperationalError('not the same')
++        db.row_factory = None;db.text_factory = str;db.isolation_level = ''      # what a block before may have set
++        sqlite3.Connection.execute(db, 'BEGIN')
++        return db
++    except (OSError, sqlite3.Error):
++        db.close();return None
++
++
++def release(db):
++    """Kernel.db, at the end of a block read beside: the reader is kept open for this thread's next block (one per
++    database; a second one is closed)."""
++    kept = getattr(_local, 'kept', None)
++    if kept is None:kept = _local.kept = {}
++    key = getattr(db, '_f2b_key', None)
++    try:
++        if key is None or key in kept or db.in_transaction or not enabled():
++            db.close();return
++    except sqlite3.Error:
++        return
++    kept[key] = db
++
++
++def beside(path):
++    """Kernel.db: a read-only connection beside the writer on this database, in one snapshot, or None (the old way): not
++    reading, turned off, this thread already holds the guard (a writer's block), not WAL, or it cannot be opened so."""
++    if not getattr(_local, 'depth', 0) or not enabled():return None
++    try:
++        key, uri = _named(path)
++        from . import database_guard
++        if key in (getattr(database_guard._local, 'held', None) or {}):return None
++        again = _kept_reader(key)
++        if again is not None:return again
++        db = sqlite3.connect(uri, uri=True, timeout=10, factory=_Reader)      # mode=rw: never makes a missing database
++        db._f2b_key = key;db._f2b_file = _file_id(key)
++    except (OSError, ValueError, sqlite3.Error):
++        return None
++    try:
++        db.execute('PRAGMA query_only=1')
++        mode = db.execute('PRAGMA journal_mode').fetchone()
++        if not mode or str(mode[0]).lower() != 'wal':
++            db.close();return None
++        sqlite3.Connection.execute(db, 'BEGIN')      # one snapshot for the block (it starts at the first read)
++        return db
++    except sqlite3.Error:
++        db.close();return None
++
++
++MISSING = object()
++_marks = {}
++
++
++def mark(root):
++    """floor.head's change mark (the activity journal's last number) on this thread's kept reader: no walk of the path and
++    no schema read each time (the head's control, the timeline and her column ask it several times a second). MISSING when
++    it cannot be read so (floor.head then reads it as before)."""
++    if not enabled():return MISSING
++    raw = str(root)
++    path = _marks.get(raw)
++    if path is None:path = _marks[raw] = Path(raw).resolve() / '.ledger' / 'engineering.sqlite3'
++    with reading():
++        db = beside(path)
++        if db is None:return MISSING
++        try:
++            with db:
++                row = db.execute('SELECT MAX(seq) FROM activity_journal').fetchone()
++        except sqlite3.Error:
++            db.close();return MISSING
++        release(db)
++    return int(row[0] or 0)
++
++
++def first(fn, *args, **kwargs):
++    """fn(*args) read beside the writer; when something in it tried to write, run again the old way (under the guard)."""
++    if not enabled():return fn(*args, **kwargs)
++    with reading() as state:
++        before = state.refused;state.refused = False
++        error = None;result = None
++        try:
++            result = fn(*args, **kwargs)
++        except Exception as exc:  # noqa: BLE001 - raised again below unless the read is made again the old way
++            error = exc
++        wanted = state.refused
++        state.refused = before
++    if wanted:
++        with suspended():
++            return fn(*args, **kwargs)
++    if error is not None:raise error
++    return result
++
++
++def worker_kernel(kernel):
++    """The Kernel a floor worker uses in place of the window's: the Ledger service's client as it is (each call its own
++    connection to the service), else the worker thread's own Kernel on the same workspace (floor.kernel_for)."""
++    if kernel is None or getattr(kernel, 'is_host_client', False):return kernel
++    from . import floor
++    return floor.kernel_for(kernel.root)
++
++
++def off_thread(kernel, fn, key, done=None):
++    """A write the window made on its own timer (her awareness's cursor, the desktop's receipts) made on one of the floor's
++    workers instead: fn(worker's kernel) there, one at a time per key (the latest kept), done(result, error) back on the
++    window's thread. With GRAPHITE_READ_BESIDE=0 it is made at once on the window's thread, as before."""
++    if not enabled():
++        try:result = fn(kernel);error = None
++        except Exception as exc:  # noqa: BLE001 - said to done(), as a worker's would be
++            result = None;error = exc
++        if done is not None:done(result, error)
++        return
++    from . import floor
++    floor.submit(lambda: fn(worker_kernel(kernel)), done, key=('f2b', key))
++
++
++def desk_later(page, kernel, draw):
++    """The Field shown again (field_page.show_field, not forced): what it showed stays in front while a new reading of the
++    desk (board_model.read_desk, the same reads) is made on a floor worker; draw(reading) runs on the window's thread when
++    it lands. False when nothing is shown yet or this is turned off: the first reading is made at once, as before. A forced
++    refresh (after an act of the owner's, R) is never later: its caller reads what it changed right after."""
++    view = getattr(page, 'view', None)
++    field = getattr(view, 'field', None)
++    if not enabled() or field is None or not getattr(field, 'objects', None):return False
++    from . import board_model, floor
++    from .engineering_kernel import operator
++    skip = set(getattr(page, 'unread', ()) or ())
++
++    def work():
++        return board_model.read_desk(worker_kernel(kernel), operator(), skip=skip)
++
++    def landed(result, error):
++        if error is not None or result is None or getattr(getattr(page, 'host', None), '_closing', False):return
++        reader = result[1]
++        if getattr(reader, 'kernel', None) is not None:reader.kernel = kernel      # what the board asks it later, on the window's Kernel
++        draw(result)
++    floor.submit(work, landed, key=('f2b-desk', id(page)))
++    return True
++
++
++def prefetch_desk(host):
++    """A window that did not open on the Field (Home first): the desk's first reading is made on a floor worker as soon as
++    the window is up, kept with the workspace's change mark, and taken by the Field when it is first shown (desk_kept)."""
++    if not enabled() or getattr(host, 'field_page', None) is not None:return
++    kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++    root = getattr(kernel, 'root', None) if kernel is not None else None
++    if root is None:return
++    from . import board_model, floor
++    from .engineering_kernel import operator
++
++    def work():
++        mark = floor.head(root)
++        return mark, board_model.read_desk(worker_kernel(kernel), operator())
++
++    def landed(result, error):
++        if error is None and result is not None and getattr(host, 'field_page', None) is None:host._f2b_desk = result
++    floor.submit(work, landed, key=('f2b-prefetch', id(host)))
++
++
++def desk_kept(host, kernel):
++    """The reading prefetch_desk kept (taken once), and whether the workspace changed since it was made; (None, False) when
++    there is none."""
++    kept = getattr(host, '_f2b_desk', None)
++    if kept is None:return None, False
++    host._f2b_desk = None
++    from . import floor
++    mark, reading = kept
++    reader = reading[1]
++    if getattr(reader, 'kernel', None) is not None:reader.kernel = kernel
++    now = floor.head(getattr(kernel, 'root', None) or getattr(host, 'root', ''))
++    return reading, (mark is None or now is None or now != mark)
++
++
++def operation(op):
++    """Whether Kernel.dispatch reads this operation beside the writer: an observer whose scope is read."""
++    if not enabled():return False
++    from .activity import OBSERVER_OPERATIONS
++    if op not in OBSERVER_OPERATIONS:return False
++    from .engineering_kernel import CAPABILITIES
++    return CAPABILITIES.get(op) == 'read'
+diff --git a/workbench/stac_words.py b/workbench/stac_words.py
+index bedef20..e249b5c 100644
+--- a/workbench/stac_words.py
++++ b/workbench/stac_words.py
+@@ -147,7 +147,8 @@ def known_to(host, fresh=False):
+     try:
+         from .engine import engineering
+         from .engineering_kernel import operator
+-        answer = engineering(host.root).dispatch('words.list', {}, operator())
++        kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None) or engineering(host.root)      # 1.0 F2b: the window's own Kernel (embedded, engineering() made a new one, its schema check under the guard)
++        answer = kernel.dispatch('words.list', {}, operator())
+         if answer.get('ok'):words = {row['name']: row['line'] for row in answer['result']['words']}
+     except Exception:  # noqa: BLE001 - a line is never stopped because the words could not be read; it runs as written
+         words = {}
+diff --git a/workbench/study_qt.py b/workbench/study_qt.py
+index c5e436c..697a3c4 100644
+--- a/workbench/study_qt.py
++++ b/workbench/study_qt.py
+@@ -32,9 +32,12 @@ class IdleBridge(QObject):
+     def tick(self):
+         if self.host._closing or self.worker and self.worker.isRunning():return
+         from .ledger_control import value
+-        if not value(self.kernel,'stacy.enabled') or not value(self.kernel,'operations.services_enabled'):return
+-        with self.kernel.db() as db:cfg=service.settings(db,self.owner)
+-        if not cfg['idle_enabled']:return
++        def look():      # 1.0 F2b: the idle settings are read beside her writes (her step never holds this tick up)
++            if not value(self.kernel,'stacy.enabled') or not value(self.kernel,'operations.services_enabled'):return None
++            with self.kernel.db() as db:return service.settings(db,self.owner)
++        from . import read_beside
++        cfg=read_beside.first(look)
++        if cfg is None or not cfg['idle_enabled']:return
+         # Explicit re-arming is required after Master Stop; no timer restarts work.
+         if self.inhibited and cfg.get('idle_armed_at',0)<=self.inhibited_at:return
+         self.inhibited=False;self.presence()

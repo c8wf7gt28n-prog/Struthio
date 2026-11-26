@@ -32,7 +32,17 @@ SCOPES={op:'read' if op in READ else 'execute' if op=='office.operation.run' els
 JOB_TOOLS={'references.office.convert','references.office.edit'}
 OPTIONS={'type':'object','additionalProperties':False,'properties':REVIEW,'required':list(REVIEW)}
 def path():return config_dir()/'concern/catalog.sqlite3'
-def store():return core.Office(Catalog(path()))
+_STORES={}  # 1.0 F2b: (path, device, inode) -> the Office made on it: its schema check and the catalogue's defaults once a process, not at every read
+def store():
+    p=path()
+    try:st=p.stat();key=(str(p),st.st_dev,st.st_ino)
+    except OSError:key=None
+    kept=_STORES.get(key) if key is not None else None
+    if kept is not None:return kept
+    made=core.Office(Catalog(p))      # a catalogue made afresh (or put back from elsewhere) is checked and made ready, as before
+    try:st=p.stat();_STORES[(str(p),st.st_dev,st.st_ino)]=made
+    except OSError:pass
+    return made
 def source_state(saved,kernel=None,principal=None):
     if saved['origin'].get('profile')==datasheet_work.SHEET and kernel is not None and principal is not None:
         return datasheet_work.sheet_state(kernel,principal,saved['origin'])

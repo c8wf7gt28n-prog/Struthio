@@ -32,9 +32,12 @@ class IdleBridge(QObject):
     def tick(self):
         if self.host._closing or self.worker and self.worker.isRunning():return
         from .ledger_control import value
-        if not value(self.kernel,'stacy.enabled') or not value(self.kernel,'operations.services_enabled'):return
-        with self.kernel.db() as db:cfg=service.settings(db,self.owner)
-        if not cfg['idle_enabled']:return
+        def look():      # 1.0 F2b: the idle settings are read beside her writes (her step never holds this tick up)
+            if not value(self.kernel,'stacy.enabled') or not value(self.kernel,'operations.services_enabled'):return None
+            with self.kernel.db() as db:return service.settings(db,self.owner)
+        from . import read_beside
+        cfg=read_beside.first(look)
+        if cfg is None or not cfg['idle_enabled']:return
         # Explicit re-arming is required after Master Stop; no timer restarts work.
         if self.inhibited and cfg.get('idle_armed_at',0)<=self.inhibited_at:return
         self.inhibited=False;self.presence()

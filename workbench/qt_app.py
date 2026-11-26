@@ -2426,6 +2426,8 @@ class WorkbenchWindow(QMainWindow):
         if restore and self.view_preferences.get('startup') != 'home':
             from .field_page import open_on_work
             open_on_work(self)       # Graphite opens on the work: the Field when this workspace has any; "always Home" is still Home
+        from . import read_beside      # 1.0 F2b: a window that did not open on the Field reads the desk on a worker meanwhile
+        QTimer.singleShot(0, lambda: read_beside.prefetch_desk(self))
         if self.recovery.entries():
             QTimer.singleShot(0, self.show_recovery)
 

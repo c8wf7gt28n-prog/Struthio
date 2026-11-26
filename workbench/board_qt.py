@@ -295,13 +295,14 @@ class BoardView(QWidget):
         return self.desk
 
     def rebuild(self, keep_place=True):
-        desk = self.make_desk()
+        from . import read_beside      # 1.0 F2b: the desk and the board are read beside her writes (never waiting for her step)
+        desk = read_beside.first(self.make_desk)
         kernel = kernel_of(self.host)
         if desk is None:
             self.board = bm.Board(note=self.problem or 'Graphite\'s records are not available in this window.')
         else:
             first = self.page.view.field.selected if getattr(self.page, 'view', None) is not None else ''
-            self.board = bm.build(desk, self.ident, kernel, self.task, first=first)
+            self.board = read_beside.first(bm.build, desk, self.ident, kernel, self.task, first=first)      # 1.0 F2b
             if self.board.focus is not None:self.ident = self.board.focus.id
         self._stale = False
         self.relayout()
@@ -424,8 +425,8 @@ class BoardView(QWidget):
                 if self.head_height():self._head(p)      # 1.0 D1: no head of its own under the one centre bar
                 self._empty(p, body);return
             p.save();p.setClipRect(body)
+            self._ring_layer(p)      # 1.0 F2b: the rings drawn once for this size, zoom and place, then laid down at each paint
             c = self.centre();p.translate(c);p.scale(self.zoom, self.zoom);p.translate(-self.pan_x, -self.pan_y)
-            self._rings(p)
             self._wires(p)
             for tile in sorted(self.board.all(), key=lambda t: t.size):
                 if tile.id in self.placed:self._tile(p, tile)
@@ -513,6 +514,27 @@ class BoardView(QWidget):
         if f is None or f.id not in self.placed:return
         s = self.scale();r = self.rect_of(f.id);p.setFont(self.sans(14));p.setPen(QColor(t.QUIET))
         p.drawText(QRectF(r.left() - 120 * s, r.bottom() + 22 * s, r.width() + 240 * s, 60 * s), Qt.AlignHCenter | Qt.AlignTop | Qt.TextWordWrap, self.board.note)
+
+    def _ring_layer(self, p):
+        """1.0 F2b: the rings (antialiased paths of 720 points each) are drawn into a picture of the board's size once for its
+        size, zoom, place and rings, and that picture is laid down at each paint (the hover, the breath and a tile's change
+        repaint the board many times a second; the rings do not change then)."""
+        from PySide6.QtGui import QPixmap
+        dpr = self.devicePixelRatioF()
+        key = (self.width(), self.height(), dpr, self.zoom, self.pan_x, self.pan_y, tuple(self.ring_radii), self.scale(), self.head_height(),
+               t.LAUNCH, str(t.READY), str(t.TEAL_EDGE), str(getattr(t, 'DAY_MARKS', {}).get('RING_BLUE', '')))
+        kept = getattr(self, '_f2b_rings', None)
+        if kept is None or kept[0] != key:
+            pix = QPixmap(max(1, round(self.width() * dpr)), max(1, round(self.height() * dpr)));pix.setDevicePixelRatio(dpr);pix.fill(Qt.transparent)
+            q = QPainter(pix)
+            try:
+                q.setRenderHint(QPainter.Antialiasing)
+                c = self.centre();q.translate(c);q.scale(self.zoom, self.zoom);q.translate(-self.pan_x, -self.pan_y)
+                self._rings(q)
+            finally:
+                q.end()
+            kept = self._f2b_rings = (key, pix)
+        p.drawPixmap(0, 0, kept[1])
 
     def _rings(self, p):
         """The rings round the focus (green the inner, the wires' ink the outer ones) and the axis through the middle, with a
@@ -912,15 +934,21 @@ def attach(page):
     def refresh(force=False, reading=None, _original=original_refresh):
         kernel = kernel_of(page.host)
         if reading is None and page.face == 'work' and kernel is not None:
+            from . import read_beside      # 1.0 F2b: the Field shown again keeps its drawing; the desk is read on a worker, drawn when it lands
+            if not force and read_beside.desk_later(page, kernel, lambda got: page.refresh(reading=got)):return
+            reading, stale = read_beside.desk_kept(page.host, kernel) if not force else (None, False)      # 1.0 F2b: read on a worker at the start
             from .engineering_kernel import operator
             if force:page.unread = set()
-            try:reading = bm.read_desk(kernel, operator(), skip=page.unread)
+            try:reading = reading if reading is not None else bm.read_desk(kernel, operator(), skip=page.unread)
             except Exception:  # noqa: BLE001 - the page reads as it always did, and says what it could not
                 reading = None
+        else:
+            stale = False
         _original(force=force, reading=reading)
         if page.face == 'work':
             if reading is not None:board.desk_read(*reading)
             elif getattr(view, 'field', None) is not None:board.desk_read(view.field, None)
+        if stale:read_beside.desk_later(page, kernel, lambda got: page.refresh(reading=got))      # 1.0 F2b: changed since: read again on a worker
     page.refresh = refresh
     original_update = view.update
 

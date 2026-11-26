@@ -214,7 +214,8 @@ class SlateSwitch(QToolButton):
     def refresh(self):
         from .ledger_control import value
         try:
-            enabled = value(self.host.ledger_bridge.kernel, 'stacy.enabled')
+            from . import read_beside      # 1.0 F2b: read beside her writes
+            enabled = read_beside.first(value, self.host.ledger_bridge.kernel, 'stacy.enabled')
             self.setChecked(enabled);self.setText('AI ON' if enabled else 'AI OFF');self.setEnabled(True)
             self.setToolTip('Allow new Graphite AI requests. Files, tools and lines remain available when OFF. An already running request may finish. ON does not start or download a model.')
         except Exception:

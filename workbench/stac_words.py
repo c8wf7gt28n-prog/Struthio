@@ -147,7 +147,8 @@ def known_to(host, fresh=False):
     try:
         from .engine import engineering
         from .engineering_kernel import operator
-        answer = engineering(host.root).dispatch('words.list', {}, operator())
+        kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None) or engineering(host.root)      # 1.0 F2b: the window's own Kernel (embedded, engineering() made a new one, its schema check under the guard)
+        answer = kernel.dispatch('words.list', {}, operator())
         if answer.get('ok'):words = {row['name']: row['line'] for row in answer['result']['words']}
     except Exception:  # noqa: BLE001 - a line is never stopped because the words could not be read; it runs as written
         words = {}

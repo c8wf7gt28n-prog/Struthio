@@ -75,7 +75,8 @@ def say(key, **slots):
 def _kernel(host):
     from .engine import engineering
     from .engineering_kernel import operator
-    return engineering(host.root), operator()
+    kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)      # 1.0 F2b: the window's own Kernel (embedded, engineering()
+    return (kernel if kernel is not None else engineering(host.root)), operator()      # made a new one, its schema check under the guard, each read)
 
 
 def _root(host):

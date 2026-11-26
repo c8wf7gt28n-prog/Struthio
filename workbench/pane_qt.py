@@ -518,12 +518,8 @@ class RowDelegate(QStyledItemDelegate):
                 # faint on every row, brighter on the path to the current row (breathing with it) and under the pointer
                 halo = QColor(LIVE);strength = (0.075 if here else 0.06 if over else 0.028) * level * (breath(view) if here else 1.0)
                 shown = QFontMetrics(opt.font).elidedText(text, Qt.ElideRight, box.width())
-                painter.save();painter.setFont(opt.font);painter.setRenderHint(QPainter.TextAntialiasing)
-                for radius, share in ((2.4, 0.55), (1.3, 1.0)):
-                    halo.setAlphaF(min(0.3, strength * share));painter.setPen(halo)
-                    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (-0.7, -0.7), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7)):
-                        painter.drawText(QRectF(box).translated(dx * radius, dy * radius), int(opt.displayAlignment | Qt.AlignVCenter), shown)
-                painter.restore()
+                from . import paint_kept      # 1.0 F2b: the sixteen copies drawn once into a picture, then laid down at each paint
+                paint_kept.halo(painter, QRectF(box), opt.font, shown, int(opt.displayAlignment | Qt.AlignVCenter), halo, strength)
         super().paint(painter, option, index)
 
 

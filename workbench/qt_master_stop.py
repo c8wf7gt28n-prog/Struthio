@@ -62,7 +62,8 @@ class MasterStop(QObject):
         return [p for p in self.host.findChildren(QProcess) if p is not helper and p.state()!=QProcess.NotRunning]
 
     def operations(self):
-        rows=job_operations(self.kernel.listing('jobs'))
+        from . import read_beside      # 1.0 F2b: read beside her writes
+        rows=job_operations(read_beside.first(self.kernel.listing,'jobs'))
         for p in self.processes():
             main=p is self.host.process
             label=(getattr(self.host.plan,'label','Command') if self.host.plan else 'Command') if main else type(p.parent()).__name__
@@ -96,7 +97,8 @@ class MasterStop(QObject):
         detail+='\n\nClick: confirm Stop all\nRight-click: score details\nSilence alone does not raise the score.'
         try:
             from .work_trail import work_status
-            if work_status(self.kernel)['held']:
+            from . import read_beside      # 1.0 F2b: read beside her writes
+            if read_beside.first(work_status,self.kernel)['held']:
                 detail+='\nNew Kernel jobs are held. Open Work trail for explicit Resume.'
         except (ValueError,OSError,sqlite3.Error):detail+='\nWork admission state unavailable; reconcile before starting jobs.'
         try:
