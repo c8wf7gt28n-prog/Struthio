@@ -352,7 +352,11 @@ def working(host):
         shell = getattr(host, 'shell2', None)
         face = getattr(shell, 'face', None)
         if face is not None and getattr(face, 'job', None):return True
-        if getattr(getattr(getattr(shell, 'top', None), 'equalizer', None), 'busy', False):return True
+        # 1.0 K10 (D2's finding): her state word follows her work only. The equalizer's busy flag is any job of Graphite's own
+        # (an index, a page drawn, a scan), so it shows on the floor's amber line, not in her word; a job of hers (her model's)
+        # and a read she makes for you (face.her_reading) are her work.
+        if getattr(getattr(getattr(shell, 'top', None), 'equalizer', None), 'hers', False):return True
+        if face is not None and getattr(face, 'her_reading', False):return True
         view = getattr(getattr(host, 'field_page', None), 'view', None)
         return bool(view is not None and getattr(view, 'would', None))
     except Exception:  # noqa: BLE001

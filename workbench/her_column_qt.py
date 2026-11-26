@@ -1312,6 +1312,8 @@ class HerColumn(QObject):
         try:
             state = current_state(self.host)
             if state in ('idle', 'viewing', 'completed') and any(r.get('state_words') == 'working' for r in self.rows):state = 'working'
+            elif state in ('idle', 'viewing') and any(r.get('state_words') in ('waiting for your word', 'needs your grant', 'needs review')
+                                                       for r in self.rows):state = 'awaiting_approval'      # 1.0 K10: her work waits for you: said, never QUIET
             if state in ('idle', 'viewing'):state = column_state(self.host)
         except Exception:  # noqa: BLE001
             state = 'idle'

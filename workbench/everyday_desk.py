@@ -229,11 +229,13 @@ def asked(face, text):
         try:result['answer'] = answer_spent(Kernel(root), operator(), path, what, year, month)
         except Exception as exc:  # noqa: BLE001 - said in her words, never raised into the window
             result['answer'] = {'words': say('not_read', file=path.name, why=str(exc)[:200])}
+    face.her_reading = True      # 1.0 K10: her state word says WORKING while she reads for you (her work)
     thread = threading.Thread(target=work, name='her-everyday-read', daemon=True);thread.start()
 
     def done():
         if thread.is_alive():
             QTimer.singleShot(150, done);return
+        face.her_reading = False      # 1.0 K10
         answer = result.get('answer') or {}
         words = answer.get('words', '') + ((' ' + answer['receipt_words']) if answer.get('receipt_words') else '')
         try:card.set_text(words)

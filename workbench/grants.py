@@ -834,7 +834,7 @@ def listing(kernel, args, principal):
         rows = assignments.listing(kernel, {'open': True, 'limit': 20}, principal)['assignments'] if args.get('waiting', True) else []
         for row in rows:
             for action in row.get('actions') or ():
-                if action.get('operation') == 'grant.give':
+                if action.get('operation') in ('grant.give', 'grant.give.set'):      # 1.0 K10: several in one press (home_plan)
                     waiting.append({'assignment': row['id'], 'title': row['title'], 'line': row['line'], 'words': action.get('grant_words', ''),
                                     'press': action})
     except Exception:  # noqa: BLE001 - the list of grants is shown even when assignments cannot be read

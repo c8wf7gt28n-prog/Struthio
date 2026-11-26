@@ -35,7 +35,9 @@ WORDS = {'head': 'WAITS FOR YOU', 'head_count': 'WAITS FOR YOU [{count}]', 'more
          'grant': 'Grant this for this assignment', 'review': 'Review it', 'answer': 'Answer it',
          'grant_words': 'It asks to {words}. Nothing was sent.', 'question': 'Her question: {words}',
          'no_model': 'No model is loaded. She still reads the records, checks the desk and plans from it. Her model is added in the Brain room → Add file.',
-         'brain_room': 'Brain room', 'grant_short': 'Grant it'}
+         'brain_room': 'Brain room', 'grant_short': 'Grant it',
+         'grant_words_set': 'It asks for {count} grants in one press, {scope}: {words}. Nothing was sent.'}  # 1.0 K10
+GRANT_OPS = ('grant.give', 'grant.give.set')      # 1.0 K10: one grant, or several in one press (home_plan), each its own record
 
 
 def items(column):
@@ -44,12 +46,17 @@ def items(column):
     for row in getattr(column, 'rows', None) or ():
         title = plain(row.get('title') or '');words_ = str(row.get('state_words') or '');line = plain(row.get('line') or '')
         actions = list(row.get('actions') or ())
-        grant = next((a for a in actions if a.get('operation') == 'grant.give'), None)
+        grant = next((a for a in actions if a.get('operation') in GRANT_OPS), None)      # 1.0 K10
         authorise = next((a for a in actions if str(a.get('words') or '').startswith('Authorise')), None)
         if grant is not None:
             said = plain(grant.get('grant_words') or '')
             if column.compact():said = re.sub(r' \(“[^”]*”\)', '', said)
-            out.append(('needs_grant', title, WORDS['grant_words'].format(words=said) if said else line, WORDS['grant'],
+            several = grant.get('operation') == 'grant.give.set'      # 1.0 K10: each grant's operation and folder, their one scope once, one press
+            scope = plain(grant.get('grant_scope') or 'for this assignment')
+            if column.compact():scope = re.sub(r' \(“[^”]*”\)', '', scope)
+            said = WORDS['grant_words_set'].format(count=grant.get('grant_count') or 2, scope=scope, words=said) if several and said else \
+                (WORDS['grant_words'].format(words=said) if said else line)
+            out.append(('needs_grant', title, said, str(grant.get('words')) if several else WORDS['grant'],
                         lambda r=row, a=grant: column.take_step({'kind': 'assignment', 'call': a, 'title': plain(r.get('title') or '')}),
                         'Your press: gives exactly the grant in these words, for this assignment only, and carries on. What always asks still asks.'))
         elif words_ == 'needs review':
@@ -229,4 +236,4 @@ def install(column, outer):
 def carried(column, action):
     """Whether NEXT STEPS should leave this assignment press to the band (it is said in one place)."""
     if getattr(column, 'waits', None) is None:return False
-    return action.get('operation') == 'grant.give' or str(action.get('words') or '').startswith('Authorise')
+    return action.get('operation') in GRANT_OPS or str(action.get('words') or '').startswith('Authorise')      # 1.0 K10: a set too

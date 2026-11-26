@@ -896,6 +896,8 @@ class TopBar(QWidget):
         equalizer = getattr(self, 'equalizer', None)
         if equalizer is not None and equalizer.busy != bool(active):
             equalizer.busy = bool(active);equalizer.update()      # amber along its bottom while Graphite itself has work running
+        if equalizer is not None:      # 1.0 K10: a job of hers (her model's) apart from Graphite's own reads, for her state word only
+            equalizer.hers = any(str(j.get('tool') or '').startswith('brain.') for j in active)
         self.running.setToolTip('\n'.join(j.get('tool', '') for j in active[:8]))
         _ = dot
 
@@ -2838,6 +2840,8 @@ class SlateFace(QWidget):
         if web_asked(self, text):return
         from .everyday_desk import asked as everyday_asked  # 1.0 X3: "what did we spend on groceries this month?" from a spreadsheet of your home
         if everyday_asked(self, text):return
+        from .home_pages import asked as pages_asked  # 1.0 K10: "what does the manual say about …?" from its pages, the page named
+        if pages_asked(self, text):return
         if self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
         if self.made_asked(text):return
         if self.set_asked(text):return
