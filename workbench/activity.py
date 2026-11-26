@@ -50,7 +50,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 L3: "Why am I shown?", read each time a tile is asked; asking is not an event (pin, turn down and clear are)
  'relevance.why',
  # 1.0 S2: the installed apps and what opens a kind of file, read each time Apps or Open with is shown; reading is not an event
- 'apps.list','apps.for'})
+ 'apps.list','apps.for',
+ # 1.0 L2: the board of a focus and the links kept by your word, read each time the board is drawn; reading is not an event
+ 'board.read','board.links'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

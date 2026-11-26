@@ -1,0 +1,2366 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 8015878..097b8e7 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -49,6 +49,9 @@
+    "atlas.passport.get": "workbench/tool_atlas.py#dispatch",
+    "atlas.passport.save": "workbench/tool_atlas.py#dispatch",
+    "atlas.passports.list": "workbench/tool_atlas.py#dispatch",
++   "board.keep": "workbench/board_model.py#dispatch",
++   "board.links": "workbench/board_model.py#dispatch",
++   "board.read": "workbench/board_model.py#dispatch",
+    "boards.prepare": "workbench/lab_service.py#dispatch",
+    "boards.result": "workbench/lab_service.py#dispatch",
+    "boards.run": "workbench/lab_service.py#dispatch",
+@@ -1037,9 +1040,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 839,
++  "adapters": 842,
+   "job_tools": 113,
+-  "operations": 839,
++  "operations": 842,
+   "settings": 48
+  },
+  "formulas": {
+@@ -1906,6 +1909,32 @@
+    },
+    "scope": "read"
+   },
++  "board.keep": {
++   "arguments": "13b16f9db99dd428acf9ad72c01a8759f316bce9a1d2b0c98322668bef1b1cc5",
++   "properties": {
++    "id": "acc5cd46d5d1efe5",
++    "said": "3e79622dec12ac17",
++    "source": "6010f5f0c18ab87b",
++    "state": "bb42ca0547a2b0d9",
++    "target": "6010f5f0c18ab87b"
++   },
++   "scope": "approve"
++  },
++  "board.links": {
++   "arguments": "8545cb77cf64ac0e99084a8ef0e33911bf70a3a78338b26c56332b3a2ab9420e",
++   "properties": {
++    "all": "7cb541e84f226754"
++   },
++   "scope": "read"
++  },
++  "board.read": {
++   "arguments": "dcc07c07e349b0a8ab5bf317dff256a97ed5e6f926c296de5f712b2e14a569e4",
++   "properties": {
++    "focus": "6010f5f0c18ab87b",
++    "task": "3e79622dec12ac17"
++   },
++   "scope": "read"
++  },
+   "boards.prepare": {
+    "arguments": "81dac839b3ddd95dac17963ee1f4f16e27a92d933f92b6b3141f148d6ced22ce",
+    "properties": {
+@@ -8251,7 +8280,7 @@
+  },
+  "release": "Graphite 0.8.7",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "c2462586dfcb9aff52754c42e29e2510ff38d84cd8c1d808706070748d176ede",
++ "schema_digest": "d07b768b8b9d52ceb2581433809df68c26f0972763214b179ab217309643dab2",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/activity.py b/workbench/activity.py
+index 10b8940..6c99db5 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -46,7 +46,9 @@ OBSERVER_OPERATIONS=frozenset({
+  # 1.0 K1: an assignment's status and the list, read each time her column or the Agenda is shown; reading is not an event
+  'assignment.status','assignment.list',
+  # 1.0 L1: Files with the stable ids of its objects, read each time the tree is drawn; reading is not an event
+- 'objects.files','objects.get'})
++ 'objects.files','objects.get',
++ # 1.0 L2: the board of a focus and the links kept by your word, read each time the board is drawn; reading is not an event
++ 'board.read','board.links'})
+ 
+ def folder(root):
+     """Legacy journal location, now used only for migration and failed delivery."""
+diff --git a/workbench/board_model.py b/workbench/board_model.py
+new file mode 100644
+index 0000000..baba902
+--- /dev/null
++++ b/workbench/board_model.py
+@@ -0,0 +1,1099 @@
++"""The bulletin board (Graphite 1.0 L2): the focused object in the middle and its neighbours around it, each with the basis
++of its link. This module is the model only: no Qt. board_qt.py draws it.
++
++    the desk        one reading of the workspace's records (field_source.read_field) with a reader that keeps every answer
++                    it was given (BoardReader), so the basis of a link is read from the same answers the Field was drawn from
++                    and moving the focus reads nothing again
++    recorded links  what the records say (each is a field inside a record, read by the Field's reader): a sheet reviewed
++                    from a source's page, the cells a calculation used, the evidence and the checks of a finding, a total
++                    bound to a page's words, the rows and quotes a goal or rule card rests on; and, read here: a calculation
++                    worked again (the revision it replaced), an open question and the sources its investigation reads, a
++                    plain file with the same bytes as an admitted source, and a link the owner kept by his word (board.keep)
++    inferred links  possible, never facts: two things that name the same component, say the same words or the same
++                    quantities, are used together by a third, or read as two revisions of one sheet by their names. Each is
++                    labelled "not verified" and becomes recorded only by the owner's word (board.keep, approve scope, always
++                    asks); nothing here ever writes one
++    sizes           sizes(): workbench.relevance.rank when that module exists (1.0 L3), else a simple default of our own:
++                    the focus largest (4), recorded and current near it (3), recorded but further or archived (2), possible (1);
++                    at most CEILING around the focus, the rest grouped as a count that opens
++    rings           layout(): the focus at the centre, rings around it; what feeds the focus on the left, what rests on it on
++                    the right, possible links above and below; a tile's place depends only on the rings' geometry and the
++                    order of the tiles, so a new reading of the same desk puts every tile where it was
++
++Kernel operations (one block in engineering_kernel.py and engineering_cli.py, commented 1.0 L2):
++    board.read   {focus?, task?}                  read     the board of one focus as data: tiles, wires, the basis of each
++    board.links  {all?}                           read     the links the owner kept by his word (all: those set aside too)
++    board.keep   {source, target, said?}          approve  keep a possible link as recorded, by the owner's word
++                 | {id, state: IN | OUT}                   set it aside (OUT) or take it back (IN); nothing is deleted
++
++No model, no floating point in anything checked (the layout's geometry is drawing, not a result), no network.
++"""
++from __future__ import annotations
++
++import json
++import math
++import re
++import time
++from dataclasses import dataclass, field as dc_field
++from decimal import Decimal, InvalidOperation
++from pathlib import Path
++
++from .field_model import FieldObject, KIND_TAG, STATE_CURRENT, STATE_HELD, STATE_OPEN, STATE_RECHECK
++from .field_source import Reader
++
++RECORDED, INFERRED = 'recorded', 'inferred'
++CEILING = 16                     # tiles around the focus before the rest is grouped as a count that opens
++FOCUS_SIZE = 4
++MORE = 'board:more'              # the id of the grouped count
++KIND_WORD = dict(KIND_TAG, question='QUESTION', condition='TOTAL', app='APP', program='APP', more='MORE')
++# The words a state is said in on a tile (KIND • STATE). A state not here is said as its own word.
++STATE_WORDS = {STATE_CURRENT: 'CURRENT', STATE_RECHECK: 'RECHECK', STATE_OPEN: 'OPEN', STATE_HELD: 'HELD', 'refuted': 'REFUTED',
++               'supported': 'SUPPORTED', 'archived': 'ARCHIVED', 'replaced': 'REPLACED', 'not read': 'NOT READ', 'unavailable': 'UNAVAILABLE',
++               'elsewhere': 'ELSEWHERE', 'holds': 'HOLDS', 'does not hold': 'DOES NOT HOLD', 'cannot tell': 'CANNOT TELL', 'depends': 'DEPENDS'}
++TITLE_MARKS = ('ARCHIVED', 'SUPERSEDED', 'OLD')        # a title that carries one of these is an older revision by its owner's own word
++REVISION_TITLE = re.compile(r'^(?P<stem>.*?)\s*\b(?:rev(?:ision)?\.?)\s*(?P<rev>[A-Z0-9]{1,3})\b(?P<rest>.*)$', re.IGNORECASE)
++# Which side of the focus a kind sits on when nothing says (material at the left, conclusions at the right) and its order there.
++KIND_ORDER = ('source', 'folder', 'sheet', 'method', 'calculation', 'document', 'condition', 'finding', 'question', 'goal', 'rule', 'word', 'job')
++
++
++# ---- the reading ---------------------------------------------------------------------------------------------------------
++def _key(arguments):
++    return json.dumps(arguments or {}, sort_keys=True, separators=(',', ':'), default=str)
++
++
++class BoardReader(Reader):
++    """The Field's reader that keeps every answer it was given: the board reads the basis of a link from them."""
++
++    def __init__(self, kernel, principal, skip=()):
++        super().__init__(kernel, principal, skip)
++        self.answers = {}
++
++    def call(self, operation, arguments=None, record=None):
++        result = super().call(operation, arguments, record)
++        if result is not None:self.answers[(operation, _key(arguments))] = result
++        return result
++
++    def got(self, operation, **arguments):
++        return self.answers.get((operation, _key(arguments)))
++
++
++def read_desk(kernel, principal, skip=()):
++    """One reading of the workspace's work, as the Field reads it, with its answers kept. Returns (field, reader)."""
++    from .field_source import read_field
++    return read_field(kernel, principal, title='', skip=skip, reader=BoardReader(kernel, principal, skip))
++
++
++# ---- the board -----------------------------------------------------------------------------------------------------------
++@dataclass
++class Edge:
++    source: str
++    target: str
++    relation: str                    # reviewed, input, evidence, check, revision, question, quote, rests, condition, same bytes, kept,
++    label: str = ''                  # and for possible links: same words, same component, used together, revision by name
++    stale: bool = False
++    kind: str = RECORDED
++    said: str = ''                   # a possible link: what it names ("the startup duration"); a kept one: what was suggested
++    strength: int = 0
++    kept: str = ''                   # the owner's word that keeps it, its id
++
++
++@dataclass
++class Tile:
++    id: str
++    kind: str
++    title: str
++    state: str = ''
++    kind_word: str = ''
++    state_word: str = ''
++    basis: str = ''                  # the basis line: how it is linked (or, for the focus, how it came to be)
++    source: str = ''                 # the last line: where it comes from (a file, a sheet, an investigation)
++    size: int = 1                    # 1..4; the focus is 4
++    recorded: bool = True
++    distance: int = 0                # 0 the focus, 1 a link to it, 2 a link to a neighbour
++    side: str = ''                   # in (feeds the focus), out (rests on it), near (possible), '' the focus
++    bridge: str = ''                 # a tile two steps away: the neighbour it is linked through
++    reasons: list = dc_field(default_factory=list)
++    pinned: bool = False
++    turned_down: bool = False
++    group: bool = False
++    obj: object = None               # the FieldObject (or a stand-in) the window's openers understand
++    members: list = dc_field(default_factory=list)       # the grouped count: the tiles it holds
++    separate: dict = dc_field(default_factory=dict)      # relevance's own marks of truth, confidence and authority (1.0 L3), never its size
++
++
++@dataclass
++class Wire:
++    source: str
++    target: str
++    kind: str                        # recorded | inferred
++    relation: str
++    label: str                       # the short words on the wire
++    basis: list                      # the inspector's sentences
++    stale: bool = False
++    kept: str = ''
++    said: str = ''                   # a possible link: what it names, in words ("both name the startup duration")
++
++    @property
++    def dashed(self):
++        return self.kind == INFERRED
++
++    def key(self):
++        return (self.source, self.target, self.relation)
++
++
++@dataclass
++class Board:
++    focus: Tile = None
++    tiles: list = dc_field(default_factory=list)          # the neighbours (and the grouped count), the focus not among them
++    wires: list = dc_field(default_factory=list)
++    note: str = ''
++    task: str = ''
++    ranked_by: str = 'default'       # 'relevance' when workbench.relevance ranked the tiles
++
++    def get(self, ident):
++        if self.focus is not None and self.focus.id == ident:return self.focus
++        return next((t for t in self.tiles if t.id == ident), None)
++
++    def all(self):
++        return ([self.focus] if self.focus is not None else []) + list(self.tiles)
++
++    def wire(self, a, b):
++        """The wire between two tiles (either way), recorded first."""
++        found = [w for w in self.wires if {w.source, w.target} == {a, b}]
++        found.sort(key=lambda w: w.kind != RECORDED)
++        return found[0] if found else None
++
++    def counts(self):
++        shown = [t for t in self.tiles if t.id != MORE]
++        return {'recorded': sum(1 for t in shown if t.recorded), 'possible': sum(1 for t in shown if not t.recorded),
++                'grouped': sum(len(t.members) for t in self.tiles if t.id == MORE)}
++
++    def as_data(self):
++        def tile(t):
++            return {'id': t.id, 'kind': t.kind, 'kind_word': t.kind_word, 'state': t.state, 'state_word': t.state_word, 'title': t.title,
++                    'basis': t.basis, 'source': t.source, 'size': t.size, 'recorded': t.recorded, 'distance': t.distance, 'side': t.side,
++                    'bridge': t.bridge, 'reasons': list(t.reasons), 'pinned': t.pinned, 'turned_down': t.turned_down, 'separate': dict(t.separate),
++                    'members': [m.id for m in t.members]}
++        return {'focus': tile(self.focus) if self.focus else None, 'tiles': [tile(t) for t in self.tiles],
++                'wires': [{'source': w.source, 'target': w.target, 'kind': w.kind, 'relation': w.relation, 'label': w.label,
++                           'basis': list(w.basis), 'stale': w.stale, 'dashed': w.dashed, 'kept': w.kept, 'said': w.said} for w in self.wires],
++                'note': self.note, 'counts': self.counts(), 'ranked_by': self.ranked_by}
++
++
++# ---- words ---------------------------------------------------------------------------------------------------------------
++STOP = frozenset(('the a an and or of to in on at by for from with is are was were be been it its this that these those as not no '
++                  'into over under than then so but if per each which what why how when where who does did do has have had can may '
++                  'will shall would should could about after before up down out more most less very own same other only also just '
++                  'there their they them his her him she he we our you your all any some one two three new now still being').split())
++QUIET_WORDS = frozenset(('page', 'pages', 'sheet', 'sheets', 'revision', 'version', 'value', 'unit', 'units', 'parameter', 'reviewed', 'native',
++                         'text', 'extraction', 'pdf', 'source', 'sources', 'calculation', 'document', 'file', 'files', 'invented',
++                         'demonstration', 'data', 'nothing', 'here', 'measured', 'cells', 'cell', 'row', 'rows', 'exact', 'condition',
++                         'conditions', 'reading', 'readings', 'current', 'archived', 'check', 'passed', 'supported', 'open', 'value'))
++UNITS = r'(?:mA|uA|µA|A|mV|kV|V|mW|kW|W|Wh|mWh|kWh|ms|us|µs|s|min|h|Hz|kHz|MHz|GHz|°C|C|K|Ω|ohm|kΩ|mΩ|%|mm|cm|m|km|g|kg|N|Nm|Pa|kPa|bar)'
++QUANTITY = re.compile(r'(?<![\w.])(\d+(?:\.\d+)?)\s?(' + UNITS + r')(?![\w])')
++COMPONENT = re.compile(r'(?<![\w-])([A-Z]{1,3}\d{1,4}[A-Z]?|[A-Z]{2,}\d{2,}[A-Z0-9-]*)(?![\w-])')
++WORD = re.compile(r"[A-Za-z][A-Za-z0-9'-]+")
++TEXT_SUFFIXES = ('.txt', '.md', '.csv', '.tsv', '.json', '.py', '.ini', '.cfg', '.yaml', '.yml', '.log')
++FILE_TEXT = 32 * 1024            # bytes of a plain text file read for its words
++FILES_READ = 120                 # plain files read for their words, at most
++
++
++def _quantity(number, unit):
++    try:number = str(Decimal(number).normalize())
++    except InvalidOperation:pass
++    if 'E' in number:number = str(Decimal(number).quantize(Decimal(1)))
++    return '%s %s' % (number, unit)
++
++
++@dataclass
++class Words:
++    words: set
++    pairs: dict                      # (a, b) -> 'a b' as said
++    quantities: set
++    components: set
++
++
++def words_of(text, components_from=''):
++    text = str(text or '')
++    quantities = {_quantity(n, u) for n, u in QUANTITY.findall(text)}
++    components = {c for c in COMPONENT.findall(str(components_from or ''))}
++    tokens = [w.lower().strip("'-") for w in WORD.findall(QUANTITY.sub(' ', text))]
++    keep = [w for w in tokens if len(w) >= 3 and w not in STOP]
++    pairs = {}
++    run = [w if (len(w) >= 3 and w not in STOP and w not in QUIET_WORDS) else None for w in tokens]
++    for a, b in zip(run, run[1:]):
++        if a and b and a != b:pairs[(a, b)] = '%s %s' % (a, b)
++    return Words(set(w for w in keep if w not in QUIET_WORDS), pairs, quantities, components)
++
++
++# ---- the desk as a graph -------------------------------------------------------------------------------------------------
++def _calc_stem(title):
++    return str(title or '').split(' · ')[0].strip()
++
++
++def _short(text, most=48):
++    text = ' '.join(str(text or '').split())
++    return text if len(text) <= most else text[:most - 1].rstrip() + '…'
++
++
++def _sheet_rows(sheet):
++    """A reviewed sheet's rows as (parameter, value, unit) from its record's cells, the header left out."""
++    cells = (((sheet or {}).get('document') or {}).get('sheets') or [{}])[0].get('cells') or {}
++    rows = []
++    for number in range(2, 400):
++        a = (cells.get('A%d' % number) or {}).get('value')
++        if a is None:
++            if number > 2 and (cells.get('B%d' % number) or {}).get('value') is None:break
++            continue
++        rows.append((str(a), str((cells.get('B%d' % number) or {}).get('value') or ''), str((cells.get('C%d' % number) or {}).get('value') or '')))
++    return rows
++
++
++def _doc_text(got):
++    blocks = ((got or {}).get('document') or {}).get('blocks') or ()
++    return '\n'.join(str(b.get('text') or '') for b in blocks if isinstance(b, dict))[:6000]
++
++
++class Desk:
++    """One reading of the desk, as the board needs it: every object, every recorded link, and the words of each object."""
++
++    def __init__(self, field, reader=None, files=None, kept=(), digest=None):
++        self.field = field;self.reader = reader;self.files = files or {};self.digest = digest
++        self.objects = {o.id: o for o in field.objects}
++        self.edges = []
++        self._words = {}
++        self._df = None
++        for link in field.links:
++            self.edges.append(Edge(link.source, link.target, self._relation(link), link.label, bool(link.stale)))
++        self._revisions()
++        self._questions()
++        self._checks()
++        self._plain_files()
++        self._kept(kept)
++        self.assignments = []            # (objective, {object ids its steps read}) of the owner's recent assignments (1.0 K1)
++
++    # ---- what the reader kept ------------------------------------------------------------------------------------------
++    def got(self, operation, **arguments):
++        if self.reader is None or not hasattr(self.reader, 'got'):return None
++        return self.reader.got(operation, **arguments)
++
++    def sheet(self, ident):
++        """The office record of a sheet on the desk: (its row in office.list, its record)."""
++        sheets = getattr(self.reader, 'sheets', None) or {}
++        return sheets.get(ident, (None, None))
++
++    def document(self, ident):
++        return self.got('documents.get', id=str(ident).split(':', 1)[1]) if str(ident).startswith('document:') else None
++
++    def investigation(self, inv):
++        return self.got('investigation.sheet', id=inv)
++
++    def path_of(self, claim_ident):
++        return (self.got('investigation.path', claim=str(claim_ident).split(':', 1)[1]) or {}).get('path') or ()
++
++    # ---- the links -----------------------------------------------------------------------------------------------------
++    def _relation(self, link):
++        a = self.objects.get(link.source);b = self.objects.get(link.target)
++        ka = a.kind if a else '';kb = b.kind if b else ''
++        if link.label == 'same bytes':return 'same bytes'
++        if ka == 'source' and kb in ('sheet', 'document') and str(link.label).startswith('page'):return 'reviewed'
++        if kb == 'calculation':return 'input'
++        if kb in ('finding', 'question') and ka == 'source':return 'evidence'
++        if kb in ('finding', 'question'):return 'check'
++        if kb == 'condition':return 'condition'
++        if kb == 'rule' and ka == 'source':return 'quote'
++        return 'rests'
++
++    def _revisions(self):
++        """A calculation worked again is a new page that names the one it replaced: the earlier one is kept in Documents and
++        drawn here as its earlier revision."""
++        replaces = dict(getattr(self.reader, 'replaces', None) or {})
++        for new, old in replaces.items():
++            got = self.document(old)
++            if old not in self.objects:
++                doc = (got or {}).get('document') or {}
++                if not doc:continue
++                facts = []
++                cells = ', '.join(str(i.get('cell')) for i in ((doc.get('derivation') or {}).get('inputs') or ()) if i.get('cell'))
++                if cells:facts.append('cells ' + cells)
++                if doc.get('revision') is not None:facts.append('revision %s' % doc['revision'])
++                sheet = (doc.get('derivation') or {}).get('sheet')
++                where = (self.objects.get('office:' + str(sheet)).title if self.objects.get('office:' + str(sheet)) else '')
++                self.objects[old] = FieldObject(old, 'calculation', doc.get('title') or old, 'an earlier revision, kept in Documents', 'replaced',
++                                                tuple(facts), where, {'kind': 'document', 'id': old.split(':', 1)[1]})
++            if new in self.objects:
++                self.edges.append(Edge(old, new, 'revision', 'worked again'))
++
++    def _questions(self):
++        """An open question is asked in an investigation; what that investigation reads is what the question is asked of."""
++        for obj in list(self.objects.values()):
++            if obj.kind != 'question' or not isinstance(obj.target, dict) or obj.target.get('kind') != 'investigation':continue
++            sheet = self.investigation(obj.target.get('id')) or {}
++            for read in sheet.get('read') or ():
++                address = str(read.get('address') or '').lstrip('@')
++                if address in self.objects:
++                    self.edges.append(Edge(address, obj.id, 'question', 'asked of it'))
++
++    def _checks(self):
++        """A check an investigation keeps on a sheet (its own list, beside the claim's path): a recorded link from the sheet to
++        the finding it checks, said in the check's last outcome."""
++        from .field_source import CHECK_WORDS, words
++        have = {(e.source, e.target) for e in self.edges}
++        for (operation, _), sheet in list(getattr(self.reader, 'answers', {}).items()):
++            if operation != 'investigation.sheet' or not isinstance(sheet, dict):continue
++            for row in sheet.get('checked') or ():
++                claim = 'claim:' + str(row.get('claim') or '')
++                first = str(row.get('program') or '').split('|')[0].strip()
++                address = first.lstrip('@') if first.startswith('@') else ''
++                if claim in self.objects and address in self.objects and (address, claim) not in have:
++                    outcome = str(row.get('last_outcome') or '').upper()
++                    self.edges.append(Edge(address, claim, 'check', CHECK_WORDS.get(outcome, words(outcome) or 'check'), outcome == 'STALE'))
++                    have.add((address, claim))
++
++    def add_file(self, ident):
++        for e in (self.files or {}).get('entries') or ():
++            if e.get('id') == ident and ident not in self.objects:
++                self.objects[ident] = file_object(e, (self.files or {}).get('root'));self._df = None
++        return ident in self.objects
++
++    def _plain_files(self):
++        """A plain file in Files with the same bytes as an admitted source (its name first, then its digest)."""
++        entries = list((self.files or {}).get('entries') or ())
++        if not entries:return
++        by_name = {}
++        for e in entries:
++            if e.get('kind') == 'file':by_name.setdefault(e.get('name'), []).append(e)
++        for obj in list(self.objects.values()):
++            if obj.kind != 'source' or not isinstance(obj.target, dict) or not obj.target.get('sha256'):continue
++            for e in by_name.get(obj.title, ()):
++                digest = self.digest(e['id']) if self.digest else None
++                if digest and digest == obj.target.get('sha256'):
++                    self.objects.setdefault(e['id'], file_object(e, self.files.get('root')))
++                    self.edges.append(Edge(e['id'], obj.id, 'same bytes', 'same bytes'))
++
++    def _kept(self, kept):
++        for row in kept or ():
++            if row.get('state') != 'IN':continue
++            a, b = row.get('a'), row.get('b')
++            if a in self.objects and b in self.objects:
++                self.edges.append(Edge(a, b, 'kept', 'by your word', said=row.get('said') or '', kept=row.get('id') or ''))
++
++    def recorded(self, ident):
++        return [e for e in self.edges if ident in (e.source, e.target)]
++
++    def set_assignments(self, rows):
++        """The owner's assignments as read_assignments() gives them: each kept with the desk objects its steps name."""
++        self.assignments = []
++        for objective, ids in rows or ():
++            named = {self.resolve(i) for i in ids} - {''}
++            if len(named) >= 2:self.assignments.append((objective, named))
++
++    def together(self, ident):
++        """The objects named with this one among the inputs of one of the owner's assignments (1.0 K1): {id: its objective}."""
++        out = {}
++        for objective, ids in self.assignments:
++            if ident in ids:
++                for other in ids:out.setdefault(other, objective)
++        return out
++
++    def resolve(self, ident):
++        """A record id as an assignment names it, as the board names it ('owner:…' -> 'office:owner:…')."""
++        ident = str(ident or '').lstrip('@')
++        for candidate in (ident, 'office:' + ident, 'document:' + ident, 'intake:' + ident, 'claim:' + ident):
++            if candidate in self.objects:return candidate
++        return ''
++
++    # ---- words, for the possible links ---------------------------------------------------------------------------------
++    def text_of(self, ident):
++        obj = self.objects.get(ident)
++        if obj is None:return '', ''
++        if ident.startswith('fileid:'):       # a plain file: its name (without the suffix) and its first words; its folder says nothing
++            stem = Path(obj.title).stem.replace('_', ' ').replace('-', ' ');text = self.file_text(ident)
++            return stem + '\n' + text, stem + '\n' + text
++        parts = [obj.title] + [str(x) for x in obj.lines]
++        own = obj.title
++        if obj.kind == 'sheet':
++            _, record = self.sheet(ident)
++            parts += ['%s %s %s' % row for row in _sheet_rows(record)]
++        elif obj.kind in ('document', 'calculation'):
++            text = _doc_text(self.document(ident));parts.append(text);own += '\n' + text
++        return '\n'.join(parts), own
++
++    def file_text(self, ident):
++        obj = self.objects.get(ident)
++        path = (obj.target or {}).get('path') if obj is not None and isinstance(obj.target, dict) else ''
++        if not path or Path(path).suffix.lower() not in TEXT_SUFFIXES:return ''
++        try:
++            with open(path, 'rb') as stream:raw = stream.read(FILE_TEXT)
++        except OSError:
++            return ''
++        if b'\x00' in raw:return ''
++        return raw.decode('utf-8', 'replace')
++
++    def words(self, ident):
++        if ident not in self._words:
++            text, own = self.text_of(ident)
++            self._words[ident] = words_of(text, own)
++        return self._words[ident]
++
++    def frequency(self):
++        """How many objects say each word, pair and quantity: what nearly every object says tells nothing about two of them."""
++        if self._df is None:
++            df = {}
++            for ident in self.objects:
++                w = self.words(ident)
++                for token in set(w.words) | {('p', k) for k in w.pairs} | {('q', q) for q in w.quantities} | {('c', c) for c in w.components}:
++                    df[token] = df.get(token, 0) + 1
++            self._df = df
++        return self._df
++
++    def common(self, token):
++        n = max(1, len(self.objects));count = self.frequency().get(token, 0)
++        return count >= 3 and count * 2 >= n
++
++    def desk_wide(self, word):
++        """A word nearly every object says (the desk's own name, "Rail Demo"): a pair that holds it names the desk, not a thing."""
++        n = max(1, len(self.objects));count = self.frequency().get(word, 0)
++        return count >= 3 and count * 10 >= n * 7
++
++    def add_files(self, limit=FILES_READ):
++        """Plain files of Files as objects that a possible link may reach (their names, and a text file's first words)."""
++        root = (self.files or {}).get('root')
++        added = 0
++        for e in (self.files or {}).get('entries') or ():
++            if e.get('kind') != 'file' or e['id'] in self.objects:continue
++            if added >= limit:break
++            self.objects[e['id']] = file_object(e, root);added += 1
++        self._df = None
++
++
++def read_assignments(call, most=10):
++    """The owner's recent assignments (1.0 K1) and the records their steps read: [(objective, {record ids})]. `call(op,
++    args)` is a Kernel read that gives the result or None. Reads only; an assignment that cannot be read is left out."""
++    out = []
++    try:
++        listed = call('assignment.list', {'limit': most}) or {}
++    except Exception:  # noqa: BLE001 - no assignments (1.0 K1 not here, or nothing yet)
++        return out
++    for row in (listed.get('assignments') if isinstance(listed, dict) else listed) or ():
++        try:got = call('assignment.status', {'id': row['id']}) or {}
++        except Exception:  # noqa: BLE001
++            continue
++        ids = set()
++        for step in got.get('steps') or ():
++            arguments = step.get('arguments') or {}
++            for key in ('id', 'sheet', 'document', 'claim', 'item'):
++                if isinstance(arguments.get(key), str):ids.add(arguments[key])
++            for value in (step.get('inputs') or {}).values():
++                origin = (value or {}).get('origin') or {} if isinstance(value, dict) else {}
++                if origin.get('kind') in ('RECORD', 'SOURCE') and origin.get('id'):ids.add(str(origin['id']))
++        out.append((str(got.get('objective') or row.get('objective') or 'an assignment'), ids))
++    return out
++
++
++def _size_words(size):
++    """A size in whole numbers: 812 bytes, 14 KB, 3 MB."""
++    size = int(size or 0)
++    if size < 1024:return '%d byte%s' % (size, '' if size == 1 else 's')
++    if size < 1024 * 1024:return '%d KB' % ((size + 512) // 1024)
++    return '%d MB' % ((size + 512 * 1024) // (1024 * 1024))
++
++
++def file_object(entry, root):
++    """A plain file of Files as the board draws it: a FILE tile (as living_nav_qt.LivingNav.with_focus draws it on the Field)."""
++    folder = str(entry.get('path') or '').rpartition('/')[0]
++    path = str(Path(root) / entry['path']) if root and entry.get('path') else ''
++    suffix = Path(str(entry.get('name') or '')).suffix
++    said = ('%s file · %s' % (suffix[1:].upper(), _size_words(entry.get('size')))) if suffix else _size_words(entry.get('size'))
++    return FieldObject(entry['id'], 'source', entry.get('name') or 'a file', 'a file in Files', '', (said, 'in ' + ('Files/' + folder if folder else 'Files')),
++                       'Files/' + str(entry.get('path') or ''), {'kind': 'file', 'id': entry['id'], 'path': path}, 'FILE')
++
++
++# ---- possible links ------------------------------------------------------------------------------------------------------
++def possible(desk, focus, recorded_ids):
++    """The links the desk can only suppose between the focus and another object, each with what it names. Returns {id: Edge}."""
++    found = {}
++    mine = desk.words(focus);fobj = desk.objects[focus]
++    # used together: named among the inputs of one assignment of yours (1.0 K1), with nothing recorded between the two
++    for ident, objective in desk.together(focus).items():
++        if ident == focus or ident in recorded_ids or ident not in desk.objects:continue
++        found.setdefault(ident, Edge(focus, ident, 'used together', 'used together', kind=INFERRED, strength=3,
++                                     said='both are used in your assignment “%s”' % _short(objective, 70)))
++    # revisions by their names: "… Rev A ARCHIVED" and "… Rev B CURRENT"
++    mark = REVISION_TITLE.match(fobj.title or '')
++    for ident, obj in desk.objects.items():
++        if ident == focus or ident in recorded_ids or obj.kind != fobj.kind or not mark:continue
++        theirs = REVISION_TITLE.match(obj.title or '')
++        if theirs and theirs['stem'].strip().casefold() == mark['stem'].strip().casefold() and theirs['rev'].casefold() != mark['rev'].casefold():
++            found[ident] = Edge(focus, ident, 'revision by name', 'another revision', kind=INFERRED, strength=4,
++                                said='two revisions of one %s by their names (Rev %s, Rev %s)' % ('sheet' if obj.kind == 'sheet' else 'record', mark['rev'].upper(), theirs['rev'].upper()))
++    # the same component, the same words, the same quantities
++    for ident in desk.objects:
++        if ident == focus or ident in recorded_ids or ident in found:continue
++        theirs = desk.words(ident)
++        components = sorted(c for c in mine.components & theirs.components if not desk.common(('c', c)))
++        if components:
++            found[ident] = Edge(focus, ident, 'same component', 'same component', kind=INFERRED, strength=3 + len(components),
++                                said='both name %s' % _and(components[:2]))
++            continue
++        pairs = [mine.pairs[k] for k in sorted(set(mine.pairs) & set(theirs.pairs), key=lambda k: (desk.frequency().get(('p', k), 0), k))
++                 if not desk.common(('p', k)) and not desk.desk_wide(k[0]) and not desk.desk_wide(k[1])]
++        quantities = sorted((q for q in mine.quantities & theirs.quantities if not desk.common(('q', q))),
++                            key=lambda q: (desk.frequency().get(('q', q), 0), q))
++        single = sorted((w for w in mine.words & theirs.words if not desk.common(w)), key=lambda w: (desk.frequency().get(w, 0), w))
++        score = 2 * len(pairs) + 2 * len(quantities) + len(single)
++        if score < 2 or (not pairs and not quantities and len(single) < 2):continue
++        if pairs:said = 'both name the %s' % _and(pairs[:2])
++        elif quantities:said = 'both name %s' % _and(quantities[:2])
++        else:said = 'both say %s' % _and(['“%s”' % w for w in single[:2]])
++        found[ident] = Edge(focus, ident, 'same words', 'same words', kind=INFERRED, said=said, strength=min(score, 9))
++    return found
++
++
++def _and(items):
++    items = [str(i) for i in items]
++    if len(items) <= 1:return ''.join(items)
++    return ', '.join(items[:-1]) + ' and ' + items[-1]
++
++
++# ---- the basis of a link, in words ---------------------------------------------------------------------------------------
++def _version_words(desk, sheet_ident, revision):
++    """'version 1 (revision 1cf4712cf8a8)' for the sheet as it stands, or 'an earlier version (revision …); the sheet is at
++    version 2 now'."""
++    row, record = desk.sheet(sheet_ident)
++    version = (record or {}).get('version') if record else (row or {}).get('version')
++    now = (record or {}).get('revision')
++    short = str(revision or '')[:12]
++    if revision and now and revision == now:
++        return 'version %s (revision %s)' % (version, short), True
++    if revision:
++        return 'an earlier version (revision %s); the sheet is at version %s now' % (short, version), False
++    return 'version %s' % version if version is not None else 'its current version', True
++
++
++def basis(desk, edge):
++    """The inspector's sentences for one link, and the short words on its wire: (label, [sentences])."""
++    a = desk.objects.get(edge.source);b = desk.objects.get(edge.target)
++    an = a.title if a else edge.source;bn = b.title if b else edge.target
++    if edge.kind == INFERRED:
++        lines = ['Possible: %s; not verified.' % edge.said]
++        if edge.relation == 'same words':
++            lines.append('Found by matching their words, not by any record of Graphite\'s.')
++        elif edge.relation == 'same component':
++            lines.append('Found by the component\'s name in both, not by any record of Graphite\'s.')
++        elif edge.relation == 'used together':
++            lines.append('Each is recorded as used by that record; nothing records a link between the two of them.')
++        elif edge.relation == 'revision by name':
++            lines.append('Read from their titles only; nothing records that one replaced the other.')
++        lines.append('It becomes a recorded link only by your word.')
++        return 'possible · not verified', lines
++    if edge.relation == 'kept':
++        return 'by your word', ['Recorded by your word: you said “%s” and “%s” are linked.' % (_short(an, 70), _short(bn, 70)),
++                                ('It was suggested because %s.' % edge.said) if edge.said else 'It was not one the desk had found.',
++                                'You can set your word aside here; nothing else changes it.']
++    if edge.relation == 'reviewed':
++        row, record = desk.sheet(edge.target)
++        pdf = ((record or {}).get('origin') or {}).get('pdf') or {}
++        version = (record or {}).get('version') if record else (row or {}).get('version')
++        lines = ['Reviewed from %s of %s into “%s”, version %s.' % (edge.label or 'a page', an, bn, version if version is not None else '?')]
++        if pdf.get('source_sha256'):lines.append('The source as admitted: SHA-256 %s….' % str(pdf['source_sha256'])[:16])
++        rows = _sheet_rows(record)
++        if rows:lines.append('%d row%s reviewed: %s.' % (len(rows), '' if len(rows) == 1 else 's', _short(', '.join(r[0] for r in rows), 120)))
++        if edge.stale:lines.append('Its source changed since: the sheet is to recheck.')
++        return edge.label or 'reviewed', lines
++    if edge.relation == 'input':
++        got = desk.document(edge.target) or {}
++        derivation = (got.get('document') or {}).get('derivation') or {}
++        inputs = list(derivation.get('inputs') or ())
++        if a is not None and a.kind == 'sheet' and inputs:
++            said, now = _version_words(desk, edge.source, derivation.get('sheet_revision'))
++            used = ['%s %s (cell %s, %s)' % (i.get('value'), i.get('unit') or '', i.get('cell'), i.get('parameter')) for i in inputs]
++            lines = ['Used value%s %s from %s, %s, to calculate %s.' % ('' if len(used) == 1 else 's', _and(used), an, said, _calc_stem(bn))]
++            value = ((((derivation.get('calculation') or {}).get('outputs') or [{}])[0] or {}).get('value')) or {}
++            recipe = (derivation.get('recipe') or {}).get('expression')
++            if value.get('decimal') is not None:
++                lines.append('Worked exactly%s: %s %s%s.' % ((' as ' + recipe) if recipe else '', value['decimal'], value.get('unit') or '',
++                                                             (' (exactly %s)' % value['rational']) if value.get('rational') and value['rational'] != value['decimal'] else ''))
++            edits = [i for i in inputs if i.get('basis') == 'WORKING_SHEET_EDIT']
++            for i in edits:
++                original = (i.get('original_cells') or [None, None])[1]
++                lines.append('%s is a working edit of the sheet%s.' % (i.get('cell'), (', not the reviewed reading of %s %s' % (original, i.get('unit') or '')) if original else ''))
++            doc = got.get('document') or {}
++            if doc.get('revision') is not None:lines.append('The calculation is revision %s of its page.' % doc['revision'])
++            if edge.stale or not now:lines.append('The sheet changed after it was worked: the calculation is to recheck.')
++            cells = ', '.join(str(i.get('cell')) for i in inputs if i.get('cell'))
++            return ('cells ' + cells) if cells else (edge.label or 'input'), lines
++        return edge.label or 'source page', ['Worked from %s of %s, for %s.' % (edge.label or 'the source page', an, _calc_stem(bn))]
++    if edge.relation == 'evidence':
++        note = ''
++        for step in desk.path_of(edge.target):
++            if str(step.get('address') or '').lstrip('@') == edge.source:note = step.get('note') or '';break
++        verb = {'supports': 'supports', 'opposes': 'speaks against'}.get(edge.label, edge.label or 'bears on')
++        inv = (b.where if b is not None else '') or 'its investigation'
++        lines = ['%s %s the finding “%s”.' % (an, verb, _short(bn, 90)), 'Recorded as evidence in “%s”%s.' % (inv, (': “%s”' % note) if note else '')]
++        if edge.stale:lines.append('The source changed since: the finding is to recheck.')
++        return edge.label or 'evidence', lines
++    if edge.relation == 'check':
++        check = {}
++        inv = (b.target or {}).get('id') if b is not None and isinstance(b.target, dict) else None
++        for row in (desk.investigation(inv) or {}).get('checked') or ():
++            if 'claim:' + str(row.get('claim')) == edge.target and edge.source in str(row.get('program') or ''):check = row;break
++        rows = str(check.get('program') or '').split('|')[2:]
++        where = ' and '.join(w.strip()[6:] if w.strip().startswith('where ') else w.strip() for w in rows if w.strip())
++        lines = ['A check on %s%s %s.' % (an, (' (the rows where %s)' % where) if where else '', edge.label or 'ran')]
++        if check.get('oracle'):lines.append('It looks for: “%s”.' % check['oracle'])
++        lines.append('The finding: “%s”.' % _short(bn, 90))
++        if edge.stale:lines.append('The sheet changed since the check ran: it no longer counts until it runs again.')
++        return edge.label or 'check', lines
++    if edge.relation == 'revision':
++        was = desk.document(edge.source) or {};now = desk.document(edge.target) or {}
++        def result(got):
++            value = (((((got.get('document') or {}).get('derivation') or {}).get('calculation') or {}).get('outputs') or [{}])[0] or {}).get('value') or {}
++            return ('%s %s' % (value.get('decimal'), value.get('unit') or '')).strip() if value.get('decimal') is not None else ''
++        lines = ['“%s” was worked again: the new page is “%s”.' % (_calc_stem(an), bn)]
++        if result(was) and result(now):lines.append('Its result went from %s to %s.' % (result(was), result(now)))
++        lines.append('The earlier page is kept in Documents.')
++        return 'worked again', lines
++    if edge.relation == 'question':
++        inv = (b.where if b is not None else '') or 'an investigation'
++        return 'asked of it', ['The open question “%s” is asked in “%s”, which reads %s.' % (_short(bn, 90), inv, an)]
++    if edge.relation == 'same bytes':
++        digest = (b.target or {}).get('sha256') if b is not None and isinstance(b.target, dict) else ''
++        return 'same bytes', ['The file %s in Files has the same bytes as the admitted source %s.' % (an, bn),
++                              'Checked by their SHA-256%s.' % ((' (%s…)' % str(digest)[:16]) if digest else '')]
++    if edge.relation == 'condition':
++        return edge.label or 'its words changed', ['A total bound to the words of “%s”: %s.' % (an, edge.label or 'its words changed')]
++    if edge.relation == 'quote':
++        return edge.label or 'pinned quote', ['The rule card “%s” rests on %s of %s, a quote you pinned.' % (_short(bn, 80), edge.label or 'words', an)]
++    return edge.label or 'rests on it', ['“%s” rests on “%s”%s.' % (_short(bn, 80), _short(an, 80), (' (%s)' % edge.label) if edge.label else '')]
++
++
++def short_basis(desk, edge, tile_id, focus=''):
++    """The basis line on a tile: how it is linked, said about the tile ("it" is the focus; a tile two steps away names the
++    neighbour it is linked through)."""
++    other = edge.target if edge.source == tile_id else edge.source
++    on = desk.objects.get(other);name = _short(on.title, 34) if on else ''
++    it = 'it' if other == focus else '“%s”' % name
++    feeds = edge.source == tile_id
++    if edge.kind == INFERRED:return 'possible: %s · not verified' % edge.said
++    if edge.relation == 'kept':return 'linked by your word'
++    if edge.relation == 'reviewed':
++        if feeds:return '%s reviewed into %s' % (edge.label or 'a page', name)
++        row, record = desk.sheet(tile_id)
++        version = (record or {}).get('version') if record else (row or {}).get('version')
++        return 'reviewed from %s%s' % (edge.label or 'a page', (', version %s' % version) if version is not None else '')
++    if edge.relation == 'input':
++        if feeds:return 'gives %s%s' % (edge.label or 'its values', '' if other == focus else ' to ' + it)
++        obj = desk.objects.get(tile_id)
++        revision = next((f for f in (obj.lines if obj else ()) if str(f).startswith('revision')), '')
++        return ', '.join(x for x in (edge.label or 'from %s' % name, revision) if x)
++    if edge.relation == 'evidence':
++        if feeds:return '%s %s' % ({'supports': 'supports', 'opposes': 'speaks against'}.get(edge.label, edge.label or 'bears on'), it)
++        return '%s by %s' % ({'supports': 'supported', 'opposes': 'spoken against'}.get(edge.label, edge.label or 'read'), name)
++    if edge.relation == 'check':
++        return ('checked%s: %s' % ('' if other == focus else ' for ' + it, edge.label)) if feeds else ('its check on %s: %s' % (name, edge.label))
++    if edge.relation == 'revision':return 'earlier revision' if feeds else 'worked again from it'
++    if edge.relation == 'question':return 'read for the question' if feeds else 'asked of %s' % name
++    if edge.relation == 'same bytes':return 'the same bytes'
++    return ('%s · %s' % (edge.label, name)) if edge.label else ('rests on %s' % name if not feeds else 'read by %s' % name)
++
++
++# ---- sizes: relevance (L3) when it is there, a default of our own otherwise -------------------------------------------------
++def relevance_module():
++    try:
++        from . import relevance           # 1.0 L3, built after the board
++    except Exception:  # noqa: BLE001 - not built yet, or broken: the board stands on its own default
++        return None
++    return relevance if callable(getattr(relevance, 'rank', None)) else None
++
++
++def relevance_relation(edge, ident, obj, recorded, distance):
++    """What the candidate is to the focus in relevance's words (1.0 L3 reads "candidate <relation> focus"): input, output,
++    quoted_by, quotes, finding_on, question_on, revision_of; 'recorded' for a recorded link of another kind or two steps away;
++    'inferred' for a possible one."""
++    if not recorded:return 'inferred'
++    if distance != 1:return 'recorded'
++    feeds = edge.source == ident             # the candidate feeds the focus: it supplies it
++    if edge.relation == 'revision':return 'revision_of'
++    if edge.relation == 'quote':return 'quoted_by' if feeds else 'quotes'
++    if edge.relation in ('evidence', 'check', 'question') and not feeds:
++        return 'question_on' if obj.kind == 'question' else 'finding_on'
++    if edge.relation in ('kept', 'same bytes'):return 'recorded'
++    return 'input' if feeds else 'output'
++
++
++def revision_current(obj):
++    """Which revision it is, where that is a question: True the current one, False an archived or replaced one, None when
++    the object has no revisions to speak of."""
++    if archived(obj):return False
++    if obj.kind in ('sheet', 'source', 'calculation', 'document') and obj.state in (STATE_CURRENT, '', STATE_RECHECK):return True
++    return None
++
++
++def default_rank(candidates):
++    """The board's own sizes, when relevance is not there: recorded before possible, current before archived, near before
++    far. Whole numbers only. Returns one {id, size, score, reasons, pinned, turned_down, group} per candidate."""
++    out = []
++    for c in candidates:
++        reasons = []
++        if c['recorded']:
++            reasons.append('a recorded link: %s' % c['relation_words'] if c['distance'] == 1 else 'two recorded links away, through “%s”' % _short(c['bridge_title'], 60))
++            size = 3 if c['distance'] == 1 and not c['archived'] else 2
++        else:
++            reasons.append('a possible link, not verified: %s' % c['said'])
++            size = 1
++        if c['archived']:reasons.append('an earlier or archived revision')
++        elif c['attention']:reasons.append('it waits for you (%s)' % c['state_word'].lower())
++        score = size * 100 + (10 if c['attention'] else 0) - (5 if c['archived'] else 0) + min(9, int(c.get('strength') or 0))
++        out.append({'id': c['id'], 'size': size, 'score': score, 'reasons': reasons, 'pinned': False, 'turned_down': False, 'group': False})
++    order = sorted(out, key=lambda r: (-r['size'], -r['score'], _order_key(next(c for c in candidates if c['id'] == r['id']))))
++    for at, row in enumerate(order):
++        row['group'] = at >= CEILING
++    return order
++
++
++def _order_key(c):
++    kind = c.get('kind', '')
++    return (KIND_ORDER.index(kind) if kind in KIND_ORDER else len(KIND_ORDER), str(c.get('title', '')).casefold(), c['id'])
++
++
++def sizes(kernel, focus, candidates, task=None):
++    """One sizing per candidate, by id: workbench.relevance.rank(kernel, focus_id, candidates, task=None) when that module
++    exists (its result per candidate: {id, size 1..4, score, reasons, pinned, turned_down, group}), else default_rank.
++    Returns ({id: row}, 'relevance' | 'default')."""
++    module = relevance_module()
++    if module is not None and kernel is not None:
++        try:
++            rows = module.rank(kernel, focus, candidates, task=task)
++            by = {str(r['id']): dict(r) for r in rows or () if isinstance(r, dict) and r.get('id') is not None}
++            if by or not candidates:
++                for c in candidates:      # a candidate relevance left out is still shown, small
++                    by.setdefault(c['id'], {'id': c['id'], 'size': 1, 'score': 0, 'reasons': ['not ranked'], 'pinned': False, 'turned_down': False, 'group': False})
++                for r in by.values():
++                    r['size'] = max(1, min(4, int(r.get('size') or 1)))
++                return by, 'relevance'
++        except Exception:  # noqa: BLE001 - a relevance that fails leaves the board on its own default
++            pass
++    return {r['id']: r for r in default_rank(candidates)}, 'default'
++
++
++# ---- the board for one focus ---------------------------------------------------------------------------------------------
++def state_word(obj, edge_to_focus=None):
++    state = str(obj.state or '')
++    if obj.kind == 'finding' and state == STATE_CURRENT and any('supported' in str(f) for f in obj.lines):return 'SUPPORTED'
++    if state in (STATE_CURRENT, '') and obj.kind in ('sheet', 'source') and any(m in str(obj.title).upper().split() for m in TITLE_MARKS):
++        return 'ARCHIVED'
++    return STATE_WORDS.get(state, state.upper())
++
++
++def kind_word(obj):
++    if obj.kind == 'more':return 'MORE'
++    if obj.tag in ('FILE', 'FOLDER', 'BRIEF', 'WRITING'):return obj.tag
++    return KIND_WORD.get(obj.kind, str(obj.kind).upper())
++
++
++def archived(obj):
++    return obj.state in ('replaced',) or state_word(obj) == 'ARCHIVED'
++
++
++def build(desk, focus, kernel=None, task=None, first=None):
++    """The board of one focus on this desk. `first` names the object to focus when `focus` is empty (the desk's own first)."""
++    board = Board(task=task or '')
++    focus = focus or first or (desk.field.first() if desk.field.objects else '')
++    desk.add_files()
++    if focus and focus not in desk.objects:desk.add_file(focus)        # a plain file of Files in focus, past those read for words
++    if not focus or focus not in desk.objects:
++        board.note = ('Nothing on this desk is in focus. Choose something in the tree, or on the whole desk.' if not focus else
++                      'That is not on this desk now. Choose something in the tree, or on the whole desk.')
++        return board
++    fobj = desk.objects[focus]
++    # what is linked to it by the records, one step and two steps away
++    near = {};bridge = {};link_of = {}
++    for edge in desk.recorded(focus):
++        other = edge.target if edge.source == focus else edge.source
++        if other == focus or other not in desk.objects:continue
++        if other not in near:near[other] = 1;link_of[other] = edge
++    two = {}
++    for first_ident in sorted(near, key=lambda i: _order_key({'id': i, 'kind': desk.objects[i].kind, 'title': desk.objects[i].title})):
++        for edge in desk.recorded(first_ident):
++            other = edge.target if edge.source == first_ident else edge.source
++            if other in (focus, first_ident) or other in near or other in two or other not in desk.objects:continue
++            two[other] = first_ident;link_of[other] = edge
++    recorded_ids = set(near) | set(two)
++    desk.add_files()
++    guessed = possible(desk, focus, recorded_ids)
++    candidates = []
++    for ident in list(near) + list(two) + list(guessed):
++        obj = desk.objects[ident];edge = link_of.get(ident) or guessed.get(ident)
++        sw = state_word(obj)
++        recorded = ident in recorded_ids;distance = 1 if ident in near or ident in guessed else 2
++        candidates.append({'id': ident, 'kind': obj.kind, 'title': obj.title, 'state': obj.state, 'state_word': sw,
++                           'recorded': recorded, 'distance': distance,
++                           'relation': relevance_relation(edge, ident, obj, recorded, distance), 'board_relation': edge.relation,
++                           'revision_current': revision_current(obj), 'basis': ('possible: ' + edge.said) if not recorded else basis(desk, edge)[1][0],
++                           'words': _short(' '.join(str(x) for x in obj.lines), 200),
++                           'relation_words': basis(desk, edge)[0], 'said': edge.said,
++                           'bridge': two.get(ident, ''), 'bridge_title': desk.objects[two[ident]].title if ident in two else '',
++                           'archived': archived(obj), 'attention': obj.needs_attention() or sw in ('REFUTED',), 'stale': edge.stale,
++                           'strength': edge.strength, 'side': _side(edge, ident, near, two, link_of, focus)})
++    ranked, board.ranked_by = sizes(kernel, focus, candidates, task)
++    # the focus
++    board.focus = Tile(focus, fobj.kind, fobj.title, fobj.state, kind_word(fobj), state_word(fobj),
++                       ', '.join(str(x) for x in fobj.lines[:2]) or fobj.role, fobj.where, FOCUS_SIZE, True, 0, '', obj=fobj)
++    shown = [];grouped = []
++    if board.ranked_by == 'relevance':       # relevance's own order (its 'place'): it keeps a tile where it was
++        order = sorted(candidates, key=lambda c: (int(ranked[c['id']].get('place', 10 ** 6)), _order_key(c)))
++    else:
++        order = sorted(candidates, key=lambda c: (-int(ranked[c['id']].get('size') or 1), -int(ranked[c['id']].get('score') or 0), _order_key(c)))
++    for c in order:
++        r = ranked[c['id']];obj = desk.objects[c['id']];edge = link_of.get(c['id']) or guessed.get(c['id'])
++        tile = Tile(c['id'], obj.kind, obj.title, obj.state, kind_word(obj), c['state_word'], short_basis(desk, edge, c['id'], focus), obj.where,
++                    max(1, min(4, int(r.get('size') or 1))), c['recorded'], c['distance'], c['side'], c['bridge'],
++                    list(r.get('reasons') or ()), bool(r.get('pinned')), bool(r.get('turned_down')), bool(r.get('group')), obj)
++        tile.separate = dict(r.get('separate') or {})
++        (grouped if tile.group else shown).append(tile)
++    board.tiles = shown
++    if grouped:
++        module = relevance_module() if board.ranked_by == 'relevance' else None
++        words = ''
++        if module is not None and callable(getattr(module, 'more_words', None)):
++            try:words = module.more_words([ranked[t.id] for t in grouped])
++            except Exception:  # noqa: BLE001
++                words = ''
++        words = words or 'and %d more' % len(grouped)
++        more = FieldObject(MORE, 'more', words, 'grouped', '', (), '')
++        board.tiles.append(Tile(MORE, 'more', words, '', 'MORE', '', 'opens: ' + _short(', '.join(t.title for t in grouped[:3]), 60),
++                                '', 1, True, 2, 'near', obj=more, members=grouped, group=True))
++    # the wires: every recorded link between the tiles shown, and each possible link from the focus
++    ids = {t.id for t in board.all()}
++    seen = set()
++    for edge in desk.edges:
++        if edge.source in ids and edge.target in ids and (edge.source, edge.target, edge.relation) not in seen:
++            if focus not in (edge.source, edge.target) and not (edge.source in near or edge.target in near):continue
++            seen.add((edge.source, edge.target, edge.relation))
++            label, sentences = basis(desk, edge)
++            board.wires.append(Wire(edge.source, edge.target, RECORDED, edge.relation, label, sentences, edge.stale, edge.kept, edge.said))
++    for ident, edge in guessed.items():
++        if ident in ids:
++            label, sentences = basis(desk, edge)
++            board.wires.append(Wire(focus, ident, INFERRED, edge.relation, label, sentences, False, '', edge.said))
++    if not board.tiles:
++        board.note = 'Nothing is linked to it on this desk, and nothing here names what it names.'
++    return board
++
++
++def _side(edge, ident, near, two, link_of, focus):
++    if edge.kind == INFERRED:return 'near'
++    if ident in two:                     # two steps away: on the side of the neighbour it is linked through
++        first = two[ident];e = link_of.get(first)
++        return 'in' if e is not None and e.source == first and e.target == focus else 'out'
++    return 'in' if edge.target == focus else 'out'
++
++
++# ---- the rings -----------------------------------------------------------------------------------------------------------
++DIMS = {4: (288, 140), 3: (246, 122), 2: (214, 100), 1: (190, 80)}
++FOCUS_DIMS = (322, 136)              # the focus, larger than any neighbour
++GAP = 22
++ROUND = 3.4                      # the rings are rounded rectangles of this order (2 an ellipse): the tiles are wider than tall
++SAMPLES = 720
++
++
++def _ring_points(rx, ry):
++    pts = []
++    for k in range(SAMPLES):
++        a = 2 * math.pi * k / SAMPLES
++        c, s = math.cos(a), math.sin(a)
++        pts.append((rx * math.copysign(abs(c) ** (2 / ROUND), c), ry * math.copysign(abs(s) ** (2 / ROUND), s), a))
++    return pts
++
++
++def ring_path(rx, ry):
++    """The ring itself, as points to draw (x, y)."""
++    return [(x, y) for x, y, _ in _ring_points(rx, ry)]
++
++
++def _slots(rx, ry, n, start=math.pi):
++    """n places on a ring at equal distances along it, the first at `start` (the left)."""
++    pts = _ring_points(rx, ry)
++    lengths = [0.0]
++    for (x0, y0, _), (x1, y1, _) in zip(pts, pts[1:] + pts[:1]):
++        lengths.append(lengths[-1] + math.hypot(x1 - x0, y1 - y0))
++    total = lengths[-1]
++    offset = next(i for i, p in enumerate(pts) if p[2] >= start - 1e-9) if start < 2 * math.pi else 0
++    out = []
++    for j in range(n):
++        want = (lengths[offset] + total * j / n) % total
++        i = min(range(len(pts)), key=lambda i: abs(lengths[i] - want))
++        out.append((pts[i][0], pts[i][1], pts[i][2]))
++    return out
++
++
++def _overlap(a, b, gap):
++    return abs(a[0] - b[0]) * 2 < a[2] + b[2] + 2 * gap and abs(a[1] - b[1]) * 2 < a[3] + b[3] + 2 * gap
++
++
++PREFERRED = {'in': math.pi, 'out': 0.0}
++RINGS_MOST = 4
++
++
++def _ring_for(tiles, inner, rx, ry, pw, ph, scale):
++    """One ring outside the last: its radii, the size of its places and its places, clear of every tile inside it."""
++    gap = GAP * scale
++    w = max(DIMS[t.size][0] for t in tiles) * scale;h = max(DIMS[t.size][1] for t in tiles) * scale
++    rx += pw / 2 + w / 2 + gap * 1.2;ry += ph / 2 + h / 2 + gap
++    for _ in range(14):                # grow the ring until its places clear the tiles inside it
++        trial = _slots(rx, ry, 24)
++        if not any(_overlap((x, y, w, h), r, gap / 2) for x, y, _ in trial for r in inner):break
++        rx *= 1.06;ry *= 1.06
++    n = 1
++    for count in range(32, 0, -1):     # as many places as fit without touching
++        places = _slots(rx, ry, count)
++        if count == 1 or all(not _overlap((places[i][0], places[i][1], w, h), (places[(i + 1) % count][0], places[(i + 1) % count][1], w, h), gap / 2)
++                             for i in range(count)):
++            n = count;break
++    return rx, ry, w, h, _slots(rx, ry, n)
++
++
++def layout(board, scale=1.0):
++    """Where each tile sits, the focus at (0, 0): ({id: (cx, cy, w, h)}, [(rx, ry)] of the rings drawn, bounds (x0, y0, x1, y1)).
++    The inner ring holds the recorded neighbours (the larger tiles), the next the possible ones; a ring that is full passes
++    the rest outward. What feeds the focus sits at the left, what rests on it at the right, a possible link above or below, a
++    tile two steps away beside the neighbour it is linked through. Places are taken in the tiles' order (the more relevant
++    first), each the free place nearest its own side, so the same desk is laid out the same way every time."""
++    placed = {}
++    if board.focus is None:return placed, [], (-1, -1, 1, 1)
++    fw, fh = FOCUS_DIMS[0] * scale, FOCUS_DIMS[1] * scale
++    placed[board.focus.id] = (0.0, 0.0, fw, fh)
++    tiles = list(board.tiles)
++    if not tiles:return placed, [], (-fw, -fh, fw, fh)
++    bands = [b for b in ([t for t in tiles if t.size >= 2 and t.id != MORE], [t for t in tiles if t.size < 2 or t.id == MORE]) if b]
++    rings_used = [];inner = [(0.0, 0.0, fw, fh)];rx, ry, pw, ph = fw / 2, fh / 2, fw, fh
++    queue = []
++    for band in bands + [[]] * RINGS_MOST:
++        queue = queue + band
++        if not queue or len(rings_used) >= RINGS_MOST:break
++        rx, ry, w, h, places = _ring_for(queue, inner, rx, ry, pw, ph, scale)
++        mine = queue[:len(places)];queue = queue[len(places):]
++        rings_used.append((rx, ry))
++        free = list(range(len(places)));count = {'up': 0, 'down': 0}
++        groups = {}
++        for t in mine:groups.setdefault((t.side, t.distance), []).append(t)
++        for t in mine:
++            if t.id == MORE:want = math.pi / 2
++            elif t.side == 'near':
++                way = 'up' if count['up'] <= count['down'] else 'down';count[way] += 1;k = count[way]
++                want = (3 * math.pi / 2 if way == 'up' else math.pi / 2) + (0.0 if k == 1 else 0.34 * (k // 2) * (1 if k % 2 else -1))
++            elif t.bridge and t.bridge in placed:
++                bx, by = placed[t.bridge][0], placed[t.bridge][1];want = math.atan2(by, bx) % (2 * math.pi)
++            else:
++                group = groups[(t.side, t.distance)];k = group.index(t);m = len(group)
++                spread = min(0.36, 2.4 / max(1, m))
++                want = (PREFERRED.get(t.side, math.pi) + spread * (k - (m - 1) / 2) * (1 if t.side == 'in' else -1)) % (2 * math.pi)
++            best = min(free, key=lambda i: (min(abs(places[i][2] - want), 2 * math.pi - abs(places[i][2] - want)), i))
++            free.remove(best);x, y, _ = places[best]
++            placed[t.id] = (x, y, DIMS[t.size][0] * scale, DIMS[t.size][1] * scale)
++            inner.append(placed[t.id])
++        pw, ph = w, h
++    for t in queue:                      # more than the rings hold: grouped with the count
++        t.group = True
++    if queue:
++        more = next((t for t in board.tiles if t.id == MORE), None)
++        if more is not None:more.members.extend(queue)
++        board.tiles = [t for t in board.tiles if t.id in placed]
++    xs = [x - w / 2 for x, y, w, h in placed.values()] + [x + w / 2 for x, y, w, h in placed.values()]
++    ys = [y - h / 2 for x, y, w, h in placed.values()] + [y + h / 2 for x, y, w, h in placed.values()]
++    pad = 30 * scale
++    return placed, rings_used, (min(xs) - pad, min(ys) - pad - 24 * scale, max(xs) + pad, max(ys) + pad + 24 * scale)
++
++
++# ---- the owner's word on a link (board.keep) -----------------------------------------------------------------------------
++OBJECT = {'type': 'string', 'pattern': '^[a-z]{2,16}:[A-Za-z0-9:_.-]{1,120}$'}
++FIELDS = {
++    'board.read': ({'focus': OBJECT, 'task': {'type': 'string', 'maxLength': 300}}, []),
++    'board.links': ({'all': {'type': 'boolean'}}, []),
++    'board.keep': ({'source': OBJECT, 'target': OBJECT, 'said': {'type': 'string', 'maxLength': 300},
++                    'id': {'type': 'string', 'pattern': '^link:[a-f0-9]{32}$'}, 'state': {'type': 'string', 'enum': ['IN', 'OUT']}}, []),
++}
++SCOPES = {'board.read': 'read', 'board.links': 'read', 'board.keep': 'approve'}
++OBSERVERS = ('board.read', 'board.links')
++
++
++def ensure(db):
++    db.execute('''CREATE TABLE IF NOT EXISTS board_links(id TEXT PRIMARY KEY, a TEXT, b TEXT, said TEXT, state TEXT, revision INTEGER,
++                  set_by TEXT, at INTEGER, history TEXT)''')
++    db.execute('CREATE UNIQUE INDEX IF NOT EXISTS board_links_pair ON board_links(a, b)')
++
++
++def _row(r):
++    return {'id': r[0], 'a': r[1], 'b': r[2], 'said': r[3], 'state': r[4], 'revision': r[5], 'set_by': r[6], 'at': r[7],
++            'history': json.loads(r[8] or '[]')}
++
++
++def kept_links(kernel, every=False):
++    with kernel.db() as db:
++        ensure(db)
++        rows = db.execute('SELECT id, a, b, said, state, revision, set_by, at, history FROM board_links ORDER BY at, id').fetchall()
++    out = [_row(r) for r in rows]
++    return out if every else [r for r in out if r['state'] == 'IN']
++
++
++def keep(kernel, args, principal):
++    """The owner's word on a link. Approve scope: her calls (read only) never reach it, and it always asks."""
++    import uuid
++    now = int(time.time());who = getattr(principal, 'identity', 'owner')
++    with kernel.db() as db:
++        ensure(db)
++        if args.get('id'):
++            row = db.execute('SELECT id, a, b, said, state, revision, set_by, at, history FROM board_links WHERE id=?', (args['id'],)).fetchone()
++            if row is None:raise ValueError('There is no such link of yours')
++            state = args.get('state') or 'OUT';record = _row(row)
++            history = record['history'] + [{'state': state, 'at': now, 'by': who}]
++            db.execute('UPDATE board_links SET state=?, revision=?, at=?, history=? WHERE id=?', (state, record['revision'] + 1, now, json.dumps(history), args['id']))
++            ident = args['id']
++        else:
++            a, b = str(args.get('source') or ''), str(args.get('target') or '')
++            if not a or not b or a == b:raise ValueError('A link needs two different things')
++            a, b = sorted((a, b))
++            row = db.execute('SELECT id, a, b, said, state, revision, set_by, at, history FROM board_links WHERE a=? AND b=?', (a, b)).fetchone()
++            if row is not None:
++                record = _row(row);history = record['history'] + [{'state': 'IN', 'at': now, 'by': who}]
++                db.execute('UPDATE board_links SET state=?, revision=?, at=?, history=?, said=? WHERE id=?',
++                           ('IN', record['revision'] + 1, now, json.dumps(history), str(args.get('said') or record['said'] or '')[:300], record['id']))
++                ident = record['id']
++            else:
++                ident = 'link:' + uuid.uuid4().hex
++                db.execute('INSERT INTO board_links(id, a, b, said, state, revision, set_by, at, history) VALUES(?,?,?,?,?,?,?,?,?)',
++                           (ident, a, b, str(args.get('said') or '')[:300], 'IN', 1, 'owner', now, json.dumps([{'state': 'IN', 'at': now, 'by': who}])))
++        row = db.execute('SELECT id, a, b, said, state, revision, set_by, at, history FROM board_links WHERE id=?', (ident,)).fetchone()
++    return _row(row)
++
++
++def read(kernel, principal, focus='', task=None):
++    """board.read: the board of one focus as data. Plain files are read through objects.files (a read)."""
++    field, reader = read_desk(kernel, principal)
++    files = None;digest = None
++    try:
++        answer = kernel.dispatch('objects.files', {}, principal)
++        if answer.get('ok'):
++            files = answer['result']
++
++            def digest(ident):
++                got = kernel.dispatch('objects.get', {'id': ident}, principal)
++                found = got.get('result') if got.get('ok') else {}
++                return found.get('digest') if found.get('digest_kind') == 'sha256' else None
++    except Exception:  # noqa: BLE001 - the board stands without plain files
++        files = None
++    desk = Desk(field, reader, files, kept_links(kernel), digest)
++
++    def call(op, args):
++        answer = kernel.dispatch(op, args, principal)
++        return answer.get('result') if answer.get('ok') else None
++    desk.set_assignments(read_assignments(call))
++    return build(desk, focus, kernel, task).as_data()
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'board.read':return read(kernel, principal, args.get('focus') or '', args.get('task'))
++    if op == 'board.links':return {'links': kept_links(kernel, bool(args.get('all')))}
++    if op == 'board.keep':return keep(kernel, args, principal)
++    raise ValueError('Unknown board operation')
+diff --git a/workbench/board_qt.py b/workbench/board_qt.py
+new file mode 100644
+index 0000000..4909a00
+--- /dev/null
++++ b/workbench/board_qt.py
+@@ -0,0 +1,945 @@
++"""The bulletin board, drawn (Graphite 1.0 L2): the centre's home at board depth.
++
++The focused object sits in the middle, its neighbours on rings around it (board_model): what feeds it at the left, what
++rests on it at the right, what is only possibly linked above and below, the nearer and larger the more relevant. Each tile
++says its kind and state (KIND • STATE, with the state's mark, so the state never rests on colour alone), its title, the
++basis of its link and where it comes from. Wires are solid when the records say the link and dashed when it is only
++possible; a click on a wire opens a compact inspector with its basis in words. One click on a tile focuses it, through the
++window's one navigation state (living_nav_qt, 1.0 L1): the tree reveals it and Back comes back. Opening (a double click,
++Enter) is the route the Field always had (field_page.open_object); 1.0 L4 makes it the work depth.
++
++The board lives in the Field's page (field_page.FieldPage): the page shows either the board or the Field, which is the
++whole-desk map. Zooming out of the board (the wheel with Ctrl, the minus key, or "Whole desk" in its head) shows the Field;
++"Board" on the Field brings the board back on the Field's selection. The Field's own acts (Do, Doubt, Trace, Brief, a
++what-if) are drawn on the Field, so asking one while the board is in front shows the Field. One desk reading serves both:
++the page reads the workspace with the board's reader (board_model.BoardReader), which keeps the answers the basis of each
++link is read from.
++
++Nothing here writes a file or a record. The one change it can ask for is the owner's word on a possible link
++(board.keep, approve scope), and only from his press on "Keep this link".
++"""
++from __future__ import annotations
++
++import math
++
++from PySide6.QtCore import QPointF, QRectF, QSize, Qt, QTimer, Signal
++from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPainterPath, QPainterPathStroker, QPen, QPolygonF
++from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSizePolicy, QToolButton, QVBoxLayout, QWidget
++
++from . import boss_theme as t
++from . import board_model as bm
++
++ZOOM = (0.5, 1.6)                 # the board's sizes; below the least, the whole desk (the Field)
++AUTO_LEAST = 0.74                 # shown whole only down to this size: below it the words are too small, and the board scrolls
++SETTLED_WORDS = ('CURRENT', 'SUPPORTED', 'HOLDS', 'UP', 'RUNNING')
++ATTENTION_WORDS = ('RECHECK', 'OPEN', 'HELD', 'REFUTED', 'WAITING', 'FAILED', 'DOES NOT HOLD', 'CANNOT TELL', 'DEPENDS', 'NOT READ')
++QUIET_WORDS = ('ARCHIVED', 'REPLACED', 'UNAVAILABLE', 'ELSEWHERE')
++RELATION_WORDS = {'reviewed': 'reviewed from its source', 'input': 'an input of a calculation', 'evidence': 'evidence for a finding',
++                  'check': 'a check of a finding', 'revision': 'a revision', 'question': 'an open question', 'quote': 'a pinned quote',
++                  'rests': 'what rests on it', 'condition': 'a total bound to words', 'same bytes': 'the same bytes',
++                  'kept': 'kept by your word', 'same words': 'the same words', 'same component': 'the same component',
++                  'used together': 'used together', 'revision by name': 'revisions by their names'}
++
++
++def ink(colour, alpha=1.0):
++    c = QColor(colour);c.setAlphaF(max(0.0, min(1.0, alpha)));return c
++
++
++def state_ink(word):
++    word = str(word or '').upper()
++    if word in SETTLED_WORDS:return t.READY
++    if word == 'RECHECK':return t.RECHECK
++    if word in ATTENTION_WORDS:return t.OWNER
++    return t.QUIET
++
++
++def draw_mark(p, box, word, colour):
++    """One mark per state, different in shape and not only in hue (as the Field's): settled a filled square, recheck half
++    filled, open hollow, held or refuted crossed, waiting a dot, archived or replaced a dash."""
++    word = str(word or '').upper();p.save();p.setPen(QPen(colour, 1.4));p.setBrush(Qt.NoBrush)
++    if word in SETTLED_WORDS:
++        p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(box)
++    elif word == 'RECHECK':
++        p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(QRectF(box.left(), box.top(), box.width() / 2, box.height()))
++    elif word in ('HELD', 'REFUTED', 'DOES NOT HOLD'):
++        p.drawRect(box);p.drawLine(box.topLeft(), box.bottomRight())
++    elif word in ('WAITING',):
++        p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawEllipse(box.center(), box.width() * 0.18, box.width() * 0.18)
++    elif word in ('OPEN', 'CANNOT TELL', 'DEPENDS'):
++        p.drawRect(box)
++    else:
++        p.drawLine(QPointF(box.left(), box.center().y()), QPointF(box.right(), box.center().y()))
++    p.restore()
++
++
++def kernel_of(host):
++    return getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++
++
++class Inspector(QFrame):
++    """The compact inspector of one wire: what kind of link it is, its two ends, and its basis in words."""
++
++    def __init__(self, view):
++        super().__init__(view)
++        self.view = view;self.wire = None
++        self.setObjectName('BoardInspector');self.setAccessibleName('The link\'s basis')
++        layout = QVBoxLayout(self);layout.setContentsMargins(14, 10, 14, 10);layout.setSpacing(6)
++        self.head = QLabel(self);self.head.setObjectName('BoardInspectorHead')
++        self.ends = QLabel(self);self.ends.setObjectName('BoardInspectorEnds');self.ends.setWordWrap(True)
++        self.body = QLabel(self);self.body.setObjectName('BoardInspectorBody');self.body.setWordWrap(True);self.body.setTextFormat(Qt.RichText)
++        self.body.setTextInteractionFlags(Qt.TextSelectableByMouse)
++        for w in (self.head, self.ends, self.body):layout.addWidget(w)
++        row = QHBoxLayout();row.setSpacing(8);row.setContentsMargins(0, 4, 0, 0)
++        self.keep = QPushButton('Keep this link', self);self.keep.setObjectName('BoardInspectorKeep')
++        self.keep.setToolTip('Your word: the link is recorded as kept by you, solid on the board. You can set your word aside again.')
++        self.unkeep = QPushButton('Set your word aside', self);self.unkeep.setObjectName('BoardInspectorKeep')
++        self.other = QPushButton('', self);self.other.setObjectName('BoardInspectorButton')
++        self.close_button = QPushButton('Close', self);self.close_button.setObjectName('BoardInspectorButton')
++        for b in (self.keep, self.unkeep, self.other, self.close_button):
++            b.setCursor(Qt.PointingHandCursor);b.setFocusPolicy(Qt.TabFocus);row.addWidget(b)
++        row.addStretch(1);layout.addLayout(row)
++        self.keep.clicked.connect(lambda: self.view.keep_link(self.wire, True))
++        self.unkeep.clicked.connect(lambda: self.view.keep_link(self.wire, False))
++        self.other.clicked.connect(self.go_other)
++        self.close_button.clicked.connect(self.view.close_inspector)
++        self.hide()
++
++    def restyle(self, dashed):
++        s = self.view.scale()
++        self.setStyleSheet(
++            'QFrame#BoardInspector {background:%s;border:1px %s %s;border-radius:3px;}'
++            'QLabel#BoardInspectorHead {font-family:"%s";font-size:%dpx;font-weight:600;color:%s;background:transparent;border:0;}'
++            'QLabel#BoardInspectorEnds {font-family:"%s";font-size:%dpx;color:%s;background:transparent;border:0;}'
++            'QLabel#BoardInspectorBody {font-family:"%s";font-size:%dpx;color:%s;background:transparent;border:0;}'
++            'QPushButton#BoardInspectorButton, QPushButton#BoardInspectorKeep {font-family:"%s";font-size:%dpx;color:%s;background:%s;'
++            'border:1px solid %s;padding:3px 10px;border-radius:2px;}'
++            'QPushButton#BoardInspectorKeep {color:%s;border-color:%s;}'
++            'QPushButton:hover {border-color:%s;color:%s;}' % (
++                t.RAISED, 'dashed' if dashed else 'solid', t.LINE_STRONG,
++                t.MONO, round(12 * s), state_ink('OPEN') if dashed else t.READY,
++                t.FACE, round(14 * s), t.TEXT,
++                t.FACE, round(14 * s), t.QUIET,
++                t.FACE, round(13 * s), t.QUIET, t.PANEL, t.LINE,
++                t.AMBER_TEXT, t.AMBER_EDGE, t.READY, t.TEXT))
++
++    def show_for(self, wire, at=None, title='', sentences=None):
++        from html import escape
++        self.wire = wire;board = self.view.board
++        if wire is not None:
++            a = board.get(wire.source);b = board.get(wire.target)
++            an = a.title if a else wire.source;bn = b.title if b else wire.target
++            dashed = wire.kind == bm.INFERRED
++            self.restyle(dashed)
++            self.head.setText(('POSSIBLE LINK  ·  NOT VERIFIED' if dashed else 'RECORDED LINK') + '  ·  ' + RELATION_WORDS.get(wire.relation, wire.relation).upper())
++            self.ends.setText('%s  %s  %s' % (an, '—' if dashed else '→', bn))
++            lines = list(wire.basis)
++            self.keep.setVisible(dashed);self.unkeep.setVisible(bool(wire.kept))
++            if dashed:self.keep.setText('Keep this link')
++            focus = board.focus.id if board.focus else ''
++            other = wire.target if wire.source == focus else wire.source if wire.target == focus else wire.target
++            o = board.get(other)
++            self.other.setVisible(o is not None and other != focus)
++            if o is not None:
++                self.other.setText('Focus %s' % bm._short(o.title, 18));self.other.setProperty('ident', other);self.other.setToolTip('Focus ' + o.title)
++            self.setAccessibleDescription(' '.join(lines))
++        else:                             # a panel of words of the board's own ("why am I shown?")
++            self.restyle(False);self.head.setText(title.upper());self.ends.setText('');lines = list(sentences or ())
++            self.keep.hide();self.unkeep.hide();self.other.hide()
++        self.ends.setVisible(bool(self.ends.text()))
++        self.body.setText(''.join('<p style="margin:0 0 4px 0">%s</p>' % escape(str(x)) for x in lines))
++        s = self.view.scale();width = min(round(470 * s), max(260, self.view.width() - 40))
++        self.setFixedWidth(width);self.body.setFixedWidth(width - 28);self.ends.setFixedWidth(width - 28)
++        self.adjustSize()
++        x, y = (at.x(), at.y()) if at is not None else (self.view.width() - width - 20, self.view.head_height() + 16)
++        x = max(12, min(self.view.width() - width - 12, x - width / 2));y = max(self.view.head_height() + 8, min(self.view.height() - self.height() - 12, y + 14))
++        self.move(int(x), int(y));self.show();self.raise_()
++
++    def go_other(self):
++        ident = self.other.property('ident')
++        if ident:self.view.close_inspector();self.view.choose(ident)
++
++
++class BoardView(QWidget):
++    """The board of one focus. `focused` carries the object the owner chose (one click); `opened` the one he opened."""
++    focused = Signal(object)
++    opened = Signal(object)
++    whole = Signal()
++    left = Signal()
++
++    def __init__(self, page):
++        super().__init__(page)
++        self.page = page;self.host = page.host
++        self.board = bm.Board();self.ident = ''
++        self.reading = None               # (field, reader) the page last read
++        self.desk = None;self._desk_key = None
++        self.zoom = 1.0;self.auto = True;self.pan_x = 0.0;self.pan_y = 0.0
++        self.placed = {};self.ring_radii = [];self.bounds = (-1, -1, 1, 1);self._paths = []
++        self.hover = '';self.hover_wire = None;self.chosen_wire = None;self._press = None;self._panned = False
++        self.task = None
++        self.problem = ''
++        self._stale = True                # a new reading came while the board was not drawn: it is drawn again when shown
++        self.inspector = Inspector(self)
++        self.setMouseTracking(True);self.setFocusPolicy(Qt.StrongFocus)
++        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored);self.setMinimumSize(0, 0)
++        self.setObjectName('GraphiteBoard');self.setAccessibleName('Board: the focused object and what is linked to it')
++
++    def sizeHint(self):
++        return QSize(0, 0)
++
++    def minimumSizeHint(self):
++        return QSize(0, 0)
++
++    # ---- measures ------------------------------------------------------------------------------------------------------
++    def scale(self):
++        return max(0.85, min(3.5, self.fontInfo().pixelSize() / 16.0))
++
++    def mono(self, px, weight=QFont.Normal):
++        f = QFont(t.MONO);f.setStyleHint(QFont.Monospace);f.setPixelSize(max(9, round(px * self.scale())));f.setWeight(weight);return f
++
++    def sans(self, px, weight=QFont.Medium):
++        f = QFont(t.FACE);f.setPixelSize(max(9, round(px * (0.97 if t.FACE != 'IBM Plex Sans' else 1.0) * self.scale())))
++        f.setWeight(weight if t.FACE == 'IBM Plex Sans' else QFont.Normal)
++        if t.FACE != 'IBM Plex Sans':f.setLetterSpacing(QFont.AbsoluteSpacing, -0.35)
++        return f
++
++    def display(self, px):
++        if t.DISPLAY == t.MONO:return self.mono(px, QFont.Medium)
++        f = QFont(t.DISPLAY);f.setPixelSize(max(12, round(px * 1.12 * self.scale())));return f
++
++    def head_height(self):
++        return round(max(40.0, 44 * self.scale()))
++
++    def body(self):
++        return QRectF(0, self.head_height(), self.width(), max(1, self.height() - self.head_height()))
++
++    def centre(self):
++        b = self.body();return QPointF(b.center().x(), b.center().y())
++
++    def to_screen(self, x, y):
++        c = self.centre();return QPointF(c.x() + (x - self.pan_x) * self.zoom, c.y() + (y - self.pan_y) * self.zoom)
++
++    def to_surface(self, point):
++        c = self.centre();return ((point.x() - c.x()) / self.zoom + self.pan_x, (point.y() - c.y()) / self.zoom + self.pan_y)
++
++    def fit(self):
++        """The size at which the whole board is in the window around its focus, at most the ordinary size, and never so small
++        that its words cannot be read (AUTO_LEAST): then the board scrolls, the focus in the middle."""
++        x0, y0, x1, y1 = self.bounds;b = self.body()
++        half_w = max(-x0, x1, 1.0);half_h = max(-y0, y1, 1.0)
++        if b.width() < 10:return 1.0
++        return max(AUTO_LEAST, min(1.0, (b.width() - 16) / (2 * half_w), (b.height() - 8) / (2 * half_h)))
++
++    # ---- the reading and the focus ---------------------------------------------------------------------------------------
++    def desk_read(self, field, reader):
++        """The page read the workspace (its work face): the board is drawn from this reading from now on."""
++        self.reading = (field, reader);self._desk_key = None;self._stale = True
++        if self.isVisible() or getattr(self.page, 'mode', '') == 'board':self.rebuild()
++
++    def living(self):
++        return getattr(self.host, 'living_nav', None)
++
++    def make_desk(self):
++        field, reader = self.reading if self.reading is not None else (None, None)
++        kernel = kernel_of(self.host)
++        if (field is None or not isinstance(reader, bm.BoardReader)) and kernel is not None:
++            # the page's reading was made without the board's reader (the launch's), or there is none yet: one reading of ours
++            from .engineering_kernel import operator
++            try:
++                field, reader = bm.read_desk(kernel, operator(), skip=getattr(self.page, 'unread', ()) or ())
++                self.reading = (field, reader)
++            except Exception as exc:  # noqa: BLE001 - the board says it could not read, never takes the window down
++                self.problem = 'The desk could not be read: %s' % str(exc)[:160]
++        if field is None:return None
++        living = self.living();files = getattr(living, 'files', None) if living is not None else None
++        kept = []
++        if kernel is not None:
++            from .engineering_kernel import operator
++            try:
++                answer = kernel.dispatch('board.links', {}, operator())
++                kept = (answer.get('result') or {}).get('links', []) if answer.get('ok') else []
++            except Exception:  # noqa: BLE001
++                kept = []
++        key = (id(field), id(files), tuple((k['id'], k['revision'], k['state']) for k in kept))
++        if self.desk is None or key != self._desk_key:
++            digest = getattr(living, 'digest_of', None) if living is not None else None
++            self.desk = bm.Desk(field, reader, files, kept, digest);self._desk_key = key
++            if kernel is not None:          # what the owner's assignments read together (1.0 K1): a possible link "used together"
++                from .engineering_kernel import operator
++
++                def call(op, args):
++                    answer = kernel.dispatch(op, args, operator())
++                    return answer.get('result') if answer.get('ok') else None
++                self.desk.set_assignments(bm.read_assignments(call))
++        return self.desk
++
++    def rebuild(self, keep_place=True):
++        desk = self.make_desk()
++        kernel = kernel_of(self.host)
++        if desk is None:
++            self.board = bm.Board(note=self.problem or 'Graphite\'s records are not available in this window.')
++        else:
++            first = self.page.view.field.selected if getattr(self.page, 'view', None) is not None else ''
++            self.board = bm.build(desk, self.ident, kernel, self.task, first=first)
++            if self.board.focus is not None:self.ident = self.board.focus.id
++        self._stale = False
++        self.relayout()
++        if self.auto:self.zoom = self.fit()
++        if not keep_place:self.pan_x = self.pan_y = 0.0
++        self.describe();self.update()
++
++    def relayout(self):
++        self.placed, self.ring_radii, self.bounds = bm.layout(self.board, self.scale())
++
++    def focus_on(self, ident, again=False):
++        """Bring this object to the middle (the window's navigation asks; a click here asks too). Returns whether it is on the
++        board now. The Field's selection follows, so the window's "this" and the Field's acts are about the same object."""
++        changed = ident != self.ident or again
++        if ident:self.ident = ident
++        if changed or not self.placed or self._stale:
++            self.close_inspector();self.chosen_wire = None
++            if again:self._desk_key = None
++            self.rebuild(keep_place=False)
++        self.sync_field()
++        return self.board.focus is not None and self.board.focus.id == ident
++
++    def sync_field(self):
++        view = getattr(self.page, 'view', None)
++        if view is None or self.board.focus is None:return
++        ident = self.board.focus.id
++        if view.field.get(ident) is not None and view.field.selected != ident:
++            view.field.select(ident);view._reveal_pending = True;view._describe()
++
++    def focus_obj(self):
++        return self.board.focus.obj if self.board.focus is not None else None
++
++    def describe(self):
++        f = self.board.focus
++        if f is None:
++            self.setAccessibleDescription(self.board.note or 'Nothing in focus.');return
++        said = ['In focus: %s, %s%s.' % (f.kind_word.lower(), f.title, (', ' + f.state_word.lower()) if f.state_word else '')]
++        for tile in self.board.tiles:
++            if tile.id == bm.MORE:said.append('%s, grouped.' % tile.title);continue
++            said.append('%s %s%s: %s.' % (tile.kind_word.lower(), tile.title, (', ' + tile.state_word.lower()) if tile.state_word else '', tile.basis))
++        self.setAccessibleDescription(' '.join(said))
++
++    # ---- choosing -------------------------------------------------------------------------------------------------------
++    def choose(self, ident):
++        """The owner chose a tile: it is the focus now (the navigation hears of it, the tree reveals it)."""
++        tile = self.board.get(ident)
++        if tile is None or tile.id == bm.MORE:return
++        obj = tile.obj
++        if tile.id == self.ident:return
++        self.focus_on(tile.id)
++        self.focused.emit(obj)
++
++    def open_tile(self, ident):
++        tile = self.board.get(ident)
++        if tile is None or tile.obj is None or tile.id == bm.MORE:return
++        obj = tile.obj
++        if isinstance(obj.target, dict) and obj.target.get('kind') == 'file':
++            living = self.living()
++            if living is not None:living.open(obj.id)
++            else:
++                from .living_nav_qt import open_path
++                open_path(self.host, obj.target.get('path') or '')
++            return
++        view = getattr(self.page, 'view', None)
++        if view is not None:view.opened.emit(view.field.get(obj.id) or obj)       # the route the Field always had (field_page.open_object)
++        self.opened.emit(obj)
++
++    def keep_link(self, wire, keep):
++        """The owner's word on a link (board.keep, approve scope): only from his press here."""
++        kernel = kernel_of(self.host)
++        if wire is None or kernel is None:return
++        from .engineering_kernel import operator
++        args = {'source': wire.source, 'target': wire.target, 'said': (wire.said or '')[:300]} if keep else {'id': wire.kept, 'state': 'OUT'}
++        answer = kernel.dispatch('board.keep', args, operator())
++        bar = getattr(self.host, 'statusBar', None)
++        if not answer.get('ok'):
++            if bar:self.host.statusBar().showMessage('The link could not be kept: %s' % str((answer.get('error') or {}).get('message') or answer.get('error'))[:160], 8000)
++            return
++        if bar:self.host.statusBar().showMessage('Kept by your word: the link is recorded' if keep else 'Your word is set aside: the link is possible again, not verified', 6000)
++        self._desk_key = None;self.close_inspector();self.rebuild()
++        found = self.board.wire(wire.source, wire.target)
++        if found is not None:self.open_wire(found)
++
++    # ---- the inspector ------------------------------------------------------------------------------------------------------
++    def open_wire(self, wire, at=None):
++        self.chosen_wire = wire.key() if wire is not None else None
++        if at is None and wire is not None:
++            a = self.placed.get(wire.source);b = self.placed.get(wire.target)
++            if a and b:at = self.to_screen((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
++        self.inspector.show_for(wire, at);self.update()
++
++    def close_inspector(self):
++        if self.inspector.isVisible():self.inspector.hide()
++        self.chosen_wire = None;self.update()
++
++    def why(self, tile):
++        lines = list(tile.reasons)
++        marks = [('truth', 'Its state'), ('confidence', 'Its link'), ('authority', 'Its revision')]
++        separate = ['%s: %s.' % (word, tile.separate[key]) for key, word in marks if tile.separate.get(key)]
++        module = bm.relevance_module()
++        if module is not None and callable(getattr(module, 'why', None)):
++            answer = _call(module.why, kernel_of(self.host), self.ident, tile.id)
++            if isinstance(answer, dict):answer = answer.get('reasons') or answer.get('words')
++            if isinstance(answer, (list, tuple)) and answer:lines = [str(x) for x in answer]
++            elif isinstance(answer, str) and answer:lines = [answer]
++        lines = (lines or ['It is linked to what is in focus.']) + (['Marked on their own, never in its size:'] + separate if separate else [])
++        self.inspector.show_for(None, None, 'Why am I shown?  ·  ' + bm._short(tile.title, 40), lines)
++
++    # ---- painting -----------------------------------------------------------------------------------------------------------
++    def paintEvent(self, event):
++        p = QPainter(self)
++        try:
++            p.setRenderHint(QPainter.Antialiasing);p.setRenderHint(QPainter.TextAntialiasing)
++            p.fillRect(self.rect(), QColor(t.TERMINAL_GROUND))
++            self._paths = []
++            body = self.body()
++            if self.board.focus is None:
++                self._head(p);self._empty(p, body);return
++            p.save();p.setClipRect(body)
++            c = self.centre();p.translate(c);p.scale(self.zoom, self.zoom);p.translate(-self.pan_x, -self.pan_y)
++            self._rings(p)
++            self._wires(p)
++            for tile in sorted(self.board.all(), key=lambda t: t.size):
++                if tile.id in self.placed:self._tile(p, tile)
++            self._wire_words(p)
++            p.restore()
++            self._head(p)
++        except Exception as exc:  # noqa: BLE001 - said on the surface, never taking the window down
++            p.setClipping(False);p.setPen(QColor(t.CUE_TEXT));p.setFont(self.mono(12))
++            p.drawText(QRectF(24, self.head_height() + 12, self.width() - 48, 40), Qt.AlignLeft | Qt.AlignVCenter, 'The board could not be drawn: %s' % str(exc)[:160])
++        finally:
++            p.end()
++
++    def _head(self, p):
++        s = self.scale();h = self.head_height();x = 24 * s
++        p.fillRect(QRectF(0, 0, self.width(), h), QColor(t.PANEL))
++        p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(QPointF(0, h - 0.5), QPointF(self.width(), h - 0.5))
++        p.setFont(self.display(13));fm = QFontMetricsF(p.font());base = h / 2 + fm.ascent() / 2 - 2
++        p.setPen(QColor(t.CUE_EDGE));p.drawText(QPointF(x, base), 'BOARD');x += fm.horizontalAdvance('BOARD') + 16 * s
++        # the right: the legend (a solid wire is recorded, a dashed one only possible) and the way to the whole desk
++        p.setFont(self.mono(12));fm2 = QFontMetricsF(p.font())
++        counts = self.board.counts()
++        whole = 'Whole desk';ww = fm2.horizontalAdvance(whole) + 26 * s
++        right = self.width() - 18 * s
++        self._whole_box = QRectF(right - ww, (h - 26 * s) / 2, ww, 26 * s)
++        over = self._whole_box.contains(getattr(self, '_mouse', QPointF(-1, -1)))
++        p.setPen(QPen(ink(t.READY if over else t.LINE_STRONG, 0.9), 1));p.setBrush(Qt.NoBrush);p.drawRect(self._whole_box)
++        cx = self._whole_box.left() + 10 * s;cy = self._whole_box.center().y()
++        p.drawEllipse(QPointF(cx, cy), 4.5 * s, 3.2 * s)          # a small ring: the whole desk is further out
++        p.setPen(QColor(t.READY if over else t.QUIET));p.drawText(QPointF(cx + 9 * s, base), whole)
++        right = self._whole_box.left() - 22 * s
++        legend = [('possible, not verified', 'possible', True, counts['possible']), ('recorded', 'recorded', False, counts['recorded'])]
++        for words, short, dashed, n in legend:
++            label = '%d %s' % (n, words);w = fm2.horizontalAdvance(label);line = 26 * s
++            if right - w - line - 10 * s < x + 200 * s:
++                label = '%d %s' % (n, short);w = fm2.horizontalAdvance(label)
++            if right - w - line - 10 * s < x + 90 * s:break
++            p.setPen(QColor(t.QUIET));p.drawText(QPointF(right - w, base), label)
++            pen = QPen(ink(t.TEAL_EDGE if t.APPEARANCE == 'kasandra' else t.LINE_STRONG, 0.95), 1.6)
++            if dashed:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 3])
++            p.setPen(pen);y = base - fm2.ascent() / 2 + 1;p.drawLine(QPointF(right - w - line - 8 * s, y), QPointF(right - w - 8 * s, y))
++            right -= w + line + 26 * s
++        f = self.board.focus
++        if f is not None:
++            p.setFont(self.sans(16));fm3 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
++            p.drawText(QPointF(x, h / 2 + fm3.ascent() / 2 - 2), fm3.elidedText(f.title, Qt.ElideRight, max(40.0, right - x - 10 * s)))
++
++    def _empty(self, p, body):
++        s = self.scale();p.setFont(self.sans(15));p.setPen(QColor(t.QUIET))
++        p.drawText(body.adjusted(40 * s, 40 * s, -40 * s, -40 * s), Qt.AlignCenter | Qt.TextWordWrap, self.board.note or 'Nothing in focus.')
++
++    def _rings(self, p):
++        """The rings round the focus (green the inner, the wires' ink the outer ones) and the axis through the middle, with a
++        small square handle at each end, as in the owner's picture."""
++        s = self.scale()
++        blue = t.TEAL_EDGE;green = t.READY
++        radii = list(self.ring_radii)
++        if not radii:return
++        fw, fh = bm.FOCUS_DIMS[0] * s, bm.FOCUS_DIMS[1] * s
++        inner = ((fw / 2 + radii[0][0]) / 2 * 0.98, (fh / 2 + radii[0][1]) / 2 * 0.98)
++        for n, (rx, ry) in enumerate([inner] + radii):
++            path = QPainterPath();pts = bm.ring_path(rx, ry)
++            path.moveTo(QPointF(*pts[0]))
++            for x, y in pts[1:]:path.lineTo(QPointF(x, y))
++            path.closeSubpath()
++            colour = green if n == 1 else blue
++            p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(colour, 0.34 if n == 1 else 0.26), (1.6 if n == 1 else 1.1) / max(0.6, self.zoom)));p.drawPath(path)
++        top = -radii[-1][1] - 26 * s;bottom = radii[-1][1] + 26 * s
++        p.setPen(QPen(ink(blue, 0.3), 1.0 / max(0.6, self.zoom)))
++        p.drawLine(QPointF(0, top), QPointF(0, -fh / 2 - 6 * s));p.drawLine(QPointF(0, fh / 2 + 6 * s), QPointF(0, bottom))
++        k = 7 * s;p.setBrush(ink(blue, 0.55));p.setPen(Qt.NoPen)
++        for y in (top, bottom):p.drawRect(QRectF(-k / 2, y - k / 2, k, k))
++
++    def rect_of(self, ident):
++        x, y, w, h = self.placed[ident];return QRectF(x - w / 2, y - h / 2, w, h)
++
++    @staticmethod
++    def _edge_point(r, toward):
++        """Where the line from a rectangle's centre toward a point leaves the rectangle."""
++        c = r.center();dx = toward.x() - c.x();dy = toward.y() - c.y()
++        if abs(dx) < 1e-6 and abs(dy) < 1e-6:return c
++        tx = (r.width() / 2) / abs(dx) if abs(dx) > 1e-6 else math.inf;ty = (r.height() / 2) / abs(dy) if abs(dy) > 1e-6 else math.inf
++        k = min(tx, ty);return QPointF(c.x() + dx * k, c.y() + dy * k)
++
++    def _wire_path(self, wire):
++        a = self.rect_of(wire.source);b = self.rect_of(wire.target)
++        pa = self._edge_point(a, b.center());pb = self._edge_point(b, a.center())
++        mid = QPointF((pa.x() + pb.x()) / 2, (pa.y() + pb.y()) / 2)
++        dx = pb.x() - pa.x();dy = pb.y() - pa.y();length = math.hypot(dx, dy) or 1.0
++        bend = 0.07 * length * (1 if (hash(wire.relation) & 1) else -1) if wire.kind == bm.INFERRED else 0.04 * length
++        ctrl = QPointF(mid.x() - dy / length * bend, mid.y() + dx / length * bend)
++        path = QPainterPath(pa);path.quadTo(ctrl, pb)
++        return path, pa, pb
++
++    def _wires(self, p):
++        s = self.scale();focus = self.board.focus.id
++        self._labels = []
++        for wire in self.board.wires:
++            if wire.source not in self.placed or wire.target not in self.placed:continue
++            path, pa, pb = self._wire_path(wire)
++            touching = focus in (wire.source, wire.target)
++            hovered = self.hover_wire == wire.key() or (self.hover and self.hover in (wire.source, wire.target))
++            chosen = self.chosen_wire == wire.key()
++            base = t.TEAL_EDGE if t.APPEARANCE == 'kasandra' else t.LINE_STRONG
++            colour = t.AMBER_EDGE if chosen else t.READY if hovered else t.RECHECK if wire.stale else base
++            strength = 1.0 if (touching or hovered or chosen or wire.stale) else 0.62
++            width = (2.4 if chosen else 1.8 if (touching or hovered) else 1.3)
++            pen = QPen(ink(colour, strength), width, Qt.SolidLine, Qt.RoundCap)
++            if wire.dashed:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([5, 4])
++            p.setBrush(Qt.NoBrush);p.setPen(pen);p.drawPath(path)
++            p.setPen(Qt.NoPen);p.setBrush(ink(colour, strength))
++            for point in (pa, pb):p.drawEllipse(point, 3.4 * s, 3.4 * s)           # the round ends of the picture's wires
++            if not wire.dashed:
++                p.setPen(QPen(ink(t.TERMINAL_GROUND, 0.9), 1.1));p.setBrush(Qt.NoBrush)
++                for point in (pa, pb):p.drawEllipse(point, 1.3 * s, 1.3 * s)
++            stroker = QPainterPathStroker();stroker.setWidth(max(10.0, 12.0 / self.zoom))
++            self._paths.append((stroker.createStroke(path), wire))
++            if touching or hovered or chosen or wire.stale:
++                word = wire.label if not wire.dashed else 'possible · not verified'
++                if wire.stale and 'recheck' not in word:word = word + ' · recheck'
++                self._labels.append((path.pointAtPercent(0.5), word, colour))
++
++    def _wire_words(self, p):
++        s = self.scale();p.setFont(self.mono(11));fm = QFontMetricsF(p.font())
++        taken = []
++        for point, word, colour in self._labels:
++            w = fm.horizontalAdvance(word) + 10 * s;h = fm.height() + 2 * s
++            box = QRectF(point.x() - w / 2, point.y() - h / 2, w, h)
++            if any(box.intersects(r) for r in taken) or any(box.intersects(self.rect_of(i)) for i in self.placed):continue
++            taken.append(box)
++            p.setPen(Qt.NoPen);p.setBrush(ink(t.TERMINAL_GROUND, 0.88));p.drawRect(box)
++            p.setPen(ink(colour, 0.95));p.drawText(box, Qt.AlignCenter, word)
++
++    def _tile(self, p, tile):
++        s = self.scale();r = self.rect_of(tile.id);focus = tile.id == self.board.focus.id
++        over = self.hover == tile.id and not focus
++        lit = focus and self.hasFocus()
++        p.setBrush(QColor(t.CARD if tile.size >= 2 or focus else t.PANEL))
++        edge = t.AMBER_EDGE if lit else t.READY if over else (t.LINE_STRONG if (focus or tile.size >= 3) else t.LINE_MID)
++        pen = QPen(ink(edge, 1.0 if (focus or over) else 0.85), 2 if focus else 1)
++        if tile.id == bm.MORE:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([2, 3])
++        p.setPen(pen);p.drawRect(r)
++        if focus:
++            # the striped corner of the picture's focus tile, and the corner ticks that say "in focus" without colour
++            p.save();p.setClipRect(r);p.setPen(QPen(ink(t.TEAL_EDGE, 0.55), 1.4 * s));k = 34 * s
++            for i in range(5):
++                o = i * 7 * s;p.drawLine(QPointF(r.right() - k + o, r.top()), QPointF(r.right(), r.top() + k - o))
++            p.restore()
++            p.setPen(QPen(ink(t.AMBER_EDGE if lit else t.LINE_STRONG, 1.0), 2));k = 10 * s;o = 6 * s
++            for cx, cy, dx, dy in ((r.left() - o, r.top() - o, 1, 1), (r.right() + o, r.top() - o, -1, 1),
++                                   (r.left() - o, r.bottom() + o, 1, -1), (r.right() + o, r.bottom() + o, -1, -1)):
++                p.drawLine(QPointF(cx, cy), QPointF(cx + dx * k, cy));p.drawLine(QPointF(cx, cy), QPointF(cx, cy + dy * k))
++        pad = (14 if focus else 11) * s;inner = r.adjusted(pad, pad - 3 * s, -pad, -pad + 3 * s)
++        # the first line: the kind's glyph, KIND • STATE, the state's mark
++        p.setFont(self.mono(12 if tile.size >= 3 or focus else 11, QFont.Medium));fm = QFontMetricsF(p.font());y = inner.top() + fm.ascent()
++        lead = 0.0
++        from .glyph_set import KIND as KIND_GLYPH
++        draw = KIND_GLYPH.get(tile.kind)
++        kind_ink = t.CUE_TEXT if tile.kind in ('question', 'condition') else t.QUIET
++        if draw is not None and inner.width() > 80 * s:
++            side = fm.height() * 1.1;box = QRectF(inner.left(), y - fm.ascent() + (fm.height() - side) / 2 - 1, side, side)
++            p.save();p.translate(box.left(), box.top());p.scale(box.width() / 20.0, box.height() / 20.0);p.setPen(Qt.NoPen);p.setBrush(Qt.NoBrush)
++            try:draw(p, ink(kind_ink, 1.0), ink(t.FAINT, 1.0))
++            finally:p.restore()
++            lead = side + 6 * s
++        kind = tile.kind_word or 'THING';state = tile.state_word
++        p.setPen(ink(kind_ink, 1.0));p.drawText(QPointF(inner.left() + lead, y), kind)
++        x = inner.left() + lead + fm.horizontalAdvance(kind)
++        if state:
++            colour = state_ink(state);dot = ' • ';p.setPen(ink(t.FAINT, 1.0));p.drawText(QPointF(x, y), dot);x += fm.horizontalAdvance(dot)
++            mark = 8 * s;room = inner.right() - x - mark - 6 * s
++            p.setPen(ink(colour, 1.0));shown = fm.elidedText(state, Qt.ElideRight, max(10.0, room));p.drawText(QPointF(x, y), shown)
++            draw_mark(p, QRectF(min(inner.right() - mark, x + fm.horizontalAdvance(shown) + 7 * s), y - fm.ascent() / 2 - mark / 2 + 1, mark, mark), state, ink(colour, 1.0))
++        y += 5 * s
++        # the title, whole words on up to two lines
++        p.setFont(self.sans({4: 17, 3: 15, 2: 14, 1: 13}[4 if focus else tile.size]));fm = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
++        lines = 2 if (focus or tile.size >= 2) else 1
++        for line in _wrap(tile.title, fm, inner.width(), lines):
++            y += fm.height();p.drawText(QPointF(inner.left(), y - fm.descent()), line)
++        # the basis line and the source
++        p.setFont(self.mono(12 if focus or tile.size >= 3 else 11));fm = QFontMetricsF(p.font());y += 4 * s
++        if tile.basis and y + fm.height() <= inner.bottom() + 2 * s:
++            y += fm.height();p.setPen(ink(t.CUE_TEXT if not tile.recorded and t.APPEARANCE == 'kasandra' else t.QUIET, 1.0))
++            p.drawText(QPointF(inner.left(), y - fm.descent()), fm.elidedText(tile.basis, Qt.ElideRight, inner.width()))
++        if tile.source and y + fm.height() <= inner.bottom() + 2 * s:
++            y += fm.height();p.setPen(QColor(t.FAINT))
++            p.drawText(QPointF(inner.left(), y - fm.descent()), fm.elidedText(str(tile.source), Qt.ElideMiddle, inner.width()))
++
++    # ---- the mouse and the keys ---------------------------------------------------------------------------------------------
++    def tile_at(self, point):
++        x, y = self.to_surface(point)
++        for tile in sorted(self.board.all(), key=lambda t: -t.size):
++            if tile.id in self.placed and self.rect_of(tile.id).contains(QPointF(x, y)):return tile
++        return None
++
++    def wire_at(self, point):
++        x, y = self.to_surface(point)
++        for shape, wire in reversed(self._paths):
++            if shape.contains(QPointF(x, y)):return wire
++        return None
++
++    def mousePressEvent(self, event):
++        self.setFocus(Qt.MouseFocusReason)
++        pos = event.position()
++        if event.button() == Qt.LeftButton:
++            if getattr(self, '_whole_box', QRectF()).contains(pos):
++                self.whole.emit();return
++            self._press = (pos, self.pan_x, self.pan_y);self._panned = False
++        super().mousePressEvent(event)
++
++    def mouseMoveEvent(self, event):
++        pos = event.position();self._mouse = pos
++        if self._press is not None and event.buttons() & Qt.LeftButton:
++            start, px, py = self._press
++            if self._panned or (pos - start).manhattanLength() > 6:
++                self._panned = True;self.pan_x = px - (pos.x() - start.x()) / self.zoom;self.pan_y = py - (pos.y() - start.y()) / self.zoom
++                self.setCursor(Qt.ClosedHandCursor);self.update();return
++        tile = self.tile_at(pos) if pos.y() > self.head_height() else None
++        wire = None if tile is not None or pos.y() <= self.head_height() else self.wire_at(pos)
++        hover = tile.id if tile is not None else ''
++        hw = wire.key() if wire is not None else None
++        if hover != self.hover or hw != self.hover_wire:
++            self.hover = hover;self.hover_wire = hw;self.update()
++        over_whole = getattr(self, '_whole_box', QRectF()).contains(pos)
++        self.setCursor(Qt.PointingHandCursor if (tile is not None and tile.id != self.ident) or wire is not None or over_whole else Qt.ArrowCursor)
++        if over_whole:self.update(self._whole_box.toRect().adjusted(-2, -2, 2, 2))
++        if tile is not None:self.setToolTip(tile.title)
++        elif wire is not None:self.setToolTip('The link\'s basis: click')
++        else:self.setToolTip('')
++
++    def mouseReleaseEvent(self, event):
++        press = self._press;self._press = None
++        if self._panned:
++            self._panned = False;self.setCursor(Qt.ArrowCursor);return
++        if press is None or event.button() != Qt.LeftButton:return super().mouseReleaseEvent(event)
++        pos = event.position()
++        tile = self.tile_at(pos)
++        if tile is not None:
++            if tile.id == bm.MORE:self.more_menu(tile, pos)
++            elif tile.id != self.ident:self.choose(tile.id)
++            return
++        wire = self.wire_at(pos)
++        if wire is not None:
++            self.open_wire(wire, pos);return
++        self.close_inspector()
++
++    def mouseDoubleClickEvent(self, event):
++        tile = self.tile_at(event.position())
++        if tile is not None and tile.id != bm.MORE:
++            if tile.id != self.ident:self.choose(tile.id)
++            self.open_tile(tile.id)
++
++    def leaveEvent(self, event):
++        if self.hover or self.hover_wire:self.hover = '';self.hover_wire = None;self.update()
++
++    def wheelEvent(self, event):
++        turn = event.angleDelta().y() or event.angleDelta().x()
++        if event.modifiers() & Qt.ControlModifier:
++            if turn:self.zoom_by(1 if turn > 0 else -1)
++            return
++        if event.modifiers() & Qt.ShiftModifier:self.pan_x -= turn / 2.0 / self.zoom
++        else:self.pan_x -= event.angleDelta().x() / 2.0 / self.zoom;self.pan_y -= event.angleDelta().y() / 2.0 / self.zoom
++        self.update()
++
++    def zoom_by(self, step):
++        """Larger or smaller by a twentieth; smaller than the least is the whole desk (the Field)."""
++        want = round(self.zoom * 20 + step) / 20.0
++        if want < ZOOM[0] - 1e-9:      # out past the least: the whole desk; the board comes back whole the next time
++            self.auto = True;self.whole.emit();return
++        self.auto = False;self.zoom = max(ZOOM[0], min(ZOOM[1], want));self.update()
++
++    def resizeEvent(self, event):
++        super().resizeEvent(event)
++        if self.auto:self.zoom = self.fit()
++        if self.inspector.isVisible():self.close_inspector()
++
++    def keyPressEvent(self, event):
++        key = event.key()
++        if key == Qt.Key_Escape:
++            if self.inspector.isVisible():self.close_inspector()
++            else:self.left.emit()
++            return
++        if key in (Qt.Key_Return, Qt.Key_Enter):
++            if self.ident:self.open_tile(self.ident)
++            return
++        if key in (Qt.Key_Minus, Qt.Key_Underscore):self.zoom_by(-1);return
++        if key in (Qt.Key_Plus, Qt.Key_Equal):self.zoom_by(1);return
++        if key == Qt.Key_Z:self.whole.emit();return
++        if key in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down):
++            self.step(key);return
++        if key == Qt.Key_Menu and self.board.focus is not None:
++            self.tile_menu(self.board.focus, self.to_screen(*self.placed[self.board.focus.id][:2]));return
++        super().keyPressEvent(event)
++
++    def step(self, key):
++        """The arrow keys: the nearest tile that way from the focus becomes the focus."""
++        if self.board.focus is None or self.ident not in self.placed:return
++        fx, fy = self.placed[self.ident][:2]
++        want = {Qt.Key_Left: (-1, 0), Qt.Key_Right: (1, 0), Qt.Key_Up: (0, -1), Qt.Key_Down: (0, 1)}[key]
++        best = None
++        for tile in self.board.tiles:
++            if tile.id not in self.placed or tile.id == bm.MORE:continue
++            x, y = self.placed[tile.id][:2];dx, dy = x - fx, y - fy
++            along = dx * want[0] + dy * want[1]
++            if along <= 1:continue
++            across = abs(dx * want[1]) + abs(dy * want[0])
++            score = along + 2 * across
++            if best is None or score < best[0]:best = (score, tile.id)
++        if best is not None:self.choose(best[1])
++
++    def contextMenuEvent(self, event):
++        tile = self.tile_at(QPointF(event.pos()))
++        if tile is None:
++            wire = self.wire_at(QPointF(event.pos()))
++            if wire is not None:self.open_wire(wire, QPointF(event.pos()))
++            return
++        self.tile_menu(tile, QPointF(event.pos()))
++
++    def tile_menu(self, tile, at):
++        menu = QMenu(self);menu.setObjectName('BoardMenu')
++        if tile.id == bm.MORE:
++            return self.more_menu(tile, at)
++        if tile.id != self.ident:menu.addAction('Focus here', lambda i=tile.id: self.choose(i))
++        menu.addAction('Open', lambda i=tile.id: self.open_tile(i))
++        wire = self.board.wire(tile.id, self.ident) or (self.board.wire(tile.id, tile.bridge) if tile.bridge else None)
++        if wire is not None:menu.addAction('The link\'s basis', lambda w=wire: self.open_wire(w))
++        module = bm.relevance_module()          # 1.0 L3's: shown only when relevance is there
++        if module is not None and tile.id != self.ident:
++            menu.addSeparator()
++            if callable(getattr(module, 'why', None)):menu.addAction('Why am I shown?', lambda x=tile: self.why(x))
++            if callable(getattr(module, 'pin', None)):
++                menu.addAction('Unpin' if tile.pinned else 'Pin', lambda x=tile: self.relevance_act('clear' if x.pinned else 'pin', x))
++            if callable(getattr(module, 'turn_down', None)):
++                menu.addAction('Turn up again' if tile.turned_down else 'Turn down', lambda x=tile: self.relevance_act('clear' if x.turned_down else 'turn_down', x))
++        menu.addSeparator()
++        menu.addAction('Whole desk', self.whole.emit)
++        menu.exec(self.mapToGlobal(at.toPoint()))
++
++    def relevance_act(self, name, tile):
++        module = bm.relevance_module()
++        fn = getattr(module, name, None) if module is not None else None
++        if fn is None:return
++        _call(fn, kernel_of(self.host), self.ident, tile.id)
++        self.rebuild()
++
++    def more_menu(self, tile, at):
++        menu = QMenu(self);menu.setObjectName('BoardMenu')
++        module = bm.relevance_module()
++        for member in tile.members:
++            menu.addAction('%s  ·  %s%s%s' % (member.kind_word, bm._short(member.title, 60), ('  ·  ' + member.state_word) if member.state_word else '',
++                                              '  ·  turned down by you' if member.turned_down else ''),
++                           lambda i=member.id: self.focus_member(i))
++        turned = [m for m in tile.members if m.turned_down]
++        if turned and module is not None and callable(getattr(module, 'clear', None)):      # reversible, where it is grouped
++            menu.addSeparator()
++            for member in turned:
++                menu.addAction('Turn up again: %s' % bm._short(member.title, 50), lambda x=member: self.relevance_act('clear', x))
++        menu.exec(self.mapToGlobal(at.toPoint()))
++
++    def focus_member(self, ident):
++        """A grouped tile chosen from the count: it becomes the focus."""
++        tile = next((m for t in self.board.tiles if t.id == bm.MORE for m in t.members if m.id == ident), None)
++        if tile is None:return
++        self.focus_on(ident);self.focused.emit(tile.obj)
++
++
++def _call(fn, kernel, focus, ident):
++    """relevance.why / pin / turn_down, whichever of the two plain signatures it has."""
++    try:return fn(kernel, focus, ident)
++    except TypeError:
++        try:return fn(kernel, ident)
++        except Exception:  # noqa: BLE001
++            return None
++    except Exception:  # noqa: BLE001
++        return None
++
++
++def _wrap(text, fm, width, limit):
++    words = str(text or '').split();lines = [];line = ''
++    for word in words:
++        trial = (line + ' ' + word).strip()
++        if fm.horizontalAdvance(trial) <= width or not line:line = trial
++        else:
++            lines.append(line);line = word
++            if len(lines) == limit:break
++    if line and len(lines) < limit:lines.append(line)
++    if len(lines) == limit and ' '.join(lines) != ' '.join(words):
++        lines[-1] = fm.elidedText(lines[-1] + ' …', Qt.ElideRight, width)
++    return [fm.elidedText(l, Qt.ElideRight, width) for l in lines]
++
++
++# ---- the page: the board and the whole desk (the Field) in one place ----------------------------------------------------------
++def board_of(page):
++    return getattr(page, 'board', None) if page is not None else None
++
++
++def attach(page):
++    """Put the board in the Field's page (field_page.FieldPage calls this once): the page shows the board or the Field, and
++    one reading of the desk serves both."""
++    if board_of(page) is not None:return page.board
++    board = BoardView(page);page.board = board;page.mode = 'map'
++    page.layout().addWidget(board);board.hide()
++    board.whole.connect(lambda: to_map(page, said=True))
++    board.left.connect(lambda: _back(page))
++    view = page.view
++    original_refresh = page.refresh
++
++    def refresh(force=False, reading=None, _original=original_refresh):
++        kernel = kernel_of(page.host)
++        if reading is None and page.face == 'work' and kernel is not None:
++            from .engineering_kernel import operator
++            if force:page.unread = set()
++            try:reading = bm.read_desk(kernel, operator(), skip=page.unread)
++            except Exception:  # noqa: BLE001 - the page reads as it always did, and says what it could not
++                reading = None
++        _original(force=force, reading=reading)
++        if page.face == 'work':
++            if reading is not None:board.desk_read(*reading)
++            elif getattr(view, 'field', None) is not None:board.desk_read(view.field, None)
++    page.refresh = refresh
++    original_update = view.update
++
++    def update(*args, _original=original_update):
++        # the Field's acts (a page to read, the steps, a what-if, a trace, two revisions) are drawn on the Field: shown there
++        if getattr(page, 'mode', '') == 'board' and (view.reading is not None or view.steps or view.would or view.revisions is not None
++                                                     or getattr(view, '_route', None) is not None):
++            to_map(page)
++        return _original(*args)
++    view.update = update
++    # "Board" on the Field: the board on the Field's selection
++    button = QToolButton(view);button.setObjectName('FieldToBoard');button.setText('Board')
++    button.setToolTip('The board: the selected sheet in the middle, what is linked to it around it')
++    button.setAccessibleName('Board');button.setCursor(Qt.PointingHandCursor);button.setFocusPolicy(Qt.TabFocus)
++    button.clicked.connect(lambda: to_board(page, view.field.selected, said=True))
++    page.board_button = button
++    _style_button(page)
++    original_resize = view.resizeEvent
++
++    def resized(event, _original=original_resize):
++        _original(event);_place_button(page)
++    view.resizeEvent = resized
++    _place_button(page)
++    return board
++
++
++def _style_button(page):
++    s = page.board.scale()
++    page.board_button.setStyleSheet('QToolButton#FieldToBoard {font-family:"%s";font-size:%dpx;color:%s;background:%s;border:1px solid %s;'
++                                    'padding:3px 12px;border-radius:2px;} QToolButton#FieldToBoard:hover {color:%s;border-color:%s;}' % (
++                                        t.MONO, round(12 * s), t.QUIET, t.PANEL, t.LINE_STRONG, t.READY, t.READY))
++
++
++def _place_button(page):
++    button = getattr(page, 'board_button', None)
++    if button is None:return
++    view = page.view;button.adjustSize()
++    try:top = view.head_height() + 10
++    except Exception:  # noqa: BLE001
++        top = 50
++    button.move(max(8, view.width() - button.width() - 22), top);button.raise_()
++
++
++def _back(page):
++    from . import field_page
++    field_page.back(page.host)
++
++
++def _title(page):
++    try:page.host.setWindowTitle(('Board' if page.mode == 'board' else 'Field') + ' — Graphite')
++    except RuntimeError:
++        pass
++
++
++def to_board(page, ident=None, said=False):
++    """The board in front in the page, on this object (or on what it was on). Returns whether the object is in focus."""
++    board = board_of(page)
++    if board is None:return False
++    if page.face != 'work':page.show_face('work')
++    view = page.view
++    # what the Field was showing over its work (a page to read, the steps, a trace) belongs to the Field: it closes
++    view.reading = None;view.steps = ();view.would = {};view.would_said = '';view.revisions = None
++    if getattr(view, '_route', None) is not None:
++        view._route = None;view._surge_timer.stop()
++    page.mode = 'board'
++    view.hide();board.show()
++    found = board.focus_on(ident or board.ident or view.field.selected)
++    board.setFocus(Qt.OtherFocusReason);_title(page)
++    if said and board.board.focus is not None:board.focused.emit(board.focus_obj())
++    return found
++
++
++def to_map(page, said=False):
++    """The whole desk (the Field) in front, its selection on the board's focus."""
++    board = board_of(page)
++    if board is None:return
++    page.mode = 'map'
++    view = page.view;ident = board.ident
++    board.close_inspector();board.hide();view.show()
++    if ident and view.field.get(ident) is not None and view.field.selected != ident:
++        view.field.select(ident);view._describe()
++    view._reveal_pending = True
++    if said:view.auto_fit = False;view._fitted = True;view.zoom = view.fit()        # zoomed out of the board: the whole desk
++    view.setFocus(Qt.OtherFocusReason);_place_button(page);_title(page);view.update()
++
++
++def as_field(page):
++    """The Field asked for by name (F9, Arrange ▸ Field, "field"): the whole desk, as it always was."""
++    if getattr(page, 'mode', 'map') == 'board':to_map(page)
++
++
++def home(page):
++    """At launch the centre's home is the board, on the desk's first object (what waits for the owner, else the conclusion)."""
++    if page is None or board_of(page) is None or page.face != 'work':return
++    to_board(page, page.view.field.selected)
++
++
++def show_board(host, ident=None):
++    """The board in front with this object in focus, from anywhere in the window."""
++    from . import field_page
++    page = getattr(host, 'field_page', None)
++    if not getattr(host, '_field_active', False) or page is None:
++        page = field_page.show_field(host)
++    return to_board(page, ident)
++
++
++def state(page):
++    """How the board is seen, for the history (living_nav_qt.board_state): which of the two, its size and place."""
++    board = board_of(page)
++    if board is None:return {}
++    return {'mode': getattr(page, 'mode', 'map'), 'bzoom': board.zoom, 'bauto': board.auto, 'bx': board.pan_x, 'by': board.pan_y}
++
++
++def restore(page, saved):
++    """Put the board as it was seen (living_nav_qt.set_board)."""
++    board = board_of(page)
++    if board is None or not saved or 'mode' not in saved:return
++    if saved['mode'] == 'map':
++        if page.mode != 'map':to_map(page)
++        return
++    if page.mode != 'board':to_board(page)
++    board.auto = bool(saved.get('bauto', True))
++    board.zoom = board.fit() if board.auto else max(ZOOM[0], min(ZOOM[1], float(saved.get('bzoom') or 1.0)))
++    board.pan_x = float(saved.get('bx') or 0.0);board.pan_y = float(saved.get('by') or 0.0);board.update()
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index f50be29..bf910f7 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -113,6 +113,7 @@ def schemas():
+     from .model_exam import FIELDS as EXAM_FIELDS  # 0.8.7 A5 (the exam and the model key)
+     from .voice_column import FIELDS as VOICE_COLUMN_FIELDS  # 0.8.7 W7 (the window wiring): voice.say
+     from .living_nav import FIELDS as LIVING_NAV_FIELDS  # 1.0 L1 (one navigation state): objects.files, objects.get
++    from .board_model import FIELDS as BOARD_FIELDS  # 1.0 L2 (the bulletin board): board.read, board.links, board.keep
+     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
+     from .assignments import FIELDS as ASSIGNMENT_FIELDS  # 1.0 K1 (assignments and the journal)
+     from .stac_words import FIELDS as WORD_FIELDS
+@@ -229,6 +230,7 @@ def schemas():
+         **EXAM_FIELDS,  # 0.8.7 A5 (the exam and the model key)
+         **VOICE_COLUMN_FIELDS,  # 0.8.7 W7 (the window wiring): voice.say
+         **LIVING_NAV_FIELDS,  # 1.0 L1 (one navigation state): objects.files, objects.get
++        **BOARD_FIELDS,  # 1.0 L2 (the bulletin board): board.read, board.links, board.keep
+         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
+         **ASSIGNMENT_FIELDS,  # 1.0 K1 (assignments and the journal)
+         **WORD_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 48fcad0..f53bdd4 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -81,6 +81,7 @@ from . import program_mail, program_build, program_transfer, program_cartridge
+ from . import program_vector, program_media, program_freecad
+ from . import program_print, program_delivery
+ from . import living_nav  # 1.0 L1 (one navigation state): objects.files, objects.get, the stable ids of plain files (reads; recorded additions)
++from . import board_model  # 1.0 L2 (the bulletin board): board.read, board.links (reads); board.keep (approve, the owner's word on a link) (recorded additions)
+ 
+ PROGRAM_HANDLERS = {
+     op: service
+@@ -268,6 +269,7 @@ CAPABILITIES = {
+     **voice_character.SCOPES,  # 0.8.7 C5 (her character file)
+     **assignments.SCOPES,  # 1.0 K1 (assignments and the journal)
+     **living_nav.SCOPES,  # 1.0 L1 (one navigation state): two reads; nothing written but the identity index of Files
++    **board_model.SCOPES,  # 1.0 L2 (the bulletin board): two reads; board.keep approve, only by the owner's word
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+     **{name:'read' for name in workspace_services.FIELDS},
+@@ -704,6 +706,7 @@ class Kernel:
+         if op in voice_column.FIELDS:return voice_column.dispatch(self,op,a,p)   # 0.8.7 W7 (the window wiring): a card's answers said through her voice floor, read
+         if op in assignments.FIELDS:return assignments.dispatch(self,op,a,p)   # 1.0 K1 (assignments and the journal): a plan of steps, written before and after each effect
+         if op in living_nav.FIELDS:return living_nav.dispatch(self,op,a,p)   # 1.0 L1 (one navigation state): a plain file's stable id, by inode with its digest as the check
++        if op in board_model.FIELDS:return board_model.dispatch(self,op,a,p)   # 1.0 L2 (the bulletin board): a focus and its neighbours with the basis of each link
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+         if op in workspace_services.FIELDS:
+diff --git a/workbench/field_page.py b/workbench/field_page.py
+index 5a20340..18cac7f 100644
+--- a/workbench/field_page.py
++++ b/workbench/field_page.py
+@@ -75,6 +75,8 @@ class FieldPage(QWidget):
+         self.problem = ''            # what the last reading could not read, in words
+         self.unread = set()          # records that refused: not asked again until the owner looks again
+         QApplication.instance().focusChanged.connect(self._keyboard_moved)
++        from . import board_qt
++        board_qt.attach(self)        # 1.0 L2: the board shares this page with the Field (the whole desk); one reading serves both
+ 
+     def _menu(self):
+         """A click on "Menu" at the foot: the selected sheet's own menu, as the Menu key and the right button open it."""
+@@ -152,7 +154,10 @@ def open_on_work(host):
+         return None
+     if not reading[0].objects:
+         return None
+-    return show_field(host, reading=reading)
++    page = show_field(host, reading=reading)
++    from . import board_qt
++    board_qt.home(page)          # 1.0 L2: the centre's home is the board, on the desk's first object
++    return page
+ 
+ 
+ def show_field(host, reading=None):
+@@ -160,6 +165,8 @@ def show_field(host, reading=None):
+     it is already in front, it only takes the keyboard: nothing is read again and where the owner came from is kept."""
+     page = getattr(host, 'field_page', None)
+     if getattr(host, '_field_active', False) and page is not None:
++        from . import board_qt
++        board_qt.as_field(page)      # 1.0 L2: the Field asked for on the board is the whole desk
+         page.view.setFocus(Qt.OtherFocusReason);return page
+     from_home = bool(getattr(host, '_home_active', False))
+     focus = QApplication.focusWidget()
+@@ -175,6 +182,8 @@ def show_field(host, reading=None):
+     bars = [getattr(getattr(host, 'concern', None), 'context_strip', None), host.workspace_status, host.context_bar, host.doc_info]
+     host._field_bars = [(bar, bar.isVisible()) for bar in bars if bar is not None]
+     for bar, _ in host._field_bars:bar.hide()
++    from . import board_qt
++    board_qt.as_field(page)          # 1.0 L2: the Field by name is the whole desk (the board is brought by board_qt.show_board)
+     page.refresh(reading=reading)
+     host.setWindowTitle('Field — Graphite')
+     page.view.setFocus(Qt.OtherFocusReason)
+diff --git a/workbench/field_source.py b/workbench/field_source.py
+index 992ec50..3355a34 100644
+--- a/workbench/field_source.py
++++ b/workbench/field_source.py
+@@ -532,9 +532,10 @@ def read_network(kernel, principal):
+     return Field(reader.objects, reader.links, title, verbs=('held by', 'reaches'), note=_left_out(reader)), reader
+ 
+ 
+-def read_field(kernel, principal, title='', skip=()):
+-    """The Field of one workspace. Returns (Field, reader); reader.refused and reader.unread say what did not answer."""
+-    reader = Reader(kernel, principal, skip)
++def read_field(kernel, principal, title='', skip=(), reader=None):
++    """The Field of one workspace. Returns (Field, reader); reader.refused and reader.unread say what did not answer.
++    `reader` (1.0 L2): a Reader of the caller's (the board's, which keeps the answers it was given), else a new one."""
++    reader = reader if reader is not None else Reader(kernel, principal, skip)      # 1.0 L2
+     reader.material();reader.tables();reader.pages_and_calculations()
+     investigations = reader.findings()
+     reader.settle_tables();reader.mind();reader.totals();reader.jobs()      # 0.8.6 W: her mind's cards after the sheets are settled
+diff --git a/workbench/living_nav_qt.py b/workbench/living_nav_qt.py
+index d8428ae..8ddce82 100644
+--- a/workbench/living_nav_qt.py
++++ b/workbench/living_nav_qt.py
+@@ -394,6 +394,8 @@ class LivingNav(QObject):
+         view.selection_changed.connect(self.board_selected)
+         view.opened.connect(self.board_opened)
+         view.installEventFilter(self)
++        board = getattr(page, 'board', None)       # 1.0 L2: the board (board_qt) is the centre's home at board depth
++        if board is not None:board.focused.connect(self.board_focused)
+         if page.face == 'work' and view.field is not None and view.field.objects:self.desk_raw = view.field
+ 
+     def eventFilter(self, watched, event):
+@@ -435,7 +437,9 @@ class LivingNav(QObject):
+         return (found or {}).get('digest') if (found or {}).get('digest_kind') == 'sha256' else None
+ 
+     def select_tile(self, ident):
+-        view = self.page().view
++        page = self.page();view = page.view
++        if getattr(page, 'mode', '') == 'board':      # 1.0 L2: the board brings it to the middle (the Field's selection follows)
++            return page.board.focus_on(ident)
+         if view.field.get(ident) is None:return False
+         view.field.select(ident);view._reveal_pending = True;view._describe();view.update()
+         return True
+@@ -451,6 +455,10 @@ class LivingNav(QObject):
+         view = page.view
+         if (again or view.field.get(ident) is None) and ident in self.files_by_id and self.desk_raw is not None:
+             view.set_field(self.desk_raw)
++        if getattr(page, 'board', None) is not None:      # 1.0 L2: the focus is shown on the board, the centre's home
++            from . import board_qt
++            if not again:return board_qt.to_board(page, ident)
++            if page.mode == 'board':return page.board.focus_on(ident, again=True)      # renamed: drawn again, on the board kept in front
+         return self.select_tile(ident)
+ 
+     def board_state(self):
+@@ -459,11 +467,15 @@ class LivingNav(QObject):
+         page = self.page()
+         if page is None:return None
+         view = page.view
+-        return {'zoom': view.zoom, 'x': view.scroll_x, 'y': view.scroll_y, 'face': page.face, 'auto': bool(view.auto_fit), 'whole': bool(view._fitted)}
++        from . import board_qt     # 1.0 L2: the board's own size and place, and which of the two (board, whole desk) was in front
++        return dict({'zoom': view.zoom, 'x': view.scroll_x, 'y': view.scroll_y, 'face': page.face, 'auto': bool(view.auto_fit), 'whole': bool(view._fitted)},
++                    **board_qt.state(page))
+ 
+     def set_board(self, board, later=True):
+         page = self.page()
+         if page is None or not board:return
++        from . import board_qt
++        board_qt.restore(page, board)      # 1.0 L2
+         view = page.view
+         if board.get('whole'):
+             view.auto_fit = False;view.zoom = view.fit();view._fitted = True
+@@ -478,6 +490,11 @@ class LivingNav(QObject):
+         if self.applying or not self.user_input or obj is None or obj.id == self.nav.focus:return
+         self.go(obj.id, 'board', 'board', title=obj.title, from_board=True)
+ 
++    def board_focused(self, obj):
++        """1.0 L2: a tile chosen on the board (the owner's click or key): the focus is it, the tree reveals it."""
++        if self.applying or obj is None or obj.id == self.nav.focus:return
++        self.go(obj.id, 'board', 'board', title=obj.title, from_board=True)
++
+     def board_opened(self, obj):
+         """The board opened an object's working view (field_page.open_object ran first): that tab is this object."""
+         if obj is None:return
+@@ -538,6 +555,7 @@ class LivingNav(QObject):
+         via, node = self.pending or (None, None);self.pending = None
+         if self.on_board():
+             view = self.page().view;obj = view.field.get(view.field.selected)
++            if getattr(self.page(), 'mode', '') == 'board':obj = self.page().board.focus_obj() or obj      # 1.0 L2: the board's focus
+             focus = self.nav.focus
+             if self.nav.depth == 'board' and focus and (view.field.get(focus) is None) and self.page().face == 'work' and not ln.is_file_id(focus):
+                 self.show_crumbs();return                         # a drawer of the tree in focus over the board as it is
+@@ -636,7 +654,9 @@ class LivingNav(QObject):
+ 
+     def board_has(self, ident):
+         page = self.page()
+-        return (page is not None and page.view.field.get(ident) is not None) or (self.desk_raw is not None and self.desk_raw.get(ident) is not None)
++        board = getattr(page, 'board', None)      # 1.0 L2: an object only the board draws (an earlier revision of a calculation)
++        return ((page is not None and page.view.field.get(ident) is not None) or (self.desk_raw is not None and self.desk_raw.get(ident) is not None)
++                or (board is not None and board.desk is not None and ident in board.desk.objects))
+ 
+     def with_applying(self, fn):
+         self.applying += 1
+@@ -651,6 +671,8 @@ class LivingNav(QObject):
+         if entry is not None:return entry['name']
+         page = self.page()
+         obj = page.view.field.get(ident) if page is not None and ident else None
++        board = getattr(page, 'board', None)      # 1.0 L2
++        if obj is None and board is not None and board.desk is not None and ident:obj = board.desk.objects.get(ident)
+         return obj.title if obj is not None else ''
+ 
+     def trail(self, entry):
+diff --git a/workbench/qt_app.py b/workbench/qt_app.py
+index 313513b..e02a7f1 100644
+--- a/workbench/qt_app.py
++++ b/workbench/qt_app.py
+@@ -3854,7 +3854,8 @@ class WorkbenchWindow(QMainWindow):
+         from .arc_desktop import refresh
+         refresh(self)
+         if self._field_active:
+-            self.setWindowTitle('Field — Graphite');self.context_bar.hide();self.doc_info.hide();self.workspace_status.hide()
++            self.setWindowTitle(('Board' if getattr(self.field_page, 'mode', '') == 'board' else 'Field') + ' — Graphite')  # 1.0 L2: the board or the whole desk
++            self.context_bar.hide();self.doc_info.hide();self.workspace_status.hide()
+ 
+     # ---------------------------------------------------------------- navigator
+     def refresh_navigator(self):
+diff --git a/workbench/stacy_hand.py b/workbench/stacy_hand.py
+index c3a6fe8..c798c04 100644
+--- a/workbench/stacy_hand.py
++++ b/workbench/stacy_hand.py
+@@ -65,6 +65,7 @@ ALWAYS_ASKS = (
+     (('shell.*', 'terminal.*'), 'a command in the Terminal can do anything'),
+     (('tolerances.set', 'tolerances.set_cell'), 'a tolerance is yours to say: it decides what I conclude'),   # 0.8.6 S1: on a sheet's cell too
+     (('word.set', 'rules.set', 'quotes.rebind'), 'it is yours to say: it decides what I conclude'),   # 0.8.6 S3: your word (and S6's rules and quotes)
++    (('board.keep',), 'a link kept by your word is recorded: it is yours to say, never mine'),   # 1.0 L2: a possible link becomes recorded only by your word
+ )
+ LEAVES = ('address', 'peer', 'url', 'host', 'recipient')      # an argument by one of these names reaches another computer
+ 

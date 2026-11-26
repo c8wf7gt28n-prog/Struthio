@@ -83,6 +83,7 @@ from . import program_print, program_delivery
 from . import living_nav  # 1.0 L1 (one navigation state): objects.files, objects.get, the stable ids of plain files (reads; recorded additions)
 from . import relevance  # 1.0 L3 (relevance): relevance.why (read); relevance.pin, relevance.turn_down, relevance.clear (execute) (recorded additions)
 from . import apps_catalog  # 1.0 S2 (apps from what is installed): apps.list, apps.for (read); apps.open, apps.pin, apps.unpin (execute); apps.default (approve) (recorded additions)
+from . import board_model  # 1.0 L2 (the bulletin board): board.read, board.links (reads); board.keep (approve, the owner's word on a link) (recorded additions)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -272,6 +273,7 @@ CAPABILITIES = {
     **living_nav.SCOPES,  # 1.0 L1 (one navigation state): two reads; nothing written but the identity index of Files
     **relevance.SCOPES,  # 1.0 L3 (relevance): why is a read; pin, turn down and clear are the owner's marks on a board
     **apps_catalog.SCOPES,  # 1.0 S2 (apps from what is installed): apps.default is approve, the owner's press only
+    **board_model.SCOPES,  # 1.0 L2 (the bulletin board): two reads; board.keep approve, only by the owner's word
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -710,6 +712,7 @@ class Kernel:
         if op in living_nav.FIELDS:return living_nav.dispatch(self,op,a,p)   # 1.0 L1 (one navigation state): a plain file's stable id, by inode with its digest as the check
         if op in relevance.FIELDS:return relevance.dispatch(self,op,a,p)   # 1.0 L3 (relevance): the reasons a tile is shown, and the owner's pin or turn-down
         if op in apps_catalog.FIELDS:return apps_catalog.dispatch(self,op,a,p)   # 1.0 S2 (apps from what is installed): desktop entries, Exec as argv, mimeapps.list
+        if op in board_model.FIELDS:return board_model.dispatch(self,op,a,p)   # 1.0 L2 (the bulletin board): a focus and its neighbours with the basis of each link
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

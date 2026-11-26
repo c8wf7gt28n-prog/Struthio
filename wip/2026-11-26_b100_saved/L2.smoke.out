@@ -1,0 +1,99 @@
+== model, default sizes (graphite)
+OK   A1. focus the bench readings: the sheet is in the middle, SHEET • CURRENT, its basis and its source  | {"id": "office:owner:9c973a09957e45a4a2875e2001e652cd", "kind": "sheet", "kind_word": "SHEET", "state": "current", "state_word": "CURRENT", "title": "Ra
+OK       its source (the admitted PDF) around it  | {"id": "intake:a8887a3388c386e204c2f946500ef6fe", "kind": "source", "kind_word": "SOURCE", "state": "current", "state_word": "CURRENT", "title": "Rail_Demo_Bench_Readings.pdf", "basis": "page 1 reviewed into 
+OK       the Rev A and Rev B sheets around it, Rev A ARCHIVED and Rev B CURRENT  | {"office:owner:13a9ff48f8f443deaa4fa13764ab3e40": ["ARCHIVED", "possible: both name the startup duration · not verified"], "office:owner:1384bc893bdc4fd3a051809a3b78233c": ["CUR
+OK       the two calculations around it, CALC • CURRENT  | {"document:e5ad596f29014145a10645f950693dc2": ["Rail Demo settled power · 3 W", "cells B2, B3, revision 2"], "document:f103af69eafd4ee89f05289ffb64ce4d": ["Rail Demo startup power · 10.8 W", "cells B2,
+OK       the findings around it with their state words (SUPPORTED, REFUTED)  | {"settled_holds": "SUPPORTED", "startup_holds": "REFUTED"}
+OK   A2. its basis names the cells and the revision  | ["Used values 12 V (cell B2, Rail voltage) and 250 mA (cell B3, Settled current) from Rail Demo bench readings, version 1 (revision 4e45e411e535), to calculate Rail Demo settled power.", "Worked exactly as
+OK   A3. an inferred link is dashed and says "not verified"  | {"source": "office:owner:9c973a09957e45a4a2875e2001e652cd", "target": "office:owner:1384bc893bdc4fd3a051809a3b78233c", "kind": "inferred", "relation": "same words", "label": "possible · not verifie
+OK       a plain file in Files is a neighbour too, its link labelled possible  | [["Rail_Demo_Bench_Readings.pdf", "the same bytes"], ["bench_log.txt", "possible: both name the startup duration · not verified"]]
+OK       with no relevance module, the board's own sizes: the focus 4, recorded and current 3, possible 1  | {"office:owner:9c973a0": 4, "claim:cf240f3f74994d": 3, "intake:a8887a3388c38": 3, "document:e5ad596f290": 3, "document:f103af69eaf": 3, "claim:c3a8511e
+OK       on the rings, no two tiles overlap  | {"tiles": 12, "rings": 2, "touching": []}
+OK   A4. her calls cannot keep a link (read only): refused  | {'code': 'KernelError', 'message': 'Operation is outside the authorized mode/scope'}
+OK       board.keep always asks, at every place of the dial (never hers)  | a link kept by your word is recorded: it is yours to say, never mine
+OK       the owner keeps it by his word: solid, recorded "by your word", what was suggested kept with it  | {"source": "office:owner:1384bc893bdc4fd3a051809a3b78233c", "target": "office:owner:9c973a09957e45a4a2875e2001e652cd", "kind": "recorded", "relation": "
+OK       set aside: possible again, dashed, not verified; the word's history kept  | possible · not verified
+OK   A5. "Used value 300 mA from the bench readings, version 2, to calculate settled power"  | ["Used values 12 V (cell B2, Rail voltage) and 300 mA (cell B3, Settled current) from Rail Demo bench readings, version 2 (revision c75310c72400), to calculate Rail 
+OK       the startup power was worked from an earlier version: its wire says so and asks for a recheck  | Used values 12 V (cell B2, Rail voltage) and 900 mA (cell B4, Startup current) from Rail Demo bench readings, an earlier version (revision 4e45e411e535); 
+OK       the finding that still says 3 W waits: FINDING • RECHECK  | RECHECK
+OK       focus the new calculation: its earlier revision beside it, CALC • REPLACED, wired "worked again"  | [["Rail Demo bench readings", "CURRENT", "gives cells B2, B3"], ["Rail Demo startup power · 10.8 W", "RECHECK", "cells B2, B4, revision 2"], ["Startup 
+OK       focus the readings PDF: Rev B's PDF two steps away, through the finding both are evidence for  | supports “Settled power is 3 W, inside the…”
+OK       an assignment of yours reads the readings and Rev B: "used together", possible, not verified  | ["used together", "Possible: both are used in your assignment “Invented: compare the bench readings with the Rev B limits”; not verified."]
+OK       focus the plain PDF file in Files: FILE in the middle, the admitted source of the same bytes recorded beside it  | ["Rail_Demo_Bench_Readings.pdf", [["Rail_Demo_Bench_Readings.pdf", "the same bytes"], ["Settled power is 3 W, inside the Rev B limit of 
+summary: 21 checked, 21 OK, 0 FAIL
+
+== model, with L3 relevance.py copied into the throwaway copy
+OK   L0. relevance is found through the guarded import
+OK   L1. ranked by relevance: sizes 1 to 4 from its scores, the focus still the largest tile  | relevance
+OK       the refuted finding is drawn at least as large as the supported one  | [3, 2]
+OK       truth, confidence and authority come as separate marks, never in the size  | {"truth": "current", "confidence": "inferred, not verified", "authority": "archived revision"}
+OK   L2. Rev A pinned by you: drawn larger, marked pinned, its reasons say so  | [1, 4, ["pinned by you", "possible match: both name the startup duration; not verified"]]
+OK       "Why am I shown?" gives the reasons in words  | ["pinned by you", "possible match: both name the startup duration; not verified", "archived revision"]
+OK   L3. with relevance's four sizes, no two tiles overlap on the rings  | {"tiles": 12, "rings": 2, "sizes": [1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3]}
+summary: 7 checked, 7 OK, 0 FAIL
+
+== window, graphite, 1920x1200 + 1366x768
+OK   B1. [graphite 1920x1200] the readings chosen in the tree: the board is in front, the sheet in the middle  | {"mode": "board", "focus": "Rail Demo bench readings", "nav": true}
+OK       [graphite 1920x1200] around it: the source, Rev A, Rev B, the calculations, the findings  | [["FINDING", "REFUTED", "Startup is inside the Rev B li"], ["SOURCE", "CURRENT", "Rail_Demo_Bench_Readings.pdf"], ["CALC", "CURRENT", "Rail Demo settled power 
+OK       [graphite 1920x1200] every tile on the screen, none touching another  | {"zoom": 0.843, "tiles": 12}
+OK       [graphite 1920x1200] the Field's selection is the same object (the window's "this")
+frame graphite_1920x1200_board_readings.png
+OK   B2. [graphite 1920x1200] the wire to the settled power clicked: the inspector, its basis naming the cells and the revision  | RECORDED LINK  ·  AN INPUT OF A CALCULATION | Rail Demo bench readings  →  Rail Demo settled power · 3 W
+frame graphite_1920x1200_inspector_recorded.png
+OK   B3. [graphite 1920x1200] the dashed wire to Rev B clicked: "POSSIBLE LINK · NOT VERIFIED", its basis says not verified, Keep offered  | <p style="margin:0 0 4px 0">Possible: both name the startup duration; not verified.</p><p style="margin:0 0 4px 0">Foun
+frame graphite_1920x1200_inspector_possible.png
+OK   B4. one click on the calculation's tile: it is the focus, through the one navigation state; the tree reveals it  | {"focus": "Rail Demo settled power · 3 W", "tree": "Rail Demo settled power · 3 W", "crumbs": "Unassigned / Documents / Rail Demo settled po
+OK       no branch of the tree closed
+frame graphite_1920x1200_board_calc.png
+OK       Back: the readings in the middle of the board again  | ["Rail Demo bench readings", "board"]
+OK   B5. zoomed out of the board: the whole desk (the Field), its selection the same sheet  | ["map", true]
+frame graphite_1920x1200_whole_desk.png
+OK       "Board" on the Field: the board again, on that sheet
+OK       the Field by name (as F9): the whole desk
+OK   B6. at launch (open_on_work): the board is the centre's home, on the desk's first object  | ["board", "Rail Demo bench readings", "Board — Graphite"]
+frame graphite_1920x1200_launch_home.png
+OK   B7. a plain file chosen in the tree: FILE in the middle, its possible links around it  | [["SHEET", "Rail Demo bench readings", "possible: both name the startup duration · not ver"], ["SHEET", "Rail Demo limits Rev B CURRE", "possible: both name the start
+frame graphite_1920x1200_board_file.png
+OK   B1. [graphite 1366x768] the readings chosen in the tree: the board is in front, the sheet in the middle  | {"mode": "board", "focus": "Rail Demo bench readings", "nav": true}
+OK       [graphite 1366x768] around it: the source, Rev A, Rev B, the calculations, the findings  | [["FINDING", "REFUTED", "Startup is inside the Rev B li"], ["SOURCE", "CURRENT", "Rail_Demo_Bench_Readings.pdf"], ["CALC", "CURRENT", "Rail Demo settled power ·
+OK       [graphite 1366x768] every tile on the screen, none touching another  | {"zoom": 0.74, "tiles": 12}
+OK       [graphite 1366x768] the Field's selection is the same object (the window's "this")
+frame graphite_1366x768_board_readings.png
+OK   B2. [graphite 1366x768] the wire to the settled power clicked: the inspector, its basis naming the cells and the revision  | RECORDED LINK  ·  AN INPUT OF A CALCULATION | Rail Demo bench readings  →  Rail Demo settled power · 3 W
+frame graphite_1366x768_inspector_recorded.png
+OK   B3. [graphite 1366x768] the dashed wire to Rev B clicked: "POSSIBLE LINK · NOT VERIFIED", its basis says not verified, Keep offered  | <p style="margin:0 0 4px 0">Possible: both name the startup duration; not verified.</p><p style="margin:0 0 4px 0">Found
+frame graphite_1366x768_inspector_possible.png
+summary: 20 checked, 20 OK, 0 FAIL
+
+== window, kasandra, 1920x1200 + 1366x768
+OK   B1. [kasandra 1920x1200] the readings chosen in the tree: the board is in front, the sheet in the middle  | {"mode": "board", "focus": "Rail Demo bench readings", "nav": true}
+OK       [kasandra 1920x1200] around it: the source, Rev A, Rev B, the calculations, the findings  | [["FINDING", "REFUTED", "Startup is inside the Rev B li"], ["SOURCE", "CURRENT", "Rail_Demo_Bench_Readings.pdf"], ["CALC", "CURRENT", "Rail Demo settled power 
+OK       [kasandra 1920x1200] every tile on the screen, none touching another  | {"zoom": 0.805, "tiles": 12}
+OK       [kasandra 1920x1200] the Field's selection is the same object (the window's "this")
+frame kasandra_1920x1200_board_readings.png
+OK   B2. [kasandra 1920x1200] the wire to the settled power clicked: the inspector, its basis naming the cells and the revision  | RECORDED LINK  ·  AN INPUT OF A CALCULATION | Rail Demo bench readings  →  Rail Demo settled power · 3 W
+frame kasandra_1920x1200_inspector_recorded.png
+OK   B3. [kasandra 1920x1200] the dashed wire to Rev B clicked: "POSSIBLE LINK · NOT VERIFIED", its basis says not verified, Keep offered  | <p style="margin:0 0 4px 0">Possible: both name the startup duration; not verified.</p><p style="margin:0 0 4px 0">Foun
+frame kasandra_1920x1200_inspector_possible.png
+OK   B4. one click on the calculation's tile: it is the focus, through the one navigation state; the tree reveals it  | {"focus": "Rail Demo settled power · 3 W", "tree": "Rail Demo settled power · 3 W", "crumbs": "Unassigned / Documents / Rail Demo settled po
+OK       no branch of the tree closed
+frame kasandra_1920x1200_board_calc.png
+OK       Back: the readings in the middle of the board again  | ["Rail Demo bench readings", "board"]
+OK   B5. zoomed out of the board: the whole desk (the Field), its selection the same sheet  | ["map", true]
+frame kasandra_1920x1200_whole_desk.png
+OK       "Board" on the Field: the board again, on that sheet
+OK       the Field by name (as F9): the whole desk
+OK   B6. at launch (open_on_work): the board is the centre's home, on the desk's first object  | ["board", "Rail Demo bench readings", "Board — Graphite"]
+frame kasandra_1920x1200_launch_home.png
+OK   B7. a plain file chosen in the tree: FILE in the middle, its possible links around it  | [["SHEET", "Rail Demo bench readings", "possible: both name the startup duration · not ver"], ["SHEET", "Rail Demo limits Rev B CURRE", "possible: both name the start
+frame kasandra_1920x1200_board_file.png
+OK   B1. [kasandra 1366x768] the readings chosen in the tree: the board is in front, the sheet in the middle  | {"mode": "board", "focus": "Rail Demo bench readings", "nav": true}
+OK       [kasandra 1366x768] around it: the source, Rev A, Rev B, the calculations, the findings  | [["FINDING", "REFUTED", "Startup is inside the Rev B li"], ["SOURCE", "CURRENT", "Rail_Demo_Bench_Readings.pdf"], ["CALC", "CURRENT", "Rail Demo settled power ·
+OK       [kasandra 1366x768] every tile on the screen, none touching another  | {"zoom": 0.74, "tiles": 12}
+OK       [kasandra 1366x768] the Field's selection is the same object (the window's "this")
+frame kasandra_1366x768_board_readings.png
+OK   B2. [kasandra 1366x768] the wire to the settled power clicked: the inspector, its basis naming the cells and the revision  | RECORDED LINK  ·  AN INPUT OF A CALCULATION | Rail Demo bench readings  →  Rail Demo settled power · 3 W
+frame kasandra_1366x768_inspector_recorded.png
+OK   B3. [kasandra 1366x768] the dashed wire to Rev B clicked: "POSSIBLE LINK · NOT VERIFIED", its basis says not verified, Keep offered  | <p style="margin:0 0 4px 0">Possible: both name the startup duration; not verified.</p><p style="margin:0 0 4px 0">Found
+frame kasandra_1366x768_inspector_possible.png
+summary: 20 checked, 20 OK, 0 FAIL

@@ -3854,7 +3854,8 @@ class WorkbenchWindow(QMainWindow):
         from .arc_desktop import refresh
         refresh(self)
         if self._field_active:
-            self.setWindowTitle('Field — Graphite');self.context_bar.hide();self.doc_info.hide();self.workspace_status.hide()
+            self.setWindowTitle(('Board' if getattr(self.field_page, 'mode', '') == 'board' else 'Field') + ' — Graphite')  # 1.0 L2: the board or the whole desk
+            self.context_bar.hide();self.doc_info.hide();self.workspace_status.hide()
 
     # ---------------------------------------------------------------- navigator
     def refresh_navigator(self):

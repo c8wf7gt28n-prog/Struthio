@@ -532,9 +532,10 @@ def read_network(kernel, principal):
     return Field(reader.objects, reader.links, title, verbs=('held by', 'reaches'), note=_left_out(reader)), reader
 
 
-def read_field(kernel, principal, title='', skip=()):
-    """The Field of one workspace. Returns (Field, reader); reader.refused and reader.unread say what did not answer."""
-    reader = Reader(kernel, principal, skip)
+def read_field(kernel, principal, title='', skip=(), reader=None):
+    """The Field of one workspace. Returns (Field, reader); reader.refused and reader.unread say what did not answer.
+    `reader` (1.0 L2): a Reader of the caller's (the board's, which keeps the answers it was given), else a new one."""
+    reader = reader if reader is not None else Reader(kernel, principal, skip)      # 1.0 L2
     reader.material();reader.tables();reader.pages_and_calculations()
     investigations = reader.findings()
     reader.settle_tables();reader.mind();reader.totals();reader.jobs()      # 0.8.6 W: her mind's cards after the sheets are settled

@@ -394,6 +394,8 @@ class LivingNav(QObject):
         view.selection_changed.connect(self.board_selected)
         view.opened.connect(self.board_opened)
         view.installEventFilter(self)
+        board = getattr(page, 'board', None)       # 1.0 L2: the board (board_qt) is the centre's home at board depth
+        if board is not None:board.focused.connect(self.board_focused)
         if page.face == 'work' and view.field is not None and view.field.objects:self.desk_raw = view.field
 
     def eventFilter(self, watched, event):
@@ -435,7 +437,9 @@ class LivingNav(QObject):
         return (found or {}).get('digest') if (found or {}).get('digest_kind') == 'sha256' else None
 
     def select_tile(self, ident):
-        view = self.page().view
+        page = self.page();view = page.view
+        if getattr(page, 'mode', '') == 'board':      # 1.0 L2: the board brings it to the middle (the Field's selection follows)
+            return page.board.focus_on(ident)
         if view.field.get(ident) is None:return False
         view.field.select(ident);view._reveal_pending = True;view._describe();view.update()
         return True
@@ -451,6 +455,10 @@ class LivingNav(QObject):
         view = page.view
         if (again or view.field.get(ident) is None) and ident in self.files_by_id and self.desk_raw is not None:
             view.set_field(self.desk_raw)
+        if getattr(page, 'board', None) is not None:      # 1.0 L2: the focus is shown on the board, the centre's home
+            from . import board_qt
+            if not again:return board_qt.to_board(page, ident)
+            if page.mode == 'board':return page.board.focus_on(ident, again=True)      # renamed: drawn again, on the board kept in front
         return self.select_tile(ident)
 
     def board_state(self):
@@ -459,11 +467,15 @@ class LivingNav(QObject):
         page = self.page()
         if page is None:return None
         view = page.view
-        return {'zoom': view.zoom, 'x': view.scroll_x, 'y': view.scroll_y, 'face': page.face, 'auto': bool(view.auto_fit), 'whole': bool(view._fitted)}
+        from . import board_qt     # 1.0 L2: the board's own size and place, and which of the two (board, whole desk) was in front
+        return dict({'zoom': view.zoom, 'x': view.scroll_x, 'y': view.scroll_y, 'face': page.face, 'auto': bool(view.auto_fit), 'whole': bool(view._fitted)},
+                    **board_qt.state(page))
 
     def set_board(self, board, later=True):
         page = self.page()
         if page is None or not board:return
+        from . import board_qt
+        board_qt.restore(page, board)      # 1.0 L2
         view = page.view
         if board.get('whole'):
             view.auto_fit = False;view.zoom = view.fit();view._fitted = True
@@ -476,6 +488,11 @@ class LivingNav(QObject):
 
     def board_selected(self, obj):
         if self.applying or not self.user_input or obj is None or obj.id == self.nav.focus:return
+        self.go(obj.id, 'board', 'board', title=obj.title, from_board=True)
+
+    def board_focused(self, obj):
+        """1.0 L2: a tile chosen on the board (the owner's click or key): the focus is it, the tree reveals it."""
+        if self.applying or obj is None or obj.id == self.nav.focus:return
         self.go(obj.id, 'board', 'board', title=obj.title, from_board=True)
 
     def board_opened(self, obj):
@@ -538,6 +555,7 @@ class LivingNav(QObject):
         via, node = self.pending or (None, None);self.pending = None
         if self.on_board():
             view = self.page().view;obj = view.field.get(view.field.selected)
+            if getattr(self.page(), 'mode', '') == 'board':obj = self.page().board.focus_obj() or obj      # 1.0 L2: the board's focus
             focus = self.nav.focus
             if self.nav.depth == 'board' and focus and (view.field.get(focus) is None) and self.page().face == 'work' and not ln.is_file_id(focus):
                 self.show_crumbs();return                         # a drawer of the tree in focus over the board as it is
@@ -636,7 +654,9 @@ class LivingNav(QObject):
 
     def board_has(self, ident):
         page = self.page()
-        return (page is not None and page.view.field.get(ident) is not None) or (self.desk_raw is not None and self.desk_raw.get(ident) is not None)
+        board = getattr(page, 'board', None)      # 1.0 L2: an object only the board draws (an earlier revision of a calculation)
+        return ((page is not None and page.view.field.get(ident) is not None) or (self.desk_raw is not None and self.desk_raw.get(ident) is not None)
+                or (board is not None and board.desk is not None and ident in board.desk.objects))
 
     def with_applying(self, fn):
         self.applying += 1
@@ -651,6 +671,8 @@ class LivingNav(QObject):
         if entry is not None:return entry['name']
         page = self.page()
         obj = page.view.field.get(ident) if page is not None and ident else None
+        board = getattr(page, 'board', None)      # 1.0 L2
+        if obj is None and board is not None and board.desk is not None and ident:obj = board.desk.objects.get(ident)
         return obj.title if obj is not None else ''
 
     def trail(self, entry):

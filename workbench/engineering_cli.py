@@ -114,6 +114,7 @@ def schemas():
     from .voice_column import FIELDS as VOICE_COLUMN_FIELDS  # 0.8.7 W7 (the window wiring): voice.say
     from .living_nav import FIELDS as LIVING_NAV_FIELDS  # 1.0 L1 (one navigation state): objects.files, objects.get
     from .apps_catalog import FIELDS as APPS_FIELDS  # 1.0 S2 (apps from what is installed): apps.list, .for, .open, .default, .pin, .unpin
+    from .board_model import FIELDS as BOARD_FIELDS  # 1.0 L2 (the bulletin board): board.read, board.links, board.keep
     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
     from .assignments import FIELDS as ASSIGNMENT_FIELDS  # 1.0 K1 (assignments and the journal)
     from .relevance import FIELDS as RELEVANCE_FIELDS  # 1.0 L3 (relevance): relevance.why, .pin, .turn_down, .clear
@@ -232,6 +233,7 @@ def schemas():
         **VOICE_COLUMN_FIELDS,  # 0.8.7 W7 (the window wiring): voice.say
         **LIVING_NAV_FIELDS,  # 1.0 L1 (one navigation state): objects.files, objects.get
         **APPS_FIELDS,  # 1.0 S2 (apps from what is installed)
+        **BOARD_FIELDS,  # 1.0 L2 (the bulletin board): board.read, board.links, board.keep
         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
         **ASSIGNMENT_FIELDS,  # 1.0 K1 (assignments and the journal)
         **RELEVANCE_FIELDS,  # 1.0 L3 (relevance)

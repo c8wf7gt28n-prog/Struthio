@@ -55,6 +55,9 @@
    "atlas.passport.get": "workbench/tool_atlas.py#dispatch",
    "atlas.passport.save": "workbench/tool_atlas.py#dispatch",
    "atlas.passports.list": "workbench/tool_atlas.py#dispatch",
+   "board.keep": "workbench/board_model.py#dispatch",
+   "board.links": "workbench/board_model.py#dispatch",
+   "board.read": "workbench/board_model.py#dispatch",
    "boards.prepare": "workbench/lab_service.py#dispatch",
    "boards.result": "workbench/lab_service.py#dispatch",
    "boards.run": "workbench/lab_service.py#dispatch",
@@ -1047,9 +1050,9 @@
   }
  },
  "counts": {
-  "adapters": 849,
+  "adapters": 852,
   "job_tools": 113,
-  "operations": 849,
+  "operations": 852,
   "settings": 48
  },
  "formulas": {
@@ -1962,6 +1965,32 @@
    "properties": {
     "limit": "e238f277e0a04179",
     "offset": "0d3ac1e9e006c011"
+   },
+   "scope": "read"
+  },
+  "board.keep": {
+   "arguments": "13b16f9db99dd428acf9ad72c01a8759f316bce9a1d2b0c98322668bef1b1cc5",
+   "properties": {
+    "id": "acc5cd46d5d1efe5",
+    "said": "3e79622dec12ac17",
+    "source": "6010f5f0c18ab87b",
+    "state": "bb42ca0547a2b0d9",
+    "target": "6010f5f0c18ab87b"
+   },
+   "scope": "approve"
+  },
+  "board.links": {
+   "arguments": "8545cb77cf64ac0e99084a8ef0e33911bf70a3a78338b26c56332b3a2ab9420e",
+   "properties": {
+    "all": "7cb541e84f226754"
+   },
+   "scope": "read"
+  },
+  "board.read": {
+   "arguments": "dcc07c07e349b0a8ab5bf317dff256a97ed5e6f926c296de5f712b2e14a569e4",
+   "properties": {
+    "focus": "6010f5f0c18ab87b",
+    "task": "3e79622dec12ac17"
    },
    "scope": "read"
   },
@@ -8343,7 +8372,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "e7b68f1d6ffb19e79ed065344cf405ded17629cd46007d9e970aa030bfaf9234",
+ "schema_digest": "0a9ac79370e46886d996c375939efe0a4e27ba515ed3513c048aae5556132ed0",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

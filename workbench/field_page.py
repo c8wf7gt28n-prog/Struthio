@@ -75,6 +75,8 @@ class FieldPage(QWidget):
         self.problem = ''            # what the last reading could not read, in words
         self.unread = set()          # records that refused: not asked again until the owner looks again
         QApplication.instance().focusChanged.connect(self._keyboard_moved)
+        from . import board_qt
+        board_qt.attach(self)        # 1.0 L2: the board shares this page with the Field (the whole desk); one reading serves both
 
     def _menu(self):
         """A click on "Menu" at the foot: the selected sheet's own menu, as the Menu key and the right button open it."""
@@ -152,7 +154,10 @@ def open_on_work(host):
         return None
     if not reading[0].objects:
         return None
-    return show_field(host, reading=reading)
+    page = show_field(host, reading=reading)
+    from . import board_qt
+    board_qt.home(page)          # 1.0 L2: the centre's home is the board, on the desk's first object
+    return page
 
 
 def show_field(host, reading=None):
@@ -160,6 +165,8 @@ def show_field(host, reading=None):
     it is already in front, it only takes the keyboard: nothing is read again and where the owner came from is kept."""
     page = getattr(host, 'field_page', None)
     if getattr(host, '_field_active', False) and page is not None:
+        from . import board_qt
+        board_qt.as_field(page)      # 1.0 L2: the Field asked for on the board is the whole desk
         page.view.setFocus(Qt.OtherFocusReason);return page
     from_home = bool(getattr(host, '_home_active', False))
     focus = QApplication.focusWidget()
@@ -175,6 +182,8 @@ def show_field(host, reading=None):
     bars = [getattr(getattr(host, 'concern', None), 'context_strip', None), host.workspace_status, host.context_bar, host.doc_info]
     host._field_bars = [(bar, bar.isVisible()) for bar in bars if bar is not None]
     for bar, _ in host._field_bars:bar.hide()
+    from . import board_qt
+    board_qt.as_field(page)          # 1.0 L2: the Field by name is the whole desk (the board is brought by board_qt.show_board)
     page.refresh(reading=reading)
     host.setWindowTitle('Field — Graphite')
     page.view.setFocus(Qt.OtherFocusReason)
