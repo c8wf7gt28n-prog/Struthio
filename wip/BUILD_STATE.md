@@ -278,6 +278,13 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 01:05 UTC: The weekly limit reset. Since the last entry: **W7 merged** (0a9de1b: voice floor in her column,
+  Ask the Library and Read this table in the window, cross-references, Leave it, her clock line, Remember and Retire;
+  frames in `wip/2026-11-20_b087_saved/frames_W7/`); then **a second weekly stop** (about 22:00, 20 Nov) cut X7b off
+  mid-build. X7b resumed now in its kept worktree (agent-aacd072e07bb2ec1e). The owner, 26 Nov: "Forget the fun stuff
+  let's just finish 0.8.7" (the fun art is stopped). Meanwhile: the 0.8.7 release work (version, notes, start page).
+  Next: merge X7b, then cut the 0.8.7 kit.
+
 - 20 Nov 21:33 UTC: **0.8.7 X7 merged** (24313c2): 94 of 127 short exam items askable on a stand-in at the 35B's
   rates. Its six blockers given to **X7b** (decisions above). Running: W7, X7b; for fun, the 16-bit branded Kas.
 - 20 Nov 21:10 UTC: **0.8.7 B6 merged** (64c9547: NEXT, ORDER and ORDER_GOAL on the turn contract, the reason check,
