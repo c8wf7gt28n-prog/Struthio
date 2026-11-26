@@ -382,6 +382,14 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 19:24 UTC: **K10's live re-run on the merged tree** (coordinator, once, under the lock; log in
+  `K10.live_rerun_coordinator.log`): the 4B sealed and primed in 58 s, and PLAN's prompt with the file tools stayed
+  kept (312 of 314). Asked to tidy Downloads, it answered "24 D1" eight times. The desk took step 1 (look at
+  ~/Downloads, read and verified), refused the seven repeats, and she said so in plain words. Nothing harmful could run;
+  the 4B simply does not plan this tidy. For the release notes: the desk's own tidy (X3's everyday_desk) works with no
+  model, and the 35B's planning is untried. (The script's final Stop on a finished assignment raised; that is the
+  script's own fault.)
+
 - 26 Nov 19:22 UTC: **1.0 K10 merged** (8734411: her reach in Home. She reads a Home document's pages through the
   doorway and names the page. The plan menu gains the file tools (24-27) and up to eight steps; bin, copy and rename
   need the owner's own words, and repeats are refused. grant.give.set gives one press for several grants in one folder

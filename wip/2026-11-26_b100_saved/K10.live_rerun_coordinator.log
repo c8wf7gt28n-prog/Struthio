@@ -1,0 +1,31 @@
+Everyday Home built through its own door in 1 s
+
+== the sealed 4B started and primed in 58 s (runtime b12359, seal SEALED); kinds primed 11, failed []; desks:
+  {'kind': 'PLAN', 'state': 'PRIMED', 'tokens': 315}
+
+== PLAN's messages 1 to 3 (the brief and the menu with the Home file tools) are 314 tokens; a question found cache_n 312 (prompt_n 15 new) -> KEPT
+
+== PLAN turn 1, "tidy my Downloads folder: sort the files by type into folders": by=model outcome=TRIMMED prompt={'kept': 'KEPT'}; the turn 10691 ms (price 18884, deadline 20000); cache_n 312 prompt_n 184; the model said '24 D1|24 D1|24 D1|24 D1|24 D1|24 D1|24 D1|24 D1'; whole offer 10835 ms
+  steps: [(1, 'Look at ~/Downloads', 'model_pick', 'done')]
+  refused: [(2, 'it repeats an earlier step'), (3, 'it repeats an earlier step'), (4, 'it repeats an earlier step'), (5, 'it repeats an earlier step'), (6, 'it repeats an earlier step'), (7, 'it repeats an earlier step'), (8, 'it repeats an earlier step')]
+  her words:
+  I would do it in one step, through a registered tool. Nothing changes until you authorise it.
+  My model proposed the steps and the desk checked each one.
+  1. Look at ~/Downloads: read, and verified.
+  I left out the model’s step 2: it repeats an earlier step.
+  I left out the model’s step 3: it repeats an earlier step.
+  I left out the model’s step 4: it repeats an earlier step.
+  I left out the model’s step 5: it repeats an earlier step.
+  I left out the model’s step 6: it repeats an earlier step.
+  I left out the model’s step 7: it repeats an earlier step.
+  I left out the model’s step 8: it repeats an earlier step.
+  It is in ACTIVE WORK; your next press is in NEXT STEPS.
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K10/live.py", line 91, in <module>
+    if got.get('id'):call('assignment.stop', {'id': got['id']})
+                     ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K10/live.py", line 40, in call
+    if not answer.get('ok'):raise RuntimeError('%s: %s' % (op, answer.get('error')))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: assignment.stop: {'code': 'ValueError', 'message': 'This assignment is done; there is nothing to stop'}
+exit 1
