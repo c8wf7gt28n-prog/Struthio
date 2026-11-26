@@ -335,6 +335,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 11:05 UTC: **1.0 K8 merged** (bed61f2: the network word in the head, quarantine first through the doorway,
+  search words only from the owner's typing and only on their press, blocked when offline; smoke 44/44 on stand-ins).
+  Its notes: fetched PDFs kept but not read; no switch to turn her network use off entirely; the network state read on
+  the window's thread every 4 s (for F2). **L6 launched** (the whole computer in the tree; agent a8bce76ee0699edad).
+  Running: K9, K4b, A1, L6. Next: D1, P4, F1, F2, then D2, X1, X2, R1, R2.
+
 - 26 Nov 10:55 UTC: **P4 added** (the launch look: tokens, Inter, Day refined, Night). Order after the running four:
   L6, D1, P4, F1, F2, then D2, X1, X2, R1, R2.
 
