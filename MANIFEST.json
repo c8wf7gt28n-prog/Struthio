@@ -2235,7 +2235,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 2021053,
-      "sha256": "7e9aa0bcc1a79841a21dc3636c2566176f74fa412ec95fe9be9ef2b18e705121"
+      "sha256": "226724700d40dd4926aa68129565c7953c2c50c7ecbd0851476a9f203a214165"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4608000,
@@ -2243,7 +2243,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "ac8e6715ff2e40f2f21db4324e6396158f2989a1be7197646df4f3d9a09d7ef2"
+      "sha256": "bebd63df39a59ea7cc01a8cc3be010dbc6345e2b96a9e6469b7a412598c2a639"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3990,8 +3990,8 @@
       "sha256": "1836a28e1dc1eed72b8722aa2b47ddc98f197fe1c8b15a43d8eafbbcf5b5d391"
     },
     "workbench/desk_qt.py": {
-      "bytes": 34664,
-      "sha256": "24af92c844473a4cc47ca311f54ebd403cecfface605dbc3be0f390ce1c8701c"
+      "bytes": 34818,
+      "sha256": "23cb3c8389217f1db59883102ddf43ec1494ba4f3a0aaf5bc7438fb87e9ac4b4"
     },
     "workbench/desk_scene.py": {
       "bytes": 25089,
@@ -5462,8 +5462,8 @@
       "sha256": "a67fadddb6c54b97e59033695cbe5e08ebe94f40c1476e77eb88655abc3baa29"
     },
     "workbench/shell2.py": {
-      "bytes": 273914,
-      "sha256": "dbc151867368d5796727b2cd9afb1beb464416716c5225f8366803f40def9371"
+      "bytes": 274446,
+      "sha256": "d56ca25104fb92dcc5f9b980c954c2fec6981dae3e57c2327ea4933b68df9c86"
     },
     "workbench/simulation_tools.py": {
       "bytes": 7877,
@@ -5848,6 +5848,14 @@
     "workbench/window_views_qt.py": {
       "bytes": 8560,
       "sha256": "f09876cc17fa16e2fc62a50838ed77849e6765fd5b8138aec20a9dcdb7505da2"
+    },
+    "workbench/windows_strip_qt.py": {
+      "bytes": 26181,
+      "sha256": "33d4801f166331f7b4f1d04eda2f494192204ba71ef9f6f2ecbe5b117a4827af"
+    },
+    "workbench/windows_x11.py": {
+      "bytes": 43956,
+      "sha256": "e2e21796e3256ddb7425341dc5a2f3a9bda5f1a2403f1203811b84b111afabed"
     },
     "workbench/work_location.py": {
       "bytes": 4727,

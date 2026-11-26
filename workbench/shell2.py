@@ -744,8 +744,10 @@ class TopBar(QWidget):
             self.band_style(d.scale)
             self.command_band_height = d.band
             self.first_row.setGeometry(0, 0, d.width, d.band)
-            strip = max(0, self.height() - d.band)
-            self.workshop_strip.setGeometry(d.inset, d.band, d.width - 2 * d.inset, strip)
+            wins = getattr(self, 'window_strip', None);rows = wins.room(d.scale) if wins is not None else 0  # 1.0 S3: the program windows' slim row
+            if wins is not None:wins.place(d, d.band, rows)  # 1.0 S3: directly under the band, shown while a program window is open
+            strip = max(0, self.height() - d.band - rows)  # 1.0 S3: the workshop strip below the windows' row
+            self.workshop_strip.setGeometry(d.inset, d.band + rows, d.width - 2 * d.inset, strip)
             self.workshop_strip.setVisible(strip > 0)
             if strip:self.workshop_strip.raise_()
             self.brand_holder.hide();self.wordmark.hide();self.menus.hide();self.right_holder.hide()
@@ -3445,6 +3447,8 @@ class Shell2(QObject):
         # Top bar replaces the ribbon; the old toolbar stays alive (its actions are the window's) but hidden.
         self.top = TopBar(host);host.ribbon_dock.setWidget(self.top);host.toolbar.hide()
         host.setCorner(Qt.TopLeftCorner, Qt.TopDockWidgetArea)  # the top bar spans the whole window
+        from .windows_strip_qt import install as install_window_strip
+        install_window_strip(host, self.top)  # 1.0 S3: the open program windows, a slim row under the head band
         host.activity_rail.hide()
         if hasattr(host, 'navigator_logo'):host.navigator_logo.hide()
         # HATCH DESK D1a: no Library width here any more; desk_qt.apply gives both panes one width (typebar_qt.TypeBar.align).

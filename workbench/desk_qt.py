@@ -510,7 +510,8 @@ def apply(host, owner=None):
     top = getattr(getattr(host, 'shell2', None), 'top', None);bar = getattr(host, 'type_bar', None)
     art = getattr(getattr(host, 'session', None), 'state', {}).get('desk_art', 'illustrated')
     strip = scaled(116, s) if worksheet and art == 'illustrated' and d.width >= 1250 and host.height() >= 820 else 0
-    for widget in (top, getattr(host, 'ribbon_dock', None)):_fixed(widget, height=d.band + strip)
+    wins = getattr(top, 'window_strip', None);rows = wins.room(s) if wins is not None else 0  # 1.0 S3: the program windows' row
+    for widget in (top, getattr(host, 'ribbon_dock', None)):_fixed(widget, height=d.band + strip + rows)  # 1.0 S3: + rows
     for widget in (bar, getattr(host, 'type_dock', None)):_fixed(widget, height=d.band)
     if host.layout() is not None:host.layout().activate()
     host.desk = d

@@ -1,0 +1,107 @@
+== phase 1: no X (DISPLAY unset, offscreen)
+[  0.0s] DISPLAY set: False | QT_QPA_PLATFORM: offscreen
+[  0.0s] status(): {'available': False, 'reason': 'no window list on this computer: there is no X display here (DISPLAY is not set)', 'source': '', 'manager': None}
+[  0.0s] observe(): available=False windows=0 reason='no window list on this computer: there is no X display here (DISPLAY is not set)' tool=windows_x11
+[  0.0s] why_not on Windows: no window list on this computer: Graphite reads the open windows from X11, and Windows has no X11
+[  0.0s] why_not under Wayland: no window list on this computer: this is a Wayland session, and Graphite reads the open windows from X11
+[  0.0s] xprop canned row: 0x1a00003 | 'Rail Demo bench notes — draft' | program=RailNotes | active=False minimised=True dialog=False listed=True
+[  0.0s] xprop canned row: 0x1c00007 | 'Save changes to "Rail Demo summary"?' | program=Libreoffice writer | active=True minimised=False dialog=True listed=True
+[  0.0s] xprop backend acting without wmctrl: bringing a window forward needs libX11 or wmctrl, and neither is here
+[  7.7s] Rail Demo built through its own door
+[ 12.1s] window open offscreen: platform=offscreen strip visible=False room=0 head height=60 band=60
+[ 12.1s] strip words(): no window list on this computer: there is no X display here (DISPLAY is not set)
+[ 12.2s] window closed; nothing broke
+(stderr lines: 0)
+== phase 2: Xvfb, the stand-in EWMH window manager, two plain X windows, Graphite on Rail Demo
+Xvfb on :0
+helper: stand-in window manager on;window 0x400001 Rail Demo bench notes;window 0x400002 Rail Demo readings viewer;
+-- look: graphite
+[  5.6s] Rail Demo built through its own door; graphite
+[  5.9s] status(): {'available': True, 'reason': '', 'source': 'libX11', 'manager': 'Stand-in WM'}
+[ 11.0s] platform=xcb manager='Stand-in WM' source=libX11
+[ 11.0s] X windows read: [('0x0400001', 'Rail Demo bench notes', 'RailNotes', ''), ('0x0400002', 'Rail Demo readings viewer', 'RailViewer', ''), ('0x0600007', 'Graphite · The Silicon Federation workshop', 'graphite', 'active')]
+[ 11.0s] strip visible=True geometry=(0, 60, 1920, 30) room=30 head height=90 band=60
+[ 11.0s] strip entries: [('RailNotes · Rail Demo bench notes', 'program', 335, 301), ('Rail Demo readings viewer', 'program', 640, 264)]
+[ 11.0s] strip words(): 2 app windows open: Rail Demo bench notes (RailNotes); Rail Demo readings viewer (RailViewer)
+[ 11.7s] pressed the bench notes entry -> active window: 'Rail Demo bench notes'
+[ 11.7s] strip entries after the press: [('▸ RailNotes · Rail Demo bench notes', 'program', 335, 320), ('Rail Demo readings viewer', 'program', 659, 264)]
+[ 11.7s] observe() after the press: active='Rail Demo bench notes' events=[('a new window appeared', 'Graphite · The Silicon Federation workshop'), ('became active', 'Graphite · The Silicon Federation workshop'), ('became active', 'Rail Demo bench notes')]
+[ 12.8s] frame 1920x1200 saved S3_graphite_1920x1200.png | strip (0, 60, 1920, 30) | entries [('▸ RailNotes · Rail Demo bench notes', 'program', 335, 320), ('Rail Demo readings viewer', 'program', 659, 264)]
+[ 14.0s] frame 1366x768 saved S3_graphite_1366x768.png | strip (0, 60, 1366, 30) | entries [('▸ RailNotes · Rail Demo bench notes', 'program', 335, 320), ('Rail Demo readings viewer', 'program', 659, 264)]
+[ 14.2s] Minimise (right-click) the viewer -> asked=True verified=True | entries [('▸ RailNotes · Rail Demo bench notes', 'program', 335, 320), ('(Rail Demo readings viewer)', 'program', 659, 277)]
+[ 14.5s] Bring forward the minimised viewer -> asked=True verified=True | entries [('RailNotes · Rail Demo bench notes', 'program', 335, 301), ('▸ Rail Demo readings viewer', 'program', 640, 287)]
+[ 14.7s] a dialog appeared -> events [('a new dialog appeared', 'Save changes to Rail Demo bench notes?', 'dialog'), ('became active', 'Save changes to Rail Demo bench notes?', 'dialog')]
+[ 14.9s] strip entries with the dialog: [('RailNotes · Rail Demo bench notes', 'program', 335, 301), ('Rail Demo readings viewer', 'program', 640, 264), ('▸ RailDemoDialog · Save changes to…', 'program', 908, 334)]
+[ 15.2s] Close (polite) the dialog -> asked=True verified(gone)=True how=_NET_CLOSE_WINDOW to the window manager
+[ 15.2s] events since: [('a new dialog appeared', 'Save changes to Rail Demo bench notes?'), ('became active', 'Save changes to Rail Demo bench notes?'), ('closed', 'Save changes to Rail Demo bench notes?')]
+[ 15.8s] X windows now: [('Rail Demo bench notes', 'RailNotes'), ('Rail Demo readings viewer', 'RailViewer'), ('Graphite · The Silicon Federation workshop', 'graphite'), ('Rail Demo note (a Graphite dialog)', 'graphite')]
+[ 15.8s] strip entries with a Graphite dialog open: [('RailNotes · Rail Demo bench notes', 'program', 335, 301), ('Rail Demo readings viewer', 'program', 640, 264), ('Rail Demo note (a Graphit…', 'own', 1078, 272)]
+[ 16.1s] pressed the Graphite dialog entry -> dialog is the active window: True
+[ 16.2s] frame with the Graphite dialog: S3_graphite_1366x768_graphite_dialog.png
+[ 16.7s] twelve program windows at 1366x768 -> entries [('[R] Rail De…', 'program', 16, 118), ('Rail De…', 'program', 138, 118), ('[R] Rail De…', 'program', 260, 118), ('[R] Rail De…', 'program', 382, 118), ('[R] Rail De…', 'program', 504, 118), ('[R] Rail De…', 'program', 626, 118), ('[R] Rail De…', 'program', 748, 118), ('[R] Rail De…', 'program', 870, 118), ('[R] Rail De…', 'program', 992, 118), ('[R] Rail De…', 'program', 1114, 118), ('⋯ 2 more', 'more', 1236, 109)]
+[ 16.7s] the more menu lists: ['Rail Demo sketch 9 of the startup path', '▸ Rail Demo sketch 10 of the startup path']
+[ 16.8s] frame: S3_graphite_1366x768_twelve_windows.png
+[ 16.9s] the ten closed politely -> entries [('RailNotes · Rail Demo bench notes', 'program', 335, 301), ('Rail Demo readings viewer', 'program', 640, 264)]
+[ 16.9s] menu words: ['Bring forward', 'Minimise', 'Close (polite)']
+[ 17.1s] window closed; done
+(stderr lines: 0; X errors printed: 0)
+-- look: kasandra
+[  6.0s] Rail Demo built through its own door; kasandra
+[  6.3s] status(): {'available': True, 'reason': '', 'source': 'libX11', 'manager': 'Stand-in WM'}
+[ 11.3s] platform=xcb manager='Stand-in WM' source=libX11
+[ 11.3s] X windows read: [('0x0400001', 'Rail Demo bench notes', 'RailNotes', ''), ('0x0400002', 'Rail Demo readings viewer', 'RailViewer', ''), ('0x0600007', 'Graphite · The Silicon Federation workshop', 'graphite', 'active')]
+[ 11.3s] strip visible=True geometry=(0, 60, 1920, 30) room=30 head height=90 band=60
+[ 11.4s] strip entries: [('RailNotes · Rail Demo bench notes', 'program', 363, 335), ('Rail Demo readings viewer', 'program', 702, 299)]
+[ 11.4s] strip words(): 2 app windows open: Rail Demo bench notes (RailNotes); Rail Demo readings viewer (RailViewer)
+[ 12.0s] pressed the bench notes entry -> active window: 'Rail Demo bench notes'
+[ 12.0s] strip entries after the press: [('▸ RailNotes · Rail Demo bench no…', 'program', 363, 340), ('Rail Demo readings viewer', 'program', 707, 299)]
+[ 12.0s] observe() after the press: active='Rail Demo bench notes' events=[('a new window appeared', 'Graphite · The Silicon Federation workshop'), ('became active', 'Graphite · The Silicon Federation workshop'), ('became active', 'Rail Demo bench notes')]
+[ 13.2s] frame 1920x1200 saved S3_kasandra_1920x1200.png | strip (0, 60, 1920, 30) | entries [('▸ RailNotes · Rail Demo bench no…', 'program', 363, 340), ('Rail Demo readings viewer', 'program', 707, 299)]
+[ 14.4s] frame 1366x768 saved S3_kasandra_1366x768.png | strip (0, 60, 1366, 30) | entries [('▸ RailNotes · Rail Demo bench no…', 'program', 363, 340), ('Rail Demo readings viewer', 'program', 707, 299)]
+[ 14.5s] window closed; done
+(stderr lines: 0; X errors printed: 0)
+helper log:
+   wm close asked 0x400007
+   closed 0x400007 Rail Demo sketch 4 of the startup path (asked politely)
+   wm withdrawn 0x400007
+   wm close asked 0x400008
+   closed 0x400008 Rail Demo sketch 5 of the startup path (asked politely)
+   wm withdrawn 0x400008
+   wm close asked 0x400009
+   closed 0x400009 Rail Demo sketch 6 of the startup path (asked politely)
+   wm withdrawn 0x400009
+   wm close asked 0x40000a
+   closed 0x40000a Rail Demo sketch 7 of the startup path (asked politely)
+   wm withdrawn 0x40000a
+   wm close asked 0x40000b
+   closed 0x40000b Rail Demo sketch 8 of the startup path (asked politely)
+   wm withdrawn 0x40000b
+   wm close asked 0x40000c
+   closed 0x40000c Rail Demo sketch 9 of the startup path (asked politely)
+   wm withdrawn 0x40000c
+   wm close asked 0x40000d
+   closed 0x40000d Rail Demo sketch 10 of the startup path (asked politely)
+   wm withdrawn 0x40000d
+   wm withdrawn 0x600007
+   wm mapped 0x600007
+   wm activate 0x400001 source 2
+   wm withdrawn 0x600007
+== phase 3: Xvfb with no window manager (the fallback reading of the root's children)
+Xvfb on :0
+helper: window 0x200001 Rail Demo bench notes;window 0x200002 Rail Demo readings viewer;ready;
+[  0.0s] status(): {'available': True, 'reason': '', 'source': 'libX11', 'manager': None}
+[  0.0s] bare X: manager=None source=libX11 windows=[('0x0200001', 'Rail Demo bench notes', 'RailNotes'), ('0x0200002', 'Rail Demo readings viewer', 'RailViewer')]
+[  0.0s] activate 'Rail Demo bench notes' -> asked=True verified=True how=raised and given the keyboard (no window manager here)
+[  0.0s]   active now: Rail Demo bench notes
+[  0.0s] activate 'Rail Demo readings viewer' -> asked=True verified=True how=raised and given the keyboard (no window manager here)
+[  0.0s]   active now: Rail Demo readings viewer
+[  0.0s] minimise with no manager -> asked=False reason='there is no window manager here to keep a minimised window'
+[  0.0s] close politely 'Rail Demo readings viewer' -> asked=True verified=True how=WM_DELETE_WINDOW to the app itself (no window manager here)
+[  0.0s] observe(): windows=['Rail Demo bench notes'] events=[('became active', 'Rail Demo bench notes'), ('became active', 'Rail Demo readings viewer'), ('closed', 'Rail Demo readings viewer')]
+(stderr lines: 0)
+helper log:
+   window 0x200001 Rail Demo bench notes
+   window 0x200002 Rail Demo readings viewer
+   ready
+   closed 0x200002 Rail Demo readings viewer (asked politely)
+== end
