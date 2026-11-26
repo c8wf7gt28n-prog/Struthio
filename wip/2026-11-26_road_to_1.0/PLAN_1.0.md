@@ -426,6 +426,18 @@ kit's first-evening page. *Acceptance:* the sealed 4B starts on v1.0.0 here and 
 prompts both survive a priming round (cache-ram); the second PLAN turn's time on Rail Demo against K4b's 3,300 ms;
 MTP's effect measured if a 4B or 2B MTP GGUF exists (else said); every refused argument still refused.
 
+**M2 · A quick model beside the 35B, for 99 tokens a second** (the owner, 26 Nov: "The goal is 99 tokens per second,
+up and down....if possible"). Reading at 99+ is likely on the Radeon 780M with the 35B-A3B; writing at 99 is not (its
+memory bandwidth bounds the 35B's writing to roughly 20 to 30 tokens a second, perhaps 40 to 55 with MTP; to be
+measured by M1's sweep on the ThinkPad). Her questions are short (20 to 60 tokens of answer over kept prompts), so the
+way to 99 writing is a second, small model for the quick kinds (READ, PLAN, NEXT, MARKS, ASK) held beside the 35B
+(memory allowing: the memory sum counts both), used for a kind **only when that model has passed the exam for that
+kind** (A5's per-model-key, per-kind record) and measured faster; the 35B keeps the kinds that need it (wording,
+utilities, anything the small model fails). Her clock prices each kind on the model that would answer it; the Brain
+room shows which model answers which kind and why; Undo puts every kind back on the 35B. The model check measures the
+pair and proposes the split. *Acceptance:* with the 4B and 2B here, the 2B takes a kind only after passing its exam
+items, and her clock and the Brain room show the split; the speeds here said to mean nothing for the ThinkPad.
+
 ### Wave 5 — the door, the floor, the Apps by hand
 
 **F1 · The door's mechanics.** A touch stops her: any owner input in the window while her hand drives it pauses the

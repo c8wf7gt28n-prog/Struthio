@@ -256,6 +256,13 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 12:20 (the owner's speed goal, "99 tokens per second, up and down....if possible"): taken as two
+  predictions the model check judges on the ThinkPad (reads >= 99, writes >= 99), with M1's tuning sweep proposing the
+  best runtime settings (lossless only), and **M2** added: a small quick model beside the 35B for the short kinds, used
+  for a kind only after it passes that kind's exam, so short answers can write near 99 while the 35B keeps what needs
+  it. Said plainly to the owner: the 35B's writing on the 780M is bandwidth-bound, likely 20 to 30 tokens a second,
+  perhaps 40 to 55 with MTP; reading at 99+ is likely.
+
 - 26 Nov 12:05 (M1, the owner: "to manipulate the LLM let's make sure we're using the latest and best technologies"):
   the bundled runtime moves from llama.cpp b11669 to **v1.0.0** (b12359, commit b1b770d9, 13 Nov 2026; checked from the
   project's own tags; its Ubuntu Vulkan and CPU archives download here; the newest nightly b12767 publishes no Ubuntu
@@ -347,6 +354,9 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 12:20 UTC: The owner's goal 99 tokens a second up and down: M1 told to add the tuning sweep and the two
+  predictions; **M2 added** (a quick model beside the 35B). 37 slices; 23 merged. Running: K9, L6, D1, M1.
 
 - 26 Nov 12:05 UTC: **1.0 A1 merged** (4c5f14e: programs by window and file; smoke 71/71 with stand-in programs).
   **M1 added and launched** (the model's runtime to llama.cpp v1.0.0 and its newer capabilities). Running: K9, L6, D1,
