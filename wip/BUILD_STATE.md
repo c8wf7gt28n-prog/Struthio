@@ -302,6 +302,14 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 03:00 UTC: **1.0 S1 merged** (98f5dd0: the supervised session, programs in sessions of their own, Lock and
+  Suspend, the sleep inhibitor; smoke 28/28 on stand-ins). Its notes for later slices: S5 starts lxpolkit in
+  LS_XSESSION.sh and relaxes the dedicated session's "asking actions unavailable" rule; S2 launches through
+  `session_launch.launch`; K1/K2 wrap writes in `sleep_held`; K3: "Stop all jobs" still kills Graphite's direct
+  children; not done: the leave flow does not warn that open programs close at Return to Debian, programs are not
+  closed politely at session end. xsecurelock's "command after --" is from the builder's memory: check on the
+  ThinkPad. **S2 launched** (installed Apps; agent a6812a074c726e6ae). Running: P1, L2, S2. Next: L3, then wave 3.
+
 - 26 Nov 02:40 UTC: **1.0 L1 merged** (8395162: stable object ids for files and records, one navigation controller,
   tree<->board sync, breadcrumb, Back/Forward; smoke 37/37 and 19/19). Its notes: the Field still opens a sheet on one
   click (L4 settles it); `test_context_menu.py` may now click a different tree row (not run, by the rule); her "This:"
