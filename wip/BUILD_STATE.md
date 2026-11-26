@@ -3,6 +3,27 @@
 **Read this first on every wake-up.** It is updated after every step and pushed. If this file and anything else disagree,
 this file is newer.
 
+## NOW: build straight to Graphite 1.0 (the owner, 26 Nov 2026)
+
+"Let's go default. No testing. I want to just build straight to 1.0 no stops. Save your work to survive session
+resets. I don't want anything until we land 1.0 fully. You can send updates or screenshots along the way."
+
+- **The plan and what "complete" means:** `wip/2026-11-26_road_to_1.0/PLAN_1.0.md` (section 2 is the definition of
+  complete; section 5 the slices S1..S5, L1..L5, P1..P2, K1..K8, F1..F2, A1, X1..X2, R1..R2 in six waves; section 6 the
+  running). The owner's paper beside it. It replaces the old road (0.8.8, 0.9.x) and the test pass.
+- **No testing** (overrules "We test before 88"): one smoke script per builder; at merge the seed rebuilt and the window
+  opened offscreen in every look. No intermediate kits. Screenshots and short updates to the owner are allowed.
+- **Builders:** `bash wip/build_tools/make_brief.sh KEY` writes `$S/work/briefs/100_KEY.md` (BRIEF_HEADER.md + the slice);
+  launch one background Agent per slice with worktree isolation and the prompt "Read your brief at <path> and do it";
+  up to three at once. Outputs in `$S/work/b100/`. Merge: `wip/build_tools/merge_one.sh $S/work/b100
+  wip/2026-11-26_b100_saved KEY AGENTID` (then commit, push, log here).
+- **If scratch is gone (container replaced):** rebuild the venv (below), copy `wip/build_tools/*` back to `$S/work/`
+  (merge_one.sh, finish_merge.sh, fix_observers.py) and `wip/build_tools/old_kit_app/*` to
+  `$S/x/Graphite_00_START_HERE/Graphite_Transfer/App/` (for cut.sh); re-make the briefs with make_brief.sh; a builder cut
+  off mid-slice left its partial patch in `wip/2026-11-26_b100_saved/` only if it was saved there: otherwise restart it.
+  Save each partial patch to `wip/2026-11-26_b100_saved/partial/` when a usage limit stops builders.
+- **The wake-up** (`trig_017RpY8VWubnaTQN5DVGpS6g`) is ON until 1.0 is delivered.
+
 ## The mandate (the owner, 19 Nov 2026)
 
 "I approve of everything you've written in the plan ... I approve everything. I want you to build this until completion.
@@ -69,9 +90,8 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 | 0.8.5 · Maths in lines | **DELIVERED 20 Nov** |
 | 0.8.6 · Kas's mind without a model | **RELEASED UNTESTED 20 Nov 15:21 UTC** (kit from d97127c; `wip/2026-11-20_release_086/`) |
 | 0.8.7 · Kas's mind with the model, interwoven | **RELEASED UNTESTED 26 Nov** (kit from ddf0aed; `wip/2026-11-26_release_087/`) |
-| the test pass | **waiting for the owner's model results** ("We test before 88"); then a talk sets 0.8.8's goal |
-| 0.8.8 · One united pass: floor, door mechanics, hand | not started; brings 0.9.0 |
-| 0.9.x · Apps (web, LibreOffice, Godot, GIMP) | not started; until 1.0 |
+| the test pass | **dropped by the owner** (26 Nov: "No testing") |
+| **1.0 · The Living Desktop and the Ghost in the Shell** | **BUILDING** (plan: `wip/2026-11-26_road_to_1.0/PLAN_1.0.md`) |
 
 ## 0.8.4 steps
 
@@ -236,6 +256,13 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov (1.0): the picture's "HAULT" is read as **HALT**, the master stop, upper left. The equalizer moves behind her
+  portrait (its sixteen bars) as in the picture. The picture's light look becomes a third look, **Day**, beside Graphite
+  and Kasandra; the owner's saved look is kept. Her portrait comes from `kasandra/portrait.png` in the owner's workspace
+  when admitted (the owner's pictures stay out of the repository); the shipped art otherwise. Large programs (Firefox,
+  GIMP, KiCad, Blender, Godot) are found if installed, not shipped; the 1.0 System set adds the session's packages
+  (PLAN_1.0.md section 4). 0.8.7's C6c, C6d and A6 are dropped unless room is left; B7 folds into K4.
+
 - 20 Nov (0.8.7 X7's exam blockers): READ's first question on a desk is made sendable by priming the desk's list
   with READ's brief (else a first-question allowance of 400 new tokens); page-mark exam items are right when every kept
   mark is in the known set and at least one is found, with precision and recall recorded (the papers stay frozen);
@@ -274,6 +301,12 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 01:35 UTC: **The owner changed the road: straight to 1.0, no testing, no stops** (their paper "The Living
+  Desktop and the Ghost in the Shell" and a picture of the desktop). Defaults taken (desktop first; tool use with a
+  sealed sandbox, real files always ask; compact portrait). Plan written: `wip/2026-11-26_road_to_1.0/PLAN_1.0.md`,
+  builders' header `BRIEF_HEADER.md`, helpers saved to `wip/build_tools/`. The wake-up re-enabled. Wave 1 launched:
+  S1 (the session that survives), L1 (one navigation state), K1 (assignments and the journal).
 
 - 26 Nov 01:15 UTC: **0.8.7 RELEASED, NOT TESTED** (the owner's rule). **X7b merged** (83332a6: Home Demo READ primed and
   sent, page marks scored on a subset with precision and recall, asking is not harm, STEER through the order test and
