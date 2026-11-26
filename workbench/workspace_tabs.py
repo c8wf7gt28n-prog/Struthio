@@ -44,7 +44,8 @@ ROOMS=('OfficeBuildingTab','SlateRoomTab','ReturnTab','FilesTab','LibraryTab','H
 # Saved kinds with nothing to reopen: the legacy Start tab is the Home surface now, Files' start shows where to begin when
 # nothing is open (open_record never reopened it, so it only sat in Reopen deferred tabs), and "Needs a project" explains
 # why a project action did nothing; it is said again when the owner asks for project work and still has none attached.
-NOTHING_TO_REOPEN=('StartPage','FilesStart','EmptyWorkspaceTab')
+NOTHING_TO_REOPEN=('StartPage','FilesStart','EmptyWorkspaceTab',
+                   'UtilityTab')      # 1.0 K6: a utility's tab is not reopened at the next start (its utility and runs are kept)
 KEPT=20      # Reopen deferred tabs keeps the twenty newest; until 0.8.4 it had no bound
 WHERE='Arrange → Reopen deferred tabs'      # the menu the item is in (menus2: the View group, under the title Arrange)
 

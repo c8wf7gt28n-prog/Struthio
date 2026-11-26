@@ -125,6 +125,7 @@ def schemas():
     from .office_bridge import FIELDS as OFFICE_BRIDGE_FIELDS  # 1.0 K5 (LibreOffice, from the inside): libreoffice.status, .read, .find, .prepare, .replace, .cell
     from .grants import FIELDS as GRANT_FIELDS  # 1.0 K3 (grants and HALT): grant.words, .list, .give, .revoke
     from .halt_gate import FIELDS as HALT_FIELDS  # 1.0 K3 (grants and HALT): halt.status, .press, .release
+    from .utility_sandbox import FIELDS as SANDBOX_FIELDS  # 1.0 K6 (the utility sandbox): sandbox.*
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -251,6 +252,7 @@ def schemas():
         **OFFICE_BRIDGE_FIELDS,  # 1.0 K5 (LibreOffice, from the inside): libreoffice.status, .read, .find, .prepare, .replace, .cell
         **GRANT_FIELDS,  # 1.0 K3 (grants and HALT): grant.words, .list, .give, .revoke
         **HALT_FIELDS,  # 1.0 K3 (grants and HALT): halt.status, .press, .release
+        **SANDBOX_FIELDS,  # 1.0 K6 (the utility sandbox): sandbox.*
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

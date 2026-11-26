@@ -1,0 +1,98 @@
+Rail Demo built through its own door in 7 s
+an invented CSV in Files: Rail Demo sources/bench_log.csv (98 bytes)
+
+== A. The seal on this computer ==
+  status: Sealed with Landlock (ABI 7), a network of its own and a call filter. | At most 10 s of processor, 512 MB of memory, 30 s in all; a file it writes at most 32 MB.
+PASS  A1 the sandbox can seal here  [landlock]
+
+== B. A utility that totals a column, on a copy, sealed ==
+  drafted: DRAFTED BY THE DESK | Total the current_mA column of bench_log.csv
+  reads: [('Rail Demo sources/bench_log.csv', 'in/bench_log.csv', 'a202864c4f89')]
+  writes: ['out/bench_log_total.csv'] | It writes out/bench_log_total.csv, in its own folder only: nothing of yours changes unless you apply it.
+  seal: No network: a network of its own with nothing in it, and no socket of any kind. / Only its own folder: the copies (read-only), its outputs, an empty home. Your files are not there. / No other program, no new process.
+PASS  B1 the desk drafts it with no model, marked  [DRAFTED BY THE DESK]
+PASS  B2 it does not run before it was shown to you  [SANDBOX_NOT_SHOWN: it has not been shown to you yet, with what it reads and writes; nothing was run]
+  run: RAN SEALED | It ran sealed on copies in 54 ms. It made 1 file. | exit 0 | 54 ms | landlock
+  output: current_mA: total 1369.1 over 5 rows
+PASS  B3 it ran sealed and shows its output (the exact total)  [current_mA: total 1369.1 over 5 rows]
+PASS  B4 what it made is shown against your files (a new file beside the CSV)  [[('bench_log_total.csv', 'a new file, Rail Demo sources/bench_log_total.csv, beside Rail Demo sources/bench_log.csv (2 lines)')]]
+PASS  B5 your CSV is untouched by the run
+
+== C. A utility that tries the network ==
+  the desk saw: ['it names an address on the network (http://example.com/): it has no network', 'it asks for the network (socket): it has no network, and would be stopped', 'it asks for the network (urllib): it has no network, and would be stopped']
+  run: STOPPED | The seal stopped it: it tried to reach the network. Nothing of yours changed.
+  its own output: network: refused by the computer: PermissionError 13 / web: refused by the computer: URLError
+PASS  C1 it is stopped, and says so (the network)  [['It tried to look up 192.0.2.10 on the network: the seal stopped it. This utility has no network.', 'It tried to fetch http://example.com/: the seal stopped it. This utility has no network.', 'It tried to connect to example.com, port 80 on the network: the seal stopped it. This utility has no network.', 'It tried to look up example.com on the network: the seal stopped it. This utility has no netw]
+PASS  C2 the computer refused it (not only the words): no connection, no page  [network: refused by the computer: PermissionError 13
+web: refused by the computer: URLError]
+PASS  C3 a stopped run is not offered to Apply  [Apply is for a run that finished inside its seal and made a change.]
+
+== D. A utility that opens /etc/passwd, your Files, and its own copy ==
+  the desk saw: ['it names /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpa, outside its folder: the seal refuses that', 'it imports by name at run time (__import__)', 'it names /bin/echo, outside its folder: the seal refuses that', 'it names /etc/passwd, outside its folder: the seal refuses that', 'it names ../../../Files/Rail Demo sources/bench_log.csv, outside its folder: the seal refuses that']
+  run: STOPPED | The seal stopped it: it tried to reach a place outside its folder; it tried to change its copies; it tried to start another program. Nothing of yours changed.
+   - It tried to read /etc/passwd, outside its folder: the seal refused it.
+   - It tried to list /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K6/ws/tmp0sjs5e1o/workspace/Files, outside its folder: the seal refused it.
+   - It tried to read /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K6/ws/tmp0sjs5e1o/workspace/Files/Rail Demo sources/bench_log.csv, outside its folder: the seal refused it.
+   - It tried to change its copy in/bench_log.csv: the copies are read-only (what it makes goes in out/).
+   - It tried to start another program ('/bin/echo'): the seal refused it.
+  its own output: passwd: refused by the computer: PermissionError / files: refused by the computer: PermissionError / above: refused by the computer: PermissionError / copy: refused by the computer: PermissionError / program: refused by the computer: PermissionError
+PASS  D1 /etc/passwd and a path outside its folder are stopped, and it says so  [['copies', 'outside', 'program']]
+PASS  D2 the computer refused each (passwd, your Files, above its folder, its copy, a program)  [passwd: refused by the computer: PermissionError
+files: refused by the computer: PermissionError
+above: refused by the computer: PermissionError
+copy: refused by the computer: PermissionError
+program: refused by the computer: PermissionError]
+PASS  D3 its copy is read-only, and said so; a program is refused, and said so  [['copies', 'outside', 'program']]
+
+== E. The model writes a utility (the fake worker); its output and the difference; Apply asks ==
+  drafted: DRAFTED BY THE MODEL | turn 1614ff32dd28 | brief sent: You write one small Python 3 utility for Graphite's sealed sandbox.
+PASS  E1 the model wrote it, marked "drafted by the model", with its turn  [DRAFTED BY THE MODEL]
+PASS  E2 its text is shown only with its mark line  [drafted by the model: run only sealed, on copies; nothing of yours changes unless you apply it]
+PASS  E3 with no model, nothing is drafted and she says why  [SANDBOX_NO_DRAFT: no registered tool fits and I could not draft a utility: no model is running. Say it as "total the <column> column", "count the rows" or "sort by <column>", or write the utility yourself.]
+  run: RAN SEALED | It ran sealed on copies in 36 ms. It made 1 file. | output: TOTAL current_mA 1369.1
+  difference: 1 line added, 0 taken away | ['+TOTAL,1369.1,']
+PASS  E4 it ran sealed; its output is a new revision of the CSV, with the difference shown  [1 line added, 0 taken away]
+  Apply would: ['Rail Demo sources/bench_log.csv becomes a new revision (1 line added, 0 taken away); the revision before is kept as a version.']
+PASS  E5 Apply asks at every place of the dial  [{'ask': False, 'show': False, 'free': False}; why: it changes your real files with what a utility made, or makes a utility a tool of yours: yours to say, every time]
+PASS  E6 her calls cannot apply (approve scope: yours)  [Operation is outside the authorized mode/scope]
+PASS  E7 nothing was applied by asking
+  applied: Applied by your word: Rail Demo sources/bench_log.csv: revision 2, verified on disk (SHA-256 678da610b519…); the one before is kept as a version.
+PASS  E8 your Apply: a new revision, verified on disk and recorded (L4), the one before kept  [[(1, 'a202864c4f', ''), (2, '678da610b5', 'the utility “Add a TOTAL row of current_mA under the bench log”')]]
+PASS  E9 receipts: dispatched, then verified  [['verified', 'dispatched']]
+PASS  E10 the same run is not applied twice  [SANDBOX_NOT_APPLICABLE: only a run that finished inside its seal is applied]
+
+== F. Changed since the copy ==
+  run: RAN SEALED | It ran sealed on copies in 29 ms. It made 1 file. | 6 rows of bench_log.csv sorted by voltage_V
+PASS  F1 a file changed since its copy is not overwritten: refused, nothing applied  [SANDBOX_CHANGED_SINCE: Rail Demo sources/bench_log.csv changed since the copy was made (or is gone); run the utility again on it as it is now. Nothing was applied.]
+
+== G. Limits, and HALT's stop ==
+PASS  G1 its memory is limited  [It ended with an error (exit 1): see what it said. MemoryError]
+PASS  G2 HALT (stop_all) ends a running utility, and the run says so  [1 Stopped by you (Stop or HALT). Nothing of yours changed.]
+PASS  G3 its processor time is limited  [It used more than 10 s of processor, so it was ended. Nothing of yours changed. (10 s)]
+
+== H. Kept: a registered tool of its own, with its own grant ==
+PASS  H1 keeping asks too (her calls cannot keep)  [Operation is outside the authorized mode/scope]
+  kept: Kept: “total current” is tool 101 (utility.total_current) from now on, with its own grant: run it on copies of its inputs. Applying what it makes still asks, every time.
+PASS  H2 it is tool 101 with its own grant  [utility.total_current run total current on copies of its inputs]
+  through its door: verified | ran sealed on copies; 1 output read back from its folder (nothing of yours changed)
+PASS  H3 used through its door: dispatched, then verified  [['dispatched', 'verified']]
+PASS  H4 the sandbox fills its slot in the registry (tool 20)
+
+== J. With K3 beside it (grants and HALT; its files copied into this throwaway copy only) ==
+PASS  J1 the sandbox is one of HALT's stop hooks  [['sandbox']]
+PASS  J2 HALT ends a running utility, and both say so  [['HALT ended 1 utility running sealed on copies; nothing of yours changed.'] | Stopped by you (Stop or HALT). Nothing of yours changed.]
+PASS  J3 while HALT holds, no utility starts  [SANDBOX_HALTED: HALT holds my work: no utility starts until you press RESUME; nothing was run]
+PASS  J4 after RESUME it runs again (on your press)  [It ran sealed on copies in 35 ms. It made 1 file.]
+PASS  J5 through tools.use with no grant in force: "needs your grant", nothing sent  [needs your grant: run a utility on copies on what it names; no grant of yours is in force here. Nothing was sent.]
+
+== I. The window: Tools, the utility shown before it runs, run, Apply asks ==
+PASS  I1 Tools holds "A Utility on Copies…"  [['Work', 'Revise', 'Arrange', 'Arrange', 'Guide', 'Tools', 'Commands', 'Rules', 'Properties']]
+PASS  I2 the utility is shown before it runs: what it reads and writes, the seal, its text  [DRAFTED BY THE DESK]
+PASS  I3 after the run: what it printed, and the difference to your file  [5 rows of bench_log_w.csv sorted by current_mA
+]
+PASS  I4 Apply asks: the question, in words, and nothing applied yet  [Apply what the utility made to your real files?]
+PASS  I5 Cancel: nothing changed
+PASS  I6 Apply in the question: a new revision on disk, recorded  [Applied by your word: Rail Demo sources/bench_log_w.csv: revision 2, verified on disk (SHA-256 07b203704e2e…); the one before is kept as a version.]
+
+41 of 41 checks passed
+WORKSPACE /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K6/ws/tmp0sjs5e1o

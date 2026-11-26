@@ -752,6 +752,15 @@
    "rules.get": "workbench/rules.py#dispatch",
    "rules.list": "workbench/rules.py#dispatch",
    "rules.set": "workbench/rules.py#dispatch",
+   "sandbox.apply": "workbench/utility_sandbox.py#dispatch",
+   "sandbox.close": "workbench/utility_sandbox.py#dispatch",
+   "sandbox.draft": "workbench/utility_sandbox.py#dispatch",
+   "sandbox.get": "workbench/utility_sandbox.py#dispatch",
+   "sandbox.keep": "workbench/utility_sandbox.py#dispatch",
+   "sandbox.list": "workbench/utility_sandbox.py#dispatch",
+   "sandbox.run": "workbench/utility_sandbox.py#dispatch",
+   "sandbox.seen": "workbench/utility_sandbox.py#dispatch",
+   "sandbox.status": "workbench/utility_sandbox.py#dispatch",
    "simulation.inspect": "workbench/console_simulation.py#dispatch",
    "slate.action": "workbench/adaptive_work.py#dispatch",
    "slate.action.result": "workbench/adaptive_work.py#dispatch",
@@ -1075,9 +1084,9 @@
   }
  },
  "counts": {
-  "adapters": 877,
+  "adapters": 886,
   "job_tools": 113,
-  "operations": 877,
+  "operations": 886,
   "settings": 48
  },
  "formulas": {
@@ -7624,6 +7633,77 @@
    },
    "scope": "approve"
   },
+  "sandbox.apply": {
+   "arguments": "61c45cc6387b9d61f13eea8ece7991539dcf5c371dada6d9a3c22e0d79eacfb5",
+   "properties": {
+    "outputs": "65908f258f4316d6",
+    "run": "d76a3cd568c70cee"
+   },
+   "scope": "approve"
+  },
+  "sandbox.close": {
+   "arguments": "109af9aa8795ca6baf81d8210613947c72863d1695603be732fad7f0a2556e20",
+   "properties": {
+    "run": "d76a3cd568c70cee"
+   },
+   "scope": "execute"
+  },
+  "sandbox.draft": {
+   "arguments": "68351a9d60d7966566048d84657388eefc20a7935a0b98483c4351e759e7f3f9",
+   "properties": {
+    "by": "17843d50c319f0a2",
+    "inputs": "50a4f0884fbdb17f",
+    "objective": "d11c7080fc8c95d5",
+    "source": "f264fa197310a18b"
+   },
+   "scope": "execute"
+  },
+  "sandbox.get": {
+   "arguments": "7890a179336169293c2160fcce0785eb83af82d9b9dfeca19ec4b1f1b2f5db49",
+   "properties": {
+    "run": "d76a3cd568c70cee",
+    "utility": "d76a3cd568c70cee"
+   },
+   "scope": "read"
+  },
+  "sandbox.keep": {
+   "arguments": "dd959ac319769865e5b6d6c83294a0c010e1539bce91588b00e46b83389d84f7",
+   "properties": {
+    "name": "3ea040de4c9e48ed",
+    "utility": "d76a3cd568c70cee"
+   },
+   "scope": "approve"
+  },
+  "sandbox.list": {
+   "arguments": "fed9216815799f0ae4af7ca0b4561d44821f6f547c8d3ef4f17709059a699281",
+   "properties": {
+    "limit": "dfbe8dfe1b8e5376"
+   },
+   "scope": "read"
+  },
+  "sandbox.run": {
+   "arguments": "ae9922d919b503789e2a517a53fed0b4e9cde0c313614e495088e918dc6bc4e3",
+   "properties": {
+    "expected_source_sha256": "f4618f4ae4b25223",
+    "inputs": "50a4f0884fbdb17f",
+    "kept": "49c54e30fbd45e59",
+    "utility": "d76a3cd568c70cee"
+   },
+   "scope": "execute"
+  },
+  "sandbox.seen": {
+   "arguments": "aac4e65311cab3b3639f0173c88b3b9c68af9fe343355e8e67cff64b32992e7b",
+   "properties": {
+    "source_sha256": "f4618f4ae4b25223",
+    "utility": "d76a3cd568c70cee"
+   },
+   "scope": "execute"
+  },
+  "sandbox.status": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
   "simulation.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
@@ -8618,7 +8698,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "cd95a0c6d725d8c35a57dd0b261df378f90e0a728b3c6ee20040350099611133",
+ "schema_digest": "bc48d62d2189c394be643113bef9f69ed01d20e81b72d0d3903c5b1a20f257da",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

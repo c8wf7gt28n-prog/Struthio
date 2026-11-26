@@ -90,6 +90,7 @@ from . import depths  # 1.0 L4 (depths): revisions.list (read); revisions.record
 from . import tools_registry  # 1.0 K2 (tools and observation receipts): tools.list, tools.receipts, windows.observe (read); tools.use, windows.activate, windows.minimise (execute); windows.close (approve) (recorded additions)
 from . import office_bridge  # 1.0 K5 (LibreOffice, from the inside): libreoffice.status, .read, .find, .prepare (read); libreoffice.replace, .cell (approve) (recorded additions)
 from . import grants, halt_gate  # 1.0 K3 (grants and HALT): grant.list, grant.words, halt.status (read); grant.give, grant.revoke, halt.press, halt.release (approve) (recorded additions)
+from . import utility_sandbox  # 1.0 K6 (the utility sandbox): sandbox.status, sandbox.list, sandbox.get (read); sandbox.draft, sandbox.seen, sandbox.run, sandbox.close (execute); sandbox.apply, sandbox.keep (approve, always ask) (recorded additions)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -287,6 +288,7 @@ CAPABILITIES = {
     **office_bridge.SCOPES,  # 1.0 K5 (LibreOffice, from the inside): four reads; a passage or a cell changed is approve, the owner's word by its name
     **grants.SCOPES,  # 1.0 K3 (grants and HALT): a grant is given and revoked only by your press (approve); its words and the list are reads
     **halt_gate.SCOPES,  # 1.0 K3 (grants and HALT): HALT and RESUME are your press (approve); its state is a read
+    **utility_sandbox.SCOPES,  # 1.0 K6 (the utility sandbox): a utility runs sealed on copies; apply and keep are approve, and always ask
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -733,6 +735,7 @@ class Kernel:
         if op in office_bridge.FIELDS:return office_bridge.dispatch(self,op,a,p)   # 1.0 K5 (LibreOffice, from the inside): Writer and Calc through UNO, the saved file read back before it is called done
         if op in grants.FIELDS:return grants.dispatch(self,op,a,p)   # 1.0 K3 (grants and HALT): per operation, target and scope, enforced at dispatch
         if op in halt_gate.FIELDS:return halt_gate.dispatch(self,op,a,p)   # 1.0 K3 (grants and HALT): her managed work stopped, never the desktop or your programs
+        if op in utility_sandbox.FIELDS:return utility_sandbox.dispatch(self,op,a,p)   # 1.0 K6 (the utility sandbox): drafted, shown, run sealed on copies; applied only by your word
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

@@ -1,0 +1,1462 @@
+"""The utility sandbox (Graphite 1.0, K6): a small Python utility she drafts when no registered tool fits, run sealed on
+copies; applying what it made to the owner's real files always asks.
+
+The owner's paper, section 12: "When an operation is missing, she may investigate alternatives or propose a new utility.
+Creating and testing a utility should happen within a controlled environment, with suitable permission before it changes
+the owner's real working files or system." And: "A new script should first be tested on a working copy or controlled
+environment. Sensitive changes should require an explicit new grant." The plan's default 3 (26 Nov): "she may draft and
+test a new utility on a copy in a sealed sandbox; running it on the owner's real files always asks, at every place of the
+dial."
+
+WHO DRAFTS IT. Three hands, each marked on the utility wherever it is shown:
+  the desk     a utility of the desk's own, when the owner's words read as one of its patterns ("total the current_mA
+               column", "count the rows", "sort by time_ms"): no model, the same text every time, decimals as Decimal.
+  the model    when no pattern fits and a model is running: the turn kind UTILITY (switch "talk", the model's own text,
+               Stop only). Its answer is parsed as Python and looked at by the desk before anyone sees it; it is marked
+               "drafted by the model" (model_words.MARKS['DRAFTED']) and is never a fact, a decision or a change: it is
+               only ever run sealed on copies, and what it makes reaches a real file only by the owner's Apply.
+  you          the owner's own text, given to sandbox.draft as `source`.
+With no pattern and no model she says so; nothing is drafted.
+
+WHAT IT READS AND WRITES, shown before it runs: the files it reads (copies, each at the digest it had), what it says it
+writes (its docstring's "Reads:" and "Writes:" lines) and what the desk sees in its text (look(): its imports, a network or
+another program asked for, a path outside its folder named). The desk's look is words for the owner, never the boundary:
+the seal is.
+
+THE SEAL. A run happens in a folder of its own under the workspace's state (sandbox/<run>): utility.py, in/ (copies of its
+inputs, read-only), out/ (what it makes), home/ (a fresh empty HOME), tmp/. A launcher (LAUNCHER, standard library only,
+started as `python -I -S -B -c`) seals its own process and then runs the utility in it:
+  1. limits      processor seconds, memory, the size of a file it writes, open files, no core dump (setrlimit)
+  2. network     a network of its own (unshare CLONE_NEWNET, or CLONE_NEWUSER|CLONE_NEWNET for an ordinary user), checked:
+                 it must see only the loopback, which is down. Where neither is allowed it is not run, and says why.
+  3. files       Landlock: its folder readable, out/ home/ tmp/ writable, Python's own libraries readable, nothing else;
+                 no program may be started from anywhere; TCP refused (Landlock ABI 4+); signals and abstract sockets kept
+                 inside (ABI 6+). Checked: it must not be able to list the owner's Files or read /etc/passwd.
+                 Where Landlock is missing and bubblewrap is installed, bubblewrap's namespaces do this instead (the
+                 workshop profile, workshop_sandbox.base_argv, with only the folder bound): not exercised on the build machine.
+  4. calls       seccomp: no socket of any kind (so no network and no local channel such as the session's D-Bus), no
+                 program started (execve), no new process (fork, vfork; clone only for a thread). Checked.
+  5. a record    an audit hook writes down what the utility tried (the network, a path outside its folder, a change to
+                 its copies, a program): words for the owner; the kernel's seal is what refuses it.
+The wall clock is kept by Graphite (the run's process group is ended past it), and HALT ends every run (halt_stop, on
+K3's halt_gate.register_stop('sandbox', ...)) and starts none while it holds. Any seal that does not take ends the run
+before the utility starts: never run unsealed.
+
+AFTER IT RUNS: its output (what it printed), what was stopped and why, and what it made in out/: each file against the
+original it would replace (a line-by-line difference) or as a new file beside its first input.
+
+APPLY (sandbox.apply, approve scope, and in stacy_hand.ALWAYS_ASKS: it asks at every place of the dial, from her hand and
+from an assignment's step alike; the window asks it in words before it is sent). Only a run that finished inside its seal
+is applied. Each output becomes a NEW REVISION of its target in Files: the target must still be the revision that was
+copied (else refused: run it again on the file as it is now), the revision before is kept as a version, the bytes are
+written, read back and verified on disk, and the revision is recorded through L4's revisions (depths.record). Receipts
+(K2): dispatched, then verified.
+
+KEEP (sandbox.keep, approve, always asks): a utility the owner keeps becomes a registered tool of its own: key
+utility.<name>, a number from 101 up that is never moved or reused, its own grant ("run <name> on copies of its inputs").
+
+Kernel operations (one block in engineering_kernel.py and engineering_cli.py, commented 1.0 K6):
+  sandbox.status  {}                                                      read     what this computer offers for the seal
+  sandbox.list    {limit?}                                                read     the utilities and their latest runs
+  sandbox.get     {utility? | run?}                                       read     one utility (its text, its look) or one run
+  sandbox.draft   {objective, inputs, source?, by?}                       execute  a utility drafted (desk, model or you)
+  sandbox.seen    {utility, source_sha256}                                execute  the window showed it to you, this text
+  sandbox.run     {utility | kept, inputs?, expected_source_sha256?}      execute  run it sealed on copies of its inputs
+  sandbox.close   {run}                                                   execute  throw away a run's folder (its copies)
+  sandbox.apply   {run, outputs: [{name, sha256}]}                        approve  ALWAYS ASKS: outputs to real files
+  sandbox.keep    {utility, name}                                         approve  ALWAYS ASKS: a registered tool of its own
+The reads are observers (activity.OBSERVER_OPERATIONS).
+
+No floating point anywhere here: times are whole milliseconds, sizes bytes, digests hex; the desk's utilities add decimals
+as Decimal.
+"""
+from __future__ import annotations
+
+import ast
+import ctypes
+import difflib
+import hashlib
+import json
+import os
+import platform
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import threading
+import time
+import uuid
+from pathlib import Path
+
+SCHEMA = 'graphite.sandbox/1'
+LIMITS = {'cpu_seconds': 10, 'memory_bytes': 512 * 1024 * 1024, 'file_bytes': 32 * 1024 * 1024, 'open_files': 64, 'wall_seconds': 30}
+MOST_INPUTS = 8
+INPUT_BYTES = 16 * 1024 * 1024          # one input file, at most
+SOURCE_BYTES = 16384                    # a utility's text, at most
+SOURCE_LINES = 400
+MOST_OUTPUTS = 32
+OUTPUT_BYTES = 32 * 1024 * 1024         # all of what it made, together
+SHOWN_OUT = 65536                       # what is kept of what it printed
+SHOWN_ERR = 8192
+DIFF_LINES = 400                        # lines of one difference shown
+TEXT_BYTES = 2 * 1024 * 1024            # a file compared line by line is at most this large
+KEPT_FROM = 101                         # a kept utility's tool number: from here up, never moved or reused
+REFUSED_EXIT = 125                      # the launcher's exit when a seal did not take (the utility never started)
+BY = ('desk', 'model', 'you')
+BY_WORDS = {'desk': 'drafted by the desk', 'model': 'drafted by the model', 'you': 'written by you'}
+STATE_WORDS = {'finished': 'RAN SEALED', 'failed': 'ENDED WITH AN ERROR', 'stopped': 'STOPPED', 'refused': 'NOT RUN',
+               'running': 'RUNNING', 'applied': 'APPLIED', 'closed': 'THROWN AWAY'}
+SEAL_WORDS = ('No network: a network of its own with nothing in it, and no socket of any kind.',
+              'Only its own folder: the copies (read-only), its outputs, an empty home. Your files are not there.',
+              'No other program, no new process.')
+NETWORK_MODULES = ('socket', 'ssl', 'http', 'urllib', 'ftplib', 'smtplib', 'poplib', 'imaplib', 'telnetlib', 'xmlrpc', 'requests',
+                   'websocket', 'websockets', 'aiohttp', 'httpx', 'urllib3', 'paramiko', 'nntplib')
+PROGRAM_MODULES = ('subprocess', 'pty', 'multiprocessing', 'concurrent')
+MACHINE_MODULES = ('ctypes', 'cffi', 'mmap')
+PROGRAM_CALLS = ('system', 'popen', 'execv', 'execve', 'execl', 'execle', 'execlp', 'execvp', 'execvpe', 'spawnv', 'spawnve', 'spawnl',
+                 'spawnle', 'posix_spawn', 'posix_spawnp', 'fork', 'forkpty', 'startfile')
+
+ID = {'type': 'string', 'pattern': '^[0-9a-f]{32}$', 'maxLength': 32}
+SHA = {'type': 'string', 'pattern': '^[0-9a-f]{64}$', 'maxLength': 64}
+PATHS = {'type': 'array', 'items': {'type': 'string', 'minLength': 1, 'maxLength': 1000}}
+KEPT_KEY = {'type': 'string', 'pattern': '^utility\\.[a-z][a-z0-9_]{0,40}$', 'maxLength': 48}
+FIELDS = {
+    'sandbox.status': ({}, []),
+    'sandbox.list': ({'limit': {'type': 'integer', 'minimum': 1, 'maximum': 200}}, []),
+    'sandbox.get': ({'utility': ID, 'run': ID}, []),
+    'sandbox.draft': ({'objective': {'type': 'string', 'minLength': 1, 'maxLength': 600}, 'inputs': PATHS,
+                       'source': {'type': 'string', 'minLength': 1, 'maxLength': SOURCE_BYTES},
+                       'by': {'type': 'string', 'enum': list(BY)}}, ['objective', 'inputs']),
+    'sandbox.seen': ({'utility': ID, 'source_sha256': SHA}, ['utility', 'source_sha256']),
+    'sandbox.run': ({'utility': ID, 'kept': KEPT_KEY, 'inputs': PATHS, 'expected_source_sha256': SHA}, []),
+    'sandbox.close': ({'run': ID}, ['run']),
+    'sandbox.apply': ({'run': ID, 'outputs': {'type': 'array', 'items': {'type': 'object', 'properties': {
+        'name': {'type': 'string', 'minLength': 1, 'maxLength': 255}, 'sha256': SHA}, 'required': ['name', 'sha256']}}}, ['run', 'outputs']),
+    'sandbox.keep': ({'utility': ID, 'name': {'type': 'string', 'minLength': 1, 'maxLength': 60}}, ['utility', 'name']),
+}
+SCOPES = {'sandbox.status': 'read', 'sandbox.list': 'read', 'sandbox.get': 'read', 'sandbox.draft': 'execute', 'sandbox.seen': 'execute',
+          'sandbox.run': 'execute', 'sandbox.close': 'execute', 'sandbox.apply': 'approve', 'sandbox.keep': 'approve'}
+OBSERVERS = ('sandbox.status', 'sandbox.list', 'sandbox.get')
+ASKS_WHY = 'it changes your real files with what a utility made, or makes a utility a tool of yours: yours to say, every time'
+
+
+class Refused(ValueError):
+    """The sandbox refused: nothing was run, nothing of the owner's changed."""
+
+
+def _now_ms():
+    return time.time_ns() // 1000000
+
+
+def _sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def _file_sha(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as stream:
+        for block in iter(lambda: stream.read(1 << 20), b''):h.update(block)
+    return h.hexdigest()
+
+
+# =================================================================================================================== the seal
+# The launcher: the only code that runs inside the sandbox besides the utility. Standard library only; it seals its own
+# process (limits, network, files, calls), checks each seal took, records what the utility tries, then runs the utility.
+LAUNCHER = r'''
+import ctypes, json, os, platform, resource, socket, sys
+plan = json.loads(sys.argv[1])
+REPORT = plan['report_fd']
+try:
+    os.set_blocking(REPORT, False)
+except OSError:
+    pass
+said = {'n': 0, 'keys': set()}
+
+def report(kind, **what):
+    key = (kind, str(what.get('path') or what.get('detail') or ''))
+    if key in said['keys'] or said['n'] >= 30:
+        return
+    said['keys'].add(key); said['n'] += 1
+    try:
+        os.write(REPORT, (json.dumps(dict(kind=kind, **what))[:900] + '\n').encode('utf-8', 'replace'))
+    except OSError:
+        pass
+
+def refuse(code, words):
+    report('refused', code=code, words=words)
+    try:
+        sys.stderr.write('SEAL_REFUSED %s: %s\n' % (code, words)); sys.stderr.flush()
+    finally:
+        os._exit(125)
+
+libc = ctypes.CDLL(None, use_errno=True)
+U = ctypes.c_ulong
+L = plan['limits']
+try:
+    for name, soft, hard in ((resource.RLIMIT_CPU, L['cpu_seconds'], L['cpu_seconds'] + 2), (resource.RLIMIT_AS, L['memory_bytes'], L['memory_bytes']),
+                             (resource.RLIMIT_FSIZE, L['file_bytes'], L['file_bytes']), (resource.RLIMIT_NOFILE, L['open_files'], L['open_files']),
+                             (resource.RLIMIT_CORE, 0, 0)):
+        resource.setrlimit(name, (soft, hard))
+except (ValueError, OSError) as exc:
+    refuse('LIMITS', 'its limits could not be set (%s)' % exc)
+import sysconfig, traceback, codecs, encodings.utf_8, io, linecache, tokenize  # what the utility's own error needs, read before the seal
+
+# 2 . the network: a network of its own
+if plan['mechanism'] == 'landlock':
+    if libc.unshare(0x40000000) != 0:                                 # CLONE_NEWNET
+        uid, gid = os.getuid(), os.getgid()
+        if libc.unshare(0x10000000 | 0x40000000) != 0:                # CLONE_NEWUSER | CLONE_NEWNET
+            refuse('NETWORK', 'this computer does not let the utility have a network of its own (%s)' % os.strerror(ctypes.get_errno()))
+        try:
+            open('/proc/self/setgroups', 'w').write('deny')
+            open('/proc/self/uid_map', 'w').write('%d %d 1' % (uid, uid))
+            open('/proc/self/gid_map', 'w').write('%d %d 1' % (gid, gid))
+        except OSError:
+            pass
+try:
+    names = sorted(n for _, n in socket.if_nameindex())
+except OSError as exc:
+    refuse('NETWORK', 'its network could not be checked (%s)' % exc)
+if names != ['lo']:
+    refuse('NETWORK', 'the network of its own did not take: it still sees %s' % ', '.join(names))
+
+# 3 . the files: Landlock (or bubblewrap's namespaces, already around this process)
+folder = plan['folder']
+writable = [os.path.join(folder, d) for d in ('out', 'home', 'tmp')]
+libraries = []
+for p in list(sys.path) + [sysconfig.get_config_var('LIBDIR') or '', '/usr/lib', '/lib', '/lib64', '/usr/lib64']:
+    if not p or not os.path.isdir(p):
+        continue
+    real = os.path.realpath(p)
+    if real in ('/', '/usr', '/home', '/root', '/tmp', '/etc', '/var', '/run') or any(
+            (os.path.realpath(x) + '/').startswith(real.rstrip('/') + '/') for x in [folder] + plan['never']):
+        continue
+    if real not in libraries:
+        libraries.append(real)
+if plan['mechanism'] == 'landlock':
+    arch = platform.machine()
+    if arch not in ('x86_64', 'aarch64', 'riscv64'):
+        refuse('FILES', 'Landlock is not known on this processor (%s)' % arch)
+    CREATE, ADD, RESTRICT = 444, 445, 446
+    abi = libc.syscall(CREATE, None, ctypes.c_size_t(0), ctypes.c_uint32(1))
+    if abi < 1:
+        refuse('FILES', 'this computer has no Landlock')
+    class Attr(ctypes.Structure):
+        _fields_ = [('fs', ctypes.c_uint64), ('net', ctypes.c_uint64), ('scoped', ctypes.c_uint64)]
+    class Beneath(ctypes.Structure):
+        _pack_ = 1
+        _fields_ = [('allowed', ctypes.c_uint64), ('fd', ctypes.c_int32)]
+    EXECUTE, WRITE, READ, READ_DIR, TRUNCATE, IOCTL = 1, 2, 4, 8, 1 << 14, 1 << 15
+    fs = (1 << 13) - 1
+    if abi >= 2: fs |= 1 << 13
+    if abi >= 3: fs |= TRUNCATE
+    if abi >= 5: fs |= IOCTL
+    attr = Attr(fs, 3 if abi >= 4 else 0, 3 if abi >= 6 else 0)
+    size = 8 if abi < 4 else (16 if abi < 6 else 24)
+    rules = libc.syscall(CREATE, ctypes.byref(attr), ctypes.c_size_t(size), ctypes.c_uint32(0))
+    if rules < 0:
+        refuse('FILES', 'the file seal could not be made (%s)' % os.strerror(ctypes.get_errno()))
+    FILE_RIGHTS = EXECUTE | WRITE | READ | TRUNCATE | IOCTL
+    def allow(path, rights):
+        try:
+            fd = os.open(path, os.O_PATH | os.O_CLOEXEC)
+        except OSError:
+            return
+        try:
+            if not os.path.isdir(path):
+                rights &= FILE_RIGHTS
+            rule = Beneath(rights & fs, fd)
+            if libc.syscall(ADD, ctypes.c_int(rules), ctypes.c_int(1), ctypes.byref(rule), ctypes.c_uint32(0)) != 0:
+                refuse('FILES', 'the file seal could not take %s (%s)' % (path, os.strerror(ctypes.get_errno())))
+        finally:
+            os.close(fd)
+    for p in libraries:
+        allow(p, READ | READ_DIR)
+    for p in ('/etc/ld.so.cache', '/etc/localtime', '/dev/urandom'):
+        allow(p, READ)
+    allow('/dev/null', READ | WRITE)
+    allow(folder, READ | READ_DIR)
+    for p in writable:
+        allow(p, fs & ~EXECUTE)
+    if libc.prctl(38, U(1), U(0), U(0), U(0)) != 0:                    # PR_SET_NO_NEW_PRIVS
+        refuse('FILES', 'no_new_privs could not be set')
+    if libc.syscall(RESTRICT, ctypes.c_int(rules), ctypes.c_uint32(0)) != 0:
+        refuse('FILES', 'the file seal could not be laid (%s)' % os.strerror(ctypes.get_errno()))
+    os.close(rules)
+for probe in plan['never']:
+    try:
+        os.listdir(probe)
+    except OSError:
+        continue
+    refuse('FILES', 'the file seal did not take: it could still see %s' % probe)
+try:
+    open('/etc/passwd', 'rb').close()
+except OSError:
+    pass
+else:
+    refuse('FILES', 'the file seal did not take: it could still read /etc/passwd')
+
+# 4 . the calls: seccomp (no socket, no program, no new process)
+SYSCALLS = {'x86_64': (0xC000003E, {'socket': 41, 'execve': 59, 'execveat': 322, 'fork': 57, 'vfork': 58, 'clone': 56, 'clone3': 435}),
+            'aarch64': (0xC00000B7, {'socket': 198, 'execve': 221, 'execveat': 281, 'clone': 220, 'clone3': 435})}
+known = SYSCALLS.get(platform.machine())
+if known is None:
+    refuse('CALLS', 'the call seal is not known on this processor (%s)' % platform.machine())
+AUDIT_ARCH, NR = known
+ALLOW, KILL, ERRNO = 0x7fff0000, 0x80000000, 0x00050000
+LD, JEQ, JGE, JSET, RET = 0x20, 0x15, 0x35, 0x45, 0x06
+prog = [('ld', 4), ('jeq', AUDIT_ARCH, None, 'kill'), ('ld', 0), ('jge', 0x40000000, 'eperm', None),
+        ('jeq', NR['socket'], 'eacces', None)]
+for name in ('execve', 'execveat', 'fork', 'vfork'):
+    if name in NR:
+        prog.append(('jeq', NR[name], 'eperm', None))
+prog += [('jeq', NR['clone3'], 'enosys', None), ('jeq', NR['clone'], None, 'allow'), ('ld', 16), ('jset', 0x00010000, 'allow', 'eperm'),
+         ('label', 'allow'), ('ret', ALLOW), ('label', 'eperm'), ('ret', ERRNO | 1), ('label', 'eacces'), ('ret', ERRNO | 13),
+         ('label', 'enosys'), ('ret', ERRNO | 38), ('label', 'kill'), ('ret', KILL)]
+labels, n = {}, 0
+for ins in prog:
+    if ins[0] == 'label':
+        labels[ins[1]] = n
+    else:
+        n += 1
+class Filter(ctypes.Structure):
+    _fields_ = [('code', ctypes.c_uint16), ('jt', ctypes.c_uint8), ('jf', ctypes.c_uint8), ('k', ctypes.c_uint32)]
+class Program(ctypes.Structure):
+    _fields_ = [('len', ctypes.c_ushort), ('filter', ctypes.POINTER(Filter))]
+built, at = [], 0
+for ins in prog:
+    if ins[0] == 'label':
+        continue
+    if ins[0] == 'ld':
+        built.append(Filter(LD, 0, 0, ins[1]))
+    elif ins[0] == 'ret':
+        built.append(Filter(RET, 0, 0, ins[1]))
+    else:
+        jt = 0 if ins[2] is None else labels[ins[2]] - at - 1
+        jf = 0 if ins[3] is None else labels[ins[3]] - at - 1
+        built.append(Filter({'jeq': JEQ, 'jge': JGE, 'jset': JSET}[ins[0]], jt, jf, ins[1]))
+    at += 1
+table = (Filter * len(built))(*built)
+fprog = Program(len(built), table)
+if libc.prctl(38, U(1), U(0), U(0), U(0)) != 0 or libc.prctl(22, U(2), ctypes.byref(fprog), U(0), U(0)) != 0:   # NO_NEW_PRIVS; SECCOMP_MODE_FILTER
+    refuse('CALLS', 'the call seal could not be laid (%s)' % os.strerror(ctypes.get_errno()))
+try:
+    socket.socket(socket.AF_INET, socket.SOCK_STREAM).close()
+except OSError:
+    pass
+else:
+    refuse('CALLS', 'the call seal did not take: it could still open a socket')
+try:
+    pid = os.fork()
+except OSError:
+    pid = -1
+if pid == 0:
+    os._exit(0)
+if pid > 0:
+    os.waitpid(pid, 0)
+    refuse('CALLS', 'the call seal did not take: it could still start a process')
+
+# 5 . what it tries, written down (words only: the seal above is what refuses it)
+inside = os.path.realpath(folder).rstrip('/') + '/'
+mine = [os.path.realpath(p).rstrip('/') + '/' for p in writable]
+reading = [p.rstrip('/') + '/' for p in libraries] + ['/dev/null/', '/dev/urandom/', '/etc/localtime/', '/etc/ld.so.cache/']
+active = [False]
+NETWORK = ('socket.__new__', 'socket.connect', 'socket.getaddrinfo', 'socket.gethostbyname', 'socket.gethostbyaddr', 'socket.bind',
+           'socket.sendto', 'socket.sendmsg', 'urllib.Request', 'http.client.connect', 'ftplib.connect', 'smtplib.connect')
+PROGRAMS = ('subprocess.Popen', 'os.system', 'os.exec', 'os.posix_spawn', 'os.spawn', 'os.fork', 'os.forkpty', 'os.startfile', 'pty.spawn')
+
+def short(args):
+    out = []
+    for a in args[:3]:
+        if isinstance(a, (str, int, tuple, bytes)):
+            out.append(repr(a)[:120])
+    return ', '.join(out)
+
+def where(path):
+    try:
+        path = os.fsdecode(path)
+    except TypeError:
+        return None
+    return os.path.normpath(path if os.path.isabs(path) else os.path.join(inside, path))
+
+def hook(event, args):
+    if not active[0]:
+        return
+    try:
+        if event in NETWORK:
+            if event in ('socket.connect', 'socket.sendto', 'socket.bind') and len(args) > 1 and isinstance(args[1], tuple) and len(args[1]) >= 2:
+                detail = '%s, port %s' % (args[1][0], args[1][1])
+            elif event in ('http.client.connect', 'ftplib.connect', 'smtplib.connect') and len(args) > 2:
+                detail = '%s, port %s' % (args[1], args[2])
+            elif event in ('socket.getaddrinfo', 'socket.gethostbyname', 'socket.gethostbyaddr', 'urllib.Request') and args:
+                detail = str(args[0])[:160]
+            elif event == 'socket.__new__':
+                detail = 'a socket'
+            else:
+                detail = short(args)
+            report('network', event=event, detail=detail)
+        elif event in PROGRAMS:
+            report('program', event=event, detail=short(args))
+        elif event == 'open' and args and not isinstance(args[0], int):
+            full = where(args[0])
+            if full is None:
+                return
+            mode, flags = (args[1] if len(args) > 1 else 'r'), (args[2] if len(args) > 2 else 0)
+            writes = bool(flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND)) if isinstance(flags, int) and flags else \
+                any(c in str(mode or '') for c in 'wax+')
+            here = full + '/'
+            if here.startswith(inside):
+                if writes and not any(here.startswith(m) for m in mine):
+                    report('copies', path=full[len(inside):], detail='write')
+                return
+            if not writes and any(here.startswith(r) for r in reading):
+                return
+            report('outside', path=full, detail='write' if writes else 'read')
+        elif event in ('os.listdir', 'os.scandir', 'os.chdir', 'glob.glob', 'os.mkdir', 'os.remove', 'os.rename', 'shutil.rmtree'):
+            full = where(args[0]) if args and args[0] is not None else None
+            if full and not (full + '/').startswith(inside):
+                if event in ('os.listdir', 'os.scandir') and any((full + '/').startswith(r) for r in reading):
+                    return                                              # Python finding its own modules
+                report('outside', path=full, detail=event)
+        elif event == 'ctypes.dlopen':
+            report('machine', event=event, detail=short(args))
+    except Exception:
+        pass
+
+source = open(os.path.join(folder, 'utility.py'), 'rb').read()
+try:
+    code = compile(source, 'utility.py', 'exec')
+except SyntaxError as exc:
+    sys.stderr.write('Not Python: %s\n' % exc); os._exit(2)
+os.chdir(folder)
+os.environ.clear()
+os.environ.update(HOME=os.path.join(folder, 'home'), TMPDIR=os.path.join(folder, 'tmp'), LANG='C.UTF-8', PATH='/nonexistent')
+sys.argv = ['utility.py']
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace'); sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
+sys.addaudithook(hook)
+report('sealed', mechanism=plan['mechanism'])
+active[0] = True
+status = 0
+try:
+    exec(code, {'__name__': '__main__', '__file__': 'utility.py', '__builtins__': __builtins__})
+except SystemExit as stop:
+    status = stop.code if isinstance(stop.code, int) else (0 if stop.code is None else 1)
+except BaseException:
+    active[0] = False
+    traceback.print_exc()
+    status = 1
+active[0] = False
+try:
+    sys.stdout.flush(); sys.stderr.flush()
+except Exception:
+    pass
+os._exit(status if 0 <= status < 125 else 1)
+'''
+
+_RUNNING = {}            # run id -> Popen of a sealed run going now (HALT and Stop end them)
+_LOCK = threading.Lock()
+_STOPPED = set()         # run ids ended by Stop or HALT
+
+
+def landlock_abi():
+    numbers = {'x86_64': 444, 'aarch64': 444, 'riscv64': 444}.get(platform.machine())
+    if sys.platform != 'linux' or numbers is None:return 0
+    try:
+        abi = ctypes.CDLL(None, use_errno=True).syscall(numbers, None, ctypes.c_size_t(0), ctypes.c_uint32(1))
+    except (OSError, AttributeError):
+        return 0
+    return abi if abi > 0 else 0
+
+
+def _bubblewrap():
+    try:
+        from . import workshop_sandbox
+        return bool(workshop_sandbox.status().get('available'))
+    except Exception:  # noqa: BLE001 - no bubblewrap: not a mechanism here
+        return False
+
+
+def status():
+    """What this computer offers for the seal, in words: available, the mechanism, why not."""
+    if sys.platform != 'linux':
+        return {'available': False, 'mechanism': None, 'why': 'the sandbox needs Linux', 'limits': dict(LIMITS), 'seal': list(SEAL_WORDS)}
+    if platform.machine() not in ('x86_64', 'aarch64'):
+        return {'available': False, 'mechanism': None, 'why': 'the call seal is not known on this processor (%s)' % platform.machine(),
+                'limits': dict(LIMITS), 'seal': list(SEAL_WORDS)}
+    abi = landlock_abi()
+    mechanism = 'landlock' if abi else ('bubblewrap' if _bubblewrap() else None)
+    why = '' if mechanism else ('this computer offers neither Landlock nor bubblewrap, so a utility cannot be sealed: it is never run '
+                                'unsealed')
+    words = ('Sealed with Landlock (ABI %d), a network of its own and a call filter.' % abi if mechanism == 'landlock' else
+             'Sealed with bubblewrap and a call filter.' if mechanism == 'bubblewrap' else why)
+    return {'available': bool(mechanism), 'mechanism': mechanism, 'landlock_abi': abi, 'why': why, 'words': words,
+            'limits': dict(LIMITS), 'seal': list(SEAL_WORDS), 'limit_words': limit_words(LIMITS)}
+
+
+def available():
+    """(bool, why): the registry's question for sandbox.run."""
+    s = status()
+    return s['available'], s['why']
+
+
+def limit_words(limits):
+    return ('At most %d s of processor, %d MB of memory, %d s in all; a file it writes at most %d MB.'
+            % (limits['cpu_seconds'], limits['memory_bytes'] // (1024 * 1024), limits['wall_seconds'], limits['file_bytes'] // (1024 * 1024)))
+
+
+def _sealed_argv(plan, mechanism):
+    argv = [sys.executable, '-I', '-S', '-B', '-c', LAUNCHER, json.dumps(plan)]
+    if mechanism != 'bubblewrap':return argv
+    from . import workshop_sandbox
+    outer = workshop_sandbox.base_argv() + ['--bind', plan['folder'], plan['folder'], '--chdir', plan['folder']]
+    for p in sorted({str(Path(sys.prefix).resolve()), str(Path(sys.base_prefix).resolve()), str(Path(sys.executable).resolve().parent)}):
+        if not p.startswith('/usr') and p not in ('/', '/home', '/root'):outer += ['--ro-bind', p, p]
+    return outer + argv
+
+
+def run_sealed(folder, never=(), limits=None, run_id=''):
+    """Run folder/utility.py sealed in folder (which holds in/, out/, home/, tmp/). `never` are folders it must not be able
+    to see (the owner's Files): a run that can is refused before the utility starts. Returns what happened, in facts."""
+    info = status()
+    if not info['available']:raise Refused('SANDBOX_UNSEALED: ' + info['why'])
+    limits = {**LIMITS, **(limits or {})}
+    folder = str(Path(folder).resolve())
+    read_end, write_end = os.pipe()
+    plan = {'folder': folder, 'limits': {k: int(v) for k, v in limits.items() if k != 'wall_seconds'}, 'report_fd': write_end,
+            'mechanism': info['mechanism'], 'never': [str(Path(p).resolve()) for p in never if p and Path(p).exists()]}
+    argv = _sealed_argv(plan, info['mechanism'])
+    started = time.monotonic_ns()
+    try:
+        proc = subprocess.Popen(argv, cwd=folder, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                pass_fds=(write_end,), start_new_session=True, env={'LANG': 'C.UTF-8', 'PATH': '/usr/bin:/bin'})
+    finally:
+        os.close(write_end)
+    with _LOCK:_RUNNING[run_id or str(proc.pid)] = proc
+    killed = ''
+    try:
+        out, err = proc.communicate(timeout=int(limits['wall_seconds']))
+    except subprocess.TimeoutExpired:
+        killed = 'it ran longer than %d s, so it was ended' % int(limits['wall_seconds'])
+        _end(proc);out, err = proc.communicate()
+    finally:
+        with _LOCK:_RUNNING.pop(run_id or str(proc.pid), None)
+    if run_id and run_id in _STOPPED:
+        killed = 'stopped by you (Stop or HALT)';_STOPPED.discard(run_id)
+    ms = (time.monotonic_ns() - started) // 1000000
+    reports = []
+    try:
+        os.set_blocking(read_end, False)
+        data = b''
+        while True:
+            try:chunk = os.read(read_end, 65536)
+            except BlockingIOError:break
+            if not chunk:break
+            data += chunk
+        for line in data.decode('utf-8', 'replace').splitlines():
+            try:reports.append(json.loads(line))
+            except ValueError:continue
+    finally:
+        os.close(read_end)
+    code = proc.returncode
+    if not killed and code is not None and code < 0:
+        sig = -code
+        killed = {signal.SIGXCPU: 'it used more than %d s of processor, so it was ended' % limits['cpu_seconds'],
+                  signal.SIGXFSZ: 'it wrote a file larger than %d MB, so it was ended' % (limits['file_bytes'] // (1024 * 1024)),
+                  signal.SIGKILL: 'it was ended (a limit, or Stop)', signal.SIGSYS: 'it made a call the seal refuses, so it was ended'}.get(
+            sig, 'it was ended by signal %d' % sig)
+    return {'exit': code, 'stdout': out[:SHOWN_OUT].decode('utf-8', 'replace'), 'stderr': err[-SHOWN_ERR:].decode('utf-8', 'replace'),
+            'truncated': len(out) > SHOWN_OUT, 'killed': killed, 'ms': int(ms), 'reports': reports, 'mechanism': info['mechanism'],
+            'limits': limits}
+
+
+def _end(proc):
+    try:os.killpg(proc.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):pass
+
+
+def stop(run_id):
+    """End one sealed run now (the window's Stop). True when one was running."""
+    with _LOCK:proc = _RUNNING.get(run_id)
+    if proc is None:return False
+    _STOPPED.add(run_id);_end(proc)
+    return True
+
+
+def stop_all(*_args, **_kw):
+    """HALT: end every sealed run of this Graphite now. Returns how many were running."""
+    with _LOCK:items = list(_RUNNING.items())
+    for run_id, proc in items:
+        _STOPPED.add(run_id);_end(proc)
+    return len(items)
+
+
+def running():
+    with _LOCK:return sorted(_RUNNING)
+
+
+def halt_stop(kernel=None, principal=None):
+    """HALT's stop hook (K3's halt_gate.STOP_HOOKS): every sealed run ended now; words, or '' when none was running."""
+    n = stop_all()
+    return ('HALT ended %d utilit%s running sealed on copies; nothing of yours changed.' % (n, 'y' if n == 1 else 'ies')) if n else ''
+
+
+def halted(kernel):
+    """Whether HALT holds her work now (K3's halt_gate): no sandbox run starts while it does."""
+    try:
+        from . import halt_gate
+    except ImportError:      # HALT without K3's own hold: the run is not held here
+        return False
+    return bool(halt_gate.held(kernel))
+
+
+try:  # K3: HALT's list of stop hooks (halt_gate.register_stop); without it HALT's caller reaches stop_all() itself
+    from . import halt_gate as _halt_gate
+    _halt_gate.register_stop('sandbox', halt_stop)
+except Exception:  # noqa: BLE001 - HALT without the hook list: stop_all() and halt_stop() are still here
+    pass
+
+
+# ============================================================================================================ the desk's look
+def _docstring_lines(tree):
+    doc = ast.get_docstring(tree) or ''
+    return [line.strip() for line in doc.splitlines()]
+
+
+def look(source):
+    """What the desk sees in a utility's text, in words (never the boundary: the seal is). Refuses text that is not
+    Python, or too long."""
+    out = {'python': False, 'lines': 0, 'purpose': '', 'reads': [], 'writes': [], 'imports': [], 'flags': [], 'refuse': ''}
+    if not isinstance(source, str) or not source.strip():
+        out['refuse'] = 'there is no text';return out
+    data = source.encode('utf-8')
+    out['lines'] = source.count('\n') + 1
+    if len(data) > SOURCE_BYTES or out['lines'] > SOURCE_LINES:
+        out['refuse'] = 'it is longer than a small utility (%d lines, %d bytes; at most %d lines)' % (out['lines'], len(data), SOURCE_LINES)
+        return out
+    try:
+        tree = ast.parse(source, 'utility.py')
+    except (SyntaxError, ValueError) as exc:
+        out['refuse'] = 'it is not Python that can run (%s, line %s)' % (getattr(exc, 'msg', str(exc))[:80], getattr(exc, 'lineno', '?'))
+        return out
+    out['python'] = True
+    doc = _docstring_lines(tree)
+    out['purpose'] = next((line for line in doc if line), '')[:160]
+    for line in doc:
+        low = line.lower()
+        if low.startswith('reads:'):out['reads'] += [w.strip() for w in line[6:].split(',') if w.strip()]
+        if low.startswith('writes:'):out['writes'] += [w.strip() for w in line[7:].split(',') if w.strip() and w.strip().lower() != 'nothing']
+    flags = []
+    imports = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:imports.add(alias.name.split('.')[0])
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.add(node.module.split('.')[0])
+        elif isinstance(node, ast.Call):
+            fn = node.func
+            name = fn.attr if isinstance(fn, ast.Attribute) else (fn.id if isinstance(fn, ast.Name) else '')
+            if name in PROGRAM_CALLS:flags.append(('program', 'it asks to start another program (%s): the seal refuses that' % name))
+            if name == '__import__':flags.append(('import', 'it imports by name at run time (__import__)'))
+            if name in ('open',) and node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+                target = node.args[0].value
+                mode = node.args[1].value if len(node.args) > 1 and isinstance(node.args[1], ast.Constant) else 'r'
+                (out['writes'] if any(c in str(mode) for c in 'wax+') else out['reads']).append(target)
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            text = node.value.strip()
+            if re.match(r'^(/|~)[\w.~-]', text) or text.startswith('../') or '/../' in text:
+                flags.append(('outside', 'it names %s, outside its folder: the seal refuses that' % text[:80]))
+            if re.match(r'^[a-z][a-z0-9+.-]*://', text):
+                flags.append(('network', 'it names an address on the network (%s): it has no network' % text[:80]))
+    out['imports'] = sorted(imports)
+    for name in sorted(imports):
+        if name in NETWORK_MODULES:flags.append(('network', 'it asks for the network (%s): it has no network, and would be stopped' % name))
+        if name in PROGRAM_MODULES:flags.append(('program', 'it asks to start other programs (%s): the seal refuses that' % name))
+        if name in MACHINE_MODULES:flags.append(('machine', 'it reaches below Python (%s)' % name))
+    seen = set();out['flags'] = []
+    for kind, words in flags:
+        if words not in seen:seen.add(words);out['flags'].append({'kind': kind, 'words': words})
+    out['reads'] = list(dict.fromkeys(out['reads']));out['writes'] = list(dict.fromkeys(out['writes']))
+    return out
+
+
+# ============================================================================================ the desk's own utilities (no model)
+TEMPLATES = {
+    'total': ('''"""Total the {col} column of {name}.
+Reads: in/{name}
+Writes: out/{stem}_total.csv
+"""
+import csv
+from decimal import Decimal, InvalidOperation
+
+COLUMN = {col!r}
+total = Decimal(0)
+rows = 0
+skipped = 0
+with open('in/{name}', newline='', encoding='utf-8') as source:
+    table = csv.reader(source)
+    header = next(table)
+    at = [h.strip() for h in header].index(COLUMN)
+    for row in table:
+        if not row or len(row) <= at or not row[at].strip():
+            continue
+        try:
+            total += Decimal(row[at].strip())
+            rows += 1
+        except InvalidOperation:
+            skipped += 1
+with open('out/{stem}_total.csv', 'w', newline='', encoding='utf-8') as made:
+    csv.writer(made).writerow(['column', 'rows', 'total'])
+    csv.writer(made).writerow([COLUMN, rows, total])
+print('%s: total %s over %d rows' % (COLUMN, total, rows))
+if skipped:
+    print('%d cells were not numbers and were left out' % skipped)
+'''),
+    'count': ('''"""Count the rows of {name}.
+Reads: in/{name}
+Writes: nothing
+"""
+import csv
+
+with open('in/{name}', newline='', encoding='utf-8') as source:
+    table = csv.reader(source)
+    header = next(table, None)
+    rows = sum(1 for row in table if any(cell.strip() for cell in row))
+print('%s: %d rows under its header' % ({name!r}, rows))
+'''),
+    'sort': ('''"""Sort the rows of {name} by its {col} column.
+Reads: in/{name}
+Writes: out/{name}
+"""
+import csv
+from decimal import Decimal, InvalidOperation
+
+COLUMN = {col!r}
+with open('in/{name}', newline='', encoding='utf-8') as source:
+    table = list(csv.reader(source))
+header, rows = table[0], [row for row in table[1:] if row]
+at = [h.strip() for h in header].index(COLUMN)
+
+def key(row):
+    cell = row[at].strip() if len(row) > at else ''
+    try:
+        return (0, Decimal(cell), '')
+    except InvalidOperation:
+        return (1, Decimal(0), cell)
+
+rows.sort(key=key)
+with open('out/{name}', 'w', newline='', encoding='utf-8') as made:
+    writer = csv.writer(made, lineterminator='\\n')
+    writer.writerow(header)
+    writer.writerows(rows)
+print('%d rows of %s sorted by %s' % (len(rows), {name!r}, COLUMN))
+'''),
+}
+PATTERNS = (('total', re.compile(r'^\s*(?:please\s+)?(?:total|sum|add\s+up)\s+(?:the\s+)?(?:column\s+)?(?P<col>[\w .%()/-]+?)(?:\s+column)?'
+                                 r'(?:\s+(?:of|in)\s+.+)?\s*[.!]?\s*$', re.I)),
+            ('count', re.compile(r'^\s*(?:please\s+)?(?:count|how\s+many)\s+(?:the\s+)?rows\b.*$', re.I)),
+            ('sort', re.compile(r'^\s*(?:please\s+)?sort\s+(?:it\s+|the\s+rows\s+|.+?\s+)?by\s+(?:the\s+)?(?P<col>[\w .%()/-]+?)'
+                                r'(?:\s+column)?\s*[.!]?\s*$', re.I)))
+
+
+def _norm(word):
+    return re.sub(r'[\s_]+', '', str(word or '').strip().lower())
+
+
+def desk_draft(objective, inputs):
+    """The desk's own utility when the words read as one of its patterns and name a column of the first input; else None.
+    `inputs`: [{'name', 'head'}] (head: the first line of the file)."""
+    if not inputs:return None
+    first = inputs[0]
+    import csv
+    try:header = next(csv.reader([first.get('head') or '']))
+    except (StopIteration, csv.Error):header = []
+    columns = {_norm(h): h.strip() for h in header if h.strip()}
+    for kind, pattern in PATTERNS:
+        found = pattern.match(objective or '')
+        if not found:continue
+        col = ''
+        if 'col' in pattern.groupindex:
+            col = columns.get(_norm(found.group('col')))
+            if not col:continue
+        name = first['name'];stem = Path(name).stem
+        if not re.fullmatch(r'[\w .()+-]{1,120}', name):return None
+        return {'template': kind, 'source': TEMPLATES[kind].format(name=name, stem=stem, col=col), 'column': col}
+    return None
+
+
+# ====================================================================================================== the model's draft (UTILITY)
+UTILITY_BRIEF = '''You write one small Python 3 utility for Graphite's sealed sandbox.
+Rules:
+- Standard library only. It has no network, cannot start other programs and sees no folder but its own: anything else is stopped.
+- Its input files are copies in the folder in/ (named below); it may only read them.
+- Any file it makes goes in the folder out/. A file in out/ with the same name as an input is offered as a new revision of that file.
+- Print the answer on standard output in a few plain lines.
+- Add or compare decimal numbers with decimal.Decimal, never float.
+- Begin with a docstring: its first line says what it does; then one line "Reads: in/<name>" for each file it reads, and one line "Writes: out/<name>" for each file it makes (or "Writes: nothing").
+- Answer with the code only: no fences, no explanation.'''
+
+
+def _utility_stable(inputs):
+    rows = ['Its inputs:']
+    for item in inputs.get('inputs') or ():
+        rows.append('in/%s, whose first line is: %s' % (item['name'], (item.get('head') or '')[:200]))
+    return '\n'.join(rows)
+
+
+def _utility_last(inputs):
+    return 'The task, in the owner\'s words: %s' % str(inputs.get('objective') or '')[:600]
+
+
+def _strip_fences(text):
+    text = text.strip()
+    found = re.match(r'^```[a-zA-Z0-9]*\s*\n(.*?)\n```\s*$', text, re.S)
+    return found.group(1) if found else text
+
+
+def _utility_parse(said, inputs):
+    from .model_words import Invalid, ModelSaid
+    code = _strip_fences(said.for_check())
+    seen = look(code)
+    if not seen['python']:raise Invalid('NOT_PYTHON: ' + seen['refuse'])
+    return {'code': ModelSaid(code, 'UTILITY'), 'sha256': _sha(code.encode('utf-8')), 'lines': seen['lines']}
+
+
+def _utility_check(obj, inputs):
+    from . import turns
+    seen = look(obj['code'].for_check())
+    if seen['refuse']:return turns.Verdict('REFUSED', why=('UTILITY_REFUSED',), checks=(('look', False, seen['refuse']),))
+    checks = (('python', True, '%d lines' % seen['lines']), ('declared', bool(seen['reads'] or seen['writes']),
+                                                             'reads %s; writes %s' % (seen['reads'], seen['writes'])))
+    return turns.Verdict('TAKEN', value=obj, checks=checks, basis='model_pick')
+
+
+def _utility_fallback(inputs):
+    from . import turns
+    return turns.Fallback('ASK_OWNER', None)
+
+
+def utility_kind():
+    """The turn kind UTILITY, registered once."""
+    from . import turns
+    held = turns.KINDS.get('UTILITY')
+    if held is not None:return held
+    return turns.register(turns.TurnKind(
+        name='UTILITY', version=1, switch='talk', brief=lambda: UTILITY_BRIEF, stable=_utility_stable, last=_utility_last,
+        grammar=lambda inputs: None, caps=turns.Caps(new_tokens=900, answer_tokens=600, deadline_ms=0, stop_only=True),
+        parse=_utility_parse, check=_utility_check, fallback=_utility_fallback, paper=''))
+
+
+# ================================================================================================================ the records
+def ensure(db):
+    db.execute('CREATE TABLE IF NOT EXISTS sandbox_utilities(id TEXT PRIMARY KEY, owner TEXT NOT NULL, at INTEGER NOT NULL, name TEXT NOT NULL, '
+               'objective TEXT NOT NULL, by TEXT NOT NULL, turn TEXT NOT NULL, source TEXT NOT NULL, sha256 TEXT NOT NULL, inputs TEXT NOT NULL, '
+               'look TEXT NOT NULL, shown INTEGER NOT NULL, kept TEXT NOT NULL)')
+    db.execute('CREATE TABLE IF NOT EXISTS sandbox_runs(id TEXT PRIMARY KEY, utility TEXT NOT NULL, owner TEXT NOT NULL, at INTEGER NOT NULL, '
+               'state TEXT NOT NULL, folder TEXT NOT NULL, payload TEXT NOT NULL)')
+    db.execute('CREATE INDEX IF NOT EXISTS sandbox_runs_of ON sandbox_runs(utility, at)')
+    db.execute('CREATE TABLE IF NOT EXISTS sandbox_kept(number INTEGER PRIMARY KEY, key TEXT UNIQUE NOT NULL, utility TEXT NOT NULL, name TEXT NOT NULL, '
+               'sha256 TEXT NOT NULL, owner TEXT NOT NULL, at INTEGER NOT NULL)')
+
+
+U_KEYS = ('id', 'owner', 'at', 'name', 'objective', 'by', 'turn', 'source', 'sha256', 'inputs', 'look', 'shown', 'kept')
+R_KEYS = ('id', 'utility', 'owner', 'at', 'state', 'folder', 'payload')
+
+
+def _utility_row(row):
+    out = dict(zip(U_KEYS, row))
+    for k in ('inputs', 'look'):out[k] = json.loads(out[k] or 'null')
+    out['shown'] = bool(out['shown'])
+    return out
+
+
+def _run_row(row):
+    out = dict(zip(R_KEYS, row))
+    out['payload'] = json.loads(out['payload'] or '{}')
+    return out
+
+
+def _utility(db, ident=None, kept=None):
+    ensure(db)
+    if kept:row = db.execute('SELECT * FROM sandbox_utilities WHERE kept=?', (kept,)).fetchone()
+    else:row = db.execute('SELECT * FROM sandbox_utilities WHERE id=?', (ident,)).fetchone()
+    if row is None:raise ValueError('SANDBOX_UNKNOWN: no such utility here')
+    return _utility_row(row)
+
+
+def _run(db, ident):
+    ensure(db)
+    row = db.execute('SELECT * FROM sandbox_runs WHERE id=?', (ident,)).fetchone()
+    if row is None:raise ValueError('SANDBOX_UNKNOWN_RUN: no such run here')
+    return _run_row(row)
+
+
+def _area(kernel):
+    return Path(kernel.dbpath).parent / 'sandbox'
+
+
+def _files_root(kernel):
+    from . import files_service
+    return files_service.root(kernel)
+
+
+def _inputs(kernel, paths):
+    """The files a utility reads: each in Files, a file, small enough; with its digest now and its first line."""
+    from . import files_service
+    if not paths:raise Refused('SANDBOX_NO_INPUT: name at least one file in Files for it to read (a copy is made of each)')
+    if len(paths) > MOST_INPUTS:raise Refused('SANDBOX_TOO_MANY: at most %d files' % MOST_INPUTS)
+    out, names = [], set()
+    for rel in paths:
+        path = files_service.resolve(kernel, rel)
+        if not path.is_file():raise Refused('SANDBOX_NOT_A_FILE: %s is not a file' % rel[:200])
+        if path.stat().st_size > INPUT_BYTES:raise Refused('SANDBOX_TOO_LARGE: %s is larger than a utility reads (%d MB)' % (rel[:200], INPUT_BYTES // 1048576))
+        name = path.name
+        if name in names:raise Refused('SANDBOX_SAME_NAME: two inputs are called %s; copies sit side by side in one folder' % name)
+        names.add(name)
+        with open(path, 'rb') as stream:head = stream.readline(400).decode('utf-8', 'replace').rstrip('\r\n')
+        out.append({'path': files_service.rel_of(kernel, path), 'name': name, 'sha256': _file_sha(path), 'bytes': path.stat().st_size,
+                    'head': head})
+    return out
+
+
+def _slug(words):
+    slug = re.sub(r'[^a-z0-9]+', '_', str(words or '').lower()).strip('_')[:40]
+    return slug if slug and slug[0].isalpha() else ('utility_' + slug)[:40].strip('_') or 'utility'
+
+
+def _view_utility(u, runs=()):
+    seen = u['look'] or {}
+    return {'id': u['id'], 'name': u['name'], 'objective': u['objective'], 'by': u['by'], 'by_words': BY_WORDS.get(u['by'], u['by']),
+            'mark': BY_WORDS.get(u['by'], u['by']).upper(), 'turn': u['turn'], 'source': u['source'], 'sha256': u['sha256'],
+            'lines': seen.get('lines', 0), 'purpose': seen.get('purpose', ''), 'inputs': u['inputs'],
+            'reads': [{'path': i['path'], 'copy': 'in/' + i['name'], 'sha256': i['sha256'], 'bytes': i['bytes']} for i in u['inputs']],
+            'declared_reads': seen.get('reads', []), 'writes': seen.get('writes', []), 'imports': seen.get('imports', []),
+            'flags': seen.get('flags', []), 'shown': u['shown'], 'kept': u['kept'], 'at': u['at'],
+            'seal': list(SEAL_WORDS), 'limit_words': limit_words(LIMITS),
+            'writes_words': ('It writes %s, in its own folder only: nothing of yours changes unless you apply it.' % ', '.join(seen.get('writes')))
+            if seen.get('writes') else 'It says it writes nothing; whatever it puts in out/ is shown after it runs, and changes nothing of yours.',
+            'runs': [r for r in runs]}
+
+
+# ==================================================================================================================== draft
+def draft(kernel, principal, objective, paths, source=None, by=None, request=None):
+    """A utility drafted for the owner's words: the desk's own when they read as one of its patterns, else the model's
+    (when one is running), else the owner's own text (`source`). Kept as a record; shown before it runs."""
+    inputs = _inputs(kernel, paths)
+    turn = ''
+    if source is not None or by == 'you':
+        if source is None:raise Refused('SANDBOX_NO_TEXT: give the utility\'s text')
+        hand, text = 'you', source
+    else:
+        made = desk_draft(objective, inputs) if by in (None, 'desk') else None
+        if made is not None:
+            hand, text = 'desk', made['source']
+        elif by == 'desk':
+            raise Refused('SANDBOX_NO_PATTERN: the desk does not read these words as one of its utilities (total a column, count the '
+                          'rows, sort by a column)')
+        else:
+            from . import turns
+            kind = utility_kind()
+            request = request if request is not None else turns.request_for(kernel, principal)
+            answer = turns.ask(kind, {'objective': objective, 'inputs': [{'name': i['name'], 'head': i['head']} for i in inputs]}, request)
+            if not answer.by_model:
+                why = {'NO_MODEL': 'no model is running', 'AI_OFF': 'Graphite AI is off', 'SWITCH_OFF': 'her talk switch is off',
+                       'REFUSED': "the model's draft was not a utility that can run", 'LATE': 'the model did not answer in time',
+                       'STOPPED': 'you stopped it'}.get(answer.outcome if answer.outcome != 'NOT_SENT' else answer.why,
+                                                       'the model gave no draft (%s)' % (answer.why or answer.outcome))
+                raise Refused('SANDBOX_NO_DRAFT: no registered tool fits and I could not draft a utility: %s. Say it as "total the '
+                              '<column> column", "count the rows" or "sort by <column>", or write the utility yourself.' % why)
+            hand, text, turn = 'model', answer.value['code'].for_check(), answer.turn or ''
+    seen = look(text)
+    if seen['refuse']:raise Refused('SANDBOX_NOT_RUNNABLE: ' + seen['refuse'])
+    name = (seen['purpose'] or objective)[:60].rstrip('.')
+    u = {'id': uuid.uuid4().hex, 'owner': principal.identity, 'at': _now_ms(), 'name': name, 'objective': objective[:600], 'by': hand,
+         'turn': turn, 'source': text, 'sha256': _sha(text.encode('utf-8')), 'inputs': inputs, 'look': seen, 'shown': False, 'kept': ''}
+    with kernel.db() as db:
+        ensure(db)
+        db.execute('INSERT INTO sandbox_utilities VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                   (u['id'], u['owner'], u['at'], u['name'], u['objective'], u['by'], u['turn'], u['source'], u['sha256'],
+                    json.dumps(inputs), json.dumps(seen), 0, ''))
+    out = _view_utility(u)
+    out['words'] = 'A utility, %s: %s. It runs only sealed, on copies; look at it before it runs.' % (BY_WORDS[hand], name)
+    return out
+
+
+def seen(kernel, args, principal):
+    """The window showed the owner this utility, this text: it may now be run (its precondition)."""
+    with kernel.db() as db:
+        u = _utility(db, args['utility'])
+        if u['sha256'] != args['source_sha256']:raise Refused('SANDBOX_NOT_THIS_TEXT: the text shown is not the utility\'s text')
+        db.execute('UPDATE sandbox_utilities SET shown=1 WHERE id=?', (u['id'],))
+    return {'utility': u['id'], 'shown': True}
+
+
+# ====================================================================================================================== run
+def _text_of(data):
+    if len(data) > TEXT_BYTES or b'\0' in data:return None
+    try:return data.decode('utf-8')
+    except UnicodeDecodeError:return None
+
+
+def difference(before, after, name):
+    """Line by line, as the owner reads it: '+' added, '-' taken away, ' ' kept (a shape for each, beside its colour)."""
+    old, new = _text_of(before), _text_of(after)
+    if old is None or new is None:
+        return {'text': False, 'lines': [], 'added': 0, 'removed': 0,
+                'words': 'not text: %d bytes before, %d after%s' % (len(before), len(after), '' if before != after else ' (the same bytes)')}
+    lines = list(difflib.unified_diff(old.splitlines(), new.splitlines(), 'yours: ' + name, "the utility's: " + name, lineterm='', n=2))
+    added = sum(1 for l in lines if l.startswith('+') and not l.startswith('+++'))
+    removed = sum(1 for l in lines if l.startswith('-') and not l.startswith('---'))
+    words = 'the same text' if not lines else '%d line%s added, %d taken away' % (added, '' if added == 1 else 's', removed)
+    return {'text': True, 'lines': lines[:DIFF_LINES], 'cut': len(lines) > DIFF_LINES, 'added': added, 'removed': removed, 'words': words}
+
+
+STOP_WORDS = {
+    'network': 'It tried to reach the network (%s): the seal stopped it. This utility has no network.',
+    'outside': 'It tried to %s %s, outside its folder: the seal refused it.',
+    'copies': 'It tried to change its copy %s: the copies are read-only (what it makes goes in out/).',
+    'program': 'It tried to start another program (%s): the seal refused it.',
+    'machine': 'It reached below Python (%s).',
+}
+
+
+NETWORK_WORDS = {
+    'socket.connect': 'It tried to connect to %s on the network: the seal stopped it. This utility has no network.',
+    'http.client.connect': 'It tried to connect to %s on the network: the seal stopped it. This utility has no network.',
+    'socket.sendto': 'It tried to send to %s on the network: the seal stopped it. This utility has no network.',
+    'socket.bind': 'It tried to listen on the network (%s): the seal stopped it. This utility has no network.',
+    'socket.getaddrinfo': 'It tried to look up %s on the network: the seal stopped it. This utility has no network.',
+    'socket.gethostbyname': 'It tried to look up %s on the network: the seal stopped it. This utility has no network.',
+    'urllib.Request': 'It tried to fetch %s: the seal stopped it. This utility has no network.',
+    'socket.__new__': 'It tried to open %s on the network: the seal stopped it. This utility has no network.',
+}
+
+
+def _stopped(reports):
+    """What the seal stopped, in words: the network first, then paths outside, its copies, programs."""
+    order = {'network': 0, 'outside': 1, 'copies': 2, 'program': 3}
+    reports = sorted(reports, key=lambda r: order.get(r.get('kind'), 9))
+    out = []
+    for r in reports:
+        kind = r.get('kind')
+        if kind == 'network':
+            if r.get('event') == 'socket.__new__' and any(x.get('kind') == 'network' and x.get('event') != 'socket.__new__' for x in reports):
+                continue                                                # the connection or the lookup says it better
+            out.append({'what': 'network', 'words': NETWORK_WORDS.get(r.get('event'), STOP_WORDS['network']) % str(r.get('detail') or r.get('event'))[:160]})
+        elif kind == 'outside':
+            verb = {'read': 'read', 'write': 'write', 'os.listdir': 'list', 'os.scandir': 'list', 'os.chdir': 'go into', 'glob.glob': 'search',
+                    'os.mkdir': 'make a folder in', 'os.remove': 'delete', 'os.rename': 'rename', 'shutil.rmtree': 'delete'}.get(r.get('detail'), 'reach')
+            out.append({'what': 'outside', 'path': r.get('path'), 'words': STOP_WORDS['outside'] % (verb, r.get('path'))})
+        elif kind == 'copies':
+            out.append({'what': 'copies', 'path': r.get('path'), 'words': STOP_WORDS['copies'] % r.get('path')})
+        elif kind == 'program':
+            out.append({'what': 'program', 'words': STOP_WORDS['program'] % (r.get('detail') or r.get('event'))[:160]})
+    return out
+
+
+def _outputs(folder, inputs):
+    """What it made in out/: each file with its digest, and its difference to the original it would replace."""
+    out_dir = Path(folder) / 'out';made = [];notes = []
+    by_name = {i['name']: i for i in inputs}
+    total = 0
+    for path in sorted(out_dir.rglob('*')):
+        rel = path.relative_to(out_dir).as_posix()
+        if path.is_symlink():notes.append('%s is a link, not a file: it is not offered' % rel);continue
+        if not path.is_file():continue
+        if len(made) >= MOST_OUTPUTS:notes.append('more than %d files: the rest are not offered' % MOST_OUTPUTS);break
+        size = path.stat().st_size;total += size
+        if total > OUTPUT_BYTES:notes.append('more than %d MB in all: the rest are not offered' % (OUTPUT_BYTES // 1048576));break
+        data = path.read_bytes()
+        item = {'name': rel, 'bytes': size, 'sha256': _sha(data)}
+        original = by_name.get(rel)
+        if original is not None:
+            copy = (Path(folder) / 'in' / rel).read_bytes()
+            item.update(target=original['path'], kind='revision', before_sha256=original['sha256'], diff=difference(copy, data, rel))
+            item['words'] = ('a new revision of %s: %s' % (original['path'], item['diff']['words'])) if copy != data else \
+                'the same bytes as %s: nothing would change' % original['path']
+            item['changes'] = copy != data
+        else:
+            first = inputs[0]['path'] if inputs else ''
+            folder_rel = first.rsplit('/', 1)[0] if '/' in first else ''
+            target = (folder_rel + '/' + rel) if folder_rel else rel
+            item.update(target=target, kind='new', diff=difference(b'', data, rel), changes=True)
+            text = _text_of(data)
+            item['words'] = 'a new file, %s, beside %s (%s)' % (target, first or 'Files', ('%d lines' % (text.count('\n') + (0 if text.endswith('\n') else 1)))
+                                                                 if text else '%d bytes' % size)
+        made.append(item)
+    return made, notes
+
+
+TRIED = {'network': 'it tried to reach the network', 'outside': 'it tried to reach a place outside its folder',
+         'copies': 'it tried to change its copies', 'program': 'it tried to start another program'}
+
+
+def _state(result, stopped):
+    if result['exit'] == REFUSED_EXIT and any(r.get('kind') == 'refused' for r in result['reports']):return 'refused'
+    if result['killed'] or stopped:return 'stopped'
+    return 'finished' if result['exit'] == 0 else 'failed'
+
+
+def run(kernel, args, principal):
+    """sandbox.run: copies of its inputs into a sealed folder of its own, the utility run there, what it printed and made
+    read back. Nothing of the owner's is touched."""
+    if not args.get('utility') and not args.get('kept'):raise Refused('SANDBOX_WHICH: name the utility')
+    with kernel.db() as db:
+        u = _utility(db, args.get('utility'), args.get('kept'))
+    if args.get('expected_source_sha256') and args['expected_source_sha256'] != u['sha256']:
+        raise Refused('SANDBOX_NOT_THIS_TEXT: the utility is not the text you were shown; nothing was run')
+    if not u['shown'] and not u['kept']:
+        raise Refused('SANDBOX_NOT_SHOWN: it has not been shown to you yet, with what it reads and writes; nothing was run')
+    info = status()
+    if not info['available']:raise Refused('SANDBOX_UNSEALED: ' + info['why'])
+    if halted(kernel):raise Refused('SANDBOX_HALTED: HALT holds my work: no utility starts until you press RESUME; nothing was run')
+    paths = args.get('inputs') or [i['path'] for i in u['inputs']]
+    inputs = _inputs(kernel, paths)
+    drafted = {i['path']: i['sha256'] for i in u['inputs']}
+    ident = uuid.uuid4().hex
+    folder = _area(kernel) / ident
+    for sub in ('in', 'out', 'home', 'tmp'):(folder / sub).mkdir(parents=True, mode=0o700)
+    (folder / 'utility.py').write_text(u['source'], encoding='utf-8');(folder / 'utility.py').chmod(0o444)
+    from . import files_service
+    copied = []
+    for item in inputs:
+        source = files_service.resolve(kernel, item['path'])
+        data = source.read_bytes()
+        target = folder / 'in' / item['name'];target.write_bytes(data);target.chmod(0o444)
+        sha = _sha(data)
+        copied.append({**item, 'sha256': sha, 'copy': 'in/' + item['name'],
+                       'since': '' if drafted.get(item['path']) in (None, sha) else 'it changed since the utility was drafted: the copy is of the file as it is now'})
+    (folder / 'in').chmod(0o555)
+    started = _now_ms()
+    with kernel.db() as db:
+        ensure(db)
+        db.execute('INSERT INTO sandbox_runs VALUES(?,?,?,?,?,?,?)', (ident, u['id'], principal.identity, started, 'running', str(folder),
+                                                                     json.dumps({'inputs': copied})))
+    try:
+        result = run_sealed(folder, never=[_files_root(kernel)], run_id=ident)
+    except Refused as why:
+        result = {'exit': REFUSED_EXIT, 'stdout': '', 'stderr': str(why), 'truncated': False, 'killed': '', 'ms': 0,
+                  'reports': [{'kind': 'refused', 'code': 'UNSEALED', 'words': str(why).split(': ', 1)[-1]}], 'mechanism': None, 'limits': LIMITS}
+    stopped = _stopped(result['reports'])
+    state = _state(result, stopped)
+    made, notes = _outputs(folder, copied) if state != 'refused' else ([], [])
+    refused = next((r.get('words') for r in result['reports'] if r.get('kind') == 'refused'), '')
+    if state == 'refused':words = 'Not run: %s. Nothing was run unsealed.' % refused
+    elif state == 'stopped':
+        tried = list(dict.fromkeys(TRIED[s['what']] for s in stopped if s['what'] in TRIED))
+        words = ('The seal stopped it: %s.' % '; '.join(tried)) if tried else ''
+        if result['killed']:words = (words + ' ' if words else '') + result['killed'][0].upper() + result['killed'][1:] + '.'
+        words += ' Nothing of yours changed.'
+    elif state == 'failed':words = 'It ended with an error (exit %s): see what it said.' % result['exit']
+    else:words = 'It ran sealed on copies in %d ms.' % result['ms'] + (' It made %d file%s.' % (len(made), '' if len(made) == 1 else 's') if made else '')
+    applicable = state == 'finished' and any(m.get('changes') for m in made)
+    payload = {'inputs': copied, 'exit': result['exit'], 'stdout': result['stdout'], 'stderr': result['stderr'], 'truncated': result['truncated'],
+               'killed': result['killed'], 'ms': result['ms'], 'stopped': stopped, 'outputs': made, 'notes': notes, 'mechanism': result['mechanism'],
+               'limits': {k: int(v) for k, v in result['limits'].items()}, 'refused': refused, 'words': words, 'applicable': applicable,
+               'source_sha256': u['sha256']}
+    with kernel.db() as db:
+        db.execute('UPDATE sandbox_runs SET state=?, payload=? WHERE id=?', (state, json.dumps(payload), ident))
+    if state == 'refused':shutil.rmtree(folder, ignore_errors=True)
+    return _view_run({'id': ident, 'utility': u['id'], 'owner': principal.identity, 'at': started, 'state': state, 'folder': str(folder),
+                      'payload': payload}, u)
+
+
+def _view_run(r, u=None):
+    p = r['payload']
+    why_not = '' if p.get('applicable') else (
+        'Apply is for a run that finished inside its seal and made a change.' if r['state'] in ('finished', 'stopped', 'failed', 'refused') else
+        {'applied': 'It was applied.', 'closed': 'Its copies were thrown away.', 'running': 'It is running.'}.get(r['state'], ''))
+    out = {'id': r['id'], 'utility': r['utility'], 'state': r['state'], 'state_word': STATE_WORDS.get(r['state'], r['state'].upper()),
+           'at': r['at'], 'words': p.get('words', ''), 'exit': p.get('exit'), 'ms': p.get('ms', 0), 'stdout': p.get('stdout', ''),
+           'stderr': p.get('stderr', ''), 'truncated': p.get('truncated', False), 'stopped': p.get('stopped', []), 'killed': p.get('killed', ''),
+           'outputs': p.get('outputs', []), 'notes': p.get('notes', []), 'inputs': p.get('inputs', []), 'mechanism': p.get('mechanism'),
+           'limits': p.get('limits', {}), 'applicable': bool(p.get('applicable')) and r['state'] == 'finished', 'why_not': why_not,
+           'applied': p.get('applied', []), 'source_sha256': p.get('source_sha256', '')}
+    if u is not None:out['name'] = u['name'];out['by'] = u['by'];out['by_words'] = BY_WORDS.get(u['by'], u['by'])
+    return out
+
+
+def close(kernel, args, principal):
+    """sandbox.close: throw away a run's folder (its copies and what it made). Nothing of the owner's is touched."""
+    with kernel.db() as db:
+        r = _run(db, args['run'])
+        if r['state'] == 'running':raise Refused('SANDBOX_RUNNING: it is running; stop it first')
+        area = _area(kernel).resolve()
+        folder = Path(r['folder'])
+        if folder.resolve().parent != area:raise Refused('SANDBOX_FOLDER: that folder is not a run of the sandbox')
+        shutil.rmtree(folder, ignore_errors=True)
+        state = r['state'] if r['state'] == 'applied' else 'closed'
+        db.execute('UPDATE sandbox_runs SET state=? WHERE id=?', (state, r['id']))
+    return {'run': r['id'], 'state': state, 'words': 'Its copies and what it made were thrown away; nothing of yours changed.'}
+
+
+# ==================================================================================================================== apply
+def plan_apply(kernel, run_view):
+    """What Apply would do, in words, for the question asked before it: each output, its target, new revision or new file."""
+    rows = []
+    for m in run_view.get('outputs') or ():
+        if not m.get('changes'):continue
+        if m['kind'] == 'revision':
+            rows.append({'name': m['name'], 'sha256': m['sha256'], 'target': m['target'], 'kind': 'revision',
+                         'words': '%s becomes a new revision (%s); the revision before is kept as a version.' % (m['target'], m['diff']['words'])})
+        else:
+            rows.append({'name': m['name'], 'sha256': m['sha256'], 'target': m['target'], 'kind': 'new',
+                         'words': '%s is made, a new file.' % m['target']})
+    return rows
+
+
+def apply(kernel, args, principal):
+    """sandbox.apply (approve; always asks): each chosen output to its target in Files, as a new revision, verified on disk,
+    the revision recorded (L4); refused whole if any target changed since the copy."""
+    from . import depths, files_service
+    try:
+        from . import tools_registry as tr
+    except Exception:  # noqa: BLE001 - without K2's receipts the revisions still stand as the record
+        tr = None
+    with kernel.db() as db:
+        r = _run(db, args['run'])
+        u = _utility(db, r['utility'])
+    view = _view_run(r, u)
+    if r['state'] != 'finished' or not view['applicable']:
+        raise Refused('SANDBOX_NOT_APPLICABLE: ' + (view['why_not'] or 'only a run that finished inside its seal is applied'))
+    wanted = {o['name']: o['sha256'] for o in args['outputs']}
+    if not wanted:raise Refused('SANDBOX_NOTHING: choose what to apply')
+    offered = {m['name']: m for m in view['outputs'] if m.get('changes')}
+    folder = Path(r['folder'])
+    steps = []
+    for name, sha in wanted.items():
+        m = offered.get(name)
+        if m is None:raise Refused('SANDBOX_NOT_OFFERED: %s is not an output of this run that changes anything' % name[:120])
+        if m['sha256'] != sha:raise Refused('SANDBOX_NOT_SHOWN: %s is not the output you were shown' % name[:120])
+        data_path = folder / 'out' / name
+        if not data_path.is_file() or _file_sha(data_path) != sha:
+            raise Refused('SANDBOX_OUTPUT_CHANGED: %s in its folder is no longer what it made; nothing was applied' % name[:120])
+        target = files_service.resolve(kernel, m['target'], must_exist=False)
+        before = _file_sha(target) if target.is_file() else None
+        if m['kind'] == 'revision' and before != m['before_sha256']:
+            raise Refused('SANDBOX_CHANGED_SINCE: %s changed since the copy was made (or is gone); run the utility again on it as it is now. '
+                          'Nothing was applied.' % m['target'])
+        if m['kind'] == 'new' and target.exists():
+            raise Refused('SANDBOX_TAKEN: a file is already at %s now; nothing was applied' % m['target'])
+        steps.append((name, sha, m, target, before, data_path))
+    applied = []
+    for name, sha, m, target, before, data_path in steps:
+        files_service.may_change(kernel, target, principal)
+        sent = tr.receipt('sandbox.run', 'sandbox.apply', 'files:' + m['target'], 'dispatched', 'observed', False,
+                          'sent; its effect is not yet verified', place={'path': m['target']}, basis='your Apply', owner=principal.identity) if tr else None
+        if sent:tr.record(kernel, sent)
+        target.parent.mkdir(parents=True, mode=0o700, exist_ok=True)
+        kept = files_service.keep_version(kernel, target)
+        temporary = target.with_name('.' + target.name + '.writing')
+        shutil.copyfile(data_path, temporary);os.replace(temporary, target)
+        now = _file_sha(target)
+        if now != sha:
+            if tr:tr.record(kernel, tr.receipt('sandbox.run', 'sandbox.apply', 'files:' + m['target'], 'not verified', 'observed', False,
+                                               'the file on disk does not hold what the utility made', place={'path': m['target']},
+                                               owner=principal.identity, follows=sent['id'] if sent else ''))
+            raise Refused('SANDBOX_NOT_VERIFIED: %s on disk is not what the utility made; it is not called done' % m['target'])
+        program = 'the utility “%s”' % u['name'][:80]
+        rec = depths.record(kernel, {'path': m['target'], 'expected_sha256': sha, **({'previous_sha256': before} if before else {}),
+                                     'how': 'outside', 'program': program[:120]}, principal)
+        words = '%s: revision %d, verified on disk (SHA-256 %s…)%s.' % (m['target'], rec['revision'], sha[:12],
+                                                                        '; the one before is kept as a version' if kept else ', a new file')
+        if tr:tr.record(kernel, tr.receipt('sandbox.run', 'sandbox.apply', 'files:' + m['target'], 'verified', 'observed', True, words,
+                                           revision=sha, place={'path': m['target']}, basis='sha256', owner=principal.identity,
+                                           follows=sent['id'] if sent else ''))
+        applied.append({'name': name, 'path': m['target'], 'revision': rec['revision'], 'sha256': sha, 'kept_version': kept or '',
+                        'kind': m['kind'], 'words': words})
+    with kernel.db() as db:
+        payload = dict(r['payload'], applied=applied)
+        db.execute('UPDATE sandbox_runs SET state=?, payload=? WHERE id=?', ('applied', json.dumps(payload), r['id']))
+    return {'run': r['id'], 'applied': applied, 'state': 'applied',
+            'words': 'Applied by your word: ' + ' '.join(a['words'] for a in applied)}
+
+
+# ===================================================================================================================== keep
+_KEPT_HERE = {}      # tool key -> workspace root it was registered from (this process)
+
+
+def keep(kernel, args, principal):
+    """sandbox.keep (approve; always asks): the utility becomes a registered tool of its own, with its own grant."""
+    name = str(args['name']).strip()[:60]
+    with kernel.db() as db:
+        u = _utility(db, args['utility'])
+        if u['kept']:raise Refused('SANDBOX_KEPT: it is kept already, as %s' % u['kept'])
+        if not u['shown']:raise Refused('SANDBOX_NOT_SHOWN: it has not been shown to you yet')
+        finished = db.execute("SELECT COUNT(*) FROM sandbox_runs WHERE utility=? AND state IN ('finished','applied')", (u['id'],)).fetchone()[0]
+        if not finished:raise Refused('SANDBOX_NOT_TRIED: a utility is kept once it has run sealed and finished at least once')
+        key = 'utility.' + _slug(name)
+        taken = db.execute('SELECT 1 FROM sandbox_kept WHERE key=?', (key,)).fetchone()
+        if taken:raise Refused('SANDBOX_NAME_TAKEN: a kept utility is called %s already' % key)
+        top = db.execute('SELECT MAX(number) FROM sandbox_kept').fetchone()[0]
+        number = max(KEPT_FROM, (top or 0) + 1)
+        db.execute('INSERT INTO sandbox_kept VALUES(?,?,?,?,?,?,?)', (number, key, u['id'], name, u['sha256'], principal.identity, _now_ms()))
+        db.execute('UPDATE sandbox_utilities SET kept=? WHERE id=?', (key, u['id']))
+    register_kept(kernel)
+    return {'utility': u['id'], 'key': key, 'number': number, 'name': name, 'grant': 'run %s on copies of its inputs' % name,
+            'words': 'Kept: “%s” is tool %d (%s) from now on, with its own grant: run it on copies of its inputs. Applying what it makes '
+                     'still asks, every time.' % (name, number, key)}
+
+
+def register_kept(kernel):
+    """This workspace's kept utilities as registered tools (K2's registry), each with its number and its own grant."""
+    try:
+        from . import tools_registry as tr
+    except Exception:  # noqa: BLE001 - no registry in this Graphite: nothing to register into
+        return []
+    with kernel.db() as db:
+        ensure(db)
+        rows = db.execute('SELECT number, key, utility, name, sha256 FROM sandbox_kept ORDER BY number').fetchall()
+    root = str(kernel.root)
+    for key, where in list(_KEPT_HERE.items()):
+        if where != root:
+            gone = tr.TOOLS.pop(key, None)
+            if gone is not None:tr.BY_NUMBER.pop(gone.number, None)
+            _KEPT_HERE.pop(key, None)
+    made = []
+    for number, key, ident, name, sha in rows:
+        if key in tr.TOOLS:made.append(key);continue
+        if number in tr.BY_NUMBER:continue          # a number is never reused for another tool
+        tool = tr.Tool(number, key, 'A utility you kept: %s. Runs sealed on copies of its inputs; applying what it makes always asks.' % name,
+                       'sandbox', 'change', operations=('sandbox.run',),
+                       arguments=(tr.Arg('kept', 'this utility, by its own key (%s)' % key, ('DEDUCTION', 'RECORD', 'OWNER_WORDS')),
+                                  tr.Arg('inputs', 'the files it reads (copied)')),
+                       preconditions=('the sandbox is here', 'you kept it'), effects='outputs in its sealed folder only',
+                       undone='nothing of yours is changed: its folder is thrown away', grant='run %s on copies of its inputs' % name,
+                       target='inputs', verify='its outputs and their difference to the originals, read back', slice='K6',
+                       filled={'available': available, 'at': _now_ms(), 'kept': ident, 'sha256': sha})
+        tr.TOOLS[key] = tool;tr.BY_NUMBER[number] = tool;_KEPT_HERE[key] = root
+        made.append(key)
+    return made
+
+
+# ================================================================================================== the check (K1 and K2)
+try:
+    from . import assignments as _asg
+except Exception:  # noqa: BLE001 - without K1 there are no steps to check
+    _asg = None
+
+
+if _asg is not None:
+    class SandboxRun(_asg.Check):
+        """sandbox.run: done when the run finished inside its seal and its outputs, read back from its folder, are the ones it
+        reported. Nothing of the owner's is changed by it, so a finished run of the same text on the same copies is found."""
+        kind = 'sandbox';effect = 'a utility run sealed on copies (nothing of yours changed)';standin_ms = 8000;repeatable = True
+        how = 'its outputs read back from its sealed folder, with their digests'
+        expected = 'the run, finished inside its seal, and what it made'
+
+        def prepare(self, kernel, read, arguments):
+            with kernel.db() as db:
+                try:u = _utility(db, arguments.get('utility'), arguments.get('kept'))
+                except ValueError as why:raise _asg.Blocked(str(why).split(': ', 1)[-1]) from None
+            if not u['shown'] and not u['kept']:raise _asg.Blocked('it has not been shown to you yet, with what it reads and writes')
+            paths = arguments.get('inputs') or [i['path'] for i in u['inputs']]
+            try:inputs = _inputs(kernel, paths)
+            except ValueError as why:raise _asg.Blocked(str(why).split(': ', 1)[-1]) from None
+            return {'utility': u['id'], 'source_sha256': u['sha256'], 'inputs': [[i['path'], i['sha256']] for i in inputs]}
+
+        def find(self, kernel, read, arguments, prepared):
+            with kernel.db() as db:
+                ensure(db)
+                rows = [_run_row(x) for x in db.execute("SELECT * FROM sandbox_runs WHERE utility=? AND state='finished' ORDER BY at DESC LIMIT 20",
+                                                        (prepared['utility'],)).fetchall()]
+            for r in rows:
+                p = r['payload']
+                if p.get('source_sha256') == prepared['source_sha256'] and [[i['path'], i['sha256']] for i in p.get('inputs', [])] == prepared['inputs']:
+                    try:return self._observed(r)
+                    except _asg.NotVerified:continue
+            return None
+
+        @staticmethod
+        def _observed(r):
+            folder = Path(r['folder'])
+            for m in r['payload'].get('outputs', []):
+                path = folder / 'out' / m['name']
+                if not path.is_file() or _file_sha(path) != m['sha256']:raise _asg.NotVerified('what it made is no longer in its folder as it was')
+            outs = r['payload'].get('outputs', [])
+            return {'object': 'sandbox:' + r['id'], 'revision': _asg.digest([[m['name'], m['sha256']] for m in outs]), 'by': 'sha256',
+                    'complete': True, 'how': 'observed', 'run': r['id'],
+                    'words': 'ran sealed on copies; %d output%s read back from its folder (nothing of yours changed)' % (len(outs), '' if len(outs) == 1 else 's')}
+
+        def verify(self, kernel, read, arguments, result, prepared, step):
+            if not isinstance(result, dict) or not result.get('id'):raise _asg.NotVerified('the run did not come back')
+            if result.get('state') != 'finished':raise _asg.NotVerified('%s: %s' % (result.get('state_word', 'not finished'), result.get('words', '')))
+            with kernel.db() as db:r = _run(db, result['id'])
+            return self._observed(r)
+
+        def still(self, kernel, read, step):
+            run_id = (step.get('observation') or {}).get('run')
+            if not run_id:return ''
+            try:
+                with kernel.db() as db:r = _run(db, run_id)
+                self._observed(r)
+            except (ValueError, _asg.NotVerified) as why:
+                return 'its folder has gone or changed (%s)' % str(why)[:120]
+            return ''
+else:
+    SandboxRun = None
+
+
+def install():
+    """Fill K2's slot for the sandbox (tool 20) and name its words for K1."""
+    try:
+        from . import tools_registry as tr
+        tr.fill('sandbox.run', available=available, operations=('sandbox.run',), callable='workbench.utility_sandbox:run',
+                check=SandboxRun() if SandboxRun else None)
+    except Exception:  # noqa: BLE001 - without K2's registry the operations still stand
+        pass
+    if _asg is not None:
+        _asg.TOOL_WORDS.setdefault('sandbox', 'the utility sandbox')
+        _asg.GRANT_WORDS.setdefault('sandbox.run', 'run a utility on copies')
+    try:
+        from . import model_words
+        model_words.MARKS.setdefault('DRAFTED', 'drafted by the model: run only sealed, on copies; nothing of yours changes unless you apply it')
+    except Exception:  # noqa: BLE001
+        pass
+
+
+install()
+
+
+# ======================================================================================================== the Kernel's door
+def listing(kernel, args):
+    limit = int(args.get('limit') or 30)
+    with kernel.db() as db:
+        ensure(db)
+        us = [_utility_row(x) for x in db.execute('SELECT * FROM sandbox_utilities ORDER BY at DESC LIMIT ?', (limit,)).fetchall()]
+        out = []
+        for u in us:
+            last = db.execute('SELECT * FROM sandbox_runs WHERE utility=? ORDER BY at DESC LIMIT 1', (u['id'],)).fetchone()
+            v = _view_utility(u);v.pop('source', None)
+            v['last_run'] = _view_run(_run_row(last), u) if last else None
+            out.append(v)
+        kept = [dict(zip(('number', 'key', 'utility', 'name', 'sha256', 'owner', 'at'), row))
+                for row in db.execute('SELECT * FROM sandbox_kept ORDER BY number').fetchall()]
+    return {'schema': SCHEMA, 'utilities': out, 'kept': kept, 'running': running(), 'status': status()}
+
+
+def get(kernel, args):
+    with kernel.db() as db:
+        if args.get('run'):
+            r = _run(db, args['run']);u = _utility(db, r['utility'])
+            return {'schema': SCHEMA, 'run': _view_run(r, u), 'utility': _view_utility(u)}
+        if not args.get('utility'):raise ValueError('SANDBOX_WHICH: name the utility or the run')
+        u = _utility(db, args['utility'])
+        runs = [_view_run(_run_row(x), u) for x in db.execute('SELECT * FROM sandbox_runs WHERE utility=? ORDER BY at DESC LIMIT 10', (u['id'],)).fetchall()]
+    return {'schema': SCHEMA, 'utility': _view_utility(u, runs)}
+
+
+def dispatch(kernel, op, args, principal):
+    if op == 'sandbox.status':return status()
+    if op == 'sandbox.list':register_kept(kernel);return listing(kernel, args)
+    if op == 'sandbox.get':return get(kernel, args)
+    if op == 'sandbox.draft':return draft(kernel, principal, args['objective'], args['inputs'], args.get('source'), args.get('by'))
+    if op == 'sandbox.seen':return seen(kernel, args, principal)
+    if op == 'sandbox.run':return run(kernel, args, principal)
+    if op == 'sandbox.close':return close(kernel, args, principal)
+    if op == 'sandbox.apply':return apply(kernel, args, principal)
+    if op == 'sandbox.keep':return keep(kernel, args, principal)
+    raise ValueError('Unknown sandbox operation')

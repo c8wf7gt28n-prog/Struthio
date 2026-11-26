@@ -205,6 +205,10 @@ def rebuild(host):
               '@explore':host.a_explore, '@service': service,
               '@import': host.a_import, '@export': host.a_export, '@machine_refresh': host.a_machine_refresh,
               '@new_idea': host.a_new_idea, '@new_project': host.a_new_project, '@field': host.a_field}
+    if not hasattr(host, 'a_utility'):  # 1.0 K6: the utility sandbox, a utility on copies of a file (applying what it makes always asks)
+        host.a_utility = QAction('A Utility on Copies…', host)
+        host.a_utility.triggered.connect(lambda checked=False: __import__('workbench.utility_sandbox_qt', fromlist=['open_panel']).open_panel(host))
+    extras['@utility'] = host.a_utility  # 1.0 K6
     placed = {service} if service is not None else set()
 
     def add(menu, key):
@@ -283,7 +287,7 @@ def rebuild(host):
         ('Commands',['ledger_commands','@run_operation','@chain','@chain_desk','@type_to','palette']),
         ('Settings',['ledger_settings','@desk_art','@service']),
         ('Properties',['inspector','@computer','@pills']),
-        ('Tools',['@explore','discovery','algorithms','atlas','@work_copy','doctor','master_stop',None,'@engineering'])):
+        ('Tools',['@explore','discovery','algorithms','atlas','@work_copy','@utility','doctor','master_stop',None,'@engineering'])):  # 1.0 K6: '@utility'
         menu = groups.get(group)
         if menu is not None:
             for key in keys:add(menu, key)

@@ -71,11 +71,13 @@ FAMILIES = {
     'sheets.set': ('set values', ('field.set',)),
     'windows.arrange': ('bring forward or minimise program windows', ('windows.activate', 'windows.minimise')),
     'apps.open': ('open', ('apps.open',)),
+    'utilities.try': ('try utilities on copies of files', ('sandbox.run',)),  # 1.0 K6 (coordinator): the sandbox's grant
 }
 OP_WORDS = {'files.write': 'write files', 'files.mkdir': 'make folders', 'files.cells': 'change cells of workbooks',
             'files.rename': 'rename files', 'files.move': 'move files', 'files.copy': 'copy files', 'field.set': 'set values',
             'windows.activate': 'bring forward', 'windows.minimise': 'minimise', 'apps.open': 'open',
-            'documents.create': 'make pages', 'investigation.claim': 'add findings', 'agenda.add': 'add to the Agenda'}
+            'documents.create': 'make pages', 'investigation.claim': 'add findings', 'agenda.add': 'add to the Agenda',
+            'sandbox.run': 'try utilities on copies of files'}  # 1.0 K6 (coordinator)
 NEVER = ('assignment.', 'grant.', 'halt.', 'ledger.', 'jobs.', 'remote.', 'master.', 'workers.', 'kasandra.', 'brain.help')
 OWN_AREA = 'Slate'            # files_service.SLATE: her own area, hers by the Files rules
 OWN_OPERATIONS = ('files.write', 'files.mkdir', 'files.cells')
@@ -196,6 +198,9 @@ def targets(operation, arguments):
         if isinstance(name, str):
             joined = _clean_path((a.get('path') or '') + '/' + name)
             paths.append(joined)
+    elif operation == 'sandbox.run':  # 1.0 K6 (coordinator): a utility's run lands on (copies of) its inputs
+        for item in a.get('inputs') or ():
+            if isinstance(item, str):paths.append(_clean_path(item))
     else:
         for key in ('path', 'to'):
             if isinstance(a.get(key), str):paths.append(_clean_path(a[key]))
@@ -219,7 +224,7 @@ def _has_reference(value):
 def _fixed_targets(operation, arguments):
     """The targets of a planned call when none comes from an earlier step's output; None when one does."""
     a = arguments if isinstance(arguments, dict) else {}
-    for key in ('path', 'to', 'name', 'id', 'window', 'sheet', 'object'):
+    for key in ('path', 'to', 'name', 'id', 'window', 'sheet', 'object', 'inputs'):  # 'inputs': 1.0 K6 (coordinator)
         if key in a and _has_reference(a[key]):return None
     found = targets(operation, a)
     return found if (found['paths'] or found['objects']) and None not in found['paths'] else None

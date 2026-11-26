@@ -62,7 +62,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 K2: the registry of her tools, receipts, and a look at the windows, read when her column or a step is shown; reading is not an event
  'tools.list','tools.receipts','windows.observe',
  # 1.0 K3: the grants in force and a grant's words, read when her column or the Grants page is shown; HALT's state, read by its button
- 'grant.list','grant.words','halt.status'})
+ 'grant.list','grant.words','halt.status',
+ # 1.0 K6: the utility sandbox's status, its utilities and their runs, read when the utility's tab or her column is shown; reading is not an event
+ 'sandbox.status','sandbox.list','sandbox.get'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""
