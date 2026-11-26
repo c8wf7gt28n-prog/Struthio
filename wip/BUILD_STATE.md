@@ -285,6 +285,8 @@ instruction); no other new tests or reviews.
   tab in `wip/2026-11-26_release_087/`. Not built (listed in the notes): C6c, B7, C6d, A6 (if room), A7 dropped, the
   FRAME kind. **Next: wait for the owner's model check results** (the two files in `for-sending/`), then the test pass,
   then a talk that sets 0.8.8's goal. The "if room" slices are not started: the owner said "let's just finish 0.8.7".
+  The hourly wake-up ("Continue the Graphite build") is **disabled** at 01:12 UTC, as its own step 5 says, because
+  everything that remains waits on the owner's ThinkPad. Kit and screenshots sent to the owner.
 
 - 26 Nov 01:05 UTC: The weekly limit reset. Since the last entry: **W7 merged** (0a9de1b: voice floor in her column,
   Ask the Library and Read this table in the window, cross-references, Leave it, her clock line, Remember and Retire;
