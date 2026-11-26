@@ -302,6 +302,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 02:40 UTC: **1.0 L1 merged** (8395162: stable object ids for files and records, one navigation controller,
+  tree<->board sync, breadcrumb, Back/Forward; smoke 37/37 and 19/19). Its notes: the Field still opens a sheet on one
+  click (L4 settles it); `test_context_menu.py` may now click a different tree row (not run, by the rule); her "This:"
+  follows the open tab, not the board's focus (L5/P1). **L2 launched** (the board; agent a4556c3690e6fadaa; told to
+  call `relevance.rank` when L3 lands). Running: S1, P1, L2. Next: S2, then L3.
+
 - 26 Nov 02:05 UTC: **1.0 K1 merged** (9d1f5ac: assignments and the journal; smoke 30 of 30). Its notes: a recheck run
   again on an already-replaced page makes a second page (K1 guards it; the operation is unchanged); `agent_loop.py`
   (AGENT-01) is an older assignment model, for K4 to settle; hooks ready: `active_work()`, status `actions` (P1),
