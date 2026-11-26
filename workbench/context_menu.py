@@ -1565,6 +1565,9 @@ def find_cabinet(host, w, point):
     if page is None or w is not page.tree:return None
     item = w.itemAt(w.viewport().mapFrom(w, point))
     if item is None:return Target('tree', 'Cabinet', 'tree · ' + ('existing views' if page.using_legacy else 'logical cabinet'), surface='cabinet', owner=page, icon='memory')
+    from .bulk_files_qt import target_for_many  # 1.0 L6c: a right-click on a row of a choice of many: the choice, kept
+    many = target_for_many(host, page, item)
+    if many is not None:return many
     w.setCurrentItem(item);page.remember();node = item.data(0, Qt.UserRole) or {}
     from .home_files_qt import target_for  # 1.0 L6b: a file or folder of your home is a thing of its own, not a record
     home = target_for(host, page, node)
@@ -1789,7 +1792,8 @@ TARGET_GLYPH = {'table': 'table', 'datasheet': 'page', 'file': 'page', 'drawing'
                 'setting': 'sliders', 'job': 'running', 'queued': 'agenda', 'event': 'lines', 'connection': 'port', 'packet': 'port',
                 'program': 'rooms', 'command': 'prompt',
                 'home-file': 'page', 'home-folder': 'folder',      # 1.0 L6b: a file or folder of your home, in the tree
-                'drive-file': 'page', 'drive-folder': 'folder'}    # 1.0 X3: a file or folder on a removable drive (copied home)
+                'drive-file': 'page', 'drive-folder': 'folder',    # 1.0 X3: a file or folder on a removable drive (copied home)
+                'home-many': 'stack'}                              # 1.0 L6c: many files and folders chosen in the tree
 GLYPH_EXACT = {
     'open:outside': 'window', 'process': 'window', 'open:viewer': 'page', 'job:show': 'source', 'copy:original': 'source', 'viewer:folder': 'source',
     'show:folder': 'source', 'show:files': 'source', 'show:finder': 'source', 'show:log': 'source', 'change:files': 'source', 'change:none': 'info',
@@ -1871,6 +1875,7 @@ REST = {
     'setting': ('open', 'search', 'copy:key', 'expand'),
     'home-file': ('open:outside', 'rename', 'move:to', 'trash'), 'home-folder': ('new:folder', 'rename', 'move:to', 'trash'),  # 1.0 L6b
     'drive-file': ('open:outside', 'copy:to', 'copy:path'), 'drive-folder': ('copy:to', 'open', 'copy:path'),  # 1.0 X3
+    'home-many': ('move:to', 'copy:to', 'trash', 'copy:paths'),  # 1.0 L6c: one press for all of them
     'program': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas'),
     'command': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas')}
 

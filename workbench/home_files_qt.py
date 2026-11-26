@@ -128,6 +128,9 @@ def target_for(host, page, node):
 
 def entries(host, t):
     """context_menu's provider: what a person does to a file or folder of your home, from the tree."""
+    if t.surface == 'cabinet' and t.kind == 'home-many':  # 1.0 L6c: many chosen in the tree: one press for all of them
+        from .bulk_files_qt import entries as many
+        return many(host, t)
     if t.surface != 'cabinet' or t.kind not in KINDS + DRIVE_KINDS:return []  # 1.0 X3: and a drive's files, to copy home
     from .context_menu import Entry, Refused, copy_text
     path = Path(t.data['path']);folder = t.kind in ('home-folder', 'drive-folder');files = t.data.get('area') == hr.FILES
@@ -368,6 +371,7 @@ class Note(QWidget):
             back = do()
         except ValueError as exc:
             self.tell('Not undone: %s' % str(exc).split(': ', 1)[-1]);return None
+        if getattr(do, 'says_itself', False):return back  # 1.0 L6c: a batch's Undo says its own words when it lands
         words = 'Undone: %s.' % self.undo_words if self.undo_words else 'Undone.'
         return after(self.host, id_of(self.host, back) if isinstance(back, Path) else '', back if isinstance(back, Path) else None, words, keep_undo=False)
 
@@ -385,7 +389,7 @@ class Dragging(QObject):
 
     def __init__(self, host, tree):
         super().__init__(tree)
-        self.host = host;self.tree = tree;self.start = None;self.over = None
+        self.host = host;self.tree = tree;self.start = None;self.over = None;self.many = []
         tree.setAcceptDrops(True);tree.viewport().setAcceptDrops(True);tree.viewport().installEventFilter(self)
 
     def row_path(self, item):
@@ -405,32 +409,33 @@ class Dragging(QObject):
             if kind == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
                 point = event.position().toPoint();found = self.row_path(self.tree.itemAt(point))
                 self.start = (point, found[0]) if found else None
+                self.many = self.chosen_with(found[0]) if found else []  # 1.0 L6c: a chosen row drags the whole choice
                 return False
             if kind == QEvent.MouseMove and self.start is not None and (event.buttons() & Qt.LeftButton):
                 if (event.position().toPoint() - self.start[0]).manhattanLength() >= QApplication.startDragDistance():
-                    path = self.start[1];self.start = None;self.drag(path);return True
+                    path = self.start[1];self.start = None;self.drag(path, self.many);return True
                 return False
             if kind == QEvent.MouseButtonRelease:
                 self.start = None;return False
             if kind in (QEvent.DragEnter, QEvent.DragMove) and event.mimeData().hasFormat(ROW_MIME):
-                source = Path(bytes(event.mimeData().data(ROW_MIME)).decode('utf-8', 'surrogateescape'))
-                folder = self.folder_at(event.position().toPoint(), source)
+                sources = self.sources(event.mimeData());source = sources[0]  # 1.0 L6c: one row, or a choice of many
+                folder = self.folder_for(event.position().toPoint(), sources)
                 if folder is None:
                     event.ignore();self.over = None
                 else:
                     event.setDropAction(Qt.MoveAction);event.accept()
-                    if folder != self.over:say(self.host, 'Drop to move %s into %s' % (source.name, shown(folder)), 3000)
+                    if folder != self.over:say(self.host, 'Drop to move %s into %s' % (source.name if len(sources) == 1 else '%d chosen' % len(sources), shown(folder)), 3000)
                     self.over = folder
                 return True
             if kind == QEvent.DragLeave:
                 self.over = None;return False
             if kind == QEvent.Drop and event.mimeData().hasFormat(ROW_MIME):
-                source = Path(bytes(event.mimeData().data(ROW_MIME)).decode('utf-8', 'surrogateescape'))
-                folder = self.folder_at(event.position().toPoint(), source);self.over = None
+                sources = self.sources(event.mimeData())  # 1.0 L6c
+                folder = self.folder_for(event.position().toPoint(), sources);self.over = None
                 if folder is None:
                     event.ignore();return True
                 event.setDropAction(Qt.MoveAction);event.accept()
-                QTimer.singleShot(0, lambda: self.dropped(source, folder))
+                QTimer.singleShot(0, lambda: self.dropped(sources[0], folder) if len(sources) == 1 else self.dropped_many(sources, folder))
                 return True
         except RuntimeError:
             return False
@@ -445,8 +450,36 @@ class Dragging(QObject):
         if folder == source or hr.within(folder, source) or folder == source.parent:return None
         return folder
 
-    def drag(self, path):
-        data = QMimeData();data.setData(ROW_MIME, str(path).encode('utf-8', 'surrogateescape'));data.setUrls([QUrl.fromLocalFile(str(path))])
+    def chosen_with(self, path):
+        """1.0 L6c: the whole choice when the pressed row is one of two or more chosen rows of your home, else []."""
+        try:
+            from .bulk_files_qt import chosen_rows
+            rows = [Path(p) for _, p, _ in chosen_rows(self.host)[0]]
+        except Exception:  # noqa: BLE001 - the one row is dragged
+            return []
+        return rows if len(rows) > 1 and path in rows else []
+
+    def sources(self, mime):
+        """1.0 L6c: the rows a drag carries (one path, or a choice of many: one path a line)."""
+        return [Path(p) for p in bytes(mime.data(ROW_MIME)).decode('utf-8', 'surrogateescape').split('\n') if p] or [Path('/')]
+
+    def folder_for(self, point, sources):
+        """1.0 L6c: the folder under the pointer that every dragged row may move into, or None."""
+        if len(sources) == 1:return self.folder_at(point, sources[0])
+        found = self.row_path(self.tree.itemAt(point))
+        if found is None or found[1] != 'folder':return None
+        folder = found[0]
+        if any(folder == s or hr.within(folder, s) for s in sources) or all(folder == s.parent for s in sources):return None
+        return folder
+
+    def dropped_many(self, sources, folder):
+        """1.0 L6c: a choice of many dropped on a folder: one batch, one Undo."""
+        from .bulk_files_qt import batch
+        return batch(self.host, 'move', sources, to=folder)
+
+    def drag(self, path, many=()):
+        paths = list(many) or [path]  # 1.0 L6c: the whole choice when a chosen row is dragged
+        data = QMimeData();data.setData(ROW_MIME, '\n'.join(str(p) for p in paths).encode('utf-8', 'surrogateescape'));data.setUrls([QUrl.fromLocalFile(str(p)) for p in paths])
         drag = QDrag(self.tree);drag.setMimeData(data)
         drag.exec(Qt.MoveAction)
 
@@ -580,8 +613,8 @@ def trash_rows(tab):
     first = tab.box.itemAt(1).widget() if tab.box.count() > 1 else None      # Files' own lead: said of Files, when your home's are here
     if rows and isinstance(first, QLabel) and first.text() == 'Nothing is in DELETE.':first.setText('Nothing from Files is in DELETE.')
     tab.box.addWidget(role(QLabel('From your home'), 'item'))
-    lead = QLabel(('Nothing deleted from your home is here.' if not rows else
-                   "What you deleted in your home waits here, kept in your home's own bin (%s), as your other programs keep it. Restore "
+    lead = QLabel('Nothing deleted from your home is here.' if not rows else      # 1.0 L6c: with no row, the bin's name was put into words with no place for it (TypeError)
+                  ("What you deleted in your home waits here, kept in your home's own bin (%s), as your other programs keep it. Restore "
                    'puts each back where it was.') % escape_text(str(data.get('home_trash') or '')))
     lead.setWordWrap(True);lead.setStyleSheet('color:%s' % QUIET);tab.box.addWidget(lead)
 

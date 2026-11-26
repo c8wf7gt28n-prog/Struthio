@@ -459,6 +459,8 @@ class Console(QWidget):
 
     # -- staC ------------------------------------------------------------------------------
     def run_stac(self, text):
+        from .bulk_files_qt import line_act
+        if line_act(self, text):return  # 1.0 L6c: a line that moves, copies or deletes what it lists: a step that asks
         op, args = route_program(text, allow_inspection=True)
         program = args.get('program', args.get('text'))
         inspecting = op == 'stac.inspect'

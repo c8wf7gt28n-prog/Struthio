@@ -383,4 +383,9 @@ def install(living):
         home_files(tree)      # 1.0 L6b: rename, move (drag), new folder and Delete (into DELETE) in your home, with Undo; a focused file watched
     except Exception:  # noqa: BLE001 - the tree stands without them
         pass
+    try:
+        from .bulk_files_qt import install as bulk_files
+        bulk_files(tree)      # 1.0 L6c: many rows chosen; Move to…, Copy to…, Delete for all of them in one press, one Undo
+    except Exception:  # noqa: BLE001 - the tree stands without it
+        pass
     return tree

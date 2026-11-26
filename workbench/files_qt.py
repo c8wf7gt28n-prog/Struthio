@@ -517,6 +517,7 @@ class TrashTab(QWidget):
         for r in rows:
             self.box.addWidget(sentence(escape_text(r['original']) + '  ·  deleted ' + when(r['at']) + '  ·  {restore}',
                                         {'restore': ('restore', lambda r=r:(call_write(self.host, 'files.restore', {'id': r['id']}), self.reload()))}))
+        from .bulk_files_qt import batch_rows;batch_rows(self)  # 1.0 L6c: what was deleted together, put back together
         from .home_files_qt import trash_rows;trash_rows(self)  # 1.0 L6b: your home's Trash (freedesktop), each with Restore
         self.box.addStretch(1)
 

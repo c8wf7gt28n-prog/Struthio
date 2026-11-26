@@ -73,6 +73,8 @@ OBSERVER_OPERATIONS=frozenset({
  'grant.list','grant.words','halt.status',
  # 1.0 K6: the utility sandbox's status, its utilities and their runs, read when the utility's tab or her column is shown; reading is not an event
  'sandbox.status','sandbox.list','sandbox.get',
+ # 1.0 L6c: the bulk-file batches lately done, read when Undo or the Log looks; reading is not an event
+ 'files.batches',
  # 1.0 K8: the network's state, the words a request would send, and the pages kept in quarantine, read by the head, her column and the Web reading page; reading is not an event
  'web.state','web.words','web.pages','web.page',
  # 1.0 M2: which model answers which kind and why, read by her column's model line and the Brain room; reading is not an event

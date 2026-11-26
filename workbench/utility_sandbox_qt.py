@@ -43,8 +43,8 @@ from . import boss_theme as bt
 from . import utility_sandbox as us
 
 EDGES = {'desk': 'solid', 'model': 'dashed', 'you': 'dotted'}
-SHAPES = {'finished': '✓', 'stopped': '■', 'failed': '✕', 'refused': '○', 'applied': '✓', 'closed': '○', 'running': '…'}
-INK = {'finished': 'READY', 'applied': 'READY', 'stopped': 'STOP', 'failed': 'STOP', 'refused': 'QUIET', 'closed': 'QUIET', 'running': 'QUIET'}
+SHAPES = {'finished': '✓', 'stopped': '■', 'failed': '✕', 'refused': '○', 'applied': '✓', 'closed': '○', 'running': '…', 'undone': '↶'}      # 1.0 L6c: ↶ PUT BACK
+INK = {'finished': 'READY', 'applied': 'READY', 'stopped': 'STOP', 'failed': 'STOP', 'refused': 'QUIET', 'closed': 'QUIET', 'running': 'QUIET', 'undone': 'QUIET'}
 
 
 def _kernel(host):
@@ -157,6 +157,10 @@ class UtilityTab(QWidget):
         self.keep_button = self._button('Keep as a tool…', self.ask_keep, self.actions);row.addWidget(self.keep_button)
         self.throw_button = self._button('Throw away the copies', self.throw_away, self.actions);row.addWidget(self.throw_button)
         row.addStretch(1);af.addWidget(self.actions)
+        self.undo_row = QWidget(self.after);undo_row = QHBoxLayout(self.undo_row);undo_row.setContentsMargins(0, 0, 0, 0)      # 1.0 L6c: on a row of its own
+        self.undo_button = self._button('Undo the apply', self.do_undo, self.undo_row);undo_row.addWidget(self.undo_button);undo_row.addStretch(1)
+        self.undo_button.setToolTip('What Apply made new goes into DELETE; a file it changed gets the revision before back. '
+                                    'Anything changed since is left as it is, and named.');self.undo_row.hide();af.addWidget(self.undo_row)
         self.after_note = QLabel('', self.after);self.after_note.setObjectName('K6Quiet');self.after_note.setWordWrap(True);af.addWidget(self.after_note)
         box.addWidget(self.after);self.after.hide()
         box.addStretch(1)
@@ -213,6 +217,8 @@ class UtilityTab(QWidget):
                            'count the rows, sort by a column); otherwise the model drafts it, when one is running. Either way you see it '
                            'before it runs, and it runs only sealed, on copies.')
         files = ', '.join(self.inputs) if self.inputs else 'none yet: select a file in Files first'
+        if len(self.inputs) > 6:      # 1.0 L6c: a folder's worth: the first few, and how many in all
+            files = '%s and %d more (%d files in all)' % (', '.join(self.inputs[:4]), len(self.inputs) - 4, len(self.inputs))
         self.ask_files.setText('It will read a copy of: ' + files);self.ask.show();self.draft_button.setEnabled(bool(self.inputs))
         for part in (self.reads, self.writes, self.seal, self.saw, self.text, self.run_button):part.hide()
 
@@ -355,6 +361,7 @@ class UtilityTab(QWidget):
         self.apply_button.setEnabled(bool(r.get('applicable')))
         self.keep_button.setEnabled(state in ('finished', 'applied') and not (self.utility or {}).get('kept'))
         self.throw_button.setEnabled(bool(r.get('id')) and state not in ('refused', 'closed', 'running') and not r.get('thrown'))
+        self.undo_row.setVisible(bool(r.get('undoable')));self.undo_button.setEnabled(bool(r.get('undoable')))      # 1.0 L6c
 
     def _made_line(self, m):
         label = QLabel(('↻ ' if m.get('kind') == 'revision' else '+ ') + m.get('words', m.get('name', '')), self.made_list)
@@ -380,14 +387,16 @@ class UtilityTab(QWidget):
 
     # -- Apply's question, and Keep's ---------------------------------------------------------------------------------------
     def _enable_all(self, on):
-        for b in (self.run_button, self.apply_button, self.keep_button, self.throw_button, self.close_button):b.setEnabled(on)
+        for b in (self.run_button, self.apply_button, self.keep_button, self.throw_button, self.close_button, self.undo_button):b.setEnabled(on)  # 1.0 L6c: and Undo
 
     def ask_apply(self):
         r = self.run_view
         if not r or not r.get('applicable'):return
         plan = us.plan_apply(None, r)
         self.q_title.setText('Apply what the utility made to your real files?')
-        self.q_words.setText('\n'.join('• ' + p['words'] for p in plan) + '\n\nIt was %s and ran sealed on copies. The new revision is recorded and '
+        lines = ['• ' + p['words'] for p in plan]
+        if len(lines) > 6:lines = lines[:5] + ['• and %d more, each as above' % (len(lines) - 5)]      # 1.0 L6c: a folder's worth
+        self.q_words.setText('\n'.join(lines) + '\n\nIt was %s and ran sealed on copies. The new revision is recorded and '
                              'read back from the disk. This always asks, whatever her hand\'s dial says.' % (self.utility or {}).get('by_words', 'drafted'))
         self.q_name.hide();self.q_yes.setText('Apply')
         self._reconnect(lambda: self.do_apply(plan));self._show_question()
@@ -418,12 +427,26 @@ class UtilityTab(QWidget):
         answer = kernel.dispatch('sandbox.apply', {'run': self.run_view['id'], 'outputs': [{'name': p['name'], 'sha256': p['sha256']} for p in plan]}, owner)
         self.put_question_away()
         if answer.get('ok'):
-            self.run_view = dict(self.run_view, applicable=False, state='applied', state_word='APPLIED')
-            self._chip(self.state, '✓ APPLIED', 'solid', 'READY');self.apply_button.setEnabled(False)
+            self.run_view = dict(self.run_view, applicable=False, state='applied', state_word='APPLIED', undoable=True)      # 1.0 L6c: and its Undo
+            self._chip(self.state, '✓ APPLIED', 'solid', 'READY');self.apply_button.setEnabled(False);self.sync_buttons()
             self.after_note.setText(answer['result'].get('words', ''))
             self._tell(answer['result'].get('words', ''))
         else:
             self.after_note.setText('Not applied: ' + str((answer.get('error') or {}).get('message', '')).split(': ', 1)[-1])
+
+    def do_undo(self):
+        """1.0 L6c: Undo the apply, your press: the files Apply made new into DELETE, the revisions it replaced back."""
+        r = self.run_view or {}
+        if not r.get('undoable'):return
+        kernel, owner = _kernel(self.host)
+        answer = kernel.dispatch('sandbox.undo', {'run': r['id']}, owner)
+        if answer.get('ok'):
+            got = answer['result'];whole = got.get('state') == 'undone'
+            self.run_view = dict(r, state=got.get('state', 'applied'), undoable=not whole, state_word='PUT BACK' if whole else 'APPLIED')
+            if whole:self._chip(self.state, '↶ PUT BACK', 'solid', 'QUIET')
+            self.sync_buttons();self.after_note.setText(got.get('words', ''));self._tell(got.get('words', ''))
+        else:
+            self.after_note.setText('Not put back: ' + str((answer.get('error') or {}).get('message', '')).split(': ', 1)[-1])
 
     def do_keep(self):
         kernel, owner = _kernel(self.host)
@@ -476,6 +499,28 @@ def _focused_file(host):
         return ''
 
 
+def _focused_files(host):
+    """1.0 L6c: the files the tab reads: the file in focus, or, with a folder in focus, its files (a folder's worth: up to
+    utility_sandbox.MOST_INPUTS, by name; dot-names and folders left out)."""
+    one = _focused_file(host)
+    if one:return [one]
+    try:
+        living = getattr(host, 'living_nav', None)
+        focus = living.nav.focus if living is not None else ''
+        if not focus or not str(focus).startswith('fileid:'):return []
+        from pathlib import Path
+
+        from . import files_service, living_nav
+        kernel, _ = _kernel(host)
+        found = living_nav.get(kernel, ident=focus)
+        if found.get('kind') != 'folder':return []
+        folder = files_service.resolve(kernel, found['path'])
+        files = sorted(p for p in folder.iterdir() if p.is_file() and not p.is_symlink() and not p.name.startswith('.'))
+        return [files_service.place_of(kernel, p) for p in files[:us.MOST_INPUTS]]
+    except Exception:  # noqa: BLE001 - no folder in focus to read: the tab asks for a file
+        return []
+
+
 def _place(host, tab):
     try:host._close_start()
     except Exception:  # noqa: BLE001
@@ -489,7 +534,7 @@ def _place(host, tab):
 
 def open_panel(host, inputs=None, objective=''):
     """Tools ▸ A Utility on Copies…: a new utility tab on the file in focus (or the files given)."""
-    files = list(inputs or ([_focused_file(host)] if _focused_file(host) else []))
+    files = list(inputs or _focused_files(host))      # 1.0 L6c: a folder in focus gives its files
     return _place(host, UtilityTab(host, None, files, objective))
 
 

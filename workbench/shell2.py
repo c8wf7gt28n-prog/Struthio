@@ -1337,6 +1337,12 @@ def preview_rows(host, text, shown=4):
         text = expand_this(host, made or expand(known_to(host), text))        # the owner's words, then `this`: the sheet selected in the Field
     except ValueError as exc:
         return [('section', 'PREVIEW', None), ('note', str(exc)[:110], None)]
+    try:      # 1.0 L6c: a line that moves, copies or deletes what it lists: what one press would do, nothing changed
+        from .bulk_files_qt import preview_act
+        acting = preview_act(host, text)
+        if acting is not None:return acting
+    except Exception:  # noqa: BLE001 - previewed as any line
+        pass
     try:r = engineering(host.root).dispatch('language.run', {'text': text}, operator())
     except Exception as exc:r = {'ok': False, 'error': {'message': str(exc)}}
     if not r.get('ok'):return [('section', 'PREVIEW', None), ('note', 'Not yet: ' + str((r.get('error') or {}).get('message', ''))[:110], None)]

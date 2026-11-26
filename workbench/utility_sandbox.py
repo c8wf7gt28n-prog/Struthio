@@ -52,6 +52,12 @@ copied (else refused: run it again on the file as it is now), the revision befor
 written, read back and verified on disk, and the revision is recorded through L4's revisions (depths.record). Receipts
 (K2): dispatched, then verified.
 
+UNDO (sandbox.undo, approve: your press; 1.0 L6c): an Apply put back. The files it made new go into DELETE (restorable, as
+Delete puts them there); the revisions it replaced come back from the versions it kept, read back and recorded. Only what is
+still exactly what Apply wrote is touched; anything changed since is left and named. A folder's worth: a utility takes up to
+MOST_INPUTS files (64; it was 8), all of them together within ALL_INPUT_BYTES (what 8 files of the largest size made before),
+and offers up to MOST_OUTPUTS (64) within OUTPUT_BYTES.
+
 KEEP (sandbox.keep, approve, always asks): a utility the owner keeps becomes a registered tool of its own: key
 utility.<name>, a number from 101 up that is never moved or reused, its own grant ("run <name> on copies of its inputs").
 
@@ -65,6 +71,7 @@ Kernel operations (one block in engineering_kernel.py and engineering_cli.py, co
   sandbox.close   {run}                                                   execute  throw away a run's folder (its copies)
   sandbox.apply   {run, outputs: [{name, sha256}]}                        approve  ALWAYS ASKS: outputs to real files
   sandbox.keep    {utility, name}                                         approve  ALWAYS ASKS: a registered tool of its own
+  sandbox.undo    {run}                                                   approve  1.0 L6c: an Apply put back (new files into DELETE)
 The reads are observers (activity.OBSERVER_OPERATIONS).
 
 No floating point anywhere here: times are whole milliseconds, sizes bytes, digests hex; the desk's utilities add decimals
@@ -91,11 +98,12 @@ from pathlib import Path
 
 SCHEMA = 'graphite.sandbox/1'
 LIMITS = {'cpu_seconds': 10, 'memory_bytes': 512 * 1024 * 1024, 'file_bytes': 32 * 1024 * 1024, 'open_files': 64, 'wall_seconds': 30}
-MOST_INPUTS = 8
+MOST_INPUTS = 64                        # 1.0 L6c: a folder's worth (it was 8), within the size the inputs always had together:
 INPUT_BYTES = 16 * 1024 * 1024          # one input file, at most
+ALL_INPUT_BYTES = 8 * INPUT_BYTES       # 1.0 L6c: all of its inputs together, at most (what 8 files of the largest size made before)
 SOURCE_BYTES = 16384                    # a utility's text, at most
 SOURCE_LINES = 400
-MOST_OUTPUTS = 32
+MOST_OUTPUTS = 64                       # 1.0 L6c: a file for each of a folder's worth of inputs (it was 32), within OUTPUT_BYTES
 OUTPUT_BYTES = 32 * 1024 * 1024         # all of what it made, together
 SHOWN_OUT = 65536                       # what is kept of what it printed
 SHOWN_ERR = 8192
@@ -106,7 +114,7 @@ REFUSED_EXIT = 125                      # the launcher's exit when a seal did no
 BY = ('desk', 'model', 'you')
 BY_WORDS = {'desk': 'drafted by the desk', 'model': 'drafted by the model', 'you': 'written by you'}
 STATE_WORDS = {'finished': 'RAN SEALED', 'failed': 'ENDED WITH AN ERROR', 'stopped': 'STOPPED', 'refused': 'NOT RUN',
-               'running': 'RUNNING', 'applied': 'APPLIED', 'closed': 'THROWN AWAY'}
+               'running': 'RUNNING', 'applied': 'APPLIED', 'closed': 'THROWN AWAY', 'undone': 'PUT BACK'}      # 1.0 L6c: PUT BACK, an Apply undone
 SEAL_WORDS = ('No network: a network of its own with nothing in it, and no socket of any kind.',
               'Only its own folder: the copies (read-only), its outputs, an empty home. Your files are not there.',
               'No other program, no new process.')
@@ -134,9 +142,11 @@ FIELDS = {
     'sandbox.apply': ({'run': ID, 'outputs': {'type': 'array', 'items': {'type': 'object', 'properties': {
         'name': {'type': 'string', 'minLength': 1, 'maxLength': 255}, 'sha256': SHA}, 'required': ['name', 'sha256']}}}, ['run', 'outputs']),
     'sandbox.keep': ({'utility': ID, 'name': {'type': 'string', 'minLength': 1, 'maxLength': 60}}, ['utility', 'name']),
+    'sandbox.undo': ({'run': ID}, ['run']),      # 1.0 L6c: Apply put back: the files it made new into DELETE, the revisions it replaced back
 }
 SCOPES = {'sandbox.status': 'read', 'sandbox.list': 'read', 'sandbox.get': 'read', 'sandbox.draft': 'execute', 'sandbox.seen': 'execute',
-          'sandbox.run': 'execute', 'sandbox.close': 'execute', 'sandbox.apply': 'approve', 'sandbox.keep': 'approve'}
+          'sandbox.run': 'execute', 'sandbox.close': 'execute', 'sandbox.apply': 'approve', 'sandbox.keep': 'approve',
+          'sandbox.undo': 'approve'}      # 1.0 L6c: Undo of an Apply is your press
 OBSERVERS = ('sandbox.status', 'sandbox.list', 'sandbox.get')
 ASKS_WHY = 'it changes your real files with what a utility made, or makes a utility a tool of yours: yours to say, every time'
 
@@ -908,7 +918,7 @@ def _inputs(kernel, paths):
     from . import files_service
     if not paths:raise Refused('SANDBOX_NO_INPUT: name at least one file in Files for it to read (a copy is made of each)')
     if len(paths) > MOST_INPUTS:raise Refused('SANDBOX_TOO_MANY: at most %d files' % MOST_INPUTS)
-    out, names = [], set()
+    out, names = [], set();total = 0
     for rel in paths:
         path = files_service.resolve(kernel, rel)
         if not path.is_file():raise Refused('SANDBOX_NOT_A_FILE: %s is not a file' % rel[:200])
@@ -916,6 +926,8 @@ def _inputs(kernel, paths):
         name = path.name
         if name in names:raise Refused('SANDBOX_SAME_NAME: two inputs are called %s; copies sit side by side in one folder' % name)
         names.add(name)
+        total += path.stat().st_size      # 1.0 L6c: a folder's worth, within the size its inputs always had together
+        if total > ALL_INPUT_BYTES:raise Refused('SANDBOX_TOO_LARGE: its inputs together are larger than a utility reads (%d MB in all)' % (ALL_INPUT_BYTES // 1048576))
         with open(path, 'rb') as stream:head = stream.readline(400).decode('utf-8', 'replace').rstrip('\r\n')
         out.append({'path': files_service.place_of(kernel, path), 'name': name, 'sha256': _file_sha(path), 'bytes': path.stat().st_size,  # 1.0 L6b: your home too
                     'head': head})
@@ -1075,8 +1087,8 @@ def _outputs(folder, inputs):
         if original is not None:
             copy = (Path(folder) / 'in' / rel).read_bytes()
             item.update(target=original['path'], kind='revision', before_sha256=original['sha256'], diff=difference(copy, data, rel))
-            item['words'] = ('a new revision of %s: %s' % (original['path'], item['diff']['words'])) if copy != data else \
-                'the same bytes as %s: nothing would change' % original['path']
+            item['words'] = ('a new revision of %s: %s' % (_shown(original['path']), item['diff']['words'])) if copy != data else \
+                'the same bytes as %s: nothing would change' % _shown(original['path'])      # 1.0 L6c: paths of your home as ~/…
             item['changes'] = copy != data
         else:
             first = inputs[0]['path'] if inputs else ''
@@ -1084,7 +1096,7 @@ def _outputs(folder, inputs):
             target = (folder_rel + '/' + rel) if folder_rel else rel
             item.update(target=target, kind='new', diff=difference(b'', data, rel), changes=True)
             text = _text_of(data)
-            item['words'] = 'a new file, %s, beside %s (%s)' % (target, first or 'Files', ('%d lines' % (text.count('\n') + (0 if text.endswith('\n') else 1)))
+            item['words'] = 'a new file, %s, beside %s (%s)' % (_shown(target), _shown(first) if first else 'Files', ('%d lines' % (text.count('\n') + (0 if text.endswith('\n') else 1)))
                                                                  if text else '%d bytes' % size)
         made.append(item)
     return made, notes
@@ -1168,13 +1180,16 @@ def _view_run(r, u=None):
     p = r['payload']
     why_not = '' if p.get('applicable') else (
         'Apply is for a run that finished inside its seal and made a change.' if r['state'] in ('finished', 'stopped', 'failed', 'refused') else
-        {'applied': 'It was applied.', 'closed': 'Its copies were thrown away.', 'running': 'It is running.'}.get(r['state'], ''))
+        {'applied': 'It was applied.', 'closed': 'Its copies were thrown away.', 'running': 'It is running.',
+         'undone': 'It was applied, then put back by your Undo.'}.get(r['state'], ''))      # 1.0 L6c
     out = {'id': r['id'], 'utility': r['utility'], 'state': r['state'], 'state_word': STATE_WORDS.get(r['state'], r['state'].upper()),
            'at': r['at'], 'words': p.get('words', ''), 'exit': p.get('exit'), 'ms': p.get('ms', 0), 'stdout': p.get('stdout', ''),
            'stderr': p.get('stderr', ''), 'truncated': p.get('truncated', False), 'stopped': p.get('stopped', []), 'killed': p.get('killed', ''),
            'outputs': p.get('outputs', []), 'notes': p.get('notes', []), 'inputs': p.get('inputs', []), 'mechanism': p.get('mechanism'),
            'limits': p.get('limits', {}), 'applicable': bool(p.get('applicable')) and r['state'] == 'finished', 'why_not': why_not,
-           'applied': p.get('applied', []), 'source_sha256': p.get('source_sha256', '')}
+           'applied': p.get('applied', []), 'source_sha256': p.get('source_sha256', ''),
+           'undoable': r['state'] == 'applied' and any(not a.get('undone') for a in p.get('applied', ())),      # 1.0 L6c: Undo of the Apply
+           'undo': p.get('undo') or {}}
     if u is not None:out['name'] = u['name'];out['by'] = u['by'];out['by_words'] = BY_WORDS.get(u['by'], u['by'])
     return out
 
@@ -1188,7 +1203,7 @@ def close(kernel, args, principal):
         folder = Path(r['folder'])
         if folder.resolve().parent != area:raise Refused('SANDBOX_FOLDER: that folder is not a run of the sandbox')
         shutil.rmtree(folder, ignore_errors=True)
-        state = r['state'] if r['state'] == 'applied' else 'closed'
+        state = r['state'] if r['state'] in ('applied', 'undone') else 'closed'      # 1.0 L6c: an Apply and its Undo stay said
         db.execute('UPDATE sandbox_runs SET state=? WHERE id=?', (state, r['id']))
     return {'run': r['id'], 'state': state, 'words': 'Its copies and what it made were thrown away; nothing of yours changed.'}
 
@@ -1201,10 +1216,10 @@ def plan_apply(kernel, run_view):
         if not m.get('changes'):continue
         if m['kind'] == 'revision':
             rows.append({'name': m['name'], 'sha256': m['sha256'], 'target': m['target'], 'kind': 'revision',
-                         'words': '%s becomes a new revision (%s); the revision before is kept as a version.' % (m['target'], m['diff']['words'])})
+                         'words': '%s becomes a new revision (%s); the revision before is kept as a version.' % (_shown(m['target']), m['diff']['words'])})      # 1.0 L6c: ~/…
         else:
             rows.append({'name': m['name'], 'sha256': m['sha256'], 'target': m['target'], 'kind': 'new',
-                         'words': '%s is made, a new file.' % m['target']})
+                         'words': '%s is made, a new file.' % _shown(m['target'])})
     return rows
 
 
@@ -1265,7 +1280,7 @@ def apply(kernel, args, principal):
         program = 'the utility “%s”' % u['name'][:80]
         rec = depths.record(kernel, {'path': m['target'], 'expected_sha256': sha, **({'previous_sha256': before} if before else {}),
                                      'how': 'outside', 'program': program[:120]}, principal)
-        words = '%s: revision %d, verified on disk (SHA-256 %s…)%s.' % (m['target'], rec['revision'], sha[:12],
+        words = '%s: revision %d, verified on disk (SHA-256 %s…)%s.' % (_shown(m['target']), rec['revision'], sha[:12],
                                                                         '; the one before is kept as a version' if kept else ', a new file')
         if tr:tr.record(kernel, tr.receipt('sandbox.run', 'sandbox.apply', 'files:' + m['target'], 'verified', 'observed', True, words,
                                            revision=sha, place={'path': m['target']}, basis='sha256', owner=principal.identity,
@@ -1275,8 +1290,84 @@ def apply(kernel, args, principal):
     with kernel.db() as db:
         payload = dict(r['payload'], applied=applied)
         db.execute('UPDATE sandbox_runs SET state=?, payload=? WHERE id=?', ('applied', json.dumps(payload), r['id']))
-    return {'run': r['id'], 'applied': applied, 'state': 'applied',
-            'words': 'Applied by your word: ' + ' '.join(a['words'] for a in applied)}
+    return {'run': r['id'], 'applied': applied, 'state': 'applied', 'undoable': True, 'words': applied_words(applied)}
+
+
+def _shown(path):
+    """1.0 L6c: a path as the owner reads it: ~/… in your home, a path of Files as Files keeps it."""
+    text = str(path or '')
+    if not text.startswith('/'):return text
+    from .home_reach import tilde
+    return tilde(text)
+
+
+def applied_words(applied):
+    """1.0 L6c: what Apply did, in words: each file when there are a few; for a folder's worth, how many new files and new
+    revisions, and where (each file's own words stay in `applied`)."""
+    if len(applied) <= 3:return 'Applied by your word: ' + ' '.join(a['words'] for a in applied)
+    new = [a for a in applied if a.get('kind') == 'new'];revised = [a for a in applied if a.get('kind') != 'new']
+    folders = sorted({_shown(str(a['path']).rsplit('/', 1)[0]) if '/' in str(a['path']) else 'Files' for a in applied})
+    parts = (['%d new file%s' % (len(new), '' if len(new) == 1 else 's')] if new else []) + \
+            (['%d new revision%s (the one before each kept as a version)' % (len(revised), '' if len(revised) == 1 else 's')] if revised else [])
+    return 'Applied by your word: %s in %s, each read back and verified on disk (SHA-256) and recorded. Undo the apply puts them back.' % (
+        ' and '.join(parts), folders[0] if len(folders) == 1 else '%d folders' % len(folders))
+
+
+# ===================================================================================================================== undo
+def undo(kernel, args, principal):
+    """sandbox.undo (approve: your press), 1.0 L6c: what an Apply did, put back. A file it made new goes into DELETE (as Delete
+    puts it there: restorable); a file it gave a new revision gets the revision before back (from the version Apply kept), the
+    one Apply made kept as a version in its turn, read back and recorded (L4). Only what is still exactly what Apply wrote is
+    touched: a file changed since, or gone, is left as it is and named."""
+    from . import depths, files_service, home_reach
+    with kernel.db() as db:
+        r = _run(db, args['run'])
+        u = _utility(db, r['utility'])
+    if r['state'] == 'undone':raise Refused('SANDBOX_UNDONE: it was put back already')
+    if r['state'] != 'applied':raise Refused('SANDBOX_NOT_APPLIED: only an applied run has something to put back')
+    applied = [dict(a) for a in r['payload'].get('applied') or ()]
+    back, left, made = [], [], []
+    for a in applied:
+        if a.get('undone'):continue
+        target = files_service.resolve(kernel, a['path'], must_exist=False)
+        now = _file_sha(target) if target.is_file() else None
+        if now != a['sha256']:
+            left.append({'path': a['path'], 'why': 'it is gone' if now is None else 'it changed since Apply'});continue
+        never = home_reach.her_change(kernel, target)
+        if never:
+            left.append({'path': a['path'], 'why': never});continue
+        try:
+            if a.get('kind') == 'new':
+                got = files_service.dispatch(kernel, 'files.trash', {'path': str(target)}, principal)
+                a.update(undone='delete', trash_id=got.get('id', ''))
+                made.append(target)
+            else:
+                version = files_service.version_dir(kernel, target) / str(a.get('kept_version') or '')
+                if not a.get('kept_version') or not version.is_file():
+                    left.append({'path': a['path'], 'why': 'the revision before it was not kept'});continue
+                files_service.may_change(kernel, target, principal)
+                kept = files_service.keep_version(kernel, target)
+                temporary = target.with_name('.' + target.name + '.writing')
+                shutil.copyfile(version, temporary);os.replace(temporary, target)
+                sha = _file_sha(target)
+                if sha != _file_sha(version):raise Refused('SANDBOX_NOT_VERIFIED: %s on disk is not the revision before' % a['path'])
+                rec = depths.record(kernel, {'path': a['path'], 'expected_sha256': sha, 'previous_sha256': a['sha256'], 'how': 'outside',
+                                             'program': ('Undo of the utility “%s”' % u['name'][:80])[:120]}, principal)
+                a.update(undone='revision', revision_back=rec.get('revision'), kept_version_undo=kept or '')
+                back.append('%s: the revision before is back, revision %s, verified on disk' % (home_reach.tilde(target), rec.get('revision')))
+        except (ValueError, OSError) as exc:
+            left.append({'path': a['path'], 'why': str(exc).split(': ', 1)[-1][:200]})
+    whole = all(a.get('undone') for a in applied)
+    if made:
+        folders = sorted({home_reach.tilde(p.parent) for p in made})
+        back.insert(0, '%s Apply made new %s in DELETE (from %s)' % ('the file' if len(made) == 1 else 'the %d files' % len(made), 'is' if len(made) == 1 else 'are',
+                                                                  folders[0] if len(folders) == 1 else '%d folders' % len(folders)))
+    words = ('Undone by your word: ' + '; '.join(back) + '.') if back else 'Nothing was put back.'
+    if left:words += ' Left as %s: %s.' % ('it is' if len(left) == 1 else 'they are', '; '.join('%s (%s)' % (home_reach.tilde(l['path']) if str(l['path']).startswith('/') else l['path'], l['why']) for l in left[:6]))
+    with kernel.db() as db:
+        payload = dict(r['payload'], applied=applied, undo={'back': back, 'left': left, 'at': _now_ms(), 'words': words})
+        db.execute('UPDATE sandbox_runs SET state=?, payload=? WHERE id=?', ('undone' if whole else 'applied', json.dumps(payload), r['id']))
+    return {'run': r['id'], 'state': 'undone' if whole else 'applied', 'back': back, 'left': left, 'words': words}
 
 
 # ===================================================================================================================== keep
@@ -1290,7 +1381,7 @@ def keep(kernel, args, principal):
         u = _utility(db, args['utility'])
         if u['kept']:raise Refused('SANDBOX_KEPT: it is kept already, as %s' % u['kept'])
         if not u['shown']:raise Refused('SANDBOX_NOT_SHOWN: it has not been shown to you yet')
-        finished = db.execute("SELECT COUNT(*) FROM sandbox_runs WHERE utility=? AND state IN ('finished','applied')", (u['id'],)).fetchone()[0]
+        finished = db.execute("SELECT COUNT(*) FROM sandbox_runs WHERE utility=? AND state IN ('finished','applied','undone')", (u['id'],)).fetchone()[0]
         if not finished:raise Refused('SANDBOX_NOT_TRIED: a utility is kept once it has run sealed and finished at least once')
         key = 'utility.' + _slug(name)
         taken = db.execute('SELECT 1 FROM sandbox_kept WHERE key=?', (key,)).fetchone()
@@ -1463,4 +1554,5 @@ def dispatch(kernel, op, args, principal):
     if op == 'sandbox.close':return close(kernel, args, principal)
     if op == 'sandbox.apply':return apply(kernel, args, principal)
     if op == 'sandbox.keep':return keep(kernel, args, principal)
+    if op == 'sandbox.undo':return undo(kernel, args, principal)      # 1.0 L6c
     raise ValueError('Unknown sandbox operation')

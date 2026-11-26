@@ -227,6 +227,10 @@
    "field.why": "workbench/reasons.py#dispatch",
    "field.without": "workbench/reasons.py#dispatch",
    "file.pages": "workbench/home_pages.py#dispatch",
+   "files.batch": "workbench/bulk_files.py#dispatch",
+   "files.batch_plan": "workbench/bulk_files.py#dispatch",
+   "files.batch_undo": "workbench/bulk_files.py#dispatch",
+   "files.batches": "workbench/bulk_files.py#dispatch",
    "files.cells": "workbench/files_service.py#dispatch",
    "files.compare": "workbench/files_service.py#dispatch",
    "files.copy": "workbench/files_service.py#dispatch",
@@ -786,6 +790,7 @@
    "sandbox.run": "workbench/utility_sandbox.py#dispatch",
    "sandbox.seen": "workbench/utility_sandbox.py#dispatch",
    "sandbox.status": "workbench/utility_sandbox.py#dispatch",
+   "sandbox.undo": "workbench/utility_sandbox.py#dispatch",
    "simulation.inspect": "workbench/console_simulation.py#dispatch",
    "slate.action": "workbench/adaptive_work.py#dispatch",
    "slate.action.result": "workbench/adaptive_work.py#dispatch",
@@ -1136,9 +1141,9 @@
   }
  },
  "counts": {
-  "adapters": 918,
+  "adapters": 923,
   "job_tools": 113,
-  "operations": 918,
+  "operations": 923,
   "settings": 53
  },
  "formulas": {
@@ -3379,6 +3384,41 @@
    "properties": {
     "path": "2b1e00f7cfc18abe",
     "question": "3e79622dec12ac17"
+   },
+   "scope": "read"
+  },
+  "files.batch": {
+   "arguments": "b7b559591ce2555ed0082f0a4501f6261292fa6458e5b6b6c3cd45036f4b6e1f",
+   "properties": {
+    "act": "0ac8c580c403351e",
+    "line": "e79254cb03a2db7c",
+    "make": "7cb541e84f226754",
+    "paths": "50a4f0884fbdb17f",
+    "to": "2b1e00f7cfc18abe"
+   },
+   "scope": "execute"
+  },
+  "files.batch_plan": {
+   "arguments": "1abbe9e8cc05dd2be098c7983e7663b5ce8e63759c8ee4ed10d00fb58047a6c9",
+   "properties": {
+    "act": "0ac8c580c403351e",
+    "line": "e79254cb03a2db7c",
+    "paths": "50a4f0884fbdb17f",
+    "to": "2b1e00f7cfc18abe"
+   },
+   "scope": "read"
+  },
+  "files.batch_undo": {
+   "arguments": "52ecf93ae026eee4d547befcea2c33f6d7da281005888a79bc81a2efd644384a",
+   "properties": {
+    "batch": "d76a3cd568c70cee"
+   },
+   "scope": "approve"
+  },
+  "files.batches": {
+   "arguments": "a84c388a9020ff21c63bdbe4687ac82c43e9ed564c81a53abd350310b7b55a8e",
+   "properties": {
+    "limit": "9354d5a3a3d49aa6"
    },
    "scope": "read"
   },
@@ -7953,6 +7993,13 @@
    "properties": {},
    "scope": "read"
   },
+  "sandbox.undo": {
+   "arguments": "109af9aa8795ca6baf81d8210613947c72863d1695603be732fad7f0a2556e20",
+   "properties": {
+    "run": "d76a3cd568c70cee"
+   },
+   "scope": "approve"
+  },
   "simulation.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
@@ -8995,7 +9042,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "8b78fafab48f070156fa40962888f4bd982797255b61a1a1fd5d484d68f6fc0a",
+ "schema_digest": "93cfd77ccfd4fb4227d71fbb93359dc96b4d6591b510304e9a19c3c9e5cb4066",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

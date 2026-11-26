@@ -216,6 +216,7 @@ class CabinetPage(QWidget):
         from .living_nav_qt import extend;model=extend(self.host,model)  # 1.0 L1: the Files and Desk drawers, each row by its object's id
         if not force and self.model and self.model['signature']==model['signature']:return
         current=self.tree.currentItem();selected=(current.data(0,Qt.UserRole)['id'] if current else self.saved.get('selected'))
+        from .bulk_files_qt import chosen_ids,choose;chosen=chosen_ids(self) if self.model else []  # 1.0 L6c: many rows stay chosen through a reading
         expanded=([ident for ident,item in self.items.items() if item.isExpanded()] if self.model and not self.query.text() else
                   self.saved.get('expanded',['cabinet:concern','catalog:projects','cabinet:projects','cabinet:unassigned']))
         scroll=self.tree.verticalScrollBar().value() if self.model else self.saved.get('scroll',0)
@@ -231,6 +232,7 @@ class CabinetPage(QWidget):
                 else:self.tree.addTopLevelItem(item)
                 if node['id'] in expanded:item.setExpanded(True)
             if selected in self.items:self.tree.setCurrentItem(self.items[selected])
+            if len(chosen)>1:choose(self,chosen,selected)  # 1.0 L6c
         import time  # 1.0 D2: through the launch the tree stays at "This computer /"
         if time.monotonic()<getattr(self.host,'launch_top_until',0.0):scroll=0
         self.loading=False;self.filtered(self.query.text());self.tree.verticalScrollBar().setValue(scroll)
@@ -267,6 +269,8 @@ class CabinetPage(QWidget):
 
     def clicked(self,item,column=0):
         node=item.data(0,Qt.UserRole);self.remember()
+        from .bulk_files_qt import extending
+        if extending(self):return  # 1.0 L6c: a click that adds a row or a range to the choice chooses; the board stays where it is
         from .living_nav_qt import clicked as living_clicked
         if living_clicked(self.host,node):return  # 1.0 L1: a file or a desk object is focused on the board, not opened
         # UI-04: a project node that names a folder on disk tells the Finder (while Home is active) before its record opens.

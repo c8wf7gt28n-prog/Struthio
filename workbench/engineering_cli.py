@@ -135,6 +135,7 @@ def schemas():
     from .quick_model import FIELDS as QUICK_MODEL_FIELDS  # 1.0 M2 (a quick model beside hers): brain.quick.status, .use, .stop, .split
     from .home_pages import FIELDS as HOME_PAGES_FIELDS  # 1.0 K10 (her reach in Home, finished): file.pages
     from .home_plan import FIELDS as HOME_PLAN_FIELDS  # 1.0 K10 (her reach in Home, finished): grant.give.set
+    from .bulk_files import FIELDS as BULK_FILES_FIELDS  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -271,6 +272,7 @@ def schemas():
         **QUICK_MODEL_FIELDS,  # 1.0 M2 (a quick model beside hers): brain.quick.status, .use, .stop, .split
         **HOME_PAGES_FIELDS,  # 1.0 K10 (her reach in Home, finished): file.pages
         **HOME_PLAN_FIELDS,  # 1.0 K10 (her reach in Home, finished): grant.give.set
+        **BULK_FILES_FIELDS,  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

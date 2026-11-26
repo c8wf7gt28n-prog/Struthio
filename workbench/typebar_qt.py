@@ -142,6 +142,8 @@ def stac_hint_kind(text):
     text = str(text or '').replace('​', '').strip()
     if not text or text[0] in '/?$':return None
     try:
+        from .bulk_files import split_act
+        text = split_act(text)[0]  # 1.0 L6c: a line that moves, copies or deletes what it lists reads up to that step (it asks before it acts)
         from sdk.cli.arc1cli import typed_pipeline
         if text.startswith('@'):
             from .stacy_language import source

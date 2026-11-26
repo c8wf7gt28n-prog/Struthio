@@ -100,6 +100,7 @@ from . import hand_door  # 1.0 F1 (the door's mechanics): hand.door (read); hand
 from . import quick_model  # 1.0 M2 (a quick model beside hers): brain.quick.status (read); brain.quick.stop, brain.quick.split (execute); brain.quick.use (approve) (recorded additions)
 from . import everyday_desk  # noqa: F401  1.0 X3 (everyday sessions): the desk's planner learns tidy and put back (K4's PLAN_VERBS hook); no operation of its own
 from . import home_pages, home_plan  # 1.0 K10 (her reach in Home, finished): file.pages (read: a document's pages as data, through the doorway); grant.give.set (approve: one press, a grant per operation); registry tools 24 to 27 (recorded additions)
+from . import bulk_files  # 1.0 L6c (bulk files): files.batch_plan, files.batches (read); files.batch (execute: many files moved, copied or deleted in one press); files.batch_undo (approve: the whole batch put back as one) (recorded additions)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -307,6 +308,7 @@ CAPABILITIES = {
     **quick_model.SCOPES,  # 1.0 M2 (a quick model beside hers): loading it is your approval (a model start); the split and its Undo, and stopping it, are execute
     **home_pages.SCOPES,  # 1.0 K10 (her reach in Home, finished): a document's pages read as data is a read
     **home_plan.SCOPES,  # 1.0 K10 (her reach in Home, finished): several grants in one press are your press (approve), each its own record
+    **bulk_files.SCOPES,  # 1.0 L6c (bulk files): the plan and the list are reads; a batch is execute, your press; its Undo is approve
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -776,6 +778,7 @@ class Kernel:
         if op in quick_model.FIELDS:return quick_model.dispatch(self,op,a,p)   # 1.0 M2 (a quick model beside hers): a quick kind goes to it only after its exam on its own key, measured faster
         if op in home_pages.FIELDS:return home_pages.dispatch(self,op,a,p)   # 1.0 K10 (her reach in Home, finished): a document of your home read page by page, every line through the doorway
         if op in home_plan.FIELDS:return home_plan.dispatch(self,op,a,p)   # 1.0 K10 (her reach in Home, finished): a folder's grants in one press, the Kernel still checking each step's own operation
+        if op in bulk_files.FIELDS:return bulk_files.dispatch(self,op,a,p)   # 1.0 L6c (bulk files): one press for many files, recorded as one change with every file's before and after, one Undo
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:
