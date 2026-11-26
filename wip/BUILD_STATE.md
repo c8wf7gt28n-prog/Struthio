@@ -316,6 +316,10 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 10:10 UTC: **1.0 P3 merged** (7188194: Kas as a hologram from the owner's picture; smoke 218/0). The owner's
+  picture is in no tree file; frames that show it stay in scratch (`$S/work/b100/P3/frames/`) and were sent to the owner
+  only. With it, the 1.0 modules' comments that called the owner "he" now say "they" (32 lines). Running: K8, K9, K4b.
+
 - 26 Nov 09:40 UTC: Talk for the owner: `wip/2026-11-26_TALK_how_1.0_works.md` (sent). **1.0 K4 merged** (c834287:
   objective to plan; desk plan and PLAN model turn; AGENT-01 retired behind a pointer; the real 4B came LATE at 20 s and
   the desk's plan was offered honestly). **1.0 K7 merged** (ef17efb: AT-SPI reading over QtDBus, read-only; a dialog
