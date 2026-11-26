@@ -119,6 +119,7 @@ WORDS = {
     'offered': 'It is in ACTIVE WORK; your next press is in NEXT STEPS.',
     'no_plan': 'I could not make a plan of that from the registered tools.',
     'model_not_taken': 'My model’s plan was not taken ({why}), so this is the desk’s own plan.',
+    'model_left_out': 'My model’s plan left out what you asked for ({what}), so this is the desk’s own plan.',      # 1.0 X1
     'model_late': 'My model did not answer within its {seconds} s on this computer, so this is the desk’s own plan.',  # 1.0 K4b
     'model_not_asked': 'My model was not asked: its answer would not come in the time left for this request, so this is the desk’s own plan.',  # 1.0 K4b
     'planning': 'Planning it from the registered tools…',
@@ -285,7 +286,8 @@ class Desk:
             except ValueError:continue
             cells = (((sheet.get('document') or {}).get('sheets') or [{}])[0].get('cells') or {})
             sheet_titles[row['id']] = row.get('title') or sheet.get('title') or row['id']
-            sheets.append(Thing('', 'sheet', sheet_titles[row['id']], row['id'], sheet.get('revision'), {'cells': sorted(cells)}))
+            sheets.append(Thing('', 'sheet', sheet_titles[row['id']], row['id'], sheet.get('revision'), {'cells': sorted(cells),
+                                'values': {c: str((v or {}).get('value')) for c, v in cells.items() if isinstance(v, dict) and v.get('value') is not None}}))      # 1.0 X1
         for ident, doc in got.items():
             derivation = doc.get('derivation') or {}
             if derivation:
@@ -297,7 +299,8 @@ class Desk:
                 sheet_title = sheet_titles.get(derivation.get('sheet'), '')
                 calcs.append(Thing('', 'calculation', str(doc.get('title') or ident), ident, doc.get('revision'), {
                     'name': name, 'quantity': _quantity(name, sheet_title), 'sheet': derivation.get('sheet'),
-                    'sheet_title': sheet_title, 'inputs': [{'cell': i.get('cell'), 'unit': i.get('unit'), 'parameter': i.get('parameter') or i.get('symbol')}
+                    'sheet_title': sheet_title, 'inputs': [{'cell': i.get('cell'), 'unit': i.get('unit'), 'parameter': i.get('parameter') or i.get('symbol'),
+                                                            'was': None if isinstance(i.get('value'), (dict, list)) else i.get('value')}      # 1.0 X1
                                                            for i in derivation.get('inputs') or () if isinstance(i, dict) and i.get('cell')],
                     'value': value.get('decimal'), 'unit': value.get('unit') or ''}))
             else:
@@ -520,6 +523,22 @@ def _value_text(value_key):
     return {'value': {'$step': value_key, 'path': ['value']}, 'unit': {'$step': value_key, 'path': ['unit']}}
 
 
+def _inputs_now(desk, calc, template):
+    """1.0 X1: the sentence that gets the checked result also names the values it was worked from ("settles at 250 mA, which
+    is 3 W"); an input the sheet now holds at another value is written as the sheet holds it, so the sentence never says
+    "250 mA, which is 3.6 W". Exact text only: "<the value the calculation read> <its unit>", once; the new value is the
+    sheet's record at the revision the plan reads (the same sheet the recheck works from)."""
+    sheet = next((t for t in getattr(desk, 'things', ()) if t.kind == 'sheet' and t.id == calc.data.get('sheet')), None)
+    now = (sheet.data.get('values') or {}) if sheet is not None else {}
+    for item in calc.data.get('inputs') or ():
+        was, unit, cell = str(item.get('was') or '').strip(), str(item.get('unit') or '').strip(), item.get('cell')
+        new = str(now.get(cell) or '').strip()
+        if not was or not new or not unit or was == new or '{' in new or '}' in new:continue
+        old_words, new_words = '%s %s' % (was, unit), '%s %s' % (new, unit)
+        if template.count(old_words) == 1:template = template.replace(old_words, new_words)
+    return template
+
+
 def build_update_page(b, page, value, basis):
     """Tool 23 (page.update, documents.save) on a page of Graphite's: the sentence that carries the quantity gets the checked
     value, read from the step that checked it; every other block as it is."""
@@ -532,6 +551,7 @@ def build_update_page(b, page, value, basis):
     if '{' in text or '}' in text:raise Refusal('a sentence of “%s” holds a brace, which a prepared text cannot carry' % page.title)
     if text.count(sentence) != 1:raise Refusal('“%s” says that sentence more than once: say which' % page.title)
     if blocks[i].get('marks'):raise Refusal('the paragraph of “%s” that carries the value has formatting a new value would move' % page.title)
+    template = _inputs_now(b.desk, calc, template)      # 1.0 X1
     arguments = []
     for n, block in enumerate(blocks):
         row = {k: v for k, v in block.items() if v is not None}
@@ -1028,6 +1048,19 @@ def plan(kernel, principal, objective, focus='', earlier=''):
             'words': words_of(result, view), 'things': [t.line() for t in desk.things]}
 
 
+READ_OPERATIONS = ('office.get', 'documents.get', 'files.read', 'files.get', 'libreoffice.read', 'libreoffice.find', 'machine.state')
+
+
+def _left_out_by_model(desk_plan, model_plan):
+    """1.0 X1: the steps of the desk's plan of the owner's words that the model's checked plan does not have (reads apart: a
+    read the model leaves out is read by the step that needs it). The model proposes; a plan that drops a change the owner
+    asked for would end "every step is done (verified)" with that change never made, so the desk's plan is offered instead.
+    The same builders make both plans, so a step is the same step when its operation and title are the same."""
+    have = {(s.get('operation'), s.get('title')) for s in (model_plan or {}).get('sources') or ()}
+    return [s.get('title') for s in (desk_plan or {}).get('sources') or ()
+            if s.get('operation') not in READ_OPERATIONS and (s.get('operation'), s.get('title')) not in have]
+
+
 def offer(kernel, principal, objective, focus='', earlier='', request=None):
     """objective.offer: the plan offered as an assignment (K1), nothing in it started. With a model here, the model proposes
     (the PLAN turn, checked step by step) and the desk's plan is the fallback; without one, the desk's plan."""
@@ -1052,7 +1085,10 @@ def offer(kernel, principal, objective, focus='', earlier='', request=None):
             primed = keep_plan(inputs, request)      # 1.0 K4b: the brief and the menu kept, so the question reads only message 4
             answer = turns.ask(PLAN, inputs, request)
             turn = answer.turn or '';outcome = answer.outcome
-            if answer.by_model and isinstance(answer.value, dict) and answer.value.get('sources'):
+            missing = _left_out_by_model(result, answer.value) if answer.by_model and isinstance(answer.value, dict) else []
+            if missing:      # 1.0 X1: the 4B here answered two of the four steps asked for; "done" would then hide the rest
+                note = say('model_left_out', what='; '.join('“%s”' % t for t in missing[:2]))
+            elif answer.by_model and isinstance(answer.value, dict) and answer.value.get('sources'):
                 result = answer.value
             elif answer.outcome == 'LATE':           # 1.0 K4b: said as it is; no deadline or ceiling was raised to make it fit
                 note = say('model_late', seconds=max(1, int(answer.deadline_ms) // 1000))

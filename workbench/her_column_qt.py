@@ -69,6 +69,8 @@ WORDS = {
     'findings': 'FINDINGS (live)',
     'next': 'NEXT STEPS',
     'nothing_active': 'No assignment is open.',
+    'last_done': 'Last: “{title}”, {state}.',      # 1.0 X1: with nothing open, the last one and its journal, one press away
+    'its_journal': 'Its journal',
     'nothing_found': 'No findings on this desk yet.',
     'nothing_next': 'Nothing waits for you.',
     'more': 'and {count} more',
@@ -736,6 +738,21 @@ class ActiveWork(QWidget):
         self.rows = [];self.list = QVBoxLayout();self.list.setSpacing(px(host, 4));box.addLayout(self.list)
         self.more = row_label(host, '', quiet=True, size=12);box.addWidget(self.more)
         self.none = row_label(host, say('nothing_active'), quiet=True, size=12);box.addWidget(self.none)
+        self.last = QLabel();self.last.setObjectName('HerLastWork');self.last.setWordWrap(True);self.last.setTextFormat(Qt.RichText)      # 1.0 X1
+        ink(self.last, px(host, 12), bt.QUIET, None, bt.FACE);self.last.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        self.last.linkActivated.connect(lambda _=None: self.column.show_journal(self.last_id) if self.last_id else None)
+        self.last_id = None;box.addWidget(self.last);self.last.hide()
+
+    def show_last(self, row):
+        """1.0 X1: with nothing open, the last assignment (done, stopped) and Its journal, so what she did is one press away
+        after a restart too."""
+        from html import escape
+        self.last_id = (row or {}).get('id') or None
+        if not self.last_id:
+            self.last.hide();return
+        words = say('last_done', title=plain(row.get('title') or ''), state=plain(row.get('state_words') or ''))
+        self.last.setText('%s <a href="journal" style="color:%s">%s</a>' % (escape(words), bt.READY, escape(say('its_journal'))))
+        self.last.setToolTip(plain(row.get('line') or ''));self.last.show()
 
     def show_rows(self, rows, most, total, compact=False):
         self.head.setText(say('active_count', count=total) if total else say('active'))
@@ -1007,7 +1024,9 @@ def moment(host, kind, title=''):
     when HALT is pressed). Returns the words shown, or '' when her column is not in this window."""
     column = getattr(host, 'her_column', None)
     if column is None:return ''
-    words = {'refuted': say('moment_refuted', title=plain(title)), 'done': say('moment_done', title=plain(title)), 'halt': say('moment_halt')}.get(kind)
+    title = plain(title)
+    if len(title) > 64:title = title[:62].rsplit(' ', 1)[0].rstrip(' ,;:“') + '…'      # 1.0 X1: a long title cut whole, not by the moment's edge
+    words = {'refuted': say('moment_refuted', title=title), 'done': say('moment_done', title=title), 'halt': say('moment_halt')}.get(kind)
     if not words:return ''
     column.moment.start(kind, words)
     stage = getattr(host, 'hologram', None)
@@ -1256,6 +1275,12 @@ class HerColumn(QObject):
         self.work_line.show_hand((read(self.host, 'program.status', {'live': True}) or {}).get('live'))      # 1.0 K9: her hand in your programs
         # moments: an assignment that was open and is done now; her managed work held (HALT, until K3 says it itself)
         ids = {r['id']: r.get('title') for r in rows}
+        try:      # 1.0 X1: nothing open: the last assignment, read once at start and again when one closes (not every tick)
+            if not rows and not older and (getattr(self, '_x1_last', None) is None or any(i not in ids for i in (self.seen_work or {}))):
+                self._x1_last = (list((read(self.host, 'assignment.list', {'limit': 1}) or {}).get('assignments') or ()) or [{}])[0]
+            self.active.show_last(getattr(self, '_x1_last', None) if not rows and not older else None)
+        except Exception:  # noqa: BLE001
+            pass
         if self.seen_work is not None:
             for ident, title in self.seen_work.items():
                 if ident not in ids:
@@ -1303,6 +1328,43 @@ class HerColumn(QObject):
         desk = read(self.host, 'field.read') or {}
         self.waiting = list(desk.get('waiting') or ())
         self.last_desk = time.monotonic()
+        # 1.0 X1: a finding the desk marks RECHECK (what it rests on changed since) says so here as the board does, never SUPPORTED
+        stale = {str(r.get('id')) for r in desk.get('objects') or () if r.get('kind') == 'finding' and str(r.get('state')) == 'recheck'}
+        for row in rows:
+            if row.get('field') in stale and row['state'] != 'REFUTED':row['state'] = 'RECHECK';row['look'] = ('RECHECK', '◧', 'RECHECK')
+        if stale:
+            rank = ['REFUTED', 'RECHECK'] + [name for name, _ in FINDING_LOOK if name != 'REFUTED'] + ['NEXT']
+            rows.sort(key=lambda r: rank.index(r['state']) if r['state'] in rank else len(rank))
+        self.look_for_old_values()      # 1.0 X1
+
+    def look_for_old_values(self):
+        """1.0 X1 (day_notice): when the calculations marked RECHECK change, look off the window's thread for written words
+        that still carry an old result; say each once, and offer Update in NEXT STEPS."""
+        sig = tuple(sorted((str(w.get('id')), str(w.get('state'))) for w in self.waiting if w.get('kind') == 'calculation' and w.get('state') == 'recheck'))
+        if sig == getattr(self, '_x1_sig', ()):return
+        self._x1_sig = sig
+        if not sig:
+            self.noticed = [];return
+        from . import day_notice, floor
+        from .engineering_kernel import operator
+
+        def plan(reading):
+            try:reading.extra['x1_notices'] = day_notice.notices(day_notice.reader(reading.kernel, operator()))
+            except Exception as exc:  # noqa: BLE001 - nothing is noticed rather than something wrong
+                reading.extra['x1_notices'] = [];reading.extra['x1_why'] = repr(exc)[:300]
+
+        def landed(extra):
+            if getattr(self.host, '_closing', False) or self._x1_sig != sig:return
+            self._x1_why = (extra or {}).get('x1_why', '') if extra is not None else 'not gathered'
+            self.noticed = list((extra or {}).get('x1_notices') or ())
+            said = getattr(self, '_x1_said', set());self._x1_said = said
+            for notice in self.noticed:
+                if notice['key'] not in said:said.add(notice['key']);self.say_words(day_notice.words(notice))
+            try:self.next.show_steps(self.next_steps(), self.face.height() < 520)
+            except Exception:  # noqa: BLE001
+                pass
+        if not floor.gather(self.host, plan, landed, key=('x1-notice', id(self))):
+            self.noticed = []
 
     def state(self):
         """An Approve that waits for you, a fresh stop, her work (her model answering, a job, an assignment running), a
@@ -1347,6 +1409,13 @@ class HerColumn(QObject):
                 title = plain(row.get('title') or '')
                 out.append({'words': '%s · %s' % (action['words'], title), 'verb': action['words'], 'object': title, 'kind': 'assignment',
                             'call': action, 'title': title, 'tip': '%s of “%s”: your press. %s' % (action['words'], title, row.get('line') or '')})
+        try:      # 1.0 X1: written words that still carry an old result (day_notice): Update asks for the plan
+            from . import day_notice
+            planned = [plain(r.get('title') or '').lower() for r in self.rows]      # a plan already open for it: not offered twice
+            out.extend(day_notice.step(n) for n in (getattr(self, 'noticed', None) or ())[:1]
+                       if not any(t == n['objective'].lower() or ('recheck' in t and n['quantity'].lower() in t) for t in planned))
+        except Exception:  # noqa: BLE001
+            pass
         for card in self.waiting:
             ident = card.get('id');kind = str(card.get('kind') or '');state = str(card.get('state') or '')
             if not ident or ident in seen:continue
@@ -1374,11 +1443,18 @@ class HerColumn(QObject):
                         'tip': 'You stopped “%s”. Resume inspects every step first and never repeats one that is done.' % title})
         out.append({'words': 'Check the desk', 'verb': 'Check the desk', 'object': 'every check, run now', 'kind': 'desk', 'command': 'check', 'title': '',
                     'tip': 'Every check the desk has, run now; what waits is said in Talk with the step that would settle it.'})
+        mine = [id(s) for s in out if s['kind'] == 'assignment'][:4]      # 1.0 X1: an assignment's own press (Carry on, Resume)
+        if any(i not in {id(s) for s in out[:4]} for i in mine):          # is never pushed off the four by the desk's cards: after
+            room = 4 - len(mine)                                           # Authorise, Carry on is the only way to run the step
+            desk = [id(s) for s in out if s['kind'] != 'assignment'][:room]
+            out = [s for s in out if id(s) in mine or id(s) in desk]
         out = out[:4]
         if out:out[0]['primary'] = True
         return out
 
     def take_step(self, step):
+        if step['kind'] == 'notice':      # 1.0 X1: Update: the plan asked for in the desk's words; offered, nothing changed
+            self.ask(step['objective']);return
         if step['kind'] == 'assignment':
             call = step['call']
             if call.get('operation') in ('assignment.step', 'assignment.resume'):
@@ -1516,4 +1592,10 @@ def install(host):
         host.her_column = None
         return None
     host.her_column = column
+    try:      # 1.0 X1: a save in the Office (a sheet's new value) has her column read the desk at once, so what rests on it is seen
+        from . import floor
+        concern = getattr(host, 'concern', None)
+        if concern is not None:concern.changed.connect(lambda c=column: floor.column_soon(c))
+    except Exception:  # noqa: BLE001 - the column still reads on its own tick
+        pass
     return column

@@ -1,0 +1,727 @@
+diff --git a/docs/ACCEPTANCE_1.0.md b/docs/ACCEPTANCE_1.0.md
+index a7aef1e..81d357b 100644
+--- a/docs/ACCEPTANCE_1.0.md
++++ b/docs/ACCEPTANCE_1.0.md
+@@ -213,9 +213,10 @@ says which model answers which kind and why. **Put every kind back on her model*
+ 
+ Rail Demo is an invented desk: a 12 V rail on a bench, with bench readings (12 V, settled current 250 mA, startup current
+ 900 mA, startup 45 ms), its limits in two revisions (Rev A, archived; Rev B, current: settled power at most 4 W, startup at
+-most 40 ms), the calculations made from them, four findings, a summary page and one open question. Every number in it is
+-made up. In this part its limits sheet (Rev B) plays the specification, and its bench readings sheet plays the
+-worksheet.
++most 40 ms), the calculations made from them, four findings, a summary page and one open question; and in its Files an
++invented report, "Rail Demo summary report.odt" (it says "Settled power is 3.0 W at 12 V."), and a power sheet. Every
++number in it is made up. In this part its limits sheet (Rev B) plays the specification, its bench readings sheet plays the
++worksheet, and the summary page and the report play the previous report.
+ 
+ Her model should be ready (Part 3). Where a step says what she should answer, the words will differ; what matters is what
+ the answer claims.
+@@ -223,35 +224,65 @@ the answer claims.
+ 1. **Guide ▸ Try Rail Demo**, then **Build it** on her card. It is built in a new folder of its own under
+    `~/Graphite demos`, never in your workspace, and opens in a window of its own. Her card names the folder: write it down.
+    **Photo 15:** Rail Demo's window.
+-2. **Select the project.** In the Desk drawer on the left, choose its concern, "Rail Demo (invented data)". The board
+-   shows its material around it, sized by relevance.
+-3. **Select the specification:** the sheet "Rail Demo limits Rev B CURRENT". The tree shows where it is; the board puts it
+-   in the middle with its neighbours around it; the Rev A sheet is smaller and marked — ARCHIVED. Click a wire: it says
+-   why it is there, naming the values and the revision (a dashed one says "not verified"). **Photo 16:** the board with a
+-   wire's basis open.
++
++   **Her model in Rail Demo.** Rail Demo has a workspace and a profile of its own, so its Brain room starts with no model
++   (her column says "no model yet"). First, in your own window's Brain room, press **Stop brain**, so the memory is free;
++   then in Rail Demo's window open the Brain room (the GPU meter's card at the foot), **Add file**, the same model file as
++   in Part 3, select it and press **Use model**. When her column in Rail Demo shows ● beside her name, go on.
++2. **The project.** Rail Demo's window opens on its project: the board has the desk's open question in the middle ("Why
++   does startup take longer than 40 ms?", from Rail Demo (invented data)) and the project's material around it, sized by
++   relevance. In the tree on the left, scroll down past This computer to **Concern ▸ Desk** and choose **Desk**: its
++   drawers list the same records by kind (Sources, Sheets, Calculations, Pages, Findings, Questions, Goals), and the board
++   stays on the project. (The cabinet's own record of the project, under Concern ▸ Unassigned ▸ Questions, opens its
++   record page instead of the board; Board on the centre bar comes back.)
++3. **Select the specification:** in the Desk drawer, Sheets ▸ "Rail Demo limits Rev B CURRENT". The tree shows where it
++   is; the board puts it in the middle with what reads it around it (its PDF, the goals that read its rows, the two
++   calculations, the readings, the open question); what is further off, the Rev A PDF among it, is grouped as "and 7
++   more", which opens. Click a wire of the specification's: its basis opens and says what rests on what, and where (the
++   goal "Settled power is at most the settled power limit" rests on its row 2; the wire from its PDF names page 1, the
++   version and the source's SHA-256). A dashed wire says "possible · not verified". **Photo 16:** the board with a wire's
++   basis open.
+ 4. **Open it:** double-click it. Its working view fills the centre; Kasandra's column stays beside it.
+ 5. **Ask her,** in her ask line at the foot of her column: *Kas, review this assembly and tell me whether the proposed
+-   power supply is sufficient.* What she must claim: settled power holds (3 W against the 4 W limit, supported), and
+-   startup is **not** cleared (45 ms against 40 ms does not hold under Rev B, or it stays an open question). She must not
+-   say "sufficient" without that condition. **Photo 17:** her column with the answer, its check rows and FINDINGS.
++   power supply is sufficient.* She answers from the desk's records, finding by finding, each with its state word and
++   shape (her model is not asked to judge it): ⊘ REFUTED "Startup is inside the Rev B limit of 40 ms", ■ SUPPORTED
++   "Settled power is 3 W, inside the Rev B limit of 4 W", the other findings, □ OPEN QUESTION "Why does startup take
++   longer than 40 ms?", and then "So I cannot call it sufficient. What is supported holds; what is refuted, in recheck or
++   open is not cleared". What she must claim: settled power holds, and startup is **not** cleared. She must not say
++   "sufficient" without that condition. **Photo 17:** her column with the answer and FINDINGS.
+ 6. **Open the worksheet beside it:** press Board on the centre bar, right-click the tile "Rail Demo bench readings" and
+-   choose Open beside (or press Split on the centre bar and open the readings into the empty half). The specification on
+-   one side, the readings on the other. Press in the readings' pane: the tree's
+-   highlight moves to the readings, and the other pane says "Beside · another object". **Photo 18:** the split.
+-7. **Change a value:** in the readings, set the settled current from 250 mA to 300 mA, and Save. You should see that the
+-   settled-power calculation and what rests on it are marked for a recheck (it works out at 3.6 W). **Photo 19.**
+-8. **The summary is out of date.** Does she notice by herself that "Rail Demo summary" still says 3 W (a line in her
+-   column, or a NEXT STEPS button)? Write down whether she did. If she did not, ask her in her ask line: *recheck the
+-   settled power and update the summary page*.
+-9. **Her plan.** You should see a task in ACTIVE WORK with its steps, each through a registered tool; reading steps run;
+-   the step that changes the summary waits for you in "Waits for you" (◆ needs your word, or ◆ with a key: needs your
+-   grant). **Photo 20:** her column with the plan and what waits for you. Approve it.
+-10. **Done means verified.** The summary step should read ✓ done (verified) only after its new revision is on disk; the
+-    summary page on the board shows a new revision with the new value, and the old revision is kept. **Photo 21.**
+-11. **The startup question is still open.** Her column must show the summary update done while startup is still not
+-    cleared: finishing one part must not become an all-clear. **Photo 22:** FINDINGS and ACTIVE WORK together.
+-12. **Close the working views** (Close on the centre bar, or One pane and then Close). You should be back on the board with
+-    the same object in focus and its links as before. **Photo 23.**
++   choose Open beside. On a smaller screen the readings may be grouped under "and … more": press that, choose the
++   readings there (they come to the middle), then right-click them and choose Open beside. The specification on one side,
++   the readings on the other. Press in the readings' pane: the tree's highlight moves to the readings, and the other pane
++   says "Beside · another object". **Photo 18:** the split.
++7. **Change a value:** in the readings' table, double-click the settled current (250, cell B3): "Edit working cell" opens;
++   write 300 in place of 250, OK, then **Save** on the centre bar. The pane says "Working copy saved"; NEXT STEPS in her
++   column now names the two calculations of that sheet ("See its steps: Rail Demo settled power · 3 W"), which the desk
++   marks for a recheck. **Photo 19.**
++8. **The summary is out of date.** Does she notice by herself? Within a few seconds her column should say that "Rail Demo
++   summary" still says 3 W and that, worked from the saved sheet, the settled power is 3.6 W, naming the report too; and
++   NEXT STEPS should offer **1 ▸ Update · "Rail Demo summary" still says 3 W**. Write down whether she did. Press
++   **Update** (it only asks for the plan; nothing changes yet). If she did not notice, ask her in her ask line instead:
++   *recheck the settled power, update the summary page and update the summary report*.
++9. **Her plan.** You should see a task in ACTIVE WORK with five steps, each through a registered tool: read the readings;
++   recompute the settled power; update the summary page; check the report and prepare its update; then update the report
++   through LibreOffice. With her model ready, her model proposes the plan first and the desk checks it: if its plan leaves
++   out something you asked for, she says so ("My model's plan left out what you asked for …, so this is the desk's own
++   plan"); write down which she said. Reading steps run; each change waits for you at the top of her column, in "Waits
++   for you", in turn:
++   **Authorise step 2** (the recompute), **Grant this for this assignment** (◆ with a key: the summary page), **Authorise
++   step 5** (the report, with the new sentence written in it); between them NEXT STEPS offers **Carry on**. **Photo 20:**
++   her column with the plan and what waits for you. Approve each.
++10. **Done means verified.** Each step should read ✓ done (verified) only after its effect is read back: the summary page
++    has a new revision with 3.6 W, and the report was changed by her own hidden LibreOffice, saved, read back from the disk
++    and found to say "Settled power is 3.6 W at 12 V." (the version before is kept by Files). Press Board: the settled
++    power calculation now says 3.6 W. **Photo 21.**
++11. **The startup question is still open.** Her column must show the task done while startup is still not cleared:
++    FINDINGS keeps "Startup is inside the Rev B limit of 40 ms" REFUTED and the open question, and the finding that still
++    says 3 W reads RECHECK (◧), not SUPPORTED (on a smaller screen FINDINGS shows two rows and "and … more"; the board shows
++    the rest). Finishing one part must not become an all-clear. **Photo 22:** FINDINGS and ACTIVE WORK together.
++12. **Close the working views** (One pane, then Close on the centre bar, until the board is back). You should be back on
++    the board on the object that was in focus, with its links. **Photo 23.**
+ 13. **Close Rail Demo for the evening, and come back.** Close Rail Demo's window. Then choose Terminal at Graphite's foot
+     and open it again on the same folder, with the folder her card named between the first quotes (the one below is an
+     example):
+@@ -260,9 +291,11 @@ the answer claims.
+     d="/home/you/Graphite demos/Rail Demo 2026-12-01 20.15.00"; cd "$HOME/Applications/Graphite-1.0" && env -u ARC_LEDGER_EDITION ARC1_WORKBENCH_CONFIG_HOME="$d/profile" ARC_LEDGER_WORKSPACE="$d/workspace" ARC_LEDGER_CONCERN="$d/Concern" setsid -f .venv/bin/python -m workbench.launch
+     ```
+ 
+-    You should see the desk as you left it: the sources, the two revisions of the summary, the changed reading, the
+-    calculations, the findings, the open startup question, and her task in ACTIVE WORK with its journal (press its title):
+-    what was done, verified, and nothing done twice. **Photo 24:** the task's journal.
++    You should see the desk as you left it: the sources, the summary at its new revision, the changed reading, the
++    calculations, the findings, the open startup question. Her task is done, so ACTIVE WORK says "No assignment is open."
++    and, under it, "Last: “Recheck the settled power, …”, done. **Its journal**": press Its journal. Her column lists each
++    step and what it found: what was done, verified, and nothing done twice. Write down whether her model was ready again
++    by itself (● beside her name) or had to be chosen in the Brain room. **Photo 24:** the task's journal.
+ 
+ Optional, if there is time: in Rail Demo, press **HALT** while a task of hers runs. Everything of hers stops and says so;
+ the desktop and your apps keep running; HALT reads RESUME. Press RESUME: nothing restarts by itself. **Photo 25.**
+diff --git a/workbench/day_notice.py b/workbench/day_notice.py
+new file mode 100644
+index 0000000..dc97c28
+--- /dev/null
++++ b/workbench/day_notice.py
+@@ -0,0 +1,214 @@
++"""She notices an old value in written words (Graphite 1.0, X1: the day of the paper's section 18).
++
++The owner's paper, section 18: "You change a current value. The worksheet updates. Graphite recognizes the changed revision
++and identifies calculations or reports that may depend on it. Kasandra notices that the previously written summary still
++contains an older value. She proposes reviewing the report. You approve the operation."
++
++What was there before this module: a saved change to a sheet sends the calculations that read it to RECHECK (the board and
++NEXT STEPS say so), and field.ripple (field_ripple.py) can say, for a value set on a sheet, every page and finding whose words
++carry a number that would move. Nothing joined the two after the save, so the summary that still said the old value was for
++the owner to find. This module joins them, by the records, with no model:
++
++    for each calculation the desk marks RECHECK:
++      the cells it reads, at the values the sheet holds now      (documents.get: its derivation; office.get: the cells)
++      field.ripple on that sheet with those values               (a read: the calculation worked again with its own recipe
++                                                                  gives its new result; every page and finding whose words
++                                                                  carry the old one is named)
++      each Writer document in Files whose sentence carries the old result
++                                                                 (read directly, office_bridge.read_odf: no LibreOffice runs)
++
++and says it once in her column ("“Rail Demo summary” still says 3 W; worked from the saved sheet, the settled power is 3.6 W"),
++with one NEXT STEP, Update, that asks for the plan in the owner's words of the desk (K4: recheck the quantity, update the page,
++update the report). The press only asks for the plan: it is offered in ACTIVE WORK and nothing changes until the owner
++authorises it, step by step, as every plan of hers.
++
++    notices(read)    -> [{'key', 'calculation', 'quantity', 'old', 'new', 'pages': [(title, says)], 'documents': [(title, says)],
++                          'objective'}]       read: callable(operation, arguments) -> result or None (the Kernel, read-only)
++    words(notice)    -> her sentence (a fixed template, registered with mind_words)
++
++No floating point: values are compared as the records' decimal text, through field_doubt.measure (exact).
++"""
++from __future__ import annotations
++
++import hashlib
++import re
++
++WORDS = {
++    'noticed': '“{page}” still says {old}; worked from the saved sheet, the {quantity} is {new}. I can recheck it and update {what}: '
++               'NEXT STEPS, Update. Nothing changes until you authorise it.',
++    'button': 'Update',
++    'object': '“{page}” still says {old}',
++    'tip': 'Asks for the plan: recheck the {quantity}, then update {what}. It is offered in ACTIVE WORK; nothing changes until you authorise it.',
++    'and': ' and ',
++}
++try:
++    from . import mind_words
++    mind_words.register('day_notice', WORDS, kind='sentence',
++                        numbers={'noticed': {'old': 'the calculation page as it stands (documents.get)', 'new': 'field.ripple: the calculation worked again'},
++                                 'object': {'old': 'the calculation page as it stands (documents.get)'}})
++except Exception:  # noqa: BLE001 - the words stand without the register
++    pass
++
++MOST_CALCULATIONS = 4        # calculations followed in one look, at most
++MOST_DOCUMENTS = 12          # Writer documents in Files read in one look, at most
++MOST_PAGES = 40              # Graphite's own pages read in one look, at most
++
++
++def _plain(value):
++    return ' '.join(str(value or '').split())
++
++
++def _result_words(calc):
++    """A calculation's result as its page says it ("3 W"), and its title without it."""
++    title = _plain(calc.get('title'))
++    name, _, said = title.partition(' · ')
++    return name.strip(), said.strip()
++
++
++def _quantity(name, sheet_title):
++    try:
++        from .objective_plan import _quantity as q
++        return q(name, sheet_title)
++    except Exception:  # noqa: BLE001
++        return name
++
++
++def _same_quantity(text, old):
++    """Whether these words carry the quantity `old` ("3 W"): the same kind of quantity and the same exact number."""
++    from .field_doubt import measure, said_quantities, _same
++    parts = old.split()
++    if len(parts) < 2:return False
++    base, scaled = measure(parts[0], ' '.join(parts[1:]))
++    text = re.sub(r'(?<=[A-Za-zΩ°%])[:;](?=\s|$)', ' ', str(text or ''))      # "which is 3 W: inside ..." (the reader takes "W:" for no unit)
++    return any(b == base and _same(s, scaled) for _, _, b, s in said_quantities(text))
++
++
++def _writer_documents(read, old, most=MOST_DOCUMENTS):
++    """Writer documents in Files with a sentence that carries `old`: [(title, the sentence)]. Read directly (no LibreOffice)."""
++    out = []
++    try:
++        from . import office_bridge
++        from .objective_plan import Desk
++        desk = read('__desk__', None)
++        things = [t for t in (desk.things if isinstance(desk, Desk) else []) if t.kind == 'document' and str(t.title).lower().endswith('.odt')]
++    except Exception:  # noqa: BLE001
++        return out
++    for thing in things[:most]:
++        try:
++            path = read('__path__', thing.id)
++            doc = office_bridge.read_odf(path) if path else {}
++        except Exception:  # noqa: BLE001
++            continue
++        for paragraph in doc.get('paragraphs') or ():
++            hit = next((s for s in office_bridge.sentences(paragraph) if _same_quantity(s, old)), None)
++            if hit:
++                out.append((thing.title, hit));break
++    return out
++
++
++def _pages(read, desk, old, most=MOST_PAGES):
++    """Graphite's own pages on the desk with a sentence that carries `old`, read block by block: [(title, the sentence)].
++    (field.ripple reads a page's plain line, which holds its title; the sentences are in its blocks.)"""
++    out = []
++    for row in [r for r in desk.get('objects') or () if r.get('kind') == 'document'][:most]:
++        ident = str(row['id']).split(':', 1)[1] if ':' in str(row['id']) else row['id']
++        doc = (read('documents.get', {'id': ident}) or {}).get('document') or {}
++        for block in doc.get('blocks') or ():
++            text = _plain((block or {}).get('text'))
++            hit = next((s for s in _sentences(text) if _same_quantity(s, old)), None) if text else None
++            if hit:
++                out.append((_plain(doc.get('title') or row.get('title')), hit));break
++    return out
++
++
++def _sentences(text):
++    try:
++        from .office_bridge import sentences
++        return sentences(text)
++    except Exception:  # noqa: BLE001
++        return [text]
++
++
++def notices(read):
++    """What still carries an old value, for each calculation the desk marks RECHECK (see the module's words)."""
++    desk = read('field.read', {}) or {}
++    waiting = [row for row in desk.get('objects') or () if row.get('kind') == 'calculation' and str(row.get('state')) == 'recheck']
++    objects = {row['id']: row for row in desk.get('objects') or ()}
++    out = []
++    for calc in waiting[:MOST_CALCULATIONS]:
++        ident = str(calc['id']).split(':', 1)[1] if ':' in str(calc['id']) else calc['id']
++        doc = (read('documents.get', {'id': ident}) or {}).get('document') or {}
++        derivation = doc.get('derivation') or {}
++        sheet = derivation.get('sheet')
++        cells_read = sorted({str(i.get('cell')) for i in derivation.get('inputs') or () if i.get('cell')})
++        if not sheet or not cells_read:continue
++        record = read('office.get', {'id': sheet}) or {}
++        cells = ((record.get('document') or {}).get('sheets') or [{}])[0].get('cells') or {}
++        setting = {c: _plain((cells.get(c) or {}).get('value')) for c in cells_read if _plain((cells.get(c) or {}).get('value'))}
++        if not setting:continue
++        rippled = read('field.ripple', {'id': 'office:' + str(sheet), 'set': setting}) or {}
++        rows = rippled.get('rows') or ()
++        mine = next((r for r in rows if r.get('way') == 'reads it' and r.get('id') == calc['id'] and r.get('moves') == 'yes'), None)
++        if mine is None:continue
++        old, new = _plain(mine.get('says_now')), _plain(mine.get('would_be'))
++        pages = [(_plain(r['title']), _plain(r.get('says_now'))) for r in rows if r.get('way') == 'says it' and r.get('kind') == 'page' and old in _plain(r.get('says_now')).split('; ')]
++        pages += [p for p in _pages(read, desk, old) if p[0] not in {t for t, _ in pages}]
++        documents = _writer_documents(read, old)
++        if not pages and not documents:continue
++        name, _ = _result_words(calc)
++        sheet_title = _plain((objects.get('office:' + str(sheet)) or {}).get('title') or (record.get('document') or {}).get('title'))
++        quantity = _quantity(name, sheet_title)
++        clauses = ['recheck the %s' % quantity] + ['update the %s' % _named(title, 'page') for title, _ in pages[:2]] + ['update the %s' % _named(title, 'report') for title, _ in documents[:1]]
++        objective = ', '.join(clauses[:-1]) + ' and ' + clauses[-1] if len(clauses) > 1 else clauses[0]
++        key = hashlib.sha256(('%s|%s|%s|%s' % (calc['id'], old, new, sorted(setting.items()))).encode()).hexdigest()[:16]
++        out.append({'key': key, 'calculation': calc['id'], 'quantity': quantity, 'old': old, 'new': new, 'pages': pages, 'documents': documents,
++                    'objective': objective})
++    return out
++
++
++def _named(title, kind):
++    """A thing's name as the owner would say it, its kind word last ("Rail Demo summary page", "Rail Demo summary report"):
++    the desk's planner (objective_plan.Desk.find) takes the title's words and the kind word, so a page and a report of the
++    same name are told apart without quotes."""
++    name = _plain(title)
++    stem, dot, ext = name.rpartition('.')
++    if dot and stem and ext.lower() in ('odt', 'ods', 'docx', 'xlsx', 'txt', 'md', 'pdf'):name = stem
++    return name if name.lower().split()[-1:] == [kind] else '%s %s' % (name, kind)
++
++
++def what(notice):
++    names = ['“%s”' % t for t, _ in notice['pages'][:2]] + ['the report “%s”' % t for t, _ in notice['documents'][:1]]
++    return WORDS['and'].join(names) if len(names) < 3 else ', '.join(names[:-1]) + WORDS['and'] + names[-1]
++
++
++def first(notice):
++    return (notice['pages'] or notice['documents'])[0][0]
++
++
++def words(notice):
++    return WORDS['noticed'].format(page=first(notice), old=notice['old'], quantity=notice['quantity'], new=notice['new'], what=what(notice))
++
++
++def step(notice):
++    """Her NEXT STEP for a notice: one press, which asks for the plan in the desk's words (K4)."""
++    obj = WORDS['object'].format(page=first(notice), old=notice['old'])
++    return {'words': '%s · %s' % (WORDS['button'], obj), 'verb': WORDS['button'], 'object': obj, 'kind': 'notice', 'title': obj,
++            'objective': notice['objective'], 'key': notice['key'],
++            'tip': WORDS['tip'].format(quantity=notice['quantity'], what=what(notice))}
++
++
++def reader(kernel, principal):
++    """read(operation, arguments) for notices(): the Kernel's reads, the desk of K4 and a Files path."""
++    def read(operation, arguments):
++        if operation == '__desk__':
++            from .objective_plan import Desk
++            return Desk.read(kernel, principal)
++        if operation == '__path__':
++            from . import files_service
++            return files_service.resolve(kernel, arguments, must_exist=True)
++        try:
++            got = kernel.dispatch(operation, arguments or {}, principal)
++        except Exception:  # noqa: BLE001 - a record that cannot be read is left out
++            return None
++        return got.get('result') if got.get('ok') else None
++    return read
+diff --git a/workbench/demo_try.py b/workbench/demo_try.py
+index a2ab94b..122dc18 100644
+--- a/workbench/demo_try.py
++++ b/workbench/demo_try.py
+@@ -82,7 +82,14 @@ def build(key, folder):
+     found = kernel.dispatch('goals.candidates', {}, principal)
+     for candidate in ((found.get('result') or {}).get('candidates') or ()) if found.get('ok') else ():
+         if kernel.dispatch('goals.keep', {'candidate': candidate['key']}, principal).get('ok'):kept += 1
+-    return {'workspace': str(Path(folder) / 'workspace'), 'goals': kept}
++    made = {'workspace': str(Path(folder) / 'workspace'), 'goals': kept}
++    if key == 'rail':      # 1.0 X1: the day of the paper's section 18 has "a previous report": K5's invented report (.odt) and
++        try:               # power sheet (.ods) in its Files, so her LibreOffice can update the report's sentence and verify it
++            from . import office_bridge
++            made['documents'] = office_bridge.place_examples(kernel).get('written') or []
++        except Exception as exc:  # noqa: BLE001 - the desk stands without them; the card says nothing of a report then
++            made['documents_not_placed'] = str(exc)[:200]
++    return made
+ 
+ 
+ def main(argv=None):
+diff --git a/workbench/desk_review.py b/workbench/desk_review.py
+new file mode 100644
+index 0000000..fd12259
+--- /dev/null
++++ b/workbench/desk_review.py
+@@ -0,0 +1,101 @@
++"""A review of the desk asked in her ask line, answered from the records (Graphite 1.0, X1: the day of the paper's section 18).
++
++The owner's paper, section 18: "Kas, review this assembly and tell me whether the proposed power supply is sufficient." ...
++"Suppose the settled power is within the stated limit but startup demand remains unresolved. Kasandra should not collapse
++those observations into an unconditional approval. She reports that the settled condition is supported and that startup
++requires further evaluation."
++
++Before this module such a question went to her model's free words (with a model: "from its memory, not from your files"; the
++4B here said it could not review assembly files), or, with no model, to "I have no brain running yet". The desk already holds
++the answer, finding by finding: each investigation's findings with their evidence state (supported, refuted, contested), the
++ones the desk marks RECHECK because what they rest on changed since, and its open questions. This module says them, in the
++table's words and shapes (state_words), and draws the one conclusion the records allow: "sufficient" only when every finding
++is supported and nothing is refuted, in recheck or open; otherwise not cleared, naming what is not. No model is asked, so
++nothing the model writes becomes the verdict (her rule: the model proposes, the desk disposes).
++
++    REVIEW.search(text)      the words that ask for it: review this assembly / design / desk, whether … is sufficient,
++                             adequate, enough, meets its limits, within its limits
++    review(read)  -> {'rows': [(state, text)], 'open': [text], 'cleared': bool} | None (no finding on the desk)
++    words(rows)   -> her answer, fixed templates registered with mind_words
++    asked(face, text) -> True when she answered (shell2.ask calls it before the objective planner)
++"""
++from __future__ import annotations
++
++import re
++
++REVIEW = re.compile(r'\b(?:review\s+(?:this|the|my)\s+(?:assembly|design|circuit|desk|project|board|supply)|'
++                    r'(?:in)?sufficient|adequate|good\s+enough|enough\s+for|'
++                    r'meets?\s+(?:its|the|their)\s+(?:limits?|spec(?:ification)?s?|requirements?)|'
++                    r'within\s+(?:its|the|their)\s+limits?)\b', re.I)
++
++WORDS = {
++    'head': 'What the records say, finding by finding (the desk’s findings and their evidence, not my own judgement):',
++    'supported': '■ SUPPORTED · {text}',
++    'refuted': '⊘ REFUTED · {text}',
++    'contested': '◆ CONTESTED · {text}',
++    'recheck': '◧ RECHECK · {text} (what it rests on changed since; it holds only once it is worked again)',
++    'unknown': '□ OPEN · {text}',
++    'question': '□ OPEN QUESTION · {text}',
++    'not_cleared': 'So I cannot call it sufficient. What is supported holds; what is refuted, in recheck or open is not cleared, '
++                   'and finishing one part does not clear the rest.',
++    'cleared': 'Every finding on this desk is supported and no question is open. That is the records’ word, not a judgement of the design.',
++    'how': 'Each line is a record of the desk; FINDINGS (live) and the board show the same, and DOUBT asks what a supported one may hide.',
++}
++try:
++    from . import mind_words
++    mind_words.register('desk_review', WORDS, kind='sentence')
++except Exception:  # noqa: BLE001 - the words stand without the register
++    pass
++
++ORDER = ('refuted', 'recheck', 'contested', 'unknown', 'supported')
++MOST_INVESTIGATIONS = 4
++MOST_ROWS = 8
++
++
++def review(read):
++    """The desk's findings and open questions, as the records hold them now. read(operation, arguments) -> result or None."""
++    listing = read('investigation.list', {}) or {}
++    desk = read('field.read', {}) or {}
++    stale = {str(r.get('id')) for r in desk.get('objects') or () if r.get('kind') == 'finding' and str(r.get('state')) == 'recheck'}
++    rows, questions = [], []
++    for inv in list(listing.get('investigations') or ())[:MOST_INVESTIGATIONS]:
++        sheet = read('investigation.sheet', {'id': inv['id']}) or {}
++        for claim in list(sheet.get('learned') or ()) + list(sheet.get('unresolved') or ()):
++            if claim.get('retired'):continue
++            text = ' '.join(str(claim.get('text') or '').split())
++            if not text:continue
++            if claim.get('role') == 'QUESTION':
++                if str(claim.get('evidence_state') or '').upper() not in ('SUPPORTED', 'ANSWERED'):questions.append(text)
++                continue
++            if claim.get('role') != 'FINDING':continue
++            state = str(claim.get('evidence_state') or 'UNKNOWN').lower()
++            if state not in ORDER:state = 'unknown'
++            if ('claim:%s' % claim.get('id')) in stale and state != 'refuted':state = 'recheck'
++            rows.append((state, text))
++    if not rows and not questions:return None
++    rows.sort(key=lambda r: ORDER.index(r[0]))
++    cleared = bool(rows) and all(s == 'supported' for s, _ in rows) and not questions
++    return {'rows': rows[:MOST_ROWS], 'open': questions[:3], 'cleared': cleared}
++
++
++def words(found):
++    lines = [WORDS['head']]
++    lines += [WORDS[state].format(text=text) for state, text in found['rows']]
++    lines += [WORDS['question'].format(text=text) for text in found['open']]
++    lines.append(WORDS['cleared'] if found['cleared'] else WORDS['not_cleared'])
++    lines.append(WORDS['how'])
++    return '\n'.join(lines)
++
++
++def asked(face, text):
++    """Her answer to a review question, from the records; False when the words are not one, or the desk has no finding."""
++    if not REVIEW.search(text or ''):return False
++    try:
++        from .her_column_qt import read as column_read
++        found = review(lambda op, args=None: column_read(face.host, op, args))
++    except Exception:  # noqa: BLE001 - the usual way answers then
++        return False
++    if not found:return False
++    face.mine(text)
++    face.say(words(found))
++    return True
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index 2537c63..d426c43 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -69,6 +69,8 @@ WORDS = {
+     'findings': 'FINDINGS (live)',
+     'next': 'NEXT STEPS',
+     'nothing_active': 'No assignment is open.',
++    'last_done': 'Last: “{title}”, {state}.',      # 1.0 X1: with nothing open, the last one and its journal, one press away
++    'its_journal': 'Its journal',
+     'nothing_found': 'No findings on this desk yet.',
+     'nothing_next': 'Nothing waits for you.',
+     'more': 'and {count} more',
+@@ -736,6 +738,21 @@ class ActiveWork(QWidget):
+         self.rows = [];self.list = QVBoxLayout();self.list.setSpacing(px(host, 4));box.addLayout(self.list)
+         self.more = row_label(host, '', quiet=True, size=12);box.addWidget(self.more)
+         self.none = row_label(host, say('nothing_active'), quiet=True, size=12);box.addWidget(self.none)
++        self.last = QLabel();self.last.setObjectName('HerLastWork');self.last.setWordWrap(True);self.last.setTextFormat(Qt.RichText)      # 1.0 X1
++        ink(self.last, px(host, 12), bt.QUIET, None, bt.FACE);self.last.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++        self.last.linkActivated.connect(lambda _=None: self.column.show_journal(self.last_id) if self.last_id else None)
++        self.last_id = None;box.addWidget(self.last);self.last.hide()
++
++    def show_last(self, row):
++        """1.0 X1: with nothing open, the last assignment (done, stopped) and Its journal, so what she did is one press away
++        after a restart too."""
++        from html import escape
++        self.last_id = (row or {}).get('id') or None
++        if not self.last_id:
++            self.last.hide();return
++        words = say('last_done', title=plain(row.get('title') or ''), state=plain(row.get('state_words') or ''))
++        self.last.setText('%s <a href="journal" style="color:%s">%s</a>' % (escape(words), bt.READY, escape(say('its_journal'))))
++        self.last.setToolTip(plain(row.get('line') or ''));self.last.show()
+ 
+     def show_rows(self, rows, most, total, compact=False):
+         self.head.setText(say('active_count', count=total) if total else say('active'))
+@@ -1007,7 +1024,9 @@ def moment(host, kind, title=''):
+     when HALT is pressed). Returns the words shown, or '' when her column is not in this window."""
+     column = getattr(host, 'her_column', None)
+     if column is None:return ''
+-    words = {'refuted': say('moment_refuted', title=plain(title)), 'done': say('moment_done', title=plain(title)), 'halt': say('moment_halt')}.get(kind)
++    title = plain(title)
++    if len(title) > 64:title = title[:62].rsplit(' ', 1)[0].rstrip(' ,;:“') + '…'      # 1.0 X1: a long title cut whole, not by the moment's edge
++    words = {'refuted': say('moment_refuted', title=title), 'done': say('moment_done', title=title), 'halt': say('moment_halt')}.get(kind)
+     if not words:return ''
+     column.moment.start(kind, words)
+     stage = getattr(host, 'hologram', None)
+@@ -1256,6 +1275,12 @@ class HerColumn(QObject):
+         self.work_line.show_hand((read(self.host, 'program.status', {'live': True}) or {}).get('live'))      # 1.0 K9: her hand in your programs
+         # moments: an assignment that was open and is done now; her managed work held (HALT, until K3 says it itself)
+         ids = {r['id']: r.get('title') for r in rows}
++        try:      # 1.0 X1: nothing open: the last assignment, read once at start and again when one closes (not every tick)
++            if not rows and not older and (getattr(self, '_x1_last', None) is None or any(i not in ids for i in (self.seen_work or {}))):
++                self._x1_last = (list((read(self.host, 'assignment.list', {'limit': 1}) or {}).get('assignments') or ()) or [{}])[0]
++            self.active.show_last(getattr(self, '_x1_last', None) if not rows and not older else None)
++        except Exception:  # noqa: BLE001
++            pass
+         if self.seen_work is not None:
+             for ident, title in self.seen_work.items():
+                 if ident not in ids:
+@@ -1303,6 +1328,43 @@ class HerColumn(QObject):
+         desk = read(self.host, 'field.read') or {}
+         self.waiting = list(desk.get('waiting') or ())
+         self.last_desk = time.monotonic()
++        # 1.0 X1: a finding the desk marks RECHECK (what it rests on changed since) says so here as the board does, never SUPPORTED
++        stale = {str(r.get('id')) for r in desk.get('objects') or () if r.get('kind') == 'finding' and str(r.get('state')) == 'recheck'}
++        for row in rows:
++            if row.get('field') in stale and row['state'] != 'REFUTED':row['state'] = 'RECHECK';row['look'] = ('RECHECK', '◧', 'RECHECK')
++        if stale:
++            rank = ['REFUTED', 'RECHECK'] + [name for name, _ in FINDING_LOOK if name != 'REFUTED'] + ['NEXT']
++            rows.sort(key=lambda r: rank.index(r['state']) if r['state'] in rank else len(rank))
++        self.look_for_old_values()      # 1.0 X1
++
++    def look_for_old_values(self):
++        """1.0 X1 (day_notice): when the calculations marked RECHECK change, look off the window's thread for written words
++        that still carry an old result; say each once, and offer Update in NEXT STEPS."""
++        sig = tuple(sorted((str(w.get('id')), str(w.get('state'))) for w in self.waiting if w.get('kind') == 'calculation' and w.get('state') == 'recheck'))
++        if sig == getattr(self, '_x1_sig', ()):return
++        self._x1_sig = sig
++        if not sig:
++            self.noticed = [];return
++        from . import day_notice, floor
++        from .engineering_kernel import operator
++
++        def plan(reading):
++            try:reading.extra['x1_notices'] = day_notice.notices(day_notice.reader(reading.kernel, operator()))
++            except Exception as exc:  # noqa: BLE001 - nothing is noticed rather than something wrong
++                reading.extra['x1_notices'] = [];reading.extra['x1_why'] = repr(exc)[:300]
++
++        def landed(extra):
++            if getattr(self.host, '_closing', False) or self._x1_sig != sig:return
++            self._x1_why = (extra or {}).get('x1_why', '') if extra is not None else 'not gathered'
++            self.noticed = list((extra or {}).get('x1_notices') or ())
++            said = getattr(self, '_x1_said', set());self._x1_said = said
++            for notice in self.noticed:
++                if notice['key'] not in said:said.add(notice['key']);self.say_words(day_notice.words(notice))
++            try:self.next.show_steps(self.next_steps(), self.face.height() < 520)
++            except Exception:  # noqa: BLE001
++                pass
++        if not floor.gather(self.host, plan, landed, key=('x1-notice', id(self))):
++            self.noticed = []
+ 
+     def state(self):
+         """An Approve that waits for you, a fresh stop, her work (her model answering, a job, an assignment running), a
+@@ -1345,6 +1407,13 @@ class HerColumn(QObject):
+                 title = plain(row.get('title') or '')
+                 out.append({'words': '%s · %s' % (action['words'], title), 'verb': action['words'], 'object': title, 'kind': 'assignment',
+                             'call': action, 'title': title, 'tip': '%s of “%s”: your press. %s' % (action['words'], title, row.get('line') or '')})
++        try:      # 1.0 X1: written words that still carry an old result (day_notice): Update asks for the plan
++            from . import day_notice
++            planned = [plain(r.get('title') or '').lower() for r in self.rows]      # a plan already open for it: not offered twice
++            out.extend(day_notice.step(n) for n in (getattr(self, 'noticed', None) or ())[:1]
++                       if not any(t == n['objective'].lower() or ('recheck' in t and n['quantity'].lower() in t) for t in planned))
++        except Exception:  # noqa: BLE001
++            pass
+         for card in self.waiting:
+             ident = card.get('id');kind = str(card.get('kind') or '');state = str(card.get('state') or '')
+             if not ident or ident in seen:continue
+@@ -1372,11 +1441,18 @@ class HerColumn(QObject):
+                         'tip': 'You stopped “%s”. Resume inspects every step first and never repeats one that is done.' % title})
+         out.append({'words': 'Check the desk', 'verb': 'Check the desk', 'object': 'every check, run now', 'kind': 'desk', 'command': 'check', 'title': '',
+                     'tip': 'Every check the desk has, run now; what waits is said in Talk with the step that would settle it.'})
++        mine = [id(s) for s in out if s['kind'] == 'assignment'][:4]      # 1.0 X1: an assignment's own press (Carry on, Resume)
++        if any(i not in {id(s) for s in out[:4]} for i in mine):          # is never pushed off the four by the desk's cards: after
++            room = 4 - len(mine)                                           # Authorise, Carry on is the only way to run the step
++            desk = [id(s) for s in out if s['kind'] != 'assignment'][:room]
++            out = [s for s in out if id(s) in mine or id(s) in desk]
+         out = out[:4]
+         if out:out[0]['primary'] = True
+         return out
+ 
+     def take_step(self, step):
++        if step['kind'] == 'notice':      # 1.0 X1: Update: the plan asked for in the desk's words; offered, nothing changed
++            self.ask(step['objective']);return
+         if step['kind'] == 'assignment':
+             call = step['call']
+             if call.get('operation') in ('assignment.step', 'assignment.resume'):
+@@ -1514,4 +1590,10 @@ def install(host):
+         host.her_column = None
+         return None
+     host.her_column = column
++    try:      # 1.0 X1: a save in the Office (a sheet's new value) has her column read the desk at once, so what rests on it is seen
++        from . import floor
++        concern = getattr(host, 'concern', None)
++        if concern is not None:concern.changed.connect(lambda c=column: floor.column_soon(c))
++    except Exception:  # noqa: BLE001 - the column still reads on its own tick
++        pass
+     return column
+diff --git a/workbench/objective_plan.py b/workbench/objective_plan.py
+index 2a8b09b..443e788 100644
+--- a/workbench/objective_plan.py
++++ b/workbench/objective_plan.py
+@@ -112,6 +112,7 @@ WORDS = {
+     'offered': 'It is in ACTIVE WORK; your next press is in NEXT STEPS.',
+     'no_plan': 'I could not make a plan of that from the registered tools.',
+     'model_not_taken': 'My model’s plan was not taken ({why}), so this is the desk’s own plan.',
++    'model_left_out': 'My model’s plan left out what you asked for ({what}), so this is the desk’s own plan.',      # 1.0 X1
+     'model_late': 'My model did not answer within its {seconds} s on this computer, so this is the desk’s own plan.',  # 1.0 K4b
+     'model_not_asked': 'My model was not asked: its answer would not come in the time left for this request, so this is the desk’s own plan.',  # 1.0 K4b
+     'planning': 'Planning it from the registered tools…',
+@@ -278,7 +279,8 @@ class Desk:
+             except ValueError:continue
+             cells = (((sheet.get('document') or {}).get('sheets') or [{}])[0].get('cells') or {})
+             sheet_titles[row['id']] = row.get('title') or sheet.get('title') or row['id']
+-            sheets.append(Thing('', 'sheet', sheet_titles[row['id']], row['id'], sheet.get('revision'), {'cells': sorted(cells)}))
++            sheets.append(Thing('', 'sheet', sheet_titles[row['id']], row['id'], sheet.get('revision'), {'cells': sorted(cells),
++                                'values': {c: str((v or {}).get('value')) for c, v in cells.items() if isinstance(v, dict) and v.get('value') is not None}}))      # 1.0 X1
+         for ident, doc in got.items():
+             derivation = doc.get('derivation') or {}
+             if derivation:
+@@ -290,7 +292,8 @@ class Desk:
+                 sheet_title = sheet_titles.get(derivation.get('sheet'), '')
+                 calcs.append(Thing('', 'calculation', str(doc.get('title') or ident), ident, doc.get('revision'), {
+                     'name': name, 'quantity': _quantity(name, sheet_title), 'sheet': derivation.get('sheet'),
+-                    'sheet_title': sheet_title, 'inputs': [{'cell': i.get('cell'), 'unit': i.get('unit'), 'parameter': i.get('parameter') or i.get('symbol')}
++                    'sheet_title': sheet_title, 'inputs': [{'cell': i.get('cell'), 'unit': i.get('unit'), 'parameter': i.get('parameter') or i.get('symbol'),
++                                                            'was': None if isinstance(i.get('value'), (dict, list)) else i.get('value')}      # 1.0 X1
+                                                            for i in derivation.get('inputs') or () if isinstance(i, dict) and i.get('cell')],
+                     'value': value.get('decimal'), 'unit': value.get('unit') or ''}))
+             else:
+@@ -513,6 +516,22 @@ def _value_text(value_key):
+     return {'value': {'$step': value_key, 'path': ['value']}, 'unit': {'$step': value_key, 'path': ['unit']}}
+ 
+ 
++def _inputs_now(desk, calc, template):
++    """1.0 X1: the sentence that gets the checked result also names the values it was worked from ("settles at 250 mA, which
++    is 3 W"); an input the sheet now holds at another value is written as the sheet holds it, so the sentence never says
++    "250 mA, which is 3.6 W". Exact text only: "<the value the calculation read> <its unit>", once; the new value is the
++    sheet's record at the revision the plan reads (the same sheet the recheck works from)."""
++    sheet = next((t for t in getattr(desk, 'things', ()) if t.kind == 'sheet' and t.id == calc.data.get('sheet')), None)
++    now = (sheet.data.get('values') or {}) if sheet is not None else {}
++    for item in calc.data.get('inputs') or ():
++        was, unit, cell = str(item.get('was') or '').strip(), str(item.get('unit') or '').strip(), item.get('cell')
++        new = str(now.get(cell) or '').strip()
++        if not was or not new or not unit or was == new or '{' in new or '}' in new:continue
++        old_words, new_words = '%s %s' % (was, unit), '%s %s' % (new, unit)
++        if template.count(old_words) == 1:template = template.replace(old_words, new_words)
++    return template
++
++
+ def build_update_page(b, page, value, basis):
+     """Tool 23 (page.update, documents.save) on a page of Graphite's: the sentence that carries the quantity gets the checked
+     value, read from the step that checked it; every other block as it is."""
+@@ -525,6 +544,7 @@ def build_update_page(b, page, value, basis):
+     if '{' in text or '}' in text:raise Refusal('a sentence of “%s” holds a brace, which a prepared text cannot carry' % page.title)
+     if text.count(sentence) != 1:raise Refusal('“%s” says that sentence more than once: say which' % page.title)
+     if blocks[i].get('marks'):raise Refusal('the paragraph of “%s” that carries the value has formatting a new value would move' % page.title)
++    template = _inputs_now(b.desk, calc, template)      # 1.0 X1
+     arguments = []
+     for n, block in enumerate(blocks):
+         row = {k: v for k, v in block.items() if v is not None}
+@@ -996,6 +1016,19 @@ def plan(kernel, principal, objective, focus='', earlier=''):
+             'words': words_of(result, view), 'things': [t.line() for t in desk.things]}
+ 
+ 
++READ_OPERATIONS = ('office.get', 'documents.get', 'files.read', 'files.get', 'libreoffice.read', 'libreoffice.find', 'machine.state')
++
++
++def _left_out_by_model(desk_plan, model_plan):
++    """1.0 X1: the steps of the desk's plan of the owner's words that the model's checked plan does not have (reads apart: a
++    read the model leaves out is read by the step that needs it). The model proposes; a plan that drops a change the owner
++    asked for would end "every step is done (verified)" with that change never made, so the desk's plan is offered instead.
++    The same builders make both plans, so a step is the same step when its operation and title are the same."""
++    have = {(s.get('operation'), s.get('title')) for s in (model_plan or {}).get('sources') or ()}
++    return [s.get('title') for s in (desk_plan or {}).get('sources') or ()
++            if s.get('operation') not in READ_OPERATIONS and (s.get('operation'), s.get('title')) not in have]
++
++
+ def offer(kernel, principal, objective, focus='', earlier='', request=None):
+     """objective.offer: the plan offered as an assignment (K1), nothing in it started. With a model here, the model proposes
+     (the PLAN turn, checked step by step) and the desk's plan is the fallback; without one, the desk's plan."""
+@@ -1020,7 +1053,10 @@ def offer(kernel, principal, objective, focus='', earlier='', request=None):
+             primed = keep_plan(inputs, request)      # 1.0 K4b: the brief and the menu kept, so the question reads only message 4
+             answer = turns.ask(PLAN, inputs, request)
+             turn = answer.turn or '';outcome = answer.outcome
+-            if answer.by_model and isinstance(answer.value, dict) and answer.value.get('sources'):
++            missing = _left_out_by_model(result, answer.value) if answer.by_model and isinstance(answer.value, dict) else []
++            if missing:      # 1.0 X1: the 4B here answered two of the four steps asked for; "done" would then hide the rest
++                note = say('model_left_out', what='; '.join('“%s”' % t for t in missing[:2]))
++            elif answer.by_model and isinstance(answer.value, dict) and answer.value.get('sources'):
+                 result = answer.value
+             elif answer.outcome == 'LATE':           # 1.0 K4b: said as it is; no deadline or ceiling was raised to make it fit
+                 note = say('model_late', seconds=max(1, int(answer.deadline_ms) // 1000))
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 39a4798..481e831 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -2840,6 +2840,8 @@ class SlateFace(QWidget):
+         if self.made_asked(text):return
+         if self.set_asked(text):return
+         if self.run_asked(text):return
++        from .desk_review import asked as review_asked      # 1.0 X1: "review this assembly … sufficient?": the desk's findings say it
++        if review_asked(self, text):return
+         if self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
+         if self.plan_asked(text):return
+         thing = self.what_if(text)

@@ -82,7 +82,14 @@ def build(key, folder):
     found = kernel.dispatch('goals.candidates', {}, principal)
     for candidate in ((found.get('result') or {}).get('candidates') or ()) if found.get('ok') else ():
         if kernel.dispatch('goals.keep', {'candidate': candidate['key']}, principal).get('ok'):kept += 1
-    return {'workspace': str(Path(folder) / 'workspace'), 'goals': kept}
+    made = {'workspace': str(Path(folder) / 'workspace'), 'goals': kept}
+    if key == 'rail':      # 1.0 X1: the day of the paper's section 18 has "a previous report": K5's invented report (.odt) and
+        try:               # power sheet (.ods) in its Files, so her LibreOffice can update the report's sentence and verify it
+            from . import office_bridge
+            made['documents'] = office_bridge.place_examples(kernel).get('written') or []
+        except Exception as exc:  # noqa: BLE001 - the desk stands without them; the card says nothing of a report then
+            made['documents_not_placed'] = str(exc)[:200]
+    return made
 
 
 def main(argv=None):

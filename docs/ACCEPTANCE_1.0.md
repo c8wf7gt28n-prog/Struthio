@@ -213,9 +213,10 @@ says which model answers which kind and why. **Put every kind back on her model*
 
 Rail Demo is an invented desk: a 12 V rail on a bench, with bench readings (12 V, settled current 250 mA, startup current
 900 mA, startup 45 ms), its limits in two revisions (Rev A, archived; Rev B, current: settled power at most 4 W, startup at
-most 40 ms), the calculations made from them, four findings, a summary page and one open question. Every number in it is
-made up. In this part its limits sheet (Rev B) plays the specification, and its bench readings sheet plays the
-worksheet.
+most 40 ms), the calculations made from them, four findings, a summary page and one open question; and in its Files an
+invented report, "Rail Demo summary report.odt" (it says "Settled power is 3.0 W at 12 V."), and a power sheet. Every
+number in it is made up. In this part its limits sheet (Rev B) plays the specification, its bench readings sheet plays the
+worksheet, and the summary page and the report play the previous report.
 
 Her model should be ready (Part 3). Where a step says what she should answer, the words will differ; what matters is what
 the answer claims.
@@ -223,35 +224,65 @@ the answer claims.
 1. **Guide ▸ Try Rail Demo**, then **Build it** on her card. It is built in a new folder of its own under
    `~/Graphite demos`, never in your workspace, and opens in a window of its own. Her card names the folder: write it down.
    **Photo 15:** Rail Demo's window.
-2. **Select the project.** In the Desk drawer on the left, choose its concern, "Rail Demo (invented data)". The board
-   shows its material around it, sized by relevance.
-3. **Select the specification:** the sheet "Rail Demo limits Rev B CURRENT". The tree shows where it is; the board puts it
-   in the middle with its neighbours around it; the Rev A sheet is smaller and marked — ARCHIVED. Click a wire: it says
-   why it is there, naming the values and the revision (a dashed one says "not verified"). **Photo 16:** the board with a
-   wire's basis open.
+
+   **Her model in Rail Demo.** Rail Demo has a workspace and a profile of its own, so its Brain room starts with no model
+   (her column says "no model yet"). First, in your own window's Brain room, press **Stop brain**, so the memory is free;
+   then in Rail Demo's window open the Brain room (the GPU meter's card at the foot), **Add file**, the same model file as
+   in Part 3, select it and press **Use model**. When her column in Rail Demo shows ● beside her name, go on.
+2. **The project.** Rail Demo's window opens on its project: the board has the desk's open question in the middle ("Why
+   does startup take longer than 40 ms?", from Rail Demo (invented data)) and the project's material around it, sized by
+   relevance. In the tree on the left, scroll down past This computer to **Concern ▸ Desk** and choose **Desk**: its
+   drawers list the same records by kind (Sources, Sheets, Calculations, Pages, Findings, Questions, Goals), and the board
+   stays on the project. (The cabinet's own record of the project, under Concern ▸ Unassigned ▸ Questions, opens its
+   record page instead of the board; Board on the centre bar comes back.)
+3. **Select the specification:** in the Desk drawer, Sheets ▸ "Rail Demo limits Rev B CURRENT". The tree shows where it
+   is; the board puts it in the middle with what reads it around it (its PDF, the goals that read its rows, the two
+   calculations, the readings, the open question); what is further off, the Rev A PDF among it, is grouped as "and 7
+   more", which opens. Click a wire of the specification's: its basis opens and says what rests on what, and where (the
+   goal "Settled power is at most the settled power limit" rests on its row 2; the wire from its PDF names page 1, the
+   version and the source's SHA-256). A dashed wire says "possible · not verified". **Photo 16:** the board with a wire's
+   basis open.
 4. **Open it:** double-click it. Its working view fills the centre; Kasandra's column stays beside it.
 5. **Ask her,** in her ask line at the foot of her column: *Kas, review this assembly and tell me whether the proposed
-   power supply is sufficient.* What she must claim: settled power holds (3 W against the 4 W limit, supported), and
-   startup is **not** cleared (45 ms against 40 ms does not hold under Rev B, or it stays an open question). She must not
-   say "sufficient" without that condition. **Photo 17:** her column with the answer, its check rows and FINDINGS.
+   power supply is sufficient.* She answers from the desk's records, finding by finding, each with its state word and
+   shape (her model is not asked to judge it): ⊘ REFUTED "Startup is inside the Rev B limit of 40 ms", ■ SUPPORTED
+   "Settled power is 3 W, inside the Rev B limit of 4 W", the other findings, □ OPEN QUESTION "Why does startup take
+   longer than 40 ms?", and then "So I cannot call it sufficient. What is supported holds; what is refuted, in recheck or
+   open is not cleared". What she must claim: settled power holds, and startup is **not** cleared. She must not say
+   "sufficient" without that condition. **Photo 17:** her column with the answer and FINDINGS.
 6. **Open the worksheet beside it:** press Board on the centre bar, right-click the tile "Rail Demo bench readings" and
-   choose Open beside (or press Split on the centre bar and open the readings into the empty half). The specification on
-   one side, the readings on the other. Press in the readings' pane: the tree's
-   highlight moves to the readings, and the other pane says "Beside · another object". **Photo 18:** the split.
-7. **Change a value:** in the readings, set the settled current from 250 mA to 300 mA, and Save. You should see that the
-   settled-power calculation and what rests on it are marked for a recheck (it works out at 3.6 W). **Photo 19.**
-8. **The summary is out of date.** Does she notice by herself that "Rail Demo summary" still says 3 W (a line in her
-   column, or a NEXT STEPS button)? Write down whether she did. If she did not, ask her in her ask line: *recheck the
-   settled power and update the summary page*.
-9. **Her plan.** You should see a task in ACTIVE WORK with its steps, each through a registered tool; reading steps run;
-   the step that changes the summary waits for you in "Waits for you" (◆ needs your word, or ◆ with a key: needs your
-   grant). **Photo 20:** her column with the plan and what waits for you. Approve it.
-10. **Done means verified.** The summary step should read ✓ done (verified) only after its new revision is on disk; the
-    summary page on the board shows a new revision with the new value, and the old revision is kept. **Photo 21.**
-11. **The startup question is still open.** Her column must show the summary update done while startup is still not
-    cleared: finishing one part must not become an all-clear. **Photo 22:** FINDINGS and ACTIVE WORK together.
-12. **Close the working views** (Close on the centre bar, or One pane and then Close). You should be back on the board with
-    the same object in focus and its links as before. **Photo 23.**
+   choose Open beside. On a smaller screen the readings may be grouped under "and … more": press that, choose the
+   readings there (they come to the middle), then right-click them and choose Open beside. The specification on one side,
+   the readings on the other. Press in the readings' pane: the tree's highlight moves to the readings, and the other pane
+   says "Beside · another object". **Photo 18:** the split.
+7. **Change a value:** in the readings' table, double-click the settled current (250, cell B3): "Edit working cell" opens;
+   write 300 in place of 250, OK, then **Save** on the centre bar. The pane says "Working copy saved"; NEXT STEPS in her
+   column now names the two calculations of that sheet ("See its steps: Rail Demo settled power · 3 W"), which the desk
+   marks for a recheck. **Photo 19.**
+8. **The summary is out of date.** Does she notice by herself? Within a few seconds her column should say that "Rail Demo
+   summary" still says 3 W and that, worked from the saved sheet, the settled power is 3.6 W, naming the report too; and
+   NEXT STEPS should offer **1 ▸ Update · "Rail Demo summary" still says 3 W**. Write down whether she did. Press
+   **Update** (it only asks for the plan; nothing changes yet). If she did not notice, ask her in her ask line instead:
+   *recheck the settled power, update the summary page and update the summary report*.
+9. **Her plan.** You should see a task in ACTIVE WORK with five steps, each through a registered tool: read the readings;
+   recompute the settled power; update the summary page; check the report and prepare its update; then update the report
+   through LibreOffice. With her model ready, her model proposes the plan first and the desk checks it: if its plan leaves
+   out something you asked for, she says so ("My model's plan left out what you asked for …, so this is the desk's own
+   plan"); write down which she said. Reading steps run; each change waits for you at the top of her column, in "Waits
+   for you", in turn:
+   **Authorise step 2** (the recompute), **Grant this for this assignment** (◆ with a key: the summary page), **Authorise
+   step 5** (the report, with the new sentence written in it); between them NEXT STEPS offers **Carry on**. **Photo 20:**
+   her column with the plan and what waits for you. Approve each.
+10. **Done means verified.** Each step should read ✓ done (verified) only after its effect is read back: the summary page
+    has a new revision with 3.6 W, and the report was changed by her own hidden LibreOffice, saved, read back from the disk
+    and found to say "Settled power is 3.6 W at 12 V." (the version before is kept by Files). Press Board: the settled
+    power calculation now says 3.6 W. **Photo 21.**
+11. **The startup question is still open.** Her column must show the task done while startup is still not cleared:
+    FINDINGS keeps "Startup is inside the Rev B limit of 40 ms" REFUTED and the open question, and the finding that still
+    says 3 W reads RECHECK (◧), not SUPPORTED (on a smaller screen FINDINGS shows two rows and "and … more"; the board shows
+    the rest). Finishing one part must not become an all-clear. **Photo 22:** FINDINGS and ACTIVE WORK together.
+12. **Close the working views** (One pane, then Close on the centre bar, until the board is back). You should be back on
+    the board on the object that was in focus, with its links. **Photo 23.**
 13. **Close Rail Demo for the evening, and come back.** Close Rail Demo's window. Then choose Terminal at Graphite's foot
     and open it again on the same folder, with the folder her card named between the first quotes (the one below is an
     example):
@@ -260,9 +291,11 @@ the answer claims.
     d="/home/you/Graphite demos/Rail Demo 2026-12-01 20.15.00"; cd "$HOME/Applications/Graphite-1.0" && env -u ARC_LEDGER_EDITION ARC1_WORKBENCH_CONFIG_HOME="$d/profile" ARC_LEDGER_WORKSPACE="$d/workspace" ARC_LEDGER_CONCERN="$d/Concern" setsid -f .venv/bin/python -m workbench.launch
     ```
 
-    You should see the desk as you left it: the sources, the two revisions of the summary, the changed reading, the
-    calculations, the findings, the open startup question, and her task in ACTIVE WORK with its journal (press its title):
-    what was done, verified, and nothing done twice. **Photo 24:** the task's journal.
+    You should see the desk as you left it: the sources, the summary at its new revision, the changed reading, the
+    calculations, the findings, the open startup question. Her task is done, so ACTIVE WORK says "No assignment is open."
+    and, under it, "Last: “Recheck the settled power, …”, done. **Its journal**": press Its journal. Her column lists each
+    step and what it found: what was done, verified, and nothing done twice. Write down whether her model was ready again
+    by itself (● beside her name) or had to be chosen in the Brain room. **Photo 24:** the task's journal.
 
 Optional, if there is time: in Rail Demo, press **HALT** while a task of hers runs. Everything of hers stops and says so;
 the desktop and your apps keep running; HALT reads RESUME. Press RESUME: nothing restarts by itself. **Photo 25.**

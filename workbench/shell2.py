@@ -2846,6 +2846,8 @@ class SlateFace(QWidget):
         if self.made_asked(text):return
         if self.set_asked(text):return
         if self.run_asked(text):return
+        from .desk_review import asked as review_asked      # 1.0 X1: "review this assembly … sufficient?": the desk's findings say it
+        if review_asked(self, text):return
         if self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
         if self.plan_asked(text):return
         thing = self.what_if(text)
@@ -3746,9 +3748,10 @@ class Shell2(QObject):
         if not model:return None
         for m in (call(self.host, 'brain.models') or {}).get('models', []):
             if m['id'] == model:
-                name = next((f['name'] for f in m.get('files', []) if f.get('role') == 'weights'), model[:12])
+                name = next((f['name'] for f in m.get('files', []) if f.get('role') == 'weights'), None)
+                if not name:return None      # 1.0 R2: never a raw id on screen (the caller says "a model")
                 return re.sub(r'(?i)[-_.]?(q\d.*|f16|bf16)?\.gguf$', '', name).replace('-', ' ')
-        return model[:12]
+        return None      # 1.0 R2: a model not in the list is "a model", never the first letters of its id
 
     def face_changed(self, *args):
         current = self.host.console_pages.currentWidget()
