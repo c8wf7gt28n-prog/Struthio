@@ -335,6 +335,13 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 11:30 UTC: **1.0 K4b merged** (b2c8436, repaired in f7e491d: the merge met a real conflict in objective_plan.py
+  and the first commit carried its markers; resolved to K4b's side; a local pre-commit hook now refuses conflict markers
+  and unmerged paths, and merges are read by their own exit status, never through a pipe). **The real 4B's plan is now
+  taken in time**: 10,987 ms first, 3,300 ms second, against 20,000 ms. Found for F2: the prompt cache holds about two
+  kept prompts, so priming READ after PLAN evicts PLAN's. **D1 launched** (the design direction applied; agent
+  aa179b9a2acdb81de). Running: K9, A1, L6, D1. Next: P4, F1, F2 (with the prompt-cache finding), D2, X1, X2, R1, R2.
+
 - 26 Nov 11:05 UTC: **1.0 K8 merged** (bed61f2: the network word in the head, quarantine first through the doorway,
   search words only from the owner's typing and only on their press, blocked when offline; smoke 44/44 on stand-ins).
   Its notes: fetched PDFs kept but not read; no switch to turn her network use off entirely; the network state read on
