@@ -256,6 +256,12 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 11:45 (X3, the owner: "Should we simulate general user operations instead of the same rail tests?"): yes.
+  X3 builds an invented everyday Home and walks twelve ordinary sessions end to end in the window (files, a USB
+  drive, a letter, the budget, tidying Downloads with Kas, the web, programs and the dock, settings, HALT, her hand,
+  leaving), with the real 4B for her language parts; small breakages fixed in place, the rest ranked for D2 and F2.
+  From X3 on, the everyday Home is the frame scene beside Rail Demo. A walkthrough, not a test suite (the owner's rule).
+
 - 26 Nov 10:55 (P4, the owner: a default look "apple/microsoft level refined for the 1.0 launch"): Day, rebuilt on one
   set of design tokens, is the launch look, with Night as its dark twin; Inter bundled for the interface (SIL OFL; staged
   in scratch `$S/in/fonts/stage/inter/` from Debian's fonts-inter 4.0, with its copyright file) beside the bundled IBM
@@ -334,6 +340,9 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 11:45 UTC: **X3 added** (everyday sessions). Order: after the running four (K9, A1, L6, D1): X3 with P4,
+  F1, F2; then D2 (with X3's findings), X1, X2, R1, R2. 35 slices in all; 22 merged.
 
 - 26 Nov 11:30 UTC: **1.0 K4b merged** (b2c8436, repaired in f7e491d: the merge met a real conflict in objective_plan.py
   and the first commit carried its markers; resolved to K4b's side; a local pre-commit hook now refuses conflict markers

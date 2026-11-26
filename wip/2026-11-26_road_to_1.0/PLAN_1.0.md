@@ -441,6 +441,24 @@ IBM Plex Mono; Day rebuilt on the tokens and Night made from them; every surface
 Settings, menus, the dock, a toast, the Grants page, the sandbox tab, an empty workspace) in Day and Night at 1920x1200
 and 1366x768; every text pair measured ≥ 4.5:1; no colour literal for Day or Night outside the tokens.
 
+**X3 · Everyday sessions** (the owner, 26 Nov: "Should we simulate general user operations instead of the same rail
+tests?"). An invented everyday Home (`workbench/everyday_demo.py`, built through its own door in a throwaway folder):
+Documents (a letter, a lease PDF, a manual PDF), Pictures (a dozen small invented photos), Downloads (a messy mix:
+PDFs, images, an .ods budget, a .zip, duplicates), Music, Desktop; a household budget in Calc; a stand-in USB drive
+with photos. Twelve ordinary sessions walked end to end in the window, under Xvfb with the stand-in window manager,
+in the Day look, as a person would use the computer, each with frames and a plain account of what happened:
+1. first start with no model: Home, open a photo, open the manual, back to the board; 2. files: make "Taxes 2026",
+move three PDFs from Downloads into it, rename one, Undo; 3. a USB drive: copy its photos into Pictures, eject safely;
+4. a letter: new document in LibreOffice through Apps, save, see it on the board, an outside edit noticed; 5. the
+budget: ask Kas "what did we spend on groceries this month?" and read her answer with its receipt; 6. ask Kas to tidy
+Downloads (sort by type into folders): her plan, the grant, the steps verified, the result, Undo; 7. the web: look
+something up offline (blocked), then online on the stand-in (quarantined, an injected line outlined); 8. two programs,
+the dock, a notification; 9. Settings: the default PDF reader, the volume, the screens (stand-ins); 10. HALT in the
+middle of a task, then RESUME; 11. her hand in a program: fill a field, a touch stops her; 12. leave: Log out with
+programs open (polite close). Kas's language parts run once with the real 4B under the model lock. The builder fixes
+what is small and clearly broken in place and lists the rest, ranked, for D2 and F2. Not a test suite: a walkthrough,
+like X1, by the owner's rule.
+
 **D2 · The polish pass** (after every feature slice, before X1): every surface in three looks at two sizes, fixed in
 place to the design direction; a frame atlas for the owner.
 
@@ -469,6 +487,7 @@ left at the end; B7 is folded into K4.
 
 ## 6. Order and running
 
+- From X3 on, the everyday Home is the frame scene alongside Rail Demo (F1, F2, P4, D2, X1).
 - Waves in order; inside a wave, up to three builders at once (4 cores; at most two processes each), chosen so their
   shared-file edits do not collide. Merge each with `wip/build_tools/merge_one.sh` as it lands (union merge for the
   registration files; the observer-list repair; compile, the seed, the window in every look), commit, push, update
