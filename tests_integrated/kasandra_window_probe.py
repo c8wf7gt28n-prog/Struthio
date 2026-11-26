@@ -104,12 +104,23 @@ def tree_rows(tree):
     return rects
 
 
+def hold_a_moment(w):
+    """1.0 P1: her hologram stands in the left pane only for a moment that matters (her_column_qt.moment_on); the cases that
+    measure her standing there hold one open for as long as they measure."""
+    from workbench import her_column_qt
+    if getattr(w, 'her_column', None) is not None:
+        her_column_qt._MOMENT[id(w)] = time.monotonic() + 3600
+        stage = getattr(w, 'hologram', None)
+        if stage is not None:stage.place_now()
+
+
 def case_hologram(p):
     import random
     from PySide6.QtCore import QPoint, QRect
     from PySide6.QtGui import QGuiApplication, QImage
     from workbench import hologram as holo, hologram_qt, kasandra_art
     w = p.w;stage = w.hologram;nav = w.settings_navigator;out = {}
+    hold_a_moment(w)      # 1.0 P1
     out['installed'] = stage is not None
     if stage is None:return out
     path = kasandra_art.mark(kasandra_art.folder(w.root), 'hologram.webp')
@@ -210,6 +221,9 @@ def case_column(p):
     out['margin'] = face.lines.contentsMargins().right();out['pane'] = w.desk.pane
     mast = getattr(face, 'masthead', None)
     out['masthead'] = mast is not None
+    column = getattr(w, 'her_column', None)      # 1.0 P1: her column's head (portrait, name, state) where the masthead stood
+    out['her_head'] = None if column is None else dict(shown=column.head.isVisible(), top=column.head.mapTo(face, QPoint(0, 0)).y(),
+                                                         name=column.head.name.text(), masthead_shown=mast.isVisible() if mast is not None else None)
     if mast is not None:
         p.settle(40, 4)
         out['rule_y'] = mast.mapTo(w, QPoint(0, mast.rule_y())).y()
@@ -237,6 +251,8 @@ def case_column(p):
         slab.ensurePolished();out['slab'] = [slab.font().family(), slab.font().pixelSize(), slab.text()]
     if mast is not None:      # her terminal's ground: a pixel of empty thread space, and the whole column round it
         pane = w.right_pane;image = pane.grab().toImage();inside = face.mapTo(pane, QPoint(face.width() // 2, face.height() - 20))
+        if column is not None:      # 1.0 P1: her sections fill the column's foot now; the gap above her six commands is her ground
+            inside = column.commands.mapTo(pane, QPoint(column.commands.width() // 2, -max(1, face.layout().spacing() // 2)))
         out['ground'] = image.pixelColor(inside.x(), inside.y()).name()
         out['ground_round'] = [image.pixelColor(x, y).name() for x, y in ((10, pane.height() // 2), (pane.width() - 3, pane.height() // 2),
                                                                          (pane.width() // 2, pane.height() - 10), (pane.width() // 2, 3))]
@@ -302,6 +318,7 @@ def case_review(p):
     from workbench import boss_theme as bt, document_qt, hologram_qt, kasandra_art, kasandra_column, reading_preferences, settings_qt, shell2
     from workbench.view_modules import markdown_view
     w = p.w;face = w.shell2.face;stage = w.hologram;out = {}
+    hold_a_moment(w)      # 1.0 P1
     w.settings_navigator.cabinet.click();p.settle(40, 4)
     tip = QToolTip.font();out['tooltip'] = [QFontInfo(tip).family(), tip.pixelSize()]
     prose, code = document_qt.fonts_of(w);out['document'] = [QFontInfo(prose).family(), QFontInfo(code).family()]

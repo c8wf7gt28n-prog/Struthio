@@ -77,6 +77,7 @@ from . import model_exam  # 0.8.7 A5 (the exam and the model key): brain.exam, t
 from . import voice_column  # 0.8.7 W7 (the window wiring): her answers said through her voice floor in her column: voice.say (read; recorded addition)
 from . import stac_words  # Graphite 0.4.3: the owner's own staC words (words.list, words.keep, words.forget: recorded additions)
 from . import assignments  # 1.0 K1 (assignments and the journal): assignment.start, .plan, .step, .stop, .resume (execute); .status, .list (read) (recorded additions)
+from . import her_portrait  # 1.0 P1 (her column): kasandra.portrait (read), kasandra.portrait.admit (approve) (recorded additions)
 from . import program_mail, program_build, program_transfer, program_cartridge
 from . import program_vector, program_media, program_freecad
 from . import program_print, program_delivery
@@ -274,6 +275,7 @@ CAPABILITIES = {
     **relevance.SCOPES,  # 1.0 L3 (relevance): why is a read; pin, turn down and clear are the owner's marks on a board
     **apps_catalog.SCOPES,  # 1.0 S2 (apps from what is installed): apps.default is approve, the owner's press only
     **board_model.SCOPES,  # 1.0 L2 (the bulletin board): two reads; board.keep approve, only by the owner's word
+    **her_portrait.SCOPES,  # 1.0 P1 (her column): her portrait from your workspace, admitted
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -713,6 +715,7 @@ class Kernel:
         if op in relevance.FIELDS:return relevance.dispatch(self,op,a,p)   # 1.0 L3 (relevance): the reasons a tile is shown, and the owner's pin or turn-down
         if op in apps_catalog.FIELDS:return apps_catalog.dispatch(self,op,a,p)   # 1.0 S2 (apps from what is installed): desktop entries, Exec as argv, mimeapps.list
         if op in board_model.FIELDS:return board_model.dispatch(self,op,a,p)   # 1.0 L2 (the bulletin board): a focus and its neighbours with the basis of each link
+        if op in her_portrait.FIELDS:return her_portrait.dispatch(self,op,a,p)   # 1.0 P1 (her column): kasandra/portrait.png, admitted like her character file
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

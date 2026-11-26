@@ -797,8 +797,9 @@ class TopBar(QWidget):
             # The equalizer over the left column: the column's width less the inset each side, the band's height less a
             # few pixels above and below.
             wide = max(0, d.pane - 2 * o);tall = max(16, h - 2 * round(4 * min(d.scale, 1.4)))
-            self.equalizer.setGeometry(o, (h - tall) // 2, wide, tall)
-            self.equalizer.setVisible(wide >= 48)
+            if not getattr(self.equalizer, 'in_column', False):      # 1.0 P1: once it is in her column the upper left stays empty (HALT's place, K3)
+                self.equalizer.setGeometry(o, (h - tall) // 2, wide, tall)
+                self.equalizer.setVisible(wide >= 48)
             self.folded_menus = self.headings()
             self.plan = None
         finally:self._placing = False
@@ -989,7 +990,7 @@ class PathBar(QLineEdit):
 
     def edit_location(self):
         equalizer = getattr(self.top, 'equalizer', None)      # 0.5.3: the address comes up in the equalizer's place while it is typed
-        if equalizer is not None:equalizer.hide()
+        if equalizer is not None and not getattr(equalizer, 'in_column', False):equalizer.hide()      # 1.0 P1: not once it is in her column
         self.show();self.raise_()
         self.refresh(force=True);self.setFocus(Qt.ShortcutFocusReason);self.selectAll()
 
@@ -1012,7 +1013,8 @@ class PathBar(QLineEdit):
             super().focusOutEvent(event);return
         super().focusOutEvent(event);self.refresh(force=True)
         equalizer = getattr(self.top, 'equalizer', None)
-        if equalizer is not None:                     # the address is done with: it goes, and this computer at work comes back
+        if equalizer is not None and getattr(equalizer, 'in_column', False):self.hide()      # 1.0 P1: the equalizer is in her column now
+        elif equalizer is not None:                     # the address is done with: it goes, and this computer at work comes back
             self.hide();equalizer.setVisible(equalizer.width() >= 48)
 
 
@@ -3482,6 +3484,8 @@ class Shell2(QObject):
         install_panes(host)  # HATCH DESK D1b: both panes: three tabs, the active tree or face, the foot (Trash and its empty mirror)
         from .living_nav_qt import install as install_living_nav
         install_living_nav(host)  # 1.0 L1: one navigation state: the tree and the centre share one focus; the breadcrumb, Back, Forward
+        from .her_column_qt import install as install_her_column
+        install_her_column(host)  # 1.0 P1: her column as in the owner's picture; the equalizer moves into it, the ask line into the right foot
         host.tabs.currentChanged.connect(self.sync_worksheet)
         host.central_stack.currentChanged.connect(self.sync_worksheet)
         from .graphite_brand import use_pointer

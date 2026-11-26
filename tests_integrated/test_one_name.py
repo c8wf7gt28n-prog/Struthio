@@ -56,6 +56,8 @@ def window_report():
             row={'window':[w.width(),w.height()],'strip':strip.text(),'strip_shown':strip.isVisible(),'said':len(named()),'clipped':cut()}
             # her own look says her name on her masthead; the first look has her face there, and her name on the strip
             row['column']=[face.masthead.name.text(),face.masthead.name.isVisible()] if face.masthead is not None else None
+            column=getattr(w,'her_column',None)      # 1.0 P1: in every look her name is said at the head of her column
+            if column is not None:row['column']=[column.head.name.text(),column.head.name.isVisible()]
             act('go.pane',{'right':'activity'},store=store)      # the pane's title is the way back to her, by her name, in both looks
             title=getattr(w.shell2,'title_word',None)
             row['back']=[ui_fit.plain(title),title.isVisible(),ui_fit.describe(ui_fit.whole_words(title))] if title is not None else None
@@ -261,7 +263,7 @@ class TheWindow(unittest.TestCase):
                     self.assertEqual((row['clipped'],row['clipped_back']),('',''),'%s: her name is whole wherever it is shown'%size)
                     self.assertGreaterEqual(row['said'],1,size)
                     self.assertEqual(row['back'],['‹ Kasandra  ·  Activity',True,''],size)
-                    self.assertEqual(row['column'],['Kasandra',True] if look=='kasandra' else None,size)
+                    self.assertEqual(row['column'],['Kasandra',True],size)      # 1.0 P1: her column's head, in every look
 
 
 class History(unittest.TestCase):

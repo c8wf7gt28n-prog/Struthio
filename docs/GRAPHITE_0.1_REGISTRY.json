@@ -333,6 +333,8 @@
    "joined.session.refresh": "workbench/native_sessions.py#dispatch",
    "joined.session.resume": "workbench/native_sessions.py#dispatch",
    "joined.session.takeover": "workbench/native_sessions.py#dispatch",
+   "kasandra.portrait": "workbench/her_portrait.py#dispatch",
+   "kasandra.portrait.admit": "workbench/her_portrait.py#dispatch",
    "kibot.inspect": "workbench/kibot_tools.py#dispatch",
    "kibot.report": "workbench/kibot_tools.py#dispatch",
    "knowledge.attach": "workbench/knowledge_service.py#dispatch",
@@ -1050,9 +1052,9 @@
   }
  },
  "counts": {
-  "adapters": 852,
+  "adapters": 854,
   "job_tools": 113,
-  "operations": 852,
+  "operations": 854,
   "settings": 48
  },
  "formulas": {
@@ -4143,6 +4145,20 @@
    "properties": {
     "expected_revision": "2a1379ebe9f4b632",
     "id": "1a75c379fb0fafe6"
+   },
+   "scope": "approve"
+  },
+  "kasandra.portrait": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "kasandra.portrait.admit": {
+   "arguments": "0c82daacd25e7688eb3fd705396076d8fce1a37814a708700e24fa3857717851",
+   "properties": {
+    "expected_sha256": "8d84283928a18afc",
+    "revision": "8289f552d4d24e43",
+    "shipped": "7cb541e84f226754"
    },
    "scope": "approve"
   },
@@ -8372,7 +8388,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "0a9ac79370e46886d996c375939efe0a4e27ba515ed3513c048aae5556132ed0",
+ "schema_digest": "c68495ecf4a8ded989d1748dd1f2c3e9ab6e47d14bd9583275b2e11ffdf16615",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

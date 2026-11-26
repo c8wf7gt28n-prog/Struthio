@@ -1692,6 +1692,8 @@ class FieldView(QWidget):
         # Z is on the strip above; the right button is the menu. Every key is still on the card that ? shows.
         legend = [(2, 'D  do'), (4, 'X  doubt'), (6, 'T  trace'), (5, 'C  check all'), (6.5, 'B  brief'), (10, 'R  look again'), (12, '⌫  where I was'), (0, 'Esc  back')]
         if not self.rail():legend.insert(5, (7, 'S  line'))       # where Stacy's rail is not shown, the line's key is offered here instead
+        if getattr(self.window(), 'her_column', None) is not None:      # 1.0 P1: DO, DOUBT, TRACE, BRIEF, LINE and CHECK ALL live in her column now
+            legend = [item for item in legend if item[1][3:] not in ('do', 'doubt', 'trace', 'check all', 'brief', 'line')]
         p.setFont(self.mono(12));fm = QFontMetricsF(p.font())
         if obj is None:
             self._keys_line(p, x, top + h / 2 + fm.ascent() / 2, ['R  look again', 'Esc  back'], t.QUIET, self.width() - 2 * x);return

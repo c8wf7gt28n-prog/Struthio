@@ -161,7 +161,9 @@ PATTERNS={
  'github-token':re.compile(rb'(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{50,})')}
 # 0.8.7 C5 (her character file): your kasandra/character.md and its kept revisions are private, found by name wherever they
 # are (a shipped file or an archive member). The same rule as workbench/voice_character.py PRIVATE_NAME.
-NAME_PATTERNS={'her-character-file':re.compile(r'(?:^|[/!\\])(?:character\.md|\.revisions[/\\][0-9a-f]{64}\.md)$',re.IGNORECASE)}
+NAME_PATTERNS={'her-character-file':re.compile(r'(?:^|[/!\\])(?:character\.md|\.revisions[/\\][0-9a-f]{64}\.md)$',re.IGNORECASE),
+ # 1.0 P1 (her column): your kasandra/portrait.png or .jpg and its kept copies, by name; the same rule as workbench/her_portrait.py PRIVATE_NAME
+ 'her-portrait':re.compile(r'(?:^|[/!\\])(?:kasandra[/\\]portrait\.(?:png|jpe?g)|\.revisions[/\\]portrait-[0-9a-f]{64}\.(?:png|jpg))$',re.IGNORECASE)}
 
 
 def canonical(value):return json.dumps(value,sort_keys=True,separators=(',',':'))

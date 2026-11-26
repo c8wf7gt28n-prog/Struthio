@@ -31,7 +31,10 @@ class Column(unittest.TestCase):
     def test_the_picture_is_gone_and_the_masthead_is_level_with_the_tabs(self):
         for out in (self.wide, self.small):
             self.assertIsNone(out['portrait']);self.assertEqual(out['face_inks'], 0);self.assertTrue(out['masthead'])
-            self.assertEqual(out['rule_y'], out['left_rule_y']);self.assertEqual(out['pane'], 354)
+            # 1.0 P1: her column opens with her head (her portrait over the equalizer, her name, her state); the masthead is
+            # kept, out of sight, for what reads it, so its rule is no longer drawn level with the tabs
+            head = out['her_head'];self.assertTrue(head['shown']);self.assertEqual(head['name'], 'Kasandra');self.assertFalse(head['masthead_shown'])
+            self.assertLessEqual(head['top'], 12);self.assertEqual(out['pane'], 354)
             self.assertEqual(out['name'], ['Kasandra', 'Kasandra Elite'])
             self.assertEqual(out['model_family'], 'Kasandra Elite Mono')
             shown, tip, given = out['model_long']
@@ -44,7 +47,9 @@ class Column(unittest.TestCase):
             self.assertGreaterEqual(out['lead_ratio'], 1.2);self.assertTrue(out['lead_plain'])
             self.assertTrue(out['bubble_plain'].startswith('Ask about what is open.'))
             self.assertNotIn('<p', out['read_last']);self.assertIn('its second line', out['read_last'])
-        self.assertEqual(self.wide['scroll'][2:], [322, 869]);self.assertEqual(self.small['scroll'][2:], [322, 437])
+        # 1.0 P1: the exchange is the column's part that gives way; her sections are under it (it was the whole column)
+        self.assertEqual(self.wide['scroll'][2], 322);self.assertEqual(self.small['scroll'][2], 322)
+        self.assertGreaterEqual(self.wide['scroll'][3], 380);self.assertGreaterEqual(self.small['scroll'][3], 120)
 
     def test_a_line_is_drawn_in_the_mono_face(self):
         family, px, text = self.wide['slab']
@@ -125,8 +130,9 @@ class Review(unittest.TestCase):
         self.assertIn('font-size:18px', own['word']);self.assertEqual(back, default)
 
     def test_her_cursor_sleeps_with_reduce_motion_and_out_of_sight(self):
-        self.assertTrue(self.out['cursor_waiting'])
-        self.assertEqual(self.out['cursor_reduce_motion'], [False, 1.0]);self.assertTrue(self.out['cursor_back'])
+        # 1.0 P1: the masthead is out of sight (her head says her state in a word and a shape), so its cursor never runs
+        self.assertFalse(self.out['cursor_waiting'])
+        self.assertEqual(self.out['cursor_reduce_motion'], [False, 1.0]);self.assertFalse(self.out['cursor_back'])
         self.assertFalse(self.out['cursor_inactive'], 'another program in front: steady')
 
     def test_a_note_in_the_viewer_keeps_the_desk_and_cuts_no_action(self):

@@ -1,0 +1,79 @@
+[graphite] Rail Demo built through its own door in 7 s (invented data)
+[graphite] her model: NO_MODEL_SELECTED (no model is loaded for this smoke)
+PASS  [graphite] her column is installed in the window
+PASS  [graphite] with no model, the ask line's words reach Talk and she answers from the records  -- n:underline;text-decoration-color:#dd854b;">add to the Agenda</a> <a href="choose" style="color:#f4e8ce;text-decoration:underline;text-decoration-color:#dd854b;">Choose a model</a> <a href="show" style="color:#f4e8ce;text-decoration:underline;text-decoration-color:#dd854b;">2 earlier · show them</a>
+[graphite] column (1920x1200): {"name": "Kasandra ○", "state": "● WORKING", "portrait": "plate", "equalizer": {"tubes": 14, "hole": 112, "in_column": true}, "progress": {"shown": true, "percent": "77%", "detail": "step 2 of 3: Recompute the settled power · 00:01 left", "checks": ["Step 1 · Read the Rail Demo bench readings · done (verified)"]}, "active": {"heading": "ACTIVE WORK [2]", "rows": [["1", "●", "Rail Demo: settled power, read, recomputed and noted", "WORKING", "77%", "00:01", true], ["2", "◆", "Rail Demo: settled power, checked again", "WAITING FOR YOUR WORD", "20%", "00:04", true]]}, "findings": [["✕", "REFUTED", "Startup is inside the Rev B limit of 40 ms."], ["✓", "SUPPORTED", "Settled power is 3 W, inside the Rev B limit of 4 W."], ["✓", "SUPPORTED", "The startup limit was 60 ms in Rev A and is 40 ms in Rev B."], ["→", "NEXT", "A check could not run: Graphite seed/source binding is not current"]], "next": ["Authorise step 2 · Rail Demo: settled power, checked again", "See its steps: Why does startup take longer than 40 ms?", "See its steps: The Rev B sheet carries the 40 ms startup limit.", "Doubt: Startup is inside the Rev B limit of 40 ms."], "commands": ["DO", "DOUBT", "TRACE", "BRIEF", "LINE", "CHECK ALL"], "ask": "ask Kasandra…", "turns_kept": 4, "moment": ""}
+PASS  [graphite] the equalizer moved into her column (the head's upper left is left empty for HALT)  -- {'tubes': 14, 'hole': 112, 'in_column': True}
+PASS  [graphite] her name, her model's ring and her state word  -- ('Kasandra ○', '● WORKING')
+PASS  [graphite] top to bottom as in the picture: portrait, exchange, progress, ACTIVE WORK, FINDINGS, NEXT STEPS, the six, then the ask line  -- ([6, 180, 571, 633, 743, 868, 982], 1094, 1073)
+PASS  [graphite] the exchange keeps the last few turns; the rest fold behind "earlier"
+PASS  [graphite] the progress line: "Running…", a whole percent, the step and time left, and a check row for the verified step  -- {'shown': True, 'percent': '77%', 'detail': 'step 2 of 3: Recompute the settled power · 00:01 left', 'checks': ['Step 1 · Read the Rail Demo bench readings · done (verified)']}
+PASS  [graphite] ACTIVE WORK from K1: the running assignment, its progress, time left and its Stop  -- [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True), ('2', '◆', 'Rail Demo: settled power, checked again', 'WAITING FOR YOUR WORD', '20%', '00:04', True)]
+PASS  [graphite] FINDINGS (live) from the Kernel: refuted first, each with its shape and word  -- [('✕', 'REFUTED', 'Startup is inside the Rev B limit of 40 ms.'), ('✓', 'SUPPORTED', 'Settled power is 3 W, inside the Rev B limit of 4 W.'), ('✓', 'SUPPORTED', 'The startup limit was 60 ms in Rev A and is 40 ms in Rev B.'), ('→', 'NEXT', 'A check could not run: Graphite seed/source binding is not current')]
+PASS  [graphite] NEXT STEPS with no model: up to four, numbered, one primary, from the desk and the assignments  -- ['Authorise step 2 · Rail Demo: settled power, checked again', 'See its steps: Why does startup take longer than 40 ms?', 'See its steps: The Rev B sheet carries the 40 ms startup limit.', 'Doubt: Startup is inside the Rev B limit of 40 ms.']
+PASS  [graphite] DO, DOUBT, TRACE, BRIEF, LINE, CHECK ALL as one compact row
+PASS  [graphite] the ask line at the foot of her column, with its send arrow
+[graphite] frame p1_graphite_1920x1200.png saved
+PASS  [graphite] the primary next step is the assignment that waits for your word  -- Authorise step 2 · Rail Demo: settled power, checked again
+PASS  [graphite] pressing it authorises step 2 (your press), and nothing else runs  -- ['done', 'authorised', 'proposed']
+PASS  [graphite] a desk next step selects its card on the Field and runs the Field's own command (do)  -- ('See its steps: Why does startup take longer than 40 ms?', 'claim:90cb9f9788fa41ca850b80aa0a746ee7')
+PASS  [graphite] TRACE in her row traces the card selected on the Field, answered from the records in Talk
+PASS  [graphite] DOUBT on the refuted finding shows its doubt over the work  -- Doubting “Startup is inside the Rev B limit of 40 ms.”
+PASS  [graphite] Stop in ACTIVE WORK stops that assignment: "stopped by you"
+PASS  [graphite] an assignment done (every step verified) brings the full art for a moment  -- An assignment is done, every step verified: “Rail Demo: settled power, read, recomputed and noted”.
+[graphite] frame p1_graphite_moment_done.png saved
+PASS  [graphite] HALT (her managed work held) brings the full art and says what stopped and what did not  -- HALT: her managed work is stopped. Your programs and the desktop go on.
+PASS  [graphite] a finding refuted: moment(host, "refuted") for K3 and the readings alike
+[graphite] frame p1_graphite_moment_refuted.png saved
+PASS  [graphite] a picture put in kasandra/ is not used until you admit it  -- ['Your picture kasandra/portrait.png is in the workspace and not admitted; her column shows the shipped art.']
+PASS  [graphite] admitted, her column draws the kept copy of your picture  -- ['Kept your picture as revision 1; her column shows it now.']
+PASS  [graphite] and the shipped art comes back at your word  -- plate
+[graphite] column (1366x768): {"name": "Kasandra ○", "state": "● WORKING", "portrait": "plate", "equalizer": {"tubes": 14, "hole": 62, "in_column": true}, "progress": {"shown": true, "percent": "77%", "detail": "step 2 of 3: Recompute the settled power · 00:01 left", "checks": ["Step 1 · Read the Rail Demo bench readings · done (verified)"]}, "active": {"heading": "ACTIVE WORK [2]", "rows": [["1", "●", "Rail Demo: settled power, read, recomputed and noted", "WORKING", "77%", "00:01", true], ["2", "■", "Rail Demo: settled power, checked again", "STOPPED BY YOU", "20%", "00:04", false]]}, "findings": [["✕", "REFUTED", "Startup is inside the Rev B limit of 40 ms."], ["→", "NEXT", "A check could not run: Graphite seed/source binding is not current"]], "next": ["See its steps: Why does startup take longer than 40 ms?", "See its steps: The Rev B sheet carries the 40 ms startup limit.", "Doubt: Startup is inside the Rev B limit of 40 ms.", "Resume · Rail Demo: settled power, checked again"], "commands": ["DO", "DOUBT", "TRACE", "BRIEF", "LINE", "CHECK ALL"], "ask": "ask Kasandra…", "turns_kept": 4, "moment": ""}
+PASS  [graphite] at 1366 x 768 every part has at least its least height (nothing is squeezed)  -- [('HerHead', 115, 115), ('QScrollArea', 104, 70), ('HerWorkLine', 53, 53), ('HerActiveWork', 61, 61), ('HerFindings', 76, 76), ('HerNextSteps', 105, 29), ('HerCommands', 21, 6)]
+PASS  [graphite] at 1366 x 768 the running assignment and its progress still show  -- {'heading': 'ACTIVE WORK [2]', 'rows': [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True), ('2', '■', 'Rail Demo: settled power, checked again', 'STOPPED BY YOU', '20%', '00:04', False)]}
+[graphite] frame p1_graphite_1366x768.png saved
+PASS  [graphite] her words pass her style rules (mind_words.check)
+PASS  [graphite] no key named, "Apps" never "Programs", no "staC" or "Lain", no exclamation mark in her column's words
+[graphite] 28 of 28 checks passed
+
+[kasandra] Rail Demo built through its own door in 6 s (invented data)
+[kasandra] her model: NO_MODEL_SELECTED (no model is loaded for this smoke)
+PASS  [kasandra] her column is installed in the window
+PASS  [kasandra] with no model, the ask line's words reach Talk and she answers from the records  -- n:underline;text-decoration-color:#a9b6ee;">add to the Agenda</a> <a href="choose" style="color:#e3e3ff;text-decoration:underline;text-decoration-color:#a9b6ee;">Choose a model</a> <a href="show" style="color:#e3e3ff;text-decoration:underline;text-decoration-color:#a9b6ee;">2 earlier · show them</a>
+[kasandra] column (1920x1200): {"name": "Kasandra ○", "state": "● WORKING", "portrait": "hologram", "equalizer": {"tubes": 14, "hole": 112, "in_column": true}, "progress": {"shown": true, "percent": "77%", "detail": "step 2 of 3: Recompute the settled power · 00:01 left", "checks": ["Step 1 · Read the Rail Demo bench readings · done (verified)"]}, "active": {"heading": "ACTIVE WORK [2]", "rows": [["1", "●", "Rail Demo: settled power, read, recomputed and noted", "WORKING", "77%", "00:01", true], ["2", "◆", "Rail Demo: settled power, checked again", "WAITING FOR YOUR WORD", "20%", "00:04", true]]}, "findings": [["✕", "REFUTED", "Startup is inside the Rev B limit of 40 ms."], ["✓", "SUPPORTED", "Settled power is 3 W, inside the Rev B limit of 4 W."], ["✓", "SUPPORTED", "The startup limit was 60 ms in Rev A and is 40 ms in Rev B."], ["→", "NEXT", "A check could not run: Graphite seed/source binding is not current"]], "next": ["Authorise step 2 · Rail Demo: settled power, checked again", "See its steps: Why does startup take longer than 40 ms?", "See its steps: The Rev B sheet carries the 40 ms startup limit.", "Doubt: Startup is inside the Rev B limit of 40 ms."], "commands": ["DO", "DOUBT", "TRACE", "BRIEF", "LINE", "CHECK ALL"], "ask": "ask Kasandra…", "turns_kept": 4, "moment": ""}
+PASS  [kasandra] the equalizer moved into her column (the head's upper left is left empty for HALT)  -- {'tubes': 14, 'hole': 112, 'in_column': True}
+PASS  [kasandra] her name, her model's ring and her state word  -- ('Kasandra ○', '● WORKING')
+PASS  [kasandra] top to bottom as in the picture: portrait, exchange, progress, ACTIVE WORK, FINDINGS, NEXT STEPS, the six, then the ask line  -- ([6, 161, 605, 664, 768, 882, 982], 1094, 1073)
+PASS  [kasandra] the exchange keeps the last few turns; the rest fold behind "earlier"
+PASS  [kasandra] the progress line: "Running…", a whole percent, the step and time left, and a check row for the verified step  -- {'shown': True, 'percent': '77%', 'detail': 'step 2 of 3: Recompute the settled power · 00:01 left', 'checks': ['Step 1 · Read the Rail Demo bench readings · done (verified)']}
+PASS  [kasandra] ACTIVE WORK from K1: the running assignment, its progress, time left and its Stop  -- [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True), ('2', '◆', 'Rail Demo: settled power, checked again', 'WAITING FOR YOUR WORD', '20%', '00:04', True)]
+PASS  [kasandra] FINDINGS (live) from the Kernel: refuted first, each with its shape and word  -- [('✕', 'REFUTED', 'Startup is inside the Rev B limit of 40 ms.'), ('✓', 'SUPPORTED', 'Settled power is 3 W, inside the Rev B limit of 4 W.'), ('✓', 'SUPPORTED', 'The startup limit was 60 ms in Rev A and is 40 ms in Rev B.'), ('→', 'NEXT', 'A check could not run: Graphite seed/source binding is not current')]
+PASS  [kasandra] NEXT STEPS with no model: up to four, numbered, one primary, from the desk and the assignments  -- ['Authorise step 2 · Rail Demo: settled power, checked again', 'See its steps: Why does startup take longer than 40 ms?', 'See its steps: The Rev B sheet carries the 40 ms startup limit.', 'Doubt: Startup is inside the Rev B limit of 40 ms.']
+PASS  [kasandra] DO, DOUBT, TRACE, BRIEF, LINE, CHECK ALL as one compact row
+PASS  [kasandra] the ask line at the foot of her column, with its send arrow
+[kasandra] frame p1_kasandra_1920x1200.png saved
+PASS  [kasandra] the primary next step is the assignment that waits for your word  -- Authorise step 2 · Rail Demo: settled power, checked again
+PASS  [kasandra] pressing it authorises step 2 (your press), and nothing else runs  -- ['done', 'authorised', 'proposed']
+PASS  [kasandra] a desk next step selects its card on the Field and runs the Field's own command (do)  -- ('See its steps: Why does startup take longer than 40 ms?', 'claim:f1ce8e8e58ca4bd18311464b818ecae1')
+PASS  [kasandra] TRACE in her row traces the card selected on the Field, answered from the records in Talk
+PASS  [kasandra] DOUBT on the refuted finding shows its doubt over the work  -- Doubting “Startup is inside the Rev B limit of 40 ms.”
+PASS  [kasandra] Stop in ACTIVE WORK stops that assignment: "stopped by you"
+PASS  [kasandra] an assignment done (every step verified) brings the full art for a moment  -- An assignment is done, every step verified: “Rail Demo: settled power, read, recomputed and noted”.
+[kasandra] frame p1_kasandra_moment_done.png saved
+PASS  [kasandra] HALT (her managed work held) brings the full art and says what stopped and what did not  -- HALT: her managed work is stopped. Your programs and the desktop go on.
+PASS  [kasandra] a finding refuted: moment(host, "refuted") for K3 and the readings alike
+[kasandra] frame p1_kasandra_moment_refuted.png saved
+PASS  [kasandra] in Kasandra the hologram stands in the left pane only for the moment  -- <workbench.hologram_qt.HologramStage(0x2070cc00, name="HologramStage") at 0x7f632a526600>
+PASS  [kasandra] and stands aside again after it
+PASS  [kasandra] a picture put in kasandra/ is not used until you admit it  -- ['Your picture kasandra/portrait.png is in the workspace and not admitted; her column shows the shipped art.']
+PASS  [kasandra] admitted, her column draws the kept copy of your picture  -- ['Kept your picture as revision 1; her column shows it now.']
+PASS  [kasandra] and the shipped art comes back at your word  -- hologram
+[kasandra] column (1366x768): {"name": "Kasandra ○", "state": "● WORKING", "portrait": "hologram", "equalizer": {"tubes": 14, "hole": 62, "in_column": true}, "progress": {"shown": true, "percent": "77%", "detail": "step 2 of 3: Recompute the settled power · 00:01 left", "checks": ["Step 1 · Read the Rail Demo bench readings · done (verified)"]}, "active": {"heading": "ACTIVE WORK [2]", "rows": [["1", "●", "Rail Demo: settled power, read, recomputed and noted", "WORKING", "77%", "00:01", true], ["2", "■", "Rail Demo: settled power, checked again", "STOPPED BY YOU", "20%", "00:04", false]]}, "findings": [["✕", "REFUTED", "Startup is inside the Rev B limit of 40 ms."], ["→", "NEXT", "A check could not run: Graphite seed/source binding is not current"]], "next": ["See its steps: Why does startup take longer than 40 ms?", "See its steps: The Rev B sheet carries the 40 ms startup limit.", "Doubt: Startup is inside the Rev B limit of 40 ms.", "Resume · Rail Demo: settled power, checked again"], "commands": ["DO", "DOUBT", "TRACE", "BRIEF", "LINE", "CHECK ALL"], "ask": "ask Kasandra…", "turns_kept": 4, "moment": ""}
+PASS  [kasandra] at 1366 x 768 every part has at least its least height (nothing is squeezed)  -- [('HerHead', 96, 96), ('QScrollArea', 150, 70), ('HerWorkLine', 50, 50), ('HerActiveWork', 58, 57), ('HerFindings', 69, 69), ('HerNextSteps', 91, 29), ('HerCommands', 21, 6)]
+PASS  [kasandra] at 1366 x 768 the running assignment and its progress still show  -- {'heading': 'ACTIVE WORK [2]', 'rows': [('1', '●', 'Rail Demo: settled power, read, recomputed and noted', 'WORKING', '77%', '00:01', True), ('2', '■', 'Rail Demo: settled power, checked again', 'STOPPED BY YOU', '20%', '00:04', False)]}
+[kasandra] frame p1_kasandra_1366x768.png saved
+PASS  [kasandra] her words pass her style rules (mind_words.check)
+PASS  [kasandra] no key named, "Apps" never "Programs", no "staC" or "Lain", no exclamation mark in her column's words
+[kasandra] 30 of 30 checks passed
+
+== P1 smoke: 58 passed, 0 failed

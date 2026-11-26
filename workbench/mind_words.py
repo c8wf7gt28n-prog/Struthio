@@ -57,7 +57,8 @@ STYLE = ("Marie Curie's precision: every number carries its receipt; cannot tell
 MODULES = ('workbench.mind_words', 'workbench.rules', 'workbench.quotes', 'workbench.page_marks',  # 0.8.7 C2: pencil words
            'workbench.voice_character',            # 0.8.7 C5: her character file's own plain words
            'workbench.mind_panel_qt', 'workbench.demo_try',      # 0.8.6 W: her column panel's words, and the demos' card
-           'workbench.one_question')                            # 0.8.7 B4: the one question's words
+           'workbench.one_question',                            # 0.8.7 B4: the one question's words
+           'workbench.her_column_qt')                           # 1.0 P1: her column's words
 
 QUOTED = re.compile(r'“[^”]*”|"[^"]*"')
 SENTENCE = re.compile(r'(?<=[.?!])\s+')

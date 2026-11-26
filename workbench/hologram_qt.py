@@ -289,6 +289,10 @@ class HologramStage(QWidget):
     def _place(self):
         if self.desk() == 'clean':
             self.stand_aside(drop=True);return
+        if getattr(self.host, 'her_column', None) is not None:      # 1.0 P1: her full art stands only for a moment that matters
+            from .her_column_qt import moment_on
+            if not moment_on(self.host):
+                self.stand_aside();return
         found = self.placement()
         if found is None:
             self.stand_aside();return

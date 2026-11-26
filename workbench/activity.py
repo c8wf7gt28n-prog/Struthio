@@ -52,7 +52,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 S2: the installed apps and what opens a kind of file, read each time Apps or Open with is shown; reading is not an event
  'apps.list','apps.for',
  # 1.0 L2: the board of a focus and the links kept by your word, read each time the board is drawn; reading is not an event
- 'board.read','board.links'})
+ 'board.read','board.links',
+ # 1.0 P1: her portrait in force, read when her column is drawn; reading is not an event
+ 'kasandra.portrait'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""
