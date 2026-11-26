@@ -331,7 +331,12 @@ class MasterStop(QObject):
             excluded={r.pid for r in owned_tree([info['pid']])}
             excluded.add(info['pid'])
             refs=[r for r in refs if r.pid not in excluded]
-        return refs
+        # 1.0 K3: Stop all stops Graphite's jobs, never your programs: a program started through the session's launch path,
+        # or any process in a session of its own (program windows), is spared (halt_gate.spared)
+        from .halt_gate import spared
+        try:mine=os.getsid(0)
+        except OSError:return refs
+        return [r for r in refs if not spared(r.pid,mine)]
 
     def finished(self,report):
         self.running=False;w=self.host

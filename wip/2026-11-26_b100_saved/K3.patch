@@ -1,0 +1,2091 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 1d6c88b..af899e5 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -248,6 +248,13 @@
+    "goals.get": "workbench/goals.py#dispatch",
+    "goals.keep": "workbench/goals.py#dispatch",
+    "goals.list": "workbench/goals.py#dispatch",
++   "grant.give": "workbench/grants.py#dispatch",
++   "grant.list": "workbench/grants.py#dispatch",
++   "grant.revoke": "workbench/grants.py#dispatch",
++   "grant.words": "workbench/grants.py#dispatch",
++   "halt.press": "workbench/halt_gate.py#dispatch",
++   "halt.release": "workbench/halt_gate.py#dispatch",
++   "halt.status": "workbench/halt_gate.py#dispatch",
+    "hardware.checks.inspect": "workbench/hardware_coverage.py#dispatch",
+    "hardware.component_nets": "workbench/agent_operations.py#dispatch",
+    "hardware.coverage.inspect": "workbench/hardware_coverage.py#dispatch",
+@@ -1062,9 +1069,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 864,
++  "adapters": 871,
+   "job_tools": 113,
+-  "operations": 864,
++  "operations": 871,
+   "settings": 48
+  },
+  "formulas": {
+@@ -1846,9 +1853,10 @@
+    "scope": "execute"
+   },
+   "assignment.stop": {
+-   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
++   "arguments": "2787fb1fa8c7bcbda1dea36b14fd6a7040be6bd18e752402200f4aab915233c2",
+    "properties": {
+-    "id": "1a75c379fb0fafe6"
++    "id": "1a75c379fb0fafe6",
++    "why": "e4d9a4a2f8276da9"
+    },
+    "scope": "execute"
+   },
+@@ -3474,6 +3482,63 @@
+    },
+    "scope": "read"
+   },
++  "grant.give": {
++   "arguments": "e5f9137d013c26d775a423880b4f04a6d76d0a18acc0cfe1e221e89e77afc466",
++   "properties": {
++    "assignment": "1a75c379fb0fafe6",
++    "expected_digest": "7e3f7236ab75c8d7",
++    "folder": "333f67ffab65d3ef",
++    "object": "52ba84a4bbf396ba",
++    "operation": "1a859664cdda99f2",
++    "scope": "000bf0165dbbbb89",
++    "step": "7f098ef8f5620bd8",
++    "until": "6c3f0c5ba8d4409e"
++   },
++   "scope": "approve"
++  },
++  "grant.list": {
++   "arguments": "e89764b6cb889100b0f5aacc2d8b346ad097b4802449fdf6976a1f6a762a63b8",
++   "properties": {
++    "all": "7cb541e84f226754",
++    "assignment": "1a75c379fb0fafe6",
++    "waiting": "7cb541e84f226754"
++   },
++   "scope": "read"
++  },
++  "grant.revoke": {
++   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
++   "properties": {
++    "id": "1a75c379fb0fafe6"
++   },
++   "scope": "approve"
++  },
++  "grant.words": {
++   "arguments": "512eb10305fbfc4db5320f2e4fcc801f9777cd87aa83b2f0ed512e42ae23f6e1",
++   "properties": {
++    "assignment": "1a75c379fb0fafe6",
++    "folder": "333f67ffab65d3ef",
++    "object": "52ba84a4bbf396ba",
++    "operation": "1a859664cdda99f2",
++    "scope": "000bf0165dbbbb89",
++    "until": "6c3f0c5ba8d4409e"
++   },
++   "scope": "read"
++  },
++  "halt.press": {
++   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
++   "properties": {},
++   "scope": "approve"
++  },
++  "halt.release": {
++   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
++   "properties": {},
++   "scope": "approve"
++  },
++  "halt.status": {
++   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
++   "properties": {},
++   "scope": "read"
++  },
+   "hardware.checks.inspect": {
+    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+    "properties": {},
+@@ -8488,7 +8553,7 @@
+  },
+  "release": "Graphite 0.8.7",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "14be7ef5aeb93ab37f0ad9e1004d403b47c16e9a9c0aa20266d637c6b43b79ad",
++ "schema_digest": "6138aac727008c2f9e3f1cd7b0d0b15ec68784843c8b382714d6a37281846fbf",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/activity.py b/workbench/activity.py
+index c0e2932..c5aaaa5 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -60,7 +60,9 @@ OBSERVER_OPERATIONS=frozenset({
+  # 1.0 L4: the revisions of files saved elsewhere, read each time the board is drawn; reading is not an event
+  'revisions.list',
+  # 1.0 K2: the registry of her tools, receipts, and a look at the windows, read when her column or a step is shown; reading is not an event
+- 'tools.list','tools.receipts','windows.observe'})
++ 'tools.list','tools.receipts','windows.observe',
++ # 1.0 K3: the grants in force and a grant's words, read when her column or the Grants page is shown; HALT's state, read by its button
++ 'grant.list','grant.words','halt.status'})
+ 
+ def folder(root):
+     """Legacy journal location, now used only for migration and failed delivery."""
+diff --git a/workbench/assignments.py b/workbench/assignments.py
+index a8889ab..f227e81 100644
+--- a/workbench/assignments.py
++++ b/workbench/assignments.py
+@@ -78,10 +78,17 @@ MAX_STEPS = 32
+ MAX_ARGUMENTS = 65536        # bytes of one step's arguments, canonical
+ MAX_OUTPUT = 16384           # bytes of one step's named outputs and observation
+ JOURNAL_SHOWN = 200          # journal rows a status carries
+-NOT_HERE = ('assignment.', 'ledger.work.', 'jobs.recover', 'remote.disable')   # never a step: her own controls and the owner's
++NOT_HERE = ('assignment.', 'ledger.work.', 'jobs.recover', 'remote.disable', 'grant.', 'halt.')   # never a step: her own controls and the owner's (1.0 K3: grants and HALT)
+ KEY_RE = re.compile(r'^[a-z][a-z0-9_]{0,31}$')
+ FIELD_RE = re.compile(r'\{([a-z][a-z0-9_]{0,31})\}')
+ GRANT_CHECK = None           # K3 sets it: callable(kernel, assignment, step, arguments, principal) -> '' or why
++# 1.0 K3 (grants and HALT): grants.install() sets these. GRANTED(kernel, assignment, step, arguments, principal) -> the context
++# around a step's own dispatch (the permit Files reads); AUTHORISE(kernel, id, principal, runner) authorises the proposed
++# steps a grant covers, or stops the reached one "needs your grant" (called outside this module's transactions);
++# GRANT_ACTION(kernel, assignment, next step, principal) -> the one press for a step that needs your grant, or None.
++GRANTED = None
++AUTHORISE = None
++GRANT_ACTION = None
+ 
+ ID = {'type': 'string', 'minLength': 32, 'maxLength': 32}
+ SHA = {'type': 'string', 'minLength': 64, 'maxLength': 64}
+@@ -93,7 +100,7 @@ FIELDS = {
+                          'authorise': {'type': 'array', 'items': {'type': 'string', 'minLength': 1, 'maxLength': 32}}}, ['id']),
+     'assignment.step': ({'id': ID, 'until': {'type': 'string', 'enum': ['next', 'end']}}, ['id']),
+     'assignment.status': ({'id': ID}, ['id']),
+-    'assignment.stop': ({'id': ID}, ['id']),
++    'assignment.stop': ({'id': ID, 'why': {'type': 'string', 'enum': ['halt']}}, ['id']),  # 1.0 K3: why, when HALT stops it
+     'assignment.resume': ({'id': ID, 'carry_on': {'type': 'boolean'}}, ['id']),
+     'assignment.list': ({'limit': {'type': 'integer', 'minimum': 1, 'maximum': 100},
+                          'offset': {'type': 'integer', 'minimum': 0, 'maximum': 100000}, 'open': {'type': 'boolean'}}, []),
+@@ -719,7 +726,11 @@ def _run_lock(kernel, ident):
+ 
+ def _gate(kernel):
+     from . import work_trail
+-    try:return work_trail.work_status(kernel)
++    try:
++        jobs = work_trail.work_status(kernel)
++        from . import halt_gate      # 1.0 K3: HALT's own hold, apart from Stop all's; her assignments obey both
++        mine = halt_gate.status(kernel)
++        return {'held': bool(jobs['held'] or mine['held']), 'epoch': (jobs['epoch'], mine['epoch']), 'halt': bool(mine['held'])}
+     except Exception:  # noqa: BLE001 - a gate that cannot be read holds the work, as the Night Shift's does
+         return {'held': True, 'epoch': -1}
+ 
+@@ -739,6 +750,7 @@ def start(kernel, args, principal):
+         _save(db, value, new=True)
+         _journal(db, value, None, 'STARTED', 'You set the assignment: "%s"' % objective[:300], {'objective_digest': digest(objective)})
+         if value['steps']:_journal(db, value, None, 'PLANNED', _planned_words(value['steps']), {'plan': plan_digest(value)})
++    if AUTHORISE is not None and value['steps']:AUTHORISE(kernel, ident, principal)      # 1.0 K3: what your grants cover
+     return status(kernel, ident, principal)
+ 
+ 
+@@ -774,6 +786,7 @@ def plan(kernel, args, principal):
+             if args.get('expected_digest') != plan_digest(value):
+                 raise ValueError('PLAN_CHANGED: authorise the plan as it is now (read it again; its digest changed)')
+             said.extend(_authorise(db, value, args['authorise'], principal))
++    if AUTHORISE is not None and 'steps' in args:said.extend(AUTHORISE(kernel, args['id'], principal))      # 1.0 K3: what your grants cover
+     result = status(kernel, args['id'], principal);result['said'] = said
+     return result
+ 
+@@ -864,6 +877,7 @@ def _run_one(kernel, ident, principal, epoch=None):
+     began; a hold since then (even one lifted again) stops the run, as it stops the Night Shift's."""
+     read = _reader(kernel, principal)
+     gate = _gate(kernel)
++    if AUTHORISE is not None and not gate['held']:AUTHORISE(kernel, ident, principal, True)      # 1.0 K3: by your grant, or "needs your grant"
+     with _writing(kernel) as db:
+         value = _load(db, ident, principal)
+         if value['state'] in (STOPPED, DONE):
+@@ -939,7 +953,8 @@ def _run_one(kernel, ident, principal, epoch=None):
+                 outcome = 'not sent'
+             else:
+                 from . import tools_registry  # 1.0 K2: a tool that writes a file holds off a suspend while it writes (S1's sleep lock)
+-                with tools_registry.holding(step['operation'], step['title']):
++                granted = GRANTED(kernel, value, step, arguments, principal) if GRANTED is not None else contextlib.nullcontext()  # 1.0 K3
++                with tools_registry.holding(step['operation'], step['title']), granted:
+                     answer = kernel.dispatch(step['operation'], arguments, _bounded(principal, step['scope']))
+                 sent = True
+                 if not answer.get('ok'):
+@@ -1007,28 +1022,32 @@ def run(kernel, ident, principal, until='next'):
+     return result
+ 
+ 
+-def stop(kernel, ident, principal):
+-    """Stopped by you: nothing more starts. A call already sent is recorded as it ends, never hidden."""
++def stop(kernel, ident, principal, why=None):
++    """Stopped by you: nothing more starts. A call already sent is recorded as it ends, never hidden. 1.0 K3: why='halt'
++    when HALT stopped it (the journal says so)."""
+     with _writing(kernel) as db:
+         value = _load(db, ident, principal)
+         if value['state'] == DONE:raise ValueError('This assignment is done; there is nothing to stop')
+         in_flight = [s for s in value['steps'] if s['status'] == 'running']
+-        value.update(state=STOPPED, reason=STOPPED_BY_YOU, stopped={'by': principal.identity, 'at': time.time()})
++        value.update(state=STOPPED, reason=STOPPED_BY_YOU, stopped={'by': principal.identity, 'at': time.time(), **({'why': why} if why else {})})
+         _save(db, value)
+-        _journal(db, value, None, 'STOPPED', _stopped_words(value, _entries(db, ident), in_flight))
++        _journal(db, value, None, 'STOPPED', _stopped_words(value, _entries(db, ident), in_flight, halt=why == 'halt'))
+     return status(kernel, ident, principal)
+ 
+ 
+-def _stopped_words(value, entries, in_flight):
+-    """Stopped by you, with what was done, what was only prepared and what did not start."""
++def _stopped_words(value, entries, in_flight, halt=False):
++    """Stopped by you, with what was done, what was only prepared and what did not start. 1.0 K3: halt, by your HALT."""
+     says = journal_says(value, entries)
+     running = [s['n'] for s in in_flight if _alive(s.get('runner'))]
+     done = [s['n'] for s in value['steps'] if s['status'] == 'done']
+-    words = 'Stopped by you. ' + ('Done (verified): %s. ' % _steps(done) if done else 'Nothing was done yet. ')
++    words = ('Stopped by you with HALT. ' if halt else 'Stopped by you. ') + ('Done (verified): %s. ' % _steps(done) if done else 'Nothing was done yet. ')
+     prepared = [s['n'] for s in value['steps'] if says.get(s['key'], '').startswith('prepared') and s['n'] not in running]
+     if prepared:words += 'Prepared, not done: %s. ' % _steps(prepared)
+-    if running:words += 'Step %d was running: what it does is recorded as it ends. ' % running[0]
+-    rest = [s['n'] for s in value['steps'] if s['status'] != 'done' and s['n'] not in prepared and s['n'] not in running]
++    if running:words += 'Step %d was running%s: what it does is recorded as it ends. ' % (running[0], ' when you pressed HALT' if halt else '')
++    sent = [s['n'] for s in value['steps'] if s['status'] != 'done' and s['n'] not in prepared and s['n'] not in running
++            and says.get(s['key'], '').startswith(('sent', 'refused', 'done, changed'))]      # 1.0 K3: sent is never "not started"
++    if sent:words += 'Sent, not verified: %s. ' % _steps(sent)
++    rest = [s['n'] for s in value['steps'] if s['status'] != 'done' and s['n'] not in prepared and s['n'] not in running and s['n'] not in sent]
+     if rest:words += 'Not started: %s.' % _steps(rest)
+     return words.strip()
+ 
+@@ -1137,7 +1156,7 @@ def journal_says(value, entries):
+     out = {}
+     for step in value['steps']:
+         entry = last.get(step['key'])
+-        if entry == 'BLOCKED' and step['status'] != 'blocked':entry = None
++        if entry in ('BLOCKED', 'NEEDS_GRANT') and step['status'] != 'blocked':entry = None      # 1.0 K3: NEEDS_GRANT too
+         out[step['key']] = SAYS[entry] if entry else step['status']
+     return out
+ 
+@@ -1153,6 +1172,8 @@ def _state_words(value):
+     if value['state'] == RUNNING:return 'interrupted' if _interrupted(value) else 'working'
+     statuses = [s['status'] for s in value['steps']]
+     if 'needs review' in statuses:return 'needs review'
++    if any(s['status'] == 'blocked' and str(s.get('reason', '')).startswith('needs your grant') for s in value['steps']):
++        return 'needs your grant'      # 1.0 K3
+     if 'blocked' in statuses:return 'blocked'
+     step = _next(value)
+     if step is None:return 'no steps yet'
+@@ -1202,22 +1223,32 @@ def status(kernel, ident, principal):
+     if words == 'interrupted':
+         running = next((s for s in value['steps'] if s['status'] == 'running'), None)
+         line = 'Graphite stopped while step %d was prepared; nothing after it ran. Resume inspects it first.' % running['n'] if running else 'Interrupted.'
+-    elif value['state'] == STOPPED:line = _stopped_words(value, entries, [s for s in value['steps'] if s['status'] == 'running'])
++    elif value['state'] == STOPPED:line = _stopped_words(value, entries, [s for s in value['steps'] if s['status'] == 'running'],
++                                                         halt=(value.get('stopped') or {}).get('why') == 'halt')      # 1.0 K3
+     elif value['state'] == HELD:line = value['reason']
+     elif value['state'] == DONE:line = 'Every step is done (verified).'
+     elif nxt is None:line = 'No steps are planned yet.'
+     elif nxt['status'] == 'proposed':line = 'Step %d (%s) waits for your word.' % (nxt['n'], nxt['title'])
++    elif nxt['status'] == 'blocked' and str(nxt['reason']).startswith('needs your grant: '):      # 1.0 K3
++        line = 'Step %d (%s) needs your grant: %s. Nothing was sent.' % (nxt['n'], nxt['title'], nxt['reason'][len('needs your grant: '):])
+     elif nxt['status'] in ('blocked', 'needs review'):line = 'Step %d %s: %s' % (nxt['n'], nxt['status'], nxt['reason'])
+     elif nxt['status'] == 'running':line = 'Step %d of %d: %s, %s left.' % (nxt['n'], len(value['steps']), nxt['title'], clock_words(timings[nxt['n'] - 1][1]))
+     else:line = 'Step %d (%s) is ready.' % (nxt['n'], nxt['title'])
+     stop_call = {'operation': 'assignment.stop', 'arguments': {'id': value['id']}} if value['state'] not in (DONE, STOPPED) else None
++    actions = _actions(value, words, nxt, stop_call)
++    if GRANT_ACTION is not None and value['state'] not in (DONE, STOPPED, HELD):      # 1.0 K3: "Grant this for this assignment"
++        try:
++            one = GRANT_ACTION(kernel, value, nxt, principal)
++            if one:actions.insert(0, one)
++        except Exception:  # noqa: BLE001 - the press is offered when it can be worded; the step still says it needs your grant
++            pass
+     return {'schema': SCHEMA, 'id': value['id'], 'title': value['title'], 'objective': value['objective'], 'state': value['state'],
+             'state_words': words, 'state_word': words.upper(), 'line': line, 'revision': value['revision'],
+             'created': value['created'], 'updated': value['updated'], 'plan_digest': plan_digest(value), 'steps': steps,
+             'journal_says': (summary[0].upper() + summary[1:] + '.') if summary else 'No steps yet.',
+             'journal': entries[-JOURNAL_SHOWN:], 'journal_intact': all(e['intact'] for e in entries),
+             'progress': percent, 'time_left_ms': left, 'time_left': clock_words(left), 'interrupted': words == 'interrupted',
+-            'stop': stop_call, 'actions': _actions(value, words, nxt, stop_call),
++            'stop': stop_call, 'actions': actions,
+             'authority': 'A read never asks; every change waits for your press; nothing is done until its effect is verified.'}
+ 
+ 
+@@ -1275,7 +1306,7 @@ def dispatch(kernel, op, args, principal):
+     if op == 'assignment.plan':return plan(kernel, args, principal)
+     if op == 'assignment.step':return run(kernel, args['id'], principal, args.get('until', 'next'))
+     if op == 'assignment.status':return status(kernel, args['id'], principal)
+-    if op == 'assignment.stop':return stop(kernel, args['id'], principal)
++    if op == 'assignment.stop':return stop(kernel, args['id'], principal, args.get('why'))      # 1.0 K3: why
+     if op == 'assignment.resume':return resume(kernel, args['id'], principal, args.get('carry_on', True))
+     if op == 'assignment.list':return listing(kernel, args, principal)
+     raise ValueError('Unknown assignment operation')
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index ce938f0..9ccd42c 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -122,6 +122,8 @@ def schemas():
+     from .machine_real import FIELDS as MACHINE_REAL_FIELDS  # 1.0 S4 (the Machine, real): machine.state
+     from .depths import FIELDS as DEPTH_FIELDS  # 1.0 L4 (depths): revisions.record, revisions.list
+     from .tools_registry import FIELDS as TOOLS_REGISTRY_FIELDS  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
++    from .grants import FIELDS as GRANT_FIELDS  # 1.0 K3 (grants and HALT): grant.words, .list, .give, .revoke
++    from .halt_gate import FIELDS as HALT_FIELDS  # 1.0 K3 (grants and HALT): halt.status, .press, .release
+     from .stac_words import FIELDS as WORD_FIELDS
+     from .agent_operations import FIELDS
+     from .hardware_proof import FIELDS as PROOF_FIELDS
+@@ -245,6 +247,8 @@ def schemas():
+         **MACHINE_REAL_FIELDS,  # 1.0 S4 (the Machine, real): machine.state
+         **DEPTH_FIELDS,  # 1.0 L4 (depths): revisions.record, revisions.list
+         **TOOLS_REGISTRY_FIELDS,  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
++        **GRANT_FIELDS,  # 1.0 K3 (grants and HALT): grant.words, .list, .give, .revoke
++        **HALT_FIELDS,  # 1.0 K3 (grants and HALT): halt.status, .press, .release
+         **WORD_FIELDS,
+         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
+         **NATIVE_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 005fdec..a2f0cc4 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -88,6 +88,7 @@ from . import board_model  # 1.0 L2 (the bulletin board): board.read, board.link
+ from . import machine_real  # 1.0 S4 (the Machine, real): machine.state (read) from udisks2, UPower, NetworkManager, wpctl, xrandr; changes are the owner's press only, never an operation (recorded additions)
+ from . import depths  # 1.0 L4 (depths): revisions.list (read); revisions.record (execute, only the bytes verified on disk) (recorded additions)
+ from . import tools_registry  # 1.0 K2 (tools and observation receipts): tools.list, tools.receipts, windows.observe (read); tools.use, windows.activate, windows.minimise (execute); windows.close (approve) (recorded additions)
++from . import grants, halt_gate  # 1.0 K3 (grants and HALT): grant.list, grant.words, halt.status (read); grant.give, grant.revoke, halt.press, halt.release (approve) (recorded additions)
+ 
+ PROGRAM_HANDLERS = {
+     op: service
+@@ -282,6 +283,8 @@ CAPABILITIES = {
+     **machine_real.SCOPES,  # 1.0 S4 (the Machine, real): machine.state is a read
+     **depths.SCOPES,  # 1.0 L4 (depths): a file's revisions saved by another program; recorded only when the bytes on disk are the ones named
+     **tools_registry.SCOPES,  # 1.0 K2 (tools and observation receipts): the registry and receipts are reads; a window is closed only by name
++    **grants.SCOPES,  # 1.0 K3 (grants and HALT): a grant is given and revoked only by your press (approve); its words and the list are reads
++    **halt_gate.SCOPES,  # 1.0 K3 (grants and HALT): HALT and RESUME are your press (approve); its state is a read
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+     **{name:'read' for name in workspace_services.FIELDS},
+@@ -725,6 +728,8 @@ class Kernel:
+         if op in machine_real.FIELDS:return machine_real.dispatch(self,op,a,p)   # 1.0 S4 (the Machine, real): storage, power, network, sound and screens, read now
+         if op in depths.FIELDS:return depths.dispatch(self,op,a,p)   # 1.0 L4 (depths): a file's revision saved elsewhere, verified on disk before it is recorded
+         if op in tools_registry.FIELDS:return tools_registry.dispatch(self,op,a,p)   # 1.0 K2 (tools and observation receipts): one tool through its door, dispatched then verified
++        if op in grants.FIELDS:return grants.dispatch(self,op,a,p)   # 1.0 K3 (grants and HALT): per operation, target and scope, enforced at dispatch
++        if op in halt_gate.FIELDS:return halt_gate.dispatch(self,op,a,p)   # 1.0 K3 (grants and HALT): her managed work stopped, never the desktop or your programs
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+         if op in workspace_services.FIELDS:
+diff --git a/workbench/field_service.py b/workbench/field_service.py
+index c3ea1b8..50c923b 100644
+--- a/workbench/field_service.py
++++ b/workbench/field_service.py
+@@ -184,7 +184,13 @@ def set_cell(kernel, principal, ident, cell, value, expected):
+     if was == now:
+         raise ValueError('%s already says %s' % (cell, held.get('value')))
+     cells[cell] = {**held, 'value': str(value).strip().replace(',', '')}
+-    saved = kernel.dispatch('office.save', {'id': record, 'expected_revision': expected, 'document': document}, principal)
++    save_as = principal
++    if 'approve' not in principal.scopes:      # 1.0 K3: a grant of yours on this very sheet (or your press on the step) lets this one save through
++        from .grants import permitted_object
++        if permitted_object(kernel, 'field.set', record):
++            from .engineering_kernel import Principal
++            save_as = Principal(principal.identity, frozenset(principal.scopes) | {'approve'}, principal.paths, principal.tools, principal.mode)
++    saved = kernel.dispatch('office.save', {'id': record, 'expected_revision': expected, 'document': document}, save_as)
+     if not saved.get('ok'):
+         raise ValueError('The sheet was not saved: ' + str((saved.get('error') or {}).get('message'))[:200])
+     unit = str(held.get('unit') or '').strip()
+diff --git a/workbench/files_service.py b/workbench/files_service.py
+index 0210428..0cb9225 100644
+--- a/workbench/files_service.py
++++ b/workbench/files_service.py
+@@ -157,6 +157,8 @@ def may_change(kernel, path, principal):
+     if not inside and 'approve' not in principal.scopes:
+         from .working_copies import assigned_to_slate
+         if assigned_to_slate(kernel, path):return  # a working copy you gave him is his to edit; the original is not
++        from .grants import permitted  # 1.0 K3: this one call is covered by a grant of yours (or your press on the step)
++        if permitted(kernel, path):return
+ 
+         raise ValueError('FILES_OUTSIDE_SLATE_AREA: propose the change instead; the owner decides')
+ 
+diff --git a/workbench/grants.py b/workbench/grants.py
+new file mode 100644
+index 0000000..a59cf71
+--- /dev/null
++++ b/workbench/grants.py
+@@ -0,0 +1,785 @@
++"""Grants: what Kasandra may change without asking you again, where, and for how long (Graphite 1.0, K3).
++
++The owner's paper, section 13: "Permission should attach to a specific operation, target, and scope. Granting Kasandra
++authority to reorganize a working-copy folder does not imply permission to delete the original or publish the result to
++the internet. A permission may also be time-bound or limited to a particular assignment." And: these boundaries are
++enforced by Graphite's operation machinery, not by instructions given to the model.
++
++A grant (graphite.grant/1, in the Kernel's own database: kas_grants, and kas_grant_uses for what was done under it):
++
++  operation  a family (FAMILIES: "edit files", "set values on a sheet", ...), a tool of the registry (tools_registry, by its
++             key) or one registered Kernel operation; it covers exactly the Kernel operations it names.
++  target     a folder inside Files ("Rail Demo/notes": that folder and what is in it), or an object: a Kernel record (a
++             sheet, a page), an App, a window. Every target of a call must be inside it.
++  scope      this assignment (it ends when the assignment is done), until a time (whole milliseconds), or always (until
++             you revoke it).
++  words      what you read before you give it, e.g. "edit files in Rail Demo/notes, for this assignment".
++
++Operations (registered in engineering_kernel under "1.0 K3"):
++
++  grant.words   {operation, folder | object, scope, assignment?, until?}   read     the words and their digest, or why no
++                                                                                   grant can be given for it
++  grant.give    {... the same, expected_digest, step?}                    approve  your press: refused unless the digest is
++                                                                                   the one of the words you were shown; with
++                                                                                   step, that step is authorised by it
++  grant.list    {all?, assignment?}                                       read     grants in force (all: ended ones too) with
++                                                                                   their uses; the steps that wait for one
++  grant.revoke  {id}                                                      approve  it ends now; nothing done under it is undone
++
++Where it is enforced, at dispatch, in the Kernel's own path:
++  - an assignment's step (K1, assignments.GRANT_CHECK, before anything is prepared): a change runs only when your press on
++    that very step covers it as it was shown to you, or a grant of yours in force covers its operation and every target
++    it resolves to. Otherwise it stops: "needs your grant", with one press, "Grant this for this assignment".
++  - a tool's use (K2, tools_registry.GRANT_CHECK): a change through tools.use needs a grant in force (it has no
++    assignment, so only "until" and "always" grants reach it).
++  - Files (files_service.may_change): a write outside her own area is let through only for the one call a grant (or your
++    press) covers, by a permit that lives for that call alone (in_force).
++  - A grant authorises the proposed steps it covers (AUTHORISE), so routine work inside it does not ask again.
++
++The model can never create or widen a grant: giving and revoking take the approve scope (your press; never her bounded
++steps, never Tutor), the words are the desk's own (a target is named from the records, never from text handed in), the
++digest of the words you saw must match, grant.* is never a step, a tool or the model's choice, and a grant is never given
++from inside her work (a call inside a step's dispatch is refused).
++
++The floor stays under all of this (a grant never widens it): what always asks (stacy_hand.ALWAYS_ASKS: sending,
++deleting, stopping, the session) is never granted; a change whose only basis is the model's pick is never authorised by
++a grant; what the records mark for your approval stays yours by its own name; reading needs no grant; her hand on the
++desk follows the dial; every change keeps its Undo where it had one (the version kept, her trail). Her own area
++(Files/Slate) is hers by the Files rules, as before: it is shown as a standing line, it covers a dispatch, and it never
++authorises a step by itself.
++"""
++from __future__ import annotations
++
++import contextlib
++import contextvars
++import hashlib
++import json
++import re
++import time
++import uuid
++from pathlib import PurePosixPath
++
++SCHEMA = 'graphite.grant/1'
++SCOPE_KINDS = ('assignment', 'until', 'always')
++NEEDS = 'needs your grant: '
++ONE_PRESS = 'Grant this for this assignment'
++MOST = 200                    # grants listed at most
++# A family: (what she may do, in words; the Kernel operations it covers).
++FAMILIES = {
++    'files.edit': ('edit files', ('files.write', 'files.mkdir', 'files.cells')),
++    'files.organise': ('rename, move and copy files and make folders', ('files.rename', 'files.move', 'files.copy', 'files.mkdir')),
++    'sheets.set': ('set values', ('field.set',)),
++    'windows.arrange': ('bring forward or minimise program windows', ('windows.activate', 'windows.minimise')),
++    'apps.open': ('open', ('apps.open',)),
++}
++OP_WORDS = {'files.write': 'write files', 'files.mkdir': 'make folders', 'files.cells': 'change cells of workbooks',
++            'files.rename': 'rename files', 'files.move': 'move files', 'files.copy': 'copy files', 'field.set': 'set values',
++            'windows.activate': 'bring forward', 'windows.minimise': 'minimise', 'apps.open': 'open',
++            'documents.create': 'make pages', 'investigation.claim': 'add findings', 'agenda.add': 'add to the Agenda'}
++NEVER = ('assignment.', 'grant.', 'halt.', 'ledger.', 'jobs.', 'remote.', 'master.', 'workers.', 'kasandra.', 'brain.help')
++OWN_AREA = 'Slate'            # files_service.SLATE: her own area, hers by the Files rules
++OWN_OPERATIONS = ('files.write', 'files.mkdir', 'files.cells')
++FIELDS = {
++    'grant.words': ({'operation': {'type': 'string', 'minLength': 1, 'maxLength': 120},
++                     'folder': {'type': 'string', 'maxLength': 1000}, 'object': {'type': 'string', 'minLength': 1, 'maxLength': 200},
++                     'scope': {'type': 'string', 'enum': list(SCOPE_KINDS)},
++                     'assignment': {'type': 'string', 'minLength': 32, 'maxLength': 32},
++                     'until': {'type': 'integer', 'minimum': 0, 'maximum': 1 << 50}}, ['operation', 'scope']),
++    'grant.give': ({'operation': {'type': 'string', 'minLength': 1, 'maxLength': 120},
++                    'folder': {'type': 'string', 'maxLength': 1000}, 'object': {'type': 'string', 'minLength': 1, 'maxLength': 200},
++                    'scope': {'type': 'string', 'enum': list(SCOPE_KINDS)},
++                    'assignment': {'type': 'string', 'minLength': 32, 'maxLength': 32},
++                    'until': {'type': 'integer', 'minimum': 0, 'maximum': 1 << 50},
++                    'expected_digest': {'type': 'string', 'minLength': 64, 'maxLength': 64},
++                    'step': {'type': 'string', 'minLength': 1, 'maxLength': 32}}, ['operation', 'scope', 'expected_digest']),
++    'grant.list': ({'all': {'type': 'boolean'}, 'assignment': {'type': 'string', 'minLength': 32, 'maxLength': 32},
++                    'waiting': {'type': 'boolean'}}, []),
++    'grant.revoke': ({'id': {'type': 'string', 'minLength': 32, 'maxLength': 32}}, ['id']),
++}
++SCOPES = {'grant.words': 'read', 'grant.list': 'read', 'grant.give': 'approve', 'grant.revoke': 'approve'}
++OBSERVERS = ('grant.words', 'grant.list')
++MIGRATIONS = [(1, (
++    'CREATE TABLE kas_grants(id TEXT PRIMARY KEY, owner TEXT NOT NULL, given INTEGER NOT NULL, ended INTEGER, '
++    'payload TEXT NOT NULL, digest TEXT NOT NULL)',
++    'CREATE INDEX kas_grants_owner ON kas_grants(owner, given)',
++    'CREATE TABLE kas_grant_uses(seq INTEGER PRIMARY KEY AUTOINCREMENT, grant_id TEXT NOT NULL, assignment TEXT NOT NULL, '
++    'step TEXT NOT NULL, operation TEXT NOT NULL, target TEXT NOT NULL, at INTEGER NOT NULL)',
++    'CREATE INDEX kas_grant_uses_of ON kas_grant_uses(grant_id, seq)',
++))]
++
++_PERMIT = contextvars.ContextVar('kas_grant_permit', default=None)
++
++
++class NotGrantable(ValueError):
++    """No grant can be given for this: the words say why."""
++
++
++# ---------------------------------------------------------------- records
++
++def canonical(value):
++    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
++
++
++def digest(value):
++    return hashlib.sha256(canonical(value).encode()).hexdigest()
++
++
++def now_ms():
++    return time.time_ns() // 1000000
++
++
++def ensure(db):
++    """Forward-only migrations of this slice's tables; other tables are left alone."""
++    if not db.in_transaction:db.execute('BEGIN IMMEDIATE')
++    db.execute('CREATE TABLE IF NOT EXISTS kas_grants_migrations(version INTEGER PRIMARY KEY, digest TEXT NOT NULL, applied INTEGER NOT NULL)')
++    applied = dict(db.execute('SELECT version, digest FROM kas_grants_migrations'))
++    known = {version: digest(list(sql)) for version, sql in MIGRATIONS}
++    if any(known.get(v) != d for v, d in applied.items()) or sorted(applied) != list(range(1, len(applied) + 1)):
++        raise ValueError('GRANT_MIGRATION_UNSUPPORTED: use a compatible program')
++    for version, statements in MIGRATIONS:
++        if version in applied:continue
++        for statement in statements:db.execute(statement)
++        db.execute('INSERT INTO kas_grants_migrations VALUES(?,?,?)', (version, known[version], now_ms()))
++
++
++def _present(db):
++    return db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='kas_grants'").fetchone() is not None
++
++
++@contextlib.contextmanager
++def _writing(kernel):
++    with kernel.db() as db:
++        db.execute('BEGIN IMMEDIATE');ensure(db)
++        yield db
++
++
++def _rows(db, owner, every=False):
++    """The owner's grants, newest first; a row whose digest does not match is never taken as in force."""
++    if not _present(db):return []
++    sql = 'SELECT payload, digest FROM kas_grants WHERE owner=?' + ('' if every else ' AND ended IS NULL') + ' ORDER BY given DESC LIMIT ?'
++    out = []
++    for raw, sha in db.execute(sql, (owner, MOST)).fetchall():
++        value = json.loads(raw)
++        value['intact'] = hashlib.sha256(raw.encode()).hexdigest() == sha
++        out.append(value)
++    return out
++
++
++# ---------------------------------------------------------------- paths and targets
++
++def clean_folder(text):
++    """A folder inside Files, as a relative path with no '..', or a refusal."""
++    parts = [p for p in PurePosixPath(str(text or '').replace('\\', '/')).parts if p not in ('', '/', '.')]
++    if not parts:raise NotGrantable('GRANT_FOLDER: name a folder inside Files (a grant over all of Files is never given)')
++    if any(p == '..' or '\0' in p for p in parts):raise NotGrantable('GRANT_FOLDER: a folder inside Files, with no ".."')
++    if parts[0] in ('.trash', '.versions'):raise NotGrantable('GRANT_FOLDER: DELETE and kept versions keep their own words')
++    return '/'.join(parts)
++
++
++def _clean_path(text):
++    parts = [p for p in PurePosixPath(str(text or '').replace('\\', '/')).parts if p not in ('', '/', '.')]
++    if any(p == '..' for p in parts):return None
++    return '/'.join(parts)
++
++
++def _bare(ident):
++    ident = str(ident)
++    return ident.split(':', 1)[1] if ident.startswith(('office:', 'documents:', 'record:')) else ident
++
++
++def targets(operation, arguments):
++    """What a call lands on: {'paths': [...], 'objects': [...]} from its arguments (paths inside Files, objects by id)."""
++    a = arguments if isinstance(arguments, dict) else {}
++    paths, objects = [], []
++    if operation == 'files.mkdir':
++        name = a.get('name')
++        if isinstance(name, str):
++            joined = _clean_path((a.get('path') or '') + '/' + name)
++            paths.append(joined)
++    else:
++        for key in ('path', 'to'):
++            if isinstance(a.get(key), str):paths.append(_clean_path(a[key]))
++    for key in ('id', 'window', 'sheet', 'object'):
++        if isinstance(a.get(key), str) and not operation.startswith('files.'):objects.append(_bare(a[key]))
++    return {'paths': paths, 'objects': objects}
++
++
++def inside(path, folder):
++    return path is not None and (path == folder or path.startswith(folder.rstrip('/') + '/'))
++
++
++def _has_reference(value):
++    if isinstance(value, dict):
++        if '$step' in value:return True
++        return any(_has_reference(v) for v in value.values())
++    if isinstance(value, list):return any(_has_reference(v) for v in value)
++    return False
++
++
++def _fixed_targets(operation, arguments):
++    """The targets of a planned call when none comes from an earlier step's output; None when one does."""
++    a = arguments if isinstance(arguments, dict) else {}
++    for key in ('path', 'to', 'name', 'id', 'window', 'sheet', 'object'):
++        if key in a and _has_reference(a[key]):return None
++    found = targets(operation, a)
++    return found if (found['paths'] or found['objects']) and None not in found['paths'] else None
++
++
++# ---------------------------------------------------------------- words
++
++def _read(kernel, operation, arguments):
++    from .engineering_kernel import operator, Principal
++    reader = Principal(operator().identity, frozenset({'read'}))
++    try:
++        answer = kernel.dispatch(operation, arguments, reader)
++    except Exception:  # noqa: BLE001 - words only
++        return None
++    return answer.get('result') if isinstance(answer, dict) and answer.get('ok') else None
++
++
++def object_words(kernel, ident):
++    """An object named from the records (never from words handed in): its kind and title."""
++    ident = _bare(ident)
++    got = _read(kernel, 'office.get', {'id': ident})
++    if isinstance(got, dict):
++        doc = got.get('document') or {}
++        title = doc.get('title') or got.get('title')
++        if title:return 'the sheet “%s”' % str(title)[:120]
++    got = _read(kernel, 'documents.get', {'id': ident})
++    if isinstance(got, dict):
++        doc = got.get('document') or got
++        if doc.get('title'):return 'the page “%s”' % str(doc['title'])[:120]
++    got = _read(kernel, 'objects.get', {'id': ident})
++    if isinstance(got, dict) and got.get('path'):return '“%s” in Files' % str(got['path'])[:160]
++    if ident.endswith('.desktop'):
++        try:
++            from . import apps_catalog
++            app = apps_catalog.find_app(ident)
++            if app is not None:return 'the App “%s”' % str(app.name)[:80]
++        except Exception:  # noqa: BLE001
++            pass
++        return 'the App %s' % ident[:80]
++    if re.match(r'^0x[0-9a-f]+$', ident):return 'the program window %s' % ident
++    return 'the record %s' % ident[:16]
++
++
++def _when(ms):
++    return time.strftime('%d %b %Y, %H:%M', time.localtime(ms // 1000))
++
++
++def scope_words(scope):
++    if scope['kind'] == 'assignment':return 'for this assignment (“%s”)' % scope.get('title', '')[:120] if scope.get('title') else 'for this assignment'
++    if scope['kind'] == 'until':return 'until %s' % _when(scope['until'])
++    return 'always, until you revoke it'
++
++
++def _operations(name):
++    """(what she may do, the Kernel operations) for a family, a tool's key or one operation; NotGrantable when it is none
++    of these, or one a grant never covers (the floor)."""
++    from .engineering_kernel import CAPABILITIES
++    from . import stacy_hand
++    if name in FAMILIES:
++        doing, ops = FAMILIES[name]
++    elif name in CAPABILITIES:
++        doing, ops = OP_WORDS.get(name) or _k1_words(name), (name,)
++    else:
++        try:
++            from . import tools_registry
++            tool = tools_registry.TOOLS.get(name)
++        except Exception:  # noqa: BLE001
++            tool = None
++        if tool is None:raise NotGrantable('GRANT_OPERATION: %s is not a family, a tool or a registered operation' % str(name)[:80])
++        if tool.family == 'desk':raise NotGrantable('GRANT_DESK: her hand on the desk follows the dial, not a grant')
++        if tool.undo == 'read':raise NotGrantable('GRANT_READ: reading needs no grant')
++        if tool.undo == 'send':raise NotGrantable('GRANT_SENDS: what is sent off this computer asks you every time; it is never granted')
++        if tool.slice and not tool.operations:raise NotGrantable('GRANT_NOT_BUILT: %s is not built yet' % tool.key)
++        doing = re.sub(r' (in the folder|on the sheet|in the folder and into the other| \(.*\))$', '', tool.grant or tool.words)
++        ops = tuple(tool.operations)
++    for op in ops:
++        scope = CAPABILITIES.get(op)
++        if scope is None:raise NotGrantable('GRANT_OPERATION: %s is not registered here' % op)
++        if op.startswith(NEVER):raise NotGrantable('GRANT_OWN_CONTROLS: %s is one of her own controls or yours; it is never granted' % op)
++        if scope == 'read':raise NotGrantable('GRANT_READ: %s only reads; reading needs no grant' % op)
++        if scope == 'approve':raise NotGrantable('GRANT_APPROVE: the records mark %s for your approval: it is authorised by its own name, never by a grant' % op)
++        why = stacy_hand.why_asks(op)
++        if why:raise NotGrantable('GRANT_ALWAYS_ASKS: %s always asks (%s); it is never granted' % (op, why))
++    return doing, tuple(ops)
++
++
++def _k1_words(op):
++    try:
++        from . import assignments
++        return assignments.GRANT_WORDS.get(op) or 'use %s' % op
++    except Exception:  # noqa: BLE001
++        return 'use %s' % op
++
++
++def _assignment(kernel, ident, principal):
++    from . import assignments
++    with kernel.db() as db:
++        value = assignments._load(db, ident, principal)
++    if value['state'] == assignments.DONE:raise NotGrantable('GRANT_SCOPE: that assignment is done; a grant for it would cover nothing')
++    return value
++
++
++def describe(kernel, args, principal):
++    """The grant as it would be given: its words, its digest and what it covers. NotGrantable says why not."""
++    name = args['operation'];doing, ops = _operations(name)
++    folder, obj = args.get('folder'), args.get('object')
++    if bool(folder) == bool(obj):raise NotGrantable('GRANT_TARGET: name one target: a folder inside Files, or an object')
++    if folder:
++        if any(op.startswith(('windows.', 'apps.', 'field.')) for op in ops):raise NotGrantable('GRANT_TARGET: this works on an object, not a folder')
++        value = clean_folder(folder)
++        target = {'kind': 'folder', 'value': value, 'words': 'in %s' % value}
++    else:
++        value = _bare(obj)
++        if not re.match(r'^[A-Za-z0-9_.:\-]{1,200}$', value):raise NotGrantable('GRANT_TARGET: an object is named by its id')
++        target = {'kind': 'object', 'value': value, 'words': 'on %s' % object_words(kernel, value)}
++    kind = args['scope'];scope = {'kind': kind}
++    if kind == 'assignment':
++        if not args.get('assignment'):raise NotGrantable('GRANT_SCOPE: name the assignment')
++        value_a = _assignment(kernel, args['assignment'], principal)
++        scope.update(assignment=value_a['id'], title=value_a['title'][:120])
++    elif kind == 'until':
++        until = args.get('until')
++        if type(until) is not int or until <= now_ms():raise NotGrantable('GRANT_SCOPE: until a time still to come (whole milliseconds)')
++        scope['until'] = until
++    words = '%s %s, %s' % (doing, target['words'], scope_words(scope))
++    shown = {'words': words, 'operations': list(ops), 'target': {k: target[k] for k in ('kind', 'value')}, 'scope': scope}
++    return {'schema': SCHEMA, 'operation': name, 'doing': doing, 'operations': list(ops), 'target': target, 'scope': scope,
++            'words': words, 'digest': digest(shown), 'grantable': True,
++            'floor': 'What always asks still asks; a change only the model chose is never done; Undo stays as it was.'}
++
++
++# ---------------------------------------------------------------- the owner's press
++
++def _owner_only(principal):
++    if 'approve' not in principal.scopes or principal.mode == 'Tutor':
++        raise ValueError('GRANT_IS_YOURS: only your own press gives or ends a grant')
++    if _PERMIT.get() is not None:
++        raise ValueError('GRANT_IS_YOURS: a grant is never given or ended from inside her work')
++
++
++def give(kernel, args, principal):
++    _owner_only(principal)
++    shown = describe(kernel, args, principal)
++    if args['expected_digest'] != shown['digest']:
++        raise ValueError('GRANT_CHANGED: these are not the words you were shown; read the grant again')
++    ident = uuid.uuid4().hex;given = now_ms()
++    step = args.get('step')
++    source = 'your press on the Grants page'
++    if step and shown['scope']['kind'] == 'assignment':source = 'your press: %s' % ONE_PRESS
++    value = {'schema': SCHEMA, 'id': ident, 'owner': principal.identity, 'operation': shown['operation'], 'doing': shown['doing'],
++             'operations': shown['operations'], 'target': shown['target'], 'scope': shown['scope'], 'words': shown['words'],
++             'shown': shown['digest'], 'given': given, 'given_by': principal.identity, 'source': source, 'ended': None}
++    raw = canonical(value)
++    with _writing(kernel) as db:
++        db.execute('INSERT INTO kas_grants VALUES(?,?,?,?,?,?)', (ident, principal.identity, given, None, raw, hashlib.sha256(raw.encode()).hexdigest()))
++        from . import activity
++        activity.append(db, activity.make_event(principal.identity, 'grant.give', 'GIVEN'))
++    said = ['You gave a grant: %s.' % shown['words']]
++    if step and shown['scope']['kind'] == 'assignment':
++        said.extend(_authorise_named(kernel, shown['scope']['assignment'], step, principal))
++    else:      # the proposed steps it covers, in the assignment it is for (or in each open one, for a grant until a time or always)
++        said.extend(_sweep(kernel, principal, shown['scope'].get('assignment')))
++    return {'schema': SCHEMA, 'grant': _view(value), 'said': said}
++
++
++def _sweep(kernel, principal, assignment=None):
++    from . import assignments as A
++    if assignment:ids = [assignment]
++    else:
++        try:
++            with kernel.db() as db:
++                ids = [r[0] for r in db.execute("SELECT id FROM asg_assignments WHERE owner=? AND state='open' ORDER BY updated DESC LIMIT 50",
++                                                (principal.identity,))] if A._present(db) else []
++        except Exception:  # noqa: BLE001
++            ids = []
++    said = []
++    for ident in ids:
++        try:said.extend(authorise(kernel, ident, principal))
++        except Exception:  # noqa: BLE001 - one assignment that cannot be read never undoes the grant
++            pass
++    return said
++
++
++def revoke(kernel, args, principal):
++    _owner_only(principal)
++    with _writing(kernel) as db:
++        row = db.execute('SELECT payload, digest FROM kas_grants WHERE id=? AND owner=?', (args['id'], principal.identity)).fetchone()
++        if not row:raise ValueError('GRANT_UNAVAILABLE: there is no such grant of yours')
++        value = json.loads(row[0])
++        if value.get('ended'):raise ValueError('GRANT_ENDED: it has ended already')
++        value['ended'] = {'at': now_ms(), 'by': principal.identity, 'why': 'you revoked it'}
++        raw = canonical(value)
++        db.execute('UPDATE kas_grants SET ended=?, payload=?, digest=? WHERE id=?', (value['ended']['at'], raw, hashlib.sha256(raw.encode()).hexdigest(), args['id']))
++        from . import activity
++        activity.append(db, activity.make_event(principal.identity, 'grant.revoke', 'REVOKED'))
++    return {'schema': SCHEMA, 'grant': _view(value), 'said': ['You revoked a grant: %s. What was done under it stays done, with its Undo.' % value['words']]}
++
++
++# ---------------------------------------------------------------- what is in force
++
++def _assignment_open(kernel, ident, owner, cache):
++    if ident in cache:return cache[ident]
++    state = None
++    try:
++        with kernel.db() as db:
++            row = db.execute('SELECT state FROM asg_assignments WHERE id=? AND owner=?', (ident, owner)).fetchone()
++        state = row[0] if row else None
++    except Exception:  # noqa: BLE001 - no assignments yet
++        state = None
++    cache[ident] = state is not None and state != 'done'
++    return cache[ident]
++
++
++def live(kernel, grant, now=None, cache=None):
++    """'' while a grant is in force, else why it is not (in words)."""
++    if not grant.get('intact', True):return 'its record does not match its digest'
++    if grant.get('ended'):return grant['ended'].get('why') or 'it ended'
++    scope = grant['scope'];now = now if now is not None else now_ms()
++    if scope['kind'] == 'until' and now >= scope['until']:return 'its time ran out (%s)' % _when(scope['until'])
++    if scope['kind'] == 'assignment' and not _assignment_open(kernel, scope['assignment'], grant['owner'], cache if cache is not None else {}):
++        return 'its assignment is done'
++    return ''
++
++
++def built_in(owner):
++    return {'schema': SCHEMA, 'id': 'own-area', 'owner': owner, 'operation': 'files.edit', 'doing': 'edit files',
++            'operations': list(OWN_OPERATIONS), 'target': {'kind': 'folder', 'value': OWN_AREA, 'words': 'in her own area (Files/Slate)'},
++            'scope': {'kind': 'always'}, 'words': 'edit files in her own area (Files/Slate), always: the Files rules have always let her write there',
++            'given': 0, 'source': 'the Files rules', 'ended': None, 'built_in': True}
++
++
++def _covers(kernel, grant, operation, found):
++    if operation not in grant['operations']:return False
++    target = grant['target']
++    if not found['paths'] and not found['objects']:return False
++    if target['kind'] == 'folder':
++        return not found['objects'] and all(inside(p, target['value']) for p in found['paths'])
++    if found['objects']:return not found['paths'] and all(o == target['value'] for o in found['objects'])
++    # a file object: every path is that file
++    for path in found['paths']:
++        got = _read(kernel, 'objects.get', {'path': path}) if path else None
++        if not isinstance(got, dict) or got.get('id') != target['value']:return False
++    return True
++
++
++def covering(kernel, owner, operation, arguments, assignment=None, include_built_in=True):
++    """The grant in force that covers this call (its operation and every target it lands on), or None. A grant for an
++    assignment reaches only that assignment's steps."""
++    found = targets(operation, arguments)
++    if None in found['paths']:return None
++    try:
++        with kernel.db() as db:rows = _rows(db, owner)
++    except Exception:  # noqa: BLE001 - grants that cannot be read cover nothing
++        rows = []
++    now = now_ms();cache = {}
++    for grant in rows:
++        if grant['scope']['kind'] == 'assignment' and grant['scope'].get('assignment') != assignment:continue
++        if live(kernel, grant, now, cache):continue
++        if _covers(kernel, grant, operation, found):return grant
++    if include_built_in:
++        own = built_in(owner)
++        if _covers(kernel, own, operation, found):return own
++    return None
++
++
++def _where(kernel, operation, found):
++    if found['paths']:
++        folders = sorted({(p.rsplit('/', 1)[0] if '/' in p else '(the top of Files)') for p in found['paths'] if p is not None})
++        return 'in ' + ', '.join(folders)
++    if found['objects']:return 'on ' + ', '.join(object_words(kernel, o) for o in found['objects'][:2])
++    return 'on what it names'
++
++
++def need_words(kernel, operation, arguments):
++    """What a call would do, where: "write files in Rail Demo sources"."""
++    return '%s %s' % (OP_WORDS.get(operation) or _k1_words(operation), _where(kernel, operation, targets(operation, arguments)))
++
++
++def _why(kernel, owner, operation, arguments, assignment=None):
++    said = need_words(kernel, operation, arguments)
++    try:
++        with kernel.db() as db:rows = _rows(db, owner)
++    except Exception:  # noqa: BLE001
++        rows = []
++    mine = [g['words'] for g in rows if not live(kernel, g) and (g['scope']['kind'] != 'assignment' or g['scope'].get('assignment') == assignment)]
++    tail = ('; your grants here: ' + '; '.join(w.split(', for this assignment')[0] for w in mine[:2])) if mine else '; no grant of yours is in force here'
++    return (said + tail)[:290]
++
++
++# ---------------------------------------------------------------- enforcement (the Kernel's path)
++
++def check_step(kernel, value, step, arguments, principal):
++    """assignments.GRANT_CHECK: '' when this step may run as it is now, else why it needs your grant."""
++    if step.get('scope') == 'read':return ''
++    if step.get('scope') == 'approve':return ''      # K1 already requires your press on it by name, its inputs fixed then
++    op = step['operation'];auth = step.get('authorised') or {}
++    if auth.get('by') == principal.identity and not auth.get('grant'):      # your press on this step, as it was shown to you
++        planned = _fixed_targets(op, step.get('arguments'))
++        if planned is not None and planned == targets(op, arguments):return ''
++    grant = covering(kernel, principal.identity, op, arguments, value['id'])
++    if grant is not None:return ''
++    return _why(kernel, principal.identity, op, arguments, value['id'])
++
++
++def check_tool(kernel, tool, operation, arguments, principal):
++    """tools_registry.GRANT_CHECK: a change through tools.use needs a grant in force ("until" or "always"; her own area
++    is hers by the Files rules)."""
++    if getattr(tool, 'undo', 'change') != 'change':return ''
++    if covering(kernel, principal.identity, operation, arguments, None) is not None:return ''
++    return _why(kernel, principal.identity, operation, arguments)
++
++
++@contextlib.contextmanager
++def in_force(kernel, principal, operation, arguments, assignment='', step=''):
++    """Around one dispatch that the check let through: a permit naming exactly what this call may change, read by Files
++    (permitted()) and by nothing else; and a line in kas_grant_uses for the grant it used."""
++    found = targets(operation, arguments)
++    grant = None
++    try:grant = covering(kernel, principal.identity, operation, arguments, assignment or None)
++    except Exception:  # noqa: BLE001
++        grant = None
++    permit = {'root': str(getattr(kernel, 'root', '')), 'operation': operation, 'paths': [p for p in found['paths'] if p],
++              'objects': list(found['objects']), 'grant': (grant or {}).get('id', 'your press')}
++    token = _PERMIT.set(permit)
++    try:
++        yield permit
++    finally:
++        _PERMIT.reset(token)
++        if grant is not None and not grant.get('built_in'):
++            try:
++                with _writing(kernel) as db:
++                    db.execute('INSERT INTO kas_grant_uses(grant_id, assignment, step, operation, target, at) VALUES(?,?,?,?,?,?)',
++                               (grant['id'], assignment or '', step or '', operation, canonical(found)[:1000], now_ms()))
++            except Exception:  # noqa: BLE001 - a use that cannot be written never undoes the call
++                pass
++
++
++def step_in_force(kernel, value, step, arguments, principal):
++    """assignments.GRANTED: the permit around a step's own dispatch."""
++    if step.get('scope') == 'read':return contextlib.nullcontext()
++    return in_force(kernel, principal, step['operation'], arguments, value['id'], step['key'])
++
++
++def tool_in_force(kernel, tool, operation, arguments, principal):
++    """tools_registry.GRANTED: the permit around a tool's own dispatch."""
++    if getattr(tool, 'undo', 'change') != 'change':return contextlib.nullcontext()
++    return in_force(kernel, principal, operation, arguments)
++
++
++def permitted(kernel, path):
++    """files_service.may_change: whether the call being made now is one a grant (or your press) let through for this path."""
++    permit = _PERMIT.get()
++    if not permit or permit['root'] != str(getattr(kernel, 'root', '')):return False
++    try:
++        from .files_service import rel_of
++        rel = rel_of(kernel, path)
++    except (ValueError, OSError):
++        return False
++    return any(inside(rel, p) for p in permit['paths'])
++
++
++def permitted_object(kernel, operation, ident):
++    """field.set's own save: whether the call being made now is this operation on this object, let through by a grant (or
++    your press on the step)."""
++    permit = _PERMIT.get()
++    if not permit or permit['root'] != str(getattr(kernel, 'root', '')) or permit['operation'] != operation:return False
++    return _bare(ident) in permit.get('objects', ())
++
++
++# ---------------------------------------------------------------- a grant authorises the steps it covers
++
++def _grantable(step):
++    from . import stacy_hand
++    return (step.get('scope') == 'execute' and not step.get('always_asks') and step.get('basis') != stacy_hand.MODEL_PICK
++            and not step['operation'].startswith(NEVER))
++
++
++TARGET_KEYS = ('path', 'to', 'name', 'id', 'window', 'sheet', 'object')
++
++
++def _resolved(value, step):
++    """The arguments that name a step's targets: as planned when none comes from an earlier step (the text it writes may
++    still wait for one); else resolved from the outputs of the steps done; None when a target is not known yet."""
++    a = step.get('arguments') if isinstance(step.get('arguments'), dict) else {}
++    fixed = {k: a[k] for k in TARGET_KEYS if k in a}
++    if fixed and not _has_reference(fixed):return fixed
++    from . import assignments
++    try:return assignments._resolve(a, assignments._outputs(value))
++    except Exception:  # noqa: BLE001 - an input from a step not done yet: its target is not known now
++        return None
++
++
++def authorise(kernel, ident, principal, runner=False):
++    """assignments.AUTHORISE, called by K1 outside its own transactions (when a plan is made, and when the runner reaches
++    its next step): each proposed change that a grant of yours in force covers (never one that always asks, the model's
++    pick alone, or one marked for your approval) is authorised by that grant, and the journal says so. With runner: a
++    proposed change no grant covers, the one the runner has reached, stops: "needs your grant", with what it would do and
++    where. Nothing is sent by this. Everything is read first; the record is written in one short transaction after."""
++    from . import assignments as A
++    try:
++        with kernel.db() as db:
++            value = A._load(db, ident, principal)
++    except ValueError:
++        return []
++    if value['state'] != A.OPEN:return []      # running, held, stopped or done: nothing is authorised meanwhile
++    nxt = A._next(value);plans = {}
++    for step in value['steps']:
++        if step['status'] != 'proposed' or not _grantable(step):continue
++        arguments = _resolved(value, step)
++        if arguments is None:continue
++        grant = covering(kernel, principal.identity, step['operation'], arguments, value['id'], include_built_in=False)
++        if grant is not None:
++            plans[step['key']] = ('grant', grant, A.digest(step['arguments']))
++        elif runner and nxt is not None and step['key'] == nxt['key']:
++            plans[step['key']] = ('needs', _why(kernel, principal.identity, step['operation'], arguments, value['id']),
++                                  step_request(kernel, value, step, arguments), A.digest(step['arguments']))
++    if not plans:return []
++    said = []
++    with A._writing(kernel) as db:
++        value = A._load(db, ident, principal)
++        if value['state'] != A.OPEN:return []
++        for step in value['steps']:
++            plan = plans.get(step['key'])
++            if plan is None or step['status'] != 'proposed' or A.digest(step['arguments']) != plan[-1]:continue
++            if plan[0] == 'grant':
++                grant = plan[1]
++                step.update(status='authorised', reason='', authorised={'by': 'grant:' + grant['id'], 'grant': grant['id'], 'at': time.time(),
++                                                                       'explicit': False, 'arguments': plan[2], 'again': False})
++                words = 'Step %d (%s) is authorised by your grant: %s.' % (step['n'], step['title'], grant['words'])
++                A._save(db, value);A._journal(db, value, step, 'AUTHORISED', words, {'grant': grant['id'], 'by_grant': True})
++            else:
++                step.update(status='blocked', reason=NEEDS + plan[1])
++                words = 'Step %d (%s) needs your grant: %s. Nothing was sent.' % (step['n'], step['title'], plan[1])
++                A._save(db, value);A._journal(db, value, step, 'NEEDS_GRANT', words, {'needs': plan[2]})
++            said.append(words)
++    return said
++
++
++def step_request(kernel, value, step, arguments=None):
++    """The grant one press would give for this step ("Grant this for this assignment"): its operation on its exact target
++    (a file's folder, or the object), for this assignment; None when it names no target or a grant can never cover it."""
++    if not _grantable(step):return None
++    arguments = arguments if arguments is not None else _resolved(value, step)
++    if arguments is None:return None
++    found = targets(step['operation'], arguments)
++    args = {'operation': step['operation'], 'scope': 'assignment', 'assignment': value['id']}
++    if found['paths'] and not found['objects']:
++        folders = {p.rsplit('/', 1)[0] if '/' in p else '' for p in found['paths'] if p is not None}
++        if len(folders) != 1 or '' in folders:return None
++        args['folder'] = folders.pop()
++    elif found['objects'] and not found['paths'] and len(set(found['objects'])) == 1:
++        args['object'] = found['objects'][0]
++    else:
++        return None
++    return args
++
++
++def one_press(kernel, value, nxt, principal):
++    """assignments.GRANT_ACTION: the press offered for a step that needs your grant, as a call with the words you read."""
++    if nxt is None or nxt.get('status') != 'blocked' or not str(nxt.get('reason', '')).startswith(NEEDS):return None
++    args = step_request(kernel, value, nxt)
++    if args is None:return None
++    try:shown = describe(kernel, args, principal)
++    except (ValueError, KeyError):return None
++    return {'words': ONE_PRESS, 'operation': 'grant.give', 'yours': True, 'grant_words': shown['words'],
++            'arguments': dict(args, expected_digest=shown['digest'], step=nxt['key']),
++            'then': {'operation': 'assignment.step', 'arguments': {'id': value['id'], 'until': 'end'}}}
++
++
++def _authorise_named(kernel, assignment, key, principal):
++    """After a one-press grant: that step, no longer waiting for a grant, is authorised by the new grant when it covers it
++    (the caller carries on)."""
++    from . import assignments as A
++    with A._writing(kernel) as db:
++        value = A._load(db, assignment, principal)
++        step = next((s for s in value['steps'] if s['key'] == key), None)
++        if step is None:raise ValueError('There is no step %s' % key)
++        if step['status'] == 'blocked' and str(step.get('reason', '')).startswith(NEEDS):
++            step.update(status='proposed', reason='');A._save(db, value)
++    said = authorise(kernel, assignment, principal)
++    with kernel.db() as db:
++        value = A._load(db, assignment, principal)
++    step = next(s for s in value['steps'] if s['key'] == key)
++    if step['status'] != 'authorised':said.append('Step %d is not covered by that grant: it waits for your word.' % step['n'])
++    return said
++
++
++# ---------------------------------------------------------------- reading them
++
++def _uses(db, ident):
++    if not _present(db):return 0, None
++    row = db.execute('SELECT count(*), max(at) FROM kas_grant_uses WHERE grant_id=?', (ident,)).fetchone()
++    return int(row[0] or 0), row[1]
++
++
++def _view(value, kernel=None, db=None, cache=None):
++    out = {k: value.get(k) for k in ('id', 'operation', 'doing', 'operations', 'target', 'scope', 'words', 'given', 'source', 'ended')}
++    out['built_in'] = bool(value.get('built_in'))
++    out['scope_words'] = scope_words(value['scope'])
++    out['given_words'] = _when(value['given']) if value.get('given') else 'from the start'
++    if kernel is not None:
++        why = live(kernel, value, cache=cache) if not value.get('built_in') else ''
++        out['in_force'] = not why;out['ended_words'] = why
++    if db is not None and not value.get('built_in'):
++        out['uses'], last = _uses(db, value['id'])
++        out['last_used'] = _when(last) if last else ''
++    return out
++
++
++def listing(kernel, args, principal):
++    cache = {}
++    with kernel.db() as db:
++        rows = _rows(db, principal.identity, every=bool(args.get('all')))
++        views = [_view(r, kernel, db, cache) for r in rows]
++    if args.get('assignment'):
++        views = [v for v in views if v['scope']['kind'] != 'assignment' or v['scope'].get('assignment') == args['assignment']]
++    force = [v for v in views if v.get('in_force')]
++    ended = [v for v in views if not v.get('in_force')]
++    waiting = []
++    try:
++        from . import assignments
++        rows = assignments.listing(kernel, {'open': True, 'limit': 20}, principal)['assignments'] if args.get('waiting', True) else []
++        for row in rows:
++            for action in row.get('actions') or ():
++                if action.get('operation') == 'grant.give':
++                    waiting.append({'assignment': row['id'], 'title': row['title'], 'line': row['line'], 'words': action.get('grant_words', ''),
++                                    'press': action})
++    except Exception:  # noqa: BLE001 - the list of grants is shown even when assignments cannot be read
++        pass
++    return {'schema': SCHEMA, 'in_force': force, 'ended': ended if args.get('all') else [], 'own_area': _view(built_in(principal.identity)),
++            'waiting': waiting, 'families': {k: v[0] for k, v in FAMILIES.items()},
++            'rule': 'A grant is given only by your press, in these words; she can never give or widen one. Reading needs no grant; '
++                    'what always asks still asks; a change only the model chose is never done; Undo stays as it was.'}
++
++
++def dispatch(kernel, op, args, principal):
++    try:
++        if op == 'grant.words':return describe(kernel, args, principal)
++        if op == 'grant.give':return give(kernel, args, principal)
++    except NotGrantable as why:
++        if op == 'grant.words':return {'schema': SCHEMA, 'grantable': False, 'why_not': str(why).split(': ', 1)[-1], 'code': str(why).split(':', 1)[0]}
++        raise
++    if op == 'grant.list':return listing(kernel, args, principal)
++    if op == 'grant.revoke':return revoke(kernel, args, principal)
++    raise ValueError('Unknown grant operation')
++
++
++# ---------------------------------------------------------------- wiring (the hooks K1 and K2 left for this slice)
++
++def install():
++    from . import assignments, tools_registry
++    assignments.GRANT_CHECK = check_step
++    assignments.GRANTED = step_in_force
++    assignments.AUTHORISE = authorise
++    assignments.GRANT_ACTION = one_press
++    tools_registry.GRANT_CHECK = check_tool
++    tools_registry.GRANTED = tool_in_force
++    if 'NEEDS_GRANT' not in assignments.EFFECT_ENTRIES:
++        assignments.EFFECT_ENTRIES = assignments.EFFECT_ENTRIES + ('NEEDS_GRANT',)
++    assignments.SAYS.setdefault('NEEDS_GRANT', 'needs your grant')
++
++
++install()
+diff --git a/workbench/grants_qt.py b/workbench/grants_qt.py
+new file mode 100644
+index 0000000..3bf9d4f
+--- /dev/null
++++ b/workbench/grants_qt.py
+@@ -0,0 +1,257 @@
++"""Grants in the window (Graphite 1.0, K3): a grant asked for in her column, and the Grants page.
++
++In her column, under ACTIVE WORK (GrantFold):
++  - when a step of an assignment needs your grant: ◆ NEEDS YOUR GRANT, the assignment, the grant in plain words exactly
++    as it would be given ("set values on the sheet “Rail Demo bench readings”, for this assignment"), and one press,
++    "Grant this for this assignment" (grant.give with the digest of those words, then the assignment carries on);
++  - else, while grants are in force: one line, "GRANTS [n] · see them", which opens the Grants page.
++
++The Grants page (GrantsTab, a tab in the centre; open_destination(host, 'grants')):
++  - in force: each grant in its words, when it was given, how often it was used, and Revoke (your press);
++  - her own area: Files/Slate, hers by the Files rules (a standing line, never revoked here);
++  - waiting for your grant: each step that stopped for one, with its press;
++  - give a grant: what (a family), where (a folder inside Files), for how long (one hour, until tonight, always, or one
++    open assignment); the words are shown before the press and the press gives exactly those words;
++  - ended: revoked, run out or with their assignment done.
++
++Every colour that means something also has a word or a shape; no key is named in any words here.
++"""
++from __future__ import annotations
++
++import re
++import time
++
++from PySide6.QtCore import Qt, QTimer
++from PySide6.QtWidgets import (QComboBox, QFrame, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QSizePolicy,
++                               QVBoxLayout, QWidget)
++
++from . import boss_theme as bt
++from .her_column_qt import Clickable, heading, ink, plain, px, read, row_label, small_button
++
++LIST_EVERY = 4                # her column reads the grants in force every this many of its ticks (asks come every tick)
++
++
++class GrantFold(QWidget):
++    """Her column's fold: a grant asked for, in plain words, with its one press; else the grants in force, in one line."""
++
++    def __init__(self, column):
++        super().__init__();self.column = column;host = column.host;self.setObjectName('HerGrants')
++        self.ticks = 0;self.in_force = 0;self.ask = None
++        box = QVBoxLayout(self);box.setContentsMargins(0, 0, 0, 0);box.setSpacing(px(host, 3))
++        top = QHBoxLayout();top.setSpacing(px(host, 6))
++        self.head = heading(host, 'GRANTS');top.addWidget(self.head)
++        self.link = Clickable(self.open_page, 'The Grants page: what she may change without asking you again, and Revoke')
++        ll = QHBoxLayout(self.link);ll.setContentsMargins(0, 0, 0, 0)
++        self.link_words = ink(QLabel('see them ›'), px(host, 12), bt.QUIET, None, bt.FACE, 'text-decoration:underline;')
++        self.link_words.setAttribute(Qt.WA_TransparentForMouseEvents);ll.addWidget(self.link_words)
++        top.addWidget(self.link);top.addStretch(1);box.addLayout(top)
++        self.card = QFrame();self.card.setObjectName('HerGrantAsk')
++        self.card.setStyleSheet('QFrame#HerGrantAsk {border:1px solid %s;border-left:3px solid %s;border-radius:4px;background:transparent;}' % (bt.LINE_MID, bt.OWNER))
++        cb = QVBoxLayout(self.card);cb.setContentsMargins(px(host, 8), px(host, 4), px(host, 6), px(host, 5));cb.setSpacing(px(host, 2))
++        line = QHBoxLayout();line.setSpacing(px(host, 5))
++        self.shape = ink(QLabel('◆'), px(host, 13), bt.OWNER, 700, bt.MONO)
++        self.word = ink(QLabel('NEEDS YOUR GRANT'), px(host, 11), bt.OWNER, 600, bt.MONO, 'letter-spacing:1px;')
++        self.title = row_label(host, '', quiet=True, size=12)
++        line.addWidget(self.shape);line.addWidget(self.word);line.addWidget(self.title, 10);line.addStretch(1);cb.addLayout(line)
++        self.words = QLabel();self.words.setWordWrap(True);self.words.setTextFormat(Qt.PlainText)
++        ink(self.words, px(host, 13), bt.TEXT, None, bt.FACE);self.words.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++        cb.addWidget(self.words)
++        row = QHBoxLayout();row.setSpacing(px(host, 6))
++        self.give = small_button(host, 'Grant this for this assignment', 'Your press: gives exactly the grant in the words above, '
++                                 'for this assignment only, and carries on. What always asks still asks.', primary=True)
++        self.give.setObjectName('HerGrantGive');self.give.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed);self.give.clicked.connect(self.press_give)
++        row.addWidget(self.give);row.addStretch(1);cb.addLayout(row)
++        box.addWidget(self.card)
++        self.card.hide();self.hide()
++
++    def show_from(self, rows, force=False):
++        """rows: assignment.list rows (her column's, read this tick). The first step that needs your grant is asked for."""
++        self.ticks += 1
++        if force or self.ticks % LIST_EVERY == 1:
++            got = read(self.column.host, 'grant.list', {'waiting': False}) or {}
++            self.in_force = len(got.get('in_force') or ())
++        ask = None
++        for row in rows or ():
++            action = next((a for a in row.get('actions') or () if a.get('operation') == 'grant.give'), None)
++            if action:ask = (row, action);break
++        self.ask = ask;compact = self.column.compact();host = self.column.host
++        if ask:
++            row, action = ask
++            words = plain(action.get('grant_words') or '')
++            if compact:words = re.sub(r' \(“[^”]*”\)', '', words)      # a short column: the assignment is named in ACTIVE WORK above
++            self.title.setText(plain(row.get('title') or ''));self.title.setVisible(not compact)
++            self.words.setText(('It asks to %s.' if compact else 'It asks to %s. Nothing was sent.') % words)
++            ink(self.words, px(host, 12 if compact else 13), bt.TEXT, None, bt.FACE)
++            self.words.setAccessibleName(self.words.text());self.card.show()
++        else:
++            self.card.hide()
++        self.head.setText('GRANTS [%d]' % self.in_force if self.in_force else 'GRANTS')
++        for w in (self.head, self.link):w.setVisible(not (compact and ask))      # a short column: the card alone
++        self.setVisible(bool(ask) or self.in_force > 0)
++
++    def press_give(self):
++        if not self.ask:return
++        row, action = self.ask
++        self.column.take_step({'kind': 'assignment', 'call': action, 'title': plain(row.get('title') or '')})
++        self.show_from(self.column.rows, force=True)
++
++    def open_page(self):
++        show(self.column.host)
++
++
++# ---------------------------------------------------------------------------------------------------------- the page
++
++PERIODS = (('for one hour', 'hour'), ('until tonight (23:59)', 'tonight'), ('always, until you revoke it', 'always'))
++
++
++def _until(kind):
++    now = time.time_ns() // 1000000
++    if kind == 'hour':return now + 3600 * 1000
++    t = time.localtime();midnight = time.mktime((t.tm_year, t.tm_mon, t.tm_mday, 23, 59, 0, 0, 0, -1))
++    return int(midnight) * 1000
++
++
++class GrantsTab(QWidget):
++    """The Grants page: in force (with Revoke), her own area, waiting for your grant, give a grant, ended."""
++
++    def __init__(self, host):
++        super().__init__();self.host = host;self.setObjectName('LibraryTab');self.setProperty('ledgerRoom', True)
++        self.shown = None;self.form = {}
++        outer = QVBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0)
++        self.scroll = QScrollArea();self.scroll.setWidgetResizable(True);self.scroll.setFrameShape(QFrame.NoFrame);outer.addWidget(self.scroll)
++        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
++        self.timer = QTimer(self);self.timer.setInterval(3000);self.timer.timeout.connect(self.reload)
++        self.reload()
++
++    def title(self):return 'Grants'
++
++    def showEvent(self, event):super().showEvent(event);self.reload();self.timer.start()
++
++    def hideEvent(self, event):super().hideEvent(event);self.timer.stop()
++
++    def note(self, words):
++        try:self.host.statusBar().showMessage(words, 8000)
++        except Exception:  # noqa: BLE001
++            pass
++
++    def act(self, op, args, then=None):
++        from .shell2 import call_write
++        r = call_write(self.host, op, args)
++        if not r.get('ok'):self.note(str((r.get('error') or {}).get('message', 'Not done')).split(': ', 1)[-1])
++        else:
++            said = (r.get('result') or {}).get('said') or []
++            if said:self.note(' '.join(said)[:300])
++            if then:
++                column = getattr(self.host, 'her_column', None)
++                if column is not None:column.carry(then, '')
++        self.reload();return r
++
++    def reload(self):
++        from .shell2 import call, role, sentence, escape_text
++        view = call(self.host, 'grant.list', {'all': True}) or {'in_force': [], 'ended': [], 'waiting': [], 'own_area': None, 'families': {}}
++        key = repr((view.get('in_force'), view.get('ended'), view.get('waiting')))
++        if key == self.shown and getattr(self, 'page', None) is not None:return
++        self.shown = key
++        keep = {k: (w.currentIndex() if isinstance(w, QComboBox) else w.text()) for k, w in self.form.items()}
++        page = QWidget();box = QVBoxLayout(page);box.setContentsMargins(48, 32, 48, 24);box.setSpacing(16)
++        box.addWidget(role(QLabel('Grants'), 'title'))
++        lead = role(QLabel('What Kasandra may change without asking you again: each grant names what she may do, where, and for '
++                           'how long. Only your press gives one, in these words; she can never give or widen one. Reading needs '
++                           'no grant; what always asks still asks; a change only the model chose is never done; Undo stays as it was.'), 'lead')
++        lead.setWordWrap(True);lead.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);box.addWidget(lead)
++        waiting = view.get('waiting') or []
++        if waiting:
++            box.addWidget(role(QLabel('WAITING FOR YOUR GRANT'), 'section'))
++            for w in waiting:
++                label = sentence('◆ <b>%s</b>: it asks to %s. Nothing was sent.  ·  {give}' % (escape_text(w['title']), escape_text(w['words'])),
++                                 {'give': ('Grant this for this assignment', lambda w=w: self.act('grant.give', w['press']['arguments'], w['press'].get('then')))})
++                box.addWidget(label)
++        box.addWidget(role(QLabel('IN FORCE'), 'section'))
++        rows = view.get('in_force') or []
++        if not rows:box.addWidget(self.quiet('No grant of yours is in force: every change she proposes waits for your word.'))
++        for g in rows:
++            used = ('used %d times' % g['uses'] if g.get('uses') != 1 else 'used once') if g.get('uses') else 'not used yet'
++            label = sentence('● %s<br><span style="color:%s">given %s by %s  ·  %s</span>  ·  {revoke}' % (
++                escape_text(g['words']), bt.QUIET, escape_text(g.get('given_words', '')), escape_text(g.get('source', '')), used),
++                {'revoke': ('Revoke', lambda g=g: self.act('grant.revoke', {'id': g['id']}))})
++            label.setAccessibleName('In force: ' + g['words']);box.addWidget(label)
++        own = view.get('own_area')
++        if own:
++            box.addWidget(self.quiet('▪ ' + own['words'] + '. It covers a call there; it never authorises a step by itself.'))
++        box.addWidget(role(QLabel('GIVE A GRANT'), 'section'))
++        box.addWidget(self.give_form(view, keep))
++        ended = view.get('ended') or []
++        if ended:
++            box.addWidget(role(QLabel('ENDED'), 'section'))
++            for g in ended[:10]:
++                box.addWidget(self.quiet('○ %s  ·  ended: %s' % (g['words'], g.get('ended_words') or 'ended')))
++        box.addStretch(1)
++        self.page = page;self.scroll.setWidget(page)
++
++    def quiet(self, text):
++        label = QLabel(text);label.setWordWrap(True);label.setStyleSheet('color:%s' % bt.QUIET);label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++        return label
++
++    def give_form(self, view, keep):
++        from .shell2 import call
++        holder = QWidget();col = QVBoxLayout(holder);col.setContentsMargins(0, 0, 0, 0);col.setSpacing(8)
++        row = QHBoxLayout();row.setSpacing(10)
++        what = QComboBox();what.setAccessibleName('What she may do')
++        for key, words in (view.get('families') or {}).items():
++            if key.startswith('files.'):what.addItem(words, key)
++        where = QLineEdit();where.setAccessibleName('In which folder inside Files');where.setPlaceholderText('a folder inside Files, e.g. Rail Demo/notes')
++        when = QComboBox();when.setAccessibleName('For how long')
++        for words, kind in PERIODS:when.addItem(words, kind)
++        open_rows = (call(self.host, 'assignment.list', {'open': True, 'limit': 10}) or {}).get('assignments') or []
++        for r in open_rows:when.addItem('for the assignment “%s”' % r['title'][:60], 'assignment:' + r['id'])
++        for w, words in ((what, 'Do'), (where, 'in'), (when, 'for')):
++            row.addWidget(QLabel(words));row.addWidget(w, 1 if w is where else 0)
++        col.addLayout(row)
++        self.form = {'what': what, 'where': where, 'when': when}
++        if 'what' in keep:what.setCurrentIndex(max(0, keep['what']));where.setText(keep.get('where', ''));when.setCurrentIndex(max(0, keep.get('when', 0)))
++        self.preview = QLabel();self.preview.setWordWrap(True);self.preview.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
++        col.addWidget(self.preview)
++        self.give = QPushButton('Give this grant');self.give.setCursor(Qt.PointingHandCursor);self.give.setProperty('arcButton', 'quiet')
++        self.give.clicked.connect(self.give_it);col.addWidget(self.give, 0, Qt.AlignLeft)
++        for w in (what, when):w.currentIndexChanged.connect(self.words_now)
++        where.textChanged.connect(self.words_now)
++        self.words_now()
++        return holder
++
++    def arguments(self):
++        what, where, when = self.form['what'], self.form['where'], self.form['when']
++        kind = when.currentData() or 'always'
++        args = {'operation': what.currentData() or 'files.edit', 'folder': where.text().strip()}
++        if kind.startswith('assignment:'):args.update(scope='assignment', assignment=kind.split(':', 1)[1])
++        elif kind in ('hour', 'tonight'):args.update(scope='until', until=_until(kind))
++        else:args['scope'] = 'always'
++        return args
++
++    def words_now(self, *_):
++        from .shell2 import call
++        self.pending = None
++        if not self.form['where'].text().strip():
++            self.preview.setText('Name a folder inside Files; the grant is then shown here in its words before you give it.')
++            self.give.setEnabled(False);return
++        shown = call(self.host, 'grant.words', self.arguments()) or {}
++        if shown.get('grantable'):
++            self.pending = (self.arguments(), shown['digest'])
++            self.preview.setText('You would give: %s.' % shown['words']);self.give.setEnabled(True)
++        else:
++            self.preview.setText('No grant can be given for this: %s.' % (shown.get('why_not') or 'it cannot be read'));self.give.setEnabled(False)
++
++    def give_it(self):
++        if not self.pending:return
++        args, sha = self.pending
++        if self.act('grant.give', dict(args, expected_digest=sha)).get('ok'):self.form['where'].clear()
++
++
++def show(host):
++    """Open (or reuse) the Grants page in the centre."""
++    try:host._close_start()
++    except Exception:  # noqa: BLE001
++        pass
++    for i in range(host.tabs.count()):
++        tab = host.tabs.widget(i)
++        if isinstance(tab, GrantsTab):host.tabs.setCurrentWidget(tab);tab.shown = None;tab.reload();return tab
++    tab = GrantsTab(host);host.tabs.addTab(tab, tab.title());host.tabs.setCurrentWidget(tab);return tab
+diff --git a/workbench/halt.py b/workbench/halt.py
+index 53c1cf5..b7c3e47 100644
+--- a/workbench/halt.py
++++ b/workbench/halt.py
+@@ -1,37 +1,43 @@
+-"""HALT, the master stop of her managed work (1.0 P2; the plan's "complete", item 10: "HALT (upper left) stops all of her
+-managed work and nothing else: never the desktop, never the owner's programs").
++"""HALT, the master stop of her managed work (1.0 P2; widened by 1.0 K3; the plan's "complete", item 10: "HALT (upper left)
++stops all of her managed work and nothing else: never the desktop, never the owner's programs").
+ 
+ One function behind the button in the head's upper-left slot, and one to lift what it did:
+ 
+   press(host)    the owner's press. In this order:
+-                   1. her work is held (the Night Shift's work gate, work_trail.hold, which K1's assignments obey): no step
+-                      starts while it is held, and a run that sees the hold stops at its next look;
+-                   2. every assignment that is running now is stopped through assignment.stop (K1), so its journal says
+-                      "stopped by you" with what was done and what was only prepared;
+-                   3. her hand is stopped before its next press, if it is acting (her_hand_qt.HerHand.stop);
++                   1. HALT's own hold and the Kernel's part of the stop (halt_gate.press, the operation halt.press): no step
++                      starts and her model is not asked while it holds; every running assignment is stopped through
++                      assignment.stop with HALT's words, so its journal says what was done, what was only prepared and that
++                      a step was running when you pressed HALT (recorded as it ends); every other open assignment is held,
++                      its journal saying the same; her model's reply jobs are cancelled and a turn running here is closed;
++                      the sandboxes' stop hooks run (K6);
++                   2. her hand is stopped before its next press, if it is acting (her_hand_qt.HerHand.stop);
++                   3. the older assignments of AGENT-01 pause with the reason (the agent driver), as Stop all pauses them;
+                    4. the moment that matters is shown in her column (her_column_qt.moment(host, 'halt'), P1);
+                    5. her column says in words what was stopped.
+-                 Returns {'held', 'stopped' (titles), 'hand' (bool), 'words', 'error'}.
+-  release(host)  lifts the hold (ledger.work.resume, the owner's approve scope). Nothing stopped is restarted: each
++                 Returns {'held', 'stopped' (titles), 'held_work' (titles), 'hand' (bool), 'turns', 'jobs', 'words', 'error'}.
++  release(host)  RESUME: lifts HALT's hold (halt.release, the owner's approve scope). Nothing stopped is restarted: each
+                  assignment is resumed by its own Resume, which inspects before it repeats anything.
+-  held(host)     whether her work is held now (by HALT or by Stop all): the button reads RESUME while it is.
++  held(host)     whether HALT holds her work now: the button reads RESUME while it does. 1.0 K3: HALT's own hold only; Stop
++                 all's hold of Graphite's jobs is Stop all's, read and lifted on its own card.
+ 
+-What HALT never touches: the desktop, Graphite's window, the owner's programs and their windows, builds and the console
+-(those are Stop all's, on the meters' card), the network, the machine. Nothing here asks the model anything.
+-
+-K3 widens press() later (grants, the model's turns, the utility sandboxes) and keeps this one small module.
++What HALT never touches: the desktop, Graphite's window, the owner's programs and their windows, Graphite's own jobs and
++builds and the console (those are Stop all's, on the meters' card), the network, the machine. Nothing here kills a
++process. Nothing here asks the model anything.
+ """
+ from __future__ import annotations
+ 
+ WORDS = {
+-    'stopped': 'HALT: I stopped %s and held all of my work. No step starts until you press RESUME; the desktop and your '
+-               'apps keep running.',
+-    'nothing': 'HALT: nothing of mine was running. All of my work is held until you press RESUME; the desktop and your apps '
+-               'keep running.',
++    'stopped': 'HALT: I stopped %s and hold all my work until you press RESUME. Each journal says what was done and what was '
++               'only prepared. Your desktop, apps and Graphite’s jobs go on.',
++    'nothing': 'HALT: nothing of mine was running. I hold all my work until you press RESUME. Your desktop, apps and '
++               'Graphite’s jobs go on.',
++    'held': ' Also held: %s.',
+     'hand': ' My hand stopped before its next press.',
++    'turns': ' My model’s answer was closed.',
+     'not_held': 'HALT could not hold my work: %s. Use Stop all on the meters if anything of mine is still running.',
+     'released': 'RESUME: the hold is lifted. Nothing stopped was restarted; each assignment resumes from its own Resume, '
+                 'which checks every step first.',
++    'released_jobs': ' Graphite’s jobs are still held by Stop all; lift that on its own card.',
+     'not_released': 'The hold stays: %s.',
+ }
+ 
+@@ -58,58 +64,57 @@ def _say(host, words):
+ 
+ 
+ def held(host):
+-    """True while her managed work is held (HALT, or Stop all); False when it is not, or when the gate cannot be read."""
++    """True while HALT holds her managed work; False when it does not, or when its hold cannot be read (1.0 K3)."""
+     try:
+-        from . import work_trail
+-        kernel, _ = _kernel(host)
+-        if getattr(kernel, 'is_host_client', False):
+-            answer = kernel.dispatch('ledger.work.status', {}, _kernel(host)[1])
+-            return bool((answer.get('result') or {}).get('held')) if answer.get('ok') else False
+-        return bool(work_trail.work_status(kernel).get('held'))
+-    except Exception:  # noqa: BLE001 - a gate that cannot be read is not said to be held
++        kernel, owner = _kernel(host)
++        answer = kernel.dispatch('halt.status', {}, owner)
++        return bool((answer.get('result') or {}).get('held')) if answer.get('ok') else False
++    except Exception:  # noqa: BLE001 - a hold that cannot be read is not said to be held
+         return False
+ 
+ 
++def _names(titles):
++    names = ['“%s”' % t for t in titles]
++    return ', '.join(names[:-1]) + ' and ' + names[-1] if len(names) > 1 else names[0]
++
++
+ def press(host):
+     """HALT: hold her work, stop what of hers runs, stop her hand, show the moment, say what was stopped."""
+     kernel, owner = _kernel(host)
+-    out = {'held': False, 'stopped': [], 'hand': False, 'words': '', 'error': ''}
++    out = {'held': False, 'stopped': [], 'held_work': [], 'hand': False, 'turns': 0, 'jobs': [], 'words': '', 'error': ''}
+     try:
+-        if getattr(kernel, 'is_host_client', False):kernel.rpc('hold')
++        answer = kernel.dispatch('halt.press', {}, owner)
++        if answer.get('ok'):
++            report = answer['result']
++            out.update(held=True, stopped=list(report.get('stopped') or ()), held_work=list(report.get('held_work') or ()),
++                       turns=int(report.get('turns') or 0), jobs=list(report.get('jobs') or ()))
+         else:
+-            from . import work_trail
+-            work_trail.hold(kernel, owner)
+-        out['held'] = True
++            error = answer.get('error') or {}
++            out['error'] = str(error.get('message') if isinstance(error, dict) else error)[:200] or 'refused'
+     except Exception as exc:  # noqa: BLE001 - said in words, and the rest still stops what it can
+         out['error'] = str(exc)[:200] or type(exc).__name__
+-    try:
+-        listing = kernel.dispatch('assignment.list', {'open': True, 'limit': 50}, owner)
+-        rows = (listing.get('result') or {}).get('assignments') or () if listing.get('ok') else ()
+-    except Exception:  # noqa: BLE001 - K1 absent or unreadable: the hold still holds
+-        rows = ()
+-    for row in rows:
+-        if row.get('state') != 'running':continue
+-        try:
+-            answer = kernel.dispatch('assignment.stop', {'id': row['id']}, owner)
+-            if answer.get('ok'):out['stopped'].append(str(row.get('title') or 'an assignment'))
+-        except Exception:  # noqa: BLE001
+-            pass
+     hand = getattr(host, 'her_hand', None)
+     try:
+         if hand is not None and hand.active():
+             hand.stop('HALT');out['hand'] = True
+     except Exception:  # noqa: BLE001
+         pass
++    driver = getattr(host, 'agent_driver', None)      # 1.0 K3: AGENT-01's older assignments pause, as Stop all pauses them
++    try:
++        if driver is not None:driver.pause_all('HALT')
++    except Exception:  # noqa: BLE001
++        pass
+     column = getattr(host, 'her_column', None)
+-    if column is not None:column.seen_held = True      # the column's own watch on the gate must not show the moment twice
++    if column is not None:column.seen_held = True      # the column's own watch on the hold must not show the moment twice
+     try:
+         from .her_column_qt import moment
+         moment(host, 'halt')
+     except Exception:  # noqa: BLE001
+         pass
+     if out['held']:
+-        names = ['“%s”' % t for t in out['stopped']]
+-        words = WORDS['stopped'] % (', '.join(names[:-1]) + ' and ' + names[-1] if len(names) > 1 else names[0]) if names else WORDS['nothing']
++        words = WORDS['stopped'] % _names(out['stopped']) if out['stopped'] else WORDS['nothing']
++        if out['held_work']:words += WORDS['held'] % _names(out['held_work'][:3])
++        if out['turns'] or out['jobs']:words += WORDS['turns']
+     else:
+         words = WORDS['not_held'] % out['error']
+     if out['hand']:words += WORDS['hand']
+@@ -120,14 +125,15 @@ def press(host):
+ 
+ 
+ def release(host):
+-    """RESUME: lift the hold. Nothing that was stopped is started again here."""
++    """RESUME: lift HALT's hold. Nothing that was stopped is started again here."""
+     kernel, owner = _kernel(host)
+     try:
+-        answer = kernel.dispatch('ledger.work.resume', {}, owner)
++        answer = kernel.dispatch('halt.release', {}, owner)
+     except Exception as exc:  # noqa: BLE001
+         answer = {'ok': False, 'error': {'message': str(exc)}}
+     if answer.get('ok'):
+         words = WORDS['released'];done = True
++        if (answer.get('result') or {}).get('jobs_held'):words += WORDS['released_jobs']
+     else:
+         error = answer.get('error') or {}
+         why = str(error.get('message') if isinstance(error, dict) else error or 'refused')
+diff --git a/workbench/halt_gate.py b/workbench/halt_gate.py
+new file mode 100644
+index 0000000..aa1ad77
+--- /dev/null
++++ b/workbench/halt_gate.py
+@@ -0,0 +1,270 @@
++"""HALT's own hold, in the Kernel (Graphite 1.0, K3): the master stop of her managed work, and nothing else.
++
++The owner's paper, section 13: "The Master Kill Switch must stop Kasandra's managed activity without disabling the
++owner's desktop or unrelated applications. Individual tasks need their own cancellation controls. An interrupted task
++should retain enough evidence for the owner to understand what completed, what remains uncertain, and whether
++restarting is safe."
++
++HALT and Stop all are two things, and each reads its own state:
++  HALT       her managed work: her assignments, her hand, her model's turns, her sandboxes. Its hold is this module's
++             (the setting kas.halt: held, epoch, when, by whom). Graphite's own jobs (an index, a build, a reading you
++             started) go on; the desktop, Graphite's window and your programs are never touched.
++  Stop all   Graphite's jobs (qt_master_stop, the work gate of work_trail). It still holds her assignments too (they obey
++             both holds, assignments._gate), and since 1.0 K3 it spares every process in a session of its own: your
++             program windows (spared(), below).
++
++Operations (registered in engineering_kernel under "1.0 K3"):
++  halt.status   {}   read     held or not, since when, the epoch
++  halt.press    {}   approve  your press. In this order: the hold (no step starts, no model turn is sent); every running
++                              assignment is stopped through assignment.stop with HALT's words (its journal says what was
++                              done, what was only prepared and that a step was running when you pressed HALT, what it does
++                              recorded as it ends); every other open assignment is held, its journal saying the same; her
++                              model's reply jobs are cancelled and a model turn running in this process is closed (its
++                              request's Stop, guard_request); each stop hook runs (STOP_HOOKS: K6's sandboxes). Returns what
++                              it stopped, in titles and counts.
++  halt.release  {}   approve  RESUME: lifts this hold only. Nothing stopped is restarted: each assignment has its own Resume,
++                              which inspects every step first.
++
++A running step is stopped at its next safe point: an effect not yet sent is not sent (prepared, not done); a model turn in
++flight is closed; a wait for an effect (an App's window) ends and the step is "not verified", never "done"; a call
++already in the desk's hands finishes and is recorded as it ends, never hidden. Nothing here kills a process.
++"""
++from __future__ import annotations
++
++import json
++import os
++import threading
++import time
++import weakref
++
++KEY = 'kas.halt'
++FIELDS = {'halt.status': ({}, []), 'halt.press': ({}, []), 'halt.release': ({}, [])}
++SCOPES = {'halt.status': 'read', 'halt.press': 'approve', 'halt.release': 'approve'}
++OBSERVERS = ('halt.status',)
++STOP_HOOKS = []               # (name, callable(kernel, principal) -> words or ''): K6's sandboxes register here
++READ_EVERY_S = 0.5            # a running turn or wait reads the hold at most this often from the database
++_LOCAL = {}                   # workspace root -> {'epoch', 'held', 'read'}: this process's last knowledge of the hold
++_LOCK = threading.Lock()
++_LIVE = weakref.WeakSet()     # her model's turn requests in this process (guard_request)
++
++
++def register_stop(name, stop):
++    """A piece of her managed work that HALT must stop (K6: the sandboxes). stop(kernel, principal) -> words or ''."""
++    STOP_HOOKS[:] = [(n, s) for n, s in STOP_HOOKS if n != name] + [(name, stop)]
++
++
++def now_ms():
++    return time.time_ns() // 1000000
++
++
++def _read(db):
++    row = db.execute('SELECT value FROM settings WHERE key=?', (KEY,)).fetchone()
++    value = json.loads(row[0]) if row else {'held': False, 'epoch': 0}
++    if type(value.get('held')) is not bool or type(value.get('epoch')) is not int:raise ValueError('HALT_STATE_UNREADABLE')
++    return value
++
++
++def status(kernel, db=None):
++    """HALT's hold: {'held', 'epoch', 'at', 'by'}. Raises when it cannot be read (the callers decide what that means)."""
++    if db is not None:value = _read(db)
++    else:
++        with kernel.db() as conn:value = _read(conn)
++    _note(kernel, value)
++    return value
++
++
++def held(kernel):
++    try:return bool(status(kernel)['held'])
++    except Exception:  # noqa: BLE001 - a hold that cannot be read is not said to be HALT (the button); K1 holds on it
++        return False
++
++
++def _note(kernel, value):
++    with _LOCK:
++        _LOCAL[str(getattr(kernel, 'root', ''))] = {'epoch': value['epoch'], 'held': value['held'], 'read': time.monotonic()}
++
++
++def epoch(kernel):
++    try:return status(kernel)['epoch']
++    except Exception:  # noqa: BLE001
++        return -1
++
++
++def pressed_since(kernel, since):
++    """Whether HALT was pressed (or released) since `since` (an epoch): what this process knows at once, else the database
++    at most every READ_EVERY_S. Cheap enough for a stream's every token."""
++    root = str(getattr(kernel, 'root', ''))
++    with _LOCK:
++        local = dict(_LOCAL.get(root) or {})
++    if local and local['epoch'] != since:return True
++    if local and time.monotonic() - local['read'] < READ_EVERY_S:return False
++    try:return status(kernel)['epoch'] != since
++    except Exception:  # noqa: BLE001 - unreadable: a running turn is not closed for that alone
++        return False
++
++
++def _owner_only(principal):
++    if 'approve' not in principal.scopes or principal.mode == 'Tutor':
++        raise ValueError('HALT_IS_YOURS: only your own press holds or lifts her work')
++
++
++def _write(kernel, principal, held_now, event):
++    from . import activity
++    with kernel.db() as db:
++        db.execute('BEGIN IMMEDIATE')
++        state = _read(db)
++        state = {'held': held_now, 'epoch': state['epoch'] + 1, 'at': now_ms(), 'by': principal.identity}
++        db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (KEY, json.dumps(state)))
++        activity.append(db, activity.make_event(principal.identity, event, 'HELD' if held_now else 'RELEASED'))
++    _note(kernel, state)
++    return state
++
++
++def _held_words(value, entries):
++    from . import assignments as A
++    return A._stopped_words(value, entries, []).replace('Stopped by you. ', 'Held by your HALT. ', 1)
++
++
++def _hold_one(kernel, ident, principal):
++    """An open assignment that was not running: held, and its journal says what was done and what was only prepared."""
++    from . import assignments as A
++    with A._writing(kernel) as db:
++        value = A._load(db, ident, principal)
++        if value['state'] in (A.DONE, A.STOPPED, A.RUNNING):return False
++        words = _held_words(value, A._entries(db, ident))
++        value.update(state=A.HELD, reason='Held by your HALT: resume it once the hold is lifted.', runner=None)
++        A._save(db, value);A._journal(db, value, None, 'HALTED', words)
++    return True
++
++
++def _reply_jobs(kernel, principal):
++    """Her model's reply jobs (local_brain.REPLY_TOOLS), queued or running: cancelled. Graphite's other jobs go on."""
++    out = []
++    try:
++        from .local_brain import REPLY_TOOLS
++        from .operation_stop import TERMINAL
++        jobs = kernel.listing('jobs')
++    except Exception:  # noqa: BLE001 - no jobs here
++        return out
++    for job in jobs:
++        if job.get('tool') not in REPLY_TOOLS or job.get('state') in TERMINAL:continue
++        try:
++            answer = kernel.dispatch('jobs.cancel', {'id': job['id']}, principal)
++            if answer.get('ok'):out.append(job['tool'])
++        except Exception:  # noqa: BLE001
++            pass
++    return out
++
++
++def press(kernel, principal):
++    """HALT, the Kernel's part: hold, stop, hold, close, cancel; nothing outside her managed work is touched."""
++    _owner_only(principal)
++    try:
++        from .grants import _PERMIT
++        if _PERMIT.get() is not None:raise ValueError('HALT_IS_YOURS: HALT is pressed by you, never from inside her work')
++    except ImportError:
++        pass
++    from . import assignments as A
++    try:      # the running ones first, read before the hold so they are stopped while their step still runs
++        with kernel.db() as db:
++            running = [tuple(r) for r in db.execute("SELECT id, json_extract(payload, '$.title') FROM asg_assignments WHERE owner=? AND state=?",
++                                                    (principal.identity, A.RUNNING))] if A._present(db) else []
++    except Exception:  # noqa: BLE001
++        running = []
++    report = {'held': True, 'epoch': None, 'stopped': [], 'held_work': [], 'turns': 0, 'jobs': [], 'hooks': [], 'errors': []}
++    for ident, title in running:      # stopped first (nothing more of it starts; its journal says a step was running), then the hold
++        try:
++            A.stop(kernel, ident, principal, why='halt');report['stopped'].append(title or 'an assignment')
++        except Exception as exc:  # noqa: BLE001 - one that cannot be stopped is said; the hold still holds it
++            report['errors'].append('%s: %s' % (title, str(exc)[:160]))
++    state = _write(kernel, principal, True, 'halt.press');report['epoch'] = state['epoch']
++    try:rows = A.listing(kernel, {'open': True, 'limit': 100}, principal)['assignments']
++    except Exception as exc:  # noqa: BLE001 - no assignments yet
++        rows = [];report['errors'].append(str(exc)[:160])
++    for row in rows:
++        try:
++            if row['state'] == A.RUNNING and row['id'] not in {i for i, _ in running}:
++                A.stop(kernel, row['id'], principal, why='halt');report['stopped'].append(row['title'])
++            elif row['state'] in (A.OPEN, A.HELD) and _hold_one(kernel, row['id'], principal):
++                report['held_work'].append(row['title'])
++        except Exception as exc:  # noqa: BLE001 - one that cannot be stopped is said; the hold still holds it
++            report['errors'].append('%s: %s' % (row.get('title', ''), str(exc)[:160]))
++    report['turns'] = sum(1 for request in list(_LIVE) if getattr(request, 'now_asking', None))
++    report['jobs'] = _reply_jobs(kernel, principal)
++    for name, stop in list(STOP_HOOKS):
++        try:
++            said = stop(kernel, principal)
++            if said:report['hooks'].append(str(said)[:200])
++        except Exception as exc:  # noqa: BLE001
++            report['errors'].append('%s: %s' % (name, str(exc)[:160]))
++    return report
++
++
++def release(kernel, principal):
++    """RESUME: HALT's hold lifted. Nothing is restarted; Stop all's hold, if any, stays its own."""
++    _owner_only(principal)
++    state = _write(kernel, principal, False, 'halt.release')
++    waiting = []
++    try:
++        from . import assignments as A
++        waiting = [r['title'] for r in A.listing(kernel, {'open': True, 'limit': 100}, principal)['assignments']
++                   if r['state'] in (A.HELD, A.STOPPED)]
++    except Exception:  # noqa: BLE001
++        pass
++    jobs_held = False
++    try:
++        from . import work_trail
++        jobs_held = bool(work_trail.work_status(kernel)['held'])
++    except Exception:  # noqa: BLE001
++        pass
++    return {'held': False, 'epoch': state['epoch'], 'waiting': waiting, 'jobs_held': jobs_held}
++
++
++# ---------------------------------------------------------------- her model's turns
++
++def guard_request(kernel, request):
++    """turns.request_for: while HALT holds, no turn is sent (each answer is its no-model fallback, "STOPPED"); a turn that
++    is running when HALT is pressed is closed through the request's own Stop (request.cancelled, read by the stream)."""
++    try:state = status(kernel)
++    except Exception:  # noqa: BLE001 - an unreadable hold changes nothing here
++        return request
++    if state['held']:
++        request.port = None;request.off_reason = 'STOPPED'
++    since = state['epoch'];before = getattr(request, 'cancelled', None) or (lambda: False)
++
++    def cancelled():
++        return bool(before()) or pressed_since(kernel, since)
++    request.cancelled = cancelled
++    try:_LIVE.add(request)
++    except TypeError:  # a request that cannot be watched is still guarded
++        pass
++    return request
++
++
++# ---------------------------------------------------------------- what Stop all spares
++
++def spared(pid, own_sid=None, environ=None):
++    """Stop all never ends the owner's programs: one started through the session's launch path (S1's session_launch), or
++    any process in a session of its own (how programs.* and the Apps start program windows). Graphite's helpers that
++    run in a session of their own are stopped by their own authority (jobs, workers, her model, consoles, debug tools)
++    or end at their own time limit (a confined run, a capture)."""
++    try:
++        from . import session_launch
++        if any(row.get('pid') == pid for row in session_launch.launched(environ)):return True
++    except Exception:  # noqa: BLE001
++        pass
++    try:
++        sid = os.getsid(pid);mine = own_sid if own_sid is not None else os.getsid(0)
++    except OSError:
++        return False
++    return sid != mine
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'halt.status':
++        value = status(kernel)
++        return {'held': value['held'], 'epoch': value['epoch'], 'at': value.get('at'), 'by': value.get('by'),
++                'words': 'HALT holds her managed work.' if value['held'] else 'HALT is not pressed.'}
++    if op == 'halt.press':return press(kernel, principal)
++    if op == 'halt.release':return release(kernel, principal)
++    raise ValueError('Unknown HALT operation')
+diff --git a/workbench/halt_qt.py b/workbench/halt_qt.py
+index 055c06c..7d98849 100644
+--- a/workbench/halt_qt.py
++++ b/workbench/halt_qt.py
+@@ -1,7 +1,8 @@
+ """HALT in the head's upper-left slot (1.0 P2), in every look: a triangle and the word HALT; RESUME while her work is held.
+ 
+ The press is halt.press(host) (hold her work, stop what of hers runs, stop her hand, say what was stopped); RESUME is
+-halt.release(host). The button reads the gate every two seconds, so a hold made elsewhere (Stop all) reads RESUME too.
++halt.release(host). The button reads HALT's own hold every two seconds (1.0 K3: Stop all's hold of Graphite's jobs is its
++own and no longer reads RESUME here).
+ 
+ Day (the owner's picture): a green triangle and the word HALT in the band's ink. Graphite: the triangle in its amber
+ stop colour, the word in the band's pale lettering. Kasandra: the triangle in her raspberry, the word in her typewriter
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index d9381dc..c843e50 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -111,7 +111,8 @@ STATES = {'idle': ('QUIET', '○', 'QUIET'), 'working': ('WORKING', '●', 'READ
+ # An assignment's state word (K1) -> its shape and colour name.
+ WORK_LOOK = {'working': ('●', 'READY'), 'ready': ('▸', 'TEXT'), 'waiting for your word': ('◆', 'OWNER'), 'held': ('■', 'RED'),
+              'interrupted': ('■', 'RED'), 'stopped by you': ('■', 'QUIET'), 'blocked': ('■', 'RED'), 'needs review': ('◆', 'OWNER'),
+-             'no steps yet': ('○', 'QUIET'), 'done': ('✓', 'HONEY')}
++             'no steps yet': ('○', 'QUIET'), 'done': ('✓', 'HONEY'),
++             'needs your grant': ('◆', 'OWNER')}      # 1.0 K3
+ # A finding's evidence state -> (word, shape, colour name), in the order they are shown.
+ FINDING_LOOK = (('REFUTED', ('REFUTED', '✕', 'RED')), ('CONTESTED', ('CONTESTED', '◆', 'OWNER')), ('SUPPORTED', ('SUPPORTED', '✓', 'READY')),
+                 ('UNKNOWN', ('OPEN', '?', 'QUIET')))
+@@ -982,6 +983,11 @@ class HerColumn(QObject):
+         outer.addWidget(face.scroll, 1)
+         outer.addWidget(self.work_line)
+         outer.addWidget(self.active)
++        try:      # 1.0 K3: the grants in force, and a grant asked for in plain words with its one press
++            from .grants_qt import GrantFold
++            self.grant_fold = GrantFold(self);outer.addWidget(self.grant_fold)
++        except Exception:  # noqa: BLE001 - the column is whole without it
++            self.grant_fold = None
+         outer.addWidget(self.found)
+         if related is not None:outer.addWidget(related)
+         outer.addWidget(self.next)
+@@ -1099,7 +1105,8 @@ class HerColumn(QObject):
+         kernel, owner = self.kernel()
+         listing = read(self.host, 'assignment.list', {'open': True, 'limit': 5}) or {}
+         rows = list(listing.get('assignments') or ())
+-        order = {'working': 0, 'waiting for your word': 1, 'needs review': 1, 'blocked': 1, 'interrupted': 1, 'held': 2, 'ready': 2}
++        order = {'working': 0, 'waiting for your word': 1, 'needs review': 1, 'blocked': 1, 'interrupted': 1, 'held': 2, 'ready': 2,
++                 'needs your grant': 1}      # 1.0 K3
+         rows.sort(key=lambda r: order.get(r.get('state_words'), 3))
+         self.rows = rows;compact = self.compact()
+         self.active.show_rows(rows, 2 if compact else 3, int(listing.get('total') or len(rows)), compact)
+@@ -1115,10 +1122,14 @@ class HerColumn(QObject):
+                     if gone.get('state') == 'done':moment(self.host, 'done', title)
+         self.seen_work = ids
+         try:
+-            from . import work_trail
+-            held = bool(work_trail.work_status(kernel).get('held'))      # Stop all and HALT hold her managed work (a read)
++            from . import halt_gate      # 1.0 K3: HALT's own hold (Stop all's hold of Graphite's jobs is not HALT)
++            held = bool(halt_gate.status(kernel).get('held'))
+         except Exception:  # noqa: BLE001 - a gate that cannot be read is not said to be HALT
+             held = bool(self.seen_held)
++        try:
++            if getattr(self, 'grant_fold', None) is not None:self.grant_fold.show_from(rows)      # 1.0 K3: grants, and a grant asked for
++        except Exception:  # noqa: BLE001
++            pass
+         if self.seen_held is not None and held and not self.seen_held:moment(self.host, 'halt')
+         self.seen_held = held
+         _ = (assignments, kernel, owner)
+@@ -1154,6 +1165,7 @@ class HerColumn(QObject):
+         """An Approve that waits for you, a fresh stop, her work (her model answering, a job, an assignment running), a
+         fresh outcome, the Agenda's count of what waits for you, else quiet (kasandra_art's order, with K1's assignments)."""
+         from .kasandra_art import column_state, current_state
++        if self.seen_held:return 'blocked'      # 1.0 K3: while HALT holds her work her state word is ■ STOPPED
+         try:
+             state = current_state(self.host)
+             if state in ('idle', 'viewing', 'completed') and any(r.get('state_words') == 'working' for r in self.rows):state = 'working'
+@@ -1219,6 +1231,8 @@ class HerColumn(QObject):
+                 self.carry(call, step.get('title', ''));return
+             done, why = press(self.host, call['operation'], call['arguments'])
+             self.say_words(say('press_done', words=call['words']) if done is not None else say('press_refused', why=why))
++            if done is not None and call.get('then'):      # 1.0 K3: one press: the grant, then carry on
++                self.carry(call['then'], step.get('title', ''));return
+             self.refresh(force=True);return
+         card = step.get('card')
+         if card and not self.select_card(card):return
+diff --git a/workbench/qt_master_stop.py b/workbench/qt_master_stop.py
+index cc0598d..90dedf2 100644
+--- a/workbench/qt_master_stop.py
++++ b/workbench/qt_master_stop.py
+@@ -331,7 +331,12 @@ class MasterStop(QObject):
+             excluded={r.pid for r in owned_tree([info['pid']])}
+             excluded.add(info['pid'])
+             refs=[r for r in refs if r.pid not in excluded]
+-        return refs
++        # 1.0 K3: Stop all stops Graphite's jobs, never your programs: a program started through the session's launch path,
++        # or any process in a session of its own (program windows), is spared (halt_gate.spared)
++        from .halt_gate import spared
++        try:mine=os.getsid(0)
++        except OSError:return refs
++        return [r for r in refs if not spared(r.pid,mine)]
+ 
+     def finished(self,report):
+         self.running=False;w=self.host
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index f616edc..4520404 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -1513,6 +1513,9 @@ def open_destination(host, destination):
+     if destination == 'agenda':
+         from .agenda_qt import show
+         return show(host)
++    if destination == 'grants':      # 1.0 K3: the Grants page
++        from .grants_qt import show
++        return show(host)
+     if destination == 'work_copy':
+         from .files_qt import show
+         tab = show(host);tab.work_on_copy();return tab
+diff --git a/workbench/tool_selection.py b/workbench/tool_selection.py
+index dd72909..40b72c0 100644
+--- a/workbench/tool_selection.py
++++ b/workbench/tool_selection.py
+@@ -17,7 +17,8 @@ STOP = {'a', 'an', 'the', 'and', 'or', 'of', 'to', 'in', 'on', 'for', 'with', 'f
+         'slate', 'ledger', 'make', 'get', 'use', 'using', 'then', 'now', 'all', 'any', 'some', 'what', 'which', 'how', 'when', 'where', 'why', 'open', 'existing',
+         'current', 'new', 'one', 'two', 'there', 'here', 'also', 'just', 'like', 'so', 'if', 'not', 'no', 'up', 'out', 'as', 'than', 'more', 'most', 'other', 'own',
+         'ledgers', 'controls', 'control', 'inspect', 'work', 'working', 'record', 'records', 'saved', 'read', 'list', 'status', 'result', 'results', 'thing', 'things'}
+-DENY = {'jobs.submit', 'ledger.settings.set', 'ledger.settings.undo', 'ledger.settings.restore', 'ledger.settings.apply', 'language.run', 'ledger.navigate', 'ledger.open'}
++DENY = {'jobs.submit', 'ledger.settings.set', 'ledger.settings.undo', 'ledger.settings.restore', 'ledger.settings.apply', 'language.run', 'ledger.navigate', 'ledger.open',
++        'grant.give', 'grant.revoke', 'halt.press', 'halt.release'}  # 1.0 K3: grants and HALT are your press, never the model's choice
+ GENERIC = {'get', 'list', 'status', 'read', 'result', 'results', 'preview', 'run', 'save', 'create', 'add', 'delete', 'update', 'check', 'commit', 'discard'}
+ PROGRAM_VERBS = {
+     'inspect': {'inspect', 'read', 'review', 'examine', 'identify'},
+diff --git a/workbench/tools_registry.py b/workbench/tools_registry.py
+index eab564f..d3904b4 100644
+--- a/workbench/tools_registry.py
++++ b/workbench/tools_registry.py
+@@ -92,6 +92,7 @@ MAX_INFERENCES = 8            # inferred receipts from one look at the windows
+ APP_WAIT_MS = 8000            # how long an App's window is looked for after it started
+ WINDOW_WAIT_S = 2             # how long a window action's effect is looked for
+ GRANT_CHECK = None            # K3 sets it: callable(kernel, tool, operation, arguments, principal) -> '' or why it needs a grant
++GRANTED = None                # 1.0 K3 sets it: callable(kernel, tool, operation, arguments, principal) -> the context around the dispatch
+ ACCESSIBILITY = None          # K7 sets it: callable(window_row) -> {'available', 'reason', 'title', 'text', 'buttons'}
+ ID = {'type': 'string', 'minLength': 32, 'maxLength': 32}
+ KEY = {'type': 'string', 'minLength': 1, 'maxLength': 64}
+@@ -904,7 +905,8 @@ class AppOpen(_asg.Check):
+         base = {'object': 'app:' + prepared['app'], 'by': 'process', 'how': 'observed', 'program': prepared['name']}
+         if prepared.get('seq') is not None:
+             from . import windows_x11
+-            watcher = windows_x11.shared();end = time.monotonic() + APP_WAIT_MS / 1000
++            from . import halt_gate      # 1.0 K3: HALT ends this wait at once; the App itself is yours and keeps running
++            watcher = windows_x11.shared();end = time.monotonic() + APP_WAIT_MS / 1000;since = halt_gate.epoch(kernel);halted = False
+             while True:
+                 look = watcher.observe(prepared['seq'])
+                 new = [e for e in look['events'] if e['event'] in ('a new window appeared', 'a new dialog appeared')]
+@@ -912,8 +914,12 @@ class AppOpen(_asg.Check):
+                 mine = [e for e in new if (rows.get(e['window']) or {}).get('pid') in pids]
+                 named = [e for e in new if prepared['name'].casefold() in (e.get('program') or '').casefold()
+                          or (e.get('program') or '').casefold() in prepared['name'].casefold() and e.get('program')]
+-                if mine or named or time.monotonic() >= end:break
++                halted = not (mine or named) and halt_gate.pressed_since(kernel, since)
++                if mine or named or halted or time.monotonic() >= end:break
+                 time.sleep(0.2)
++            if halted:      # 1.0 K3
++                raise _asg.NotVerified('you pressed HALT while its window was looked for: %s was started%s and is left running, not verified'
++                                       % (prepared['name'], (' (process %s runs)' % alive[0]) if alive else ''))
+             if mine:
+                 e = mine[0]
+                 return dict(base, revision=str(rows[e['window']].get('pid')), complete=True, window=e['window'], title=e['title'][:200],
+@@ -1216,7 +1222,9 @@ def use(kernel, tool, arguments, principal, origins=None, basis='owner_words', o
+         return finish('verified', 'already there; it was not made again: ' + found.get('words', ''),
+                       of_observation(key, op, arguments, dict(found, words='already there, not made again: ' + found.get('words', '')),
+                                      'verified', owner=owner))
+-    with holding(op, why or tool.words):
++    import contextlib
++    granted = GRANTED(kernel, tool, op, arguments, principal) if GRANTED is not None else contextlib.nullcontext()  # 1.0 K3: its permit
++    with holding(op, why or tool.words), granted:
+         answer = kernel.dispatch(op, arguments, principal)
+     if not answer.get('ok'):
+         message = str((answer.get('error') or {}).get('message') or 'refused')[:300]
+diff --git a/workbench/turns.py b/workbench/turns.py
+index dc6d6f4..17eb559 100644
+--- a/workbench/turns.py
++++ b/workbench/turns.py
+@@ -485,6 +485,11 @@ def request_for(kernel, principal, **options):
+             request.stopped = frozenset(model_account.stopped_kinds(kernel, principal.identity))
+         except Exception:  # noqa: BLE001 - an unreadable ledger stops nothing
+             request.stopped = frozenset()
++    try:      # 1.0 K3: while HALT holds, no turn is sent; a turn running when HALT is pressed is closed (its request's Stop)
++        from . import halt_gate
++        request = halt_gate.guard_request(kernel, request)
++    except Exception:  # noqa: BLE001 - the guard never stops a request from being made
++        pass
+     return request
+ 
+ 

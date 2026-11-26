@@ -92,6 +92,7 @@ MAX_INFERENCES = 8            # inferred receipts from one look at the windows
 APP_WAIT_MS = 8000            # how long an App's window is looked for after it started
 WINDOW_WAIT_S = 2             # how long a window action's effect is looked for
 GRANT_CHECK = None            # K3 sets it: callable(kernel, tool, operation, arguments, principal) -> '' or why it needs a grant
+GRANTED = None                # 1.0 K3 sets it: callable(kernel, tool, operation, arguments, principal) -> the context around the dispatch
 ACCESSIBILITY = None          # K7 sets it: callable(window_row) -> {'available', 'reason', 'title', 'text', 'buttons'}
 ID = {'type': 'string', 'minLength': 32, 'maxLength': 32}
 KEY = {'type': 'string', 'minLength': 1, 'maxLength': 64}
@@ -904,7 +905,8 @@ class AppOpen(_asg.Check):
         base = {'object': 'app:' + prepared['app'], 'by': 'process', 'how': 'observed', 'program': prepared['name']}
         if prepared.get('seq') is not None:
             from . import windows_x11
-            watcher = windows_x11.shared();end = time.monotonic() + APP_WAIT_MS / 1000
+            from . import halt_gate      # 1.0 K3: HALT ends this wait at once; the App itself is yours and keeps running
+            watcher = windows_x11.shared();end = time.monotonic() + APP_WAIT_MS / 1000;since = halt_gate.epoch(kernel);halted = False
             while True:
                 look = watcher.observe(prepared['seq'])
                 new = [e for e in look['events'] if e['event'] in ('a new window appeared', 'a new dialog appeared')]
@@ -912,8 +914,12 @@ class AppOpen(_asg.Check):
                 mine = [e for e in new if (rows.get(e['window']) or {}).get('pid') in pids]
                 named = [e for e in new if prepared['name'].casefold() in (e.get('program') or '').casefold()
                          or (e.get('program') or '').casefold() in prepared['name'].casefold() and e.get('program')]
-                if mine or named or time.monotonic() >= end:break
+                halted = not (mine or named) and halt_gate.pressed_since(kernel, since)
+                if mine or named or halted or time.monotonic() >= end:break
                 time.sleep(0.2)
+            if halted:      # 1.0 K3
+                raise _asg.NotVerified('you pressed HALT while its window was looked for: %s was started%s and is left running, not verified'
+                                       % (prepared['name'], (' (process %s runs)' % alive[0]) if alive else ''))
             if mine:
                 e = mine[0]
                 return dict(base, revision=str(rows[e['window']].get('pid')), complete=True, window=e['window'], title=e['title'][:200],
@@ -1216,7 +1222,9 @@ def use(kernel, tool, arguments, principal, origins=None, basis='owner_words', o
         return finish('verified', 'already there; it was not made again: ' + found.get('words', ''),
                       of_observation(key, op, arguments, dict(found, words='already there, not made again: ' + found.get('words', '')),
                                      'verified', owner=owner))
-    with holding(op, why or tool.words):
+    import contextlib
+    granted = GRANTED(kernel, tool, op, arguments, principal) if GRANTED is not None else contextlib.nullcontext()  # 1.0 K3: its permit
+    with holding(op, why or tool.words), granted:
         answer = kernel.dispatch(op, arguments, principal)
     if not answer.get('ok'):
         message = str((answer.get('error') or {}).get('message') or 'refused')[:300]

@@ -60,7 +60,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 L4: the revisions of files saved elsewhere, read each time the board is drawn; reading is not an event
  'revisions.list',
  # 1.0 K2: the registry of her tools, receipts, and a look at the windows, read when her column or a step is shown; reading is not an event
- 'tools.list','tools.receipts','windows.observe'})
+ 'tools.list','tools.receipts','windows.observe',
+ # 1.0 K3: the grants in force and a grant's words, read when her column or the Grants page is shown; HALT's state, read by its button
+ 'grant.list','grant.words','halt.status'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

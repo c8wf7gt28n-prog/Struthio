@@ -157,6 +157,8 @@ def may_change(kernel, path, principal):
     if not inside and 'approve' not in principal.scopes:
         from .working_copies import assigned_to_slate
         if assigned_to_slate(kernel, path):return  # a working copy you gave him is his to edit; the original is not
+        from .grants import permitted  # 1.0 K3: this one call is covered by a grant of yours (or your press on the step)
+        if permitted(kernel, path):return
 
         raise ValueError('FILES_OUTSIDE_SLATE_AREA: propose the change instead; the owner decides')
 

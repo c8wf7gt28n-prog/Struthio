@@ -17,7 +17,8 @@ STOP = {'a', 'an', 'the', 'and', 'or', 'of', 'to', 'in', 'on', 'for', 'with', 'f
         'slate', 'ledger', 'make', 'get', 'use', 'using', 'then', 'now', 'all', 'any', 'some', 'what', 'which', 'how', 'when', 'where', 'why', 'open', 'existing',
         'current', 'new', 'one', 'two', 'there', 'here', 'also', 'just', 'like', 'so', 'if', 'not', 'no', 'up', 'out', 'as', 'than', 'more', 'most', 'other', 'own',
         'ledgers', 'controls', 'control', 'inspect', 'work', 'working', 'record', 'records', 'saved', 'read', 'list', 'status', 'result', 'results', 'thing', 'things'}
-DENY = {'jobs.submit', 'ledger.settings.set', 'ledger.settings.undo', 'ledger.settings.restore', 'ledger.settings.apply', 'language.run', 'ledger.navigate', 'ledger.open'}
+DENY = {'jobs.submit', 'ledger.settings.set', 'ledger.settings.undo', 'ledger.settings.restore', 'ledger.settings.apply', 'language.run', 'ledger.navigate', 'ledger.open',
+        'grant.give', 'grant.revoke', 'halt.press', 'halt.release'}  # 1.0 K3: grants and HALT are your press, never the model's choice
 GENERIC = {'get', 'list', 'status', 'read', 'result', 'results', 'preview', 'run', 'save', 'create', 'add', 'delete', 'update', 'check', 'commit', 'discard'}
 PROGRAM_VERBS = {
     'inspect': {'inspect', 'read', 'review', 'examine', 'identify'},

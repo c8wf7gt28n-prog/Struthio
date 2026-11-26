@@ -78,10 +78,17 @@ MAX_STEPS = 32
 MAX_ARGUMENTS = 65536        # bytes of one step's arguments, canonical
 MAX_OUTPUT = 16384           # bytes of one step's named outputs and observation
 JOURNAL_SHOWN = 200          # journal rows a status carries
-NOT_HERE = ('assignment.', 'ledger.work.', 'jobs.recover', 'remote.disable')   # never a step: her own controls and the owner's
+NOT_HERE = ('assignment.', 'ledger.work.', 'jobs.recover', 'remote.disable', 'grant.', 'halt.')   # never a step: her own controls and the owner's (1.0 K3: grants and HALT)
 KEY_RE = re.compile(r'^[a-z][a-z0-9_]{0,31}$')
 FIELD_RE = re.compile(r'\{([a-z][a-z0-9_]{0,31})\}')
 GRANT_CHECK = None           # K3 sets it: callable(kernel, assignment, step, arguments, principal) -> '' or why
+# 1.0 K3 (grants and HALT): grants.install() sets these. GRANTED(kernel, assignment, step, arguments, principal) -> the context
+# around a step's own dispatch (the permit Files reads); AUTHORISE(kernel, id, principal, runner) authorises the proposed
+# steps a grant covers, or stops the reached one "needs your grant" (called outside this module's transactions);
+# GRANT_ACTION(kernel, assignment, next step, principal) -> the one press for a step that needs your grant, or None.
+GRANTED = None
+AUTHORISE = None
+GRANT_ACTION = None
 
 ID = {'type': 'string', 'minLength': 32, 'maxLength': 32}
 SHA = {'type': 'string', 'minLength': 64, 'maxLength': 64}
@@ -93,7 +100,7 @@ FIELDS = {
                          'authorise': {'type': 'array', 'items': {'type': 'string', 'minLength': 1, 'maxLength': 32}}}, ['id']),
     'assignment.step': ({'id': ID, 'until': {'type': 'string', 'enum': ['next', 'end']}}, ['id']),
     'assignment.status': ({'id': ID}, ['id']),
-    'assignment.stop': ({'id': ID}, ['id']),
+    'assignment.stop': ({'id': ID, 'why': {'type': 'string', 'enum': ['halt']}}, ['id']),  # 1.0 K3: why, when HALT stops it
     'assignment.resume': ({'id': ID, 'carry_on': {'type': 'boolean'}}, ['id']),
     'assignment.list': ({'limit': {'type': 'integer', 'minimum': 1, 'maximum': 100},
                          'offset': {'type': 'integer', 'minimum': 0, 'maximum': 100000}, 'open': {'type': 'boolean'}}, []),
@@ -719,7 +726,11 @@ def _run_lock(kernel, ident):
 
 def _gate(kernel):
     from . import work_trail
-    try:return work_trail.work_status(kernel)
+    try:
+        jobs = work_trail.work_status(kernel)
+        from . import halt_gate      # 1.0 K3: HALT's own hold, apart from Stop all's; her assignments obey both
+        mine = halt_gate.status(kernel)
+        return {'held': bool(jobs['held'] or mine['held']), 'epoch': (jobs['epoch'], mine['epoch']), 'halt': bool(mine['held'])}
     except Exception:  # noqa: BLE001 - a gate that cannot be read holds the work, as the Night Shift's does
         return {'held': True, 'epoch': -1}
 
@@ -739,6 +750,7 @@ def start(kernel, args, principal):
         _save(db, value, new=True)
         _journal(db, value, None, 'STARTED', 'You set the assignment: "%s"' % objective[:300], {'objective_digest': digest(objective)})
         if value['steps']:_journal(db, value, None, 'PLANNED', _planned_words(value['steps']), {'plan': plan_digest(value)})
+    if AUTHORISE is not None and value['steps']:AUTHORISE(kernel, ident, principal)      # 1.0 K3: what your grants cover
     return status(kernel, ident, principal)
 
 
@@ -774,6 +786,7 @@ def plan(kernel, args, principal):
             if args.get('expected_digest') != plan_digest(value):
                 raise ValueError('PLAN_CHANGED: authorise the plan as it is now (read it again; its digest changed)')
             said.extend(_authorise(db, value, args['authorise'], principal))
+    if AUTHORISE is not None and 'steps' in args:said.extend(AUTHORISE(kernel, args['id'], principal))      # 1.0 K3: what your grants cover
     result = status(kernel, args['id'], principal);result['said'] = said
     return result
 
@@ -864,6 +877,7 @@ def _run_one(kernel, ident, principal, epoch=None):
     began; a hold since then (even one lifted again) stops the run, as it stops the Night Shift's."""
     read = _reader(kernel, principal)
     gate = _gate(kernel)
+    if AUTHORISE is not None and not gate['held']:AUTHORISE(kernel, ident, principal, True)      # 1.0 K3: by your grant, or "needs your grant"
     with _writing(kernel) as db:
         value = _load(db, ident, principal)
         if value['state'] in (STOPPED, DONE):
@@ -939,7 +953,8 @@ def _run_one(kernel, ident, principal, epoch=None):
                 outcome = 'not sent'
             else:
                 from . import tools_registry  # 1.0 K2: a tool that writes a file holds off a suspend while it writes (S1's sleep lock)
-                with tools_registry.holding(step['operation'], step['title']):
+                granted = GRANTED(kernel, value, step, arguments, principal) if GRANTED is not None else contextlib.nullcontext()  # 1.0 K3
+                with tools_registry.holding(step['operation'], step['title']), granted:
                     answer = kernel.dispatch(step['operation'], arguments, _bounded(principal, step['scope']))
                 sent = True
                 if not answer.get('ok'):
@@ -1007,28 +1022,32 @@ def run(kernel, ident, principal, until='next'):
     return result
 
 
-def stop(kernel, ident, principal):
-    """Stopped by you: nothing more starts. A call already sent is recorded as it ends, never hidden."""
+def stop(kernel, ident, principal, why=None):
+    """Stopped by you: nothing more starts. A call already sent is recorded as it ends, never hidden. 1.0 K3: why='halt'
+    when HALT stopped it (the journal says so)."""
     with _writing(kernel) as db:
         value = _load(db, ident, principal)
         if value['state'] == DONE:raise ValueError('This assignment is done; there is nothing to stop')
         in_flight = [s for s in value['steps'] if s['status'] == 'running']
-        value.update(state=STOPPED, reason=STOPPED_BY_YOU, stopped={'by': principal.identity, 'at': time.time()})
+        value.update(state=STOPPED, reason=STOPPED_BY_YOU, stopped={'by': principal.identity, 'at': time.time(), **({'why': why} if why else {})})
         _save(db, value)
-        _journal(db, value, None, 'STOPPED', _stopped_words(value, _entries(db, ident), in_flight))
+        _journal(db, value, None, 'STOPPED', _stopped_words(value, _entries(db, ident), in_flight, halt=why == 'halt'))
     return status(kernel, ident, principal)
 
 
-def _stopped_words(value, entries, in_flight):
-    """Stopped by you, with what was done, what was only prepared and what did not start."""
+def _stopped_words(value, entries, in_flight, halt=False):
+    """Stopped by you, with what was done, what was only prepared and what did not start. 1.0 K3: halt, by your HALT."""
     says = journal_says(value, entries)
     running = [s['n'] for s in in_flight if _alive(s.get('runner'))]
     done = [s['n'] for s in value['steps'] if s['status'] == 'done']
-    words = 'Stopped by you. ' + ('Done (verified): %s. ' % _steps(done) if done else 'Nothing was done yet. ')
+    words = ('Stopped by you with HALT. ' if halt else 'Stopped by you. ') + ('Done (verified): %s. ' % _steps(done) if done else 'Nothing was done yet. ')
     prepared = [s['n'] for s in value['steps'] if says.get(s['key'], '').startswith('prepared') and s['n'] not in running]
     if prepared:words += 'Prepared, not done: %s. ' % _steps(prepared)
-    if running:words += 'Step %d was running: what it does is recorded as it ends. ' % running[0]
-    rest = [s['n'] for s in value['steps'] if s['status'] != 'done' and s['n'] not in prepared and s['n'] not in running]
+    if running:words += 'Step %d was running%s: what it does is recorded as it ends. ' % (running[0], ' when you pressed HALT' if halt else '')
+    sent = [s['n'] for s in value['steps'] if s['status'] != 'done' and s['n'] not in prepared and s['n'] not in running
+            and says.get(s['key'], '').startswith(('sent', 'refused', 'done, changed'))]      # 1.0 K3: sent is never "not started"
+    if sent:words += 'Sent, not verified: %s. ' % _steps(sent)
+    rest = [s['n'] for s in value['steps'] if s['status'] != 'done' and s['n'] not in prepared and s['n'] not in running and s['n'] not in sent]
     if rest:words += 'Not started: %s.' % _steps(rest)
     return words.strip()
 
@@ -1137,7 +1156,7 @@ def journal_says(value, entries):
     out = {}
     for step in value['steps']:
         entry = last.get(step['key'])
-        if entry == 'BLOCKED' and step['status'] != 'blocked':entry = None
+        if entry in ('BLOCKED', 'NEEDS_GRANT') and step['status'] != 'blocked':entry = None      # 1.0 K3: NEEDS_GRANT too
         out[step['key']] = SAYS[entry] if entry else step['status']
     return out
 
@@ -1153,6 +1172,8 @@ def _state_words(value):
     if value['state'] == RUNNING:return 'interrupted' if _interrupted(value) else 'working'
     statuses = [s['status'] for s in value['steps']]
     if 'needs review' in statuses:return 'needs review'
+    if any(s['status'] == 'blocked' and str(s.get('reason', '')).startswith('needs your grant') for s in value['steps']):
+        return 'needs your grant'      # 1.0 K3
     if 'blocked' in statuses:return 'blocked'
     step = _next(value)
     if step is None:return 'no steps yet'
@@ -1202,22 +1223,32 @@ def status(kernel, ident, principal):
     if words == 'interrupted':
         running = next((s for s in value['steps'] if s['status'] == 'running'), None)
         line = 'Graphite stopped while step %d was prepared; nothing after it ran. Resume inspects it first.' % running['n'] if running else 'Interrupted.'
-    elif value['state'] == STOPPED:line = _stopped_words(value, entries, [s for s in value['steps'] if s['status'] == 'running'])
+    elif value['state'] == STOPPED:line = _stopped_words(value, entries, [s for s in value['steps'] if s['status'] == 'running'],
+                                                         halt=(value.get('stopped') or {}).get('why') == 'halt')      # 1.0 K3
     elif value['state'] == HELD:line = value['reason']
     elif value['state'] == DONE:line = 'Every step is done (verified).'
     elif nxt is None:line = 'No steps are planned yet.'
     elif nxt['status'] == 'proposed':line = 'Step %d (%s) waits for your word.' % (nxt['n'], nxt['title'])
+    elif nxt['status'] == 'blocked' and str(nxt['reason']).startswith('needs your grant: '):      # 1.0 K3
+        line = 'Step %d (%s) needs your grant: %s. Nothing was sent.' % (nxt['n'], nxt['title'], nxt['reason'][len('needs your grant: '):])
     elif nxt['status'] in ('blocked', 'needs review'):line = 'Step %d %s: %s' % (nxt['n'], nxt['status'], nxt['reason'])
     elif nxt['status'] == 'running':line = 'Step %d of %d: %s, %s left.' % (nxt['n'], len(value['steps']), nxt['title'], clock_words(timings[nxt['n'] - 1][1]))
     else:line = 'Step %d (%s) is ready.' % (nxt['n'], nxt['title'])
     stop_call = {'operation': 'assignment.stop', 'arguments': {'id': value['id']}} if value['state'] not in (DONE, STOPPED) else None
+    actions = _actions(value, words, nxt, stop_call)
+    if GRANT_ACTION is not None and value['state'] not in (DONE, STOPPED, HELD):      # 1.0 K3: "Grant this for this assignment"
+        try:
+            one = GRANT_ACTION(kernel, value, nxt, principal)
+            if one:actions.insert(0, one)
+        except Exception:  # noqa: BLE001 - the press is offered when it can be worded; the step still says it needs your grant
+            pass
     return {'schema': SCHEMA, 'id': value['id'], 'title': value['title'], 'objective': value['objective'], 'state': value['state'],
             'state_words': words, 'state_word': words.upper(), 'line': line, 'revision': value['revision'],
             'created': value['created'], 'updated': value['updated'], 'plan_digest': plan_digest(value), 'steps': steps,
             'journal_says': (summary[0].upper() + summary[1:] + '.') if summary else 'No steps yet.',
             'journal': entries[-JOURNAL_SHOWN:], 'journal_intact': all(e['intact'] for e in entries),
             'progress': percent, 'time_left_ms': left, 'time_left': clock_words(left), 'interrupted': words == 'interrupted',
-            'stop': stop_call, 'actions': _actions(value, words, nxt, stop_call),
+            'stop': stop_call, 'actions': actions,
             'authority': 'A read never asks; every change waits for your press; nothing is done until its effect is verified.'}
 
 
@@ -1275,7 +1306,7 @@ def dispatch(kernel, op, args, principal):
     if op == 'assignment.plan':return plan(kernel, args, principal)
     if op == 'assignment.step':return run(kernel, args['id'], principal, args.get('until', 'next'))
     if op == 'assignment.status':return status(kernel, args['id'], principal)
-    if op == 'assignment.stop':return stop(kernel, args['id'], principal)
+    if op == 'assignment.stop':return stop(kernel, args['id'], principal, args.get('why'))      # 1.0 K3: why
     if op == 'assignment.resume':return resume(kernel, args['id'], principal, args.get('carry_on', True))
     if op == 'assignment.list':return listing(kernel, args, principal)
     raise ValueError('Unknown assignment operation')

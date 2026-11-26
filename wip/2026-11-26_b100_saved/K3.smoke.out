@@ -1,0 +1,67 @@
+Rail Demo built through its own door in 8 s (invented data)
+
+== A. "edit files in Rail Demo/notes, for this assignment": the note step runs, a step on the readings is refused ==
+  planned: 1 Read the Rail Demo bench readings [authorised] | 2 Write a note of the readings in Rail Demo/notes [proposed] | 3 Set the settled current on the readings to 300 [proposed]
+PASS  before any grant: the note step and the readings step wait for your word (proposed)  [Step 1 (Read the Rail Demo bench readings) is ready.]
+  the grant as shown before your press: "edit files in Rail Demo/notes, for this assignment (“Rail Demo: a note, and the readings”)"
+PASS  the grant is shown in plain words before approval  [edit files in Rail Demo/notes, for this assignment (“Rail Demo: a note, and the readings”)]
+PASS  her bounded authority (read, execute: what her steps run with) cannot give a grant  [Operation is outside the authorized mode/scope]
+PASS  nor can Tutor mode  [Operation is outside the authorized mode/scope]
+PASS  the words shown cannot be widened afterwards: a wider folder with the digest of the narrower words is refused  [GRANT_CHANGED: these are not the words you were shown; read the grant again]
+PASS  no grant for office.datasheet.recheck (the floor): the records mark office.datasheet.recheck for your approval: it is authorised by its own n  [GRANT_APPROVE]
+PASS  no grant for network.fetch (the floor): what is sent off this computer asks you every time; it is never granted  [GRANT_SENDS]
+PASS  no grant for assignment.stop (the floor): assignment.stop is one of her own controls or yours; it is never granted  [GRANT_OWN_CONTROLS]
+PASS  no grant for files.get (the floor): files.get only reads; reading needs no grant  [GRANT_READ]
+PASS  grant.give is never a step of an assignment  [PLAN_OPERATION: grant.give is not a step of an assignment]
+PASS  grant.give, grant.revoke, halt.press and halt.release are never offered to the model's plan
+PASS  a grant is never given from inside her work (a call made while a step is being dispatched)  [GRANT_IS_YOURS: a grant is never given or ended from inside her work]
+  You gave a grant: edit files in Rail Demo/notes, for this assignment (“Rail Demo: a note, and the readings”). Step 2 (Write a note of the readings in Rail Demo/notes) is authorised by your grant: edit files in Rail Demo/notes, for this assignment (“Rail Demo: a note, and the readings”).
+PASS  your press gives it, in exactly the words shown; the note step is authorised by it (the journal says so)  [['Step 2 (Write a note of the readings in Rail Demo/notes) is authorised by your grant: edit files in Rail Demo/notes, for this assignment (“Rail Demo: a note, and the readings”).']]
+PASS  the readings step is not covered by it and still waits
+  ran: Step 1 done (verified): Read the Rail Demo bench readings. read, and read again: the same revision | Step 2 done (verified): Write a note of the readings in Rail Demo/notes. a new file: the file on disk has the digest 2116cca2daf3 | Step 3 blocked: needs your grant: set values on the sheet “Rail Demo bench readings”; your grants here: edit files in Rail Demo/notes
+PASS  step 1 (read) done (verified)  [done (verified)]
+PASS  the note step ran under the grant and is done (verified): the note is on disk in Rail Demo/notes, outside her own area  [('done (verified)', 'a new file: the file on disk has the digest 2116cca2daf3')]
+PASS  the step on the readings stops as "needs your grant", with what it would do and where, and nothing was sent  [needs your grant: set values on the sheet “Rail Demo bench readings”; your grants here: edit files in Rail Demo/notes]
+PASS  its journal says so (NEEDS_GRANT); the assignment reads "needs your grant"  [('needs your grant', 'Step 3 (Set the settled current on the readings to 300) needs your grant: set values on the sheet “Rail Demo bench readings”; your grants here: edit files in Rail Demo/notes. Nothing was sent.')]
+PASS  one press is offered: "Grant this for this assignment", with the grant in plain words  [set values on the sheet “Rail Demo bench readings”, for this assignment (“Rail Demo: a note, and the readings”)]
+PASS  the Grants list shows the grant in force with its use, and the step that waits for a grant  [[('edit files in Rail Demo/notes, for this assignment (“Rail Demo: a note, and the readings”)', 1)]]
+PASS  tools.use of the file tool in Rail Demo/notes, outside that assignment: "needs your grant", nothing sent  [needs your grant: write files in Rail Demo/notes; no grant of yours is in force here. Nothing was sent.]
+PASS  in her own area (Files/Slate) the same tool is let through, as the Files rules always did, and verified  [a new file: the file on disk has the digest 73cb3858a687]
+  You gave a grant: set values on the sheet “Rail Demo bench readings”, for this assignment (“Rail Demo: a note, and the readings”). Step 3 (Set the settled current on the readings to 300) is authorised by your grant: set values on the sheet “Rail Demo bench readings”, for this assignment (“Rail Demo: a note, and the readings”).
+PASS  after the one press the readings step runs and is done (verified): B3 holds 300  [('done', 'done (verified)', '300')]
+PASS  with the assignment done, both of its grants have ended ("its assignment is done")  [[('set values on the sheet “Rail Demo bench readings”', 'its assignment is done'), ('edit files in Rail Demo/notes, for this assignment', 'its assignment is done')]]
+PASS  a grant until a time reaches the file tool while it lasts (verified on disk)  [('edit files in Rail Demo/drafts, until 26 Nov 2026, 07:38', 'a new file: the file on disk has the digest 7eb2ca55b87a')]
+PASS  a time already past is refused  [until a time still to come (whole milliseconds)]
+PASS  Revoke ends it at once: the next use needs your grant; what was done stays (the first draft is still there)  [You revoked a grant: edit files in Rail Demo/drafts, until 26 Nov 2026, 07:38. What was done under it stays done, with i]
+
+== B. HALT during a running step; the desktop and a stand-in program keep running ==
+PASS  the desktop stand-ins are up: an X server and a window manager with one program window  [:0]
+PASS  her model turn request before HALT: not stopped
+PASS  step 2 is running: the App was started and its window is being looked for  [Step 2 of 3: Open the Rail Demo logger, 00:04 left.]
+  HALT: {"stopped": ["Rail Demo: open the logger"], "held_work": ["Rail Demo: the limits, waiting"], "turns": 0, "jobs": [], "hooks": ["a stand-in sandbox was stopped"], "errors": []}
+    journal: DONE         Step 1 done (verified): Read the Rail Demo bench readings. read, and read again: the same revision
+    journal: PREPARED     Step 2 prepared: Open the Rail Demo logger, open an App on the record rail-demo-logger.desktop, for this assignment.
+    journal: SENT         Step 2 sent; checking it now.
+    journal: STOPPED      Stopped by you with HALT. Done (verified): step 1. Step 2 was running when you pressed HALT: what it does is recorded as it ends. Not started: step 3.
+    journal: NOT_VERIFIED Step 2 was sent and is not verified: you pressed HALT while its window was looked for: Rail Demo logger was started (process 63 runs) and is left running, not verified. It is not called done.
+PASS  HALT stopped the running step at once (the App's window was no longer waited for)  [0.1 s]
+PASS  the journal says so: stopped by you with HALT, step 1 done (verified), step 2 was running when you pressed HALT  [Stopped by you with HALT. Done (verified): step 1. Step 2 was running when you pressed HALT: what it does is recorded as it ends. Not started: step 3.]
+PASS  step 2 is recorded as it ended: sent, not verified ("you pressed HALT"), never "done"  [('sent, not verified', 'you pressed HALT while its window was looked for: Rail Demo logger was started (process 63 runs) and is left running, not verified')]
+PASS  step 3 was not started (its effect never sent)  [authorised]
+PASS  the other open assignment is held, and its journal says what was done and what was only prepared  [Held by your HALT: resume it once the hold is lifted.]
+PASS  a sandbox's stop hook ran (K6 will register its sandboxes here)
+PASS  her model's turn is closed: the request made before HALT reads stopped
+PASS  while HALT holds, no model turn is sent: an ask answers from the desk ("STOPPED", not sent)  [('NOT_SENT', 'STOPPED')]
+PASS  the stand-in program keeps running after HALT  [[63]]
+PASS  the desktop keeps running: the X server and the window manager are alive
+PASS  the program window on the desktop is still there  [['Rail Demo summary.odt - LibreOffice Writer']]
+PASS  HALT did not hold Graphite's own jobs (Stop all's gate is open); HALT reads its own hold  [{'held': False, 'epoch': 0}]
+PASS  HALT is your press: her bounded authority cannot press or lift it  [Operation is outside the authorized mode/scope]
+PASS  RESUME lifts HALT's hold only and restarts nothing (the assignment stays stopped, Resume offered)  [({'held': False, 'epoch': 2, 'waiting': ['Rail Demo: open the logger', 'Rail Demo: the limits, waiting'], 'jobs_held': False}, 'stopped by you')]
+PASS  its own Resume inspects first and never opens the App twice by itself  [Step 1 checked: its output is still there (read, and read again: the same revision); it is not done again.]
+PASS  Stop all's hold is its own: HALT does not read it as held
+PASS  Stop all spares a program in a session of its own and one started through the launch path; a plain child is still stopped  [{'own session spared': True, 'plain child stopped': True}]
+XIO:  fatal IO error 0 (Success) on X server ":0"
+      after 33 requests (28 known processed) with 0 events remaining.
+
+47 of 47 checks passed

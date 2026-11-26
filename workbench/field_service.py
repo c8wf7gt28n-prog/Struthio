@@ -184,7 +184,13 @@ def set_cell(kernel, principal, ident, cell, value, expected):
     if was == now:
         raise ValueError('%s already says %s' % (cell, held.get('value')))
     cells[cell] = {**held, 'value': str(value).strip().replace(',', '')}
-    saved = kernel.dispatch('office.save', {'id': record, 'expected_revision': expected, 'document': document}, principal)
+    save_as = principal
+    if 'approve' not in principal.scopes:      # 1.0 K3: a grant of yours on this very sheet (or your press on the step) lets this one save through
+        from .grants import permitted_object
+        if permitted_object(kernel, 'field.set', record):
+            from .engineering_kernel import Principal
+            save_as = Principal(principal.identity, frozenset(principal.scopes) | {'approve'}, principal.paths, principal.tools, principal.mode)
+    saved = kernel.dispatch('office.save', {'id': record, 'expected_revision': expected, 'document': document}, save_as)
     if not saved.get('ok'):
         raise ValueError('The sheet was not saved: ' + str((saved.get('error') or {}).get('message'))[:200])
     unit = str(held.get('unit') or '').strip()

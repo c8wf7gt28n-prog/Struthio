@@ -111,7 +111,8 @@ STATES = {'idle': ('QUIET', '○', 'QUIET'), 'working': ('WORKING', '●', 'READ
 # An assignment's state word (K1) -> its shape and colour name.
 WORK_LOOK = {'working': ('●', 'READY'), 'ready': ('▸', 'TEXT'), 'waiting for your word': ('◆', 'OWNER'), 'held': ('■', 'RED'),
              'interrupted': ('■', 'RED'), 'stopped by you': ('■', 'QUIET'), 'blocked': ('■', 'RED'), 'needs review': ('◆', 'OWNER'),
-             'no steps yet': ('○', 'QUIET'), 'done': ('✓', 'HONEY')}
+             'no steps yet': ('○', 'QUIET'), 'done': ('✓', 'HONEY'),
+             'needs your grant': ('◆', 'OWNER')}      # 1.0 K3
 # A finding's evidence state -> (word, shape, colour name), in the order they are shown.
 FINDING_LOOK = (('REFUTED', ('REFUTED', '✕', 'RED')), ('CONTESTED', ('CONTESTED', '◆', 'OWNER')), ('SUPPORTED', ('SUPPORTED', '✓', 'READY')),
                 ('UNKNOWN', ('OPEN', '?', 'QUIET')))
@@ -982,6 +983,11 @@ class HerColumn(QObject):
         outer.addWidget(face.scroll, 1)
         outer.addWidget(self.work_line)
         outer.addWidget(self.active)
+        try:      # 1.0 K3: the grants in force, and a grant asked for in plain words with its one press
+            from .grants_qt import GrantFold
+            self.grant_fold = GrantFold(self);outer.addWidget(self.grant_fold)
+        except Exception:  # noqa: BLE001 - the column is whole without it
+            self.grant_fold = None
         outer.addWidget(self.found)
         if related is not None:outer.addWidget(related)
         outer.addWidget(self.next)
@@ -1099,7 +1105,8 @@ class HerColumn(QObject):
         kernel, owner = self.kernel()
         listing = read(self.host, 'assignment.list', {'open': True, 'limit': 5}) or {}
         rows = list(listing.get('assignments') or ())
-        order = {'working': 0, 'waiting for your word': 1, 'needs review': 1, 'blocked': 1, 'interrupted': 1, 'held': 2, 'ready': 2}
+        order = {'working': 0, 'waiting for your word': 1, 'needs review': 1, 'blocked': 1, 'interrupted': 1, 'held': 2, 'ready': 2,
+                 'needs your grant': 1}      # 1.0 K3
         rows.sort(key=lambda r: order.get(r.get('state_words'), 3))
         self.rows = rows;compact = self.compact()
         self.active.show_rows(rows, 2 if compact else 3, int(listing.get('total') or len(rows)), compact)
@@ -1115,10 +1122,14 @@ class HerColumn(QObject):
                     if gone.get('state') == 'done':moment(self.host, 'done', title)
         self.seen_work = ids
         try:
-            from . import work_trail
-            held = bool(work_trail.work_status(kernel).get('held'))      # Stop all and HALT hold her managed work (a read)
+            from . import halt_gate      # 1.0 K3: HALT's own hold (Stop all's hold of Graphite's jobs is not HALT)
+            held = bool(halt_gate.status(kernel).get('held'))
         except Exception:  # noqa: BLE001 - a gate that cannot be read is not said to be HALT
             held = bool(self.seen_held)
+        try:
+            if getattr(self, 'grant_fold', None) is not None:self.grant_fold.show_from(rows)      # 1.0 K3: grants, and a grant asked for
+        except Exception:  # noqa: BLE001
+            pass
         if self.seen_held is not None and held and not self.seen_held:moment(self.host, 'halt')
         self.seen_held = held
         _ = (assignments, kernel, owner)
@@ -1154,6 +1165,7 @@ class HerColumn(QObject):
         """An Approve that waits for you, a fresh stop, her work (her model answering, a job, an assignment running), a
         fresh outcome, the Agenda's count of what waits for you, else quiet (kasandra_art's order, with K1's assignments)."""
         from .kasandra_art import column_state, current_state
+        if self.seen_held:return 'blocked'      # 1.0 K3: while HALT holds her work her state word is ■ STOPPED
         try:
             state = current_state(self.host)
             if state in ('idle', 'viewing', 'completed') and any(r.get('state_words') == 'working' for r in self.rows):state = 'working'
@@ -1219,6 +1231,8 @@ class HerColumn(QObject):
                 self.carry(call, step.get('title', ''));return
             done, why = press(self.host, call['operation'], call['arguments'])
             self.say_words(say('press_done', words=call['words']) if done is not None else say('press_refused', why=why))
+            if done is not None and call.get('then'):      # 1.0 K3: one press: the grant, then carry on
+                self.carry(call['then'], step.get('title', ''));return
             self.refresh(force=True);return
         card = step.get('card')
         if card and not self.select_card(card):return

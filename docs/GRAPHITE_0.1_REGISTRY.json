@@ -248,6 +248,13 @@
    "goals.get": "workbench/goals.py#dispatch",
    "goals.keep": "workbench/goals.py#dispatch",
    "goals.list": "workbench/goals.py#dispatch",
+   "grant.give": "workbench/grants.py#dispatch",
+   "grant.list": "workbench/grants.py#dispatch",
+   "grant.revoke": "workbench/grants.py#dispatch",
+   "grant.words": "workbench/grants.py#dispatch",
+   "halt.press": "workbench/halt_gate.py#dispatch",
+   "halt.release": "workbench/halt_gate.py#dispatch",
+   "halt.status": "workbench/halt_gate.py#dispatch",
    "hardware.checks.inspect": "workbench/hardware_coverage.py#dispatch",
    "hardware.component_nets": "workbench/agent_operations.py#dispatch",
    "hardware.coverage.inspect": "workbench/hardware_coverage.py#dispatch",
@@ -1068,9 +1075,9 @@
   }
  },
  "counts": {
-  "adapters": 870,
+  "adapters": 877,
   "job_tools": 113,
-  "operations": 870,
+  "operations": 877,
   "settings": 48
  },
  "formulas": {
@@ -1852,9 +1859,10 @@
    "scope": "execute"
   },
   "assignment.stop": {
-   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+   "arguments": "2787fb1fa8c7bcbda1dea36b14fd6a7040be6bd18e752402200f4aab915233c2",
    "properties": {
-    "id": "1a75c379fb0fafe6"
+    "id": "1a75c379fb0fafe6",
+    "why": "e4d9a4a2f8276da9"
    },
    "scope": "execute"
   },
@@ -3478,6 +3486,63 @@
    "properties": {
     "all": "7cb541e84f226754"
    },
+   "scope": "read"
+  },
+  "grant.give": {
+   "arguments": "e5f9137d013c26d775a423880b4f04a6d76d0a18acc0cfe1e221e89e77afc466",
+   "properties": {
+    "assignment": "1a75c379fb0fafe6",
+    "expected_digest": "7e3f7236ab75c8d7",
+    "folder": "333f67ffab65d3ef",
+    "object": "52ba84a4bbf396ba",
+    "operation": "1a859664cdda99f2",
+    "scope": "000bf0165dbbbb89",
+    "step": "7f098ef8f5620bd8",
+    "until": "6c3f0c5ba8d4409e"
+   },
+   "scope": "approve"
+  },
+  "grant.list": {
+   "arguments": "e89764b6cb889100b0f5aacc2d8b346ad097b4802449fdf6976a1f6a762a63b8",
+   "properties": {
+    "all": "7cb541e84f226754",
+    "assignment": "1a75c379fb0fafe6",
+    "waiting": "7cb541e84f226754"
+   },
+   "scope": "read"
+  },
+  "grant.revoke": {
+   "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+   "properties": {
+    "id": "1a75c379fb0fafe6"
+   },
+   "scope": "approve"
+  },
+  "grant.words": {
+   "arguments": "512eb10305fbfc4db5320f2e4fcc801f9777cd87aa83b2f0ed512e42ae23f6e1",
+   "properties": {
+    "assignment": "1a75c379fb0fafe6",
+    "folder": "333f67ffab65d3ef",
+    "object": "52ba84a4bbf396ba",
+    "operation": "1a859664cdda99f2",
+    "scope": "000bf0165dbbbb89",
+    "until": "6c3f0c5ba8d4409e"
+   },
+   "scope": "read"
+  },
+  "halt.press": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "approve"
+  },
+  "halt.release": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "approve"
+  },
+  "halt.status": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
    "scope": "read"
   },
   "hardware.checks.inspect": {
@@ -8553,7 +8618,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "36958820e9c87c90432d90b937fb4fe3f559ff315e74b58f843bcf259725039c",
+ "schema_digest": "cd95a0c6d725d8c35a57dd0b261df378f90e0a728b3c6ee20040350099611133",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

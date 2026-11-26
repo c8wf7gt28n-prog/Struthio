@@ -1,7 +1,8 @@
 """HALT in the head's upper-left slot (1.0 P2), in every look: a triangle and the word HALT; RESUME while her work is held.
 
 The press is halt.press(host) (hold her work, stop what of hers runs, stop her hand, say what was stopped); RESUME is
-halt.release(host). The button reads the gate every two seconds, so a hold made elsewhere (Stop all) reads RESUME too.
+halt.release(host). The button reads HALT's own hold every two seconds (1.0 K3: Stop all's hold of Graphite's jobs is its
+own and no longer reads RESUME here).
 
 Day (the owner's picture): a green triangle and the word HALT in the band's ink. Graphite: the triangle in its amber
 stop colour, the word in the band's pale lettering. Kasandra: the triangle in her raspberry, the word in her typewriter

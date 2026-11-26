@@ -1513,6 +1513,9 @@ def open_destination(host, destination):
     if destination == 'agenda':
         from .agenda_qt import show
         return show(host)
+    if destination == 'grants':      # 1.0 K3: the Grants page
+        from .grants_qt import show
+        return show(host)
     if destination == 'work_copy':
         from .files_qt import show
         tab = show(host);tab.work_on_copy();return tab

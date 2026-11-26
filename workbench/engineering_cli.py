@@ -123,6 +123,8 @@ def schemas():
     from .depths import FIELDS as DEPTH_FIELDS  # 1.0 L4 (depths): revisions.record, revisions.list
     from .tools_registry import FIELDS as TOOLS_REGISTRY_FIELDS  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
     from .office_bridge import FIELDS as OFFICE_BRIDGE_FIELDS  # 1.0 K5 (LibreOffice, from the inside): libreoffice.status, .read, .find, .prepare, .replace, .cell
+    from .grants import FIELDS as GRANT_FIELDS  # 1.0 K3 (grants and HALT): grant.words, .list, .give, .revoke
+    from .halt_gate import FIELDS as HALT_FIELDS  # 1.0 K3 (grants and HALT): halt.status, .press, .release
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -247,6 +249,8 @@ def schemas():
         **DEPTH_FIELDS,  # 1.0 L4 (depths): revisions.record, revisions.list
         **TOOLS_REGISTRY_FIELDS,  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
         **OFFICE_BRIDGE_FIELDS,  # 1.0 K5 (LibreOffice, from the inside): libreoffice.status, .read, .find, .prepare, .replace, .cell
+        **GRANT_FIELDS,  # 1.0 K3 (grants and HALT): grant.words, .list, .give, .revoke
+        **HALT_FIELDS,  # 1.0 K3 (grants and HALT): halt.status, .press, .release
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

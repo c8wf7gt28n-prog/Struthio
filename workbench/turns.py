@@ -485,6 +485,11 @@ def request_for(kernel, principal, **options):
             request.stopped = frozenset(model_account.stopped_kinds(kernel, principal.identity))
         except Exception:  # noqa: BLE001 - an unreadable ledger stops nothing
             request.stopped = frozenset()
+    try:      # 1.0 K3: while HALT holds, no turn is sent; a turn running when HALT is pressed is closed (its request's Stop)
+        from . import halt_gate
+        request = halt_gate.guard_request(kernel, request)
+    except Exception:  # noqa: BLE001 - the guard never stops a request from being made
+        pass
     return request
 
 
