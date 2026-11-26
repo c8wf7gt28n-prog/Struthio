@@ -134,7 +134,31 @@ downgrades (0.8.7's preview would have downgraded 11 to 32 packages and then fai
 
 ## The walkthroughs
 
-<!-- R2: fill from X3, X4 and X1 -->
+Your question "should we simulate general user operations instead of the same rail tests?" became two sets of twelve
+sessions, walked in the window under a stand-in display, each with frames and a plain account
+(`wip/2026-11-26_b100_saved/X3.account.md`, `X4.account.md`, `X1.account.md` in the source).
+
+- **Everyday (twelve sessions, invented Home):** first start with no model; Taxes 2026 made, three PDFs moved in, one
+  renamed, Undo; photos copied off a USB stick and the stick ejected safely; a letter written in LibreOffice through
+  Apps and an outside save noticed as revision 2; "what did we spend on groceries this month?" answered 244.65 exactly,
+  with its receipt; Downloads tidied in 16 verified steps and put back; the web offline (blocked) and online (the
+  planted line held back); two apps, the dock and a notification; Settings; HALT mid-task and RESUME with nothing done
+  twice; Log out with apps open, each asked politely. Her hand in an app was walked by the power-user set and the day.
+- **Power user (twelve sessions, a busy invented Home with 205 files in Downloads and a 300-record desk):** lines and the
+  Terminal; Search; bulk files; three tasks at once under different permissions with HALT; split and recheck; a sandbox
+  utility; her hand across Calc and Writer with a touch stopping her; the network adversarial; Graphite killed
+  mid-task and brought back by the supervisor with the apps still open; the board at scale; her model's tuning sweep;
+  two screens, a busy drive, and a pass by keyboard alone.
+- **The paper's §18 day** on Rail Demo, following your acceptance page step by step, with the real 4B loaded: her
+  review answered from the desk's findings ("So I cannot call it sufficient"), the worksheet beside the specification,
+  the settled current changed to 300 mA, the out-of-date summary noticed by her, the page and the report updated through
+  LibreOffice and verified, "Every step is done (verified)", and the journal intact after a restart.
+
+What these walks found was fixed in place where it was small, and in four slices where it was not: her reach in Home
+(reading your documents' pages, file tools for her plans, one press for a folder's permissions), the walkthroughs'
+faults (a cut-short fetch is never "done"; a permission given under HALT carries its task after RESUME; TRACE on the
+focused finding; her column true after a restart; the long stalls moved off the window's thread; Search opening the
+board), bulk files (many rows at once with one Undo for the batch), and the polish pass.
 
 ## What was measured, and what was not
 
