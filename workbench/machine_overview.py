@@ -39,7 +39,7 @@ TOOL_NAMES = {'math': 'LibreOffice (soffice)', 'cad': 'KiCad (kicad-cli)', 'kibo
               'nextpnr': 'nextpnr (nextpnr-ecp5)', 'trellis': 'Project Trellis (ecppack)', 'surfer': 'Surfer',
               'icarus': 'Icarus Verilog (iverilog)', 'verilator': 'Verilator',
               'brain': 'llama.cpp runtime (pinned archive)', 'python-wasi': 'Python WASI runtime (pinned archive)'}
-TOOL_SOURCES = {'brain': 'runtimes/llama.cpp/b11669/runtime.json · sha256 of the pinned archive',
+TOOL_SOURCES = {'brain': 'runtimes/llama.cpp/b12359/runtime.json · sha256 of the pinned archive',
                 'python-wasi': 'runtimes/python-wasi/python-wasi.zip · installed wasmtime package'}
 
 FIELDS = {'ledger.machine': ({'section': {'type': 'string', 'enum': list(SECTIONS)}}, [])}

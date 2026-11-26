@@ -20,7 +20,7 @@ bash HATCH_CHECK.sh --run visible-calc --output /path/to/new-visible-check
 bash HATCH_CHECK.sh --run model-family --budget-seconds 3600 --model /path/to/reference.gguf --output /path/to/new-family
 ```
 
-The diagnostic and visible check default to a 600-second runner budget. A full model family requires an explicitly declared budget; 3600 above is an example, not a promise that every host will finish in that time. The existing frozen cases, expected results, grants, duplicate guard and first-failed-case stop are unchanged. Model/runtime identity remains the retained I05 Qwen3.5-4B reference SHA256 and b11669 CPU runtime. Other models retain their normal Ledger entry points.
+The diagnostic and visible check default to a 600-second runner budget. A full model family requires an explicitly declared budget; 3600 above is an example, not a promise that every host will finish in that time. The existing frozen cases, expected results, grants, duplicate guard and first-failed-case stop are unchanged. Model/runtime identity remains the retained I05 Qwen3.5-4B reference SHA256; the CPU runtime is b12359 (llama.cpp v1.0.0) since Graphite 1.0, whose I05 family is still to be run on it. Other models retain their normal Ledger entry points.
 
 Passing `--run` explicitly requests the chosen existing checker and its isolated synthetic fixture. The checker creates fresh scoped work orders and owner grants within that fixture. It does not act on the owner's project workspace. The visible check opens real owned Calc windows on a connectable X11 host and performs its scripted takeover checks; it is not an offscreen substitute or a general owner-device qualification.
 

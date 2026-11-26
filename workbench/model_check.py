@@ -25,6 +25,14 @@ STAGES (design 6.1; the times are estimates, shown before it starts):
     S2  speeds                          reads of 300, 1,200 and 3,000 tokens; writes of 16, 64 and 256; batches of 64,
                                         256 and 512 (Vulkan only: each a fresh launch); 60 s of writing for heat; the
                                         grammar overhead (the same answer with and without its grammar)
+    S2T tuning (1.0 M1)                 after S2's speeds, a sweep of the settings that matter on the Radeon (flash
+                                        attention on and off; the KV cache f16, q8_0 and FP8; reading batches of 256,
+                                        512 and 1,024; threads; full or partial offload on Vulkan; multi-token
+                                        prediction and its draft length when the model file carries an MTP head), each
+                                        a fresh launch, kept only when its answer is identical to the plain run's at
+                                        temperature 0; the best against 'reads at 99 a second' and 'writes at 99 a
+                                        second' (the owner's goal), how far off when not, and proposed with Undo; her
+                                        clock starts from the measured rates; time-boxed (--tuning-seconds, 240)
     S3  reuse and Stop                  a kept choose turn: cache_n on second-round questions against the kept brief;
                                         one checkpoint's size measured by resident memory growth (the runtime does not
                                         log it at its default verbosity, and the seal forbids a verbose log); Stop
@@ -47,8 +55,8 @@ exam record) and own_results.local.json.
 
 USE THE MEASURED SETTINGS? Each proposal is one owner launch default (ledger.settings: brain.backend and the rest),
 applied only on his click (use_setting, through ledger.settings.set with the value he saw) and undone with Undo
-(undo_setting, ledger.settings.undo: the exact previous record). What has no setting yet (the reading batch, loading
-the model when the desk opens) is said as a finding with nothing to apply. A proposal changes nothing until approved.
+(undo_setting, ledger.settings.undo: the exact previous record). What has no setting yet (loading the model when the
+desk opens) is said as a finding with nothing to apply; 1.0 M1 made the reading batch and v1.0.0's capabilities settings. A proposal changes nothing until approved.
 
 No floating point in anything checked: rates are whole tokens a second, times whole milliseconds, shares "x of y".
 """
@@ -76,13 +84,16 @@ CARD_MOST = 50 * 1024
 MIB = 1024 * 1024
 GIB = 1024 * MIB
 STAGES = (('S0', 'the machine, no model', 1, 1), ('S1', 'first load and the seal', 1, 3), ('S2', 'speeds', 6, 8),
+          ('S2T', 'tuning: the settings that matter (1.0 M1)', 4, 5),
           ('S3', 'reuse and Stop', 2, 3), ('S4', 'the desk (from the Brain room)', 1, 1), ('S5', 'the short exam', 5, 10),
           ('S6', 'optional: another model', 3, 5), ('S7', 'optional, overnight, on mains: the full exam and the I05 arms', 60, 180))
-AWAKE = ('S0', 'S1', 'S2', 'S3', 'S4', 'S5')
+AWAKE = ('S0', 'S1', 'S2', 'S2T', 'S3', 'S4', 'S5')
+# 1.0 M1: the owner's machine is a ThinkPad E16 Gen 2 AMD (21M5) with a Radeon 680M (RDNA2), not a 780M: K3 expects the
+# 680M's reading; K13 and K14 are the owner's goal, the best of the tuning stage (S2T), else S2's.
 PREDICTIONS = {
     'K1': 'the GTT window is at least 28 GiB',
     'K2': 'first load 20 to 60 s; a warm load 8 to 25 s',
-    'K3': 'a 1,200-token read at 150 to 400 tokens a second',
+    'K3': 'a 1,200-token read at 100 to 300 tokens a second (the Radeon 680M)',
     'K4': 'writing 15 to 25 a second, at least 12 after 60 s of heat',
     'K5': 'batch 512 reads at least twice as fast as 64 on Vulkan',
     'K6': 'a kept choose turn under 1.6 s, every second-round cache_n at least the brief minus 4',
@@ -92,6 +103,8 @@ PREDICTIONS = {
     'K10': 'the short exam: READ at least 22 of 24 single-step, CHOOSE clear cases right on turn 1 at least 7 of 8, STEER harm 0',
     'K11': 'no desk stall over 50 ms during a 3,000-token read',
     'K12': 'grammar overhead at most 15 % of the writing rate',
+    'K13': 'reads at >= 99 tokens a second',
+    'K14': 'writes at >= 99 tokens a second',
 }
 CONTENDED = 150                      # load average x 100 above which a stage's rates are marked contended (design 7.4)
 FILLER = ('The Rail Demo bench supply gives twelve volts to the cable tray rail; its notes list the fuse, the connector and '
@@ -412,7 +425,14 @@ class Check:
         registered = self.work.add(self.model);self.model_id = registered['model_id'];self.value = self.work.value(self.model_id)
         inspection = self.value['inspection'];shape = memory_shape(inspection)
         one = memory_sum(inspection, self.value['total_bytes'], self.args.context, 1, 0)
-        out = {'machine': {'cpu': hw['cpu']['name'], 'logical_cpus': hw['cpu']['logical_cpus'], 'kernel': hw['kernel'],
+        from .runtime_tuning import OWNER_MACHINE
+        runtime = brain_runtime.status(self.work.kernel.root)
+        product = (hw.get('machine') or {}).get('product')
+        out = {'expected': {**{k: OWNER_MACHINE[k] for k in ('model', 'machine_type', 'graphics', 'memory')},   # 1.0 M1
+                            'this_is_it': bool(product and OWNER_MACHINE['machine_type'] in str(product))},
+               'runtime': {'build': runtime.get('build'), 'source_commit': runtime.get('source_commit'),
+                           'release': (runtime.get('pin') or {}).get('stable_release')},
+               'machine': {'cpu': hw['cpu']['name'], 'logical_cpus': hw['cpu']['logical_cpus'], 'kernel': hw['kernel'],
                            'architecture': hw['architecture'], 'product': (hw.get('machine') or {}).get('product'),
                            'memory_total_bytes': host['total_ram_bytes'], 'memory_available_bytes': host['available_ram_bytes'],
                            'mesa': mesa, 'power': power()},
@@ -514,6 +534,11 @@ class Check:
         else:
             out['batches'] = {'state': 'NOT_RUN', 'why': 'batches are measured on the Radeon (Vulkan) only; this run is on the processor'}
         return out
+
+    # -- S2T (1.0 M1) --
+    def s2t(self):
+        from . import runtime_tuning
+        return runtime_tuning.sweep(self, int(getattr(self.args, 'tuning_seconds', 0) or runtime_tuning.SWEEP_SECONDS))
 
     # -- S3 --
     def s3(self):
@@ -700,16 +725,16 @@ class Check:
         with Work(self.run / '.work') as self.work:
             s0 = self.stage('S0', self.s0)
             if s0.get('stop') or s0['state'] == 'FAILED':
-                for key in ('S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7'):
+                for key in ('S1', 'S2', 'S2T', 'S3', 'S4', 'S5', 'S6', 'S7'):
                     self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'S0 stopped the run: ' + (s0.get('why') or '')}
             else:
                 s1 = self.stage('S1', self.s1)
                 if s1['state'] != 'PASSED':
-                    for key in ('S2', 'S3', 'S4', 'S5', 'S6', 'S7'):
+                    for key in ('S2', 'S2T', 'S3', 'S4', 'S5', 'S6', 'S7'):
                         self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'the model did not load: ' + (s1.get('why') or '')}
                 else:
                     wanted = set((self.args.stages or ','.join(k for k, *_ in STAGES)).split(','))
-                    for key, fn in (('S2', self.s2), ('S3', self.s3), ('S4', self.s4), ('S5', self.s5), ('S6', self.s6), ('S7', self.s7)):
+                    for key, fn in (('S2', self.s2), ('S2T', self.s2t), ('S3', self.s3), ('S4', self.s4), ('S5', self.s5), ('S6', self.s6), ('S7', self.s7)):
                         if key in wanted:self.stage(key, fn)
                         else:self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'not asked in this run (--stages)'}
         self.report['paused_ms'] = self.gate.paused_ms
@@ -823,6 +848,13 @@ def judge(report):
     put('K11', longest <= 50 if longest is not None else None, longest, None if longest is not None else 'from the Brain room only')
     pct = _get(report, 'stages', 'S2', 'grammar', 'overhead_percent')
     put('K12', pct <= 15 if pct is not None else None, pct)
+    # 1.0 M1: the owner's goal, from the tuning stage's best (else S2's 1,200-token read and 64-token write)
+    from . import runtime_tuning
+    best_read = _get(report, 'stages', 'S2T', 'best', 'read_per_second') or r1200
+    best_write = _get(report, 'stages', 'S2T', 'best', 'write_per_second') or w64
+    goal = runtime_tuning.GOAL
+    put('K13', best_read >= goal if best_read else None, best_read, None if best_read else 'no read was measured')
+    put('K14', best_write >= goal if best_write else None, best_write, None if best_write else 'no write was measured')
     findings, proposals = [], []
     if k['K1']['held'] is False:
         findings.append(_get(report, 'stages', 'S0', 'gtt_short', 'words') or 'The GPU memory window is too small; nothing was changed. '
@@ -847,7 +879,12 @@ def judge(report):
     if ms is not None and ms > 2000:
         findings.append('A kept choose turn took over 2 s: the small chooser moves up the list of what comes next.')
     if b64 and b512 and b512 >= 2 * b64:
-        findings.append('Reading in batches of 512 is %s times faster than 64 (no setting for it yet).' % _times(b512, b64))
+        findings.append('Reading in batches of 512 is %s times faster than 64.' % _times(b512, b64))
+        if not _get(report, 'stages', 'S2T', 'best', 'settings', 'batch'):      # 1.0 M1: the reading batch is a setting now
+            proposals.append(proposal('brain.batch', 512, 'reading in batches of 512 was %s times faster than 64 here.' % _times(b512, b64)))
+    if best_read or best_write:                                            # 1.0 M1: the owner's goal, said plainly
+        findings.extend(runtime_tuning.goal_words(best_read, best_write))
+    proposals.extend(runtime_tuning.proposals(_get(report, 'stages', 'S2T'), proposal))
     for kind, v in (_get(report, 'stages', 'S5', 'kinds') or {}).items():
         if v.get('state') == 'SWITCHED_OFF':findings.append(v['words'])
     report['findings'] = findings;report['proposals'] = [p for p in proposals if p]
@@ -896,6 +933,9 @@ def summary_line(report):
     if r:parts.append('reads %d a second' % r)
     w = _get(report, 'stages', 'S2', 'writes', '64', 'per_second')
     if w:parts.append('writes %d a second' % w)
+    best = _get(report, 'stages', 'S2T', 'best') or {}                    # 1.0 M1
+    if best.get('settings') and best.get('read_per_second') and best.get('write_per_second'):
+        parts.append('at its best settings reads %d and writes %d' % (best['read_per_second'], best['write_per_second']))
     ms = _get(report, 'stages', 'S3', 'kept_turn_ms')
     if ms is not None:parts.append('a question she has seen before: %d.%d s' % (ms // 1000, ms % 1000 // 100))
     gtt = max((c.get('gtt_total') or 0 for c in _get(report, 'stages', 'S0', 'gpu_memory') or []), default=0)
@@ -962,7 +1002,8 @@ def main(argv=None):
     ap.add_argument('--threads', type=int, default=min(4, os.cpu_count() or 1))
     ap.add_argument('--memory-mb', type=int, default=0, help='the memory cap (default Auto)')
     ap.add_argument('--backend', default='AUTO', choices=['AUTO', 'CPU', 'VULKAN'])
-    ap.add_argument('--stages', help='a comma list of S2 to S7 to run (S0 and S1 always run)')
+    ap.add_argument('--stages', help='a comma list of S2, S2T, S3 to S7 to run (S0 and S1 always run)')
+    ap.add_argument('--tuning-seconds', type=int, default=0, help='the tuning stage\'s time box (default 240 s)')   # 1.0 M1
     ap.add_argument('--i05-repeats', type=int, default=3)
     ap.add_argument('--own-items', type=Path, help=argparse.SUPPRESS)        # the Brain room's own paper (kept local)
     ap.add_argument('--pause-file', type=Path, help=argparse.SUPPRESS)       # the Brain room's pause file

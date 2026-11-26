@@ -924,6 +924,10 @@
     "adapter": "model_launch",
     "store": "Kernel settings: ledger.brain.backend"
    },
+   "brain.batch": {
+    "adapter": "model_launch",
+    "store": "Kernel settings: ledger.brain.batch"
+   },
    "brain.context": {
     "adapter": "model_launch",
     "store": "Kernel settings: ledger.brain.context"
@@ -932,13 +936,29 @@
     "adapter": "model_launch",
     "store": "Kernel settings: ledger.brain.cpu_fallback"
    },
+   "brain.flash_attn": {
+    "adapter": "model_launch",
+    "store": "Kernel settings: ledger.brain.flash_attn"
+   },
    "brain.gpu_layers": {
     "adapter": "model_launch",
     "store": "Kernel settings: ledger.brain.gpu_layers"
    },
+   "brain.kv_type": {
+    "adapter": "model_launch",
+    "store": "Kernel settings: ledger.brain.kv_type"
+   },
+   "brain.load_mode": {
+    "adapter": "model_launch",
+    "store": "Kernel settings: ledger.brain.load_mode"
+   },
    "brain.memory_mb": {
     "adapter": "model_launch",
     "store": "Kernel settings: ledger.brain.memory_mb"
+   },
+   "brain.mtp_draft": {
+    "adapter": "model_launch",
+    "store": "Kernel settings: ledger.brain.mtp_draft"
    },
    "brain.threads": {
     "adapter": "model_launch",
@@ -1110,7 +1130,7 @@
   "adapters": 909,
   "job_tools": 113,
   "operations": 909,
-  "settings": 48
+  "settings": 53
  },
  "formulas": {
   "arguments": "sha256 of the operation argument schema, canonical JSON; properties: its first 16 hex digits per top-level property",
@@ -2226,19 +2246,19 @@
    "scope": "approve"
   },
   "brain.model.qualify": {
-   "arguments": "16f034058582a591477ccd841fc4d00f2f0990fe02034ad300eb1c35594ea3a6",
+   "arguments": "f38120a7432ecfa857bca4b8e3b860183196233c0f9e65ed2daf49ef6186016f",
    "properties": {
     "id": "f4618f4ae4b25223",
-    "options": "211c73b4a8457197",
+    "options": "6189231e2f70413f",
     "request_key": "66f34441032fb10a"
    },
    "scope": "approve"
   },
   "brain.model.use": {
-   "arguments": "16f034058582a591477ccd841fc4d00f2f0990fe02034ad300eb1c35594ea3a6",
+   "arguments": "f38120a7432ecfa857bca4b8e3b860183196233c0f9e65ed2daf49ef6186016f",
    "properties": {
     "id": "f4618f4ae4b25223",
-    "options": "211c73b4a8457197",
+    "options": "6189231e2f70413f",
     "request_key": "66f34441032fb10a"
    },
    "scope": "approve"
@@ -4168,9 +4188,9 @@
    "scope": "execute"
   },
   "jobs.submit": {
-   "arguments": "af62bda6b515020634f129baa37ea20bc8dc474704c361b95c130692e49f001f",
+   "arguments": "40545d0c40b4de40143eb16d3e8df9d930f7d167b831726b8f4e2815f7797464",
    "properties": {
-    "brain": "211c73b4a8457197",
+    "brain": "6189231e2f70413f",
     "calculation": "e00b3a826e999365",
     "candidate": "00404e686415370f",
     "goal": "00404e686415370f",
@@ -8904,7 +8924,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "e0312d3620dbeb592f2ef3185af8a23b207bb41dd03819e129f91de6609ac794",
+ "schema_digest": "9eb65b396cc2bf56bee20679c657741dc5a1b86b91254c320f77c4fc41708f22",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
@@ -8974,6 +8994,30 @@
     "type": "e9e5c1c9e4f62773"
    }
   },
+  "brain.batch": {
+   "definition": "2034617857fbfd64210dfca90b495eae7b42dae2fb284b3dbd35b693998da187",
+   "fields": {
+    "adapter": "2745e9561b663caa",
+    "application": "d61dd121d043f47f",
+    "category": "a7b5921026935493",
+    "choices": "29e84fa6ea444637",
+    "default": "a68b412c4282555f",
+    "dependencies": "4f53cda18c2baa0c",
+    "description": "a821738a0375cffe",
+    "effect": "c7b4484aaf5db55c",
+    "group": "3fbdbea187c7cea7",
+    "key": "115ab4289f90b0e7",
+    "label": "440bd15f56794c9a",
+    "overrides": "4f53cda18c2baa0c",
+    "requires_owner": "b5bea41b6c623f7c",
+    "root": "a7b5921026935493",
+    "scope": "e2c975f1f1646085",
+    "scope_id": "e29c730f472e7fe6",
+    "store": "4bae3c13be206193",
+    "supported_scopes": "1fb68d0b99d08f81",
+    "type": "bb894e256c101d18"
+   }
+  },
   "brain.context": {
    "definition": "6a4c45a1d25af3d7d2f65fb7097f6d4eb9db9af0bb87b4e80816e357957d315b",
    "fields": {
@@ -9022,6 +9066,31 @@
     "type": "a5b031ab62bc416d"
    }
   },
+  "brain.flash_attn": {
+   "definition": "ba70f1d693529f5b4bb8a0c56c8cf7f48bcbfbb26bf6eaf0abe355d7d8243173",
+   "fields": {
+    "adapter": "2745e9561b663caa",
+    "application": "d61dd121d043f47f",
+    "category": "a7b5921026935493",
+    "choice_labels": "c7fa11e982c0debb",
+    "choices": "162a6f4db11fd1a9",
+    "default": "634635a2166efa2a",
+    "dependencies": "4f53cda18c2baa0c",
+    "description": "1116f0cf02a39088",
+    "effect": "c7b4484aaf5db55c",
+    "group": "3fbdbea187c7cea7",
+    "key": "802881e77bb7f095",
+    "label": "6946aae691acd21f",
+    "overrides": "4f53cda18c2baa0c",
+    "requires_owner": "b5bea41b6c623f7c",
+    "root": "a7b5921026935493",
+    "scope": "e2c975f1f1646085",
+    "scope_id": "e29c730f472e7fe6",
+    "store": "031aed6e2dcfd66b",
+    "supported_scopes": "1fb68d0b99d08f81",
+    "type": "e9e5c1c9e4f62773"
+   }
+  },
   "brain.gpu_layers": {
    "definition": "103c18b5c296cb7e0457bc29135609976ee246a0f378ce9edf290843f9112571",
    "fields": {
@@ -9045,6 +9114,56 @@
     "store": "dd64fb1c4e380979",
     "supported_scopes": "1fb68d0b99d08f81",
     "type": "bb894e256c101d18"
+   }
+  },
+  "brain.kv_type": {
+   "definition": "177d1fa3d7595ce82c21fb1a1763e92c914fc0e25fa732a5e48dfff104ca8f7d",
+   "fields": {
+    "adapter": "2745e9561b663caa",
+    "application": "d61dd121d043f47f",
+    "category": "a7b5921026935493",
+    "choice_labels": "6e54a54fb92d1e46",
+    "choices": "d22c90be8cf1aa6b",
+    "default": "3d7402387901a822",
+    "dependencies": "4f53cda18c2baa0c",
+    "description": "64842a0610846ec6",
+    "effect": "c7b4484aaf5db55c",
+    "group": "3fbdbea187c7cea7",
+    "key": "dcb0d9abd051dc7d",
+    "label": "403bcf391bae76ef",
+    "overrides": "4f53cda18c2baa0c",
+    "requires_owner": "b5bea41b6c623f7c",
+    "root": "a7b5921026935493",
+    "scope": "e2c975f1f1646085",
+    "scope_id": "e29c730f472e7fe6",
+    "store": "6c668937b8077b86",
+    "supported_scopes": "1fb68d0b99d08f81",
+    "type": "e9e5c1c9e4f62773"
+   }
+  },
+  "brain.load_mode": {
+   "definition": "407df27a494d07ef450543499775a1c623012fac48237ed0e8b5e47f5c8115ea",
+   "fields": {
+    "adapter": "2745e9561b663caa",
+    "application": "d61dd121d043f47f",
+    "category": "a7b5921026935493",
+    "choice_labels": "c83026754bb49d83",
+    "choices": "8f94bc25fd224a50",
+    "default": "30a0924a3360be68",
+    "dependencies": "4f53cda18c2baa0c",
+    "description": "899ca6fc39b4bb59",
+    "effect": "c7b4484aaf5db55c",
+    "group": "3fbdbea187c7cea7",
+    "key": "6b49210b9266088f",
+    "label": "1ee9e42cfedf2f9d",
+    "overrides": "4f53cda18c2baa0c",
+    "requires_owner": "b5bea41b6c623f7c",
+    "root": "a7b5921026935493",
+    "scope": "e2c975f1f1646085",
+    "scope_id": "e29c730f472e7fe6",
+    "store": "53dbd658f6cc5c07",
+    "supported_scopes": "1fb68d0b99d08f81",
+    "type": "e9e5c1c9e4f62773"
    }
   },
   "brain.memory_mb": {
@@ -9072,6 +9191,31 @@
     "supported_scopes": "1fb68d0b99d08f81",
     "type": "bb894e256c101d18",
     "zero_label": "05b65242d8c48791"
+   }
+  },
+  "brain.mtp_draft": {
+   "definition": "150ebc6e814dc936a876e400d45b042647e284222e5fb0f2cd8a5dc7113c288f",
+   "fields": {
+    "adapter": "2745e9561b663caa",
+    "application": "d61dd121d043f47f",
+    "category": "a7b5921026935493",
+    "default": "5feceb66ffc86f38",
+    "dependencies": "4f53cda18c2baa0c",
+    "description": "3e2b84db378a77e9",
+    "effect": "c7b4484aaf5db55c",
+    "group": "3fbdbea187c7cea7",
+    "key": "c856699f02830f08",
+    "label": "62f365ce30f4fad4",
+    "maximum": "2c624232cdd22177",
+    "minimum": "5feceb66ffc86f38",
+    "overrides": "4f53cda18c2baa0c",
+    "requires_owner": "b5bea41b6c623f7c",
+    "root": "a7b5921026935493",
+    "scope": "e2c975f1f1646085",
+    "scope_id": "e29c730f472e7fe6",
+    "store": "e9e0f9b1b1b259f7",
+    "supported_scopes": "1fb68d0b99d08f81",
+    "type": "bb894e256c101d18"
    }
   },
   "brain.threads": {
@@ -10031,7 +10175,7 @@
    }
   }
  },
- "settings_digest": "78523519ff04114b580ed7a2cf8081487c93204733843f3ea935186c7408abdd",
+ "settings_digest": "bb5900f9fa5f578b9b7c93f3b5f16dc6325acfb901d5a4018b7297e726ae3bb4",
  "settings_order": [
   "reading.family",
   "reading.prose_family",
@@ -10069,6 +10213,11 @@
   "brain.backend",
   "brain.gpu_layers",
   "brain.cpu_fallback",
+  "brain.flash_attn",
+  "brain.kv_type",
+  "brain.load_mode",
+  "brain.mtp_draft",
+  "brain.batch",
   "operations.reserve_mb",
   "operations.compute_slots",
   "operations.background_threads",

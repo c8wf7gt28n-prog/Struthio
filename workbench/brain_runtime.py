@@ -4,7 +4,7 @@ from pathlib import Path,PurePosixPath
 from .session import config_dir
 from .locations import program
 
-PIN='runtimes/llama.cpp/b11669/runtime.json'
+PIN='runtimes/llama.cpp/b12359/runtime.json'  # 1.0 M1: llama.cpp v1.0.0 (b12359), was b11669
 ADDON_HINT='The runtime for this computer comes as an add-on: unzip the runtime add-on into the program folder, which places %s next to runtime.json.'
 
 def host(profile=True):

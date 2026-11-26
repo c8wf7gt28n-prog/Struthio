@@ -64,17 +64,44 @@ search results that day, not from the publisher's page and not tried on this mac
 22 GB depending on who made it (one maker's "UD-Q4_K_M" is 22.1 GB, another's Q4_K_M 20.75 GB), and one comparison says
 it wants about 24 GB of memory at a 16k context. It is a mixture of experts: all 35B are held in memory, about 3B work
 on each token, so it should answer faster than a 27B of the same size on this processor. Whether the bundled runtime
-(llama.cpp b11669) reads the file is not known: the Brain room shows it on the ThinkPad. The memory recorded for the
-ThinkPad (about 61 GiB) is room for it. A file named "MTP" under that name is a small helper, not the model.
+(llama.cpp v1.0.0, build b12359, since Graphite 1.0) reads the file is not known: the Brain room shows it on the ThinkPad.
+The memory recorded for the ThinkPad (about 61 GiB) is room for it.
+
+### The first evening with the model (Graphite 1.0)
+
+- **The machine.** A ThinkPad E16 Gen 2 AMD (machine type 21M5): Ryzen 7 7735HS, Radeon 680M integrated graphics (RDNA2,
+  12 compute units; its memory is the system memory) and DDR5-4800 in two slots. Writing is bound by the memory's speed:
+  expect about 15 to 30 tokens a second from the 35B-A3B at Q4, more with multi-token prediction. Reading is bound by the
+  680M and should be well above that.
+- **The runtime.** llama.cpp v1.0.0 (build b12359, commit b1b770d90d94cad9e9ea5b993bdbc383a522fb28), both archives under
+  `runtimes/llama.cpp/b12359`. Her model is sealed as before; the seal's lists come from v1.0.0's own help text.
+- **The model with its MTP head.** Multi-token prediction needs the model file that carries its own MTP head:
+  `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` from `unsloth/Qwen3.6-35B-A3B-MTP-GGUF`, 22,663,387,424 bytes, sha256
+  `0b21525e972670ed59e1812e170b27c26355381f0656ecc4e25617ece7dac58b` (read from the publisher's file list on 26 November
+  2026; not downloaded or tried here). The same name without "MTP" (22,134,528,992 bytes) has no head. Graphite never
+  loads a second, separate head file.
+- **The model check.** Run it once on mains (Brain room, or `./MODEL_CHECK.sh --model <file>`). Its new tuning stage tries
+  flash attention, the KV cache's type, reading batches, threads, full or partial offload and, with the MTP file, the
+  draft length; it keeps a setting only when the answer is the same as without it, and says how far each speed is from
+  your goal of 99 tokens a second, reading and writing. Each best setting is offered under "Use the measured settings?",
+  with Undo. Nothing changes until you press it.
+- **What was measured here** (26 November 2026, a busy 4-core cloud machine with no Radeon, on the processor; these
+  numbers mean nothing for the ThinkPad): the sealed 4B started on v1.0.0 and every wall of the seal held. With the
+  prompt cache sized for every kept prompt, PLAN's and READ's both survived the priming round, and the second PLAN turn
+  on Rail Demo took 4.0 s (3.3 s on the old runtime, on a quieter machine). The tuning stage on the 4B: reads 47 a second
+  plain, 67 at its best (reading batch 1,024, four threads), writing 5; on the 2B with its MTP head: reads 98 plain, 144
+  at its best, writing 9 to 12. On this processor multi-token prediction gave the same answer but no speed (the model
+  accepted 45 to 69 % of the drafted tokens). Flash attention off, and the half-size KV caches, changed the answer here,
+  so the check did not keep them.
 
 Before that, on 12 November, the owner's choice was the Qwen family's 4.0 release at 27B, 4-bit quantised, once it
 existed. On that day it did not: the publisher's page held no Qwen 4 weights, and files under that name elsewhere were
 placeholders. Read on that day from the publisher's and the runtime's own pages, not tried on this machine:
 
 - To rehearse until then, the same publisher's Qwen3.8-27B at Q4_K_M (about 17 GB, Apache 2.0). The bundled runtime
-  (llama.cpp b11669) is newer than the builds that file was made with.
+  (llama.cpp b11669 then; v1.0.0, b12359, since Graphite 1.0) is newer than the builds that file was made with.
 - A Qwen 4 file will probably need a newer runtime than the bundled one: check the build its publisher names against
-  b11669 before the first try.
+  b12359 (llama.cpp v1.0.0) before the first try.
 - Expect a few tokens a second from a 27B on this processor, with or without the Radeon. If loading on the Radeon fails
   with a device-lost or out-of-memory message, that is a known open fault on this graphics chip; the processor path works.
 - Start small. A 2B and a 4B file of the same family answered in Graphite in 5 to 25 seconds on a slower processor than

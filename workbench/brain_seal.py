@@ -5,8 +5,8 @@ checked each time the model starts, before it is marked Ready, by asking the ser
 model itself:
 
 1. Its launch line comes from an allow-list (lint). Agent tools (a shell among them), MCP, downloads, prompt logs, slot
-   files, extra endpoints and a key on the command line are refused by name, the names taken from the b11669 help text;
-   anything else that is not on the list is refused too. --offline is always there.
+   files, extra endpoints and a key on the command line are refused by name, the names taken from the pinned runtime's
+   help text (1.0 M1: llama.cpp v1.0.0, b12359); anything else that is not on the list is refused too. --offline is always there.
 2. Its environment comes from an allow-list: PATH, the locale and its own library folder; for Vulkan, XDG_RUNTIME_DIR
    and a shader cache under Graphite's own state. A key the owner's shell sets for another tool (LLAMA_API_KEY,
    HF_TOKEN), GGML_BACKEND_PATH, LLAMA_CACHE, debug switches and proxies never reach it.
@@ -74,22 +74,35 @@ def _host(value):
 
 # Every argument Graphite may give the runtime, with the shape of its value (None: a switch). Closed: anything else is
 # refused. --checkpoint-min-step is admitted for slice A2's launch line (design 4.2); nothing else is open for it.
+# 1.0 M1 (llama.cpp v1.0.0): flash attention, the KV cache's type, load mode auto, the model's own jinja template with
+# reasoning off, and multi-token prediction from the model's own MTP head (never a second model file), each with the
+# exact values Graphite gives (runtime_tuning); --load-mode admits auto beside none.
+KV_CACHE_TYPES = ('f16', 'q8_0', 'f8_e4m3')
+MTP_DRAFT_MOST = 8
 ALLOWED = {
     '--model': _path, '--host': _host, '--port': lambda v: _number(v) and 0 < int(v) < 65536, '--api-key-file': _path,
     '--ctx-size': _number, '--threads': _number, '-ngl': lambda v: v == 'auto' or _number(v), '--parallel': _number,
     '--threads-http': _number, '--batch-size': _number, '--ubatch-size': _number, '--cache-ram': _number,
     '--ctx-checkpoints': _number, '--checkpoint-min-step': _number, '--fit': lambda v: v in ('on', 'off'),
-    '--load-mode': lambda v: v == 'none', '--device': lambda v: v == 'none' or bool(re.fullmatch(r'Vulkan[0-9]{1,2}', v)),
+    '--load-mode': lambda v: v in ('none', 'auto'), '--device': lambda v: v == 'none' or bool(re.fullmatch(r'Vulkan[0-9]{1,2}', v)),
     '--no-cache-idle-slots': None, '--no-webui': None, '--no-ui-mcp-proxy': None, '--no-slots': None,
-    '--no-context-shift': None, '--no-warmup': None, '--offline': None}
+    '--no-context-shift': None, '--no-warmup': None, '--offline': None,
+    # 1.0 M1
+    '--flash-attn': lambda v: v in ('on', 'off', 'auto'), '--cache-type-k': lambda v: v in KV_CACHE_TYPES,
+    '--cache-type-v': lambda v: v in KV_CACHE_TYPES, '--jinja': None, '--reasoning': lambda v: v == 'off',
+    '--spec-type': lambda v: v == 'draft-mtp',
+    '--spec-draft-n-max': lambda v: _number(v) and 1 <= int(v) <= MTP_DRAFT_MOST}
 REQUIRED = ('--model', '--host', '--api-key-file', '--offline', '--no-slots', '--no-webui', '--no-ui-mcp-proxy')
 
-# Refused by name, every alias as `llama-server --help` of b11669 prints it (b087d/synth/help_b11669.txt), with the reason
-# she gives. The list names the dangerous ones; the allow-list above is what keeps everything else out.
+# Refused by name, every alias as `llama-server --help` of the pinned runtime prints it, with the reason she gives. 1.0 M1:
+# regenerated from v1.0.0's (b12359) help text (its sha256 is in runtime.json); every name below is in it, and v1.0.0's new
+# dangerous ones are added: --allow-unauthenticated-tools, --connect and --connect-code (a peer-to-peer tunnel),
+# --media-allow-private-urls, and --shard / --ple (more model files). The list names the dangerous ones; the allow-list
+# above is what keeps everything else out.
 FORBIDDEN_GROUPS = {
     'AGENT_TOOLS': ('it would turn on agent tools, a shell among them',
                     ('--tools', '--tools-runtime', '-ag', '--agent', '--mcp-servers-config', '--mcp-servers-json',
-                     '--ui-mcp-proxy', '--webui-mcp-proxy')),
+                     '--ui-mcp-proxy', '--webui-mcp-proxy', '--allow-unauthenticated-tools')),
     'DOWNLOADS': ('it would let the runtime download from the internet',
                   ('-mu', '--model-url', '-dr', '--docker-repo', '-hf', '-hfr', '--hf-repo', '-hff', '--hf-file', '-hft',
                    '--hf-token', '-hfd', '-hfrd', '--hf-repo-draft', '--spec-draft-hf', '-mmu', '--mmproj-url',
@@ -99,7 +112,7 @@ FORBIDDEN_GROUPS = {
                    '--vision-gemma-4b-default', '--vision-gemma-12b-default')),
     'NETWORK': ('it would open the runtime to the network',
                 ('--rpc', '--reuse-port', '--cors-origins', '--cors-methods', '--cors-headers', '--cors-credentials',
-                 '--ssl-key-file', '--ssl-cert-file')),
+                 '--ssl-key-file', '--ssl-cert-file', '--connect', '--connect-code', '--media-allow-private-urls')),
     'WRITES_TO_DISK': ('it would write prompts or model state to disk',
                        ('--log-prompts-dir', '--slot-save-path', '--log-file', '-lcd', '--lookup-cache-dynamic')),
     'VERBOSE_LOGS': ('it would write what is asked into its log',
@@ -112,7 +125,7 @@ FORBIDDEN_GROUPS = {
                      ('--models-dir', '--models-preset', '--models-max', '--models-autoload', '--lora', '--lora-scaled',
                       '--control-vector', '--control-vector-scaled', '--control-vector-layer-range', '-md',
                       '--model-draft', '--spec-draft-model', '-mm', '--mmproj', '--chat-template',
-                      '--chat-template-file', '--override-kv', '--spec-default')),
+                      '--chat-template-file', '--override-kv', '--spec-default', '--shard', '--ple')),
     'KEY_ON_COMMAND_LINE': ('it would put a key on the command line, where other programs can read it', ('--api-key',)),
     'RUNS_PROGRAMS': ('it would let the runtime run other programs', ('--video-ffmpeg-dir',)),
     'READS_FILES': ('it would let the runtime read files I did not choose',
@@ -156,6 +169,8 @@ def lint(arguments):
         shape.append([token, '<path>' if check in (_path, _host) and value != '127.0.0.1' else '<port>' if token == '--port'
                       else value])
         index += 2
+    if '--spec-draft-n-max' in seen and '--spec-type' not in seen:     # 1.0 M1: a draft length means the MTP head
+        _refuse_argument('--spec-draft-n-max', "a draft length needs the model's own MTP head named with it")
     missing = [name for name in REQUIRED if name not in seen]
     if missing:
         raise SealRefused('launch_line', 'its launch line lacks ' + missing[0])

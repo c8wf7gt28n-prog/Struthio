@@ -82,7 +82,7 @@ SEED_FILES = (
     'docs/STAGE3.md', 'docs/STAGE4.md', 'docs/STAGE5.md', 'docs/STAGE6.md', 'docs/UI_MINI_PASS.md',
     'docs/assistant_identity.json', 'docs/milestones.json',
     'pillkit/state.py', 'pillkit/tls_link.py',
-    'runtimes/llama.cpp/b11669/runtime.json',
+    'runtimes/llama.cpp/b12359/runtime.json',  # 1.0 M1
     'runtimes/office-uno/runtime.json',
     'runtimes/python-wasi/runtime.json',
     'sdk/cli/arc1cli/capability_catalog.py', 'sdk/cli/arc1cli/command_bar.py', 'sdk/cli/arc1cli/concern_catalog.py',

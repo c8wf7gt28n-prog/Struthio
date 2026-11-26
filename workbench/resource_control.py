@@ -82,10 +82,15 @@ def budget_room(available,reserve,future=0,credit=0):
 # Checked here against the server's log: one state is 50.251 MiB on the 4B and 19.266 MiB on the 2B; KV is 32 KiB a token
 # on the 4B (design 4.5). Integer arithmetic for every hybrid term.
 BASE_BYTES=384*MIB
-REUSE_LADDER_MB=((6,None),(2,256),(0,0))  # (checkpoints, RAM prompt cache MiB): the first rung the rule admits is taken
-PROMPT_CACHE_LARGE_MB=1024                # the cache on a large model (the 35B), 512 on a small one (the 4B here)
+# 1.0 M1: the RAM prompt cache is sized from the memory sum so every kept prompt fits (runtime_tuning.cache_mb: each
+# entry its KV over 1,024 tokens and its checkpoints), then four of them (PLAN's, READ's, the slot's save and one more),
+# then two checkpoints and 256 MiB, then reuse off. With 0.8.7's fixed 512 MiB on the 4B only two entries fitted, and the
+# first PLAN question after Ready found PLAN's primed menu evicted (K4b's finding).
+REUSE_LADDER_MB=((6,'ALL'),(6,'FEW'),(2,256),(0,0))  # (checkpoints, RAM prompt cache): the first rung the rule admits is taken
+PROMPT_CACHE_LARGE_MB=1024                # 0.8.7's fixed caches, kept for reference: 1,024 MiB on a large model, 512 small
 PROMPT_CACHE_SMALL_MB=512
 LARGE_WEIGHTS_BYTES=8*1024*MIB
+MTP_CONTEXT_BYTES=512*MIB                 # 1.0 M1: the MTP draft context's own buffers, an estimate the readback checks
 
 
 def memory_shape(inspection):
@@ -119,27 +124,45 @@ def preferred_cache_mb(total_bytes):
     return PROMPT_CACHE_LARGE_MB if total_bytes>LARGE_WEIGHTS_BYTES else PROMPT_CACHE_SMALL_MB
 
 
-def memory_sum(inspection,total_bytes,context,checkpoints=0,cache_mb=0):
-    """The model's budget estimate in bytes, term by term. A dense model ignores checkpoints and cache (it has neither)."""
+def _kv_per_token(shape,kv_type='f16',layers=None):
+    """1.0 M1: K and V bytes a token for the attention layers (or `layers` of them) at the KV cache's type (f16 as before;
+    q8_0 34 bytes a block of 32; f8_e4m3 one byte), rounded up to a whole byte."""
+    from .runtime_tuning import kv_bytes
+    if shape['kind']=='DENSE':
+        count=shape['layers'] if layers is None else layers
+        elements=count*(shape['embedding']*shape['kv_heads']//shape['heads'])       # K, and as many in V
+        return kv_bytes(elements,kv_type)*2
+    count=shape['attention_layers'] if layers is None else layers
+    return kv_bytes(count*shape['kv_heads']*shape['key_length'],kv_type)+kv_bytes(count*shape['kv_heads']*shape['value_length'],kv_type)
+
+
+def memory_sum(inspection,total_bytes,context,checkpoints=0,cache_mb=0,kv_type='f16',mtp=0):
+    """The model's budget estimate in bytes, term by term. A dense model ignores checkpoints and cache (it has neither).
+    1.0 M1: the KV cache's type (kv_type), and the MTP head when multi-token prediction is on (mtp: its layers, from the
+    model's own file): its KV over the context and its draft context's buffers."""
     shape=memory_shape(inspection)
     if shape['kind']=='DENSE':
-        kv=4*shape['layers']*context*shape['embedding']*shape['kv_heads']//shape['heads']
-        return {'kind':'DENSE','estimate':int(total_bytes*1.3+kv+BASE_BYTES),'weights':total_bytes,'kv':kv,'state':0,
-                'checkpoints':0,'checkpoint_bytes':0,'cache_mb':0,'cache':0,'base':BASE_BYTES}
+        kv=_kv_per_token(shape,kv_type)*context
+        head=(_kv_per_token(shape,kv_type,mtp)*context+MTP_CONTEXT_BYTES) if mtp else 0
+        return {'kind':'DENSE','estimate':int(total_bytes*1.3)+kv+BASE_BYTES+head,'weights':total_bytes,'kv':kv,'state':0,
+                'checkpoints':0,'checkpoint_bytes':0,'cache_mb':0,'cache':0,'base':BASE_BYTES,'kv_type':kv_type,'mtp':head}
     weights=-(-total_bytes*13//10)                                   # x 1.3, rounded up, in whole bytes
-    kv=shape['kv_bytes_per_token']*context;state=shape['state_bytes']
+    per=_kv_per_token(shape,kv_type);kv=per*context;state=shape['state_bytes']
+    head=(_kv_per_token(shape,kv_type,mtp)*context+MTP_CONTEXT_BYTES) if mtp else 0
+    if cache_mb in ('ALL','FEW'):
+        from .runtime_tuning import KEPT_PROMPTS,KEPT_PROMPTS_FEW,cache_mb as sized
+        cache_mb=sized(state,per,checkpoints,KEPT_PROMPTS if cache_mb=='ALL' else KEPT_PROMPTS_FEW)
     cache=cache_mb*MIB
-    return {'kind':'HYBRID','estimate':weights+BASE_BYTES+kv+state+checkpoints*state+cache,'weights':total_bytes,
-            'kv':kv,'kv_per_token':shape['kv_bytes_per_token'],'state':state,'checkpoints':checkpoints,
-            'checkpoint_bytes':checkpoints*state,'cache_mb':cache_mb,'cache':cache,'base':BASE_BYTES}
+    return {'kind':'HYBRID','estimate':weights+BASE_BYTES+kv+state+checkpoints*state+cache+head,'weights':total_bytes,
+            'kv':kv,'kv_per_token':per,'state':state,'checkpoints':checkpoints,
+            'checkpoint_bytes':checkpoints*state,'cache_mb':cache_mb,'cache':cache,'base':BASE_BYTES,'kv_type':kv_type,'mtp':head}
 
 
-def reuse_ladder(inspection,total_bytes,context):
-    """The rungs the memory rule tries, best first: six checkpoints and the model's RAM cache; two and 256 MiB; then
-    reuse off (today's launch). A dense model has the one rung, today's."""
-    if memory_shape(inspection)['kind']=='DENSE':return [memory_sum(inspection,total_bytes,context)]
-    return [memory_sum(inspection,total_bytes,context,checkpoints,preferred_cache_mb(total_bytes) if cache is None else cache)
-            for checkpoints,cache in REUSE_LADDER_MB]
+def reuse_ladder(inspection,total_bytes,context,kv_type='f16',mtp=0):
+    """The rungs the memory rule tries, best first (1.0 M1): six checkpoints and a RAM cache for every kept prompt; six
+    and a cache for four; two and 256 MiB; then reuse off (today's launch). A dense model has the one rung, today's."""
+    if memory_shape(inspection)['kind']=='DENSE':return [memory_sum(inspection,total_bytes,context,kv_type=kv_type,mtp=mtp)]
+    return [memory_sum(inspection,total_bytes,context,checkpoints,cache,kv_type,mtp) for checkpoints,cache in REUSE_LADDER_MB]
 # -- end 0.8.7 A2 -------------------------------------------------------------------------------------------------------
 
 

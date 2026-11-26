@@ -188,13 +188,13 @@ class Bench:
     # -- fakes ---------------------------------------------------------------------------------
     def _status(self, root, backend='CPU'):
         state = 'PINNED_%s_AVAILABLE' % backend if (backend == 'CPU' or self.vulkan_installed) else 'RUNTIME_ADDON_NOT_INSTALLED'
-        return {'schema': 'arc.brain-runtime/1', 'state': state, 'build': 'b11669', 'source_commit': 'simulated',
+        return {'schema': 'arc.brain-runtime/1', 'state': state, 'build': 'b12359', 'source_commit': 'simulated',
                 'platform': 'linux-vulkan-x64' if backend == 'VULKAN' else 'linux-x64', 'backend': backend,
                 'vulkan': 'PINNED_AVAILABLE_NOT_DEVICE_QUALIFIED' if self.vulkan_installed else 'NOT_INSTALLED_FOR_PLATFORM',
                 'available_backends': ['CPU', 'VULKAN'] if self.vulkan_installed else ['CPU'], 'pin': {'platforms': {}}}
 
     def _prepare(self, root, backend='CPU'):
-        return Path('/simulated/llama-server'), {'build': 'b11669', 'source_commit': 'simulated', 'archive_sha256': 'simulated',
+        return Path('/simulated/llama-server'), {'build': 'b12359', 'source_commit': 'simulated', 'archive_sha256': 'simulated',
                                                  'platform': 'linux-vulkan-x64' if backend == 'VULKAN' else 'linux-x64',
                                                  'backend': backend, 'simulated': True}
 

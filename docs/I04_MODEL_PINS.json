@@ -45,5 +45,14 @@
       "weight_loading": "RESIDENT_COPY"
     },
     "scope": "Execution-host I04 three-case family only; external weights are not bundled."
+  },
+  "runtime_now": {
+    "note": "1.0 M1: the bundled runtime moved to llama.cpp v1.0.0. The accepted reference above was run on b11669 and stands for b11669; hatch readiness now asks for the b12359 CPU archive, so the I04/I05 family is to be repeated on it (not run here). The I04 and I05 trial summaries at the program root record b11669 runs and are left as they ran.",
+    "build": "b12359",
+    "stable_release": "v1.0.0",
+    "source_commit": "b1b770d90d94cad9e9ea5b993bdbc383a522fb28",
+    "archive_sha256": "0bc1f091e8916102b6d8f2cf944233a620e90a0f856c72d0ce41150c65c2e72e",
+    "platform": "linux-x64",
+    "backend": "CPU"
   }
 }

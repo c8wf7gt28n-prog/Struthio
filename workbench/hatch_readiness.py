@@ -9,9 +9,9 @@ from . import locations,doctor,brain_runtime,math_backend,experiment_runtime,off
 
 ROOT=locations.PACKAGE
 REFERENCE_SHA='00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4'
-REFERENCE_BUILD='b11669'
-REFERENCE_RUNTIME_SHA='cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac'
-REFERENCE_COMMIT='620d2225cc436ab0b001e3200e590e3b286ef9ab'
+REFERENCE_BUILD='b12359'  # 1.0 M1: llama.cpp v1.0.0
+REFERENCE_RUNTIME_SHA='0bc1f091e8916102b6d8f2cf944233a620e90a0f856c72d0ce41150c65c2e72e'
+REFERENCE_COMMIT='b1b770d90d94cad9e9ea5b993bdbc383a522fb28'
 MODES=('model-diagnostic','model-family','visible-calc')
 
 
@@ -219,7 +219,7 @@ def main(argv=None):
     labels={'linux_host':'Linux host','program_integrity':'program/source integrity','operation_registry':'command registry',
         'pinned_math':'pinned SymPy, mpmath and Z3','native_office_bridge':'Calc/Writer and Java bridge',
         'protected_python':'protected Python (wasmtime==50.0.1)','local_loopback':'local TCP sockets',
-        'reference_runtime':'pinned b11669 CPU runtime','reference_model':'exact reference GGUF',
+        'reference_runtime':'pinned b12359 (llama.cpp v1.0.0) CPU runtime','reference_model':'exact reference GGUF',
         'reference_memory':'6 GiB available memory','qt_core_widgets':'Qt Core/Widgets 6.8.3',
         'connectable_x11':'connectable X11 display and xdpyinfo','unix_sockets':'Unix sockets'}
     for key,gate in report['gates'].items():

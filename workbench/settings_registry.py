@@ -125,6 +125,28 @@ SPECS += [
          'After an unavailable or failed Vulkan load, allow one recorded CPU attempt. Cancellation, changed model files and host-memory guard failures do not retry.',
          store='Kernel settings: ledger.brain.cpu_fallback',**MODEL_META),
 ]
+# 1.0 M1: llama.cpp v1.0.0's capabilities (runtime_tuning), each as before by default; the model check measures each on
+# the owner's machine and proposes the best ('Use the measured settings?', with Undo).
+SPECS += [
+    spec('brain.flash_attn','Flash attention','Slate','auto','string',
+         'Auto leaves it to the runtime, as before. The model check measures on and off on this computer and keeps one only when its answer is the same.',
+         store='Kernel settings: ledger.brain.flash_attn',choices=['auto','on','off'],
+         choice_labels={'auto':'Auto · the runtime decides','on':'On','off':'Off'},**MODEL_META),
+    spec('brain.kv_type','Model memory for the prompt (KV cache)','Slate','f16','string',
+         'Full size (f16) as before. Half size (q8_0, or FP8) keeps longer prompts in less memory and needs flash attention; the model check keeps it only when the answer is the same.',
+         store='Kernel settings: ledger.brain.kv_type',choices=['f16','q8_0','f8_e4m3'],
+         choice_labels={'f16':'Full size (f16)','q8_0':'Half size (q8_0)','f8_e4m3':'Half size, FP8 (f8_e4m3)'},**MODEL_META),
+    spec('brain.load_mode','Model loading','Slate','none','string',
+         'A resident copy as before, or Auto: mapped from the file where the device allows, so the integrated Radeon does not hold a second copy. The file must not change while the model runs; that is checked before every answer.',
+         store='Kernel settings: ledger.brain.load_mode',choices=['none','auto'],
+         choice_labels={'none':'A resident copy','auto':'Auto · mapped from the file'},**MODEL_META),
+    spec('brain.mtp_draft','Multi-token prediction (draft tokens)','Slate',0,'integer',
+         'Zero is off. With a model file that carries its own MTP head, the number of tokens it drafts ahead; the model checks each draft, so the answer is the same.',
+         store='Kernel settings: ledger.brain.mtp_draft',minimum=0,maximum=8,**MODEL_META),
+    spec('brain.batch','Reading batch (tokens)','Slate',64,'integer',
+         'How many prompt tokens are read at once. 64 as before; larger reads faster on the Radeon and holds the desk longer.',
+         store='Kernel settings: ledger.brain.batch',choices=[64,256,512,1024],**MODEL_META),
+]
 MODEL_KEYS=frozenset(row['key'] for row in SPECS if row.get('adapter')=='model_launch')
 SPECS += [spec('operations.'+key,label,'Work',default,'integer',description,
     root='Ledger',group='Shared resources',requires_owner=True,minimum=lo,maximum=hi,

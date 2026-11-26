@@ -88,12 +88,13 @@ class Workspace(unittest.TestCase):
 class AutoCap(Workspace):
     def test_auto_takes_the_owners_model_from_32140_mib_and_says_its_numbers_below(self):
         # 0.8.7 A2: the memory sum, exact for this hybrid model, with the reuse rung the rule admits (six checkpoints and
-        # a 1,024 MiB prompt cache at 39 GiB; reuse off at the boundary, 17 MiB below 0.8.1's 32,157)
+        # a prompt cache at 39 GiB; reuse off at the boundary, 17 MiB below 0.8.1's 32,157). 1.0 M1: the cache is sized from
+        # the memory sum for every kept prompt (5,557 MiB here, was a fixed 1,024), so the estimate at 39 GiB is 31,930 MiB
         self.host.available = 39
         config = self.configure()
-        self.assertEqual((config['estimated_peak_bytes'], config['memory_mb']), (28_726_879_197, 27397))
-        self.assertEqual((config['checkpoints'], config['prompt_cache_mb']), (6, 1024))
-        for available, budget in ((40, 27397), (60, 32768)):       # the estimate (above 65% of available), then the ceiling
+        self.assertEqual((config['estimated_peak_bytes'], config['memory_mb']), (33_480_074_205, 31930))
+        self.assertEqual((config['checkpoints'], config['prompt_cache_mb']), (6, 5557))
+        for available, budget in ((40, 31930), (60, 32768)):       # the estimate (above 65% of available), then the ceiling
             self.host.available = available
             self.assertEqual(self.configure()['memory_mb'], budget)
         self.host.available = 32140 / 1024          # the estimate, the 2,048 MiB reserve and 4,096 MiB headroom

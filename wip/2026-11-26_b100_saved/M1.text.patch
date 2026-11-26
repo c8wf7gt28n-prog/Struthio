@@ -1,0 +1,1035 @@
+diff --git a/THIRD_PARTY_NOTICES.md b/THIRD_PARTY_NOTICES.md
+index f250a18..f937e51 100644
+--- a/THIRD_PARTY_NOTICES.md
++++ b/THIRD_PARTY_NOTICES.md
+@@ -16,7 +16,7 @@ PySide6 and other installed tools are dependencies, not bundled binaries. Retain
+ 
+ ## Local inference worker — Pass 3
+ 
+-llama.cpp b11669 / commit 620d2225cc436ab0b001e3200e590e3b286ef9ab is redistributed as two unchanged official Linux x64 archives, the CPU build and the Vulkan build, under runtimes/llama.cpp/b11669. Its MIT LICENSE is included there. Original archive licenses and provenance are preserved. Model weights are external and are not redistributed in this program ZIP. The independent GGUF inspector follows the public GGUF specification; the upstream PySide6 editor is a design reference, with no write/edit facilities exposed.
++llama.cpp v1.0.0 (build b12359) / commit b1b770d90d94cad9e9ea5b993bdbc383a522fb28 is redistributed as two unchanged official Linux x64 archives, the CPU build and the Vulkan build, under runtimes/llama.cpp/b12359 (Graphite 1.0; it replaces b11669). Its MIT LICENSE is included there. Original archive licenses and provenance are preserved. Model weights are external and are not redistributed in this program ZIP. The independent GGUF inspector follows the public GGUF specification; the upstream PySide6 editor is a design reference, with no write/edit facilities exposed.
+ 
+ ## I02 mathematical tools and Office bridge
+ 
+diff --git a/docs/HATCH_READINESS.md b/docs/HATCH_READINESS.md
+index 2689f99..e0999fe 100644
+--- a/docs/HATCH_READINESS.md
++++ b/docs/HATCH_READINESS.md
+@@ -20,7 +20,7 @@ bash HATCH_CHECK.sh --run visible-calc --output /path/to/new-visible-check
+ bash HATCH_CHECK.sh --run model-family --budget-seconds 3600 --model /path/to/reference.gguf --output /path/to/new-family
+ ```
+ 
+-The diagnostic and visible check default to a 600-second runner budget. A full model family requires an explicitly declared budget; 3600 above is an example, not a promise that every host will finish in that time. The existing frozen cases, expected results, grants, duplicate guard and first-failed-case stop are unchanged. Model/runtime identity remains the retained I05 Qwen3.5-4B reference SHA256 and b11669 CPU runtime. Other models retain their normal Ledger entry points.
++The diagnostic and visible check default to a 600-second runner budget. A full model family requires an explicitly declared budget; 3600 above is an example, not a promise that every host will finish in that time. The existing frozen cases, expected results, grants, duplicate guard and first-failed-case stop are unchanged. Model/runtime identity remains the retained I05 Qwen3.5-4B reference SHA256; the CPU runtime is b12359 (llama.cpp v1.0.0) since Graphite 1.0, whose I05 family is still to be run on it. Other models retain their normal Ledger entry points.
+ 
+ Passing `--run` explicitly requests the chosen existing checker and its isolated synthetic fixture. The checker creates fresh scoped work orders and owner grants within that fixture. It does not act on the owner's project workspace. The visible check opens real owned Calc windows on a connectable X11 host and performs its scripted takeover checks; it is not an offscreen substitute or a general owner-device qualification.
+ 
+diff --git a/docs/I04_MODEL_PINS.json b/docs/I04_MODEL_PINS.json
+index 57a9823..352e2f6 100644
+--- a/docs/I04_MODEL_PINS.json
++++ b/docs/I04_MODEL_PINS.json
+@@ -45,5 +45,14 @@
+       "weight_loading": "RESIDENT_COPY"
+     },
+     "scope": "Execution-host I04 three-case family only; external weights are not bundled."
++  },
++  "runtime_now": {
++    "note": "1.0 M1: the bundled runtime moved to llama.cpp v1.0.0. The accepted reference above was run on b11669 and stands for b11669; hatch readiness now asks for the b12359 CPU archive, so the I04/I05 family is to be repeated on it (not run here). The I04 and I05 trial summaries at the program root record b11669 runs and are left as they ran.",
++    "build": "b12359",
++    "stable_release": "v1.0.0",
++    "source_commit": "b1b770d90d94cad9e9ea5b993bdbc383a522fb28",
++    "archive_sha256": "0bc1f091e8916102b6d8f2cf944233a620e90a0f856c72d0ce41150c65c2e72e",
++    "platform": "linux-x64",
++    "backend": "CPU"
+   }
+ }
+diff --git a/docs/THINKPAD_FIRST_INSTALL.md b/docs/THINKPAD_FIRST_INSTALL.md
+index e07b280..0ca831f 100644
+--- a/docs/THINKPAD_FIRST_INSTALL.md
++++ b/docs/THINKPAD_FIRST_INSTALL.md
+@@ -64,17 +64,44 @@ search results that day, not from the publisher's page and not tried on this mac
+ 22 GB depending on who made it (one maker's "UD-Q4_K_M" is 22.1 GB, another's Q4_K_M 20.75 GB), and one comparison says
+ it wants about 24 GB of memory at a 16k context. It is a mixture of experts: all 35B are held in memory, about 3B work
+ on each token, so it should answer faster than a 27B of the same size on this processor. Whether the bundled runtime
+-(llama.cpp b11669) reads the file is not known: the Brain room shows it on the ThinkPad. The memory recorded for the
+-ThinkPad (about 61 GiB) is room for it. A file named "MTP" under that name is a small helper, not the model.
++(llama.cpp v1.0.0, build b12359, since Graphite 1.0) reads the file is not known: the Brain room shows it on the ThinkPad.
++The memory recorded for the ThinkPad (about 61 GiB) is room for it.
++
++### The first evening with the model (Graphite 1.0)
++
++- **The machine.** A ThinkPad E16 Gen 2 AMD (machine type 21M5): Ryzen 7 7735HS, Radeon 680M integrated graphics (RDNA2,
++  12 compute units; its memory is the system memory) and DDR5-4800 in two slots. Writing is bound by the memory's speed:
++  expect about 15 to 30 tokens a second from the 35B-A3B at Q4, more with multi-token prediction. Reading is bound by the
++  680M and should be well above that.
++- **The runtime.** llama.cpp v1.0.0 (build b12359, commit b1b770d90d94cad9e9ea5b993bdbc383a522fb28), both archives under
++  `runtimes/llama.cpp/b12359`. Her model is sealed as before; the seal's lists come from v1.0.0's own help text.
++- **The model with its MTP head.** Multi-token prediction needs the model file that carries its own MTP head:
++  `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` from `unsloth/Qwen3.6-35B-A3B-MTP-GGUF`, 22,663,387,424 bytes, sha256
++  `0b21525e972670ed59e1812e170b27c26355381f0656ecc4e25617ece7dac58b` (read from the publisher's file list on 26 November
++  2026; not downloaded or tried here). The same name without "MTP" (22,134,528,992 bytes) has no head. Graphite never
++  loads a second, separate head file.
++- **The model check.** Run it once on mains (Brain room, or `./MODEL_CHECK.sh --model <file>`). Its new tuning stage tries
++  flash attention, the KV cache's type, reading batches, threads, full or partial offload and, with the MTP file, the
++  draft length; it keeps a setting only when the answer is the same as without it, and says how far each speed is from
++  your goal of 99 tokens a second, reading and writing. Each best setting is offered under "Use the measured settings?",
++  with Undo. Nothing changes until you press it.
++- **What was measured here** (26 November 2026, a busy 4-core cloud machine with no Radeon, on the processor; these
++  numbers mean nothing for the ThinkPad): the sealed 4B started on v1.0.0 and every wall of the seal held. With the
++  prompt cache sized for every kept prompt, PLAN's and READ's both survived the priming round, and the second PLAN turn
++  on Rail Demo took 4.0 s (3.3 s on the old runtime, on a quieter machine). The tuning stage on the 4B: reads 47 a second
++  plain, 67 at its best (reading batch 1,024, four threads), writing 5; on the 2B with its MTP head: reads 98 plain, 144
++  at its best, writing 9 to 12. On this processor multi-token prediction gave the same answer but no speed (the model
++  accepted 45 to 69 % of the drafted tokens). Flash attention off, and the half-size KV caches, changed the answer here,
++  so the check did not keep them.
+ 
+ Before that, on 12 November, the owner's choice was the Qwen family's 4.0 release at 27B, 4-bit quantised, once it
+ existed. On that day it did not: the publisher's page held no Qwen 4 weights, and files under that name elsewhere were
+ placeholders. Read on that day from the publisher's and the runtime's own pages, not tried on this machine:
+ 
+ - To rehearse until then, the same publisher's Qwen3.8-27B at Q4_K_M (about 17 GB, Apache 2.0). The bundled runtime
+-  (llama.cpp b11669) is newer than the builds that file was made with.
++  (llama.cpp b11669 then; v1.0.0, b12359, since Graphite 1.0) is newer than the builds that file was made with.
+ - A Qwen 4 file will probably need a newer runtime than the bundled one: check the build its publisher names against
+-  b11669 before the first try.
++  b12359 (llama.cpp v1.0.0) before the first try.
+ - Expect a few tokens a second from a 27B on this processor, with or without the Radeon. If loading on the Radeon fails
+   with a device-lost or out-of-memory message, that is a known open fault on this graphics chip; the processor path works.
+ - Start small. A 2B and a 4B file of the same family answered in Graphite in 5 to 25 seconds on a slower processor than
+diff --git a/tests_integrated/test_resource_rules.py b/tests_integrated/test_resource_rules.py
+index f1bf15e..7e17af7 100644
+--- a/tests_integrated/test_resource_rules.py
++++ b/tests_integrated/test_resource_rules.py
+@@ -88,12 +88,13 @@ class Workspace(unittest.TestCase):
+ class AutoCap(Workspace):
+     def test_auto_takes_the_owners_model_from_32140_mib_and_says_its_numbers_below(self):
+         # 0.8.7 A2: the memory sum, exact for this hybrid model, with the reuse rung the rule admits (six checkpoints and
+-        # a 1,024 MiB prompt cache at 39 GiB; reuse off at the boundary, 17 MiB below 0.8.1's 32,157)
++        # a prompt cache at 39 GiB; reuse off at the boundary, 17 MiB below 0.8.1's 32,157). 1.0 M1: the cache is sized from
++        # the memory sum for every kept prompt (5,557 MiB here, was a fixed 1,024), so the estimate at 39 GiB is 31,930 MiB
+         self.host.available = 39
+         config = self.configure()
+-        self.assertEqual((config['estimated_peak_bytes'], config['memory_mb']), (28_726_879_197, 27397))
+-        self.assertEqual((config['checkpoints'], config['prompt_cache_mb']), (6, 1024))
+-        for available, budget in ((40, 27397), (60, 32768)):       # the estimate (above 65% of available), then the ceiling
++        self.assertEqual((config['estimated_peak_bytes'], config['memory_mb']), (33_480_074_205, 31930))
++        self.assertEqual((config['checkpoints'], config['prompt_cache_mb']), (6, 5557))
++        for available, budget in ((40, 31930), (60, 32768)):       # the estimate (above 65% of available), then the ceiling
+             self.host.available = available
+             self.assertEqual(self.configure()['memory_mb'], budget)
+         self.host.available = 32140 / 1024          # the estimate, the 2,048 MiB reserve and 4,096 MiB headroom
+diff --git a/tools/campaign_lib/sim.py b/tools/campaign_lib/sim.py
+index 118b798..c32c2d3 100644
+--- a/tools/campaign_lib/sim.py
++++ b/tools/campaign_lib/sim.py
+@@ -188,13 +188,13 @@ class Bench:
+     # -- fakes ---------------------------------------------------------------------------------
+     def _status(self, root, backend='CPU'):
+         state = 'PINNED_%s_AVAILABLE' % backend if (backend == 'CPU' or self.vulkan_installed) else 'RUNTIME_ADDON_NOT_INSTALLED'
+-        return {'schema': 'arc.brain-runtime/1', 'state': state, 'build': 'b11669', 'source_commit': 'simulated',
++        return {'schema': 'arc.brain-runtime/1', 'state': state, 'build': 'b12359', 'source_commit': 'simulated',
+                 'platform': 'linux-vulkan-x64' if backend == 'VULKAN' else 'linux-x64', 'backend': backend,
+                 'vulkan': 'PINNED_AVAILABLE_NOT_DEVICE_QUALIFIED' if self.vulkan_installed else 'NOT_INSTALLED_FOR_PLATFORM',
+                 'available_backends': ['CPU', 'VULKAN'] if self.vulkan_installed else ['CPU'], 'pin': {'platforms': {}}}
+ 
+     def _prepare(self, root, backend='CPU'):
+-        return Path('/simulated/llama-server'), {'build': 'b11669', 'source_commit': 'simulated', 'archive_sha256': 'simulated',
++        return Path('/simulated/llama-server'), {'build': 'b12359', 'source_commit': 'simulated', 'archive_sha256': 'simulated',
+                                                  'platform': 'linux-vulkan-x64' if backend == 'VULKAN' else 'linux-x64',
+                                                  'backend': backend, 'simulated': True}
+ 
+diff --git a/workbench/brain_clock.py b/workbench/brain_clock.py
+index 3f12370..a77fe3d 100644
+--- a/workbench/brain_clock.py
++++ b/workbench/brain_clock.py
+@@ -10,8 +10,11 @@ on; every turn has a deadline, and past it the safe default or the buttons. This
+ The rates are rolling medians per model key (model file, runtime, backend, context: the port's key), per kind, from the
+ timings every turn already returns (prompt_n, prompt_ms, predicted_n, predicted_ms on its brain.turn/1 record), with reads
+ kept in size bands: small reads are slower per token (30 to 43 a second against 70 cold on the 4B, measured). Where a kind
+-has fewer than three timings, the key's other kinds stand in; where the key has none, the 4B's quiet rates here (rounded
+-down). All of it is whole milliseconds and exact fractions: no floating point.
++has fewer than three timings, the key's other kinds stand in; where the key has none, the rates the model check measured
++for that key (1.0 M1: its tuning stage, runtime_tuning.measured; a small read at three fifths of them), and where it never
++ran, the 4B's quiet rates here (rounded down). All of it is whole milliseconds and exact fractions: no floating point.
++1.0 M1: the stand-ins were measured again with llama.cpp v1.0.0 (b12359) and the 4B on this processor, quiet: 43 to 47
++tokens a second reading 830 tokens cold, 4 to 5 writing; they stand.
+ 
+ Also here: the line under her card while a turn runs ("Asking the model: 2 s of about 3"), why a turn three times its price
+ was slow, from the meters ("Slow today: memory is tight."), the lates (two in a row narrow the question; three in a session
+@@ -119,10 +122,10 @@ class Clock:
+ 
+     def read_rate(self, key, kind, new_tokens):
+         b = band(new_tokens)
+-        return self._median(self.read, key, kind, (b,)) or DEFAULT_READ[b]
++        return self._median(self.read, key, kind, (b,)) or _measured(key, 0, b) or DEFAULT_READ[b]
+ 
+     def write_rate(self, key, kind):
+-        return self._median(self.write, key, kind) or DEFAULT_WRITE
++        return self._median(self.write, key, kind) or _measured(key, 1) or DEFAULT_WRITE
+ 
+     def price_ms(self, key, kind, new_tokens, answer_tokens, desk_ms):
+         """The price of a turn before it is sent, in whole ms (rounded up): desk + new / read rate + answer / write rate."""
+@@ -149,6 +152,19 @@ class Clock:
+         return max(rule_ms, int(measured)) if measured is not None else rule_ms
+ 
+ 
++def _measured(key, which, read_band=None):
++    """1.0 M1: the model check's measured rate for this model key (read: 0, write: 1), a small read at three fifths of it;
++    None when the key was never measured."""
++    try:
++        from .runtime_tuning import measured
++        got = measured(key)
++    except Exception:  # noqa: BLE001 - no measurement: the stand-ins
++        return None
++    if not got:return None
++    rate = got[which]
++    return rate * Fraction(3, 5) if read_band == 'small' else rate
++
++
+ # -- one clock per Kernel database, rebuilt from the ledger --------------------------------------------------------------------
+ _CLOCKS = {}
+ 
+diff --git a/workbench/brain_runtime.py b/workbench/brain_runtime.py
+index 53b6a9d..1b37e94 100644
+--- a/workbench/brain_runtime.py
++++ b/workbench/brain_runtime.py
+@@ -4,7 +4,7 @@ from pathlib import Path,PurePosixPath
+ from .session import config_dir
+ from .locations import program
+ 
+-PIN='runtimes/llama.cpp/b11669/runtime.json'
++PIN='runtimes/llama.cpp/b12359/runtime.json'  # 1.0 M1: llama.cpp v1.0.0 (b12359), was b11669
+ ADDON_HINT='The runtime for this computer comes as an add-on: unzip the runtime add-on into the program folder, which places %s next to runtime.json.'
+ 
+ def host(profile=True):
+diff --git a/workbench/brain_seal.py b/workbench/brain_seal.py
+index 100043c..f5efed8 100644
+--- a/workbench/brain_seal.py
++++ b/workbench/brain_seal.py
+@@ -5,8 +5,8 @@ checked each time the model starts, before it is marked Ready, by asking the ser
+ model itself:
+ 
+ 1. Its launch line comes from an allow-list (lint). Agent tools (a shell among them), MCP, downloads, prompt logs, slot
+-   files, extra endpoints and a key on the command line are refused by name, the names taken from the b11669 help text;
+-   anything else that is not on the list is refused too. --offline is always there.
++   files, extra endpoints and a key on the command line are refused by name, the names taken from the pinned runtime's
++   help text (1.0 M1: llama.cpp v1.0.0, b12359); anything else that is not on the list is refused too. --offline is always there.
+ 2. Its environment comes from an allow-list: PATH, the locale and its own library folder; for Vulkan, XDG_RUNTIME_DIR
+    and a shader cache under Graphite's own state. A key the owner's shell sets for another tool (LLAMA_API_KEY,
+    HF_TOKEN), GGML_BACKEND_PATH, LLAMA_CACHE, debug switches and proxies never reach it.
+@@ -74,22 +74,35 @@ def _host(value):
+ 
+ # Every argument Graphite may give the runtime, with the shape of its value (None: a switch). Closed: anything else is
+ # refused. --checkpoint-min-step is admitted for slice A2's launch line (design 4.2); nothing else is open for it.
++# 1.0 M1 (llama.cpp v1.0.0): flash attention, the KV cache's type, load mode auto, the model's own jinja template with
++# reasoning off, and multi-token prediction from the model's own MTP head (never a second model file), each with the
++# exact values Graphite gives (runtime_tuning); --load-mode admits auto beside none.
++KV_CACHE_TYPES = ('f16', 'q8_0', 'f8_e4m3')
++MTP_DRAFT_MOST = 8
+ ALLOWED = {
+     '--model': _path, '--host': _host, '--port': lambda v: _number(v) and 0 < int(v) < 65536, '--api-key-file': _path,
+     '--ctx-size': _number, '--threads': _number, '-ngl': lambda v: v == 'auto' or _number(v), '--parallel': _number,
+     '--threads-http': _number, '--batch-size': _number, '--ubatch-size': _number, '--cache-ram': _number,
+     '--ctx-checkpoints': _number, '--checkpoint-min-step': _number, '--fit': lambda v: v in ('on', 'off'),
+-    '--load-mode': lambda v: v == 'none', '--device': lambda v: v == 'none' or bool(re.fullmatch(r'Vulkan[0-9]{1,2}', v)),
++    '--load-mode': lambda v: v in ('none', 'auto'), '--device': lambda v: v == 'none' or bool(re.fullmatch(r'Vulkan[0-9]{1,2}', v)),
+     '--no-cache-idle-slots': None, '--no-webui': None, '--no-ui-mcp-proxy': None, '--no-slots': None,
+-    '--no-context-shift': None, '--no-warmup': None, '--offline': None}
++    '--no-context-shift': None, '--no-warmup': None, '--offline': None,
++    # 1.0 M1
++    '--flash-attn': lambda v: v in ('on', 'off', 'auto'), '--cache-type-k': lambda v: v in KV_CACHE_TYPES,
++    '--cache-type-v': lambda v: v in KV_CACHE_TYPES, '--jinja': None, '--reasoning': lambda v: v == 'off',
++    '--spec-type': lambda v: v == 'draft-mtp',
++    '--spec-draft-n-max': lambda v: _number(v) and 1 <= int(v) <= MTP_DRAFT_MOST}
+ REQUIRED = ('--model', '--host', '--api-key-file', '--offline', '--no-slots', '--no-webui', '--no-ui-mcp-proxy')
+ 
+-# Refused by name, every alias as `llama-server --help` of b11669 prints it (b087d/synth/help_b11669.txt), with the reason
+-# she gives. The list names the dangerous ones; the allow-list above is what keeps everything else out.
++# Refused by name, every alias as `llama-server --help` of the pinned runtime prints it, with the reason she gives. 1.0 M1:
++# regenerated from v1.0.0's (b12359) help text (its sha256 is in runtime.json); every name below is in it, and v1.0.0's new
++# dangerous ones are added: --allow-unauthenticated-tools, --connect and --connect-code (a peer-to-peer tunnel),
++# --media-allow-private-urls, and --shard / --ple (more model files). The list names the dangerous ones; the allow-list
++# above is what keeps everything else out.
+ FORBIDDEN_GROUPS = {
+     'AGENT_TOOLS': ('it would turn on agent tools, a shell among them',
+                     ('--tools', '--tools-runtime', '-ag', '--agent', '--mcp-servers-config', '--mcp-servers-json',
+-                     '--ui-mcp-proxy', '--webui-mcp-proxy')),
++                     '--ui-mcp-proxy', '--webui-mcp-proxy', '--allow-unauthenticated-tools')),
+     'DOWNLOADS': ('it would let the runtime download from the internet',
+                   ('-mu', '--model-url', '-dr', '--docker-repo', '-hf', '-hfr', '--hf-repo', '-hff', '--hf-file', '-hft',
+                    '--hf-token', '-hfd', '-hfrd', '--hf-repo-draft', '--spec-draft-hf', '-mmu', '--mmproj-url',
+@@ -99,7 +112,7 @@ FORBIDDEN_GROUPS = {
+                    '--vision-gemma-4b-default', '--vision-gemma-12b-default')),
+     'NETWORK': ('it would open the runtime to the network',
+                 ('--rpc', '--reuse-port', '--cors-origins', '--cors-methods', '--cors-headers', '--cors-credentials',
+-                 '--ssl-key-file', '--ssl-cert-file')),
++                 '--ssl-key-file', '--ssl-cert-file', '--connect', '--connect-code', '--media-allow-private-urls')),
+     'WRITES_TO_DISK': ('it would write prompts or model state to disk',
+                        ('--log-prompts-dir', '--slot-save-path', '--log-file', '-lcd', '--lookup-cache-dynamic')),
+     'VERBOSE_LOGS': ('it would write what is asked into its log',
+@@ -112,7 +125,7 @@ FORBIDDEN_GROUPS = {
+                      ('--models-dir', '--models-preset', '--models-max', '--models-autoload', '--lora', '--lora-scaled',
+                       '--control-vector', '--control-vector-scaled', '--control-vector-layer-range', '-md',
+                       '--model-draft', '--spec-draft-model', '-mm', '--mmproj', '--chat-template',
+-                      '--chat-template-file', '--override-kv', '--spec-default')),
++                      '--chat-template-file', '--override-kv', '--spec-default', '--shard', '--ple')),
+     'KEY_ON_COMMAND_LINE': ('it would put a key on the command line, where other programs can read it', ('--api-key',)),
+     'RUNS_PROGRAMS': ('it would let the runtime run other programs', ('--video-ffmpeg-dir',)),
+     'READS_FILES': ('it would let the runtime read files I did not choose',
+@@ -156,6 +169,8 @@ def lint(arguments):
+         shape.append([token, '<path>' if check in (_path, _host) and value != '127.0.0.1' else '<port>' if token == '--port'
+                       else value])
+         index += 2
++    if '--spec-draft-n-max' in seen and '--spec-type' not in seen:     # 1.0 M1: a draft length means the MTP head
++        _refuse_argument('--spec-draft-n-max', "a draft length needs the model's own MTP head named with it")
+     missing = [name for name in REQUIRED if name not in seen]
+     if missing:
+         raise SealRefused('launch_line', 'its launch line lacks ' + missing[0])
+diff --git a/workbench/hatch_readiness.py b/workbench/hatch_readiness.py
+index 03c8ad2..1697b48 100644
+--- a/workbench/hatch_readiness.py
++++ b/workbench/hatch_readiness.py
+@@ -9,9 +9,9 @@ from . import locations,doctor,brain_runtime,math_backend,experiment_runtime,off
+ 
+ ROOT=locations.PACKAGE
+ REFERENCE_SHA='00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4'
+-REFERENCE_BUILD='b11669'
+-REFERENCE_RUNTIME_SHA='cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac'
+-REFERENCE_COMMIT='620d2225cc436ab0b001e3200e590e3b286ef9ab'
++REFERENCE_BUILD='b12359'  # 1.0 M1: llama.cpp v1.0.0
++REFERENCE_RUNTIME_SHA='0bc1f091e8916102b6d8f2cf944233a620e90a0f856c72d0ce41150c65c2e72e'
++REFERENCE_COMMIT='b1b770d90d94cad9e9ea5b993bdbc383a522fb28'
+ MODES=('model-diagnostic','model-family','visible-calc')
+ 
+ 
+@@ -219,7 +219,7 @@ def main(argv=None):
+     labels={'linux_host':'Linux host','program_integrity':'program/source integrity','operation_registry':'command registry',
+         'pinned_math':'pinned SymPy, mpmath and Z3','native_office_bridge':'Calc/Writer and Java bridge',
+         'protected_python':'protected Python (wasmtime==50.0.1)','local_loopback':'local TCP sockets',
+-        'reference_runtime':'pinned b11669 CPU runtime','reference_model':'exact reference GGUF',
++        'reference_runtime':'pinned b12359 (llama.cpp v1.0.0) CPU runtime','reference_model':'exact reference GGUF',
+         'reference_memory':'6 GiB available memory','qt_core_widgets':'Qt Core/Widgets 6.8.3',
+         'connectable_x11':'connectable X11 display and xdpyinfo','unix_sockets':'Unix sockets'}
+     for key,gate in report['gates'].items():
+diff --git a/workbench/local_brain.py b/workbench/local_brain.py
+index 8358949..039f8de 100644
+--- a/workbench/local_brain.py
++++ b/workbench/local_brain.py
+@@ -22,7 +22,11 @@ OPTIONS={'type':'object','additionalProperties':False,'properties':{
+  'backend':{'type':'string','enum':['AUTO','CPU','VULKAN']},'gpu_layers':{'type':'integer','minimum':-1,'maximum':512},
+  'cpu_fallback':{'type':'boolean'},
+  # 0.8.7 A5 (the model check): reuse off for I05 arm A as registered (A+R has it on); reading batch 64, 256 or 512
+- 'reuse':{'type':'boolean'},'batch':{'type':'integer','enum':[64,256,512]},
++ 'reuse':{'type':'boolean'},'batch':{'type':'integer','enum':[64,256,512,1024]},
++ # 1.0 M1: llama.cpp v1.0.0's capabilities, each an owner launch default the model check measures (runtime_tuning)
++ 'flash_attn':{'type':'string','enum':['auto','on','off']},'kv_type':{'type':'string','enum':['f16','q8_0','f8_e4m3']},
++ 'load_mode':{'type':'string','enum':['none','auto']},'mtp_draft':{'type':'integer','minimum':0,'maximum':8},
++ 'prime':{'type':'boolean'},   # 1.0 M1: false only for the model check's tuning launches (each measured, none primed)
+  'message':{'type':'string','maxLength':8000},'max_tokens':{'type':'integer','minimum':1,'maximum':512},
+  'mode':{'type':'string','enum':['chat','plan']},'conversation':{'type':'string','pattern':'^[0-9a-f]{32}$','maxLength':32}}}
+ OPTIONS['properties']['reference_packet']={'type':'string','pattern':'^[0-9a-f]{32}$','maxLength':32}
+@@ -239,7 +243,10 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
+     # reuse ladder: six checkpoints and the RAM prompt cache, then two and 256 MiB, then reuse off; the first rung the
+     # rule admits is taken. A dense model has one rung, today's estimate to the byte.
+     from .resource_control import KEYS,MIB,budget_room,reserve_bytes,reuse_ladder
+-    ladder=reuse_ladder(value['inspection'],value['total_bytes'],context)
++    from . import runtime_tuning        # 1.0 M1: the KV cache's type and the model's own MTP head count in the sum
++    tuned=runtime_tuning.settings(options);mtp=runtime_tuning.mtp_layers(value['inspection'])
++    head=mtp if tuned['mtp_draft'] else 0
++    ladder=reuse_ladder(value['inspection'],value['total_bytes'],context,tuned['kv_type'],head)
+     if options.get('reuse') is False:ladder=ladder[-1:]   # 0.8.7 A5: reuse off, today's launch (I05 arm A as registered)
+     available=host['available_ram_bytes']
+     if not available:raise ValueError('HOST_MEMORY_COULD_NOT_BE_MEASURED')
+@@ -294,7 +301,9 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
+             'checkpoints':chosen['checkpoints'],'prompt_cache_mb':chosen['cache_mb'],
+             'memory_sum':{k:v for k,v in chosen.items() if k!='estimate'},'backend':backend,
+             'requested_backend':requested,'gpu_layers':layers,'cpu_fallback':fallback,'fallback_reason':reason,
+-            **({'batch':options['batch']} if options.get('batch') in (64,256,512) else {}),   # 0.8.7 A5: the model check's batches
++            **({'batch':options['batch']} if options.get('batch') in (64,256,512,1024) else {}),   # 0.8.7 A5: the model check's batches
++            **{k:v for k,v in tuned.items() if k!='batch'},'mtp_layers':mtp,   # 1.0 M1 (runtime_tuning)
++            **({'prime':False} if options.get('prime') is False else {}),
+             'host':host,'reclaimable_private_bytes':reclaimable_bytes,'resource_guard':resource_guard(backend),
+             **({'headroom_mb':headroom_mb} if headroom_mb else {})}
+ 
+@@ -432,7 +441,7 @@ def seal_check(worker,log,backend):
+ def _batch(config):
+     """0.8.7 A5: the reading batch (--ubatch-size): 64 as before unless the launch asks for 256 or 512 (the model check's
+     S2 measures each; 'Use the measured settings?' may propose one)."""
+-    return config.get('batch') if config.get('batch') in (64,256,512) else 64
++    return config.get('batch') if config.get('batch') in (64,256,512,1024) else 64   # 1.0 M1: and 1024
+ 
+ def launch_arguments(weights,sock,port,key_file,config,backend):
+     """The runtime's launch line (0.8.7 A2, design 4.2). One slot (--parallel 1); prompt reuse through context
+@@ -448,10 +457,17 @@ def launch_arguments(weights,sock,port,key_file,config,backend):
+           '--threads-http','2','--batch-size',str(max(256,_batch(config))),'--ubatch-size',str(_batch(config)),
+           '--cache-ram',str(int(config.get('prompt_cache_mb') or 0)),'--ctx-checkpoints',str(int(config.get('checkpoints') or 0)),
+           '--checkpoint-min-step','0','--no-cache-idle-slots',
+-          '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode','none',
++          '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode',runtime_tuning_load_mode(config),
+           '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup','--offline']
+     line+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
+-    return line
++    from . import runtime_tuning           # 1.0 M1: jinja with reasoning off, flash attention, the KV type, MTP
++    return line+runtime_tuning.launch_extra(config,backend)
++
++
++def runtime_tuning_load_mode(config):
++    """1.0 M1: --load-mode from the owner's launch default (none, a resident copy, as before; or auto)."""
++    from . import runtime_tuning
++    return runtime_tuning.load_mode(config)
+ 
+ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
+     from .locations import child_env
+@@ -502,6 +518,8 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
+                     'context_basis':'REQUESTED_LIMIT','context_reuse':'PINNED_SINGLE_SLOT',
+                     # 0.8.7 A2: kept briefs (brain_briefs) over one slot, its checkpoints and its RAM prompt cache
+                     'reuse':{'checkpoints':int(config.get('checkpoints') or 0),'prompt_cache_mb':int(config.get('prompt_cache_mb') or 0)},
++                    # 1.0 M1: what the runtime was asked for (runtime_tuning)
++                    'runtime_settings':{k:config.get(k) for k in ('flash_attn','kv_type','load_mode','mtp_draft','mtp_layers')},
+                     'memory_sum':config.get('memory_sum')}
+             if worker['start'] in (None,UNKNOWN):raise ValueError('Model worker process ownership could not be verified')
+             put(kernel,slot,worker,'STARTING',db)
+@@ -673,7 +691,10 @@ def run_model_job(kernel,job):
+         if job['tool']=='brain.activate':
+             # 0.8.7 A2: Ready, then each kind's brief read once with no answer (never fails the activation)
+             from . import brain_briefs
+-            result['kept_briefs']=brain_briefs.after_start(kernel,trial,cancelled=lambda:cancelled(kernel,ident))
++            # 1.0 M1: a tuning launch of the model check (prime False) is measured cold and primes nothing
++            result['kept_briefs']=({'primed':[],'failed':[],'readback':None,'desks':[],'skipped':'NOT_PRIMED_FOR_TUNING'}
++                                   if config.get('prime') is False else
++                                   brain_briefs.after_start(kernel,trial,cancelled=lambda:cancelled(kernel,ident)))
+             trial=None
+         return result
+     except BaseException as exc:
+diff --git a/workbench/machine_overview.py b/workbench/machine_overview.py
+index 117eebb..4ef9359 100644
+--- a/workbench/machine_overview.py
++++ b/workbench/machine_overview.py
+@@ -39,7 +39,7 @@ TOOL_NAMES = {'math': 'LibreOffice (soffice)', 'cad': 'KiCad (kicad-cli)', 'kibo
+               'nextpnr': 'nextpnr (nextpnr-ecp5)', 'trellis': 'Project Trellis (ecppack)', 'surfer': 'Surfer',
+               'icarus': 'Icarus Verilog (iverilog)', 'verilator': 'Verilator',
+               'brain': 'llama.cpp runtime (pinned archive)', 'python-wasi': 'Python WASI runtime (pinned archive)'}
+-TOOL_SOURCES = {'brain': 'runtimes/llama.cpp/b11669/runtime.json · sha256 of the pinned archive',
++TOOL_SOURCES = {'brain': 'runtimes/llama.cpp/b12359/runtime.json · sha256 of the pinned archive',
+                 'python-wasi': 'runtimes/python-wasi/python-wasi.zip · installed wasmtime package'}
+ 
+ FIELDS = {'ledger.machine': ({'section': {'type': 'string', 'enum': list(SECTIONS)}}, [])}
+diff --git a/workbench/model_check.py b/workbench/model_check.py
+index e474702..456adfc 100644
+--- a/workbench/model_check.py
++++ b/workbench/model_check.py
+@@ -25,6 +25,14 @@ STAGES (design 6.1; the times are estimates, shown before it starts):
+     S2  speeds                          reads of 300, 1,200 and 3,000 tokens; writes of 16, 64 and 256; batches of 64,
+                                         256 and 512 (Vulkan only: each a fresh launch); 60 s of writing for heat; the
+                                         grammar overhead (the same answer with and without its grammar)
++    S2T tuning (1.0 M1)                 after S2's speeds, a sweep of the settings that matter on the Radeon (flash
++                                        attention on and off; the KV cache f16, q8_0 and FP8; reading batches of 256,
++                                        512 and 1,024; threads; full or partial offload on Vulkan; multi-token
++                                        prediction and its draft length when the model file carries an MTP head), each
++                                        a fresh launch, kept only when its answer is identical to the plain run's at
++                                        temperature 0; the best against 'reads at 99 a second' and 'writes at 99 a
++                                        second' (the owner's goal), how far off when not, and proposed with Undo; her
++                                        clock starts from the measured rates; time-boxed (--tuning-seconds, 240)
+     S3  reuse and Stop                  a kept choose turn: cache_n on second-round questions against the kept brief;
+                                         one checkpoint's size measured by resident memory growth (the runtime does not
+                                         log it at its default verbosity, and the seal forbids a verbose log); Stop
+@@ -47,8 +55,8 @@ exam record) and own_results.local.json.
+ 
+ USE THE MEASURED SETTINGS? Each proposal is one owner launch default (ledger.settings: brain.backend and the rest),
+ applied only on his click (use_setting, through ledger.settings.set with the value he saw) and undone with Undo
+-(undo_setting, ledger.settings.undo: the exact previous record). What has no setting yet (the reading batch, loading
+-the model when the desk opens) is said as a finding with nothing to apply. A proposal changes nothing until approved.
++(undo_setting, ledger.settings.undo: the exact previous record). What has no setting yet (loading the model when the
++desk opens) is said as a finding with nothing to apply; 1.0 M1 made the reading batch and v1.0.0's capabilities settings. A proposal changes nothing until approved.
+ 
+ No floating point in anything checked: rates are whole tokens a second, times whole milliseconds, shares "x of y".
+ """
+@@ -76,13 +84,16 @@ CARD_MOST = 50 * 1024
+ MIB = 1024 * 1024
+ GIB = 1024 * MIB
+ STAGES = (('S0', 'the machine, no model', 1, 1), ('S1', 'first load and the seal', 1, 3), ('S2', 'speeds', 6, 8),
++          ('S2T', 'tuning: the settings that matter (1.0 M1)', 4, 5),
+           ('S3', 'reuse and Stop', 2, 3), ('S4', 'the desk (from the Brain room)', 1, 1), ('S5', 'the short exam', 5, 10),
+           ('S6', 'optional: another model', 3, 5), ('S7', 'optional, overnight, on mains: the full exam and the I05 arms', 60, 180))
+-AWAKE = ('S0', 'S1', 'S2', 'S3', 'S4', 'S5')
++AWAKE = ('S0', 'S1', 'S2', 'S2T', 'S3', 'S4', 'S5')
++# 1.0 M1: the owner's machine is a ThinkPad E16 Gen 2 AMD (21M5) with a Radeon 680M (RDNA2), not a 780M: K3 expects the
++# 680M's reading; K13 and K14 are the owner's goal, the best of the tuning stage (S2T), else S2's.
+ PREDICTIONS = {
+     'K1': 'the GTT window is at least 28 GiB',
+     'K2': 'first load 20 to 60 s; a warm load 8 to 25 s',
+-    'K3': 'a 1,200-token read at 150 to 400 tokens a second',
++    'K3': 'a 1,200-token read at 100 to 300 tokens a second (the Radeon 680M)',
+     'K4': 'writing 15 to 25 a second, at least 12 after 60 s of heat',
+     'K5': 'batch 512 reads at least twice as fast as 64 on Vulkan',
+     'K6': 'a kept choose turn under 1.6 s, every second-round cache_n at least the brief minus 4',
+@@ -92,6 +103,8 @@ PREDICTIONS = {
+     'K10': 'the short exam: READ at least 22 of 24 single-step, CHOOSE clear cases right on turn 1 at least 7 of 8, STEER harm 0',
+     'K11': 'no desk stall over 50 ms during a 3,000-token read',
+     'K12': 'grammar overhead at most 15 % of the writing rate',
++    'K13': 'reads at >= 99 tokens a second',
++    'K14': 'writes at >= 99 tokens a second',
+ }
+ CONTENDED = 150                      # load average x 100 above which a stage's rates are marked contended (design 7.4)
+ FILLER = ('The Rail Demo bench supply gives twelve volts to the cable tray rail; its notes list the fuse, the connector and '
+@@ -412,7 +425,14 @@ class Check:
+         registered = self.work.add(self.model);self.model_id = registered['model_id'];self.value = self.work.value(self.model_id)
+         inspection = self.value['inspection'];shape = memory_shape(inspection)
+         one = memory_sum(inspection, self.value['total_bytes'], self.args.context, 1, 0)
+-        out = {'machine': {'cpu': hw['cpu']['name'], 'logical_cpus': hw['cpu']['logical_cpus'], 'kernel': hw['kernel'],
++        from .runtime_tuning import OWNER_MACHINE
++        runtime = brain_runtime.status(self.work.kernel.root)
++        product = (hw.get('machine') or {}).get('product')
++        out = {'expected': {**{k: OWNER_MACHINE[k] for k in ('model', 'machine_type', 'graphics', 'memory')},   # 1.0 M1
++                            'this_is_it': bool(product and OWNER_MACHINE['machine_type'] in str(product))},
++               'runtime': {'build': runtime.get('build'), 'source_commit': runtime.get('source_commit'),
++                           'release': (runtime.get('pin') or {}).get('stable_release')},
++               'machine': {'cpu': hw['cpu']['name'], 'logical_cpus': hw['cpu']['logical_cpus'], 'kernel': hw['kernel'],
+                            'architecture': hw['architecture'], 'product': (hw.get('machine') or {}).get('product'),
+                            'memory_total_bytes': host['total_ram_bytes'], 'memory_available_bytes': host['available_ram_bytes'],
+                            'mesa': mesa, 'power': power()},
+@@ -515,6 +535,11 @@ class Check:
+             out['batches'] = {'state': 'NOT_RUN', 'why': 'batches are measured on the Radeon (Vulkan) only; this run is on the processor'}
+         return out
+ 
++    # -- S2T (1.0 M1) --
++    def s2t(self):
++        from . import runtime_tuning
++        return runtime_tuning.sweep(self, int(getattr(self.args, 'tuning_seconds', 0) or runtime_tuning.SWEEP_SECONDS))
++
+     # -- S3 --
+     def s3(self):
+         from . import brain_briefs, local_brain, turns
+@@ -700,16 +725,16 @@ class Check:
+         with Work(self.run / '.work') as self.work:
+             s0 = self.stage('S0', self.s0)
+             if s0.get('stop') or s0['state'] == 'FAILED':
+-                for key in ('S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7'):
++                for key in ('S1', 'S2', 'S2T', 'S3', 'S4', 'S5', 'S6', 'S7'):
+                     self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'S0 stopped the run: ' + (s0.get('why') or '')}
+             else:
+                 s1 = self.stage('S1', self.s1)
+                 if s1['state'] != 'PASSED':
+-                    for key in ('S2', 'S3', 'S4', 'S5', 'S6', 'S7'):
++                    for key in ('S2', 'S2T', 'S3', 'S4', 'S5', 'S6', 'S7'):
+                         self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'the model did not load: ' + (s1.get('why') or '')}
+                 else:
+                     wanted = set((self.args.stages or ','.join(k for k, *_ in STAGES)).split(','))
+-                    for key, fn in (('S2', self.s2), ('S3', self.s3), ('S4', self.s4), ('S5', self.s5), ('S6', self.s6), ('S7', self.s7)):
++                    for key, fn in (('S2', self.s2), ('S2T', self.s2t), ('S3', self.s3), ('S4', self.s4), ('S5', self.s5), ('S6', self.s6), ('S7', self.s7)):
+                         if key in wanted:self.stage(key, fn)
+                         else:self.report['stages'][key] = {'state': 'NOT_RUN', 'why': 'not asked in this run (--stages)'}
+         self.report['paused_ms'] = self.gate.paused_ms
+@@ -823,6 +848,13 @@ def judge(report):
+     put('K11', longest <= 50 if longest is not None else None, longest, None if longest is not None else 'from the Brain room only')
+     pct = _get(report, 'stages', 'S2', 'grammar', 'overhead_percent')
+     put('K12', pct <= 15 if pct is not None else None, pct)
++    # 1.0 M1: the owner's goal, from the tuning stage's best (else S2's 1,200-token read and 64-token write)
++    from . import runtime_tuning
++    best_read = _get(report, 'stages', 'S2T', 'best', 'read_per_second') or r1200
++    best_write = _get(report, 'stages', 'S2T', 'best', 'write_per_second') or w64
++    goal = runtime_tuning.GOAL
++    put('K13', best_read >= goal if best_read else None, best_read, None if best_read else 'no read was measured')
++    put('K14', best_write >= goal if best_write else None, best_write, None if best_write else 'no write was measured')
+     findings, proposals = [], []
+     if k['K1']['held'] is False:
+         findings.append(_get(report, 'stages', 'S0', 'gtt_short', 'words') or 'The GPU memory window is too small; nothing was changed. '
+@@ -847,7 +879,12 @@ def judge(report):
+     if ms is not None and ms > 2000:
+         findings.append('A kept choose turn took over 2 s: the small chooser moves up the list of what comes next.')
+     if b64 and b512 and b512 >= 2 * b64:
+-        findings.append('Reading in batches of 512 is %s times faster than 64 (no setting for it yet).' % _times(b512, b64))
++        findings.append('Reading in batches of 512 is %s times faster than 64.' % _times(b512, b64))
++        if not _get(report, 'stages', 'S2T', 'best', 'settings', 'batch'):      # 1.0 M1: the reading batch is a setting now
++            proposals.append(proposal('brain.batch', 512, 'reading in batches of 512 was %s times faster than 64 here.' % _times(b512, b64)))
++    if best_read or best_write:                                            # 1.0 M1: the owner's goal, said plainly
++        findings.extend(runtime_tuning.goal_words(best_read, best_write))
++    proposals.extend(runtime_tuning.proposals(_get(report, 'stages', 'S2T'), proposal))
+     for kind, v in (_get(report, 'stages', 'S5', 'kinds') or {}).items():
+         if v.get('state') == 'SWITCHED_OFF':findings.append(v['words'])
+     report['findings'] = findings;report['proposals'] = [p for p in proposals if p]
+@@ -896,6 +933,9 @@ def summary_line(report):
+     if r:parts.append('reads %d a second' % r)
+     w = _get(report, 'stages', 'S2', 'writes', '64', 'per_second')
+     if w:parts.append('writes %d a second' % w)
++    best = _get(report, 'stages', 'S2T', 'best') or {}                    # 1.0 M1
++    if best.get('settings') and best.get('read_per_second') and best.get('write_per_second'):
++        parts.append('at its best settings reads %d and writes %d' % (best['read_per_second'], best['write_per_second']))
+     ms = _get(report, 'stages', 'S3', 'kept_turn_ms')
+     if ms is not None:parts.append('a question she has seen before: %d.%d s' % (ms // 1000, ms % 1000 // 100))
+     gtt = max((c.get('gtt_total') or 0 for c in _get(report, 'stages', 'S0', 'gpu_memory') or []), default=0)
+@@ -962,7 +1002,8 @@ def main(argv=None):
+     ap.add_argument('--threads', type=int, default=min(4, os.cpu_count() or 1))
+     ap.add_argument('--memory-mb', type=int, default=0, help='the memory cap (default Auto)')
+     ap.add_argument('--backend', default='AUTO', choices=['AUTO', 'CPU', 'VULKAN'])
+-    ap.add_argument('--stages', help='a comma list of S2 to S7 to run (S0 and S1 always run)')
++    ap.add_argument('--stages', help='a comma list of S2, S2T, S3 to S7 to run (S0 and S1 always run)')
++    ap.add_argument('--tuning-seconds', type=int, default=0, help='the tuning stage\'s time box (default 240 s)')   # 1.0 M1
+     ap.add_argument('--i05-repeats', type=int, default=3)
+     ap.add_argument('--own-items', type=Path, help=argparse.SUPPRESS)        # the Brain room's own paper (kept local)
+     ap.add_argument('--pause-file', type=Path, help=argparse.SUPPRESS)       # the Brain room's pause file
+diff --git a/workbench/model_settings.py b/workbench/model_settings.py
+index dbb0b67..6a7de7f 100644
+--- a/workbench/model_settings.py
++++ b/workbench/model_settings.py
+@@ -7,7 +7,9 @@ original request_spec stays intact for idempotent retries.
+ import copy,hashlib,json,sqlite3
+ from .settings_registry import BY_KEY,MODEL_KEYS
+ 
+-OPTIONS={('brain.'+key):key for key in ('context','threads','memory_mb','backend','gpu_layers','cpu_fallback')}
++OPTIONS={('brain.'+key):key for key in ('context','threads','memory_mb','backend','gpu_layers','cpu_fallback',
++                                         # 1.0 M1: llama.cpp v1.0.0's capabilities (runtime_tuning), owner launch defaults
++                                         'flash_attn','kv_type','load_mode','mtp_draft','batch')}
+ LAUNCH_KEYS=tuple(OPTIONS.values())
+ MAX_RECORD=128*1024
+ MAX_JOURNAL=1024*1024
+@@ -72,6 +74,11 @@ def config(value):
+     if backend not in ('AUTO','CPU','VULKAN') or requested not in ('AUTO','CPU','VULKAN'):return None
+     if type(layers) is not int or not -1<=layers<=512 or type(fallback) is not bool:return None
+     result.update(backend=backend,requested_backend=requested,gpu_layers=layers,cpu_fallback=fallback)
++    for key in ('flash_attn','kv_type','load_mode','mtp_draft','batch'):     # 1.0 M1: kept when valid
++        if key in value:
++            from .runtime_tuning import DEFAULTS,settings
++            try:result[key]=settings({key:value[key]})[key]
++            except ValueError:return None
+     for key in ('device','observed_gpu_layers','offload_evidence','fallback_reason','resource_guard'):
+         if key in value:result[key]=copy.deepcopy(value[key])
+     return result
+diff --git a/workbench/resource_control.py b/workbench/resource_control.py
+index ec87bc0..f36e3e9 100644
+--- a/workbench/resource_control.py
++++ b/workbench/resource_control.py
+@@ -82,10 +82,15 @@ def budget_room(available,reserve,future=0,credit=0):
+ # Checked here against the server's log: one state is 50.251 MiB on the 4B and 19.266 MiB on the 2B; KV is 32 KiB a token
+ # on the 4B (design 4.5). Integer arithmetic for every hybrid term.
+ BASE_BYTES=384*MIB
+-REUSE_LADDER_MB=((6,None),(2,256),(0,0))  # (checkpoints, RAM prompt cache MiB): the first rung the rule admits is taken
+-PROMPT_CACHE_LARGE_MB=1024                # the cache on a large model (the 35B), 512 on a small one (the 4B here)
++# 1.0 M1: the RAM prompt cache is sized from the memory sum so every kept prompt fits (runtime_tuning.cache_mb: each
++# entry its KV over 1,024 tokens and its checkpoints), then four of them (PLAN's, READ's, the slot's save and one more),
++# then two checkpoints and 256 MiB, then reuse off. With 0.8.7's fixed 512 MiB on the 4B only two entries fitted, and the
++# first PLAN question after Ready found PLAN's primed menu evicted (K4b's finding).
++REUSE_LADDER_MB=((6,'ALL'),(6,'FEW'),(2,256),(0,0))  # (checkpoints, RAM prompt cache): the first rung the rule admits is taken
++PROMPT_CACHE_LARGE_MB=1024                # 0.8.7's fixed caches, kept for reference: 1,024 MiB on a large model, 512 small
+ PROMPT_CACHE_SMALL_MB=512
+ LARGE_WEIGHTS_BYTES=8*1024*MIB
++MTP_CONTEXT_BYTES=512*MIB                 # 1.0 M1: the MTP draft context's own buffers, an estimate the readback checks
+ 
+ 
+ def memory_shape(inspection):
+@@ -119,27 +124,45 @@ def preferred_cache_mb(total_bytes):
+     return PROMPT_CACHE_LARGE_MB if total_bytes>LARGE_WEIGHTS_BYTES else PROMPT_CACHE_SMALL_MB
+ 
+ 
+-def memory_sum(inspection,total_bytes,context,checkpoints=0,cache_mb=0):
+-    """The model's budget estimate in bytes, term by term. A dense model ignores checkpoints and cache (it has neither)."""
++def _kv_per_token(shape,kv_type='f16',layers=None):
++    """1.0 M1: K and V bytes a token for the attention layers (or `layers` of them) at the KV cache's type (f16 as before;
++    q8_0 34 bytes a block of 32; f8_e4m3 one byte), rounded up to a whole byte."""
++    from .runtime_tuning import kv_bytes
++    if shape['kind']=='DENSE':
++        count=shape['layers'] if layers is None else layers
++        elements=count*(shape['embedding']*shape['kv_heads']//shape['heads'])       # K, and as many in V
++        return kv_bytes(elements,kv_type)*2
++    count=shape['attention_layers'] if layers is None else layers
++    return kv_bytes(count*shape['kv_heads']*shape['key_length'],kv_type)+kv_bytes(count*shape['kv_heads']*shape['value_length'],kv_type)
++
++
++def memory_sum(inspection,total_bytes,context,checkpoints=0,cache_mb=0,kv_type='f16',mtp=0):
++    """The model's budget estimate in bytes, term by term. A dense model ignores checkpoints and cache (it has neither).
++    1.0 M1: the KV cache's type (kv_type), and the MTP head when multi-token prediction is on (mtp: its layers, from the
++    model's own file): its KV over the context and its draft context's buffers."""
+     shape=memory_shape(inspection)
+     if shape['kind']=='DENSE':
+-        kv=4*shape['layers']*context*shape['embedding']*shape['kv_heads']//shape['heads']
+-        return {'kind':'DENSE','estimate':int(total_bytes*1.3+kv+BASE_BYTES),'weights':total_bytes,'kv':kv,'state':0,
+-                'checkpoints':0,'checkpoint_bytes':0,'cache_mb':0,'cache':0,'base':BASE_BYTES}
++        kv=_kv_per_token(shape,kv_type)*context
++        head=(_kv_per_token(shape,kv_type,mtp)*context+MTP_CONTEXT_BYTES) if mtp else 0
++        return {'kind':'DENSE','estimate':int(total_bytes*1.3)+kv+BASE_BYTES+head,'weights':total_bytes,'kv':kv,'state':0,
++                'checkpoints':0,'checkpoint_bytes':0,'cache_mb':0,'cache':0,'base':BASE_BYTES,'kv_type':kv_type,'mtp':head}
+     weights=-(-total_bytes*13//10)                                   # x 1.3, rounded up, in whole bytes
+-    kv=shape['kv_bytes_per_token']*context;state=shape['state_bytes']
++    per=_kv_per_token(shape,kv_type);kv=per*context;state=shape['state_bytes']
++    head=(_kv_per_token(shape,kv_type,mtp)*context+MTP_CONTEXT_BYTES) if mtp else 0
++    if cache_mb in ('ALL','FEW'):
++        from .runtime_tuning import KEPT_PROMPTS,KEPT_PROMPTS_FEW,cache_mb as sized
++        cache_mb=sized(state,per,checkpoints,KEPT_PROMPTS if cache_mb=='ALL' else KEPT_PROMPTS_FEW)
+     cache=cache_mb*MIB
+-    return {'kind':'HYBRID','estimate':weights+BASE_BYTES+kv+state+checkpoints*state+cache,'weights':total_bytes,
+-            'kv':kv,'kv_per_token':shape['kv_bytes_per_token'],'state':state,'checkpoints':checkpoints,
+-            'checkpoint_bytes':checkpoints*state,'cache_mb':cache_mb,'cache':cache,'base':BASE_BYTES}
++    return {'kind':'HYBRID','estimate':weights+BASE_BYTES+kv+state+checkpoints*state+cache+head,'weights':total_bytes,
++            'kv':kv,'kv_per_token':per,'state':state,'checkpoints':checkpoints,
++            'checkpoint_bytes':checkpoints*state,'cache_mb':cache_mb,'cache':cache,'base':BASE_BYTES,'kv_type':kv_type,'mtp':head}
+ 
+ 
+-def reuse_ladder(inspection,total_bytes,context):
+-    """The rungs the memory rule tries, best first: six checkpoints and the model's RAM cache; two and 256 MiB; then
+-    reuse off (today's launch). A dense model has the one rung, today's."""
+-    if memory_shape(inspection)['kind']=='DENSE':return [memory_sum(inspection,total_bytes,context)]
+-    return [memory_sum(inspection,total_bytes,context,checkpoints,preferred_cache_mb(total_bytes) if cache is None else cache)
+-            for checkpoints,cache in REUSE_LADDER_MB]
++def reuse_ladder(inspection,total_bytes,context,kv_type='f16',mtp=0):
++    """The rungs the memory rule tries, best first (1.0 M1): six checkpoints and a RAM cache for every kept prompt; six
++    and a cache for four; two and 256 MiB; then reuse off (today's launch). A dense model has the one rung, today's."""
++    if memory_shape(inspection)['kind']=='DENSE':return [memory_sum(inspection,total_bytes,context,kv_type=kv_type,mtp=mtp)]
++    return [memory_sum(inspection,total_bytes,context,checkpoints,cache,kv_type,mtp) for checkpoints,cache in REUSE_LADDER_MB]
+ # -- end 0.8.7 A2 -------------------------------------------------------------------------------------------------------
+ 
+ 
+diff --git a/workbench/runtime_tuning.py b/workbench/runtime_tuning.py
+new file mode 100644
+index 0000000..ce56a8a
+--- /dev/null
++++ b/workbench/runtime_tuning.py
+@@ -0,0 +1,303 @@
++"""Her model's runtime, current (1.0 M1): llama.cpp v1.0.0 (b12359) and its newer capabilities, put to work where they
++help her, each an owner launch default the model check measures before it is proposed.
++
++The owner, 26 Nov 2026: "to manipulate the LLM let's make sure we're using the latest and best technologies", and
++"99 tokens per second, up and down... if possible" (reading and writing, on the ThinkPad with the 35B-A3B).
++
++What v1.0.0 gives and how Graphite uses it (every one through the sealed launch line, brain_seal.ALLOWED):
++
++    the model's own jinja template, thinking off   --jinja --reasoning off, always (measured here: the 4B answers
++                                                    without thinking even when a request carries no template switch)
++    flash attention                                 brain.flash_attn: auto (the runtime's own default, as before), on, off
++    the KV cache's type                             brain.kv_type: f16 (as before), q8_0, f8_e4m3; a quantized V needs
++                                                    flash attention, so off with a quantized type is refused
++    load mode auto                                  brain.load_mode: none (a resident copy, as before), auto (mmap
++                                                    where the device allows: no second copy of the weights beside the
++                                                    integrated GPU's own; the model file must then stay unchanged,
++                                                    which verify_resident already checks before every answer)
++    multi-token prediction                          brain.mtp_draft: 0 (off) or the draft length, 1 to 8, from the
++                                                    model's own MTP head (an "MTP GGUF": the head inside the one model
++                                                    file); never a second model file (-md and --shard stay refused)
++    the reading batch                               brain.batch: 64 (as before), 256, 512, 1024
++    the host-memory prompt cache                    --cache-ram sized from the memory sum (resource_control) so every
++                                                    kept prompt fits: PLAN's and READ's survive a priming round
++
++Defaults stay as they were (safe); the model check's tuning stage (sweep) measures each on the owner's machine,
++keeps only settings whose answer is identical to the plain run's at temperature 0, and proposes the best through
++'Use the measured settings?' with Undo. The structured-output path: her kinds' answers are short lines her own GBNF
++grammars bound exactly (stricter than a schema), so they stay; the one JSON answer (the chat's plan) keeps the server's
++JSON-schema path, as before.
++
++No floating point in anything checked: rates are whole tokens a second, sizes whole bytes, fractions exact.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import os
++import time
++from fractions import Fraction
++from pathlib import Path
++
++# -- the owner's machine and the files the first evening names (facts, read 26 Nov 2026) -----------------------------------
++OWNER_MACHINE = {
++    # The coordinator's correction (26 Nov 2026, from the label in the owner's photo): not a Radeon 780M.
++    'model': 'ThinkPad E16 Gen 2 AMD', 'machine_type': '21M5',
++    'processor': 'AMD Ryzen 7 7735HS (8 cores, 16 threads), as the console photos show',
++    'graphics': 'Radeon 680M (RDNA2, gfx1035, 12 compute units), integrated: its memory is the system memory (GTT)',
++    'memory': 'DDR5-4800, two SO-DIMMs, dual channel: about 77 GB/s at most, 60 to 70 in practice; 61 GiB seen',
++    'expectations': ('Reading is bound by the 680M\'s compute; writing by memory bandwidth: the 35B-A3B at Q4 about 15 '
++                     'to 30 tokens a second, more with multi-token prediction. Flash attention\'s fast matrix paths '
++                     'are for RDNA3; on RDNA2 the Vulkan backend has a scalar path or none, so the sweep decides.'),
++}
++# The owner's model with its MTP head inside (Hugging Face API, lfs info, 26 Nov 2026; not downloaded here).
++MTP_FILE_35B = {'repo': 'unsloth/Qwen3.6-35B-A3B-MTP-GGUF', 'file': 'Qwen3.6-35B-A3B-UD-Q4_K_M.gguf',
++                'bytes': 22663387424, 'sha256': '0b21525e972670ed59e1812e170b27c26355381f0656ecc4e25617ece7dac58b',
++                'without_head': {'repo': 'unsloth/Qwen3.6-35B-A3B-GGUF', 'file': 'Qwen3.6-35B-A3B-UD-Q4_K_M.gguf',
++                                 'bytes': 22134528992}}
++MTP_FILES_SMALL = {   # the same maker's small files with the head inside, for a rehearsal (not downloaded here)
++    'Qwen3.5-4B-Q4_K_M.gguf': {'repo': 'unsloth/Qwen3.5-4B-MTP-GGUF', 'bytes': 2834975040,
++                               'sha256': '3874209241c9a397e2f62cd3f70f80fd2dfbf0dfccb6838416bdb48a714e8630'},
++    'Qwen3.5-2B-Q4_K_M.gguf': {'repo': 'unsloth/Qwen3.5-2B-MTP-GGUF', 'bytes': 1329851808,
++                               'sha256': '18c92228fc1498a02506f64593f7cc8cc02f406f732a217c6ba99ad1254d4f0b'}}
++
++# -- the launch settings -------------------------------------------------------------------------------------------------------
++KV_BYTES = {'f16': Fraction(2), 'q8_0': Fraction(34, 32), 'f8_e4m3': Fraction(1)}   # bytes an element, exact
++FLASH = ('auto', 'on', 'off')
++LOAD_MODES = ('none', 'auto')
++BATCHES = (64, 256, 512, 1024)
++MTP_MOST = 8
++DEFAULTS = {'flash_attn': 'auto', 'kv_type': 'f16', 'load_mode': 'none', 'mtp_draft': 0, 'batch': 64}
++KEYS = tuple(DEFAULTS)
++
++
++def settings(options):
++    """The M1 launch settings from a launch's options, each checked; a missing one is its default (as before 1.0)."""
++    options = options or {}
++    out = {}
++    for key, default in DEFAULTS.items():
++        value = options.get(key, default)
++        ok = {'flash_attn': value in FLASH, 'kv_type': value in KV_BYTES, 'load_mode': value in LOAD_MODES,
++              'mtp_draft': type(value) is int and 0 <= value <= MTP_MOST, 'batch': value in BATCHES}[key]
++        if not ok:raise ValueError('MODEL_LAUNCH_SETTING_INVALID: %s' % key)
++        out[key] = value
++    if out['kv_type'] != 'f16' and out['flash_attn'] == 'off':
++        raise ValueError('MODEL_KV_TYPE_NEEDS_FLASH_ATTENTION: a %s KV cache needs flash attention on or auto' % out['kv_type'])
++    return out
++
++
++def mtp_layers(inspection):
++    """How many MTP layers the model file carries (its own head), from the GGUF metadata; 0 when none."""
++    try:
++        metadata = inspection['metadata'];architecture = inspection['architecture']
++    except (KeyError, TypeError):
++        return 0
++    value = metadata.get(str(architecture) + '.nextn_predict_layers')
++    return value if type(value) is int and value > 0 else 0
++
++
++def launch_extra(config, backend):
++    """What the M1 settings add to the launch line (local_brain.launch_arguments), every argument on the seal's list."""
++    s = settings(config)
++    line = ['--jinja', '--reasoning', 'off', '--flash-attn', s['flash_attn']]
++    if s['kv_type'] != 'f16':line += ['--cache-type-k', s['kv_type'], '--cache-type-v', s['kv_type']]
++    if s['mtp_draft'] and config.get('mtp_layers'):
++        line += ['--spec-type', 'draft-mtp', '--spec-draft-n-max', str(s['mtp_draft'])]
++    return line
++
++
++def load_mode(config):
++    return settings(config)['load_mode']
++
++
++def kv_bytes(elements, kv_type='f16'):
++    """Bytes for this many K or V elements of the type, rounded up to a whole byte (q8_0: 34 bytes a block of 32)."""
++    total = Fraction(int(elements)) * KV_BYTES[kv_type]
++    return -(-total.numerator // total.denominator)
++
++
++# -- the host-memory prompt cache, sized from the memory sum --------------------------------------------------------------
++# Measured here with v1.0.0 and the 4B: a cache entry is the prompt's KV and the context checkpoints the slot made while
++# reading it (one ~830-token prompt: 226.8 MiB, four checkpoints of 50.25 MiB and 26 MiB of KV), and the slot's own
++# prompt is saved into the cache before a new prompt is looked up. Kept prompts: one per kind primed at Ready (eleven,
++# brain_clock.BUDGETS), PLAN's and READ's desks, and the slot's own save: fourteen. A smaller rung keeps four (PLAN,
++# READ, the slot's save and one more), which still holds both desks through a priming round when they are primed last.
++KEPT_PROMPTS = 14
++KEPT_PROMPTS_FEW = 4
++KEPT_TOKENS = 1024          # a kept prompt's tokens, at most (READ's brief and desk: about 1,050 on the 4B; PLAN's 463)
++
++
++def cache_mb(state_bytes, kv_per_token, checkpoints, entries):
++    """The RAM prompt cache, in whole MiB rounded up, that holds `entries` kept prompts: each its KV over KEPT_TOKENS and
++    up to `checkpoints` recurrent states."""
++    entry = int(kv_per_token) * KEPT_TOKENS + int(checkpoints) * int(state_bytes)
++    return -(-entry * int(entries) // (1024 * 1024))
++
++
++# -- the measured rates her clock starts from (her clock's stand-ins per model key) ---------------------------------------
++def _rates_path():
++    from .session import config_dir
++    return config_dir() / 'model-check' / 'measured_rates.json'
++
++
++def remember(key, read_per_second, write_per_second, settings_used, measured_on='model check, tuning stage'):
++    """Keep the rates a model key was measured at (whole tokens a second), for her clock (brain_clock)."""
++    if not key or not read_per_second or not write_per_second:return None
++    path = _rates_path()
++    try:
++        held = json.loads(path.read_text(encoding='utf-8'))
++        if not isinstance(held, dict):held = {}
++    except (OSError, ValueError):
++        held = {}
++    held[str(key)] = {'read': int(read_per_second), 'write': int(write_per_second), 'settings': settings_used,
++                      'at': int(time.time()), 'by': measured_on}
++    if len(held) > 64:
++        for old in sorted(held, key=lambda k: held[k].get('at') or 0)[:len(held) - 64]:held.pop(old)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    tmp = path.with_suffix('.tmp');tmp.write_text(json.dumps(held, indent=1, sort_keys=True), encoding='utf-8');os.replace(tmp, path)
++    _MEASURED.clear()
++    return held[str(key)]
++
++
++_MEASURED: dict = {}
++
++
++def measured(key):
++    """(read, write) tokens a second as Fractions, measured for this model key by the model check; None when never."""
++    if not key:return None
++    if key not in _MEASURED:
++        try:
++            got = json.loads(_rates_path().read_text(encoding='utf-8')).get(str(key))
++            _MEASURED[key] = (Fraction(int(got['read'])), Fraction(int(got['write']))) if got and got.get('read') and got.get('write') else None
++        except (OSError, ValueError, TypeError, KeyError, ImportError):
++            _MEASURED[key] = None
++    return _MEASURED[key]
++
++
++# -- the tuning sweep (the model check's stage S2T) ------------------------------------------------------------------------
++GOAL = 99                       # the owner's: tokens a second, reading and writing
++SWEEP_SECONDS = 240             # the time box: a few minutes, in the awake part
++TYPICAL_NEW, TYPICAL_ANSWER = 300, 40        # her typical question: new tokens read, tokens written
++PROSE = [{'role': 'system', 'content': 'You describe invented equipment plainly.'},
++         {'role': 'user', 'content': 'Describe the Rail Demo bench supply, which gives twelve volts to a cable tray rail, '
++                                     'and its fuse, in five short sentences.'}]
++
++
++def typical_ms(read, write):
++    """Her typical question's time in whole ms at these rates (lower is better): 300 tokens read, 40 written."""
++    if not read or not write:return None
++    return -(-TYPICAL_NEW * 1000 // int(read)) + -(-TYPICAL_ANSWER * 1000 // int(write))
++
++
++def physical_cores():
++    try:
++        text = Path('/proc/cpuinfo').read_text()
++        pairs = {(b.split('physical id')[1].split('\n')[0] if 'physical id' in b else '0',
++                  b.split('core id')[1].split('\n')[0] if 'core id' in b else str(i)) for i, b in enumerate(text.split('\n\n')) if b.strip()}
++        return len(pairs) or None
++    except (OSError, IndexError):
++        return None
++
++
++def dimensions(check, backend, mtp):
++    """What the sweep tries, one dimension at a time from the plain run, each kept only when identical and faster."""
++    logical = os.cpu_count() or 1;physical = physical_cores() or max(1, logical // 2)
++    current = check.args.threads
++    dims = [('flash_attn', ['on', 'off']), ('kv_type', ['q8_0', 'f8_e4m3']), ('batch', [256, 512, 1024]),
++            ('threads', [t for t in sorted({physical, logical}) if t != current and 1 <= t <= 32])]
++    if backend == 'VULKAN':dims.append(('gpu_layers', [-1, 'half']))
++    dims.append(('mtp_draft', [1, 2, 3] if mtp else []))
++    return dims
++
++
++def sweep(check, seconds=SWEEP_SECONDS):
++    """The tuning stage: after S2's speeds, the settings that matter on the Radeon, each a fresh launch through Graphite's
++    own path. Returns the stage record: every trial, the best, the two predictions' measurements and the proposals."""
++    from . import local_brain, model_exam
++    began = time.monotonic();rows = []
++    worker = check.work.worker();backend = worker.get('backend') or 'CPU'
++    value = check.work.value(check.model_id);mtp = mtp_layers(value['inspection'])
++    sizes = (1200, 64) if backend == 'VULKAN' else (300, 24)       # the processor here: smaller, to fit the box
++    blocks = int(value['inspection']['metadata'].get(str(value['inspection']['architecture']) + '.block_count') or 0)
++
++    def over():
++        return time.monotonic() - began > seconds
++
++    def trial(label, extra):
++        if over():
++            rows.append({'label': label, 'settings': extra, 'state': 'NOT_RUN', 'why': 'the time box (%d s) was spent' % seconds})
++            return None
++        try:
++            local_brain.stop(check.work.kernel, 'MODEL_CHECK_TUNING')
++            _, load_ms = check.work.use(check.model_id, check.options(**extra, prime=False));port = check.live_port()
++            from .model_check import read_speed
++            read, _ = check.gate.measure(lambda: read_speed(port, sizes[0], 't%d' % time.time_ns()))
++            got, _ = check.gate.measure(lambda: port.complete(PROSE, answer_tokens=sizes[1], grammar=None, deadline_ms=0))
++            t = got.get('timings') or {}
++            write = int(t['predicted_n']) * 1000 // int(t['predicted_ms']) if t.get('predicted_n') and t.get('predicted_ms') else None
++            w = check.work.worker()
++            row = {'label': label, 'settings': extra, 'state': 'MEASURED', 'load_ms': load_ms,
++                   'read_per_second': read.get('per_second'), 'write_per_second': write,
++                   'answer_sha256': hashlib.sha256((got.get('text') or '').encode()).hexdigest()[:16],
++                   'draft': {k: t.get(k) for k in ('draft_n', 'draft_n_accepted') if t.get(k) is not None} or None,
++                   'key': model_exam.key_for(w)['key'], 'backend': w.get('backend')}
++            row['typical_ms'] = typical_ms(row['read_per_second'], write)
++        except Exception as exc:  # noqa: BLE001 - a setting the runtime refuses is a row that says why
++            from .model_check import _code
++            row = {'label': label, 'settings': extra, 'state': 'REFUSED', 'why': _code(str(exc) or type(exc).__name__)}
++        rows.append(row)
++        return row
++
++    plain = trial('plain', {})
++    if not plain or plain['state'] != 'MEASURED':
++        return {'state': 'FAILED', 'why': 'the plain run did not answer', 'trials': rows}
++    best = dict(plain);chosen = {}
++    remember(plain['key'], plain['read_per_second'], plain['write_per_second'], {})
++    for dim, values in dimensions(check, backend, mtp):
++        if not values:
++            rows.append({'label': dim, 'state': 'NOT_RUN', 'why': 'the model file has no MTP head: an MTP GGUF carries one '
++                         '(the first evening names the file)' if dim == 'mtp_draft' else 'nothing to try here'})
++            continue
++        for v in values:
++            if dim == 'kv_type' and chosen.get('flash_attn') == 'off':
++                rows.append({'label': '%s=%s' % (dim, v), 'state': 'NOT_RUN', 'why': 'a quantized KV cache needs flash attention'})
++                continue
++            v = max(1, blocks // 2) if v == 'half' else v
++            row = trial('%s=%s' % (dim, v), {**chosen, dim: v, **({'flash_attn': 'on'} if dim == 'kv_type' and 'flash_attn' not in chosen else {})})
++            if not row or row['state'] != 'MEASURED':continue
++            row['identical'] = row['answer_sha256'] == plain['answer_sha256']
++            if row['identical']:remember(row['key'], row['read_per_second'], row['write_per_second'], row['settings'])
++            if row['identical'] and row['typical_ms'] is not None and row['typical_ms'] < best['typical_ms']:
++                best = dict(row);chosen = dict(row['settings'])
++    out = {'trials': rows, 'plain': {k: plain.get(k) for k in ('read_per_second', 'write_per_second', 'typical_ms')},
++           'best': {'settings': chosen, **{k: best.get(k) for k in ('read_per_second', 'write_per_second', 'typical_ms', 'key')}},
++           'sizes': {'read_tokens': sizes[0], 'write_tokens': sizes[1]}, 'seconds_box': seconds,
++           'mtp_head_layers': mtp, 'identity': 'the same answer as the plain run at temperature 0 (its sha256), or not kept',
++           'note': 'measured on this computer only; a fresh launch through the seal for each row'}
++    out['goal'] = goal_words(best.get('read_per_second'), best.get('write_per_second'))
++    # The best is the launch left running for the stages after this one? No: the stages after run on the plain launch.
++    local_brain.stop(check.work.kernel, 'MODEL_CHECK_TUNING')
++    check.work.use(check.model_id, check.options());check.live_port()
++    return out
++
++
++def goal_words(read, write):
++    """The owner's 99 a second, said plainly: reached, or how far off."""
++    def one(name, rate):
++        if not rate:return '%s: not measured' % name
++        if rate >= GOAL:return '%s at %d tokens a second: the goal of %d is reached' % (name, rate, GOAL)
++        return '%s at %d tokens a second: %d short of %d (%d %% of it)' % (name, rate, GOAL - rate, GOAL, rate * 100 // GOAL)
++    return [one('Reads', read), one('Writes', write)]
++
++
++def proposals(stage, proposal):
++    """'Use the measured settings?' rows for the best: each setting that differs from the plain launch, with the numbers."""
++    best = (stage or {}).get('best') or {};plain = (stage or {}).get('plain') or {}
++    out = []
++    for key, value in sorted((best.get('settings') or {}).items()):
++        if key == 'gpu_layers' and value == -1:continue
++        why = ('measured here: reads %s and writes %s tokens a second against %s and %s, with the same answer' % (
++            best.get('read_per_second'), best.get('write_per_second'), plain.get('read_per_second'), plain.get('write_per_second')))
++        p = proposal('brain.' + key, value, why)
++        if p:out.append(p)
++    return out
+diff --git a/workbench/settings_registry.py b/workbench/settings_registry.py
+index db80b8f..e741e32 100644
+--- a/workbench/settings_registry.py
++++ b/workbench/settings_registry.py
+@@ -125,6 +125,28 @@ SPECS += [
+          'After an unavailable or failed Vulkan load, allow one recorded CPU attempt. Cancellation, changed model files and host-memory guard failures do not retry.',
+          store='Kernel settings: ledger.brain.cpu_fallback',**MODEL_META),
+ ]
++# 1.0 M1: llama.cpp v1.0.0's capabilities (runtime_tuning), each as before by default; the model check measures each on
++# the owner's machine and proposes the best ('Use the measured settings?', with Undo).
++SPECS += [
++    spec('brain.flash_attn','Flash attention','Slate','auto','string',
++         'Auto leaves it to the runtime, as before. The model check measures on and off on this computer and keeps one only when its answer is the same.',
++         store='Kernel settings: ledger.brain.flash_attn',choices=['auto','on','off'],
++         choice_labels={'auto':'Auto · the runtime decides','on':'On','off':'Off'},**MODEL_META),
++    spec('brain.kv_type','Model memory for the prompt (KV cache)','Slate','f16','string',
++         'Full size (f16) as before. Half size (q8_0, or FP8) keeps longer prompts in less memory and needs flash attention; the model check keeps it only when the answer is the same.',
++         store='Kernel settings: ledger.brain.kv_type',choices=['f16','q8_0','f8_e4m3'],
++         choice_labels={'f16':'Full size (f16)','q8_0':'Half size (q8_0)','f8_e4m3':'Half size, FP8 (f8_e4m3)'},**MODEL_META),
++    spec('brain.load_mode','Model loading','Slate','none','string',
++         'A resident copy as before, or Auto: mapped from the file where the device allows, so the integrated Radeon does not hold a second copy. The file must not change while the model runs; that is checked before every answer.',
++         store='Kernel settings: ledger.brain.load_mode',choices=['none','auto'],
++         choice_labels={'none':'A resident copy','auto':'Auto · mapped from the file'},**MODEL_META),
++    spec('brain.mtp_draft','Multi-token prediction (draft tokens)','Slate',0,'integer',
++         'Zero is off. With a model file that carries its own MTP head, the number of tokens it drafts ahead; the model checks each draft, so the answer is the same.',
++         store='Kernel settings: ledger.brain.mtp_draft',minimum=0,maximum=8,**MODEL_META),
++    spec('brain.batch','Reading batch (tokens)','Slate',64,'integer',
++         'How many prompt tokens are read at once. 64 as before; larger reads faster on the Radeon and holds the desk longer.',
++         store='Kernel settings: ledger.brain.batch',choices=[64,256,512,1024],**MODEL_META),
++]
+ MODEL_KEYS=frozenset(row['key'] for row in SPECS if row.get('adapter')=='model_launch')
+ SPECS += [spec('operations.'+key,label,'Work',default,'integer',description,
+     root='Ledger',group='Shared resources',requires_owner=True,minimum=lo,maximum=hi,
+diff --git a/workbench/stacy_foundation.py b/workbench/stacy_foundation.py
+index 4e6a681..249a40f 100644
+--- a/workbench/stacy_foundation.py
++++ b/workbench/stacy_foundation.py
+@@ -82,7 +82,7 @@ SEED_FILES = (
+     'docs/STAGE3.md', 'docs/STAGE4.md', 'docs/STAGE5.md', 'docs/STAGE6.md', 'docs/UI_MINI_PASS.md',
+     'docs/assistant_identity.json', 'docs/milestones.json',
+     'pillkit/state.py', 'pillkit/tls_link.py',
+-    'runtimes/llama.cpp/b11669/runtime.json',
++    'runtimes/llama.cpp/b12359/runtime.json',  # 1.0 M1
+     'runtimes/office-uno/runtime.json',
+     'runtimes/python-wasi/runtime.json',
+     'sdk/cli/arc1cli/capability_catalog.py', 'sdk/cli/arc1cli/command_bar.py', 'sdk/cli/arc1cli/concern_catalog.py',

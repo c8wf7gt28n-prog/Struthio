@@ -16,7 +16,7 @@ PySide6 and other installed tools are dependencies, not bundled binaries. Retain
 
 ## Local inference worker — Pass 3
 
-llama.cpp b11669 / commit 620d2225cc436ab0b001e3200e590e3b286ef9ab is redistributed as two unchanged official Linux x64 archives, the CPU build and the Vulkan build, under runtimes/llama.cpp/b11669. Its MIT LICENSE is included there. Original archive licenses and provenance are preserved. Model weights are external and are not redistributed in this program ZIP. The independent GGUF inspector follows the public GGUF specification; the upstream PySide6 editor is a design reference, with no write/edit facilities exposed.
+llama.cpp v1.0.0 (build b12359) / commit b1b770d90d94cad9e9ea5b993bdbc383a522fb28 is redistributed as two unchanged official Linux x64 archives, the CPU build and the Vulkan build, under runtimes/llama.cpp/b12359 (Graphite 1.0; it replaces b11669). Its MIT LICENSE is included there. Original archive licenses and provenance are preserved. Model weights are external and are not redistributed in this program ZIP. The independent GGUF inspector follows the public GGUF specification; the upstream PySide6 editor is a design reference, with no write/edit facilities exposed.
 
 ## I02 mathematical tools and Office bridge
 

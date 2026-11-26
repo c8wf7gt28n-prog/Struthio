@@ -22,7 +22,11 @@ OPTIONS={'type':'object','additionalProperties':False,'properties':{
  'backend':{'type':'string','enum':['AUTO','CPU','VULKAN']},'gpu_layers':{'type':'integer','minimum':-1,'maximum':512},
  'cpu_fallback':{'type':'boolean'},
  # 0.8.7 A5 (the model check): reuse off for I05 arm A as registered (A+R has it on); reading batch 64, 256 or 512
- 'reuse':{'type':'boolean'},'batch':{'type':'integer','enum':[64,256,512]},
+ 'reuse':{'type':'boolean'},'batch':{'type':'integer','enum':[64,256,512,1024]},
+ # 1.0 M1: llama.cpp v1.0.0's capabilities, each an owner launch default the model check measures (runtime_tuning)
+ 'flash_attn':{'type':'string','enum':['auto','on','off']},'kv_type':{'type':'string','enum':['f16','q8_0','f8_e4m3']},
+ 'load_mode':{'type':'string','enum':['none','auto']},'mtp_draft':{'type':'integer','minimum':0,'maximum':8},
+ 'prime':{'type':'boolean'},   # 1.0 M1: false only for the model check's tuning launches (each measured, none primed)
  'message':{'type':'string','maxLength':8000},'max_tokens':{'type':'integer','minimum':1,'maximum':512},
  'mode':{'type':'string','enum':['chat','plan']},'conversation':{'type':'string','pattern':'^[0-9a-f]{32}$','maxLength':32}}}
 OPTIONS['properties']['reference_packet']={'type':'string','pattern':'^[0-9a-f]{32}$','maxLength':32}
@@ -239,7 +243,10 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
     # reuse ladder: six checkpoints and the RAM prompt cache, then two and 256 MiB, then reuse off; the first rung the
     # rule admits is taken. A dense model has one rung, today's estimate to the byte.
     from .resource_control import KEYS,MIB,budget_room,reserve_bytes,reuse_ladder
-    ladder=reuse_ladder(value['inspection'],value['total_bytes'],context)
+    from . import runtime_tuning        # 1.0 M1: the KV cache's type and the model's own MTP head count in the sum
+    tuned=runtime_tuning.settings(options);mtp=runtime_tuning.mtp_layers(value['inspection'])
+    head=mtp if tuned['mtp_draft'] else 0
+    ladder=reuse_ladder(value['inspection'],value['total_bytes'],context,tuned['kv_type'],head)
     if options.get('reuse') is False:ladder=ladder[-1:]   # 0.8.7 A5: reuse off, today's launch (I05 arm A as registered)
     available=host['available_ram_bytes']
     if not available:raise ValueError('HOST_MEMORY_COULD_NOT_BE_MEASURED')
@@ -294,7 +301,9 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
             'checkpoints':chosen['checkpoints'],'prompt_cache_mb':chosen['cache_mb'],
             'memory_sum':{k:v for k,v in chosen.items() if k!='estimate'},'backend':backend,
             'requested_backend':requested,'gpu_layers':layers,'cpu_fallback':fallback,'fallback_reason':reason,
-            **({'batch':options['batch']} if options.get('batch') in (64,256,512) else {}),   # 0.8.7 A5: the model check's batches
+            **({'batch':options['batch']} if options.get('batch') in (64,256,512,1024) else {}),   # 0.8.7 A5: the model check's batches
+            **{k:v for k,v in tuned.items() if k!='batch'},'mtp_layers':mtp,   # 1.0 M1 (runtime_tuning)
+            **({'prime':False} if options.get('prime') is False else {}),
             'host':host,'reclaimable_private_bytes':reclaimable_bytes,'resource_guard':resource_guard(backend),
             **({'headroom_mb':headroom_mb} if headroom_mb else {})}
 
@@ -432,7 +441,7 @@ def seal_check(worker,log,backend):
 def _batch(config):
     """0.8.7 A5: the reading batch (--ubatch-size): 64 as before unless the launch asks for 256 or 512 (the model check's
     S2 measures each; 'Use the measured settings?' may propose one)."""
-    return config.get('batch') if config.get('batch') in (64,256,512) else 64
+    return config.get('batch') if config.get('batch') in (64,256,512,1024) else 64   # 1.0 M1: and 1024
 
 def launch_arguments(weights,sock,port,key_file,config,backend):
     """The runtime's launch line (0.8.7 A2, design 4.2). One slot (--parallel 1); prompt reuse through context
@@ -448,10 +457,17 @@ def launch_arguments(weights,sock,port,key_file,config,backend):
           '--threads-http','2','--batch-size',str(max(256,_batch(config))),'--ubatch-size',str(_batch(config)),
           '--cache-ram',str(int(config.get('prompt_cache_mb') or 0)),'--ctx-checkpoints',str(int(config.get('checkpoints') or 0)),
           '--checkpoint-min-step','0','--no-cache-idle-slots',
-          '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode','none',
+          '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode',runtime_tuning_load_mode(config),
           '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup','--offline']
     line+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
-    return line
+    from . import runtime_tuning           # 1.0 M1: jinja with reasoning off, flash attention, the KV type, MTP
+    return line+runtime_tuning.launch_extra(config,backend)
+
+
+def runtime_tuning_load_mode(config):
+    """1.0 M1: --load-mode from the owner's launch default (none, a resident copy, as before; or auto)."""
+    from . import runtime_tuning
+    return runtime_tuning.load_mode(config)
 
 def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
     from .locations import child_env
@@ -502,6 +518,8 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
                     'context_basis':'REQUESTED_LIMIT','context_reuse':'PINNED_SINGLE_SLOT',
                     # 0.8.7 A2: kept briefs (brain_briefs) over one slot, its checkpoints and its RAM prompt cache
                     'reuse':{'checkpoints':int(config.get('checkpoints') or 0),'prompt_cache_mb':int(config.get('prompt_cache_mb') or 0)},
+                    # 1.0 M1: what the runtime was asked for (runtime_tuning)
+                    'runtime_settings':{k:config.get(k) for k in ('flash_attn','kv_type','load_mode','mtp_draft','mtp_layers')},
                     'memory_sum':config.get('memory_sum')}
             if worker['start'] in (None,UNKNOWN):raise ValueError('Model worker process ownership could not be verified')
             put(kernel,slot,worker,'STARTING',db)
@@ -673,7 +691,10 @@ def run_model_job(kernel,job):
         if job['tool']=='brain.activate':
             # 0.8.7 A2: Ready, then each kind's brief read once with no answer (never fails the activation)
             from . import brain_briefs
-            result['kept_briefs']=brain_briefs.after_start(kernel,trial,cancelled=lambda:cancelled(kernel,ident))
+            # 1.0 M1: a tuning launch of the model check (prime False) is measured cold and primes nothing
+            result['kept_briefs']=({'primed':[],'failed':[],'readback':None,'desks':[],'skipped':'NOT_PRIMED_FOR_TUNING'}
+                                   if config.get('prime') is False else
+                                   brain_briefs.after_start(kernel,trial,cancelled=lambda:cancelled(kernel,ident)))
             trial=None
         return result
     except BaseException as exc:

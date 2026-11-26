@@ -1,0 +1,42 @@
+{
+  "schema": "arc.pinned-llama-runtime/1",
+  "project": "ggml-org/llama.cpp",
+  "stable_release": "v1.0.0",
+  "build": "b12359",
+  "release_published": "2026-11-13",
+  "source_commit": "b1b770d90d94cad9e9ea5b993bdbc383a522fb28",
+  "platforms": {
+    "linux-x64": {
+      "archive": "llama-b12359-bin-ubuntu-x64.tar.gz",
+      "sha256": "0bc1f091e8916102b6d8f2cf944233a620e90a0f856c72d0ce41150c65c2e72e",
+      "format": "tar.gz",
+      "root": "llama-b12359",
+      "executable": "llama-server",
+      "backend": "CPU",
+      "upstream_url": "https://github.com/ggml-org/llama.cpp/releases/download/b12359/llama-b12359-bin-ubuntu-x64.tar.gz"
+    },
+    "windows-x64": {
+      "archive": "llama-b12359-bin-win-cpu-x64.zip",
+      "sha256": "837c1655e87df3b66989f4be33a792a1399c785bf259038dc75c900096683e69",
+      "format": "zip",
+      "root": "",
+      "executable": "llama-server.exe",
+      "backend": "CPU",
+      "upstream_url": "https://github.com/ggml-org/llama.cpp/releases/download/b12359/llama-b12359-bin-win-cpu-x64.zip"
+    },
+    "linux-vulkan-x64": {
+      "archive": "llama-b12359-bin-ubuntu-vulkan-x64.tar.gz",
+      "sha256": "19b60f00395a3f4954e46a5037695bc1d843404fc9d3124f82a612ecd8fbe9f0",
+      "format": "tar.gz",
+      "root": "llama-b12359",
+      "executable": "llama-server",
+      "backend": "VULKAN",
+      "upstream_url": "https://github.com/ggml-org/llama.cpp/releases/download/b12359/llama-b12359-bin-ubuntu-vulkan-x64.tar.gz"
+    }
+  },
+  "model_downloads": false,
+  "licence": "MIT",
+  "vulkan": "BUNDLED_LINUX_X64_OWNER_HOST_QUALIFICATION_PENDING",
+  "version_reported": "1.0.0-dev (build 12359, commit b1b770d90)",
+  "help_text_sha256": "368031c632ea0678df10211d4a9230608ca5d95cde4fd05cda33f16a838b2aef"
+}

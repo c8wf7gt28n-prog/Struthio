@@ -7,7 +7,9 @@ original request_spec stays intact for idempotent retries.
 import copy,hashlib,json,sqlite3
 from .settings_registry import BY_KEY,MODEL_KEYS
 
-OPTIONS={('brain.'+key):key for key in ('context','threads','memory_mb','backend','gpu_layers','cpu_fallback')}
+OPTIONS={('brain.'+key):key for key in ('context','threads','memory_mb','backend','gpu_layers','cpu_fallback',
+                                         # 1.0 M1: llama.cpp v1.0.0's capabilities (runtime_tuning), owner launch defaults
+                                         'flash_attn','kv_type','load_mode','mtp_draft','batch')}
 LAUNCH_KEYS=tuple(OPTIONS.values())
 MAX_RECORD=128*1024
 MAX_JOURNAL=1024*1024
@@ -72,6 +74,11 @@ def config(value):
     if backend not in ('AUTO','CPU','VULKAN') or requested not in ('AUTO','CPU','VULKAN'):return None
     if type(layers) is not int or not -1<=layers<=512 or type(fallback) is not bool:return None
     result.update(backend=backend,requested_backend=requested,gpu_layers=layers,cpu_fallback=fallback)
+    for key in ('flash_attn','kv_type','load_mode','mtp_draft','batch'):     # 1.0 M1: kept when valid
+        if key in value:
+            from .runtime_tuning import DEFAULTS,settings
+            try:result[key]=settings({key:value[key]})[key]
+            except ValueError:return None
     for key in ('device','observed_gpu_layers','offload_evidence','fallback_reason','resource_guard'):
         if key in value:result[key]=copy.deepcopy(value[key])
     return result

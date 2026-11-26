@@ -10,8 +10,11 @@ on; every turn has a deadline, and past it the safe default or the buttons. This
 The rates are rolling medians per model key (model file, runtime, backend, context: the port's key), per kind, from the
 timings every turn already returns (prompt_n, prompt_ms, predicted_n, predicted_ms on its brain.turn/1 record), with reads
 kept in size bands: small reads are slower per token (30 to 43 a second against 70 cold on the 4B, measured). Where a kind
-has fewer than three timings, the key's other kinds stand in; where the key has none, the 4B's quiet rates here (rounded
-down). All of it is whole milliseconds and exact fractions: no floating point.
+has fewer than three timings, the key's other kinds stand in; where the key has none, the rates the model check measured
+for that key (1.0 M1: its tuning stage, runtime_tuning.measured; a small read at three fifths of them), and where it never
+ran, the 4B's quiet rates here (rounded down). All of it is whole milliseconds and exact fractions: no floating point.
+1.0 M1: the stand-ins were measured again with llama.cpp v1.0.0 (b12359) and the 4B on this processor, quiet: 43 to 47
+tokens a second reading 830 tokens cold, 4 to 5 writing; they stand.
 
 Also here: the line under her card while a turn runs ("Asking the model: 2 s of about 3"), why a turn three times its price
 was slow, from the meters ("Slow today: memory is tight."), the lates (two in a row narrow the question; three in a session
@@ -119,10 +122,10 @@ class Clock:
 
     def read_rate(self, key, kind, new_tokens):
         b = band(new_tokens)
-        return self._median(self.read, key, kind, (b,)) or DEFAULT_READ[b]
+        return self._median(self.read, key, kind, (b,)) or _measured(key, 0, b) or DEFAULT_READ[b]
 
     def write_rate(self, key, kind):
-        return self._median(self.write, key, kind) or DEFAULT_WRITE
+        return self._median(self.write, key, kind) or _measured(key, 1) or DEFAULT_WRITE
 
     def price_ms(self, key, kind, new_tokens, answer_tokens, desk_ms):
         """The price of a turn before it is sent, in whole ms (rounded up): desk + new / read rate + answer / write rate."""
@@ -147,6 +150,19 @@ class Clock:
         if self.session_lates < LATES_SESSION:return rule_ms
         measured = self.measured_ms(key, kind)
         return max(rule_ms, int(measured)) if measured is not None else rule_ms
+
+
+def _measured(key, which, read_band=None):
+    """1.0 M1: the model check's measured rate for this model key (read: 0, write: 1), a small read at three fifths of it;
+    None when the key was never measured."""
+    try:
+        from .runtime_tuning import measured
+        got = measured(key)
+    except Exception:  # noqa: BLE001 - no measurement: the stand-ins
+        return None
+    if not got:return None
+    rate = got[which]
+    return rate * Fraction(3, 5) if read_band == 'small' else rate
 
 
 # -- one clock per Kernel database, rebuilt from the ledger --------------------------------------------------------------------
