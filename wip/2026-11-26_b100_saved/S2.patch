@@ -1,0 +1,2000 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 8015878..67fbecf 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -27,6 +27,12 @@
+    "algo.find_applicable": "workbench/algorithm_atlas.py#dispatch",
+    "algo.get": "workbench/algorithm_atlas.py#dispatch",
+    "algo.lookup": "workbench/algorithm_atlas.py#dispatch",
++   "apps.default": "workbench/apps_catalog.py#dispatch",
++   "apps.for": "workbench/apps_catalog.py#dispatch",
++   "apps.list": "workbench/apps_catalog.py#dispatch",
++   "apps.open": "workbench/apps_catalog.py#dispatch",
++   "apps.pin": "workbench/apps_catalog.py#dispatch",
++   "apps.unpin": "workbench/apps_catalog.py#dispatch",
+    "artifacts.get": "workbench/typed_artifacts.py#dispatch",
+    "artifacts.list": "workbench/typed_artifacts.py#dispatch",
+    "assignment.list": "workbench/assignments.py#dispatch",
+@@ -1037,9 +1043,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 839,
++  "adapters": 845,
+   "job_tools": 113,
+-  "operations": 839,
++  "operations": 845,
+   "settings": 48
+  },
+  "formulas": {
+@@ -1706,6 +1712,55 @@
+    },
+    "scope": "read"
+   },
++  "apps.default": {
++   "arguments": "8bc328cef6ba1977b6ed732818e34755b0079d35bf2c84c1d28d9e84d0124382",
++   "properties": {
++    "id": "3e79622dec12ac17",
++    "type": "c7dad9d821386750"
++   },
++   "scope": "approve"
++  },
++  "apps.for": {
++   "arguments": "a5a0570cf4e49167ffc1bd9ecde96716c5c7609594a9bd31967e2ec68e093b7c",
++   "properties": {
++    "path": "66f34441032fb10a",
++    "type": "099cb398ed5d68c2"
++   },
++   "scope": "read"
++  },
++  "apps.list": {
++   "arguments": "c6b9b759b788901f9d5b4622f9e936d1e192f8e32e35d0ca33b892be0ce89abc",
++   "properties": {
++    "every": "7cb541e84f226754",
++    "query": "603c6e9671b08d8c"
++   },
++   "scope": "read"
++  },
++  "apps.open": {
++   "arguments": "cda428293fb0bf117c36cc1859c06564920a6401c501aa145acdd2deead1b72a",
++   "properties": {
++    "files": "9b4123795fa251c3",
++    "id": "11033dea281281d3",
++    "urls": "9b4123795fa251c3"
++   },
++   "scope": "execute"
++  },
++  "apps.pin": {
++   "arguments": "2079af64c01f22d05f071fe4b6422586acbe1ea41cf30379d5bf26d15060b58a",
++   "properties": {
++    "command": "60f70effff39bbc3",
++    "id": "3e79622dec12ac17",
++    "name": "d6e25d5c4e0ea921"
++   },
++   "scope": "execute"
++  },
++  "apps.unpin": {
++   "arguments": "e7dd9a8e2525670deb5d49e09d444ad993fb473905aaa10699fc52a7b8fa0e03",
++   "properties": {
++    "key": "bdd70a65e01cba36"
++   },
++   "scope": "execute"
++  },
+   "artifacts.get": {
+    "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+    "properties": {
+@@ -8251,7 +8306,7 @@
+  },
+  "release": "Graphite 0.8.7",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "c2462586dfcb9aff52754c42e29e2510ff38d84cd8c1d808706070748d176ede",
++ "schema_digest": "719fa89e38d41b66a18c1990b2ef8fef2ae212cb20460e3410276d0cb8d35ef1",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/tests_integrated/test_launcher.py b/tests_integrated/test_launcher.py
+index 4280948..e84304d 100644
+--- a/tests_integrated/test_launcher.py
++++ b/tests_integrated/test_launcher.py
+@@ -241,24 +241,29 @@ class LauncherTests(unittest.TestCase):
+         self.assertEqual((button.accessibleName(),button.toolTip(),lst.accessibleName()),('Open apps','Open apps','Apps'))
+         self.assertEqual(self.kernel.listing('jobs'),[]);self.assertEqual(host.status.messages,[])
+ 
+-    def test_type_to_select_jumps_to_the_rows_by_their_first_letters(self):
++    def test_typing_finds_the_rows_by_their_words(self):
++        """1.0 S2: the list is the Apps panel; it opens with the typing in its search line (in 0.8 a letter jumped to the next row
++        starting with it): the rows holding every word typed stay, Down reaches the first of them, a letter typed on a row goes
++        back to the line, Escape clears the line and then closes the panel. The XDG folders are empty here, so no installed app
++        is listed and the rows are Graphite's own."""
+         from PySide6.QtCore import Qt
+         from PySide6.QtTest import QTest
+         from PySide6.QtWidgets import QApplication
++        empty=self.base/'xdg'
++        env=patch.dict(os.environ,{'XDG_DATA_HOME':str(empty/'data'),'XDG_DATA_DIRS':str(empty/'share'),'XDG_CONFIG_HOME':str(empty/'config'),
++                                   'XDG_CONFIG_DIRS':str(empty/'etc')});env.start();self.addCleanup(env.stop)
+         button,host=self.hatch();lst=button.programs
+         button.open_list(True);self.addCleanup(lst.close_menu)
+-        focus=lambda:getattr(QApplication.focusWidget(),'word',None)
+-        self.assertEqual(focus(),'Agenda','a keyboard opening starts at the first row')
+-        lst.typed_at=0;QTest.keyClick(QApplication.focusWidget(),Qt.Key_K);self.assertEqual(focus(),'KiBot outputs')
+-        lst.typed_at=0;QTest.keyClick(QApplication.focusWidget(),Qt.Key_K);self.assertEqual(focus(),'KiCad checks','the same letter again: the next row with it')
+-        lst.typed_at=0;QTest.keyClicks(QApplication.focusWidget(),'ng');self.assertEqual(focus(),'ngspice profiles','letters typed together make one prefix')
+-        lst.typed_at=0;QTest.keyClick(QApplication.focusWidget(),Qt.Key_E);self.assertEqual(focus(),'Explore the workshop')
+-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Down);self.assertEqual(focus(),'Game','the game is the last row (0.7.0)')
+-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Down);self.assertEqual(focus(),'Agenda','Down wraps from the last row')
+-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Up);self.assertEqual(focus(),'Game','and Up from the first')
+-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Home);self.assertEqual(focus(),'Agenda')
+-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_F1);self.assertTrue(host.status.messages[-1].startswith('Agenda — Open Graphite'),host.status.messages[-1])
+-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Escape);self.assertFalse(lst.isVisible())
++        focus=QApplication.focusWidget
++        self.assertIs(focus(),lst.search.line,'the typing goes to the search line, however the list opened')
++        everything=lst.words();self.assertEqual(everything[-3:],['—','Explore the workshop','Game'])
++        QTest.keyClicks(lst.search.line,'kic');self.assertEqual(lst.words(),['KiCad checks'],'the rows holding the words typed')
++        QTest.keyClick(lst.search.line,Qt.Key_Down);self.assertEqual(getattr(focus(),'word',None),'KiCad checks','Down reaches the first row left')
++        QTest.keyClick(focus(),Qt.Key_X);self.assertIs(focus(),lst.search.line);self.assertEqual(lst.search.line.text(),'kicx','a letter typed on a row')
++        self.assertEqual(lst.words(),[]);self.assertTrue(lst.nothing.isVisibleTo(lst),'nothing left: said so')
++        QTest.keyClick(lst.search.line,Qt.Key_Escape);self.assertEqual(lst.search.line.text(),'');self.assertEqual(lst.words(),everything)
++        self.assertTrue(lst.isVisible(),'the first Escape clears the line')
++        QTest.keyClick(lst.search.line,Qt.Key_Escape);self.assertFalse(lst.isVisible())
+ 
+     def test_the_list_hides_its_rows_behind_one_explained_row_when_the_read_fails(self):
+         button,host=self.hatch();lst=button.programs;real=self.kernel.dispatch
+diff --git a/workbench/activity.py b/workbench/activity.py
+index 10b8940..778fee1 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -46,7 +46,9 @@ OBSERVER_OPERATIONS=frozenset({
+  # 1.0 K1: an assignment's status and the list, read each time her column or the Agenda is shown; reading is not an event
+  'assignment.status','assignment.list',
+  # 1.0 L1: Files with the stable ids of its objects, read each time the tree is drawn; reading is not an event
+- 'objects.files','objects.get'})
++ 'objects.files','objects.get',
++ # 1.0 S2: the installed apps and what opens a kind of file, read each time Apps or Open with is shown; reading is not an event
++ 'apps.list','apps.for'})
+ 
+ def folder(root):
+     """Legacy journal location, now used only for migration and failed delivery."""
+diff --git a/workbench/apps_catalog.py b/workbench/apps_catalog.py
+new file mode 100644
+index 0000000..118cee0
+--- /dev/null
++++ b/workbench/apps_catalog.py
+@@ -0,0 +1,1057 @@
++"""Graphite 1.0 S2 · Apps from what is installed: the programs on this computer, read from their desktop entries, how each
++is started, and which program opens which kind of file.
++
++The owner's paper, section 2: "Its Apps launcher should discover installed applications ... The owner needs access to ...
++file associations ... without leaving Graphite." Nothing here needs Qt; the Apps panel (apps_qt) and the Kernel's apps.*
++operations both read this module.
++
++  the catalogue   scan() reads the XDG desktop entries (the Desktop Entry Specification) from the owner's own folder
++                  ($XDG_DATA_HOME/applications, ~/.local/share/applications) and then the system's ($XDG_DATA_DIRS, by default
++                  /usr/local/share and /usr/share, each with applications/ under it). An entry's id is its path under
++                  applications/ with '/' turned into '-'; the first folder that has an id decides it (so an entry the owner
++                  keeps hides the system's of the same id, and Hidden=true there hides it altogether). Only Type=Application
++                  with a Name and an Exec (or a D-Bus start, which Graphite cannot use: said so) is an app. Listed in Apps:
++                  not NoDisplay, not Hidden, its TryExec found, and OnlyShowIn / NotShowIn respected loosely: an entry made
++                  only for other desktops (OnlyShowIn without Graphite and without the session's XDG_CURRENT_DESKTOP) or
++                  kept away from this one (NotShowIn naming it) is left out of the list, and stays reachable by Open with.
++                  Names, generic names, comments and keywords in the owner's language (LANGUAGE, LC_ALL, LC_MESSAGES, LANG;
++                  lang_COUNTRY@MODIFIER, lang_COUNTRY, lang@MODIFIER, lang, then the plain key). Each app has one group, from
++                  the first of the specification's main categories it names (GROUPS, in plain words), else Other.
++  the icons       icon_path(): an absolute Icon used as it is; a name looked up in the icon themes (the owner's GTK theme
++                  when one is set, then Adwaita, then what they inherit, then hicolor; their index.theme folders, the
++                  Applications ones first; the nearest size at or above the size asked, a scalable one when there is no
++                  exact size), then the pixmaps folder. None when there is none: the window draws Graphite's own glyph.
++  starting it     command() turns Exec into argv with the field codes, never through a shell: %f one file (one start per
++                  file when there are several), %F the files each as an argument of its own, %u one address, %U the
++                  addresses (a local file as a file:// address), %i '--icon' and the Icon when there is one, %c the name,
++                  %k the entry's own path, %% a percent sign; the deprecated %d %D %n %N %v %m and unknown codes are dropped.
++                  Exec's quoting is the specification's (double quotes, with \\ escaping " ` $ and \\ inside them; single
++                  quotes and a backslash outside quotes are taken as a shell would take them, without a shell). A field
++                  code inside a quoted argument is NOT filled: that argument may be read by a shell (sh -c "...") and a
++                  file's name must never become a command; such an entry is said not to take files. Terminal=true runs
++                  in the computer's terminal (x-terminal-emulator, else xterm and the others in TERMINALS) with its own
++                  argv after -e. launch() starts each argv through session_launch.launch (1.0 S1): a session and process
++                  group of its own, so a Graphite restart leaves it open; never sudo, pkexec, su or doas.
++  kinds of file   mime_of(): the type of a file from the shared MIME database's globs2 (literal names, then the longest
++                  extension, then the other patterns, by weight), else Python's mimetypes, else a look at its first bytes
++                  (text or not). parents(): its aliases and the types it is a kind of (subclasses; every text/* is a kind of
++                  text/plain). default_for(): the default program from the mimeapps.list files in the specification's
++                  order ($XDG_CONFIG_HOME, $XDG_CONFIG_DIRS, then the data folders' applications/; a desktop's own
++                  <desktop>-mimeapps.list before the plain one; the old defaults.list last), honouring [Removed
++                  Associations]; else the type's parent's. apps_for(): "Open with": the default first, then [Added
++                  Associations], then every app whose MimeType names the type, then those for its parent types.
++                  set_default(): writes the owner's own $XDG_CONFIG_HOME/mimeapps.list only ([Default Applications], the
++                  app first in [Added Associations], and out of [Removed Associations]), keeping every other line, whole
++                  or not at all, then reads it back: verified only when the default the files now give is the one chosen.
++                  An empty id takes the owner's line back out (the system's default again).
++  Graphite's own  pins(): the apps the owner put on the list with Apps ⊕ ("Add an app to the list": an entry by its id, or a
++  list            command the owner typed, read with Exec's rules, no shell), kept in Graphite's profile folder (apps.json).
++
++Kernel operations (one block in engineering_kernel.py and engineering_cli.py, commented 1.0 S2):
++    apps.list    {query?, every?}           read     the apps (listed ones; with every, all of them with why each is
++                                                     not listed), their groups, Graphite's pins
++    apps.for     {path? | type?}            read     a file's type in words, its default program and the apps that open it
++    apps.open    {id, files?, urls?}        execute  start an app (or a pinned command, id 'pin:...') with files or
++                                                     addresses; each start through session_launch; done when it began
++    apps.default {type, id}                 approve  the default program for a type (the owner's mimeapps.list); only the
++                                                     owner's press: her principal never has approve
++    apps.pin     {id? | name, command}      execute  put an app or a command on Graphite's own list (Yours)
++    apps.unpin   {key}                      execute  take one off it
++apps.list and apps.for are observers (activity.OBSERVER_OPERATIONS): the panel reads them each time it opens.
++"""
++from __future__ import annotations
++
++import configparser
++import fnmatch
++import hashlib
++import json
++import mimetypes
++import os
++import re
++import shutil
++import tempfile
++import time
++import urllib.parse
++from dataclasses import dataclass, field
++from pathlib import Path
++
++SCHEMA = 'graphite.apps/1'
++PINS_SCHEMA = 'graphite.apps.pins/1'
++PINS_FILE = 'apps.json'
++OUR_DESKTOP = 'graphite'           # the name Graphite answers to in OnlyShowIn and NotShowIn
++ENTRY = 'Desktop Entry'
++# The specification's main categories, in plain words (the Apps panel's headings). An app's group is the first of these it
++# names; Audio and Video are AudioVideo's.
++GROUPS = {'AudioVideo': 'Sound and video', 'Audio': 'Sound and video', 'Video': 'Sound and video', 'Development': 'Development',
++          'Education': 'Education', 'Game': 'Games', 'Graphics': 'Graphics', 'Network': 'Internet', 'Office': 'Office',
++          'Science': 'Science', 'Settings': 'Settings', 'System': 'System', 'Utility': 'Accessories'}
++OTHER = 'Other'
++# Graphite's own glyph for an app with no icon of its own, by its group (programs_qt's small graphite icons).
++GROUP_GLYPH = {'Office': 'documents', 'Graphics': 'inkscape', 'Science': 'laboratory', 'Development': 'hdl', 'Internet': 'transfer',
++               'Sound and video': 'media', 'Education': 'references', 'Games': 'game', 'Accessories': 'calculate', 'System': 'brain',
++               'Settings': 'settings', OTHER: 'window'}
++DEPRECATED_CODES = set('dDnNvm')
++TERMINALS = (('x-terminal-emulator', ('-e',)), ('xterm', ('-e',)), ('uxterm', ('-e',)), ('urxvt', ('-e',)), ('alacritty', ('-e',)),
++             ('konsole', ('-e',)), ('xfce4-terminal', ('-x',)), ('mate-terminal', ('-x',)), ('gnome-terminal', ('--',)),
++             ('kitty', ()), ('foot', ()))
++ICON_SUFFIXES = ('.png', '.svg', '.xpm')
++NEVER = frozenset({'sudo', 'pkexec', 'su', 'doas', 'run0'})
++TYPE = re.compile(r'^[A-Za-z0-9][\w.+-]{0,126}/[\w.+-]{1,127}$')
++DESKTOP_ID = re.compile(r'^[\w][\w.+@-]{0,250}\.desktop$')
++# A few kinds of file in the owner's words ("Always open PDF files with this"); any other is said by its extension.
++TYPE_WORDS = {'application/pdf': 'PDF files', 'text/plain': 'plain text files', 'text/markdown': 'Markdown files', 'text/csv': 'CSV tables',
++              'text/html': 'web pages', 'image/png': 'PNG pictures', 'image/jpeg': 'JPEG pictures', 'image/svg+xml': 'SVG drawings',
++              'image/gif': 'GIF pictures', 'image/webp': 'WebP pictures', 'image/tiff': 'TIFF pictures', 'audio/mpeg': 'MP3 sound',
++              'audio/x-wav': 'WAV sound', 'audio/flac': 'FLAC sound', 'video/mp4': 'MP4 video', 'application/zip': 'ZIP archives',
++              'application/json': 'JSON files', 'application/xml': 'XML files', 'text/x-python': 'Python files', 'text/x-python3': 'Python files',
++              'application/vnd.oasis.opendocument.text': 'OpenDocument texts', 'application/vnd.oasis.opendocument.spreadsheet': 'OpenDocument spreadsheets',
++              'application/vnd.oasis.opendocument.presentation': 'OpenDocument presentations',
++              'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word documents',
++              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel workbooks', 'application/msword': 'Word documents',
++              'application/vnd.ms-excel': 'Excel workbooks', 'inode/directory': 'folders', 'application/x-kicad-pcb': 'KiCad boards',
++              'application/x-kicad-schematic': 'KiCad schematics', 'application/x-blender': 'Blender scenes', 'model/stl': 'STL models',
++              'x-scheme-handler/http': 'web addresses', 'x-scheme-handler/https': 'web addresses', 'x-scheme-handler/mailto': 'mail addresses'}
++
++
++# ---- the folders ------------------------------------------------------------------------------------------------------------
++def _env(env):
++    return os.environ if env is None else env
++
++
++def _home(env):
++    return Path(_env(env).get('HOME') or str(Path.home()))
++
++
++def data_home(env=None):
++    value = _env(env).get('XDG_DATA_HOME')
++    return Path(value) if value and os.path.isabs(value) else _home(env) / '.local' / 'share'
++
++
++def data_dirs(env=None):
++    value = _env(env).get('XDG_DATA_DIRS') or '/usr/local/share:/usr/share'
++    return [Path(p) for p in value.split(':') if p and os.path.isabs(p)]
++
++
++def config_home(env=None):
++    value = _env(env).get('XDG_CONFIG_HOME')
++    return Path(value) if value and os.path.isabs(value) else _home(env) / '.config'
++
++
++def config_dirs(env=None):
++    value = _env(env).get('XDG_CONFIG_DIRS') or '/etc/xdg'
++    return [Path(p) for p in value.split(':') if p and os.path.isabs(p)]
++
++
++def application_dirs(env=None):
++    """The applications/ folders in their order of precedence: the owner's own first."""
++    out = []
++    for base in [data_home(env)] + data_dirs(env):
++        folder = base / 'applications'
++        if folder not in out:out.append(folder)
++    return out
++
++
++def desktops(env=None):
++    """The names this session answers to in OnlyShowIn and NotShowIn, lower case: XDG_CURRENT_DESKTOP's, and Graphite."""
++    named = [d.strip().lower() for d in (_env(env).get('XDG_CURRENT_DESKTOP') or '').split(':') if d.strip()]
++    return named + ([OUR_DESKTOP] if OUR_DESKTOP not in named else [])
++
++
++def languages(env=None):
++    """The locale keys to try, most particular first (the specification's order), from LANGUAGE and the locale."""
++    env = _env(env)
++    locale = env.get('LC_ALL') or env.get('LC_MESSAGES') or env.get('LANG') or ''
++    wanted = []
++    if locale and locale not in ('C', 'POSIX') and not locale.startswith('C.'):
++        wanted = [w for w in (env.get('LANGUAGE') or '').split(':') if w] + [locale]
++    out = []
++    for value in wanted:
++        value = value.split('.', 1)[0] if '@' not in value else value.split('.', 1)[0] + '@' + value.split('@', 1)[1]
++        lang, _, modifier = value.partition('@');lang, _, country = lang.partition('_')
++        if not lang:continue
++        for key in ((lang + '_' + country + '@' + modifier) if country and modifier else '', (lang + '_' + country) if country else '',
++                    (lang + '@' + modifier) if modifier else '', lang):
++            if key and key not in out:out.append(key)
++    return out
++
++
++# ---- reading an entry -------------------------------------------------------------------------------------------------------
++def unescape(value):
++    """The specification's escapes in a string value: \\s \\n \\t \\r \\\\ (any other backslash is kept)."""
++    out = [];i = 0
++    while i < len(value):
++        c = value[i]
++        if c == '\\' and i + 1 < len(value):
++            nxt = value[i + 1];table = {'s': ' ', 'n': '\n', 't': '\t', 'r': '\r', '\\': '\\'}
++            if nxt in table:out.append(table[nxt]);i += 2;continue
++        out.append(c);i += 1
++    return ''.join(out)
++
++
++def string_list(value):
++    """A list value: items separated by ';' (an escaped '\\;' is a semicolon in an item), each unescaped."""
++    out = [];item = [];i = 0
++    while i < len(value):
++        c = value[i]
++        if c == '\\' and i + 1 < len(value) and value[i + 1] == ';':item.append(';');i += 2;continue
++        if c == ';':out.append(''.join(item));item = [];i += 1;continue
++        item.append(c);i += 1
++    if item:out.append(''.join(item))
++    return [unescape(x).strip() for x in out if x.strip()]
++
++
++def read_groups(path):
++    """A desktop entry (or any key file) as {group: {key: raw value}}; comments and blank lines skipped, the first of a
++    repeated key kept. Unreadable or not UTF-8: {}."""
++    try:text = Path(path).read_bytes().decode('utf-8')
++    except (OSError, UnicodeDecodeError):return {}
++    groups = {};current = None
++    for line in text.splitlines():
++        line = line.strip()
++        if not line or line.startswith('#'):continue
++        if line.startswith('[') and line.endswith(']'):
++            current = groups.setdefault(line[1:-1], {});continue
++        if current is None or '=' not in line:continue
++        key, _, value = line.partition('=')
++        current.setdefault(key.strip(), value.strip())
++    return groups
++
++
++def localized(group, key, langs):
++    for lang in langs:
++        value = group.get('%s[%s]' % (key, lang))
++        if value is not None:return value
++    return group.get(key)
++
++
++def _bool(value):
++    return str(value or '').strip().lower() == 'true'
++
++
++def which(program, env=None):
++    """The program's file: an absolute path when it is an executable file; else found on the session's PATH."""
++    if not program:return None
++    if '/' in program:
++        return program if os.path.isfile(program) and os.access(program, os.X_OK) else None
++    return shutil.which(program, path=_env(env).get('PATH') or os.defpath)
++
++
++@dataclass
++class App:
++    """One desktop entry. listed: shown in Apps; why: the plain reason when it is not; available: it can be started here;
++    reason: why not. kind: 'entry' (a desktop entry) or 'pin' (a command the owner put on the list)."""
++    id: str
++    path: str
++    name: str
++    generic: str = ''
++    comment: str = ''
++    keywords: tuple = ()
++    categories: tuple = ()
++    group: str = OTHER
++    icon: str = ''
++    exec: str = ''
++    try_exec: str = ''
++    terminal: bool = False
++    mime_types: tuple = ()
++    workdir: str = ''
++    no_display: bool = False
++    hidden: bool = False
++    only_show_in: tuple = ()
++    not_show_in: tuple = ()
++    dbus: bool = False
++    wm_class: str = ''
++    listed: bool = True
++    why: str = ''
++    available: bool = True
++    reason: str = ''
++    program: str = ''
++    takes: str = ''
++    kind: str = 'entry'
++    argv: tuple = ()
++
++    def words(self):
++        """Everything search looks in, lower case."""
++        return ' '.join((self.name, self.generic, self.comment, ' '.join(self.keywords), ' '.join(self.categories), self.group,
++                         Path(self.exec_program()).name)).casefold()
++
++    def exec_program(self):
++        try:parts = split_exec(unescape(self.exec)) if self.exec else []
++        except ValueError:parts = []
++        return parts[0][0] if parts else (self.argv[0] if self.argv else '')
++
++    def as_dict(self):
++        return {'id': self.id, 'name': self.name, 'generic': self.generic, 'comment': self.comment, 'keywords': list(self.keywords),
++                'categories': list(self.categories), 'group': self.group, 'glyph': GROUP_GLYPH.get(self.group, 'window'), 'icon': self.icon,
++                'terminal': self.terminal, 'mime_types': list(self.mime_types), 'listed': self.listed, 'why': self.why,
++                'available': self.available, 'reason': self.reason, 'program': self.program, 'takes': self.takes, 'kind': self.kind,
++                'entry': self.path}
++
++
++def group_of(categories):
++    for c in categories:
++        if c in GROUPS:return GROUPS[c]
++    return OTHER
++
++
++def parse_entry(path, ident, env=None, langs=None, ours=None):
++    """One desktop entry as an App, or None when it is not an application (Type, Name and Exec or a D-Bus start)."""
++    groups = read_groups(path);g = groups.get(ENTRY)
++    if not g:return None
++    langs = languages(env) if langs is None else langs
++    if g.get('Type', 'Application') != 'Application':return None
++    hidden = _bool(g.get('Hidden'))
++    name = unescape(localized(g, 'Name', langs) or '')
++    if not name and not hidden:return None
++    exec_ = g.get('Exec', '');dbus = _bool(g.get('DBusActivatable'))
++    if not exec_ and not dbus and not hidden:return None
++    categories = tuple(string_list(g.get('Categories', '')))
++    app = App(id=ident, path=str(path), name=name, generic=unescape(localized(g, 'GenericName', langs) or ''),
++              comment=unescape(localized(g, 'Comment', langs) or ''), keywords=tuple(string_list(localized(g, 'Keywords', langs) or '')),
++              categories=categories, group=group_of(categories), icon=unescape(g.get('Icon', '')), exec=exec_,
++              try_exec=unescape(g.get('TryExec', '')), terminal=_bool(g.get('Terminal')), mime_types=tuple(string_list(g.get('MimeType', ''))),
++              workdir=unescape(g.get('Path', '')), no_display=_bool(g.get('NoDisplay')), hidden=hidden,
++              only_show_in=tuple(s.lower() for s in string_list(g.get('OnlyShowIn', ''))),
++              not_show_in=tuple(s.lower() for s in string_list(g.get('NotShowIn', ''))), dbus=dbus, wm_class=g.get('StartupWMClass', ''))
++    judge(app, env, desktops(env) if ours is None else ours)
++    return app
++
++
++def judge(app, env=None, ours=()):
++    """Whether it is listed (and why not) and whether it can be started here (and why not)."""
++    whys = []
++    if app.hidden:whys.append('its entry says it is deleted')
++    if app.no_display:whys.append('its entry asks not to be shown in menus')
++    if app.only_show_in and not set(app.only_show_in) & set(ours):whys.append('made for %s only' % ', '.join(app.only_show_in))
++    if app.not_show_in and set(app.not_show_in) & set(ours):whys.append('its entry keeps it out of this desktop')
++    if app.try_exec and not which(app.try_exec, env):whys.append('%s is not installed' % app.try_exec)
++    app.listed = not whys;app.why = '; '.join(whys)
++    if not app.exec:
++        app.available = False;app.reason = '%s starts only through D-Bus, which Graphite does not use to start apps.' % app.name;return app
++    try:parts = split_exec(unescape(app.exec))
++    except ValueError as exc:
++        app.available = False;app.reason = 'Its command line cannot be read: %s.' % exc;return app
++    if not parts:
++        app.available = False;app.reason = 'Its command line is empty.';return app
++    program = parts[0][0];found = which(program, env)
++    app.takes = takes(parts)
++    if Path(program).name in NEVER:
++        app.available = False;app.reason = 'Graphite never starts a program through %s.' % Path(program).name
++    elif found is None:
++        app.available = False;app.reason = '%s is not installed on this computer.' % program
++    else:
++        app.program = found;app.available = True;app.reason = ''
++    return app
++
++
++# ---- the catalogue ----------------------------------------------------------------------------------------------------------
++@dataclass
++class Catalog:
++    """Every app by id (the first folder that has an id decides it), in the order read."""
++    apps: dict = field(default_factory=dict)
++    dirs: tuple = ()
++    signature: str = ''
++    read_at: float = 0.0
++
++    def get(self, ident):
++        return self.apps.get(ident)
++
++    def listed(self):
++        """The apps shown in Apps, A to Z by name."""
++        return sorted((a for a in self.apps.values() if a.listed), key=lambda a:(a.name.casefold(), a.id))
++
++    def every(self):
++        return sorted(self.apps.values(), key=lambda a:(a.name.casefold(), a.id))
++
++    def groups(self):
++        """[(group words, [apps])] for the listed apps: groups A to Z, Other last."""
++        found = {}
++        for app in self.listed():found.setdefault(app.group, []).append(app)
++        return sorted(found.items(), key=lambda kv:(kv[0] == OTHER, kv[0].casefold()))
++
++    def search(self, query, every=False):
++        """The apps where every word of the query starts a word of their name, generic name, comment, keywords, categories
++        or program."""
++        words = query_words(query)
++        pool = self.every() if every else self.listed()
++        if not words:return pool
++        return [a for a in pool if holds(words, a.words())]
++
++
++def query_words(query):
++    """The words typed, lower case (anything not a letter or a digit separates them)."""
++    return re.findall(r'\w+', str(query or '').casefold())
++
++
++def holds(words, hay):
++    """Every word typed starts a word of `hay` ('pdf' finds Rail PDF Viewer, 'rail' does not find Work trail)."""
++    tokens = set(re.findall(r'\w+', str(hay).casefold()))
++    return all(any(t.startswith(w) for t in tokens) for w in words)
++
++
++def _entries(env=None):
++    """(id, path) of every .desktop file in the applications folders, the owner's first; and a signature of their names,
++    sizes and times (the catalogue is read again only when it changes)."""
++    out = [];h = hashlib.sha256()
++    for folder in application_dirs(env):
++        if not folder.is_dir():continue
++        for dirpath, dirnames, filenames in os.walk(folder):
++            dirnames.sort()
++            for name in sorted(filenames):
++                if not name.endswith('.desktop'):continue
++                path = Path(dirpath) / name
++                try:st = path.stat()
++                except OSError:continue
++                rel = path.relative_to(folder).as_posix()
++                out.append((rel.replace('/', '-'), path))
++                h.update(('%s\0%d\0%d\n' % (path, st.st_size, st.st_mtime_ns)).encode('utf-8', 'surrogateescape'))
++    return out, h.hexdigest()
++
++
++_catalogs = {}
++
++
++def scan(env=None, fresh=False):
++    """The catalogue for this environment's folders and language, read again only when an entry was added, removed or
++    changed since the last reading."""
++    found, signature = _entries(env)
++    key = (tuple(str(d) for d in application_dirs(env)), tuple(languages(env)), tuple(desktops(env)), _env(env).get('PATH', ''))
++    kept = _catalogs.get(key)
++    if kept is not None and kept.signature == signature and not fresh:return kept
++    langs = languages(env);ours = desktops(env);apps = {};seen = set()
++    for ident, path in found:
++        if ident in seen:continue      # the first folder with this id decides it: a Hidden entry, or one that is no app, hides the rest
++        seen.add(ident)
++        app = parse_entry(path, ident, env, langs, ours)
++        if app is not None and not app.hidden:apps[ident] = app
++    catalog = Catalog(apps, tuple(str(d) for d in application_dirs(env)), signature, time.time())
++    _catalogs[key] = catalog
++    return catalog
++
++
++# ---- Exec and the field codes -----------------------------------------------------------------------------------------------
++def split_exec(text):
++    """Exec's arguments as [(argument, quoted)]: double quotes with \\ escaping " ` $ \\ inside them; single quotes kept
++    literally; a backslash outside quotes takes the next character as it is. Unbalanced quotes: ValueError."""
++    out = [];arg = [];quoted = False;started = False;i = 0;n = len(text)
++    while i < n:
++        c = text[i]
++        if c in ' \t\n':
++            if started:out.append((''.join(arg), quoted));arg = [];quoted = False;started = False
++            i += 1;continue
++        if c == '"':
++            started = True;quoted = True;i += 1
++            while True:
++                if i >= n:raise ValueError('a double quote is not closed')
++                c = text[i]
++                if c == '\\' and i + 1 < n and text[i + 1] in '"`$\\':arg.append(text[i + 1]);i += 2;continue
++                if c == '"':i += 1;break
++                arg.append(c);i += 1
++            continue
++        if c == "'":
++            started = True;quoted = True;end = text.find("'", i + 1)
++            if end < 0:raise ValueError('a single quote is not closed')
++            arg.append(text[i + 1:end]);i = end + 1;continue
++        if c == '\\' and i + 1 < n:arg.append(text[i + 1]);started = True;i += 2;continue
++        arg.append(c);started = True;i += 1
++    if started:out.append((''.join(arg), quoted))
++    return out
++
++
++def takes(parts):
++    """What the command line takes: 'files' (%F), 'file' (%f), 'urls' (%U), 'url' (%u), or '' (nothing), from its unquoted
++    arguments only."""
++    for arg, quoted in parts:
++        if quoted:continue
++        for code, kind in (('%F', 'files'), ('%U', 'urls'), ('%f', 'file'), ('%u', 'url')):
++            if code in arg.replace('%%', ''):return kind
++    return ''
++
++
++def file_url(path):
++    return 'file://' + urllib.parse.quote(str(Path(path).absolute()), safe='/')
++
++
++def _expand(arg, single, name, icon, location):
++    """One unquoted argument with its codes filled: %f/%u by `single` ('' leaves them out), %c, %k, %%; %F %U %i handled
++    by the caller when they stand alone."""
++    out = [];i = 0
++    while i < len(arg):
++        c = arg[i]
++        if c == '%' and i + 1 < len(arg):
++            code = arg[i + 1];i += 2
++            if code == '%':out.append('%')
++            elif code in 'fuFU':out.append(single)
++            elif code == 'c':out.append(name)
++            elif code == 'k':out.append(location)
++            elif code == 'i':out.append(icon)
++            continue      # deprecated and unknown codes are dropped
++        out.append(c);i += 1
++    return ''.join(out)
++
++
++def _no_codes(arg):
++    """A quoted argument with its field codes taken out (%% stays a percent sign)."""
++    out = [];i = 0
++    while i < len(arg):
++        if arg[i] == '%' and i + 1 < len(arg):
++            if arg[i + 1] == '%':out.append('%')
++            i += 2;continue
++        out.append(arg[i]);i += 1
++    return ''.join(out)
++
++
++def command(exec_text, files=(), urls=(), name='', icon='', location=''):
++    """The argv lists to start: one, or one per file when the command takes a single file (%f or %u) and several are
++    given. files: local paths; urls: addresses (a local file given to %u/%U becomes a file:// address). Never a shell.
++    ValueError when its command line cannot be read."""
++    parts = split_exec(unescape(exec_text)) if isinstance(exec_text, str) else list(exec_text)
++    if not parts:raise ValueError('the command line is empty')
++    kind = takes(parts)
++    files = [str(f) for f in files];urls = [str(u) for u in urls]
++    if kind in ('file', 'files'):items = files + [u for u in urls]
++    else:items = [file_url(f) for f in files] + urls
++    runs = [[]] if kind in ('files', 'urls', '') or len(items) <= 1 else [[] for _ in items]
++    for r, run in enumerate(runs):
++        single = items[r] if kind in ('file', 'url') and items else ''
++        for arg, quoted in parts:
++            if quoted:
++                run.append(_no_codes(arg))      # never a file, a name or a path inside quotes: a shell may read them
++                continue
++            if arg in ('%F', '%U'):run.extend(items);continue
++            if arg in ('%f', '%u'):
++                if single:run.append(single)
++                continue
++            if arg == '%i':
++                if icon:run.extend(['--icon', icon])
++                continue
++            value = _expand(arg, single, name, icon, location)
++            if value or arg == '':run.append(value)
++    return runs
++
++
++def terminal_argv(argv, env=None):
++    """argv run in the computer's terminal, or None when there is none."""
++    for program, flag in TERMINALS:
++        found = which(program, env)
++        if found:return [found, *flag, *argv]
++    return None
++
++
++def launch_app(app, files=(), urls=(), env=None, launcher=None):
++    """Start an app with files or addresses: dict(ok, argvs, started:[{pid, reason}], reason). Each argv starts through
++    session_launch.launch (its own session and process group), unless `launcher` is given (a stand-in for checks)."""
++    if not app.available:return dict(ok=False, argvs=[], started=[], reason=app.reason or '%s cannot be started here.' % app.name)
++    files = [os.path.abspath(str(f)) for f in files];urls = [str(u) for u in urls]      # whole paths: a file is never read as an option
++    for f in files:
++        if not os.path.exists(f):return dict(ok=False, argvs=[], started=[], reason='%s is not there.' % f)
++    if any(u.startswith('-') for u in urls):return dict(ok=False, argvs=[], started=[], reason='An address cannot start with a dash.')
++    if (files or urls) and not app.takes:
++        return dict(ok=False, argvs=[], started=[], reason='%s does not take files: its entry gives it no place for them.' % app.name)
++    try:
++        if app.kind == 'pin':argvs = command([(a, False) for a in app.argv], files, urls, app.name, app.icon, '')
++        else:argvs = command(app.exec, files, urls, app.name, app.icon, app.path)
++    except ValueError as exc:
++        return dict(ok=False, argvs=[], started=[], reason='Its command line cannot be read: %s.' % exc)
++    if app.terminal:
++        wrapped = [terminal_argv(a, env) for a in argvs]
++        if any(w is None for w in wrapped):
++            return dict(ok=False, argvs=argvs, started=[], reason='%s runs in a terminal, and no terminal is installed (xterm would do).' % app.name)
++        argvs = wrapped
++    if launcher is None:
++        from .session_launch import launch as launcher
++    started = [];cwd = app.workdir if app.workdir and os.path.isdir(app.workdir) else None
++    for argv in argvs:
++        started.append(launcher(argv, cwd=cwd, name=app.name))
++    ok = bool(started) and all(s.get('ok') for s in started)
++    reason = '%s started in a session of its own.' % app.name if ok else next((s.get('reason') for s in started if not s.get('ok')), 'It did not start.')
++    if ok and len(started) > 1:reason = '%s started %d times, once for each file.' % (app.name, len(started))
++    return dict(ok=ok, argvs=argvs, started=[{'pid': s.get('pid'), 'ok': bool(s.get('ok')), 'reason': s.get('reason', '')} for s in started], reason=reason)
++
++
++# ---- icons ------------------------------------------------------------------------------------------------------------------
++def icon_bases(env=None):
++    out = [_home(env) / '.icons', data_home(env) / 'icons'] + [d / 'icons' for d in data_dirs(env)]
++    seen = [];[seen.append(p) for p in out if p not in seen]
++    return seen
++
++
++def pixmap_dirs(env=None):
++    return [d / 'pixmaps' for d in data_dirs(env)] + [Path('/usr/share/pixmaps')]
++
++
++def chosen_theme(env=None):
++    """The owner's icon theme: GTK's setting when there is one, else Adwaita when it is installed, else hicolor alone."""
++    for name in ('gtk-4.0', 'gtk-3.0'):
++        ini = config_home(env) / name / 'settings.ini'
++        try:
++            parser = configparser.ConfigParser(interpolation=None);parser.read(ini, encoding='utf-8')
++            theme = parser.get('Settings', 'gtk-icon-theme-name', fallback='').strip().strip('"')
++            if theme:return theme
++        except (OSError, configparser.Error, UnicodeDecodeError):pass
++    return 'Adwaita'
++
++
++_themes = {}
++
++
++def _theme(name, env=None):
++    """(the theme's folders [(base path, [(subdir, size, min, max, kind, scale, apps)])], what it inherits)."""
++    key = (name, tuple(str(b) for b in icon_bases(env)))
++    if key in _themes:return _themes[key]
++    places = [];inherits = []
++    for base in icon_bases(env):
++        root = base / name;index = root / 'index.theme'
++        if not index.is_file():continue
++        groups = read_groups(index);head = groups.get('Icon Theme', {})
++        if not inherits:inherits = [x.strip() for x in head.get('Inherits', '').split(',') if x.strip()]
++        subdirs = []
++        for sub in [x.strip() for x in (head.get('Directories', '') + ',' + head.get('ScaledDirectories', '')).split(',') if x.strip()]:
++            g = groups.get(sub, {})
++            try:size = int(g.get('Size', '0'));scale = int(g.get('Scale', '1'))
++            except ValueError:continue
++            kind = g.get('Type', 'Threshold')
++            try:low = int(g.get('MinSize', size));high = int(g.get('MaxSize', size));threshold = int(g.get('Threshold', '2'))
++            except ValueError:low, high, threshold = size, size, 2
++            if kind == 'Threshold':low, high = size - threshold, size + threshold
++            apps = g.get('Context', '') == 'Applications' or '/apps' in sub or sub.startswith('apps')
++            subdirs.append((sub, size, low, high, kind, scale, apps))
++        places.append((root, subdirs))
++    _themes[key] = (places, inherits)
++    return _themes[key]
++
++
++def _distance(size, low, high, kind, want):
++    if low <= want <= high:return 0
++    return low - want if want < low else want - high
++
++
++def icon_path(name, size=32, env=None, theme=None):
++    """The file for an Icon value: an absolute path as it is (when there); else the nearest-sized file in the theme chain
++    (Applications folders first), then the pixmaps; None when there is none."""
++    if not name:return None
++    if os.path.isabs(name):return name if os.path.isfile(name) else None
++    key = (name, int(size), theme, tuple(str(b) for b in icon_bases(env)), str(config_home(env)))
++    if key not in _icons:
++        _icons[key] = _icon_lookup(name, size, env, theme)
++        while len(_icons) > 512:_icons.pop(next(iter(_icons)))
++    return _icons[key]
++
++
++_icons = {}
++
++
++def _icon_lookup(name, size, env, theme):
++    stem = name
++    for suffix in ICON_SUFFIXES:
++        if stem.endswith(suffix):stem = stem[:-len(suffix)]
++    chain = [];todo = [theme or chosen_theme(env)]
++    while todo:
++        t = todo.pop(0)
++        if t in chain:continue
++        chain.append(t);todo.extend(_theme(t, env)[1])
++    if 'hicolor' not in chain:chain.append('hicolor')
++    for t in chain:
++        places = _theme(t, env)[0];best = None
++        for apps_first in (True, False):
++            for root, subdirs in places:
++                for sub, s, low, high, kind, scale, apps in subdirs:
++                    if apps != apps_first:continue
++                    for suffix in ICON_SUFFIXES:
++                        path = root / sub / (stem + suffix)
++                        if path.is_file():
++                            d = _distance(s, low, high, kind, size)
++                            rank = (d, 0 if suffix == '.svg' and kind == 'Scalable' else 1, -s if s < size else s, scale != 1)
++                            if best is None or rank < best[0]:best = (rank, str(path))
++            if best is not None:return best[1]
++    for folder in pixmap_dirs(env):
++        for suffix in ICON_SUFFIXES:
++            path = folder / (stem + suffix)
++            if path.is_file():return str(path)
++    return None
++
++
++# ---- kinds of file ----------------------------------------------------------------------------------------------------------
++_mime = {}
++
++
++def _mime_db(env=None):
++    """(literal names, extensions, other patterns, subclasses, aliases) from the shared MIME database, read once per set
++    of folders (the owner's first)."""
++    bases = [data_home(env)] + data_dirs(env);key = tuple(str(b) for b in bases)
++    if key in _mime:return _mime[key]
++    literal, ext, other, parents, aliases = {}, {}, [], {}, {}
++    for base in reversed(bases):      # the more important folder last, so it wins
++        folder = base / 'mime'
++        try:lines = (folder / 'globs2').read_text(encoding='utf-8').splitlines()
++        except (OSError, UnicodeDecodeError):lines = []
++        for line in lines:
++            if not line or line.startswith('#'):continue
++            bits = line.split(':')
++            if len(bits) < 3:continue
++            try:weight = int(bits[0])
++            except ValueError:continue
++            mime, glob = bits[1], bits[2];cs = len(bits) > 3 and 'cs' in bits[3].split(',')
++            if not any(ch in glob for ch in '*?['):
++                k = glob if cs else glob.lower();known = literal.get(k)
++                if known is None or weight >= known[0]:literal[k] = (weight, mime)
++            elif glob.startswith('*.') and not any(ch in glob[2:] for ch in '*?['):
++                k = glob[2:] if cs else glob[2:].lower();known = ext.get(k)
++                if known is None or weight >= known[0]:ext[k] = (weight, mime)
++            else:other.append((weight, mime, glob, cs))
++        for name, table in (('subclasses', parents), ('aliases', aliases)):
++            try:rows = (folder / name).read_text(encoding='utf-8').splitlines()
++            except (OSError, UnicodeDecodeError):rows = []
++            for row in rows:
++                bits = row.split()
++                if len(bits) != 2:continue
++                if name == 'subclasses':table.setdefault(bits[0], []).append(bits[1])
++                else:table[bits[0]] = bits[1]
++    _mime[key] = (literal, ext, other, parents, aliases)
++    return _mime[key]
++
++
++def mime_of(path, env=None):
++    """The type of a file: a folder is inode/directory; else by name (the MIME database's globs, then Python's table), else by
++    its first bytes (plain text, or application/octet-stream; an empty file is application/x-zerosize)."""
++    p = Path(path)
++    if p.is_dir():return 'inode/directory'
++    name = p.name;literal, ext, other, _, aliases = _mime_db(env)
++    found = literal.get(name) or literal.get(name.lower())
++    if found:return aliases.get(found[1], found[1])
++    parts = name.split('.')
++    for i in range(1, len(parts)):
++        k = '.'.join(parts[i:])
++        hit = ext.get(k) or ext.get(k.lower())
++        if hit:return aliases.get(hit[1], hit[1])
++    best = None
++    for weight, mime, glob, cs in other:
++        if (fnmatch.fnmatchcase(name, glob) if cs else fnmatch.fnmatchcase(name.lower(), glob.lower())) and (best is None or weight > best[0]):best = (weight, mime)
++    if best:return aliases.get(best[1], best[1])
++    guessed, _ = mimetypes.guess_type(name, strict=False)
++    if guessed:return aliases.get(guessed, guessed)
++    try:
++        with open(p, 'rb') as stream:head = stream.read(4096)
++    except OSError:return 'application/octet-stream'
++    if not head:return 'application/x-zerosize'
++    if b'\0' not in head:
++        try:head.decode('utf-8');return 'text/plain'
++        except UnicodeDecodeError:pass
++    return 'application/octet-stream'
++
++
++def canonical(mime, env=None):
++    return _mime_db(env)[4].get(mime, mime)
++
++
++def parents(mime, env=None):
++    """The types this one is a kind of, nearest first (subclasses, then text/plain for any text/*), without itself."""
++    table = _mime_db(env)[3];out = [];todo = [canonical(mime, env)]
++    while todo:
++        t = todo.pop(0)
++        for p in table.get(t, []) + (['text/plain'] if t.startswith('text/') and t != 'text/plain' else []):
++            p = canonical(p, env)
++            if p != mime and p not in out:out.append(p);todo.append(p)
++    return out
++
++
++def type_words(mime, name=''):
++    """A kind of file in the owner's words: 'PDF files'; else by the file's extension ('.kicad_pro files'); else by the
++    type's own last word."""
++    if mime in TYPE_WORDS:return TYPE_WORDS[mime]
++    suffix = Path(name).suffix if name else ''
++    if suffix:return suffix.lower() + ' files'
++    sub = mime.split('/', 1)[-1]
++    for prefix in ('x-', 'vnd.'):
++        if sub.startswith(prefix):sub = sub[len(prefix):]
++    return sub.replace('+xml', '').upper() + ' files' if len(sub) <= 5 else sub + ' files'
++
++
++# ---- mimeapps.list ----------------------------------------------------------------------------------------------------------
++def mimeapps_files(env=None):
++    """The mimeapps.list files in the specification's order, most important first: (path, is the owner's own)."""
++    ours = desktops(env);out = []
++    for base, mine in [(config_home(env), True)] + [(d, False) for d in config_dirs(env)]:
++        out += [(base / ('%s-mimeapps.list' % d), mine) for d in ours] + [(base / 'mimeapps.list', mine)]
++    for base, mine in [(data_home(env), True)] + [(d, False) for d in data_dirs(env)]:
++        out += [(base / 'applications' / ('%s-mimeapps.list' % d), mine) for d in ours] + [(base / 'applications' / 'mimeapps.list', mine)]
++    return out
++
++
++def _lists(env=None):
++    """[(path, {'default': {type: [ids]}, 'added': {...}, 'removed': {...}})] for the files that are there, most important
++    first, and the old defaults.list files last (defaults only)."""
++    out = []
++    for path, _ in mimeapps_files(env):
++        if not path.is_file():continue
++        groups = read_groups(path)
++        out.append((path, {'default': {k: string_list(v) for k, v in groups.get('Default Applications', {}).items()},
++                           'added': {k: string_list(v) for k, v in groups.get('Added Associations', {}).items()},
++                           'removed': {k: string_list(v) for k, v in groups.get('Removed Associations', {}).items()}}))
++    for base in [data_home(env)] + data_dirs(env):
++        path = base / 'applications' / 'defaults.list'
++        if path.is_file():
++            groups = read_groups(path)
++            out.append((path, {'default': {k: string_list(v) for k, v in groups.get('Default Applications', {}).items()}, 'added': {}, 'removed': {}}))
++    return out
++
++
++def _usable(catalog, ident):
++    app = catalog.get(ident)
++    return app is not None and app.available
++
++
++def default_for(mime, catalog=None, env=None, parents_too=True):
++    """(the default app's id or None, the file that says so or ''): the first installed app named for the type in
++    [Default Applications], file by file in order, not removed by [Removed Associations] in that file or a more
++    important one; else the same for its alias and its parent types."""
++    catalog = catalog or scan(env);lists = _lists(env)
++    wanted = [mime] + ([canonical(mime, env)] if canonical(mime, env) != mime else []) + (parents(mime, env) if parents_too else [])
++    for t in wanted:
++        removed = set()
++        for path, table in lists:
++            removed |= set(table['removed'].get(t, []))
++            for ident in table['default'].get(t, []):
++                if ident not in removed and _usable(catalog, ident):return ident, str(path)
++    return None, ''
++
++
++def apps_for(mime, catalog=None, env=None):
++    """'Open with': [(app, how)] for a type, the default first ('default'), then [Added Associations] ('added'), then the apps
++    whose MimeType names it ('declared'), then those for the types it is a kind of ('for <parent>'). An app removed by
++    [Removed Associations] for the type is left out unless it is the default."""
++    catalog = catalog or scan(env);lists = _lists(env);mime_c = canonical(mime, env)
++    removed = set()
++    for _, table in lists:removed |= set(table['removed'].get(mime, [])) | set(table['removed'].get(mime_c, []))
++    out = [];seen = set()
++
++    def take(ident, how):
++        if ident in seen or not _usable(catalog, ident):return
++        seen.add(ident);out.append((catalog.get(ident), how))
++    default, _ = default_for(mime, catalog, env)
++    if default:take(default, 'default')
++    for _, table in lists:
++        for ident in table['added'].get(mime, []) + table['added'].get(mime_c, []):
++            if ident not in removed:take(ident, 'added')
++    every = catalog.every()
++    for app in every:
++        types = {canonical(t, env) for t in app.mime_types}
++        if mime_c in types and app.id not in removed:take(app.id, 'declared')
++    for parent in parents(mime, env):
++        for app in every:
++            if parent in {canonical(t, env) for t in app.mime_types} and app.id not in removed:take(app.id, 'for ' + parent)
++    return out
++
++
++def _set_list(lines, section, key, value):
++    """lines with `key=value` in [section] (value None takes the key out); the section is added at the end when missing."""
++    out = [];inside = False;done = False;found_section = False
++    for line in lines:
++        stripped = line.strip()
++        if stripped.startswith('[') and stripped.endswith(']'):
++            if inside and not done and value is not None:out.append('%s=%s' % (key, value));done = True
++            inside = stripped[1:-1] == section;found_section = found_section or inside
++            out.append(line);continue
++        if inside and '=' in stripped and not stripped.startswith('#') and stripped.partition('=')[0].strip() == key:
++            if not done and value is not None:out.append('%s=%s' % (key, value));done = True
++            continue
++        out.append(line)
++    if inside and not done and value is not None:out.append('%s=%s' % (key, value));done = True
++    if not found_section and value is not None:
++        while out and not out[-1].strip():out.pop()
++        if out:out.append('')
++        out += ['[%s]' % section, '%s=%s' % (key, value)]
++    return out
++
++
++def set_default(mime, ident, env=None, catalog=None):
++    """The owner's default program for a type, in the owner's own mimeapps.list (written whole, then put in place), then read
++    back: dict(type, id, was, was_effective, now, file, verified). An empty id takes the owner's line back out."""
++    if not TYPE.match(mime or ''):raise ValueError('APPS_TYPE: not a kind of file: %r' % str(mime)[:80])
++    catalog = catalog or scan(env)
++    if ident:
++        if not DESKTOP_ID.match(ident):raise ValueError('APPS_ID: not an app: %r' % str(ident)[:80])
++        app = catalog.get(ident)
++        if app is None:raise ValueError('APPS_UNKNOWN: %s is not installed here' % ident)
++        if not app.available:raise ValueError('APPS_UNAVAILABLE: ' + app.reason)
++    target = config_home(env) / 'mimeapps.list'
++    try:text = target.read_text(encoding='utf-8')
++    except FileNotFoundError:text = ''
++    except (OSError, UnicodeDecodeError) as exc:raise ValueError('APPS_UNREADABLE: %s: %s' % (target, exc))
++    was = string_list(read_groups(target).get('Default Applications', {}).get(mime, '')) if text else []
++    was_effective, _ = default_for(mime, catalog, env, parents_too=False)
++    lines = text.splitlines()
++    if ident:
++        groups = read_groups(target) if text else {}
++        added = [ident] + [x for x in string_list(groups.get('Added Associations', {}).get(mime, '')) if x != ident]
++        removed = [x for x in string_list(groups.get('Removed Associations', {}).get(mime, '')) if x != ident]
++        lines = _set_list(lines, 'Default Applications', mime, ident)
++        lines = _set_list(lines, 'Added Associations', mime, ';'.join(added) + ';')
++        lines = _set_list(lines, 'Removed Associations', mime, (';'.join(removed) + ';') if removed else None)
++    else:
++        lines = _set_list(lines, 'Default Applications', mime, None)
++    target.parent.mkdir(parents=True, exist_ok=True)
++    fd, staged = tempfile.mkstemp(prefix='.mimeapps-', dir=str(target.parent))
++    try:
++        with os.fdopen(fd, 'w', encoding='utf-8') as out:out.write('\n'.join(lines).rstrip('\n') + '\n')
++        try:os.chmod(staged, 0o644)
++        except OSError:pass
++        os.replace(staged, target)
++    finally:
++        if os.path.exists(staged):os.unlink(staged)
++    now, said_by = default_for(mime, catalog, env, parents_too=False)
++    verified = (now == ident) if ident else (string_list(read_groups(target).get('Default Applications', {}).get(mime, '')) == [])
++    return {'type': mime, 'id': ident, 'was': was[0] if was else None, 'was_effective': was_effective, 'now': now, 'said_by': said_by,
++            'file': str(target), 'verified': bool(verified),
++            'words': (('%s now open with %s.' % (type_words(mime), catalog.get(ident).name)) if ident and verified else
++                      ('%s: your own choice is taken out.' % type_words(mime)) if not ident and verified else
++                      'Written, but %s still says otherwise.' % (said_by or 'another file'))}
++
++
++# ---- Graphite's own list (Apps ⊕) -------------------------------------------------------------------------------------------
++def pins_path(env=None):
++    env = _env(env);named = env.get('ARC1_WORKBENCH_CONFIG_HOME')
++    if named:return Path(named) / PINS_FILE
++    return config_home(env) / 'arc1-workbench' / PINS_FILE
++
++
++def read_pins(env=None):
++    try:value = json.loads(pins_path(env).read_text(encoding='utf-8'))
++    except (OSError, ValueError):return []
++    rows = value.get('pins') if isinstance(value, dict) else None
++    return [r for r in (rows or []) if isinstance(r, dict) and isinstance(r.get('key'), str)]
++
++
++def _write_pins(rows, env=None):
++    path = pins_path(env);path.parent.mkdir(parents=True, exist_ok=True)
++    fd, staged = tempfile.mkstemp(prefix='.apps-', dir=str(path.parent))
++    try:
++        with os.fdopen(fd, 'w', encoding='utf-8') as out:json.dump({'schema': PINS_SCHEMA, 'pins': rows}, out, indent=1, ensure_ascii=False)
++        os.replace(staged, path)
++    finally:
++        if os.path.exists(staged):os.unlink(staged)
++
++
++def pin_app(row, catalog=None, env=None):
++    """The App a pin stands for: the entry it names (None when it is gone), or the owner's command as an App ('pin:...')."""
++    if row.get('id'):
++        app = (catalog or scan(env)).get(row['id'])
++        return app
++    argv = tuple(str(a) for a in row.get('argv') or ())
++    app = App(id=row['key'], path='', name=str(row.get('name') or (argv[0] if argv else 'Command')), comment='A command you put on the list',
++              group='Yours', kind='pin', argv=argv, terminal=bool(row.get('terminal')))
++    app.takes = takes([(a, False) for a in argv])
++    found = which(argv[0], env) if argv else None
++    if not argv:app.available, app.reason = False, 'There is no command.'
++    elif Path(argv[0]).name in NEVER:app.available, app.reason = False, 'Graphite never starts a program through %s.' % Path(argv[0]).name
++    elif found is None:app.available, app.reason = False, '%s is not installed on this computer.' % argv[0]
++    else:app.program = found
++    return app
++
++
++def pins(catalog=None, env=None):
++    """[(pin row, App or None)] in the order the owner put them on the list."""
++    catalog = catalog or scan(env)
++    return [(row, pin_app(row, catalog, env)) for row in read_pins(env)]
++
++
++def pin(ident='', name='', command_line='', env=None, catalog=None):
++    """Put an entry (by id) or a command (with its name) on Graphite's own list. Returns the pin row."""
++    rows = read_pins(env)
++    if ident:
++        catalog = catalog or scan(env)
++        if catalog.get(ident) is None:raise ValueError('APPS_UNKNOWN: %s is not installed here' % ident)
++        row = {'key': 'entry:' + ident, 'id': ident}
++    else:
++        name = str(name or '').strip()
++        try:parts = split_exec(str(command_line or '').strip())
++        except ValueError as exc:raise ValueError('APPS_COMMAND: the command cannot be read: %s' % exc)
++        if not parts:raise ValueError('APPS_COMMAND: there is no command')
++        if any(q and '%' in a for a, q in parts):raise ValueError('APPS_COMMAND: a file code inside quotes would be read by a shell; take the quotes away')
++        argv = [a for a, _ in parts]
++        if Path(argv[0]).name in NEVER:raise ValueError('APPS_COMMAND: Graphite never starts a program through %s' % Path(argv[0]).name)
++        if which(argv[0], env) is None:raise ValueError('APPS_COMMAND: %s is not installed on this computer' % argv[0])
++        row = {'key': 'pin:' + hashlib.sha256(json.dumps(argv).encode('utf-8')).hexdigest()[:16], 'name': name or Path(argv[0]).name, 'argv': argv}
++    rows = [r for r in rows if r['key'] != row['key']] + [row]
++    _write_pins(rows, env)
++    return row
++
++
++def unpin(key, env=None):
++    rows = read_pins(env);kept = [r for r in rows if r['key'] != key]
++    if len(kept) == len(rows):raise ValueError('APPS_NOT_PINNED: %s is not on your list' % str(key)[:80])
++    _write_pins(kept, env)
++    return {'key': key, 'left': len(kept)}
++
++
++def find_app(ident, catalog=None, env=None):
++    """An app by its id, or a pinned command by its key ('pin:...')."""
++    catalog = catalog or scan(env)
++    if str(ident).startswith('pin:'):
++        row = next((r for r in read_pins(env) if r['key'] == ident), None)
++        return pin_app(row, catalog, env) if row else None
++    return catalog.get(ident)
++
++
++# ---- the Kernel's operations ------------------------------------------------------------------------------------------------
++TEXT = {'type': 'string', 'maxLength': 4096}
++FIELDS = {
++    'apps.list': ({'query': {'type': 'string', 'maxLength': 200}, 'every': {'type': 'boolean'}}, []),
++    'apps.for': ({'path': TEXT, 'type': {'type': 'string', 'maxLength': 255}}, []),
++    'apps.open': ({'id': {'type': 'string', 'minLength': 1, 'maxLength': 300}, 'files': {'type': 'array', 'items': TEXT},
++                   'urls': {'type': 'array', 'items': {'type': 'string', 'maxLength': 4096}}}, ['id']),
++    'apps.default': ({'type': {'type': 'string', 'minLength': 3, 'maxLength': 255}, 'id': {'type': 'string', 'maxLength': 300}}, ['type', 'id']),
++    'apps.pin': ({'id': {'type': 'string', 'maxLength': 300}, 'name': {'type': 'string', 'maxLength': 120},
++                  'command': {'type': 'string', 'maxLength': 2000}}, []),
++    'apps.unpin': ({'key': {'type': 'string', 'minLength': 1, 'maxLength': 320}}, ['key']),
++}
++SCOPES = {'apps.list': 'read', 'apps.for': 'read', 'apps.open': 'execute', 'apps.default': 'approve', 'apps.pin': 'execute', 'apps.unpin': 'execute'}
++
++
++def listing(query='', every=False, env=None):
++    catalog = scan(env)
++    apps = catalog.search(query, every=every)
++    rows = [dict(a.as_dict(), icon_file=icon_path(a.icon, 32, env)) for a in apps];chosen = {a.id for a in apps}
++    groups = []
++    for words, members in catalog.groups():
++        ids = [a.id for a in members if a.id in chosen]
++        if ids:groups.append({'group': words, 'ids': ids})
++    pinned = [{'key': row['key'], 'id': row.get('id'), 'name': app.name if app else row.get('name') or row.get('id'),
++               'available': bool(app and app.available), 'reason': (app.reason if app else 'its entry is gone'),
++               'app': dict(app.as_dict(), icon_file=icon_path(app.icon, 32, env)) if app else None} for row, app in pins(catalog, env)]
++    hidden = sum(1 for a in catalog.apps.values() if not a.listed)
++    return {'schema': SCHEMA, 'apps': rows, 'groups': groups, 'pins': pinned, 'not_listed': hidden, 'folders': list(catalog.dirs),
++            'desktops': desktops(env)}
++
++
++def for_file(path='', mime='', env=None):
++    if not path and not mime:raise ValueError('APPS_ASK: give a path or a type')
++    name = ''
++    if path:
++        p = Path(path)
++        if not p.exists():raise ValueError('APPS_NOT_FOUND: %s is not there' % p.name)
++        mime = mime_of(p, env);name = p.name
++    if not TYPE.match(mime):raise ValueError('APPS_TYPE: not a kind of file: %r' % mime[:80])
++    catalog = scan(env);default, said_by = default_for(mime, catalog, env)
++    found = apps_for(mime, catalog, env)
++    return {'schema': SCHEMA, 'type': mime, 'words': type_words(mime, name), 'parents': parents(mime, env), 'default': default,
++            'said_by': said_by, 'apps': [dict(app.as_dict(), how=how, icon_file=icon_path(app.icon, 32, env)) for app, how in found]}
++
++
++def dispatch(kernel, op, args, principal):
++    """The Kernel's apps.* operations (the scopes are checked by the Kernel before this is called)."""
++    if op == 'apps.list':return listing(args.get('query', ''), bool(args.get('every')))
++    if op == 'apps.for':return for_file(args.get('path', ''), args.get('type', ''))
++    if op == 'apps.open':
++        app = find_app(args['id'])
++        if app is None:raise ValueError('APPS_UNKNOWN: %s is not installed here' % args['id'][:120])
++        files = [str(Path(f)) for f in args.get('files') or []]
++        if any(not os.path.isabs(f) for f in files):raise ValueError('APPS_PATH: give whole paths for the files')
++        result = launch_app(app, files, args.get('urls') or [])
++        return dict(result, id=app.id, name=app.name, schema=SCHEMA, done=result['ok'],
++                    verified='started' if result['ok'] else 'not started')
++    if op == 'apps.default':return dict(set_default(args['type'], args['id']), schema=SCHEMA)
++    if op == 'apps.pin':
++        row = pin(args.get('id', ''), args.get('name', ''), args.get('command', ''))
++        return {'schema': SCHEMA, 'pin': row}
++    if op == 'apps.unpin':return dict(unpin(args['key']), schema=SCHEMA)
++    raise ValueError('Unknown apps operation')
+diff --git a/workbench/apps_qt.py b/workbench/apps_qt.py
+new file mode 100644
+index 0000000..7e7fcff
+--- /dev/null
++++ b/workbench/apps_qt.py
+@@ -0,0 +1,626 @@
++"""Graphite 1.0 S2 · The Apps panel and Open with: what is installed, in the window.
++
++The owner's picture: upper right, "Apps" and a circled plus. Apps (the head's Struthio) opens this panel, which is the one
++Apps list (the cat's list of 0.7, programs_qt.ProgramsList, kept whole inside it):
++
++  the search line   at the top, where the typing goes as the panel opens: the rows that hold every word typed stay, in
++                    every section (an app's name, its generic name, comment, keywords, categories and program; a Graphite
++                    room's name and title). Down goes to the first row; the line's own Open opens the first row; a letter
++                    typed on a row comes back to the line. Beside it, ⊕: "Add an app to the list".
++  Yours             the apps and commands the owner put on the list with ⊕ (apps_catalog.pins), first.
++  the installed     the apps from their desktop entries (apps_catalog), grouped under their category's plain words (Office,
++  apps              Graphics, ...), A to Z; each with its own icon from the icon theme, or Graphite's glyph for its group
++                    when it has none; "in a terminal" for a terminal app; an app that cannot start here is quiet and says
++                    why when chosen. Choosing one starts it through the Kernel (apps.open, the owner's principal), in a
++                    session of its own (session_launch, 1.0 S1). Its right-click: Open, Open files with it, Keep it on your
++                    list (or Take it off), Copy its command.
++  Graphite          Graphite's own rooms, A to Z, then Explore the workshop and the game, under their own heading, as
++                    they always were (the heading shows when there is anything else in the panel).
++
++Open with (context_entries, a provider of the right-click menu, context_menu.PROVIDERS): on a file in Files, in the Finder,
++on a plain file in the left tree (L1's Files drawer), on a FILE tile of the board, and in a reference or document view: "Open
++with" lists the apps that take the file's kind (the default first), "Choose another app…" and "Always open <kind> with…"
++(OpenWithDialog: the apps for the kind, Show every app, and the box "Always open PDF files with this"). Setting the default is
++apps.default (approve scope: only the owner's press; her principal never has approve), written to the owner's own
++mimeapps.list and read back before it is said to be done. "Open with its default app" starts the default the same way, and
++Files' "Open with this computer's app" now goes through it (open_default).
++
++⊕ in the head (install_head, place_head): beside Apps, "Add an app to the list" (AddDialog: an app on this computer, any
++of them, including those its entry keeps out of menus; or a command the owner types, read with Exec's rules: no shell).
++
++Nothing is written but by the owner's press: the panel and the right-click read (apps.list, apps.for are observers).
++"""
++from __future__ import annotations
++
++import json
++import os
++from pathlib import Path
++
++from PySide6.QtCore import QEvent, QPoint, QRectF, QSize, Qt, QTimer
++from PySide6.QtGui import QColor, QContextMenuEvent, QFont, QFontMetricsF, QIcon, QPainter, QPen
++from PySide6.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox, QFileDialog, QHBoxLayout, QLabel, QLineEdit,
++                               QListWidget, QListWidgetItem, QPushButton, QToolButton, QVBoxLayout, QWidget)
++
++from .programs_qt import Caption, Margin, MenuRow, ProgramsList, Rule, caption_font, paint_bar, paint_icon
++
++SEARCH_WORDS = 'Find an app'
++ADD_WORDS = 'Add an app to the list'
++GRAPHITE_HEADING = 'Graphite'
++YOURS_HEADING = 'Yours'
++NOTHING = 'No app or room has those words'
++TERMINAL_CAPTION = 'in a terminal'
++CANNOT_CAPTION = 'cannot start here'      # the word beside an app that cannot start (its quiet ink is never the only sign)
++MOST_IN_MENU = 12          # apps listed in the right-click's Open with; the rest are in Choose another app
++
++
++# ---- the Kernel, as the owner -----------------------------------------------------------------------------------------------
++def call(host, op, args=None):
++    """A Kernel operation as the owner (operator()): its result, or ValueError with the Kernel's words."""
++    from .engineering_kernel import operator
++    kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++    if kernel is None:raise ValueError("Graphite's Kernel is not running.")
++    response = kernel.dispatch(op, args or {}, operator())
++    if not response.get('ok'):raise ValueError(str((response.get('error') or {}).get('message') or 'Not done'))
++    return response['result']
++
++
++def say(host, words, ms=9000):
++    try:
++        if hasattr(host, 'statusBar'):host.statusBar().showMessage(str(words), ms)
++    except RuntimeError:pass
++    return words
++
++
++def listing(host):
++    """apps.list through the Kernel; the catalogue itself when the Kernel cannot answer (a window without one)."""
++    try:return call(host, 'apps.list', {})
++    except (ValueError, OSError, RuntimeError):
++        from . import apps_catalog
++        try:return apps_catalog.listing()
++        except (OSError, ValueError):return {'apps': [], 'groups': [], 'pins': []}
++
++
++def open_app(host, ident, files=(), urls=()):
++    """Start an app (or a pinned command) as the owner, with files: the Kernel's words in the status line."""
++    args = {'id': ident}
++    if files:args['files'] = [str(Path(f).absolute()) for f in files]
++    if urls:args['urls'] = list(urls)
++    try:result = call(host, 'apps.open', args)
++    except ValueError as exc:return say(host, str(exc))
++    return say(host, result.get('reason') or ('Started.' if result.get('ok') else 'It did not start.'))
++
++
++def set_default(host, mime, ident):
++    """The owner chose: open this kind of file with this app from now on (apps.default, read back before it is said)."""
++    try:result = call(host, 'apps.default', {'type': mime, 'id': ident})
++    except ValueError as exc:say(host, str(exc));return None
++    say(host, result.get('words') or '');return result
++
++
++def kind_of(host, path):
++    try:return call(host, 'apps.for', {'path': str(path)})
++    except ValueError as exc:return {'error': str(exc)}
++
++
++def open_with_file(host, path):
++    """Open with for one file (the viewer's button): the dialog, or why not."""
++    if not path or not Path(path).is_file():return say(host, 'Open with takes a file on this computer.')
++    found = kind_of(host, path)
++    if 'error' in found:return say(host, found['error'])
++    dialog = OpenWithDialog(host, path, found);dialog.open();return dialog
++
++
++def open_default(host, path):
++    """Open a file with its default app (the Kernel's apps.for, then apps.open); with none, Open with. False when the Kernel
++    cannot say (the caller falls back to the system's own opener)."""
++    found = kind_of(host, path)
++    if 'error' in found:return False
++    if found.get('default'):open_app(host, found['default'], [path]);return True
++    OpenWithDialog(host, path, found).open();return True
++
++
++# ---- the panel's parts --------------------------------------------------------------------------------------------------------
++class Heading(QWidget):
++    """A section's words in the panel (Office, Graphics, …, Yours, Graphite): quiet capitals at the rows' word column; not a
++    row, never focused."""
++    def __init__(self, menu, word, parent=None):
++        super().__init__(parent or menu.page);self.menu = menu;self.word = word;self.setFocusPolicy(Qt.NoFocus)
++        self.setAccessibleName(word);self.setProperty('appsHeading', True)
++
++    def font_(self):
++        font = caption_font(self.menu.m);font.setCapitalization(QFont.AllUppercase);font.setLetterSpacing(QFont.PercentageSpacing, 108)
++        return font
++
++    def sizeHint(self):
++        import math
++        m = self.menu.m;return QSize(0, math.ceil(QFontMetricsF(self.font_()).height()) + m.margin + m.rule // 2)
++
++    def minimumSizeHint(self):return self.sizeHint()
++
++    def paintEvent(self, event):
++        from . import boss_theme as t
++        m = self.menu.m;p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing)
++        p.setFont(self.font_());p.setPen(QColor(t.QUIET))
++        p.drawText(QRectF(m.pad + m.icon_col, 0, self.width() - 2 * m.pad - m.icon_col, self.height() - 2), Qt.AlignLeft | Qt.AlignBottom, self.word)
++        p.fillRect(QRectF(m.pad, self.height() - 1, self.width() - 2 * m.pad, 1), QColor(t.LINE))
++        p.end()
++
++
++def paint_plus(p, rect, colour, width=1.5):
++    """⊕: a circle with a plus, in one line weight."""
++    p.save();p.setRenderHint(QPainter.Antialiasing);pen = QPen(QColor(colour), width, Qt.SolidLine, Qt.RoundCap);p.setPen(pen);p.setBrush(Qt.NoBrush)
++    side = min(rect.width(), rect.height());r = QRectF(rect.center().x() - side / 2 + width, rect.center().y() - side / 2 + width, side - 2 * width, side - 2 * width)
++    p.drawEllipse(r);c = r.center();arm = r.width() * 0.28
++    p.drawLine(c.x() - arm, c.y(), c.x() + arm, c.y());p.drawLine(c.x(), c.y() - arm, c.x(), c.y() + arm);p.restore()
++
++
++class PlusButton(QToolButton):
++    """⊕ Add an app to the list: in the panel's search line and in the head beside Apps."""
++    def __init__(self, host, parent=None, head=False):
++        super().__init__(parent);self.host = host;self.head = head;self.scale = 1.0
++        self.setObjectName('AppsAdd' if head else 'AppsPanelAdd');self.setAccessibleName(ADD_WORDS);self.setToolTip(ADD_WORDS)
++        self.setCursor(Qt.PointingHandCursor);self.setFocusPolicy(Qt.StrongFocus);self.setAttribute(Qt.WA_Hover, True)
++        self.setText('⊕');self.clicked.connect(self.add)
++
++    def add(self):
++        menu = self.window()
++        if isinstance(menu, AppsPanel):menu.close_menu(restore=False)
++        QTimer.singleShot(0, lambda:AddDialog(self.host).open())
++
++    def paintEvent(self, event):
++        from . import boss_theme as t
++        p = QPainter(self)
++        edge = max(2, round(2 * self.scale))
++        if self.underMouse() and not self.isDown():
++            p.fillRect(self.rect(), QColor(t.TEAL_SOFT))
++            if self.head:p.fillRect(0, self.height() - edge, self.width(), edge, QColor(t.READY))
++        elif self.hasFocus() or self.isDown():
++            p.fillRect(0, self.height() - edge, self.width(), edge, QColor(t.AMBER_EDGE))
++        side = min(self.width(), self.height()) * (0.46 if self.head else 0.74)
++        rect = QRectF((self.width() - side) / 2, (self.height() - side) / 2, side, side)
++        paint_plus(p, rect, t.TEXT if (self.underMouse() or self.hasFocus() or self.head) else t.QUIET, max(1.4, 1.5 * self.scale))
++        p.end()
++
++
++class SearchBar(QWidget):
++    """The search line at the panel's top, and ⊕ beside it."""
++    def __init__(self, menu):
++        super().__init__(menu.page);self.menu = menu;self.setObjectName('AppsSearch')
++        lay = QHBoxLayout(self);lay.setSpacing(6)
++        self.line = QLineEdit(self);self.line.setObjectName('AppsSearchLine');self.line.setPlaceholderText(SEARCH_WORDS)
++        self.line.setAccessibleName(SEARCH_WORDS);self.line.setFocusPolicy(Qt.StrongFocus)
++        self.plus = PlusButton(menu.host, self);lay.addWidget(self.line, 1);lay.addWidget(self.plus)
++        self.line.textChanged.connect(menu.apply_search);self.restyle()
++
++    def restyle(self):
++        from . import boss_theme as t
++        from .shell2 import SANS
++        from .desk_qt import scaled
++        m = self.menu.m;self.layout().setContentsMargins(m.pad, max(2, m.margin // 2), m.pad, m.margin)
++        tall = max(m.row, m.line) + scaled(8, m.scale)
++        self.plus.setFixedSize(tall, tall);self.plus.scale = m.scale;self.line.setFixedHeight(tall)
++        self.line.setStyleSheet('QLineEdit#AppsSearchLine {background:%s;color:%s;border:1px solid %s;border-radius:3px;padding:0 %dpx;'
++                                'font-family:"%s";font-size:%dpx;} QLineEdit#AppsSearchLine:focus {border:1px solid %s;}'
++                                % (t.RAISED, t.TEXT, t.LINE_STRONG, m.pad // 2, SANS, m.px, t.CUE_EDGE))
++
++    def refont(self):self.restyle()
++
++
++class AppRow(MenuRow):
++    """An installed app (or one the owner put on the list): its own icon (Graphite's glyph for its group when it has none), its
++    name, and a caption: in a terminal. Choosing it starts it; one that cannot start here is quiet and says why."""
++    def __init__(self, menu, app, parent=None, pin_key=None):
++        caption = CANNOT_CAPTION if not app.get('available', True) else TERMINAL_CAPTION if app.get('terminal') else ''
++        super().__init__(menu, app['name'], app.get('glyph') or 'window', caption, callback=self.open_it)
++        if parent is not None:self.setParent(parent)
++        self.app = app;self.pin_key = pin_key;self.picture = None
++        icon = app.get('icon_file')
++        if icon:
++            picture = QIcon(icon)
++            if not picture.isNull():self.picture = picture
++        self.search_words = ' '.join(str(x) for x in (app.get('name'), app.get('generic'), app.get('comment'), ' '.join(app.get('keywords') or ()),
++                                                     ' '.join(app.get('categories') or ()), app.get('group'), Path(app.get('program') or '').name)).casefold()
++        lines = [x for x in (app.get('generic'), app.get('comment')) if x and x != app['name']]
++        lines.append('Opens %s in a window of its own' % app['name'] + (', in a terminal' if app.get('terminal') else ''))
++        if pin_key:lines.append('On your list')
++        self.setToolTip('\n'.join(lines));self.set_unavailable('' if app.get('available', True) else (app.get('reason') or 'It cannot start here.'))
++        self.setObjectName('AppRow')
++
++    def open_it(self):
++        host = self.menu.host
++        if self.unavailable:return say(host, self.unavailable)
++        return open_app(host, self.app['id'])
++
++    def contextMenuEvent(self, event):
++        from . import context_menu as cm
++        host = self.menu.host
++        target = cm.Target('app', self.app['name'], 'app on this computer', ident=self.app['id'], data={'app': self.app, 'pin': self.pin_key},
++                           surface='apps', owner=self.menu, icon=self.app.get('glyph') or 'window')
++        cm.open_for(host, target, event.globalPos(), keyboard=event.reason() == QContextMenuEvent.Keyboard);event.accept()
++
++    def paintEvent(self, event):
++        from . import boss_theme as t
++        m = self.m();p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing);p.setRenderHint(QPainter.SmoothPixmapTransform)
++        lit = self.active()
++        if lit:paint_bar(p, self.rect())
++        on = self.isEnabled() and not self.unavailable
++        ink = QColor((t.ON_BAR if on else t.ON_BAR_QUIET) if lit else (t.TEXT if on else t.QUIET))
++        rect = self.icon_rect()
++        if self.picture is not None:
++            if not on:p.setOpacity(0.45)
++            self.picture.paint(p, rect.toRect(), Qt.AlignCenter);p.setOpacity(1.0)
++        else:paint_icon(p, rect, self.icon_key or 'window', ink)
++        room = self.width() - self.word_x() - m.pad
++        if self.caption:room -= self.caption_rect().width() + m.caption_gap
++        word = self.fontMetrics().elidedText(self.word, Qt.ElideRight, max(10, int(room)))
++        p.setFont(self.font());p.setPen(ink);p.drawText(QRectF(self.word_x(), 0, max(10, room), self.height()), Qt.AlignLeft | Qt.AlignVCenter, word)
++        if self.caption:
++            p.setFont(caption_font(m, self.script));p.setPen(QColor(t.ON_BAR_QUIET if lit else t.QUIET));p.drawText(self.caption_rect(), Qt.AlignRight | Qt.AlignVCenter, self.caption)
++        p.end()
++
++
++class AppsPanel(ProgramsList):
++    """The Apps panel: the search line and ⊕, Yours, the installed apps by category, and Graphite's own rooms (the
++    ProgramsList it is, whole: rows_by_key, Explore the workshop, the game, the failed-read row)."""
++    def __init__(self, host, anchor, actions, explore_action):
++        super().__init__(host, anchor, actions, explore_action)
++        self.setAccessibleDescription('The apps on this computer by kind, then Graphite\'s own rooms; typing finds one')
++        at = self.box.indexOf(self.caption) + 1
++        self.search = SearchBar(self);self.box.insertWidget(at, self.search)
++        self.installed = QWidget(self.page);self.installed.setObjectName('AppsInstalled')
++        self.installed_box = QVBoxLayout(self.installed);self.installed_box.setContentsMargins(0, 0, 0, 0);self.installed_box.setSpacing(0)
++        self.box.insertWidget(at + 1, self.installed)
++        self.graphite_heading = Heading(self, GRAPHITE_HEADING);self.box.insertWidget(at + 2, self.graphite_heading)
++        self.nothing = Heading(self, NOTHING);self.nothing.hide();self.box.insertWidget(self.box.indexOf(self.bottom_margin) if self.box.indexOf(self.bottom_margin) >= 0 else self.box.count(), self.nothing)
++        self.sections = [];self.app_rows = [];self.signature = None;self.failed = False;self.listing = None;self.graphite_heading.hide()
++        self.box.addStretch(1)      # what the search leaves sits at the top; the room below it stays empty
++
++    # the installed apps -----------------------------------------------------------------------------------------------------
++    def fill(self):
++        """Each opening: the search line empty, the installed apps read again (apps.list; rebuilt only when they changed)."""
++        super().fill()
++        self.search.line.blockSignals(True);self.search.line.clear();self.search.line.blockSignals(False)
++        self.rebuild(listing(self.host));self.apply_search('')
++
++    def rebuild(self, value):
++        value = value or {};self.listing = value
++        apps = {a['id']: a for a in value.get('apps', ())}
++        pins = value.get('pins', ())
++        signature = json.dumps([[(a['id'], a['name'], a.get('available'), a.get('reason'), a.get('icon_file'), a.get('group'), a.get('terminal'))
++                                 for a in value.get('apps', ())], [g['group'] for g in value.get('groups', ())], pins], sort_keys=True, default=str)
++        if signature == self.signature:return False
++        self.signature = signature
++        for heading, rows in self.sections:
++            for w in [heading] + rows:w.hide();w.setParent(None);w.deleteLater()
++        self.sections = [];self.app_rows = []
++        if pins:
++            rows = []
++            for p in pins:
++                app = p.get('app') or {'id': p.get('id') or p['key'], 'name': p.get('name') or 'Command', 'available': False,
++                                       'reason': p.get('reason') or 'its entry is gone', 'glyph': 'window'}
++                rows.append(AppRow(self, app, self.installed, pin_key=p['key']))
++            self.add_section(YOURS_HEADING, rows)
++        for group in value.get('groups', ()):
++            rows = [AppRow(self, apps[i], self.installed) for i in group['ids'] if i in apps]
++            if rows:self.add_section(group['group'], rows)
++        self.restyle_installed()
++        return True
++
++    def add_section(self, words, rows):
++        heading = Heading(self, words, self.installed);self.installed_box.addWidget(heading)
++        for row in rows:self.installed_box.addWidget(row);row.show()
++        heading.show();self.sections.append((heading, rows));self.app_rows += rows
++
++    def restyle_installed(self):
++        for heading, rows in self.sections:
++            heading.updateGeometry()
++            for row in rows:row.refont();row.updateGeometry()
++        self.installed.updateGeometry()
++
++    def restyle(self):
++        before = self.m;super().restyle()
++        if self.m != before:self.search.restyle()
++
++    # the search ---------------------------------------------------------------------------------------------------------------
++    def graphite_rows(self):
++        return list(self.rows_by_key.values()) + [self.explore_row, self.game_row]
++
++    def apply_search(self, text=None):
++        """Only the rows holding every word typed; a section's heading only when a row of it is left; the Graphite heading only
++        when anything else is in the panel; a quiet line when nothing is left."""
++        from .apps_catalog import holds as holds_all, query_words
++        text = self.search.line.text() if text is None else text
++        words = query_words(text);shown = 0
++
++        def holds(hay):return holds_all(words, hay)
++        for heading, rows in self.sections:
++            left = 0
++            for row in rows:
++                v = holds(row.search_words);row.setVisible(v);left += v
++            heading.setVisible(left > 0);shown += left
++        graphite = 0
++        for key, row in self.rows_by_key.items():
++            title = str(row.action.property('title') or '') if row.action is not None else ''
++            v = (not self.failed) and holds((row.word + ' ' + title + ' ' + key).casefold());row.setVisible(v);graphite += v
++        for row in (self.explore_row, self.game_row):
++            v = holds((row.word + ' ' + (row.caption or '')).casefold());row.setVisible(v);graphite += v
++        self.rule.setVisible(not words)
++        self.graphite_heading.setVisible(bool(self.sections) and (graphite > 0 or self.failed))
++        self.nothing.setVisible(bool(words) and shown + graphite == 0)
++        self.page.updateGeometry()
++        return shown + graphite
++
++    def show_unavailable(self, message):
++        self.failed = True;super().show_unavailable(message);self.apply_search()
++
++    def show_programs(self):
++        self.failed = False;super().show_programs();self.apply_search()
++
++    def first_row(self):
++        """The top row left by the search (as laid out now)."""
++        self.installed_box.activate();self.box.activate()
++        return next((w for w in self.focusables() if isinstance(w, MenuRow)), None)
++
++    def jump(self, text):
++        """A letter typed on a row goes to the search line (the panel finds by words, in every section)."""
++        self.search.line.setFocus(Qt.OtherFocusReason);self.search.line.insert(text);return None
++
++    def open_menu(self, keyboard=False):
++        rect = super().open_menu(keyboard)
++        self.search.line.setFocus(Qt.PopupFocusReason)      # the typing goes to the search line, however it opened
++        return rect
++
++    def eventFilter(self, obj, event):
++        if self.isVisible() and event.type() == QEvent.KeyPress and isinstance(obj, QWidget) and (obj is self or obj.window() is self):
++            focus = QApplication.focusWidget();key = event.key()
++            if focus is self.search.line:
++                if key == Qt.Key_Escape and self.search.line.text():self.search.line.clear();return True
++                if key in (Qt.Key_Down, Qt.Key_PageDown):
++                    row = self.first_row()
++                    if row is not None:row.setFocus(Qt.TabFocusReason)
++                    return True
++                if key in (Qt.Key_Return, Qt.Key_Enter) and not event.isAutoRepeat():
++                    row = self.first_row()
++                    if row is not None:row.click()
++                    return True
++            elif key == Qt.Key_Up and focus is not None and focus is self.first_row():
++                self.search.line.setFocus(Qt.TabFocusReason);return True
++            elif key == Qt.Key_Backspace and isinstance(focus, MenuRow):
++                self.search.line.setFocus(Qt.TabFocusReason);self.search.line.backspace();return True
++        return super().eventFilter(obj, event)
++
++    def words(self):
++        """The rows' words top to bottom, '—' for the rule (for readers and checks): Yours, the installed apps by section, then
++        Graphite's; the headings are not rows and are not said."""
++        out = []
++        for i in range(self.box.count()):
++            w = self.box.itemAt(i).widget()
++            if w is None or not w.isVisibleTo(self) or isinstance(w, (Caption, Margin, SearchBar, Heading)):continue
++            if w is self.installed:
++                out += [r.word for _, rows in self.sections for r in rows if r.isVisibleTo(self)];continue
++            out.append('—' if isinstance(w, Rule) else w.word)
++        return out
++
++    def sections_words(self):
++        """[(heading, [row words])] as shown, Graphite's last (for readers, checks and frames)."""
++        out = [(h.word, [r.word for r in rows if r.isVisibleTo(self)]) for h, rows in self.sections if h.isVisibleTo(self)]
++        g = [r.word for r in self.graphite_rows() if r.isVisibleTo(self)]
++        if g:out.append((GRAPHITE_HEADING, g))
++        return out
++
++
++# ---- the head's ⊕ ---------------------------------------------------------------------------------------------------------------
++def install_head(top):
++    """shell2's head: ⊕ beside Apps (1.0 S2), "Add an app to the list"."""
++    parent = top.programs.parentWidget()
++    top.apps_add = PlusButton(top.host, parent, head=True);top.apps_add.show()
++    return top.apps_add
++
++
++def place_head(top, x, h, gap, d):
++    """shell2's head placement: ⊕ at the right end, Apps to its left (returns the x Apps ends at)."""
++    plus = getattr(top, 'apps_add', None)
++    if plus is None:return x
++    side = max(24, round(h * 0.62));width = side + round(4 * min(d.scale, 1.4))
++    plus.scale = min(d.scale, 1.4);x -= width;plus.setGeometry(x, 0, width, h);plus.show();plus.raise_()
++    return x
++
++
++# ---- the dialogs ----------------------------------------------------------------------------------------------------------------
++def _dialog_frame(dialog, title):
++    """A dialog on the menus' paper with a hairline round it, its title at its head (the window manager may draw none)."""
++    from . import boss_theme as t
++    dialog.setWindowTitle(title);dialog.setModal(True);dialog.setAttribute(Qt.WA_DeleteOnClose, True)
++    name = dialog.objectName() or 'AppsDialog';dialog.setObjectName(name)
++    dialog.setStyleSheet('QDialog#%s {background:%s;border:1px solid %s;} QListWidget {background:%s;border:1px solid %s;}'
++                         % (name, t.CARD, t.LINE_STRONG, t.RAISED, t.LINE))
++    lay = QVBoxLayout(dialog);lay.setContentsMargins(18, 16, 18, 14);lay.setSpacing(8)
++    head = QLabel(title);font = head.font();font.setBold(True);font.setPointSizeF(font.pointSizeF() * 1.15);head.setFont(font);lay.addWidget(head)
++    return lay
++
++
++def _app_item(app, how=''):
++    words = app['name'] + ('  ·  default' if how == 'default' else '') + ('' if app.get('available', True) else '  ·  ' + (app.get('reason') or 'cannot start here'))
++    item = QListWidgetItem(words);item.setData(Qt.UserRole, app['id']);item.setToolTip(app.get('comment') or app.get('generic') or app['name'])
++    icon = app.get('icon_file')
++    if icon:item.setIcon(QIcon(icon))
++    if not app.get('available', True):item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
++    return item
++
++
++class OpenWithDialog(QDialog):
++    """Open with: the apps that take this kind of file (the default first), Show every app, and "Always open <kind> with this"
++    (the owner's own mimeapps.list, read back before it is said). Opening starts the app in a session of its own."""
++    def __init__(self, host, path, found=None, always=False):
++        super().__init__(host if isinstance(host, QWidget) else None);self.host = host;self.path = str(path)
++        self.found = found or kind_of(host, path);self.setObjectName('OpenWith')
++        lay = _dialog_frame(self, 'Open with')
++        name = Path(self.path).name;words = self.found.get('words') or 'this kind of file'
++        head = QLabel('%s  ·  %s. Choose the app to open it:' % (name, words[:1].upper() + words[1:]));head.setWordWrap(True);lay.addWidget(head)
++        self.list = QListWidget();self.list.setObjectName('OpenWithList');self.list.setMinimumSize(420, 240);lay.addWidget(self.list, 1)
++        self.every = QCheckBox('Show every app');self.every.toggled.connect(self.fill);lay.addWidget(self.every)
++        self.always = QCheckBox('Always open %s with this' % words);self.always.setChecked(bool(always));lay.addWidget(self.always)
++        self.note = QLabel(self.found.get('error', ''));self.note.setWordWrap(True);self.note.setProperty('quiet', True);lay.addWidget(self.note)
++        buttons = QDialogButtonBox(QDialogButtonBox.Open | QDialogButtonBox.Cancel);buttons.accepted.connect(self.choose);buttons.rejected.connect(self.reject)
++        lay.addWidget(buttons);self.list.itemActivated.connect(lambda item:self.choose())
++        self.fill()
++
++    def fill(self):
++        self.list.clear()
++        if self.every.isChecked():
++            for app in listing(self.host).get('apps', ()):self.list.addItem(_app_item(app))
++        else:
++            for app in self.found.get('apps', ()):self.list.addItem(_app_item(app, app.get('how', '')))
++            if not self.found.get('apps'):self.note.setText('No app here says it opens %s. Show every app to choose one.' % (self.found.get('words') or 'this kind of file'))
++        for i in range(self.list.count()):
++            if self.list.item(i).flags() & Qt.ItemIsEnabled:self.list.setCurrentRow(i);break
++
++    def chosen(self):
++        item = self.list.currentItem()
++        return item.data(Qt.UserRole) if item is not None and item.flags() & Qt.ItemIsEnabled else None
++
++    def choose(self):
++        ident = self.chosen()
++        if not ident:self.note.setText('Choose an app first.');return
++        if self.always.isChecked() and self.found.get('type'):
++            result = set_default(self.host, self.found['type'], ident)
++            if result is None or not result.get('verified'):
++                self.note.setText((result or {}).get('words') or 'The default was not changed.');return
++        self.accept();open_app(self.host, ident, [self.path])
++
++
++class AddDialog(QDialog):
++    """Add an app to the list (Apps ⊕): an app on this computer (every one, those kept out of menus too, with why), or a
++    command the owner types (a program and its arguments, read with Exec's rules; no shell)."""
++    def __init__(self, host):
++        super().__init__(host if isinstance(host, QWidget) else None);self.host = host;self.setObjectName('AppsAddDialog')
++        lay = _dialog_frame(self, ADD_WORDS)
++        lay.addWidget(QLabel('An app on this computer:'))
++        self.filter = QLineEdit();self.filter.setPlaceholderText(SEARCH_WORDS);self.filter.textChanged.connect(self.fill);lay.addWidget(self.filter)
++        self.list = QListWidget();self.list.setObjectName('AppsAddList');self.list.setMinimumSize(460, 220);lay.addWidget(self.list, 1)
++        self.put = QPushButton('Put it on the list');self.put.clicked.connect(self.add_entry);lay.addWidget(self.put, 0, Qt.AlignLeft)
++        lay.addSpacing(6)
++        lay.addWidget(QLabel('Or a command of your own (a program and its words; no shell reads it):'))
++        row = QHBoxLayout();self.name = QLineEdit();self.name.setPlaceholderText('Its name');self.command = QLineEdit()
++        self.command.setPlaceholderText('The command, as: kicad  or  /opt/tool/bin/tool %F');row.addWidget(self.name, 1);row.addWidget(self.command, 3)
++        lay.addLayout(row)
++        self.put_command = QPushButton('Put the command on the list');self.put_command.clicked.connect(self.add_command);lay.addWidget(self.put_command, 0, Qt.AlignLeft)
++        self.note = QLabel('');self.note.setWordWrap(True);lay.addWidget(self.note)
++        buttons = QDialogButtonBox(QDialogButtonBox.Close);buttons.rejected.connect(self.reject);buttons.accepted.connect(self.accept);lay.addWidget(buttons)
++        try:self.every = call(host, 'apps.list', {'every': True}).get('apps', [])
++        except ValueError as exc:self.every = [];self.note.setText(str(exc))
++        self.fill()
++
++    def fill(self, *_):
++        words = [w for w in self.filter.text().casefold().split() if w];self.list.clear()
++        for app in self.every:
++            hay = ' '.join(str(x) for x in (app['name'], app.get('generic'), app.get('comment'), ' '.join(app.get('keywords') or ()))).casefold()
++            if words and not all(w in hay for w in words):continue
++            item = _app_item(app)
++            if not app.get('listed', True):item.setText(item.text() + '  ·  ' + (app.get('why') or 'not in the list'))
++            self.list.addItem(item)
++        if self.list.count():self.list.setCurrentRow(0)
++
++    def add_entry(self):
++        item = self.list.currentItem()
++        if item is None:self.note.setText('Choose an app first.');return
++        try:call(self.host, 'apps.pin', {'id': item.data(Qt.UserRole)})
++        except ValueError as exc:self.note.setText(str(exc));return
++        say(self.host, '%s is on your list in Apps.' % item.text().split('  ·  ')[0]);self.accept()
++
++    def add_command(self):
++        command = self.command.text().strip()
++        if not command:self.note.setText('Type the command first.');return
++        try:row = call(self.host, 'apps.pin', {'name': self.name.text().strip(), 'command': command})['pin']
++        except ValueError as exc:self.note.setText(str(exc));return
++        say(self.host, '%s is on your list in Apps.' % row.get('name', 'The command'));self.accept()
++
++
++# ---- the right-click: Open with, and an app's own rows --------------------------------------------------------------------------
++def file_of(host, t):
++    """A function giving the target's file (read only when a row needs it: opening the right-click reads nothing), or None
++    when the target is not one file."""
++    from .context_menu import FILE_KINDS
++    if t.surface == 'files' and t.kind in FILE_KINDS and t.data.get('kind') not in ('folder', 'smart'):
++        root = Path(getattr(t.owner, 'root', '.'));rel = t.data.get('path') or ''
++        return lambda:str(root / rel)
++    if t.surface == 'finder' and t.kind in FILE_KINDS and t.ident:
++        return lambda:str(t.ident)
++    if t.surface == 'viewer' and t.ident:
++        return lambda:str(t.ident)
++    if t.surface == 'cabinet':
++        node = (t.data or {}).get('node') or {}
++        if node.get('provider') == 'living_nav' and node.get('role') == 'file' and str(node.get('canonical_id', '')).startswith('fileid:'):
++            def resolve(ident=node['canonical_id']):
++                found = call(host, 'objects.get', {'id': ident})
++                return str(Path(found['root']) / found['path'])
++            return resolve
++    if t.surface == 'field':
++        obj = (t.data or {}).get('object');target = getattr(obj, 'target', None)
++        if isinstance(target, dict) and target.get('kind') == 'file' and getattr(obj, 'kind', '') != 'folder' and os.path.isabs(str(target.get('path') or '')):
++            return lambda path=str(target['path']):path
++    return None
++
++
++def with_entries(host, path_of):
++    """Open with's rows, read when it opens: the apps for the file's kind (the default first), Choose another app,
++    Always open <kind> with."""
++    from .context_menu import Entry
++    try:path = path_of()
++    except (ValueError, OSError, KeyError) as exc:
++        return [Entry('open:with:none', 'This file cannot be found', 'open', enabled=False, reason=str(exc), glyph='info')]
++    if not path or not Path(path).is_file():
++        return [Entry('open:with:none', 'This file is not where it was', 'open', enabled=False, reason=str(path), glyph='info')]
++    found = kind_of(host, path)
++    if 'error' in found:return [Entry('open:with:none', 'Open with is not available', 'open', enabled=False, reason=found['error'], glyph='info')]
++    out = []
++    for app in found.get('apps', ())[:MOST_IN_MENU]:
++        out.append(Entry('open:with:' + app['id'], app['name'], 'open', lambda ident=app['id']:open_app(host, ident, [path]),
++                         caption='default' if app.get('how') == 'default' else '', enabled=app.get('available', True), reason=app.get('reason') or '',
++                         glyph='window', tip='Opens %s in %s, in a window of its own' % (Path(path).name, app['name'])))
++    out.append(Entry('open:with:choose', 'Choose another app…', 'open', lambda:OpenWithDialog(host, path, found).open(), glyph='more',
++                     tip='Every app that opens %s, or every app on this computer' % found.get('words', 'this kind of file')))
++    out.append(Entry('open:with:always', 'Always open %s with…' % found.get('words', 'this kind of file'), 'open',
++                     lambda:OpenWithDialog(host, path, found, always=True).open(), glyph='star',
++                     tip='The default app for %s, kept in your own settings; asked of you, never chosen for you' % found.get('words', 'this kind of file')))
++    return out
++
++
++def app_entries(host, t):
++    """An app's own rows (its right-click in the Apps panel)."""
++    from .context_menu import Entry, copy_text
++    app = t.data.get('app') or {};ident = app.get('id') or t.ident;pin_key = t.data.get('pin');out = []
++    able = app.get('available', True)
++    out.append(Entry('open', 'Open', 'open', lambda:open_app(host, ident), enabled=able, reason=app.get('reason') or '', glyph='window', operation='apps.open'))
++    if app.get('takes'):
++        def files():
++            chosen, _ = QFileDialog.getOpenFileNames(host if isinstance(host, QWidget) else None, 'Open files with %s' % app.get('name', 'it'), str(Path.home()))
++            if chosen:open_app(host, ident, chosen)
++        out.append(Entry('open:files', 'Open files with it…', 'open', files, enabled=able, reason=app.get('reason') or '', glyph='folder', operation='apps.open'))
++    if pin_key:
++        out.append(Entry('apps:unpin', 'Take it off your list', 'modify', lambda:(call(host, 'apps.unpin', {'key': pin_key}), say(host, '%s is off your list.' % app.get('name', 'It'))),
++                         glyph='previous', operation='apps.unpin'))
++    elif not str(ident).startswith('pin:'):
++        out.append(Entry('apps:pin', 'Keep it on your list', 'modify', lambda:(call(host, 'apps.pin', {'id': ident}), say(host, '%s is on your list in Apps.' % app.get('name', 'It'))),
++                         glyph='star', operation='apps.pin'))
++    entry = app.get('entry')
++    if entry:out.append(Entry('copy:path', 'Copy where its entry is', 'edit', lambda:copy_text(host, entry, 'Copied the path'), glyph='copy'))
++    return out
++
++
++def context_entries(host, t):
++    """context_menu's provider (1.0 S2): Open with on one file, and an installed app's own rows."""
++    if t.surface == 'apps' and t.kind == 'app':return app_entries(host, t)
++    if t.kind in ('files', 'empty', 'folder'):return []
++    path_of = file_of(host, t)
++    if path_of is None:return []
++    from .context_menu import Entry
++
++    def default():
++        try:path = path_of()
++        except (ValueError, OSError, KeyError) as exc:return say(host, str(exc))
++        if not open_default(host, path):say(host, 'Open with is not available here.')
++    return [Entry('open:outside', "Open with this computer's app", 'open', default, glyph='window', operation='apps.for, apps.open',
++                  tip='Its default app, in a window of its own; with none, Open with asks which'),
++            Entry('open:with', 'Open with', 'open', submenu=lambda:with_entries(host, path_of), glyph='window', operation='apps.for',
++                  tip='The apps on this computer that open this kind of file')]
+diff --git a/workbench/context_menu.py b/workbench/context_menu.py
+index f4fdc96..e83767d 100644
+--- a/workbench/context_menu.py
++++ b/workbench/context_menu.py
+@@ -1464,12 +1464,18 @@ def activity_selection_entries(host, t):
+     return [Entry('activity:explore', 'Explore', 'capability', panel.explore, icon='explore', tip='The Explore workspace with this record')]
+ 
+ 
++def apps_entries(host, t):
++    """1.0 S2 (Apps from what is installed): Open with on one file, and an installed app's own rows (apps_qt)."""
++    from .apps_qt import context_entries
++    return context_entries(host, t)
++
++
+ # The providers, in the order they are asked (each a small function: target -> entries).
+ PROVIDERS = (('document', document_entries), ('file', file_entries), ('files', files_entries), ('files-place', files_place_entries),
+              ('finder', finder_entries), ('finder-place', finder_place_entries), ('library', library_entries), ('library-place', library_place_entries),
+              ('cabinet', cabinet_entries), ('cabinet-tree', cabinet_tree_entries), ('activity', activity_selection_entries), ('machine', machine_entries),
+              ('settings', settings_entries), ('job', job_entries), ('queued', queued_entries), ('network', network_entries), ('event', event_entries),
+-             ('empty', empty_entries), ('field', field_entries))
++             ('empty', empty_entries), ('field', field_entries), ('apps', apps_entries))   # 1.0 S2: Open with; an app's own rows
+ 
+ 
+ def entries_for(host, target):
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index f50be29..3270fe3 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -113,6 +113,7 @@ def schemas():
+     from .model_exam import FIELDS as EXAM_FIELDS  # 0.8.7 A5 (the exam and the model key)
+     from .voice_column import FIELDS as VOICE_COLUMN_FIELDS  # 0.8.7 W7 (the window wiring): voice.say
+     from .living_nav import FIELDS as LIVING_NAV_FIELDS  # 1.0 L1 (one navigation state): objects.files, objects.get
++    from .apps_catalog import FIELDS as APPS_FIELDS  # 1.0 S2 (apps from what is installed): apps.list, .for, .open, .default, .pin, .unpin
+     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
+     from .assignments import FIELDS as ASSIGNMENT_FIELDS  # 1.0 K1 (assignments and the journal)
+     from .stac_words import FIELDS as WORD_FIELDS
+@@ -229,6 +230,7 @@ def schemas():
+         **EXAM_FIELDS,  # 0.8.7 A5 (the exam and the model key)
+         **VOICE_COLUMN_FIELDS,  # 0.8.7 W7 (the window wiring): voice.say
+         **LIVING_NAV_FIELDS,  # 1.0 L1 (one navigation state): objects.files, objects.get
++        **APPS_FIELDS,  # 1.0 S2 (apps from what is installed)
+         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
+         **ASSIGNMENT_FIELDS,  # 1.0 K1 (assignments and the journal)
+         **WORD_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 48fcad0..794c46b 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -81,6 +81,7 @@ from . import program_mail, program_build, program_transfer, program_cartridge
+ from . import program_vector, program_media, program_freecad
+ from . import program_print, program_delivery
+ from . import living_nav  # 1.0 L1 (one navigation state): objects.files, objects.get, the stable ids of plain files (reads; recorded additions)
++from . import apps_catalog  # 1.0 S2 (apps from what is installed): apps.list, apps.for (read); apps.open, apps.pin, apps.unpin (execute); apps.default (approve) (recorded additions)
+ 
+ PROGRAM_HANDLERS = {
+     op: service
+@@ -268,6 +269,7 @@ CAPABILITIES = {
+     **voice_character.SCOPES,  # 0.8.7 C5 (her character file)
+     **assignments.SCOPES,  # 1.0 K1 (assignments and the journal)
+     **living_nav.SCOPES,  # 1.0 L1 (one navigation state): two reads; nothing written but the identity index of Files
++    **apps_catalog.SCOPES,  # 1.0 S2 (apps from what is installed): apps.default is approve, the owner's press only
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+     **{name:'read' for name in workspace_services.FIELDS},
+@@ -704,6 +706,7 @@ class Kernel:
+         if op in voice_column.FIELDS:return voice_column.dispatch(self,op,a,p)   # 0.8.7 W7 (the window wiring): a card's answers said through her voice floor, read
+         if op in assignments.FIELDS:return assignments.dispatch(self,op,a,p)   # 1.0 K1 (assignments and the journal): a plan of steps, written before and after each effect
+         if op in living_nav.FIELDS:return living_nav.dispatch(self,op,a,p)   # 1.0 L1 (one navigation state): a plain file's stable id, by inode with its digest as the check
++        if op in apps_catalog.FIELDS:return apps_catalog.dispatch(self,op,a,p)   # 1.0 S2 (apps from what is installed): desktop entries, Exec as argv, mimeapps.list
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+         if op in workspace_services.FIELDS:
+diff --git a/workbench/files_qt.py b/workbench/files_qt.py
+index a4ccf7f..84af2d5 100644
+--- a/workbench/files_qt.py
++++ b/workbench/files_qt.py
+@@ -417,7 +417,8 @@ class FilesTab(QWidget):
+             self.act('agenda.add', {'title': text[:400], **({'program': text} if text.startswith('@') else {})}, 'Added to the Agenda')
+ 
+     def open_outside(self, e):
+-        QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.root / e['path'])))
++        from .apps_qt import open_default      # 1.0 S2: its default app (mimeapps.list), in a session of its own; with none, Open with
++        if not open_default(self.host, self.root / e['path']):QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.root / e['path'])))
+ 
+     def menu(self, point):
+         """HATCH DESK D4: the right-click menu (workbench/context_menu.py) for the file, the files or the folder under the pointer:
+diff --git a/workbench/hatch_qt.py b/workbench/hatch_qt.py
+index 07c938f..ff99e58 100644
+--- a/workbench/hatch_qt.py
++++ b/workbench/hatch_qt.py
+@@ -60,6 +60,8 @@ class HatchButton(LauncherKeys, QToolButton):
+             key = row[0];a = QAction(PLAIN.get(key, row[1]).replace('&', '&&'), self);a.setProperty('key', key);a.setProperty('caption', '')
+             a.triggered.connect(lambda checked=False, key=key:self.choose(key));self.entries[key] = a
+         self.explore_action = QAction(EXPLORE, self);self.explore_action.setToolTip(EXPLORE_TIP);self.explore_action.triggered.connect(self.explore)
++        try:from .apps_qt import AppsPanel as ProgramsList      # 1.0 S2: the Apps panel (the installed apps, the search line, ⊕) holds this list whole
++        except ImportError:pass
+         self.programs = ProgramsList(host, self, self.entries, self.explore_action)
+         self.programs.shown.connect(lambda shown:self.face('pressed' if shown else 'normal'))
+         self.clicked.connect(lambda checked=False:self.open_list(self.keyboard_flag()))  # Space (and an accessible press)
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 58903fa..3699967 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -642,6 +642,7 @@ class TopBar(QWidget):
+         self.programs.setAccessibleName('Apps');self.programs.setToolTip('Installed apps and capabilities')
+         apps_mark(self.programs, host)      # the owner's Struthio, the Apps button's whole face (0.8.6)
+         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
++        from .apps_qt import install_head; install_head(self)      # 1.0 S2: ⊕ beside Apps, "Add an app to the list"
+         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
+         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
+         # no longer stand here (the bar above the work says the name; Ctrl+L still brings the address, here, to be typed);
+@@ -761,6 +762,7 @@ class TopBar(QWidget):
+             # the room this frees over the left column. The menus' first box and the prompt box in the lower band stand
+             # the same EDGE off the column's separator (typebar_qt), as in the approved picture.
+             from .desk_qt import edge
++            from .apps_qt import place_head; x = place_head(self, x, h, gap, d)      # 1.0 S2: ⊕ at the right end, Apps to its left
+             widget = self.programs
+             if widget.logo is not None and getattr(widget, 'mark', None) == 'struthio':
+                 from . import struthio_mark
+diff --git a/workbench/universal_viewer_qt.py b/workbench/universal_viewer_qt.py
+index 1b64545..6825698 100644
+--- a/workbench/universal_viewer_qt.py
++++ b/workbench/universal_viewer_qt.py
+@@ -53,11 +53,14 @@ class UniversalViewerTab(QWidget):
+         self.receive_button.clicked.connect(self.receive);top.addWidget(self.receive_button)
+         self.save_button = QPushButton('Save a copy…');self.save_button.clicked.connect(self.save_copy);top.addWidget(self.save_button)
+         self.native_button = QPushButton('Open in Graphite');self.native_button.clicked.connect(self.open_native);top.addWidget(self.native_button)
++        from .apps_qt import open_with_file      # 1.0 S2: Open with, the apps on this computer that open this kind of file
++        self.open_with_button = QPushButton('Open with…');self.open_with_button.setToolTip('Open this file in an app on this computer')
++        self.open_with_button.clicked.connect(lambda checked=False:open_with_file(self.host, self.root_path));top.addWidget(self.open_with_button)
+         # 0.8.3 review: at 1366 the row's buttons were cut mid-word ("Ask about th", "Receive int") and its least width
+         # narrowed the whole desk (both panes, her hologram, the band's words). The row now never sets a least width: the
+         # actions that fit its width show, in their order, and the rest wait behind More… (fold_actions).
+         from PySide6.QtWidgets import QMenu, QSizePolicy
+-        self.actions_row = (self.ask_button, self.investigate_button, self.receive_button, self.save_button, self.native_button)
++        self.actions_row = (self.ask_button, self.investigate_button, self.receive_button, self.save_button, self.native_button, self.open_with_button)  # 1.0 S2: Open with
+         for b in self.actions_row:b.setProperty('wanted', True)
+         self.more_button = QPushButton('More…');self.more_button.setAccessibleName('More actions for this file')
+         self.more_menu = QMenu(self.more_button);self.more_button.setMenu(self.more_menu);top.addWidget(self.more_button);self.more_button.hide()
+@@ -170,7 +173,8 @@ class UniversalViewerTab(QWidget):
+         self.notice.setText(view.get('notice') or '');self.notice.setVisible(bool(view.get('notice')))
+         top = len(self.stack) == 1
+         self.receive_button.setProperty('wanted', top and not self.address);self.save_button.setProperty('wanted', not top)
+-        self.native_button.setProperty('wanted', top and self.native_target() is not None);self.fold_actions()
++        self.native_button.setProperty('wanted', top and self.native_target() is not None)
++        self.open_with_button.setProperty('wanted', top and self.root_path.is_file());self.fold_actions()      # 1.0 S2: the file itself, not an item inside it
+         self.worksheet = None
+         self.pages.blockSignals(True)
+         self.active_page_changed()

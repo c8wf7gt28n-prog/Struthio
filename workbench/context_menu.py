@@ -1464,12 +1464,18 @@ def activity_selection_entries(host, t):
     return [Entry('activity:explore', 'Explore', 'capability', panel.explore, icon='explore', tip='The Explore workspace with this record')]
 
 
+def apps_entries(host, t):
+    """1.0 S2 (Apps from what is installed): Open with on one file, and an installed app's own rows (apps_qt)."""
+    from .apps_qt import context_entries
+    return context_entries(host, t)
+
+
 # The providers, in the order they are asked (each a small function: target -> entries).
 PROVIDERS = (('document', document_entries), ('file', file_entries), ('files', files_entries), ('files-place', files_place_entries),
              ('finder', finder_entries), ('finder-place', finder_place_entries), ('library', library_entries), ('library-place', library_place_entries),
              ('cabinet', cabinet_entries), ('cabinet-tree', cabinet_tree_entries), ('activity', activity_selection_entries), ('machine', machine_entries),
              ('settings', settings_entries), ('job', job_entries), ('queued', queued_entries), ('network', network_entries), ('event', event_entries),
-             ('empty', empty_entries), ('field', field_entries))
+             ('empty', empty_entries), ('field', field_entries), ('apps', apps_entries))   # 1.0 S2: Open with; an app's own rows
 
 
 def entries_for(host, target):

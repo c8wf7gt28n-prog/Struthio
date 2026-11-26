@@ -417,7 +417,8 @@ class FilesTab(QWidget):
             self.act('agenda.add', {'title': text[:400], **({'program': text} if text.startswith('@') else {})}, 'Added to the Agenda')
 
     def open_outside(self, e):
-        QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.root / e['path'])))
+        from .apps_qt import open_default      # 1.0 S2: its default app (mimeapps.list), in a session of its own; with none, Open with
+        if not open_default(self.host, self.root / e['path']):QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.root / e['path'])))
 
     def menu(self, point):
         """HATCH DESK D4: the right-click menu (workbench/context_menu.py) for the file, the files or the folder under the pointer:

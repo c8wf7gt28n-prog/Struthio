@@ -642,6 +642,7 @@ class TopBar(QWidget):
         self.programs.setAccessibleName('Apps');self.programs.setToolTip('Installed apps and capabilities')
         apps_mark(self.programs, host)      # the owner's Struthio, the Apps button's whole face (0.8.6)
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
+        from .apps_qt import install_head; install_head(self)      # 1.0 S2: ⊕ beside Apps, "Add an app to the list"
         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
         # no longer stand here (the bar above the work says the name; Ctrl+L still brings the address, here, to be typed);
@@ -761,6 +762,7 @@ class TopBar(QWidget):
             # the room this frees over the left column. The menus' first box and the prompt box in the lower band stand
             # the same EDGE off the column's separator (typebar_qt), as in the approved picture.
             from .desk_qt import edge
+            from .apps_qt import place_head; x = place_head(self, x, h, gap, d)      # 1.0 S2: ⊕ at the right end, Apps to its left
             widget = self.programs
             if widget.logo is not None and getattr(widget, 'mark', None) == 'struthio':
                 from . import struthio_mark

@@ -53,11 +53,14 @@ class UniversalViewerTab(QWidget):
         self.receive_button.clicked.connect(self.receive);top.addWidget(self.receive_button)
         self.save_button = QPushButton('Save a copy…');self.save_button.clicked.connect(self.save_copy);top.addWidget(self.save_button)
         self.native_button = QPushButton('Open in Graphite');self.native_button.clicked.connect(self.open_native);top.addWidget(self.native_button)
+        from .apps_qt import open_with_file      # 1.0 S2: Open with, the apps on this computer that open this kind of file
+        self.open_with_button = QPushButton('Open with…');self.open_with_button.setToolTip('Open this file in an app on this computer')
+        self.open_with_button.clicked.connect(lambda checked=False:open_with_file(self.host, self.root_path));top.addWidget(self.open_with_button)
         # 0.8.3 review: at 1366 the row's buttons were cut mid-word ("Ask about th", "Receive int") and its least width
         # narrowed the whole desk (both panes, her hologram, the band's words). The row now never sets a least width: the
         # actions that fit its width show, in their order, and the rest wait behind More… (fold_actions).
         from PySide6.QtWidgets import QMenu, QSizePolicy
-        self.actions_row = (self.ask_button, self.investigate_button, self.receive_button, self.save_button, self.native_button)
+        self.actions_row = (self.ask_button, self.investigate_button, self.receive_button, self.save_button, self.native_button, self.open_with_button)  # 1.0 S2: Open with
         for b in self.actions_row:b.setProperty('wanted', True)
         self.more_button = QPushButton('More…');self.more_button.setAccessibleName('More actions for this file')
         self.more_menu = QMenu(self.more_button);self.more_button.setMenu(self.more_menu);top.addWidget(self.more_button);self.more_button.hide()
@@ -170,7 +173,8 @@ class UniversalViewerTab(QWidget):
         self.notice.setText(view.get('notice') or '');self.notice.setVisible(bool(view.get('notice')))
         top = len(self.stack) == 1
         self.receive_button.setProperty('wanted', top and not self.address);self.save_button.setProperty('wanted', not top)
-        self.native_button.setProperty('wanted', top and self.native_target() is not None);self.fold_actions()
+        self.native_button.setProperty('wanted', top and self.native_target() is not None)
+        self.open_with_button.setProperty('wanted', top and self.root_path.is_file());self.fold_actions()      # 1.0 S2: the file itself, not an item inside it
         self.worksheet = None
         self.pages.blockSignals(True)
         self.active_page_changed()

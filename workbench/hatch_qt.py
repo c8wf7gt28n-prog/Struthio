@@ -60,6 +60,8 @@ class HatchButton(LauncherKeys, QToolButton):
             key = row[0];a = QAction(PLAIN.get(key, row[1]).replace('&', '&&'), self);a.setProperty('key', key);a.setProperty('caption', '')
             a.triggered.connect(lambda checked=False, key=key:self.choose(key));self.entries[key] = a
         self.explore_action = QAction(EXPLORE, self);self.explore_action.setToolTip(EXPLORE_TIP);self.explore_action.triggered.connect(self.explore)
+        try:from .apps_qt import AppsPanel as ProgramsList      # 1.0 S2: the Apps panel (the installed apps, the search line, ⊕) holds this list whole
+        except ImportError:pass
         self.programs = ProgramsList(host, self, self.entries, self.explore_action)
         self.programs.shown.connect(lambda shown:self.face('pressed' if shown else 'normal'))
         self.clicked.connect(lambda checked=False:self.open_list(self.keyboard_flag()))  # Space (and an accessible press)

@@ -113,6 +113,7 @@ def schemas():
     from .model_exam import FIELDS as EXAM_FIELDS  # 0.8.7 A5 (the exam and the model key)
     from .voice_column import FIELDS as VOICE_COLUMN_FIELDS  # 0.8.7 W7 (the window wiring): voice.say
     from .living_nav import FIELDS as LIVING_NAV_FIELDS  # 1.0 L1 (one navigation state): objects.files, objects.get
+    from .apps_catalog import FIELDS as APPS_FIELDS  # 1.0 S2 (apps from what is installed): apps.list, .for, .open, .default, .pin, .unpin
     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
     from .assignments import FIELDS as ASSIGNMENT_FIELDS  # 1.0 K1 (assignments and the journal)
     from .relevance import FIELDS as RELEVANCE_FIELDS  # 1.0 L3 (relevance): relevance.why, .pin, .turn_down, .clear
@@ -230,6 +231,7 @@ def schemas():
         **EXAM_FIELDS,  # 0.8.7 A5 (the exam and the model key)
         **VOICE_COLUMN_FIELDS,  # 0.8.7 W7 (the window wiring): voice.say
         **LIVING_NAV_FIELDS,  # 1.0 L1 (one navigation state): objects.files, objects.get
+        **APPS_FIELDS,  # 1.0 S2 (apps from what is installed)
         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
         **ASSIGNMENT_FIELDS,  # 1.0 K1 (assignments and the journal)
         **RELEVANCE_FIELDS,  # 1.0 L3 (relevance)

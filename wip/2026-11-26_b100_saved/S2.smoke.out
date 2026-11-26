@@ -1,0 +1,77 @@
+== Acceptance 1: five entries (one NoDisplay, one %F, one terminal) -> four listed with their categories
+    ('Bench Console', 'Development', ['Development'])
+    ('Calc Pad', 'Accessories', ['Utility', 'Calculator'])
+    ('Demo Reader', 'Graphics', ['Graphics', 'Viewer'])
+    ('Rail PDF Viewer', 'Office', ['Office', 'Viewer'])
+PASS  four listed  | ['Bench Console', 'Calc Pad', 'Demo Reader', 'Rail PDF Viewer']
+PASS  NoDisplay left out (still known for Open with)  | its entry asks not to be shown in menus
+PASS  categories  | [('Accessories', ['Calc Pad']), ('Development', ['Bench Console']), ('Graphics', ['Demo Reader']), ('Office', ['Rail PDF Viewer'])]
+PASS  terminal app marked
+== Acceptance 2: the %F one launched with two files
+    argv: [['railpdf', '--sheet', '/tmp/s2-xdg-o10mjs4j/Rail Demo bench readings.pdf', '/tmp/s2-xdg-o10mjs4j/rev B.pdf']]
+PASS  argv for %F with two files
+    started: Rail PDF Viewer started in a session of its own. [{'pid': 5, 'ok': True, 'reason': 'Rail PDF Viewer started in a session of its own.'}] | the program saw: ['railpdf', '--sheet', '/tmp/s2-xdg-o10mjs4j/Rail Demo bench readings.pdf', '/tmp/s2-xdg-o10mjs4j/rev B.pdf', 'sid 5']
+PASS  started through session_launch, in a session of its own  | ['sid 5']
+PASS  %u with two files: one start per file, as file:// addresses  | [['demoreader', 'file:///tmp/s2-xdg-o10mjs4j/Rail%20Demo%20bench%20readings.pdf'], ['demoreader', 'file:///tmp/s2-xdg-o10mjs4j/rev%20B.pdf']]
+PASS  terminal app runs in the terminal with its own argv  | [['/tmp/s2-xdg-o10mjs4j/bin/x-terminal-emulator', '-e', 'benchcon', '--watch', 'Rail Demo']]
+PASS  a file code inside quotes is never filled (no shell injection)  | [['sh', '-c', 'cat ']]
+PASS  field codes %i %c %k %%
+PASS  never sudo
+== Acceptance 3: the default for application/pdf, and Open with
+    Open with before: [('Demo Reader', 'declared'), ('Rail PDF Viewer', 'declared')] | default: (None, '')
+    set_default: {'type': 'application/pdf', 'id': 'demo-reader.desktop', 'was': None, 'now': 'demo-reader.desktop', 'file': '/tmp/s2-xdg-o10mjs4j/config/mimeapps.list', 'verified': True, 'words': 'PDF files now open with Demo Reader.'}
+    mimeapps.list:
+      [Default Applications]
+      application/pdf=demo-reader.desktop
+      
+      [Added Associations]
+      application/pdf=demo-reader.desktop;
+      
+PASS  mimeapps.list written and read back
+    Open with after: [('Demo Reader', 'default'), ('Rail PDF Viewer', 'declared')]
+PASS  Open with lists the PDF readers, the default first  | [('Demo Reader', 'default'), ('Rail PDF Viewer', 'declared')]
+PASS  a file of that kind finds it
+PASS  a second choice keeps the owner's other lines  | [Default Applications] | application/pdf=rail-pdfview.desktop |  | [Added Associations] | application/pdf=rail-pdfview.desktop;demo-reader.desktop; |  | # my own note | [Added Associations] | image/png=demo-reader.desktop; | 
+PASS  an empty id takes the owner's line out (the undo)
+PASS  a csv is a kind of text/plain (parents)
+== The catalogue's rules
+PASS  Hidden in the owner's folder hides the system entry  | ['Bench Console', 'Demo Reader', 'Rail PDF Viewer']
+PASS  OnlyShowIn another desktop: not listed; TryExec missing: not listed; a Link is no app  | [('Mail Helper', 'its entry asks not to be shown in menus'), ('Not Installed', 'nothere is not installed'), ('Only There', 'made for gnome only')]
+PASS  OnlyShowIn respected loosely: the session's desktop counts
+PASS  localised names
+PASS  icon from the theme; none: the glyph
+PASS  search  | ['Demo Reader', 'Rail PDF Viewer']
+== The Kernel: apps.*
+PASS  apps.list  | ['Accessories', 'Development', 'Graphics', 'Office']
+PASS  apps.for a PDF  | {'schema': 'graphite.apps/1', 'type': 'application/pdf', 'words': 'PDF files', 'parents': [], 'default': None, 'said_by': '', 'apps': [{'id': 'rail-pdfview.desktop', 'name': 'Rail PDF Viewer', 'generic': 'PDF reader', 'comment': 'Reads the bench sheets', 'keywords': ['pdf', 'sheet'], 'categories': ['Office', 'Viewer'], 'group': 'Office', 'glyph': 'documents', 'icon': 'railpdf', 'terminal': False, 'mime_types': ['application/pdf'], 'listed': True, 'why': '', 'available': True, 'reason': '', 'program': '/tmp/s2-xdg-o10mjs4j/bin/railpdf', 'takes': 'files', 'kind': 'entry', 'entry': '/tmp/s2-xdg-o10mjs4j/share/applications/rail-pdfview.desktop', 'how': 'added', 'icon_file': '/tmp/s2-xdg-o10mjs4j/share/icons/hicolor/32x32/apps/railpdf.png'}, {'id': 'demo-reader.desktop', 'name': 'Demo Reader', 'generic': '', 'comment': '', 'keywords': [], 'categories': ['Graphics', 'Viewer'], 'group': 'Graphics', 'glyph': 'inkscape', 'icon': '', 'terminal': False, 'mime_types': ['application/x-pdf', 'image/png'], 'listed': True, 'why': '', 'available': True, 'reason': '', 'program': '/tmp/s2-xdg-o10mjs4j/bin/demoreader', 'takes': 'url', 'kind': 'entry', 'entry': '/tmp/s2-xdg-o10mjs4j/share/applications/demo-reader.desktop', 'how': 'added', 'icon_file': None}]}
+PASS  apps.default refused to her principal (approve: the owner's press only)  | {'code': 'KernelError', 'message': 'Operation is outside the authorized mode/scope'}
+PASS  apps.default by the owner, verified  | PDF files now open with Demo Reader.
+PASS  apps.open  | Rail PDF Viewer started in a session of its own.
+PASS  apps.open wants whole paths  | {'code': 'ValueError', 'message': 'APPS_PATH: give whole paths for the files'}
+PASS  apps.pin a command (no shell); a quoted file code refused  | ({'schema': 'graphite.apps/1', 'pin': {'key': 'pin:c949b724fc0cdf36', 'name': 'Bench log', 'argv': ['benchcon', '--log', '%F']}}, {'code': 'ValueError', 'message': 'APPS_COMMAND: a file code inside quotes would be read by a shell; take the quotes away'})
+PASS  the pin is in Yours  | [{'key': 'pin:c949b724fc0cdf36', 'id': None, 'name': 'Bench log', 'available': True, 'reason': '', 'app': {'id': 'pin:c949b724fc0cdf36', 'name': 'Bench log', 'generic': '', 'comment': 'A command you put on the list', 'keywords': [], 'categories': [], 'group': 'Yours', 'glyph': 'window', 'icon': '', 'terminal': False, 'mime_types': [], 'listed': True, 'why': '', 'available': True, 'reason': '', 'program': '/tmp/s2-xdg-o10mjs4j/bin/benchcon', 'takes': 'files', 'kind': 'pin', 'entry': '', 'icon_file': None}}]
+PASS  apps.unpin
+== The Apps panel (offscreen widget host)
+PASS  the list is the Apps panel
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+    sections: [('Yours', ['Mail Helper']), ('Accessories', ['Calc Pad']), ('Development', ['Bench Console']), ('Graphics', ['Demo Reader']), ('Office', ['Rail PDF Viewer']), ('Graphite', ['Agenda', 'Assignments', 'Blender', 'Calculator', 'Cartridge Bay'])]
+PASS  sections: Yours, the groups, Graphite  | ['Yours', 'Accessories', 'Development', 'Graphics', 'Office', 'Graphite']
+PASS  focus in the search line
+PASS  search finds across sections  | ['Rail PDF Viewer']
+PASS  search finds a Graphite room  | ['KiCad checks']
+PASS  Down to the first row
+PASS  a letter on a row goes back to the line
+PASS  Escape clears first
+PASS  then closes
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+PASS  choosing an app row starts it (apps.open)  | Calc Pad started in a session of its own.
+PASS  the right-click offers Open with
+    Open with: [('Demo Reader', 'default'), ('Rail PDF Viewer', ''), ('Choose another app…', ''), ('Always open PDF files with…', '')]
+PASS  Open with lists the PDF readers, the default first
+PASS  the provider is asked by the menu
+
+SUMMARY: 45/45 PASS

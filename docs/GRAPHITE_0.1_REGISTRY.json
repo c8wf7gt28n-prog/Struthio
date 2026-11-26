@@ -27,6 +27,12 @@
    "algo.find_applicable": "workbench/algorithm_atlas.py#dispatch",
    "algo.get": "workbench/algorithm_atlas.py#dispatch",
    "algo.lookup": "workbench/algorithm_atlas.py#dispatch",
+   "apps.default": "workbench/apps_catalog.py#dispatch",
+   "apps.for": "workbench/apps_catalog.py#dispatch",
+   "apps.list": "workbench/apps_catalog.py#dispatch",
+   "apps.open": "workbench/apps_catalog.py#dispatch",
+   "apps.pin": "workbench/apps_catalog.py#dispatch",
+   "apps.unpin": "workbench/apps_catalog.py#dispatch",
    "artifacts.get": "workbench/typed_artifacts.py#dispatch",
    "artifacts.list": "workbench/typed_artifacts.py#dispatch",
    "assignment.list": "workbench/assignments.py#dispatch",
@@ -1041,9 +1047,9 @@
   }
  },
  "counts": {
-  "adapters": 843,
+  "adapters": 849,
   "job_tools": 113,
-  "operations": 843,
+  "operations": 849,
   "settings": 48
  },
  "formulas": {
@@ -1709,6 +1715,55 @@
     "task": "adf961aa9648de84"
    },
    "scope": "read"
+  },
+  "apps.default": {
+   "arguments": "8bc328cef6ba1977b6ed732818e34755b0079d35bf2c84c1d28d9e84d0124382",
+   "properties": {
+    "id": "3e79622dec12ac17",
+    "type": "c7dad9d821386750"
+   },
+   "scope": "approve"
+  },
+  "apps.for": {
+   "arguments": "a5a0570cf4e49167ffc1bd9ecde96716c5c7609594a9bd31967e2ec68e093b7c",
+   "properties": {
+    "path": "66f34441032fb10a",
+    "type": "099cb398ed5d68c2"
+   },
+   "scope": "read"
+  },
+  "apps.list": {
+   "arguments": "c6b9b759b788901f9d5b4622f9e936d1e192f8e32e35d0ca33b892be0ce89abc",
+   "properties": {
+    "every": "7cb541e84f226754",
+    "query": "603c6e9671b08d8c"
+   },
+   "scope": "read"
+  },
+  "apps.open": {
+   "arguments": "cda428293fb0bf117c36cc1859c06564920a6401c501aa145acdd2deead1b72a",
+   "properties": {
+    "files": "9b4123795fa251c3",
+    "id": "11033dea281281d3",
+    "urls": "9b4123795fa251c3"
+   },
+   "scope": "execute"
+  },
+  "apps.pin": {
+   "arguments": "2079af64c01f22d05f071fe4b6422586acbe1ea41cf30379d5bf26d15060b58a",
+   "properties": {
+    "command": "60f70effff39bbc3",
+    "id": "3e79622dec12ac17",
+    "name": "d6e25d5c4e0ea921"
+   },
+   "scope": "execute"
+  },
+  "apps.unpin": {
+   "arguments": "e7dd9a8e2525670deb5d49e09d444ad993fb473905aaa10699fc52a7b8fa0e03",
+   "properties": {
+    "key": "bdd70a65e01cba36"
+   },
+   "scope": "execute"
   },
   "artifacts.get": {
    "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
@@ -8288,7 +8343,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "17bd1ca33f89d696906cbba4764174479a49098111d8f50d524b67e5e4f02cfb",
+ "schema_digest": "e7b68f1d6ffb19e79ed065344cf405ded17629cd46007d9e970aa030bfaf9234",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

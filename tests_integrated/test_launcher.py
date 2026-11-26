@@ -241,24 +241,29 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual((button.accessibleName(),button.toolTip(),lst.accessibleName()),('Open apps','Open apps','Apps'))
         self.assertEqual(self.kernel.listing('jobs'),[]);self.assertEqual(host.status.messages,[])
 
-    def test_type_to_select_jumps_to_the_rows_by_their_first_letters(self):
+    def test_typing_finds_the_rows_by_their_words(self):
+        """1.0 S2: the list is the Apps panel; it opens with the typing in its search line (in 0.8 a letter jumped to the next row
+        starting with it): the rows holding every word typed stay, Down reaches the first of them, a letter typed on a row goes
+        back to the line, Escape clears the line and then closes the panel. The XDG folders are empty here, so no installed app
+        is listed and the rows are Graphite's own."""
         from PySide6.QtCore import Qt
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
+        empty=self.base/'xdg'
+        env=patch.dict(os.environ,{'XDG_DATA_HOME':str(empty/'data'),'XDG_DATA_DIRS':str(empty/'share'),'XDG_CONFIG_HOME':str(empty/'config'),
+                                   'XDG_CONFIG_DIRS':str(empty/'etc')});env.start();self.addCleanup(env.stop)
         button,host=self.hatch();lst=button.programs
         button.open_list(True);self.addCleanup(lst.close_menu)
-        focus=lambda:getattr(QApplication.focusWidget(),'word',None)
-        self.assertEqual(focus(),'Agenda','a keyboard opening starts at the first row')
-        lst.typed_at=0;QTest.keyClick(QApplication.focusWidget(),Qt.Key_K);self.assertEqual(focus(),'KiBot outputs')
-        lst.typed_at=0;QTest.keyClick(QApplication.focusWidget(),Qt.Key_K);self.assertEqual(focus(),'KiCad checks','the same letter again: the next row with it')
-        lst.typed_at=0;QTest.keyClicks(QApplication.focusWidget(),'ng');self.assertEqual(focus(),'ngspice profiles','letters typed together make one prefix')
-        lst.typed_at=0;QTest.keyClick(QApplication.focusWidget(),Qt.Key_E);self.assertEqual(focus(),'Explore the workshop')
-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Down);self.assertEqual(focus(),'Game','the game is the last row (0.7.0)')
-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Down);self.assertEqual(focus(),'Agenda','Down wraps from the last row')
-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Up);self.assertEqual(focus(),'Game','and Up from the first')
-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Home);self.assertEqual(focus(),'Agenda')
-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_F1);self.assertTrue(host.status.messages[-1].startswith('Agenda — Open Graphite'),host.status.messages[-1])
-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Escape);self.assertFalse(lst.isVisible())
+        focus=QApplication.focusWidget
+        self.assertIs(focus(),lst.search.line,'the typing goes to the search line, however the list opened')
+        everything=lst.words();self.assertEqual(everything[-3:],['—','Explore the workshop','Game'])
+        QTest.keyClicks(lst.search.line,'kic');self.assertEqual(lst.words(),['KiCad checks'],'the rows holding the words typed')
+        QTest.keyClick(lst.search.line,Qt.Key_Down);self.assertEqual(getattr(focus(),'word',None),'KiCad checks','Down reaches the first row left')
+        QTest.keyClick(focus(),Qt.Key_X);self.assertIs(focus(),lst.search.line);self.assertEqual(lst.search.line.text(),'kicx','a letter typed on a row')
+        self.assertEqual(lst.words(),[]);self.assertTrue(lst.nothing.isVisibleTo(lst),'nothing left: said so')
+        QTest.keyClick(lst.search.line,Qt.Key_Escape);self.assertEqual(lst.search.line.text(),'');self.assertEqual(lst.words(),everything)
+        self.assertTrue(lst.isVisible(),'the first Escape clears the line')
+        QTest.keyClick(lst.search.line,Qt.Key_Escape);self.assertFalse(lst.isVisible())
 
     def test_the_list_hides_its_rows_behind_one_explained_row_when_the_read_fails(self):
         button,host=self.hatch();lst=button.programs;real=self.kernel.dispatch

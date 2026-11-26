@@ -48,7 +48,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 L1: Files with the stable ids of its objects, read each time the tree is drawn; reading is not an event
  'objects.files','objects.get',
  # 1.0 L3: "Why am I shown?", read each time a tile is asked; asking is not an event (pin, turn down and clear are)
- 'relevance.why'})
+ 'relevance.why',
+ # 1.0 S2: the installed apps and what opens a kind of file, read each time Apps or Open with is shown; reading is not an event
+ 'apps.list','apps.for'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""
