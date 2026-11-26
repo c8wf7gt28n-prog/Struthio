@@ -83,6 +83,13 @@ MOST_DOCUMENTS = 400          # Graphite pages read for the desk, at most
 MOST_FILES = 300              # files in Files looked at for documents, at most
 PAGE_TOOL = 23                # the registry's number for page.update (added here)
 READ_PRINCIPAL_SCOPES = frozenset({'read'})
+# 1.0 K9: her hand in other programs (a11y_hand) sets these: its verbs' builders (verb -> callable(b, clause, objective, desk,
+# seen, thing) -> the document), its tools' builders from the model's line (number -> callable), and the documents it can open
+# in their program (callables(kernel, Thing) -> [Thing]). Empty without it.
+PLAN_VERBS = {}
+MODEL_TOOLS = {}
+MORE_DOCUMENTS = []
+TOOL_WHEN = {}                # 1.0 K9: number -> callable(objective, clauses): the tool is in the PLAN question only when it returns true
 
 # ---------------------------------------------------------------- her words (fixed templates; numbers through named slots)
 WORDS = {
@@ -290,6 +297,10 @@ class Desk:
                 pages.append(Thing('', 'page', str(doc.get('title') or ident), ident, doc.get('revision'),
                                    {'blocks': [{k: b.get(k) for k in ('id', 'style', 'text', 'marks')} for b in doc.get('blocks') or ()]}))
         docs = _documents(kernel)
+        for hook in MORE_DOCUMENTS:      # 1.0 K9: documents her hand can open in their program (a11y_hand)
+            try:docs += list(hook(kernel, Thing))
+            except Exception:  # noqa: BLE001 - a hook that fails adds nothing
+                pass
         calcs.sort(key=lambda t: t.title.lower());sheets.sort(key=lambda t: t.title.lower());pages.sort(key=lambda t: t.title.lower())
         return cls(calcs + sheets + pages + docs, focus, earlier)
 
@@ -610,6 +621,10 @@ def plan_by_desk(desk, objective, clauses=None):
         said = objective[clause.start:clause.end].strip()
         thing, why = _resolve(clause, desk, seen) if clause.verb != 'note' else (None, '')
         try:
+            if clause.verb in PLAN_VERBS:      # 1.0 K9: a verb of her hand in other programs builds its own steps (a11y_hand)
+                done = PLAN_VERBS[clause.verb](b, clause, objective, desk, seen, thing)
+                if done is not None:seen.append(done)
+                continue
             if clause.verb == 'note':
                 build_note(b, 'owner_words');continue
             if clause.verb == 'fetch':
@@ -795,7 +810,9 @@ def build_from_model(i, steps):
             # done until they authorise it by its own name (assignments: "all" never covers it).
             basis = 'owner_words' if number in i.verbs else 'model_pick'
             before = len(b.sources)
-            if number == 1:
+            if number in MODEL_TOOLS:      # 1.0 K9: her hand's tools, every argument filled by the desk from the handles
+                MODEL_TOOLS[number](b, number, things, spans, earlier, made, basis, i)
+            elif number == 1:
                 if len(things) != 1:raise Refusal('a read takes one thing')
                 build_read(b, things[0], basis)
             elif number == 2:
@@ -844,7 +861,7 @@ def menu(desk):
     for number in STEP_TOOLS:
         tool = tools_registry.BY_NUMBER.get(number)
         if tool is None or not tools_registry.available(tool)[0]:continue
-        if not all(any(k in kinds for k in group) for group in USES.get(number, ())):continue
+        if not all(any(k in kinds for k in group) for group in USES.get(number, ())):continue  # 1.0 K9 (coordinator, at merge): her hand's tools 33, 34 are on the primed menu only when the desk holds documents (USES), since K4b's menu is the same for every request on a desk; TOOL_WHEN is kept for a later per-question grammar
         tools.append((number, tool.key, SHORT.get(number, tool.words), TAKES[number]))
     return tuple(tools)
 

@@ -91,6 +91,8 @@ def _decode(raw):
     if not raw:return ''
     if isinstance(raw, str):return raw
     raw = bytes(raw).rstrip(b'\0')
+    if b'\x1b' in raw:      # 1.0 K9: COMPOUND_TEXT (a WM_NAME as LibreOffice's own X windows give it): its UTF-8 runs read as UTF-8
+        raw = raw.replace(b'\x1b%G', b'').replace(b'\x1b%@', b'').replace(b'\x1b(B', b'').replace(b'\x1b-A', b'')
     try:return raw.decode('utf-8')
     except UnicodeDecodeError:return raw.decode('latin-1')
 

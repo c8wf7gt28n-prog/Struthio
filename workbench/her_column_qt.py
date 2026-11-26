@@ -253,6 +253,12 @@ def read(host, operation, arguments=None):
 
 def press(host, operation, arguments):
     """Your press, through the Kernel: (result, '') or (None, why in words)."""
+    if operation in ('assignment.step', 'assignment.plan', 'assignment.resume', 'grant.give', 'program.answer'):  # 1.0 K9: your press is not a touch against her hand
+        try:
+            from .a11y_hand import owner_pressed
+            owner_pressed()
+        except Exception:  # noqa: BLE001
+            pass
     try:
         kernel, owner = _kernel(host)
         answer = kernel.dispatch(operation, arguments or {}, owner)
@@ -532,6 +538,22 @@ def small_button(host, text, tip='', primary=False):
     return b
 
 
+def hand_words(live, now_ms=None):
+    """1.0 K9: her hand's line: what it does in which program, or why it stopped; '' when it rests (or the news is old)."""
+    live = live or {};state = live.get('state') or 'resting'
+    age = (int(now_ms if now_ms is not None else time.time_ns() // 1000000) - int(live.get('at') or 0)) // 1000
+    keep = {'acting': 60, 'stopped by your touch': 900, 'stopped by HALT': 900, 'waiting for you': 900, 'done': 120, 'not verified': 600, 'refused': 120}
+    if state not in keep or age > keep[state]:return ''
+    program = plain(live.get('program') or 'a program')
+    if state == 'acting':
+        return '▸ My hand in %s: %s' % (program, plain(live.get('act') or live.get('words') or ''))      # how she acts: in the tooltip
+    if state == 'stopped by your touch':return '■ Stopped by your touch, in %s' % program      # what was done and not: the row's note
+    if state == 'stopped by HALT':return '■ Stopped by HALT, in %s' % program
+    if state == 'waiting for you':return '◆ A dialog in %s is yours to answer' % program
+    lead = {'done': '✓ My hand', 'not verified': '◆ Not verified', 'refused': '■ I did not act'}[state]
+    return '%s · %s' % (lead, plain(live.get('words') or ''))
+
+
 class WorkLine(QWidget):
     """The progress line under the exchange: the working assignment's verified steps as check rows, then "Running…" with its
     bar, whole percent, step and time left. While her model answers, "Running…" with no number. Hidden when she rests."""
@@ -547,15 +569,20 @@ class WorkLine(QWidget):
         for w, stretch in ((self.who, 0), (self.words, 0), (self.bar, 1), (self.percent, 0)):line.addWidget(w, stretch)
         box.addLayout(line)
         self.detail = row_label(host, '', quiet=True, size=12);box.addWidget(self.detail)
+        self.hand = row_label(host, '', size=12);self.hand.setObjectName('HerHandLine');self.hand.hide()  # 1.0 K9
+        box.addWidget(self.hand);self.resting = True
         self.hide()
 
     def show_work(self, view, most_checks=2):
         """view: assignment.status of the working one, or None; with none, her model's answer (face.job) or nothing."""
         host = self.column.host
+        self.resting = False
+        for w in (self.who, self.words, self.bar, self.percent, self.detail):w.show()      # 1.0 K9: the hand line alone hides them
         if view is None:
             face = self.column.face
             if getattr(face, 'job', None):
                 self._checks([]);self.bar.set(0, False);self.percent.setText('');self.detail.setText(say('answering'));self.show();return
+            self.resting = True
             self.hide();return
         done = [s for s in view.get('steps') or () if str(s.get('journal_says', '')).startswith('done')]
         self._checks([('✓', 'Step %d · %s · %s' % (s['n'], plain(s['title']), s['journal_says'])) for s in done][-most_checks:])
@@ -566,6 +593,16 @@ class WorkLine(QWidget):
         parts.append(say('left', time=view.get('time_left', '')))
         self.detail.setText(' · '.join(parts));self.show()
         _ = host
+
+    def show_hand(self, live):
+        """1.0 K9: her hand in another program, as it acts, or why it stopped (a shape and a word, never colour alone)."""
+        words = hand_words(live)
+        tip = plain((live or {}).get('words') or '') + ((' (%s)' % plain(live.get('how'))) if (live or {}).get('how') else '')
+        self.hand.setText(words);self.hand.setToolTip(tip if words else '');self.hand.setVisible(bool(words))
+        if words and self.resting:
+            self._checks([])
+            for w in (self.who, self.words, self.bar, self.percent, self.detail):w.hide()
+            self.show()
 
     def _checks(self, rows):
         host = self.column.host
@@ -1145,6 +1182,7 @@ class HerColumn(QObject):
         working = next((r for r in rows if r.get('state_words') == 'working'), None)
         view = read(self.host, 'assignment.status', {'id': working['id']}) if working else None
         self.work_line.show_work(view, 1 if compact else 2)
+        self.work_line.show_hand((read(self.host, 'program.status', {'live': True}) or {}).get('live'))      # 1.0 K9: her hand in your programs
         # moments: an assignment that was open and is done now; her managed work held (HALT, until K3 says it itself)
         ids = {r['id']: r.get('title') for r in rows}
         if self.seen_work is not None:

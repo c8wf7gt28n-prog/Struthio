@@ -73,13 +73,16 @@ FAMILIES = {
     'apps.open': ('open', ('apps.open',)),
     'utilities.try': ('try utilities on copies of files', ('sandbox.run',)),  # 1.0 K6 (coordinator): the sandbox's grant
     'web.read': ('fetch pages from the web', ('web.get',)),  # 1.0 K8: a page's address you typed, or a page already in quarantine, from one site
+    'programs.work': ('work in a program', ('program.open', 'program.type', 'program.press', 'program.save')),  # 1.0 K9: her hand in your programs, on a file
 }
 OP_WORDS = {'files.write': 'write files', 'files.mkdir': 'make folders', 'files.cells': 'change cells of workbooks',
             'files.rename': 'rename files', 'files.move': 'move files', 'files.copy': 'copy files', 'field.set': 'set values',
             'windows.activate': 'bring forward', 'windows.minimise': 'minimise', 'apps.open': 'open',
             'documents.create': 'make pages', 'investigation.claim': 'add findings', 'agenda.add': 'add to the Agenda',
             'sandbox.run': 'try utilities on copies of files',  # 1.0 K6 (coordinator)
-            'web.get': 'fetch pages from the web'}  # 1.0 K8
+            'web.get': 'fetch pages from the web',  # 1.0 K8
+            'program.open': 'open in its program', 'program.type': 'type in a program', 'program.press': 'press in a program',
+            'program.save': 'save in a program'}  # 1.0 K9
 NEVER = ('assignment.', 'grant.', 'halt.', 'ledger.', 'jobs.', 'remote.', 'master.', 'workers.', 'kasandra.', 'brain.help')
 OWN_AREA = 'Slate'            # files_service.SLATE: her own area, hers by the Files rules
 OWN_OPERATIONS = ('files.write', 'files.mkdir', 'files.cells')
@@ -573,7 +576,8 @@ def in_force(kernel, principal, operation, arguments, assignment='', step=''):
     except Exception:  # noqa: BLE001
         grant = None
     permit = {'root': str(getattr(kernel, 'root', '')), 'operation': operation, 'paths': [p for p in found['paths'] if p],
-              'objects': list(found['objects']), 'grant': (grant or {}).get('id', 'your press')}
+              'objects': list(found['objects']), 'grant': (grant or {}).get('id', 'your press'),
+              'assignment': assignment or ''}  # 1.0 K9: her hand records which assignment opened a window
     token = _PERMIT.set(permit)
     try:
         yield permit

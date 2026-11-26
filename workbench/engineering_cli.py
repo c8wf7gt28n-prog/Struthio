@@ -130,6 +130,7 @@ def schemas():
     from .a11y_reader import FIELDS as A11Y_READER_FIELDS  # 1.0 K7 (reading other programs): accessibility.status, accessibility.read
     from .network_governed import FIELDS as WEB_FIELDS  # 1.0 K8 (the network, governed): web.*
     from .app_files import FIELDS as APP_FILES_FIELDS  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
+    from .a11y_hand import FIELDS as A11Y_HAND_FIELDS  # 1.0 K9 (her hand in other programs): program.status, .look, .find, .open, .type, .press, .save, .answer, .shown
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -261,6 +262,7 @@ def schemas():
         **A11Y_READER_FIELDS,  # 1.0 K7 (reading other programs): accessibility.status, accessibility.read
         **WEB_FIELDS,  # 1.0 K8 (the network, governed): web.*
         **APP_FILES_FIELDS,  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
+        **A11Y_HAND_FIELDS,  # 1.0 K9 (her hand in other programs): program.status, .look, .find, .open, .type, .press, .save, .answer, .shown
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

@@ -70,6 +70,7 @@ ALWAYS_ASKS = (
     (('web.search',), 'it sends your words off this computer, to a search service: shown first, sent only by your press'),   # 1.0 K8: search words always ask, never granted
 )
 LEAVES = ('address', 'peer', 'url', 'host', 'recipient')      # an argument by one of these names reaches another computer
+ARGUMENT_ASKS = []            # 1.0 K9: callables(operation, arguments) -> why it always asks, or '' (a11y_hand: a button named Send, Delete, Install ...)
 
 # Terminal commands that only read, which she may run herself ("some terminal commands are reasonable"). The line is run
 # by the owner's shell, so it must mean to the shell exactly what it means here: one command; no pipe, redirection or
@@ -158,6 +159,11 @@ def why_asks(operation, arguments=None):
     for patterns, why in ALWAYS_ASKS:
         if any(fnmatch.fnmatchcase(name, pattern) for pattern in patterns):return why
     if isinstance(arguments, dict) and any(key in arguments for key in LEAVES):return 'it reaches another computer'
+    for check in ARGUMENT_ASKS:      # 1.0 K9: what a press in another program names
+        try:why = check(name, arguments)
+        except Exception:  # noqa: BLE001 - a check that fails asks: the safe side
+            why = 'it could not be told whether it asks'
+        if why:return why
     return ''
 
 

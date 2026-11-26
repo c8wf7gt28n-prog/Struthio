@@ -614,6 +614,15 @@
    "procedures.instantiate": "workbench/continuing_work.py#dispatch",
    "procedures.list": "workbench/continuing_work.py#dispatch",
    "procedures.save": "workbench/continuing_work.py#dispatch",
+   "program.answer": "workbench/a11y_hand.py#dispatch",
+   "program.find": "workbench/a11y_hand.py#dispatch",
+   "program.look": "workbench/a11y_hand.py#dispatch",
+   "program.open": "workbench/a11y_hand.py#dispatch",
+   "program.press": "workbench/a11y_hand.py#dispatch",
+   "program.save": "workbench/a11y_hand.py#dispatch",
+   "program.shown": "workbench/a11y_hand.py#dispatch",
+   "program.status": "workbench/a11y_hand.py#dispatch",
+   "program.type": "workbench/a11y_hand.py#dispatch",
    "programs.blender.check": "workbench/program_build.py#dispatch",
    "programs.blender.inspect": "workbench/program_build.py#dispatch",
    "programs.blender.open": "workbench/program_build.py#dispatch",
@@ -1098,9 +1107,9 @@
   }
  },
  "counts": {
-  "adapters": 900,
+  "adapters": 909,
   "job_tools": 113,
-  "operations": 900,
+  "operations": 909,
   "settings": 48
  },
  "formulas": {
@@ -6498,6 +6507,83 @@
    },
    "scope": "approve"
   },
+  "program.answer": {
+   "arguments": "e46d8abf121f9ebabe1f20040d0fb2ef5dc822dcea4a11d5aeb943c20cdaae00",
+   "properties": {
+    "button": "52ba84a4bbf396ba",
+    "dialog": "52ba84a4bbf396ba",
+    "path": "2b1e00f7cfc18abe"
+   },
+   "scope": "approve"
+  },
+  "program.find": {
+   "arguments": "0ed9680447b5bbeab8504f7bc313354c3ad06b47d0416f2613ca2cbca5ea7ee9",
+   "properties": {
+    "passage": "76f40fe54111097c",
+    "path": "2b1e00f7cfc18abe"
+   },
+   "scope": "read"
+  },
+  "program.look": {
+   "arguments": "d555ea129e3f6928edc30b6cbc5646a0848a29d2b4285cd2281d8cb45cf6f4f3",
+   "properties": {
+    "path": "2b1e00f7cfc18abe"
+   },
+   "scope": "read"
+  },
+  "program.open": {
+   "arguments": "c7a4b7fd9a3a845ba4d0e55561596b24f1d2bacf5c1b5108b55cafd551254ae2",
+   "properties": {
+    "path": "2b1e00f7cfc18abe",
+    "program": "52ba84a4bbf396ba"
+   },
+   "scope": "execute"
+  },
+  "program.press": {
+   "arguments": "1bd56d7c08ffde7c80f98a65931feac124ea9195f3502129bfdf3dcf0b4b4752",
+   "properties": {
+    "control": "52ba84a4bbf396ba",
+    "expect": "52ba84a4bbf396ba",
+    "menu": "52ba84a4bbf396ba",
+    "path": "2b1e00f7cfc18abe"
+   },
+   "scope": "execute"
+  },
+  "program.save": {
+   "arguments": "29e75658e760cc0fa5fd0fd521c3c6978a7a2bfc035bb4a603c6ae9604ba76ae",
+   "properties": {
+    "answer": "8b040efcf8086155",
+    "expect": "76f40fe54111097c",
+    "menu": "52ba84a4bbf396ba",
+    "path": "2b1e00f7cfc18abe"
+   },
+   "scope": "execute"
+  },
+  "program.shown": {
+   "arguments": "3b3a79055232b1c5d6834e0c21f3b0b2e0c95a08db7e5c920632f72f0b3434a5",
+   "properties": {
+    "path": "2b1e00f7cfc18abe",
+    "window": "b745d46bf87893d9"
+   },
+   "scope": "approve"
+  },
+  "program.status": {
+   "arguments": "e11a6565526314f45ba4eb4e5474414ddd3564203869ce9d21f6660d65917fa0",
+   "properties": {
+    "live": "7cb541e84f226754"
+   },
+   "scope": "read"
+  },
+  "program.type": {
+   "arguments": "3eeaa45451e5c1a5ffd94d73c2cd654e309e5a61c3a00d9f2b9a89651f815aab",
+   "properties": {
+    "field": "52ba84a4bbf396ba",
+    "passage": "76f40fe54111097c",
+    "path": "2b1e00f7cfc18abe",
+    "text": "76f40fe54111097c"
+   },
+   "scope": "execute"
+  },
   "programs.blender.check": {
    "arguments": "d994ef7e8a1d5d283d3d92a1022dfe0b6b1bd4a80f92718a1f424b846d67260c",
    "properties": {
@@ -8818,7 +8904,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "0e397d58208d5d81f6a6d1197332627e9c1bc15f52660900ec92b34980c620a6",
+ "schema_digest": "e0312d3620dbeb592f2ef3185af8a23b207bb41dd03819e129f91de6609ac794",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
