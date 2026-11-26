@@ -1,0 +1,113 @@
+scripts parse
+modules compile
+== A1. supervisor: a stand-in Graphite that exits 1, 1, then 0 (real dbus-run-session; Fluxbox stand-in ends once by itself)
+exit code 0 after 6.4 s; record {"status": 0, "utc": "2026-11-26T02:01:25Z", "log": null, "restarts": 2, "message": null}
+runs: [{"run": 1, "pid": 17, "restarts": "0", "last": "0", "note": ""}, {"run": 2, "pid": 31, "restarts": "1", "last": "1", "note": "Graphite started again: it ended unexpectedly (status 1). The apps you opened from Graphite stayed open."}, {"run": 3, "pid": 69, "restarts": "2", "last": "1", "note": "Graphite started again (2 times in this session): it ended unexpectedly (status 1). The apps you opened from Graphite stayed open."}]
+session.log:
+  Graphite started (process 17)
+  Graphite ended with status 1 after 0 s
+  starting Graphite again in 2 s (1 of 3 in a row)
+  Graphite started (process 31)
+  Fluxbox ended (status 3); starting it again
+  Graphite ended with status 1 after 0 s
+  starting Graphite again in 4 s (2 of 3 in a row)
+  Graphite started (process 69)
+  Graphite ended with status 0 after 0 s
+fluxbox stand-in:
+  fluxbox start 1 args: -no-slit -no-toolbar
+  fluxbox 1 ends by itself
+  fluxbox start 2 args: -no-slit -no-toolbar
+  fluxbox 2 got TERM
+PASS  Graphite ran three times (restarted twice) and the session ended cleanly with status 0 :: {'status': 0, 'utc': '2026-11-26T02:01:25Z', 'log': None, 'restarts': 2, 'message': None}
+PASS  the restarts waited 2 s then 4 s (growing wait)
+PASS  each start was told how many times it was started again
+PASS  the restart note reads plainly on a start again :: Graphite started again: it ended unexpectedly (status 1). The apps you opened from Graphite stayed open.
+PASS  one D-Bus session for the whole session (same address in all three runs, from dbus-run-session) :: {'unix:path=/tmp/dbus-KwmCBmy77R,guid=4f2366e4ff38732dbffe33b66b0792ef'}
+PASS  Fluxbox ran for the whole session: started again when it ended, stopped once at the end
+PASS  every run was the supervised dedicated session
+launch path answer: {"ok": true, "pid": 23, "name": "stand-in program", "argv": ["sleep", "300"], "program": "/usr/bin/sleep", "reason": "stand-in program started in a session of its own."}
+stand-in program pid 23: parent 1, process group 23, session 23; stand-in Graphite run 1 was pid 17 (group 0, session 0)
+PASS  the stand-in program started through the launch path survived the stand-in Graphite's exit and the whole session
+PASS  it is not Graphite's child: a session and process group of its own, its parent is not Graphite
+
+== A2. supervisor: Graphite asks to be started again on another workspace (the hand-over), then ends with 0
+exit code 0; runs: [{"run": 1, "handed": true, "workspace": null, "look": null, "edition": "office", "restarts": "0"}, {"run": 2, "handed": null, "workspace": "/invented/Rail Demo/workspace", "look": "kasandra", "edition": "office", "restarts": "0"}]
+PASS  the hand-over started Graphite again at once with the asked settings, not counted as an unexpected end; the session went on
+
+== A3. supervisor: Graphite never stays up (limit 1, no wait): the console route with a plain message
+exit code 1; runs 2; message: Graphite ended unexpectedly 2 times in a row (last status 1), so the session ended here at the text console instead of starting it again. Apps that were open closed with the session. To start again: bash /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/S1/run/sv_give_up/prog/START_MINIMAL_DEBIAN.sh. To look for the cause first: bash /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/S1/run/sv_give_up/prog/START_OFFICE.sh --doctor
+PASS  after the limit the session ends with the last status and a plain message
+START_MINIMAL_DEBIAN.sh at the console (exit 1):
+  Graphite ended with status 1
+  Graphite was started again 1 time during the session (each start and end is in session.log beside last-session.json).
+  Graphite ended unexpectedly 2 times in a row (last status 1), so the session ended here at the text console instead of starting it again. Apps that were open closed with the session. To start again: bash /tmp/tmp.pMy7U97zyf/console/prog/START_MINIMAL_DEBIAN.sh. To look for the cause first: bash /tmp/tmp.pMy7U97zyf/console/prog/START_OFFICE.sh --doctor
+PASS  the text console prints the status, the times started again and the plain message :: tus 1), so the session ended here at the text console instead of starting it again. Apps that were open closed with the session. To start again: bash /tmp/tmp.pMy7U97zyf/console/prog/START_MINIMAL_DEBIAN.sh. To look for the cause first: bash /tmp/tmp.pMy7U97zyf/console/prog/START_OFFICE.sh --doctor
+
+
+== A4. supervisor: the session is ended from outside (SIGTERM, as logind does at Log out)
+exit code 143; record {"status": 143, "utc": "2026-11-26T02:01:27Z", "log": null, "restarts": 0, "message": null}
+PASS  a signal ends the session with its status, Graphite and Fluxbox asked to end, nothing started again
+
+== B. session_power on a fake logind (session_power.system replaced; the locker is a stand-in on PATH)
+availability with a locker installed:
+  lock      available    Locks with xsecurelock (installed at /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/S1/run/locker_bin/xse
+  suspend   available    Allowed for your account (logind CanSuspend: yes). The screen is locked first, with xsecurelock.
+  logout    available    Ends login session c3 (loginctl terminate-session).
+  restart   available    Allowed for your account (logind CanReboot: yes).
+  shutdown  available    Allowed after the system asks for permission (logind CanPowerOff: challenge).
+  leave     available    Save or discard open work, keep or skip a return copy, stop the local model and tracked commands, and close Graphite. The desktop you started Graphite
+PASS  availability() lists the six actions in the group's order, with their states
+availability with no locker installed:
+  lock      unavailable  No screen locker is installed on this computer: Lock needs xsecurelock (it is in the 1.0 System set, and Debian has it as the package xsecurelock). Without it Graphite ca
+  suspend   unavailable  Suspend is unavailable here: it locks the screen first. No screen locker is installed on this computer: Lock needs xsecurelock (it is in the 1.0 System set, and Debian ha
+  logout    available    Ends login session c3 (loginctl terminate-session).
+  restart   available    Allowed for your account (logind CanReboot: yes).
+  shutdown  available    Allowed after the system asks for permission (logind CanPowerOff: challenge).
+  leave     available    Save or discard open work, keep or skip a return copy, stop the local model and tracked commands, and close Graphite. The desktop you started Graphite from stays open. Th
+PASS  no locker: Lock and Suspend unavailable with the reason, the others as logind says
+PASS  in the dedicated session the leave row is Return to Debian; challenge stays unavailable there :: Shut down is unavailable here: this dedicated session has no permission prompt to answer it (logind: challenge). Return 
+
+Lock with no locker:
+  result UNAVAILABLE; said: ('Lock is unavailable', 'No screen locker is installed on this computer: Lock needs xsecurelock (it is in the 1.0 System set, and Debian has it as the package xsecurelock). Without it Graphite cannot lock the screen, so nothing was done.\nGraphite stays open as it is; nothing else was done.')
+PASS  Lock with no locker says why, and nothing is started
+
+Suspend (the lock first):
+  result {"state": "STARTED", "locked": true, "step": "suspend"}; the requests in order: ['where', 'Get', 'CanSuspend', 'where', 'start', 'Suspend']
+  the host was told: ['session saved']
+PASS  Suspend takes the lock first: the locker started and confirmed the lock before logind Suspend was asked
+PASS  Graphite saved its session before the suspend and stayed open
+PASS  the locker runs in a session of its own (a Graphite crash cannot unlock the screen)
+
+Suspend when the lock is not confirmed:
+  result {"state": "FAILED", "step": "lock"}; said: Suspend did not start / Suspend locks the screen first, and the lock was not confirmed: The screen locker started but did not say the screen was locked within 5 seconds.
+So the compute
+PASS  no confirmed lock, no suspend
+
+The sleep inhibitor while she writes:
+  request ('inhibit', 'sleep', 'Graphite', 'Kasandra is writing “Rail Demo summary”', 'delay'); held inside: True; released after: True
+PASS  sleep_held takes logind Inhibit("sleep", delay) for the write and lets go after
+PASS  without logind the write goes on (held: False, nothing raised)
+
+== C. the real QtDBus calls against a stand-in logind on a private bus (DBUS_SYSTEM_BUS_ADDRESS)
+dbus-daemon[238]: [session uid=0 pid=238] org.freedesktop.DBus.Error.AccessDenied: Failed to set fd limit to 65536: Operation not permitted
+  stand-in: READY True True True
+  availability through QtDBus:
+    lock      available    Locks with xsecurelock (installed at /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/S
+    suspend   available    Allowed for your account (logind CanSuspend: yes). The screen is locked first, with xsecurelock.
+    logout    available    Ends login session c3 (loginctl terminate-session).
+    restart   available    Allowed for your account (logind CanReboot: yes).
+    shutdown  unavailable  Shut down is unavailable: this computer does not offer it (logind: na).
+    leave     available    Save or discard open work, keep or skip a return copy, stop the local model and tracked commands, and close Graphite. The desktop 
+PASS  the real logind calls read the session, CanReboot, CanPowerOff, CanSuspend
+  sleep_held through QtDBus: held=True, inhibitors held during=1, after=0
+PASS  Inhibit returns a real file descriptor through QtDBus; closing it releases the inhibitor
+  SleepGuard: listening=True, hears Lock=True, delay lock held=True, inhibitors held=1
+  guard saw: [('sleep', True), ('lock', 'LOCKED'), ('sleep', False), ('lock', 'LOCKED')]; inhibitors held after the lock before sleep: 0, after waking: 1
+PASS  before sleep the guard locks the screen (confirmed), then lets the delay lock go; on waking it takes it again
+PASS  logind's Lock signal for this session locks (the locker already runs: LOCKED)
+  Suspend through QtDBus: {'state': 'STARTED', 'locked': True}; logind was asked [['/org/freedesktop/login1', 'org.freedesktop.login1.Manager', 'Suspend', ['False']]]
+PASS  Suspend through the real QtDBus call: the lock held first, then logind Suspend(false)
+  the stand-in logind was asked: ['Calls', 'CanPowerOff', 'CanReboot', 'CanSuspend', 'EmitLock', 'EmitSleep', 'Get', 'GetSession', 'Held', 'Inhibit', 'Introspect', 'Suspend']
+
+== SUMMARY: 28 checks, 28 passed, 0 failed
+smoke exit 0

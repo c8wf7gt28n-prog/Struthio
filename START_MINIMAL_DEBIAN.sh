@@ -27,14 +27,21 @@ ledger_python=python3
 if ! command -v python3 >/dev/null && [[ -x "$ledger_program/.venv/bin/python" ]]; then ledger_python="$ledger_program/.venv/bin/python"; fi
 ledger_line=''
 if [[ -f "$ledger_record" ]]; then
+  # 1.0 S1: the supervisor also records how many times it started Graphite again, and the plain message when it stopped trying
   ledger_line="$("$ledger_python" -I -c 'import json,sys
 data=json.load(open(sys.argv[1]));status=data["status"]
 assert type(status) is int and 0<=status<=255
-log=data.get("log");print(status,("details: "+log) if isinstance(log,str) and log else "")' "$ledger_record" 2>/dev/null)" || ledger_line=''
+log=data.get("log");print(status,("details: "+log) if isinstance(log,str) and log else "")
+again=data.get("restarts");message=data.get("message")
+if type(again) is int and again>0:print("Graphite was started again %d time%s during the session (each start and end is in session.log beside last-session.json)."%(again,"" if again==1 else "s"))
+if isinstance(message,str) and message:print(message)' "$ledger_record" 2>/dev/null)" || ledger_line=''
 fi
 if [[ -n "$ledger_line" ]]; then
-  ledger_status="${ledger_line%% *}"; ledger_details="${ledger_line#* }"
+  ledger_first="${ledger_line%%$'\n'*}"; ledger_more=''
+  if [[ "$ledger_line" == *$'\n'* ]]; then ledger_more="${ledger_line#*$'\n'}"; fi
+  ledger_status="${ledger_first%% *}"; ledger_details="${ledger_first#* }"
   echo "Graphite ended with status ${ledger_status}${ledger_details:+ · $ledger_details}"
+  if [[ -n "$ledger_more" ]]; then echo "$ledger_more"; fi
   exit "$ledger_status"
 fi
 echo "Graphite session ended; status not recorded (startx returned $ledger_rc)." >&2

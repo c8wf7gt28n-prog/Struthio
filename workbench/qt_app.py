@@ -5383,6 +5383,8 @@ def main():
     w = WorkbenchWindow(root=default_root())
     if os.environ.get('ARC_LEDGER_FULLSCREEN')=='1':w.showFullScreen();w.a_fullscreen.setChecked(True)
     else:w.show()
+    from . import session_launch  # 1.0 S1: the line after the supervisor started it again; the lock before sleep (dedicated session)
+    session_launch.window_started(w)
     opening = os.environ.get('ARC_LEDGER_OPEN')
     if opening:
         # A start script may open one Ledger room, for example the Office.

@@ -240,6 +240,10 @@ def _icon_paths(key):
         p = QPainterPath();p.arcMoveTo(QRectF(3, 3, 12, 12), 60);p.arcTo(QRectF(3, 3, 12, 12), 60, 300);strokes.append(p);path((14.2, 2.8), (12, 4.2), (14.6, 6.6))
     elif key == 'shutdown':  # the power mark
         p = QPainterPath();p.arcMoveTo(QRectF(3, 3.5, 12, 12), 55);p.arcTo(QRectF(3, 3.5, 12, 12), 55, 290);strokes.append(p);path((9, 2), (9, 8.5))
+    elif key == 'lock':  # 1.0 S1: a padlock
+        rect(4, 8, 10, 7.5, 1.2);curve((6, 8), ((6, 3), (9, 3)), ((12, 3), (12, 8)));circle(9, 11.8, 0.9, True)
+    elif key == 'suspend':  # 1.0 S1: a crescent moon (sleep)
+        curve((11.5, 2.8), ((4, 3.5), (4.2, 9.5)), ((4.8, 15.5), (12.5, 15)));curve((11.5, 2.8), ((8, 6), (8.6, 9.5)), ((9.4, 13.5), (12.5, 15)))
     elif key == 'unavailable':  # a small ring with a bar
         circle(9, 9, 6);path((5, 13), (13, 5))
     else:  # any other program: a window

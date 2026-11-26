@@ -86,7 +86,7 @@ class StartupScriptTests(unittest.TestCase):
         for status in (0,3):
             with self.subTest(status=status):
                 self.log.unlink(missing_ok=True)
-                result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=status)
+                result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=status,ARC_LEDGER_SESSION_RESTART_LIMIT=0)  # 1.0 S1: no start again, so once
                 self.assertEqual(result.returncode,status,result.stderr)
                 lines=self.logged().splitlines()
                 office=[line for line in lines if line.startswith('office ')]
@@ -99,7 +99,7 @@ class StartupScriptTests(unittest.TestCase):
 
     def test_session_client_names_only_a_launch_error_log_from_this_session(self):
         log=self.state/'ledger-slate'/'launch-error.log'
-        result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=1,STUB_WRITE_LOG=log)
+        result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=1,STUB_WRITE_LOG=log,ARC_LEDGER_SESSION_RESTART_LIMIT=0)  # 1.0 S1
         self.assertEqual(result.returncode,1);record=json.loads(self.record.read_text())
         self.assertEqual(record['status'],1);self.assertEqual(record['log'],str(log))
         stale=log.stat().st_mtime-30;os.utime(log,(stale,stale)) # The same file from an earlier session is not this session's record.
@@ -108,7 +108,7 @@ class StartupScriptTests(unittest.TestCase):
 
     def test_session_client_exit_status_survives_an_unrecordable_state_folder(self):
         blocker=self.base/'blocker';blocker.write_text('a file, not a folder') # mkdir -p fails here for every uid, root included.
-        result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=3,XDG_STATE_HOME=blocker/'state')
+        result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=3,XDG_STATE_HOME=blocker/'state',ARC_LEDGER_SESSION_RESTART_LIMIT=0)  # 1.0 S1
         self.assertEqual(result.returncode,3,result.stderr);self.assertFalse(self.record.exists());self.assertIn('fluxbox got TERM',self.logged())
 
     def test_session_client_requires_a_display(self):

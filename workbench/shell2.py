@@ -896,6 +896,10 @@ def relaunch(host, folder, drop=()):
     from . import locations
     env = dict(os.environ);env['ARC_LEDGER_WORKSPACE'] = str(folder);env.pop('ARC_LEDGER_EDITION', None)
     for name in drop:env.pop(name, None)
+    from . import session_launch
+    if session_launch.hand_over(env):  # 1.0 S1: in the supervised session the supervisor starts it again, and the session goes on
+        if not host.close():session_launch.withdraw()
+        return
     if not host.close():return
     process = QProcess();process.setProgram(sys.executable);process.setArguments(['-m', 'workbench.launch'])
     process.setWorkingDirectory(str(locations.PACKAGE))
@@ -2246,7 +2250,9 @@ class SlateFace(QWidget):
         if card.ran is not None:return           # one go, one run
         try:
             operation, arguments = line_call(card.step.line)
-            r = engineering(self.host.root).dispatch(operation, arguments, operator())
+            from .session_power import sleep_held
+            with sleep_held('Kasandra is writing “%s”' % str(card.title)[:80]):  # 1.0 S1: a suspend waits until her write is done
+                r = engineering(self.host.root).dispatch(operation, arguments, operator())
         except Exception as exc:  # noqa: BLE001 - a line that cannot be run is said as a refusal, never raised into the window
             r = {'ok': False, 'error': {'message': str(exc)[:300]}}
         card.reply = r                           # the Kernel's answer, kept (a desk act's journal line carries its correlation id)

@@ -689,13 +689,24 @@ details; read without its row, by F1's note, a screen reader or the keyboard's o
 dedicated session, else **Exit Graphite** (*this Graphite session*) · **Restart** and **Shut down** (*this computer*); an
 unavailable row adds *· unavailable* to its scope in quiet ink and **stays in the keyboard's order** (D2-fix): its whole
 reason is its tooltip, its accessible description and F1's note, and choosing it says why in a dialog, asking and issuing
-nothing · its small caption at its foot in the script: *each asks first and keeps your work*. logind is asked each time the
+nothing · its small caption at its foot in the script: *each keeps your work; leaving asks first* (1.0 S1; it read *each asks first and keeps your work* before Lock and Suspend). logind is asked each time the
 menu opens, never when it is built. From the keyboard (Enter, Return, Space on the symbol) Game is under focus and Stop all jobs one Down away;
 on a slider Left and Right change it and Up and Down move on; inside the queue the arrows choose its rows and leave at its
 ends. Older callers keep their names: `top.nice.popup` is the menu, `.kill` its Stop all jobs row, `.game` its Game row, and the
 work list's parts (`running`, `queue`, `earlier`, `note`, …) the section's.
 
 ### Session and power (`session_power`)
+
+**1.0 S1, the session that survives.** The group reads Lock, Suspend, Log out, Restart, Shut down, Return to Debian
+(`session_power.GROUP`), each with its scope line; `availability()` lists all six. **Lock** starts `xsecurelock` through
+`session_launch.launch` (a session of its own, so a Graphite crash never unlocks the screen) with a mark it touches once the
+screen is locked; the lock counts only when the mark appears; no locker or no display: unavailable, with the reason.
+**Suspend** is logind's `CanSuspend` and `Suspend`, with the lock taken and confirmed first (no lock, no suspend); Graphite
+saves its session and stays open. `sleep_held` takes logind's delay lock on sleep while a change of hers is written
+(`SlateFace.run_staged`), and in the dedicated session `SleepGuard` locks the screen before any sleep (PrepareForSleep) and on
+logind's Lock signal. The session itself is LS_XSESSION.sh's supervisor (see `workbench/session_launch.py`): Graphite is
+started again after an unexpected end, with a growing wait and a limit, then the console with a plain message; programs
+started through `session_launch.launch` are not Graphite's children and stay open.
 
 The brief supersedes the earlier rule that Graphite issues no session or power command and the old menu's disabled row
 ("Log Out · Restart · Shut Down — not in this edition"). What stays of that rule: no sudo, no password asked by Graphite,

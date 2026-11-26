@@ -1,0 +1,1254 @@
+diff --git a/LS_XSESSION.sh b/LS_XSESSION.sh
+index d45191a..c12d7f3 100755
+--- a/LS_XSESSION.sh
++++ b/LS_XSESSION.sh
+@@ -1,10 +1,23 @@
+ #!/usr/bin/env bash
+-# Private session client: leave Debian login files and other desktops untouched.
+-# Runs START_OFFICE.sh once in the foreground, then records Graphite's exit status
+-# in ${XDG_STATE_HOME:-$HOME/.local/state}/ledger-slate/last-session.json so
+-# START_MINIMAL_DEBIAN.sh can read it back (xinit discards the client status),
+-# and exits with that status. Nothing here restarts Graphite, logs out or powers off.
+-set -euo pipefail
++# The dedicated session's supervisor (Graphite 1.0 S1, the session that survives). Private session client: Debian login
++# files and other desktops stay untouched.
++#
++# For the whole session it keeps the D-Bus session (dbus-run-session, below) and Fluxbox (started again if it ends), and it
++# runs Graphite's window (START_OFFICE.sh) as its child:
++#   - Graphite ends with status 0 (Return to Debian, or the ordinary close after Log out, Restart or Shut down asked the
++#     system): the session ends;
++#   - Graphite asked to be started again (a hand-over request in the session folder, workbench/session_launch.py) and ended
++#     with status 0: it is started again at once with the settings asked for (another workspace or look); nothing else ends;
++#   - any other end (an error status, a crash, killed): Graphite is started again after a wait that grows (2 s, 4 s, 8 s,
++#     at most 30 s), at most ARC_LEDGER_SESSION_RESTART_LIMIT times in a row (3 unless set; a run of two minutes or more starts
++#     the count afresh); after that the session ends at the text console, where START_MINIMAL_DEBIAN.sh prints the plain
++#     message recorded here.
++# Program windows opened from Graphite run in sessions of their own (session_launch.launch), so they stay open while Graphite
++# is started again; they close only when the session ends, with the X server.
++# The final status is recorded in ${XDG_STATE_HOME:-$HOME/.local/state}/ledger-slate/last-session.json (xinit discards the
++# client's status) with how many times Graphite was started again and, when the session could not be kept running, the
++# message; each start and end is one line in session.log beside it. Nothing here logs out, suspends or powers off.
++set -uo pipefail
+ ledger_program="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ if [[ -z "${DISPLAY:-}" ]]; then echo 'Use START_MINIMAL_DEBIAN.sh from a text login.' >&2; exit 1; fi
+ if [[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
+@@ -12,32 +25,160 @@ if [[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
+ fi
+ ledger_state_dir="${XDG_STATE_HOME:-${HOME:-}/.local/state}/ledger-slate"
+ ledger_session_marker="$ledger_state_dir/.session-start"
++ledger_number() { # $1 if it is a whole number from 0 to $3, else $2
++  if [[ "$1" =~ ^[0-9]{1,4}$ ]] && (( 10#$1 <= $3 )); then echo $(( 10#$1 )); else echo "$2"; fi
++}
++ledger_limit="$(ledger_number "${ARC_LEDGER_SESSION_RESTART_LIMIT:-}" 3 20)"     # starts again in a row, at most
++ledger_backoff="$(ledger_number "${ARC_LEDGER_SESSION_BACKOFF:-}" 2 60)"          # the first wait, in seconds (doubled each time)
++ledger_stable="$(ledger_number "${ARC_LEDGER_SESSION_STABLE:-}" 120 3600)"       # a run this long (seconds) starts the count afresh
++ledger_json() { local text="$1"; text="${text//\\/\\\\}"; text="${text//\"/\\\"}"; printf '"%s"' "$text"; }
++ledger_log_line() { # one line in session.log; a failure to write changes nothing
++  {
++    local log="$ledger_state_dir/session.log"
++    if [[ -f "$log" ]] && (( $(stat -c %s -- "$log" 2>/dev/null || echo 0) > 262144 )); then mv -f -- "$log" "$log.1"; fi
++    printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" >> "$log"
++  } 2>/dev/null || true
++}
++ledger_error_log() { # the launch error log written during this session (not older than the start marker), or nothing
++  local candidate
++  for candidate in "$ledger_state_dir/launch-error.log" "$(dirname -- "$ledger_program")/launch-error.log"; do
++    if [[ -f "$candidate" ]] && ! [[ "$candidate" -ot "$ledger_session_marker" ]]; then printf '%s' "$candidate"; return 0; fi
++  done
++  return 1
++}
+ ledger_session_record() {
+-  # Write {"status","utc","log"}; a failure to write never changes the exit status.
++  # Write {"status","utc","log","restarts","message"}; a failure to write never changes the exit status.
+   {
+-    local status="$1" log='' json_log='null' candidate
+-    for candidate in "$ledger_state_dir/launch-error.log" "$(dirname -- "$ledger_program")/launch-error.log"; do
+-      # Only a log written during this session (not older than the start marker) is named.
+-      if [[ -f "$candidate" ]] && ! [[ "$candidate" -ot "$ledger_session_marker" ]]; then log="$candidate"; break; fi
+-    done
+-    if [[ -n "$log" ]]; then log="${log//\\/\\\\}"; log="${log//\"/\\\"}"; json_log="\"$log\""; fi
+-    printf '{"status":%d,"utc":"%s","log":%s}\n' "$status" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$json_log" > "$ledger_state_dir/last-session.json.tmp" \
++    local status="$1" restarts="${2:-0}" message="${3:-}" log json_log='null' json_message='null'
++    log="$(ledger_error_log)" && json_log="$(ledger_json "$log")"
++    if [[ -n "$message" ]]; then json_message="$(ledger_json "$message")"; fi
++    printf '{"status":%d,"utc":"%s","log":%s,"restarts":%d,"message":%s}\n' "$status" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$json_log" "$restarts" "$json_message" > "$ledger_state_dir/last-session.json.tmp" \
+       && mv -f "$ledger_state_dir/last-session.json.tmp" "$ledger_state_dir/last-session.json"
+   } 2>/dev/null || true
+ }
+ { mkdir -p "$ledger_state_dir" && : > "$ledger_session_marker"; } 2>/dev/null || true
+-fluxbox -no-slit -no-toolbar &
+-ledger_window_manager_pid=$!
++
++# The session folder (private): the hand-over request and the record of the programs Graphite started.
++if [[ -n "${XDG_RUNTIME_DIR:-}" && -d "${XDG_RUNTIME_DIR:-}" && -w "${XDG_RUNTIME_DIR:-}" ]]; then ledger_session_dir="$XDG_RUNTIME_DIR/graphite-xsession"
++else ledger_session_dir="$ledger_state_dir/xsession"; fi
++if { mkdir -p -m 700 -- "$ledger_session_dir" && chmod 700 -- "$ledger_session_dir"; } 2>/dev/null; then
++  rm -f -- "$ledger_session_dir/next-start" "$ledger_session_dir/programs.jsonl" 2>/dev/null
++  export ARC_LEDGER_SESSION_DIR="$ledger_session_dir"
++else
++  ledger_session_dir=''; unset ARC_LEDGER_SESSION_DIR
++fi
++
++# Fluxbox, hidden, for the whole session (started again if it ends, at most five times).
++ledger_window_manager_pid=''
++ledger_window_manager_starts=0
++ledger_start_window_manager() {
++  fluxbox -no-slit -no-toolbar &
++  ledger_window_manager_pid=$!; ledger_window_manager_starts=$(( ledger_window_manager_starts + 1 ))
++}
++ledger_graphite_pid=''
++ledger_pause_pid=''
++ledger_ending=''
+ ledger_session_cleanup() {
+-  kill "$ledger_window_manager_pid" 2>/dev/null || true
+-  wait "$ledger_window_manager_pid" 2>/dev/null || true
++  if [[ -n "$ledger_pause_pid" ]]; then kill "$ledger_pause_pid" 2>/dev/null || true; fi
++  if [[ -n "$ledger_window_manager_pid" ]]; then
++    kill "$ledger_window_manager_pid" 2>/dev/null || true
++    wait "$ledger_window_manager_pid" 2>/dev/null || true
++  fi
++  if [[ -n "$ledger_session_dir" ]]; then rm -f -- "$ledger_session_dir/next-start" 2>/dev/null || true; fi
++}
++ledger_signal() { # the session is being ended from outside (logind, the X server going, a signal): Graphite is asked to end
++  ledger_ending="$1"
++  if [[ -n "$ledger_pause_pid" ]]; then kill "$ledger_pause_pid" 2>/dev/null || true; fi
++  if [[ -n "$ledger_graphite_pid" ]]; then kill -TERM "$ledger_graphite_pid" 2>/dev/null || true; fi
+ }
+ trap ledger_session_cleanup EXIT
+-trap 'ledger_session_record 130; exit 130' INT
+-trap 'ledger_session_record 143; exit 143' TERM
+-trap 'ledger_session_record 129; exit 129' HUP
++trap 'ledger_signal 130' INT
++trap 'ledger_signal 143' TERM
++trap 'ledger_signal 129' HUP
++ledger_end_by_signal() { # Graphite had five seconds to end after the signal; then the session ends with the signal's status
++  local waited=0
++  while [[ -n "$ledger_graphite_pid" ]] && kill -0 "$ledger_graphite_pid" 2>/dev/null && (( waited < 50 )); do sleep 0.1; waited=$(( waited + 1 )); done
++  ledger_log_line "the session was ended from outside (status $ledger_ending)"
++  ledger_session_record "$ledger_ending" "$ledger_restarts"
++  exit "$ledger_ending"
++}
++ledger_wait_graphite() { # waits for Graphite, starting Fluxbox again if it ends meanwhile; returns Graphite's status
++  local ended status
++  while :; do
++    if [[ -n "$ledger_ending" ]]; then return 0; fi
++    if [[ -n "$ledger_window_manager_pid" ]] && (( BASH_VERSINFO[0] > 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1) )); then
++      ended=''
++      wait -n -p ended "$ledger_graphite_pid" "$ledger_window_manager_pid"; status=$?
++      # a trapped signal ends the wait with no job, and bash then unsets the -p variable
++      if [[ "${ended:-}" == "$ledger_graphite_pid" ]]; then return "$status"; fi
++      if [[ -n "${ended:-}" && "${ended:-}" == "$ledger_window_manager_pid" ]]; then
++        if (( ledger_window_manager_starts < 6 )); then
++          ledger_log_line "Fluxbox ended (status $status); starting it again"; ledger_start_window_manager
++        else
++          ledger_log_line "Fluxbox ended (status $status) again; the session goes on without it"; ledger_window_manager_pid=''
++        fi
++      fi
++    else
++      wait "$ledger_graphite_pid"; status=$?
++      if ! kill -0 "$ledger_graphite_pid" 2>/dev/null; then return "$status"; fi
++    fi
++  done
++}
++ledger_handed=()
++ledger_read_hand_over() { # the hand-over request (NUL-separated +NAME=value and -NAME entries), only Graphite's own settings
++  local file="$ledger_session_dir/next-start" entry name
++  local -a sets=() unsets=()
++  [[ -n "$ledger_session_dir" && -f "$file" ]] || return 1
++  while IFS= read -r -d '' entry; do
++    case "$entry" in
++      +*=*) name="${entry:1}"; name="${name%%=*}";;
++      -*) name="${entry:1}";;
++      *) continue;;
++    esac
++    [[ "$name" =~ ^(ARC_LEDGER_|ARC1_|GRAPHITE_)[A-Z0-9_]*$ ]] || continue
++    case "$name" in ARC_LEDGER_XSESSION|ARC_LEDGER_FULLSCREEN|ARC_LEDGER_SESSION_*) continue;; esac
++    if [[ "$entry" == +* ]]; then sets+=("${entry:1}"); else unsets+=(-u "$name"); fi
++  done < "$file"
++  rm -f -- "$file"
++  ledger_handed=("${unsets[@]}" "${sets[@]}")
++  return 0
++}
++
+ export ARC_LEDGER_FULLSCREEN=1 ARC_LEDGER_XSESSION=1
++ledger_start_window_manager
++ledger_restarts=0
++ledger_failures=0
+ ledger_status=0
+-bash "$ledger_program/START_OFFICE.sh" || ledger_status=$?
+-ledger_session_record "$ledger_status"
++ledger_message=''
++while :; do
++  export ARC_LEDGER_SESSION_RESTARTS="$ledger_restarts" ARC_LEDGER_SESSION_LAST_STATUS="$ledger_status"
++  ledger_started=$SECONDS
++  env "${ledger_handed[@]}" bash "$ledger_program/START_OFFICE.sh" &
++  ledger_graphite_pid=$!
++  ledger_log_line "Graphite started (process $ledger_graphite_pid)"
++  ledger_wait_graphite; ledger_status=$?
++  if [[ -n "$ledger_ending" ]]; then ledger_end_by_signal; fi
++  ledger_ran=$(( SECONDS - ledger_started ))
++  ledger_log_line "Graphite ended with status $ledger_status after $ledger_ran s"
++  if ledger_read_hand_over && (( ledger_status == 0 )); then
++    ledger_failures=0; ledger_log_line "Graphite asked to be started again with other settings"; continue
++  fi
++  if (( ledger_status == 0 )); then break; fi
++  if (( ledger_ran >= ledger_stable )); then ledger_failures=0; fi
++  ledger_failures=$(( ledger_failures + 1 ))
++  if (( ledger_failures > ledger_limit )); then
++    ledger_details="$(ledger_error_log)" || ledger_details=''
++    ledger_message="Graphite ended unexpectedly ${ledger_failures} times in a row (last status ${ledger_status}), so the session ended here at the text console instead of starting it again. Apps that were open closed with the session.${ledger_details:+ Details: ${ledger_details}.} To start again: bash ${ledger_program}/START_MINIMAL_DEBIAN.sh. To look for the cause first: bash ${ledger_program}/START_OFFICE.sh --doctor"
++    ledger_log_line "giving up: $ledger_message"
++    echo "$ledger_message" >&2
++    break
++  fi
++  ledger_pause=$(( ledger_backoff << (ledger_failures - 1) )); if (( ledger_pause > 30 )); then ledger_pause=30; fi
++  ledger_restarts=$(( ledger_restarts + 1 ))
++  ledger_log_line "starting Graphite again in $ledger_pause s ($ledger_failures of $ledger_limit in a row)"
++  sleep "$ledger_pause" & ledger_pause_pid=$!
++  wait "$ledger_pause_pid" 2>/dev/null; ledger_pause_pid=''
++  if [[ -n "$ledger_ending" ]]; then ledger_end_by_signal; fi
++done
++ledger_session_record "$ledger_status" "$ledger_restarts" "$ledger_message"
+ exit "$ledger_status"
+diff --git a/START_MINIMAL_DEBIAN.sh b/START_MINIMAL_DEBIAN.sh
+index b808be3..a3f1c64 100755
+--- a/START_MINIMAL_DEBIAN.sh
++++ b/START_MINIMAL_DEBIAN.sh
+@@ -27,14 +27,21 @@ ledger_python=python3
+ if ! command -v python3 >/dev/null && [[ -x "$ledger_program/.venv/bin/python" ]]; then ledger_python="$ledger_program/.venv/bin/python"; fi
+ ledger_line=''
+ if [[ -f "$ledger_record" ]]; then
++  # 1.0 S1: the supervisor also records how many times it started Graphite again, and the plain message when it stopped trying
+   ledger_line="$("$ledger_python" -I -c 'import json,sys
+ data=json.load(open(sys.argv[1]));status=data["status"]
+ assert type(status) is int and 0<=status<=255
+-log=data.get("log");print(status,("details: "+log) if isinstance(log,str) and log else "")' "$ledger_record" 2>/dev/null)" || ledger_line=''
++log=data.get("log");print(status,("details: "+log) if isinstance(log,str) and log else "")
++again=data.get("restarts");message=data.get("message")
++if type(again) is int and again>0:print("Graphite was started again %d time%s during the session (each start and end is in session.log beside last-session.json)."%(again,"" if again==1 else "s"))
++if isinstance(message,str) and message:print(message)' "$ledger_record" 2>/dev/null)" || ledger_line=''
+ fi
+ if [[ -n "$ledger_line" ]]; then
+-  ledger_status="${ledger_line%% *}"; ledger_details="${ledger_line#* }"
++  ledger_first="${ledger_line%%$'\n'*}"; ledger_more=''
++  if [[ "$ledger_line" == *$'\n'* ]]; then ledger_more="${ledger_line#*$'\n'}"; fi
++  ledger_status="${ledger_first%% *}"; ledger_details="${ledger_first#* }"
+   echo "Graphite ended with status ${ledger_status}${ledger_details:+ · $ledger_details}"
++  if [[ -n "$ledger_more" ]]; then echo "$ledger_more"; fi
+   exit "$ledger_status"
+ fi
+ echo "Graphite session ended; status not recorded (startx returned $ledger_rc)." >&2
+diff --git a/docs/GRAPHITE_DESK.md b/docs/GRAPHITE_DESK.md
+index 61ada87..5bdfa59 100644
+--- a/docs/GRAPHITE_DESK.md
++++ b/docs/GRAPHITE_DESK.md
+@@ -689,7 +689,7 @@ details; read without its row, by F1's note, a screen reader or the keyboard's o
+ dedicated session, else **Exit Graphite** (*this Graphite session*) · **Restart** and **Shut down** (*this computer*); an
+ unavailable row adds *· unavailable* to its scope in quiet ink and **stays in the keyboard's order** (D2-fix): its whole
+ reason is its tooltip, its accessible description and F1's note, and choosing it says why in a dialog, asking and issuing
+-nothing · its small caption at its foot in the script: *each asks first and keeps your work*. logind is asked each time the
++nothing · its small caption at its foot in the script: *each keeps your work; leaving asks first* (1.0 S1; it read *each asks first and keeps your work* before Lock and Suspend). logind is asked each time the
+ menu opens, never when it is built. From the keyboard (Enter, Return, Space on the symbol) Game is under focus and Stop all jobs one Down away;
+ on a slider Left and Right change it and Up and Down move on; inside the queue the arrows choose its rows and leave at its
+ ends. Older callers keep their names: `top.nice.popup` is the menu, `.kill` its Stop all jobs row, `.game` its Game row, and the
+@@ -697,6 +697,17 @@ work list's parts (`running`, `queue`, `earlier`, `note`, …) the section's.
+ 
+ ### Session and power (`session_power`)
+ 
++**1.0 S1, the session that survives.** The group reads Lock, Suspend, Log out, Restart, Shut down, Return to Debian
++(`session_power.GROUP`), each with its scope line; `availability()` lists all six. **Lock** starts `xsecurelock` through
++`session_launch.launch` (a session of its own, so a Graphite crash never unlocks the screen) with a mark it touches once the
++screen is locked; the lock counts only when the mark appears; no locker or no display: unavailable, with the reason.
++**Suspend** is logind's `CanSuspend` and `Suspend`, with the lock taken and confirmed first (no lock, no suspend); Graphite
++saves its session and stays open. `sleep_held` takes logind's delay lock on sleep while a change of hers is written
++(`SlateFace.run_staged`), and in the dedicated session `SleepGuard` locks the screen before any sleep (PrepareForSleep) and on
++logind's Lock signal. The session itself is LS_XSESSION.sh's supervisor (see `workbench/session_launch.py`): Graphite is
++started again after an unexpected end, with a growing wait and a limit, then the console with a plain message; programs
++started through `session_launch.launch` are not Graphite's children and stay open.
++
+ The brief supersedes the earlier rule that Graphite issues no session or power command and the old menu's disabled row
+ ("Log Out · Restart · Shut Down — not in this edition"). What stays of that rule: no sudo, no password asked by Graphite,
+ nothing without the owner's confirmation, only the system's own interfaces.
+diff --git a/docs/MINIMAL_DEBIAN_INSTALL_01.md b/docs/MINIMAL_DEBIAN_INSTALL_01.md
+index da38c35..657636b 100644
+--- a/docs/MINIMAL_DEBIAN_INSTALL_01.md
++++ b/docs/MINIMAL_DEBIAN_INSTALL_01.md
+@@ -8,13 +8,13 @@ The product goal is a minimal Debian edition whose main visible workspace is Gra
+ 
+ The target is Debian 13 on the owner's AMD ThinkPad. No GNOME or KDE session is required. Python 3.11–3.13, the declared Qt runtime, display/input drivers and the existing programme dependencies are required. The dedicated session adds Xorg, xinit/startx, Fluxbox and a session bus. The optional minimal-session package group also includes NetworkManager and Mesa prerequisites.
+ 
+-From a local Debian text login, run `bash START_MINIMAL_DEBIAN.sh` in the installed programme. It checks the session commands (`startx`, `fluxbox`, `dbus-run-session` and an X server, `Xorg` or `X`) and calls startx with the supplied LS_XSESSION.sh. That session starts Fluxbox without its toolbar/slit and opens the Office fullscreen. Exiting Graphite ends this dedicated graphical session and returns to the text environment. From an existing display it opens the fullscreen Office without starting a second X server. Normal `bash START_OFFICE.sh` remains available.
++From a local Debian text login, run `bash START_MINIMAL_DEBIAN.sh` in the installed programme. It checks the session commands (`startx`, `fluxbox`, `dbus-run-session` and an X server, `Xorg` or `X`) and calls startx with the supplied LS_XSESSION.sh. That session starts Fluxbox without its toolbar/slit and opens the Office fullscreen. Since 1.0 (S1, the session that survives) LS_XSESSION.sh is the session's small supervisor: Fluxbox and the session bus run for the whole session, and Graphite's window is its child, started again when it ends unexpectedly (a status other than 0) after a wait that grows (2 s, 4 s, 8 s, at most 30 s), at most three times in a row (`ARC_LEDGER_SESSION_RESTART_LIMIT`; a run of two minutes starts the count afresh); after that the session ends at the text console with a plain message. Apps opened from Graphite run in sessions of their own (`workbench/session_launch.py`), so they stay open while Graphite comes back. Exiting Graphite the ordinary way (Return to Debian, or the close after Log out, Restart or Shut down asked the system) ends this dedicated graphical session and returns to the text environment; starting Graphite on another workspace hands the start to the supervisor and the session goes on. From an existing display it opens the fullscreen Office without starting a second X server. Normal `bash START_OFFICE.sh` remains available.
+ 
+ From a text login the script takes no arguments: `--doctor`, `--version` and similar options belong to `bash START_OFFICE.sh`, or to START_MINIMAL_DEBIAN.sh from an existing display, where they are forwarded. Starting a whole X session to answer `--version` would be untruthful, so the text-login branch refuses arguments with a message instead.
+ 
+-Exit-status readback. xinit discards the session client's exit status and startx returns xinit's, so a plain `exec startx` would return 0 whether Graphite exited cleanly, crashed or never showed a window. LS_XSESSION.sh therefore runs START_OFFICE.sh once in the foreground, records `{"status":N,"utc":"…","log":…}` in `${XDG_STATE_HOME:-$HOME/.local/state}/ledger-slate/last-session.json` (naming `launch-error.log` only when one was written during that session) and exits with N; a failure to write the record never changes the exit status. START_MINIMAL_DEBIAN.sh removes the previous record before startx, reads the new one afterwards and prints one line, `Graphite ended with status N` (with `details: <launch-error.log>` when there is one) and exits with N, or `Graphite session ended; status not recorded (startx returned N)` when nothing was recorded. The session client's INT, TERM and HUP traps record 130, 143 and 129 the same way. A failed start writes its traceback to `${XDG_STATE_HOME:-~/.local/state}/ledger-slate/launch-error.log` (falling back to the folder beside the programme), prints it to the terminal, and the message names only a log file that was actually written.
++Exit-status readback. xinit discards the session client's exit status and startx returns xinit's, so a plain `exec startx` would return 0 whether Graphite exited cleanly, crashed or never showed a window. LS_XSESSION.sh therefore runs START_OFFICE.sh as its child (again after an unexpected end, as above), records `{"status":N,"utc":"…","log":…,"restarts":R,"message":…}` in `${XDG_STATE_HOME:-$HOME/.local/state}/ledger-slate/last-session.json` (naming `launch-error.log` only when one was written during that session) and exits with N; a failure to write the record never changes the exit status. START_MINIMAL_DEBIAN.sh removes the previous record before startx, reads the new one afterwards and prints one line, `Graphite ended with status N` (with `details: <launch-error.log>` when there is one) and exits with N, adding a line for how many times Graphite was started again and the supervisor's plain message when it stopped trying, or `Graphite session ended; status not recorded (startx returned N)` when nothing was recorded. Each start and end is one line in `session.log` beside the record. The session client's INT, TERM and HUP traps record 130, 143 and 129 the same way. A failed start writes its traceback to `${XDG_STATE_HOME:-~/.local/state}/ledger-slate/launch-error.log` (falling back to the folder beside the programme), prints it to the terminal, and the message names only a log file that was actually written.
+ 
+-LS_XSESSION.sh exports `ARC_LEDGER_FULLSCREEN=1` and `ARC_LEDGER_XSESSION=1`. The second marker is how the System menu (the pale Graphite symbol at the upper right; `workbench/system_menu_qt.py`, the words in `workbench/session_power.py`) knows it is running in the dedicated session: its leave row reads Return to Debian in this session and Exit Graphite from an existing desktop; it closes Graphite the ordinary way. The same separated group holds Log out, Restart and Shut down (HATCH DESK D2, the owner's brief): each first asks the leave flow's questions, asks for confirmation naming its scope (nothing is stopped before it), closes Graphite the ordinary way, then asks logind itself (`loginctl terminate-session`, `systemctl reboot` or `systemctl poweroff`, never sudo); logind's CanReboot and CanPowerOff decide whether they are offered. This session starts no permission agent, so where logind would ask for permission (`challenge`) Restart and Shut down read unavailable here and say to use `systemctl reboot` or `systemctl poweroff` at the text login after Return to Debian. START_MINIMAL_DEBIAN.sh's existing-display branch exports only the fullscreen marker, so an existing desktop reads Exit Graphite. Nothing in these scripts restarts Graphite: when it exits, the X session ends and the text login returns.
++LS_XSESSION.sh exports `ARC_LEDGER_FULLSCREEN=1` and `ARC_LEDGER_XSESSION=1`. The second marker is how the System menu (the pale Graphite symbol at the upper right; `workbench/system_menu_qt.py`, the words in `workbench/session_power.py`) knows it is running in the dedicated session: its leave row reads Return to Debian in this session and Exit Graphite from an existing desktop; it closes Graphite the ordinary way. The same separated group holds Log out, Restart and Shut down (HATCH DESK D2, the owner's brief): each first asks the leave flow's questions, asks for confirmation naming its scope (nothing is stopped before it), closes Graphite the ordinary way, then asks logind itself (`loginctl terminate-session`, `systemctl reboot` or `systemctl poweroff`, never sudo); logind's CanReboot and CanPowerOff decide whether they are offered. This session starts no permission agent, so where logind would ask for permission (`challenge`) Restart and Shut down read unavailable here and say to use `systemctl reboot` or `systemctl poweroff` at the text login after Return to Debian. START_MINIMAL_DEBIAN.sh's existing-display branch exports only the fullscreen marker, so an existing desktop reads Exit Graphite. Since 1.0 the group reads Lock, Suspend, Log out, Restart, Shut down, Return to Debian: Lock starts the screen locker (`xsecurelock`, in the 1.0 System set; without it Lock says so and does nothing) and Suspend takes that lock first, then asks logind (CanSuspend, Suspend). The supervisor starts Graphite again only after an unexpected end; when Graphite exits the ordinary way, the X session ends and the text login returns.
+ 
+ The scripts do not rewrite login files, enable automatic login, partition a disk, change Wi-Fi credentials or reboot the computer. Native display, input, driver and owner comfort checks remain open until the actual host is available. A later appliance edition needs an explicit tested automatic-start policy and recovery path.
+ 
+diff --git a/tests_integrated/test_startup_scripts.py b/tests_integrated/test_startup_scripts.py
+index 3de437b..c4a1ca9 100644
+--- a/tests_integrated/test_startup_scripts.py
++++ b/tests_integrated/test_startup_scripts.py
+@@ -86,7 +86,7 @@ class StartupScriptTests(unittest.TestCase):
+         for status in (0,3):
+             with self.subTest(status=status):
+                 self.log.unlink(missing_ok=True)
+-                result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=status)
++                result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=status,ARC_LEDGER_SESSION_RESTART_LIMIT=0)  # 1.0 S1: no start again, so once
+                 self.assertEqual(result.returncode,status,result.stderr)
+                 lines=self.logged().splitlines()
+                 office=[line for line in lines if line.startswith('office ')]
+@@ -99,7 +99,7 @@ class StartupScriptTests(unittest.TestCase):
+ 
+     def test_session_client_names_only_a_launch_error_log_from_this_session(self):
+         log=self.state/'ledger-slate'/'launch-error.log'
+-        result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=1,STUB_WRITE_LOG=log)
++        result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=1,STUB_WRITE_LOG=log,ARC_LEDGER_SESSION_RESTART_LIMIT=0)  # 1.0 S1
+         self.assertEqual(result.returncode,1);record=json.loads(self.record.read_text())
+         self.assertEqual(record['status'],1);self.assertEqual(record['log'],str(log))
+         stale=log.stat().st_mtime-30;os.utime(log,(stale,stale)) # The same file from an earlier session is not this session's record.
+@@ -108,7 +108,7 @@ class StartupScriptTests(unittest.TestCase):
+ 
+     def test_session_client_exit_status_survives_an_unrecordable_state_folder(self):
+         blocker=self.base/'blocker';blocker.write_text('a file, not a folder') # mkdir -p fails here for every uid, root included.
+-        result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=3,XDG_STATE_HOME=blocker/'state')
++        result=self.run_script('LS_XSESSION.sh',DISPLAY=':0',DBUS_SESSION_BUS_ADDRESS='stub',STUB_EXIT=3,XDG_STATE_HOME=blocker/'state',ARC_LEDGER_SESSION_RESTART_LIMIT=0)  # 1.0 S1
+         self.assertEqual(result.returncode,3,result.stderr);self.assertFalse(self.record.exists());self.assertIn('fluxbox got TERM',self.logged())
+ 
+     def test_session_client_requires_a_display(self):
+diff --git a/tests_integrated/test_system_menu.py b/tests_integrated/test_system_menu.py
+index b5a9634..95728eb 100644
+--- a/tests_integrated/test_system_menu.py
++++ b/tests_integrated/test_system_menu.py
+@@ -21,7 +21,7 @@ class FakeLogind:
+     """Answers session_power.system as logind would and records every request; starts nothing. `missing` names programs not
+     installed; `at_run` is called at the moment a command would start (what was already done then)."""
+     def __init__(self,session='7',reboot='yes',poweroff='yes',ok=True,reason='',events=None,missing=(),at_run=None):
+-        self.session=session;self.answers={'CanReboot':reboot,'CanPowerOff':poweroff};self.ok=ok;self.reason=reason
++        self.session=session;self.answers={'CanReboot':reboot,'CanPowerOff':poweroff,'CanSuspend':'yes'};self.ok=ok  # 1.0 S1: CanSuspend;self.reason=reason
+         self.requests=[];self.runs=[];self.events=events if events is not None else [];self.missing=set(missing);self.at_run=at_run;self.seen=None
+ 
+     def __call__(self,request):
+@@ -35,8 +35,8 @@ class FakeLogind:
+             assert path==power.MANAGER[0] and interface==power.MANAGER[1],request
+             return self.answers[method]
+         if request[0]=='where':
+-            assert request[1] in power.PROGRAMS,request
+-            return None if request[1] in self.missing else '/usr/bin/'+request[1]
++            assert request[1] in power.PROGRAMS+power.LOCKERS,request  # 1.0 S1: the screen locker is looked up too (not installed here)
++            return None if request[1] in self.missing or request[1] in power.LOCKERS else '/usr/bin/'+request[1]
+         if request[0]=='run':
+             self.runs.append(tuple(request[1]));self.events.append(('run',tuple(request[1])))
+             if self.at_run is not None:self.seen=self.at_run()
+@@ -76,11 +76,11 @@ class AvailabilityTests(unittest.TestCase):
+     def test_no_logind_session_makes_every_action_unavailable_with_that_reason(self):
+         fake=FakeLogind(session=None)
+         with patch.object(power,'system',fake):states=power.availability('linux')
+-        self.assertTrue(all(not s['available'] and s['reason'].startswith(power.NO_SESSION) for s in states.values()),states)
+-        self.assertEqual([r[3] for r in fake.requests],['Get'],'nothing else is asked without a session');self.assertEqual(fake.runs,[])
++        self.assertTrue(all(not s['available'] and s['reason'].startswith(power.NO_SESSION) for a,s in states.items() if a in (*power.ACTIONS,'suspend')),states)  # 1.0 S1
++        self.assertEqual([r[3] for r in fake.requests if r[0]=='logind'],['Get'],'nothing else is asked of logind without a session');self.assertEqual(fake.runs,[])
+         with patch.object(power,'system',FakeLogind(session='not a session id; rm')):states=power.availability('linux')
+-        self.assertTrue(all(not s['available'] for s in states.values()))
+-        states=power.availability('darwin');self.assertTrue(all(s['reason']==power.NOT_LINUX for s in states.values()))
++        self.assertTrue(all(not s['available'] for a,s in states.items() if a!='leave'))  # 1.0 S1: the leave row is always there
++        states=power.availability('darwin');self.assertTrue(all(states[a]['reason']==power.NOT_LINUX for a in power.ACTIONS))
+ 
+     def test_the_commands_are_the_systems_own_and_never_sudo(self):
+         state=dict(available=True,session='7')
+@@ -381,14 +381,15 @@ class MenuTests(unittest.TestCase):
+         menu,host=self.menu()
+         self.assertEqual(self.fake.requests,[],'building the menu asks the system nothing (D2-fix): logind is asked when it opens')
+         menu.fill()
+-        self.assertEqual(menu.words(),['Game','Stop all jobs','—','processes','—','Graphite services','—','Log out','Exit Graphite','Restart','Shut down'])
++        self.assertEqual(menu.words(),['Game','Stop all jobs','—','processes','—','Graphite services','—','Lock','Suspend','Log out','Restart','Shut down','Exit Graphite'])  # 1.0 S1
+         self.assertIs(menu.items()[0],menu.game,'Game first');self.assertIs(menu.items()[1],menu.kill,'Stop all jobs directly beneath')
+         self.assertEqual(menu.kill.caption,'work Graphite manages');self.assertIn('What Graphite does not manage keeps running',menu.kill.toolTip())
+         self.assertNotIn('Programs',menu.kill.toolTip(),'0.8.4: on screen it is Apps, and what is not an app is not called Programs')
+         self.assertNotIn('Ctrl',menu.kill.toolTip(),'0.8.4: no key is named in a tip')
+         rows=menu.session_rows
+-        self.assertEqual({k:r.caption for k,r in rows.items()},{'logout':'this login session','leave':'this Graphite session','restart':'this computer','shutdown':'this computer · unavailable'})
+-        self.assertEqual({k:r.unavailable for k,r in rows.items()},{'logout':'','leave':'','restart':'','shutdown':'Shut down is unavailable: this computer does not offer it (logind: na).'})
++        self.assertEqual({k:r.caption for k,r in rows.items()},{'lock':'this screen · unavailable','suspend':'this computer · unavailable','logout':'this login session','leave':'this Graphite session','restart':'this computer','shutdown':'this computer · unavailable'})
++        self.assertEqual({k:r.unavailable for k,r in rows.items()},{'lock':power.NO_LOCKER,'suspend':'Suspend is unavailable here: it locks the screen first. '+power.NO_LOCKER,  # 1.0 S1: no locker in the fake
++                                                                   'logout':'','leave':'','restart':'','shutdown':'Shut down is unavailable: this computer does not offer it (logind: na).'})
+         self.assertTrue(all(r.isEnabled() for r in rows.values()),'an unavailable row stays reachable: it says why')
+         self.assertIn('logind: na',rows['shutdown'].toolTip());self.assertIn('Scope: this computer.',rows['restart'].toolTip())
+         self.assertIn('First Graphite asks about your open work',rows['restart'].toolTip());self.assertIn('Nothing is stopped before you confirm',rows['restart'].toolTip())
+@@ -408,7 +409,8 @@ class MenuTests(unittest.TestCase):
+         from PySide6.QtWidgets import QApplication
+         menu,host=self.menu();host.resize(1366,768);menu.open_menu(keyboard=True);self.settle()
+         rows=menu.session_rows;self.assertIn(rows['shutdown'],menu.focusables())
+-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_End);self.settle();self.assertIs(QApplication.focusWidget(),rows['shutdown'],'End reaches the last row, unavailable or not')
++        QTest.keyClick(QApplication.focusWidget(),Qt.Key_End);self.settle();self.assertIs(QApplication.focusWidget(),rows['leave'],'End reaches the last row')  # 1.0 S1: the leave row is last
++        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Up);self.settle();self.assertIs(QApplication.focusWidget(),rows['shutdown'],'the keyboard reaches an unavailable row')
+         QTest.keyClick(rows['shutdown'],Qt.Key_F1);self.settle()
+         self.assertTrue(host.messages[-1].startswith('Shut down · this computer · unavailable'),host.messages[-1]);self.assertIn('Unavailable: Shut down is unavailable: this computer does not offer it (logind: na).',host.messages[-1])
+         self.assertIn('Unavailable: Shut down is unavailable: this computer does not offer it (logind: na).',rows['shutdown'].accessibleDescription())
+@@ -416,7 +418,7 @@ class MenuTests(unittest.TestCase):
+         told=[]
+         with patch.object(power,'tell',side_effect=lambda h,title,text:told.append((title,text))):QTest.keyClick(rows['shutdown'],Qt.Key_Return);self.settle()
+         self.assertEqual(told[0][0],'Shut down is unavailable');self.assertIn('logind: na',told[0][1]);self.assertEqual(self.fake.runs,[])
+-        self.assertFalse(any(r[0]=='where' for r in self.fake.requests),'refused before anything else')
++        self.assertFalse(any(r[0]=='where' and r[1] in power.PROGRAMS for r in self.fake.requests),'refused before anything else')  # 1.0 S1: the locker's look-up is the menu's
+ 
+     def test_a_resting_pointer_takes_no_row_until_it_moves(self):
+         """D2-fix (found when the unavailable rows became reachable: a window check's pointer rested where Restart opens and took the
+diff --git a/workbench/desktop_header_qt.py b/workbench/desktop_header_qt.py
+index 4056299..b1c37df 100644
+--- a/workbench/desktop_header_qt.py
++++ b/workbench/desktop_header_qt.py
+@@ -600,7 +600,7 @@ class SystemButton(NiceButton):
+         super().__init__(host);self.setObjectName('SystemMenu');self.setText('System ▾');self.setToolButtonStyle(Qt.ToolButtonTextOnly)
+         self.setAccessibleName(self.NAME);self.setToolTip(self.NAME)
+         self.setAccessibleDescription('Game; Stop all jobs; the process list with its order and niceness; Graphite services On, Off, Restart; '
+-                                      'Log out, Return to Debian or Exit Graphite, Restart, Shut down')
++                                      'Lock, Suspend, Log out, Restart, Shut down, Return to Debian or Exit Graphite')  # 1.0 S1: the session group's order
+         self.setProperty('paperIcon', True);self.setProperty('paperFunctionalInk', True);self.setMinimumHeight(0)
+         self.setStyleSheet('QToolButton#SystemMenu {background:transparent;border:0;padding:0;margin:0;}')
+         self.setAttribute(Qt.WA_Hover, True)
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index 059f68a..60e0e3f 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -19,7 +19,7 @@ DISPLAY_TITLES={'File':'Work','Edit':'Revise','Tools':'Tools','Options':'Arrange
+ # File: getting files in and working on them. Edit: text. View: where you are and how the window looks.
+ # Tools: who you type to, the chain menu, and Ledger's own tools. Help: how to begin, and what is new.
+ FILE = ['new', '@new_idea', '@new_project', 'open', 'viewer', 'quick', '@recent', None, '@receive', '@import', '@export', '@work_copy', None, 'save', 'save_all', 'close', None, 'recovery',
+-        None, '@leave']      # 0.7.0: leaving (Log out, Exit Graphite, Restart, Shut down) at the foot of the first menu; it was the System menu's last group
++        None, '@leave']      # 0.7.0: leaving at the foot of the first menu; it was the System menu's last group (1.0 S1: Lock, Suspend, Log out, Restart, Shut down, Exit Graphite)
+ EDIT = ['undo', 'redo', None, 'cut', 'copy', 'paste', 'select', None, 'find', 'find_next', 'replace', 'goto']
+ VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda', '@slate_panel', None, '@console_sizes', '@cabinet', '@machine_refresh', None,
+         'fullscreen', 'reading', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9)
+@@ -219,9 +219,12 @@ def rebuild(host):
+             made = getattr(host, '_leave_actions', None)
+             if made is None:
+                 made = host._leave_actions = {};leave = power.session_exit()
+-                for name, word in (('logout', power.WORDS['logout']), ('leave', leave['label']), ('restart', power.WORDS['restart']), ('shutdown', power.WORDS['shutdown'])):
++                # 1.0 S1: the session group's order, Lock, Suspend, Log out, Restart, Shut down, Return to Debian
++                run = {'leave':power.leave, 'lock':power.run_lock, 'suspend':power.run_suspend}
++                for name in power.GROUP:
++                    word = leave['label'] if name == 'leave' else power.WORDS[name]
+                     a = QAction(word, host);a.setToolTip(power.SCOPES[name]);a.setStatusTip(power.SCOPES[name])
+-                    a.triggered.connect(lambda checked=False, name=name:power.leave(host) if name == 'leave' else power.run_action(host, name))
++                    a.triggered.connect(lambda checked=False, name=name:run[name](host) if name in run else power.run_action(host, name))
+                     made[name] = a
+             for a in made.values():menu.addAction(a);placed.add(a)
+             return
+diff --git a/workbench/programs_qt.py b/workbench/programs_qt.py
+index b936a7c..35846c5 100644
+--- a/workbench/programs_qt.py
++++ b/workbench/programs_qt.py
+@@ -240,6 +240,10 @@ def _icon_paths(key):
+         p = QPainterPath();p.arcMoveTo(QRectF(3, 3, 12, 12), 60);p.arcTo(QRectF(3, 3, 12, 12), 60, 300);strokes.append(p);path((14.2, 2.8), (12, 4.2), (14.6, 6.6))
+     elif key == 'shutdown':  # the power mark
+         p = QPainterPath();p.arcMoveTo(QRectF(3, 3.5, 12, 12), 55);p.arcTo(QRectF(3, 3.5, 12, 12), 55, 290);strokes.append(p);path((9, 2), (9, 8.5))
++    elif key == 'lock':  # 1.0 S1: a padlock
++        rect(4, 8, 10, 7.5, 1.2);curve((6, 8), ((6, 3), (9, 3)), ((12, 3), (12, 8)));circle(9, 11.8, 0.9, True)
++    elif key == 'suspend':  # 1.0 S1: a crescent moon (sleep)
++        curve((11.5, 2.8), ((4, 3.5), (4.2, 9.5)), ((4.8, 15.5), (12.5, 15)));curve((11.5, 2.8), ((8, 6), (8.6, 9.5)), ((9.4, 13.5), (12.5, 15)))
+     elif key == 'unavailable':  # a small ring with a bar
+         circle(9, 9, 6);path((5, 13), (13, 5))
+     else:  # any other program: a window
+diff --git a/workbench/qt_app.py b/workbench/qt_app.py
+index 313513b..5686f0c 100644
+--- a/workbench/qt_app.py
++++ b/workbench/qt_app.py
+@@ -5383,6 +5383,8 @@ def main():
+     w = WorkbenchWindow(root=default_root())
+     if os.environ.get('ARC_LEDGER_FULLSCREEN')=='1':w.showFullScreen();w.a_fullscreen.setChecked(True)
+     else:w.show()
++    from . import session_launch  # 1.0 S1: the line after the supervisor started it again; the lock before sleep (dedicated session)
++    session_launch.window_started(w)
+     opening = os.environ.get('ARC_LEDGER_OPEN')
+     if opening:
+         # A start script may open one Ledger room, for example the Office.
+diff --git a/workbench/session_launch.py b/workbench/session_launch.py
+new file mode 100644
+index 0000000..170fa7b
+--- /dev/null
++++ b/workbench/session_launch.py
+@@ -0,0 +1,245 @@
++"""Graphite 1.0 S1 · The session that survives: the launch path for programs, the hand-over to the session's supervisor, and
++what Graphite says when the supervisor has started it again.
++
++The dedicated session (LS_XSESSION.sh) is owned by a small supervisor: Fluxbox and the D-Bus session run for the whole
++session, and Graphite's window is the supervisor's child, started again when it ends unexpectedly (a status other than 0),
++with a growing wait between tries and a limit, after which the session ends at the text console with a plain message.
++The session ends only when Graphite ends the ordinary way (status 0: Return to Debian, or the window's own close after Log
++out, Restart or Shut down asked the system) or when the system ends it (logind, the X server). This module is Graphite's side
++of that arrangement:
++
++  launch(argv)       the one launch path for program windows. The program is started in a session and process group of its
++                     own (setsid) through a short-lived helper, so it is not Graphite's child at all: it is not in Graphite's
++                     process group, Graphite's descendants (what Stop all jobs looks through) do not include it, and when
++                     Graphite's window crashes or is started again the program window stays open. argv only, never a shell;
++                     never sudo, pkexec, su or doas. Graphite's own settings are taken out of the program's environment.
++  launched()         the programs launch() started in this session that still run (each checked by its process id and the
++                     kernel's start time of that process, so a reused id is never mistaken for the program).
++  hand_over(env)     in the supervised session, starting Graphite again on another workspace (or in another look) is the
++                     supervisor's to do: the request is written for it, Graphite closes the ordinary way, and the supervisor
++                     starts it with those settings (it never ends the session for it). Elsewhere it returns False and the
++                     caller starts the new window itself, as before.
++  restart_note()     the plain line the window shows when the supervisor started it again after an unexpected end.
++
++The supervisor exports ARC_LEDGER_SESSION_DIR (a private folder, mode 0700, for the hand-over request and the programs'
++record), ARC_LEDGER_SESSION_RESTARTS (how many times it has started Graphite again in this session) and
++ARC_LEDGER_SESSION_LAST_STATUS (the status of the last unexpected end). Nothing here needs Qt, except window_started().
++"""
++from __future__ import annotations
++
++import json
++import os
++import re
++import shutil
++import subprocess
++import sys
++import tempfile
++import time
++from pathlib import Path
++
++SESSION_DIR = 'ARC_LEDGER_SESSION_DIR'
++RESTARTS = 'ARC_LEDGER_SESSION_RESTARTS'
++LAST_STATUS = 'ARC_LEDGER_SESSION_LAST_STATUS'
++HANDOVER = 'next-start'          # the hand-over request, in the session folder (read and removed by the supervisor)
++REGISTRY = 'programs.jsonl'      # one line per program launch() started in this session
++HANDED = ('ARC_LEDGER_', 'ARC1_', 'GRAPHITE_')   # the settings a hand-over may carry (the supervisor accepts only these)
++SUPERVISOR_OWN = frozenset({'ARC_LEDGER_XSESSION', 'ARC_LEDGER_FULLSCREEN', SESSION_DIR, RESTARTS, LAST_STATUS})
++NAME = re.compile(r'^[A-Z][A-Z0-9_]{0,63}$')
++NEVER = frozenset({'sudo', 'pkexec', 'su', 'doas', 'run0'})
++# Graphite's own settings, and what PySide6 or the venv put in Graphite's environment, are not a program's business
++PRIVATE_PREFIXES = ('ARC_LEDGER_', 'ARC1_', 'GRAPHITE_', 'PYTHON')
++PRIVATE = frozenset({'QT_PLUGIN_PATH', 'QML2_IMPORT_PATH', 'QML_IMPORT_PATH', 'QT_QPA_PLATFORM_PLUGIN_PATH', 'VIRTUAL_ENV',
++                     'PYSIDE_DESIGNER_PLUGINS'})
++SPAWN_SECONDS = 15
++
++# The helper: a fresh, single-threaded Python that starts the program in a session of its own and ends at once, so the
++# program's parent is gone and the system adopts it. It answers one JSON line: {"pid": n} or {"error": "..."}.
++_SPAWN = r'''
++import json, os, subprocess, sys
++spec = json.loads(sys.stdin.buffer.read().decode('utf-8'))
++out = None
++try:
++    out = open(spec['log'], 'ab') if spec.get('log') else subprocess.DEVNULL
++    child = subprocess.Popen(spec['argv'], executable=spec['executable'], cwd=spec.get('cwd') or None, env=spec['env'],
++                             stdin=subprocess.DEVNULL, stdout=out, stderr=out, close_fds=True, start_new_session=True)
++    answer = {'pid': child.pid}
++except (OSError, ValueError, subprocess.SubprocessError) as exc:
++    answer = {'error': '%s: %s' % (type(exc).__name__, exc)}
++sys.stdout.write(json.dumps(answer))
++sys.stdout.flush()
++os._exit(0)
++'''
++
++
++def supervised(environ=None):
++    """True inside the dedicated session's supervisor (LS_XSESSION.sh exports the marker and the session folder)."""
++    environ = os.environ if environ is None else environ
++    folder = environ.get(SESSION_DIR, '')
++    return environ.get('ARC_LEDGER_XSESSION') == '1' and bool(folder) and os.path.isdir(folder)
++
++
++def session_dir(environ=None, create=True):
++    """The session's private folder: the supervisor's, else one under XDG_RUNTIME_DIR, else under the state folder."""
++    environ = os.environ if environ is None else environ
++    named = environ.get(SESSION_DIR)
++    if named:folder = Path(named)
++    elif environ.get('XDG_RUNTIME_DIR'):folder = Path(environ['XDG_RUNTIME_DIR']) / 'graphite-session'
++    else:
++        state = environ.get('XDG_STATE_HOME')
++        folder = (Path(state) if state else Path.home() / '.local' / 'state') / 'ledger-slate' / 'session'
++    if create:
++        folder.mkdir(parents=True, exist_ok=True)
++        try:os.chmod(folder, 0o700)
++        except OSError:pass
++    return folder
++
++
++def program_environment(environ=None):
++    """The environment a program starts with: this session's (DISPLAY, the D-Bus session, HOME, PATH, the language), without
++    Graphite's own settings and without what Python and PySide6 put there for Graphite's window."""
++    environ = dict(os.environ if environ is None else environ)
++    out = {k:v for k, v in environ.items() if k not in PRIVATE and not k.startswith(PRIVATE_PREFIXES)}
++    if out.get('QT_QPA_PLATFORM') in ('offscreen', 'minimal'):out.pop('QT_QPA_PLATFORM')   # Graphite's checks, not the program's
++    return out
++
++
++def start_time(pid):
++    """The kernel's start time of a process (field 22 of /proc/<pid>/stat), or None when it does not run."""
++    try:raw = Path('/proc/%d/stat' % int(pid)).read_text()
++    except (OSError, ValueError):return None
++    fields = raw[raw.rfind(')') + 2:].split()
++    if len(fields) < 20 or fields[0] == 'Z':return None
++    return fields[19]
++
++
++def _resolve(program, env):
++    if '/' in program:
++        path = Path(program)
++        return str(path) if path.is_file() and os.access(path, os.X_OK) else None
++    return shutil.which(program, path=env.get('PATH') or os.defpath)
++
++
++def launch(argv, cwd=None, env=None, name=None, log=None, environ=None):
++    """Start a program window in a session of its own, not as Graphite's child. argv: the program and its arguments (no
++    shell); cwd: its working folder; env: its whole environment (default: program_environment()); name: the word for it; log:
++    a file its output is appended to (default: none). Returns dict(ok, pid, name, argv, program, reason): ok only when the
++    program was started (the helper saw it begin); a program that cannot start says why, and nothing is left running."""
++    argv = [str(a) for a in (argv or ())]
++    name = str(name or (Path(argv[0]).name if argv else ''))
++    if not argv or not argv[0] or any('\0' in a for a in argv):
++        return dict(ok=False, pid=None, name=name, argv=argv, program=None, reason='There is no program to start.')
++    if Path(argv[0]).name in NEVER:
++        return dict(ok=False, pid=None, name=name, argv=argv, program=None, reason='Graphite never starts a program through %s.' % Path(argv[0]).name)
++    env = program_environment(environ) if env is None else {str(k):str(v) for k, v in env.items()}
++    program = _resolve(argv[0], env)
++    if program is None:
++        return dict(ok=False, pid=None, name=name, argv=argv, program=None, reason='%s is not installed on this computer.' % argv[0])
++    if cwd is not None and not Path(cwd).is_dir():
++        return dict(ok=False, pid=None, name=name, argv=argv, program=program, reason='The folder %s is not there.' % cwd)
++    spec = dict(argv=argv, executable=program, cwd=str(cwd) if cwd is not None else None, env=env, log=str(log) if log else None)
++    try:
++        done = subprocess.run([sys.executable, '-I', '-S', '-c', _SPAWN], input=json.dumps(spec).encode('utf-8'),
++                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=SPAWN_SECONDS, start_new_session=True)
++        answer = json.loads(done.stdout.decode('utf-8', 'replace') or '{}')
++    except (OSError, ValueError, subprocess.SubprocessError) as exc:
++        answer = {'error': str(exc)}
++    pid = answer.get('pid')
++    if not isinstance(pid, int) or pid <= 0:
++        return dict(ok=False, pid=None, name=name, argv=argv, program=program, reason='%s did not start: %s' % (name, answer.get('error') or 'no answer from the start'))
++    entry = dict(pid=pid, start=start_time(pid), name=name, program=program, utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
++    try:_record(entry, environ)
++    except OSError:pass   # the record helps Graphite find its programs again; the program runs without it
++    return dict(ok=True, pid=pid, name=name, argv=argv, program=program, reason='%s started in a session of its own.' % name)
++
++
++def _entries(environ=None):
++    try:text = (session_dir(environ, create=False) / REGISTRY).read_text(encoding='utf-8')
++    except OSError:return []
++    out = []
++    for line in text.splitlines():
++        try:row = json.loads(line)
++        except ValueError:continue
++        if isinstance(row, dict) and isinstance(row.get('pid'), int):out.append(row)
++    return out
++
++
++def _alive(row):
++    now = start_time(row['pid'])
++    return now is not None and (row.get('start') is None or str(row.get('start')) == now)
++
++
++def _record(entry, environ=None):
++    """Keep the programs still running and add this one (written whole, then put in place)."""
++    folder = session_dir(environ)
++    rows = [row for row in _entries(environ) if _alive(row)][-199:] + [entry]
++    fd, staged = tempfile.mkstemp(prefix='.programs-', dir=folder)
++    try:
++        with os.fdopen(fd, 'w', encoding='utf-8') as out:out.write(''.join(json.dumps(row) + '\n' for row in rows))
++        os.replace(staged, folder / REGISTRY)
++    finally:
++        if os.path.exists(staged):os.unlink(staged)
++
++
++def launched(environ=None):
++    """The programs launch() started in this session that still run: [dict(pid, name, program, utc)]."""
++    return [row for row in _entries(environ) if _alive(row)]
++
++
++# The hand-over: starting Graphite again is the supervisor's to do -------------------------------------------------------
++
++def hand_over(env, environ=None):
++    """In the supervised session: ask the supervisor to start Graphite again with `env`'s settings (those named by HANDED)
++    once this window has closed the ordinary way. Writes the request (NUL-separated '+NAME=value' and '-NAME' entries,
++    the change from this window's own settings) and returns True. Elsewhere returns False: the caller starts the new window
++    itself, as before 1.0."""
++    environ = os.environ if environ is None else environ
++    if not supervised(environ):return False
++    def handed(name):return name.startswith(HANDED) and name not in SUPERVISOR_OWN and bool(NAME.match(name))
++    entries = ['+%s=%s' % (k, v) for k, v in sorted(env.items()) if handed(k) and '\0' not in str(v)]
++    entries += ['-%s' % k for k in sorted(environ) if handed(k) and k not in env]
++    folder = session_dir(environ)
++    fd, staged = tempfile.mkstemp(prefix='.next-start-', dir=folder)
++    try:
++        with os.fdopen(fd, 'wb') as out:out.write(b''.join(e.encode('utf-8') + b'\0' for e in entries))
++        os.replace(staged, folder / HANDOVER)
++    finally:
++        if os.path.exists(staged):os.unlink(staged)
++    return True
++
++
++def withdraw(environ=None):
++    """The window did not close after all (a question was cancelled): the request is taken back, so the supervisor ends the
++    session as usual when the window does close later."""
++    try:(session_dir(environ, create=False) / HANDOVER).unlink()
++    except OSError:pass
++
++
++# What the window says when the supervisor started it again -------------------------------------------------------------
++
++def restart_note(environ=None):
++    """'' unless the supervisor started this window again after an unexpected end; then one plain line saying so."""
++    environ = os.environ if environ is None else environ
++    try:times = int(environ.get(RESTARTS) or 0)
++    except ValueError:times = 0
++    if times <= 0:return ''
++    status = (environ.get(LAST_STATUS) or '').strip()
++    how = 'it ended unexpectedly' + (' (status %s)' % status if status.isdigit() else '')
++    again = 'again' if times == 1 else 'again (%d times in this session)' % times
++    return 'Graphite started %s: %s. The apps you opened from Graphite stayed open.' % (again, how)
++
++
++def window_started(window, environ=None):
++    """Called once the window is shown (qt_app.main): the restart note in the status line, and in the dedicated session the
++    guard that locks the screen before the computer sleeps (session_power.SleepGuard). Never fails the start."""
++    environ = os.environ if environ is None else environ
++    try:
++        note = restart_note(environ)
++        if note and hasattr(window, 'statusBar'):window.statusBar().showMessage(note, 20000)
++    except Exception:  # noqa: BLE001 - a note that cannot be shown is no reason to stop the start
++        pass
++    if environ.get('ARC_LEDGER_XSESSION') == '1':
++        try:
++            from .session_power import SleepGuard
++            window._sleep_guard = SleepGuard(window)
++        except Exception:  # noqa: BLE001 - without logind or a locker, there is nothing to guard
++            pass
+diff --git a/workbench/session_power.py b/workbench/session_power.py
+index 46739f5..9f6da83 100644
+--- a/workbench/session_power.py
++++ b/workbench/session_power.py
+@@ -33,16 +33,44 @@ The order of Log out, Restart and Shut down (D2-fix, after the review of D2):
+      sends every process of the session SIGTERM, and the X server goes with it), so nothing of the close can come after the
+      command: it comes before. If the command then does not start (the system's own permission prompt declined, say), Graphite
+      has already closed the ordinary way with the work saved; it says why in a last message, and you start it again.
++
++Graphite 1.0 S1 (the session that survives) adds Lock and Suspend, which keep Graphite and the programs open, and the session
++group reads, in GROUP's order: Lock, Suspend, Log out, Restart, Shut down, Return to Debian (each with its scope line):
++
++  Lock           the screen locker, xsecurelock, started in a session of its own (session_launch.launch, so a Graphite crash
++                 never unlocks the screen), told to touch a mark once the screen is locked; the lock counts as taken only when
++                 that mark appears. The password is typed into the locker (the system's own PAM), never into Graphite. With no
++                 locker installed, or no X display, Lock is unavailable and says why; nothing is done.
++                                                                       scope: this screen
++  Suspend        logind CanSuspend for availability (as CanReboot), the lock taken first and confirmed, then logind Suspend
++                 (non-interactive). No lock, no suspend: if the locker cannot be had, Suspend is unavailable or refused with the
++                 reason. Graphite saves its session first and stays open.  scope: this computer
++  availability   lists all six actions (Return to Debian or Exit Graphite always available, with its tip).
++  sleep_held     logind's delay lock on sleep (Inhibit "sleep", mode delay) while Kasandra writes a file, released when the
++                 write is done, so a suspend never lands mid-write; without logind the write simply goes on.
++  SleepGuard     in the dedicated session: a delay lock held while nothing is locked, so a suspend from anywhere (the lid,
++                 logind's idle action) locks the screen first; logind's Lock signal for this session locks too.
++
++Lock's start and Suspend's request go through system() as well ('start' and 'logind'), and the inhibitor ('inhibit').
+ """
+ from __future__ import annotations
++import contextlib
+ import os
+ import re
+ import sys
+-
+-ACTIONS = ('logout', 'restart', 'shutdown')
+-WORDS = {'logout': 'Log out', 'restart': 'Restart', 'shutdown': 'Shut down'}
+-SCOPES = {'logout': 'this login session', 'restart': 'this computer', 'shutdown': 'this computer', 'leave': 'this Graphite session'}
+-EFFECTS = {'logout': 'Ends your login session on this computer: Graphite and every program started in this session close. The computer stays on.',
++import time
++
++ACTIONS = ('logout', 'restart', 'shutdown')      # the actions that close Graphite and then ask the system (run_action)
++STAYS = ('lock', 'suspend')                      # 1.0 S1: the actions that keep Graphite and the programs open
++GROUP = ('lock', 'suspend', 'logout', 'restart', 'shutdown', 'leave')   # 1.0 S1: the session group, top to bottom
++WORDS = {'lock': 'Lock', 'suspend': 'Suspend', 'logout': 'Log out', 'restart': 'Restart', 'shutdown': 'Shut down'}
++SCOPES = {'lock': 'this screen', 'suspend': 'this computer', 'logout': 'this login session', 'restart': 'this computer',
++          'shutdown': 'this computer', 'leave': 'this Graphite session'}
++EFFECTS = {'lock': 'Locks the screen: Graphite and your apps keep running behind it. Your password unlocks it, typed into the '
++                   'screen locker (the system\'s own), never into Graphite.',
++           'suspend': 'Locks the screen, then puts this computer to sleep: everything stays open in memory and comes back when it '
++                      'wakes. Your password unlocks it.',
++           'logout': 'Ends your login session on this computer: Graphite and every program started in this session close. The computer stays on.',
+            'restart': 'Restarts this computer: every program on it closes, then it starts again.',
+            'shutdown': 'Shuts this computer down: every program on it closes and it powers off.'}
+ THEN = {'logout': 'your login session ends', 'restart': 'this computer restarts', 'shutdown': 'this computer shuts down'}
+@@ -58,6 +86,17 @@ TIMEOUT_MS = 2000
+ NO_SESSION = ('No login session: Graphite is not running inside a systemd-logind session on this computer (as in a container, '
+               'or when it was started without a login), so it cannot log out, restart or shut down. Use the system\'s own controls.')
+ NOT_LINUX = 'Log out, Restart and Shut down need Linux with systemd-logind; use the system\'s own controls.'
++# 1.0 S1: Lock and Suspend
++LOCKERS = ('xsecurelock',)                       # the only locker Graphite starts (the 1.0 System set carries it)
++LOCK_SECONDS = 5.0                               # how long the locker has to say the screen is locked
++CAN_SUSPEND = 'CanSuspend'
++NOT_LINUX_STAYS = 'Lock and Suspend need Linux with an X display and systemd-logind; use the system\'s own controls.'
++NO_LOCKER = ('No screen locker is installed on this computer: Lock needs xsecurelock (it is in the 1.0 System set, and Debian '
++             'has it as the package xsecurelock). Without it Graphite cannot lock the screen, so nothing was done.')
++NO_DISPLAY = 'Lock needs this session\'s X display, and there is none here (DISPLAY is not set), so nothing was done.'
++STAYS_BEFORE = {'lock': 'Nothing is closed or stopped: Graphite and your apps keep running behind the lock.',
++                'suspend': 'Graphite stays open and saves its session; the screen is locked first, and the computer is put to sleep '
++                           'only once the lock is confirmed. A file Kasandra is writing is finished before it sleeps.'}
+ NO_PROMPT = ('this dedicated session has no permission prompt to answer it (logind: challenge). Return to Debian, then use '
+              'systemctl %s at the text login, where the system asks for permission itself')
+ LEAVE = 'Save or discard open work, keep or skip a return copy, stop the local model and tracked commands, and close Graphite.'
+@@ -74,11 +113,17 @@ def system(request):
+         the reply's first value, or raises OSError when there is no system bus or logind refuses.
+     ('where', program): the path of loginctl or systemctl on PATH, or None (a look-up: nothing starts).
+     ('run', argv): starts argv[0] (loginctl or systemctl, found on PATH, never sudo, no shell, no terminal) and waits for it;
+-        returns dict(ok, code, reason)."""
++        returns dict(ok, code, reason).
++    ('start', argv): 1.0 S1, the screen locker (xsecurelock only) started in a session of its own through session_launch,
++        not waited for; returns session_launch.launch's dict(ok, pid, reason, ...).
++    ('inhibit', what, who, why, mode): 1.0 S1, logind's Inhibit on the system D-Bus; returns a file descriptor this process
++        owns (closing it releases the lock), or raises OSError."""
+     kind = request[0]
+     if kind == 'logind':return _logind(*request[1:])
+     if kind == 'where':return _where(request[1])
+     if kind == 'run':return _run(tuple(request[1]))
++    if kind == 'start':return _start(tuple(request[1]))
++    if kind == 'inhibit':return _inhibit(*request[1:])
+     raise ValueError('Unknown system request: %r' % (kind,))
+ 
+ 
+@@ -96,10 +141,42 @@ def _logind(path, interface, method, *args):
+ 
+ def _where(program):
+     import shutil
+-    if program not in PROGRAMS:raise ValueError('Graphite looks up only loginctl or systemctl here: %r' % (program,))
++    if program not in PROGRAMS + LOCKERS:raise ValueError('Graphite looks up only loginctl, systemctl or the screen locker here: %r' % (program,))
+     return shutil.which(program)
+ 
+ 
++def _start(argv):
++    """1.0 S1: the screen locker, in a session of its own (it outlives a Graphite crash: the screen stays locked)."""
++    if not argv or argv[0] not in LOCKERS:
++        raise ValueError('Graphite starts only the screen locker here: %r' % (argv,))
++    path = _where(argv[0])
++    if path is None:return dict(ok=False, pid=None, reason=NO_LOCKER)
++    from .session_launch import launch
++    return launch([path, *argv[1:]], name=argv[0])
++
++
++def _descriptor(value):
++    """The file descriptor in logind's answer (a QDBusUnixFileDescriptor, or what PySide6 makes of it), duplicated so this
++    process owns it; the wrapper closes its own copy when it goes."""
++    if hasattr(value, 'variant') and not hasattr(value, 'fileDescriptor'):value = value.variant()
++    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:return os.dup(value)
++    getter = getattr(value, 'fileDescriptor', None)
++    fd = getter() if callable(getter) else -1
++    if not isinstance(fd, int) or fd < 0:raise OSError('logind gave no file descriptor (%s)' % type(value).__name__)
++    return os.dup(fd)
++
++
++def _inhibit(what, who, why, mode):
++    from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage
++    bus = QDBusConnection.systemBus()
++    if not bus.isConnected():raise OSError('no system D-Bus: ' + (bus.lastError().message() or 'not connected'))
++    face = QDBusInterface(LOGIND, MANAGER[0], MANAGER[1], bus);face.setTimeout(TIMEOUT_MS)
++    reply = face.call('Inhibit', str(what), str(who), str(why), str(mode))
++    if reply.type() == QDBusMessage.ErrorMessage:raise OSError(reply.errorMessage() or reply.errorName() or 'logind refused')
++    values = reply.arguments()
++    return _descriptor(values[0] if values else None)
++
++
+ def _run(argv):
+     import subprocess
+     if not argv or argv[0] not in PROGRAMS or any(part in ('sudo', 'pkexec', 'su', 'doas') for part in argv):
+@@ -130,34 +207,70 @@ def session_exit(environ=None):
+                 tip=LEAVE + ' The desktop you started Graphite from stays open. The computer stays on.')
+ 
+ 
+-def _unavailable(reason):
+-    return {action:dict(available=False, reason=reason, value=None, session=None) for action in ACTIONS}
++def _unavailable(reason, actions=ACTIONS):
++    return {action:dict(available=False, reason=reason, value=None, session=None) for action in actions}
++
++
++def _lock_state(environ):
++    """1.0 S1: Lock's availability: the locker installed, and an X display to lock. A failure to look is 'unavailable'."""
++    try:found = system(('where', LOCKERS[0]))
++    except Exception as exc:  # noqa: BLE001 - reading availability never fails the menu; it says what went wrong
++        return dict(available=False, reason='Graphite could not look for a screen locker: %s' % (str(exc).strip()[:160] or type(exc).__name__),
++                    value=None, session=None, program=None)
++    if not found:return dict(available=False, reason=NO_LOCKER, value=None, session=None, program=None)
++    if not environ.get('DISPLAY'):return dict(available=False, reason=NO_DISPLAY, value=None, session=None, program=found)
++    return dict(available=True, reason='Locks with %s (installed at %s).' % (LOCKERS[0], found), value='yes', session=None, program=found)
++
+ 
++def _ordered(out):
++    return {key:out[key] for key in GROUP if key in out}
+ 
+-def availability(platform=None, environ=None):
+-    """{action: dict(available, reason, value, session)} for Log out, Restart and Shut down, from logind. No session: every
+-    action unavailable with NO_SESSION. 'challenge' (the system asks for permission itself) is offered, except in the dedicated
+-    session: it starts no permission agent (LS_XSESSION.sh runs fluxbox and Graphite only) and the command runs without a
+-    terminal, so nothing could answer the system's question, and Graphite would have closed for nothing."""
+-    if not (platform or sys.platform).startswith('linux'):return _unavailable(NOT_LINUX)
++
++def availability(platform=None, environ=None, only=None):
++    """{action: dict(available, reason, value, session)} for the session group's six actions (1.0 S1), in GROUP's order: Lock
++    (the locker and a display), Suspend, Log out, Restart and Shut down (from logind), and the leave row (always available,
++    with its label). `only`: the actions wanted (run_action asks for its own alone). No session: Suspend, Log out, Restart and
++    Shut down unavailable with NO_SESSION. 'challenge' (the system asks for permission itself) is offered, except in the
++    dedicated session: it starts no permission agent (LS_XSESSION.sh runs fluxbox and Graphite only) and the command runs
++    without a terminal, so nothing could answer the system's question, and Graphite would have closed for nothing. Suspend
++    needs Lock: no locker, no suspend."""
++    environ = os.environ if environ is None else environ
++    wanted = [key for key in GROUP if only is None or key in only]
++    out = {}
++    if 'leave' in wanted:
++        leave = session_exit(environ)
++        out['leave'] = dict(available=True, reason=leave['tip'], value=None, session=None, label=leave['label'])
++    if not (platform or sys.platform).startswith('linux'):
++        out.update(_unavailable(NOT_LINUX, [a for a in ACTIONS if a in wanted]))
++        out.update(_unavailable(NOT_LINUX_STAYS, [a for a in STAYS if a in wanted]))
++        return _ordered(out)
++    lock = _lock_state(environ) if ('lock' in wanted or 'suspend' in wanted) else None
++    if 'lock' in wanted:out['lock'] = lock
++    logind = [a for a in ('suspend', *ACTIONS) if a in wanted]
++    if not logind:return _ordered(out)
+     try:
+         session = system(('logind', SELF, PROPERTIES, 'Get', 'org.freedesktop.login1.Session', 'Id'))
+     except (OSError, ValueError, RuntimeError, ImportError) as exc:
+-        return _unavailable(NO_SESSION + ' (' + str(exc).strip()[:160] + ')')
++        out.update(_unavailable(NO_SESSION + ' (' + str(exc).strip()[:160] + ')', logind));return _ordered(out)
+     session = str(session or '')
+-    if not SESSION_ID.fullmatch(session):return _unavailable(NO_SESSION + ' (logind gave no session id)')
+-    out = {'logout':dict(available=True, reason='Ends login session %s (loginctl terminate-session).' % session, value='yes', session=session)}
+-    for action, method in CAN.items():
++    if not SESSION_ID.fullmatch(session):out.update(_unavailable(NO_SESSION + ' (logind gave no session id)', logind));return _ordered(out)
++    if 'logout' in wanted:
++        out['logout'] = dict(available=True, reason='Ends login session %s (loginctl terminate-session).' % session, value='yes', session=session)
++    asked = {action:method for action, method in (*CAN.items(), ('suspend', CAN_SUSPEND)) if action in wanted}
++    for action, method in asked.items():
+         try:value = str(system(('logind', *MANAGER, method)) or '')
+-        except (OSError, ValueError, RuntimeError) as exc:
+-            out[action] = dict(available=False, reason='logind did not answer %s: %s' % (method, str(exc).strip()[:160]), value=None, session=session);continue
++        except Exception as exc:  # noqa: BLE001 - an answer that cannot be read is 'unavailable', with what went wrong
++            out[action] = dict(available=False, reason='logind did not answer %s: %s' % (method, str(exc).strip()[:160] or type(exc).__name__), value=None, session=session);continue
+         offered = value == 'yes' or (value == 'challenge' and not dedicated(environ))
+         if value == 'yes':reason = 'Allowed for your account (logind %s: yes).' % method
+         elif offered:reason = 'Allowed after the system asks for permission (logind %s: challenge).' % method
+-        elif value == 'challenge':reason = WORDS[action] + ' is unavailable here: ' + NO_PROMPT % {'restart':'reboot', 'shutdown':'poweroff'}[action] + '.'
++        elif value == 'challenge':reason = WORDS[action] + ' is unavailable here: ' + NO_PROMPT % {'restart':'reboot', 'shutdown':'poweroff', 'suspend':'suspend'}[action] + '.'
+         else:reason = WORDS[action] + ' is unavailable: ' + LOGIND_WORDS.get(value, 'logind answered %r' % value) + '.'
++        if action == 'suspend' and offered and not lock['available']:
++            offered = False;reason = 'Suspend is unavailable here: it locks the screen first. ' + lock['reason']
++        elif action == 'suspend' and offered:reason += ' The screen is locked first, with ' + LOCKERS[0] + '.'
+         out[action] = dict(available=offered, reason=reason, value=value, session=session)
+-    return out
++    return _ordered(out)
+ 
+ 
+ def command(action, state):
+@@ -167,7 +280,8 @@ def command(action, state):
+ 
+ def describe(action, state):
+     """A row's tooltip: what the action does, its scope, what happens first, and whether it is available and why."""
+-    return '%s\nScope: %s.\n%s\n%s' % (EFFECTS[action], SCOPES[action], BEFORE, state['reason'] if state['available'] else 'Unavailable: ' + state['reason'])
++    before = STAYS_BEFORE.get(action, BEFORE)   # 1.0 S1: Lock and Suspend close nothing
++    return '%s\nScope: %s.\n%s\n%s' % (EFFECTS[action], SCOPES[action], before, state['reason'] if state['available'] else 'Unavailable: ' + state['reason'])
+ 
+ 
+ # The leave flow's questions, without closing the window and without stopping anything ---------------------------------------
+@@ -265,7 +379,7 @@ def run_action(host, action, platform=None):
+     Returns dict(state=UNAVAILABLE | CANCELLED | FAILED | STARTED, closed, ...). Nothing is issued without a logind session,
+     nothing is stopped before the owner confirms, and the command comes only after Graphite has closed."""
+     if action not in ACTIONS:raise ValueError('Unknown action: %r' % (action,))
+-    state = availability(platform)[action]
++    state = availability(platform, only=(action,))[action]
+     if not state['available']:
+         tell(host, WORDS[action] + ' is unavailable', state['reason'] + '\nGraphite stays open.');return dict(state='UNAVAILABLE', reason=state['reason'], closed=False)
+     left = leave_steps(host)
+@@ -273,7 +387,7 @@ def run_action(host, action, platform=None):
+     if not confirm(host, action):
+         undo_leave(left);_say(host, WORDS[action] + ' cancelled · Graphite stays open; nothing was stopped')
+         return dict(state='CANCELLED', step='confirm', left=left, closed=False)
+-    state = availability(platform)[action]  # again: the session or the permission may have changed while the questions were open
++    state = availability(platform, only=(action,))[action]  # again: the session or the permission may have changed while the questions were open
+     if not state['available']:
+         undo_leave(left);tell(host, WORDS[action] + ' is unavailable', state['reason'] + '\nGraphite stays open; nothing was stopped.')
+         return dict(state='UNAVAILABLE', reason=state['reason'], left=left, closed=False)
+@@ -312,3 +426,173 @@ def leave(host):
+     thread = getattr(host, 'return_thread', None)
+     if thread is not None and hasattr(thread, 'review_exit'):return thread.review_exit()
+     return host.close()
++
++
++# 1.0 S1 · Lock, Suspend, the sleep inhibitor and the guard -----------------------------------------------------------------
++
++def locked_by(environ=None):
++    """The process id of the screen locker Graphite started that still runs (the screen is locked), or None."""
++    from .session_launch import launched
++    for row in launched(environ):
++        if row.get('name') in LOCKERS:return row['pid']
++    return None
++
++
++def lock_screen(platform=None, environ=None, wait=LOCK_SECONDS, nap=time.sleep):
++    """Lock the screen: the locker started through system() in a session of its own, told to touch a mark once the screen is
++    locked. Returns dict(state, locked, reason, pid): LOCKED only when the mark appeared (or Graphite's locker already runs);
++    UNAVAILABLE (no locker, no display: nothing done), FAILED (it did not start, or ended without locking) or UNCONFIRMED (it
++    runs, but did not say so within `wait` seconds)."""
++    environ = os.environ if environ is None else environ
++    state = availability(platform, environ, only=('lock',))['lock']
++    if not state['available']:return dict(state='UNAVAILABLE', locked=False, pid=None, reason=state['reason'])
++    held = locked_by(environ)
++    if held:return dict(state='LOCKED', locked=True, pid=held, reason='The screen is already locked.')
++    from .session_launch import session_dir, start_time
++    try:folder = session_dir(environ)
++    except OSError as exc:return dict(state='FAILED', locked=False, pid=None, reason='Graphite has no session folder for the lock\'s mark: %s' % exc)
++    mark = folder / ('locked-%d-%d' % (os.getpid(), time.monotonic_ns()))
++    try:started = system(('start', (LOCKERS[0], '--', 'touch', str(mark))))
++    except (OSError, ValueError, RuntimeError) as exc:started = dict(ok=False, reason=str(exc))
++    if not started.get('ok'):
++        return dict(state='FAILED', locked=False, pid=None, reason='The screen locker did not start: ' + str(started.get('reason') or 'no reason given'))
++    pid = started['pid'];deadline = time.monotonic() + max(0.0, float(wait))
++    while True:
++        if mark.exists():
++            try:mark.unlink()
++            except OSError:pass
++            return dict(state='LOCKED', locked=True, pid=pid, reason='The screen is locked (%s confirmed it).' % LOCKERS[0])
++        if start_time(pid) is None:
++            return dict(state='FAILED', locked=False, pid=pid, reason='The screen locker ended without locking the screen (another program may be holding the keyboard).')
++        if time.monotonic() >= deadline:
++            return dict(state='UNCONFIRMED', locked=False, pid=pid,
++                        reason='The screen locker started but did not say the screen was locked within %d seconds.' % round(wait))
++        nap(0.05)
++
++
++def _save_session(host):
++    session = getattr(host, 'session', None)
++    try:
++        if session is not None and hasattr(session, 'save'):session.save()
++    except Exception:  # noqa: BLE001 - a session that cannot be saved now is saved at the ordinary close; the suspend goes on
++        pass
++
++
++def run_lock(host, platform=None):
++    """Lock, from the session group: nothing is closed or stopped. Says why when the screen could not be locked."""
++    result = lock_screen(platform)
++    if result['locked']:_say(host, 'Locked · your password unlocks it');return result
++    title = {'UNAVAILABLE':'Lock is unavailable', 'UNCONFIRMED':'Lock is not confirmed'}.get(result['state'], 'Lock did not happen')
++    tell(host, title, result['reason'] + '\nGraphite stays open as it is; nothing else was done.')
++    return result
++
++
++def run_suspend(host, platform=None):
++    """Suspend, from the session group: availability (logind CanSuspend, and the locker), Graphite's session saved, the screen
++    locked and the lock confirmed, then logind Suspend. No confirmed lock, no suspend. Graphite stays open throughout.
++    Returns dict(state=UNAVAILABLE | FAILED | STARTED, locked, step, reason)."""
++    state = availability(platform, only=('suspend',))['suspend']
++    if not state['available']:
++        tell(host, 'Suspend is unavailable', state['reason'] + '\nGraphite stays open; nothing was done.')
++        return dict(state='UNAVAILABLE', locked=False, step='availability', reason=state['reason'])
++    _save_session(host)
++    locked = lock_screen(platform)
++    if not locked['locked']:
++        tell(host, 'Suspend did not start', 'Suspend locks the screen first, and the lock was not confirmed: ' + locked['reason']
++             + '\nSo the computer was not put to sleep; Graphite stays open as it is.')
++        return dict(state='FAILED', locked=False, step='lock', reason=locked['reason'])
++    try:system(('logind', *MANAGER, 'Suspend', False))
++    except (OSError, ValueError, RuntimeError) as exc:
++        reason = str(exc).strip()[:300] or 'no reason given'
++        tell(host, 'Suspend did not start', 'The screen is locked, but logind did not put the computer to sleep: %s\nGraphite stays open as it is.' % reason)
++        return dict(state='FAILED', locked=True, step='suspend', reason=reason)
++    return dict(state='STARTED', locked=True, step='suspend', pid=locked.get('pid'), reason='Locked, then logind was asked to suspend.')
++
++
++@contextlib.contextmanager
++def sleep_held(why, who='Graphite'):
++    """While Kasandra writes a file: logind's delay lock on sleep (Inhibit 'sleep', mode 'delay'), so a suspend waits until
++    the write is done (logind waits at most its InhibitDelayMaxSec). Yields True when the lock is held; without logind (no
++    system bus, another system) it yields False and the write goes on. Released however the write ends."""
++    fd = None
++    try:
++        got = system(('inhibit', 'sleep', who, why, 'delay'))
++        fd = got if isinstance(got, int) and not isinstance(got, bool) and got >= 0 else None
++    except Exception:  # noqa: BLE001 - no inhibitor here: the write is not held up for it
++        fd = None
++    try:yield fd is not None
++    finally:
++        if fd is not None:
++            try:os.close(fd)
++            except OSError:pass
++
++
++_GUARD = None
++
++
++def SleepGuard(parent=None, environ=None):  # noqa: N802 - built like a class, made on first use (Qt is imported then)
++    """In the dedicated session: lock the screen before the computer sleeps, whoever asked for the sleep (the lid, logind's
++    idle action, Suspend). Holds logind's delay lock on sleep while the screen is not locked; on PrepareForSleep(true) it locks
++    (lock_screen, up to LOCK_SECONDS) and lets go, on PrepareForSleep(false) it takes the lock again. logind's Lock signal for
++    this session locks too. Raises OSError where it cannot work (no locker, no system bus, logind not listening): then it
++    holds nothing, so it never delays a suspend for nothing."""
++    global _GUARD
++    if _GUARD is None:_GUARD = _guard_class()
++    return _GUARD(parent, environ)
++
++
++def _guard_class():
++    from PySide6.QtCore import QObject, SLOT, Slot
++    from PySide6.QtDBus import QDBusConnection
++
++    class Guard(QObject):
++        WHY = 'Lock the screen before the computer sleeps'
++
++        def __init__(self, parent=None, environ=None):
++            super().__init__(parent)
++            self.environ = os.environ if environ is None else environ;self.fd = None;self.seen = []
++            lock = availability(environ=self.environ, only=('lock',))['lock']
++            if not lock['available']:raise OSError(lock['reason'])
++            bus = QDBusConnection.systemBus()
++            if not bus.isConnected():raise OSError('no system D-Bus')
++            self.listening = bool(bus.connect(LOGIND, MANAGER[0], MANAGER[1], 'PrepareForSleep', self, SLOT('sleeping(bool)')))
++            if not self.listening:raise OSError('logind\'s PrepareForSleep cannot be heard here')
++            path = self.session_path()
++            self.locks = bool(path) and bool(bus.connect(LOGIND, path, 'org.freedesktop.login1.Session', 'Lock', self, SLOT('locking()')))
++            self.hold()
++
++        def session_path(self):
++            try:
++                ident = system(('logind', SELF, PROPERTIES, 'Get', 'org.freedesktop.login1.Session', 'Id'))
++                value = system(('logind', *MANAGER, 'GetSession', str(ident or '')))
++            except Exception:  # noqa: BLE001 - without the session's path, logind's Lock signal is not heard; the guard still works
++                return ''
++            path = value.path() if hasattr(value, 'path') else str(value or '')
++            return path if path.startswith('/org/freedesktop/login1/session/') else ''
++
++        def hold(self):
++            if self.fd is not None:return
++            try:fd = system(('inhibit', 'sleep', 'Graphite', self.WHY, 'delay'))
++            except Exception:  # noqa: BLE001 - without the delay lock the guard still locks on PrepareForSleep, if logind waits
++                fd = None
++            self.fd = fd if isinstance(fd, int) and not isinstance(fd, bool) and fd >= 0 else None
++
++        def release(self):
++            fd, self.fd = self.fd, None
++            if fd is not None:
++                try:os.close(fd)
++                except OSError:pass
++
++        @Slot(bool)
++        def sleeping(self, going):
++            self.seen.append(('sleep', bool(going)))
++            if going:
++                try:self.seen.append(('lock', lock_screen(environ=self.environ)['state']))
++                finally:self.release()
++            else:self.hold()
++
++        @Slot()
++        def locking(self):
++            self.seen.append(('lock', lock_screen(environ=self.environ, wait=0)['state']))
++
++    return Guard
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index b236803..e0706e3 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -896,6 +896,10 @@ def relaunch(host, folder, drop=()):
+     from . import locations
+     env = dict(os.environ);env['ARC_LEDGER_WORKSPACE'] = str(folder);env.pop('ARC_LEDGER_EDITION', None)
+     for name in drop:env.pop(name, None)
++    from . import session_launch
++    if session_launch.hand_over(env):  # 1.0 S1: in the supervised session the supervisor starts it again, and the session goes on
++        if not host.close():session_launch.withdraw()
++        return
+     if not host.close():return
+     process = QProcess();process.setProgram(sys.executable);process.setArguments(['-m', 'workbench.launch'])
+     process.setWorkingDirectory(str(locations.PACKAGE))
+@@ -2246,7 +2250,9 @@ class SlateFace(QWidget):
+         if card.ran is not None:return           # one go, one run
+         try:
+             operation, arguments = line_call(card.step.line)
+-            r = engineering(self.host.root).dispatch(operation, arguments, operator())
++            from .session_power import sleep_held
++            with sleep_held('Kasandra is writing “%s”' % str(card.title)[:80]):  # 1.0 S1: a suspend waits until her write is done
++                r = engineering(self.host.root).dispatch(operation, arguments, operator())
+         except Exception as exc:  # noqa: BLE001 - a line that cannot be run is said as a refusal, never raised into the window
+             r = {'ok': False, 'error': {'message': str(exc)[:300]}}
+         card.reply = r                           # the Kernel's answer, kept (a desk act's journal line carries its correlation id)
+diff --git a/workbench/system_menu_qt.py b/workbench/system_menu_qt.py
+index c31b7dc..8692d7d 100644
+--- a/workbench/system_menu_qt.py
++++ b/workbench/system_menu_qt.py
+@@ -17,11 +17,14 @@ and place give both one design and Symmetry rule 6):
+   Graphite services    On · Off · Restart: Graphite's own services (service_lifecycle_qt.LedgerLifecycle, the cycles that were
+                        Hatch's On / Off / Reboot); the row's word opens Service details
+   ───────────────────  a separated group, each row with its scope and availability (logind is asked when the menu opens; an
+-                       unavailable row reads 'unavailable' in quiet ink, stays in the keyboard's order and says why):
++                       unavailable row reads 'unavailable' in quiet ink, stays in the keyboard's order and says why).
++                       1.0 S1: Lock, Suspend, Log out, Restart, Shut down, Return to Debian (session_power.GROUP):
++  Lock                 this screen (session_power: the screen locker, in a session of its own; Graphite stays open)
++  Suspend              this computer (session_power: the lock first, then logind; Graphite stays open)
+   Log out              this login session (session_power: loginctl terminate-session)
+-  Return to Debian     this Graphite session, in the dedicated session (ARC_LEDGER_XSESSION=1); elsewhere Exit Graphite
+   Restart              this computer (systemctl reboot)
+   Shut down            this computer (systemctl poweroff)
++  Return to Debian     this Graphite session, in the dedicated session (ARC_LEDGER_XSESSION=1); elsewhere Exit Graphite
+ 
+ Every action goes through what already exists (the Master Stop action, the operations' own dispatch inside NicePopup and
+ LedgerLifecycle, session_power's leave flow); this menu adds no operation, setting, scheduler, store or process.
+@@ -46,8 +49,8 @@ CHOICE_TIPS = {'On':'Enable new authorized work; no jobs replayed and no model o
+                'Off':'Cancel queued jobs, finish running work, then close owned services. Keep the desktop open.',
+                'Reboot':'Restart Graphite services here: cancel queued jobs, let running work finish, then start them again. A prior running model is requested again after the drain. The computer is not restarted.'}
+ BACKGROUND = 'Background CPU'                 # the process list's priority box (its whole words are the tooltip)
+-FOOT = 'each asks first and keeps your work'   # the menu's small caption at its foot (the programs list's is at its top)
+-ORDER = ('Game', 'Stop all jobs', 'processes', 'Graphite services', '—', 'Log out', 'leave', 'Restart', 'Shut down')
++FOOT = 'each keeps your work; leaving asks first'   # the menu's small caption at its foot (the programs list's is at its top; 1.0 S1: Lock and Suspend ask nothing)
++ORDER = ('Game', 'Stop all jobs', 'processes', 'Graphite services', '—', 'Lock', 'Suspend', 'Log out', 'Restart', 'Shut down', 'leave')  # 1.0 S1
+ 
+ 
+ def words_need(m):
+@@ -56,7 +59,7 @@ def words_need(m):
+     unavailable = ' · unavailable'
+     rows = [row_need(m, GAME, GAME_CAPTION), row_need(m, STOP, STOP_SCOPE), row_need(m, FOOT, '', True),
+             row_need(m, SERVICES) + choices_need(m), section_need(m)]
+-    for action in power.ACTIONS:rows.append(row_need(m, power.WORDS[action], power.SCOPES[action] + unavailable))
++    for action in (*power.STAYS, *power.ACTIONS):rows.append(row_need(m, power.WORDS[action], power.SCOPES[action] + unavailable))  # 1.0 S1: Lock, Suspend too
+     for label in ('Return to Debian', 'Exit Graphite'):rows.append(row_need(m, label, power.SCOPES['leave']))
+     return max(rows)
+ 
+@@ -144,8 +147,8 @@ class SystemMenu(DeskMenu):
+ 
+     def __init__(self, host, anchor):
+         super().__init__(host, anchor, 'upper-right', 'SystemMenuList')
+-        self.setAccessibleName('System menu');self.setAccessibleDescription('Game, Stop all jobs, the process list, Graphite services, and leaving: Log out, '
+-                                                                          + self.leave_words()['label'] + ', Restart, Shut down')
++        self.setAccessibleName('System menu');self.setAccessibleDescription('Game, Stop all jobs, the process list, Graphite services, and the session: Lock, '
++                                                                          'Suspend, Log out, Restart, Shut down, ' + self.leave_words()['label'])  # 1.0 S1
+         from . import session_power as power
+         from .desktop_header_qt import NicePopup
+         self.power = power;self.states = {}
+@@ -161,8 +164,8 @@ class SystemMenu(DeskMenu):
+         self.box.addWidget(Rule(self, strong=True))
+         leave = self.leave_words()
+         self.session_rows = {}
+-        for key, word, icon in (('logout', power.WORDS['logout'], 'logout'), ('leave', leave['label'], 'leave'),
+-                                ('restart', power.WORDS['restart'], 'restart'), ('shutdown', power.WORDS['shutdown'], 'shutdown')):
++        for key in power.GROUP:  # 1.0 S1: Lock, Suspend, Log out, Restart, Shut down, Return to Debian
++            word, icon = (leave['label'], 'leave') if key == 'leave' else (power.WORDS[key], key)
+             row = MenuRow(self, word, icon, power.SCOPES[key], callback=lambda key=key:self.session(key));row.setObjectName('Session_' + key)
+             self.session_rows[key] = row;self.box.addWidget(row)
+         self.session_rows['leave'].setToolTip(leave['tip'] + '\nScope: ' + power.SCOPES['leave'] + '.')
+@@ -229,6 +232,10 @@ class SystemMenu(DeskMenu):
+ 
+     def session(self, key):
+         if key == 'leave':self.power.leave(self.host)
++        elif key in self.power.STAYS:  # 1.0 S1: Lock and Suspend keep Graphite open; the menu closes first (the locker takes the keyboard)
++            self.close_menu(restore=False)
++            run = self.power.run_lock if key == 'lock' else self.power.run_suspend
++            QTimer.singleShot(120, lambda:run(self.host))
+         else:self.power.run_action(self.host, key)
+ 
+     # each opening
+@@ -252,7 +259,7 @@ class SystemMenu(DeskMenu):
+         tooltip, its accessible description and F1's note, and choosing it says why in a dialog (run_action refuses before
+         anything is asked or issued)."""
+         self.states = self.power.availability()
+-        for key in self.power.ACTIONS:
++        for key in (*self.power.STAYS, *self.power.ACTIONS):  # 1.0 S1: Lock and Suspend read their availability too
+             row = self.session_rows[key];state = self.states[key]
+             row.setEnabled(True);row.set_caption(self.power.SCOPES[key] + ('' if state['available'] else ' · unavailable'))
+             row.setToolTip(self.power.describe(key, state));row.set_unavailable('' if state['available'] else state['reason']);row.describe()

@@ -600,7 +600,7 @@ class SystemButton(NiceButton):
         super().__init__(host);self.setObjectName('SystemMenu');self.setText('System ▾');self.setToolButtonStyle(Qt.ToolButtonTextOnly)
         self.setAccessibleName(self.NAME);self.setToolTip(self.NAME)
         self.setAccessibleDescription('Game; Stop all jobs; the process list with its order and niceness; Graphite services On, Off, Restart; '
-                                      'Log out, Return to Debian or Exit Graphite, Restart, Shut down')
+                                      'Lock, Suspend, Log out, Restart, Shut down, Return to Debian or Exit Graphite')  # 1.0 S1: the session group's order
         self.setProperty('paperIcon', True);self.setProperty('paperFunctionalInk', True);self.setMinimumHeight(0)
         self.setStyleSheet('QToolButton#SystemMenu {background:transparent;border:0;padding:0;margin:0;}')
         self.setAttribute(Qt.WA_Hover, True)

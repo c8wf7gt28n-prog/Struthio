@@ -21,7 +21,7 @@ class FakeLogind:
     """Answers session_power.system as logind would and records every request; starts nothing. `missing` names programs not
     installed; `at_run` is called at the moment a command would start (what was already done then)."""
     def __init__(self,session='7',reboot='yes',poweroff='yes',ok=True,reason='',events=None,missing=(),at_run=None):
-        self.session=session;self.answers={'CanReboot':reboot,'CanPowerOff':poweroff};self.ok=ok;self.reason=reason
+        self.session=session;self.answers={'CanReboot':reboot,'CanPowerOff':poweroff,'CanSuspend':'yes'};self.ok=ok  # 1.0 S1: CanSuspend;self.reason=reason
         self.requests=[];self.runs=[];self.events=events if events is not None else [];self.missing=set(missing);self.at_run=at_run;self.seen=None
 
     def __call__(self,request):
@@ -35,8 +35,8 @@ class FakeLogind:
             assert path==power.MANAGER[0] and interface==power.MANAGER[1],request
             return self.answers[method]
         if request[0]=='where':
-            assert request[1] in power.PROGRAMS,request
-            return None if request[1] in self.missing else '/usr/bin/'+request[1]
+            assert request[1] in power.PROGRAMS+power.LOCKERS,request  # 1.0 S1: the screen locker is looked up too (not installed here)
+            return None if request[1] in self.missing or request[1] in power.LOCKERS else '/usr/bin/'+request[1]
         if request[0]=='run':
             self.runs.append(tuple(request[1]));self.events.append(('run',tuple(request[1])))
             if self.at_run is not None:self.seen=self.at_run()
@@ -76,11 +76,11 @@ class AvailabilityTests(unittest.TestCase):
     def test_no_logind_session_makes_every_action_unavailable_with_that_reason(self):
         fake=FakeLogind(session=None)
         with patch.object(power,'system',fake):states=power.availability('linux')
-        self.assertTrue(all(not s['available'] and s['reason'].startswith(power.NO_SESSION) for s in states.values()),states)
-        self.assertEqual([r[3] for r in fake.requests],['Get'],'nothing else is asked without a session');self.assertEqual(fake.runs,[])
+        self.assertTrue(all(not s['available'] and s['reason'].startswith(power.NO_SESSION) for a,s in states.items() if a in (*power.ACTIONS,'suspend')),states)  # 1.0 S1
+        self.assertEqual([r[3] for r in fake.requests if r[0]=='logind'],['Get'],'nothing else is asked of logind without a session');self.assertEqual(fake.runs,[])
         with patch.object(power,'system',FakeLogind(session='not a session id; rm')):states=power.availability('linux')
-        self.assertTrue(all(not s['available'] for s in states.values()))
-        states=power.availability('darwin');self.assertTrue(all(s['reason']==power.NOT_LINUX for s in states.values()))
+        self.assertTrue(all(not s['available'] for a,s in states.items() if a!='leave'))  # 1.0 S1: the leave row is always there
+        states=power.availability('darwin');self.assertTrue(all(states[a]['reason']==power.NOT_LINUX for a in power.ACTIONS))
 
     def test_the_commands_are_the_systems_own_and_never_sudo(self):
         state=dict(available=True,session='7')
@@ -381,14 +381,15 @@ class MenuTests(unittest.TestCase):
         menu,host=self.menu()
         self.assertEqual(self.fake.requests,[],'building the menu asks the system nothing (D2-fix): logind is asked when it opens')
         menu.fill()
-        self.assertEqual(menu.words(),['Game','Stop all jobs','—','processes','—','Graphite services','—','Log out','Exit Graphite','Restart','Shut down'])
+        self.assertEqual(menu.words(),['Game','Stop all jobs','—','processes','—','Graphite services','—','Lock','Suspend','Log out','Restart','Shut down','Exit Graphite'])  # 1.0 S1
         self.assertIs(menu.items()[0],menu.game,'Game first');self.assertIs(menu.items()[1],menu.kill,'Stop all jobs directly beneath')
         self.assertEqual(menu.kill.caption,'work Graphite manages');self.assertIn('What Graphite does not manage keeps running',menu.kill.toolTip())
         self.assertNotIn('Programs',menu.kill.toolTip(),'0.8.4: on screen it is Apps, and what is not an app is not called Programs')
         self.assertNotIn('Ctrl',menu.kill.toolTip(),'0.8.4: no key is named in a tip')
         rows=menu.session_rows
-        self.assertEqual({k:r.caption for k,r in rows.items()},{'logout':'this login session','leave':'this Graphite session','restart':'this computer','shutdown':'this computer · unavailable'})
-        self.assertEqual({k:r.unavailable for k,r in rows.items()},{'logout':'','leave':'','restart':'','shutdown':'Shut down is unavailable: this computer does not offer it (logind: na).'})
+        self.assertEqual({k:r.caption for k,r in rows.items()},{'lock':'this screen · unavailable','suspend':'this computer · unavailable','logout':'this login session','leave':'this Graphite session','restart':'this computer','shutdown':'this computer · unavailable'})
+        self.assertEqual({k:r.unavailable for k,r in rows.items()},{'lock':power.NO_LOCKER,'suspend':'Suspend is unavailable here: it locks the screen first. '+power.NO_LOCKER,  # 1.0 S1: no locker in the fake
+                                                                   'logout':'','leave':'','restart':'','shutdown':'Shut down is unavailable: this computer does not offer it (logind: na).'})
         self.assertTrue(all(r.isEnabled() for r in rows.values()),'an unavailable row stays reachable: it says why')
         self.assertIn('logind: na',rows['shutdown'].toolTip());self.assertIn('Scope: this computer.',rows['restart'].toolTip())
         self.assertIn('First Graphite asks about your open work',rows['restart'].toolTip());self.assertIn('Nothing is stopped before you confirm',rows['restart'].toolTip())
@@ -408,7 +409,8 @@ class MenuTests(unittest.TestCase):
         from PySide6.QtWidgets import QApplication
         menu,host=self.menu();host.resize(1366,768);menu.open_menu(keyboard=True);self.settle()
         rows=menu.session_rows;self.assertIn(rows['shutdown'],menu.focusables())
-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_End);self.settle();self.assertIs(QApplication.focusWidget(),rows['shutdown'],'End reaches the last row, unavailable or not')
+        QTest.keyClick(QApplication.focusWidget(),Qt.Key_End);self.settle();self.assertIs(QApplication.focusWidget(),rows['leave'],'End reaches the last row')  # 1.0 S1: the leave row is last
+        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Up);self.settle();self.assertIs(QApplication.focusWidget(),rows['shutdown'],'the keyboard reaches an unavailable row')
         QTest.keyClick(rows['shutdown'],Qt.Key_F1);self.settle()
         self.assertTrue(host.messages[-1].startswith('Shut down · this computer · unavailable'),host.messages[-1]);self.assertIn('Unavailable: Shut down is unavailable: this computer does not offer it (logind: na).',host.messages[-1])
         self.assertIn('Unavailable: Shut down is unavailable: this computer does not offer it (logind: na).',rows['shutdown'].accessibleDescription())
@@ -416,7 +418,7 @@ class MenuTests(unittest.TestCase):
         told=[]
         with patch.object(power,'tell',side_effect=lambda h,title,text:told.append((title,text))):QTest.keyClick(rows['shutdown'],Qt.Key_Return);self.settle()
         self.assertEqual(told[0][0],'Shut down is unavailable');self.assertIn('logind: na',told[0][1]);self.assertEqual(self.fake.runs,[])
-        self.assertFalse(any(r[0]=='where' for r in self.fake.requests),'refused before anything else')
+        self.assertFalse(any(r[0]=='where' and r[1] in power.PROGRAMS for r in self.fake.requests),'refused before anything else')  # 1.0 S1: the locker's look-up is the menu's
 
     def test_a_resting_pointer_takes_no_row_until_it_moves(self):
         """D2-fix (found when the unavailable rows became reachable: a window check's pointer rested where Restart opens and took the

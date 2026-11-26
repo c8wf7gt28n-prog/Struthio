@@ -17,11 +17,14 @@ and place give both one design and Symmetry rule 6):
   Graphite services    On · Off · Restart: Graphite's own services (service_lifecycle_qt.LedgerLifecycle, the cycles that were
                        Hatch's On / Off / Reboot); the row's word opens Service details
   ───────────────────  a separated group, each row with its scope and availability (logind is asked when the menu opens; an
-                       unavailable row reads 'unavailable' in quiet ink, stays in the keyboard's order and says why):
+                       unavailable row reads 'unavailable' in quiet ink, stays in the keyboard's order and says why).
+                       1.0 S1: Lock, Suspend, Log out, Restart, Shut down, Return to Debian (session_power.GROUP):
+  Lock                 this screen (session_power: the screen locker, in a session of its own; Graphite stays open)
+  Suspend              this computer (session_power: the lock first, then logind; Graphite stays open)
   Log out              this login session (session_power: loginctl terminate-session)
-  Return to Debian     this Graphite session, in the dedicated session (ARC_LEDGER_XSESSION=1); elsewhere Exit Graphite
   Restart              this computer (systemctl reboot)
   Shut down            this computer (systemctl poweroff)
+  Return to Debian     this Graphite session, in the dedicated session (ARC_LEDGER_XSESSION=1); elsewhere Exit Graphite
 
 Every action goes through what already exists (the Master Stop action, the operations' own dispatch inside NicePopup and
 LedgerLifecycle, session_power's leave flow); this menu adds no operation, setting, scheduler, store or process.
@@ -46,8 +49,8 @@ CHOICE_TIPS = {'On':'Enable new authorized work; no jobs replayed and no model o
                'Off':'Cancel queued jobs, finish running work, then close owned services. Keep the desktop open.',
                'Reboot':'Restart Graphite services here: cancel queued jobs, let running work finish, then start them again. A prior running model is requested again after the drain. The computer is not restarted.'}
 BACKGROUND = 'Background CPU'                 # the process list's priority box (its whole words are the tooltip)
-FOOT = 'each asks first and keeps your work'   # the menu's small caption at its foot (the programs list's is at its top)
-ORDER = ('Game', 'Stop all jobs', 'processes', 'Graphite services', '—', 'Log out', 'leave', 'Restart', 'Shut down')
+FOOT = 'each keeps your work; leaving asks first'   # the menu's small caption at its foot (the programs list's is at its top; 1.0 S1: Lock and Suspend ask nothing)
+ORDER = ('Game', 'Stop all jobs', 'processes', 'Graphite services', '—', 'Lock', 'Suspend', 'Log out', 'Restart', 'Shut down', 'leave')  # 1.0 S1
 
 
 def words_need(m):
@@ -56,7 +59,7 @@ def words_need(m):
     unavailable = ' · unavailable'
     rows = [row_need(m, GAME, GAME_CAPTION), row_need(m, STOP, STOP_SCOPE), row_need(m, FOOT, '', True),
             row_need(m, SERVICES) + choices_need(m), section_need(m)]
-    for action in power.ACTIONS:rows.append(row_need(m, power.WORDS[action], power.SCOPES[action] + unavailable))
+    for action in (*power.STAYS, *power.ACTIONS):rows.append(row_need(m, power.WORDS[action], power.SCOPES[action] + unavailable))  # 1.0 S1: Lock, Suspend too
     for label in ('Return to Debian', 'Exit Graphite'):rows.append(row_need(m, label, power.SCOPES['leave']))
     return max(rows)
 
@@ -144,8 +147,8 @@ class SystemMenu(DeskMenu):
 
     def __init__(self, host, anchor):
         super().__init__(host, anchor, 'upper-right', 'SystemMenuList')
-        self.setAccessibleName('System menu');self.setAccessibleDescription('Game, Stop all jobs, the process list, Graphite services, and leaving: Log out, '
-                                                                          + self.leave_words()['label'] + ', Restart, Shut down')
+        self.setAccessibleName('System menu');self.setAccessibleDescription('Game, Stop all jobs, the process list, Graphite services, and the session: Lock, '
+                                                                          'Suspend, Log out, Restart, Shut down, ' + self.leave_words()['label'])  # 1.0 S1
         from . import session_power as power
         from .desktop_header_qt import NicePopup
         self.power = power;self.states = {}
@@ -161,8 +164,8 @@ class SystemMenu(DeskMenu):
         self.box.addWidget(Rule(self, strong=True))
         leave = self.leave_words()
         self.session_rows = {}
-        for key, word, icon in (('logout', power.WORDS['logout'], 'logout'), ('leave', leave['label'], 'leave'),
-                                ('restart', power.WORDS['restart'], 'restart'), ('shutdown', power.WORDS['shutdown'], 'shutdown')):
+        for key in power.GROUP:  # 1.0 S1: Lock, Suspend, Log out, Restart, Shut down, Return to Debian
+            word, icon = (leave['label'], 'leave') if key == 'leave' else (power.WORDS[key], key)
             row = MenuRow(self, word, icon, power.SCOPES[key], callback=lambda key=key:self.session(key));row.setObjectName('Session_' + key)
             self.session_rows[key] = row;self.box.addWidget(row)
         self.session_rows['leave'].setToolTip(leave['tip'] + '\nScope: ' + power.SCOPES['leave'] + '.')
@@ -229,6 +232,10 @@ class SystemMenu(DeskMenu):
 
     def session(self, key):
         if key == 'leave':self.power.leave(self.host)
+        elif key in self.power.STAYS:  # 1.0 S1: Lock and Suspend keep Graphite open; the menu closes first (the locker takes the keyboard)
+            self.close_menu(restore=False)
+            run = self.power.run_lock if key == 'lock' else self.power.run_suspend
+            QTimer.singleShot(120, lambda:run(self.host))
         else:self.power.run_action(self.host, key)
 
     # each opening
@@ -252,7 +259,7 @@ class SystemMenu(DeskMenu):
         tooltip, its accessible description and F1's note, and choosing it says why in a dialog (run_action refuses before
         anything is asked or issued)."""
         self.states = self.power.availability()
-        for key in self.power.ACTIONS:
+        for key in (*self.power.STAYS, *self.power.ACTIONS):  # 1.0 S1: Lock and Suspend read their availability too
             row = self.session_rows[key];state = self.states[key]
             row.setEnabled(True);row.set_caption(self.power.SCOPES[key] + ('' if state['available'] else ' · unavailable'))
             row.setToolTip(self.power.describe(key, state));row.set_unavailable('' if state['available'] else state['reason']);row.describe()

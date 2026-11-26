@@ -19,7 +19,7 @@ DISPLAY_TITLES={'File':'Work','Edit':'Revise','Tools':'Tools','Options':'Arrange
 # File: getting files in and working on them. Edit: text. View: where you are and how the window looks.
 # Tools: who you type to, the chain menu, and Ledger's own tools. Help: how to begin, and what is new.
 FILE = ['new', '@new_idea', '@new_project', 'open', 'viewer', 'quick', '@recent', None, '@receive', '@import', '@export', '@work_copy', None, 'save', 'save_all', 'close', None, 'recovery',
-        None, '@leave']      # 0.7.0: leaving (Log out, Exit Graphite, Restart, Shut down) at the foot of the first menu; it was the System menu's last group
+        None, '@leave']      # 0.7.0: leaving at the foot of the first menu; it was the System menu's last group (1.0 S1: Lock, Suspend, Log out, Restart, Shut down, Exit Graphite)
 EDIT = ['undo', 'redo', None, 'cut', 'copy', 'paste', 'select', None, 'find', 'find_next', 'replace', 'goto']
 VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda', '@slate_panel', None, '@console_sizes', '@cabinet', '@machine_refresh', None,
         'fullscreen', 'reading', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9)
@@ -219,9 +219,12 @@ def rebuild(host):
             made = getattr(host, '_leave_actions', None)
             if made is None:
                 made = host._leave_actions = {};leave = power.session_exit()
-                for name, word in (('logout', power.WORDS['logout']), ('leave', leave['label']), ('restart', power.WORDS['restart']), ('shutdown', power.WORDS['shutdown'])):
+                # 1.0 S1: the session group's order, Lock, Suspend, Log out, Restart, Shut down, Return to Debian
+                run = {'leave':power.leave, 'lock':power.run_lock, 'suspend':power.run_suspend}
+                for name in power.GROUP:
+                    word = leave['label'] if name == 'leave' else power.WORDS[name]
                     a = QAction(word, host);a.setToolTip(power.SCOPES[name]);a.setStatusTip(power.SCOPES[name])
-                    a.triggered.connect(lambda checked=False, name=name:power.leave(host) if name == 'leave' else power.run_action(host, name))
+                    a.triggered.connect(lambda checked=False, name=name:run[name](host) if name in run else power.run_action(host, name))
                     made[name] = a
             for a in made.values():menu.addAction(a);placed.add(a)
             return
