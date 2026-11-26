@@ -302,6 +302,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 06:50 UTC: **1.0 S5 merged** (1567c80: notification server, lxpolkit, Settings 'This computer', the dock, the
+  leave flow; smoke as expected on stand-ins). The session lane S1-S5 is done. Its notes: Fluxbox, lxpolkit and
+  notify-send are not here (stand-ins used); `test_context_menu` (~line 472) now right-clicks 'Default apps' first (by
+  reading, still holds). **K6 launched** (the utility sandbox; agent af116c5d2d8aa6a54). Running: L5, K5, K3, K6.
+  Still to start: K4, K7, K8, F1, F2, A1, X1, X2, R1, R2.
+
 - 26 Nov 06:25 UTC: **1.0 K2 merged** (d1bb614: the tool registry, 22 numbered tools with slots for K5-K8; receipts
   dispatched/verified; tools.use and window operations; smoke 52/52). Its notes: K5 fills `office.read`/`office.edit`
   via `tools_registry.fill` (K5 told); K3 plugs in at `tools_registry.GRANT_CHECK`; K4 uses `menu()`, `as_step()`,
