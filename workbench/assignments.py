@@ -925,8 +925,10 @@ def _run_one(kernel, ident, principal, epoch=None):
         with _writing(kernel) as db:
             value = _load(db, ident, principal);live = next(s for s in value['steps'] if s['key'] == step['key'])
             live.update(status='blocked', reason=reason)
+            after = _after_step(kernel, db, value, live, 'BLOCKED')  # 1.0 K4: another registered route inside its scope, when there is one
             _save(db, value);_journal(db, value, live, 'BLOCKED', 'Step %d is blocked: %s. Nothing was sent.' % (live['n'], reason))
-        return ('Step %d is blocked: %s' % (step['n'], reason), False)
+            for row in after:_journal(db, value, *row)  # 1.0 K4
+        return ('Step %d is blocked: %s' % (step['n'], reason) + ''.join(' ' + row[2] for row in after), any(row[1] == 'REVISED' for row in after))
     # Written before the effect: prepared, with what it will be checked against.
     with _writing(kernel) as db:
         value = _load(db, ident, principal);live = next(s for s in value['steps'] if s['key'] == step['key'])
@@ -1000,14 +1002,29 @@ def _run_one(kernel, ident, principal, epoch=None):
         else:
             live.update(status='needs review', reason=(result or {}).get('reason', 'not verified'))
             entry, words, detail = 'NOT_VERIFIED', 'Step %d was sent and is not verified: %s. It is not called done.' % (live['n'], live['reason']), {'elapsed_ms': elapsed}
+        after = _after_step(kernel, db, value, live, entry) if entry in ('DONE', 'FOUND_DONE', 'BLOCKED', 'REFUSED') else []  # 1.0 K4
         _finish_state(value)
         gate_after = _gate(kernel)
         if value['state'] not in (STOPPED, DONE) and (gate_after['held'] or gate_after['epoch'] != gate['epoch']):
             value.update(state=HELD, reason='Her work was held while step %d ran; what it did is recorded.' % live['n'])
         _save(db, value);_journal(db, value, live, entry, words, detail)
+        for row in after:_journal(db, value, *row)  # 1.0 K4: the step that follows from it, or another route, journalled after it
         if value['state'] == DONE:_journal(db, value, None, 'FINISHED', 'Every step is done (verified).')
-        carry = entry in ('DONE', 'FOUND_DONE') and value['state'] == OPEN
+        carry = (entry in ('DONE', 'FOUND_DONE') or any(row[1] == 'REVISED' for row in after)) and value['state'] == OPEN
+        words += ''.join(' ' + row[2] for row in after)  # 1.0 K4
     return (words, carry)
+
+
+AFTER_STEP = None            # 1.0 K4 sets it: callable(kernel, db, assignment, step, entry) -> [(step, entry, words, detail)] to journal
+
+
+def _after_step(kernel, db, value, step, entry):
+    """1.0 K4: what follows from a step's outcome in a plan of hers (AFTER_STEP): rows to journal after the step's own; [] when
+    nothing does. A hook that fails changes nothing: the plan stays as it was planned."""
+    if AFTER_STEP is None:return []
+    try:return list(AFTER_STEP(kernel, db, value, step, entry) or [])
+    except Exception:  # noqa: BLE001 - a plan that cannot be carried further stays as it was planned
+        return []
 
 
 def run(kernel, ident, principal, until='next'):

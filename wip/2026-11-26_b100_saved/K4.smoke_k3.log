@@ -1,0 +1,238 @@
+Rail Demo built through its own door in 9 s
+registry 23: page.update True | AFTER_STEP set: True
+
+== reading of the words
+  ['recheck', 'the startup power', (8,), True]
+  ['update', 'the summary page', (23, 19, 4), True]
+reads as an objective: True | "trace the bench readings": False | "read the bench readings": False
+
+== A1. objective.plan (read, no model): things
+  D1 calculation “Rail Demo settled power · 3 W” (a calculation)
+  D2 calculation “Rail Demo startup power · 10.8 W” (a calculation)
+  D3 sheet “Rail Demo bench readings” (a sheet)
+  D4 sheet “Rail Demo limits Rev A ARCHIVED” (a sheet)
+  D5 sheet “Rail Demo limits Rev B CURRENT” (a sheet)
+  D6 page “Rail Demo summary” (a page)
+
+== A1. objective.plan words
+I would do it in 3 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+1. Read “Rail Demo bench readings”: a read, it goes ahead.
+2. Recompute the startup power: marked for your approval, authorised by its own name.
+3. Update “Rail Demo summary” with the checked startup power: a change, it waits for your word.
+It is in ACTIVE WORK; your next press is in NEXT STEPS.
+
+== A2. objective.offer with no model: by=desk offered=True outcome=NOT_ASKED
+I would do it in 3 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+1. Read “Rail Demo bench readings”: read, and verified.
+2. Recompute the startup power: marked for your approval, authorised by its own name.
+3. Update “Rail Demo summary” with the checked startup power: a change, it waits for your word.
+It is in ACTIVE WORK; your next press is in NEXT STEPS.
+
+== A2. the assignment as offered
+  state_words: waiting for your word
+  line: Step 2 (Recompute the startup power) waits for your word.
+  actions:
+    Authorise step 2
+    Stop
+  steps:
+    [1, 'read', 'Read “Rail Demo bench readings”', 'office.get', 'read', 'owner_words', 'done', 'done (verified)']
+    [2, 'recompute', 'Recompute the startup power', 'office.datasheet.recheck', 'approve', 'owner_words', 'proposed', 'proposed']
+    [3, 'update_page', 'Update “Rail Demo summary” with the checked startup power', 'documents.save', 'execute', 'owner_words', 'proposed', 'proposed']
+
+== A3. Carry on
+  said:
+    Step 2 (Recompute the startup power) waits for your word.
+  actions:
+    Authorise step 2
+    Stop
+
+== A4. Authorise step 2, carry on
+  said:
+    Step 2 done (verified): Recompute the startup power. page e8729ac1 replaces 7dcbb2f3: 10.8 W exactly, from the sheet as it is now
+    Step 3 blocked: needs your grant: save a page on the page “Rail Demo summary”; no grant of yours is in force here
+  actions:
+    Grant this for this assignment
+    Stop
+
+== A5. Authorise step 3, carry on
+  said:
+    Step 3 done (verified): Update “Rail Demo summary” with the checked startup power. “Rail Demo summary” at revision 2 holds the new writing
+  state: done
+  journal_says: Step 1 done (verified); step 2 done (verified); step 3 done (verified).
+
+== A6. the summary page now (revision 2)
+Rail Demo summary
+Invented demonstration data. Nothing here was measured.
+The 12 V rail settles at 250 mA, which is 3 W: inside the Rev B limit of 4 W.
+Startup takes 45 ms. Startup power is 10.8 W. Rev A allowed 60 ms; Rev B allows 40 ms, so startup is 5 ms over.
+Open: why startup takes longer than 40 ms.
+
+== A7. receipts of the assignment
+  ['update_page', 'verified', 'page.update']
+  ['update_page', 'dispatched', 'page.update']
+  ['recompute', 'verified', 'calculation.recheck']
+  ['recompute', 'dispatched', 'calculation.recheck']
+  ['read', 'verified', 'kernel.read']
+  ['read', 'dispatched', 'kernel.read']
+
+== B0. PLAN grammar: check ok: True | worst tokens: 27 | fits cap 48: True | admits the stand-in line: False | admits "1 D3|8 D2|23 D6 S2": True
+
+== B0. message 2 (stable)
+Tools:
+1 Read a record through the Kernel: a sheet, a page, a finding, a source, the board, the Agenda, by any of its registered reads. Takes D (a sheet, a page or a calculation).
+2 Read a file in Files: its kind, its text or its table, at the digest it has on disk. Takes D (a file).
+3 Write a new file in Files, holding the text given. Takes nothing: it notes the checked values.
+8 Work a calculation page again from its sheet as it is now: a new page replaces the old one. Takes D (a calculation).
+17 Read this computer's storage, power, network, sound and screens. Takes nothing.
+18 Read a Writer document or a Calc sheet through LibreOffice's own interface: its paragraphs, its cells. Takes D (a document in Files).
+19 Replace a passage or set a cell through LibreOffice, save, and read the saved file back. Takes D (a Writer document) and S (the step that checked the value).
+23 Save a new revision of a page of Graphite's: a sentence with a checked value, every other block as it was. Takes D (a page) and S (the step that checked the value).
+Things on the desk:
+D1 calculation “Rail Demo settled power · 3 W” (a calculation)
+D2 calculation “Rail Demo startup power · 10.8 W” (a calculation)
+D3 sheet “Rail Demo bench readings” (a sheet)
+D4 sheet “Rail Demo limits Rev A ARCHIVED” (a sheet)
+D5 sheet “Rail Demo limits Rev B CURRENT” (a sheet)
+D6 page “Rail Demo summary” (a page)
+
+== B1. the stand-in said "1 D3|8 D2|42 D2|23 D6 S2": by=model outcome=TRIMMED offered=True
+I would do it in 3 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+My model proposed the steps and the desk checked each one.
+1. Read “Rail Demo bench readings”: read, and verified.
+2. Recompute the startup power: marked for your approval, authorised by its own name.
+3. Update “Rail Demo summary” with the checked startup power: a change, it waits for your word.
+I left out the model’s step 3: 42 is not a registered tool; nothing else is used.
+It is in ACTIVE WORK; your next press is in NEXT STEPS.
+
+== B1. refused / offered steps
+  refused:
+    [3, '42 is not a registered tool; nothing else is used']
+  steps:
+    [1, 'Read “Rail Demo bench readings”', 'office.get', 'model_pick', 'done']
+    [2, 'Recompute the startup power', 'office.datasheet.recheck', 'owner_words', 'proposed']
+    [3, 'Update “Rail Demo summary” with the checked startup power', 'documents.save', 'owner_words', 'proposed']
+
+== B1. the turn record
+  kind: PLAN
+  outcome: TRIMMED
+  why: PLAN_STEP_REFUSED
+  fallback: None
+  differs: True
+
+== B2. "recheck the startup power", the stand-in adds a page update: by=model
+I would do it in 2 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+My model proposed the steps and the desk checked each one.
+1. Recompute the startup power: marked for your approval, authorised by its own name.
+2. Update “Rail Demo summary” with the checked startup power: only the model chose it, so it is yours to authorise by its own name.
+It is in ACTIVE WORK; your next press is in NEXT STEPS.
+
+== B2. Authorise all
+  step 1 is authorised only by its own name: the records mark it for your approval
+  step 2 is authorised only by its own name: the model suggested this; nothing you said asks for it, so it is yours to say
+
+== B3. words the desk cannot place: offered=False
+I did not plan “recheck the flux capacitor”: nothing on the desk is called that.
+I did not plan “update the moon page”: nothing on the desk is called that.
+I could not make a plan of that from the registered tools.
+
+== C1. "recheck that one and update the summary page" (focus: startup power)
+I would do it in 3 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+1. Read “Rail Demo bench readings”: a read, it goes ahead.
+2. Recompute the startup power: marked for your approval, authorised by its own name.
+3. Update “Rail Demo summary” with the checked startup power: a change, it waits for your word.
+It is in ACTIVE WORK; your next press is in NEXT STEPS.
+
+== C2. four in one request, "this one" and "the earlier one"
+I would do it in 5 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+1. Read “Rail Demo bench readings”: a read, it goes ahead.
+2. Recompute the settled power: marked for your approval, authorised by its own name.
+3. Recompute the startup power: marked for your approval, authorised by its own name.
+4. Update “Rail Demo summary” with the checked startup power: a change, it waits for your word.
+5. Write a note of the checked values: a change, it waits for your word.
+It is in ACTIVE WORK; your next press is in NEXT STEPS.
+
+== C3. five in one request
+I would do it in 5 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+1. Read “Rail Demo bench readings”: a read, it goes ahead.
+2. Recompute the settled power: marked for your approval, authorised by its own name.
+3. Recompute the startup power: marked for your approval, authorised by its own name.
+4. Update “Rail Demo summary” with the checked startup power: a change, it waits for your word.
+5. Write a note of the checked values: a change, it waits for your word.
+I did not plan “rename the report to Old”: I take up to four things in one request.
+It is in ACTIVE WORK; your next press is in NEXT STEPS.
+
+== D1. "recheck the startup power and update the summary report": by=desk
+I would do it in 3 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+1. Read “Rail Demo bench readings”: read, and verified.
+2. Recompute the startup power: marked for your approval, authorised by its own name.
+3. Check “Rail Demo summary report.odt” against the checked startup power and prepare its update: a read, it goes ahead.
+Once the value is checked, the update is planned with it fixed, and waits for your word.
+It is in ACTIVE WORK; your next press is in NEXT STEPS.
+
+== D2. Carry on, authorise step 2, carry on
+  said:
+    Step 2 done (verified): Recompute the startup power. page 5e763cca replaces e8729ac1: 10.8 W exactly, from the sheet as it is now
+    Step 3 done (verified): Check “Rail Demo summary report.odt” against the checked startup power and prepare its update. read, and read again: the same revision Step 4 is planned now that the value is checked: Update “Rail Demo summary report.odt” through LibreOffice: “Startup takes 45 ms. Startup power is 10.8 W.”. It waits for your word, by its own name.
+    Step 4 (Update “Rail Demo summary report.odt” through LibreOffice: “Startup takes 45 ms. Startup power is 10.8 W.”) waits for your word.
+  steps:
+    [1, 'read', 'Read “Rail Demo bench readings”', 'office.get', 'read', 'owner_words', 'done', 'done (verified)']
+    [2, 'recompute', 'Recompute the startup power', 'office.datasheet.recheck', 'approve', 'owner_words', 'done', 'done (verified)']
+    [3, 'check_report', 'Check “Rail Demo summary report.odt” against the checked startup power and prepare its update', 'libreoffice.prepare', 'read', 'owner_words', 'done', 'done (verified)']
+    [4, 'update_report', 'Update “Rail Demo summary report.odt” through LibreOffice: “Startup takes 45 ms. Startup power is 10.8 W.”', 'libreoffice.replace', 'approve', 'owner_words', 'proposed', 'proposed']
+  actions:
+    Authorise step 4
+    Stop
+
+== D3. Authorise step 4 (LibreOffice), carry on (3 s)
+  said:
+    Step 4 done (verified): Update “Rail Demo summary report.odt” through LibreOffice: “Startup takes 45 ms. Startup power is 10.8 W.”. The saved document, read back directly, says "Startup takes 45 ms. Startup power is 10.8 W. Rev B allows 40 ms, so the startup question stays open.". Revision 2 is on disk (SHA-256 b06989c45360…).
+  state: done
+  journal_says: Step 1 done (verified); step 2 done (verified); step 3 done (verified); step 4 done (verified).
+
+== D3. the report read back
+  Startup takes 45 ms. Startup power is 10.8 W. Rev B allows 40 ms, so the startup question stays open.
+  Startup duration limit
+  Open: why startup takes longer than 40 ms.
+
+E0. settled current set to 300 mA: settled power now 3.6 W
+
+== E1. without LibreOffice
+  said:
+    Step 2 done (verified): Recompute the settled power. page a5a6a928 replaces a5e04962: 3.6 W exactly, from the sheet as it is now
+    Step 3 done (verified): Check “Rail Demo summary report.odt” against the checked settled power and prepare its update. read, and read again: the same revision LibreOffice's interface is not available here: LibreOffice is not installed. The change stays prepared as text for you: “Settled power is 3.0 W at 12 V.” would read “Settled power is 3.6 W at 12 V.”.
+  steps:
+    [1, 'read', 'Read “Rail Demo bench readings”', 'office.get', 'read', 'owner_words', 'done', 'done (verified)']
+    [2, 'recompute', 'Recompute the settled power', 'office.datasheet.recheck', 'approve', 'owner_words', 'done', 'done (verified)']
+    [3, 'check_report', 'Check “Rail Demo summary report.odt” against the checked settled power and prepare its update', 'libreoffice.prepare', 'read', 'owner_words', 'done', 'done (verified)']
+  state: done
+
+F0. steps after the check: [(1, 'read', 'Read “Rail Demo bench readings”', 'office.get', 'read', 'owner_words', 'done', 'done (verified)'), (2, 'recompute', 'Recompute the settled power', 'office.datasheet.recheck', 'approve', 'owner_words', 'done', 'done (verified)'), (3, 'check_report', 'Check “Rail Demo summary report.odt” against the checked settled power and prepare its update', 'libreoffice.prepare', 'read', 'owner_words', 'done', 'done (verified)'), (4, 'update_report', 'Update “Rail Demo summary report.odt” through LibreOffice: “Settled power is 3.6 W at 12 V.”', 'libreoffice.replace', 'approve', 'owner_words', 'proposed', 'proposed')]
+
+== F1. LibreOffice gone when the update ran
+  said:
+    Step 4 is blocked: LibreOffice's interface is not available here: LibreOffice is not installed; the change can be offered as prepared text instead She looked at step 4: nothing was sent, so its only record is the journal. She chose another registered route inside the same scope: Prepare the change to “Rail Demo summary report.odt” as text (nothing written).
+    Step 4 done (verified): Prepare the change to “Rail Demo summary report.odt” as text (nothing written). read, and read again: the same revision
+  steps:
+    [1, 'read', 'Read “Rail Demo bench readings”', 'office.get', 'read', 'owner_words', 'done', 'done (verified)']
+    [2, 'recompute', 'Recompute the settled power', 'office.datasheet.recheck', 'approve', 'owner_words', 'done', 'done (verified)']
+    [3, 'check_report', 'Check “Rail Demo summary report.odt” against the checked settled power and prepare its update', 'libreoffice.prepare', 'read', 'owner_words', 'done', 'done (verified)']
+    [4, 'update_report_as_text', 'Prepare the change to “Rail Demo summary report.odt” as text (nothing written)', 'libreoffice.prepare', 'read', 'owner_words', 'done', 'done (verified)']
+  state: done
+
+== F1. journal rows
+  ['PLANNED', 'Planned: 1. Read “Rail Demo bench readings”; 2. Recompute the settled power; 3. Check “Rail Demo summary report.odt” against the checked settled power and prepare its update']
+  ['PLANNED', 'Step 4 is planned now that the value is checked: Update “Rail Demo summary report.odt” through LibreOffice: “Settled power is 3.6 W at 12 V.”. It waits for your word, by its own name.']
+  ['BLOCKED', "Step 4 is blocked: LibreOffice's interface is not available here: LibreOffice is not installed; the change can be offered as prepared text instead. Nothing was sent."]
+  ['REVISED', 'She looked at step 4: nothing was sent, so its only record is the journal. She chose another registered route inside the same scope: Prepare the change to “Rail Demo summary report.odt” as text (nothing written).']
+
+== H1. HALT held: by=desk, model turns sent: 0, steps: [(1, 'authorised'), (2, 'proposed'), (3, 'proposed')]
+HALT holds my work, so my model was not asked and nothing runs: this is the desk’s own plan, offered for when you lift it.
+I would do it in 3 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+1. Read “Rail Demo bench readings”: a read, it goes ahead.
+2. Recompute the startup power: marked for your approval, authorised by its own name.
+3. Update “Rail Demo summary” with the checked startup power: a change, it waits for your word.
+It is in ACTIVE WORK; your next press is in NEXT STEPS.
+H2. grant.* never a step here: True
+
+smoke done
+exit 0

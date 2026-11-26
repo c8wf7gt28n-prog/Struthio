@@ -1,0 +1,58 @@
+{
+ "item": "K4",
+ "status": "built (not tested in the owner's sense; nothing ran on the ThinkPad)",
+ "summary": "From an objective to a plan. workbench/objective_plan.py reads the owner's words into up to four clauses (B7, with \"that one\", \"this\", \"it\", \"the earlier one\"), finds their objects among the desk's numbered things, and plans them over the tool registry: with no model by the desk's methods (0.8.x planner idea widened to the registry), with a model by the new PLAN turn kind (registered in turns.py; grammar of registry numbers and D/W/S handles; the desk fills every argument from its handle; steps outside the registry or not here are refused, the rest offered). The plan is offered as a K1 assignment in her column (ACTIVE WORK; NEXT STEPS \"Authorise step 2\" first, since the leading reads go ahead and every change waits). The summary page is updated by a new registry tool 23 page.update (documents.save, verified by reading the page back); a report (.odt) is checked and its change prepared first, then the update through K5 is planned with the checked value fixed (or the prepared text stands without LibreOffice). On a failure the step's receipt is inspected and another registered route inside the same scope is chosen (LibreOffice change -> prepared text), else it stays blocked with the reason.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4.patch",
+ "notes_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4.progress.md",
+ "files_changed": [
+  "workbench/objective_plan.py (new)",
+  "workbench/objective_plan_qt.py (new)",
+  "workbench/assignments.py (AFTER_STEP hook, two call sites in _run_one, marked 1.0 K4)",
+  "workbench/shell2.py (objective_asked hook, marked 1.0 K4)",
+  "workbench/agent_loop.py (docstring pointer, 1.0 K4)",
+  "workbench/engineering_kernel.py, workbench/engineering_cli.py (registrations, 1.0 K4 lines)",
+  "docs/GRAPHITE_0.1_REGISTRY.json (regenerated in the copy: objective.plan, objective.offer)"
+ ],
+ "smoke": {
+  "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4/smoke.py (run on a throwaway copy under the wrapper; output /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4/smoke.out; also on main d96ff2a + this patch: /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4/smoke_k3.log; real 4B once: /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4/live.py -> live.log)",
+  "output": [
+   "Rail Demo built through its own door in 9 s",
+   "A (no model) \"recheck the startup power and update the summary page\": by=desk, 3 steps: 1. Read \"Rail Demo bench readings\" (read, verified at the offer); 2. Recompute the startup power (approve, by its own name); 3. Update \"Rail Demo summary\" with the checked startup power (a change, waits). Authorise 2 + Carry on -> \"page ... replaces ...: 10.8 W exactly\"; Authorise 3 + Carry on -> \"Rail Demo summary at revision 2 holds the new writing\"; journal: steps 1-3 done (verified); page now reads \"Startup takes 45 ms. Startup power is 10.8 W. ...\"; receipts dispatched+verified per step.",
+   "B (stand-in) said \"1 D3|8 D2|42 D2|23 D6 S2\": PLAN outcome TRIMMED (PLAN_STEP_REFUSED), \"I left out the model's step 3: 42 is not a registered tool; nothing else is used.\", the other three offered (read, recompute, update page). Grammar: check ok, worst 27 tokens, fits cap 48, does not admit 42.",
+   "B2 stand-in adds a page update the owner did not ask for: offered as \"only the model chose it\"; Authorise all -> \"step 2 is authorised only by its own name: the model suggested this; nothing you said asks for it\".",
+   "C: \"recheck that one and update the summary page\" (focus startup power) -> same 3 steps; \"this one\"/\"the earlier one\" + four clauses -> 5 steps; five clauses -> the fifth said as \"I take up to four things in one request\".",
+   "D (coordinator's extra) \"... update the summary report\": read, recompute, check report + prepare (3 steps); after the check step 4 planned with the value fixed: Update \"Rail Demo summary report.odt\" through LibreOffice; authorised -> done (verified) in 1 s here; report reads \"Startup takes 45 ms. Startup power is 10.8 W.\"",
+   "E (settled current 300 mA, LibreOffice patched away): \"LibreOffice's interface is not available here ... The change stays prepared as text for you: \"Settled power is 3.0 W at 12 V.\" would read \"Settled power is 3.6 W at 12 V.\"\"; 3.0 vs 3 counted as the same number (no change offered when equal).",
+   "F (LibreOffice gone when step 4 ran): blocked, then REVISED: \"She looked at step 4 ... She chose another registered route inside the same scope: Prepare the change ... as text (nothing written)\" -> done (verified).",
+   "On main + K3 (smoke_k3.log): same results; step 3 reached unauthorised shows K3's \"needs your grant\" with \"Grant this for this assignment\", the press by name runs it; HALT pressed: by=desk, model turns sent: 0, nothing ran, words \"HALT holds my work, so my model was not asked ...\"; grant.* in NOT_HERE.",
+   "REAL 4B (once, under the model lock, Graphite's own brain.model.add/use, pinned runtime, seal SEALED, CPU, 3 threads): registered in 75 s, started in 77 s; asked through her ask line in the day look: PLAN turn priced 15,830 ms, deadline 20,000 ms, 492 prompt tokens (309 new); outcome LATE at 20,033 ms, no answer; the desk's own plan (fallback PATTERNS) offered with \"My model's plan was not taken (late), so this is the desk's own plan.\"; frame k4_live4b_day_1920x1200.png shows \"Kasandra ●, Qwen3.5 4B\" (model ready) and NEXT STEPS \"Authorise step 2\".",
+   "Frames (/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4/frames/): k4_offered, k4_running, k4_done in graphite, kasandra and day at 1920x1200 and 1366x768."
+  ]
+ },
+ "existing_tests_changed": [],
+ "decisions": [
+  "\"the summary page\" is the Kernel page \"Rail Demo summary\" (the PAGE tile); there was no registry tool for a page change, so K4 adds tool 23 page.update (documents.save) to K2's registry from its own module (guarded: a number or key already taken is never taken over) with a PageSave check (verified by reading the page back). \"the summary report\" is K5's .odt.",
+  "Neither summary states startup power: the checked value goes into the sentence that names the quantity (its value replaced), else after the sentence about its subject (\"Startup takes 45 ms. Startup power is 10.8 W.\"), else after the last sentence.",
+  "The report update is two-phase (K1 fixes an approve step's inputs when authorised): step 3 checks the report and prepares the change (libreoffice.prepare, a read); once done, K1's new AFTER_STEP hook lets K4 plan step 4 (libreoffice.replace) with the checked value fixed. So \"read, recompute, check, then the update\" is 3 steps at the offer and 4 once LibreOffice is here.",
+  "The plan's leading reads go ahead at the offer (a read never asks, K1), so the first press she offers is \"Authorise step 2\"; no change is ever started by the offer.",
+  "PLAN kind: switch \"choosing\", answer cap 48, deadline cap 20 s (the contract's foreground maximum: its question carries the registry and the desk's things), new tokens 1,200; the request's ceiling (3 turns, 25 s) was not touched. The tools appear in the prompt in short words (SHORT), the registry keeps its sentences.",
+  "The grammar holds only registry numbers, but the parser accepts any number so a step outside the registry is refused by the check and the rest offered (TRIMMED), as the acceptance asks.",
+  "A change only the model chose keeps basis model_pick: offered, authorisable only by its own name (K1); K2's as_step (which refuses it outright) is not used for model steps.",
+  "AGENT-01 (agent_loop.py) retired behind a pointer: K4 is the one planner of objectives; the loop still runs its two page-bound profiles (reached when K4 does not read the words as an objective) and pre-1.0 records. Not deleted: its tests stay.",
+  "A request is taken by K4 only when a verb of hers that changes something has an object (recheck, update, note, rename, look up), or several clauses of her verbs; a single read and desk-only verbs (trace, compare, show) keep their old routes.",
+  "K1 hook AFTER_STEP placed next to its helper (not after GRANT_CHECK) so it does not collide with K3's lines there."
+ ],
+ "findings_for_the_coordinator": [
+  "Merge: on main d96ff2a only engineering_kernel.py, engineering_cli.py (registration lines next to K3's: union merge) and the registry doc (regenerate) conflict; every other file of the patch applies.",
+  "Registry number 23 (page.update) is claimed by K4 from objective_plan._join(); no other slice should use 23.",
+  "With the real 4B on this shared 4-core container the first PLAN turn was LATE (20 s deadline, ~490-token prompt). Her clock has observed it and prices the next PLAN turn from it; the owner's Radeon/35B evening will show the real figure.",
+  "K3 interplay seen on main: a page.update step reached before the owner's press stops as \"needs your grant\" with the one-press grant; authorising it by name runs it. If the coordinator prefers the press to be \"Authorise step 3\" instead of a grant there, that is K3's AUTHORISE rule, not K4's.",
+  "K1 status words when a step was revised: the old step's journal rows stay under its old key; the replacement has a new key."
+ ],
+ "not_done": [
+  "Tools 4 (files.write.revision), 6, 7, 9, 16 and the windows tools are not offered to the model as plan steps (the desk cannot fill their arguments from handles yet); sandbox.run (K6), accessibility.read (K7) and network.fetch (K8) are refused as \"not built yet\" until their slots are filled.",
+  "No PLAN answer from the real 4B was seen (it was late); the model path is shown with the stand-in.",
+  "No tests written or run (the owner's rule); nothing ran on the ThinkPad."
+ ],
+ "release_note": "Kasandra turns an objective into a plan. Ask her \"recheck the startup power and update the summary page\": she reads what it needs, then offers the steps in her column, each through a registered tool, each change waiting for your word and verified before it counts as done. With a model, the model proposes steps from the registry by number and the desk checks each one; a step outside the registry is left out and said. A report is updated through LibreOffice with the checked value fixed, or the change is prepared as text when LibreOffice is not here."
+}

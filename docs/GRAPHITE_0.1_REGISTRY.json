@@ -552,6 +552,8 @@
    "notes.exchange.preview": "workbench/notes_exchange.py#dispatch",
    "notes.exchange.profiles": "workbench/notes_exchange.py#dispatch",
    "notes.exchange.resolve": "workbench/notes_exchange.py#dispatch",
+   "objective.offer": "workbench/objective_plan.py#dispatch",
+   "objective.plan": "workbench/objective_plan.py#dispatch",
    "objects.files": "workbench/living_nav.py#dispatch",
    "objects.get": "workbench/living_nav.py#dispatch",
    "office.bom.compare": "workbench/office_service.py#dispatch",
@@ -1084,9 +1086,9 @@
   }
  },
  "counts": {
-  "adapters": 886,
+  "adapters": 888,
   "job_tools": 113,
-  "operations": 886,
+  "operations": 888,
   "settings": 48
  },
  "formulas": {
@@ -5965,6 +5967,24 @@
    },
    "scope": "approve"
   },
+  "objective.offer": {
+   "arguments": "e055378bad3dc2a37511efdd0c531e97cec93edaeae1ed92321aae268169aa87",
+   "properties": {
+    "earlier": "800d95542a202080",
+    "focus": "800d95542a202080",
+    "objective": "76f40fe54111097c"
+   },
+   "scope": "execute"
+  },
+  "objective.plan": {
+   "arguments": "e055378bad3dc2a37511efdd0c531e97cec93edaeae1ed92321aae268169aa87",
+   "properties": {
+    "earlier": "800d95542a202080",
+    "focus": "800d95542a202080",
+    "objective": "76f40fe54111097c"
+   },
+   "scope": "read"
+  },
   "objects.files": {
    "arguments": "888e1d4ac19b109232723c581420ec44aea5cb7722a244e90b4fe815c4973445",
    "properties": {
@@ -8698,7 +8718,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "bc48d62d2189c394be643113bef9f69ed01d20e81b72d0d3903c5b1a20f257da",
+ "schema_digest": "f999f5b7dbf4e9c5c5d8b859b87aee66207df8b2792387a78f2f56f697e579ee",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

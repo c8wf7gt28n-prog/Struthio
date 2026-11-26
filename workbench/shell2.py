@@ -2592,6 +2592,14 @@ class SlateFace(QWidget):
                  + ' it is yours to run: it is in the line, with Terminal chosen.')
         return True
 
+    def objective_asked(self, text):
+        """1.0 K4: words that read as an objective (“recheck the startup power and update the summary page”): the plan is made
+        off the window's thread from the registered tools and offered in her column (objective_plan_qt). True when taken."""
+        from .objective_plan_qt import asked
+        try:return asked(self, text)
+        except Exception:  # noqa: BLE001 - the request goes the way it has always gone
+            return False
+
     def plan_asked(self, text):
         """“trace Rail Demo bench readings and put Rev A beside Rev B”: a request for her hand on the desk (Kasandra's hand, first
         slice). Every clause matched and every sheet found: her hand plans and moves the window, one act at a time, through
@@ -2812,6 +2820,7 @@ class SlateFace(QWidget):
         if self.made_asked(text):return
         if self.set_asked(text):return
         if self.run_asked(text):return
+        if self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
         if self.plan_asked(text):return
         thing = self.what_if(text)
         if thing and thing.get('refusal'):

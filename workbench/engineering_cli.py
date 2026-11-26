@@ -126,6 +126,7 @@ def schemas():
     from .grants import FIELDS as GRANT_FIELDS  # 1.0 K3 (grants and HALT): grant.words, .list, .give, .revoke
     from .halt_gate import FIELDS as HALT_FIELDS  # 1.0 K3 (grants and HALT): halt.status, .press, .release
     from .utility_sandbox import FIELDS as SANDBOX_FIELDS  # 1.0 K6 (the utility sandbox): sandbox.*
+    from .objective_plan import FIELDS as OBJECTIVE_PLAN_FIELDS  # 1.0 K4 (from an objective to a plan): objective.plan, objective.offer
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -253,6 +254,7 @@ def schemas():
         **GRANT_FIELDS,  # 1.0 K3 (grants and HALT): grant.words, .list, .give, .revoke
         **HALT_FIELDS,  # 1.0 K3 (grants and HALT): halt.status, .press, .release
         **SANDBOX_FIELDS,  # 1.0 K6 (the utility sandbox): sandbox.*
+        **OBJECTIVE_PLAN_FIELDS,  # 1.0 K4 (from an objective to a plan): objective.plan, objective.offer
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

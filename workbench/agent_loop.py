@@ -1,5 +1,11 @@
 """The resident agent loop (HATCH AGENT-01): an assignment becomes a durable investigation that Slate works one bounded step at a time.
 
+1.0 K4: RETIRED AS A PLANNER, behind this pointer. Objectives are planned by workbench/objective_plan.py, the one planner over
+the tool registry (tools_registry, K2), and offered as assignments (assignments.py, K1). This loop is kept only to run what it
+was written for (its two page-bound profiles, "add up the numbers on this page" and "find files about ...", which the ask
+line reaches when objective_plan does not read the words as an objective) and the agent.* records made before 1.0 (Today,
+Resume, Stop). Nothing new is planned here.
+
 CONTRACT (the integrator registered these operations; the implementer fills this module without changing the names, arguments
 or return shapes below, because the Qt driver and the right column are written against them at the same time).
 
