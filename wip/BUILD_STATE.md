@@ -377,6 +377,15 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 12:16 UTC: **1.0 F1 merged** (75b07a8: a touch stops her; Stop puts the window back. hand_door.py holds one
+  stop rule for a program window (K9) and Graphite's own window. A touch pauses her between acts. Stop restores the
+  focus, selection, cursor and scroll, and closes her open menu with Escape, one level at a time. HALT holds her with
+  its own words. Her desk changes follow the dial: Undo at "Do and show", Approve at "Ask first" or when only the model
+  chose. Smoke 38/38 with a real Writer under Xvfb). Its notes: her desk planner still plans only moves; tabs inside a
+  program window are not kept. The merge check's scratch copy now opens Night too. **R1 launched** (the 1.0 System set:
+  Debian 13 debs added to the 0.8.x set, debs in scratch only; agent a3d348746e126f5af). Running: F2, X3, M2, R1. Queue:
+  X4 once F2 is merged; D2; X1; X2; R2. 40 slices: 30 merged, P5 cancelled.
+
 - 26 Nov 12:10 UTC: Hourly wake-up while F1, F2, X3 and M2 run: carry on. The log's times from 11:17 on were
   corrected to the commit clock (they had been estimated ahead).
 
