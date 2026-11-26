@@ -256,6 +256,11 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 16:46 (M1b, the plan said "her own model needs M2's cap"): **her cap stays the owner's memory budget; only the
+  runtime's address-space limit on the processor gets M2's room** (the larger of the cap and the rung's estimate plus
+  max(2 GiB, half)). Applying M2's formula to the budget itself would refuse any processor cap under about 13.4 GB for
+  the 4B (39 GB for a 35B-shaped model), or push her onto a rung with no kept prompts. The crash was address space,
+  not resident memory, so this fixes it without that cost. No test changes. Taken by the coordinator.
 - 26 Nov 12:02 (the owner: "Double the casual user deep scenarios to power user situations"): **X4 added**, twelve
   power-user sessions beside X3's twelve casual ones. They cover: lines and Terminal, search everything, bulk files,
   three assignments under grants, split and recheck, a sandbox utility, her hand across two programs, the network
@@ -376,6 +381,11 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 16:46 UTC: **1.0 M1b merged** (her model's address-space room; the Brain room and the model check say before
+  loading whether she fits; the tuned rates reach her clock, console runs included. Live 4B: loaded under a cap near
+  its estimate, primed, a PLAN turn in 4.5 s). The cap decision is above. X4 waits on a permission prompt the owner
+  must answer. Running: X3, X4, F2b. Queue: D2; X1; R2. 42 slices: 35 merged, P5 cancelled.
 
 - 26 Nov 16:13 UTC: **The 5-hour limit stopped X3, X4 and F2b at about 13:05; reset 16:00.** Hourly wake-ups at
   13:10, 14:11 and 15:10 found nothing to do (the session's worker restarted three times). Partial diffs saved
