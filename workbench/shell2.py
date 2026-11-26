@@ -1062,7 +1062,7 @@ class KeyedWords(QuietWords):
 
 
 # 0.5.3: what the list under the line is, with no key named (the keys work as they did).
-CAPTIONS = {'slate': named('Your words go to Stacy · a line you type is run by the arrow · / an operation'),
+CAPTIONS = {'line': named('A line runs · words for Stacy are offered to her column · / an operation'),      # 1.0 D1: Line
             'find': 'Choose a result, or search the whole workspace',
             'shell': 'Runs in your shell',
             'log': 'Filters the stream'}
@@ -1076,14 +1076,14 @@ class OneBox(QLineEdit):
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('OneBox')
         writing_prompt(self, 'Run a line, a command, or search · @ / ? $')
-        self.setToolTip(named('The one line you type on. The name lit at its left says who the words go to: Stacy, the Terminal, Search, the Web or the Log.'))
-        self.setAccessibleName('Writing line: Assignment, Shell, Search and Log');self.setClearButtonEnabled(True);self.setMinimumWidth(220)
+        self.setToolTip(named('The one line you type on. The name lit at its left says where the words go: Line, the Terminal, Search, the Web or the Log. Words for Stacy go to her column.'))      # 1.0 D1
+        self.setAccessibleName('Writing line: Line, Terminal, Search, Web and Log');self.setClearButtonEnabled(True);self.setMinimumWidth(220)
         self.popup = ResultsPopup(host, self);self.textEdited.connect(self.update_results);self.returnPressed.connect(self.popup.activate_current)
         self._catalog = [];self._catalog_at = 0
         self.preview_timer = QTimer(self, singleShot=True, interval=350);self.preview_timer.timeout.connect(self.show_preview)
 
     def mode(self):
-        return getattr(self.host, 'type_target', 'slate')
+        return getattr(self.host, 'type_target', 'line')      # 1.0 D1: Line
 
     def focusInEvent(self, event):
         super().focusInEvent(event)
@@ -1120,7 +1120,7 @@ class OneBox(QLineEdit):
         if page:return page
         walked = self._walked
         if walked is not None and walked[0] == self.mode() and walked[2] == text:return walked[1]
-        if self.mode() == 'slate' and not text.strip():return 'stac'
+        if self.mode() == 'line' and not text.strip():return 'stac'      # 1.0 D1
         return None
 
     def keyPressEvent(self, event):
@@ -1131,7 +1131,7 @@ class OneBox(QLineEdit):
         elif enter and mode == 'log' and bar is not None:bar.log_enter();return
         if (bar is not None and mode != 'shell' and not self.text() and event.text() in ('@', '/', '?', '$')
                 and not event.modifiers() & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier)):
-            jump = {'@': 'slate', '/': 'slate', '?': 'find', '$': 'shell'}[event.text()]
+            jump = {'@': 'line', '/': 'line', '?': 'find', '$': 'shell'}[event.text()]      # 1.0 D1
             bar.set_target(jump, focus=False)
             if event.text() in '?$':return  # the mode is chosen; its character is not part of the line
         console = getattr(self.host, 'console', None);page = self.console_page(self.text()) if console is not None else None
@@ -1150,11 +1150,11 @@ class OneBox(QLineEdit):
         text = text.replace('\u200b', '').strip()  # break points copied out of a Graphite bubble
         if not text or self.mode() == 'log':self.popup.hide();return
         self.popup.show_results(self.results(text))
-        if text.startswith('@') and '|' in text and self.mode() == 'slate':self.preview_timer.start()  # a pause in typing runs it once, read-only
+        if text.startswith('@') and '|' in text and self.mode() == 'line':self.preview_timer.start()  # a pause in typing runs it once, read-only (1.0 D1: Line)
 
     def show_preview(self):
         text = self.text().replace('\u200b', '').strip()
-        if self.hasFocus() and text.startswith('@') and '|' in text and self.mode() == 'slate':self.popup.show_results(self.results(text, preview=True))
+        if self.hasFocus() and text.startswith('@') and '|' in text and self.mode() == 'line':self.popup.show_results(self.results(text, preview=True))  # 1.0 D1
 
     def catalog(self):
         """Cataloged files by name, refreshed at most every 15 seconds."""
@@ -1166,7 +1166,7 @@ class OneBox(QLineEdit):
     def use_program(self, program):
         """A staC program that worked before goes into the line, ready for Ctrl+Enter (D3: only Ctrl+Enter runs typed staC)."""
         bar = getattr(self.host, 'type_bar', None)
-        if bar is not None:bar.set_target('slate', focus=False)
+        if bar is not None:bar.set_target('line', focus=False)      # 1.0 D1
         self.setText(program);self.setFocus();self.end(False);self.popup.hide()
 
     def results(self, text, preview=False):
@@ -1187,6 +1187,9 @@ class OneBox(QLineEdit):
             rows.append(('section', 'IN THE WORKING AREA', None))
             rows.append(('stac', word + text, ('Enter', lambda:to_console(self.host, page, text))))
             return rows
+        if mode == 'line':      # 1.0 D1: Line runs lines; words for her are offered to her column (foot_line)
+            from .foot_line import rows as line_rows
+            return line_rows(self, text, preview)
         if page == 'stac' or parses_as_stac(text):
             rows.append(('section', 'A LINE · THE ARROW RUNS IT', None))
             if preview and text.startswith('@'):rows += preview_rows(self.host, text)
@@ -1352,7 +1355,7 @@ class ResultsPopup(QFrame):
         self.hint = hint;self.actions = {}  # D3: the caption says what the keys do in the mode, in the script with its keys printed
 
     def show_results(self, rows):
-        caption = CAPTIONS.get(getattr(self.host, 'type_target', 'slate'), CAPTIONS['slate'])
+        caption = CAPTIONS.get(getattr(self.host, 'type_target', 'line'), CAPTIONS['line'])      # 1.0 D1
         if self.hint.note != caption:self.hint.explain(caption)
         self.list.clear();self.actions = {};first = None
         for kind, text, extra in rows:
@@ -3516,6 +3519,8 @@ class Shell2(QObject):
         install_depths(host)  # 1.0 L4: depths: Board on the breadcrumb, Save and Return, Full program, Close, the line, open files watched
         from .split_qt import install as install_split
         install_split(host)  # 1.0 L5: working tabs and the split: two panes, the one in focus drives the tree and her "this"
+        from .centre_one_qt import install as install_one_bar
+        install_one_bar(host)  # 1.0 D1: one centre bar: the breadcrumb row, the bar above the work and the board's head in one
         from .her_column_qt import install as install_her_column
         install_her_column(host)  # 1.0 P1: her column as in the owner's picture; the equalizer moves into it, the ask line into the right foot
         try:  # 1.0 S5: Graphite as the session's notification server (toasts at her column's foot, kept in Log), and the app strip as a dock

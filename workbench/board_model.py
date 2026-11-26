@@ -819,6 +819,9 @@ def archived(obj):
     return obj.state in ('replaced',) or state_word(obj) == 'ARCHIVED'
 
 
+HOME_LINE = 'Select something on the left; what it is connected to appears here.'      # 1.0 D1: the empty board's one line
+
+
 def build(desk, focus, kernel=None, task=None, first=None):
     """The board of one focus on this desk. `first` names the object to focus when `focus` is empty (the desk's own first)."""
     board = Board(task=task or '')
@@ -826,7 +829,7 @@ def build(desk, focus, kernel=None, task=None, first=None):
     desk.add_files()
     if focus and focus not in desk.objects:desk.add_file(focus)        # a plain file of Files in focus, past those read for words
     if not focus or focus not in desk.objects:
-        board.note = ('Nothing on this desk is in focus. Choose something in the tree, or on the whole desk.' if not focus else
+        board.note = (HOME_LINE if not focus else      # 1.0 D1: the first state teaches
                       'That is not on this desk now. Choose something in the tree, or on the whole desk.')
         return board
     fobj = desk.objects[focus]
@@ -901,7 +904,7 @@ def build(desk, focus, kernel=None, task=None, first=None):
             label, sentences = basis(desk, edge)
             board.wires.append(Wire(focus, ident, INFERRED, edge.relation, label, sentences, False, '', edge.said))
     if not board.tiles:
-        board.note = 'Nothing is linked to it on this desk, and nothing here names what it names.'
+        board.note = 'Nothing recorded links to it yet, and nothing here names what it names.'      # 1.0 D1: says why
     return board
 
 

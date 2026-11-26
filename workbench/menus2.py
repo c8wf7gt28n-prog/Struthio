@@ -163,18 +163,18 @@ def rebuild(host):
         # Run an operation…, Kernel's home on this menu. host.a_talk keeps the old keys for callers.
         talk = QActionGroup(host);host.a_talk = {}
         bar_words = getattr(getattr(host, 'type_bar', None), 'labels', {})
-        for key, word, number in (('slate', 'Assistant', 1), ('shell', bar_words.get('shell', 'Terminal'), 5), ('find', 'Search', 4), ('log', 'Log', 6)):
+        for key, word, number in (('line', 'Line', 1), ('shell', bar_words.get('shell', 'Terminal'), 5), ('find', 'Search', 4), ('log', 'Log', 6)):      # 1.0 D1: Line
             a = make('%s\tAlt+%d' % (word, number), lambda key=key:host.type_bar.set_target(key) if hasattr(host, 'type_bar') else None)
             a.setCheckable(True);a.setShortcut('Alt+%d' % number);host.addAction(a);talk.addAction(a);host.a_talk[key] = a
         host.a_talk_stac = make('A line (Assignment)', lambda:host.type_bar.set_target('stac') if hasattr(host, 'type_bar') else None)
-        host.a_talk_stac.setShortcut('Alt+2');host.addAction(host.a_talk_stac);host.a_talk['stac'] = host.a_talk['slate']
+        host.a_talk_stac.setShortcut('Alt+2');host.addAction(host.a_talk_stac);host.a_talk['stac'] = host.a_talk['slate'] = host.a_talk['line']      # 1.0 D1
         host.a_run_operation = make('Run an operation…\tAlt+3', lambda:host.type_bar.run_operation() if hasattr(host, 'type_bar') else None)
         host.a_run_operation.setShortcut('Alt+3');host.addAction(host.a_run_operation);host.a_talk['kernel'] = host.a_run_operation
         host.a_run_operation.setToolTip('An operation by name in the writing line (Kernel\'s home): help NAME and ops WORD answer')
         def sync():  # the checks say what is true now
-            console = getattr(host, 'console', None);target = getattr(host, 'type_target', 'slate')
+            console = getattr(host, 'console', None);target = getattr(host, 'type_target', 'line')
             if console is not None:host.a_sizes[console.size_level].setChecked(True)
-            if target in ('slate', 'shell', 'find', 'log'):host.a_talk[target].setChecked(True)
+            if target in ('line', 'shell', 'find', 'log'):host.a_talk[target].setChecked(True)      # 1.0 D1
         host._menus_sync = sync
     if not hasattr(host, 'a_new_idea'):
         # HATCH DESK D2 (the brief: "Put New Idea and New Project under Work or on the relevant tree"): creation left the cat's

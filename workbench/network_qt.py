@@ -205,6 +205,10 @@ def place_head(top, x, h, gap, d):
     """shell2's head placement: the network's word to the left of Apps; returns the x the menus may reach."""
     word = getattr(top, 'net_word', None)
     if word is None:return x
+    if getattr(top.host, 'net_meter', None) is not None:      # 1.0 D1: NET at the foot carries the state now (one place)
+        if word.isVisible():word.hide()
+        if word.timer.isActive():word.timer.stop()
+        return x
     word.scale = min(d.scale, 1.4)
     tall = max(22, h - 2 * round(8 * min(d.scale, 1.4)));wide = word.need(tall)
     x -= wide;word.setGeometry(x, (h - tall) // 2, wide, tall);word.show();word.raise_()
@@ -563,7 +567,8 @@ def install_column(column):
     """Her column: the network line under the progress line (1.0 K8); her ACTIVE WORK's shape for a step that needs it."""
     try:
         from . import her_column_qt
-        her_column_qt.WORK_LOOK.setdefault(ng.NEEDS, ('⊘', 'STOP'))
+        from . import state_words      # 1.0 D1: a step blocked on the network has the table's blocked shape (⊘ is NET's offline)
+        her_column_qt.WORK_LOOK.setdefault(ng.NEEDS, (state_words.shape('blocked', '⊘'), 'STOP'))
     except Exception:  # noqa: BLE001
         pass
     column.net_line = ColumnLine(column)

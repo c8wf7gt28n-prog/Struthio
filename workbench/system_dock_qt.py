@@ -161,9 +161,19 @@ class GraphiteEntry(QAbstractButton):
         self.setAccessibleName('Graphite: bring Graphite\'s window forward')
         self.setToolTip('Graphite\nPress to bring Graphite\'s window forward.')
 
+    def her_state(self):
+        """1.0 D1: what her state says when it needs you (the one table: ◆ NEEDS YOUR WORD, ‖ held, ▮▮ stopped by you), else
+        None: so an app in front still shows that something waits in Graphite."""
+        from . import state_words as sw
+        column = getattr(self.dock.host, 'her_column', None)
+        key = sw.of_her(getattr(column, 'shown_state', '')) if column is not None else ''
+        return key if key in ('needs_word', 'held', 'stopped') else None
+
     def natural(self, h):
         fm = QFontMetrics(self.font())
-        return h + fm.horizontalAdvance('▸ Graphite') + 24
+        key = self.her_state()      # 1.0 D1
+        from . import state_words as sw
+        return h + fm.horizontalAdvance('▸ Graphite') + 24 + ((h // 2 + 6 + fm.horizontalAdvance(sw.word(key)) + 8) if key else 0)
 
     def sizeHint(self):
         return QSize(self.natural(30), 30)
@@ -181,6 +191,14 @@ class GraphiteEntry(QAbstractButton):
         mark_icon(px).paint(p, QRect(x, (h - px) // 2, px, px));x += px + 6
         p.setPen(QColor(bt.TEXT if self.active or self.underMouse() else bt.QUIET))
         p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, 'Graphite')
+        key = self.her_state()      # 1.0 D1: her state when it needs you, its shape and its word (state_words)
+        if key:
+            from PySide6.QtCore import QRectF
+            from . import state_words as sw
+            x += fm.horizontalAdvance('Graphite') + 10;side = max(10, h // 2 - 2)
+            sw.paint(p, QRectF(x, (h - side) / 2.0, side, side), key, sw.colour_of(key));x += side + 5
+            p.setPen(QColor(sw.colour_of(key)));p.drawText(QRect(x, 0, max(0, w - x), h - 2), Qt.AlignLeft | Qt.AlignVCenter, sw.word(key))
+            self.setToolTip('Graphite: %s\nPress to bring Graphite\'s window forward.' % sw.said(key))
         if self.active:p.fillRect(0, h - 2, w, 2, QColor(bt.FOCUS))
         p.fillRect(w - 1, round(h * 0.22), 1, round(h * 0.56), QColor(bt.LINE_MID))
         p.end()

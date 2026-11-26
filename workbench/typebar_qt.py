@@ -1,13 +1,14 @@
-"""The desk's lower writing band and its four input modes.
+"""The desk's lower writing band and its five input modes.
 
-Assistant gives ordinary language to staC on Enter. Ctrl+Enter sends typed
-staC through the console. Prefix `explain` to preview a plan. A leading slash
-selects a Kernel operation. Terminal uses the account's configured shell.
-Search opens workspace results. Log filters the Events or Network stream.
+1.0 D1 (the owner, 26 Nov 2026: "Bottom left no longer need a kasandra option, because that exists already in the right
+Kasandra column"): the chooser reads Line · Terminal · Search · Web · Log, Line the default. Line runs a Graphite line, an
+operation by name (a leading slash) or opens an address; words that read as a request to her are not run: the line offers
+Ask Kasandra →, which moves them into her column's ask line (foot_line). Ctrl+Enter still runs typed staC through the
+console. Prefix `explain` to preview a plan. Terminal uses the account's configured shell. Search opens workspace results.
+Log filters the Events or Network stream.
 
-Assistant, Terminal, and Log have visible controls. Ctrl+K and a leading `?`
-open Search. The saved mode keys also preserve older targets and histories.
-The active mode supplies the field's accessible hint. `prompt` is the placeholder.
+Ctrl+K and a leading `?` open Search. The saved mode keys also preserve older targets and histories ('slate', 'stac' and
+'kernel' are Line now). The active mode supplies the field's accessible hint. `prompt` is the placeholder.
 """
 from __future__ import annotations
 from . import boss_theme as _bt
@@ -23,28 +24,29 @@ STREAMS_WORDS = (('events', 'Events'), ('network', 'Network'))  # log_qt.STREAMS
 # I'm typing to ... terminal console open, communication with the assistant, a log, system log, network log, web
 # search, system search, URL". All five stand to the left of the line now, by name: Stacy, Terminal, Search, Web, Log.
 # (Search was reached only by a key or a leading ?; Web is new.) An address typed in any of them goes to Web by itself.
-MODES = (('slate', 'Assistant'), ('shell', 'Terminal'), ('find', 'Search'), ('web', 'Web'), ('log', 'Log'))
+# 1.0 D1: Line in Kasandra's place (her name stays everywhere else; she is spoken to in her column only).
+MODES = (('line', 'Line'), ('shell', 'Terminal'), ('find', 'Search'), ('web', 'Web'), ('log', 'Log'))
 TARGETS = MODES                                   # Preserve the mode keys used by existing callers.
-PRIMARY_TARGETS = ('slate', 'shell', 'find', 'web', 'log')
-SHOWN = {'slate': named('Stacy')}                        # the word on the strip where it is not the mode's own label
+PRIMARY_TARGETS = ('line', 'shell', 'find', 'web', 'log')
+SHOWN = {}                                        # the word on the strip where it is not the mode's own label (1.0 D1: none)
 WEB_SEARCH = 'https://duckduckgo.com/?q='         # where words typed to Web are searched for: in the owner's own browser
 ADDRESS_STARTS = ('http://', 'https://', 'www.')
 # Endings that are a file's far more often than a site's: a bare name ending so is words, not an address.
 FILE_ENDINGS = frozenset('txt md pdf py gd json csv tsv png jpg jpeg gif svg zip tar gz log sh c h cpp rs go js ts html htm css xml yml yaml toml ini cfg doc docx odt ods xls xlsx ppt tscn godot wav mp3 mp4'.split())
 QUIET_TARGETS = ()                                # Find and Kernel were the quiet words; Kernel's home is Commands now
-MAPPED = {'slate': 'slate', 'stac': 'slate', 'kernel': 'slate', 'shell': 'shell', 'find': 'find', 'web': 'web', 'log': 'log'}  # old targets -> modes
-CONSOLE_PAGE = {'slate': 'stac', 'shell': 'shell', 'find': 'find', 'log': 'log'}  # the working area's page for each mode
+MAPPED = {'line': 'line', 'slate': 'line', 'stac': 'line', 'kernel': 'line', 'shell': 'shell', 'find': 'find', 'web': 'web', 'log': 'log'}  # old targets -> modes (1.0 D1: Line)
+CONSOLE_PAGE = {'line': 'stac', 'shell': 'shell', 'find': 'find', 'log': 'log'}  # the working area's page for each mode
 JUMPS = {'@': 'stac', '/': 'kernel', '?': 'find', '$': 'shell'}  # a first character typed into an empty line
 # 0.5.3: the hints say what to type and name no key (the owner, 13 November 2026: no key printed anywhere; every key still works).
-HINTS = {'slate': 'ask in your own words, or type a line and the arrow runs it  ·  / runs an operation by name',
+HINTS = {'line': 'a line, an operation by name after /, or an address  ·  words for Kasandra are offered to her column',      # 1.0 D1
          'kernel': 'an operation by name: ' + 'files.list path=Slate  ·  help copies.review  ·  ops agenda',  # the example: an operation's real argument
          'find': 'files and their words, the cabinet, settings, commands and the Timeline',
          'shell': 'a command, in your Files folder',
          'web': 'an address to open, or words to search for, in your own browser',
          'log': "words in Graphite's events"}
-SENDS = {'slate': named('Ask Stacy'), 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
+SENDS = {'line': 'Run this line', 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
 READS = ('stac', 'inspect', 'word')      # what the line can be read as that the arrow runs itself, instead of asking
-TIPS = {'slate': named('Stacy: ask in your own words, or type a line yourself'),
+TIPS = {'line': named('Line: a Graphite line, an operation by name, or an address. Words for Stacy are offered to her column, never run here.'),
         'shell': 'Terminal: type to Debian through your configured shell, in your Files folder',
         'find': 'Search: files and their words across the workspace',
         'web': 'Web: an address is opened, and words are searched for, in this computer’s own browser. Graphite itself fetches nothing.',
@@ -95,7 +97,7 @@ def fit_secondary(widths, room):
 
 def destination_hint(key, word=None, hint=None):
     """Combine the mode label with its instructions or the supplied detail."""
-    mode = MAPPED.get(key, 'slate')
+    mode = MAPPED.get(key, 'line')
     hint_key = 'kernel' if key == 'kernel' else mode
     return (word or SHOWN.get(mode, dict(TARGETS)[mode])) + ' · ' + (hint or HINTS[hint_key])
 
@@ -237,7 +239,7 @@ class TypeBar(QWidget):
         if _bt.APPEARANCE in ('kasandra', 'day'):self.send.setProperty('paperIcon', True)      # keep its own ink: menus2 would make it one grey (1.0 P2: Day's white arrow on green)
         self.send.setFocusPolicy(Qt.TabFocus)
         self.send.setAccessibleName('Submit writing line')
-        self.send.setToolTip(SENDS['slate'])
+        self.send.setToolTip(SENDS['line'])
         self.send.clicked.connect(self.submit_line)
         self.expand = ExpandButton(self)      # 0.7.0: the room above the line, opened and closed from the line itself
         # The context word (CM01): the active work context, in quiet lettering at the right end of the line.
@@ -252,10 +254,10 @@ class TypeBar(QWidget):
         self.targets = {}
         for key, _ in TARGETS:
             label = self.labels[key]
-            word = SHOWN.get(key, label)       # 0.5.3: names alone (they were "Assistant", "[>_] Terminal", "[=] Log")
+            word = SHOWN.get(key, label)       # 0.5.3: names alone; 1.0 D1: Line, Terminal, Search, Web, Log
             b = button(word, 'filter');b.setParent(self.right);b.setCheckable(True);b.clicked.connect(lambda checked=False, k=key:self.set_target(k))
             b.setToolTip(TIPS[key] + ('' if key != 'shell' else ' (%s)' % self.shell));self.targets[key] = b;self.words[b] = word;InkWord.install(b)
-            b.setAccessibleName('Writing line mode: ' + label);b.setProperty('arcPrimary', True);b.setProperty('hers', key == 'slate')
+            b.setAccessibleName('Writing line mode: ' + label);b.setProperty('arcPrimary', True);b.setProperty('hers', False)      # 1.0 D1: none of them is hers
         self.hatch.hide()
         for control in console.sizes.values():control.hide()
         for key, control in self.targets.items():
@@ -269,7 +271,14 @@ class TypeBar(QWidget):
         self.pane_owner = None;self.owner = {};self._requested = None;self.message = ''
         box.textChanged.connect(self.typed)
         state = host.session.state.get('type_target') if hasattr(host, 'session') else None
-        self.set_target(MAPPED.get(state, 'slate'), focus=False)  # the remembered target, an old one mapped to its mode
+        self.ask_offer = None      # 1.0 D1: Ask Kasandra →, at the line's right end while the words are hers
+        try:
+            ask = button(named('Ask Stacy →'), 'filter');ask.setParent(box);ask.setObjectName('TypeAskOffer');ask.setCursor(Qt.PointingHandCursor)
+            ask.setFocusPolicy(Qt.TabFocus);ask.setToolTip(named('These words read as words for Stacy: this gives them to her column, where she plans or answers. Nothing is run here.'))
+            ask.setAccessibleName(named('Ask Stacy: give these words to her column'));ask.clicked.connect(self.ask_kasandra);ask.hide();self.ask_offer = ask
+        except Exception:  # noqa: BLE001 - the list under the line still offers it
+            self.ask_offer = None
+        self.set_target(MAPPED.get(state, 'line'), focus=False)  # the remembered target, an old one mapped to its mode
         self.timer = QTimer(self, interval=500);self.timer.timeout.connect(self.align);self.timer.start()
 
     def sizeHint(self):return QSize(800, 60)
@@ -280,14 +289,14 @@ class TypeBar(QWidget):
         """Choose a mode (an old target maps to its mode: MAPPED). kernel is Commands ▸ Run an operation…: Assignment with the
         / lead in the line. The working area shows the mode's page (CONSOLE_PAGE: Assignment the console's answers, Shell its
         output, Search its results, Log the Log view); choosing a mode never opens or closes it."""
-        mode = MAPPED.get(key, 'slate');changed = mode != getattr(self, 'target', None)
+        mode = MAPPED.get(key, 'line');changed = mode != getattr(self, 'target', None)
         self.target = mode;self.host.type_target = mode
         for k, b in self.targets.items():
             if b.isChecked() != (k == mode):b.setChecked(k == mode)      # 0.5.3: Search has its own name on the strip; Stacy's no longer stands for it
             b.setAccessibleDescription('Current mode' if k == mode else '')
         if hasattr(self.host, 'session'):self.host.session.state['type_target'] = mode
         page = CONSOLE_PAGE.get(mode)      # Web has no page above the line: what it opens is in the browser
-        if page is not None and self.console.mode != page and not (mode == 'slate' and self.console.mode in ('stac', 'kernel')):self.console.set_mode(page)
+        if page is not None and self.console.mode != page and not (mode == 'line' and self.console.mode in ('stac', 'kernel')):self.console.set_mode(page)
         if changed:
             popup = getattr(self.box, 'popup', None)
             if popup is not None:popup.hide()
@@ -322,7 +331,7 @@ class TypeBar(QWidget):
         view = getattr(self.host, 'log_view', None)
         if self.target == 'log' and view is not None:hint = destination_hint('log', 'Log · ' + dict(STREAMS_WORDS).get(view.stream, ''), view.hint())
         elif self.target == 'shell':hint = destination_hint('shell', self.labels['shell'], HINTS['shell'] + ' (' + self.shell + ')')
-        else:hint = destination_hint('kernel' if kernel or (self.target == 'slate' and self.box.text().startswith('/')) else self.target)
+        else:hint = destination_hint('kernel' if kernel or (self.target == 'line' and self.box.text().startswith('/')) else self.target)
         writing_prompt(self.box, hint)
 
     @staticmethod
@@ -373,17 +382,17 @@ class TypeBar(QWidget):
         return went
 
     def typed(self, text):
-        """Update the Assistant hint and work context as the line changes."""
+        """Update Line's hint and work context as the line changes."""
         # (0.5.3 switched to Web as soon as the line began with an address. Another reader showed what that did: a sentence
         # for Stacy that begins with an address was sent to a search engine. The name that is lit is never changed by
         # typing now; a line that is nothing but one address is opened when it is entered: eventFilter.)
         if self.target == 'web':
             popup = getattr(self.box, 'popup', None)
             if popup is not None and popup.isVisible():popup.hide()
-        if self.target == 'slate':self.mode_hint();self.refresh_context()
+        if self.target == 'line':self.mode_hint();self.refresh_context()
 
     def ctrl_enter(self):
-        """Ctrl+Enter sends Assistant's staC commands and explain previews to the console.
+        """Ctrl+Enter sends Line's staC commands and explain previews to the console.
         A line led by / ? or $ runs on its page as Enter does.
         Log: in the Network stream a capture with the line's filter (log_qt.LogView.start_capture, the owner's own action,
         confirmed first), in Events the filter. True when it was handled."""
@@ -395,7 +404,7 @@ class TypeBar(QWidget):
             if view.stream == 'network':view.start_capture(text)
             else:view.apply_filter(text)
             self.refresh_context();return True
-        if self.target != 'slate':return False
+        if self.target != 'line':return False
         if not text:return True
         try:                                  # the owner's own words, then `this` (the sheet selected in the Field): written out here, so what runs is what shows
             from .field_page import expand_this
@@ -421,21 +430,37 @@ class TypeBar(QWidget):
         self.refresh_context()
 
     def submit_line(self):
-        """The arrow at the line's end. It does what its tip says: opens an address, filters the Log, and with Stacy chosen
-        it runs a line that reads as staC (as Ctrl+Enter does) and gives any other line to her (as Enter does)."""
-        if self.target == 'web' or (self.target in ('slate', 'find') and TypeBar.plain_address(self.box.text())):
+        """The arrow at the line's end. It does what its tip says: opens an address, filters the Log, and in Line it runs a
+        line that reads as staC or an operation by name (as Ctrl+Enter does); words for her are not run: it is Ask Kasandra →
+        (1.0 D1), which gives them to her column."""
+        if self.target == 'web' or (self.target in ('line', 'find') and TypeBar.plain_address(self.box.text())):
             self.open_web(self.box.text())
         elif self.target == 'log':
             self.log_enter()
-        elif self.target == 'slate' and getattr(self, 'context_kind', None) in READS and self.box.text().strip():
+        elif self.target == 'line' and self.box.text().strip() and (getattr(self, 'context_kind', None) in READS or self.box.console_page(self.box.text())):
             self.ctrl_enter()
+        elif self.target == 'line' and self.box.text().strip():
+            self.ask_kasandra()      # 1.0 D1
         elif self.box.text().strip():
             self.box.returnPressed.emit()
 
+    def ask_kasandra(self):
+        """1.0 D1, Ask Kasandra →: the words typed here move into her column's ask line and are sent there (foot_line)."""
+        from .foot_line import ask_kasandra, GIVEN
+        text = self.box.text();popup = getattr(self.box, 'popup', None)
+        if not text.strip():return False
+        if popup is not None:popup.hide()
+        if ask_kasandra(self.host, text):
+            self.box.clear()
+            if callable(getattr(self, 'note', None)):self.note(GIVEN)
+            return True
+        return False
+
     def send_says(self):
         """The arrow's tip and colour: green while the line reads as staC and the arrow would run it, amber otherwise."""
-        reads = self.target == 'slate' and getattr(self, 'context_kind', None) in READS
-        tip = {'stac': 'Run this line', 'inspect': 'Show this plan', 'word': 'Do this to your words'}[self.context_kind] if reads else SENDS.get(self.target, SENDS['slate'])
+        reads = self.target == 'line' and getattr(self, 'context_kind', None) in READS
+        tip = {'stac': 'Run this line', 'inspect': 'Show this plan', 'word': 'Do this to your words'}[self.context_kind] if reads else SENDS.get(self.target, SENDS['line'])
+        if self.target == 'line' and getattr(self, 'context_kind', None) == 'hers':tip = named('Ask Stacy →: give these words to her column')      # 1.0 D1
         if self.send.toolTip() != tip:self.send.setToolTip(tip);self.send.setAccessibleDescription(tip)
         if bool(self.send.property('reads')) != reads:
             self.send.setProperty('reads', reads);self.send.style().unpolish(self.send);self.send.style().polish(self.send);self.send.update()
@@ -678,7 +703,7 @@ class TypeBar(QWidget):
         kind, words = 'context', None
         view = getattr(self.host, 'log_view', None)
         if getattr(self, 'target', None) in ('find', 'web'):kind, words = 'context', ''
-        elif getattr(self, 'target', None) == 'slate':
+        elif getattr(self, 'target', None) == 'line':
             written = self.box.text()
             try:
                 from .field_page import expand_this
@@ -689,13 +714,19 @@ class TypeBar(QWidget):
             words = {'stac': 'runs as a line', 'inspect': 'a plan to look at'}.get(kind)
             if written.startswith(('/words.keep ', '/words.forget ')):      # a line about the owner's own words: it changes them, and says so
                 kind, words = 'word', 'keeps this word' if written.startswith('/words.keep ') else 'forgets this word'
+            elif self.box.text().strip():      # 1.0 D1: not a line (or K4's objective): words for her, offered to her column
+                try:
+                    from .foot_line import reading
+                    if reading(self.host, self.box.text()) == 'hers':kind, words = 'hers', ''
+                except Exception:  # noqa: BLE001 - the context word stays
+                    pass
         elif getattr(self, 'target', None) == 'log' and view is not None:
             filtered = view.filters.get(view.stream, '')
             kind, words = 'log', view.summary() if self.console.size_level == 0 else (('filter · ' + filtered) if filtered else '')
         if words is None:words = self.context_words()
         if (kind, words) != (getattr(self, 'context_kind', None), self.context_text):
             self.context_text = words;self.context_kind = kind
-            tip = {'stac': named('This reads as a line: the arrow runs it. To ask Stacy about it instead, say it in your own words.'),
+            tip = {'stac': named('This reads as a line: the arrow runs it. Ask Stacy → in the list under the line gives it to her column instead.'),
                    'inspect': 'The arrow shows this plan without running it. Remove explain when you are ready to run it.',
                    'log': 'Log: ' + words + '\nThe stream above the line; Half or Tall shows it.' if words else 'Log'}.get(kind)
             self.context.setToolTip(tip or (('Active work context: ' + words + '\n' if words else '') + 'The selected cabinet record, else the current workspace.'))
@@ -706,8 +737,19 @@ class TypeBar(QWidget):
 
     def place_context(self):
         """The context word takes at most a third of the line (260 px at the default size), elided in the middle, clear of the
-        line's own clear button; typed text keeps a right margin so it never runs under the word."""
+        line's own clear button; typed text keeps a right margin so it never runs under the word. 1.0 D1: while the words
+        are hers, Ask Kasandra → stands there instead (a press)."""
         box = self.box;words = self.context_text;fm = self.context.fontMetrics();clear = 30
+        offer = getattr(self, 'ask_offer', None)
+        if offer is not None:
+            hers = getattr(self, 'target', None) == 'line' and getattr(self, 'context_kind', None) == 'hers' and bool(box.text().strip())
+            if hers:
+                offer.adjustSize();h = max(10, box.height() - 6);w = offer.sizeHint().width() + 8
+                offer.setFixedSize(w, h);offer.move(box.width() - w - clear, 3);offer.show();offer.raise_()
+                if self.context.isVisible():self.context.hide()
+                if box.textMargins().right() != w + clear - 4:box.setTextMargins(0, 0, w + clear - 4, 0)
+                return
+            if offer.isVisible():offer.hide()
         from .shell2 import scale_of
         room = min(round(260 * scale_of(self.host)), box.width() // 3) if getattr(self, 'context_kind', None) != 'log' else box.width() // 2  # Log's summary: half
         text = fm.elidedText('· ' + words, Qt.ElideMiddle, room) if words else ''
@@ -725,8 +767,8 @@ class TypeBar(QWidget):
         if watched is self.box and event.type() == QEvent.KeyPress and event.key() in (Qt.Key_Return, Qt.Key_Enter) and not (event.modifiers() & Qt.ControlModifier):
             if self.target == 'web':
                 self.open_web(self.box.text());return True      # Web: Enter opens it in the browser
-            if self.target in ('slate', 'find') and TypeBar.plain_address(self.box.text()):
-                self.open_web(self.box.text());return True      # with Stacy or Search lit, a line that is one address and nothing else is opened; words stay with whom they were typed to
+            if self.target in ('line', 'find') and TypeBar.plain_address(self.box.text()):
+                self.open_web(self.box.text());return True      # with Line (1.0 D1) or Search lit, a line that is one address and nothing else is opened; words stay with whom they were typed to
         if watched is self.box and event.type() == QEvent.Resize:self.place_context()
         if watched is self.box and event.type() in (QEvent.FocusIn, QEvent.FocusOut):self.update()      # the lit edge comes and goes with the keyboard
         return super().eventFilter(watched, event)

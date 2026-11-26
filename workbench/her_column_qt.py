@@ -108,16 +108,23 @@ NUMBERS = {'active_count': {'count': 'the open assignments (assignment.list)'},
 mind_words.register('her_column_qt', WORDS, kind='sentence', numbers=NUMBERS)
 
 # The state of the work: (word, shape, the palette's name for its colour). Her model's ring: ○ none, ● ready.
-STATES = {'idle': ('QUIET', '○', 'QUIET'), 'working': ('WORKING', '●', 'READY'), 'awaiting_approval': ('WAITS FOR YOU', '◆', 'OWNER'),
-          'completed': ('DONE', '✓', 'HONEY'), 'blocked': ('STOPPED', '■', 'RED')}
+# 1.0 D1: the words and shapes that mean a state of the table (state_words) are the table's: ◆ NEEDS YOUR WORD, ✓ DONE,
+# ▮▮ STOPPED, ‖ HELD (her work under HALT); QUIET and WORKING are her own and stay.
+from . import state_words as _sw
+STATES = {'idle': ('QUIET', '○', 'QUIET'), 'working': ('WORKING', '●', 'READY'),
+          'awaiting_approval': (_sw.word('needs_word'), _sw.shape('needs_word'), 'OWNER'),
+          'completed': ('DONE', _sw.shape('done'), 'HONEY'), 'blocked': ('STOPPED', _sw.shape('stopped'), 'RED'),
+          'held': ('HELD', _sw.shape('held'), 'RED')}
 # An assignment's state word (K1) -> its shape and colour name.
 WORK_LOOK = {'working': ('●', 'READY'), 'ready': ('▸', 'TEXT'), 'waiting for your word': ('◆', 'OWNER'), 'held': ('■', 'RED'),
              'interrupted': ('■', 'RED'), 'stopped by you': ('■', 'QUIET'), 'blocked': ('■', 'RED'), 'needs review': ('◆', 'OWNER'),
              'no steps yet': ('○', 'QUIET'), 'done': ('✓', 'HONEY'),
              'needs your grant': ('◆', 'OWNER')}      # 1.0 K3
+for _words, _look in list(WORK_LOOK.items()):      # 1.0 D1: a step's state that the table names takes the table's shape
+    if _sw.of_step(_words):WORK_LOOK[_words] = (_sw.shape(_sw.of_step(_words)), _look[1])
 # A finding's evidence state -> (word, shape, colour name), in the order they are shown.
-FINDING_LOOK = (('REFUTED', ('REFUTED', '✕', 'RED')), ('CONTESTED', ('CONTESTED', '◆', 'OWNER')), ('SUPPORTED', ('SUPPORTED', '✓', 'READY')),
-                ('UNKNOWN', ('OPEN', '?', 'QUIET')))
+FINDING_LOOK = (('REFUTED', ('REFUTED', _sw.shape('refuted'), 'RED')), ('CONTESTED', ('CONTESTED', '◆', 'OWNER')),
+                ('SUPPORTED', ('SUPPORTED', _sw.shape('supported'), 'READY')), ('UNKNOWN', ('OPEN', _sw.shape('open'), 'QUIET')))      # 1.0 D1: the table's shapes
 COMMANDS = (('DO', 'do', 'What can be done about the card selected on the Field: the steps, numbered; nothing runs by being offered'),
             ('DOUBT', 'doubt', 'What a plausible result on the selected card may hide, worst first; nothing is changed'),
             ('TRACE', 'trace', 'Where the selected card comes from and what rests on it, hop by hop'),
@@ -671,6 +678,7 @@ class WorkRow(QWidget):
         self.left.setText(str(row.get('time_left') or ''));self.left.setToolTip(say('left', time=row.get('time_left') or ''))
         self.stop.setVisible(bool(row.get('stop')))
         note = plain(row.get('line') or '') if words == 'needs review' else ''  # 1.0 K7: e.g. a dialog's words and buttons, read through accessibility
+        if getattr(self.column, 'waits', None) is not None:note = ''      # 1.0 D1: said in "Waits for you", with its press (one place)
         short = note.replace(' needs review: ', ': ', 1) if note.startswith('Step ') else note      # the row's state word says it already
         self.note.setText(short if len(short) <= 200 else short[:199] + '…');self.note.setToolTip(note if len(short) > 200 else '');self.note.setVisible(bool(note))
         self.setAccessibleName('%s, %s, %d%%, %s' % (row.get('title'), words, int(row.get('progress', 0) or 0), say('left', time=row.get('time_left') or '')))
@@ -1039,6 +1047,11 @@ class HerColumn(QObject):
         self.head.take(model, hand)
         related = getattr(face, 'related', None)
         outer.addWidget(self.head)
+        try:      # 1.0 D1: "Waits for you", under her hologram, only when something waits (waits_qt)
+            from .waits_qt import install as install_waits
+            self.waits = install_waits(self, outer)
+        except Exception:  # noqa: BLE001 - the column is whole without it
+            self.waits = None
         outer.addWidget(face.scroll, 1)
         outer.addWidget(self.work_line)
         try:      # 1.0 K8: her network use, one line (her fetch, a step that needs the network, her last fetch)
@@ -1130,6 +1143,14 @@ class HerColumn(QObject):
     def compact(self):
         return self.face.height() < 700
 
+    def squeezed(self):
+        """1.0 D1: a short column (compact), or one where something waits and her hologram leaves too little room for every
+        section whole: the exchange gives way first, then findings fold to their first two and NEXT STEPS to two; what waits
+        for you never folds. Decided from what waits and the column's size, never from what is shown, so it does not flicker."""
+        if self.compact():return True
+        waits = getattr(self, 'waits', None)
+        return waits is not None and bool(getattr(waits, 'shown', ())) and self.face.height() - self.head.height() < px(self.host, 800)
+
     def size_parts(self):
         h = self.face.height();tall = px(self.host, 58) if self.compact() else max(64, min(px(self.host, 108), round(h * 0.12)))
         from . import her_hologram_qt
@@ -1158,14 +1179,23 @@ class HerColumn(QObject):
         try:self.read_work()
         except Exception:  # noqa: BLE001 - a column never takes the window down
             pass
+        try:      # 1.0 D1: what waits for you, read with the work
+            if getattr(self, 'waits', None) is not None:
+                self.waits.refresh()
+                short = self.squeezed() and bool(self.waits.shown)      # the exchange gives way first; what waits never folds
+                scroll = self.face.scroll;want = (1 if self.compact() and len(self.waits.shown) > 1 else px(self.host, 24)) if short else 0      # 1366x768 with several waiting: all of it
+                if scroll.minimumHeight() != want:scroll.setMinimumHeight(want)
+        except Exception:  # noqa: BLE001
+            pass
         if force or self.ticks % DESK_EVERY == 1:
             try:self.read_desk()
             except Exception:  # noqa: BLE001
                 pass
-        try:self.show_state();self.found.show_rows(self.findings_rows, 2 if self.compact() else 4)
+        try:self.show_state();self.found.show_rows(self.findings_rows, 2 if self.squeezed() else 4)      # 1.0 D1: squeezed (compact, as before, or something waits)
         except Exception:  # noqa: BLE001
             pass
-        try:self.next.show_steps(self.next_steps(), self.face.height() < 520)      # one line each only in a very short column
+        waits = getattr(self, 'waits', None);busy = waits is not None and bool(getattr(waits, 'shown', ())) and self.squeezed()      # 1.0 D1
+        try:self.next.show_steps(self.next_steps()[:2] if busy else self.next_steps(), self.face.height() < 520 or busy)      # one line each only in a very short column (1.0 D1: or a short one where something waits)
         except Exception:  # noqa: BLE001
             pass
 
@@ -1178,7 +1208,8 @@ class HerColumn(QObject):
                  'needs your grant': 1}      # 1.0 K3
         rows.sort(key=lambda r: order.get(r.get('state_words'), 3))
         self.rows = rows;compact = self.compact()
-        self.active.show_rows(rows, 2 if compact else 3, int(listing.get('total') or len(rows)), compact)
+        waits = getattr(self, 'waits', None);busy = waits is not None and len(getattr(waits, 'shown', ())) > 1 and self.squeezed()      # 1.0 D1
+        self.active.show_rows(rows, 1 if busy else (2 if compact else 3), int(listing.get('total') or len(rows)), compact)      # 1.0 D1: a column where things wait shows them there
         working = next((r for r in rows if r.get('state_words') == 'working'), None)
         view = read(self.host, 'assignment.status', {'id': working['id']}) if working else None
         self.work_line.show_work(view, 1 if compact else 2)
@@ -1235,7 +1266,7 @@ class HerColumn(QObject):
         """An Approve that waits for you, a fresh stop, her work (her model answering, a job, an assignment running), a
         fresh outcome, the Agenda's count of what waits for you, else quiet (kasandra_art's order, with K1's assignments)."""
         from .kasandra_art import column_state, current_state
-        if self.seen_held:return 'blocked'      # 1.0 K3: while HALT holds her work her state word is ■ STOPPED
+        if self.seen_held:return 'held'      # 1.0 K3: while HALT holds her work; 1.0 D1: the table's word for it, ‖ HELD
         try:
             state = current_state(self.host)
             if state in ('idle', 'viewing', 'completed') and any(r.get('state_words') == 'working' for r in self.rows):state = 'working'
@@ -1247,6 +1278,13 @@ class HerColumn(QObject):
     def show_state(self):
         state = self.state();ready = getattr(self.host, '_status_brain', '') == 'ready'
         self.head.show_state(state, ready);self.head.stage.portrait.set_state(state)
+        if state != getattr(self, 'shown_state', None):      # 1.0 D1: the dock says it too when it needs you (state_words)
+            self.shown_state = state
+            dock = getattr(self.host, 'system_dock', None)
+            try:
+                if dock is not None:dock.arrange()
+            except Exception:  # noqa: BLE001 - the dock is whole without it
+                pass
 
     # -- NEXT STEPS ---------------------------------------------------------------------------------------------------------
     def next_steps(self):
@@ -1258,6 +1296,8 @@ class HerColumn(QObject):
             for action in row.get('actions') or ():
                 if action.get('words') == 'Stop':continue
                 if action.get('words') == 'Carry on':continue
+                from .waits_qt import carried      # 1.0 D1: an Authorise or a grant is in "Waits for you" (said in one place)
+                if carried(self, action):continue
                 if action.get('words') == 'Resume' and row.get('state_words') == 'stopped by you':
                     later.append(row);continue      # you stopped it: Resume is offered, after what waits for you
                 title = plain(row.get('title') or '')

@@ -120,7 +120,8 @@ class RingMeter(QLabel):
         """Day: room for the key and the widest reading ('100%' and its mark), on one line."""
         from PySide6.QtGui import QFontMetrics
         fm = QFontMetrics(self.words_font())
-        return QSize(fm.horizontalAdvance('%s 100%%%s' % (self.key, HOT_MARK)) + 4, max(self.ring, fm.height() + 8))
+        widest = getattr(self, 'reserve', None) or '%s 100%%%s' % (self.key, HOT_MARK)      # 1.0 D1: a meter with no reading source reserves its dash
+        return QSize(fm.horizontalAdvance(widest) + 4, max(self.ring, fm.height() + 8))
 
     def words(self):
         """(key, reading, mark) as Day shows them."""

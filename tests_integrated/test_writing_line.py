@@ -11,9 +11,10 @@ from workbench.session import Session
 class ModeTests(unittest.TestCase):
     def test_five_modes_and_the_old_targets_mapping(self):
         # 0.5.3: Web joined the four, and all five stand on the strip (the owner's "one master typing line that I select whom I'm typing to").
-        self.assertEqual(bar.TARGETS,(('slate','Assistant'),('shell','Terminal'),('find','Search'),('web','Web'),('log','Log')))
-        self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
-        self.assertEqual(bar.MAPPED['web'],'web');self.assertEqual(bar.SHOWN,{'slate':'Kasandra'},'the strip says her name, in every look; the mode keeps its label')
+        # 1.0 D1 (the owner: "Bottom left no longer need a kasandra option"): Line in her place; she is spoken to in her column.
+        self.assertEqual(bar.TARGETS,(('line','Line'),('shell','Terminal'),('find','Search'),('web','Web'),('log','Log')))
+        self.assertEqual(bar.PRIMARY_TARGETS,('line','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
+        self.assertEqual(bar.MAPPED['web'],'web');self.assertEqual(bar.SHOWN,{},'1.0 D1: every mode is said by its own label; her name is not on the strip')
         self.assertNotIn('web',bar.CONSOLE_PAGE,'Web has no page above the line: what it opens is in the browser')
 
     def test_web_tells_an_address_from_words_to_search_for(self):
@@ -40,19 +41,19 @@ class ModeTests(unittest.TestCase):
         import inspect
         source=inspect.getsource(bar.TypeBar.typed)
         self.assertNotIn("set_target('web'",source)
-        self.assertEqual({k:bar.MAPPED[k] for k in ('slate','stac','kernel','shell','find','log')},
-                         {'slate':'slate','stac':'slate','kernel':'slate','shell':'shell','find':'find','log':'log'},
-                         'legacy targets retain their mode and command prefixes')
-        self.assertEqual(bar.CONSOLE_PAGE,{'slate':'stac','shell':'shell','find':'find','log':'log'})
+        self.assertEqual({k:bar.MAPPED[k] for k in ('line','slate','stac','kernel','shell','find','log')},
+                         {'line':'line','slate':'line','stac':'line','kernel':'line','shell':'shell','find':'find','log':'log'},
+                         'legacy targets map to Line (1.0 D1) and keep their command prefixes')
+        self.assertEqual(bar.CONSOLE_PAGE,{'line':'stac','shell':'shell','find':'find','log':'log'})
         self.assertEqual(bar.JUMPS,{'@':'stac','/':'kernel','?':'find','$':'shell'},'the lead characters keep their meaning')
 
     def test_destination_hint_names_the_mode(self):
-        assistant = bar.destination_hint('slate')
-        self.assertTrue(assistant.startswith('Kasandra · '));self.assertIn('the arrow runs it',assistant)
+        assistant = bar.destination_hint('line')      # 1.0 D1: Line
+        self.assertTrue(assistant.startswith('Line · '));self.assertIn('words for Kasandra are offered to her column',assistant)
         for hint in bar.HINTS.values():
             for key in ('Enter','Ctrl+','Tab ','Esc'):self.assertNotIn(key,hint,'the line names no key')
         self.assertEqual(bar.destination_hint('stac'),assistant)
-        self.assertTrue(bar.destination_hint('kernel').startswith('Kasandra · an operation by name'))
+        self.assertTrue(bar.destination_hint('kernel').startswith('Line · an operation by name'))
         self.assertTrue(bar.destination_hint('find').startswith('Search · '));self.assertTrue(bar.destination_hint('log').startswith('Log · '))
         self.assertEqual(bar.destination_hint('shell'),'Terminal · ' + bar.HINTS['shell'])
         self.assertEqual(bar.destination_hint('shell','Terminal','Commands run in /bin/bash'),'Terminal · Commands run in /bin/bash')
@@ -61,9 +62,9 @@ class ModeTests(unittest.TestCase):
     def test_the_remembered_target_and_stream_survive_a_restart(self):
         with tempfile.TemporaryDirectory() as folder:
             path=Path(folder)/'session.json'
-            for saved,mode in (('log','log'),('find','find'),('shell','shell'),('kernel','slate'),('stac','slate'),('slate','slate')):
+            for saved,mode in (('log','log'),('find','find'),('shell','shell'),('kernel','line'),('stac','line'),('slate','line'),('line','line')):
                 s=Session(path);s.state.update(type_target=saved,log_stream='network');s.save();again=Session(path)
-                self.assertEqual(again.state.get('type_target'),saved);self.assertEqual(bar.MAPPED.get(again.state.get('type_target'),'slate'),mode)
+                self.assertEqual(again.state.get('type_target'),saved);self.assertEqual(bar.MAPPED.get(again.state.get('type_target'),'line'),mode)
                 self.assertEqual(again.state.get('log_stream'),'network')
             s=Session(path);s.state.update(type_target='notes',log_stream='packets');s.save();again=Session(path)
             self.assertNotIn('type_target',again.state);self.assertNotIn('log_stream',again.state)
@@ -429,12 +430,12 @@ class LineTests(unittest.TestCase):
             def open(c,mode=None,focus=True):c.size_level=c.size_level or 1
             def enter(c):test.ran.append((c.mode,c.prompt.text))
         class Host(QWidget):pass
-        host=Host();host.type_target='slate';host.console=Console();host.root=Path(tempfile.mkdtemp());host._viewer_recent=[]
+        host=Host();host.type_target='line';host.console=Console();host.root=Path(tempfile.mkdtemp());host._viewer_recent=[]
         host.session=type('S',(),{'state':{'recent':[]}})();host.shell2=type('Sh',(),{'ask':lambda s,text,about=None:test.asked.append(text)})()
         host.cabinet_page=None
         self.host=host;self.box=shell2.OneBox(host);self.box.setParent(host)
         class Bar:
-            target='slate';box=self.box
+            target='line';box=self.box
             def __init__(b):b.host=host;b.console=host.console
             def set_target(b,key,focus=True):b.target=bar.MAPPED[key];host.type_target=b.target
             def log_enter(b):pass
@@ -446,11 +447,15 @@ class LineTests(unittest.TestCase):
         from PySide6.QtTest import QTest
         self.box.setText(text);QTest.keyClick(self.box,Qt.Key_Return,Qt.ControlModifier if control else Qt.NoModifier)
 
-    def test_plain_enter_never_runs_stac(self):
+    def test_enter_in_line_runs_a_line_and_offers_words_to_her(self):
+        """1.0 D1: in Line, Enter takes what the line offers first: a line runs on its page; words for her are never run, they
+        go to her (her column's ask line; this stand-in window has none, so Talk's ask)."""
         with patch('workbench.shell2.call',return_value=None):
-            for text in ('files.list','@files:stock.csv | rows','show me the files'):
-                self.key(text);self.assertEqual(self.ran,[],text)
-        self.assertEqual(self.asked,['files.list','@files:stock.csv | rows','show me the files'],'Enter gives the line to Graphite')
+            for text in ('files.list','@files:stock.csv | rows'):
+                self.key(text)
+            self.assertEqual(self.ran,[('stac','files.list'),('stac','@files:stock.csv | rows')]);self.assertEqual(self.asked,[])
+            self.key('show me the files')
+        self.assertEqual(len(self.ran),2,'words are not run');self.assertEqual(self.asked,['show me the files'],'Ask Kasandra → gives them to her')
 
     def test_the_results_go_when_the_line_is_left(self):
         """0.8.2: a line put in the writing line (the right-click's Put it in the writing line) opened its results, and they
@@ -474,16 +479,16 @@ class LineTests(unittest.TestCase):
 
     def test_the_arrow_runs_a_line_that_reads_as_stac_and_asks_with_any_other(self):
         """0.5.3: the arrow does what the line's cue says, so typed staC can be run without a key being named anywhere."""
-        b=self.host.type_bar;type(b).submit_line=bar.TypeBar.submit_line
+        b=self.host.type_bar;type(b).submit_line=bar.TypeBar.submit_line;type(b).ask_kasandra=bar.TypeBar.ask_kasandra      # 1.0 D1
         with patch('workbench.shell2.call',return_value=None):
             self.box.setText('files.list');b.context_kind='stac';b.submit_line()
             self.assertEqual(self.ran,[('stac','files.list')]);self.assertEqual(self.asked,[],'a line that reads as staC is run, not asked about')
-            self.box.setText('show me the files');b.context_kind='context';b.submit_line()
-            self.assertEqual(self.asked,['show me the files']);self.assertEqual(len(self.ran),1,'words go to Stacy')
+            self.box.setText('show me the files');b.context_kind='hers';b.submit_line()
+            self.assertEqual(self.asked,['show me the files']);self.assertEqual(len(self.ran),1,'words go to her (1.0 D1: Ask Kasandra →)')
             self.box.setText('   ');b.context_kind='stac';b.submit_line();self.assertEqual(len(self.ran),1,'an empty line does nothing')
 
-    def test_up_and_down_walk_the_typed_stac_history_in_assistant(self):
-        """An empty Assistant line recalls typed staC. A slash recalls operations."""
+    def test_up_and_down_walk_the_typed_stac_history_in_line(self):
+        """An empty Line recalls typed staC. A slash recalls operations."""
         from PySide6.QtCore import Qt
         from PySide6.QtTest import QTest
         self.host.console.history.update(stac=['desk','@files: | rows','library'],kernel=['ops agenda'])
@@ -502,8 +507,10 @@ class LineTests(unittest.TestCase):
 
     def test_the_line_offers_stac_for_ctrl_enter_and_search_searches(self):
         with patch('workbench.shell2.call',return_value=None):
-            rows=self.box.results('files.list');self.assertEqual(rows[0],('section','A LINE · THE ARROW RUNS IT',None));self.assertEqual(rows[2][0],'ask')
-            self.assertNotIn(('section','A LINE · THE ARROW RUNS IT',None),self.box.results('show me the files'))
+            rows=self.box.results('files.list');self.assertEqual(rows[0],('section','A LINE · THE ARROW RUNS IT',None));self.assertEqual(rows[1][0],'stac')
+            self.assertEqual(rows[3][0],'ask','1.0 D1: then Ask Kasandra →');self.assertTrue(rows[3][1].startswith('Ask Kasandra →'))
+            words=self.box.results('show me the files')
+            self.assertNotIn(('section','A LINE · THE ARROW RUNS IT',None),words);self.assertEqual(words[1][0],'ask','words for her: the offer first')
             self.host.type_target='find';self.host.type_bar.target='find'
             rows=self.box.results('Interface text');self.assertEqual(rows[1][0],'search');self.assertIn(('section','SETTINGS',None),rows)
             self.assertTrue(any(r[0]=='command' and 'reading.ui_pt' in r[1] for r in rows),rows)

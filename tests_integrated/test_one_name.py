@@ -50,7 +50,7 @@ def window_report():
         for size in ((1920,1200),(1366,768)):
             w.resize(*size);settle(store,60)
             for name,args in (('menu.close',{}),('go.today',{}),('go.pane',{'right':'talk'})):act(name,args,store=store)
-            face=w.shell2.face;strip=w.type_bar.targets['slate']
+            face=w.shell2.face;strip=w.type_bar.targets['line']      # 1.0 D1: Line in her place at the foot
             named=lambda:[x for x in [w]+w.findChildren(QLabel)+w.findChildren(QAbstractButton) if x.isVisible() and assistant_identity.NAME in ui_fit.plain(x)]
             cut=lambda:ui_fit.describe([f for f in ui_fit.whole_words(w) if assistant_identity.NAME in str(f.get('text',''))])
             row={'window':[w.width(),w.height()],'strip':strip.text(),'strip_shown':strip.isVisible(),'said':len(named()),'clipped':cut()}
@@ -71,7 +71,7 @@ def window_report():
 class TheName(unittest.TestCase):
     def test_she_is_kasandra_whatever_the_look(self):
         code=('from workbench import assistant_identity as a,boss_theme as t,typebar_qt as bar;'
-              'print(t.APPEARANCE);print(a.NAME);print(bar.SHOWN["slate"]);print(a.named("Ask Stacy about this"));print(a.named("TEXT · WHAT STACY HOLDS"))')
+              'print(t.APPEARANCE);print(a.NAME);print(__import__("workbench.foot_line").foot_line.ASK.split()[1]);print(a.named("Ask Stacy about this"));print(a.named("TEXT · WHAT STACY HOLDS"))')      # 1.0 D1
         for look in LOOKS:
             with self.subTest(look=look):
                 out=child(['-c',code],look,120);self.assertEqual(out.returncode,0,out.stderr[-2000:])
@@ -259,7 +259,7 @@ class TheWindow(unittest.TestCase):
                 self.assertEqual(['%s · %s · %s %s: %s'%(f['name'],f['where'],f['widget'],f['kind'],f['words']) for f in value['found']],[])
                 for size,row in value['sizes'].items():
                     self.assertEqual(row['window'],[int(n) for n in size.split('x')])
-                    self.assertEqual((row['strip'],row['strip_shown']),('Kasandra',True),size)
+                    self.assertEqual((row['strip'],row['strip_shown']),('Line',True),size)      # 1.0 D1: her name is not at the foot
                     self.assertEqual((row['clipped'],row['clipped_back']),('',''),'%s: her name is whole wherever it is shown'%size)
                     self.assertGreaterEqual(row['said'],1,size)
                     self.assertEqual(row['back'],['‹ Kasandra  ·  Activity',True,''],size)

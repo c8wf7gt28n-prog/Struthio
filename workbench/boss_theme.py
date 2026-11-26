@@ -36,7 +36,7 @@ import re
 # so a check or a test can choose without touching anyone's profile.
 # The list of them is kept once, beside the session's other presentation defaults (0.8.4): the session, which keeps the
 # choice, reads the same list without importing the theme. Each of them has a palette here.
-from .presentation_preferences import APPEARANCES, APPEARANCE_DEFAULT, appearance as saved_appearance
+from .presentation_preferences import APPEARANCES, APPEARANCE_DEFAULT, APPEARANCE_EARLIER, appearance as saved_appearance
 APPEARANCE_KEY = 'appearance'
 PALETTES = {
     'graphite': dict(
@@ -149,7 +149,7 @@ def eye(line):
 
 def chosen_appearance(environ=None, path=None):
     """'graphite', 'kasandra' or 'day' (1.0 P2): GRAPHITE_APPEARANCE in the environment, else the session file's 'appearance', else
-    Graphite. Reads the file with plain json (the session module imports far more than a colour needs). Whatever the file
+    Graphite; with no session file at all (a fresh profile), Day (1.0 D1). Reads the file with plain json (the session module imports far more than a colour needs). Whatever the file
     holds, the answer is a look: a saved value that is not one of them as text (a list or an object, from a damaged or
     hand-edited file) is Graphite. 0.8.3 looked such a value up among the palettes, a list cannot be looked up, and
     Graphite could not start (0.8.4)."""
@@ -163,9 +163,11 @@ def chosen_appearance(environ=None, path=None):
             path = os.path.join(base, 'session-r10.json')
         with open(path, encoding='utf-8') as stream:
             value = saved_appearance(json.load(stream).get(APPEARANCE_KEY))
-        return value if value in PALETTES else APPEARANCE_DEFAULT
-    except (OSError, ValueError, AttributeError, RecursionError):      # no file, not JSON, not an object, nested past reading
+        return value if value in PALETTES else APPEARANCE_EARLIER      # 1.0 D1: a profile with no look of its own keeps Graphite
+    except FileNotFoundError:      # 1.0 D1: a fresh profile (no session file yet) starts in Day
         return APPEARANCE_DEFAULT
+    except (OSError, ValueError, AttributeError, RecursionError):      # not readable, not JSON, not an object, nested past reading
+        return APPEARANCE_EARLIER
 
 
 APPEARANCE = chosen_appearance()

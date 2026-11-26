@@ -83,6 +83,16 @@ def draw_mark(p, box, word, colour):
     p.restore()
 
 
+_own_mark = draw_mark
+
+
+def draw_mark(p, box, word, colour):      # 1.0 D1: a state the one table names is drawn in the table's shape (■ □ — ⊘, a window)
+    from . import state_words as sw
+    key = sw.of_tile(word)
+    if key and sw.paint(p, box, key, colour, 1.4):return
+    _own_mark(p, box, word, colour)
+
+
 def kernel_of(host):
     return getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
 
@@ -218,6 +228,7 @@ class BoardView(QWidget):
         f = QFont(t.DISPLAY);f.setPixelSize(max(12, round(px * 1.12 * self.scale())));return f
 
     def head_height(self):
+        if getattr(self.host, 'one_bar', None) is not None:return 0      # 1.0 D1: the board's head is in the one centre bar
         return round(max(40.0, 44 * self.scale()))
 
     def body(self):
@@ -297,6 +308,8 @@ class BoardView(QWidget):
         if self.auto:self.zoom = self.fit()
         if not keep_place:self.pan_x = self.pan_y = 0.0
         self.describe();self.update()
+        one = getattr(self.host, 'one_bar', None)      # 1.0 D1: the board's counts are in the one centre bar
+        if one is not None:one.board_changed()
 
     def relayout(self):
         self.placed, self.ring_radii, self.bounds = bm.layout(self.board, self.scale())
@@ -408,7 +421,8 @@ class BoardView(QWidget):
             self._paths = []
             body = self.body()
             if self.board.focus is None:
-                self._head(p);self._empty(p, body);return
+                if self.head_height():self._head(p)      # 1.0 D1: no head of its own under the one centre bar
+                self._empty(p, body);return
             p.save();p.setClipRect(body)
             c = self.centre();p.translate(c);p.scale(self.zoom, self.zoom);p.translate(-self.pan_x, -self.pan_y)
             self._rings(p)
@@ -416,8 +430,9 @@ class BoardView(QWidget):
             for tile in sorted(self.board.all(), key=lambda t: t.size):
                 if tile.id in self.placed:self._tile(p, tile)
             self._wire_words(p)
+            if not self.board.tiles and self.board.note:self._alone(p)      # 1.0 D1: one tile and no links says why
             p.restore()
-            self._head(p)
+            if self.head_height():self._head(p)      # 1.0 D1
         except Exception as exc:  # noqa: BLE001 - said on the surface, never taking the window down
             p.setClipping(False);p.setPen(QColor(t.CUE_TEXT));p.setFont(self.mono(12))
             p.drawText(QRectF(24, self.head_height() + 12, self.width() - 48, 40), Qt.AlignLeft | Qt.AlignVCenter, 'The board could not be drawn: %s' % str(exc)[:160])
@@ -460,8 +475,35 @@ class BoardView(QWidget):
             p.drawText(QPointF(x, h / 2 + fm3.ascent() / 2 - 2), fm3.elidedText(f.title, Qt.ElideRight, max(40.0, right - x - 10 * s)))
 
     def _empty(self, p, body):
-        s = self.scale();p.setFont(self.sans(15));p.setPen(QColor(t.QUIET))
+        s = self.scale()
+        if self.board.note == bm.HOME_LINE:      # 1.0 D1: a fresh desk: Home, with one line, never an empty grey centre
+            from .glyph_set import KIND as KIND_GLYPH
+            w, h = 300 * s, 92 * s;r = QRectF(body.center().x() - w / 2, body.center().y() - h / 2 - 24 * s, w, h)
+            p.setPen(QPen(ink(t.LINE_STRONG, 1.0), 2));p.setBrush(QColor(t.CARD));p.drawRect(r)
+            inner = r.adjusted(16 * s, 12 * s, -16 * s, -12 * s);p.setFont(self.mono(12, QFont.Medium));fm = QFontMetricsF(p.font())
+            draw = KIND_GLYPH.get('folder') or KIND_GLYPH.get('file');lead = 0.0
+            if draw is not None:
+                side = fm.height() * 1.1;p.save();p.translate(inner.left(), inner.top());p.scale(side / 20.0, side / 20.0);p.setPen(Qt.NoPen)
+                try:draw(p, ink(t.QUIET, 1.0), ink(t.FAINT, 1.0))
+                finally:p.restore()
+                lead = side + 6 * s
+            p.setPen(QColor(t.QUIET));p.drawText(QPointF(inner.left() + lead, inner.top() + fm.ascent()), 'FOLDER')
+            p.setFont(self.sans(17));fm2 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
+            p.drawText(QPointF(inner.left(), inner.top() + fm.height() + 6 * s + fm2.ascent()), 'Home')
+            p.setFont(self.mono(11));p.setPen(QColor(t.FAINT))
+            p.drawText(QPointF(inner.left(), inner.bottom() - 2 * s), 'where your files are')
+            p.setFont(self.sans(15));p.setPen(QColor(t.QUIET))
+            p.drawText(QRectF(body.left() + 40 * s, r.bottom() + 18 * s, body.width() - 80 * s, 60 * s), Qt.AlignHCenter | Qt.AlignTop | Qt.TextWordWrap, self.board.note)
+            return
+        p.setFont(self.sans(15));p.setPen(QColor(t.QUIET))
         p.drawText(body.adjusted(40 * s, 40 * s, -40 * s, -40 * s), Qt.AlignCenter | Qt.TextWordWrap, self.board.note or 'Nothing in focus.')
+
+    def _alone(self, p):
+        """1.0 D1: a board with one tile and no links says why, under the tile (the surface's own coordinates)."""
+        f = self.board.focus
+        if f is None or f.id not in self.placed:return
+        s = self.scale();r = self.rect_of(f.id);p.setFont(self.sans(14));p.setPen(QColor(t.QUIET))
+        p.drawText(QRectF(r.left() - 120 * s, r.bottom() + 22 * s, r.width() + 240 * s, 60 * s), Qt.AlignHCenter | Qt.AlignTop | Qt.TextWordWrap, self.board.note)
 
     def _rings(self, p):
         """The rings round the focus (green the inner, the wires' ink the outer ones) and the axis through the middle, with a
@@ -535,7 +577,8 @@ class BoardView(QWidget):
             stroker = QPainterPathStroker();stroker.setWidth(max(10.0, 12.0 / self.zoom))
             self._paths.append((stroker.createStroke(path), wire))
             if touching or hovered or chosen or wire.stale:
-                word = wire.label if not wire.dashed else 'possible · not verified'
+                from . import state_words as sw
+                word = wire.label if not wire.dashed else sw.word('possible')      # 1.0 D1: the table's word for an inferred link
                 if wire.stale and 'recheck' not in word:word = word + ' · recheck'
                 if t.APPEARANCE == 'day' and colour == day_wire(True):colour = day_wire(False)      # 1.0 P2: words in the blue that reads (5:1)
                 self._labels.append((path.pointAtPercent(0.5), word, colour))

@@ -32,6 +32,8 @@ DOORS = {'CPU': 'Graphite’s work: what runs and waits, and Stop all jobs',
          'GPU': named('Stacy’s model and Graphite’s services'),
          'RAM': 'Memory, and this computer',
          'TXT': named('The conversation, and what Stacy has in view')}
+from .net_meter import DOOR as _NET_DOOR, net_card      # 1.0 D1: NET, the fifth meter
+DOORS['NET'] = _NET_DOOR
 
 
 class MeterCard(QFrame):
@@ -140,7 +142,7 @@ def txt_card(host, anchor):
     return card
 
 
-CARDS = {'CPU': cpu_card, 'GPU': gpu_card, 'RAM': ram_card, 'TXT': txt_card}
+CARDS = {'CPU': cpu_card, 'GPU': gpu_card, 'RAM': ram_card, 'TXT': txt_card, 'NET': net_card}      # 1.0 D1: NET
 
 
 def open_card(host, anchor, key):

@@ -42,11 +42,11 @@ class ColumnArithmeticTests(unittest.TestCase):
 
     def test_the_strip_words_and_destination_hint(self):
         # 0.5.3: five modes, all on the strip (Search was reached by shortcut only; Web is new).
-        self.assertEqual([label for _,label in bar.TARGETS],['Assistant','Terminal','Search','Web','Log'])
-        self.assertEqual([key for key,_ in bar.TARGETS],['slate','shell','find','web','log'],'the earlier keys, prefixes and histories unchanged')
-        self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
+        self.assertEqual([label for _,label in bar.TARGETS],['Line','Terminal','Search','Web','Log'])      # 1.0 D1: Line, no Kasandra at the foot
+        self.assertEqual([key for key,_ in bar.TARGETS],['line','shell','find','web','log'],'1.0 D1: the old keys map to Line (MAPPED)')
+        self.assertEqual(bar.PRIMARY_TARGETS,('line','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
         self.assertTrue(bar.destination_hint('shell').startswith('Terminal · '));self.assertIn(bar.HINTS['shell'],bar.destination_hint('shell'))
-        self.assertTrue(bar.destination_hint('slate').startswith('Kasandra · '))
+        self.assertTrue(bar.destination_hint('slate').startswith('Line · '))
 
 
 class SessionLoaderTests(unittest.TestCase):

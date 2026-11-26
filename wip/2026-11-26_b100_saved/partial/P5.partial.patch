@@ -1,0 +1,1245 @@
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index b931268..5e0828e 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -163,7 +163,9 @@ PATTERNS={
+ # are (a shipped file or an archive member). The same rule as workbench/voice_character.py PRIVATE_NAME.
+ NAME_PATTERNS={'her-character-file':re.compile(r'(?:^|[/!\\])(?:character\.md|\.revisions[/\\][0-9a-f]{64}\.md)$',re.IGNORECASE),
+  # 1.0 P1 (her column): your kasandra/portrait.png or .jpg and its kept copies, by name; the same rule as workbench/her_portrait.py PRIVATE_NAME
+- 'her-portrait':re.compile(r'(?:^|[/!\\])(?:kasandra[/\\]portrait\.(?:png|jpe?g)|\.revisions[/\\]portrait-[0-9a-f]{64}\.(?:png|jpg))$',re.IGNORECASE)}
++ 'her-portrait':re.compile(r'(?:^|[/!\\])(?:kasandra[/\\]portrait\.(?:png|jpe?g)|\.revisions[/\\]portrait-[0-9a-f]{64}\.(?:png|jpg))$',re.IGNORECASE),
++ # 1.0 P5 (her poses and faces): your kasandra/hologram/ pictures and their kept copies, by name; the same rule as workbench/her_poses.py PRIVATE_NAME
++ 'her-poses':re.compile(r'(?:^|[/!\\])(?:kasandra[/\\]hologram[/\\](?:[^/\\]+[/\\])?[^/\\]+\.(?:png|jpe?g)|\.revisions[/\\]poses[/\\][0-9a-f]{64}\.(?:png|jpg))$',re.IGNORECASE)}
+ 
+ 
+ def canonical(value):return json.dumps(value,sort_keys=True,separators=(',',':'))
+diff --git a/workbench/activity.py b/workbench/activity.py
+index 09b9a62..5c16243 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -55,6 +55,8 @@ OBSERVER_OPERATIONS=frozenset({
+  'board.read','board.links',
+  # 1.0 P1: her portrait in force, read when her column is drawn; reading is not an event
+  'kasandra.portrait',
++ # 1.0 P5: her pose set in force, read when her column is drawn; reading is not an event
++ 'kasandra.poses',
+  # 1.0 S4: the machine's storage, power, network, sound and screens, read when the Machine tab or a page shows; reading is not an event
+  'machine.state',
+  # 1.0 L4: the revisions of files saved elsewhere, read each time the board is drawn; reading is not an event
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 737a7e2..a998bda 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -119,6 +119,7 @@ def schemas():
+     from .assignments import FIELDS as ASSIGNMENT_FIELDS  # 1.0 K1 (assignments and the journal)
+     from .relevance import FIELDS as RELEVANCE_FIELDS  # 1.0 L3 (relevance): relevance.why, .pin, .turn_down, .clear
+     from .her_portrait import FIELDS as PORTRAIT_FIELDS  # 1.0 P1 (her column): her portrait, admitted
++    from .her_poses import FIELDS as POSES_FIELDS  # 1.0 P5 (her poses and faces): kasandra.poses, kasandra.poses.admit
+     from .machine_real import FIELDS as MACHINE_REAL_FIELDS  # 1.0 S4 (the Machine, real): machine.state
+     from .depths import FIELDS as DEPTH_FIELDS  # 1.0 L4 (depths): revisions.record, revisions.list
+     from .tools_registry import FIELDS as TOOLS_REGISTRY_FIELDS  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
+@@ -251,6 +252,7 @@ def schemas():
+         **ASSIGNMENT_FIELDS,  # 1.0 K1 (assignments and the journal)
+         **RELEVANCE_FIELDS,  # 1.0 L3 (relevance)
+         **PORTRAIT_FIELDS,  # 1.0 P1 (her column): her portrait, admitted
++        **POSES_FIELDS,  # 1.0 P5 (her poses and faces): your pose set, admitted
+         **MACHINE_REAL_FIELDS,  # 1.0 S4 (the Machine, real): machine.state
+         **DEPTH_FIELDS,  # 1.0 L4 (depths): revisions.record, revisions.list
+         **TOOLS_REGISTRY_FIELDS,  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 9d38df8..3e8f2f2 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -96,6 +96,7 @@ from . import a11y_reader  # 1.0 K7 (reading other programs): accessibility.stat
+ from . import network_governed  # 1.0 K8 (the network, governed): web.state, web.words, web.pages, web.page (read); web.lookup, web.get (execute); web.search (approve, always asks) (recorded additions)
+ from . import app_files  # 1.0 A1 (programs by window and file): appfile.list (read); appfile.open, appfile.look (execute: a file of Files opened in its program, its window, saves and close) (recorded additions)
+ from . import a11y_hand  # 1.0 K9 (her hand in other programs): program.status, .look, .find (read); program.open, .type, .press, .save (execute); program.answer, .shown (approve) (recorded additions)
++from . import her_poses  # 1.0 P5 (her poses and faces): kasandra.poses (read), kasandra.poses.admit (approve) (recorded additions)
+ 
+ PROGRAM_HANDLERS = {
+     op: service
+@@ -287,6 +288,7 @@ CAPABILITIES = {
+     **apps_catalog.SCOPES,  # 1.0 S2 (apps from what is installed): apps.default is approve, the owner's press only
+     **board_model.SCOPES,  # 1.0 L2 (the bulletin board): two reads; board.keep approve, only by the owner's word
+     **her_portrait.SCOPES,  # 1.0 P1 (her column): her portrait from your workspace, admitted
++    **her_poses.SCOPES,  # 1.0 P5 (her poses and faces): your pose set from your workspace, admitted like your portrait
+     **machine_real.SCOPES,  # 1.0 S4 (the Machine, real): machine.state is a read
+     **depths.SCOPES,  # 1.0 L4 (depths): a file's revisions saved by another program; recorded only when the bytes on disk are the ones named
+     **tools_registry.SCOPES,  # 1.0 K2 (tools and observation receipts): the registry and receipts are reads; a window is closed only by name
+@@ -739,6 +741,7 @@ class Kernel:
+         if op in apps_catalog.FIELDS:return apps_catalog.dispatch(self,op,a,p)   # 1.0 S2 (apps from what is installed): desktop entries, Exec as argv, mimeapps.list
+         if op in board_model.FIELDS:return board_model.dispatch(self,op,a,p)   # 1.0 L2 (the bulletin board): a focus and its neighbours with the basis of each link
+         if op in her_portrait.FIELDS:return her_portrait.dispatch(self,op,a,p)   # 1.0 P1 (her column): kasandra/portrait.png, admitted like her character file
++        if op in her_poses.FIELDS:return her_poses.dispatch(self,op,a,p)   # 1.0 P5 (her poses and faces): kasandra/hologram/, admitted once, kept copies drawn
+         if op in machine_real.FIELDS:return machine_real.dispatch(self,op,a,p)   # 1.0 S4 (the Machine, real): storage, power, network, sound and screens, read now
+         if op in depths.FIELDS:return depths.dispatch(self,op,a,p)   # 1.0 L4 (depths): a file's revision saved elsewhere, verified on disk before it is recorded
+         if op in tools_registry.FIELDS:return tools_registry.dispatch(self,op,a,p)   # 1.0 K2 (tools and observation receipts): one tool through its door, dispatched then verified
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index a3bd5d3..c3db1f3 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -40,7 +40,9 @@ Her portrait is your kasandra/portrait.png (or .jpg) once you admit it (her_port
+ offered on the portrait's right-click), else the shipped art: Graphite's plate after midnight in the Graphite look, her
+ hologram's figure in Kasandra. 1.0 P3: a picture taller than it is wide (the owner's full figure, or the shipped hologram's
+ figure, now the shipped art in every look) stands as a hologram in a tall slot (her_hologram_qt); a wide or square one
+-keeps the circle; a moment shows her full figure, larger.
++keeps the circle; a moment shows her full figure, larger. 1.0 P5: once your pose set (kasandra/hologram/) is admitted
++(her_poses, offered on the same right-click), she takes a pose for her state and her face stands by her name
++(her_poses_qt).
+ 
+ Her rules hold here: nothing in this column writes a record by being shown (every read is an observer); a press is yours
+ (Stop, Authorise, Resume, Carry on, a desk act); sending anything out still asks where it always asks. Every colour that
+@@ -345,10 +347,17 @@ class Portrait(QWidget):
+         self.setObjectName('HerPortrait');self.setAccessibleName(named('Stacy') + ', her portrait')
+         self.setContextMenuPolicy(Qt.CustomContextMenu);self.customContextMenuRequested.connect(self.menu)
+         self.holo = None;self.figure = None;self.arranged = None      # 1.0 P3: her hologram (her_hologram_qt), a tall picture's
++        self.pose = None      # 1.0 P5: her pose from your pose set (her_poses_qt), chosen from her state
+ 
+     # -- which picture
+     def source(self):
+         """(image, focal x, focal y, zoom, key): what is drawn, cropped to the circle round the focal point."""
++        try:      # 1.0 P5: her pose for her state, from your admitted pose set; else the order below
++            from . import her_poses_qt
++            posed = her_poses_qt.source(self)
++            if posed is not None:return posed
++        except Exception:  # noqa: BLE001 - a set that cannot be drawn: your portrait, or the shipped art
++            pass
+         found = self.column.portrait_state or {}
+         mine = (found.get('in_force') or {}).get('path')
+         if mine:
+@@ -378,6 +387,11 @@ class Portrait(QWidget):
+         return self._image
+ 
+     def set_state(self, state):
++        try:      # 1.0 P5: her pose follows her state (and her model, her thinking, HALT) at each reading
++            from . import her_poses_qt
++            her_poses_qt.follow(self, state)
++        except Exception:  # noqa: BLE001 - her pose is a nicety; her state word says it
++            pass
+         if state != self.state:
+             self.state = state;self.update()
+             if self.holo is not None:self.holo.changed()      # 1.0 P3: a brief static at a change of her state
+@@ -417,6 +431,11 @@ class Portrait(QWidget):
+         back.triggered.connect(lambda checked=False: self.shipped())
+         for words in found.get('words') or ():
+             note = menu.addAction(plain(words));note.setEnabled(False)
++        try:      # 1.0 P5: your pose set, admitted like your picture
++            from . import her_poses_qt
++            her_poses_qt.menu_items(self, menu)
++        except Exception:  # noqa: BLE001
++            pass
+         menu.exec(self.mapToGlobal(point))
+ 
+     def admit(self, file):
+@@ -464,6 +483,8 @@ class Head(QWidget):
+         self.name = QLabel(named('Stacy'));self.name.setObjectName('HerName')
+         self.ring = QLabel('○');self.ring.setObjectName('HerModelRing')
+         self.word = QLabel();self.word.setObjectName('HerStateWord');self.word.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
++        from . import her_poses_qt      # 1.0 P5: her face for her pose, by her name (none while no pose set is in force)
++        self.face = her_poses_qt.name_face(column);row.addWidget(self.face, 0, Qt.AlignVCenter)
+         row.addWidget(self.name);row.addWidget(self.ring);row.addStretch(1);row.addWidget(self.word)
+         box.addLayout(row)
+         self.second = QHBoxLayout();self.second.setContentsMargins(0, 0, 0, 0);self.second.setSpacing(6);box.addLayout(self.second)
+@@ -1141,6 +1162,11 @@ class HerColumn(QObject):
+     # -- reading ------------------------------------------------------------------------------------------------------------
+     def read_portrait(self):
+         self.portrait_state = read(self.host, 'kasandra.portrait') or {}
++        try:      # 1.0 P5: your pose set, admitted (kasandra.poses), read with your portrait
++            from . import her_poses_qt
++            her_poses_qt.read(self)
++        except Exception:  # noqa: BLE001 - her single figure stands
++            pass
+         self.head.stage.portrait._key = None;self.head.stage.portrait.update();self.moment.art = None
+         try:self.size_parts();self.head.stage.arrange()      # 1.0 P3: a tall picture stands in the tall slot at once
+         except Exception:  # noqa: BLE001 - laid out again at the next tick
+diff --git a/workbench/her_hologram_qt.py b/workbench/her_hologram_qt.py
+index e25f48b..4da7a07 100644
+--- a/workbench/her_hologram_qt.py
++++ b/workbench/her_hologram_qt.py
+@@ -61,7 +61,7 @@ HOLE = 0.48                     # the bars' hole, as a share of her width: they
+ SCAN_ALPHA = 62                 # one device row in three darkened this much: her scan lines
+ GLOW = '#62b8ff'                # her glow when her picture's own colour cannot be told (a white or grey picture)
+ GLASS = ('#0c1322', '#16233a', '#3a74b8')      # Day's projector glass: its top, its foot, its edge
+-KEEP = 2                        # pictures kept cut
++KEEP = 16                       # pictures kept cut (1.0 P5: a pose set's poses and faces stay cut; was 2)
+ _KEYED = {}                     # picture key -> Keyed
+ _SCAN = []
+ 
+@@ -261,6 +261,7 @@ class Hologram(QObject):
+         self.key = None;self.k = None;self.light = None;self.light_key = None
+         self.static_until = 0.0;self.static_from = 0.0;self.strong = False;self.rng = random.Random(1003)
+         self.paint_ms = deque(maxlen=120);self.frames = 0;self.seen_until = None
++        self.prev = None;self.fade_from = 0.0;self.last_fig = None      # 1.0 P5: the pose before, fading out (her_poses_qt)
+         self.timer = None
+         if clock:
+             self.timer = QTimer(self);self.timer.setTimerType(Qt.CoarseTimer);self.timer.setInterval(FRAME_MS);self.timer.timeout.connect(self.tick)
+@@ -275,8 +276,10 @@ class Hologram(QObject):
+     # -- what she is drawn from -------------------------------------------------------------------------------------------
+     def take(self, image, key):
+         if key == self.key and self.k is not None:return
++        from .her_poses_qt import before_take      # 1.0 P5: from one pose to another she cross-fades, no arrival static
++        fades = before_take(self, key)
+         self.key = key;self.k = keyed(image, key);self.light = None;self.light_key = None
+-        self.arrive()
++        if not fades:self.arrive()
+ 
+     def share_from(self, other):
+         if other.k is not None and (other.key != self.key or self.k is None):
+@@ -370,12 +373,14 @@ class Hologram(QObject):
+         if room is not None and bt.APPEARANCE == 'day':self.paint_glass(p, room, dpr)
+         breath = 1.0 if still else 0.92 + 0.08 * (0.5 + 0.5 * math.sin(2 * math.pi * now / BREATH_S))
+         m = L.margin / dpr;W, H = L.size
+-        p.setOpacity((0.70 if bt.APPEARANCE == 'day' else 0.55) * breath)
++        from .her_poses_qt import paint_before      # 1.0 P5: the pose before fades out where it stood, this one comes in
++        mix = paint_before(self, p, still);self.last_fig = QRectF(fig)
++        p.setOpacity((0.70 if bt.APPEARANCE == 'day' else 0.55) * breath * mix)
+         p.drawImage(QRectF(fig.x() - m, fig.y() - m, fig.width() + 2 * m, fig.height() + 2 * m), L.glow)
+         static = (not still) and now < self.static_until
+         phase = 0 if still else int(now * 4) % 3
+         her = L.statics()[self.frames % 3] if static else L.scans[phase]
+-        p.setOpacity(0.95 * breath);p.drawImage(fig, her)
++        p.setOpacity(0.95 * breath * mix);p.drawImage(fig, her)      # 1.0 P5: mix, the cross-fade's share
+         if static:      # a tear or two: a strip of her moved sideways, fading as the static ends
+             share_left = max(0.0, (self.static_until - now) / max(0.05, self.static_until - self.static_from))
+             for _ in range(2 if self.strong else 1):
+@@ -415,7 +420,7 @@ def standing(portrait):
+     except Exception:  # noqa: BLE001 - a portrait that cannot say its picture: P1's circle
+         return None
+     holo = getattr(portrait, 'holo', None)
+-    if not tall(image):
++    if not tall(image) and not str(key).startswith('pose:'):      # 1.0 P5: every pose of your set stands as a hologram
+         if holo is not None:      # a wide or square picture now: her clock goes with her hologram
+             portrait.holo = None;holo.sleep();holo.deleteLater()
+         return None
+@@ -460,6 +465,8 @@ def arrange(stage):
+     if holo is None:
+         portrait.figure = None;return False
+     w, h = stage.width(), stage.height();share = share_of(portrait.column);day = bt.APPEARANCE == 'day'
++    from . import her_poses_qt      # 1.0 P5: a face or a seated pose no taller than it is wide is shown whole
++    share = her_poses_qt.share_for(holo, share)
+     fig = fit(holo.k, share, w - (24 if day else 8), h - (6 if day else 2), 0.60 if day else 0.86)      # Day: room for the bars beside her glass
+     fig.translate((24 if day else 8) // 2, 6 if day else 2)
+     if fig.isEmpty():
+@@ -469,6 +476,8 @@ def arrange(stage):
+         box = QRect(fig.x() - pad, top, fig.width() + 2 * pad, h - top)
+     else:
+         m = max(4, round(fig.width() * 0.08));box = fig.adjusted(-m, -m, m, m).intersected(stage.rect())
++    steady = her_poses_qt.steady(stage, holo, share, fig, box, day)      # 1.0 P5: her box as wide as her widest pose
++    if steady is not None:fig, box = steady
+     portrait.setGeometry(box);portrait.figure = fig.translated(-box.topLeft());portrait.arranged = (holo.key, share, w, h)
+     eq = stage.equalizer;top = round(h * (EQ_TOP_COMPACT if portrait.column.compact() else EQ_TOP))
+     eq.hole = box.width() + 6 if day else max(24, round(fig.width() * HOLE))
+@@ -482,6 +491,8 @@ def paint_portrait(portrait):
+     holo = standing(portrait)
+     if holo is None:return False
+     share = share_of(portrait.column);stage = portrait.parentWidget()
++    from .her_poses_qt import share_for      # 1.0 P5
++    share = share_for(holo, share)
+     fig = getattr(portrait, 'figure', None)
+     if fig is None or getattr(portrait, 'arranged', None) != (holo.key, share, stage.width() if stage else 0, stage.height() if stage else 0):
+         def again():      # laid out for the circle until now: the tall slot, then her box
+@@ -544,7 +555,8 @@ def paint_moment(moment):
+     mine = getattr(moment, 'holo', None)
+     if mine is None:
+         mine = moment.holo = Hologram(moment, moment.host, clock=False)
+-    mine.share_from(holo)
++    from .her_poses_qt import moment_figure      # 1.0 P5: the moment's own pose from your set (HALT turned away, done arms crossed)
++    if not moment_figure(mine, moment):mine.share_from(holo)
+     if mine.seen_until != moment.until:      # a new moment: she arrives
+         mine.seen_until = moment.until;mine.arrive(strong=True)
+     from .her_column_qt import colour, px, say
+diff --git a/workbench/her_poses.py b/workbench/her_poses.py
+new file mode 100644
+index 0000000..425edea
+--- /dev/null
++++ b/workbench/her_poses.py
+@@ -0,0 +1,360 @@
++"""Her poses and faces from your workspace (Graphite 1.0, P5): kasandra/hologram/, admitted once, like her portrait.
++
++The owner's pictures of her (26 November 2026: a blue hologram in a dark tee with the circuit-ostrich on it, jeans and
++sneakers; a sheet of full-figure poses, close faces, a small walking sprite cycle and a kit) stay out of the program, as her
++portrait does (PLAN_1.0 section 3). Her hologram becomes a set when you put the pictures in <workspace>/kasandra/hologram/
++and admit them:
++
++    quiet.png  working.png  thinking.png  waiting.png  done.png  halt.png  asleep.png      a pose for each state of hers
++    faces/smile.png  faces/wink.png  faces/closed.png  faces/knowing.png                   a face for the small slots
++    walk/01.png ... walk/NN.png                                                            the walking sprite, in order
++    badge.png  wordmark.png                                                                the kit (kept with the set)
++
++(a pose may also be .jpg or .jpeg). Admitting keeps each picture's exact bytes as a kept copy under
++kasandra/.revisions/poses/<sha256>.png (or .jpg) and one line in kasandra/.revisions/poses.json naming the set: every
++picture by its name and SHA-256, and the set's digest. Her column draws the kept copies, never the folder, so a picture you
++change afterwards changes nothing until you admit the set again. Taking an earlier set back is a new line pointing at the
++same bytes; "her single figure again" is a line with no set (her_portrait's picture, or the shipped art, as P3 drew it).
++
++    kasandra.poses        {}                                read     the set in force and the folder now, in plain words
++    kasandra.poses.admit  {expected_sha256} or {revision}   approve  admit the folder as it is now (the digest you read),
++                          or {shipped: true}                         take an earlier set back, or her single figure again
++
++The set's digest is the SHA-256 of its lines "<name> <sha256>\\n", in name order: admitting checks that the folder is still
++the one you read. Only a picture is kept (PNG or JPEG by its first bytes, each at most MOST_BYTES, the set at most
++MOST_SET); whether it decodes is the window's to find (a pose that will not decode is not drawn: its fallback is). A link
++is never followed, neither the folder nor a picture in it. A name the set does not know is listed as not used, never kept.
++
++Which pose her state shows (pose_for), and which face a small slot shows (face_for):
++
++    HALT holds her work, or a stop   halt      turned away              face: closed
++    something waits for you          waiting   pointing                 face: smile
++    her model answering, her plan    thinking  chin on her hand         face: knowing
++    working                          working   walking                  face: knowing
++    done                             done      arms crossed             face: wink
++    quiet, her model ready           quiet     standing                 face: smile
++    quiet, no model ready            asleep    eyes closed              face: closed
++
++A pose missing from the set falls back to your portrait (her_portrait), else to the set's quiet pose, else to the shipped
++art; a face missing, to another face of the set; with no set in force, nothing changes (P3's single figure).
++
++Nothing here is a model's word: admitting is your press (the approve scope), and the read is an observer (showing her
++column is not an event). The pictures and their kept copies are private, as her portrait is: PRIVATE_NAME finds them by
++name in a payload or an archive (tools/check_hatch.py carries the same rule).
++
++Pure Python: no Qt, no model, no network, no float.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import os
++import re
++from datetime import datetime, timezone
++from pathlib import Path
++
++FOLDER = 'kasandra'
++SET = 'hologram'
++REVISIONS = '.revisions'
++KEPT = 'poses'
++INDEX = 'poses.json'
++SCHEMA = 'kasandra.poses/1'
++INDEX_SCHEMA = 'ledger.poses/1'
++MOST_BYTES = 8 * 1024 * 1024
++MOST_SET = 64 * 1024 * 1024
++MOST_FILES = 64
++WALK_MOST = 24
++KINDS = {'png': b'\x89PNG\r\n\x1a\n', 'jpg': b'\xff\xd8\xff'}
++SUFFIXES = ('.png', '.jpg', '.jpeg')
++POSES = ('quiet', 'working', 'thinking', 'waiting', 'done', 'halt', 'asleep')
++FACES = ('smile', 'wink', 'closed', 'knowing')
++KIT = ('badge', 'wordmark')
++FACE_FOR = {'quiet': 'smile', 'working': 'knowing', 'thinking': 'knowing', 'waiting': 'smile', 'done': 'wink', 'halt': 'closed',
++            'asleep': 'closed'}
++FACE_ORDER = ('smile', 'knowing', 'wink', 'closed')
++WALK_NAME = re.compile(r'^walk/(\d{2})\.(?:png|jpe?g)$')
++PRIVATE_NAME = re.compile(r'(?:^|[/!\\])(?:kasandra[/\\]hologram[/\\](?:[^/\\]+[/\\])?[^/\\]+\.(?:png|jpe?g)'
++                          r'|\.revisions[/\\]poses[/\\][0-9a-f]{64}\.(?:png|jpg))$', re.IGNORECASE)
++
++WORDS = {
++    'none': 'There is no pose set of yours in this workspace; her hologram is her single figure.',
++    'waiting': 'Your pose set kasandra/hologram ({count} pictures) is in the workspace and not admitted; her hologram is her single figure.',
++    'in_force': 'Her poses are your set, admitted as revision {revision} ({count} pictures).',
++    'single': 'Her hologram is her single figure (your portrait, or the shipped art).',
++    'changed': 'Your pose set changed after it was admitted; the admitted one is shown until you admit it again.',
++    'missing': 'Poses not in the set, shown by her single figure: {names}.',
++    'not_used': 'Not used (names the set does not know): {names}.',
++    'kept': 'Kept your pose set as revision {revision}; her hologram takes a pose for each state now.',
++    'same': 'That pose set is already the one in force; nothing changed.',
++    'back': 'Her hologram is her single figure again (revision {revision}); your pictures stay where they are.',
++}
++_SHA = {}       # path -> (mtime_ns, size, sha256): a file is read again only when it changed
++
++
++def _say(key, **slots):
++    return WORDS[key].format(**slots)
++
++
++def sha256(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def kind_of(raw):
++    """'png' or 'jpg' by the picture's first bytes, else ''."""
++    for kind, magic in KINDS.items():
++        if raw[:len(magic)] == magic:return kind
++    return ''
++
++
++def _kasandra(root):
++    folder = Path(root) / FOLDER
++    if folder.is_symlink():raise ValueError('POSES_LINK: the kasandra folder is a link; it is not followed')
++    return folder
++
++
++def _set_folder(root):
++    folder = _kasandra(root) / SET
++    if folder.is_symlink():raise ValueError('POSES_LINK: the kasandra/hologram folder is a link; it is not followed')
++    return folder
++
++
++def known(name):
++    """Whether a name inside kasandra/hologram/ is one the set knows (a pose, a face, a walking frame, the kit)."""
++    stem, dot, suffix = name.rpartition('.')
++    if not dot or '.' + suffix.lower() not in SUFFIXES:return False
++    if '/' not in stem:return stem in POSES or stem in KIT
++    group, _, base = stem.partition('/')
++    if group == 'faces':return base in FACES
++    if group == 'walk':
++        match = WALK_NAME.match(name.lower())
++        return bool(match) and 1 <= int(match.group(1)) <= WALK_MOST
++    return False
++
++
++def _file_sha(path):
++    stat = path.stat()
++    seen = _SHA.get(str(path))
++    if seen and seen[0] == stat.st_mtime_ns and seen[1] == stat.st_size:return seen[2]
++    if stat.st_size > MOST_BYTES:raise ValueError('POSES_TOO_LARGE: a picture of the set is at most %d bytes' % MOST_BYTES)
++    sha = sha256(path.read_bytes())
++    _SHA[str(path)] = (stat.st_mtime_ns, stat.st_size, sha)
++    return sha
++
++
++def digest_of(rows):
++    """The set's digest: the SHA-256 of its lines "<name> <sha256>\\n", in name order."""
++    return sha256(''.join('%s %s\n' % (name, rows[name]['sha256']) for name in sorted(rows)).encode('utf-8'))
++
++
++def scan(root):
++    """The folder now: ({name: {sha256, bytes, kind, path}}, [names not used], [problems in words]). Nothing is followed
++    through a link; a picture that is not a PNG or JPEG, or too large, is a problem, never kept."""
++    try:folder = _set_folder(root)
++    except ValueError as exc:return {}, [], [str(exc)]
++    if not folder.is_dir():return {}, [], []
++    rows, extra, problems, total = {}, [], [], 0
++    candidates = []
++    for entry in sorted(folder.iterdir()):
++        if entry.is_symlink():problems.append('POSES_LINK: %s is a link; it is not followed' % entry.name);continue
++        if entry.is_dir():
++            if entry.name not in ('faces', 'walk'):extra.append(entry.name + '/');continue
++            for inner in sorted(entry.iterdir()):
++                name = '%s/%s' % (entry.name, inner.name)
++                if inner.is_symlink():problems.append('POSES_LINK: %s is a link; it is not followed' % name);continue
++                if inner.is_file():candidates.append((name, inner))
++                else:extra.append(name + '/')
++        elif entry.is_file():candidates.append((entry.name, entry))
++    for name, path in candidates:
++        if not known(name):extra.append(name);continue
++        if len(rows) >= MOST_FILES:problems.append('POSES_TOO_MANY: a set is at most %d pictures; %s is left out' % (MOST_FILES, name));continue
++        try:
++            size = path.stat().st_size
++            if size > MOST_BYTES:raise ValueError('POSES_TOO_LARGE: %s is over %d bytes' % (name, MOST_BYTES))
++            if total + size > MOST_SET:raise ValueError('POSES_SET_TOO_LARGE: the set is at most %d bytes; %s is left out' % (MOST_SET, name))
++            with open(path, 'rb') as stream:head = stream.read(16)
++            kind = kind_of(head)
++            if not kind:raise ValueError('POSES_NOT_A_PICTURE: %s is not a PNG or JPEG picture' % name)
++            rows[name] = {'sha256': _file_sha(path), 'bytes': size, 'kind': kind, 'path': str(path)}
++            total += size
++        except (OSError, ValueError) as exc:
++            problems.append(str(exc))
++    stems = {}
++    for name in sorted(rows):      # one picture a name: quiet.png before quiet.jpg; a second is not used
++        stem = name.rsplit('.', 1)[0]
++        if stem in stems:extra.append(name);rows.pop(name)
++        else:stems[stem] = name
++    return rows, extra, problems
++
++
++def _index_path(root):
++    return _kasandra(root) / REVISIONS / INDEX
++
++
++def index(root):
++    """{'schema', 'revisions': [{'revision', 'set': {name: {sha256, kind}} ({} for her single figure), 'digest', 'origin',
++    'at', 'from'?}]}."""
++    try:value = json.loads(_index_path(root).read_text(encoding='utf-8'))
++    except (OSError, ValueError):return {'schema': INDEX_SCHEMA, 'revisions': []}
++    if not isinstance(value, dict) or value.get('schema') != INDEX_SCHEMA or not isinstance(value.get('revisions'), list):
++        return {'schema': INDEX_SCHEMA, 'revisions': []}
++    return value
++
++
++def kept_path(root, sha, kind):
++    return _kasandra(root) / REVISIONS / KEPT / ('%s.%s' % (sha, 'png' if kind == 'png' else 'jpg'))
++
++
++def _write_atomic(path, raw):
++    path.parent.mkdir(parents=True, exist_ok=True)
++    temporary = path.with_name('.%s.partial' % path.name)
++    with open(temporary, 'wb') as stream:
++        stream.write(raw);stream.flush();os.fsync(stream.fileno())
++    os.replace(temporary, path)
++
++
++def _now():
++    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
++
++
++def in_force(root):
++    """({name: path of its kept copy}, the revision row or None): what her hologram draws. A kept copy whose bytes are not
++    the recorded ones is left out (its fallback is drawn)."""
++    try:rows = index(root)['revisions']
++    except ValueError:return {}, None
++    if not rows:return {}, None
++    row = rows[-1];out = {}
++    for name, kept in sorted((row.get('set') or {}).items()):
++        if not known(name) or not isinstance(kept, dict) or not re.fullmatch(r'[0-9a-f]{64}', str(kept.get('sha256', ''))):continue
++        try:
++            path = kept_path(root, kept['sha256'], kept.get('kind'))
++            if path.is_symlink() or not path.is_file() or _file_sha(path) != kept['sha256']:continue
++        except (OSError, ValueError):
++            continue
++        out[name] = path
++    return out, row
++
++
++def by_role(names):
++    """{'poses': {pose: name}, 'faces': {face: name}, 'walk': [names in order], 'kit': {name: name}} of a set's names."""
++    out = {'poses': {}, 'faces': {}, 'walk': [], 'kit': {}}
++    for name in sorted(names):
++        stem = name.rsplit('.', 1)[0]
++        if stem in POSES:out['poses'][stem] = name
++        elif stem in KIT:out['kit'][stem] = name
++        elif stem.startswith('faces/'):out['faces'][stem[6:]] = name
++        elif stem.startswith('walk/'):out['walk'].append(name)
++    out['walk'].sort(key=lambda n: int(WALK_NAME.match(n.lower()).group(1)))
++    return out
++
++
++def state(root):
++    """The set in force and the folder now, in plain words (what kasandra.poses answers)."""
++    paths, row = in_force(root)
++    rows, extra, problems = scan(root)
++    folder = None
++    if rows or extra or problems:
++        folder = {'name': '%s/%s' % (FOLDER, SET), 'digest': digest_of(rows) if rows else '', 'count': len(rows),
++                  'bytes': sum(r['bytes'] for r in rows.values()), 'names': sorted(rows), 'not_used': sorted(extra), 'problems': problems}
++    words = [];roles = by_role(paths)
++    if paths:words.append(_say('in_force', revision=row['revision'], count=len(paths)))
++    elif row is not None and not row.get('set'):words.append(_say('single'))
++    waiting = bool(rows) and (row is None or row.get('digest') != folder['digest'])
++    if waiting:words.append(_say('changed') if paths else _say('waiting', count=len(rows)))
++    if not paths and not rows:words.append(_say('none'))
++    missing = [pose for pose in POSES if pose not in roles['poses']] if paths else []
++    if missing:words.append(_say('missing', names=', '.join(missing)))
++    if folder and folder['not_used']:words.append(_say('not_used', names=', '.join(folder['not_used'][:8])))
++    words += problems[:4]
++    force = None
++    if paths:
++        force = {'revision': row['revision'], 'digest': row.get('digest', ''), 'count': len(paths),
++                 'paths': {name: str(path) for name, path in paths.items()},
++                 'poses': sorted(roles['poses']), 'faces': sorted(roles['faces']), 'walk': len(roles['walk']), 'kit': sorted(roles['kit'])}
++    return {'schema': SCHEMA, 'in_force': force, 'revision': row['revision'] if row else 0, 'folder': folder,
++            'waiting': waiting, 'missing': missing, 'words': words}
++
++
++def _append(root, row):
++    value = index(root);rows = value['revisions']
++    row = dict(row, revision=len(rows) + 1, at=_now());rows.append(row)
++    _write_atomic(_index_path(root), json.dumps(value, indent=1, sort_keys=True).encode('utf-8'))
++    return row
++
++
++def admit(root, expected_sha256=None, revision=None, shipped=False):
++    """Admit your folder as it is now (only when its digest is the one you read), take an earlier set back, or her single
++    figure again. Each is a new line in the index; your pictures themselves are never written."""
++    if sum(1 for given in (expected_sha256 is not None, revision is not None, bool(shipped)) if given) != 1:
++        raise ValueError('POSES_ADMIT: give expected_sha256, revision or shipped')
++    rows = index(root)['revisions']
++    if shipped:
++        if rows and not rows[-1].get('set'):return {'changed': False, 'words': [_say('same')], 'state': state(root)}
++        row = _append(root, {'set': {}, 'digest': '', 'origin': 'SINGLE_FIGURE'})
++        return {'changed': True, 'revision': row, 'words': [_say('back', revision=row['revision'])], 'state': state(root)}
++    if revision is not None:
++        if not 1 <= revision <= len(rows):raise ValueError('POSES_NO_SUCH_REVISION: there is no revision %d' % revision)
++        old = rows[revision - 1]
++        for name, kept in (old.get('set') or {}).items():
++            path = kept_path(root, kept['sha256'], kept.get('kind'))
++            if not path.is_file() or sha256(path.read_bytes()) != kept['sha256']:
++                raise ValueError('POSES_KEPT_COPY_DAMAGED: the kept copy of %s in revision %d is not the picture admitted' % (name, revision))
++        if rows[-1].get('digest', '') == old.get('digest', ''):return {'changed': False, 'words': [_say('same')], 'state': state(root)}
++        row = _append(root, {'set': old.get('set') or {}, 'digest': old.get('digest', ''), 'origin': 'TAKEN_BACK', 'from': revision})
++        return {'changed': True, 'revision': row, 'words': [_say('kept', revision=row['revision'])], 'state': state(root)}
++    found, _, problems = scan(root)
++    if not found:raise ValueError('POSES_NO_SET: there is no picture the set knows in kasandra/hologram' + (' (%s)' % problems[0] if problems else ''))
++    if digest_of(found) != expected_sha256:
++        raise ValueError('POSES_SET_CHANGED: the pose set changed after you read it; read it again before admitting')
++    if rows and rows[-1].get('digest') == expected_sha256:return {'changed': False, 'words': [_say('same')], 'state': state(root)}
++    kept_set = {}
++    for name, info in sorted(found.items()):
++        raw = Path(info['path']).read_bytes()
++        if sha256(raw) != info['sha256']:
++            raise ValueError('POSES_SET_CHANGED: %s changed while it was being kept; read the set again before admitting' % name)
++        kept = kept_path(root, info['sha256'], info['kind'])
++        if not kept.is_file() or sha256(kept.read_bytes()) != info['sha256']:_write_atomic(kept, raw)
++        kept_set[name] = {'sha256': info['sha256'], 'kind': info['kind']}
++    row = _append(root, {'set': kept_set, 'digest': expected_sha256, 'origin': 'YOUR_FOLDER'})
++    return {'changed': True, 'revision': row, 'words': [_say('kept', revision=row['revision'])], 'state': state(root)}
++
++
++def private_in(names):
++    """The names (shipped paths, or archive!member) that are your pose set or its kept copies."""
++    return [name for name in names if PRIVATE_NAME.search(str(name))]
++
++
++# -- which pose, which face ---------------------------------------------------------------------------------------------------
++def pose_for(state_key, held=False, ready=False, thinking=False):
++    """Her pose for her column's state ('idle', 'working', 'awaiting_approval', 'completed', 'blocked', 'held'), whether
++    HALT holds her work, whether her model is ready, and whether she is thinking (her model answering, her hand planning)."""
++    if held or state_key in ('held', 'blocked'):return 'halt'
++    if state_key == 'awaiting_approval':return 'waiting'
++    if state_key == 'working':return 'thinking' if thinking else 'working'
++    if state_key == 'completed':return 'done'
++    if thinking:return 'thinking'
++    return 'quiet' if ready else 'asleep'
++
++
++def face_for(pose, faces):
++    """The face (a name in `faces`) for a pose: its own, else the first of FACE_ORDER the set has, else ''."""
++    own = FACE_FOR.get(pose, 'smile')
++    if own in faces:return own
++    return next((face for face in FACE_ORDER if face in faces), '')
++
++
++# -- the Kernel's operations (1.0 P5) -----------------------------------------------------------------------------------------
++_SHA_FIELD = {'type': 'string', 'pattern': '^[a-f0-9]{64}$'}
++FIELDS = {
++    'kasandra.poses': ({}, []),
++    'kasandra.poses.admit': ({'expected_sha256': _SHA_FIELD, 'revision': {'type': 'integer', 'minimum': 1, 'maximum': 100000},
++                              'shipped': {'type': 'boolean'}}, []),
++}
++SCOPES = {'kasandra.poses': 'read', 'kasandra.poses.admit': 'approve'}
++OBSERVERS = ('kasandra.poses',)
++
++
++def dispatch(kernel, op, args, principal):
++    root = kernel.root
++    if op == 'kasandra.poses':return state(root)
++    if op == 'kasandra.poses.admit':return admit(root, args.get('expected_sha256'), args.get('revision'), bool(args.get('shipped')))
++    raise ValueError('Unknown poses operation')
+diff --git a/workbench/her_poses_qt.py b/workbench/her_poses_qt.py
+new file mode 100644
+index 0000000..011f276
+--- /dev/null
++++ b/workbench/her_poses_qt.py
+@@ -0,0 +1,567 @@
++"""Kas's poses and faces in the window (Graphite 1.0, P5).
++
++The owner, 26 November 2026, with five pictures of her as a blue hologram (a sheet of full-figure poses, close faces, a
++small walking sprite cycle and a kit): her hologram becomes a set. Once your pose set is admitted (her_poses,
++kasandra.poses.admit: offered on her portrait's right-click, as your portrait is):
++
++    her stage       the pose for her state (her_poses.pose_for: quiet standing, working walking, thinking chin on hand,
++                    waits for you pointing, done arms crossed, HALT turned away, asleep with no model eyes closed), in P3's
++                    treatment (her_hologram_qt: the keyed ground, the glow, the scan lines, the shimmer, a brief static at a
++                    change). A change of pose cross-fades over CROSSFADE_MS (none with Reduce motion: the new pose at once).
++                    Her box is as wide as her widest pose (steady), so a change of pose never moves the bars or Day's glass
++                    and the pose before fades out where it stood.
++    a moment        the moment's own pose, full figure (HALT turned away, an assignment done arms crossed, a finding refuted
++                    pointing).
++    the small slots her face for her pose by her name in her column (SlotFace 'name'); in a toast (smiling, or the knowing
++                    look for an urgent one); in the dock beside Graphite's entry (DockKas).
++    the dock        while her hand works in another program (K9: program.status, live 'acting'), her walking sprite in place
++                    of her face, a few frames a second (WALK_MS), with "Kasandra in <program>" in words; still (its first
++                    frame) with Reduce motion. A press brings Graphite's window forward, as the entry does.
++
++A pose missing from the set falls back to your portrait (P1), else to the set's quiet pose, else to the shipped art; a face
++missing, to another face of the set; with no set in force nothing here shows and every slot is as P3 and S5 left it.
++
++Your pictures are read from the kept copies in your workspace at run time (her_poses), never from the program. No model,
++nothing written, no record changed here: admitting is your press through the Kernel (approve). The numbers here are light,
++sizes and times, never a checked sum.
++"""
++from __future__ import annotations
++
++import time
++
++from PySide6.QtCore import QRect, QRectF, QSize, Qt, QTimer
++from PySide6.QtGui import QColor, QFontMetrics, QImage, QImageReader, QPainter
++from PySide6.QtWidgets import QAbstractButton, QMessageBox, QSizePolicy, QWidget
++
++from . import boss_theme as bt
++from . import her_poses as hp
++from . import mind_words
++from .assistant_identity import named
++
++CROSSFADE_MS = 220          # a change of pose cross-fades over this (none with Reduce motion)
++FADE_FRAME_MS = 33          # her clock's beat while a cross-fade runs (P3's own beat after)
++WALK_MS = 166               # the walking sprite: six frames a second
++LIVE_EVERY = 6              # while she walks, her hand's state is read again every this many frames (about a second)
++ACTING_KEEP_S = 60          # her hand's 'acting' is believed this long without news (as her column's line)
++KEY = 'pose:'               # a pose set's picture key in her hologram's cut cache: 'pose:<sha256>'
++MOMENT_POSE = {'halt': 'halt', 'done': 'done', 'refuted': 'waiting'}
++POSE_WORDS = {'quiet': 'quiet', 'working': 'working', 'thinking': 'thinking', 'waiting': 'waits for you', 'done': 'done',
++              'halt': 'stopped by HALT', 'asleep': 'asleep, no model is ready'}
++FACE_WORDS = {'smile': 'smiling', 'wink': 'winking', 'closed': 'eyes closed', 'knowing': 'a knowing look'}
++
++WORDS = {
++    'use': 'Use your pose set for her hologram',
++    'single': 'Her single figure again',
++    'ask': 'Admit your pose set kasandra/hologram ({count} pictures) for her hologram? Their exact bytes are kept in her folder; your pictures themselves are not changed.',
++    'face': '{name}, {pose}',
++    'dock_face': '{name}, {pose}. Press to bring Graphite\'s window forward.',
++    'dock_hand': '{name} in {program}',
++    'dock_hand_tip': '{name}\'s hand works in {program}: {act}. Press to bring Graphite\'s window forward.',
++    'toast_face': '{name}, {face}',
++}
++NUMBERS = {'ask': {'count': 'the pictures of your pose set (kasandra.poses)'}}
++mind_words.register('her_poses_qt', WORDS, kind='sentence', numbers=NUMBERS)
++_SMALL = {}                 # (key, w, h, dpr) -> QImage: a face or a sprite frame composed small, once a size
++SMALL_KEEP = 64
++
++
++def say(key, **slots):
++    return WORDS[key].format(**slots)
++
++
++def is_pose(key):
++    return isinstance(key, str) and key.startswith(KEY)
++
++
++def still(host):
++    try:
++        from .document_qt import profile_of
++        return bool(profile_of(host).get('reduce_motion'))
++    except Exception:  # noqa: BLE001 - when it cannot be told, she keeps still
++        return True
++
++
++def _read(host, operation, arguments=None):
++    from .her_column_qt import read
++    return read(host, operation, arguments)
++
++
++# ------------------------------------------------------------------------------------------------------------ the set
++class PoseSet:
++    """The set in force for one window: its kept copies by name, decoded once each, when first drawn."""
++
++    def __init__(self):
++        self.paths = {};self.roles = hp.by_role(());self.digest = '';self.revision = 0;self.generation = 0
++        self._images = {};self._sizes = {}
++
++    def take(self, found):
++        """kasandra.poses' answer: True when the set in force changed."""
++        force = (found or {}).get('in_force') or {}
++        paths = {name: str(path) for name, path in (force.get('paths') or {}).items() if hp.known(name)}
++        if paths == self.paths and force.get('digest', '') == self.digest:return False
++        self.paths = paths;self.roles = hp.by_role(paths);self.digest = force.get('digest', '');self.revision = force.get('revision', 0)
++        keep = set(paths.values())
++        self._images = {p: i for p, i in self._images.items() if p in keep};self._sizes = {p: s for p, s in self._sizes.items() if p in keep}
++        self.generation += 1
++        return True
++
++    def active(self):
++        return bool(self.paths)
++
++    def key(self, name):
++        path = self.paths.get(name)
++        return KEY + path.rsplit('/', 1)[-1].split('.', 1)[0] if path else None
++
++    def image(self, name):
++        """(QImage, key) of a name of the set, or (None, None): decoded once; a picture that will not decode is None."""
++        path = self.paths.get(name)
++        if not path:return None, None
++        if path not in self._images:self._images[path] = QImage(path)
++        image = self._images[path]
++        return (image, self.key(name)) if not image.isNull() else (None, None)
++
++    def size(self, name):
++        """Its size from its header (nothing decoded), or an empty QSize."""
++        path = self.paths.get(name)
++        if not path:return QSize()
++        if path not in self._sizes:
++            image = self._images.get(path)
++            self._sizes[path] = image.size() if image is not None and not image.isNull() else QImageReader(path).size()
++        return self._sizes[path]
++
++    def pose(self, pose):
++        name = self.roles['poses'].get(pose)
++        return self.image(name) if name else (None, None)
++
++    def face(self, face):
++        name = self.roles['faces'].get(face)
++        return self.image(name) if name else (None, None)
++
++    def faces(self):
++        return tuple(self.roles['faces'])
++
++    def walk(self):
++        return [self.image(name) for name in self.roles['walk'] if self.image(name)[0] is not None]
++
++
++def poses(host):
++    """The window's pose set (read through the Kernel the first time; her column reads it again with her portrait)."""
++    found = getattr(host, '_her_poses', None)
++    if found is None:
++        found = PoseSet()
++        try:host._her_poses = found
++        except Exception:  # noqa: BLE001 - a host that takes no attributes: a set of its own each time
++            pass
++        found.take(_read(host, 'kasandra.poses'))
++    return found
++
++
++def read(column):
++    """Her column reads your pose set with your portrait (an observer): a set admitted, changed or put away is drawn at once."""
++    host = column.host
++    found = _read(host, 'kasandra.poses') or {}
++    column.poses_state = found
++    ps = poses(host)
++    if ps.take(found):
++        portrait = column.head.stage.portrait
++        portrait.pose = None;portrait._key = None
++        tell_faces(host)
++    return found
++
++
++# ------------------------------------------------------------------------------------------------------------ her pose
++def thinking(host):
++    """Her model answering in Talk, or her hand planning."""
++    if getattr(host, '_her_hand_state', None) == 'thinking':return True
++    face = getattr(getattr(host, 'shell2', None), 'face', None)
++    return bool(getattr(face, 'job', None))
++
++
++def pose_now(portrait, state=None):
++    column = portrait.column;host = portrait.host
++    return hp.pose_for(state if state is not None else getattr(portrait, 'state', 'idle'), bool(getattr(column, 'seen_held', False)),
++                       getattr(host, '_status_brain', '') == 'ready', thinking(host))
++
++
++def follow(portrait, state):
++    """Her column's state (each reading): her pose follows it. A change of pose chooses her picture again (the hologram
++    cross-fades, with a brief static), her box is laid out for it, and her faces follow."""
++    pose = pose_now(portrait, state)
++    if pose == getattr(portrait, 'pose', None):return False
++    before = getattr(portrait, 'pose', None);portrait.pose = pose
++    host = portrait.host
++    try:host._her_pose = pose
++    except Exception:  # noqa: BLE001
++        pass
++    if poses(host).active():
++        portrait._key = None
++        try:
++            portrait.column.size_parts();stage = portrait.parentWidget()
++            if stage is not None:stage.arrange()
++        except Exception:  # noqa: BLE001 - laid out again at the next paint
++            pass
++        holo = getattr(portrait, 'holo', None)
++        if holo is not None and before is not None:holo.changed()
++        portrait.update()
++    tell_faces(host)
++    return True
++
++
++def source(portrait):
++    """(image, focal x, focal y, zoom, key) for her pose from your set, or None: P1's order (your portrait, the shipped
++    art) then stands. A pose missing from the set: your portrait when one is admitted, else the set's quiet pose."""
++    ps = poses(portrait.host)
++    if not ps.active():return None
++    pose = getattr(portrait, 'pose', None)
++    if pose is None:
++        pose = portrait.pose = pose_now(portrait)
++    image, key = ps.pose(pose)
++    if image is None:
++        if ((portrait.column.portrait_state or {}).get('in_force') or {}).get('path'):return None
++        image, key = ps.pose('quiet')
++        if image is None:return None
++    return image, 0.5, 0.30, 1.9, key
++
++
++def share_for(holo, share):
++    """A pose that is a face or a seated figure no taller than it is wide is shown whole; a standing one as P3 shows her."""
++    k = getattr(holo, 'k', None)
++    if k is None or not is_pose(getattr(holo, 'key', None)) or k.ink.isEmpty():return share
++    return share if k.ink.height() >= k.ink.width() * 13 // 10 else 1.0
++
++
++def steady(stage, holo, share, fig, box, day):
++    """Her box when a pose set is in force: as wide as her widest pose and as tall as her tallest (from their headers,
++    nothing decoded), so a change of pose never moves the bars or Day's glass; her figure (fig) is the pose's own, in it.
++    None when she is not a pose."""
++    if not is_pose(getattr(holo, 'key', None)):return None
++    ps = poses(stage.column.host)
++    w, h = stage.width(), stage.height();room_w, room_h = w - (24 if day else 8), h - (6 if day else 2)
++    widest = 0.60 if day else 0.86;off_x, off_y = (24 if day else 8) // 2, 6 if day else 2
++    union = QRect(fig)
++    for name in ps.roles['poses'].values():
++        size = ps.size(name)
++        if size.isEmpty():continue
++        part = share if size.height() >= size.width() * 13 // 10 else 1.0
++        aspect = size.width() / max(1.0, size.height() * part)
++        fh = max(8, room_h - 2);fw = fh * aspect
++        if fw > room_w * widest:fw = room_w * widest;fh = fw / aspect
++        fw, fh = max(4, round(fw)), max(4, round(fh))
++        union = union.united(QRect((room_w - fw) // 2 + off_x, room_h - fh + off_y, fw, fh))
++    if day:
++        pad = max(8, round(union.width() * 0.07));top = max(0, union.y() - pad)
++        box = QRect(union.x() - pad, top, union.width() + 2 * pad, h - top)
++    else:
++        m = max(4, round(union.width() * 0.08));box = union.adjusted(-m, -m, m, m).intersected(stage.rect())
++    return fig, box
++
++
++# ------------------------------------------------------------------------------------------------------------ the cross-fade
++def before_take(holo, key):
++    """Her hologram takes a new picture: when both are poses, the one before is kept to fade out (not with Reduce motion,
++    not before it was ever drawn). True when a cross-fade starts (then no arrival static: the change's own static stands)."""
++    if not (is_pose(key) and is_pose(holo.key)) or holo.k is None or holo.light is None or getattr(holo, 'last_fig', None) is None:
++        holo.prev = None;return False
++    if holo.still():
++        holo.prev = None;return True
++    holo.prev = (holo.light, QRectF(holo.last_fig));holo.fade_from = time.monotonic()
++    if holo.timer is not None:holo.timer.setInterval(FADE_FRAME_MS)
++    return True
++
++
++def paint_before(holo, p, still_):
++    """The pose before, fading out where it stood; the share (0 to 1) the new pose is drawn at."""
++    prev = getattr(holo, 'prev', None)
++    if prev is None:return 1.0
++    t = (time.monotonic() - getattr(holo, 'fade_from', 0.0)) / (CROSSFADE_MS / 1000.0)
++    if still_ or t >= 1.0:
++        holo.prev = None
++        if holo.timer is not None:
++            from .her_hologram_qt import FRAME_MS
++            holo.timer.setInterval(FRAME_MS)
++        return 1.0
++    t = max(0.0, t);light, fig = prev
++    dpr = holo.widget.devicePixelRatioF();m = light.margin / dpr
++    p.save();p.setRenderHint(QPainter.SmoothPixmapTransform)
++    p.setOpacity(0.55 * (1.0 - t));p.drawImage(QRectF(fig.x() - m, fig.y() - m, fig.width() + 2 * m, fig.height() + 2 * m), light.glow)
++    p.setOpacity(0.95 * (1.0 - t));p.drawImage(fig, light.scans[0])
++    p.restore()
++    return t
++
++
++def moment_figure(mine, moment):
++    """A moment's own pose from your set (HALT turned away, done arms crossed, refuted pointing): True when it is drawn so."""
++    pose = MOMENT_POSE.get(getattr(moment, 'kind', ''))
++    if not pose:return False
++    ps = poses(moment.host)
++    if not ps.active():return False
++    image, key = ps.pose(pose)
++    if image is None:return False
++    mine.take(image, key)
++    return mine.k is not None and not mine.k.image.isNull()
++
++
++# ------------------------------------------------------------------------------------------------------------ small slots
++def small(image, key, W, H, dpr=1.0):
++    """A face or a sprite frame, W x H (logical), in her hologram's treatment at a small size: its ground keyed, a soft
++    glow, the scan lines. Composed once a size and kept."""
++    from .her_hologram_qt import Light, fit, keyed
++    ck = (key, W, H, dpr)
++    if ck in _SMALL:return _SMALL[ck]
++    k = keyed(image, key)
++    if k.image.isNull() or W < 4 or H < 4:return None
++    w, h = max(4, round(W * dpr)), max(4, round(H * dpr));m = max(1, round(min(w, h) * 0.06))
++    box = fit(k, 1.0, w - 2 * m, h - 2 * m, 1.0)
++    if box.isEmpty():return None
++    box.translate(m, m)
++    light = Light(k, 1.0, box.width(), box.height(), fade=0)
++    out = QImage(w, h, QImage.Format_ARGB32_Premultiplied);out.fill(Qt.transparent)
++    p = QPainter(out);p.setRenderHint(QPainter.SmoothPixmapTransform)
++    g = light.margin
++    p.setOpacity(0.5);p.drawImage(QRect(box.x() - g, box.y() - g, box.width() + 2 * g, box.height() + 2 * g), light.glow)
++    p.setOpacity(1.0);p.drawImage(box, light.scans[0]);p.end()
++    out.setDevicePixelRatio(dpr)
++    _SMALL[ck] = out
++    while len(_SMALL) > SMALL_KEEP:_SMALL.pop(next(iter(_SMALL)))
++    return out
++
++
++def face_of(host, pose=None):
++    """The face (a name of the set) for her pose now."""
++    pose = pose or getattr(host, '_her_pose', None) or 'quiet'
++    return hp.face_for(pose, poses(host).faces())
++
++
++def tell_faces(host):
++    """Her pose changed (or the set did): every small slot of hers draws again."""
++    for widget in list(getattr(host, '_her_faces', ()) or ()):
++        try:widget.follow()
++        except RuntimeError:      # the slot is gone (a toast closed)
++            try:host._her_faces.remove(widget)
++            except (AttributeError, ValueError):pass
++
++
++def _enlist(host, widget):
++    try:
++        faces = host.__dict__.setdefault('_her_faces', [])
++        faces.append(widget)
++    except Exception:  # noqa: BLE001
++        pass
++
++
++class SlotFace(QWidget):
++    """Her face in a small slot ('name': by her name in her column, following her pose; 'toast': smiling, or the knowing look
++    for an urgent one). Hidden while no pose set is in force."""
++
++    def __init__(self, host, slot, tall=24, chooser=None):
++        super().__init__();self.host = host;self.slot = slot;self.tall = tall;self.chooser = chooser;self.shown_face = ''
++        self.setObjectName('HerFace' + slot.capitalize());self.setAttribute(Qt.WA_TransparentForMouseEvents)
++        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
++        _enlist(host, self);self.follow()
++
++    def face(self):
++        if self.chooser is not None:
++            want = self.chooser();faces = poses(self.host).faces()
++            return want if want in faces else hp.face_for('quiet', faces)
++        return face_of(self.host)
++
++    def follow(self):
++        face = self.face() if poses(self.host).active() else ''
++        if face != self.shown_face:
++            self.shown_face = face
++            words = FACE_WORDS.get(face, '')
++            pose = POSE_WORDS.get(getattr(self.host, '_her_pose', None) or 'quiet', '')
++            self.setAccessibleName(say('face', name=named('Stacy'), pose=pose if self.slot == 'name' else words) if face else '')
++            self.setToolTip(say('face', name=named('Stacy'), pose=pose) if face and self.slot == 'name' else '')
++            self.updateGeometry()
++        self.setVisible(bool(face))
++        self.update()
++
++    def sizeHint(self):
++        return QSize(max(8, round(self.tall * 0.8)), self.tall)
++
++    def minimumSizeHint(self):
++        return self.sizeHint()
++
++    def paintEvent(self, event):
++        if not self.shown_face:return
++        image, key = poses(self.host).face(self.shown_face)
++        if image is None:return
++        h = min(self.height(), self.tall);w = min(self.width(), round(h * 0.8) + 2)
++        art = small(image, key, w, h, self.devicePixelRatioF())
++        if art is None:return
++        p = QPainter(self);p.drawImage(QRectF((self.width() - w) / 2.0, (self.height() - h) / 2.0, w, h), art);p.end()
++
++
++def name_face(column):
++    """Her face by her name (her column's name line)."""
++    from .her_column_qt import px
++    return SlotFace(column.host, 'name', px(column.host, 24))
++
++
++def toast_face(toast, row):
++    """Her face at the head of a toast (smiling; the knowing look for an urgent one), when a pose set is in force."""
++    host = getattr(getattr(toast, 'shelf', None), 'host', None)
++    if host is None or not poses(host).active():return None
++    try:
++        from .notify_qt import scale_of
++        s = scale_of(host)
++    except Exception:  # noqa: BLE001
++        s = 1.0
++    face = SlotFace(host, 'toast', round(26 * s), lambda: 'knowing' if (getattr(toast, 'note', None) or {}).get('urgency') == 2 else 'smile')
++    face.setFocusPolicy(Qt.NoFocus)
++    row.insertWidget(0, face, 0, Qt.AlignVCenter)
++    return face
++
++
++# ------------------------------------------------------------------------------------------------------------ the dock
++def hand_live(host):
++    """(acting, program, act): her hand in another program now (K9's live state, read through the Kernel, an observer)."""
++    live = ((_read(host, 'program.status', {'live': True}) or {}).get('live')) or {}
++    if live.get('state') != 'acting':return False, '', ''
++    age = (time.time_ns() // 1000000 - int(live.get('at') or 0)) // 1000
++    if age > ACTING_KEEP_S:return False, '', ''
++    from .her_column_qt import plain
++    return True, plain(live.get('program') or 'a program'), plain(live.get('act') or live.get('words') or '')
++
++
++class DockKas(QAbstractButton):
++    """Beside Graphite's entry in the dock: her face for her pose; while her hand works in another program, her walking
++    sprite and "Kasandra in <program>". A press brings Graphite's window forward, as the entry does. Hidden (no width)
++    while no pose set is in force."""
++
++    def __init__(self, dock):
++        super().__init__(dock);self.dock = dock;self.host = dock.host
++        self.mode = 'face';self.program = '';self.act = '';self.frame = 0;self.ticks = 0
++        self.setObjectName('GraphiteDockKas');self.setCursor(Qt.PointingHandCursor);self.setFocusPolicy(Qt.NoFocus);self.setAttribute(Qt.WA_Hover)
++        self.clicked.connect(dock.bring_graphite)
++        self.timer = QTimer(self);self.timer.setTimerType(Qt.CoarseTimer);self.timer.setInterval(1000);self.timer.timeout.connect(self.tick)
++        self.timer.start()
++        _enlist(self.host, self);self.follow()
++
++    def active(self):
++        return poses(self.host).active()
++
++    def follow(self):
++        self.words();self.update()
++
++    def words(self):
++        name = named('Stacy')
++        if self.mode == 'walk':
++            tip = say('dock_hand_tip', name=name, program=self.program, act=self.act or POSE_WORDS['working'])
++        else:
++            tip = say('dock_face', name=name, pose=POSE_WORDS.get(getattr(self.host, '_her_pose', None) or 'quiet', ''))
++        self.setToolTip(tip);self.setAccessibleName(tip)
++
++    def label(self):
++        return say('dock_hand', name=named('Stacy'), program=self.program) if self.mode == 'walk' else ''
++
++    def natural(self, h):
++        """Its width in a dock h tall: 0 with no set; her face; or her sprite and the words while she walks."""
++        if not self.active():return 0
++        if self.mode != 'walk':return round((h - 6) * 0.8) + 12
++        fm = QFontMetrics(self.font())
++        return round((h - 4) * 0.62) + 10 + min(fm.horizontalAdvance(self.label()), 260) + 12
++
++    def tick(self):
++        if getattr(self.host, '_closing', False):self.timer.stop();return
++        self.ticks += 1
++        if self.mode == 'walk' and not still(self.host):
++            self.frame += 1;self.update()
++            if self.ticks % LIVE_EVERY:return
++        self.read_live()
++
++    def read_live(self):
++        if not self.active():
++            if self.isVisible():self.dock.arrange()
++            return
++        try:acting, program, act = hand_live(self.host)
++        except Exception:  # noqa: BLE001 - her hand's state cannot be read: her face
++            acting, program, act = False, '', ''
++        walk = acting and bool(poses(self.host).roles['walk'])
++        mode = 'walk' if walk else 'face'
++        if (mode, program) != (self.mode, self.program) or act != self.act:
++            changed = (mode, program) != (self.mode, self.program)
++            self.mode, self.program, self.act = mode, program, act;self.frame = 0
++            self.timer.setInterval(WALK_MS if mode == 'walk' and not still(self.host) else 1000)
++            self.words()
++            if changed:self.dock.arrange()
++            self.update()
++
++    def paintEvent(self, event):
++        if not self.active():return
++        p = QPainter(self);w, h = self.width(), self.height()
++        if self.isDown():p.fillRect(self.rect(), QColor(bt.LINE))
++        elif self.underMouse():p.fillRect(self.rect(), QColor(bt.RAISED))
++        ps = poses(self.host);dpr = self.devicePixelRatioF()
++        if self.mode == 'walk':
++            frames = ps.walk()
++            if frames:
++                image, key = frames[0 if still(self.host) else self.frame % len(frames)]
++                fh = h - 4;fw = round(fh * 0.62)
++                art = small(image, key, fw, fh, dpr)
++                if art is not None:p.drawImage(QRectF(6, 2, fw, fh), art)
++                x = 6 + fw + 6
++                fm = QFontMetrics(self.font());p.setPen(QColor(bt.TEXT))
++                p.drawText(QRect(x, 0, w - x - 6, h - 2), Qt.AlignLeft | Qt.AlignVCenter, fm.elidedText(self.label(), Qt.ElideRight, max(10, w - x - 6)))
++        else:
++            face = face_of(self.host)
++            image, key = ps.face(face)
++            if image is not None:
++                fh = h - 6;fw = round(fh * 0.8)
++                art = small(image, key, fw, fh, dpr)
++                if art is not None:p.drawImage(QRectF((w - fw) / 2.0, 3, fw, fh), art)
++        p.fillRect(w - 1, round(h * 0.22), 1, round(h * 0.56), QColor(bt.LINE_MID))
++        p.end()
++
++
++def place_in_dock(dock, x, h):
++    """Her place in the dock, right after Graphite's entry at x: its width (0 while no pose set is in force)."""
++    kas = getattr(dock, 'kas', None)
++    if kas is None:return 0
++    try:
++        width = kas.natural(h)
++        kas.setVisible(width > 0)
++        if width:kas.setGeometry(x, 0, width, h)
++        return width
++    except RuntimeError:
++        return 0
++
++
++# ------------------------------------------------------------------------------------------------------------ your press
++def menu_items(portrait, menu):
++    """Her portrait's right-click: your pose set, admitted like your picture (and her single figure again)."""
++    found = _read(portrait.host, 'kasandra.poses') or {}
++    folder = found.get('folder') or {}
++    menu.addSeparator()
++    use = menu.addAction(say('use'));use.setEnabled(bool(found.get('waiting')))
++    use.triggered.connect(lambda checked=False, f=folder: admit(portrait, f))
++    back = menu.addAction(say('single'));back.setEnabled(bool(found.get('in_force')))
++    back.triggered.connect(lambda checked=False: single(portrait))
++    from .her_column_qt import plain
++    for words in found.get('words') or ():
++        note = menu.addAction(plain(words));note.setEnabled(False)
++
++
++def admit(portrait, folder):
++    if not folder or not folder.get('digest'):return
++    if QMessageBox.question(portrait, named('Stacy'), say('ask', count=folder.get('count', 0))) != QMessageBox.Yes:return
++    from .her_column_qt import press
++    done, why = press(portrait.host, 'kasandra.poses.admit', {'expected_sha256': folder['digest']})
++    from .her_column_qt import say as column_say
++    portrait.column.say_words(done['words'][0] if done else column_say('press_refused', why=why))
++    portrait.column.read_portrait()
++
++
++def single(portrait):
++    from .her_column_qt import press, say as column_say
++    done, why = press(portrait.host, 'kasandra.poses.admit', {'shipped': True})
++    portrait.column.say_words(done['words'][0] if done else column_say('press_refused', why=why))
++    portrait.column.read_portrait()
++
++
++def describe(host):
++    """What the set draws now (the smoke script's view of it)."""
++    ps = poses(host)
++    return {'active': ps.active(), 'revision': ps.revision, 'poses': sorted(ps.roles['poses']), 'faces': sorted(ps.roles['faces']),
++            'walk': len(ps.roles['walk']), 'pose': getattr(host, '_her_pose', None), 'face': face_of(host) if ps.active() else ''}
+diff --git a/workbench/mind_words.py b/workbench/mind_words.py
+index 11d6cd2..e39c3e8 100644
+--- a/workbench/mind_words.py
++++ b/workbench/mind_words.py
+@@ -58,7 +58,8 @@ MODULES = ('workbench.mind_words', 'workbench.rules', 'workbench.quotes', 'workb
+            'workbench.voice_character',            # 0.8.7 C5: her character file's own plain words
+            'workbench.mind_panel_qt', 'workbench.demo_try',      # 0.8.6 W: her column panel's words, and the demos' card
+            'workbench.one_question',                            # 0.8.7 B4: the one question's words
+-           'workbench.her_column_qt')                           # 1.0 P1: her column's words
++           'workbench.her_column_qt',                           # 1.0 P1: her column's words
++           'workbench.her_poses_qt')                            # 1.0 P5: her poses' and faces' words
+ 
+ QUOTED = re.compile(r'“[^”]*”|"[^"]*"')
+ SENTENCE = re.compile(r'(?<=[.?!])\s+')
+diff --git a/workbench/notify_qt.py b/workbench/notify_qt.py
+index a8bdd7d..7ae3e33 100644
+--- a/workbench/notify_qt.py
++++ b/workbench/notify_qt.py
+@@ -79,6 +79,11 @@ class Toast(QFrame):
+         self.close_.setToolTip('Close this notification');self.close_.setAccessibleName('Close this notification')
+         self.close_.clicked.connect(lambda: shelf.dismiss(self.note['id']))
+         head.addWidget(self.kind);head.addWidget(self.who, 1);head.addWidget(self.close_)
++        try:      # 1.0 P5: her face at the toast's head while your pose set is in force (her_poses_qt)
++            from .her_poses_qt import toast_face
++            self.face = toast_face(self, head)
++        except Exception:  # noqa: BLE001 - the toast is whole without it
++            self.face = None
+         outer.addLayout(head)
+         self.summary = QLabel();self.summary.setTextFormat(Qt.PlainText);self.summary.setWordWrap(True)
+         self.body = QLabel();self.body.setTextFormat(Qt.PlainText);self.body.setWordWrap(True)
+diff --git a/workbench/system_dock_qt.py b/workbench/system_dock_qt.py
+index 6f1e05f..c8bddd9 100644
+--- a/workbench/system_dock_qt.py
++++ b/workbench/system_dock_qt.py
+@@ -196,6 +196,11 @@ class Dock(QWidget):
+         self.setAttribute(Qt.WA_X11NetWmWindowTypeDock, True);self.setAttribute(Qt.WA_ShowWithoutActivating, True)
+         self.setAttribute(Qt.WA_X11DoNotAcceptFocus, True);self.setFocusPolicy(Qt.NoFocus)
+         self.entry = GraphiteEntry(self);self.entry.clicked.connect(self.bring_graphite)
++        try:      # 1.0 P5: beside the entry, her face; her walking sprite while her hand works in a program (her_poses_qt)
++            from .her_poses_qt import DockKas
++            self.kas = DockKas(self)
++        except Exception:  # noqa: BLE001 - the dock is whole without her
++            self.kas = None
+         self.box = QWidget(self);self.strip = DockStrip(host, self, self.box)
+         self.quiet = QLabel(self);self.quiet.setTextFormat(Qt.PlainText)
+         host.installEventFilter(self)
+@@ -257,6 +262,9 @@ class Dock(QWidget):
+         h = self.height();s = min(max(getattr(getattr(self.host, 'desk', None), 'scale', 1.0) or 1.0, 1.0), 1.6)
+         self.entry.ensurePolished();ew = self.entry.natural(h)
+         self.entry.setGeometry(0, 0, ew, h)
++        if getattr(self, 'kas', None) is not None:      # 1.0 P5: her place right after the entry (none while no pose set is in force)
++            from .her_poses_qt import place_in_dock
++            ew += place_in_dock(self, ew, h)
+         x0 = ew + round(4 * s);w = max(0, self.width() - x0)
+         self.box.setGeometry(x0, 0, w, h)
+         d = Desk(width=w, pane=0, workspace=w, band=h, inset=round(8 * s), gap=0, symbol=0, scale=s, left=0, right=w, line=0)

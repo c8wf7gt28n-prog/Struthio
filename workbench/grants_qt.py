@@ -74,6 +74,7 @@ class GrantFold(QWidget):
         for row in rows or ():
             action = next((a for a in row.get('actions') or () if a.get('operation') == 'grant.give'), None)
             if action:ask = (row, action);break
+        if getattr(self.column, 'waits', None) is not None:ask = None      # 1.0 D1: a grant asked for is in "Waits for you" (one place)
         self.ask = ask;compact = self.column.compact();host = self.column.host
         if ask:
             row, action = ask

@@ -23,7 +23,7 @@ from PySide6.QtCore import QEvent, QPoint, QSize, Qt, QTimer
 from PySide6.QtWidgets import (QAbstractItemView, QCheckBox, QFrame, QHBoxLayout,
     QLabel, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QSlider, QToolButton, QVBoxLayout, QWidget,QMenu)
 
-MONITORS_NOTE = 'Current Graphite host · CPU / GPU / RAM / TXT'   # the old column note's words, now the pulse's tooltip
+MONITORS_NOTE = 'Current Graphite host · CPU / GPU / RAM / TXT / NET'      # 1.0 D1: NET, the fifth   # the old column note's words, now the pulse's tooltip
 KILL_WORDS = 'Stop all jobs'                                     # the kill switch: the Master Stop (HATCH DESK D2: the System menu's
                                                                  # second row, under Game, scoped in words to the work Graphite manages)
 TIERS = ('now', 'normal', 'background')                          # agenda.NICE left to right: more urgent → nicer
@@ -73,7 +73,7 @@ class DesktopMonitors(QWidget):
     4 display a lot more kewl"): each is drawn in style H, a glowing ring with the number inside and a small trace of the
     last minute ending in a bright dot (neon_meters.RingMeter); a meter with no reading stays dim with its dash and "no
     reading". They stand centred and evenly spaced under the right column (typebar_qt.place gives them its width)."""
-    KEYS = ('CPU', 'GPU', 'RAM', 'TXT')
+    KEYS = ('CPU', 'GPU', 'RAM', 'TXT', 'NET')      # 1.0 D1: NET, the network's state (net_meter)
 
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('DesktopMonitors');self._scale = None
@@ -83,9 +83,14 @@ class DesktopMonitors(QWidget):
         self.values = {};self.labels = {};self.setProperty('paperFunctionalInk', True)
         for key in self.KEYS:
             # the key word is drawn by its meter under the ring; the label stays (out of sight) for what reads it
-            label = QLabel(key, self);label.hide();value = RingMeter(key, self)
+            label = QLabel(key, self);label.hide()
+            if key == 'NET':      # 1.0 D1: a state (a shape and a word), not a share
+                from .net_meter import install as install_net
+                value = install_net(self)
+            else:value = RingMeter(key, self)
             label.setAccessibleName(key + ' monitor');value.setAccessibleName(key + ' reading');value.setProperty('paperFunctionalInk', True)
             row.addWidget(value);row.addStretch(1);self.values[key] = value;self.labels[key] = label      # evenly spaced: the same air between them and at both ends
+        self.values['TXT'].reserve = 'TXT —'      # 1.0 D1: TXT has no reading in this build (render): its room is its dash, so NET fits beside it
         self.setCursor(Qt.PointingHandCursor)      # 0.7.0: each meter is a door (meter_cards): a click opens what it is about
         self.restyle()
         self.previous = None;self.timer = QTimer(self, interval=2000)
@@ -169,6 +174,9 @@ class DesktopMonitors(QWidget):
         gpu=sample['gpu']['percent'];self.values['GPU'].setText(str(gpu)+'%' if gpu is not None else '—')
         self.values['GPU'].setToolTip('Current host GPU · busiest reported adapter' if gpu is not None else 'GPU utilization unavailable from this driver')
         self.values['TXT'].setText('—');self.values['TXT'].setToolTip(sample['txt']['reason'])
+        try:self.values['NET'].read()      # 1.0 D1: K8's state, read as its head word read it
+        except Exception:  # noqa: BLE001 - NET says not known at its next reading
+            pass
         from .neon_meters import NEAR
         for value in self.values.values():
             live = value.text() != '—'

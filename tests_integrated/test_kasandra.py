@@ -24,7 +24,7 @@ class PaletteTests(unittest.TestCase):
     def test_the_appearance_is_chosen_by_the_environment_then_the_session_file(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'session-r10.json'
-            self.assertEqual(boss_theme.chosen_appearance({}, path), 'graphite', 'no file: Graphite')
+            self.assertEqual(boss_theme.chosen_appearance({}, path), 'day', 'no file: a fresh profile starts in Day (1.0 D1)')
             path.write_text(json.dumps({'appearance': 'kasandra'}))
             self.assertEqual(boss_theme.chosen_appearance({}, path), 'kasandra')
             self.assertEqual(boss_theme.chosen_appearance({'GRAPHITE_APPEARANCE': 'graphite'}, path), 'graphite', 'the environment first')
@@ -203,7 +203,7 @@ class StateTests(unittest.TestCase):
 class NameTests(unittest.TestCase):
     def run_with(self, appearance):
         code = ('from workbench import assistant_identity as a, typebar_qt as t, meter_cards as m;'
-                'print(a.NAME);print(t.SHOWN["slate"]);print(a.named("Ask Stacy about this"));print(a.named("TEXT · WHAT STACY HOLDS"))')
+                'print(a.NAME);print(__import__("workbench.foot_line").foot_line.ASK.split()[1]);print(a.named("Ask Stacy about this"));print(a.named("TEXT · WHAT STACY HOLDS"))')      # 1.0 D1: her name is not on the strip; Ask Kasandra → says it
         env = dict(os.environ, GRAPHITE_APPEARANCE=appearance, QT_QPA_PLATFORM='offscreen', HOME=tempfile.gettempdir())
         out = subprocess.run([sys.executable, '-B', '-c', code], cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=120)
         self.assertEqual(out.returncode, 0, out.stderr[-2000:])
