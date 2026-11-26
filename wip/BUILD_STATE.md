@@ -372,6 +372,14 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 14:20 UTC: **1.0 L6b merged** (f709d77: Home's files, whole. A Home file opens in its program and its saves
+  become revisions, watched and found again by inode. The tree has Rename, Move to, Delete (to the system's own
+  freedesktop.org bin, with Undo and Restore), New folder and drag to move. files.trash refuses Home itself and the
+  workspace's folder. Her program opens, LibreOffice edits and hand check home_reach. Smoke 29/29, and 13/13 per look).
+  On screen the bin stays DELETE (the owner's rule and test_delete_words); a word "Trash" would need the owner.
+  **X3 launched** (twelve everyday sessions in an invented Home; agent a8a2780467f1ec010). Running: P4, F1, F2, X3.
+  Next: M2 when a slot frees; then D2, X1, X2, R1, R2. 39 slices: 28 merged, P5 cancelled.
+
 - 26 Nov 13:40 UTC: **1.0 M1 merged** (ce6306f: her runtime is llama.cpp v1.0.0, b12359. Both official archives are
   sha256-checked and replace b11669. The seal was rebuilt from v1.0.0's help. runtime_tuning.py gives five owner launch
   defaults. MTP comes only from the model's own head, and --cache-ram is sized to her kept prompts. The model check's
