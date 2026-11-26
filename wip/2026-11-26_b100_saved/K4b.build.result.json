@@ -1,0 +1,61 @@
+{
+  "item": "K4b",
+  "status": "done",
+  "summary": "PLAN's standing instructions and tool menu are now primed into the model's kept prompt at Ready (brain_briefs.DESKS['PLAN'] = objective_plan.plan_layout) and before a question whose messages 1 to 3 are not kept (keep_plan), keyed by the sha256 of messages 1 to 3, so a changed registry or a desk with other kinds of things primes again. The prompt is lean: message 2 is the menu as short numbered lines (only tools here whose things are on the desk), message 4 the request and only the desk's things it names. A per-tool grammar now makes the model write the handles the desk can fill. With the real 4B on Rail Demo the PLAN prompt went from 492 tokens (309 new) to 330 (60 new). The model's plan '8 D2|23 D6 S1' was TAKEN in both turns: turn 1 took 10,987 ms (a cache miss, still inside the 20 s deadline) and turn 2 took 3,300 ms. No cap, deadline or ceiling was raised.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4b.patch",
+  "notes_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4b.progress.md",
+  "files_changed": ["workbench/objective_plan.py"],
+  "smoke": {
+    "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/K4b/smoke.py (modes: standin -> K4b/standin.log; live, under the model lock -> K4b/live.log)",
+    "output": [
+      "STAND-IN (FakeServer through LocalPort; FakeWorker):",
+      "tokens (stand-in tokenizer): before K4b prompt 790, kept 316 (brief only), new 474; after prompt 540, kept 463 (brief and menu), new 77",
+      "menu: '1 read a sheet, a page or a calculation: D' / '3 note the checked values: nothing' / '8 work a calculation again from its sheet: D' / '17 read this computer's state: nothing' / '23 put a checked value in a page: D, then S of the step that checked the value'",
+      "message 4: the request fenced, then 'On the desk:' D2 calculation “Rail Demo startup power · 10.8 W”, D6 page “Rail Demo summary”",
+      "grammar: ok, worst 24 tokens, fits cap 48; admits '8 D2|23 D6 S1' True, '1 D2|8 D2|23 D6 S2' True, '0' True; '8|23|23' False, '23 D6 S1' False, '8 D6' False, '1 D3|8 D2' False, '8 D2|23 D6 S2' False",
+      "caps unchanged: PLAN Caps(new_tokens=1200, answer_tokens=48, deadline_ms=20000) | foreground deadline most 20000 | request ceiling 25000 ms, 3 turns",
+      "no model: by=desk, 3 steps (office.get done, office.datasheet.recheck proposed, documents.save proposed)",
+      "at Ready (after_start): 11 kinds primed, failed []; desks: PLAN PRIMED 463 tokens, READ PRIMED 1046",
+      "first PLAN question after Ready: prompt kept=KEPT, by=model TAKEN, worker reads ['question'], tokens kept_expected 463 new 77, reuse cache_n 460 no miss; words: 'I would do it in 2 steps, each through a registered tool. Nothing changes until you authorise it. / My model proposed the steps and the desk checked each one. / 1. Recompute the startup power ... / 2. Update “Rail Demo summary” ...'",
+      "second PLAN question: KEPT, TAKEN, cache_n 539",
+      "registry changed (tool 17 not here): PRIMED (worker reads ['prime','question']), kept_expected 448, TAKEN; registry as before: PRIMED again, TAKEN",
+      "desk changed (Rail Demo summary report.odt placed): menu gains 2, 18, 19; PRIMED, kept_expected 533, TAKEN '8 D2|19 D7 S1'",
+      "HALT held: plan_layout -> None; offer by=desk outcome=NOT_ASKED, worker reads 0",
+      "a late PLAN turn (stand-in): by=desk outcome=LATE deadline 20000 ms; 'My model did not answer within its 20 s on this computer, so this is the desk’s own plan.' then the desk's 3 steps",
+      "K4 acceptance with the stand-in: '8 D2|42 D2|23 D6 S1' -> TRIMMED, step 2 refused ('42 is not a registered tool'), the rest offered; '1 D3|8 D2|23 D6 S2' -> TRIMMED, step 1 refused ('a handle names nothing your words name')",
+      "nothing named ('recheck the flux capacitor and update the moon page'): outcome NOT_ASKED_NOTHING_NAMED, model calls 0",
+      "REAL 4B (Qwen3.5-4B-Q4_K_M, bundled llama-server, Graphite's own Brain path, sealed, CPU, 3 threads, context 4096; final run 3):",
+      "model started and primed in 88 s; at Ready: PLAN PRIMED 270 tokens, READ PRIMED 652",
+      "tokens (4B tokenizer): before K4b prompt 492, kept 183 (brief only), new 309; after prompt 330, kept 270 (brief and menu), new 60; brief 183 -> 192, messages 2+3 280 -> 78, message 4 29 -> 60",
+      "PLAN turn 1 in the window (ask line, day look): TAKEN, model said '8 D2|23 D6 S1', desk checks step 1 calculation.recheck ok, step 2 page.update ok; price 11650 ms, deadline 20000, elapsed 10987; cache MISS (cache_n 0): prompt_n 330 read in 8214 ms, 11 tokens written in 2386 ms",
+      "PLAN turn 2: TAKEN, same line; elapsed 3300 ms; cache_n 326, prompt_n 4 in 374 ms, 11 tokens in 2882 ms",
+      "offered: 1. Recompute the startup power [office.datasheet.recheck, owner_words, proposed]; 2. Update “Rail Demo summary” with the checked startup power [documents.save, owner_words, proposed]",
+      "runtime log: each prompt-cache entry 200 to 260 MiB (6 checkpoints, prompt cache 512 MiB); at PLAN turn 1 two entries were removed to make room (the slot's READ desk saved before the lookup), PLAN's primed entry among them",
+      "earlier run 2 (K4's grammar, same lean prompt): turn 1 12951 ms (miss), turn 2 2267 ms, both in time but REFUSED: the 4B wrote '8|23|23' with no handles"
+    ]
+  },
+  "existing_tests_changed": [],
+  "decisions": [
+    "Message 2 holds the menu only, not the desk's things. The things move to message 4 and only those the request names are listed (the plan's 'only the desk's handles the request names'), so the primed part is the same for every request on a desk. 'Keyed so a changed desk or registry primes again' holds because the menu lists only the tools whose kinds of things are on the desk (USES), and the key is the sha256 of messages 1 to 3: a changed registry, or a desk that gains or loses a kind of thing, primes again. A desk whose things change but whose kinds do not keeps its primed menu, because none of its things are in the menu.",
+    "'Named' means: for each clause, the best title match among the kinds its verb takes (recheck: a calculation; update: a page or a document), up to 3 tied matches, plus 'that one' and 'the earlier one' as the desk resolves them; at most 6. The grammar admits only those D handles, and the desk refuses any other ('a handle names nothing your words name'). So the model can no longer add a read of an unnamed sheet; its plan for the example is two steps where the desk's own plan is three.",
+    "The grammar is now per tool (SHAPE): each tool comes with exactly the handles it takes, and a step that takes an S is never the first. This was not in the plan's words. I added it because, under K4's grammar (handles optional), the real 4B answered in time but wrote '8|23|23', and the desk could fill none of it. It is the desk narrowing what may be written; nothing the model writes is trusted any more than before.",
+    "When nothing on the desk is named, the model is not asked (outcome NOT_ASKED_NOTHING_NAMED), because it could only answer 0.",
+    "PLAN's version went from 1 to 2, because the brief and the layout changed.",
+    "Honest words were added: 'model_late' (the deadline in seconds) and 'model_not_asked' (CEILING_TIME). I also added 'lead_changes', because the 4B frame said 'The reads go ahead' over a plan with no read.",
+    "I did not change the priming order at Ready (brain_briefs.open_desks: PLAN, then READ). Putting PLAN last would probably give PLAN's first turn a hit, but it would make READ's first question depend on the RAM cache, with a risk of a late READ (see findings). I left the order as it is and report it instead.",
+    "The real model was loaded three times, not once. Load 1 crashed in my token-measuring code before any turn (the 4B's chat template refuses a system-only message). Load 2 measured and showed the '8|23|23' problem. Load 3 measured with the fix. Each load was about 2 to 2.5 minutes under the model lock."
+  ],
+  "findings_for_the_coordinator": [
+    "The prompt cache on this machine holds only about two prompts of the hybrid 4B. The runtime log shows each entry at 200 to 260 MiB (6 checkpoints) against a 512 MiB cache, and the slot's prompt is saved before the lookup. So of everything primed at Ready, only the last two prompts survive. PLAN's primed menu was evicted when the first PLAN question saved READ's primed desk out of the slot, so the first PLAN turn after Ready read all 330 tokens (8.2 s). It was still in time: 11.0 s of 20 s. brain_briefs' store still counted the menu as kept, so the turn was priced as kept, and the watchdog re-primes only after two misses in a row. This is A2/X7b ground: choose the order of desks at Ready (shortest last), the cache rung, or the store's belief. Not changed here.",
+    "The same eviction can hit READ. If a PLAN turn comes between READ's prime and READ's first question, READ's primed desk (652 tokens) may be gone while the store says it is kept. READ's question would then be sent and could be late at READ's 10 s cap.",
+    "On a cold miss on this machine, the 4B reads about 40 tokens a second and writes 4 to 5 tokens a second (11 tokens in 2.4 to 2.9 s).",
+    "No Kernel operation was added, so docs/GRAPHITE_0.1_REGISTRY.json was not regenerated.",
+    "Frames from load 3 show her column with the model's plan taken, in the day look at 1920x1200 and 1366x768. They still show K4's lead sentence 'The reads go ahead; …', which has since been changed to the 'lead_changes' wording. That wording is checked in the stand-in log, not in a new frame."
+  ],
+  "not_done": [
+    "No frames in the graphite and kasandra looks: K4b changes only her words, not the window's layout, and each look needs another model load. The real-4B frames are in the day look only, as the coordinator asked.",
+    "I did not measure the first PLAN turn hitting the primed menu with the real 4B. It missed because of the eviction described in the findings. In the stand-in run the first question after Ready finds the menu kept.",
+    "Nothing was tested in the owner's sense, and nothing ran on the ThinkPad."
+  ],
+  "release_note": "Her plan in time on a slow machine (K4b): the plan question's fixed part (her instructions and the tool menu, short numbered lines) is kept in the model's memory from the moment the model is ready, and each question carries only your words and the things they name. On the 4B here the question fell from 492 to 330 tokens (60 read new), and the model's plan came in 11 s cold and 3.3 s the second time, inside its unchanged 20 s deadline, and was taken after the desk's checks. If it is ever late she says so, and the desk's own plan is offered."
+}

@@ -1,0 +1,82 @@
+Rail Demo built through its own door in 9 s
+registered in 3 s
+model started and primed in 88 s: backend CPU, context 4096, seal SEALED
+
+== at Ready: kinds primed 11 (MARKS, ASK, COLUMNS, PLAN, GOAL, NEXT, ORDER, ORDER_GOAL, PICK, READ, BIND), failed []; desks:
+  {'kind': 'PLAN', 'state': 'PRIMED', 'tokens': 270}
+  {'kind': 'READ', 'state': 'PRIMED', 'tokens': 652}
+
+== tokens of the PLAN prompt for "recheck the startup power and update the summary page" (the 4B's own tokenizer)
+  before K4b (K4): prompt 492, kept 183 (the brief only), new 309
+  after  K4b:      prompt 330, kept 270 (brief and menu, primed), new 60 (message 4 only)
+  brief (message 1) before: 183; after: 192
+  messages 2 and 3 before: 280 tokens; after: 78
+  message 4 before: 29 tokens; after: 60
+
+== message 2 (primed): the menu
+  Tools:
+  1 read a sheet, a page or a calculation: D
+  3 note the checked values: nothing
+  8 work a calculation again from its sheet: D
+  17 read this computer's state: nothing
+  23 put a checked value in a page: D, then S of the step that checked the value
+
+== message 4 (read new)
+  <<<YOUR WORDS
+  recheck the startup power and update the summary page
+  YOUR WORDS>>>
+  On the desk:
+  D2 calculation “Rail Demo startup power · 10.8 W”
+  D6 page “Rail Demo summary”
+
+== PLAN turn 1 in the window: planning took 12 s (off the window thread)
+  {"outcome": "TAKEN", "why": "", "price_ms": 11650, "deadline_ms": 20000, "elapsed_ms": 10987, "tokens": {"answer_cap": 48, "kept_expected": 270, "new": 60, "prompt": 330}, "reuse": {"cache_n": 0, "expected": 270, "miss": true, "misses_in_a_row": 1, "reprime": false}, "timings": {"prompt_n": 330, "cache_n": 0, "prompt_ms": 8214, "predicted_n": 11, "predicted_ms": 2386}, "answer": {"kind": "PLAN", "model_said": "8 D2|23 D6 S1"}, "kind": "PLAN", "version": 2}
+  the desk's checks: [["step 1", true, "calculation.recheck"], ["step 2", true, "page.update"]]
+her words:
+  I would do it in 2 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+  My model proposed the steps and the desk checked each one.
+  1. Recompute the startup power: marked for your approval, authorised by its own name.
+  2. Update “Rail Demo summary” with the checked startup power: a change, it waits for your word.
+  It is in ACTIVE WORK; your next press is in NEXT STEPS.
+
+== PLAN turn 2 in the window: planning took 4 s (off the window thread)
+  {"outcome": "TAKEN", "why": "", "price_ms": 11650, "deadline_ms": 20000, "elapsed_ms": 3300, "tokens": {"answer_cap": 48, "kept_expected": 270, "new": 60, "prompt": 330}, "reuse": {"cache_n": 326, "expected": 270, "miss": false, "misses_in_a_row": 0, "reprime": false}, "timings": {"prompt_n": 4, "cache_n": 326, "prompt_ms": 374, "predicted_n": 11, "predicted_ms": 2882}, "answer": {"kind": "PLAN", "model_said": "8 D2|23 D6 S1"}, "kind": "PLAN", "version": 2}
+  the desk's checks: [["step 1", true, "calculation.recheck"], ["step 2", true, "page.update"]]
+her words:
+  I would do it in 2 steps, each through a registered tool. The reads go ahead; nothing changes until you authorise it.
+  My model proposed the steps and the desk checked each one.
+  1. Recompute the startup power: marked for your approval, authorised by its own name.
+  2. Update “Rail Demo summary” with the checked startup power: a change, it waits for your word.
+  It is in ACTIVE WORK; your next press is in NEXT STEPS.
+frame saved k4b_live4b_day_1920x1200.png
+frame saved k4b_live4b_day_1366x768.png
+column: {"name": "Kasandra ●", "state": "◆ WAITS FOR YOU", "active": {"heading": "ACTIVE WORK [2]", "rows": [["1", "◆", "Recheck the startup power and update the summary page", "WAITING FOR YOUR WORD", "0%", "00:04", true], ["2", "◆", "Recheck the startup power and update the summary page", "WAITING FOR YOUR WORD", "0%", "00:04", true]]}, "next": ["Authorise step 1 · Recheck the startup power and update the summary page", "Authorise step 1 · Recheck the startup power and update the summary page", "See its steps: Why does startup take longer than 40 ms?", "Doubt: Startup is inside the Rev B limit of 40 ms."]}
+offered: Recheck the startup power and update the summary page | Step 1 (Recompute the startup power) waits for your word.
+  1. Recompute the startup power [office.datasheet.recheck, owner_words, proposed]
+  2. Update “Rail Demo summary” with the checked startup power [documents.save, owner_words, proposed]
+offered: Recheck the startup power and update the summary page | Step 1 (Recompute the startup power) waits for your word.
+  1. Recompute the startup power [office.datasheet.recheck, owner_words, proposed]
+  2. Update “Rail Demo summary” with the checked startup power [documents.save, owner_words, proposed]
+kept briefs now: {"kept": ["ASK", "BIND", "COLUMNS", "MARKS", "ORDER", "ORDER_GOAL", "PICK", "PLAN", "READ"], "desks": ["PLAN", "READ"], "missed": 1, "reprimes": 0, "forget_pending": false}
+worker reuse: checkpoints 6, prompt cache 512 MiB
+
+== every model turn of the run, in order
+  {"kind": "PLAN", "outcome": "TAKEN", "elapsed_ms": 10987, "tokens": {"answer_cap": 48, "kept_expected": 270, "new": 60, "prompt": 330}, "cache_n": 0}
+  {"kind": "PLAN", "outcome": "TAKEN", "elapsed_ms": 3300, "tokens": {"answer_cap": 48, "kept_expected": 270, "new": 60, "prompt": 330}, "cache_n": 326}
+
+== runtime log: 184 lines, 13 about the cache (the last 45)
+  0.19.248.836 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 101.096 MiB)
+  0.24.682.556 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 210.103 MiB)
+  0.30.210.643 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 205.318 MiB)
+  0.35.468.911 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 207.257 MiB)
+  0.41.001.838 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 1.000 (> 0.100 thold), f_keep = 1.000
+  0.41.513.458 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 207.413 MiB)
+  0.47.138.785 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 206.851 MiB)
+  0.59.929.250 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 206.413 MiB)
+  1.03.078.633 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 205.381 MiB)
+  1.10.143.292 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 217.827 MiB)
+  1.33.623.749 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 203.629 MiB)
+  1.33.635.786 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 260.103 MiB)
+  1.47.271.805 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 1.000 (> 0.100 thold), f_keep = 0.971
+model stopped; done in 132 s
+exit 0
