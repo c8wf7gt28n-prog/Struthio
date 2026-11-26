@@ -256,6 +256,13 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 07:35 (1.0 P3): the owner sent a tall full-figure picture of Kas as a hologram: "Use her as the on screen kas,
+  like she is a hologram. Not the circle picture". Taken: her column's circle portrait becomes a standing hologram of
+  the figure (black ground keyed out, glow, scanlines, shimmer, static at state changes, the equalizer behind her; on a
+  dark glass panel in Day). The picture stays out of the public repository (the standing rule); it is kept in scratch
+  (`$S/in/living_desktop/kas_hologram.png`, 1125x2436) and goes to the owner in the 1.0 kit, outside the source, to drop
+  into `kasandra/portrait.png` and admit. If scratch is lost before the kit, the kit says to use the owner's own copy.
+
 - 26 Nov (1.0): the picture's "HAULT" is read as **HALT**, the master stop, upper left. The equalizer moves behind her
   portrait (its sixteen bars) as in the picture. The picture's light look becomes a third look, **Day**, beside Graphite
   and Kasandra; the owner's saved look is kept. Her portrait comes from `kasandra/portrait.png` in the owner's workspace
@@ -301,6 +308,9 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 07:40 UTC: **The owner asked for Kas as a full-figure hologram** (not the circle). P3 added to the plan and
+  **launched** (agent a6d69fd4878888b64). Running: K3, K6, K4, K7, P3.
 
 - 26 Nov 07:30 UTC: **1.0 L5 merged** (a76caea: working tabs, the two-pane split, the pane in focus drives the tree and
   "this"; smoke 33/33). The centre lane L1-L5 is done. Not done in L5: the split is not restored at the next start (its

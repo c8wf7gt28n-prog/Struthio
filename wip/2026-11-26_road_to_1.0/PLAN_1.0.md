@@ -293,6 +293,20 @@ foot's meters as words and numbers; every meaningful colour also has a word or a
 keep their character but take the same layout. *Acceptance:* frames of the same Rail Demo board and column in all three
 looks at both sizes.
 
+**P3 · Kas as a hologram** (the owner, 26 Nov: "Use her as the on screen kas, like she is a hologram. Not the circle
+picture", with a tall full-figure picture of her: a glowing blue wireframe figure in a wide white-and-blue hat with
+green trim, on black). Her column's portrait becomes a standing hologram, not a circle: the figure cut free of its
+black ground (the picture's dark pixels become see-through, so she floats over the column), drawn with a soft glow,
+fine scanlines, a slow shimmer and, at state changes, a brief static, with the equalizer's bars standing behind her as
+in the owner's picture. The slot is tall: at 1920x1200 she shows from her hat to below the hips; at 1366x768 from the
+hat to the waist; the full figure, larger, for the moments that matter (P1's moments). In the dark looks she floats on
+the column; in Day she stands on a dark glass panel of her own (a "projector glass") so the light look stays light
+around her. Her state word, name and model ring stay beside her as P1 placed them. The picture comes from the owner's
+workspace (`kasandra/portrait.png`, admitted, as P1 built); a picture taller than it is wide is shown as the full
+figure, a wide or square one as before. Reduce motion stops the shimmer and static. The shipped art stays the default
+until the owner's picture is admitted; the owner's picture never enters the repository (the 1.0 kit carries it to the
+owner separately, outside the source).
+
 ### Wave 4 — the ghost acting
 
 **K2 · Tools and observation receipts.** `workbench/tools_registry.py`: every tool Kas may use (the Kernel operations,
