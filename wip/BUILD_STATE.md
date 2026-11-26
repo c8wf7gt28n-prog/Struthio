@@ -382,6 +382,14 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 21:46 UTC: **The §18 day with the real 4B on the merged tree** (coordinator, once, 21:43–21:46 under the lock;
+  log `X1.real4B_merged_coordinator.log`, frames `frames_X1_real4B/`): the 4B started in 65 s; the day ran steps 1 to
+  13 with no dialog and no traceback. She noticed "Rail Demo summary still says 3 W", and PLAN was TAKEN in 5,468 ms
+  (kept 408 of 492). Her model's plan left out the asked change, so the desk's plan was offered. Steps were authorised,
+  granted and carried on to "Every step is done (verified)". After a restart the journal reads every step done
+  (verified). Plan item 15 (the §18 day in the window with frames) is met here. The Guide still says "What's New in
+  0.8.7" until R2 bumps the version.
+
 - 26 Nov 21:43 UTC: **1.0 X1 merged** (9d74955: the §18 day in the window, following ACCEPTANCE Part 4. The real 4B
   ran once in Day and the stand-in replayed it in four looks and at 1366. Fixed from the 4B walk: a review question is
   answered from the desk's findings ("So I cannot call it sufficient"); she notices the summary and the report still
