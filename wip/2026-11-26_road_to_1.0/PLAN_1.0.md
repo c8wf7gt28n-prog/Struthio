@@ -479,6 +479,21 @@ clock starts from what this machine measured. *Acceptance:* the 4B loaded once u
 near its estimate, staying up through a primed READ and PLAN, or refused beforehand with the numbers; the tuning
 stage's rates seen by her clock after the model check closes.
 
+**K10 · Her reach in Home, finished** (added at X3's merge, 26 Nov, from X3's walk: "her answers about files in Home
+don't read the files' pages"; "the model's planning menu has no file tools and plans at most four steps"; "under one
+grant, the tidy's folder-making steps still waited for their own word"). (1) Asked about a document in Home (a PDF, an
+.odt, a .txt, an .ods), she reads its pages through the existing readers as data, behind the same doorway as a source
+(a line written to an assistant is withheld), and answers with the page it came from; "the records say nothing" only
+when the pages do not either. (2) The model's PLAN menu gains the Home file tools (list, new folder, move, rename,
+copy, delete to the bin) behind home_reach and the grants, and a model's plan may run to eight steps (the desk's own
+planner keeps its length). (3) When a plan's steps in one folder need several operations, the grant card offers them
+together in one press, each operation named in plain words. A grant is still per operation, target and scope, and
+the Kernel still enforces it at dispatch. (4) D2's finding: her state word says WORKING during Graphite's own
+background reads with no assignment open. Her state word follows her work only. *Acceptance:* in X3's everyday Home,
+"what does the manual say about descaling?" answered from its page with the page named; the 4B (once, under the lock)
+plans a tidy of Downloads from the file tools; one grant press covers the tidy's folder-making and moves; her state
+word QUIET while only Graphite reads.
+
 ### Wave 5 — the door, the floor, the Apps by hand
 
 **F1 · The door's mechanics.** A touch stops her: any owner input in the window while her hand drives it pauses the

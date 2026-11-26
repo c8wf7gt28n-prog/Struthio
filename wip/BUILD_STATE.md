@@ -382,6 +382,16 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 18:45 UTC: **1.0 X3 merged** (47b3332: the invented everyday Home, everyday_demo.py, built through its own door;
+  everyday_desk.py: the groceries answer, 244.65 exactly, through tool 18 with a receipt, and the 16-step tidy of
+  Downloads with "put it back". Fixes: Copy to… (from a stick too), mounted at once, Files after a Machine page,
+  "Authorise all n steps", a tidy's grant offered on the outer folder (still pressed by the owner), the title
+  "Graphite". 11 of 12 sessions walked; session 11, her hand, is walked by X4 and X1 on the merged tree). Its account is
+  in `X3.account.md`. Its top findings became **K10, her reach in Home, finished** (written into the plan; launched):
+  she reads a Home document's pages; the PLAN menu gains the file tools, up to eight steps; one grant press for a
+  plan's operations in one folder, each named; her state word follows her work only. Running: X4, X1, K10. Queue: R2
+  last. 43 slices: 38 merged, P5 cancelled.
+
 - 26 Nov 18:35 UTC: **1.0 D2 merged** (2fd658f: the polish pass. 24 window files. The board fits both sizes with nothing
   under 11 px and "and N more"; the equalizer band, foot meters and Line placeholder are fixed; icons at 1366; the
   breadcrumb, tree start and Day/Night breathing are fixed; X3's look items and D2's own frame faults (CHECK ALI, the
