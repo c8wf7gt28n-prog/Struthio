@@ -1212,6 +1212,8 @@ def _state_words(value):
     if 'needs review' in statuses:return 'needs review'
     if any(s['status'] == 'blocked' and str(s.get('reason', '')).startswith('needs your grant') for s in value['steps']):
         return 'needs your grant'      # 1.0 K3
+    if any(s['status'] == 'blocked' and str(s.get('reason', '')).startswith('needs the network') for s in value['steps']):
+        return 'needs the network'      # 1.0 K8: a step that needs the network while it is down
     if 'blocked' in statuses:return 'blocked'
     step = _next(value)
     if step is None:return 'no steps yet'
@@ -1269,6 +1271,8 @@ def status(kernel, ident, principal):
     elif nxt['status'] == 'proposed':line = 'Step %d (%s) waits for your word.' % (nxt['n'], nxt['title'])
     elif nxt['status'] == 'blocked' and str(nxt['reason']).startswith('needs your grant: '):      # 1.0 K3
         line = 'Step %d (%s) needs your grant: %s. Nothing was sent.' % (nxt['n'], nxt['title'], nxt['reason'][len('needs your grant: '):])
+    elif nxt['status'] == 'blocked' and str(nxt['reason']).startswith('needs the network'):      # 1.0 K8
+        line = 'Step %d (%s) is blocked: %s. Nothing was sent.' % (nxt['n'], nxt['title'], nxt['reason'])
     elif nxt['status'] in ('blocked', 'needs review'):line = 'Step %d %s: %s' % (nxt['n'], nxt['status'], nxt['reason'])
     elif nxt['status'] == 'running':line = 'Step %d of %d: %s, %s left.' % (nxt['n'], len(value['steps']), nxt['title'], clock_words(timings[nxt['n'] - 1][1]))
     else:line = 'Step %d (%s) is ready.' % (nxt['n'], nxt['title'])

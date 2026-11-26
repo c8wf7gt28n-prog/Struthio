@@ -645,6 +645,7 @@ class TopBar(QWidget):
         apps_mark(self.programs, host)      # the owner's Struthio, the Apps button's whole face (0.8.6)
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
         from .apps_qt import install_head; install_head(self)      # 1.0 S2: ⊕ beside Apps, "Add an app to the list"
+        from .network_qt import install_head as install_net; install_net(self)      # 1.0 K8: the network's state word, left of Apps
         from .halt_qt import install_head as install_halt; install_halt(self)      # 1.0 P2: HALT in the upper-left slot, every look
         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
@@ -778,6 +779,7 @@ class TopBar(QWidget):
                 width = widget.fontMetrics().horizontalAdvance(widget.text()) + round(26 * min(d.scale, 1.4)) if widget.text() else round(18 * min(d.scale, 1.4))
                 if not widget.icon().isNull():width += widget.iconSize().width() + (round(8 * min(d.scale, 1.4)) if widget.text() else 0)
             x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
+            from .network_qt import place_head as place_net; x = place_net(self, x, h, gap, d)      # 1.0 K8: the network's word, left of Apps
             # The familiar menus from the middle column's left edge. In a window too narrow for all of them the rightmost
             # fold into ⋯, which lists every menu.
             words = self.menu_words();air = round(22 * min(d.scale, 1.4))
@@ -1515,6 +1517,9 @@ def open_destination(host, destination):
         return show(host)
     if destination == 'grants':      # 1.0 K3: the Grants page
         from .grants_qt import show
+        return show(host)
+    if destination == 'web':      # 1.0 K8: her web reading (pages kept in quarantine, read as data)
+        from .network_qt import show
         return show(host)
     if destination == 'work_copy':
         from .files_qt import show
@@ -2816,6 +2821,8 @@ class SlateFace(QWidget):
         if self.own_word(text):return
         from .library_qt import asked as library_asked      # 0.8.7 W7: a question of the Library, answered by Ask the Library
         if library_asked(self, text):return
+        from .network_qt import asked as web_asked      # 1.0 K8: "look up …" on the web: the step planned from your words, sent only by your press
+        if web_asked(self, text):return
         if self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
         if self.made_asked(text):return
         if self.set_asked(text):return

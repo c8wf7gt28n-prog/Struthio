@@ -93,6 +93,7 @@ from . import grants, halt_gate  # 1.0 K3 (grants and HALT): grant.list, grant.w
 from . import utility_sandbox  # 1.0 K6 (the utility sandbox): sandbox.status, sandbox.list, sandbox.get (read); sandbox.draft, sandbox.seen, sandbox.run, sandbox.close (execute); sandbox.apply, sandbox.keep (approve, always ask) (recorded additions)
 from . import objective_plan  # 1.0 K4 (from an objective to a plan): objective.plan (read); objective.offer (execute) (recorded additions)
 from . import a11y_reader  # 1.0 K7 (reading other programs): accessibility.status, accessibility.read (read, AT-SPI, read only) (recorded additions)
+from . import network_governed  # 1.0 K8 (the network, governed): web.state, web.words, web.pages, web.page (read); web.lookup, web.get (execute); web.search (approve, always asks) (recorded additions)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -293,6 +294,7 @@ CAPABILITIES = {
     **utility_sandbox.SCOPES,  # 1.0 K6 (the utility sandbox): a utility runs sealed on copies; apply and keep are approve, and always ask
     **objective_plan.SCOPES,  # 1.0 K4 (from an objective to a plan): the desk's plan is a read; offering it starts an assignment, nothing in it
     **a11y_reader.SCOPES,  # 1.0 K7 (reading other programs): two reads; nothing is pressed or typed through accessibility
+    **network_governed.SCOPES,  # 1.0 K8 (the network, governed): a page fetched into quarantine is execute (your press or your grant for its site); search words are approve and always ask
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -742,6 +744,7 @@ class Kernel:
         if op in utility_sandbox.FIELDS:return utility_sandbox.dispatch(self,op,a,p)   # 1.0 K6 (the utility sandbox): drafted, shown, run sealed on copies; applied only by your word
         if op in objective_plan.FIELDS:return objective_plan.dispatch(self,op,a,p)   # 1.0 K4 (from an objective to a plan): the model proposes steps from the registry, the desk disposes
         if op in a11y_reader.FIELDS:return a11y_reader.dispatch(self,op,a,p)   # 1.0 K7 (reading other programs): the accessible tree read now, as receipts; without AT-SPI, why
+        if op in network_governed.FIELDS:return network_governed.dispatch(self,op,a,p)   # 1.0 K8 (the network, governed): a page kept in quarantine and read as data; a step blocked while the network is down
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

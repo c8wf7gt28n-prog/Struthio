@@ -842,6 +842,13 @@
    "voice.character.admit": "workbench/voice_character.py#dispatch",
    "voice.character.start": "workbench/voice_character.py#dispatch",
    "voice.say": "workbench/voice_column.py#dispatch",
+   "web.get": "workbench/network_governed.py#dispatch",
+   "web.lookup": "workbench/network_governed.py#dispatch",
+   "web.page": "workbench/network_governed.py#dispatch",
+   "web.pages": "workbench/network_governed.py#dispatch",
+   "web.search": "workbench/network_governed.py#dispatch",
+   "web.state": "workbench/network_governed.py#dispatch",
+   "web.words": "workbench/network_governed.py#dispatch",
    "windows.activate": "workbench/tools_registry.py#dispatch",
    "windows.close": "workbench/tools_registry.py#dispatch",
    "windows.minimise": "workbench/tools_registry.py#dispatch",
@@ -1088,9 +1095,9 @@
   }
  },
  "counts": {
-  "adapters": 890,
+  "adapters": 897,
   "job_tools": 113,
-  "operations": 890,
+  "operations": 897,
   "settings": 48
  },
  "formulas": {
@@ -8321,6 +8328,54 @@
    },
    "scope": "read"
   },
+  "web.get": {
+   "arguments": "c6df1f2734648050b82bd33a078fdaf57b506e3a21fe2b3f6706fd8fa42ad12a",
+   "properties": {
+    "page": "1e1630b803390346"
+   },
+   "scope": "execute"
+  },
+  "web.lookup": {
+   "arguments": "83999c28be918ed46ca14610fa25c1836c2ea606955bd2c671285a6d0c11fd43",
+   "properties": {
+    "request": "76f40fe54111097c"
+   },
+   "scope": "execute"
+  },
+  "web.page": {
+   "arguments": "7692bd7a403eb8792fc6597f4e24c491dcd8e19d77d50a5b92b831ead7258cd1",
+   "properties": {
+    "id": "d76a3cd568c70cee"
+   },
+   "scope": "read"
+  },
+  "web.pages": {
+   "arguments": "fed9216815799f0ae4af7ca0b4561d44821f6f547c8d3ef4f17709059a699281",
+   "properties": {
+    "limit": "dfbe8dfe1b8e5376"
+   },
+   "scope": "read"
+  },
+  "web.search": {
+   "arguments": "1a9a284c9d62e8f3f1f0b4f6af9c192a18936f7f5f872b811b31007d699fcf86",
+   "properties": {
+    "typed": "76f40fe54111097c",
+    "words": "1a859664cdda99f2"
+   },
+   "scope": "approve"
+  },
+  "web.state": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "web.words": {
+   "arguments": "83999c28be918ed46ca14610fa25c1836c2ea606955bd2c671285a6d0c11fd43",
+   "properties": {
+    "request": "76f40fe54111097c"
+   },
+   "scope": "read"
+  },
   "windows.activate": {
    "arguments": "aa4caf63400a990e4eaf68d962fb03a94881f2224cc2c25a95a07fcc259e9a0f",
    "properties": {
@@ -8733,7 +8788,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "ec7271f280697ba175f3f6c861670d322cf20fe60a4aa9f504b99250f2b88ab5",
+ "schema_digest": "932e50fd5a2e517931ae1d252fe534e41568e39fee3130234980f58d84d5824c",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

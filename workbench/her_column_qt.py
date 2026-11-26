@@ -1004,6 +1004,11 @@ class HerColumn(QObject):
         outer.addWidget(self.head)
         outer.addWidget(face.scroll, 1)
         outer.addWidget(self.work_line)
+        try:      # 1.0 K8: her network use, one line (her fetch, a step that needs the network, her last fetch)
+            from .network_qt import install_column
+            outer.addWidget(install_column(self))
+        except Exception:  # noqa: BLE001 - the column is whole without it
+            self.net_line = None
         outer.addWidget(self.active)
         try:      # 1.0 K3: the grants in force, and a grant asked for in plain words with its one press
             from .grants_qt import GrantFold

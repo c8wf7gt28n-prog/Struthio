@@ -72,12 +72,14 @@ FAMILIES = {
     'windows.arrange': ('bring forward or minimise program windows', ('windows.activate', 'windows.minimise')),
     'apps.open': ('open', ('apps.open',)),
     'utilities.try': ('try utilities on copies of files', ('sandbox.run',)),  # 1.0 K6 (coordinator): the sandbox's grant
+    'web.read': ('fetch pages from the web', ('web.get',)),  # 1.0 K8: a page's address you typed, or a page already in quarantine, from one site
 }
 OP_WORDS = {'files.write': 'write files', 'files.mkdir': 'make folders', 'files.cells': 'change cells of workbooks',
             'files.rename': 'rename files', 'files.move': 'move files', 'files.copy': 'copy files', 'field.set': 'set values',
             'windows.activate': 'bring forward', 'windows.minimise': 'minimise', 'apps.open': 'open',
             'documents.create': 'make pages', 'investigation.claim': 'add findings', 'agenda.add': 'add to the Agenda',
-            'sandbox.run': 'try utilities on copies of files'}  # 1.0 K6 (coordinator)
+            'sandbox.run': 'try utilities on copies of files',  # 1.0 K6 (coordinator)
+            'web.get': 'fetch pages from the web'}  # 1.0 K8
 NEVER = ('assignment.', 'grant.', 'halt.', 'ledger.', 'jobs.', 'remote.', 'master.', 'workers.', 'kasandra.', 'brain.help')
 OWN_AREA = 'Slate'            # files_service.SLATE: her own area, hers by the Files rules
 OWN_OPERATIONS = ('files.write', 'files.mkdir', 'files.cells')
@@ -201,6 +203,13 @@ def targets(operation, arguments):
     elif operation == 'sandbox.run':  # 1.0 K6 (coordinator): a utility's run lands on (copies of) its inputs
         for item in a.get('inputs') or ():
             if isinstance(item, str):paths.append(_clean_path(item))
+    elif operation == 'web.get':  # 1.0 K8: a fetch lands on one site (site:<host>), never on a path in Files
+        try:
+            from .network_governed import check_address
+            objects.append(check_address(a.get('page'))['site'])
+        except (ValueError, ImportError):
+            pass
+        return {'paths': paths, 'objects': objects}
     else:
         for key in ('path', 'to'):
             if isinstance(a.get(key), str):paths.append(_clean_path(a[key]))
@@ -265,6 +274,7 @@ def object_words(kernel, ident):
             pass
         return 'the App %s' % ident[:80]
     if re.match(r'^0x[0-9a-f]+$', ident):return 'the program window %s' % ident
+    if ident.startswith('site:'):return 'the site %s' % ident[len('site:'):][:120]  # 1.0 K8: pages fetched from one site
     return 'the record %s' % ident[:16]
 
 
@@ -525,8 +535,24 @@ def check_step(kernel, value, step, arguments, principal):
         planned = _fixed_targets(op, step.get('arguments'))
         if planned is not None and planned == targets(op, arguments):return ''
     grant = covering(kernel, principal.identity, op, arguments, value['id'])
-    if grant is not None:return ''
+    if grant is not None and _from_the_owner(kernel, step, principal):return ''      # 1.0 K8: a page's address, never one taken from a page
+    if grant is not None:return 'its address came from a page, not from you: fetching it needs your press on this step'
     return _why(kernel, principal.identity, op, arguments, value['id'])
+
+
+def _from_the_owner(kernel, step, principal):
+    """1.0 K8: a grant covers a fetch (web.get) only of an address you typed or of a page already kept in quarantine; an
+    address that came from a page (a link) or anywhere else needs your press on the step. Every other operation: True."""
+    if step.get('operation') != 'web.get':return True
+    origin = ((step.get('inputs') or {}).get('page') or {}).get('origin') or {}
+    if origin.get('kind') == 'OWNER_WORDS':return True
+    if origin.get('kind') == 'RECORD':
+        try:
+            from .network_governed import admitted, check_address
+            return admitted(kernel, principal.identity, check_address((step.get('arguments') or {}).get('page'))['address'])
+        except (ValueError, ImportError):
+            return False
+    return False
 
 
 def check_tool(kernel, tool, operation, arguments, principal):
@@ -633,6 +659,7 @@ def authorise(kernel, ident, principal, runner=False):
     nxt = A._next(value);plans = {}
     for step in value['steps']:
         if step['status'] != 'proposed' or not _grantable(step):continue
+        if not _from_the_owner(kernel, step, principal):continue      # 1.0 K8: an address from a page waits for your press
         arguments = _resolved(value, step)
         if arguments is None:continue
         grant = covering(kernel, principal.identity, step['operation'], arguments, value['id'], include_built_in=False)

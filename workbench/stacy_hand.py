@@ -67,6 +67,7 @@ ALWAYS_ASKS = (
     (('word.set', 'rules.set', 'quotes.rebind'), 'it is yours to say: it decides what I conclude'),   # 0.8.6 S3: your word (and S6's rules and quotes)
     (('board.keep',), 'a link kept by your word is recorded: it is yours to say, never mine'),   # 1.0 L2: a possible link becomes recorded only by your word
     (('sandbox.apply', 'sandbox.keep'), 'it changes your real files with what a utility made, or makes a utility a tool of yours: yours to say, every time'),   # 1.0 K6: the utility sandbox; Apply asks at every place of the dial
+    (('web.search',), 'it sends your words off this computer, to a search service: shown first, sent only by your press'),   # 1.0 K8: search words always ask, never granted
 )
 LEAVES = ('address', 'peer', 'url', 'host', 'recipient')      # an argument by one of these names reaches another computer
 
