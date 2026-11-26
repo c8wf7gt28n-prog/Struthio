@@ -458,7 +458,9 @@ def call(host, op, args=None):
     from .engine import engineering
     from .engineering_kernel import operator
     try:
-        r = engineering(host.root).dispatch(op, args or {}, operator())
+        kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)      # 1.0 F2: the window's own Kernel (embedded, a new
+        if not hasattr(kernel, 'dispatch'):kernel = engineering(host.root)          # one per read made every schema again, under the guard)
+        r = kernel.dispatch(op, args or {}, operator())
         return r['result'] if r.get('ok') else None
     except Exception:
         return None
@@ -2015,7 +2017,8 @@ class SlateFace(QWidget):
         self.this = role(QLabel(), 'quiet');self.this.setWordWrap(True);marked(outer, self.this, host, 'select')
         # Her Agenda in one line: what she is doing now and what needs you; the words open it.
         self.agenda = role(QLabel(), 'quiet');self.agenda.setWordWrap(True);marked(outer, self.agenda, host, 'running')
-        self.agenda_timer = QTimer(self);self.agenda_timer.setInterval(4000);self.agenda_timer.timeout.connect(self.show_agenda);self.agenda_timer.start()
+        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
+        self.agenda_timer = QTimer(self);self.agenda_timer.setInterval(4000);self.agenda_timer.timeout.connect(floor.when_free(host, self.show_agenda));self.agenda_timer.start()
         QTimer.singleShot(0, self.show_agenda)
         # AGENT-01: under the agenda line, what Slate is working on (five lines; Stop and Pause are words there) and the
         # owner's own records that share the open page's words (quiet connections, each dismissable).
@@ -3543,7 +3546,8 @@ class Shell2(QObject):
         from .graphite_brand import use_pointer
         use_pointer(host)  # HATCH DESK D1b: the pointer, the mark's two facets aimed at 11 o'clock
         self.restyle(getattr(host, 'reading_profile', None))
-        self.timer = QTimer(self);self.timer.setInterval(5000);self.timer.timeout.connect(self.tick);self.timer.start()
+        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
+        self.timer = QTimer(self);self.timer.setInterval(5000);self.timer.timeout.connect(floor.when_free(host, self.tick));self.timer.start()
         QTimer.singleShot(300, self.tick)
         QTimer.singleShot(0, self.stacy_first)
 

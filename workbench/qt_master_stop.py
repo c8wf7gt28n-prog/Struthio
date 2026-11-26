@@ -43,7 +43,8 @@ class MasterStop(QObject):
         self.priority_report=[];self._priority_seen=set()
         self.faces=[];self.detail=''  # UI-03: callables told after every refresh (the kill switch in Nice reads running, stuck and detail)
         self.completed.connect(self.finished)
-        self.timer=QTimer(self);self.timer.setInterval(1500);self.timer.timeout.connect(self.refresh);self.timer.start()
+        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
+        self.timer=QTimer(self);self.timer.setInterval(1500);self.timer.timeout.connect(floor.when_free(host,self.refresh));self.timer.start()
         button.clicked.connect(host.a_master_stop.trigger)
         button.setContextMenuPolicy(Qt.CustomContextMenu)
         button.customContextMenuRequested.connect(self.menu)

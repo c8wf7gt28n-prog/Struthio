@@ -611,7 +611,7 @@ class Kernel:
             self.audit(p.identity, operation, "OK",correlation_id)
             if trail_token is not None:work_trail.update(self,p,"BLOCKED" if isinstance(result,dict) and result.get("status")=="PROJECT_NOT_ATTACHED" else "RETURNED",True)
             return {"schema": VERSION, "ok": True, "result": result,
-                    "journal_state":activity.status(self.root)['state'],"correlation_id":correlation_id}
+                    "journal_state":activity.state_recent(self.root),"correlation_id":correlation_id}  # 1.0 F2: read within 2 s, not counted afresh for every answer
         except (ValueError, OSError, KeyError, TypeError, sqlite3.Error) as exc:
             if trail_token is not None:work_trail.update(self,p,"FAILED" if scope_checked else "DENIED",scope_checked)
             self.audit(

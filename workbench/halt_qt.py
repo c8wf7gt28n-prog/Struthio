@@ -37,10 +37,15 @@ class HaltButton(QToolButton):
         word, said = NAMES[self.held]
         self.setText(word);self.setAccessibleName(word);self.setAccessibleDescription(said);self.setToolTip(said)
 
-    def refresh(self):
+    def refresh(self, _read=None):
         if getattr(self.host, '_closing', False):return
-        from .halt import held
-        now = held(self.host)
+        from . import floor      # 1.0 F2: the timer's reading of the hold is made off the window's thread, then shown
+        if _read is None and floor.gather(self.host, lambda read: read('halt.status'),
+                                          lambda extra: self.refresh(_read=floor.answered(self.host, 'halt.status') or {}), key=('halt', id(self))):return
+        if _read is not None and _read is not floor.MISS:now = bool(_read.get('held'))
+        else:
+            from .halt import held
+            now = held(self.host)
         if now != self.held:
             self.held = now;self._name();self.update()
 
@@ -52,7 +57,8 @@ class HaltButton(QToolButton):
             if self.held:halt.release(self.host)
             else:halt.press(self.host)
         finally:
-            self.busy = False;self.refresh()
+            from . import floor
+            self.busy = False;self.refresh(_read=floor.MISS)      # 1.0 F2: your press is said at once (read here)
 
     # -- the face ---------------------------------------------------------------------------------------------------------
     def word_font(self):

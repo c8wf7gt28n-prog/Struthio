@@ -525,11 +525,15 @@ class BoardView(QWidget):
         if not radii:return
         fw, fh = bm.FOCUS_DIMS[0] * s, bm.FOCUS_DIMS[1] * s
         inner = ((fw / 2 + radii[0][0]) / 2 * 0.98, (fh / 2 + radii[0][1]) / 2 * 0.98)
+        kept = getattr(self, '_ring_paths', None)      # 1.0 F2: a ring's path is made once (720 points), not at every paint
+        if kept is None or len(kept) > 64:kept = self._ring_paths = {}
         for n, (rx, ry) in enumerate([inner] + radii):
-            path = QPainterPath();pts = bm.ring_path(rx, ry)
-            path.moveTo(QPointF(*pts[0]))
-            for x, y in pts[1:]:path.lineTo(QPointF(x, y))
-            path.closeSubpath()
+            path = kept.get((rx, ry))
+            if path is None:
+                path = QPainterPath();pts = bm.ring_path(rx, ry)
+                path.moveTo(QPointF(*pts[0]))
+                for x, y in pts[1:]:path.lineTo(QPointF(x, y))
+                path.closeSubpath();kept[(rx, ry)] = path
             colour = green if n == 1 else blue
             strength = (0.95 if n == 1 else 0.8) if day else (0.34 if n == 1 else 0.26)
             p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(colour, strength), (1.6 if n == 1 else 1.1) / max(0.6, self.zoom)));p.drawPath(path)

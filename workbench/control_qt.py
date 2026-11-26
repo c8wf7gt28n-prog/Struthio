@@ -408,6 +408,10 @@ class LedgerBridge(QObject):
         values['hardware.category_views']={'requested':dict(self.host.session.state.get('category_views',{})),'effective':panes,
             'state':'OBSERVED' if panes else 'NO_OPEN_PANE'}
         values['appearance.writing_marker']=self.marker.readback()
+        said=json.dumps(values,sort_keys=True,default=str)  # 1.0 F2: the receipt is written when it changed, else every 4th tick (3 s), not every 0.75 s
+        self._f2_receipts=getattr(self,'_f2_receipts',0)+1
+        if said==getattr(self,'_f2_said',None) and self._f2_receipts%4:return
+        self._f2_said=said
         ledger_control.publish_settings_runtime(self.kernel,self.desktop_id,values)
 
     def publish(self):
@@ -449,10 +453,14 @@ class LedgerBridge(QObject):
 
     def tick(self):
         if self.host._closing:return
+        from . import floor      # 1.0 F2: while her work holds the workspace, this read waits for the next tick, not for her
+        if floor.held_elsewhere(self.kernel):return
         try:
             self.sync_profile();self.sync_provider();self.publish_settings_readback();self.publish()
             from .stacy_awareness import catch_up
-            catch_up(self.kernel,limit=200)
+            mark=floor.head(self.kernel.root);self._f2_ticks=getattr(self,'_f2_ticks',0)+1  # 1.0 F2: when the journal moved (else every 4th tick)
+            if mark is None or mark!=getattr(self,'_f2_head',None) or self._f2_ticks%4==0:
+                catch_up(self.kernel,limit=200);self._f2_head=mark
             for request in ledger_control.pending(self.kernel):
                 if request.get('desktop_id') not in (None,self.desktop_id):continue
                 if time.time()-request['created']>30:

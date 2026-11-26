@@ -317,7 +317,8 @@ class ClipDock(QWidget):
         note.setWordWrap(True)
         layout.addWidget(note)
         self.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Maximum)
-        self.job_timer=QTimer(self);self.job_timer.setInterval(1500);self.job_timer.timeout.connect(self.refresh_task);self.job_timer.start()
+        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
+        self.job_timer=QTimer(self);self.job_timer.setInterval(1500);self.job_timer.timeout.connect(floor.when_free(self,self.refresh_task));self.job_timer.start()
 
     def set_context(self,title,identity):
         self.context_id=identity;self.context.setText(title)

@@ -5367,6 +5367,8 @@ def qt_version():
 
 def make_app(argv=None):
     app = QApplication.instance() or QApplication(argv or sys.argv)
+    from .floor import share_app_filters
+    share_app_filters(app)  # 1.0 F2: the window's application-wide event filters through one (the cold start, every event)
     app.setApplicationName('ARC Ledger')  # unchanged: names the existing per-user application data
     from .version import VERSION as product_version
     app.setApplicationVersion(product_version)
@@ -5397,6 +5399,8 @@ def main():
     else:w.show()
     from . import session_launch  # 1.0 S1: the line after the supervisor started it again; the lock before sleep (dedicated session)
     session_launch.window_started(w)
+    from .floor import install_heartbeat
+    install_heartbeat(w)  # 1.0 F2: with GRAPHITE_STALL_LOG=<file>, every stall of the window over 100 ms is written there
     opening = os.environ.get('ARC_LEDGER_OPEN')
     if opening:
         # A start script may open one Ledger room, for example the Office.

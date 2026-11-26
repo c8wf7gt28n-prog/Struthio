@@ -557,7 +557,20 @@ class BranchTree(QTreeWidget):
         # only the rows: the empty viewport below them is where her hologram may stand, and it is not drawn again for this
         last = self.visualItemRect(self.lastVisibleItem()) if self.topLevelItemCount() else QRect()
         bottom = last.bottom() + 1 if last.isValid() and last.bottom() >= 0 else self.viewport().height()
-        self.viewport().update(QRect(0, 0, self.viewport().width(), min(self.viewport().height(), max(0, bottom))))
+        # 1.0 F2: only the rows the lit path runs through breathe (from its root's row down to the current row: the traces and
+        # the light round the words); the others are drawn the same at every breath, so they are not drawn again for it.
+        # Every row was drawn again seven times a second, 100 to 200 ms each time on a tall window (measured offscreen).
+        index = self.currentIndex()
+        if not index.isValid():return
+        root = index
+        while root.parent().isValid():root = root.parent()
+        top = self.visualRect(root);here = self.visualRect(index)
+        while not here.isValid() and index.parent().isValid():      # inside a folded branch: the path is lit down to its fold
+            index = index.parent();here = self.visualRect(index)
+        if not here.isValid():return
+        y0 = max(0, top.top() if top.isValid() else 0);y1 = min(self.viewport().height(), bottom, here.bottom() + 1)
+        if y1 <= y0:return
+        self.viewport().update(QRect(0, y0, self.viewport().width(), y1 - y0))
 
     def lastVisibleItem(self):
         item = self.topLevelItem(self.topLevelItemCount() - 1)

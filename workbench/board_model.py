@@ -30,6 +30,7 @@ No model, no floating point in anything checked (the layout's geometry is drawin
 """
 from __future__ import annotations
 
+import bisect  # 1.0 F2: the board's layout, found by bisection
 import json
 import math
 import re
@@ -935,21 +936,43 @@ def _ring_points(rx, ry):
 
 def ring_path(rx, ry):
     """The ring itself, as points to draw (x, y)."""
-    return [(x, y) for x, y, _ in _ring_points(rx, ry)]
+    return [(x, y) for x, y, _ in _ring_of(rx, ry)[0]]      # 1.0 F2: the ring's points as the layout made them
+
+
+_RING_CACHE = {}      # 1.0 F2: (rx, ry) -> (points, lengths along the ring): a layout asks for the same ring many times
+
+
+def _ring_of(rx, ry):
+    held = _RING_CACHE.get((rx, ry))
+    if held is None:
+        pts = _ring_points(rx, ry)
+        lengths = [0.0]
+        for (x0, y0, _), (x1, y1, _) in zip(pts, pts[1:] + pts[:1]):
+            lengths.append(lengths[-1] + math.hypot(x1 - x0, y1 - y0))
+        if len(_RING_CACHE) > 256:_RING_CACHE.clear()
+        held = _RING_CACHE[(rx, ry)] = (pts, lengths)
+    return held
+
+
+def _nearest(lengths, count, want):
+    """The first i < count with |lengths[i] - want| least (lengths never decrease): what min() over all of them gives,
+    found by bisection (1.0 F2: the board's layout searched 720 places for each slot, on the window's thread)."""
+    i = bisect.bisect_left(lengths, want, 0, count)
+    best = None
+    for k in (i - 1, i):
+        if 0 <= k < count and (best is None or abs(lengths[k] - want) < abs(lengths[best] - want)):best = k
+    return bisect.bisect_left(lengths, lengths[best], 0, count)      # the first of equal lengths, as min() takes it
 
 
 def _slots(rx, ry, n, start=math.pi):
     """n places on a ring at equal distances along it, the first at `start` (the left)."""
-    pts = _ring_points(rx, ry)
-    lengths = [0.0]
-    for (x0, y0, _), (x1, y1, _) in zip(pts, pts[1:] + pts[:1]):
-        lengths.append(lengths[-1] + math.hypot(x1 - x0, y1 - y0))
+    pts, lengths = _ring_of(rx, ry)
     total = lengths[-1]
     offset = next(i for i, p in enumerate(pts) if p[2] >= start - 1e-9) if start < 2 * math.pi else 0
     out = []
     for j in range(n):
         want = (lengths[offset] + total * j / n) % total
-        i = min(range(len(pts)), key=lambda i: abs(lengths[i] - want))
+        i = _nearest(lengths, len(pts), want)      # 1.0 F2
         out.append((pts[i][0], pts[i][1], pts[i][2]))
     return out
 

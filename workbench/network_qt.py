@@ -94,6 +94,10 @@ def reading(host, read=True):
     """The network's state for this window: read again when it is stale (a short local D-Bus read), else what was read."""
     root = _root(host)
     if read and ng.stale():
+        if ng.peek(root).get('at'):      # 1.0 F2: read again off the window's thread; the word says the last reading until then
+            from . import floor
+            floor.read_later(('network', str(root)), lambda: ng.state(root, fresh=True))
+            return ng.peek(root)
         try:return ng.state(root)
         except Exception:  # noqa: BLE001 - a state that cannot be read is said not known
             pass

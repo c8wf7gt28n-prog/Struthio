@@ -191,6 +191,18 @@ def status(root):
     if files:result.update(state='INCOMPLETE',pending_files=len(files),reason='External file save requires reconciliation')
     return result
 
+_RECENT={}  # 1.0 F2: root -> (monotonic seconds, the journal's state word) for the word every Kernel answer carries
+RECENT_SECONDS=2.0
+
+def state_recent(root):
+    """1.0 F2: the journal's state word ('CURRENT' or 'INCOMPLETE') as status() read it within RECENT_SECONDS: every Kernel
+    answer carries it ('journal_state'), and status() counts the whole journal and looks in three folders each time. status()
+    itself is unchanged (it is what the journal's own view and checks read)."""
+    key=str(root);now=time.monotonic();held=_RECENT.get(key)
+    if held is not None and now-held[0]<RECENT_SECONDS:return held[1]
+    word=status(root)['state'];_RECENT[key]=(now,word)
+    return word
+
 def stream(root,after='',query='',limit=100):
     limit=max(1,min(int(limit),200));health=status(root);gap=health['state']=='INCOMPLETE'
     events=[];position=0;scanned=0

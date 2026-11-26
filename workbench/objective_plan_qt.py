@@ -81,7 +81,7 @@ def asked(face, text):
                 pass
         column = getattr(host, 'her_column', None)
         if column is not None:
-            try:column.refresh(force=True)
+            try:from . import floor;floor.column_soon(column)      # 1.0 F2: read again off the window's thread
             except Exception:  # noqa: BLE001 - her column reads it again at its next tick
                 pass
         try:face.fit_soon() if hasattr(face, 'fit_soon') else None

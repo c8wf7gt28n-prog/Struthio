@@ -1,0 +1,988 @@
+diff --git a/workbench/activity.py b/workbench/activity.py
+index 09b9a62..c623f42 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -189,6 +189,18 @@ def status(root):
+     if files:result.update(state='INCOMPLETE',pending_files=len(files),reason='External file save requires reconciliation')
+     return result
+ 
++_RECENT={}  # 1.0 F2: root -> (monotonic seconds, the journal's state word) for the word every Kernel answer carries
++RECENT_SECONDS=2.0
++
++def state_recent(root):
++    """1.0 F2: the journal's state word ('CURRENT' or 'INCOMPLETE') as status() read it within RECENT_SECONDS: every Kernel
++    answer carries it ('journal_state'), and status() counts the whole journal and looks in three folders each time. status()
++    itself is unchanged (it is what the journal's own view and checks read)."""
++    key=str(root);now=time.monotonic();held=_RECENT.get(key)
++    if held is not None and now-held[0]<RECENT_SECONDS:return held[1]
++    word=status(root)['state'];_RECENT[key]=(now,word)
++    return word
++
+ def stream(root,after='',query='',limit=100):
+     limit=max(1,min(int(limit),200));health=status(root);gap=health['state']=='INCOMPLETE'
+     events=[];position=0;scanned=0
+diff --git a/workbench/agent_qt.py b/workbench/agent_qt.py
+index 706ac58..614be72 100644
+--- a/workbench/agent_qt.py
++++ b/workbench/agent_qt.py
+@@ -339,7 +339,8 @@ class WorkBlock(QWidget):
+         for key, name in self.KEYS:
+             label = role(QLabel(), 'quiet'); label.setWordWrap(True); label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+             label.setAccessibleName('Work · ' + name); box.addWidget(label); self.lines[key] = label
+-        self.timer = QTimer(self); self.timer.setInterval(BLOCK_MS); self.timer.timeout.connect(self.refresh); self.timer.start()
++        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
++        self.timer = QTimer(self); self.timer.setInterval(BLOCK_MS); self.timer.timeout.connect(floor.when_free(host, self.refresh)); self.timer.start()
+         driver = getattr(host, 'agent_driver', None)
+         if driver is not None and self not in driver.blocks: driver.blocks.append(self)
+         self.hide()
+diff --git a/workbench/board_model.py b/workbench/board_model.py
+index 5e889d7..155889b 100644
+--- a/workbench/board_model.py
++++ b/workbench/board_model.py
+@@ -30,6 +30,7 @@ No model, no floating point in anything checked (the layout's geometry is drawin
+ """
+ from __future__ import annotations
+ 
++import bisect  # 1.0 F2: the board's layout, found by bisection
+ import json
+ import math
+ import re
+@@ -935,21 +936,43 @@ def _ring_points(rx, ry):
+ 
+ def ring_path(rx, ry):
+     """The ring itself, as points to draw (x, y)."""
+-    return [(x, y) for x, y, _ in _ring_points(rx, ry)]
++    return [(x, y) for x, y, _ in _ring_of(rx, ry)[0]]      # 1.0 F2: the ring's points as the layout made them
++
++
++_RING_CACHE = {}      # 1.0 F2: (rx, ry) -> (points, lengths along the ring): a layout asks for the same ring many times
++
++
++def _ring_of(rx, ry):
++    held = _RING_CACHE.get((rx, ry))
++    if held is None:
++        pts = _ring_points(rx, ry)
++        lengths = [0.0]
++        for (x0, y0, _), (x1, y1, _) in zip(pts, pts[1:] + pts[:1]):
++            lengths.append(lengths[-1] + math.hypot(x1 - x0, y1 - y0))
++        if len(_RING_CACHE) > 256:_RING_CACHE.clear()
++        held = _RING_CACHE[(rx, ry)] = (pts, lengths)
++    return held
++
++
++def _nearest(lengths, count, want):
++    """The first i < count with |lengths[i] - want| least (lengths never decrease): what min() over all of them gives,
++    found by bisection (1.0 F2: the board's layout searched 720 places for each slot, on the window's thread)."""
++    i = bisect.bisect_left(lengths, want, 0, count)
++    best = None
++    for k in (i - 1, i):
++        if 0 <= k < count and (best is None or abs(lengths[k] - want) < abs(lengths[best] - want)):best = k
++    return bisect.bisect_left(lengths, lengths[best], 0, count)      # the first of equal lengths, as min() takes it
+ 
+ 
+ def _slots(rx, ry, n, start=math.pi):
+     """n places on a ring at equal distances along it, the first at `start` (the left)."""
+-    pts = _ring_points(rx, ry)
+-    lengths = [0.0]
+-    for (x0, y0, _), (x1, y1, _) in zip(pts, pts[1:] + pts[:1]):
+-        lengths.append(lengths[-1] + math.hypot(x1 - x0, y1 - y0))
++    pts, lengths = _ring_of(rx, ry)
+     total = lengths[-1]
+     offset = next(i for i, p in enumerate(pts) if p[2] >= start - 1e-9) if start < 2 * math.pi else 0
+     out = []
+     for j in range(n):
+         want = (lengths[offset] + total * j / n) % total
+-        i = min(range(len(pts)), key=lambda i: abs(lengths[i] - want))
++        i = _nearest(lengths, len(pts), want)      # 1.0 F2
+         out.append((pts[i][0], pts[i][1], pts[i][2]))
+     return out
+ 
+diff --git a/workbench/board_qt.py b/workbench/board_qt.py
+index 620cb3e..214e557 100644
+--- a/workbench/board_qt.py
++++ b/workbench/board_qt.py
+@@ -516,11 +516,15 @@ class BoardView(QWidget):
+         if not radii:return
+         fw, fh = bm.FOCUS_DIMS[0] * s, bm.FOCUS_DIMS[1] * s
+         inner = ((fw / 2 + radii[0][0]) / 2 * 0.98, (fh / 2 + radii[0][1]) / 2 * 0.98)
++        kept = getattr(self, '_ring_paths', None)      # 1.0 F2: a ring's path is made once (720 points), not at every paint
++        if kept is None or len(kept) > 64:kept = self._ring_paths = {}
+         for n, (rx, ry) in enumerate([inner] + radii):
+-            path = QPainterPath();pts = bm.ring_path(rx, ry)
+-            path.moveTo(QPointF(*pts[0]))
+-            for x, y in pts[1:]:path.lineTo(QPointF(x, y))
+-            path.closeSubpath()
++            path = kept.get((rx, ry))
++            if path is None:
++                path = QPainterPath();pts = bm.ring_path(rx, ry)
++                path.moveTo(QPointF(*pts[0]))
++                for x, y in pts[1:]:path.lineTo(QPointF(x, y))
++                path.closeSubpath();kept[(rx, ry)] = path
+             colour = green if n == 1 else blue
+             strength = (0.95 if n == 1 else 0.8) if day else (0.34 if n == 1 else 0.26)
+             p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(colour, strength), (1.6 if n == 1 else 1.1) / max(0.6, self.zoom)));p.drawPath(path)
+diff --git a/workbench/cabinet_qt.py b/workbench/cabinet_qt.py
+index 7f54cad..9073ea2 100644
+--- a/workbench/cabinet_qt.py
++++ b/workbench/cabinet_qt.py
+@@ -203,9 +203,14 @@ class CabinetPage(QWidget):
+         from .shell2 import open_destination
+         return open_destination(self.host,transfer['destination'])
+ 
+-    def refresh(self,force=False):
++    def refresh(self,force=False,_read=None):
+         if self.host._closing or (not force and (not self.isVisible() or self.using_legacy)):return
+-        response=self.host.ledger_bridge.kernel.dispatch('ledger.cabinet',{},operator())
++        from . import floor  # 1.0 F2: the timer's reading of the cabinet is made off the window's thread, then drawn
++        if not force and _read is None:
++            if floor.gather(self.host,lambda read:read('ledger.cabinet'),lambda extra:self.refresh(_read=floor.answered(self.host,'ledger.cabinet') or floor.MISS),key=('cabinet',id(self))):return
++        if _read is not None and _read is not floor.MISS:response={'ok':True,'result':_read}
++        elif _read is not None:return  # 1.0 F2: not read this time: the tree stays as it is until the next
++        else:response=self.host.ledger_bridge.kernel.dispatch('ledger.cabinet',{},operator())
+         if not response['ok']:self.status.setText(response['error']['message']);return
+         model=response['result']
+         from .living_nav_qt import extend;model=extend(self.host,model)  # 1.0 L1: the Files and Desk drawers, each row by its object's id
+diff --git a/workbench/control_qt.py b/workbench/control_qt.py
+index d9b2fb6..6bf5561 100644
+--- a/workbench/control_qt.py
++++ b/workbench/control_qt.py
+@@ -408,6 +408,10 @@ class LedgerBridge(QObject):
+         values['hardware.category_views']={'requested':dict(self.host.session.state.get('category_views',{})),'effective':panes,
+             'state':'OBSERVED' if panes else 'NO_OPEN_PANE'}
+         values['appearance.writing_marker']=self.marker.readback()
++        said=json.dumps(values,sort_keys=True,default=str)  # 1.0 F2: the receipt is written when it changed, else every 4th tick (3 s), not every 0.75 s
++        self._f2_receipts=getattr(self,'_f2_receipts',0)+1
++        if said==getattr(self,'_f2_said',None) and self._f2_receipts%4:return
++        self._f2_said=said
+         ledger_control.publish_settings_runtime(self.kernel,self.desktop_id,values)
+ 
+     def publish(self):
+@@ -449,10 +453,14 @@ class LedgerBridge(QObject):
+ 
+     def tick(self):
+         if self.host._closing:return
++        from . import floor      # 1.0 F2: while her work holds the workspace, this read waits for the next tick, not for her
++        if floor.held_elsewhere(self.kernel):return
+         try:
+             self.sync_profile();self.sync_provider();self.publish_settings_readback();self.publish()
+             from .stacy_awareness import catch_up
+-            catch_up(self.kernel,limit=200)
++            mark=floor.head(self.kernel.root);self._f2_ticks=getattr(self,'_f2_ticks',0)+1  # 1.0 F2: when the journal moved (else every 4th tick)
++            if mark is None or mark!=getattr(self,'_f2_head',None) or self._f2_ticks%4==0:
++                catch_up(self.kernel,limit=200);self._f2_head=mark
+             for request in ledger_control.pending(self.kernel):
+                 if request.get('desktop_id') not in (None,self.desktop_id):continue
+                 if time.time()-request['created']>30:
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 9d38df8..6757e73 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -609,7 +609,7 @@ class Kernel:
+             self.audit(p.identity, operation, "OK",correlation_id)
+             if trail_token is not None:work_trail.update(self,p,"BLOCKED" if isinstance(result,dict) and result.get("status")=="PROJECT_NOT_ATTACHED" else "RETURNED",True)
+             return {"schema": VERSION, "ok": True, "result": result,
+-                    "journal_state":activity.status(self.root)['state'],"correlation_id":correlation_id}
++                    "journal_state":activity.state_recent(self.root),"correlation_id":correlation_id}  # 1.0 F2: read within 2 s, not counted afresh for every answer
+         except (ValueError, OSError, KeyError, TypeError, sqlite3.Error) as exc:
+             if trail_token is not None:work_trail.update(self,p,"FAILED" if scope_checked else "DENIED",scope_checked)
+             self.audit(
+diff --git a/workbench/floor.py b/workbench/floor.py
+new file mode 100644
+index 0000000..e56bf0c
+--- /dev/null
++++ b/workbench/floor.py
+@@ -0,0 +1,495 @@
++"""Graphite 1.0 F2 · The floor: the window never waits on her work.
++
++PLAN_1.0.md, F2: "The window never stalls over 100 ms for her work (her model turns, assignments, the board's layout,
++relevance and the Machine's D-Bus reads off the window's thread)".
++
++Why the window waited. Every Kernel connection of a workspace is serialised (database_guard: one at a time across threads
++and processes), so while her work holds the workspace (a step, its journal, a carry in a worker), any read the window made
++on its own thread waited for it, and the reads themselves (a fresh connection each, the schema check, the trail) cost tens
++of milliseconds each. Her column read the work every 2.5 s, the head's control every 0.75 s, the Machine and the network
++asked the system's services with a timeout of their own, all on the window's thread.
++
++What is here:
++
++  submit(fn, done, key)    fn() runs on one of the floor's worker threads; done(result, error) runs on the window's thread
++                           (a queued signal back, never a poll). With a key, one at a time: a second submit while the first
++                           runs is kept (the latest only) and runs after it.
++  kernel_for(root)         the worker thread's own Kernel on that workspace (each worker keeps one per workspace).
++  gather(host, plan, done) the reads a part of the window needs, made off the window's thread through the worker's Kernel
++                           (plan(read) calls read(op, args) as the part would), then answered once on the window's thread:
++                           while done() runs, answered(host, op, args) gives what was read (MISS for anything not read),
++                           so the part draws exactly as it did, from reads that were already made. Observers only: a read
++                           changes nothing, so reading it a moment earlier on another thread changes nothing either.
++  column_tick(column)      her column's reading (K1's ACTIVE WORK, the working step, her hand, HALT, the grants; the
++                           findings and the desk's waiting cards every DESK_EVERY ticks) gathered, then drawn.
++  column_soon(column)      the same after a press (forced: with the findings and the desk).
++  read_later(key, fn, ...) a slow read of the system (the Machine's D-Bus, the network's state) made on a worker; the part
++                           shows what it read last until the new reading lands.
++  Heartbeat                with GRAPHITE_STALL_LOG=<file>: a 5 ms beat on the window's thread; every gap over 100 ms is
++                           written to the file with what the window's thread was doing (sampled while it was late), for the
++                           owner's evening on the ThinkPad. Off by default: nothing is measured or written without it.
++
++Nothing here decides anything: it moves where a read is made, never what is read or what is shown.
++"""
++from __future__ import annotations
++
++import collections
++import json
++import os
++import queue
++import sys
++import threading
++import time
++
++from PySide6.QtCore import QObject, QTimer, Qt, Signal, Slot
++
++WORKERS = 2                  # at most two of the floor's threads read at once (the window's thread is the third)
++MISS = object()              # answered(): not read in this gathering
++STALL_MS = 100               # the floor: a gap of the window's event loop over this is a stall
++BEAT_MS = 5
++
++_jobs = queue.Queue()
++_threads = []
++_local = threading.local()
++_lock = threading.Lock()
++_relay = None
++_inflight = {}               # key -> the (fn, done) kept to run after the one in flight (or None)
++
++
++class _Relay(QObject):
++    """Lives on the window's thread: a worker's answer reaches done() through its queued signal."""
++    landed = Signal(object)
++
++    def __init__(self):
++        super().__init__()
++        self.landed.connect(self.deliver, Qt.QueuedConnection)
++
++    @Slot(object)
++    def deliver(self, item):
++        done, result, error, key = item
++        try:
++            if done is not None:done(result, error)
++        except Exception as exc:  # noqa: BLE001 - a part that cannot draw its reading never takes the window down
++            sys.stderr.write('graphite floor: %s\n' % exc)
++        finally:
++            if key is not None:
++                with _lock:
++                    following = _inflight.pop(key, None)
++                if following is not None:submit(following[0], following[1], key)
++
++
++def _relay_now():
++    global _relay
++    if _relay is None:
++        if threading.current_thread() is not threading.main_thread():
++            raise RuntimeError('the floor is started from the window\'s thread')
++        _relay = _Relay()
++    return _relay
++
++
++def _work():
++    while True:
++        fn, done, key = _jobs.get()
++        result = error = None
++        try:
++            result = fn()
++        except Exception as exc:  # noqa: BLE001 - said to done(), never raised in a worker
++            error = exc
++        relay = _relay
++        if relay is not None:
++            try:relay.landed.emit((done, result, error, key))
++            except RuntimeError:      # the window has gone: nobody to answer
++                pass
++
++
++def submit(fn, done=None, key=None):
++    """fn() on a worker; done(result, error) on the window's thread. Returns False when kept to run after the one in flight."""
++    _relay_now()
++    with _lock:
++        if key is not None:
++            if key in _inflight:
++                _inflight[key] = (fn, done);return False
++            _inflight[key] = None
++        while len(_threads) < WORKERS:
++            thread = threading.Thread(target=_work, name='graphite-floor-%d' % (len(_threads) + 1), daemon=True)
++            _threads.append(thread);thread.start()
++    _jobs.put((fn, done, key))
++    return True
++
++
++def busy(key):
++    with _lock:
++        return key in _inflight
++
++
++def kernel_for(root):
++    """This worker thread's own Kernel on the workspace (never shared between threads: each connection is its own)."""
++    kernels = getattr(_local, 'kernels', None)
++    if kernels is None:kernels = _local.kernels = {}
++    key = str(root)
++    if key not in kernels:
++        from .engineering_kernel import Kernel
++        kernels[key] = Kernel(root)
++    return kernels[key]
++
++
++def held_elsewhere(kernel):
++    """Whether another thread of this process holds the workspace's database now (her step, its journal, a carry): a part of
++    the window that reads on a timer waits for its next tick rather than for her (database_guard serialises connections)."""
++    path = getattr(kernel, 'dbpath', None)
++    if path is None:return False
++    from pathlib import Path
++    from . import database_guard
++    try:
++        key = str(Path(path).resolve())
++        with database_guard._registry_lock:
++            lock = database_guard._locks.get(key)
++        if lock is None:return False
++        if lock.acquire(blocking=False):
++            lock.release();return False
++        return True
++    except Exception:  # noqa: BLE001 - not known: read as before
++        return False
++
++
++def kernel_of(host):
++    return getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++
++
++def when_free(host, fn):
++    """A window's timer: fn() now, unless her work holds the workspace's database (then at its next tick). host is the
++    window, or a part of it (its window is asked at the tick)."""
++    def tick():
++        window = host
++        if not hasattr(window, 'ledger_bridge') and hasattr(window, 'window'):
++            try:window = host.window()
++            except RuntimeError:      # gone
++                return
++        if getattr(window, '_closing', False):return
++        if held_elsewhere(kernel_of(window)):return
++        fn()
++    return tick
++
++
++def head(root):
++    """The workspace's change mark: the activity journal's last number (every Kernel request that changes something adds
++    to it), read without the guard on a read-only connection (one index lookup). None when it cannot be read."""
++    import sqlite3
++    from pathlib import Path
++    try:
++        path = Path(root).resolve() / '.ledger/engineering.sqlite3'
++        db = sqlite3.connect(path.as_uri() + '?mode=ro', uri=True, timeout=1)
++        try:
++            row = db.execute('SELECT MAX(seq) FROM activity_journal').fetchone()
++        finally:
++            db.close()
++        return int(row[0] or 0)
++    except Exception:  # noqa: BLE001 - not known: read as before
++        return None
++
++
++# ---- reads made off the window's thread, answered on it -----------------------------------------------------------------
++def _key(operation, arguments):
++    return operation + ' ' + json.dumps(arguments or {}, sort_keys=True, default=str)
++
++
++def answered(host, operation, arguments=None):
++    """What was read for this part in the gathering being drawn now, else MISS (the part reads it itself, as before)."""
++    store = getattr(host, '_f2_answers', None)
++    if not store:return MISS
++    return store.get(_key(operation, arguments), MISS)
++
++
++def _root_of(host):
++    kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++    root = getattr(kernel, 'root', None) if kernel is not None else None
++    if root is None or getattr(kernel, 'is_host_client', False):root = getattr(host, 'root', None)
++    return root
++
++
++def gather(host, plan, done, key=None):
++    """plan(read) runs on a worker with the worker's Kernel; done() runs on the window's thread with what was read in force
++    (answered()). False when nothing could be started (no workspace): the caller reads as before."""
++    root = _root_of(host)
++    if root is None:return False
++
++    def work():
++        from .engineering_kernel import operator
++        kernel = kernel_for(root);owner = operator();got = {};extra = {}
++
++        def read(operation, arguments=None):
++            try:
++                answer = kernel.dispatch(operation, arguments or {}, owner)
++                value = answer.get('result') if isinstance(answer, dict) and answer.get('ok') else None
++            except Exception:  # noqa: BLE001 - read as the part reads it: None when it cannot be read
++                value = None
++            got[_key(operation, arguments)] = value
++            return value
++        read.kernel = kernel;read.extra = extra;read.got = got;read.root = root
++        plan(read)
++        return got, extra
++
++    def landed(result, error):
++        if error is not None or result is None:
++            done(None);return
++        got, extra = result
++        host._f2_answers = got;host._f2_extra = extra
++        try:done(extra)
++        finally:
++            host._f2_answers = None;host._f2_extra = None
++
++    return submit(work, landed, key) or True
++
++
++def extra(host, name, default=MISS):
++    """A value the plan kept beside its reads (read.extra[name]) while its gathering is drawn."""
++    store = getattr(host, '_f2_extra', None)
++    if not store or name not in store:return default
++    return store[name]
++
++
++# ---- her column ----------------------------------------------------------------------------------------------------------
++QUIET_EVERY = 4              # nothing changed and nothing working: her column reads again only every this many ticks
++_column_kept = {}            # id(column) -> what its last gathering read: the change mark, the work's reads, the desk's
++
++
++def column_plan(ident, seen, desk, force=False):
++    """The reads her column's refresh makes (her_column_qt: read_work, the grants' fold, read_desk), in its own words. When
++    the workspace's change mark has not moved and nothing of hers is working, the last reading is drawn again instead (at
++    most QUIET_EVERY ticks running), so a quiet desk costs nothing; a press (force) always reads."""
++    def plan(read):
++        mark = head(read.root)
++        with _lock:
++            kept = dict(_column_kept.get(ident) or {})
++        same = not force and mark is not None and kept.get('head') == mark
++        if same and not kept.get('working') and kept.get('work') is not None and kept.get('work_age', 0) < QUIET_EVERY:
++            read.got.update(kept['work']);kept['work_age'] = kept.get('work_age', 0) + 1
++            if kept.get('halt') is not None:read.extra['halt'] = kept['halt']
++        else:
++            before = set(read.got)
++            listing = read('assignment.list', {'open': True, 'limit': 5}) or {}
++            rows = list(listing.get('assignments') or ())
++            working = next((r for r in rows if r.get('state_words') == 'working'), None)
++            if working is not None:read('assignment.status', {'id': working['id']})
++            live = read('program.status', {'live': True})
++            here = {r.get('id') for r in rows}
++            for gone in seen or ():
++                if gone not in here:read('assignment.status', {'id': gone})
++            read('grant.list', {'waiting': False})
++            try:
++                from . import halt_gate
++                read.extra['halt'] = halt_gate.status(read.kernel)
++            except Exception:  # noqa: BLE001 - read on the window's thread as before
++                pass
++            kept.update(work={k: v for k, v in read.got.items() if k not in before}, work_age=0, halt=read.extra.get('halt'),
++                        working=working is not None or bool((live or {}).get('live')))
++        if desk:
++            if same and kept.get('desk') is not None and kept.get('desk_age', 0) < QUIET_EVERY:
++                read.got.update(kept['desk']);kept['desk_age'] = kept.get('desk_age', 0) + 1
++            else:
++                before = set(read.got)
++                listing = read('investigation.list') or {}
++                for inv in list(listing.get('investigations') or ())[:4]:
++                    read('investigation.sheet', {'id': inv['id']})
++                read('field.read')
++                kept.update(desk={k: v for k, v in read.got.items() if k not in before}, desk_age=0)
++        kept['head'] = mark
++        with _lock:
++            _column_kept[ident] = kept
++    return plan
++
++
++def _column_ok(column):
++    host = getattr(column, 'host', None)
++    return host is not None and not getattr(host, '_closing', False)
++
++
++def column_tick(column):
++    """Her column's timer: its reading gathered off the window's thread, then drawn (refresh) from it."""
++    if not _column_ok(column):return
++    face = getattr(column, 'face', None)
++    if face is not None and not face.isVisible():return
++    if busy(('her-column', id(column))):return      # a reading is on its way (a press's, perhaps): this tick is that one
++    from .her_column_qt import DESK_EVERY
++    desk = (column.ticks + 1) % DESK_EVERY == 1
++    seen = set((getattr(column, 'seen_work', None) or {}).keys())
++    started = gather(column.host, column_plan(id(column), seen, desk), lambda extra: _column_draw(column, False), key=('her-column', id(column)))
++    if not started:column.refresh()
++
++
++def column_soon(column):
++    """After a press: her column read again (with the findings and the desk) off the window's thread, then drawn."""
++    if not _column_ok(column):return
++    seen = set((getattr(column, 'seen_work', None) or {}).keys())
++    started = gather(column.host, column_plan(id(column), seen, True, force=True), lambda extra: _column_draw(column, True), key=('her-column', id(column)))
++    if not started:column.refresh(force=True)
++
++
++def _column_draw(column, force):
++    if not _column_ok(column):return
++    try:column.refresh(force=force)
++    except RuntimeError:      # the column went with its window
++        pass
++
++
++def halt_status(host, kernel):
++    """HALT's hold for her column: as gathered, else read now (halt_gate.status)."""
++    value = extra(host, 'halt')
++    if value is not MISS:return value
++    from . import halt_gate
++    return halt_gate.status(kernel)
++
++
++# ---- slow reads of the system (the Machine, the network) ----------------------------------------------------------------
++_kept = {}
++
++
++def read_later(key, fn, landed=None, most_ms=None):
++    """The last reading of key now (MISS before the first), and fn() read again on a worker when none is in flight; landed()
++    runs on the window's thread when the new reading is kept."""
++    def done(result, error):
++        if error is None:
++            with _lock:
++                _kept[key] = (time.monotonic(), result)
++            if landed is not None:landed(result)
++    with _lock:
++        held = _kept.get(key)
++    fresh = held is not None and most_ms is not None and (time.monotonic() - held[0]) * 1000 < most_ms
++    if not fresh:submit(fn, done, key=('read-later', key))
++    return held[1] if held is not None else MISS
++
++
++def kept(key):
++    with _lock:
++        held = _kept.get(key)
++    return held[1] if held is not None else MISS
++
++
++def forget(key):
++    with _lock:
++        _kept.pop(key, None)
++
++
++# ---- the application's event filters, shared (the cold start) -----------------------------------------------------------
++class FilterHub(QObject):
++    """One event filter on the application, in front of the window's own (a dozen and more: menus, the pointer, the reading
++    size, the Agenda, the context menu, her hand's touch, ...). Qt called each of them from C++ for every event of the window,
++    each asking the event its type (a Python enum made afresh every time): measured here, the window's first paint came
++    2.9 s sooner without them (8.3 s against 5.4 s). Now Qt calls this one; it asks the type once, hands Qt's bookkeeping
++    (QUIET) to none of them, and calls theirs from Python in Qt's own order (the last installed first; installed again, it
++    moves to the front), stopping at the first that takes the event. A filter whose object has gone is dropped, as Qt drops
++    it. Set GRAPHITE_FILTER_HUB=0 to have Qt call each of them again."""
++
++    # Qt's own bookkeeping, sent by the tens of thousands while the window is made and laid out; not one of the window's
++    # filters on the application looks at any of these (each looks at input, Show, Hide, Polish, Resize, focus or the
++    # window's state), so they are not handed to them. A filter that must see them installs itself on the application with
++    # QCoreApplication.installEventFilter(app, filter), past the hub.
++    QUIET = ('ChildAdded', 'ChildPolished', 'ChildRemoved', 'DynamicPropertyChange', 'LayoutRequest', 'MetaCall', 'Timer',
++             'UpdateRequest', 'UpdateLater', 'Paint', 'Move', 'StyleChange', 'FontChange', 'PaletteChange', 'ApplicationFontChange',
++             'ApplicationPaletteChange', 'ZOrderChange', 'ParentChange', 'ParentAboutToChange', 'PolishRequest', 'DeferredDelete',
++             'StyleAnimationUpdate', 'ToolTipChange', 'WindowTitleChange', 'WindowIconChange', 'ActionAdded', 'ActionChanged',
++             'ActionRemoved', 'ShowToParent', 'HideToParent', 'PlatformSurface', 'LocaleChange', 'LanguageChange',
++             'ScreenChangeInternal', 'ContentsRectChange', 'EnabledChange', 'ModifiedChange', 'ReadOnlyChange',
++             'AccessibilityPrepare', 'Clipboard', 'SockAct', 'Quit', 'ThreadChange', 'UpdateSoftKeys', 'WinIdChange')
++
++    def __init__(self, app):
++        super().__init__(app)
++        self.filters = []
++        from PySide6.QtCore import QEvent
++        self.quiet = frozenset(getattr(QEvent.Type, name) for name in self.QUIET if hasattr(QEvent.Type, name))
++
++    def add(self, obj):
++        if obj is None or obj is self:return None
++        self.filters = [obj] + [f for f in self.filters if f is not obj]
++        return None
++
++    def remove(self, obj):
++        self.filters = [f for f in self.filters if f is not obj]
++        return None
++
++    def eventFilter(self, obj, event):
++        if not self.filters or event.type() in self.quiet:return False
++        from shiboken6 import Shiboken
++        for f in tuple(self.filters):
++            if not Shiboken.isValid(f):
++                self.remove(f);continue
++            try:
++                if f.eventFilter(obj, event):return True
++            except Exception:  # noqa: BLE001 - as Qt does with a Python filter that raised: said, and the event goes on
++                import traceback
++                traceback.print_exc()
++        return False
++
++
++def share_app_filters(app):
++    """qt_app.make_app: the window's filters on the application go through one FilterHub (the Python callers' install and
++    remove reach it; Qt's own and those installed before this keep their place)."""
++    if app is None or getattr(app, '_f2_hub', None) is not None:return None
++    if os.environ.get('GRAPHITE_FILTER_HUB', '').strip() == '0':return None
++    from PySide6.QtCore import QCoreApplication
++    hub = FilterHub(app)
++    QCoreApplication.installEventFilter(app, hub)
++    app._f2_hub = hub
++    app.installEventFilter = hub.add      # an attribute of this one object: the window's code calls these on the application
++    app.removeEventFilter = hub.remove
++    return hub
++
++
++# ---- the heartbeat (the owner's measure; off unless GRAPHITE_STALL_LOG names a file) -----------------------------------
++class Heartbeat(QObject):
++    """A beat every BEAT_MS on the window's thread. A sampler thread reads the window's thread's stack while a beat is late;
++    each gap over STALL_MS is written (JSON, one line) with its length and the part of Graphite the window's thread was in."""
++
++    def __init__(self, path, parent=None):
++        super().__init__(parent)
++        self.path = str(path);self.last = time.perf_counter();self.samples = {};self.guard = threading.Lock();self.on = True
++        self.main = threading.main_thread().ident;self.longest = 0.0;self.count = 0
++        self.timer = QTimer(self);self.timer.setTimerType(Qt.PreciseTimer);self.timer.setInterval(BEAT_MS)
++        self.timer.timeout.connect(self.beat);self.timer.start()
++        threading.Thread(target=self.sample, name='graphite-heartbeat', daemon=True).start()
++
++    def beat(self):
++        now = time.perf_counter();gap = (now - self.last) * 1000.0
++        with self.guard:
++            stacks = self.samples.pop(self.last, [])
++        if gap >= STALL_MS:
++            self.count += 1;self.longest = max(self.longest, gap)
++            row = {'at': time.strftime('%H:%M:%S'), 'ms': int(gap), 'in': offender(stacks)}
++            try:
++                with open(self.path, 'a', encoding='utf-8') as out:out.write(json.dumps(row) + '\n')
++            except OSError:
++                pass
++        self.last = now
++
++    def sample(self):
++        while self.on:
++            time.sleep(0.01)
++            last = self.last
++            if time.perf_counter() - last < 0.04:continue
++            frame = sys._current_frames().get(self.main);stack = []
++            while frame is not None:
++                name = frame.f_code.co_filename
++                if 'workbench' in name:stack.append('%s.%s' % (os.path.basename(name)[:-3], frame.f_code.co_name))
++                frame = frame.f_back
++            with self.guard:
++                self.samples.setdefault(last, []).append(tuple(reversed(stack)))
++
++    def stop(self):
++        self.on = False;self.timer.stop()
++
++
++def offender(stacks):
++    """The part most often seen while the window was late: the outermost and innermost of Graphite's frames."""
++    count = collections.Counter()
++    for stack in stacks:
++        if not stack:count['(Qt or the system)'] += 1;continue
++        count[stack[0] if stack[0] == stack[-1] else stack[0] + ' .. ' + stack[-1]] += 1
++    return count.most_common(1)[0][0] if count else '(not sampled)'
++
++
++def install_heartbeat(host):
++    """With GRAPHITE_STALL_LOG set, the window's heartbeat writes its stalls there (qt_app calls this once)."""
++    path = os.environ.get('GRAPHITE_STALL_LOG', '').strip()
++    if not path or getattr(host, '_f2_heartbeat', None) is not None:return None
++    host._f2_heartbeat = Heartbeat(path, host)
++    return host._f2_heartbeat
+diff --git a/workbench/halt_qt.py b/workbench/halt_qt.py
+index 7d98849..2ef9599 100644
+--- a/workbench/halt_qt.py
++++ b/workbench/halt_qt.py
+@@ -37,10 +37,15 @@ class HaltButton(QToolButton):
+         word, said = NAMES[self.held]
+         self.setText(word);self.setAccessibleName(word);self.setAccessibleDescription(said);self.setToolTip(said)
+ 
+-    def refresh(self):
++    def refresh(self, _read=None):
+         if getattr(self.host, '_closing', False):return
+-        from .halt import held
+-        now = held(self.host)
++        from . import floor      # 1.0 F2: the timer's reading of the hold is made off the window's thread, then shown
++        if _read is None and floor.gather(self.host, lambda read: read('halt.status'),
++                                          lambda extra: self.refresh(_read=floor.answered(self.host, 'halt.status') or {}), key=('halt', id(self))):return
++        if _read is not None and _read is not floor.MISS:now = bool(_read.get('held'))
++        else:
++            from .halt import held
++            now = held(self.host)
+         if now != self.held:
+             self.held = now;self._name();self.update()
+ 
+@@ -52,7 +57,8 @@ class HaltButton(QToolButton):
+             if self.held:halt.release(self.host)
+             else:halt.press(self.host)
+         finally:
+-            self.busy = False;self.refresh()
++            from . import floor
++            self.busy = False;self.refresh(_read=floor.MISS)      # 1.0 F2: your press is said at once (read here)
+ 
+     # -- the face ---------------------------------------------------------------------------------------------------------
+     def word_font(self):
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index cdfc032..a2125d4 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -250,6 +250,9 @@ def _kernel(host):
+ 
+ def read(host, operation, arguments=None):
+     """One read through the Kernel (an observer: showing her column is not an event): the result, or None."""
++    from . import floor      # 1.0 F2: what was read off the window's thread for this drawing (floor.column_tick), when it was
++    hit = floor.answered(host, operation, arguments)
++    if hit is not floor.MISS:return hit
+     try:
+         kernel, owner = _kernel(host)
+         answer = kernel.dispatch(operation, arguments or {}, owner)
+@@ -688,7 +691,7 @@ class WorkRow(QWidget):
+         if not call:return
+         done, why = press(self.column.host, call['operation'], call['arguments'])
+         self.column.say_words(say('stopped', title=plain(self.row.get('title'))) if done is not None else say('stop_refused', why=why))
+-        self.column.refresh(force=True)
++        from . import floor;floor.column_soon(self.column)      # 1.0 F2: read again off the window's thread
+ 
+     def open_journal(self):
+         self.column.show_journal(self.ident)
+@@ -1003,8 +1006,9 @@ class HerColumn(QObject):
+         face.KEEP_BUBBLES = KEEP_TURNS      # the last few turns; the rest behind "earlier" (SlateFace.fold_earlier)
+         face.installEventFilter(self)
+         self.read_portrait()
+-        self.timer = QTimer(self);self.timer.setInterval(TICK);self.timer.timeout.connect(self.refresh);self.timer.start()
+-        QTimer.singleShot(0, lambda: self.refresh(force=True))
++        from . import floor      # 1.0 F2: her column's reads are made off the window's thread, then drawn
++        self.timer = QTimer(self);self.timer.setInterval(TICK);self.timer.timeout.connect(lambda: floor.column_tick(self));self.timer.start()
++        QTimer.singleShot(0, lambda: floor.column_soon(self))
+         stage = getattr(host, 'hologram', None)      # her hologram, placed before this column was, stands aside until a moment
+         if stage is not None:QTimer.singleShot(0, stage.place_now)
+ 
+@@ -1224,7 +1228,9 @@ class HerColumn(QObject):
+         self.seen_work = ids
+         try:
+             from . import halt_gate      # 1.0 K3: HALT's own hold (Stop all's hold of Graphite's jobs is not HALT)
+-            held = bool(halt_gate.status(kernel).get('held'))
++            from . import floor      # 1.0 F2: as gathered off the window's thread, else read now
++            held = bool(floor.halt_status(self.host, kernel).get('held'))
++            _ = halt_gate
+         except Exception:  # noqa: BLE001 - a gate that cannot be read is not said to be HALT
+             held = bool(self.seen_held)
+         try:
+@@ -1343,7 +1349,7 @@ class HerColumn(QObject):
+             self.say_words(say('press_done', words=call['words']) if done is not None else say('press_refused', why=why))
+             if done is not None and call.get('then'):      # 1.0 K3: one press: the grant, then carry on
+                 self.carry(call['then'], step.get('title', ''));return
+-            self.refresh(force=True);return
++            from . import floor;floor.column_soon(self);return      # 1.0 F2: read again off the window's thread
+         card = step.get('card')
+         if card and not self.select_card(card):return
+         self.command(step.get('command') or 'do')
+@@ -1373,8 +1379,8 @@ class HerColumn(QObject):
+             view = answer.get('result') if answer.get('ok') else None
+             line = (view or {}).get('line') if isinstance(view, dict) else None
+             self.say_words(say('carry_ended', title=title, line=plain(line)) if line else say('press_refused', why=str((answer.get('error') or {}).get('message', ''))[:200]))
+-            self.refresh(force=True)
+-        QTimer.singleShot(400, check);self.refresh(force=True)
++            from . import floor;floor.column_soon(self)      # 1.0 F2: read again off the window's thread
++        from . import floor;QTimer.singleShot(400, check);floor.column_soon(self)      # 1.0 F2
+ 
+     # -- the desk -----------------------------------------------------------------------------------------------------------
+     def field(self):
+diff --git a/workbench/instruments_qt.py b/workbench/instruments_qt.py
+index fb35bd2..96eca09 100644
+--- a/workbench/instruments_qt.py
++++ b/workbench/instruments_qt.py
+@@ -317,7 +317,8 @@ class ClipDock(QWidget):
+         note.setWordWrap(True)
+         layout.addWidget(note)
+         self.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Maximum)
+-        self.job_timer=QTimer(self);self.job_timer.setInterval(1500);self.job_timer.timeout.connect(self.refresh_task);self.job_timer.start()
++        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
++        self.job_timer=QTimer(self);self.job_timer.setInterval(1500);self.job_timer.timeout.connect(floor.when_free(self,self.refresh_task));self.job_timer.start()
+ 
+     def set_context(self,title,identity):
+         self.context_id=identity;self.context.setText(title)
+diff --git a/workbench/machine_room_qt.py b/workbench/machine_room_qt.py
+index 21502a3..77ba858 100644
+--- a/workbench/machine_room_qt.py
++++ b/workbench/machine_room_qt.py
+@@ -55,11 +55,26 @@ def reading(host, key, fresh=False, keep=False):
+     if store is None:
+         store = {};setattr(host, '_machine_real', store)
+     held = store.get(key)
+-    if held is None or fresh or (not keep and time.time() - held['sampled_at'] > CACHE_SECONDS):
++    if held is None:      # the first reading of a section: at once (the Machine tab or its page was just opened)
+         held = real.read(key);store[key] = held
++    elif fresh or (not keep and time.time() - held['sampled_at'] > CACHE_SECONDS):
++        from . import floor      # 1.0 F2: read again off the window's thread (a service may be slow to answer); drawn when it lands
++        floor.read_later(('machine', id(host), key), lambda: real.read(key), landed=lambda data: landed(host, key, data))
+     return held
+ 
+ 
++def landed(host, key, data):
++    """1.0 F2: a section read off the window's thread: kept, and the page that shows it drawn from it (never read again here)."""
++    store = getattr(host, '_machine_real', None)
++    if store is None or getattr(host, '_closing', False):return
++    store[key] = data
++    for room in list(getattr(host, '_machine_rooms', ()) or ()):
++        try:
++            if room.key == key and room.isVisible():room.reload(read=False)
++        except RuntimeError:      # a page that has gone
++            pass
++
++
+ def digest(data):
+     return json.dumps({k: v for k, v in data.items() if k != 'sampled_at'}, sort_keys=True, default=str)
+ 
+@@ -219,8 +234,13 @@ class MachineRoom(QWidget):
+         if not self.isVisible() or self.busy or self.holding():return
+         self.reload()
+ 
+-    def reload(self, force=False):
+-        data = reading(self.host, self.key, fresh=True);seen = digest(data)
++    def reload(self, force=False, read=True):
++        rooms = getattr(self.host, '_machine_rooms', None)      # 1.0 F2: the pages a reading made off the window's thread is drawn on
++        if rooms is None:
++            import weakref
++            rooms = weakref.WeakSet();setattr(self.host, '_machine_rooms', rooms)
++        rooms.add(self)
++        data = reading(self.host, self.key, fresh=read, keep=not read);seen = digest(data)
+         if not force and seen == self.seen and self.data is not None:
+             self.data = data;self.stamp.setText(self.lead_words());return
+         self.data = data;self.seen = seen;self.draw()
+diff --git a/workbench/network_qt.py b/workbench/network_qt.py
+index 7082270..204fd91 100644
+--- a/workbench/network_qt.py
++++ b/workbench/network_qt.py
+@@ -94,6 +94,10 @@ def reading(host, read=True):
+     """The network's state for this window: read again when it is stale (a short local D-Bus read), else what was read."""
+     root = _root(host)
+     if read and ng.stale():
++        if ng.peek(root).get('at'):      # 1.0 F2: read again off the window's thread; the word says the last reading until then
++            from . import floor
++            floor.read_later(('network', str(root)), lambda: ng.state(root, fresh=True))
++            return ng.peek(root)
+         try:return ng.state(root)
+         except Exception:  # noqa: BLE001 - a state that cannot be read is said not known
+             pass
+diff --git a/workbench/objective_plan_qt.py b/workbench/objective_plan_qt.py
+index 6196b7e..67b1edc 100644
+--- a/workbench/objective_plan_qt.py
++++ b/workbench/objective_plan_qt.py
+@@ -81,7 +81,7 @@ def asked(face, text):
+                 pass
+         column = getattr(host, 'her_column', None)
+         if column is not None:
+-            try:column.refresh(force=True)
++            try:from . import floor;floor.column_soon(column)      # 1.0 F2: read again off the window's thread
+             except Exception:  # noqa: BLE001 - her column reads it again at its next tick
+                 pass
+         try:face.fit_soon() if hasattr(face, 'fit_soon') else None
+diff --git a/workbench/pane_qt.py b/workbench/pane_qt.py
+index 6b6e271..cc93fd8 100644
+--- a/workbench/pane_qt.py
++++ b/workbench/pane_qt.py
+@@ -553,7 +553,20 @@ class BranchTree(QTreeWidget):
+         # only the rows: the empty viewport below them is where her hologram may stand, and it is not drawn again for this
+         last = self.visualItemRect(self.lastVisibleItem()) if self.topLevelItemCount() else QRect()
+         bottom = last.bottom() + 1 if last.isValid() and last.bottom() >= 0 else self.viewport().height()
+-        self.viewport().update(QRect(0, 0, self.viewport().width(), min(self.viewport().height(), max(0, bottom))))
++        # 1.0 F2: only the rows the lit path runs through breathe (from its root's row down to the current row: the traces and
++        # the light round the words); the others are drawn the same at every breath, so they are not drawn again for it.
++        # Every row was drawn again seven times a second, 100 to 200 ms each time on a tall window (measured offscreen).
++        index = self.currentIndex()
++        if not index.isValid():return
++        root = index
++        while root.parent().isValid():root = root.parent()
++        top = self.visualRect(root);here = self.visualRect(index)
++        while not here.isValid() and index.parent().isValid():      # inside a folded branch: the path is lit down to its fold
++            index = index.parent();here = self.visualRect(index)
++        if not here.isValid():return
++        y0 = max(0, top.top() if top.isValid() else 0);y1 = min(self.viewport().height(), bottom, here.bottom() + 1)
++        if y1 <= y0:return
++        self.viewport().update(QRect(0, y0, self.viewport().width(), y1 - y0))
+ 
+     def lastVisibleItem(self):
+         item = self.topLevelItem(self.topLevelItemCount() - 1)
+diff --git a/workbench/qt_app.py b/workbench/qt_app.py
+index 11a50bf..cd3dbbd 100644
+--- a/workbench/qt_app.py
++++ b/workbench/qt_app.py
+@@ -5367,6 +5367,8 @@ def qt_version():
+ 
+ def make_app(argv=None):
+     app = QApplication.instance() or QApplication(argv or sys.argv)
++    from .floor import share_app_filters
++    share_app_filters(app)  # 1.0 F2: the window's application-wide event filters through one (the cold start, every event)
+     app.setApplicationName('ARC Ledger')  # unchanged: names the existing per-user application data
+     from .version import VERSION as product_version
+     app.setApplicationVersion(product_version)
+@@ -5397,6 +5399,8 @@ def main():
+     else:w.show()
+     from . import session_launch  # 1.0 S1: the line after the supervisor started it again; the lock before sleep (dedicated session)
+     session_launch.window_started(w)
++    from .floor import install_heartbeat
++    install_heartbeat(w)  # 1.0 F2: with GRAPHITE_STALL_LOG=<file>, every stall of the window over 100 ms is written there
+     opening = os.environ.get('ARC_LEDGER_OPEN')
+     if opening:
+         # A start script may open one Ledger room, for example the Office.
+diff --git a/workbench/qt_master_stop.py b/workbench/qt_master_stop.py
+index 90dedf2..fd51af7 100644
+--- a/workbench/qt_master_stop.py
++++ b/workbench/qt_master_stop.py
+@@ -43,7 +43,8 @@ class MasterStop(QObject):
+         self.priority_report=[];self._priority_seen=set()
+         self.faces=[];self.detail=''  # UI-03: callables told after every refresh (the kill switch in Nice reads running, stuck and detail)
+         self.completed.connect(self.finished)
+-        self.timer=QTimer(self);self.timer.setInterval(1500);self.timer.timeout.connect(self.refresh);self.timer.start()
++        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
++        self.timer=QTimer(self);self.timer.setInterval(1500);self.timer.timeout.connect(floor.when_free(host,self.refresh));self.timer.start()
+         button.clicked.connect(host.a_master_stop.trigger)
+         button.setContextMenuPolicy(Qt.CustomContextMenu)
+         button.customContextMenuRequested.connect(self.menu)
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 15704f9..e89f311 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -454,7 +454,9 @@ def call(host, op, args=None):
+     from .engine import engineering
+     from .engineering_kernel import operator
+     try:
+-        r = engineering(host.root).dispatch(op, args or {}, operator())
++        kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)      # 1.0 F2: the window's own Kernel (embedded, a new
++        if not hasattr(kernel, 'dispatch'):kernel = engineering(host.root)          # one per read made every schema again, under the guard)
++        r = kernel.dispatch(op, args or {}, operator())
+         return r['result'] if r.get('ok') else None
+     except Exception:
+         return None
+@@ -2011,7 +2013,8 @@ class SlateFace(QWidget):
+         self.this = role(QLabel(), 'quiet');self.this.setWordWrap(True);marked(outer, self.this, host, 'select')
+         # Her Agenda in one line: what she is doing now and what needs you; the words open it.
+         self.agenda = role(QLabel(), 'quiet');self.agenda.setWordWrap(True);marked(outer, self.agenda, host, 'running')
+-        self.agenda_timer = QTimer(self);self.agenda_timer.setInterval(4000);self.agenda_timer.timeout.connect(self.show_agenda);self.agenda_timer.start()
++        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
++        self.agenda_timer = QTimer(self);self.agenda_timer.setInterval(4000);self.agenda_timer.timeout.connect(floor.when_free(host, self.show_agenda));self.agenda_timer.start()
+         QTimer.singleShot(0, self.show_agenda)
+         # AGENT-01: under the agenda line, what Slate is working on (five lines; Stop and Pause are words there) and the
+         # owner's own records that share the open page's words (quiet connections, each dismissable).
+@@ -3537,7 +3540,8 @@ class Shell2(QObject):
+         from .graphite_brand import use_pointer
+         use_pointer(host)  # HATCH DESK D1b: the pointer, the mark's two facets aimed at 11 o'clock
+         self.restyle(getattr(host, 'reading_profile', None))
+-        self.timer = QTimer(self);self.timer.setInterval(5000);self.timer.timeout.connect(self.tick);self.timer.start()
++        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
++        self.timer = QTimer(self);self.timer.setInterval(5000);self.timer.timeout.connect(floor.when_free(host, self.tick));self.timer.start()
+         QTimer.singleShot(300, self.tick)
+         QTimer.singleShot(0, self.stacy_first)
+ 
+diff --git a/workbench/waits_qt.py b/workbench/waits_qt.py
+index 24aae59..9d7b0d7 100644
+--- a/workbench/waits_qt.py
++++ b/workbench/waits_qt.py
+@@ -152,7 +152,7 @@ class WaitRow(QFrame):
+     def pressed(self):
+         fn = self.press_fn
+         if fn is None:return
+-        fn();self.band.column.refresh(force=True)
++        from . import floor;fn();floor.column_soon(self.band.column)      # 1.0 F2: read again off the window's thread
+ 
+ 
+ class WaitsBand(QWidget):

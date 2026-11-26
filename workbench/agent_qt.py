@@ -339,7 +339,8 @@ class WorkBlock(QWidget):
         for key, name in self.KEYS:
             label = role(QLabel(), 'quiet'); label.setWordWrap(True); label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
             label.setAccessibleName('Work · ' + name); box.addWidget(label); self.lines[key] = label
-        self.timer = QTimer(self); self.timer.setInterval(BLOCK_MS); self.timer.timeout.connect(self.refresh); self.timer.start()
+        from . import floor  # 1.0 F2: the timer waits for its next tick while her work holds the workspace
+        self.timer = QTimer(self); self.timer.setInterval(BLOCK_MS); self.timer.timeout.connect(floor.when_free(host, self.refresh)); self.timer.start()
         driver = getattr(host, 'agent_driver', None)
         if driver is not None and self not in driver.blocks: driver.blocks.append(self)
         self.hide()

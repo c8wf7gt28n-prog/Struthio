@@ -246,6 +246,9 @@ def _kernel(host):
 
 def read(host, operation, arguments=None):
     """One read through the Kernel (an observer: showing her column is not an event): the result, or None."""
+    from . import floor      # 1.0 F2: what was read off the window's thread for this drawing (floor.column_tick), when it was
+    hit = floor.answered(host, operation, arguments)
+    if hit is not floor.MISS:return hit
     try:
         kernel, owner = _kernel(host)
         answer = kernel.dispatch(operation, arguments or {}, owner)
@@ -714,7 +717,7 @@ class WorkRow(QWidget):
         if not call:return
         done, why = press(self.column.host, call['operation'], call['arguments'])
         self.column.say_words(say('stopped', title=plain(self.row.get('title'))) if done is not None else say('stop_refused', why=why))
-        self.column.refresh(force=True)
+        from . import floor;floor.column_soon(self.column)      # 1.0 F2: read again off the window's thread
 
     def open_journal(self):
         self.column.show_journal(self.ident)
@@ -1025,8 +1028,9 @@ class HerColumn(QObject):
         face.KEEP_BUBBLES = KEEP_TURNS      # the last few turns; the rest behind "earlier" (SlateFace.fold_earlier)
         face.installEventFilter(self)
         self.read_portrait()
-        self.timer = QTimer(self);self.timer.setInterval(TICK);self.timer.timeout.connect(self.refresh);self.timer.start()
-        QTimer.singleShot(0, lambda: self.refresh(force=True))
+        from . import floor      # 1.0 F2: her column's reads are made off the window's thread, then drawn
+        self.timer = QTimer(self);self.timer.setInterval(TICK);self.timer.timeout.connect(lambda: floor.column_tick(self));self.timer.start()
+        QTimer.singleShot(0, lambda: floor.column_soon(self))
         stage = getattr(host, 'hologram', None)      # her hologram, placed before this column was, stands aside until a moment
         if stage is not None:QTimer.singleShot(0, stage.place_now)
 
@@ -1246,7 +1250,9 @@ class HerColumn(QObject):
         self.seen_work = ids
         try:
             from . import halt_gate      # 1.0 K3: HALT's own hold (Stop all's hold of Graphite's jobs is not HALT)
-            held = bool(halt_gate.status(kernel).get('held'))
+            from . import floor      # 1.0 F2: as gathered off the window's thread, else read now
+            held = bool(floor.halt_status(self.host, kernel).get('held'))
+            _ = halt_gate
         except Exception:  # noqa: BLE001 - a gate that cannot be read is not said to be HALT
             held = bool(self.seen_held)
         try:
@@ -1365,7 +1371,7 @@ class HerColumn(QObject):
             self.say_words(say('press_done', words=call['words']) if done is not None else say('press_refused', why=why))
             if done is not None and call.get('then'):      # 1.0 K3: one press: the grant, then carry on
                 self.carry(call['then'], step.get('title', ''));return
-            self.refresh(force=True);return
+            from . import floor;floor.column_soon(self);return      # 1.0 F2: read again off the window's thread
         card = step.get('card')
         if card and not self.select_card(card):return
         self.command(step.get('command') or 'do')
@@ -1395,8 +1401,8 @@ class HerColumn(QObject):
             view = answer.get('result') if answer.get('ok') else None
             line = (view or {}).get('line') if isinstance(view, dict) else None
             self.say_words(say('carry_ended', title=title, line=plain(line)) if line else say('press_refused', why=str((answer.get('error') or {}).get('message', ''))[:200]))
-            self.refresh(force=True)
-        QTimer.singleShot(400, check);self.refresh(force=True)
+            from . import floor;floor.column_soon(self)      # 1.0 F2: read again off the window's thread
+        from . import floor;QTimer.singleShot(400, check);floor.column_soon(self)      # 1.0 F2
 
     # -- the desk -----------------------------------------------------------------------------------------------------------
     def field(self):

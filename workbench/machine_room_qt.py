@@ -55,9 +55,24 @@ def reading(host, key, fresh=False, keep=False):
     if store is None:
         store = {};setattr(host, '_machine_real', store)
     held = store.get(key)
-    if held is None or fresh or (not keep and time.time() - held['sampled_at'] > CACHE_SECONDS):
+    if held is None:      # the first reading of a section: at once (the Machine tab or its page was just opened)
         held = real.read(key);store[key] = held
+    elif fresh or (not keep and time.time() - held['sampled_at'] > CACHE_SECONDS):
+        from . import floor      # 1.0 F2: read again off the window's thread (a service may be slow to answer); drawn when it lands
+        floor.read_later(('machine', id(host), key), lambda: real.read(key), landed=lambda data: landed(host, key, data))
     return held
+
+
+def landed(host, key, data):
+    """1.0 F2: a section read off the window's thread: kept, and the page that shows it drawn from it (never read again here)."""
+    store = getattr(host, '_machine_real', None)
+    if store is None or getattr(host, '_closing', False):return
+    store[key] = data
+    for room in list(getattr(host, '_machine_rooms', ()) or ()):
+        try:
+            if room.key == key and room.isVisible():room.reload(read=False)
+        except RuntimeError:      # a page that has gone
+            pass
 
 
 def digest(data):
@@ -219,8 +234,13 @@ class MachineRoom(QWidget):
         if not self.isVisible() or self.busy or self.holding():return
         self.reload()
 
-    def reload(self, force=False):
-        data = reading(self.host, self.key, fresh=True);seen = digest(data)
+    def reload(self, force=False, read=True):
+        rooms = getattr(self.host, '_machine_rooms', None)      # 1.0 F2: the pages a reading made off the window's thread is drawn on
+        if rooms is None:
+            import weakref
+            rooms = weakref.WeakSet();setattr(self.host, '_machine_rooms', rooms)
+        rooms.add(self)
+        data = reading(self.host, self.key, fresh=read, keep=not read);seen = digest(data)
         if not force and seen == self.seen and self.data is not None:
             self.data = data;self.stamp.setText(self.lead_words());return
         self.data = data;self.seen = seen;self.draw()

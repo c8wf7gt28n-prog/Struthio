@@ -152,7 +152,7 @@ class WaitRow(QFrame):
     def pressed(self):
         fn = self.press_fn
         if fn is None:return
-        fn();self.band.column.refresh(force=True)
+        from . import floor;fn();floor.column_soon(self.band.column)      # 1.0 F2: read again off the window's thread
 
 
 class WaitsBand(QWidget):

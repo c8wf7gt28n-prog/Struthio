@@ -203,9 +203,14 @@ class CabinetPage(QWidget):
         from .shell2 import open_destination
         return open_destination(self.host,transfer['destination'])
 
-    def refresh(self,force=False):
+    def refresh(self,force=False,_read=None):
         if self.host._closing or (not force and (not self.isVisible() or self.using_legacy)):return
-        response=self.host.ledger_bridge.kernel.dispatch('ledger.cabinet',{},operator())
+        from . import floor  # 1.0 F2: the timer's reading of the cabinet is made off the window's thread, then drawn
+        if not force and _read is None:
+            if floor.gather(self.host,lambda read:read('ledger.cabinet'),lambda extra:self.refresh(_read=floor.answered(self.host,'ledger.cabinet') or floor.MISS),key=('cabinet',id(self))):return
+        if _read is not None and _read is not floor.MISS:response={'ok':True,'result':_read}
+        elif _read is not None:return  # 1.0 F2: not read this time: the tree stays as it is until the next
+        else:response=self.host.ledger_bridge.kernel.dispatch('ledger.cabinet',{},operator())
         if not response['ok']:self.status.setText(response['error']['message']);return
         model=response['result']
         from .living_nav_qt import extend;model=extend(self.host,model)  # 1.0 L1: the Files and Desk drawers, each row by its object's id
