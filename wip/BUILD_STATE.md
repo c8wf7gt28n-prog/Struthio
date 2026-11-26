@@ -382,6 +382,13 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 19:11 UTC: Hourly wake-up while X4, X1 and K10 run: carry on. **R2 prepared:** `wip/build_tools/cut_1.0.sh`
+  (cut.sh with the 1.0 inventory from kit_1.0, the 136 new debs checked against it and packed in their own
+  `Graphite_1.0_system_add_part_NN.zip` under 15 MB, rooted at Graphite_Transfer/App/debs/, and the 1.0 start page
+  `wip/build_tools/kit_START_HERE_1.0.md`, still to write). R2 is done by the coordinator after X4, X1 and K10 merge:
+  version 1.0, release notes (built, not tested), README, What's New in 1.0 in the Guide, the start page, the cut, the
+  D2 atlas as the screens, sent.
+
 - 26 Nov 18:45 UTC: **1.0 X3 merged** (47b3332: the invented everyday Home, everyday_demo.py, built through its own door;
   everyday_desk.py: the groceries answer, 244.65 exactly, through tool 18 with a receipt, and the 16-step tidy of
   Downloads with "put it back". Fixes: Copy to… (from a stick too), mounted at once, Files after a Machine page,
