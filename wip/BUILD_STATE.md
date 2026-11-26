@@ -302,6 +302,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 02:30 UTC: **1.0 L3 merged** (f2bf15e: relevance with reasons, four sizes, hysteresis, pin / turn down / why;
+  smoke 36/36). L2 told it is in. Its notes: `relation` reads "candidate <relation> focus"; relevance.why answers from
+  the window's memory (the command line gets "not on this board now"); P1 may call `note_request` from its own ask line.
+  **S3 launched** (program windows; agent a5b15e74052f12b98). Running: P1, L2, S2, S3.
+
 - 26 Nov 02:12 UTC: wake-up (carry on). **L3 launched** (relevance; agent a7847a8b4b5b09d1f), building exactly the
   `relevance.rank/why/pin/turn_down/clear` interface L2 was told to call. Running: P1, L2, S2, L3.
 
