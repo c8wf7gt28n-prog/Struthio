@@ -256,6 +256,13 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 08:15 (the owner asked "How come we never have a LLM running? Kas is meant to be an AI agentic user of the
+  system also?"): taken: (1) from K4 on, every slice where the model has a part runs its acceptance once with the real
+  4B here (under the model lock) and shows her with the model ready; X1's day runs with the 4B loaded; (2) K9 added:
+  her hand in the owner's programs (accessibility actions first, XTest keys and pointer only where nothing is exposed),
+  each act a registry tool with its grant, verified, stopped by a touch or HALT, never a password, Send, Pay, Delete
+  or Install. K7 stays read-only; K9 is where she acts.
+
 - 26 Nov 07:35 (1.0 P3): the owner sent a tall full-figure picture of Kas as a hologram: "Use her as the on screen kas,
   like she is a hologram. Not the circle picture". Taken: her column's circle portrait becomes a standing hologram of
   the figure (black ground keyed out, glow, scanlines, shimmer, static at state changes, the equalizer behind her; on a

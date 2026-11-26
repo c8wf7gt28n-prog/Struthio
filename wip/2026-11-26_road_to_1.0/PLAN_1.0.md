@@ -363,6 +363,25 @@ words, never from desk material; a step that needs the network while it is down 
 done. *Acceptance:* offline, "look up the regulator's datasheet" → the step blocked with that reason; a fetched page
 with an instruction to the assistant is withheld and shown outlined.
 
+**K9 · Her hand in other programs** (the owner, 26 Nov: "Kas is meant to be an AI agentic user of the system also"; and
+the earlier road: "she takes the mouse in your programs while you watch"). Beyond K7's reading: she operates the owner's
+programs the way a person would, while the owner watches: through accessibility actions first (AT-SPI Action and
+EditableText: press a named button, choose a menu item by its path, type into a named field), and through synthetic
+keys and pointer (XTest) only where the program exposes nothing, aiming by the accessible object's position, never by
+guessed pixels. Each act is a registry tool (K2) with its grant (K3; "work in <program> on <file>, this assignment"),
+its effect verified by what K7 then reads or by the file on disk (K2's receipts), a touch of the owner's mouse or keys
+stops her at once (F1), HALT stops her, and she never types a password, never presses Send, Pay, Delete or Install in
+another program (those always ask, at every place of the dial), and never acts in a window she did not open or was
+not shown. Acceptance: under Xvfb with a real program installed here (LibreOffice in a visible window, through its
+accessibility): open the invented report, find the sentence through the accessible text, replace it, save with the
+menu's Save, and verify the file on disk; a dialog 'Keep current format?' read and answered only as granted; a key
+press from the owner stops her between two acts.
+
+**The model in the loop** (the owner, 26 Nov: "How come we never have a LLM running?"). From K4 on, the slices where
+the model has a part (K4's plans, K6's utilities, K9's acts, X1's day) run their acceptance once with the real 4B here
+(under the model lock; this machine cannot hold the 35B), and frames show her with the model ready. X1's day runs with
+the 4B loaded.
+
 ### Wave 5 — the door, the floor, the Apps by hand
 
 **F1 · The door's mechanics.** A touch stops her: any owner input in the window while her hand drives it pauses the
@@ -384,7 +403,7 @@ stand-in program that writes a file → the board's tile shows the new revision 
 
 ### Wave 6 — the day, the kit
 
-**X1 · The day (paper §18) in the window.** On Rail Demo, scripted through the desk's own doors: select the project;
+**X1 · The day (paper §18) in the window**, with the real 4B loaded (her model ready). On Rail Demo, scripted through the desk's own doors: select the project;
 focus the specification; open it; ask "Kas, review this assembly and tell me whether the proposed power supply is
 sufficient"; settled supported, startup open; open the worksheet in a split beside the specification; change a value;
 the summary's old value noticed; approve the review; the report updated through K5 (or prepared, if LibreOffice is not
