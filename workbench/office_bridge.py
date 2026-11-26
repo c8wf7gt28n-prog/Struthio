@@ -15,11 +15,11 @@ Her LibreOffice is owned as the Calc sessions of native_sessions.py are: a profi
 recovery, her name on its lock files: "Kasandra (Graphite)"), a private pipe, its own process group, started for one piece
 of work and ended after it in every case (terminate, then the group's TERM, then KILL); one at a time (a lock in the
 Kernel's state); a session left behind by a crash is found and ended by the next one. It is headless: it never shows a
-window, and the owner's own LibreOffice windows are never driven (his LibreOffice runs with his profile; hers with hers).
+window, and the owner's own LibreOffice windows are never driven (their LibreOffice runs with their profile; hers with hers).
 
 The rules the code keeps:
   - A document the owner has open in LibreOffice (its lock file .~lock.<name># is there and is not hers) is never edited
-    behind his back: the change is refused with the reason.
+    behind their back: the change is refused with the reason.
   - A change is made only at the revision the plan read (expected_sha256), only where the passage is in exactly the
     places named (occurrences, 1 unless said), and only on an OpenDocument file (.odt, .ods); a cell holding a formula is
     never overwritten.
@@ -44,7 +44,7 @@ Kernel operations (registered in engineering_kernel and engineering_cli under "1
                                                                                            back (formulas recalculated), recorded
 
 The two changes are marked for the owner's approval: in an assignment (K1) each is authorised by its own name, with its
-arguments fixed when he authorises it. Their checks (assignments.CHECKS) look for the effect before it is made again and
+arguments fixed when they authorise it. Their checks (assignments.CHECKS) look for the effect before it is made again and
 verify it after. describe() lists the operations for the tool registry (K2); when K2's tools_registry is here, its slots
 "office.read" and "office.edit" are filled with them. offer_update() is K4's: the step that puts a checked value in its
 sentence of a report, or, when LibreOffice is not here, that change as prepared text.

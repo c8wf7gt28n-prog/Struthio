@@ -8,7 +8,7 @@ of its link. This module is the model only: no Qt. board_qt.py draws it.
                     from a source's page, the cells a calculation used, the evidence and the checks of a finding, a total
                     bound to a page's words, the rows and quotes a goal or rule card rests on; and, read here: a calculation
                     worked again (the revision it replaced), an open question and the sources its investigation reads, a
-                    plain file with the same bytes as an admitted source, and a link the owner kept by his word (board.keep)
+                    plain file with the same bytes as an admitted source, and a link the owner kept by their word (board.keep)
     inferred links  possible, never facts: two things that name the same component, say the same words or the same
                     quantities, are used together by a third, or read as two revisions of one sheet by their names. Each is
                     labelled "not verified" and becomes recorded only by the owner's word (board.keep, approve scope, always
@@ -22,7 +22,7 @@ of its link. This module is the model only: no Qt. board_qt.py draws it.
 
 Kernel operations (one block in engineering_kernel.py and engineering_cli.py, commented 1.0 L2):
     board.read   {focus?, task?}                  read     the board of one focus as data: tiles, wires, the basis of each
-    board.links  {all?}                           read     the links the owner kept by his word (all: those set aside too)
+    board.links  {all?}                           read     the links the owner kept by their word (all: those set aside too)
     board.keep   {source, target, said?}          approve  keep a possible link as recorded, by the owner's word
                  | {id, state: IN | OUT}                   set it aside (OUT) or take it back (IN); nothing is deleted
 

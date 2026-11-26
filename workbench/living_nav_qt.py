@@ -463,7 +463,7 @@ class LivingNav(QObject):
 
     def board_state(self):
         """How the board is seen: its zoom, the corner of what it shows, its face, and whether the size was the owner's (a
-        zoom he set is kept; an automatic one is worked out again for the window it is shown in)."""
+        zoom they set is kept; an automatic one is worked out again for the window it is shown in)."""
         page = self.page()
         if page is None:return None
         view = page.view

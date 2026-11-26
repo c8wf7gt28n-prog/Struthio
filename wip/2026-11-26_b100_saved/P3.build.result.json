@@ -1,0 +1,70 @@
+{
+ "item": "P3",
+ "status": "built",
+ "summary": "Kas as a hologram: her column's portrait stands as a hologram whenever her picture is taller than it is wide (the owner's admitted kasandra/portrait.png, or the shipped hologram figure, now the default in every look). New workbench/her_hologram_qt.py: the picture's dark ground keyed out once per picture (alpha from the brightest of R,G,B on a soft ramp, cached by the admitted bytes' SHA-256), a tall slot (1920x1200: hat to below the hips; 1366x768: hat to the waist), soft glow, fine scan lines, slow breath and shimmer band, a brief static at a change of her state, the equalizer's bars behind and beside her; in Day a dark projector glass of her own; for P1's moments her full figure, larger, in her stage's place with a stronger static as she arrives. 12 frames a second at most, none when hidden, minimised, not in front, under a moment, or with Reduce motion (then one still frame). Wide or square pictures keep P1's circle. Small marked hooks in her_column_qt.py and hologram_qt.py.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/P3.patch",
+ "notes_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/P3.progress.md",
+ "files_changed": [
+  "workbench/her_hologram_qt.py (new)",
+  "workbench/her_column_qt.py (portrait block, marked 1.0 P3)",
+  "workbench/hologram_qt.py (one condition, marked 1.0 P3)",
+  "tests_integrated/kasandra_window_probe.py",
+  "tests_integrated/test_kasandra_column.py"
+ ],
+ "smoke": {
+  "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/P3/smoke.py",
+  "runs": [
+   "graphite/kasandra/day x 1920x1200/1366x768 with the owner's picture admitted (6 runs; graphite 1920 also a wide picture and taking the owner's back by revision)",
+   "no picture admitted: graphite 1920x1200, day 1366x768",
+   "empty workspace (the window probe's scenario), kasandra 1920x1200 and 1366x768"
+  ],
+  "output": "218 PASS, 0 FAIL in 10 runs. [day 1366x768 none] 24 of 24 checks passed | [day 1366x768 owner] 26 of 26 checks passed | [day 1920x1200 owner] 27 of 27 checks passed | [graphite 1366x768 owner] 26 of 26 checks passed | [graphite 1920x1200 none] 25 of 25 checks passed | [graphite 1920x1200 owner] 29 of 29 checks passed | [kasandra 1366x768 empty] 3 of 3 checks passed | [kasandra 1366x768 owner] 27 of 27 checks passed | [kasandra 1920x1200 empty] 3 of 3 checks passed | [kasandra 1920x1200 owner] 28 of 28 checks passed",
+  "output_file": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/P3/smoke_output.txt",
+  "highlights": [
+   "the cut: corners of the keyed picture alpha 0, ink box (0,100,647,1228) of 647x1400, 60-73 ms once; the shipped art keeps its own alpha (10-16 ms)",
+   "her picture decoded once: five paints, no new decode",
+   "slot 1920x1200: stage ~304 px, share 0.78 (hat to below the hips); 1366x768: stage ~93 px, share 0.56 (hat to the waist)",
+   "dark looks: her box corner is the column ground (#11132c Kasandra, #0b0e0d Graphite): she floats; Day: glass #202735 on a #f3f5f4 column",
+   "paint: mean 0.16-0.61 ms a frame; timer 83 ms; stops with Reduce motion and when minimised; a state change gives a static of 0.65 s",
+   "HALT moment: card from her stage top, taller than 1.4x the stage, never cutting a section in half; the left pane's 0.8.3 hologram stands aside",
+   "exchange height with her tall slot (Rail Demo, assignment running): 1920x1200 104-212 px, 1366x768 92-97 px; every section shown",
+   "probe scenario (empty workspace, two turns, Kasandra): exchange 358 px at 1920x1200 (P1: 456), 270 px at 1366x768 (P1: 281)"
+  ],
+  "frames": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/P3/frames"
+ },
+ "existing_tests_changed": [
+  {
+   "file": "tests_integrated/test_kasandra_column.py",
+   "what": "wide exchange height bound 380 -> 320",
+   "why": "her tall slot (hat to below the hips at 1920x1200) takes about 200 px more than P1's circle; measured on the probe's empty workspace with the smoke: 358 px with P3 (456 with P1). The small bound (>= 120) still holds (270)."
+  },
+  {
+   "file": "tests_integrated/kasandra_window_probe.py",
+   "what": "hold_a_moment also sets her_hologram_qt.in_column aside",
+   "why": "with her column's hologram in force a moment's full figure is in her column and the left pane's 0.8.3 hologram stands aside, so the hologram/motion cases that measure the left pane would no longer find it; they now measure it as it stands beside a wide picture (checked in the smoke: stands aside with P3, stands with the hold)."
+  }
+ ],
+ "decisions": [
+  "The shipped default in every look is her hologram's figure (branding/kasandra/hologram.webp, the mark-checked cutout) in the hologram treatment, not the Graphite plate in a circle: the owner asked for no circle and the brief names \"the existing Kasandra art in the hologram treatment\". If that art cannot be read (no WebP reader, mark refused), P1's plate circle stays.",
+  "A picture that brings its own transparency (alpha channel, four corners clear) keeps its alpha; an opaque one is keyed by brightness (max of R,G,B; ramp 24..150).",
+  "For a moment the full figure stands in her column (a card from her stage's top, words under her) and the left pane's 0.8.3 hologram stands aside while her column's hologram is in force: the owner's default 4, \"the full art for the moments that matter, in place of the lower-left hologram\"; two of her at once would compete.",
+  "Shares: 0.78 of her ink height in a tall column (below the hips, the fade over the thighs), 0.56 in a short one (to the waist, the fade below it). Slot heights: tall 30 % of the column (150-340 px), short 16 % (80-96 px), so the exchange keeps three lines or more at 1366x768.",
+  "The equalizer stands from her shoulders down in a tall slot (34 %), from under her hat's crown in a short one (20 %); its hole is 48 % of her width in the dark looks (bars behind her edges and beside her), the glass's width in Day (bars beside the glass).",
+  "Day's glass is her own size (her figure plus a margin), standing on the stage's foot; she is at most 60 % of the column wide there so the bars keep room.",
+  "The equalizer's numbers and group words skip a word that would touch the last one or leave the stage (narrow sides beside the glass printed \"SSDNETGPU\").",
+  "Portrait.image() decodes once a picture (P1 decoded the owner's file on every call, i.e. every paint)."
+ ],
+ "findings_for_the_coordinator": [
+  "No Kernel operation, registry entry, seed or mind_words registration added (the module has no words of hers), so docs/GRAPHITE_0.1_REGISTRY.json was not regenerated.",
+  "The stage still repaints with the equalizer's glide (40 ms while a tube moves), as P1's circle did; her own clock is 12 fps; a frame costs 0.16-0.61 ms here.",
+  "At 1366x768 the exchange is 92 px in Graphite and Day, 97 in Kasandra (P2 showed ~127): P2's fold keeps 160 px of turns, so the \"earlier\" line can be half under the head when the exchange is short; that is P2's fold at small sizes, now a little more visible.",
+  "K3/K4/K6/K7 lines added to her column take room under her slot; at 1366x768 the column is full.",
+  "The owner's picture was opened only with Qt's reader inside the throwaway run; it is in no file of the tree or patch (the patch has no binary and no picture name). Frames with it are in the throwaway frames folder only."
+ ],
+ "not_done": [
+  "Nothing tested in the owner's sense; nothing ran on the ThinkPad. Frames were taken offscreen (QT_QPA_PLATFORM=offscreen).",
+  "No real X server or HiDPI (dpr 2) frame was taken; the layers are built in device pixels for any dpr.",
+  "The existing tests changed were not run (the owner's rule)."
+ ],
+ "release_note": "Kasandra stands in her column as a hologram: your own tall picture of her (kasandra/portrait.png, admitted from her portrait's right-click), cut free of its dark ground, with a soft glow, fine scan lines, a slow shimmer and a brief static when her state changes; the equalizer's bars stand behind and beside her. On a large screen she shows from her hat to below the hips, on a small one to the waist; for the moments that matter her full figure stands larger. In Day she stands on a dark projector glass of her own. Reduce motion keeps her still. Until you admit a picture, the shipped hologram of her stands there in every look."
+}

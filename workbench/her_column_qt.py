@@ -1,6 +1,6 @@
 """Her column, as in the owner's picture (Graphite 1.0, P1).
 
-The owner's picture of the desktop (PLAN_1.0 section 3) and his paper (section 14, "Kasandra's interface should explain, not
+The owner's picture of the desktop (PLAN_1.0 section 3) and their paper (section 14, "Kasandra's interface should explain, not
 compete"): the right column is her operating area, not an endless transcript. Read top to bottom it says what she is
 examining, what she found, what she intends to do next and whether a decision is yours:
 
@@ -38,7 +38,9 @@ HALT is pressed; until then a hold of her managed work (work_trail) is read as H
 
 Her portrait is your kasandra/portrait.png (or .jpg) once you admit it (her_portrait, kasandra.portrait.admit, approve:
 offered on the portrait's right-click), else the shipped art: Graphite's plate after midnight in the Graphite look, her
-hologram's figure in Kasandra.
+hologram's figure in Kasandra. 1.0 P3: a picture taller than it is wide (the owner's full figure, or the shipped hologram's
+figure, now the shipped art in every look) stands as a hologram in a tall slot (her_hologram_qt); a wide or square one
+keeps the circle; a moment shows her full figure, larger.
 
 Her rules hold here: nothing in this column writes a record by being shown (every read is an observer); a press is yours
 (Stop, Authorise, Resume, Carry on, a desk act); sending anything out still asks where it always asks. Every colour that
@@ -308,16 +310,19 @@ class ColumnEqualizer(Equalizer):
             fm = QFontMetrics(font);p.setPen(QColor(bt.FAINT))
             cpu = self.sizes[0] if self.sizes else 0;y = self.height() - 2;pitch = (xs[1] - xs[0]) if len(xs) > 1 else wide
             every = 1 if fm.horizontalAdvance('00') + 2 <= pitch else 4
+            right = -1e9      # 1.0 P3: beside her glass the sides are narrow; a word that would touch the last one is left out
             for i in range(min(cpu, len(xs))):
                 if every == 1 or i % every == 0 or i == cpu - 1:
                     words = '%02d' % (i + 1);x = xs[i] + wide / 2.0 - fm.horizontalAdvance(words) / 2.0
-                    p.drawText(QPointF(x, y), words)
+                    if x < right + 3 or x < 0 or x + fm.horizontalAdvance(words) > self.width():continue
+                    p.drawText(QPointF(x, y), words);right = x + fm.horizontalAdvance(words)
             at = cpu
             for group, size in zip(GROUPS[1:], self.sizes[1:]):
                 if size and at + size - 1 < len(xs):
                     span = xs[at + size - 1] + wide - xs[at];words = group
-                    if fm.horizontalAdvance(words) <= span + 6:
-                        p.drawText(QPointF(xs[at] + span / 2.0 - fm.horizontalAdvance(words) / 2.0, y), words)
+                    x = xs[at] + span / 2.0 - fm.horizontalAdvance(words) / 2.0
+                    if fm.horizontalAdvance(words) <= span + 6 and x >= right + 3 and x >= 0 and x + fm.horizontalAdvance(words) <= self.width():
+                        p.drawText(QPointF(x, y), words);right = x + fm.horizontalAdvance(words)
                 at += size
             p.end()
         except Exception:  # noqa: BLE001 - the numbers are a nicety; the tubes are drawn
@@ -333,6 +338,7 @@ class Portrait(QWidget):
         super().__init__();self.column = column;self.host = column.host;self.state = 'idle';self._image = None;self._key = None
         self.setObjectName('HerPortrait');self.setAccessibleName(named('Stacy') + ', her portrait')
         self.setContextMenuPolicy(Qt.CustomContextMenu);self.customContextMenuRequested.connect(self.menu)
+        self.holo = None;self.figure = None;self.arranged = None      # 1.0 P3: her hologram (her_hologram_qt), a tall picture's
 
     # -- which picture
     def source(self):
@@ -342,14 +348,13 @@ class Portrait(QWidget):
         if mine:
             image = QImage(mine)
             if not image.isNull():return image, 0.5, 0.36, 1.0, 'yours:' + found['in_force']['sha256']
-        if bt.APPEARANCE == 'kasandra':
-            try:
-                from . import kasandra_art
-                path = kasandra_art.mark(kasandra_art.folder(self.host.root), 'hologram.webp')
-                image = kasandra_art.cutout(path) if path is not None else QImage()
-                if not image.isNull():return image, 0.5, 0.30, 1.9, 'hologram'
-            except Exception:  # noqa: BLE001 - the next picture in the order
-                pass
+        try:      # 1.0 P3: the shipped art in every look is her hologram's figure (tall: she stands as a hologram)
+            from . import kasandra_art
+            path = kasandra_art.mark(kasandra_art.folder(self.host.root), 'hologram.webp')
+            image = kasandra_art.cutout(path) if path is not None else QImage()
+            if not image.isNull():return image, 0.5, 0.30, 1.9, 'hologram'
+        except Exception:  # noqa: BLE001 - the next picture in the order (the plate, in P1's circle)
+            pass
         try:
             from .boss_qt import FACE, midnight_plate
             from .locations import program
@@ -362,14 +367,18 @@ class Portrait(QWidget):
         return QImage(), 0.5, 0.5, 1.0, 'none'
 
     def image(self):
-        found = self.source()
-        if found[4] != self._key:self._key = found[4];self._image = found
+        if self._key is None or self._image is None:      # 1.0 P3: decoded once a picture (read_portrait asks again), never a frame
+            found = self.source();self._key = found[4];self._image = found
         return self._image
 
     def set_state(self, state):
-        if state != self.state:self.state = state;self.update()
+        if state != self.state:
+            self.state = state;self.update()
+            if self.holo is not None:self.holo.changed()      # 1.0 P3: a brief static at a change of her state
 
     def paintEvent(self, event):
+        from . import her_hologram_qt      # 1.0 P3: a picture taller than it is wide stands as a hologram
+        if her_hologram_qt.paint_portrait(self):return
         side = min(self.width(), self.height()) - 4
         if side < 12:return
         box = QRectF((self.width() - side) / 2.0, (self.height() - side) / 2.0, side, side)
@@ -430,6 +439,8 @@ class Stage(QWidget):
         super().resizeEvent(event);self.arrange()
 
     def arrange(self):
+        from . import her_hologram_qt      # 1.0 P3: her hologram's box, the bars behind and beside her
+        if her_hologram_qt.arrange(self):return
         w, h = self.width(), self.height();side = h
         self.equalizer.hole = side + 4;self.equalizer.setGeometry(0, 0, w, h);self.equalizer._places = None
         self.equalizer._floor = None;self.equalizer._scope = None;self.equalizer._sprites = None
@@ -848,6 +859,9 @@ class Moment(QWidget):
             return True
 
     def place(self):
+        from . import her_hologram_qt      # 1.0 P3: her full figure, larger, in her stage's place
+        box = her_hologram_qt.moment_box(self)
+        if box is not None:self.setGeometry(box);return
         face = self.column.face;head = self.column.head
         top = head.geometry().bottom() + 4 if head is not None else 0
         tall = max(120, min(face.height() - top - 8, round(face.height() * 0.46)))
@@ -870,6 +884,8 @@ class Moment(QWidget):
         self.until = 0.0;self.end()
 
     def paintEvent(self, event):
+        from . import her_hologram_qt      # 1.0 P3: her full figure as a hologram, the moment in words under her
+        if her_hologram_qt.paint_moment(self):return
         p = QPainter(self);p.setRenderHint(QPainter.SmoothPixmapTransform);p.setRenderHint(QPainter.Antialiasing)
         r = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
         p.setBrush(QColor(bt.TERMINAL_GROUND));p.setPen(QPen(QColor(bt.LINE_STRONG), 1));p.drawRoundedRect(r, 6, 6)
@@ -1074,6 +1090,8 @@ class HerColumn(QObject):
 
     def size_parts(self):
         h = self.face.height();tall = px(self.host, 58) if self.compact() else max(64, min(px(self.host, 108), round(h * 0.12)))
+        from . import her_hologram_qt
+        tall = her_hologram_qt.slot_height(self, h, tall)      # 1.0 P3: the tall slot when she stands as a hologram
         if self.head.stage.height() != tall:self.head.stage.setFixedHeight(tall)
         spacing = px(self.host, 5 if self.compact() else 9)
         if self.face.layout().spacing() != spacing:self.face.layout().setSpacing(spacing)
@@ -1082,6 +1100,9 @@ class HerColumn(QObject):
     def read_portrait(self):
         self.portrait_state = read(self.host, 'kasandra.portrait') or {}
         self.head.stage.portrait._key = None;self.head.stage.portrait.update();self.moment.art = None
+        try:self.size_parts();self.head.stage.arrange()      # 1.0 P3: a tall picture stands in the tall slot at once
+        except Exception:  # noqa: BLE001 - laid out again at the next tick
+            pass
 
     def kernel(self):
         return _kernel(self.host)

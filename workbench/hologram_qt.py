@@ -291,7 +291,8 @@ class HologramStage(QWidget):
             self.stand_aside(drop=True);return
         if getattr(self.host, 'her_column', None) is not None:      # 1.0 P1: her full art stands only for a moment that matters
             from .her_column_qt import moment_on
-            if not moment_on(self.host):
+            from .her_hologram_qt import in_column      # 1.0 P3: her full figure stands in her column for a moment
+            if not moment_on(self.host) or in_column(self.host):
                 self.stand_aside();return
         found = self.placement()
         if found is None:

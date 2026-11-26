@@ -245,7 +245,7 @@ def _kind_of(kernel, ident):
     return seen or _describe(kernel, ident)[0] or 'item'
 
 
-# ---------------------------------------------------------------- the owner's marks and his last request
+# ---------------------------------------------------------------- the owner's marks and their last request
 
 MARK_TABLE = ('CREATE TABLE IF NOT EXISTS relevance_marks(owner TEXT NOT NULL, focus TEXT NOT NULL, object TEXT NOT NULL, '
               'mark TEXT NOT NULL, at REAL NOT NULL, PRIMARY KEY(owner, focus, object))')
@@ -287,7 +287,7 @@ def _set_mark(kernel, args, principal, mark):
 
 
 def note_request(kernel, words, principal=None):
-    """Keep the owner's last request on the desk (his words, as typed): the board's task when no assignment is active.
+    """Keep the owner's last request on the desk (their words, as typed): the board's task when no assignment is active.
     One row per owner, replaced each time; nothing else is kept. Returns the words kept, or '' for none."""
     words = ' '.join(str(words or '').split())[:MAX_REQUEST]
     if not words:return ''

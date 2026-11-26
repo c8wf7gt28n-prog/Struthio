@@ -30,10 +30,10 @@ switch off, or past her clock's ceiling, the desk's plan is the answer (the fall
 
 THE OFFER. A plan becomes an assignment (K1's assignment.start) offered in her column: ACTIVE WORK shows it, NEXT STEPS its
 press (Carry on for the reads, Authorise step n for a change). Nothing is started by the offer: a read runs when the owner
-carries on, a change when he authorises it; before it runs the desk checks its preconditions (K2's unmet) and its grant (K3).
+carries on, a change when they authorise it; before it runs the desk checks its preconditions (K2's unmet) and its grant (K3).
 
 A VALUE IS FIXED BEFORE IT IS WRITTEN. A change the records mark for the owner's approval (LibreOffice's replace, K5) takes
-its inputs fixed when he authorises it. So a report's update is planned in two parts: the check of the report against the
+its inputs fixed when they authorise it. So a report's update is planned in two parts: the check of the report against the
 checked value, with the change prepared as text (libreoffice.prepare, a read), and, once that is done, the update itself
 with the checked value fixed in its arguments (libreoffice.replace), authorised by its own name. Without LibreOffice the
 prepared text is what is offered. A page of Graphite's own (the summary page) is updated by the page tool (23, page.update,
@@ -149,11 +149,11 @@ class Clause:
     start: int                     # where the clause starts in the owner's words (whole-number offsets)
     end: int
     verb_end: int
-    words: str                     # the words for its object, as he wrote them
+    words: str                     # the words for its object, as they wrote them
     words_start: int
     tools: tuple = ()
     changes: bool = False
-    to: tuple = ()                 # rename: (start, end) of the new name in his words
+    to: tuple = ()                 # rename: (start, end) of the new name in their words
 
 
 def _clean_objective(text):
@@ -293,7 +293,7 @@ class Desk:
         return None
 
     def find(self, words, kinds=None):
-        """The thing his words name: (thing, '') or (None, why in words). Ties are said, never guessed."""
+        """The thing their words name: (thing, '') or (None, why in words). Ties are said, never guessed."""
         found = _tokens(words)
         if not found:return None, 'there are no words for what it is about'
         scored = []
@@ -423,7 +423,7 @@ class Building:
 
 
 def _span(clause, objective):
-    """The owner's words for a clause, as an origin (a span of his request)."""
+    """The owner's words for a clause, as an origin (a span of their request)."""
     return {'kind': 'OWNER_WORDS', 'start': clause.start, 'end': clause.end} if clause and clause.end > clause.start else None
 
 
@@ -578,7 +578,7 @@ WITH_VALUE = re.compile(r'\s+(?:with|using|from|to)\s+(?:it|that|this|them|the\s
 
 def _resolve(clause, desk, seen):
     """The thing a clause is about: "that one", "this", "it" are the thing in focus (or the clause before's); "the earlier
-    one" the focus before it (or the first clause's); else the thing his words name. (thing, '') or (None, why)."""
+    one" the focus before it (or the first clause's); else the thing their words name. (thing, '') or (None, why)."""
     words = WITH_VALUE.sub('', (clause.words or '').strip()).strip()
     low = words.lower()
     if low in REF_EARLIER:
@@ -650,11 +650,11 @@ class PlanInputs:
     objective: str
     tools: tuple                   # ((number, key, words, takes), ...) the tools a step may use here
     things: tuple                  # ((handle, line), ...)
-    words: tuple                   # ((handle, start, end), ...) spans of his words a step may take
-    refs: tuple                    # ((his words, handle), ...) what "that one" and "the earlier one" are, by the desk
+    words: tuple                   # ((handle, start, end), ...) spans of their words a step may take
+    refs: tuple                    # ((their words, handle), ...) what "that one" and "the earlier one" are, by the desk
     desk: object = None            # the Desk (the desk fills arguments from it)
     desk_plan: object = None       # the desk's own plan: the fallback
-    verbs: tuple = ()              # the registry tools his own verbs name (a change among them is his, not the model's)
+    verbs: tuple = ()              # the registry tools their own verbs name (a change among them is theirs, not the model's)
 
 
 def _brief():
@@ -743,8 +743,8 @@ def build_from_model(i, steps):
             for e in earlier:
                 if e >= n:raise Refusal('it reads step %d, which does not come before it' % e)
                 if e not in made:raise Refusal('it reads step %d, which was left out' % e)
-            # A tool his own verb names is his; any other is the model's pick: a read may run, a change is offered and never
-            # done until he authorises it by its own name (assignments: "all" never covers it).
+            # A tool their own verb names is theirs; any other is the model's pick: a read may run, a change is offered and never
+            # done until they authorise it by its own name (assignments: "all" never covers it).
             basis = 'owner_words' if number in i.verbs else 'model_pick'
             before = len(b.sources)
             if number == 1:
@@ -787,7 +787,7 @@ def build_from_model(i, steps):
 
 
 def inputs_for(desk, objective, desk_plan=None, clauses=None):
-    """One PLAN question: the tools a step may use here, the desk's things (those his words name first), the spans of his
+    """One PLAN question: the tools a step may use here, the desk's things (those their words name first), the spans of their
     words a step may take (numbers and quoted names), what "that one" and "the earlier one" are (the desk's deduction)."""
     from . import tools_registry
     clauses = read(objective) if clauses is None else clauses
@@ -926,7 +926,7 @@ def offer(kernel, principal, objective, focus='', earlier='', request=None):
                                            'follow': result.get('follow') or {}, 'routes': {}, 'refused': result.get('refused') or [],
                                            'left_out': result.get('left_out') or []})
     if status['steps'] and status['steps'][0]['status'] == 'authorised' and not halted and not _asg._gate(kernel)['held']:
-        # A read never asks (K1): the plan's leading reads go ahead now, up to the first step that needs his word; a change never.
+        # A read never asks (K1): the plan's leading reads go ahead now, up to the first step that needs their word; a change never.
         ran = kernel.dispatch('assignment.step', {'id': status['id'], 'until': 'end'}, principal)
         if ran.get('ok'):status = ran['result']
     result['cannot_now'] = _unmet_now(kernel, status)

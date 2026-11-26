@@ -106,9 +106,12 @@ def tree_rows(tree):
 
 def hold_a_moment(w):
     """1.0 P1: her hologram stands in the left pane only for a moment that matters (her_column_qt.moment_on); the cases that
-    measure her standing there hold one open for as long as they measure."""
-    from workbench import her_column_qt
+    measure her standing there hold one open for as long as they measure. 1.0 P3: while her column's portrait stands as a
+    hologram, a moment's full figure is in her column and the left pane's stands aside; these cases measure the left pane's
+    as it stands beside a wide picture, so her column's hologram is set aside for them."""
+    from workbench import her_column_qt, her_hologram_qt
     if getattr(w, 'her_column', None) is not None:
+        her_hologram_qt.in_column = lambda host: False      # 1.0 P3
         her_column_qt._MOMENT[id(w)] = time.monotonic() + 3600
         stage = getattr(w, 'hologram', None)
         if stage is not None:stage.place_now()

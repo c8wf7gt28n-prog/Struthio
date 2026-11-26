@@ -16,7 +16,7 @@ the page reads the workspace with the board's reader (board_model.BoardReader), 
 link is read from.
 
 Nothing here writes a file or a record. The one change it can ask for is the owner's word on a possible link
-(board.keep, approve scope), and only from his press on "Keep this link".
+(board.keep, approve scope), and only from their press on "Keep this link".
 """
 from __future__ import annotations
 
@@ -166,7 +166,7 @@ class Inspector(QFrame):
 
 
 class BoardView(QWidget):
-    """The board of one focus. `focused` carries the object the owner chose (one click); `opened` the one he opened."""
+    """The board of one focus. `focused` carries the object the owner chose (one click); `opened` the one they opened."""
     focused = Signal(object)
     opened = Signal(object)
     whole = Signal()
@@ -354,7 +354,7 @@ class BoardView(QWidget):
         self.opened.emit(obj)
 
     def keep_link(self, wire, keep):
-        """The owner's word on a link (board.keep, approve scope): only from his press here."""
+        """The owner's word on a link (board.keep, approve scope): only from their press here."""
         kernel = kernel_of(self.host)
         if wire is None or kernel is None:return
         from .engineering_kernel import operator

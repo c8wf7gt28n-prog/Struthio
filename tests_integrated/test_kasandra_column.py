@@ -49,7 +49,9 @@ class Column(unittest.TestCase):
             self.assertNotIn('<p', out['read_last']);self.assertIn('its second line', out['read_last'])
         # 1.0 P1: the exchange is the column's part that gives way; her sections are under it (it was the whole column)
         self.assertEqual(self.wide['scroll'][2], 322);self.assertEqual(self.small['scroll'][2], 322)
-        self.assertGreaterEqual(self.wide['scroll'][3], 380);self.assertGreaterEqual(self.small['scroll'][3], 120)
+        # 1.0 P3: her hologram's tall slot (from her hat to below the hips at 1920 x 1200) takes about 200 px more of the wide
+        # column than P1's circle did; the exchange keeps the rest (measured on the probe's empty workspace: 358 px)
+        self.assertGreaterEqual(self.wide['scroll'][3], 320);self.assertGreaterEqual(self.small['scroll'][3], 120)
 
     def test_a_line_is_drawn_in_the_mono_face(self):
         family, px, text = self.wide['slab']

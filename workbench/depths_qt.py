@@ -29,9 +29,9 @@ view when another program saves its file.
                             reloaded when it has nothing unsaved, and the board (L2) shows the file's revision and marks for
                             recheck the admitted source that holds its earlier revision and what rests on that source.
 
-Nothing here decides anything for the owner: the program is started on his press, the revision is recorded as the disk has
-it, nothing is accepted into Intake, and nothing that is not saved is thrown away without his Don't save or Take the one on
-disk (the editor's recovery copy keeps the text he left).
+Nothing here decides anything for the owner: the program is started on their press, the revision is recorded as the disk has
+it, nothing is accepted into Intake, and nothing that is not saved is thrown away without their Don't save or Take the one on
+disk (the editor's recovery copy keeps the text they left).
 """
 from __future__ import annotations
 

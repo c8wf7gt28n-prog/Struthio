@@ -7,7 +7,7 @@ were only prepared, and on resume she inspects what is already there before she 
 
 What an assignment holds (graphite.assignment/1, in the Kernel's own database: asg_assignments, asg_journal):
 
-  objective   the owner's words, as he gave them.
+  objective   the owner's words, as they gave them.
   steps       each: the tool and its Kernel operation (a registered one; nothing else runs); its inputs, each with where it
               came from (a span of your words, a record at a revision, a source line, a deduction, or the output of an earlier
               step); the expected output (in words, the named values later steps read, and checks on them); how its effect is
