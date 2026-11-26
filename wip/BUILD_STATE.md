@@ -382,6 +382,16 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 18:35 UTC: **1.0 D2 merged** (2fd658f: the polish pass. 24 window files. The board fits both sizes with nothing
+  under 11 px and "and N more"; the equalizer band, foot meters and Line placeholder are fixed; icons at 1366; the
+  breadcrumb, tree start and Day/Night breathing are fixed; X3's look items and D2's own frame faults (CHECK ALI, the
+  missing &, a clipped toast, the Grants page cut at 1366) are fixed. P4's contrast checks 16/16). The frame atlas
+  (152 frames, four looks, two sizes) is in scratch at `$S/work/b100/D2/atlas/` (31 MB, not in the tree), for the
+  release. D2's findings: her state word says WORKING during Graphite's own background reads with no assignment open;
+  the Field (whole desk) still cuts tiles at 1366; the Arrange menu splits into two columns at 768. **X1 launched**
+  (the §18 day with the real 4B, following docs/ACCEPTANCE_1.0.md Part 4; agent assigned). Running: X3, X4, X1. Queue:
+  R2 last. 42 slices: 37 merged, P5 cancelled.
+
 - 26 Nov 18:10 UTC: Hourly wake-up while X3, X4 and D2 run: carry on. X3 has 11 of 12 sessions written (11, her hand
   in a program, remains). X4 has sessions 1 to 3 walked and is on 4, 5 and 10. X3's later "for D2" items were sent to
   D2. Findings so far for after 1.0: the tree is single-select; Search finds desk records but not Home files (X4,
