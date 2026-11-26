@@ -146,7 +146,7 @@ HALT; the utility sandbox; the LibreOffice Writer/Calc bridge through UNO; acces
 
 **New Debian packages for the 1.0 System set** (the 0.8.x set has fluxbox, xinit, dbus-x11, network-manager,
 x11-xserver-utils, libreoffice-calc; it lacks these): udisks2, upower, pipewire, pipewire-pulse, wireplumber,
-xsecurelock, lxpolkit, xdg-utils, x11-utils, libreoffice-writer, python3-uno, at-spi2-core, python3-pyatspi (exact
+xsecurelock, lxpolkit, xdg-utils, x11-utils, libreoffice-writer, python3-uno, at-spi2-core, libreoffice-gtk3 (so LibreOffice exposes its accessibility: K9), python3-pyatspi (exact
 names checked against Debian 13 when the set is made). Large programs (Firefox, GIMP, KiCad, Blender, Godot) are not
 shipped: Graphite finds whatever is installed. No new Python wheels: D-Bus through PySide6's QtDBus, X11 window
 properties through ctypes on the system's libX11 (with `xprop` as the fallback).

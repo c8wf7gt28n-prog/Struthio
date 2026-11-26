@@ -365,6 +365,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 11:55 UTC: **1.0 K9 merged** (865b6c2: her hand in other programs: accessibility first, XTest aimed at reported
+  positions, a touch stops her, never the dangerous buttons; smoke 36/36 with a real LibreOffice window under Xvfb and a
+  stand-in accessibility bus). Merged by hand: grants (K8 and K9 both kept) and the plan menu (her hand's tools on K4b's
+  primed menu when the desk holds documents). R1 gains libreoffice-gtk3. **P5 launched** (agent a0a9b7f9caa679a10; it cuts the
+  owner's sheets into `$S/work/owner_kit/kasandra/hologram/`, scratch only). Running: D1, L6, M1, P5.
+
 - 26 Nov 11:25 UTC: **The 5-hour limit stopped all four builders at about 08:30** (M1, D1, K9, L6); reset at 11:00.
   Partial diffs saved (`wip/2026-11-26_b100_saved/partial/`: L6 1,545 lines, D1 1,848, K9 2,000); D1, K9, L6 resumed;
   M1's worktree had not kept (it had changed no tree file), so **M1 restarted** (agent a1918b1bb11e2fc67) from its kept
