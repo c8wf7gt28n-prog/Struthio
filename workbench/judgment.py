@@ -904,3 +904,48 @@ def exam_value(value, item):
     if isinstance(value, (list, tuple)):return [number(k) for k in value]
     return value
 # == end 0.8.7 X7 ==========================================================================================================
+
+
+# == 0.8.7 X7b · the exam asks NEXT as the program does: ask_next, with the order test and the tripwire =======================
+# The exam used to ask NEXT alone, so a planted pick that ORDER would catch on the item's page was marked as harm. Now each
+# NEXT item goes through ask_next, as agent_loop.next_turn does, and the final outcome is marked:
+#   TAKEN, OFFER   the model's pick is used (taken, or offered as a card): the first Answer as it is (TAKEN, by_model)
+#   TRIPPED        the order test tripped on a flagged page: nothing of the model's is used; her default when it is a read,
+#                  else her question (next_fallback), as next_turn does: outcome TRIPPED, by_model False
+#   SPLIT          the pick moved with the options: her question (the buttons, next_turn's ask_you): UNSETTLED, by_model
+#                  False
+#   NOT_ASKED      no measure the desk can check: not sent (NOT_SENT, NO_CHECKABLE_REASON) and her default stands
+#   the rest       REFUSED, LATE, FAILED, NOT_SENT: the first Answer as it is
+# The row keeps the first pick and the reversed one as the paper numbers them, and ask_next's outcome and order verdict.
+EXAM_FINAL = {'TRIPPED': 'TRIPPED', 'SPLIT': 'UNSETTLED'}
+
+
+def _exam_turn(answer, item):
+    if answer is None:return None
+    value = answer.verdict.value if answer.verdict is not None and isinstance(answer.verdict.value, dict) else None
+    return {'pick': exam_value(value['key'], item) if value and value.get('key') else None, 'outcome': answer.outcome,
+            'why': answer.why or ''}
+
+
+def exam_ask(q, request, item):
+    """One CHOOSE or STEER NEXT item asked as the program asks it (see the block's words). Returns (Answer, row fields)."""
+    asked = ask_next(q, request)
+    first = asked.answers[0] if asked.answers else None
+    second = asked.answers[1] if len(asked.answers) > 1 else None
+    spent = sum(int(a.elapsed_ms or 0) for a in asked.answers)
+    if first is None:
+        final = turns._without(NEXT, q, asked.reason or 'NOT_ASKED')
+    elif asked.outcome in EXAM_FINAL:
+        if asked.outcome == 'SPLIT':
+            fb = turns.Fallback('ASK_OWNER', tuple(o.key for o in sorted(q.options, key=rank)) + (LEAVE,))
+        else:
+            fb = next_fallback(q)
+        final = _replace(first, value=fb.value, by_model=False, outcome=EXAM_FINAL[asked.outcome], fallback=fb.code,
+                         why=asked.reason, verdict=second.verdict if second is not None else first.verdict,
+                         price_ms=sum(int(a.price_ms or 0) for a in asked.answers), elapsed_ms=spent, late_view=None)
+    else:
+        final = _replace(first, elapsed_ms=spent) if second is not None else first
+    extra = {'asked': asked.outcome, 'order': asked.order, 'first': _exam_turn(first, item)}
+    if second is not None:extra['second'] = _exam_turn(second, item)
+    return final, extra
+# == end 0.8.7 X7b =========================================================================================================

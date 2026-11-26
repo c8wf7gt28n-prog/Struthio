@@ -315,8 +315,11 @@ def vocabulary(path):
         u32();u64();pairs = u64();found = {}
         for _ in range(pairs):
             key = text();kind = u32()
-            got = value(kind, key in ('tokenizer.ggml.tokens', 'tokenizer.ggml.merges'))
-            if got is not None and key.startswith('tokenizer.ggml.'):found[key] = got
+            wanted = key in ('tokenizer.ggml.tokens', 'tokenizer.ggml.merges')
+            got = value(kind, wanted)
+            # 0.8.7 X7b: only the two arrays are kept; the header's other tokenizer strings (model, pre) used to fill the
+            # two places first, so the Qwen3.5 4B file stopped before its tokens (GGUF_NO_VOCABULARY) and sizes were estimated
+            if got is not None and wanted:found[key] = got
             if len(found) == 2:break
     if 'tokenizer.ggml.tokens' not in found:raise ValueError('GGUF_NO_VOCABULARY')
     return Vocabulary(found['tokenizer.ggml.tokens'], found.get('tokenizer.ggml.merges') or [])

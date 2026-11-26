@@ -10,13 +10,22 @@ runtime resumes a kept prompt at the start of its last user message (measured by
   real question of the kind re-reads only from there. Nothing is recorded as a turn: nothing was asked.
 - Kept. Per worker and per brief (by its sha256): the brief's own tokens once primed, and messages 1 to 3 when the same
   ones were the last asked of that kind. turns.ask prices a question on its new tokens only (LocalPort.kept).
+- The desk (0.8.7 X7b). A kind whose message 2 is the desk (READ: the fenced, session-stable list of the desk's things)
+  has that message primed together with its brief when a desk is open: the priming read is [brief, the desk, 'Ready.',
+  PRIME_LINE], so the checkpoint lands where message 4 starts and the first question of that desk reads only message 4.
+  It is keyed by the sha256 of messages 1 to 3 (open_desk), so the same desk is primed once and a changed desk re-primes.
+  When: at Ready, the owner's desk as it stands (after_start, through the kinds in DESKS); and before a question of the
+  kind whose messages 1 to 3 the worker does not keep (understand.keep_desk: the desk changed, or was never primed).
+  Without it a desk whose list is long (Home Demo's, 245 tokens by the 4B's vocabulary) is never asked: brief kept, its
+  first question reads list and question as new, 298 against READ's cap of 250, is not sent, and so never becomes kept.
 - The watchdog. Every turn compares the server's cache_n with what was expected kept; cache_n more than TOLERANCE short
   is a miss. Two misses in a row re-prime that kind, in the background, and the turn record counts the miss. Misses are
   never errors: they show in the turn record ('reuse') and in the account.
 - Forget. The RAM cache and the checkpoints hold the owner's words and pages in the worker's memory. Forgetting a turn
   marks the worker that holds it: from then no question is sent to it (turns: NOT_SENT, FORGETTING), and it is restarted
   once it is idle (local_brain.forget_restart: a brain.activate job of the same selection, so the queue keeps queued
-  work and a hold holds it). The new worker is primed with briefs only. Nothing forgotten is sent again: this store
+  work and a hold holds it). The new worker is primed with briefs, and with the desk's list as the desk stands then
+  (titles and column names of what is on the desk now, never a turn's words). Nothing forgotten is sent again: this store
   keeps digests and counts, never text, and a brief is fixed text with no owner data.
 
 The worker writes nothing to disk (no --slot-save-path, no --log-prompts-dir: the seal refuses both); kept briefs are
@@ -78,7 +87,8 @@ def shared(a, b):
 def new_entry(kind):
     return {'kind': kind.name if kind is not None else None, 'version': kind.version if kind is not None else None,
             'primed': False, 'brief_tokens': 0, 'primed_at': None, 'primes': 0, 'prime_cache_n': None,
-            'last_prefix': None, 'prefix_tokens': 0, 'last_cache_n': None, 'misses': 0, 'missed': 0, 'reprimes': 0}
+            'last_prefix': None, 'prefix_tokens': 0, 'last_cache_n': None, 'misses': 0, 'missed': 0, 'reprimes': 0,
+            'desk': None, 'desk_primes': 0}       # X7b: the primed desk's message 2 (a 16-hex digest), and how often
 
 
 # -- the store: the live worker's kept briefs ----------------------------------------------------------------------------------
@@ -174,29 +184,93 @@ def watch(port, kind, messages, kept, timings):
 
 
 # -- priming ------------------------------------------------------------------------------------------------------------------
-def prime_messages(brief):
-    return [{'role': 'system', 'content': brief}, {'role': 'user', 'content': PRIME_LINE}]
+def prime_messages(brief, held=None):
+    """A priming read: [brief, PRIME_LINE], or with `held` (messages 1 to 3 of a question: brief, the desk, 'Ready.')
+    those three and PRIME_LINE (X7b), so the checkpoint lands where message 4 starts."""
+    if held is None:return [{'role': 'system', 'content': brief}, {'role': 'user', 'content': PRIME_LINE}]
+    return [dict(m) for m in held[:3]] + [{'role': 'user', 'content': PRIME_LINE}]
 
 
-def prime(port, kind):
-    """Read one kind's brief with no answer. Returns what was kept, or raises turns.PortError."""
+def prime(port, kind, held=None):
+    """Read one kind's brief with no answer; with `held` (X7b: messages 1 to 3 of the kind's question as turns.layout lays
+    them out), the brief and the desk together, kept as that kind's last messages 1 to 3. Returns what was kept, or raises
+    turns.PortError."""
     brief = kind.brief()
-    messages = prime_messages(brief)
+    if held is not None and (len(held) < 3 or held[0].get('content') != brief):raise ValueError('PRIME_HELD_NOT_THIS_BRIEF')
+    messages = prime_messages(brief, held)
     a = port.tokens(messages)
-    b = port.tokens([messages[0], {'role': 'user', 'content': PRIME_OTHER}])
-    brief_tokens = shared(a, b)
+    b = port.tokens(messages[:-1] + [{'role': 'user', 'content': PRIME_OTHER}])
+    kept_n = shared(a, b)
     got = port.read_prime(messages, prompt_tokens=len(a))
     timings = got.get('timings') or {}
     bsha = digest(brief)
 
     def change(value):
         entry = value['kinds'].setdefault(bsha, new_entry(kind))
-        entry.update(kind=kind.name, version=kind.version, primed=True, brief_tokens=brief_tokens, primed_at=time.time(),
-                     primes=entry['primes'] + 1, misses=0,
-                     prime_cache_n=timings.get('cache_n') if isinstance(timings.get('cache_n'), int) else None)
-        return {'kind': kind.name, 'brief_tokens': brief_tokens, 'prompt_n': timings.get('prompt_n'),
+        entry.setdefault('desk', None);entry.setdefault('desk_primes', 0)
+        cache_n = timings.get('cache_n') if isinstance(timings.get('cache_n'), int) else None
+        if held is None:
+            entry.update(kind=kind.name, version=kind.version, primed=True, brief_tokens=kept_n, primed_at=time.time(),
+                         primes=entry['primes'] + 1, misses=0, prime_cache_n=cache_n)
+        else:                       # X7b: messages 1 to 3 are now this kind's last, kept up to where message 4 starts
+            entry.update(kind=kind.name, version=kind.version, last_prefix=prefix_sha(held), prefix_tokens=kept_n, misses=0,
+                         desk=digest(held[1]['content'])[:16], desk_primes=entry['desk_primes'] + 1, prime_cache_n=cache_n)
+        return {'kind': kind.name, 'brief_tokens': entry['brief_tokens'], 'prefix_tokens': kept_n if held is not None else None,
+                'desk': entry.get('desk') if held is not None else None, 'prompt_n': timings.get('prompt_n'),
                 'cache_n': timings.get('cache_n'), 'elapsed_ms': got.get('elapsed_ms')}
     return port.store.update(port.worker, change)
+
+
+# -- 0.8.7 X7b: the desk primed with its kind's brief -----------------------------------------------------------------------------
+DESKS: dict = {}                   # kind name -> desk(kernel): messages 1 to 3 of that kind for the desk as it stands, or None
+
+
+def desk_kept(port, messages):
+    """True when the worker keeps exactly these messages 1 to 3 (the kind's brief and this desk) as the kind's last."""
+    entry = port.store.load(port.worker)['kinds'].get(brief_sha(messages))
+    return bool(entry and entry.get('last_prefix') == prefix_sha(messages) and entry.get('prefix_tokens'))
+
+
+def open_desk(port, kind, messages, request=None):
+    """A desk is open, or changed: prime the kind's messages 1 to 3 (its brief and this desk) unless the worker keeps them.
+    Keyed by their sha256, so the same desk is primed once and a changed desk re-primes. With `request` (a question is
+    waiting), the read is skipped when the request was stopped or has under the floor left of its model time, and the time
+    it took is spent from that request's ceiling: the owner waited for it. Never raises: priming is for speed.
+    Returns {state: KEPT | PRIMED | NOT_PRIMED, desk, tokens, elapsed_ms, why}."""
+    from . import turns
+    held = [dict(m) for m in messages[:3]]
+    desk = digest(held[1]['content'])[:16] if len(held) == 3 else None
+    try:
+        if desk_kept(port, held):return {'state': 'KEPT', 'desk': desk}
+    except Exception:  # noqa: BLE001 - a port with no store keeps nothing: not primed
+        return {'state': 'NOT_PRIMED', 'desk': desk, 'why': 'NO_STORE'}
+    if request is not None:
+        if request.cancelled():return {'state': 'NOT_PRIMED', 'desk': desk, 'why': 'STOPPED'}
+        if request.remaining_ms() < turns.DEADLINE_FLOOR_MS:return {'state': 'NOT_PRIMED', 'desk': desk, 'why': 'CEILING_TIME'}
+    try:
+        got = prime(port, kind, held)
+    except Exception as exc:  # noqa: BLE001 - priming is for speed: the question is priced as it stands
+        return {'state': 'NOT_PRIMED', 'desk': desk, 'why': (str(exc) or type(exc).__name__).split(':', 1)[0][:80]}
+    elapsed = int(got.get('elapsed_ms') or 0)
+    if request is not None and kind.caps.foreground:request.spent_ms += elapsed
+    return {'state': 'PRIMED', 'desk': desk, 'tokens': got.get('prefix_tokens'), 'elapsed_ms': elapsed}
+
+
+def open_desks(kernel, port, cancelled=None):
+    """At Ready: each kind in DESKS primed with the owner's desk as it stands (after its brief). Never raises."""
+    out = []
+    from . import turns
+    for name, desk in sorted(DESKS.items()):
+        if cancelled is not None and cancelled():break
+        kind = turns.KINDS.get(name)
+        if kind is None:continue
+        try:
+            messages = desk(kernel)
+        except Exception as exc:  # noqa: BLE001 - a desk that cannot be read is primed at its first question instead
+            out.append({'kind': name, 'state': 'NOT_PRIMED', 'why': type(exc).__name__});continue
+        if not messages:continue
+        out.append({'kind': name, **open_desk(port, kind, messages)})
+    return out
 
 
 def kinds_to_prime():
@@ -255,10 +329,12 @@ def reprime_later(port, kind):
 def after_start(kernel, worker, cancelled=None, kinds=None):
     """Called by local_brain once a worker is Ready (activation and restore). Primes every registered kind and puts the
     measured memory beside the computed terms. Never raises: priming and readback are for speed and for the record."""
+    desks = []
     try:
         from . import turns
         port = turns.LocalPort(worker, kernel)
         primed = prime_all(port, kinds, cancelled)
+        if kinds is None:desks = open_desks(kernel, port, cancelled)      # X7b: the desk with its kind's brief
     except Exception as exc:  # noqa: BLE001
         primed = {'primed': [], 'failed': [{'kind': '*', 'why': type(exc).__name__}]}
     try:
@@ -266,7 +342,8 @@ def after_start(kernel, worker, cancelled=None, kinds=None):
         store_for(kernel).update(worker, lambda value: value.__setitem__('readback', back))
     except Exception:  # noqa: BLE001
         back = None
-    return {'primed': [p['kind'] for p in primed['primed']], 'failed': primed['failed'], 'readback': back}
+    return {'primed': [p['kind'] for p in primed['primed']], 'failed': primed['failed'], 'readback': back,
+            'desks': [{k: d.get(k) for k in ('kind', 'state', 'tokens', 'why') if d.get(k) is not None} for d in desks]}
 
 
 CHECKPOINT_LOG = re.compile(r'context checkpoint[^\n]*?size\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*MiB')
@@ -336,6 +413,7 @@ def summary(kernel, worker):
     """The Brain room's line: which kinds are kept ready, misses, and a pending restart."""
     value = store_for(kernel).load(worker)
     kinds = sorted({e['kind'] for e in value['kinds'].values() if e.get('primed') and e.get('kind')})
-    return {'kept': kinds, 'missed': sum(e.get('missed', 0) for e in value['kinds'].values()),
+    return {'kept': kinds, 'desks': sorted({e['kind'] for e in value['kinds'].values() if e.get('desk') and e.get('kind')}),
+            'missed': sum(e.get('missed', 0) for e in value['kinds'].values()),
             'reprimes': sum(e.get('reprimes', 0) for e in value['kinds'].values()),
             'forget_pending': bool(value.get('forget')), 'readback': value.get('readback')}

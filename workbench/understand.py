@@ -573,6 +573,7 @@ def ask(i, request):
     """One READ turn (turns.ask) and what comes of it (result()). With no grammar (nothing of yours to read) nothing is sent."""
     if i.grammar is None:
         return {**_empty(i), 'outcome': 'NOT_SENT', 'why': 'NOTHING_TO_READ', 'fallback': without_model(i)}
+    keep_desk(i, request)              # 0.8.7 X7b: the desk's list kept with READ's brief, so the question reads only message 4
     answer = turns.ask(READ, i, request)
     return bind_after(i, answer, result(i, answer), request)      # 0.8.7 B8: words for rows no value matches: one BIND
 
@@ -1155,3 +1156,59 @@ def exam_inputs(raw, item):
     if got.grammar is None:raise model_exam.DeskSendsNothing('NOTHING_TO_READ', got)
     return got
 # == end 0.8.7 X7 ==========================================================================================================
+
+
+# == 0.8.7 X7b · the desk's list primed with READ's brief =====================================================================
+# Message 2 of READ is the desk's fenced, session-stable list of things. With only the brief kept, the first READ question of
+# a desk read that list and the question as new: on Home Demo 298 tokens by the 4B's vocabulary, over READ's new-token cap of
+# 250, so it was never sent, and, never sent, the list never became kept: no READ question on that desk was ever asked. Now
+# the list is primed together with READ's brief (brain_briefs.open_desk, keyed by the sha256 of messages 1 to 3, so a
+# changed desk re-primes): at Ready for the owner's desk as it stands (desk_layout, through brain_briefs.DESKS), and before
+# a question whose messages 1 to 3 the worker does not keep (keep_desk: the desk changed since, or was never primed). The
+# question then reads only message 4 (the now line and the request). The priming read is not a turn: nothing is asked and
+# nothing is recorded; its time is spent from the request's ceiling, and it is skipped when the request was stopped or has
+# under 3 s of model time left (the question is then priced as it stands). A port that keeps no briefs (no read_prime) is
+# asked as before. READ's caps are unchanged (250 new tokens).
+def keep_desk(i, request):
+    """Before a READ question: prime its messages 1 to 3 (READ's brief and this desk's list) unless the worker keeps them.
+    Returns brain_briefs.open_desk's {state, desk, ...}, or None when nothing is primed (no question, no port that keeps
+    briefs, understanding switched off)."""
+    port = getattr(request, 'port', None)
+    if i.grammar is None or port is None or not hasattr(port, 'read_prime') or not request.switch_on(READ.switch):return None
+    try:
+        if not port.live():return None
+        messages = turns.layout(READ, i)
+    except Exception:  # noqa: BLE001 - the question itself will say why
+        return None
+    from . import brain_briefs
+    return brain_briefs.open_desk(port, READ, messages, request)
+
+
+def desk_layout(kernel):
+    """READ's messages 1 to 3 for the owner's desk as it stands (its fenced list of things), for brain_briefs to prime at
+    Ready; None when no owner selected the model or the desk lists nothing. Reads only."""
+    from . import local_brain
+    from .engineering_kernel import Principal
+    owner = (local_brain.get(kernel, 'selection', {}) or {}).get('owner')
+    if not owner:return None
+    lex = reading.lexicon(kernel, Principal(str(owner)))
+    listed = things(lex)
+    if not listed:return None
+    i = Inputs('', listed, min(len(listed), STABLE_MOST), (), (), lex.world, lex)
+    return turns.layout(READ, replace(i, things=listed[:i.stable_count]))[:3]
+
+
+def exam_ask(i, request, item):
+    """The exam asks READ as the desk does (model_exam.sit): the desk's list kept first (keep_desk), then the question.
+    Returns (Answer, the row's extra fields)."""
+    desk = keep_desk(i, request)
+    answer = turns.ask(READ, i, request)
+    return answer, ({'desk': desk['state']} if desk else {})
+
+
+try:
+    from . import brain_briefs as _briefs
+    _briefs.DESKS[KIND] = desk_layout
+except ImportError:  # pragma: no cover - brain_briefs is lane A's (A2); without it nothing is primed
+    pass
+# == end 0.8.7 X7b =========================================================================================================
