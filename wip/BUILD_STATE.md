@@ -316,6 +316,9 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 10:15 UTC: wake-up (carry on). **A1 launched** (programs by window and file; agent aeace60d345d175df).
+  Running: K8, K9, K4b, A1. Still to start: F1, F2, X1, X2, R1, R2.
+
 - 26 Nov 10:10 UTC: **1.0 P3 merged** (7188194: Kas as a hologram from the owner's picture; smoke 218/0). The owner's
   picture is in no tree file; frames that show it stay in scratch (`$S/work/b100/P3/frames/`) and were sent to the owner
   only. With it, the 1.0 modules' comments that called the owner "he" now say "they" (32 lines). Running: K8, K9, K4b.
