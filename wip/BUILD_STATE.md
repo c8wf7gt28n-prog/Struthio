@@ -302,6 +302,11 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 07:30 UTC: **1.0 L5 merged** (a76caea: working tabs, the two-pane split, the pane in focus drives the tree and
+  "this"; smoke 33/33). The centre lane L1-L5 is done. Not done in L5: the split is not restored at the next start (its
+  tabs are); no board inside a pane. **K7 launched** (AT-SPI read-only through QtDBus; agent af10e6ff89662b7d0).
+  Running: K3, K6, K4, K7. Still to start: K8, F1, F2, A1, X1, X2, R1, R2.
+
 - 26 Nov 07:10 UTC: **1.0 K5 merged** (57e2eb7: LibreOffice Writer and Calc through UNO, her own hidden soffice per
   piece of work, changes verified by reading content.xml back; smoke 28/28). Its notes: changes need approval by name
   (K4 plans the report update after the value is checked); edits only .odt/.ods (.docx/.xlsx read only);
