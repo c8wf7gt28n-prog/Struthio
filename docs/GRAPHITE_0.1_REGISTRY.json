@@ -696,6 +696,10 @@
    "releases.recover": "workbench/release_updates.py#dispatch",
    "releases.status": "workbench/release_updates.py#dispatch",
    "releases.trust": "workbench/release_updates.py#dispatch",
+   "relevance.clear": "workbench/relevance.py#dispatch",
+   "relevance.pin": "workbench/relevance.py#dispatch",
+   "relevance.turn_down": "workbench/relevance.py#dispatch",
+   "relevance.why": "workbench/relevance.py#dispatch",
    "remote.disable": "workbench/engineering_kernel.py#Kernel._dispatch",
    "remote.revoke": "workbench/remote_sessions.py#dispatch",
    "remote.sessions": "workbench/remote_sessions.py#dispatch",
@@ -1037,9 +1041,9 @@
   }
  },
  "counts": {
-  "adapters": 839,
+  "adapters": 843,
   "job_tools": 113,
-  "operations": 839,
+  "operations": 843,
   "settings": 48
  },
  "formulas": {
@@ -7120,6 +7124,39 @@
    },
    "scope": "approve"
   },
+  "relevance.clear": {
+   "arguments": "1381d4d45d2c70a32d9f08527b860140048287f35023114fd1d6d21ce295a4a0",
+   "properties": {
+    "focus": "dc5eec2f366b05a9",
+    "object": "dc5eec2f366b05a9"
+   },
+   "scope": "execute"
+  },
+  "relevance.pin": {
+   "arguments": "1381d4d45d2c70a32d9f08527b860140048287f35023114fd1d6d21ce295a4a0",
+   "properties": {
+    "focus": "dc5eec2f366b05a9",
+    "object": "dc5eec2f366b05a9"
+   },
+   "scope": "execute"
+  },
+  "relevance.turn_down": {
+   "arguments": "1381d4d45d2c70a32d9f08527b860140048287f35023114fd1d6d21ce295a4a0",
+   "properties": {
+    "focus": "dc5eec2f366b05a9",
+    "object": "dc5eec2f366b05a9"
+   },
+   "scope": "execute"
+  },
+  "relevance.why": {
+   "arguments": "58eb5ecfafcfed6f41b1989021b98bf81f9afce9298a812188e3ba8c900e893c",
+   "properties": {
+    "focus": "dc5eec2f366b05a9",
+    "object": "dc5eec2f366b05a9",
+    "task": "76f40fe54111097c"
+   },
+   "scope": "read"
+  },
   "remote.disable": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
@@ -8251,7 +8288,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "c2462586dfcb9aff52754c42e29e2510ff38d84cd8c1d808706070748d176ede",
+ "schema_digest": "17bd1ca33f89d696906cbba4764174479a49098111d8f50d524b67e5e4f02cfb",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

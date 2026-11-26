@@ -1,0 +1,116 @@
+Rail Demo built through its own door in 6 s
+focus: office:owner:9 "Rail Demo bench readings" (current)
+11 candidates:
+   calculation output      current   rec=True  rev=None  Rail Demo startup power · 10.8 W
+   calculation output      current   rec=True  rev=None  Rail Demo settled power · 3 W
+   finding   finding_on  refuted   rec=True  rev=None  Startup is inside the Rev B limit of 40 ms.
+   source    input       current   rec=True  rev=None  Rail_Demo_Bench_Readings.pdf
+   finding   finding_on  current   rec=True  rev=None  Settled power is 3 W, inside the Rev B limit of 4 W.
+   question  question_on open      rec=True  rev=None  Why does startup take longer than 40 ms?
+   finding   inferred    current   rec=False rev=None  The startup limit was 60 ms in Rev A and is 40 ms in Rev B.
+   finding   inferred    current   rec=False rev=None  The Rev B sheet carries the 40 ms startup limit.
+   sheet     inferred    current   rec=False rev=False Rail Demo limits Rev A ARCHIVED
+   sheet     inferred    current   rec=False rev=True  Rail Demo limits Rev B CURRENT
+   document  inferred    -         rec=False rev=None  Rail Demo summary
+supporting findings (state current): finding settled_holds, finding limit_changed, finding sheet_keeps; the refuted one: finding startup_holds (refuted)
+  --- no task (no assignment, no request kept) ---
+   0 size 3       score 55     question               a question asked about the selected sheet | an open question
+   1 size 3       score 55     finding startup_holds  a finding that rests on the selected sheet | the evidence speaks against it
+   2 size 3       score 40     readings PDF           supplies the selected sheet
+   3 size 2       score 35     calc startup_power     made from the selected sheet
+   4 size 2       score 35     calc settled_power     made from the selected sheet
+   5 size 2       score 30     finding settled_holds  a finding that rests on the selected sheet
+   6 size 2       score 21     Rev B                  possible match: used together with the bench readings in the findings; not verified | current revision
+   7 size 1       score 6      finding limit_changed  possible match: from the same investigation of the 12 V rail; not verified
+   8 size 1       score 6      finding sheet_keeps    possible match: from the same investigation of the 12 V rail; not verified
+   9 size 1       score 6      summary page           possible match: both name the settled current; not verified
+  10 size 1       score 1      Rev A                  possible match: used together with the bench readings in the findings; not verified | archived revision
+PASS  every score is exact (int or Fraction, never float)
+PASS  the focus is not ranked; one row per candidate
+  --- task: "Why does startup take longer than 40 ms?" ---
+   0 size 4       score 95     question               a question asked about the selected sheet | an open question | shares words with your task: 'startup', 'take', 'longer'
+   1 size 4       score 75     finding startup_holds  a finding that rests on the selected sheet | the evidence speaks against it | shares words with your task: 'startup'
+   2 size 3       score 55     calc startup_power     made from the selected sheet | shares words with your task: 'startup'
+   3 size 3       score 40     readings PDF           supplies the selected sheet
+   4 size 2       score 35     calc settled_power     made from the selected sheet
+   5 size 2       score 30     finding settled_holds  a finding that rests on the selected sheet
+   6 size 2       score 26     finding limit_changed  possible match: from the same investigation of the 12 V rail; not verified | shares words with your task: 'startup'
+   7 size 2       score 26     finding sheet_keeps    possible match: from the same investigation of the 12 V rail; not verified | shares words with your task: 'startup'
+   8 size 2       score 21     Rev B                  possible match: used together with the bench readings in the findings; not verified | current revision
+   9 size 1       score 6      summary page           possible match: both name the settled current; not verified
+  10 size 1       score 1      Rev A                  possible match: used together with the bench readings in the findings; not verified | archived revision
+PASS  ACCEPTANCE 1: the refuted finding outranks every supporting one when the task is the startup question  [refuted: place 1 size 4 score 75; supporting: finding settled_holds place 5 size 2 score 30, finding limit_changed place 6 size 2 score 26, finding sheet_keeps place 7 size 2 score 26]
+PASS  relevance is not truth: the refuted finding is large and its own mark still says refuted  [{'truth': 'refuted', 'confidence': 'recorded', 'authority': ''}]
+PASS  "Why am I shown?" lists the reasons in words  [['a finding that rests on the selected sheet', 'the evidence speaks against it', "shares words with your task: 'startup'"]]
+  --- task: "Confirm the settled power of the rail" ---
+   0 size 4       score 75     calc settled_power     made from the selected sheet | shares words with your task: 'settled', 'power'
+   1 size 4       score 70     finding settled_holds  a finding that rests on the selected sheet | shares words with your task: 'settled', 'power'
+   2 size 3       score 55     question               a question asked about the selected sheet | an open question
+   3 size 3       score 55     finding startup_holds  a finding that rests on the selected sheet | the evidence speaks against it
+   4 size 3       score 55     calc startup_power     made from the selected sheet | shares words with your task: 'power'
+   5 size 3       score 40     readings PDF           supplies the selected sheet
+   6 size 2       score 26     summary page           possible match: both name the settled current; not verified | shares words with your task: 'settled'
+   7 size 2       score 21     Rev B                  possible match: used together with the bench readings in the findings; not verified | current revision
+   8 size 1       score 6      finding limit_changed  possible match: from the same investigation of the 12 V rail; not verified
+   9 size 1       score 6      finding sheet_keeps    possible match: from the same investigation of the 12 V rail; not verified
+  10 size 1       score 1      Rev A                  possible match: used together with the bench readings in the findings; not verified | archived revision
+PASS  the task changes the ranking: with the settled-power task the settled finding stands before the refuted startup one  [settled task: settled 1, startup 3; startup task: settled 5, startup 1]
+PASS  a task that looks back raises the archived revision ("an earlier revision, and your task looks back")  [['possible match: used together with the bench readings in the findings; not verified', 'an earlier revision, and your task looks back', "shares words with your task: 'limits'"]]
+PASS  ACCEPTANCE 2 (no task): the archived Rev A tile is smaller than Rev B  [Rev A size 1 (possible match: used together with the bench readings in the findings; not verified; archived revision); Rev B size 2 (possible match: used together with the bench readings in the findings; not verified; current revision)]
+PASS  ACCEPTANCE 2 (startup task): the archived Rev A tile is smaller than Rev B  [Rev A size 1 (possible match: used together with the bench readings in the findings; not verified; archived revision); Rev B size 2 (possible match: used together with the bench readings in the findings; not verified; current revision)]
+PASS  ACCEPTANCE 2 (settled task): the archived Rev A tile is smaller than Rev B  [Rev A size 1 (possible match: used together with the bench readings in the findings; not verified; archived revision); Rev B size 2 (possible match: used together with the bench readings in the findings; not verified; current revision)]
+PASS  ACCEPTANCE 4: every score 3 % higher moves nothing (no size, no place)  [scores now question 1957/20, finding startup_holds 309/4, calc startup_power 1133/20, readings PDF 206/5]
+PASS  the scores really moved by 3 %
+PASS  ACCEPTANCE 4: every score 3 % lower moves nothing
+PASS  the layout comes back exactly when the scores come back
+PASS  hysteresis holds a 5 % drop too (Rev B stays size 2)
+  (without the kept ranking, the same 5 % drop would give Rev B size 1, score 399/20: the band is what holds it)
+PASS  a large change (every score 20 % lower) does move tiles  [[('readings PDF', 3, 2), ('Rev B', 2, 1)]]
+PASS  placed afresh at the real scores, the layout is the first one again
+  pin: Pinned by you on this board: it is drawn large and first. Clear takes it back.
+PASS  ACCEPTANCE 3: pinning the small Rev A tile makes it large and says "pinned by you"  [before size 1, after size 4 place 0, reasons: pinned by you; possible match: used together with the bench readings in the findings; not verified; archived revision]
+PASS  "Why am I shown?" says "pinned by you"  [['pinned by you', 'possible match: used together with the bench readings in the findings; not verified', 'archived revision']]
+  --- after the pin ---
+   0 size 4       score 101    Rev A                  pinned by you | possible match: used together with the bench readings in the findings; not verified | archived revision
+   1 size 4       score 95     question               a question asked about the selected sheet | an open question | shares words with your task: 'startup', 'take', 'longer'
+   2 size 4       score 75     finding startup_holds  a finding that rests on the selected sheet | the evidence speaks against it | shares words with your task: 'startup'
+   3 size 3       score 55     calc startup_power     made from the selected sheet | shares words with your task: 'startup'
+   4 size 3       score 40     readings PDF           supplies the selected sheet
+   5 size 2       score 35     calc settled_power     made from the selected sheet
+   6 size 2       score 30     finding settled_holds  a finding that rests on the selected sheet
+   7 size 2       score 26     finding limit_changed  possible match: from the same investigation of the 12 V rail; not verified | shares words with your task: 'startup'
+   8 size 2       score 26     finding sheet_keeps    possible match: from the same investigation of the 12 V rail; not verified | shares words with your task: 'startup'
+   9 size 2       score 21     Rev B                  possible match: used together with the bench readings in the findings; not verified | current revision
+  10 size 1       score 6      summary page           possible match: both name the settled current; not verified
+PASS  the pin is recorded on the trail  [['relevance.pin']]
+  clear: Your mark (pinned) is taken back: it is sized by its reasons again.
+PASS  Clear takes the pin back: Rev A is its earlier size and place again
+PASS  turning down the question puts it with the group at the edge and says so; it is still on the list (its link kept)  [and 1 more; turned down by you (its link is kept); a question asked about the selected sheet; an open question; shares words with your task: 'startup', 'take', 'longer']
+PASS  Clear brings the question back
+PASS  the marks belong to one board: on another focus nothing is pinned
+PASS  with nothing given, no request and no assignment: no task
+PASS  the owner's last request is the task when no assignment is active  [your last request: Why does the Rail Demo startup take longer than its limit?]
+  --- task: the active assignment ---
+   0 size 4       score 95     question               a question asked about the selected sheet | an open question | shares words with your assignment: 'startup', 'takes', 'longer'
+   1 size 4       score 95     finding startup_holds  a finding that rests on the selected sheet | the evidence speaks against it | shares words with your assignment: 'startup', 'limit'
+   2 size 4       score 81     Rev B                  possible match: used together with the bench readings in the findings; not verified | current revision | used by your assignment “Startup over its limit” | shares words with your assignment: 'limit'
+   3 size 3       score 55     calc startup_power     made from the selected sheet | shares words with your assignment: 'startup'
+   4 size 3       score 50     finding settled_holds  a finding that rests on the selected sheet | shares words with your assignment: 'limit'
+   5 size 3       score 46     finding limit_changed  possible match: from the same investigation of the 12 V rail; not verified | shares words with your assignment: 'startup', 'limit'
+   6 size 3       score 46     finding sheet_keeps    possible match: from the same investigation of the 12 V rail; not verified | shares words with your assignment: 'startup', 'limit'
+   7 size 3       score 40     readings PDF           supplies the selected sheet
+   8 size 2       score 35     calc settled_power     made from the selected sheet
+   9 size 2       score 21     Rev A                  possible match: used together with the bench readings in the findings; not verified | archived revision | shares words with your assignment: 'limit'
+  10 size 1       score 6      summary page           possible match: both name the settled current; not verified
+PASS  the active assignment is the task, before the last request  [your assignment]
+PASS  the Rev B sheet its step reads says "used by your assignment" and is drawn larger  [possible match: used together with the bench readings in the findings; not verified; current revision; used by your assignment “Startup over its limit”; shares words with your assignment: 'limit']
+PASS  with the assignment as the task the refuted finding still outranks the supporting ones
+PASS  a stopped assignment is not the task: the last request is again
+PASS  relevance.why (read) answers the reasons, the size and the separate marks  [{'schema': 'graphite.relevance/1', 'focus': 'office:owner:92a5b89ddd5040b796975f2ff5e406aa', 'object': 'claim:51cb84c69eff47c68fbd1604a3887d9e', 'reasons': ['a finding that rests on the selected sheet', 'the evidence speaks against it', "shares words with your task: 'startup'"], 'shown': True, 'size': 4, 'score': '75', 'group': False, 'pinned': False, 'turned_down': False, 'separate': {'truth': 'r]
+PASS  relevance.why on something not on the board says so
+PASS  a read-only caller cannot pin
+PASS  the focus takes no mark of its own
+PASS  unknown arguments are refused
+PASS  asking why is not an event; the owner's marks are  [['relevance.pin', 'relevance.clear', 'relevance.turn_down', 'relevance.clear', 'relevance.pin', 'relevance.pin', 'relevance.turn_down']]
+
+36 checks, 36 passed, 0 failed

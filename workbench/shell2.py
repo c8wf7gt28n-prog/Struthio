@@ -2787,6 +2787,11 @@ class SlateFace(QWidget):
         return True
 
     def ask(self, text, about=None):
+        try:  # 1.0 L3: the owner's last request is the board's task when no assignment is active (relevance.note_request)
+            from .engine import engineering as _l3_kernel
+            from .relevance import note_request;note_request(_l3_kernel(self.host.root), text)
+        except Exception:  # noqa: BLE001 - noting the request never stands in the way of answering it
+            pass
         if self.own_word(text):return
         from .library_qt import asked as library_asked      # 0.8.7 W7: a question of the Library, answered by Ask the Library
         if library_asked(self, text):return

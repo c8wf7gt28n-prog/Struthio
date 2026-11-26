@@ -46,7 +46,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 K1: an assignment's status and the list, read each time her column or the Agenda is shown; reading is not an event
  'assignment.status','assignment.list',
  # 1.0 L1: Files with the stable ids of its objects, read each time the tree is drawn; reading is not an event
- 'objects.files','objects.get'})
+ 'objects.files','objects.get',
+ # 1.0 L3: "Why am I shown?", read each time a tile is asked; asking is not an event (pin, turn down and clear are)
+ 'relevance.why'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

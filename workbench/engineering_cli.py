@@ -115,6 +115,7 @@ def schemas():
     from .living_nav import FIELDS as LIVING_NAV_FIELDS  # 1.0 L1 (one navigation state): objects.files, objects.get
     from .voice_character import FIELDS as CHARACTER_FIELDS  # 0.8.7 C5 (her character file)
     from .assignments import FIELDS as ASSIGNMENT_FIELDS  # 1.0 K1 (assignments and the journal)
+    from .relevance import FIELDS as RELEVANCE_FIELDS  # 1.0 L3 (relevance): relevance.why, .pin, .turn_down, .clear
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -231,6 +232,7 @@ def schemas():
         **LIVING_NAV_FIELDS,  # 1.0 L1 (one navigation state): objects.files, objects.get
         **CHARACTER_FIELDS,  # 0.8.7 C5 (her character file)
         **ASSIGNMENT_FIELDS,  # 1.0 K1 (assignments and the journal)
+        **RELEVANCE_FIELDS,  # 1.0 L3 (relevance)
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,
