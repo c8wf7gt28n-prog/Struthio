@@ -1,0 +1,49 @@
+Rail Demo built through its own door in 7 s
+Invented documents in Files: Rail Demo/Rail Demo summary report.odt | Rail Demo/Rail Demo power sheet.ods
+PASS  the invented report says "Settled power is 3.0 W at 12 V."
+Checked value: settled power 3.6 W (exact 18/5), page 1a684a3a at revision 1
+PASS  the checked settled power is 3.6 W exactly  [3.6 W]
+Status, turned off: LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off).
+PASS  without the interface, status says why  [LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off).]
+Replace, turned off: LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off). Nothing was changed; the change can be offered as prepared text.
+PASS  without the interface, a replace is refused with the reason and nothing changes  [LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off). Nothing was changed; the change can be offered as prepared text.]
+K4 offer, turned off: Prepared, not applied: in Rail Demo summary report.odt, the paragraph would read "Settled power is 3.6 W at 12 V. It is inside the Rev B limit of 4 W.". LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off), so the change is yours to make.
+PASS  K4 is offered the change as prepared text, not applied  [LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off).]
+PASS  a read without the interface reads the file directly and says so  [the file read directly (its content.xml), not through LibreOffice: LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off).]
+Assignment step, turned off: ["Step 1 is blocked: LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off); the change can be offered as prepared text instead"]
+PASS  an assignment step on the bridge is blocked with the reason, nothing sent  [LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off); the change can be offered as prepared text instead]
+PASS  K2's slot office.edit says why it cannot be used  [(False, "LibreOffice's interface is not available here: the bridge is turned off on this computer (GRAPHITE_LIBREOFFICE=off).")]
+Status, here: LibreOffice's interface is here: LibreOffice 24.2.7.2 420(Build:2), through /usr/bin/python3 (Python 3.13.18).
+PASS  soffice and uno exist here: the interface is available
+PASS  K2's slots are filled: office.read and office.edit with the bridge's operations  [(('libreoffice.replace', 'libreoffice.cell'), (True, ''))]
+PASS  K4 is offered a step through LibreOffice  [Settled power is 3.6 W at 12 V.]
+Before your word: Step 2 (Update Rail Demo summary report.odt: "Settled power is 3.6 W at 12 V.") waits for your word.
+PASS  the read runs; the change waits for your word by its name  [Step 2 (Update Rail Demo summary report.odt: "Settled power is 3.6 W at 12 V.") waits for your word.]
+With the owner's LibreOffice lock: LIBREOFFICE_OPEN: Rail Demo summary report.odt is open in LibreOffice (its lock file is there): I never edit a document behind your back. Save and close it there, then ask again.
+PASS  a document open in LibreOffice elsewhere is never edited behind your back  [LIBREOFFICE_OPEN: Rail Demo summary report.odt is open in LibreOffice (its lock file is there): I never edit a document behind your back. Save and close it there, then ask again.]
+PASS  HALT (her work held): nothing changed  [HELD: all of her work is held (HALT or Stop all): nothing was changed]
+PASS  without the approve scope (her own word alone) the change is refused  [Operation is outside the authorized mode/scope]
+PASS  a passage in several places is refused, saying how many  [LIBREOFFICE_PASSAGE: "Rev B" is in 4 places of Rail Demo summary report.odt, not 1; nothing was changed]
+Step 2 (1342 ms): done (verified)
+  observation: {"by": "sha256", "complete": true, "how": "observed", "object": "files:Rail Demo/Rail Demo summary report.odt", "path": "Rail Demo/Rail Demo summary report.odt", "place": {"paragraphs": [4], "path": "Rail Demo/Rail Demo summary report.odt"}, "revision": "76ea30876d887285ade4eebf81ec6794bd1ec0c9f1ddf7e4532bf069d5d41669", "revision_n": 2, "tool": "office.edit", "words": "The saved document, read back directly, says \"Settled power is 3.6 W at 12 V. It is inside the Rev B limit of 4 W.\". Revision 2 is on disk (SHA-256 76ea30876d88…)."}
+  journal: PREPARED | Step 2 prepared: Update Rail Demo summary report.odt: "Settled power is 3.6 W at 12 V.", change a passage of a document through LibreOffice in Files, in Rail Demo/, for this assignment (the records mark it for your approval).
+  journal: SENT | Step 2 sent; checking it now.
+  journal: DONE | Step 2 done (verified): Update Rail Demo summary report.odt: "Settled power is 3.6 W at 12 V.". The saved document, read back directly, says "Settled power is 3.6 W at 12 V. It is inside the Rev B limit of 4 W.". Revision 2 is on disk (SHA-
+  journal: FINISHED | Every step is done (verified).
+PASS  the step is done (verified), not merely sent  [Every step is done (verified).]
+PASS  the saved report, read back directly, says "Settled power is 3.6 W at 12 V."
+PASS  every other paragraph is as it was
+Revisions of the report: [(1, 'c39a29bcc0e6', 'seen', ''), (2, '76ea30876d88', 'full program', 'LibreOffice (Kasandra)')]
+PASS  the new revision is recorded (revision 2, saved in LibreOffice (Kasandra)), its digest the one on disk
+PASS  the version before is kept (Revert can put it back)
+  receipts: [('dispatched', ''), ('verified', '76ea30876d88')]
+PASS  K2's receipts: dispatched, then verified, for the step  [[{'id': '60fc393944154af38fda2abf0457dccd', 'tool': 'office.edit', 'number': 19, 'status': 'dispatched', 'status_words': 'sent, not yet verified', 'how': 'observed', 'complete': False, 'object': 'files:Rail Demo/Rail Demo summary report.odt', 'revision': '', 'place': {'path': 'Rail Demo/Rail Demo summary report.odt'}, 'words': 'Step 2 sent; its effect is not yet verified.', 'journal': 12, 'follows]
+PASS  the same change again, at the old revision, is refused (it was saved since)  [LIBREOFFICE_CHANGED: Rail Demo summary report.odt is not at the revision the plan read (it was saved since); read it again]
+PASS  resume would find the change already made (not make it twice)  [The saved document, read back directly, says "Startup takes 45 ms on the bench. Rev B allows 40 ms, so the startup question stays open.". Revision 3 is on disk (SHA-256 f0b20fe8e047…).]
+Cell: In Rail Demo power sheet.ods, B3 on the sheet Power now holds 300 (it held 250); worked again: B4 now 3.6: the saved file, read back directly, says so; revision 2 is recorded.
+PASS  B3 set to 300 through Calc; the saved sheet holds it; B4 (=B2*B3/1000) is now 3.6; revision 2 recorded
+PASS  a formula cell is never overwritten  [LIBREOFFICE_FORMULA: B4 holds a formula (of:=[.B2]*[.B3]/1000); she sets only a value cell]
+PASS  Calc read through the interface: B4 shows 3.6  [{'type': 'formula', 'formula': '=B2*B3/1000', 'text': '3.6'}]
+PASS  no LibreOffice of hers is left running; no session folder left  [([], ['bridge.lock', 'fonts', 'profile'])]
+
+28 of 28 checks passed

@@ -122,6 +122,7 @@ def schemas():
     from .machine_real import FIELDS as MACHINE_REAL_FIELDS  # 1.0 S4 (the Machine, real): machine.state
     from .depths import FIELDS as DEPTH_FIELDS  # 1.0 L4 (depths): revisions.record, revisions.list
     from .tools_registry import FIELDS as TOOLS_REGISTRY_FIELDS  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
+    from .office_bridge import FIELDS as OFFICE_BRIDGE_FIELDS  # 1.0 K5 (LibreOffice, from the inside): libreoffice.status, .read, .find, .prepare, .replace, .cell
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -245,6 +246,7 @@ def schemas():
         **MACHINE_REAL_FIELDS,  # 1.0 S4 (the Machine, real): machine.state
         **DEPTH_FIELDS,  # 1.0 L4 (depths): revisions.record, revisions.list
         **TOOLS_REGISTRY_FIELDS,  # 1.0 K2 (tools and observation receipts): tools.*, windows.*
+        **OFFICE_BRIDGE_FIELDS,  # 1.0 K5 (LibreOffice, from the inside): libreoffice.status, .read, .find, .prepare, .replace, .cell
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

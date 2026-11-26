@@ -436,6 +436,12 @@
    "library.rubout": "workbench/page_marks.py#dispatch",
    "library.search": "workbench/library_service.py#dispatch",
    "library.table": "workbench/tables.py#dispatch",
+   "libreoffice.cell": "workbench/office_bridge.py#dispatch",
+   "libreoffice.find": "workbench/office_bridge.py#dispatch",
+   "libreoffice.prepare": "workbench/office_bridge.py#dispatch",
+   "libreoffice.read": "workbench/office_bridge.py#dispatch",
+   "libreoffice.replace": "workbench/office_bridge.py#dispatch",
+   "libreoffice.status": "workbench/office_bridge.py#dispatch",
    "links.catalog": "workbench/brain_link.py#dispatch",
    "links.inspect": "workbench/brain_link.py#dispatch",
    "links.trace": "workbench/brain_link.py#dispatch",
@@ -1062,9 +1068,9 @@
   }
  },
  "counts": {
-  "adapters": 864,
+  "adapters": 870,
   "job_tools": 113,
-  "operations": 864,
+  "operations": 870,
   "settings": 48
  },
  "formulas": {
@@ -4962,6 +4968,65 @@
    },
    "scope": "read"
   },
+  "libreoffice.cell": {
+   "arguments": "9869332913468df50ee599824161254aeb218da7b38a4c0fee4ea2cb2f70ebbb",
+   "properties": {
+    "cell": "ff5ef55310da5c4c",
+    "expected_sha256": "7b3b209310928c3a",
+    "kind": "731819281c979742",
+    "path": "2b1e00f7cfc18abe",
+    "sheet": "52ba84a4bbf396ba",
+    "value": "1c33d69dbfa99f9a"
+   },
+   "scope": "approve"
+  },
+  "libreoffice.find": {
+   "arguments": "03682622f5f9563305ed82f7d1da85e4a3f3f1199cf6e62a641a23b445b0ca88",
+   "properties": {
+    "path": "2b1e00f7cfc18abe",
+    "text": "e5b3001aa5951151"
+   },
+   "scope": "read"
+  },
+  "libreoffice.prepare": {
+   "arguments": "6e443e8fa1adda4b3383d882d7966e0ae0ce70fbf34927789deaf1479a405ddd",
+   "properties": {
+    "cell": "ff5ef55310da5c4c",
+    "find": "e5b3001aa5951151",
+    "occurrences": "e238f277e0a04179",
+    "path": "2b1e00f7cfc18abe",
+    "replace": "1c33d69dbfa99f9a",
+    "sheet": "52ba84a4bbf396ba",
+    "value": "1c33d69dbfa99f9a"
+   },
+   "scope": "read"
+  },
+  "libreoffice.read": {
+   "arguments": "105723d9795dea5b9ad5f6962603c729f21b53dd30ffd414c56588658e113e38",
+   "properties": {
+    "expected_sha256": "7b3b209310928c3a",
+    "path": "2b1e00f7cfc18abe",
+    "range": "30086ee63035890c",
+    "sheet": "52ba84a4bbf396ba"
+   },
+   "scope": "read"
+  },
+  "libreoffice.replace": {
+   "arguments": "0abe2861f19e446b3711f2334cec50c11627e8150bbc0894469c263f71bba3be",
+   "properties": {
+    "expected_sha256": "7b3b209310928c3a",
+    "find": "e5b3001aa5951151",
+    "occurrences": "e238f277e0a04179",
+    "path": "2b1e00f7cfc18abe",
+    "replace": "1c33d69dbfa99f9a"
+   },
+   "scope": "approve"
+  },
+  "libreoffice.status": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
   "links.catalog": {
    "arguments": "fba82810a14481f27f7525ff46a94435414fbcbeb1ad75abc17c64fbafeadf13",
    "properties": {
@@ -8488,7 +8553,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "14be7ef5aeb93ab37f0ad9e1004d403b47c16e9a9c0aa20266d637c6b43b79ad",
+ "schema_digest": "36958820e9c87c90432d90b937fb4fe3f559ff315e74b58f843bcf259725039c",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
