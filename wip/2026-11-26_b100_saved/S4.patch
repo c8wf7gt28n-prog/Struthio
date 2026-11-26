@@ -1,0 +1,1625 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index e365ee9..e24a00e 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -439,6 +439,7 @@
+    "links.catalog": "workbench/brain_link.py#dispatch",
+    "links.inspect": "workbench/brain_link.py#dispatch",
+    "links.trace": "workbench/brain_link.py#dispatch",
++   "machine.state": "workbench/machine_real.py#dispatch",
+    "math.answer": "workbench/math_answers.py#dispatch",
+    "math.calculate": "workbench/schedule_math.py#dispatch",
+    "math.concurrent": "workbench/schedule_math.py#dispatch",
+@@ -1052,9 +1053,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 854,
++  "adapters": 855,
+   "job_tools": 113,
+-  "operations": 854,
++  "operations": 855,
+   "settings": 48
+  },
+  "formulas": {
+@@ -4981,6 +4982,13 @@
+    },
+    "scope": "read"
+   },
++  "machine.state": {
++   "arguments": "07ce3b89745179474208dc4c5c252fc197bfbd61744f149f6ae9ed3d0db1e8e4",
++   "properties": {
++    "section": "3c21ffa965642c71"
++   },
++   "scope": "read"
++  },
+   "math.answer": {
+    "arguments": "1d58d91e495509edb508d3a04143fe791d770109168d0b719c4477dbfc4cccb4",
+    "properties": {
+@@ -8388,7 +8396,7 @@
+  },
+  "release": "Graphite 0.8.7",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "c68495ecf4a8ded989d1748dd1f2c3e9ab6e47d14bd9583275b2e11ffdf16615",
++ "schema_digest": "90b85965f2131f913ea59f39e4070c0f751564fad595aa50ff85584d8c3bfc9e",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/tools/check_machine_ui.py b/tools/check_machine_ui.py
+index ba95295..0d6238a 100644
+--- a/tools/check_machine_ui.py
++++ b/tools/check_machine_ui.py
+@@ -83,15 +83,15 @@ nav.machine.click();settle(60);assert nav.current_view()=='machine' and nav.stac
+ assert [t.text(0) for t in top()]==['Machine','Work','Settings'],[t.text(0) for t in top()]
+ strip.refresh();assert strip.label.full in page.items['machine'].toolTip(0),'the strip\'s line is the Machine row\'s tooltip (D1b)'
+ machine=page.items['machine'];sections=children(machine)
+-assert [s.text(0).split(' · ')[0] for s in sections]==['Processor','Memory','Storage','Connections','Devices','Installed tools']
+-for section in sections:
++assert [s.text(0).split(' · ')[0] for s in sections]==['Storage','Power','Network','Sound','Screens','Processor','Memory','Devices','Installed tools']  # 1.0 S4: the five real rows first; the overview's storage and connections rows sit under Storage and Network
++for section in [s for s in sections if 'section' in node(s)]:  # 1.0 S4: Power, Sound and Screens hold no overview section
+  data=node(section)['section']
+  if section.childCount()==0:assert data['state'] in ('NONE','UNAVAILABLE') and (' · none detected' in section.text(0) or ' · unavailable' in section.text(0)),section.text(0)
+  else:assert data['state'] in ('OBSERVED','PARTIAL'),(section.text(0),data['state'])
+- for leaf in children(section):
++ for leaf in [c for c in children(section) if 'item' in node(c)]:  # 1.0 S4: a removable drive's row under Storage is not an overview row
+   row=node(leaf)['item'];assert row['source'] and row['sampled_at'] and row['state'] in ('OBSERVED','PARTIAL','UNAVAILABLE') and leaf.toolTip(0)
+  if data['order']=='natural':
+-  labels=[c.text(0) for c in children(section)];assert labels==sorted(labels,key=machine_overview.natural),labels
++  labels=[c.text(0) for c in children(section) if 'item' in node(c)];assert labels==sorted(labels,key=machine_overview.natural),labels  # 1.0 S4
+ storage=page.items['storage'];storage.setExpanded(True);page.tree.setCurrentItem(storage);settle()
+ text=page.details.toPlainText();assert text.startswith('Storage · ') and 'Sources: ' in text and '/proc/mounts' in text and re.search(r'Observed \d\d:\d\d:\d\d',text),text
+ assert storage.toolTip(0)==text and not page.details.isVisible(),'D1b: the details are each row\'s tooltip; the details pane is out of the left pane'
+@@ -100,7 +100,7 @@ assert str(root) in text and 'os.statvfs' in text and re.search(r'Observed \d\d:
+ mounts=[c for c in children(storage) if node(c)['item']['kind']=='mount'];assert mounts and any('holds the' in c.text(0) for c in mounts),[c.text(0) for c in mounts]
+ devices=page.items['devices'];page.tree.setCurrentItem(devices);settle();text=page.details.toPlainText()
+ assert text.startswith('Devices · ') and ('/sys/bus/usb/devices' in text) and any(word in text for word in ('observations','nothing detected','unavailable')),text
+-connections=page.items['connections'];assert connections.childCount()>0 and all('addresses: NOT_READ' in page.describe(node(c)) for c in children(connections))
++connections=page.items['network'];assert connections.childCount()>0 and all('addresses: NOT_READ' in page.describe(node(c)) for c in children(connections))  # 1.0 S4: the overview's connections sit under Network
+ tools=page.items['tools'];assert tools.childCount()==len(machine_overview.TOOL_NAMES) and all(' · ' in c.text(0) for c in children(tools))
+ assert 'nothing was run' in page.caption.text() and 'not owner host qualification' in page.caption.text()
+ popen.assert_not_called();system.assert_not_called();detached.assert_not_called()
+diff --git a/workbench/activity.py b/workbench/activity.py
+index 6207313..bcd0372 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -54,7 +54,9 @@ OBSERVER_OPERATIONS=frozenset({
+  # 1.0 L2: the board of a focus and the links kept by your word, read each time the board is drawn; reading is not an event
+  'board.read','board.links',
+  # 1.0 P1: her portrait in force, read when her column is drawn; reading is not an event
+- 'kasandra.portrait'})
++ 'kasandra.portrait',
++ # 1.0 S4: the machine's storage, power, network, sound and screens, read when the Machine tab or a page shows; reading is not an event
++ 'machine.state'})
+ 
+ def folder(root):
+     """Legacy journal location, now used only for migration and failed delivery."""
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index b01d49e..0d0919f 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -119,6 +119,7 @@ def schemas():
+     from .assignments import FIELDS as ASSIGNMENT_FIELDS  # 1.0 K1 (assignments and the journal)
+     from .relevance import FIELDS as RELEVANCE_FIELDS  # 1.0 L3 (relevance): relevance.why, .pin, .turn_down, .clear
+     from .her_portrait import FIELDS as PORTRAIT_FIELDS  # 1.0 P1 (her column): her portrait, admitted
++    from .machine_real import FIELDS as MACHINE_REAL_FIELDS  # 1.0 S4 (the Machine, real): machine.state
+     from .stac_words import FIELDS as WORD_FIELDS
+     from .agent_operations import FIELDS
+     from .hardware_proof import FIELDS as PROOF_FIELDS
+@@ -239,6 +240,7 @@ def schemas():
+         **ASSIGNMENT_FIELDS,  # 1.0 K1 (assignments and the journal)
+         **RELEVANCE_FIELDS,  # 1.0 L3 (relevance)
+         **PORTRAIT_FIELDS,  # 1.0 P1 (her column): her portrait, admitted
++        **MACHINE_REAL_FIELDS,  # 1.0 S4 (the Machine, real): machine.state
+         **WORD_FIELDS,
+         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
+         **NATIVE_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 73bc10f..e4ff778 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -85,6 +85,7 @@ from . import living_nav  # 1.0 L1 (one navigation state): objects.files, object
+ from . import relevance  # 1.0 L3 (relevance): relevance.why (read); relevance.pin, relevance.turn_down, relevance.clear (execute) (recorded additions)
+ from . import apps_catalog  # 1.0 S2 (apps from what is installed): apps.list, apps.for (read); apps.open, apps.pin, apps.unpin (execute); apps.default (approve) (recorded additions)
+ from . import board_model  # 1.0 L2 (the bulletin board): board.read, board.links (reads); board.keep (approve, the owner's word on a link) (recorded additions)
++from . import machine_real  # 1.0 S4 (the Machine, real): machine.state (read) from udisks2, UPower, NetworkManager, wpctl, xrandr; changes are the owner's press only, never an operation (recorded additions)
+ 
+ PROGRAM_HANDLERS = {
+     op: service
+@@ -276,6 +277,7 @@ CAPABILITIES = {
+     **apps_catalog.SCOPES,  # 1.0 S2 (apps from what is installed): apps.default is approve, the owner's press only
+     **board_model.SCOPES,  # 1.0 L2 (the bulletin board): two reads; board.keep approve, only by the owner's word
+     **her_portrait.SCOPES,  # 1.0 P1 (her column): her portrait from your workspace, admitted
++    **machine_real.SCOPES,  # 1.0 S4 (the Machine, real): machine.state is a read
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+     **{name:'read' for name in workspace_services.FIELDS},
+@@ -716,6 +718,7 @@ class Kernel:
+         if op in apps_catalog.FIELDS:return apps_catalog.dispatch(self,op,a,p)   # 1.0 S2 (apps from what is installed): desktop entries, Exec as argv, mimeapps.list
+         if op in board_model.FIELDS:return board_model.dispatch(self,op,a,p)   # 1.0 L2 (the bulletin board): a focus and its neighbours with the basis of each link
+         if op in her_portrait.FIELDS:return her_portrait.dispatch(self,op,a,p)   # 1.0 P1 (her column): kasandra/portrait.png, admitted like her character file
++        if op in machine_real.FIELDS:return machine_real.dispatch(self,op,a,p)   # 1.0 S4 (the Machine, real): storage, power, network, sound and screens, read now
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+         if op in workspace_services.FIELDS:
+diff --git a/workbench/machine_qt.py b/workbench/machine_qt.py
+index f2e77ed..f9ae6eb 100644
+--- a/workbench/machine_qt.py
++++ b/workbench/machine_qt.py
+@@ -175,10 +175,14 @@ class MachinePage(QWidget):
+         with QSignalBlocker(self.tree):
+             self.tree.clear()
+             machine = self.add(None, 'machine', 'Machine', dict(kind='root', id='machine'))
++            from . import machine_room_qt  # 1.0 S4: Storage, Power, Network, Sound, Screens first, read from the system's own services
++            real = machine_room_qt.tree_rows(self, machine)  # 1.0 S4
+             for section in self.model['sections']:
+-                suffix = {'UNAVAILABLE': ' · unavailable', 'NONE': ' · none detected', 'PARTIAL': ' · bounded'}.get(section['state'], '')
+-                node = self.add(machine, section['id'], section['title'] + suffix, dict(kind='section', id=section['id'], section=section))
+-                node.setToolTip(0, 'Observed ' + when(section['sampled_at']) + ' · ' + ' · '.join(section['sources']))
++                node = machine_room_qt.adopt(real, section)  # 1.0 S4: the overview's storage and connections rows sit under Storage and Network
++                if node is None:  # 1.0 S4
++                    suffix = {'UNAVAILABLE': ' · unavailable', 'NONE': ' · none detected', 'PARTIAL': ' · bounded'}.get(section['state'], '')
++                    node = self.add(machine, section['id'], section['title'] + suffix, dict(kind='section', id=section['id'], section=section))
++                    node.setToolTip(0, 'Observed ' + when(section['sampled_at']) + ' · ' + ' · '.join(section['sources']))
+                 for row in section['items']:
+                     leaf = self.add(node, row['id'], row['label'], dict(kind='item', id=row['id'], section=section['id'], item=row))
+                     leaf.setToolTip(0, ('Observed ' if row['state'] == 'OBSERVED' else row['state'].capitalize() + ' · ') + when(row['sampled_at']) + ' · ' + row['source'])
+@@ -202,7 +206,8 @@ class MachinePage(QWidget):
+             chosen = self.items.get(self.selected_id) or machine
+             self.tree.setCurrentItem(chosen)
+         self.selected()
+-        self.caption.setText('Observed %s on this computer from /proc, /sys and os.statvfs · nothing was run · %s' % (when(self.model['sampled_at']), self.model['basis'].replace('_', ' ').lower()))
++        self.caption.setText('Observed %s on this computer from /proc, /sys and os.statvfs · nothing was run for these · %s' % (when(self.model['sampled_at']), self.model['basis'].replace('_', ' ').lower())
++                             + ' · Storage, Power, Network, Sound and Screens read from udisks2, UPower and NetworkManager, and from wpctl and xrandr run only to read')  # 1.0 S4
+         tab = getattr(getattr(self.host, 'settings_navigator', None), 'machine', None)
+         if tab is not None:tab.setToolTip('Machine · ' + self.caption.text())  # D1b: the caption is out of the pane; the tab says it
+         return True
+@@ -227,6 +232,9 @@ class MachinePage(QWidget):
+     # ------------------------------------------------------------ words
+     def describe(self, data):
+         kind = data.get('kind'); model = self.model or {}
++        if kind in ('real', 'real_item'):  # 1.0 S4: a real row says where it was read, when, and why it is not available
++            from . import machine_room_qt
++            return machine_room_qt.describe(self, data)
+         if kind == 'root':
+             host = model.get('host') or {}
+             return '\n'.join(['Machine · the computer Graphite runs on now',
+@@ -283,6 +291,9 @@ class MachinePage(QWidget):
+             finder = getattr(self.host, 'finder', None)
+             if finder is not None:
+                 finder.show_place(place)
++        elif data.get('kind') in ('real', 'real_item'):  # 1.0 S4: its page in the centre
++            from . import machine_room_qt
++            machine_room_qt.activate(self, data)
+         elif data.get('kind') == 'work':
+             self.open_work(data['id'])
+         elif data.get('kind') == 'settings':
+diff --git a/workbench/machine_real.py b/workbench/machine_real.py
+new file mode 100644
+index 0000000..9df5a8f
+--- /dev/null
++++ b/workbench/machine_real.py
+@@ -0,0 +1,865 @@
++"""Graphite 1.0 S4 · The Machine, real: removable storage, power, the network, sound and screens, read from and changed
++through the system's own services (PLAN_1.0.md, S4; the paper's section 2: "The owner needs access to removable storage,
++audio, displays, wireless connections ... and power management without leaving Graphite").
++
++  Storage   udisks2 (org.freedesktop.UDisks2) over QtDBus: the removable drives and their filesystems. Mount, Open in
++            Files (the window's Browse tab), Unmount, Eject safely. "Safe to remove" is said only after it is: every
++            filesystem of the drive read back as unmounted, then the drive powered off (or ejected) by udisks2 and read back.
++  Power     UPower (org.freedesktop.UPower): the batteries and the mains. Read only (Lock, Suspend, Log out, Restart and
++            Shut down are the System menu's, session_power).
++  Network   NetworkManager (org.freedesktop.NetworkManager): its state, networking and Wi-Fi on or off, the Wi-Fi networks
++            heard, Join and Disconnect. A network NetworkManager already knows is joined with its own saved connection; a
++            new secured one with the password the owner types, handed straight to NetworkManager in the one call that adds
++            the connection and kept by NetworkManager, never by Graphite (never written, logged or held after the call).
++  Sound     PipeWire through wpctl (WirePlumber): the outputs, the volume and mute of the one in use, which one is in use.
++  Screens   xrandr: the outputs, their modes, which is primary, one screen, mirror or extend.
++
++Each section reads into a plain dict: key, title, available, why, source, sampled_at, short (the Machine tab's few words),
++and its own rows. With its service absent the section is available=False and why says so in words, with what would make it
++available ("not available on this computer, and why").
++
++The bus: the real services are on the system D-Bus. bus='session' (or GRAPHITE_MACHINE_BUS=session in the environment) reads
++them from the session bus instead, where stand-ins can sit; nothing else changes.
++
++Every change here is a function the window calls on the owner's press: none is a Kernel operation (the model can dispatch
++those), so no change is ever made on the model's word (1.0 S4; K3's grants may wrap them later). Each change returns
++dict(ok, verified, said) and is "done" only when its effect is read back (ok and verified); the system's own permission
++prompt (polkit) may ask first, so a change may wait for the owner. The reads (snapshot, and the Kernel's machine.state) change
++nothing. No floating point in what is decided: a battery's or a volume's percent is read as decimal digits and kept as an int.
++"""
++from __future__ import annotations
++
++import os
++import re
++import shutil
++import subprocess
++import time
++import warnings
++from decimal import Decimal, ROUND_HALF_UP
++
++SCHEMA = 'machine.state/1'
++SECTIONS = ('storage', 'power', 'network', 'sound', 'screens')
++TITLES = {'storage': 'Storage', 'power': 'Power', 'network': 'Network', 'sound': 'Sound', 'screens': 'Screens'}
++TIMEOUT_MS = 1500           # a read: the service answers at once, or the section says it did not
++ACT_TIMEOUT_MS = 120000     # a change: the system's own permission prompt may be waiting for the owner
++JOIN_SECONDS = 45           # how long a Wi-Fi join may take before it is said to have failed
++PROGRAMS = ('wpctl', 'xrandr')   # the only programs this module starts; argv only, never a shell, never sudo
++NOT_HERE = 'Not available on this computer'
++
++UDISKS = 'org.freedesktop.UDisks2'
++UD_ROOT = '/org/freedesktop/UDisks2'
++UD = 'org.freedesktop.UDisks2.'
++UPOWER = 'org.freedesktop.UPower'
++UP_ROOT = '/org/freedesktop/UPower'
++NM = 'org.freedesktop.NetworkManager'
++NM_ROOT = '/org/freedesktop/NetworkManager'
++PROPS = 'org.freedesktop.DBus.Properties'
++PACKAGES = {'storage': 'udisks2', 'power': 'upower', 'network': 'network-manager', 'sound': 'wireplumber (with pipewire)',
++            'screens': 'x11-xserver-utils'}
++SERVICES = {'storage': (UDISKS, 'udisks2'), 'power': (UPOWER, 'UPower'), 'network': (NM, 'NetworkManager')}
++
++
++class Unavailable(Exception):
++    """The service is not there to ask (no bus, not running, not installed): the section says so."""
++
++
++class Refused(Exception):
++    """The service answered, with an error: its own words are kept."""
++
++    def __init__(self, name, message):
++        super().__init__(message or name);self.name = name or '';self.message = message or name or 'refused'
++
++
++# ---- QtDBus, plainly ------------------------------------------------------------------------------------------------------
++def bus_kind(bus=None):
++    kind = (bus or os.environ.get('GRAPHITE_MACHINE_BUS') or 'system').strip().lower()
++    return 'session' if kind == 'session' else 'system'
++
++
++def connection(bus=None):
++    from PySide6.QtDBus import QDBusConnection
++    kind = bus_kind(bus)
++    conn = QDBusConnection.sessionBus() if kind == 'session' else QDBusConnection.systemBus()
++    if not conn.isConnected():
++        raise Unavailable('there is no %s D-Bus here (%s)' % (kind, (conn.lastError().message() or 'not connected').strip()[:160]))
++    return conn
++
++
++def plain(value):
++    """A QtDBus answer as plain Python: dicts, lists, tuples, str, int, bool, float, bytes; object paths as str.
++
++    PySide6 cannot choose QDBusArgument's reading beginMapEntry/endArray (they share their signature with the writing ones),
++    so a map is read through copies: each entry is entered on a copy of the map's reader (a copy reads on from the same
++    place), and the map's own reader steps over it. Nothing is ever left half read."""
++    from PySide6.QtCore import QByteArray
++    from PySide6.QtDBus import QDBusArgument, QDBusObjectPath, QDBusSignature, QDBusVariant
++    if isinstance(value, QDBusVariant):return plain(value.variant())
++    if isinstance(value, QDBusObjectPath):return value.path()
++    if isinstance(value, QDBusSignature):return value.signature()
++    if isinstance(value, QByteArray):return bytes(value.data())
++    if isinstance(value, QDBusArgument):
++        kind = value.currentType();E = QDBusArgument.ElementType
++        if kind == E.MapType:
++            out = {};value.beginArray()
++            while not value.atEnd():
++                entry = QDBusArgument(value);entry.beginArray()
++                key = plain(entry.asVariant());out[key] = plain(entry.asVariant())
++                with warnings.catch_warnings():
++                    warnings.simplefilter('ignore');value.asVariant()   # step over the entry just read
++            return out
++        if kind in (E.ArrayType, E.StructureType):
++            out = [];value.beginArray()
++            while not value.atEnd():out.append(plain(value.asVariant()))
++            return out if kind == E.ArrayType else tuple(out)
++        return plain(value.asVariant())
++    if isinstance(value, dict):return {plain(k): plain(v) for k, v in value.items()}
++    if isinstance(value, (list, tuple)):return [plain(v) for v in value]
++    return value
++
++
++def call(service, path, interface, method, *args, bus=None, timeout=TIMEOUT_MS):
++    """One method call; its answer's values as plain Python. Raises Unavailable (no bus, no service) or Refused."""
++    from PySide6.QtDBus import QDBus, QDBusMessage
++    conn = connection(bus)
++    message = QDBusMessage.createMethodCall(service, path, interface, method)
++    if args:message.setArguments(list(args))
++    reply = conn.call(message, QDBus.CallMode.Block, int(timeout))
++    if reply.type() == QDBusMessage.MessageType.ErrorMessage:
++        name = reply.errorName() or ''
++        if name in ('org.freedesktop.DBus.Error.ServiceUnknown', 'org.freedesktop.DBus.Error.NameHasNoOwner', 'org.freedesktop.DBus.Error.NoServer'):
++            raise Unavailable(reply.errorMessage() or name)
++        raise Refused(name, (reply.errorMessage() or '').strip()[:300])
++    return [plain(value) for value in reply.arguments()]
++
++
++def first(values):
++    return values[0] if values else None
++
++
++def all_properties(service, path, interface, bus=None):
++    return first(call(service, path, PROPS, 'GetAll', interface, bus=bus)) or {}
++
++
++def get_property(service, path, interface, name, bus=None):
++    return first(call(service, path, PROPS, 'Get', interface, name, bus=bus))
++
++
++def set_property(service, path, interface, name, value, bus=None, timeout=ACT_TIMEOUT_MS):
++    from PySide6.QtDBus import QDBusVariant
++    return call(service, path, PROPS, 'Set', interface, name, QDBusVariant(value), bus=bus, timeout=timeout)
++
++
++def object_path(path):
++    from PySide6.QtDBus import QDBusObjectPath
++    return QDBusObjectPath(path)
++
++
++def settings_map(settings):
++    """NetworkManager's connection settings (a{sa{sv}}) as one QtDBus argument: {group: {key: value}}; bytes stay bytes."""
++    from PySide6.QtCore import QByteArray, QMetaType
++    from PySide6.QtDBus import QDBusArgument
++    argument = QDBusArgument()
++    argument.beginMap(QMetaType.Type.QString, QMetaType.Type.QVariantMap)
++    for group, values in settings.items():
++        argument.beginMapEntry();argument.appendVariant(str(group))
++        argument.appendVariant({str(k): (QByteArray(v) if isinstance(v, bytes) else v) for k, v in values.items()})
++        argument.endMapEntry()
++    argument.endMap()
++    return argument
++
++
++def present(service, bus=None):
++    """'running', 'activatable' (D-Bus starts it on the first call, as udisks2 is on Debian) or why it is not there."""
++    try:
++        conn = connection(bus)
++    except Unavailable as exc:
++        return str(exc)
++    try:
++        if first(call('org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus', 'NameHasOwner', service, bus=bus)):
++            return 'running'
++        names = first(call('org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus', 'ListActivatableNames', bus=bus)) or []
++    except (Unavailable, Refused) as exc:
++        return 'the %s D-Bus did not answer (%s)' % (bus_kind(bus), str(exc)[:120])
++    del conn
++    return 'activatable' if service in names else None
++
++
++def absent_words(key, bus=None, said=None):
++    """Why a D-Bus section is not available, in words, with the package that brings its service."""
++    service, name = SERVICES[key]
++    if said is None:
++        said = '%s is not running on this computer (nothing answers as %s on the %s D-Bus)' % (name, service, bus_kind(bus))
++    return '%s: %s. Debian has it as the package %s, in the 1.0 System set.' % (NOT_HERE, said, PACKAGES[key])
++
++
++def section(key, source, **extra):
++    out = dict(key=key, title=TITLES[key], available=True, why='', source=source, sampled_at=time.time(), short='', schema=SCHEMA)
++    out.update(extra);return out
++
++
++def unavailable(key, source, why, short='not available'):
++    return section(key, source, available=False, why=why, short=short)
++
++
++def absent(key, source, bus, here):
++    """A D-Bus section whose service is not there: the row's few words and the page's sentence both say why."""
++    name = SERVICES[key][1]
++    if here is None:short = 'not available: %s is not running' % name
++    elif here.startswith('there is no'):short = 'not available: no %s D-Bus' % bus_kind(bus)
++    else:short = 'not available: %s did not answer' % name
++    return unavailable(key, source, absent_words(key, bus, here), short)
++
++
++def text_of(value):
++    if isinstance(value, (bytes, bytearray)):return bytes(value).rstrip(b'\0').decode('utf-8', 'replace')
++    return '' if value is None else str(value)
++
++
++def percent(value):
++    """A percent from a reading (UPower's double, wpctl's '0.40') as an int, through its decimal digits, never a float sum."""
++    try:
++        return int(Decimal(str(value)).quantize(Decimal(1), rounding=ROUND_HALF_UP))
++    except Exception:  # noqa: BLE001 - a reading that is no number is no percent
++        return None
++
++
++def size_words(count):
++    if not isinstance(count, int) or count <= 0:return ''
++    for unit, step in (('TB', 10 ** 12), ('GB', 10 ** 9), ('MB', 10 ** 6), ('kB', 10 ** 3)):
++        if count >= step:
++            tenths = (count * 10 + step // 2) // step
++            return '%d.%d %s' % (tenths // 10, tenths % 10, unit) if tenths < 1000 else '%d %s' % (tenths // 10, unit)
++    return '%d bytes' % count
++
++
++def duration_words(seconds):
++    if not isinstance(seconds, int) or seconds <= 0:return ''
++    minutes = (seconds + 30) // 60;hours, minutes = divmod(minutes, 60)
++    return ('%d h %d min' % (hours, minutes)) if hours else ('%d min' % minutes)
++
++
++def failure(exc, doing):
++    """A change that did not happen, in words: the service's own words kept."""
++    if isinstance(exc, Unavailable):return dict(ok=False, verified=False, said='%s: %s' % (doing, exc))
++    if isinstance(exc, Refused):
++        if exc.name.endswith(('NotAuthorized', 'NotAuthorizedCanObtain', 'NotAuthorizedDismissed', 'PermissionDenied', 'AccessDenied')):
++            return dict(ok=False, verified=False, said='%s: the system did not allow it (%s).' % (doing, exc.message))
++        return dict(ok=False, verified=False, said='%s: %s' % (doing, exc.message))
++    return dict(ok=False, verified=False, said='%s: %s' % (doing, str(exc)[:300] or type(exc).__name__))
++
++
++# ---- Storage: udisks2 -----------------------------------------------------------------------------------------------------
++def storage(bus=None):
++    source = 'udisks2 (%s) on the %s D-Bus' % (UDISKS, bus_kind(bus))
++    here = present(UDISKS, bus)
++    if here not in ('running', 'activatable'):
++        return absent('storage', source, bus, here)
++    try:
++        objects = first(call(UDISKS, UD_ROOT, 'org.freedesktop.DBus.ObjectManager', 'GetManagedObjects', bus=bus)) or {}
++    except (Unavailable, Refused) as exc:
++        return absent('storage', source, bus, 'udisks2 did not answer (%s)' % str(exc)[:160])
++    drives = []
++    for path, faces in sorted(objects.items()):
++        drive = faces.get(UD + 'Drive')
++        if not drive:continue
++        removable = bool(drive.get('Removable') or drive.get('MediaRemovable') or drive.get('Ejectable')
++                         or drive.get('ConnectionBus') in ('usb', 'sdio', 'ieee1394'))
++        if not removable:continue
++        name = ' '.join(part for part in (text_of(drive.get('Vendor')).strip(), text_of(drive.get('Model')).strip()) if part) or 'Removable drive'
++        volumes = []
++        for block_path, block_faces in sorted(objects.items()):
++            block = block_faces.get(UD + 'Block')
++            if not block or block.get('Drive') != path or block.get('HintIgnore'):continue
++            filesystem = block_faces.get(UD + 'Filesystem');encrypted = UD + 'Encrypted' in block_faces
++            if filesystem is None and not encrypted:continue
++            mounted = [text_of(point) for point in (filesystem or {}).get('MountPoints') or [] if text_of(point)]
++            volumes.append(dict(id=block_path, device=text_of(block.get('PreferredDevice') or block.get('Device')),
++                                label=text_of(block.get('IdLabel')).strip(), fs=text_of(block.get('IdType')), size=block.get('Size') or 0,
++                                mounted=mounted, readonly=bool(block.get('ReadOnly')), encrypted=encrypted,
++                                can_mount=filesystem is not None))
++        drives.append(dict(id=path, name=name, size=drive.get('Size') or 0, bus=text_of(drive.get('ConnectionBus')),
++                           can_power_off=bool(drive.get('CanPowerOff')), ejectable=bool(drive.get('Ejectable')),
++                           media=bool(drive.get('MediaAvailable', True)), volumes=volumes))
++    short = ('%d drive' % len(drives) + ('s' if len(drives) != 1 else '')) if drives else 'no removable drive'
++    return section('storage', source, drives=drives, short=short)
++
++
++def volume_words(volume):
++    name = volume['label'] or volume['device'] or 'volume'
++    parts = [name, (volume['fs'] or 'unknown').upper() if volume['fs'] else 'unformatted', size_words(volume['size'])]
++    return ' · '.join(p for p in parts if p)
++
++
++def _mount_points(block, bus):
++    try:
++        return [text_of(p) for p in (get_property(UDISKS, block, UD + 'Filesystem', 'MountPoints', bus=bus) or []) if text_of(p)]
++    except (Unavailable, Refused):
++        return None
++
++
++def mount(block, bus=None):
++    """Mount one filesystem (udisks2 chooses the place, under /media); done when its mount point is read back."""
++    doing = 'Mounting did not happen'
++    try:
++        place = text_of(first(call(UDISKS, block, UD + 'Filesystem', 'Mount', {}, bus=bus, timeout=ACT_TIMEOUT_MS)))
++    except (Unavailable, Refused) as exc:
++        return failure(exc, doing)
++    points = _mount_points(block, bus) or []
++    if place and place in points:
++        return dict(ok=True, verified=True, said='Mounted at %s (read back from udisks2).' % place, path=place)
++    return dict(ok=True, verified=False, said='udisks2 said it mounted it at %s, but reading it back shows %s.' % (place or 'no place', ', '.join(points) or 'no mount point'), path=place)
++
++
++def unmount(block, bus=None):
++    """Unmount one filesystem; done when udisks2 reads it back as mounted nowhere (every write to it is then finished)."""
++    doing = 'Unmounting did not happen'
++    try:
++        call(UDISKS, block, UD + 'Filesystem', 'Unmount', {}, bus=bus, timeout=ACT_TIMEOUT_MS)
++    except (Unavailable, Refused) as exc:
++        return failure(exc, doing)
++    points = _mount_points(block, bus)
++    if points == []:
++        return dict(ok=True, verified=True, said='Unmounted (read back: mounted nowhere).')
++    return dict(ok=True, verified=False, said='udisks2 answered, but it still reads as mounted at %s.' % (', '.join(points or []) or 'an unknown place'))
++
++
++def eject(drive_id, bus=None):
++    """Eject safely: unmount every filesystem of the drive (each read back), then power it off (or eject it) through udisks2.
++    safe is True only when every filesystem reads back unmounted and the drive was powered off or ejected (or, for a drive
++    that can do neither, when everything on it reads back unmounted): only then is "Safe to remove" said."""
++    now = storage(bus)
++    if not now['available']:return dict(ok=False, verified=False, safe=False, said=now['why'])
++    drive = next((d for d in now['drives'] if d['id'] == drive_id), None)
++    if drive is None:return dict(ok=False, verified=False, safe=False, said='That drive is no longer here: nothing was done.')
++    steps = []
++    for volume in drive['volumes']:
++        if volume['mounted']:
++            done = unmount(volume['id'], bus)
++            steps.append(done['said'])
++            if not done['verified']:
++                return dict(ok=False, verified=False, safe=False, said='Not safe to remove yet: %s %s' % (volume_words(volume), done['said']))
++    for volume in drive['volumes']:
++        if volume['can_mount'] and _mount_points(volume['id'], bus):
++            return dict(ok=False, verified=False, safe=False, said='Not safe to remove yet: %s is still mounted.' % volume_words(volume))
++    method = 'PowerOff' if drive['can_power_off'] else 'Eject' if drive['ejectable'] else None
++    if method is None:
++        return dict(ok=True, verified=True, safe=True, said='Safe to remove: nothing on %s is mounted (read back), and every write to it is finished.' % drive['name'])
++    try:
++        call(UDISKS, drive_id, UD + 'Drive', method, {}, bus=bus, timeout=ACT_TIMEOUT_MS)
++    except (Unavailable, Refused) as exc:
++        out = failure(exc, 'Everything on it is unmounted, but %s did not happen' % ('powering it off' if method == 'PowerOff' else 'ejecting it'))
++        out['safe'] = False;return out
++    after = storage(bus)
++    gone = after['available'] and not any(d['id'] == drive_id for d in after['drives'])
++    word = 'powered it off' if method == 'PowerOff' else 'ejected it'
++    return dict(ok=True, verified=True, safe=True, gone=gone,
++                said='Safe to remove: everything on %s is unmounted (read back) and udisks2 %s%s.' % (
++                    drive['name'], word, ' (it has left the list)' if gone else ''))
++
++
++# ---- Power: UPower --------------------------------------------------------------------------------------------------------
++KINDS = {1: 'mains', 2: 'battery', 3: 'UPS', 4: 'monitor', 5: 'mouse', 6: 'keyboard', 7: 'handheld', 8: 'phone', 9: 'media player',
++         10: 'tablet', 11: 'computer', 12: 'gaming input', 13: 'pen', 17: 'headset', 18: 'speakers', 19: 'headphones'}
++STATES = {1: 'charging', 2: 'discharging', 3: 'empty', 4: 'full', 5: 'waiting to charge', 6: 'waiting to discharge'}
++
++
++def power(bus=None):
++    source = 'UPower (%s) on the %s D-Bus' % (UPOWER, bus_kind(bus))
++    here = present(UPOWER, bus)
++    if here not in ('running', 'activatable'):
++        return absent('power', source, bus, here)
++    try:
++        top = all_properties(UPOWER, UP_ROOT, UPOWER, bus=bus)
++        paths = first(call(UPOWER, UP_ROOT, UPOWER, 'EnumerateDevices', bus=bus)) or []
++        devices = []
++        for path in paths:
++            p = all_properties(UPOWER, path, UPOWER + '.Device', bus=bus)
++            kind = KINDS.get(p.get('Type'), 'device')
++            if kind == 'battery' and p.get('IsPresent') is False:continue
++            devices.append(dict(id=path, kind=kind, supply=bool(p.get('PowerSupply')), percent=percent(p.get('Percentage')),
++                                state=STATES.get(p.get('State'), ''), online=bool(p.get('Online')),
++                                to_empty=int(p.get('TimeToEmpty') or 0), to_full=int(p.get('TimeToFull') or 0),
++                                name=' '.join(x for x in (text_of(p.get('Vendor')).strip(), text_of(p.get('Model')).strip()) if x)))
++    except (Unavailable, Refused) as exc:
++        return absent('power', source, bus, 'UPower did not answer (%s)' % str(exc)[:160])
++    batteries = [d for d in devices if d['kind'] == 'battery' and d['supply']]
++    mains = [d for d in devices if d['kind'] == 'mains']
++    on_battery = bool(top.get('OnBattery'))
++    if batteries:
++        b = batteries[0]
++        short = 'battery %s %%%s' % (b['percent'] if b['percent'] is not None else '?', (', ' + b['state']) if b['state'] else '')
++    else:
++        short = 'on mains' if mains and any(m['online'] for m in mains) else 'no battery'
++    return section('power', source, devices=devices, batteries=batteries, mains=mains, on_battery=on_battery, short=short)
++
++
++def battery_words(device):
++    words = ['%s %%' % device['percent'] if device['percent'] is not None else 'level unknown']
++    if device['state']:words.append(device['state'])
++    if device['state'] == 'discharging' and device['to_empty']:words.append('about %s left' % duration_words(device['to_empty']))
++    if device['state'] == 'charging' and device['to_full']:words.append('full in about %s' % duration_words(device['to_full']))
++    return ', '.join(words)
++
++
++# ---- Network: NetworkManager ----------------------------------------------------------------------------------------------
++NM_STATES = {0: 'unknown', 10: 'asleep', 20: 'disconnected', 30: 'disconnecting', 40: 'connecting', 50: 'connected to this place only',
++             60: 'connected to this place only', 70: 'connected'}
++DEVICE_KINDS = {1: 'wired', 2: 'Wi-Fi', 5: 'Bluetooth', 14: 'generic', 30: 'Wi-Fi P2P'}
++DEVICE_STATES = {10: 'unmanaged', 20: 'unavailable', 30: 'disconnected', 40: 'preparing', 50: 'configuring', 60: 'needs a password',
++                 70: 'getting an address', 80: 'checking', 90: 'waiting', 100: 'connected', 110: 'disconnecting', 120: 'failed'}
++REASONS = {7: 'NetworkManager had no password for it', 8: 'the network did not accept the password, or dropped the connection',
++           9: 'the Wi-Fi security settings could not be used', 10: 'the Wi-Fi security part of the system failed',
++           11: 'the network did not answer in time', 53: 'the network is out of reach'}
++
++
++def security(flags, wpa, rsn):
++    both = (wpa or 0) | (rsn or 0)
++    if both & 0x2200:return 'enterprise'
++    if both & 0x400 and not both & 0x100:return 'WPA3'
++    if both & 0x100:return 'WPA'
++    if both & 0x1800:return 'open'
++    if (flags or 0) & 0x1:return 'WEP'
++    return 'open'
++
++
++def strength_word(value):
++    value = value if isinstance(value, int) else 0
++    return 'strong' if value >= 75 else 'good' if value >= 50 else 'fair' if value >= 25 else 'weak'
++
++
++def network(bus=None):
++    source = 'NetworkManager (%s) on the %s D-Bus' % (NM, bus_kind(bus))
++    here = present(NM, bus)
++    if here not in ('running', 'activatable'):
++        return absent('network', source, bus, here)
++    try:
++        top = all_properties(NM, NM_ROOT, NM, bus=bus)
++        devices = []
++        for path in first(call(NM, NM_ROOT, NM, 'GetDevices', bus=bus)) or []:
++            d = all_properties(NM, path, NM + '.Device', bus=bus)
++            kind = DEVICE_KINDS.get(d.get('DeviceType'))
++            if kind not in ('wired', 'Wi-Fi'):continue
++            row = dict(id=path, interface=text_of(d.get('Interface')), kind=kind, state=DEVICE_STATES.get(d.get('State'), 'unknown'),
++                       state_number=d.get('State') or 0, networks=[])
++            if kind == 'Wi-Fi':
++                w = all_properties(NM, path, NM + '.Device.Wireless', bus=bus)
++                active = w.get('ActiveAccessPoint') or '/'
++                saved = {}
++                for conn in d.get('AvailableConnections') or []:
++                    try:
++                        settings = first(call(NM, conn, NM + '.Settings.Connection', 'GetSettings', bus=bus)) or {}
++                    except Refused:
++                        continue
++                    ssid = (settings.get('802-11-wireless') or {}).get('ssid')
++                    if ssid:saved.setdefault(text_of(ssid), conn)
++                heard = {}
++                for ap in w.get('AccessPoints') or []:
++                    try:
++                        a = all_properties(NM, ap, NM + '.AccessPoint', bus=bus)
++                    except Refused:
++                        continue      # an access point that went between the list and the read
++                    name = text_of(a.get('Ssid'))
++                    if not name:continue      # a hidden network has no name to show
++                    strength = int(a.get('Strength') or 0)
++                    entry = dict(id=ap, ssid=name, strength=strength, strength_word=strength_word(strength),
++                                 security=security(a.get('Flags'), a.get('WpaFlags'), a.get('RsnFlags')), active=ap == active,
++                                 saved=saved.get(name), device=path)
++                    held = heard.get(name)
++                    if held is None or entry['active'] or (not held['active'] and strength > held['strength']):heard[name] = entry
++                row['networks'] = sorted(heard.values(), key=lambda n: (not n['active'], -n['strength'], n['ssid'].casefold()))
++                row['active_ssid'] = next((n['ssid'] for n in row['networks'] if n['active']), '')
++            devices.append(row)
++    except (Unavailable, Refused) as exc:
++        return absent('network', source, bus, 'NetworkManager did not answer (%s)' % str(exc)[:160])
++    state = NM_STATES.get(top.get('State'), 'unknown')
++    enabled = bool(top.get('NetworkingEnabled', True));wifi = bool(top.get('WirelessEnabled'));switch = bool(top.get('WirelessHardwareEnabled', True))
++    wifi_devices = [d for d in devices if d['kind'] == 'Wi-Fi']
++    active = next((d['active_ssid'] for d in wifi_devices if d.get('active_ssid')), '')
++    short = ('off' if not enabled else (state + (' (Wi-Fi %s)' % active if active else '')))
++    return section('network', source, state=state, state_number=top.get('State') or 0, enabled=enabled, wifi=wifi, wifi_switch=switch,
++                   devices=devices, wifi_devices=wifi_devices, short=short)
++
++
++def set_networking(on, bus=None):
++    doing = 'Networking was not turned %s' % ('on' if on else 'off')
++    try:
++        call(NM, NM_ROOT, NM, 'Enable', bool(on), bus=bus, timeout=ACT_TIMEOUT_MS)
++        now = get_property(NM, NM_ROOT, NM, 'NetworkingEnabled', bus=bus)
++    except (Unavailable, Refused) as exc:
++        return failure(exc, doing)
++    if bool(now) == bool(on):return dict(ok=True, verified=True, said='Networking is %s (read back from NetworkManager).' % ('on' if on else 'off'))
++    return dict(ok=True, verified=False, said='NetworkManager answered, but networking still reads %s.' % ('on' if now else 'off'))
++
++
++def set_wifi(on, bus=None):
++    doing = 'Wi-Fi was not turned %s' % ('on' if on else 'off')
++    try:
++        set_property(NM, NM_ROOT, NM, 'WirelessEnabled', bool(on), bus=bus)
++        now = get_property(NM, NM_ROOT, NM, 'WirelessEnabled', bus=bus)
++        switch = get_property(NM, NM_ROOT, NM, 'WirelessHardwareEnabled', bus=bus)
++    except (Unavailable, Refused) as exc:
++        return failure(exc, doing)
++    if bool(now) == bool(on):
++        extra = '' if switch is not False else ' The Wi-Fi switch on this computer is off, so no network is heard until it is on.'
++        return dict(ok=True, verified=True, said='Wi-Fi is %s (read back from NetworkManager).%s' % ('on' if on else 'off', extra))
++    return dict(ok=True, verified=False, said='NetworkManager answered, but Wi-Fi still reads %s.' % ('on' if now else 'off'))
++
++
++def scan(device, bus=None):
++    try:
++        call(NM, device, NM + '.Device.Wireless', 'RequestScan', {}, bus=bus, timeout=ACT_TIMEOUT_MS)
++    except (Unavailable, Refused) as exc:
++        return failure(exc, 'Looking for networks did not start')
++    return dict(ok=True, verified=True, said='NetworkManager is listening for networks; the list fills as they answer.')
++
++
++def _active_state(active, bus):
++    try:
++        return get_property(NM, active, NM + '.Connection.Active', 'State', bus=bus)
++    except Refused:
++        return 4      # the active connection went away: deactivated
++    except Unavailable:
++        return None
++
++
++def _reason(device, bus):
++    try:
++        pair = get_property(NM, device, NM + '.Device', 'StateReason', bus=bus)
++        number = pair[1] if isinstance(pair, (list, tuple)) and len(pair) > 1 else None
++    except (Unavailable, Refused):
++        number = None
++    return REASONS.get(number, 'NetworkManager could not connect%s' % ((' (its reason %s)' % number) if number else ''))
++
++
++def join(device, access_point, ssid, password=None, bus=None, seconds=JOIN_SECONDS, sleep=time.sleep, clock=time.monotonic):
++    """Join a Wi-Fi network. A network NetworkManager has saved is activated with its saved connection; an open one is added
++    as it is; a secured new one is added with the password the owner typed, passed once in that call and kept by
++    NetworkManager (Graphite keeps no copy). Done only when NetworkManager reads back the connection as activated on that
++    network. A connection this call added that then fails is taken away again (nothing half-made is left saved)."""
++    now = network(bus)
++    if not now['available']:return dict(ok=False, verified=False, said=now['why'])
++    entry = next((n for d in now['wifi_devices'] if d['id'] == device for n in d['networks'] if n['ssid'] == ssid), None)
++    if entry is None:return dict(ok=False, verified=False, said='%s is not heard here now: nothing was done.' % ssid)
++    created = None;doing = 'Joining %s did not happen' % ssid
++    try:
++        if entry['saved']:
++            active = first(call(NM, NM_ROOT, NM, 'ActivateConnection', object_path(entry['saved']), object_path(device),
++                                object_path(access_point), bus=bus, timeout=ACT_TIMEOUT_MS))
++        elif entry['security'] == 'open':
++            created, active = call(NM, NM_ROOT, NM, 'AddAndActivateConnection', settings_map({}), object_path(device),
++                                   object_path(access_point), bus=bus, timeout=ACT_TIMEOUT_MS)[:2]
++        elif entry['security'] in ('WPA', 'WPA3'):
++            if not password:return dict(ok=False, verified=False, said='%s is secured: type its password, then Join.' % ssid)
++            key = 'sae' if entry['security'] == 'WPA3' else 'wpa-psk'
++            settings = settings_map({'802-11-wireless-security': {'key-mgmt': key, 'psk': password}})
++            password = None      # the words go to NetworkManager in this call and are kept nowhere here
++            created, active = call(NM, NM_ROOT, NM, 'AddAndActivateConnection', settings, object_path(device),
++                                   object_path(access_point), bus=bus, timeout=ACT_TIMEOUT_MS)[:2]
++            del settings
++        elif entry['security'] == 'enterprise':
++            return dict(ok=False, verified=False, said='%s needs an organisation\'s sign-in (802.1X). Graphite 1.0 does not set that up: use nmtui in the Terminal.' % ssid)
++        else:
++            return dict(ok=False, verified=False, said='%s uses WEP, an old security that is no longer safe. Graphite does not join it.' % ssid)
++    except (Unavailable, Refused) as exc:
++        return failure(exc, doing)
++    deadline = clock() + seconds;state = None
++    while clock() < deadline:
++        state = _active_state(active, bus)
++        if state in (2, 4, None):break
++        sleep(0.5)
++    if state == 2:
++        try:
++            ap = get_property(NM, device, NM + '.Device.Wireless', 'ActiveAccessPoint', bus=bus) or '/'
++            heard = text_of(get_property(NM, ap, NM + '.AccessPoint', 'Ssid', bus=bus)) if ap != '/' else ''
++        except (Unavailable, Refused):
++            heard = ''
++        if heard == ssid:
++            return dict(ok=True, verified=True, said='Joined %s (read back from NetworkManager). NetworkManager keeps its password, not Graphite.' % ssid)
++        return dict(ok=True, verified=False, said='NetworkManager reports a connection, but not on %s.' % ssid)
++    why = _reason(device, bus) if state == 4 else 'it was still connecting after %d seconds' % seconds
++    if created and state == 4:
++        try:
++            call(NM, created, NM + '.Settings.Connection', 'Delete', bus=bus, timeout=ACT_TIMEOUT_MS)
++            why += '; the new connection was taken away again'
++        except (Unavailable, Refused):
++            pass
++    return dict(ok=False, verified=False, said='Did not join %s: %s.' % (ssid, why))
++
++
++def disconnect(device, bus=None, sleep=time.sleep):
++    try:
++        call(NM, device, NM + '.Device', 'Disconnect', bus=bus, timeout=ACT_TIMEOUT_MS)
++        state = None
++        for _ in range(10):
++            state = get_property(NM, device, NM + '.Device', 'State', bus=bus)
++            if state != 100:break
++            sleep(0.3)
++    except (Unavailable, Refused) as exc:
++        return failure(exc, 'Disconnecting did not happen')
++    if state != 100:return dict(ok=True, verified=True, said='Disconnected (read back: %s).' % DEVICE_STATES.get(state, 'not connected'))
++    return dict(ok=True, verified=False, said='NetworkManager answered, but it still reads as connected.')
++
++
++# ---- Programs: wpctl and xrandr -------------------------------------------------------------------------------------------
++def where(program):
++    if program not in PROGRAMS:raise ValueError('Graphite runs only wpctl or xrandr here: %r' % (program,))
++    return shutil.which(program)
++
++
++def run(argv, timeout=8):
++    """argv[0] is wpctl or xrandr, found on PATH; no shell, no terminal, never sudo. dict(ok, code, out, err)."""
++    if not argv or argv[0] not in PROGRAMS or any(part in ('sudo', 'pkexec', 'su', 'doas') for part in argv):
++        raise ValueError('Graphite runs only wpctl or xrandr here: %r' % (argv,))
++    path = where(argv[0])
++    if path is None:return dict(ok=False, code=None, out='', err='%s is not installed on this computer' % argv[0])
++    try:
++        done = subprocess.run([path, *[str(a) for a in argv[1:]]], stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=timeout)
++    except (OSError, subprocess.SubprocessError) as exc:
++        return dict(ok=False, code=None, out='', err=str(exc)[:300])
++    return dict(ok=done.returncode == 0, code=done.returncode, out=done.stdout or '', err=(done.stderr or '').strip()[-300:])
++
++
++# ---- Sound: PipeWire through wpctl ----------------------------------------------------------------------------------------
++DEFAULT_SINK = '@DEFAULT_AUDIO_SINK@'
++SINK_LINE = re.compile(r'^[\s│]*(\*)?\s*(\d+)\.\s+(.*?)\s*(?:\[vol:\s*([\d.]+)(\s+MUTED)?\])?\s*$')
++BRANCH = re.compile(r'^[\s│]*[├└]─\s*(.+?):\s*$')
++VOLUME = re.compile(r'Volume:\s*(\d+(?:\.\d+)?)(\s*\[MUTED\])?')
++
++
++def parse_sinks(text):
++    """The Audio section's Sinks of `wpctl status`: [dict(id, name, default, percent, muted)]."""
++    out = [];top = None;branch = None
++    for raw in (text or '').splitlines():
++        line = raw.rstrip()
++        if not line.strip():continue
++        if not line[0].isspace() and line[0] not in '│├└':
++            top = line.strip();branch = None;continue
++        found = BRANCH.match(line)
++        if found:branch = found.group(1).strip();continue
++        if top == 'Audio' and branch == 'Sinks':
++            row = SINK_LINE.match(line)
++            if row:
++                out.append(dict(id=int(row.group(2)), name=row.group(3).strip(), default=bool(row.group(1)),
++                                percent=percent(Decimal(row.group(4)) * 100) if row.group(4) else None, muted=bool(row.group(5))))
++    return out
++
++
++def volume_of(text):
++    """'Volume: 0.40 [MUTED]' -> (40, True), through the decimal digits."""
++    found = VOLUME.search(text or '')
++    if not found:return None, None
++    return percent(Decimal(found.group(1)) * 100), bool(found.group(2))
++
++
++def sound():
++    source = 'PipeWire through wpctl (WirePlumber)'
++    if where('wpctl') is None:
++        return unavailable('sound', source, '%s: wpctl (WirePlumber, the PipeWire session manager) is not installed. Debian has it as the package %s, in the 1.0 System set.' % (NOT_HERE, PACKAGES['sound']), 'not available: no wpctl')
++    status = run(['wpctl', 'status'])
++    if not status['ok']:
++        return unavailable('sound', source, '%s: PipeWire is not answering in this session (wpctl: %s).' % (NOT_HERE, status['err'] or 'exit status %s' % status['code']),
++                           'not available: PipeWire is not answering')
++    sinks = parse_sinks(status['out'])
++    level, muted = volume_of(run(['wpctl', 'get-volume', DEFAULT_SINK])['out']) if sinks else (None, None)
++    current = next((s for s in sinks if s['default']), None)
++    if not sinks:short = 'no output'
++    elif muted:short = 'muted'
++    else:short = '%s %%' % level if level is not None else 'volume unknown'
++    return section('sound', source, sinks=sinks, current=current, percent=level, muted=bool(muted), short=short)
++
++
++def set_volume(level):
++    level = max(0, min(100, int(level)))
++    done = run(['wpctl', 'set-volume', DEFAULT_SINK, '%d%%' % level])
++    if not done['ok']:return dict(ok=False, verified=False, said='The volume did not change: %s' % (done['err'] or 'wpctl failed'))
++    now, _ = volume_of(run(['wpctl', 'get-volume', DEFAULT_SINK])['out'])
++    if now is not None and abs(now - level) <= 1:return dict(ok=True, verified=True, said='Volume %d %% (read back).' % now, percent=now)
++    return dict(ok=True, verified=False, said='wpctl answered, but the volume reads %s.' % ('%d %%' % now if now is not None else 'nothing'))
++
++
++def set_mute(on):
++    done = run(['wpctl', 'set-mute', DEFAULT_SINK, '1' if on else '0'])
++    if not done['ok']:return dict(ok=False, verified=False, said='Mute did not change: %s' % (done['err'] or 'wpctl failed'))
++    _, muted = volume_of(run(['wpctl', 'get-volume', DEFAULT_SINK])['out'])
++    if muted is not None and bool(muted) == bool(on):return dict(ok=True, verified=True, said=('Muted' if on else 'Sound on') + ' (read back).')
++    return dict(ok=True, verified=False, said='wpctl answered, but it reads %s.' % ('muted' if muted else 'not muted'))
++
++
++def set_output(sink_id):
++    sink_id = int(sink_id)
++    done = run(['wpctl', 'set-default', str(sink_id)])
++    if not done['ok']:return dict(ok=False, verified=False, said='The output did not change: %s' % (done['err'] or 'wpctl failed'))
++    sinks = parse_sinks(run(['wpctl', 'status'])['out'])
++    chosen = next((s for s in sinks if s['default']), None)
++    if chosen and chosen['id'] == sink_id:return dict(ok=True, verified=True, said='Sound plays through %s (read back).' % chosen['name'])
++    return dict(ok=True, verified=False, said='wpctl answered, but the output in use reads %s.' % (chosen['name'] if chosen else 'none'))
++
++
++# ---- Screens: xrandr ------------------------------------------------------------------------------------------------------
++OUTPUT_LINE = re.compile(r'^(\S+) (connected|disconnected)( primary)?(?: (\d+)x(\d+)\+(\d+)\+(\d+))?')
++MODE_LINE = re.compile(r'^\s+(\d+x\d+i?)\s+(.*)$')
++NAME = re.compile(r'^[A-Za-z0-9_.-]{1,32}$')
++MODE = re.compile(r'^\d{2,5}x\d{2,5}i?$')
++
++
++def parse_outputs(text):
++    """`xrandr --current` (or --query) -> [dict(name, connected, primary, active, width, height, x, y, modes:[dict(mode, rates, current, preferred)], current)]."""
++    out = [];row = None
++    for line in (text or '').splitlines():
++        found = OUTPUT_LINE.match(line)
++        if found:
++            name, state, primary = found.group(1), found.group(2), bool(found.group(3))
++            geometry = [int(found.group(i)) for i in range(4, 8)] if found.group(4) else None
++            row = dict(name=name, connected=state == 'connected', primary=primary, active=geometry is not None,
++                       width=geometry[0] if geometry else None, height=geometry[1] if geometry else None,
++                       x=geometry[2] if geometry else None, y=geometry[3] if geometry else None, modes=[], current=None)
++            out.append(row);continue
++        mode = MODE_LINE.match(line)
++        if mode and row is not None:
++            rates = mode.group(2).split()
++            entry = dict(mode=mode.group(1), rates=[r.rstrip('*+') for r in rates if r.rstrip('*+')],
++                         current=any('*' in r for r in rates), preferred=any('+' in r for r in rates))
++            row['modes'].append(entry)
++            if entry['current']:row['current'] = entry['mode']
++    return out
++
++
++def arrangement(outputs):
++    active = [o for o in outputs if o['active']]
++    if len(active) <= 1:return 'one screen'
++    places = {(o['x'], o['y']) for o in active}
++    return 'mirror' if len(places) == 1 else 'extend'
++
++
++def screens(environ=None):
++    environ = os.environ if environ is None else environ
++    source = 'xrandr on this session\'s X display'
++    if not environ.get('DISPLAY'):
++        return unavailable('screens', source, '%s: there is no X display in this session (DISPLAY is not set), so there are no screens to arrange.' % NOT_HERE, 'not available: no X display')
++    if where('xrandr') is None:
++        return unavailable('screens', source, '%s: xrandr is not installed. Debian has it in the package %s, in the 1.0 System set.' % (NOT_HERE, PACKAGES['screens']), 'not available: no xrandr')
++    query = run(['xrandr', '--current'])      # what the X server holds now: no re-probe of the outputs on every reading
++    if not query['ok']:
++        return unavailable('screens', source, '%s: the X display did not answer xrandr (%s).' % (NOT_HERE, query['err'] or 'exit status %s' % query['code']),
++                           'not available: the X display did not answer')
++    outputs = parse_outputs(query['out'])
++    connected = [o for o in outputs if o['connected']]
++    how = arrangement(outputs)
++    short = ('%d screens, %s' % (len(connected), how if how != 'one screen' else 'one on')) if len(connected) > 1 else (
++        '%s %s' % (connected[0]['name'], connected[0]['current'] or 'off') if connected else 'none connected')
++    return section('screens', source, outputs=outputs, connected=connected, arrangement=how, short=short)
++
++
++def restore_args(outputs):
++    """The xrandr words that put the arrangement read in `outputs` back (Keep or Go back after a change)."""
++    args = []
++    for o in outputs:
++        if o['active'] and o['current']:
++            args += ['--output', o['name'], '--mode', o['current'], '--pos', '%dx%d' % (o['x'], o['y'])] + (['--primary'] if o['primary'] else [])
++        elif o['connected'] or o['active']:
++            args += ['--output', o['name'], '--off']
++    return args
++
++
++def plan(change, outputs, name=None, mode=None):
++    """The xrandr words for one change, checked against what was read: mode, primary, off, on, mirror, extend."""
++    names = {o['name']: o for o in outputs}
++    if name is not None and (not NAME.match(str(name)) or name not in names):raise ValueError('No screen called %r here.' % (name,))
++    active = [o for o in outputs if o['active']];connected = [o for o in outputs if o['connected']]
++    primary = next((o for o in active if o['primary']), active[0] if active else None)
++    if change == 'mode':
++        if not MODE.match(str(mode)) or mode not in [m['mode'] for m in names[name]['modes']]:raise ValueError('%s has no mode %r.' % (name, mode))
++        return ['--output', name, '--mode', mode]
++    if change == 'primary':return ['--output', name, '--primary']
++    if change == 'off':
++        if len(active) <= 1 and names[name]['active']:raise ValueError('%s is the only screen on: Graphite never turns the last one off.' % name)
++        return ['--output', name, '--off']
++    if change == 'on':
++        if not names[name]['connected']:raise ValueError('%s has nothing connected.' % name)
++        return ['--output', name, '--auto'] + (['--right-of', primary['name']] if primary and primary['name'] != name else [])
++    if change in ('mirror', 'extend'):
++        if primary is None or len(connected) < 2:raise ValueError('Mirror and extend need two connected screens.')
++        args = [];left = primary
++        for o in connected:
++            if o['name'] == primary['name']:continue
++            if change == 'mirror':
++                common = next((m['mode'] for m in o['modes'] if m['mode'] == primary['current']), None)
++                args += ['--output', o['name']] + (['--mode', common] if common else ['--auto']) + ['--same-as', primary['name']]
++            else:
++                args += ['--output', o['name'], '--auto', '--right-of', left['name']];left = o
++        return args
++    raise ValueError('Unknown change to the screens: %r' % (change,))
++
++
++def apply_screens(args, expect=None):
++    """Run one xrandr change and read the screens back. expect(outputs) -> True when the change shows; done only then."""
++    for part in args:
++        if not (part.startswith('--') or NAME.match(part) or MODE.match(part) or re.match(r'^\d{1,5}x\d{1,5}$', part)):
++            raise ValueError('Not an xrandr word Graphite uses: %r' % (part,))
++    done = run(['xrandr', *args])
++    if not done['ok']:return dict(ok=False, verified=False, said='The screens did not change: %s' % (done['err'] or 'xrandr failed'))
++    now = screens()
++    if not now['available']:return dict(ok=True, verified=False, said='xrandr answered, but the screens could not be read back: ' + now['why'])
++    seen = bool(expect(now['outputs'])) if expect else True
++    return dict(ok=True, verified=seen, outputs=now['outputs'],
++                said=('The screens changed (read back: %s).' % now['short']) if seen else 'xrandr answered, but reading the screens back does not show the change.')
++
++
++def expectation(change, name=None, mode=None):
++    """What reading the screens back must show after a change."""
++    if change == 'mode':return lambda outs: any(o['name'] == name and o['current'] == mode for o in outs)
++    if change == 'primary':return lambda outs: any(o['name'] == name and o['primary'] for o in outs)
++    if change == 'off':return lambda outs: any(o['name'] == name and not o['active'] for o in outs)
++    if change == 'on':return lambda outs: any(o['name'] == name and o['active'] for o in outs)
++    if change in ('mirror', 'extend'):return lambda outs: arrangement(outs) == change
++    return None
++
++
++def change_screens(change, name=None, mode=None):
++    """One change to the screens on the owner's press; returns the arrangement it replaced (before) so it can be put back."""
++    now = screens()
++    if not now['available']:return dict(ok=False, verified=False, said=now['why'])
++    try:
++        args = plan(change, now['outputs'], name, mode)
++    except ValueError as exc:
++        return dict(ok=False, verified=False, said=str(exc))
++    out = apply_screens(args, expectation(change, name, mode));out['before'] = restore_args(now['outputs']);return out
++
++
++def put_back(before):
++    """Go back to an arrangement read before a change (its restore_args)."""
++    if not before:return dict(ok=False, verified=False, said='Nothing to go back to.')
++    wanted = {};name = None
++    for i, part in enumerate(before):
++        if part == '--output':name = before[i + 1];wanted[name] = None
++        if part == '--mode' and name is not None:wanted[name] = before[i + 1]
++    return apply_screens(before, lambda outs: all((o['current'] if o['active'] else None) == wanted.get(o['name']) for o in outs if o['name'] in wanted))
++
++
++# ---- All of it ------------------------------------------------------------------------------------------------------------
++READERS = {'storage': storage, 'power': power, 'network': network, 'sound': lambda bus=None: sound(), 'screens': lambda bus=None: screens()}
++
++
++def read(key, bus=None):
++    """One section; a reader that fails says so in its own words (never raises)."""
++    try:
++        return READERS[key](bus=bus)
++    except Exception as exc:  # noqa: BLE001 - a broken reading is a section that says what went wrong, never a broken window
++        return unavailable(key, TITLES[key], '%s: reading it failed here (%s: %s).' % (NOT_HERE, type(exc).__name__, str(exc)[:160]))
++
++
++def snapshot(keys=None, bus=None):
++    return {key: read(key, bus) for key in (keys or SECTIONS)}
++
++
++# ---- The Kernel's read (1.0 S4): machine.state, for her observation; changes are never Kernel operations ---------------------
++FIELDS = {'machine.state': ({'section': {'type': 'string', 'enum': list(SECTIONS)}}, [])}
++SCOPES = {'machine.state': 'read'}
++
++
++def dispatch(kernel, op, args, principal):
++    if op != 'machine.state':raise ValueError('Unknown machine operation')
++    keys = [args['section']] if args.get('section') else list(SECTIONS)
++    sections = snapshot(keys)
++    return {'schema': SCHEMA, 'bus': bus_kind(), 'sections': sections,
++            'basis': 'observed now on the computer Graphite runs on, through its own services; reading changed nothing'}
+diff --git a/workbench/machine_room_qt.py b/workbench/machine_room_qt.py
+new file mode 100644
+index 0000000..21502a3
+--- /dev/null
++++ b/workbench/machine_room_qt.py
+@@ -0,0 +1,514 @@
++"""Graphite 1.0 S4 · The Machine tab's real rows and their pages in the centre.
++
++The left pane's Machine tab (machine_qt.MachinePage) opens with five rows read from the system's own services
++(machine_real): Storage, Power, Network, Sound, Screens, each with its few words ("Storage · 1 drive", "Power · battery
++76 %, charging", "Network · not available"). Below them the overview's rows that still mean something: Processor, Memory,
++Devices, Installed tools; the overview's disks, mounts and Graphite's folders sit under Storage, its interfaces under
++Network. Choosing one of the five opens its page in the centre (MachineRoom, a room tab like This Computer):
++
++  Storage   each removable drive, its filesystems and whether each is mounted; Mount, Open in Files, Unmount, Eject safely.
++            "SAFE TO REMOVE" shows only after machine_real.eject read it back.
++  Power     each battery (its percent, charging or not, the time left) and the mains; where Lock and Suspend are.
++  Network   the state; networking and Wi-Fi on or off; the Wi-Fi networks heard, strongest first; Join (a secured new network
++            asks for its password in a field on the page: the words go to NetworkManager in the call, which keeps them;
++            the field is emptied at once, Graphite keeps no copy); Disconnect; the wired connections.
++  Sound     the volume and mute of the output in use; the outputs, and Use this output.
++  Screens   each screen with its modes; Use this mode, Make primary, Turn off or on; Mirror or Extend. After a change:
++            "Keep this arrangement?", and it goes back by itself in 15 seconds unless kept.
++
++Each page says where its words come from and when they were read; with its service absent it says "Not available on this
++computer" and why. Every change is the owner's press on the page (none is a Kernel operation), runs off the window's
++thread, and is said DONE only when machine_real read its effect back; otherwise NOT DONE with the reason. Every state is a
++word (MOUNTED, CONNECTED, IN USE, MUTED, PRIMARY, ...), never a colour alone. A page re-reads every few seconds while it is
++in front (a drive plugged in shows by itself) and is redrawn only when what it reads changed, never under the owner's
++typing or a pending Keep.
++"""
++from __future__ import annotations
++
++import json
++import threading
++import time
++
++from PySide6.QtCore import QObject, Qt, QTimer, Signal
++from PySide6.QtWidgets import (QComboBox, QFrame, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QSlider, QVBoxLayout,
++                               QWidget)
++
++from . import boss_theme as bt
++from . import machine_real as real
++
++ROW_SECONDS = 10       # the Machine tab's five rows re-read this often while the tab shows
++PAGE_SECONDS = 3       # a page in front re-reads this often; it is redrawn only when what it reads changed
++KEEP_SECONDS = 15      # a change to the screens goes back by itself unless kept
++CACHE_SECONDS = 2      # the rows and a page opened together share one reading
++SYSTEM_MENU = 'Lock, Suspend, Log out, Restart and Shut down are in the System menu, the symbol at the right of the head.'
++
++
++def clock(stamp):
++    return time.strftime('%H:%M:%S', time.localtime(stamp)) if stamp else 'not read'
++
++
++# ---- one reading shared by the rows and the pages --------------------------------------------------------------------------
++def reading(host, key, fresh=False, keep=False):
++    """The section's last reading, read again when it is older than CACHE_SECONDS (fresh: always; keep: never, unless there is
++    none yet: a row's words and its tooltip say the same reading)."""
++    store = getattr(host, '_machine_real', None)
++    if store is None:
++        store = {};setattr(host, '_machine_real', store)
++    held = store.get(key)
++    if held is None or fresh or (not keep and time.time() - held['sampled_at'] > CACHE_SECONDS):
++        held = real.read(key);store[key] = held
++    return held
++
++
++def digest(data):
++    return json.dumps({k: v for k, v in data.items() if k != 'sampled_at'}, sort_keys=True, default=str)
++
++
++# ---- the Machine tab's rows (MachinePage.build's hooks) -------------------------------------------------------------------
++def row_words(data):
++    return '%s · %s' % (data['title'], data['short'] or ('not available' if not data['available'] else ''))
++
++
++def drive_words(drive):
++    mounted = sum(1 for v in drive['volumes'] if v['mounted'])
++    return '%s · %s' % (drive['name'], ('%d mounted' % mounted) if mounted else 'not mounted')
++
++
++def tree_rows(page, machine):
++    """The five rows first under Machine, with a removable drive's row under Storage. Returns {overview section id: row} for
++    the overview sections whose rows now sit under one of them (storage under Storage, connections under Network)."""
++    host = page.host;rows = {}
++    for key in real.SECTIONS:
++        data = reading(host, key)
++        item = page.add(machine, key, row_words(data), dict(kind='real', id=key, real=key))
++        if key == 'storage' and data['available']:
++            for drive in data['drives']:
++                page.add(item, 'real:drive:' + drive['id'], drive_words(drive), dict(kind='real_item', id='real:drive:' + drive['id'], real='storage', target=drive['id']))
++        rows[key] = item
++    page._real_seen = {key: row_words(reading(host, key)) for key in real.SECTIONS}
++    page._real_drives = drives_key(reading(host, 'storage'))
++    timer = getattr(page, '_real_timer', None)
++    if timer is None:
++        timer = QTimer(page);timer.setInterval(ROW_SECONDS * 1000);timer.timeout.connect(lambda: refresh_rows(page));timer.start()
++        page._real_timer = timer
++    return {'storage': rows['storage'], 'connections': rows['network']}
++
++
++def adopt(rows, section):
++    """The real row that takes an overview section's rows (storage, connections), now holding that section too; else None."""
++    item = rows.get(section['id'])
++    if item is None:return None
++    data = dict(item.data(0, Qt.UserRole) or {});data['section'] = section;item.setData(0, Qt.UserRole, data)
++    return item
++
++
++def drives_key(data):
++    return tuple((d['id'], drive_words(d)) for d in data.get('drives') or [])
++
++
++def refresh_rows(page):
++    """While the Machine tab shows: the rows' words follow the services; a drive come or gone rebuilds the tree."""
++    if getattr(page.host, '_closing', False) or not page.isVisible() or not page.items:return
++    seen = getattr(page, '_real_seen', {})
++    for key in real.SECTIONS:
++        data = reading(page.host, key)
++        words = row_words(data);item = page.items.get(key)
++        if item is not None and seen.get(key) != words:item.setText(0, words);seen[key] = words
++        if item is not None:item.setToolTip(0, page.describe(item.data(0, Qt.UserRole) or {}))
++    if drives_key(reading(page.host, 'storage')) != getattr(page, '_real_drives', None):page.build(force=True)
++
++
++def describe(page, data):
++    """A real row's words (its tooltip): what it is, where it was read, when, and why it is not available when it is not."""
++    key = data.get('real');held = reading(page.host, key, keep=True) if key else None
++    if held is None:return ''
++    if data.get('kind') == 'real_item':
++        drive = next((d for d in held.get('drives') or [] if d['id'] == data.get('target')), None)
++        if drive is None:return 'This drive has gone from udisks2\'s list.'
++        lines = ['%s · %s%s' % (drive['name'], drive['bus'].upper() or 'removable', (' · ' + real.size_words(drive['size'])) if drive['size'] else '')]
++        for volume in drive['volumes']:
++            lines.append(real.volume_words(volume) + ' · ' + (('mounted at ' + ', '.join(volume['mounted'])) if volume['mounted'] else 'locked (encrypted)' if volume['encrypted'] and not volume['can_mount'] else 'not mounted'))
++        lines.append('Choose it to open Storage in the centre: Mount, Open in Files, Unmount, Eject safely.')
++        return '\n'.join(lines)
++    lines = [row_words(held), 'Read from %s at %s.' % (held['source'], clock(held['sampled_at']))]
++    if not held['available']:lines.append(held['why'])
++    lines.append('Choose it to open %s in the centre.' % held['title'])
++    section = data.get('section')
++    if section:
++        lines += ['', 'Also here, from the overview:', 'Observed ' + clock(section['sampled_at']), 'Sources: ' + ' · '.join(section['sources'])]
++        lines += ['%s' % row['label'] for row in section['items'][:8]] + (['and %d more' % (len(section['items']) - 8)] if len(section['items']) > 8 else [])
++    return '\n'.join(lines)
++
++
++def activate(page, data):
++    """A real row chosen in the Machine tab: its page in the centre."""
++    return show(page.host, data.get('real') or 'storage', data.get('target'))
++
++
++# ---- the pages ------------------------------------------------------------------------------------------------------------
++class Runner(QObject):
++    done = Signal(object)
++
++
++def word(text, tone='quiet'):
++    """A state word: the word always, its colour only beside it."""
++    colour = {'live': bt.READY, 'wait': bt.AMBER_TEXT, 'stop': bt.STOP, 'quiet': bt.QUIET}.get(tone, bt.QUIET)
++    label = QLabel(text.upper());label.setTextFormat(Qt.PlainText)
++    label.setStyleSheet('QLabel {color:%s; font-family:"%s"; letter-spacing:1px;}' % (colour, bt.MONO))
++    return label
++
++
++def words(text, role=None, wrap=True):
++    label = QLabel(text);label.setTextFormat(Qt.PlainText);label.setWordWrap(wrap)
++    if role:label.setProperty('arcRole2', role)
++    return label
++
++
++def press(text, action, tip='', enabled=True):
++    from .shell2 import button
++    b = button(text, 'tool', tip);b.clicked.connect(action);b.setEnabled(enabled);b.setAccessibleName(text)
++    return b
++
++
++def card():
++    frame = QFrame();frame.setObjectName('MachineCard')
++    frame.setStyleSheet('QFrame#MachineCard {background:%s; border:1px solid %s; border-radius:6px;}' % (bt.CARD, bt.LINE))
++    box = QVBoxLayout(frame);box.setContentsMargins(16, 12, 16, 12);box.setSpacing(8)
++    return frame, box
++
++
++def row(*parts, stretch_at=None):
++    line = QHBoxLayout();line.setSpacing(12)
++    for i, part in enumerate(parts):
++        if part is None:continue
++        if isinstance(part, QWidget):line.addWidget(part, 1 if i == stretch_at else 0)
++        else:line.addLayout(part)
++    if stretch_at is None:line.addStretch(1)
++    return line
++
++
++class MachineRoom(QWidget):
++    """One of the five pages in the centre (a room tab): Storage, Power, Network, Sound or Screens."""
++
++    def __init__(self, host, key):
++        super().__init__();self.host = host;self.key = key if key in real.SECTIONS else 'storage'
++        self.setObjectName('LibraryTab');self.setProperty('ledgerRoom', True);self.setAccessibleName('Machine: ' + self.title())
++        self.data = None;self.seen = None;self.busy = None;self.last = None;self.safe = None;self.asking = None;self.keep = None
++        self.target = None;self.drawing = False;self.runners = []
++        outer = QVBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0)
++        self.scroll = QScrollArea();self.scroll.setWidgetResizable(True);self.scroll.setFrameShape(QFrame.NoFrame);outer.addWidget(self.scroll)
++        self.timer = QTimer(self);self.timer.setInterval(PAGE_SECONDS * 1000);self.timer.timeout.connect(self.tick);self.timer.start()
++        self.countdown = QTimer(self);self.countdown.setInterval(1000);self.countdown.timeout.connect(self.keep_tick)
++        self.reload(force=True)
++
++    def title(self):return real.TITLES[self.key]
++
++    def inspector(self):
++        data = self.data or {}
++        return self.title(), [(self.title(), data.get('short') or ''), ('Read from', data.get('source', '')), ('Read at', clock(data.get('sampled_at')))]
++
++    # ---------------------------------------------------------------- reading
++    def holding(self):
++        """Never redraw under the owner's hand: a password being typed, a list open, a change waiting to be kept."""
++        if self.keep is not None or self.asking is not None:return True
++        focus = self.focusWidget()
++        return isinstance(focus, (QLineEdit, QComboBox, QSlider)) and focus.hasFocus()
++
++    def tick(self):
++        if getattr(self.host, '_closing', False):self.timer.stop();return
++        if not self.isVisible() or self.busy or self.holding():return
++        self.reload()
++
++    def reload(self, force=False):
++        data = reading(self.host, self.key, fresh=True);seen = digest(data)
++        if not force and seen == self.seen and self.data is not None:
++            self.data = data;self.stamp.setText(self.lead_words());return
++        self.data = data;self.seen = seen;self.draw()
++
++    def lead_words(self):
++        data = self.data
++        return 'Read from %s at %s. Nothing is changed but by your press here.' % (data['source'], clock(data['sampled_at']))
++
++    def focus_on(self, target):
++        self.target = target;self.draw()
++
++    # ---------------------------------------------------------------- acting (off the window's thread)
++    def act(self, doing, fn, *args, after=None):
++        if self.busy:return
++        self.busy = doing;self.draw()
++        runner = Runner();self.runners.append(runner)
++        runner.done.connect(lambda result, runner=runner: self.finished(runner, result, after))
++
++        def work():
++            try:
++                result = fn(*args)
++            except Exception as exc:  # noqa: BLE001 - a change that broke says so on the page; the window goes on
++                result = dict(ok=False, verified=False, said='%s: %s' % (type(exc).__name__, str(exc)[:200]))
++            runner.done.emit(result)
++        threading.Thread(target=work, name='graphite-machine-' + self.key, daemon=True).start()
++
++    def finished(self, runner, result, after):
++        if runner in self.runners:self.runners.remove(runner)
++        self.busy = None;self.last = result
++        if after is not None:after(result)
++        self.reload(force=True)
++
++    # ---------------------------------------------------------------- drawing
++    def draw(self):
++        if self.data is None:return
++        self.drawing = True
++        page = QWidget();box = QVBoxLayout(page);box.setContentsMargins(40, 26, 40, 20);box.setSpacing(14)
++        box.addWidget(words(self.title(), 'title'))
++        self.stamp = words(self.lead_words(), 'quiet');box.addWidget(self.stamp)
++        if self.busy:
++            box.addLayout(row(word('working', 'wait'), words(self.busy + '…'), stretch_at=1))
++        elif self.last:
++            done = self.last.get('ok') and self.last.get('verified')
++            box.addLayout(row(word('done' if done else 'not done', 'live' if done else 'stop'), words(self.last.get('said', '')), stretch_at=1))
++        if not self.data['available']:
++            why = self.data['why'];lead = real.NOT_HERE + ': '
++            why = (why[len(lead):len(lead) + 1].upper() + why[len(lead) + 1:]) if why.startswith(lead) else why
++            frame, inner = card();inner.addWidget(word(real.NOT_HERE, 'stop'));inner.addWidget(words(why))
++            box.addWidget(frame)
++        else:
++            getattr(self, 'draw_' + self.key)(box)
++        box.addWidget(self.again());box.addStretch(1)
++        old = self.scroll.takeWidget()
++        self.scroll.setWidget(page)
++        if old is not None:old.deleteLater()
++        self.drawing = False
++
++    def again(self):
++        from .shell2 import sentence
++        return sentence('Read it {again} now.', {'again': ('again', lambda: self.reload(force=True))})
++
++    # Storage -------------------------------------------------------------------------------------------------------------
++    def draw_storage(self, box):
++        drives = self.data['drives'];free = not self.busy
++        if self.safe is not None:
++            frame, inner = card();inner.addLayout(row(word('safe to remove', 'live'), words(self.safe, None), stretch_at=1));box.addWidget(frame)
++        if not drives:
++            box.addWidget(words('No removable drive is connected. Plug one in: it shows here by itself.'))
++        for drive in drives:
++            frame, inner = card()
++            head = words('%s · %s%s' % (drive['name'], drive['bus'].upper() or 'REMOVABLE', (' · ' + real.size_words(drive['size'])) if drive['size'] else ''), 'card')
++            inner.addLayout(row(head, press('Eject safely', lambda checked=False, d=drive: self.eject(d), 'Unmount everything on it, then power it off; '
++                                            '"safe to remove" is said only once that is read back', free), stretch_at=0))
++            if not drive['volumes']:inner.addWidget(words('No filesystem on it that Graphite can mount.', 'quiet'))
++            for volume in drive['volumes']:
++                inner.addWidget(words(real.volume_words(volume)))
++                if volume['mounted']:
++                    line = row(word('mounted', 'live'), words('at ' + ', '.join(volume['mounted']), 'quiet'),
++                               press('Open in Files', lambda checked=False, v=volume: self.open_files(v), 'Show it in a Browse tab', free),
++                               press('Unmount', lambda checked=False, v=volume: self.act('Unmounting ' + real.volume_words(v), real.unmount, v['id']), '', free), stretch_at=1)
++                elif volume['encrypted'] and not volume['can_mount']:
++                    line = row(word('locked', 'quiet'), words('encrypted: Graphite 1.0 does not unlock it; the system\'s own tools can.', 'quiet'), stretch_at=1)
++                else:
++                    line = row(word('not mounted', 'quiet'), press('Mount', lambda checked=False, v=volume: self.act('Mounting ' + real.volume_words(v), real.mount, v['id']), '', free))
++                inner.addLayout(line)
++            if self.target == drive['id']:frame.setStyleSheet(frame.styleSheet().replace(bt.LINE, bt.AMBER_EDGE))
++            box.addWidget(frame)
++        box.addWidget(words('The fixed disks and the folders Graphite keeps its work in are listed under Storage in the Machine tab.', 'quiet'))
++
++    def eject(self, drive):
++        def after(result):
++            self.safe = result['said'] if result.get('safe') else None
++        self.safe = None
++        self.act('Ejecting %s safely' % drive['name'], real.eject, drive['id'], after=after)
++
++    def open_files(self, volume):
++        place = (volume['mounted'] or [None])[0]
++        browse = getattr(self.host, 'browse', None)
++        if place and callable(browse):browse(place)
++
++    # Power ---------------------------------------------------------------------------------------------------------------
++    def draw_power(self, box):
++        data = self.data
++        box.addLayout(row(word('on battery' if data['on_battery'] else 'on mains', 'wait' if data['on_battery'] else 'live'), stretch_at=0))
++        if not data['batteries']:box.addWidget(words('No battery: this computer runs on the mains only.'))
++        for battery in data['batteries']:
++            frame, inner = card()
++            inner.addWidget(words('Battery%s' % ((' · ' + battery['name']) if battery['name'] else ''), 'card'))
++            inner.addLayout(row(Meter(battery['percent']), words(real.battery_words(battery)), stretch_at=1))
++            box.addWidget(frame)
++        for mains in data['mains']:
++            box.addLayout(row(words('Mains%s' % ((' · ' + mains['name']) if mains['name'] else '')), word('plugged in' if mains['online'] else 'not plugged in', 'live' if mains['online'] else 'quiet'), stretch_at=0))
++        others = [d for d in data['devices'] if d['kind'] not in ('battery', 'mains') or (d['kind'] == 'battery' and not d['supply'])]
++        if others:
++            box.addWidget(words('Other devices', 'section'))
++            for d in others:box.addWidget(words('%s%s · %s' % (d['kind'].capitalize(), (' · ' + d['name']) if d['name'] else '', real.battery_words(d))))
++        box.addWidget(words(SYSTEM_MENU, 'quiet'))
++
++    # Network -------------------------------------------------------------------------------------------------------------
++    def draw_network(self, box):
++        data = self.data;free = not self.busy
++        state = word(data['state'] if data['enabled'] else 'networking off', 'live' if data['state_number'] >= 50 and data['enabled'] else 'quiet')
++        box.addLayout(row(state, stretch_at=0))
++        acts = [press('Turn networking off' if data['enabled'] else 'Turn networking on',
++                      lambda: self.act('Turning networking %s' % ('off' if data['enabled'] else 'on'), real.set_networking, not data['enabled']), '', free)]
++        if data['wifi_devices']:
++            acts.append(press('Turn Wi-Fi off' if data['wifi'] else 'Turn Wi-Fi on',
++                              lambda: self.act('Turning Wi-Fi %s' % ('off' if data['wifi'] else 'on'), real.set_wifi, not data['wifi']), '', free))
++            acts.append(press('Look for networks', lambda: self.act('Asking NetworkManager to look for networks', real.scan, data['wifi_devices'][0]['id']), '',
++                              free and data['wifi'] and data['enabled']))
++        box.addLayout(row(*acts))
++        if data['wifi_devices'] and not data['wifi_switch']:box.addWidget(words('The Wi-Fi switch on this computer is off: no network is heard until it is on.'))
++        for device in data['wifi_devices']:
++            box.addWidget(words('Wi-Fi networks heard by %s' % (device['interface'] or 'the Wi-Fi device'), 'section'))
++            if not data['wifi']:box.addWidget(words('Wi-Fi is off.', 'quiet'));continue
++            if not device['networks']:box.addWidget(words('No network heard yet. Look for networks asks again.', 'quiet'))
++            for net in device['networks']:box.addWidget(self.network_row(device, net, free))
++        wired = [d for d in data['devices'] if d['kind'] == 'wired']
++        if wired:
++            box.addWidget(words('Wired', 'section'))
++            for d in wired:box.addLayout(row(words(d['interface']), word('no cable' if d['state_number'] == 20 else d['state'], 'live' if d['state_number'] == 100 else 'quiet'), stretch_at=0))
++        box.addWidget(words('A password you type here goes to NetworkManager, which keeps it with the network. Graphite keeps no copy.', 'quiet'))
++
++    def network_row(self, device, net, free):
++        frame, inner = card()
++        marks = [word('connected', 'live')] if net['active'] else []
++        details = '%s · %s %d %% · %s%s' % (net['ssid'], net['strength_word'], net['strength'], net['security'] if net['security'] != 'open' else 'open, not secured',
++                                             ' · saved' if net['saved'] else '')
++        asking = self.asking == (device['id'], net['ssid'])
++        if net['active']:
++            act = press('Disconnect', lambda checked=False: self.act('Disconnecting from ' + net['ssid'], real.disconnect, device['id']), '', free)
++        else:
++            act = None if asking else press('Join', lambda checked=False: self.join(device, net), '', free)
++        inner.addLayout(row(words(details), *marks, act, stretch_at=0))
++        if asking:
++            field = QLineEdit();field.setEchoMode(QLineEdit.Password);field.setPlaceholderText('Password for ' + net['ssid'])
++            field.setAccessibleName('Password for ' + net['ssid']);self.password = field
++            go = press('Join', lambda checked=False: self.join_with(device, net), '', free)
++            cancel = press('Cancel', lambda checked=False: self.cancel_join(), '', True)
++            field.returnPressed.connect(lambda: self.join_with(device, net))
++            inner.addLayout(row(field, go, cancel, stretch_at=0))
++            QTimer.singleShot(0, field.setFocus)
++        return frame
++
++    def join(self, device, net):
++        if net['saved'] or net['security'] == 'open':
++            self.act('Joining ' + net['ssid'], real.join, device['id'], net['id'], net['ssid'])
++        elif net['security'] in ('WPA', 'WPA3'):
++            self.asking = (device['id'], net['ssid']);self.draw()
++        else:
++            self.act('Joining ' + net['ssid'], real.join, device['id'], net['id'], net['ssid'])
++
++    def join_with(self, device, net):
++        field = getattr(self, 'password', None)
++        secret = field.text() if field is not None else ''
++        if field is not None:field.clear()
++        self.asking = None
++        if not secret:self.last = dict(ok=False, verified=False, said='Type the password for %s, then Join.' % net['ssid']);self.draw();return
++        self.act('Joining ' + net['ssid'], real.join, device['id'], net['id'], net['ssid'], secret)
++        secret = None
++
++    def cancel_join(self):
++        field = getattr(self, 'password', None)
++        if field is not None:field.clear()
++        self.asking = None;self.draw()
++
++    # Sound ---------------------------------------------------------------------------------------------------------------
++    def draw_sound(self, box):
++        data = self.data;free = not self.busy;current = data['current']
++        if not data['sinks']:box.addWidget(words('No sound output is connected.'));return
++        frame, inner = card()
++        inner.addWidget(words('Volume of %s' % (current['name'] if current else 'the output in use'), 'card'))
++        slider = QSlider(Qt.Horizontal);slider.setRange(0, 100);slider.setTracking(False);slider.setAccessibleName('Volume')
++        slider.setValue(data['percent'] or 0);slider.setEnabled(free)
++        shown = words('%s %%' % (data['percent'] if data['percent'] is not None else '?'), wrap=False)
++        slider.sliderMoved.connect(lambda value: shown.setText('%d %%' % value))
++        slider.valueChanged.connect(lambda value: None if self.drawing else self.act('Setting the volume to %d %%' % value, real.set_volume, value))
++        mute = press('Sound on' if data['muted'] else 'Mute', lambda: self.act('Turning the sound on' if data['muted'] else 'Muting', real.set_mute, not data['muted']), '', free)
++        inner.addLayout(row(slider, shown, word('muted' if data['muted'] else 'on', 'quiet' if data['muted'] else 'live'), mute, stretch_at=0))
++        box.addWidget(frame)
++        box.addWidget(words('Outputs', 'section'))
++        for sink in data['sinks']:
++            mark = word('in use', 'live') if sink['default'] else press('Use this output', lambda checked=False, s=sink: self.act('Playing sound through ' + s['name'], real.set_output, s['id']), '', free)
++            box.addLayout(row(words(sink['name']), mark, stretch_at=0))
++
++    # Screens -------------------------------------------------------------------------------------------------------------
++    def draw_screens(self, box):
++        data = self.data;free = not self.busy and self.keep is None
++        if self.keep is not None:
++            frame, inner = card()
++            self.keep_words = words('Keep this arrangement? It goes back by itself in %d s.' % self.keep['left'])
++            inner.addLayout(row(word('waiting for you', 'wait'), self.keep_words, press('Keep', self.kept), press('Go back', self.go_back), stretch_at=1))
++            box.addWidget(frame)
++        box.addLayout(row(words('Arrangement'), word(data['arrangement'], 'live')))
++        if len(data['connected']) > 1:
++            box.addLayout(row(press('Mirror', lambda: self.change('mirror'), 'The same picture on every screen', free and data['arrangement'] != 'mirror'),
++                              press('Extend', lambda: self.change('extend'), 'One wide desk across the screens', free and data['arrangement'] != 'extend')))
++        for output in data['connected']:
++            frame, inner = card()
++            marks = [word('primary', 'live')] if output['primary'] else []
++            where = ('%s at %d, %d' % (output['current'], output['x'], output['y'])) if output['active'] else 'off'
++            inner.addLayout(row(words('%s · %s' % (output['name'], where), 'card'), *marks, word('on' if output['active'] else 'off', 'live' if output['active'] else 'quiet'), stretch_at=0))
++            modes = QComboBox();modes.setAccessibleName('Modes of ' + output['name'])
++            for m in output['modes']:
++                modes.addItem('%s%s' % (m['mode'], ' (preferred)' if m['preferred'] else ''), m['mode'])
++            if output['current']:modes.setCurrentIndex(max(0, modes.findData(output['current'])))
++            acts = [modes, press('Use this mode', lambda checked=False, o=output, c=modes: self.change('mode', o['name'], c.currentData()), '', free and bool(output['modes']))]
++            if output['active'] and not output['primary']:acts.append(press('Make primary', lambda checked=False, o=output: self.change('primary', o['name']), '', free))
++            acts.append(press('Turn off' if output['active'] else 'Turn on', lambda checked=False, o=output: self.change('off' if o['active'] else 'on', o['name']), '', free))
++            inner.addLayout(row(*acts))
++            box.addWidget(frame)
++        loose = [o['name'] for o in data['outputs'] if not o['connected']]
++        if loose:box.addWidget(words('Nothing connected at %s.' % ', '.join(loose), 'quiet'))
++
++    def change(self, kind, name=None, mode=None):
++        def after(result):
++            if result.get('ok') and result.get('before'):
++                self.keep = dict(before=result['before'], left=KEEP_SECONDS);self.countdown.start()
++        self.act('Changing the screens', real.change_screens, kind, name, mode, after=after)
++
++    def keep_tick(self):
++        if self.keep is None:self.countdown.stop();return
++        self.keep['left'] -= 1
++        if self.keep['left'] <= 0:self.go_back();return
++        label = getattr(self, 'keep_words', None)
++        if label is not None:label.setText('Keep this arrangement? It goes back by itself in %d s.' % self.keep['left'])
++
++    def kept(self):
++        self.countdown.stop();self.keep = None
++        self.last = dict(ok=True, verified=True, said='Kept the new arrangement.');self.reload(force=True)
++
++    def go_back(self):
++        self.countdown.stop();before = (self.keep or {}).get('before');self.keep = None
++        self.act('Putting the screens back as they were', real.put_back, before)
++
++
++class Meter(QWidget):
++    """A battery's level: a bar with its number beside it (the number is the reading; the bar only shows it)."""
++
++    def __init__(self, value):
++        super().__init__();self.value = value if isinstance(value, int) else None
++        self.setFixedSize(120, 14);self.setAccessibleName('Battery level %s %%' % (self.value if self.value is not None else 'unknown'))
++
++    def paintEvent(self, event):
++        from PySide6.QtGui import QColor, QPainter
++        painter = QPainter(self);rect = self.rect().adjusted(0, 0, -1, -1)
++        painter.setPen(QColor(bt.LINE_STRONG));painter.setBrush(Qt.NoBrush);painter.drawRect(rect)
++        if self.value is not None:
++            inner = rect.adjusted(2, 2, -1, -1);inner.setWidth(inner.width() * max(0, min(100, self.value)) // 100)
++            painter.fillRect(inner, QColor(bt.READY if self.value > 20 else bt.STOP))
++        painter.end()
++
++
++def show(host, key='storage', target=None):
++    """Open (or bring forward) a Machine page in the centre."""
++    close = getattr(host, '_close_start', None)
++    if callable(close):close()
++    tabs = host.tabs
++    for i in range(tabs.count()):
++        widget = tabs.widget(i)
++        if isinstance(widget, MachineRoom) and widget.key == key:
++            tabs.setCurrentIndex(i);widget.reload(force=True);widget.focus_on(target);return widget
++    tab = MachineRoom(host, key);tabs.addTab(tab, tab.title());tabs.setCurrentWidget(tab)
++    if target:tab.focus_on(target)
++    return tab
++
++
++def reopen(host, row):
++    """workspace_tabs: a saved Machine page comes back by its title."""
++    key = {v: k for k, v in real.TITLES.items()}.get(str(row.get('title') or ''), 'storage')
++    return show(host, key)
+diff --git a/workbench/navigation_qt.py b/workbench/navigation_qt.py
+index d3f01cc..7c227ec 100644
+--- a/workbench/navigation_qt.py
++++ b/workbench/navigation_qt.py
+@@ -102,6 +102,7 @@ class NavigationController(QObject):
+                     self.reveal_record(tab.current)
+                     path=self.trail(tab.current)
+                     if path:tab.breadcrumb.setText('FILED IN / '+' / '.join(row['label'] for row in (path[:-1] or path)))
++            elif type(tab).__name__=='MachineRoom':nav.show_view('machine')  # 1.0 S4: a Machine page keeps the Machine tab in the left pane
+             else:
+                 # Other workspaces retain a cabinet anchor; this is not ownership.
+                 nav.show(False)
+diff --git a/workbench/settings_qt.py b/workbench/settings_qt.py
+index bd21b6b..b5b6bf2 100644
+--- a/workbench/settings_qt.py
++++ b/workbench/settings_qt.py
+@@ -318,7 +318,7 @@ class SettingsNavigator:
+     def show_view(self,name,persist=True):
+         self.stack.setCurrentIndex(VIEWS.index(name))
+         for button,view,description in ((self.cabinet,'cabinet','Show logical filing cabinet'),
+-                                        (self.machine,'machine','Show this computer: processor, memory, storage, connections, devices and installed tools'),
++                                        (self.machine,'machine','Show this computer: storage, power, network, sound, screens, processor, memory, devices and installed tools'),  # 1.0 S4
+                                         (self.settings,'settings','Show Graphite settings')):
+             button.setChecked(view==name);button.setAccessibleDescription('Current view' if view==name else description)
+         if self.line:self.line.setVisible(name=='cabinet' and self.host.cabinet_page.using_legacy)
+diff --git a/workbench/workspace_tabs.py b/workbench/workspace_tabs.py
+index 2cd0357..09eae89 100644
+--- a/workbench/workspace_tabs.py
++++ b/workbench/workspace_tabs.py
+@@ -258,6 +258,9 @@ class WorkspaceTabs(QTabWidget):
+         if row.get('kind')=='HostPanel' and hasattr(self.host,'a_host_service'):      # Background service (host_qt)
+             self.host.a_host_service.trigger()
+             return next((self.widget(i) for i in range(self.count()) if type(self.widget(i)).__name__=='HostPanel'),None)
++        if row.get('kind')=='MachineRoom':      # 1.0 S4: a Machine page (Storage, Power, Network, Sound, Screens), by its title
++            from .machine_room_qt import reopen
++            return reopen(self.host,row)
+         if row.get('kind') in ('ComputerTab','PillsTab'):      # This Computer, and Pills and Paired Computers (menus2)
+             from importlib import import_module
+             return import_module({'ComputerTab':'.computer_qt','PillsTab':'.pills_qt'}[row['kind']],__package__).show(self.host)

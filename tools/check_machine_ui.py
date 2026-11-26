@@ -83,15 +83,15 @@ nav.machine.click();settle(60);assert nav.current_view()=='machine' and nav.stac
 assert [t.text(0) for t in top()]==['Machine','Work','Settings'],[t.text(0) for t in top()]
 strip.refresh();assert strip.label.full in page.items['machine'].toolTip(0),'the strip\'s line is the Machine row\'s tooltip (D1b)'
 machine=page.items['machine'];sections=children(machine)
-assert [s.text(0).split(' · ')[0] for s in sections]==['Processor','Memory','Storage','Connections','Devices','Installed tools']
-for section in sections:
+assert [s.text(0).split(' · ')[0] for s in sections]==['Storage','Power','Network','Sound','Screens','Processor','Memory','Devices','Installed tools']  # 1.0 S4: the five real rows first; the overview's storage and connections rows sit under Storage and Network
+for section in [s for s in sections if 'section' in node(s)]:  # 1.0 S4: Power, Sound and Screens hold no overview section
  data=node(section)['section']
  if section.childCount()==0:assert data['state'] in ('NONE','UNAVAILABLE') and (' · none detected' in section.text(0) or ' · unavailable' in section.text(0)),section.text(0)
  else:assert data['state'] in ('OBSERVED','PARTIAL'),(section.text(0),data['state'])
- for leaf in children(section):
+ for leaf in [c for c in children(section) if 'item' in node(c)]:  # 1.0 S4: a removable drive's row under Storage is not an overview row
   row=node(leaf)['item'];assert row['source'] and row['sampled_at'] and row['state'] in ('OBSERVED','PARTIAL','UNAVAILABLE') and leaf.toolTip(0)
  if data['order']=='natural':
-  labels=[c.text(0) for c in children(section)];assert labels==sorted(labels,key=machine_overview.natural),labels
+  labels=[c.text(0) for c in children(section) if 'item' in node(c)];assert labels==sorted(labels,key=machine_overview.natural),labels  # 1.0 S4
 storage=page.items['storage'];storage.setExpanded(True);page.tree.setCurrentItem(storage);settle()
 text=page.details.toPlainText();assert text.startswith('Storage · ') and 'Sources: ' in text and '/proc/mounts' in text and re.search(r'Observed \d\d:\d\d:\d\d',text),text
 assert storage.toolTip(0)==text and not page.details.isVisible(),'D1b: the details are each row\'s tooltip; the details pane is out of the left pane'
@@ -100,7 +100,7 @@ assert str(root) in text and 'os.statvfs' in text and re.search(r'Observed \d\d:
 mounts=[c for c in children(storage) if node(c)['item']['kind']=='mount'];assert mounts and any('holds the' in c.text(0) for c in mounts),[c.text(0) for c in mounts]
 devices=page.items['devices'];page.tree.setCurrentItem(devices);settle();text=page.details.toPlainText()
 assert text.startswith('Devices · ') and ('/sys/bus/usb/devices' in text) and any(word in text for word in ('observations','nothing detected','unavailable')),text
-connections=page.items['connections'];assert connections.childCount()>0 and all('addresses: NOT_READ' in page.describe(node(c)) for c in children(connections))
+connections=page.items['network'];assert connections.childCount()>0 and all('addresses: NOT_READ' in page.describe(node(c)) for c in children(connections))  # 1.0 S4: the overview's connections sit under Network
 tools=page.items['tools'];assert tools.childCount()==len(machine_overview.TOOL_NAMES) and all(' · ' in c.text(0) for c in children(tools))
 assert 'nothing was run' in page.caption.text() and 'not owner host qualification' in page.caption.text()
 popen.assert_not_called();system.assert_not_called();detached.assert_not_called()

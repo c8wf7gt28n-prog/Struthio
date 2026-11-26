@@ -54,7 +54,9 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 L2: the board of a focus and the links kept by your word, read each time the board is drawn; reading is not an event
  'board.read','board.links',
  # 1.0 P1: her portrait in force, read when her column is drawn; reading is not an event
- 'kasandra.portrait'})
+ 'kasandra.portrait',
+ # 1.0 S4: the machine's storage, power, network, sound and screens, read when the Machine tab or a page shows; reading is not an event
+ 'machine.state'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

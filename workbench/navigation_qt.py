@@ -102,6 +102,7 @@ class NavigationController(QObject):
                     self.reveal_record(tab.current)
                     path=self.trail(tab.current)
                     if path:tab.breadcrumb.setText('FILED IN / '+' / '.join(row['label'] for row in (path[:-1] or path)))
+            elif type(tab).__name__=='MachineRoom':nav.show_view('machine')  # 1.0 S4: a Machine page keeps the Machine tab in the left pane
             else:
                 # Other workspaces retain a cabinet anchor; this is not ownership.
                 nav.show(False)

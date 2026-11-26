@@ -175,10 +175,14 @@ class MachinePage(QWidget):
         with QSignalBlocker(self.tree):
             self.tree.clear()
             machine = self.add(None, 'machine', 'Machine', dict(kind='root', id='machine'))
+            from . import machine_room_qt  # 1.0 S4: Storage, Power, Network, Sound, Screens first, read from the system's own services
+            real = machine_room_qt.tree_rows(self, machine)  # 1.0 S4
             for section in self.model['sections']:
-                suffix = {'UNAVAILABLE': ' · unavailable', 'NONE': ' · none detected', 'PARTIAL': ' · bounded'}.get(section['state'], '')
-                node = self.add(machine, section['id'], section['title'] + suffix, dict(kind='section', id=section['id'], section=section))
-                node.setToolTip(0, 'Observed ' + when(section['sampled_at']) + ' · ' + ' · '.join(section['sources']))
+                node = machine_room_qt.adopt(real, section)  # 1.0 S4: the overview's storage and connections rows sit under Storage and Network
+                if node is None:  # 1.0 S4
+                    suffix = {'UNAVAILABLE': ' · unavailable', 'NONE': ' · none detected', 'PARTIAL': ' · bounded'}.get(section['state'], '')
+                    node = self.add(machine, section['id'], section['title'] + suffix, dict(kind='section', id=section['id'], section=section))
+                    node.setToolTip(0, 'Observed ' + when(section['sampled_at']) + ' · ' + ' · '.join(section['sources']))
                 for row in section['items']:
                     leaf = self.add(node, row['id'], row['label'], dict(kind='item', id=row['id'], section=section['id'], item=row))
                     leaf.setToolTip(0, ('Observed ' if row['state'] == 'OBSERVED' else row['state'].capitalize() + ' · ') + when(row['sampled_at']) + ' · ' + row['source'])
@@ -202,7 +206,8 @@ class MachinePage(QWidget):
             chosen = self.items.get(self.selected_id) or machine
             self.tree.setCurrentItem(chosen)
         self.selected()
-        self.caption.setText('Observed %s on this computer from /proc, /sys and os.statvfs · nothing was run · %s' % (when(self.model['sampled_at']), self.model['basis'].replace('_', ' ').lower()))
+        self.caption.setText('Observed %s on this computer from /proc, /sys and os.statvfs · nothing was run for these · %s' % (when(self.model['sampled_at']), self.model['basis'].replace('_', ' ').lower())
+                             + ' · Storage, Power, Network, Sound and Screens read from udisks2, UPower and NetworkManager, and from wpctl and xrandr run only to read')  # 1.0 S4
         tab = getattr(getattr(self.host, 'settings_navigator', None), 'machine', None)
         if tab is not None:tab.setToolTip('Machine · ' + self.caption.text())  # D1b: the caption is out of the pane; the tab says it
         return True
@@ -227,6 +232,9 @@ class MachinePage(QWidget):
     # ------------------------------------------------------------ words
     def describe(self, data):
         kind = data.get('kind'); model = self.model or {}
+        if kind in ('real', 'real_item'):  # 1.0 S4: a real row says where it was read, when, and why it is not available
+            from . import machine_room_qt
+            return machine_room_qt.describe(self, data)
         if kind == 'root':
             host = model.get('host') or {}
             return '\n'.join(['Machine · the computer Graphite runs on now',
@@ -283,6 +291,9 @@ class MachinePage(QWidget):
             finder = getattr(self.host, 'finder', None)
             if finder is not None:
                 finder.show_place(place)
+        elif data.get('kind') in ('real', 'real_item'):  # 1.0 S4: its page in the centre
+            from . import machine_room_qt
+            machine_room_qt.activate(self, data)
         elif data.get('kind') == 'work':
             self.open_work(data['id'])
         elif data.get('kind') == 'settings':

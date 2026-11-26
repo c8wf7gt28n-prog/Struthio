@@ -258,6 +258,9 @@ class WorkspaceTabs(QTabWidget):
         if row.get('kind')=='HostPanel' and hasattr(self.host,'a_host_service'):      # Background service (host_qt)
             self.host.a_host_service.trigger()
             return next((self.widget(i) for i in range(self.count()) if type(self.widget(i)).__name__=='HostPanel'),None)
+        if row.get('kind')=='MachineRoom':      # 1.0 S4: a Machine page (Storage, Power, Network, Sound, Screens), by its title
+            from .machine_room_qt import reopen
+            return reopen(self.host,row)
         if row.get('kind') in ('ComputerTab','PillsTab'):      # This Computer, and Pills and Paired Computers (menus2)
             from importlib import import_module
             return import_module({'ComputerTab':'.computer_qt','PillsTab':'.pills_qt'}[row['kind']],__package__).show(self.host)

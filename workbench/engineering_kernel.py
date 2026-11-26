@@ -85,6 +85,7 @@ from . import living_nav  # 1.0 L1 (one navigation state): objects.files, object
 from . import relevance  # 1.0 L3 (relevance): relevance.why (read); relevance.pin, relevance.turn_down, relevance.clear (execute) (recorded additions)
 from . import apps_catalog  # 1.0 S2 (apps from what is installed): apps.list, apps.for (read); apps.open, apps.pin, apps.unpin (execute); apps.default (approve) (recorded additions)
 from . import board_model  # 1.0 L2 (the bulletin board): board.read, board.links (reads); board.keep (approve, the owner's word on a link) (recorded additions)
+from . import machine_real  # 1.0 S4 (the Machine, real): machine.state (read) from udisks2, UPower, NetworkManager, wpctl, xrandr; changes are the owner's press only, never an operation (recorded additions)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -276,6 +277,7 @@ CAPABILITIES = {
     **apps_catalog.SCOPES,  # 1.0 S2 (apps from what is installed): apps.default is approve, the owner's press only
     **board_model.SCOPES,  # 1.0 L2 (the bulletin board): two reads; board.keep approve, only by the owner's word
     **her_portrait.SCOPES,  # 1.0 P1 (her column): her portrait from your workspace, admitted
+    **machine_real.SCOPES,  # 1.0 S4 (the Machine, real): machine.state is a read
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -716,6 +718,7 @@ class Kernel:
         if op in apps_catalog.FIELDS:return apps_catalog.dispatch(self,op,a,p)   # 1.0 S2 (apps from what is installed): desktop entries, Exec as argv, mimeapps.list
         if op in board_model.FIELDS:return board_model.dispatch(self,op,a,p)   # 1.0 L2 (the bulletin board): a focus and its neighbours with the basis of each link
         if op in her_portrait.FIELDS:return her_portrait.dispatch(self,op,a,p)   # 1.0 P1 (her column): kasandra/portrait.png, admitted like her character file
+        if op in machine_real.FIELDS:return machine_real.dispatch(self,op,a,p)   # 1.0 S4 (the Machine, real): storage, power, network, sound and screens, read now
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

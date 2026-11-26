@@ -439,6 +439,7 @@
    "links.catalog": "workbench/brain_link.py#dispatch",
    "links.inspect": "workbench/brain_link.py#dispatch",
    "links.trace": "workbench/brain_link.py#dispatch",
+   "machine.state": "workbench/machine_real.py#dispatch",
    "math.answer": "workbench/math_answers.py#dispatch",
    "math.calculate": "workbench/schedule_math.py#dispatch",
    "math.concurrent": "workbench/schedule_math.py#dispatch",
@@ -1052,9 +1053,9 @@
   }
  },
  "counts": {
-  "adapters": 854,
+  "adapters": 855,
   "job_tools": 113,
-  "operations": 854,
+  "operations": 855,
   "settings": 48
  },
  "formulas": {
@@ -4981,6 +4982,13 @@
    },
    "scope": "read"
   },
+  "machine.state": {
+   "arguments": "07ce3b89745179474208dc4c5c252fc197bfbd61744f149f6ae9ed3d0db1e8e4",
+   "properties": {
+    "section": "3c21ffa965642c71"
+   },
+   "scope": "read"
+  },
   "math.answer": {
    "arguments": "1d58d91e495509edb508d3a04143fe791d770109168d0b719c4477dbfc4cccb4",
    "properties": {
@@ -8388,7 +8396,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "c68495ecf4a8ded989d1748dd1f2c3e9ab6e47d14bd9583275b2e11ffdf16615",
+ "schema_digest": "90b85965f2131f913ea59f39e4070c0f751564fad595aa50ff85584d8c3bfc9e",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

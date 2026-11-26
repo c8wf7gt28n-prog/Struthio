@@ -1286,8 +1286,8 @@
       "sha256": "2737b8806f988b188d7d921efabca5b8f021db7e7f2d070d525b22452ecafa67"
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
-      "bytes": 305687,
-      "sha256": "3c680af32b77e09966a66dc4bdab9a2f4c632534241a6bfad26bccbaaaa0df75"
+      "bytes": 305933,
+      "sha256": "1317b615e4fff9cac9e08acd36790ffa5b1ebe3ca979b32bc2573252e16555e9"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -2234,16 +2234,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 2021053,
-      "sha256": "226724700d40dd4926aa68129565c7953c2c50c7ecbd0851476a9f203a214165"
+      "bytes": 2021977,
+      "sha256": "5f69736c449135cc3d9a04dd52a00fa8092157e9cb83630a3ae458cd290ab843"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4608000,
-      "sha256": "a7e21967b4fe8173c175b1e6ae3104421a9e627f833487719903992f2aee3a42"
+      "sha256": "0e59fd2f885e5f1d406876bd7fc3439b6da621d7ba8178cce108fd97e8e503f1"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "bebd63df39a59ea7cc01a8cc3be010dbc6345e2b96a9e6469b7a412598c2a639"
+      "sha256": "7462ef49ae43542d4f651564ef3dcb665b2b1c9ee661e71423e485e5f47d5e9a"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3378,8 +3378,8 @@
       "sha256": "c0451c24559452c03b9508296ff45be18cd0f37cdbd18d0d6b7262ce916b8686"
     },
     "tools/check_machine_ui.py": {
-      "bytes": 17406,
-      "sha256": "938751921068a7b2f2dc0aab093f64da10b1cd16dc3577f8d03e580534c87e93"
+      "bytes": 17826,
+      "sha256": "3b6aa29e7cd73b406794496f02ff2bf6948e1aeee6f823779477095df720978c"
     },
     "tools/check_memory_cabinet_ui.py": {
       "bytes": 10979,
@@ -3518,8 +3518,8 @@
       "sha256": "bec625c3354fd627943675df6b13eea04d3ed42d9d73a1cac38abe6d066502a1"
     },
     "workbench/activity.py": {
-      "bytes": 13644,
-      "sha256": "e1b02f8d8847ed5f9907c80e8b65d86f53b85a89aa0cea98b13a448f2cde587b"
+      "bytes": 13798,
+      "sha256": "267971010a5e201a19d59665cebc0dc67a402c1b5c968c689be14d87954dca3a"
     },
     "workbench/adaptive_checks.py": {
       "bytes": 28016,
@@ -4078,12 +4078,12 @@
       "sha256": "cd7dd3cd7eed3423b527732828346bdf2ae1cba805a2ad2820691d8f8c3b993a"
     },
     "workbench/engineering_cli.py": {
-      "bytes": 27082,
-      "sha256": "1454bdfab344b2e873143daecb0ba2de0fec25cc234209b336297c1c9646b1a3"
+      "bytes": 27263,
+      "sha256": "7bfd94bbbb3eb2472c3e3e37f52fba0f6b0ce89276a75c4288e32a8a4038279f"
     },
     "workbench/engineering_kernel.py": {
-      "bytes": 107559,
-      "sha256": "4cc16ecc6299ae6663e9996aa5a112d5f416571f2c6f74a15d0a92fa3a7097a3"
+      "bytes": 108013,
+      "sha256": "32d14f3ced951b1c0954a7eb0d8f96acdc6d42ae1f0164c1b0025dc8782ae418"
     },
     "workbench/engineering_map.py": {
       "bytes": 15833,
@@ -4566,8 +4566,16 @@
       "sha256": "a37b65a9dedfd6f4ff847ae2b45fda10fb290243d672836d79eef43388472c24"
     },
     "workbench/machine_qt.py": {
-      "bytes": 18893,
-      "sha256": "ba7184792ebee20c90c84007d9a64fd41a69523cbdc15533f58568e7a6269ccd"
+      "bytes": 19889,
+      "sha256": "4fb780143583651771be4be767773223d2aa413f6a93b3f5786e505a2e6197fc"
+    },
+    "workbench/machine_real.py": {
+      "bytes": 50255,
+      "sha256": "afbcee4bb8862c8f06a8daecb01761e9358960a871b50dfebc458cb5996f47b5"
+    },
+    "workbench/machine_room_qt.py": {
+      "bytes": 31551,
+      "sha256": "7d6331eea631c4b0db4c95eab97992c9e6eade7904fce3a752bf0936d2e1afd8"
     },
     "workbench/manual_index.py": {
       "bytes": 3758,
@@ -4886,8 +4894,8 @@
       "sha256": "5e9f88c87ca0780cb47db1682a99857fd615b7b8ae604330ee6304871c74f8c6"
     },
     "workbench/navigation_qt.py": {
-      "bytes": 6339,
-      "sha256": "425d6320c30bf7123d27ba72aed8d9b2c60362879d0c19dbf47dcdc5278b0514"
+      "bytes": 6480,
+      "sha256": "9b8b8dc1d90f8987f904cf067f86133c44a016e5ee8f06db862b052b9bf7fa0f"
     },
     "workbench/navigator_catalog.py": {
       "bytes": 3926,
@@ -5438,8 +5446,8 @@
       "sha256": "b9a9986f011b4bacf6aaebb5df5e6f9d3f88a4ab89542d25469889a3d68a6c51"
     },
     "workbench/settings_qt.py": {
-      "bytes": 28025,
-      "sha256": "63f70a8732efdfaf0ed73e0c452a0f9484bd60bd6f8fb026160255d236eaaa95"
+      "bytes": 28054,
+      "sha256": "89173dad3bcf3ddec53dc7d89f4e6c5d07f1c47c68cacbe04643d33c544ddb77"
     },
     "workbench/settings_registry.py": {
       "bytes": 19899,
@@ -5918,8 +5926,8 @@
       "sha256": "f5f1dc214d91272c9b9e40ebd25bff94a51fa534ad25e73c05fcd83dcfcd8a56"
     },
     "workbench/workspace_tabs.py": {
-      "bytes": 23515,
-      "sha256": "73e91a47a191aebc9ccb58b66fa679c32c81ddeefae42d923bda89e638ce53ba"
+      "bytes": 23733,
+      "sha256": "54240eb7fcec04b1f190a98e0f740b0ae25633bac1f993096e52a9e941b4f84d"
     },
     "workbench/workspaces.py": {
       "bytes": 3779,

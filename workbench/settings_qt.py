@@ -318,7 +318,7 @@ class SettingsNavigator:
     def show_view(self,name,persist=True):
         self.stack.setCurrentIndex(VIEWS.index(name))
         for button,view,description in ((self.cabinet,'cabinet','Show logical filing cabinet'),
-                                        (self.machine,'machine','Show this computer: processor, memory, storage, connections, devices and installed tools'),
+                                        (self.machine,'machine','Show this computer: storage, power, network, sound, screens, processor, memory, devices and installed tools'),  # 1.0 S4
                                         (self.settings,'settings','Show Graphite settings')):
             button.setChecked(view==name);button.setAccessibleDescription('Current view' if view==name else description)
         if self.line:self.line.setVisible(name=='cabinet' and self.host.cabinet_page.using_legacy)
