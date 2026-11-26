@@ -1,6 +1,93 @@
+diff --git a/workbench/files_qt.py b/workbench/files_qt.py
+index 44af129..4cd7d22 100644
+--- a/workbench/files_qt.py
++++ b/workbench/files_qt.py
+@@ -495,7 +495,14 @@ class TrashTab(QWidget):
+ 
+     def __init__(self, host):
+         super().__init__();self.host = host;self.setObjectName('LibraryTab');self.setProperty('ledgerRoom', True)
+-        self.box = QVBoxLayout(self);self.box.setContentsMargins(28, 18, 28, 12);self.box.setSpacing(10);self.reload()
++        # 1.0 X4: the rows scroll. With fifty deletions from your home the room's rows were squeezed into one another
++        # (a plain column has no room to grow into); now they stand in a scrolling column of their own.
++        from PySide6.QtWidgets import QFrame, QScrollArea
++        outer = QVBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0)
++        self.scroll = QScrollArea(self);self.scroll.setWidgetResizable(True);self.scroll.setFrameShape(QFrame.NoFrame)
++        self.scroll.setStyleSheet('QScrollArea, QScrollArea > QWidget > QWidget {background: transparent;}')
++        inner = QWidget();inner.setObjectName('DeleteRoomRows');self.scroll.setWidget(inner);outer.addWidget(self.scroll)
++        self.box = QVBoxLayout(inner);self.box.setContentsMargins(28, 18, 28, 12);self.box.setSpacing(10);self.reload()
+ 
+     def title(self):return 'DELETE'
+ 
+diff --git a/workbench/machine_real.py b/workbench/machine_real.py
+index 9df5a8f..c1a3e90 100644
+--- a/workbench/machine_real.py
++++ b/workbench/machine_real.py
+@@ -310,13 +310,61 @@ def mount(block, bus=None):
+     return dict(ok=True, verified=False, said='udisks2 said it mounted it at %s, but reading it back shows %s.' % (place or 'no place', ', '.join(points) or 'no mount point'), path=place)
+ 
+ 
++PROGRAM_NAMES = {'soffice.bin': 'LibreOffice', 'soffice': 'LibreOffice', 'oosplash': 'LibreOffice', 'gimp': 'GIMP', 'firefox': 'Firefox',
++                 'firefox-esr': 'Firefox', 'kicad': 'KiCad', 'blender': 'Blender', 'godot': 'Godot', 'evince': 'Document Viewer',
++                 'eog': 'Image Viewer', 'vlc': 'VLC', 'bash': 'a terminal shell', 'python3': 'a Python program'}
++
++
++def holders(places, proc='/proc'):
++    """1.0 X4: the programs of this account that hold something under one of `places` open (a file, or their working folder),
++    read from /proc: [(pid, program words)]. Only your own processes are looked at; Graphite's own process is left out."""
++    roots = [str(p).rstrip('/') for p in places or () if p]
++    if not roots:return []
++    mine, me, found = os.getuid(), os.getpid(), []
++    try:pids = [p for p in os.listdir(proc) if p.isdigit()]
++    except OSError:return []
++    for pid in pids:
++        if int(pid) == me:continue
++        try:
++            if os.stat(os.path.join(proc, pid)).st_uid != mine:continue
++            links = [os.readlink(os.path.join(proc, pid, 'cwd'))]
++            fds = os.path.join(proc, pid, 'fd')
++            links += [os.readlink(os.path.join(fds, fd)) for fd in os.listdir(fds)]
++        except OSError:
++            continue
++        if any(link == root or link.startswith(root + '/') for link in links for root in roots):
++            try:
++                with open(os.path.join(proc, pid, 'comm'), encoding='utf-8', errors='replace') as f:comm = f.read().strip()
++            except OSError:
++                comm = ''
++            found.append((int(pid), PROGRAM_NAMES.get(comm, comm or 'a program')))
++    return found
++
++
++def holders_words(places):
++    """1.0 X4: '' or a sentence naming the programs that keep the drive busy ("LibreOffice (process 4242) has a file on it open")."""
++    held = holders(places)
++    if not held:return ''
++    names = sorted({name for _, name in held})
++    pids = ', '.join(str(pid) for pid, _ in held[:4])
++    return '%s %s a file on it open (process %s): close it there first, then eject again. Nothing was forced.' % (
++        ' and '.join(names), 'has' if len(names) == 1 else 'have', pids)
++
++
+ def unmount(block, bus=None):
+     """Unmount one filesystem; done when udisks2 reads it back as mounted nowhere (every write to it is then finished)."""
+     doing = 'Unmounting did not happen'
++    try:
++        before = _mount_points(block, bus) or []      # 1.0 X4: where it is, to name what keeps it busy if it is refused
++    except Exception:  # noqa: BLE001
++        before = []
+     try:
+         call(UDISKS, block, UD + 'Filesystem', 'Unmount', {}, bus=bus, timeout=ACT_TIMEOUT_MS)
+     except (Unavailable, Refused) as exc:
+-        return failure(exc, doing)
++        out = failure(exc, doing)
++        held = holders_words(before) if isinstance(exc, Refused) else ''      # 1.0 X4: a busy drive names the program holding it
++        if held:out['said'] = '%s: it is in use. %s' % (doing, held);out['held_by'] = [name for _, name in holders(before)];out['service_said'] = exc.message
++        return out
+     points = _mount_points(block, bus)
+     if points == []:
+         return dict(ok=True, verified=True, said='Unmounted (read back: mounted nowhere).')
 diff --git a/workbench/power_demo.py b/workbench/power_demo.py
 new file mode 100644
-index 0000000..ee0f205
+index 0000000..43c7e4a
 --- /dev/null
 +++ b/workbench/power_demo.py
 @@ -0,0 +1,402 @@
@@ -89,7 +176,7 @@ index 0000000..ee0f205
 +    rows = []
 +    for month in ('10', '11'):
 +        for day, category, item, amount in _FIXED:
-+            rows.append(('%d-%s-%s' % (year, month, day), category, '%s, %s' % (item, 'October' if month == '10' else 'November'), amount))
++            rows.append(('%d-%s-%s' % (year, month, day), category, '%s %s' % (item, 'October' if month == '10' else 'November'), amount))
 +        for n, amount in enumerate(_GROCERIES):
 +            value = Fraction(amount) - (Fraction(1, 10) if year == 2025 and Fraction(amount) > 1 else 0)
 +            text = '%d.%02d' % divmod(int(value * 100), 100)
