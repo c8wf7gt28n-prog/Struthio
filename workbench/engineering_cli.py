@@ -129,6 +129,7 @@ def schemas():
     from .objective_plan import FIELDS as OBJECTIVE_PLAN_FIELDS  # 1.0 K4 (from an objective to a plan): objective.plan, objective.offer
     from .a11y_reader import FIELDS as A11Y_READER_FIELDS  # 1.0 K7 (reading other programs): accessibility.status, accessibility.read
     from .network_governed import FIELDS as WEB_FIELDS  # 1.0 K8 (the network, governed): web.*
+    from .app_files import FIELDS as APP_FILES_FIELDS  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -259,6 +260,7 @@ def schemas():
         **OBJECTIVE_PLAN_FIELDS,  # 1.0 K4 (from an objective to a plan): objective.plan, objective.offer
         **A11Y_READER_FIELDS,  # 1.0 K7 (reading other programs): accessibility.status, accessibility.read
         **WEB_FIELDS,  # 1.0 K8 (the network, governed): web.*
+        **APP_FILES_FIELDS,  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

@@ -1,0 +1,113 @@
+== phase nox: no window list (DISPLAY unset)
+== N. no window list on this computer (DISPLAY unset): the process is watched
+OK   N1. appfile.open: the PDF opened in its default program (the stand-in), a session kept, its window list said absent  | {"program": "Stand-in PDF Editor", "route": "app", "pids": [61], "window_list": false, "words": "Rail_Demo_Bench_Readings.pdf is opening in Stand-in PDF Editor. When Stand-in PDF Editor saves it, the new revision is recorded here and what rests on it is marked to recheck."}
+OK   N2. appfile.look: with no window list, its process runs: open (by its process), and said so  | Rail_Demo_Bench_Readings.pdf is open in Stand-in PDF Editor. Its window cannot be seen on this computer, so its process is watched.
+OK       a look when nothing changed writes nothing and says nothing changed  | Nothing changed in the programs that have your files open.
+OK   N3. it saved: revision 2 recorded through revisions.record (verified on disk), what rests on it said marked  | Stand-in PDF Editor saved Rail_Demo_Bench_Readings.pdf: revision 2 is recorded, its bytes verified on disk. What rests on it is marked to recheck on the board.
+OK       revisions.list: 1 (as it was opened) and 2, in the stand-in program, its earlier revision admitted  | [[1, "seen", ""], [2, "full program", "Stand-in PDF Editor"]]
+OK   N4. its process ended: the session closed, the newest revision said  | Stand-in PDF Editor closed Rail_Demo_Bench_Readings.pdf; revision 2 is the newest here.
+OK       appfile.list: closed, its tile words "Stand-in PDF Editor closed" with the revision  | ["Stand-in PDF Editor closed", "revision 2, saved in Stand-in PDF Editor"]
+OK   N5. a file outside Files is refused (nothing started)  | {'code': 'ValueError', 'message': 'APPFILE_OUTSIDE: a file of Files is opened here, so its saves can be recorded; this one is outside Files'}
+OK       a kind of file no program here opens: refused, Open with chooses one  | {'code': 'ValueError', 'message': 'APPFILE_NO_PROGRAM: no program here says it opens plain text files: Open with chooses one'}
+OK       her read-only principal cannot open a program (execute is outside her scope here)  | {'code': 'KernelError', 'message': 'Operation is outside the authorized mode/scope'}
+OK   N6. her words for this (app_files.WORDS) pass mind_words.check  | []
+OK       appfile.list is an observer (reading is not an event)
+summary [nox graphite]: 12 checked, 12 OK, 0 FAIL
+(stderr lines: 0)
+== phase x: Xvfb, S3's stand-in window manager, Graphite's window on Rail Demo, stand-in programs
+Xvfb on :0
+window manager: stand-in window manager on;ready;
+-- look: graphite
+== B. [graphite 1920x1200] the acceptance: a stand-in program opened from the board's tile writes the file
+OK   B0. [graphite 1920x1200] the readings PDF of Files in focus on the board (a FILE tile)  | Rail_Demo_Bench_Readings.pdf
+OK   B1. [graphite 1920x1200] its right-click: Open in Stand-in PDF Editor (its default program), Open with…  | ["Open in Stand-in PDF Editor", "Open with…"]
+OK   B2. [graphite 1920x1200] the program started (in a session of its own), its window found by its process and named on the tile  | {"state": "OPEN IN STAND-IN PDF EDITOR", "window": "0x0a00001", "title": "Rail_Demo_Bench_Readings.pdf - Stand-in PDF Editor", "found_by": "its process"}
+OK       [graphite 1920x1200] her column said it, in her words  | ["Rail_Demo_Bench_Readings.pdf is opening in Stand-in PDF Editor. When Stand-in PDF Editor saves it, the new revision is recorded here and what rests on it is marked to recheck.", "Rail_Demo_Bench_Readings.pdf is open in Stand-in PDF Editor, in its window “Rail_Demo_Bench_Readings.pdf - Stand-in PDF Editor”."]
+frame graphite_1920x1200_1_open_in_program.png
+OK   B3. [graphite 1920x1200] it saved: the tile shows the new revision (revision 2, saved in Stand-in PDF Editor), still open in it  | {"lines": ["revision 2, saved in Stand-in PDF Editor", "in Files/Rail Demo sources"], "basis": "revision 2, saved in Stand-in PDF Editor, in Files/Rail Demo sources"}
+OK       [graphite 1920x1200] its dependants marked: the admitted source of its earlier revision RECHECK, wired "saved again"  | {"source": "RECHECK", "wire": "saved again in Stand-in PDF Editor"}
+OK       [graphite 1920x1200] her column: the save, its revision verified on disk, what rests on it marked  | ["Stand-in PDF Editor saved Rail_Demo_Bench_Readings.pdf: revision 2 is recorded, its bytes verified on disk. What rests on it is marked to recheck on the board."]
+frame graphite_1920x1200_2_saved_revision.png
+OK       [graphite 1920x1200] focus the source: what rests on it is marked (the readings sheet RECHECK)  | {"Rail_Demo_Bench_Readings.pdf": "OPEN IN STAND-IN PDF EDITOR", "Startup is inside the Rev B li": "REFUTED", "Rail Demo bench readings": "RECHECK", "Settled power is 3 W, inside t": "RECHECK", "Rail_Demo_Limits_Rev_B.pdf": "CURRENT", "Rail_Demo_Limits_Rev_A.pdf": "CURRENT"}
+frame graphite_1920x1200_3_dependants_marked.png
+OK   B4. [graphite 1920x1200] its window closed: the tile says so (STAND-IN PDF EDITOR CLOSED), revision 2 kept on its line  | {"state": "STAND-IN PDF EDITOR CLOSED", "lines": ["revision 2, saved in Stand-in PDF Editor", "in Files/Rail Demo sources"]}
+OK       [graphite 1920x1200] her column: closed, the newest revision said
+frame graphite_1920x1200_4_program_closed.png
+== C. the five programs (stand-ins): GIMP, KiCad, Blender, Godot, Firefox
+OK   C1. GIMP: Open in GIMP on the .xcf tile (its entry is "GNU Image Manipulation Program": the short name said)  | ["Open in GIMP", "Open with…"]
+OK       the tile: OPEN IN GIMP (its window found)  | OPEN IN GIMP
+OK       the summary page you linked to the drawing (by your word) is on its board, settled
+frame graphite_1920x1200_5_open_in_gimp.png
+OK   C2. GIMP saved (a new file renamed over the old): revision 2; the page linked by your word marked RECHECK, its wire "recheck"  | {"lines": ["revision 2, saved in GIMP", "in Files/Rail Demo drawings"], "page": "RECHECK", "wire": "by your word"}
+frame graphite_1920x1200_6_gimp_saved_page_recheck.png
+OK       GIMP closed: GIMP CLOSED on the tile  | GIMP CLOSED
+OK   C3. KiCad: Open in KiCad, and the existing KiCad checks room on the menu  | ["Open in KiBot outputs", "Open in KiCad", "Open in KiCad checks", "Open with…"]
+OK       OPEN IN KICAD  | OPEN IN KICAD
+OK       the project's files are watched together (.kicad_pro, .kicad_sch, .kicad_pcb)  | ["Rail Demo board/Rail_Demo.kicad_pcb", "Rail Demo board/Rail_Demo.kicad_pro", "Rail Demo board/Rail_Demo.kicad_sch"]
+OK       KiCad saved the schematic: its revision 2 recorded, in KiCad  | [[1, ""], [2, "KiCad"]]
+OK   C4. Blender: Open in Blender (the existing bridge: its scripts not run)  | ["Open in Blender", "Open with…"]
+OK       OPEN IN BLENDER, through programs.blender.open  | OPEN IN BLENDER
+OK   C5. Godot: Open in Godot (the existing bridge) and the Godot room on the menu  | ["Open in Godot", "Open the Godot room", "Open with…"]
+OK       OPEN IN GODOT (the editor on the project folder), the project and its scene watched  | {"title": "Rail Demo panel game - Godot Engine", "files": ["Rail Demo game/main.tscn", "Rail Demo game/project.godot"]}
+frame graphite_1920x1200_7_open_in_godot.png
+OK   C6. Firefox: Open in Firefox on the page from Files  | ["Open in Firefox", "Open with…"]
+OK       the start handed the page to the running Firefox and ended: its window found by its program (the title changed), OPEN IN FIREFOX  | {"found_by": "its program's window that changed after it was started", "title": "Rail Demo note — Mozilla Firefox"}
+OK       her words say Graphite fetches nothing for it
+== D. L4's Full program from a working view goes the same way
+OK   D1. Full program on the PDF's view: started through appfile.open (a session kept), L4's line says where  | {"line": "Open in Stand-in PDF Editor. Save there and come back: the new revision is recognised and recorded here, and this view shows it.", "sessions": ["Rail Demo sources/Rail_Demo_Bench_Readings.pdf"]}
+OK       its save: revision 3 recorded once (the view's watch and the program's watch agree), the view reloaded  | {"revs": [[1, ""], [2, "Stand-in PDF Editor"], [3, "Stand-in PDF Editor"]], "line": "Back from Stand-in PDF Editor: Rail_Demo_Bench_Readings.pdf was saved in Stand-in PDF Editor at 07:34, and this view shows it now. Revision 3 is recorded. What rests on its earlier revision, admitted as a source, is marked to recheck on the board."}
+OK       every session closed when its window closed
+== B. [graphite 1366x768] the acceptance: a stand-in program opened from the board's tile writes the file
+OK   B0. [graphite 1366x768] the readings PDF of Files in focus on the board (a FILE tile)  | Rail_Demo_Bench_Readings.pdf
+OK   B1. [graphite 1366x768] its right-click: Open in Stand-in PDF Editor (its default program), Open with…  | ["Open in Stand-in PDF Editor", "Open with…"]
+OK   B2. [graphite 1366x768] the program started (in a session of its own), its window found by its process and named on the tile  | {"state": "OPEN IN STAND-IN PDF EDITOR", "window": "0x0a00001", "title": "Rail_Demo_Bench_Readings.pdf - Stand-in PDF Editor", "found_by": "its process"}
+OK       [graphite 1366x768] her column said it, in her words  | ["Rail_Demo_Bench_Readings.pdf is opening in Stand-in PDF Editor. When Stand-in PDF Editor saves it, the new revision is recorded here and what rests on it is marked to recheck.", "Rail_Demo_Bench_Readings.pdf is open in Stand-in PDF Editor, in its window “Rail_Demo_Bench_Readings.pdf - Stand-in PDF Editor”."]
+frame graphite_1366x768_1_open_in_program.png
+OK   B3. [graphite 1366x768] it saved: the tile shows the new revision (revision 4, saved in Stand-in PDF Editor), still open in it  | {"lines": ["revision 4, saved in Stand-in PDF Editor", "in Files/Rail Demo sources"], "basis": "revision 4, saved in Stand-in PDF Editor, in Files/Rail Demo sources"}
+OK       [graphite 1366x768] its dependants marked: the admitted source of its earlier revision RECHECK, wired "saved again"  | {"source": "RECHECK", "wire": "saved again in Stand-in PDF Editor"}
+OK       [graphite 1366x768] her column: the save, its revision verified on disk, what rests on it marked  | ["Stand-in PDF Editor saved Rail_Demo_Bench_Readings.pdf: revision 4 is recorded, its bytes verified on disk. What rests on it is marked to recheck on the board."]
+frame graphite_1366x768_2_saved_revision.png
+OK       [graphite 1366x768] focus the source: what rests on it is marked (the readings sheet RECHECK)  | {"Rail_Demo_Bench_Readings.pdf": "OPEN IN STAND-IN PDF EDITOR", "Startup is inside the Rev B li": "REFUTED", "Rail Demo bench readings": "RECHECK", "Settled power is 3 W, inside t": "RECHECK", "Rail_Demo_Limits_Rev_B.pdf": "CURRENT", "Rail_Demo_Limits_Rev_A.pdf": "CURRENT"}
+frame graphite_1366x768_3_dependants_marked.png
+OK   B4. [graphite 1366x768] its window closed: the tile says so (STAND-IN PDF EDITOR CLOSED), revision 4 kept on its line  | {"state": "STAND-IN PDF EDITOR CLOSED", "lines": ["revision 4, saved in Stand-in PDF Editor", "in Files/Rail Demo sources"]}
+OK       [graphite 1366x768] her column: closed, the newest revision said
+frame graphite_1366x768_4_program_closed.png
+summary [x graphite]: 39 checked, 39 OK, 0 FAIL
+(stderr lines: 0)
+-- look: kasandra
+== B. [kasandra 1920x1200] the acceptance: a stand-in program opened from the board's tile writes the file
+OK   B0. [kasandra 1920x1200] the readings PDF of Files in focus on the board (a FILE tile)  | Rail_Demo_Bench_Readings.pdf
+OK   B1. [kasandra 1920x1200] its right-click: Open in Stand-in PDF Editor (its default program), Open with…  | ["Open in Stand-in PDF Editor", "Open with…"]
+OK   B2. [kasandra 1920x1200] the program started (in a session of its own), its window found by its process and named on the tile  | {"state": "OPEN IN STAND-IN PDF EDITOR", "window": "0x0a00001", "title": "Rail_Demo_Bench_Readings.pdf - Stand-in PDF Editor", "found_by": "its process"}
+OK       [kasandra 1920x1200] her column said it, in her words  | ["<p style=\"line-height:125%;margin:0;white-space:pre-wrap\">Rail_Demo_Bench_Readings.pdf is opening in Stand-in PDF Editor. When Stand-in PDF Editor saves it, the new revision is recorded here and what rests on it is marked to recheck.</p>", "<p style=\"line-height:125%;margin:0;white-space:pre-wrap\">Rail_Demo_Bench_Readings.pdf is open in Stand-in PDF Editor, in its window “Rail_Demo_Bench_Readings.pdf - Stand-in PDF Editor”.</p>"]
+frame kasandra_1920x1200_1_open_in_program.png
+OK   B3. [kasandra 1920x1200] it saved: the tile shows the new revision (revision 2, saved in Stand-in PDF Editor), still open in it  | {"lines": ["revision 2, saved in Stand-in PDF Editor", "in Files/Rail Demo sources"], "basis": "revision 2, saved in Stand-in PDF Editor, in Files/Rail Demo sources"}
+OK       [kasandra 1920x1200] its dependants marked: the admitted source of its earlier revision RECHECK, wired "saved again"  | {"source": "RECHECK", "wire": "saved again in Stand-in PDF Editor"}
+OK       [kasandra 1920x1200] her column: the save, its revision verified on disk, what rests on it marked  | ["<p style=\"line-height:125%;margin:0;white-space:pre-wrap\">Stand-in PDF Editor saved Rail_Demo_Bench_Readings.pdf: revision 2 is recorded, its bytes verified on disk. What rests on it is marked to recheck on the board.</p>"]
+frame kasandra_1920x1200_2_saved_revision.png
+OK       [kasandra 1920x1200] focus the source: what rests on it is marked (the readings sheet RECHECK)  | {"Rail_Demo_Bench_Readings.pdf": "OPEN IN STAND-IN PDF EDITOR", "Startup is inside the Rev B li": "REFUTED", "Rail Demo bench readings": "RECHECK", "Settled power is 3 W, inside t": "RECHECK", "Rail_Demo_Limits_Rev_A.pdf": "CURRENT", "Rail_Demo_Limits_Rev_B.pdf": "CURRENT"}
+frame kasandra_1920x1200_3_dependants_marked.png
+OK   B4. [kasandra 1920x1200] its window closed: the tile says so (STAND-IN PDF EDITOR CLOSED), revision 2 kept on its line  | {"state": "STAND-IN PDF EDITOR CLOSED", "lines": ["revision 2, saved in Stand-in PDF Editor", "in Files/Rail Demo sources"]}
+OK       [kasandra 1920x1200] her column: closed, the newest revision said
+frame kasandra_1920x1200_4_program_closed.png
+summary [x kasandra]: 10 checked, 10 OK, 0 FAIL
+(stderr lines: 0)
+-- look: day
+== B. [day 1920x1200] the acceptance: a stand-in program opened from the board's tile writes the file
+OK   B0. [day 1920x1200] the readings PDF of Files in focus on the board (a FILE tile)  | Rail_Demo_Bench_Readings.pdf
+OK   B1. [day 1920x1200] its right-click: Open in Stand-in PDF Editor (its default program), Open with…  | ["Open in Stand-in PDF Editor", "Open with…"]
+OK   B2. [day 1920x1200] the program started (in a session of its own), its window found by its process and named on the tile  | {"state": "OPEN IN STAND-IN PDF EDITOR", "window": "0x0a00001", "title": "Rail_Demo_Bench_Readings.pdf - Stand-in PDF Editor", "found_by": "its process"}
+OK       [day 1920x1200] her column said it, in her words  | ["Rail_Demo_Bench_Readings.pdf is opening in Stand-in PDF Editor. When Stand-in PDF Editor saves it, the new revision is recorded here and what rests on it is marked to recheck.", "Rail_Demo_Bench_Readings.pdf is open in Stand-in PDF Editor, in its window “Rail_Demo_Bench_Readings.pdf - Stand-in PDF Editor”."]
+frame day_1920x1200_1_open_in_program.png
+OK   B3. [day 1920x1200] it saved: the tile shows the new revision (revision 2, saved in Stand-in PDF Editor), still open in it  | {"lines": ["revision 2, saved in Stand-in PDF Editor", "in Files/Rail Demo sources"], "basis": "revision 2, saved in Stand-in PDF Editor, in Files/Rail Demo sources"}
+OK       [day 1920x1200] its dependants marked: the admitted source of its earlier revision RECHECK, wired "saved again"  | {"source": "RECHECK", "wire": "saved again in Stand-in PDF Editor"}
+OK       [day 1920x1200] her column: the save, its revision verified on disk, what rests on it marked  | ["Stand-in PDF Editor saved Rail_Demo_Bench_Readings.pdf: revision 2 is recorded, its bytes verified on disk. What rests on it is marked to recheck on the board."]
+frame day_1920x1200_2_saved_revision.png
+OK       [day 1920x1200] focus the source: what rests on it is marked (the readings sheet RECHECK)  | {"Rail_Demo_Bench_Readings.pdf": "OPEN IN STAND-IN PDF EDITOR", "Startup is inside the Rev B li": "REFUTED", "Rail Demo bench readings": "RECHECK", "Settled power is 3 W, inside t": "RECHECK", "Rail_Demo_Limits_Rev_A.pdf": "CURRENT", "Rail_Demo_Limits_Rev_B.pdf": "CURRENT"}
+frame day_1920x1200_3_dependants_marked.png
+OK   B4. [day 1920x1200] its window closed: the tile says so (STAND-IN PDF EDITOR CLOSED), revision 2 kept on its line  | {"state": "STAND-IN PDF EDITOR CLOSED", "lines": ["revision 2, saved in Stand-in PDF Editor", "in Files/Rail Demo sources"]}
+OK       [day 1920x1200] her column: closed, the newest revision said
+frame day_1920x1200_4_program_closed.png
+summary [x day]: 10 checked, 10 OK, 0 FAIL
+(stderr lines: 0)
+== end

@@ -215,3 +215,4 @@ MODULES = MODULES + ('workbench.library_service',)
 # ---- 0.8.7 W7, the window wiring: her voice floor in her column; Ask the Library, tables and cross-references on screen ------
 MODULES = MODULES + ('workbench.voice_column', 'workbench.library_qt')
 # ---- end of 0.8.7 W7 --------------------------------------------------------------------------------------------------------
+MODULES = MODULES + ('workbench.app_files',)      # 1.0 A1: her words when a file is open in another program

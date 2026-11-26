@@ -274,6 +274,10 @@ class Desk:
             from .depths import mark_board;mark_board(self)
         except Exception:  # noqa: BLE001 - the board stands without it
             pass
+        try:      # 1.0 A1: a file open in its program says so on its tile (OPEN IN GIMP, GIMP CLOSED); what you linked to it is rechecked
+            from .app_files import mark_board as mark_programs;mark_programs(self)
+        except Exception:  # noqa: BLE001 - 1.0 A1: the board stands without it
+            pass
         self.assignments = []            # (objective, {object ids its steps read}) of the owner's recent assignments (1.0 K1)
 
     # ---- what the reader kept ------------------------------------------------------------------------------------------

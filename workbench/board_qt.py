@@ -54,6 +54,7 @@ def day_wire(dashed=False):
 def state_ink(word):
     word = str(word or '').upper()
     if word in SETTLED_WORDS:return t.READY
+    if word.startswith('OPEN IN '):return t.READY      # 1.0 A1: a file open in its program (its mark: a window)
     if word == 'RECHECK':return t.RECHECK
     if word in ATTENTION_WORDS:return t.OWNER
     return t.QUIET
@@ -63,7 +64,11 @@ def draw_mark(p, box, word, colour):
     """One mark per state, different in shape and not only in hue (as the Field's): settled a filled square, recheck half
     filled, open hollow, held or refuted crossed, waiting a dot, archived or replaced a dash."""
     word = str(word or '').upper();p.save();p.setPen(QPen(colour, 1.4));p.setBrush(Qt.NoBrush)
-    if word in SETTLED_WORDS:
+    if word.startswith(('OPEN IN ', 'OPENING IN ')):      # 1.0 A1: a window (its title bar filled while it is open, hollow while looked for)
+        p.drawRect(box);bar = QRectF(box.left(), box.top(), box.width(), box.height() * 0.34)
+        if word.startswith('OPEN IN '):p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(bar)
+        else:p.drawLine(bar.bottomLeft(), bar.bottomRight())
+    elif word in SETTLED_WORDS:
         p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(box)
     elif word == 'RECHECK':
         p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(QRectF(box.left(), box.top(), box.width() / 2, box.height()))
@@ -748,6 +753,11 @@ class BoardView(QWidget):
         if getattr(self.host, 'l5_split', None) is not None:  # 1.0 L5: its working view beside the view in front (the split)
             from .split_qt import open_beside
             menu.addAction('Open beside', lambda i=tile.id: open_beside(self.host, i))
+        try:  # 1.0 A1: a FILE tile: Open in <its program>, Open with…, its window forward, its family's room
+            from .app_files_qt import add_menu
+            add_menu(self.host, tile, menu)
+        except ImportError:  # 1.0 A1
+            pass
         wire = self.board.wire(tile.id, self.ident) or (self.board.wire(tile.id, tile.bridge) if tile.bridge else None)
         if wire is not None:menu.addAction('The link\'s basis', lambda w=wire: self.open_wire(w))
         module = bm.relevance_module()          # 1.0 L3's: shown only when relevance is there

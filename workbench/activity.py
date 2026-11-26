@@ -61,6 +61,8 @@ OBSERVER_OPERATIONS=frozenset({
  'revisions.list',
  # 1.0 K7: what other programs show through accessibility, read when a step or a window is looked at; reading is not an event
  'accessibility.status','accessibility.read',
+ # 1.0 A1: the files open in other programs, read each time the board is drawn; reading is not an event
+ 'appfile.list',
  # 1.0 K2: the registry of her tools, receipts, and a look at the windows, read when her column or a step is shown; reading is not an event
  'tools.list','tools.receipts','windows.observe',
  # 1.0 K3: the grants in force and a grant's words, read when her column or the Grants page is shown; HALT's state, read by its button

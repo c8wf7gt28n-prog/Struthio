@@ -82,6 +82,10 @@ def listing(host):
 
 def open_app(host, ident, files=(), urls=()):
     """Start an app (or a pinned command) as the owner, with files: the Kernel's words in the status line."""
+    if files and not urls:  # 1.0 A1: one file of Files opened in a program is watched: its window named on the board, its saves recorded
+        from .app_files_qt import open_with
+        done = open_with(host, ident, files)
+        if done is not None:return done
     args = {'id': ident}
     if files:args['files'] = [str(Path(f).absolute()) for f in files]
     if urls:args['urls'] = list(urls)

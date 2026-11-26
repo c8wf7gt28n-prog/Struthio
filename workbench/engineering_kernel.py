@@ -94,6 +94,7 @@ from . import utility_sandbox  # 1.0 K6 (the utility sandbox): sandbox.status, s
 from . import objective_plan  # 1.0 K4 (from an objective to a plan): objective.plan (read); objective.offer (execute) (recorded additions)
 from . import a11y_reader  # 1.0 K7 (reading other programs): accessibility.status, accessibility.read (read, AT-SPI, read only) (recorded additions)
 from . import network_governed  # 1.0 K8 (the network, governed): web.state, web.words, web.pages, web.page (read); web.lookup, web.get (execute); web.search (approve, always asks) (recorded additions)
+from . import app_files  # 1.0 A1 (programs by window and file): appfile.list (read); appfile.open, appfile.look (execute: a file of Files opened in its program, its window, saves and close) (recorded additions)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -295,6 +296,7 @@ CAPABILITIES = {
     **objective_plan.SCOPES,  # 1.0 K4 (from an objective to a plan): the desk's plan is a read; offering it starts an assignment, nothing in it
     **a11y_reader.SCOPES,  # 1.0 K7 (reading other programs): two reads; nothing is pressed or typed through accessibility
     **network_governed.SCOPES,  # 1.0 K8 (the network, governed): a page fetched into quarantine is execute (your press or your grant for its site); search words are approve and always ask
+    **app_files.SCOPES,  # 1.0 A1 (programs by window and file): the list is a read; opening a file in its program and looking at it are execute
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -745,6 +747,7 @@ class Kernel:
         if op in objective_plan.FIELDS:return objective_plan.dispatch(self,op,a,p)   # 1.0 K4 (from an objective to a plan): the model proposes steps from the registry, the desk disposes
         if op in a11y_reader.FIELDS:return a11y_reader.dispatch(self,op,a,p)   # 1.0 K7 (reading other programs): the accessible tree read now, as receipts; without AT-SPI, why
         if op in network_governed.FIELDS:return network_governed.dispatch(self,op,a,p)   # 1.0 K8 (the network, governed): a page kept in quarantine and read as data; a step blocked while the network is down
+        if op in app_files.FIELDS:return app_files.dispatch(self,op,a,p)   # 1.0 A1 (programs by window and file): its window named, each save recorded through revisions.record, its close said
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

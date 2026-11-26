@@ -520,7 +520,8 @@ class Depths(QObject):
         set_digest(tab, digest)
         name = '';pids = []
         if found.get('default'):
-            try:result = call(self.host, 'apps.open', {'id': found['default'], 'files': [str(path)]})
+            from .app_files_qt import open_for_view  # 1.0 A1: the board's route: its window named on the tile, its saves recorded, its close said
+            try:result = open_for_view(self.host, found['default'], path) or call(self.host, 'apps.open', {'id': found['default'], 'files': [str(path)]})
             except ValueError as exc:
                 self.say(tab, 'look', str(exc));return None
             if not result.get('ok'):

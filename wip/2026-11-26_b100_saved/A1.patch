@@ -1,0 +1,1165 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 863ae46..19ada30 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -29,6 +29,9 @@
+    "algo.find_applicable": "workbench/algorithm_atlas.py#dispatch",
+    "algo.get": "workbench/algorithm_atlas.py#dispatch",
+    "algo.lookup": "workbench/algorithm_atlas.py#dispatch",
++   "appfile.list": "workbench/app_files.py#dispatch",
++   "appfile.look": "workbench/app_files.py#dispatch",
++   "appfile.open": "workbench/app_files.py#dispatch",
+    "apps.default": "workbench/apps_catalog.py#dispatch",
+    "apps.for": "workbench/apps_catalog.py#dispatch",
+    "apps.list": "workbench/apps_catalog.py#dispatch",
+@@ -1088,9 +1091,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 890,
++  "adapters": 893,
+   "job_tools": 113,
+-  "operations": 890,
++  "operations": 893,
+   "settings": 48
+  },
+  "formulas": {
+@@ -1770,6 +1773,33 @@
+    },
+    "scope": "read"
+   },
++  "appfile.list": {
++   "arguments": "3bd8ef4662f91a260516e134b7ba5f194e077f84222b6137bcaef8cb2aec9ea3",
++   "properties": {
++    "id": "61d17f98bc93de8b",
++    "limit": "29f310fc03343755",
++    "open": "7cb541e84f226754",
++    "path": "e5b3001aa5951151"
++   },
++   "scope": "read"
++  },
++  "appfile.look": {
++   "arguments": "55f7b84e4cdf1cb2abc7ecfa0b3dc49df794d2a278c8c42fa13cfd5aeb20807a",
++   "properties": {
++    "session": "97e045a260545d30"
++   },
++   "scope": "execute"
++  },
++  "appfile.open": {
++   "arguments": "607fbd4d51251b93ab16abd5116bc0278eca2e945bad37939abb66d58313ea93",
++   "properties": {
++    "app": "3e79622dec12ac17",
++    "chosen": "7cb541e84f226754",
++    "id": "61d17f98bc93de8b",
++    "path": "e5b3001aa5951151"
++   },
++   "scope": "execute"
++  },
+   "apps.default": {
+    "arguments": "8bc328cef6ba1977b6ed732818e34755b0079d35bf2c84c1d28d9e84d0124382",
+    "properties": {
+@@ -8733,7 +8763,7 @@
+  },
+  "release": "Graphite 0.8.7",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "ec7271f280697ba175f3f6c861670d322cf20fe60a4aa9f504b99250f2b88ab5",
++ "schema_digest": "d146ffab26e0011f1f808f47a8e1636609d61d8d76b81840bc902aff56d688bc",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/activity.py b/workbench/activity.py
+index 0ba190f..426619d 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -61,6 +61,8 @@ OBSERVER_OPERATIONS=frozenset({
+  'revisions.list',
+  # 1.0 K7: what other programs show through accessibility, read when a step or a window is looked at; reading is not an event
+  'accessibility.status','accessibility.read',
++ # 1.0 A1: the files open in other programs, read each time the board is drawn; reading is not an event
++ 'appfile.list',
+  # 1.0 K2: the registry of her tools, receipts, and a look at the windows, read when her column or a step is shown; reading is not an event
+  'tools.list','tools.receipts','windows.observe',
+  # 1.0 K3: the grants in force and a grant's words, read when her column or the Grants page is shown; HALT's state, read by its button
+diff --git a/workbench/app_files.py b/workbench/app_files.py
+new file mode 100644
+index 0000000..bb1753d
+--- /dev/null
++++ b/workbench/app_files.py
+@@ -0,0 +1,575 @@
++"""Programs by window and file (Graphite 1.0 A1): a file of Files opened in its own program from the board, its window
++found and named on the board's tile, each save recorded as a new revision with what rests on it marked to recheck, and
++the window's close said.
++
++The owner's paper, section 7: "An Open full application action is available when the compact editor does not support a
++necessary feature, but the file identity and revision must remain recognizable when returning from the native program."
++And section 8: "Firefox, Blender, LibreOffice, and other programs operate as ordinary windows managed by the underlying
++window manager." Graphite does not work inside these programs (her hand in other programs is 1.0 K9's); it opens a file in
++one, sees its window, notices its saves and its close. The window's side is workbench/app_files_qt.py. What lives here has
++no Qt:
++
++    the programs      PROGRAMS: Firefox, GIMP, KiCad, Blender and Godot, whichever is installed, each with the files it
++                      opens and the words its windows give (WM_CLASS). Only what helps and is cheap: a KiCad project's
++                      schematic and board are watched together (.kicad_pro, .kicad_sch, .kicad_pcb of one name; a BOM or a
++                      netlist read is the KiCad checks room's, never parsed here); a Godot project is its project.godot and
++                      its scenes (opened through the existing bridge, programs.godot.open: the editor on the project
++                      folder); a .blend through the existing bridge too (programs.blender.open, scripts in the file not run);
++                      GIMP's .xcf is an image with layers and is not read; Firefox is given a page from Files and Graphite
++                      fetches nothing (the network is 1.0 K8's). Any other installed program opens a file the same plain way.
++    opening           appfile.open: the program is the one the owner chose (Open with), else the file's default program (S2's
++                      mimeapps.list), else the family's own bridge or entry; it starts through S2's launch (1.0 S1's
++                      session_launch: a session of its own, so a Graphite restart leaves it open) or the family's bridge.
++                      A session row is kept in the Kernel: the file's identity (L1's), the program, its processes, the
++                      files watched with their digests at the start, the window list's place at the start (S3).
++    looking           appfile.look: called by the window only when something changed (a watched file, the window list, a
++                      process). The Kernel looks itself: the window list (S3's Watcher: the program's window by its
++                      process, else by its program and the file's name in its title, else by its program's window that
++                      appeared or changed since the start), each watched file's bytes (a new digest is recorded through
++                      L4's revisions.record: verified on disk, or nothing is recorded), and whether the window closed (or,
++                      with no window list on this computer, whether its processes still run). Nothing is written when
++                      nothing changed.
++    the board         mark_board(desk): the FILE tile of a file open in a program says so in its state word (OPEN IN GIMP,
++                      OPENING IN GIMP while its window is looked for, GIMP CLOSED for a while after) and its revision on its
++                      first line; L4's depths.mark_board marks what rests on an earlier revision admitted as a source; here,
++                      what the owner linked to the file by their word (board.keep) before its newest revision is marked to
++                      recheck too, its wire marked. Nothing is changed in any record: marking is the board's reading.
++
++Kernel operations (one block in engineering_kernel.py and engineering_cli.py, commented 1.0 A1):
++    appfile.open  {path | id, app?, chosen?}   execute  open a file of Files in a program (chosen: the owner chose this app
++                                                        in Open with, so no bridge is put in its place)
++    appfile.look  {session?}                   execute  look at the open sessions now: window, saves, close
++    appfile.list  {open?, path?, id?, limit?}  read     the sessions, newest first, with their tile words
++appfile.list is an observer (activity.OBSERVER_OPERATIONS): the board reads it each time it is drawn.
++
++Her rules hold: a program is started only on a press (the owner's, or hers under a grant through the Kernel), argv only and
++never a shell; a revision is recorded only when its bytes are on disk; nothing is sent anywhere; no floating point here (times
++are whole nanoseconds, digests are text).
++"""
++from __future__ import annotations
++
++import json
++import os
++import time
++import uuid
++from dataclasses import dataclass, replace
++from pathlib import Path
++
++from . import mind_words
++
++SCHEMA = 'graphite.appfiles/1'
++FIND_LONGEST_NS = 90 * 1_000_000_000         # a program whose window is not seen in this long, its processes ended: it is said ended
++WATCH_LONGEST_NS = 24 * 3600 * 1_000_000_000  # a session is not looked at after a day (the window side says so)
++CLOSED_SHOWN_NS = 2 * 3600 * 1_000_000_000   # a FILE tile says "GIMP CLOSED" this long after its window closed
++HANDOFF_NS = 4 * 1_000_000_000               # a program that ended this soon handed the file to one already running
++MOST_WATCHED = 40                            # files watched with one (a Godot project's scenes)
++BIGGEST = 512 * 1024 * 1024                  # the most read whole to see a new revision (as depths.BIGGEST)
++STATES = ('starting', 'open', 'closed')
++
++
++@dataclass(frozen=True)
++class Program:
++    key: str
++    name: str            # the short name said on a tile
++    suffixes: tuple      # the files it opens (lower case), or whole names (project.godot)
++    classes: tuple       # words in its windows' WM_CLASS
++    entries: tuple       # words in its desktop entries' ids
++    bridge: str = ''     # the existing Graphite bridge that opens it (program_build): '' none
++    note: str = ''       # what Graphite knows of its files, in words
++
++
++PROGRAMS = (
++    Program('firefox', 'Firefox', ('.html', '.htm', '.xhtml', '.mhtml'), ('firefox', 'navigator', 'firefox-esr'),
++            ('firefox', 'org.mozilla.firefox'), '',
++            'a page from Files, given to Firefox as a file; Graphite fetches nothing for it'),
++    Program('gimp', 'GIMP', ('.xcf', '.ora'), ('gimp',), ('gimp', 'org.gimp.gimp'), '',
++            'an image with layers; Graphite does not read inside it, it records its revisions'),
++    Program('kicad', 'KiCad', ('.kicad_pro', '.kicad_sch', '.kicad_pcb'), ('kicad', 'pcbnew', 'eeschema'),
++            ('kicad', 'org.kicad'), '',
++            'a KiCad project: its schematic and board are watched together; a BOM or a netlist is read by the KiCad checks room'),
++    Program('blender', 'Blender', ('.blend',), ('blender',), ('blender', 'org.blender'), 'programs.blender.open',
++            'a Blender scene; Graphite does not read inside it, and opens it with its scripts not run'),
++    Program('godot', 'Godot', ('project.godot', '.tscn', '.scn'), ('godot',), ('godot', 'org.godotengine'), 'programs.godot.open',
++            'a Godot project: its project.godot and its scenes are watched; the editor opens on the project folder'),
++)
++BY_KEY = {p.key: p for p in PROGRAMS}
++
++# Her words in her column (fixed templates; every number through a slot that names its record).
++WORDS = {
++    'opening': '{name} is opening in {program}. When {program} saves it, the new revision is recorded here and what rests on it is marked to recheck.',
++    'note': 'This is {note}.',
++    'window': '{name} is open in {program}, in its window “{title}”.',
++    'running': '{name} is open in {program}. Its window cannot be seen on this computer, so its process is watched.',
++    'saved': '{program} saved {name}: revision {n} is recorded, its bytes verified on disk.',
++    'marked': 'What rests on it is marked to recheck on the board.',
++    'closed': '{program} closed {name}; revision {n} is the newest here.',
++    'closed_same': '{program} closed {name} without saving a change.',
++    'ended': '{program} ended before its window was seen; {name} is as it was.',
++    'refused': '{name} was not opened: {why}',
++}
++NUMBERS = {'saved': {'n': "the file's revisions (revisions.list)"}, 'closed': {'n': "the file's revisions (revisions.list)"}}
++mind_words.register('app_files', WORDS, kind='sentence', numbers=NUMBERS)
++
++
++def say(key, **slots):
++    return WORDS[key].format(**slots)
++
++
++# ---- the programs ----------------------------------------------------------------------------------------------------------
++def family(path):
++    """The Program a file belongs to (by its whole name, then its suffix), or None."""
++    name = Path(str(path)).name.lower();suffix = Path(name).suffix
++    for program in PROGRAMS:
++        if name in program.suffixes or (suffix and suffix in program.suffixes):return program
++    return None
++
++
++def family_of_app(app):
++    """The Program an installed app is (its id, its program or its window class names it), or None."""
++    if app is None:return None
++    words = ' '.join((str(getattr(app, 'id', '')), Path(str(app.exec_program() if hasattr(app, 'exec_program') else '')).name,
++                      str(getattr(app, 'wm_class', '')), str(getattr(app, 'name', '')))).casefold()
++    for program in PROGRAMS:
++        if any(w in words for w in program.entries + program.classes):return program
++    return None
++
++
++def short_name(app_name, program):
++    return program.name if program is not None else (str(app_name or '') or 'its program')
++
++
++def watched_with(path, program):
++    """The files watched with this one (all in its folder or, for Godot, its project): the file first."""
++    path = Path(path);out = [path]
++    if program is None:return out
++    if program.key == 'kicad':
++        for suffix in ('.kicad_pro', '.kicad_sch', '.kicad_pcb'):
++            other = path.with_suffix(suffix)
++            if other != path and other.is_file():out.append(other)
++    elif program.key == 'godot':
++        project = path if path.name == 'project.godot' else next((p / 'project.godot' for p in path.parents if (p / 'project.godot').is_file()), None)
++        if project is not None:
++            if project != path:out.append(project)
++            try:
++                from .program_build import _godot_scenes
++                scenes, _ = _godot_scenes(project.parent)
++            except (OSError, ValueError):
++                scenes = []
++            for scene in scenes:
++                other = project.parent / scene.removeprefix('res://')
++                if other not in out and other.is_file():out.append(other)
++                if len(out) >= MOST_WATCHED:break
++    return out[:MOST_WATCHED]
++
++
++# ---- the store --------------------------------------------------------------------------------------------------------------
++COLUMNS = ('id', 'object', 'path', 'program', 'app', 'route', 'family', 'pids', 'state', 'window', 'title', 'found_by', 'started_ns',
++           'seen_ns', 'ended_ns', 'files', 'revisions', 'seq', 'match', 'said', 'principal')
++JSONS = ('pids', 'files', 'revisions', 'match')
++
++
++def ensure(db):
++    db.execute('CREATE TABLE IF NOT EXISTS app_files(id TEXT PRIMARY KEY, object TEXT NOT NULL, path TEXT NOT NULL, program TEXT NOT NULL, '
++               'app TEXT NOT NULL, route TEXT NOT NULL, family TEXT NOT NULL, pids TEXT NOT NULL, state TEXT NOT NULL, window TEXT NOT NULL, '
++               'title TEXT NOT NULL, found_by TEXT NOT NULL, started_ns INTEGER NOT NULL, seen_ns INTEGER NOT NULL, ended_ns INTEGER NOT NULL, '
++               'files TEXT NOT NULL, revisions TEXT NOT NULL, seq INTEGER NOT NULL, match TEXT NOT NULL, said TEXT NOT NULL, principal TEXT NOT NULL)')
++    db.execute('CREATE INDEX IF NOT EXISTS app_files_object ON app_files(object, started_ns)')
++
++
++def _row(r):
++    out = dict(zip(COLUMNS, r))
++    for key in JSONS:
++        try:out[key] = json.loads(out[key] or ('{}' if key == 'files' else '[]'))
++        except ValueError:out[key] = {} if key == 'files' else []
++    return out
++
++
++def _save(db, row):
++    values = [json.dumps(row[k], sort_keys=True) if k in JSONS else row[k] for k in COLUMNS]
++    db.execute('INSERT OR REPLACE INTO app_files VALUES(%s)' % ','.join('?' * len(COLUMNS)), values)
++
++
++def _read(kernel, where='', params=()):
++    with kernel.db() as db:
++        ensure(db)
++        rows = db.execute('SELECT %s FROM app_files %s ORDER BY started_ns DESC' % (','.join(COLUMNS), where), params).fetchall()
++    return [_row(r) for r in rows]
++
++
++# ---- choosing the program ----------------------------------------------------------------------------------------------------
++def _bridge_ready(program):
++    """The family's existing bridge, when its program is installed here (program_build._tool)."""
++    if program is None or not program.bridge:return False
++    try:
++        from .program_build import _tool
++        return bool(_tool(program.key).get('available'))
++    except Exception:  # noqa: BLE001 - no bridge: the plain route
++        return False
++
++
++def choose(path, app_id='', chosen=False):
++    """(route, app, program family, name said, reason): route 'bridge' (the family's own), 'app' (an installed app), or ''
++    with the reason none can open it."""
++    from . import apps_catalog
++    program = family(path)
++    catalog = apps_catalog.scan()
++    if app_id:
++        app = apps_catalog.find_app(app_id, catalog)
++        if app is None:return '', None, program, '', '%s is not installed here' % str(app_id)[:120]
++        if not chosen and _bridge_ready(program) and family_of_app(app) is not program:
++            return 'bridge', None, program, program.name, ''
++        return 'app', app, family_of_app(app) or program, short_name(app.name, family_of_app(app)), ''
++    if _bridge_ready(program):return 'bridge', None, program, program.name, ''
++    mime = apps_catalog.mime_of(path)
++    default, _ = apps_catalog.default_for(mime, catalog)
++    app = catalog.get(default) if default else None
++    if app is None and program is not None:      # no default: an installed app of the family, by its entry or its program
++        app = next((a for a in catalog.every() if a.available and family_of_app(a) is program), None)
++    if app is None:
++        return '', None, program, '', 'no program here says it opens %s: Open with chooses one' % apps_catalog.type_words(mime, Path(path).name)
++    return 'app', app, family_of_app(app) or program, short_name(app.name, family_of_app(app)), ''
++
++
++def _match_words(app, program):
++    """The words a window of this program gives (its WM_CLASS), lower case."""
++    words = set(program.classes) if program is not None else set()
++    if app is not None:
++        if getattr(app, 'wm_class', ''):words.add(app.wm_class.casefold())
++        exe = Path(app.exec_program()).name.casefold() if hasattr(app, 'exec_program') else ''
++        if exe and exe not in ('python3', 'python', 'sh', 'bash', 'env', 'flatpak', 'snap'):words.add(exe)
++    return sorted(w for w in words if w)
++
++
++# ---- the operations ------------------------------------------------------------------------------------------------------------
++def _place(kernel, args):
++    from . import depths
++    try:return depths._place(kernel, args)
++    except ValueError as exc:
++        if str(exc).startswith('REVISIONS_OUTSIDE'):
++            raise ValueError('APPFILE_OUTSIDE: a file of Files is opened here, so its saves can be recorded; this one is outside Files') from None
++        raise
++
++
++def _file_state(path):
++    st = os.stat(path)
++    return [int(st.st_size), int(st.st_mtime_ns), int(st.st_ino)]
++
++
++def _window_seq():
++    """The window list's place now (S3), or -1 when this computer has none."""
++    try:
++        from . import windows_x11
++        watcher = windows_x11.shared()
++        if not watcher.start():return -1
++        return int(watcher.observe()['seq'])
++    except Exception:  # noqa: BLE001 - no window list: processes are watched instead
++        return -1
++
++
++def open_file(kernel, args, principal):
++    """appfile.open: start the program on the file and keep the session."""
++    from . import depths, files_service
++    ident, rel, target = _place(kernel, args)
++    if target.stat().st_size > BIGGEST:raise ValueError('APPFILE_TOO_LARGE: %s is larger than Graphite reads whole to see its revisions' % target.name)
++    route, app, program, name, reason = choose(target, str(args.get('app') or ''), bool(args.get('chosen')))
++    if not route:raise ValueError('APPFILE_NO_PROGRAM: ' + reason)
++    base = files_service.root(kernel).resolve()
++    watched = {}
++    for path in watched_with(target, program):
++        try:
++            rel_path = path.resolve().relative_to(base).as_posix()
++            watched[rel_path] = [depths.sha256_of(path)[0]] + _file_state(path)
++        except (OSError, ValueError):
++            continue
++    seq = _window_seq()
++    if route == 'bridge':
++        bridge_args = {'path': rel, 'expected_sha256': watched[rel][0]}
++        if program.key == 'godot':
++            project = next((p for p in watched if Path(p).name == 'project.godot'), None)
++            if project is None:raise ValueError('APPFILE_NO_PROJECT: %s is not in a Godot project (no project.godot beside it)' % target.name)
++            bridge_args = {'path': project, 'expected_sha256': watched[project][0]}
++        from . import program_build
++        answer = program_build.dispatch(kernel, program.bridge, bridge_args, principal)
++        pids = [int(answer['pid'])] if answer.get('pid') else []
++        started = [{'pid': p, 'ok': True, 'reason': ''} for p in pids]
++        app_id, how = program.bridge, 'the existing %s bridge (%s)' % (program.name, program.bridge)
++        match = _match_words(None, program)
++    else:
++        from . import apps_catalog
++        result = apps_catalog.launch_app(app, [str(target)])
++        if not result.get('ok'):raise ValueError('APPFILE_NOT_STARTED: ' + str(result.get('reason') or 'it did not start'))
++        started = result.get('started') or []
++        pids = [int(s['pid']) for s in started if s.get('ok') and s.get('pid')]
++        app_id, how = app.id, 'its desktop entry %s, in a session of its own' % app.id
++        match = _match_words(app, program)
++    now = time.time_ns()
++    row = {'id': 'appfile:' + uuid.uuid4().hex, 'object': ident, 'path': rel, 'program': name, 'app': app_id, 'route': route,
++           'family': program.key if program is not None else '', 'pids': pids, 'state': 'starting', 'window': '', 'title': '', 'found_by': '',
++           'started_ns': now, 'seen_ns': now, 'ended_ns': 0, 'files': watched, 'revisions': [], 'seq': seq, 'match': match,
++           'said': say('opening', name=target.name, program=name), 'principal': str(getattr(principal, 'identity', ''))[:80]}
++    with kernel.db() as db:
++        ensure(db)
++        for old in db.execute('SELECT %s FROM app_files WHERE object=? AND state!=?' % ','.join(COLUMNS), (ident, 'closed')).fetchall():
++            old = _row(old)          # the same file opened again: the earlier session is set aside (its window, if any, stays the owner's)
++            old.update(state='closed', ended_ns=now, said='opened again in %s' % name)
++            _save(db, old)
++        _save(db, row)
++    words = row['said'] + ((' ' + say('note', note=program.note)) if program is not None and program.note else '')
++    return {'schema': SCHEMA, 'ok': True, 'session': row['id'], 'object': ident, 'path': rel, 'name': name, 'program': name, 'id': app_id,
++            'route': route, 'how': how, 'started': started, 'pids': pids, 'watched': sorted(watched), 'window_list': seq >= 0,
++            'reason': '%s started in a session of its own.' % name if route == 'app' else '%s started through %s.' % (name, program.bridge),
++            'words': words, 'verified': 'started; its window is looked for', 'done': True}
++
++
++def listing(kernel, args):
++    """appfile.list: the sessions, newest first (open only, or one file's), each with its tile words."""
++    where, params = [], []
++    if args.get('open'):where.append('state!=?');params.append('closed')
++    if args.get('id') or args.get('path'):
++        ident, _, _ = _place(kernel, args);where.append('object=?');params.append(ident)
++    rows = _read(kernel, ('WHERE ' + ' AND '.join(where)) if where else '', tuple(params))[:int(args.get('limit') or 100)]
++    now = time.time_ns()
++    for row in rows:
++        row['tile'] = tile_words(row, now)
++    return {'schema': SCHEMA, 'sessions': rows}
++
++
++def match_window(row, look):
++    """(the window row, how it was found) of a session in a reading of the window list (windows_x11.observe), or (None, '')."""
++    wins = [w for w in look.get('windows') or () if not w.get('graphite')]
++    by_id = {w['id']: w for w in wins}
++    pids = set(row.get('pids') or ())
++    if row.get('window') and row['window'] in by_id:
++        same = by_id[row['window']]      # an X window id is used again by a later program: the one found by its process must still be it
++        if row.get('found_by') != 'its process' or same.get('pid') in pids:return same, row.get('found_by') or 'its window'
++    mine = [w for w in wins if w.get('pid') in pids]
++    if mine:return (next((w for w in mine if not w.get('dialog')), mine[0])), 'its process'
++    words = [str(w).casefold() for w in row.get('match') or ()]
++
++    def of_program(w):
++        klass = ('%s %s' % (w.get('klass') or '', w.get('instance') or '')).casefold()
++        return bool(words) and any(word in klass for word in words)
++    stem = Path(row.get('path') or '').stem.casefold();name = Path(row.get('path') or '').name.casefold()
++    project = Path(row.get('path') or '').parent.name.casefold() if Path(row.get('path') or '').name == 'project.godot' else ''
++    for w in wins:
++        title = str(w.get('title') or '').casefold()
++        if of_program(w) and ((stem and stem in title) or (name and name in title) or (project and project in title)):
++            return w, 'its program and the file\'s name in its title'
++    for event in reversed(look.get('events') or ()):
++        w = by_id.get(event.get('window'))
++        if w is not None and of_program(w) and event.get('event') in ('a new window appeared', 'title changed', 'became active'):
++            return w, 'its program\'s window that %s after it was started' % ('appeared' if event['event'] == 'a new window appeared' else 'changed')
++    return None, ''
++
++
++def _alive(pids):
++    from .session_launch import start_time
++    return [p for p in pids or () if start_time(p) is not None]
++
++
++def _look_window(row):
++    """(the window list's reading or None when there is none here, the window found, how)."""
++    try:
++        from . import windows_x11
++        watcher = windows_x11.shared()
++        if not watcher.start():return None, None, ''
++        since = row.get('seq')
++        look = watcher.observe(since if isinstance(since, int) and since >= 0 else None)
++        if not look.get('available'):return None, None, ''
++    except Exception:  # noqa: BLE001 - no window list: the processes decide
++        return None, None, ''
++    window, how = match_window(row, look)
++    return look, window, how
++
++
++def _look_files(kernel, row, principal):
++    """Each watched file's bytes now: a new digest is recorded (L4's revisions.record, verified on disk). The events."""
++    from . import depths, files_service
++    events = []
++    for rel, seen in sorted(row['files'].items()):
++        try:
++            path = files_service.resolve(kernel, rel)
++            state = _file_state(path)
++        except (OSError, ValueError):
++            continue          # not there this moment (a program writing a new file over the old one): looked at again
++        if state == seen[1:]:continue
++        if state[0] > BIGGEST:continue
++        try:digest, _ = depths.sha256_of(path)
++        except OSError:continue
++        if digest == seen[0]:
++            row['files'][rel] = [digest] + state;continue
++        try:
++            got = depths.record(kernel, {'path': rel, 'expected_sha256': digest, 'previous_sha256': seen[0], 'how': 'full program',
++                                         'program': row['program'][:120]}, principal)
++        except ValueError:
++            continue          # it changed again while it was read: the next look records the bytes then on disk
++        row['files'][rel] = [digest] + state
++        row['revisions'].append({'path': rel, 'n': got['revision'], 'digest': digest, 'at_ns': time.time_ns()})
++        kept = _kept_of(kernel, got['object'])
++        marked = bool(got.get('earlier_admitted')) or bool(kept)
++        words = say('saved', program=row['program'], name=Path(rel).name, n=got['revision']) + ((' ' + say('marked')) if marked else '')
++        events.append({'event': 'saved', 'session': row['id'], 'path': rel, 'object': got['object'], 'revision': got['revision'],
++                       'recorded': got.get('recorded', False), 'earlier_admitted': len(got.get('earlier_admitted') or ()), 'kept_links': len(kept),
++                       'marked': marked, 'verified': got.get('verified', ''), 'words': words})
++    return events
++
++
++def _kept_of(kernel, ident):
++    try:
++        from .board_model import kept_links
++        return [k for k in kept_links(kernel) if ident in (k.get('a'), k.get('b'))]
++    except Exception:  # noqa: BLE001 - no links kept by the owner's word
++        return []
++
++
++def look(kernel, args, principal):
++    """appfile.look: every open session (or the one named) looked at now. Writes only what changed."""
++    where = 'WHERE id=?' if args.get('session') else 'WHERE state!=?'
++    rows = _read(kernel, where, (args['session'],) if args.get('session') else ('closed',))
++    events = [];changed = []
++    now = time.time_ns()
++    for row in rows:
++        if row['state'] == 'closed':continue
++        before = json.dumps(row, sort_keys=True)
++        name = Path(row['path']).name
++        found = _look_files(kernel, row, principal)       # a save just before the close is recorded first
++        events += found
++        reading, window, how = _look_window(row)
++        alive = _alive(row['pids'])
++        if reading is not None:
++            if window is not None:
++                if row['state'] != 'open' or row['window'] != window['id']:
++                    row.update(state='open', window=window['id'], found_by=how)
++                    events.append({'event': 'window', 'session': row['id'], 'path': row['path'], 'window': window['id'], 'title': window['title'],
++                                   'how': how, 'words': say('window', name=name, program=row['program'], title=str(window['title'])[:120])})
++                if window['title'] != row['title']:row['title'] = str(window['title'])[:300]
++                row['seen_ns'] = now
++            elif row['state'] == 'open' and row['window']:
++                row.update(state='closed', ended_ns=now)
++            elif row['state'] == 'starting' and not alive and now - row['started_ns'] > FIND_LONGEST_NS:
++                row.update(state='closed', ended_ns=now, found_by='never seen')
++        else:      # no window list here: its processes are watched
++            if alive and row['state'] == 'starting':
++                row.update(state='open', found_by='its process (no window list here)', seen_ns=now)
++                events.append({'event': 'window', 'session': row['id'], 'path': row['path'], 'window': '', 'title': '', 'how': row['found_by'],
++                               'words': say('running', name=name, program=row['program'])})
++            elif not alive and (row['state'] == 'open' or now - row['started_ns'] > HANDOFF_NS):
++                row.update(state='closed', ended_ns=now, found_by=row['found_by'] or 'its process ended')
++        if now - row['started_ns'] > WATCH_LONGEST_NS and row['state'] != 'closed':
++            row.update(state='closed', ended_ns=now, found_by=row['found_by'] or 'no longer watched')
++        if row['state'] == 'closed':
++            latest = row['revisions'][-1]['n'] if row['revisions'] else None
++            if row['found_by'] == 'never seen':words = say('ended', program=row['program'], name=name)
++            elif latest is None:words = say('closed_same', program=row['program'], name=name)
++            else:words = say('closed', program=row['program'], name=name, n=latest)
++            row['said'] = words
++            events.append({'event': 'closed', 'session': row['id'], 'path': row['path'], 'window': row['window'], 'saved': latest, 'words': words})
++        elif found or any(e['session'] == row['id'] for e in events):
++            row['said'] = events[-1]['words']
++        if json.dumps(row, sort_keys=True) != before:
++            changed.append(row)
++    if changed:
++        with kernel.db() as db:
++            ensure(db)
++            for row in changed:_save(db, row)
++    sessions = _read(kernel, 'WHERE state!=?', ('closed',))
++    for row in sessions:row['tile'] = tile_words(row, now)
++    return {'schema': SCHEMA, 'events': events, 'sessions': sessions, 'changed': [r['id'] for r in changed],
++            'words': ' '.join(e['words'] for e in events) or 'Nothing changed in the programs that have your files open.'}
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'appfile.open':return open_file(kernel, args, principal)
++    if op == 'appfile.look':return look(kernel, args, principal)
++    if op == 'appfile.list':return listing(kernel, args)
++    raise ValueError('Unknown appfile operation')
++
++
++TEXT = {'type': 'string', 'minLength': 1, 'maxLength': 4000}
++FIELDS = {
++    'appfile.open': ({'path': TEXT, 'id': {'type': 'string', 'pattern': '^fileid:[0-9a-f]{32}$', 'maxLength': 39},
++                      'app': {'type': 'string', 'maxLength': 300}, 'chosen': {'type': 'boolean'}}, []),
++    'appfile.look': ({'session': {'type': 'string', 'pattern': '^appfile:[0-9a-f]{32}$', 'maxLength': 40}}, []),
++    'appfile.list': ({'open': {'type': 'boolean'}, 'path': TEXT, 'id': {'type': 'string', 'pattern': '^fileid:[0-9a-f]{32}$', 'maxLength': 39},
++                      'limit': {'type': 'integer', 'minimum': 1, 'maximum': 500}}, []),
++}
++SCOPES = {'appfile.open': 'execute', 'appfile.look': 'execute', 'appfile.list': 'read'}
++OBSERVERS = ('appfile.list',)
++
++
++# ---- the board ---------------------------------------------------------------------------------------------------------------
++def tile_words(row, now=None):
++    """(state word, first line) a FILE tile says for this session, or None when it says nothing any more."""
++    now = time.time_ns() if now is None else now
++    program = row.get('program') or 'its program'
++    latest = (row.get('revisions') or [{}])[-1] if row.get('revisions') else None
++    saved = ('revision %d, saved in %s' % (latest['n'], program)) if latest and latest.get('path') == row.get('path') else ''
++    if row.get('state') == 'starting':return ('opening in %s' % program, saved)
++    if row.get('state') == 'open':return ('open in %s' % program, saved or 'since %s, not saved yet' % _clock(row.get('started_ns')))
++    if row.get('state') == 'closed' and row.get('found_by') != 'never seen' and now - int(row.get('ended_ns') or 0) <= CLOSED_SHOWN_NS \
++            and not str(row.get('said') or '').startswith('opened again'):
++        return ('%s closed' % program, saved or '%s closed it at %s, nothing saved' % (program, _clock(row.get('ended_ns'))))
++    return None
++
++
++def _clock(ns):
++    try:return time.strftime('%H:%M', time.localtime(int(ns) // 1_000_000_000))
++    except (TypeError, ValueError, OverflowError):return ''
++
++
++def mark_board(desk):
++    """board_model.Desk: the FILE tile of a file open in a program (or just closed) says so; what the owner linked to it by
++    their word before its newest revision is marked to recheck. Reads only (appfile.list, revisions.list, board.links)."""
++    reader = getattr(desk, 'reader', None)
++    if reader is None or not hasattr(reader, 'call'):return 0
++    from .board_model import Edge, file_object
++    from .field_model import STATE_RECHECK
++    from .depths import MARKED, SETTLED
++    entries = {e.get('id'): e for e in ((desk.files or {}).get('entries') or ())}
++    root = (desk.files or {}).get('root')
++
++    def bring(ident):
++        """A plain file of Files on the desk (as add_file does), or None."""
++        if ident not in desk.objects and ident in entries:desk.objects[ident] = file_object(entries[ident], root)
++        return desk.objects.get(ident)
++    marked = 0
++    # 1. the FILE tiles of files open in a program, or just closed
++    rows = ((reader.call('appfile.list', {'limit': 200}) or {}).get('sessions') or [])
++    newest = {}
++    for row in rows:      # newest first: the first row of each file is its session now
++        newest.setdefault(row.get('object'), row)
++    now = time.time_ns()
++    for ident, row in newest.items():
++        words = row.get('tile') or tile_words(row, now)
++        if words is None:continue
++        obj = bring(ident)
++        if obj is None:continue
++        state, line = words
++        lines = tuple(obj.lines)
++        if line and not (lines and str(lines[0]).startswith('revision')):lines = (line,) + lines[1:3]
++        desk.objects[ident] = replace(obj, state=state, lines=lines[:3])
++        marked += 1
++    # 2. what the owner linked to a file by their word (board.keep) before its newest revision: to recheck, its wire marked
++    links = [k for k in ((reader.call('board.links', {}) or {}).get('links') or ()) if k.get('state') == 'IN'
++             and (str(k.get('a')).startswith('fileid:') or str(k.get('b')).startswith('fileid:'))]
++    if links:
++        latest = {}
++        for rev in ((reader.call('revisions.list', {'limit': 500}) or {}).get('revisions') or ()):
++            if rev.get('how') != 'seen' and int(rev.get('n') or 0) >= 2:
++                was = latest.get(rev.get('object'))
++                if was is None or int(rev['n']) > int(was['n']):latest[rev['object']] = rev
++        for link in links:
++            a, b = link.get('a'), link.get('b')
++            if bring(a) is None or bring(b) is None:continue
++            if not any(e.relation == 'kept' and {e.source, e.target} == {a, b} for e in desk.edges):
++                desk.edges.append(Edge(a, b, 'kept', 'by your word', said=link.get('said') or '', kept=link.get('id') or ''))
++            for ident, other in ((a, b), (b, a)):
++                rev = latest.get(ident)
++                if rev is None or int(link.get('at') or 0) * 1_000_000_000 >= int(rev.get('at_ns') or 0):continue   # kept after it: about the new one
++                for edge in desk.edges:
++                    if edge.relation == 'kept' and {edge.source, edge.target} == {a, b}:edge.stale = True     # its wire says "recheck"
++                rests = desk.objects.get(other)
++                if rests is not None and rests.kind in MARKED and rests.state in SETTLED:
++                    desk.objects[other] = replace(rests, state=STATE_RECHECK);marked += 1
++    if marked:desk._df = None
++    return marked
+diff --git a/workbench/app_files_qt.py b/workbench/app_files_qt.py
+new file mode 100644
+index 0000000..d6d18a6
+--- /dev/null
++++ b/workbench/app_files_qt.py
+@@ -0,0 +1,345 @@
++"""Programs by window and file, in the window (Graphite 1.0 A1): from a tile or a file, Open in <program>; the program's
++window named on the board's tile while it lives; each save recorded with a line in her column; the close said.
++
++    the board's menu    a FILE tile's right-click: Open in <its default program> (or the family's own bridge: Godot's editor
++                        on the project, Blender with its scripts not run), Open with… (S2's dialog), Bring <program>'s
++                        window forward while it is open (S3's controller, the owner's press), and the existing rooms of its
++                        family: KiCad checks for a KiCad project, the Godot room for project.godot (navigation only)
++    every other door    Open with and the default program anywhere in the window (apps_qt.open_app: the tree, Search, the
++                        viewer) and L4's Full program open a file of Files through the same route (appfile.open), so its
++                        window, its saves and its close are seen the same way; a file outside Files opens as S2 always did
++    the watch           while a session is open: its files are watched (QFileSystemWatcher, taken up again when a program
++                        writes a new file over the old one), and a light glance (GLANCE_MS) compares the files' sizes and
++                        times, the window list (S3's reading, no X call when it reads slowly) and the processes. Only when
++                        something differs is the Kernel asked to look (appfile.look, off the window's thread): it reads the
++                        window list and the bytes itself, records a new revision through L4, and says what changed
++    what is said        each change is a line in her column (her fixed words, app_files.WORDS) and in the status line; the
++                        board is drawn again so its FILE tile says OPEN IN <PROGRAM>, the revision, <PROGRAM> CLOSED, and what
++                        rests on it is marked to recheck (app_files.mark_board, depths.mark_board)
++
++Nothing here decides anything for the owner: a program starts only on a press; nothing in the program is touched (her hand
++in other programs is 1.0 K9's); nothing is accepted into Intake; a revision is what the disk holds.
++"""
++from __future__ import annotations
++
++import os
++import threading
++import time
++from pathlib import Path
++
++from PySide6.QtCore import QFileSystemWatcher, QObject, QTimer, Signal
++
++from . import app_files as af
++
++GLANCE_MS = 1200          # the light look while a session is open (files' sizes and times, the window list, the processes)
++CALM_MS = 250             # a burst of file events is looked at once
++
++
++def kernel_of(host):
++    return getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++
++
++def call(host, op, args=None):
++    from .apps_qt import call as owner_call
++    return owner_call(host, op, args)
++
++
++def shown(name):
++    """A file's name in her words: never markup."""
++    return str(name).replace('<', '‹').replace('>', '›')
++
++
++class AppFiles(QObject):
++    """The window's watch on files open in other programs (host.app_files)."""
++    looked = Signal(object)
++
++    def __init__(self, host):
++        super().__init__(host)
++        self.host = host
++        self.sessions = {}            # id -> the session row as the Kernel last gave it
++        self.seen = {}                # id -> what the last glance saw: {'files': {abs: state}, 'window': id or '', 'alive': (pids)}
++        self.busy = False;self.again = False;self.lines = [];self.nudged = {}
++        self.watcher = QFileSystemWatcher(self);self.watcher.fileChanged.connect(self.file_changed)
++        self.calm = QTimer(self);self.calm.setSingleShot(True);self.calm.setInterval(CALM_MS);self.calm.timeout.connect(self.look)
++        self.timer = QTimer(self);self.timer.setInterval(GLANCE_MS);self.timer.timeout.connect(self.glance)
++        self.looked.connect(self.handle)
++        QTimer.singleShot(0, self.resume)
++
++    # ---- opening ----------------------------------------------------------------------------------------------------------------
++    def in_files(self, path):
++        kernel = kernel_of(self.host)
++        if kernel is None:return False
++        try:
++            from .files_service import root
++            return Path(path).resolve().is_relative_to(root(kernel).resolve()) and Path(path).is_file()
++        except (OSError, ValueError):
++            return False
++
++    def open(self, path, app='', chosen=False):
++        """appfile.open as the owner: the result (with 'words'), or {'ok': False, 'reason'}."""
++        args = {'path': str(Path(path).resolve())}
++        if app:args['app'] = str(app)
++        if chosen:args['chosen'] = True
++        try:result = call(self.host, 'appfile.open', args)
++        except ValueError as exc:
++            why = str(exc).split(': ', 1)[-1]
++            words = af.say('refused', name=shown(Path(path).name), why=why)
++            self.say(words, status=True)
++            return {'ok': False, 'reason': why, 'words': words}
++        self.sessions[result['session']] = {'id': result['session'], 'path': result['path'], 'state': 'starting', 'pids': result.get('pids') or [],
++                                            'window': '', 'program': result['program'], 'files': {}}
++        self.say(result['words'], status=True)
++        self.resume()
++        self.redraw()
++        return result
++
++    def resume(self):
++        """The open sessions as the Kernel keeps them (after a restart too): their files watched, the glance running."""
++        try:rows = call(self.host, 'appfile.list', {'open': True}).get('sessions') or []
++        except (ValueError, RuntimeError):
++            return
++        self.sessions = {r['id']: r for r in rows}
++        self.watch_all()
++        for row in rows:
++            self.seen.setdefault(row['id'], self.glimpse(row))
++        if rows and not self.timer.isActive():self.timer.start()
++        if not rows:self.timer.stop()
++
++    def paths_of(self, row):
++        kernel = kernel_of(self.host)
++        if kernel is None:return []
++        from .files_service import root
++        base = root(kernel)
++        return [str(base / rel) for rel in sorted(row.get('files') or {})] or [str(base / row['path'])]
++
++    def watch_all(self):
++        wanted = set()
++        for row in self.sessions.values():wanted.update(self.paths_of(row))
++        have = set(self.watcher.files())
++        if have - wanted:self.watcher.removePaths(sorted(have - wanted))
++        for path in sorted(wanted - have):
++            if os.path.isfile(path):self.watcher.addPath(path)
++
++    # ---- the glance: something changed? -----------------------------------------------------------------------------------
++    def glimpse(self, row):
++        files = {}
++        for path in self.paths_of(row):
++            try:st = os.stat(path);files[path] = (st.st_size, st.st_mtime_ns, st.st_ino)
++            except OSError:files[path] = None
++        window = ''
++        reading = self.window_reading(row)
++        if reading is not None:
++            found, _ = af.match_window(row, reading)
++            window = found['id'] if found is not None else ''
++        from .session_launch import start_time
++        alive = tuple(p for p in row.get('pids') or () if start_time(p) is not None)
++        return {'files': files, 'window': window, 'alive': alive, 'listed': reading is not None}
++
++    def window_reading(self, row):
++        try:
++            from . import windows_x11
++            watcher = windows_x11.shared()
++            if not watcher.start():return None
++            slow = getattr(watcher.backend, 'blocking', False)
++            if not slow:watcher.refresh()        # a few round trips through libX11: fine on the window's thread
++            seq = row.get('seq')
++            look = watcher.observe(seq if isinstance(seq, int) and seq >= 0 else None, fresh=False)
++            return look if look.get('available') else None
++        except Exception:  # noqa: BLE001 - no window list: the processes are glanced at
++            return None
++
++    def glance(self):
++        if not self.sessions:
++            self.timer.stop();return
++        changed = False
++        for ident, row in list(self.sessions.items()):
++            now = self.glimpse(row);was = self.seen.get(ident)
++            if was is None or now != was:changed = True
++            elif self.differs(row, now):
++                key = (row.get('state'), row.get('window'), now['window'], now['alive'], now['listed'])
++                if self.nudged.get(ident) != key:      # the same disagreement is asked about once, never in a loop
++                    self.nudged[ident] = key;changed = True
++            self.seen[ident] = now
++        if changed:self.look()
++
++    def differs(self, row, now):
++        """What the glance sees and what the Kernel last recorded disagree (a window it has not named yet, one it named that is
++        gone, a process that ended); a program still looked for past the Kernel's patience is asked about once more."""
++        state = row.get('state')
++        if now['listed']:
++            if now['window'] and (state != 'open' or row.get('window') != now['window']):return True
++            if not now['window'] and state == 'open' and row.get('window'):return True
++        else:
++            if now['alive'] and state == 'starting':return True
++            if not now['alive'] and state != 'closed':return True
++        if state == 'starting' and not now['alive'] and time.time_ns() - int(row.get('started_ns') or 0) > af.FIND_LONGEST_NS:return True
++        return False
++
++    def file_changed(self, path):
++        if path not in self.watcher.files() and os.path.isfile(path):self.watcher.addPath(path)
++        self.calm.start()
++
++    # ---- the Kernel's look, off the window's thread -------------------------------------------------------------------------
++    def look(self):
++        if self.busy:
++            self.again = True;return
++        kernel = kernel_of(self.host)
++        if kernel is None:return
++        self.busy = True
++
++        def work():
++            from .engineering_kernel import operator
++            try:
++                answer = kernel.dispatch('appfile.look', {}, operator())
++                result = answer.get('result') if answer.get('ok') else {'events': [], 'error': (answer.get('error') or {}).get('message')}
++            except Exception as exc:  # noqa: BLE001 - said, never taking the window down
++                result = {'events': [], 'error': str(exc)}
++            self.looked.emit(result)
++        threading.Thread(target=work, name='appfile-look', daemon=True).start()
++
++    def handle(self, result):
++        self.busy = False
++        try:
++            if result.get('sessions') is not None:
++                self.sessions = {r['id']: r for r in result['sessions']}
++                for ident in list(self.seen):
++                    if ident not in self.sessions:self.seen.pop(ident, None)
++                for row in self.sessions.values():self.seen[row['id']] = self.glimpse(row)
++            self.watch_all()
++            events = result.get('events') or []
++            for event in events:self.say(event['words'], status=True)
++            if events:
++                if any(e['event'] == 'saved' for e in events):
++                    nav = getattr(self.host, 'living_nav', None)
++                    if nav is not None:QTimer.singleShot(0, nav.read_again)      # the tree reads Files again: the same object, its new bytes
++                self.redraw()
++            if not self.sessions:self.timer.stop()
++            elif not self.timer.isActive():self.timer.start()
++        except RuntimeError:      # the window is closing
++            return
++        if self.again:
++            self.again = False;QTimer.singleShot(0, self.look)
++
++    # ---- what is said and shown -----------------------------------------------------------------------------------------------
++    def say(self, words, status=False):
++        """A line in her column (her fixed words), kept; and in the status line."""
++        self.lines.append((time.strftime('%H:%M'), words));del self.lines[:-40]
++        try:
++            face = getattr(getattr(self.host, 'shell2', None), 'face', None)
++            if face is not None and hasattr(face, 'say'):
++                from .her_column_qt import plain
++                face.say(plain(words))
++        except Exception:  # noqa: BLE001 - the status line still says it
++            pass
++        if status:
++            try:self.host.statusBar().showMessage(words, 12000)
++            except (AttributeError, RuntimeError):pass
++
++    def redraw(self):
++        """The board drawn again from a new reading of the desk (its FILE tiles' words come from appfile.list)."""
++        page = getattr(self.host, 'field_page', None);board = getattr(page, 'board', None)
++        if board is None:return
++        try:
++            board._desk_key = None;board._stale = True
++            if board.isVisible():board.rebuild()
++        except RuntimeError:
++            pass
++
++    def session_of(self, path):
++        """The open session of a file (by its path in Files), or None."""
++        kernel = kernel_of(self.host)
++        if kernel is None:return None
++        try:
++            from .files_service import root
++            rel = Path(path).resolve().relative_to(root(kernel).resolve()).as_posix()
++        except (OSError, ValueError):
++            return None
++        return next((r for r in self.sessions.values() if r.get('path') == rel and r.get('state') != 'closed'), None)
++
++
++# ---- the doors ---------------------------------------------------------------------------------------------------------------
++def watch_of(host):
++    return getattr(host, 'app_files', None)
++
++
++def open_with(host, ident, files):
++    """apps_qt.open_app, first: one file of Files opened with a chosen app goes through appfile.open (its window, saves and
++    close seen). Returns the words said, or None for S2's own route (several files, or one outside Files)."""
++    watch = watch_of(host)
++    files = [str(f) for f in files or ()]
++    if watch is None or len(files) != 1 or not watch.in_files(files[0]):return None
++    return watch.open(files[0], app=ident, chosen=True).get('words')
++
++
++def open_for_view(host, app_id, path):
++    """L4's Full program for a file of Files: appfile.open with its default program (a family's bridge may stand in for a
++    default that is not of the family). The result in apps.open's shape, or None for S2's own route."""
++    watch = watch_of(host)
++    if watch is None or not watch.in_files(path):return None
++    result = watch.open(path, app=app_id or '', chosen=False)
++    if not result.get('ok'):raise ValueError(result.get('reason') or 'It did not start.')
++    return result
++
++
++def program_words(host, path):
++    """(the words for Open in …, the program's name or '') for a file: the route appfile.open would take."""
++    try:
++        route, app, program, name, reason = af.choose(Path(path))
++    except Exception:  # noqa: BLE001 - the catalogue could not be read
++        return 'Open in its program', ''
++    if not route:return 'Open in its program…', ''
++    return 'Open in %s' % name, name
++
++
++def add_menu(host, tile, menu):
++    """board_qt.BoardView.tile_menu: a FILE tile's Open in <program>, Open with…, Bring its window forward, its family's room."""
++    obj = getattr(tile, 'obj', None);target = getattr(obj, 'target', None)
++    if not isinstance(target, dict) or target.get('kind') != 'file' or not target.get('path') or getattr(obj, 'kind', '') == 'folder':return
++    path = str(target['path'])
++    if not os.path.isfile(path):return
++    watch = watch_of(host)
++    menu.addSeparator()
++    words, name = program_words(host, path)
++    if name and watch is not None:
++        menu.addAction(words, lambda p=path: watch.open(p))
++    else:
++        menu.addAction(words, lambda p=path: _open_with_dialog(host, p))
++    menu.addAction('Open with…', lambda p=path: _open_with_dialog(host, p))
++    row = watch.session_of(path) if watch is not None else None
++    if row is not None and row.get('window'):
++        menu.addAction('Bring %s’s window forward' % row.get('program', 'its'), lambda r=row: _forward(host, r))
++    program = af.family(path)
++    if program is not None and program.key in ('kicad', 'godot'):
++        try:
++            from .context_menu import adapter_entries
++            from .files_service import root
++            relative = Path(path).resolve().relative_to(root(kernel_of(host)).resolve()).as_posix()
++            for entry in adapter_entries(host, Path(path).name, relative):
++                if entry.key.startswith('adapter:') and entry.run is not None:
++                    menu.addAction('Open the Godot room' if entry.key == 'adapter:godot' else entry.label, entry.run)
++        except Exception:  # noqa: BLE001 - the rooms stay reachable from Explore
++            pass
++
++
++def _open_with_dialog(host, path):
++    from .apps_qt import OpenWithDialog, kind_of, say
++    found = kind_of(host, path)
++    if 'error' in found:return say(host, found['error'])
++    dialog = OpenWithDialog(host, path, found);dialog.open();return dialog
++
++
++def _forward(host, row):
++    """Bring the program's window forward: S3's controller through the Kernel (windows.activate), the owner's press."""
++    try:
++        answer = call(host, 'windows.activate', {'window': row['window']})
++        words = '%s’s window: %s.' % (row.get('program', 'Its program'), answer.get('status_words') or ('in front' if answer.get('verified') else 'asked'))
++    except ValueError as exc:
++        words = str(exc)
++    try:host.statusBar().showMessage(words, 8000)
++    except (AttributeError, RuntimeError):pass
++
++
++def install(host):
++    if getattr(host, 'app_files', None) is not None:return host.app_files
++    host.app_files = AppFiles(host)
++    return host.app_files
+diff --git a/workbench/apps_qt.py b/workbench/apps_qt.py
+index 7e7fcff..6e80e00 100644
+--- a/workbench/apps_qt.py
++++ b/workbench/apps_qt.py
+@@ -82,6 +82,10 @@ def listing(host):
+ 
+ def open_app(host, ident, files=(), urls=()):
+     """Start an app (or a pinned command) as the owner, with files: the Kernel's words in the status line."""
++    if files and not urls:  # 1.0 A1: one file of Files opened in a program is watched: its window named on the board, its saves recorded
++        from .app_files_qt import open_with
++        done = open_with(host, ident, files)
++        if done is not None:return done
+     args = {'id': ident}
+     if files:args['files'] = [str(Path(f).absolute()) for f in files]
+     if urls:args['urls'] = list(urls)
+diff --git a/workbench/board_model.py b/workbench/board_model.py
+index 33e340a..5fcb360 100644
+--- a/workbench/board_model.py
++++ b/workbench/board_model.py
+@@ -274,6 +274,10 @@ class Desk:
+             from .depths import mark_board;mark_board(self)
+         except Exception:  # noqa: BLE001 - the board stands without it
+             pass
++        try:      # 1.0 A1: a file open in its program says so on its tile (OPEN IN GIMP, GIMP CLOSED); what you linked to it is rechecked
++            from .app_files import mark_board as mark_programs;mark_programs(self)
++        except Exception:  # noqa: BLE001 - 1.0 A1: the board stands without it
++            pass
+         self.assignments = []            # (objective, {object ids its steps read}) of the owner's recent assignments (1.0 K1)
+ 
+     # ---- what the reader kept ------------------------------------------------------------------------------------------
+diff --git a/workbench/board_qt.py b/workbench/board_qt.py
+index 6736727..4cddcd3 100644
+--- a/workbench/board_qt.py
++++ b/workbench/board_qt.py
+@@ -54,6 +54,7 @@ def day_wire(dashed=False):
+ def state_ink(word):
+     word = str(word or '').upper()
+     if word in SETTLED_WORDS:return t.READY
++    if word.startswith('OPEN IN '):return t.READY      # 1.0 A1: a file open in its program (its mark: a window)
+     if word == 'RECHECK':return t.RECHECK
+     if word in ATTENTION_WORDS:return t.OWNER
+     return t.QUIET
+@@ -63,7 +64,11 @@ def draw_mark(p, box, word, colour):
+     """One mark per state, different in shape and not only in hue (as the Field's): settled a filled square, recheck half
+     filled, open hollow, held or refuted crossed, waiting a dot, archived or replaced a dash."""
+     word = str(word or '').upper();p.save();p.setPen(QPen(colour, 1.4));p.setBrush(Qt.NoBrush)
+-    if word in SETTLED_WORDS:
++    if word.startswith(('OPEN IN ', 'OPENING IN ')):      # 1.0 A1: a window (its title bar filled while it is open, hollow while looked for)
++        p.drawRect(box);bar = QRectF(box.left(), box.top(), box.width(), box.height() * 0.34)
++        if word.startswith('OPEN IN '):p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(bar)
++        else:p.drawLine(bar.bottomLeft(), bar.bottomRight())
++    elif word in SETTLED_WORDS:
+         p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(box)
+     elif word == 'RECHECK':
+         p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(QRectF(box.left(), box.top(), box.width() / 2, box.height()))
+@@ -748,6 +753,11 @@ class BoardView(QWidget):
+         if getattr(self.host, 'l5_split', None) is not None:  # 1.0 L5: its working view beside the view in front (the split)
+             from .split_qt import open_beside
+             menu.addAction('Open beside', lambda i=tile.id: open_beside(self.host, i))
++        try:  # 1.0 A1: a FILE tile: Open in <its program>, Open with…, its window forward, its family's room
++            from .app_files_qt import add_menu
++            add_menu(self.host, tile, menu)
++        except ImportError:  # 1.0 A1
++            pass
+         wire = self.board.wire(tile.id, self.ident) or (self.board.wire(tile.id, tile.bridge) if tile.bridge else None)
+         if wire is not None:menu.addAction('The link\'s basis', lambda w=wire: self.open_wire(w))
+         module = bm.relevance_module()          # 1.0 L3's: shown only when relevance is there
+diff --git a/workbench/depths_qt.py b/workbench/depths_qt.py
+index 28b4d79..0228daa 100644
+--- a/workbench/depths_qt.py
++++ b/workbench/depths_qt.py
+@@ -520,7 +520,8 @@ class Depths(QObject):
+         set_digest(tab, digest)
+         name = '';pids = []
+         if found.get('default'):
+-            try:result = call(self.host, 'apps.open', {'id': found['default'], 'files': [str(path)]})
++            from .app_files_qt import open_for_view  # 1.0 A1: the board's route: its window named on the tile, its saves recorded, its close said
++            try:result = open_for_view(self.host, found['default'], path) or call(self.host, 'apps.open', {'id': found['default'], 'files': [str(path)]})
+             except ValueError as exc:
+                 self.say(tab, 'look', str(exc));return None
+             if not result.get('ok'):
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 8f5059e..b41676c 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -128,6 +128,7 @@ def schemas():
+     from .utility_sandbox import FIELDS as SANDBOX_FIELDS  # 1.0 K6 (the utility sandbox): sandbox.*
+     from .objective_plan import FIELDS as OBJECTIVE_PLAN_FIELDS  # 1.0 K4 (from an objective to a plan): objective.plan, objective.offer
+     from .a11y_reader import FIELDS as A11Y_READER_FIELDS  # 1.0 K7 (reading other programs): accessibility.status, accessibility.read
++    from .app_files import FIELDS as APP_FILES_FIELDS  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
+     from .stac_words import FIELDS as WORD_FIELDS
+     from .agent_operations import FIELDS
+     from .hardware_proof import FIELDS as PROOF_FIELDS
+@@ -257,6 +258,7 @@ def schemas():
+         **SANDBOX_FIELDS,  # 1.0 K6 (the utility sandbox): sandbox.*
+         **OBJECTIVE_PLAN_FIELDS,  # 1.0 K4 (from an objective to a plan): objective.plan, objective.offer
+         **A11Y_READER_FIELDS,  # 1.0 K7 (reading other programs): accessibility.status, accessibility.read
++        **APP_FILES_FIELDS,  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
+         **WORD_FIELDS,
+         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
+         **NATIVE_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 3fd6dee..def4e5d 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -93,6 +93,7 @@ from . import grants, halt_gate  # 1.0 K3 (grants and HALT): grant.list, grant.w
+ from . import utility_sandbox  # 1.0 K6 (the utility sandbox): sandbox.status, sandbox.list, sandbox.get (read); sandbox.draft, sandbox.seen, sandbox.run, sandbox.close (execute); sandbox.apply, sandbox.keep (approve, always ask) (recorded additions)
+ from . import objective_plan  # 1.0 K4 (from an objective to a plan): objective.plan (read); objective.offer (execute) (recorded additions)
+ from . import a11y_reader  # 1.0 K7 (reading other programs): accessibility.status, accessibility.read (read, AT-SPI, read only) (recorded additions)
++from . import app_files  # 1.0 A1 (programs by window and file): appfile.list (read); appfile.open, appfile.look (execute: a file of Files opened in its program, its window, saves and close) (recorded additions)
+ 
+ PROGRAM_HANDLERS = {
+     op: service
+@@ -293,6 +294,7 @@ CAPABILITIES = {
+     **utility_sandbox.SCOPES,  # 1.0 K6 (the utility sandbox): a utility runs sealed on copies; apply and keep are approve, and always ask
+     **objective_plan.SCOPES,  # 1.0 K4 (from an objective to a plan): the desk's plan is a read; offering it starts an assignment, nothing in it
+     **a11y_reader.SCOPES,  # 1.0 K7 (reading other programs): two reads; nothing is pressed or typed through accessibility
++    **app_files.SCOPES,  # 1.0 A1 (programs by window and file): the list is a read; opening a file in its program and looking at it are execute
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+     **{name:'read' for name in workspace_services.FIELDS},
+@@ -742,6 +744,7 @@ class Kernel:
+         if op in utility_sandbox.FIELDS:return utility_sandbox.dispatch(self,op,a,p)   # 1.0 K6 (the utility sandbox): drafted, shown, run sealed on copies; applied only by your word
+         if op in objective_plan.FIELDS:return objective_plan.dispatch(self,op,a,p)   # 1.0 K4 (from an objective to a plan): the model proposes steps from the registry, the desk disposes
+         if op in a11y_reader.FIELDS:return a11y_reader.dispatch(self,op,a,p)   # 1.0 K7 (reading other programs): the accessible tree read now, as receipts; without AT-SPI, why
++        if op in app_files.FIELDS:return app_files.dispatch(self,op,a,p)   # 1.0 A1 (programs by window and file): its window named, each save recorded through revisions.record, its close said
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+         if op in workspace_services.FIELDS:
+diff --git a/workbench/mind_words.py b/workbench/mind_words.py
+index 54882c7..11d6cd2 100644
+--- a/workbench/mind_words.py
++++ b/workbench/mind_words.py
+@@ -215,3 +215,4 @@ MODULES = MODULES + ('workbench.library_service',)
+ # ---- 0.8.7 W7, the window wiring: her voice floor in her column; Ask the Library, tables and cross-references on screen ------
+ MODULES = MODULES + ('workbench.voice_column', 'workbench.library_qt')
+ # ---- end of 0.8.7 W7 --------------------------------------------------------------------------------------------------------
++MODULES = MODULES + ('workbench.app_files',)      # 1.0 A1: her words when a file is open in another program
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 7f593aa..1acd286 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -3517,6 +3517,8 @@ class Shell2(QObject):
+             install_dock(host)  # 1.0 S5
+         except ImportError:  # 1.0 S5
+             pass
++        from .app_files_qt import install as install_app_files
++        install_app_files(host)  # 1.0 A1: files open in other programs: the window named on the board's tile, each save recorded, the close said
+         host.tabs.currentChanged.connect(self.sync_worksheet)
+         host.central_stack.currentChanged.connect(self.sync_worksheet)
+         from .graphite_brand import use_pointer

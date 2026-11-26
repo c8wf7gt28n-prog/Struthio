@@ -29,6 +29,9 @@
    "algo.find_applicable": "workbench/algorithm_atlas.py#dispatch",
    "algo.get": "workbench/algorithm_atlas.py#dispatch",
    "algo.lookup": "workbench/algorithm_atlas.py#dispatch",
+   "appfile.list": "workbench/app_files.py#dispatch",
+   "appfile.look": "workbench/app_files.py#dispatch",
+   "appfile.open": "workbench/app_files.py#dispatch",
    "apps.default": "workbench/apps_catalog.py#dispatch",
    "apps.for": "workbench/apps_catalog.py#dispatch",
    "apps.list": "workbench/apps_catalog.py#dispatch",
@@ -1095,9 +1098,9 @@
   }
  },
  "counts": {
-  "adapters": 897,
+  "adapters": 900,
   "job_tools": 113,
-  "operations": 897,
+  "operations": 900,
   "settings": 48
  },
  "formulas": {
@@ -1776,6 +1779,33 @@
     "task": "adf961aa9648de84"
    },
    "scope": "read"
+  },
+  "appfile.list": {
+   "arguments": "3bd8ef4662f91a260516e134b7ba5f194e077f84222b6137bcaef8cb2aec9ea3",
+   "properties": {
+    "id": "61d17f98bc93de8b",
+    "limit": "29f310fc03343755",
+    "open": "7cb541e84f226754",
+    "path": "e5b3001aa5951151"
+   },
+   "scope": "read"
+  },
+  "appfile.look": {
+   "arguments": "55f7b84e4cdf1cb2abc7ecfa0b3dc49df794d2a278c8c42fa13cfd5aeb20807a",
+   "properties": {
+    "session": "97e045a260545d30"
+   },
+   "scope": "execute"
+  },
+  "appfile.open": {
+   "arguments": "607fbd4d51251b93ab16abd5116bc0278eca2e945bad37939abb66d58313ea93",
+   "properties": {
+    "app": "3e79622dec12ac17",
+    "chosen": "7cb541e84f226754",
+    "id": "61d17f98bc93de8b",
+    "path": "e5b3001aa5951151"
+   },
+   "scope": "execute"
   },
   "apps.default": {
    "arguments": "8bc328cef6ba1977b6ed732818e34755b0079d35bf2c84c1d28d9e84d0124382",
@@ -8788,7 +8818,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "932e50fd5a2e517931ae1d252fe534e41568e39fee3130234980f58d84d5824c",
+ "schema_digest": "0e397d58208d5d81f6a6d1197332627e9c1bc15f52660900ec92b34980c620a6",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

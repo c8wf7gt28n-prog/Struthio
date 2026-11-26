@@ -3524,6 +3524,8 @@ class Shell2(QObject):
             install_dock(host)  # 1.0 S5
         except ImportError:  # 1.0 S5
             pass
+        from .app_files_qt import install as install_app_files
+        install_app_files(host)  # 1.0 A1: files open in other programs: the window named on the board's tile, each save recorded, the close said
         host.tabs.currentChanged.connect(self.sync_worksheet)
         host.central_stack.currentChanged.connect(self.sync_worksheet)
         from .graphite_brand import use_pointer
