@@ -1,0 +1,1357 @@
+diff --git a/workbench/a11y_hand.py b/workbench/a11y_hand.py
+index 8ce03f8..106caec 100644
+--- a/workbench/a11y_hand.py
++++ b/workbench/a11y_hand.py
+@@ -769,9 +769,12 @@ def _same_text_digest(text):
+ # ================================================================== the file on disk
+ 
+ def _resolve(kernel, rel, must_exist=True):
+-    from . import files_service
+-    try:return files_service.resolve(kernel, rel, must_exist=must_exist)
++    from . import files_service, home_reach
++    try:path = files_service.resolve(kernel, rel, must_exist=must_exist)
+     except (ValueError, OSError) as why:raise Refused('NOT_IN_FILES: %s' % str(why)[:160]) from None
++    never = home_reach.her_change(kernel, path)  # 1.0 L6b: her hand works only on a file of Files or of your home
++    if never:raise Refused('OUTSIDE_HOME: %s' % never[:300])
++    return path
+ 
+ 
+ def file_sha(path):
+diff --git a/workbench/app_files.py b/workbench/app_files.py
+index bb1753d..e9612c0 100644
+--- a/workbench/app_files.py
++++ b/workbench/app_files.py
+@@ -42,6 +42,9 @@ Kernel operations (one block in engineering_kernel.py and engineering_cli.py, co
+     appfile.list  {open?, path?, id?, limit?}  read     the sessions, newest first, with their tile words
+ appfile.list is an observer (activity.OBSERVER_OPERATIONS): the board reads it each time it is drawn.
+ 
++1.0 L6b: a file of your home opens the same way (its path kept whole, ~/… as you read it); her opening a file to work in it
++(K9's hand goes through this door) passes home_reach.her_change first, so nothing of hers lands outside your home.
++
+ Her rules hold: a program is started only on a press (the owner's, or hers under a grant through the Kernel), argv only and
+ never a shell; a revision is recorded only when its bytes are on disk; nothing is sent anywhere; no floating point here (times
+ are whole nanoseconds, digests are text).
+@@ -245,8 +248,8 @@ def _place(kernel, args):
+     from . import depths
+     try:return depths._place(kernel, args)
+     except ValueError as exc:
+-        if str(exc).startswith('REVISIONS_OUTSIDE'):
+-            raise ValueError('APPFILE_OUTSIDE: a file of Files is opened here, so its saves can be recorded; this one is outside Files') from None
++        if str(exc).startswith('REVISIONS_OUTSIDE'):  # 1.0 L6b: Files or your home
++            raise ValueError('APPFILE_OUTSIDE: a file in Files or in your home is opened here, so its saves can be recorded; this one is outside them') from None
+         raise
+ 
+ 
+@@ -270,6 +273,10 @@ def open_file(kernel, args, principal):
+     """appfile.open: start the program on the file and keep the session."""
+     from . import depths, files_service
+     ident, rel, target = _place(kernel, args)
++    from . import home_reach  # 1.0 L6b: her work (her hand opening a file to work in it) passes her_change first
++    if home_reach.in_her_work(principal):
++        never = home_reach.her_change(kernel, target)
++        if never:raise ValueError('APPFILE_OUTSIDE_HOME: ' + never)
+     if target.stat().st_size > BIGGEST:raise ValueError('APPFILE_TOO_LARGE: %s is larger than Graphite reads whole to see its revisions' % target.name)
+     route, app, program, name, reason = choose(target, str(args.get('app') or ''), bool(args.get('chosen')))
+     if not route:raise ValueError('APPFILE_NO_PROGRAM: ' + reason)
+@@ -277,7 +284,8 @@ def open_file(kernel, args, principal):
+     watched = {}
+     for path in watched_with(target, program):
+         try:
+-            rel_path = path.resolve().relative_to(base).as_posix()
++            rel_path = files_service.place_of(kernel, path.resolve())  # 1.0 L6b: a file of your home is kept by its whole path
++            if rel_path.startswith('/') and not str(rel).startswith('/') or rel_path.startswith('..'):continue
+             watched[rel_path] = [depths.sha256_of(path)[0]] + _file_state(path)
+         except (OSError, ValueError):
+             continue
+diff --git a/workbench/app_files_qt.py b/workbench/app_files_qt.py
+index d6d18a6..9634b8d 100644
+--- a/workbench/app_files_qt.py
++++ b/workbench/app_files_qt.py
+@@ -67,11 +67,12 @@ class AppFiles(QObject):
+ 
+     # ---- opening ----------------------------------------------------------------------------------------------------------------
+     def in_files(self, path):
++        """A file this door opens: in Files, or (1.0 L6b) in your home."""
+         kernel = kernel_of(self.host)
+         if kernel is None:return False
+         try:
+-            from .files_service import root
+-            return Path(path).resolve().is_relative_to(root(kernel).resolve()) and Path(path).is_file()
++            from . import home_reach
++            return Path(path).is_file() and home_reach.area(kernel, Path(path)) in (home_reach.FILES, home_reach.HOME)  # 1.0 L6b
+         except (OSError, ValueError):
+             return False
+ 
+@@ -250,8 +251,8 @@ class AppFiles(QObject):
+         kernel = kernel_of(self.host)
+         if kernel is None:return None
+         try:
+-            from .files_service import root
+-            rel = Path(path).resolve().relative_to(root(kernel).resolve()).as_posix()
++            from .files_service import place_of
++            rel = place_of(kernel, Path(path).resolve())  # 1.0 L6b: a file of your home by its whole path
+         except (OSError, ValueError):
+             return None
+         return next((r for r in self.sessions.values() if r.get('path') == rel and r.get('state') != 'closed'), None)
+diff --git a/workbench/cabinet_qt.py b/workbench/cabinet_qt.py
+index 7f54cad..dbc87c0 100644
+--- a/workbench/cabinet_qt.py
++++ b/workbench/cabinet_qt.py
+@@ -233,7 +233,7 @@ class CabinetPage(QWidget):
+         self.tell_status()
+         if getattr(self.host,'trash_can',None) is not None:
+             count=self.host.ledger_bridge.kernel.dispatch('files.trash_list',{},operator())
+-            if count['ok']:self.host.trash_can.set_count(len(count['result']['trash']))
++            if count['ok']:from .home_files_qt import trash_count;self.host.trash_can.set_count(trash_count(count['result']))  # 1.0 L6b: and your home's Trash
+ 
+     def tell_status(self):
+         """HATCH DESK D1b: the status line is out of the pane; its words are the Cabinet tab's tooltip."""
+diff --git a/workbench/computer_tree_qt.py b/workbench/computer_tree_qt.py
+index 79d26a5..9eb1e9a 100644
+--- a/workbench/computer_tree_qt.py
++++ b/workbench/computer_tree_qt.py
+@@ -376,4 +376,10 @@ class ComputerTree(QObject):
+ 
+ def install(living):
+     """LivingNav (living_nav_qt) calls this once: the computer's rows in its tree."""
+-    return ComputerTree(living)
++    tree = ComputerTree(living)
++    try:
++        from .home_files_qt import install as home_files
++        home_files(tree)      # 1.0 L6b: rename, move (drag), new folder and Delete (into DELETE) in your home, with Undo; a focused file watched
++    except Exception:  # noqa: BLE001 - the tree stands without them
++        pass
++    return tree
+diff --git a/workbench/context_menu.py b/workbench/context_menu.py
+index 5b2479a..1d246af 100644
+--- a/workbench/context_menu.py
++++ b/workbench/context_menu.py
+@@ -1473,12 +1473,20 @@ def apps_entries(host, t):
+     return context_entries(host, t)
+ 
+ 
++def home_entries(host, t):
++    """1.0 L6b (Home's files, whole): Open in its program, Rename, Move to, New folder, Delete into DELETE (home_files_qt)."""
++    from .home_files_qt import entries
++    return entries(host, t)
++
++
+ # The providers, in the order they are asked (each a small function: target -> entries).
+ PROVIDERS = (('document', document_entries), ('file', file_entries), ('files', files_entries), ('files-place', files_place_entries),
+              ('finder', finder_entries), ('finder-place', finder_place_entries), ('library', library_entries), ('library-place', library_place_entries),
+              ('cabinet', cabinet_entries), ('cabinet-tree', cabinet_tree_entries), ('activity', activity_selection_entries), ('machine', machine_entries),
+              ('settings', settings_entries), ('job', job_entries), ('queued', queued_entries), ('network', network_entries), ('event', event_entries),
+-             ('empty', empty_entries), ('field', field_entries), ('apps', apps_entries))   # 1.0 S2: Open with; an app's own rows
++             ('empty', empty_entries), ('field', field_entries),
++             ('home', home_entries),   # 1.0 L6b: a file or folder of your home, from the tree (its Open in <program> before S2's own)
++             ('apps', apps_entries))   # 1.0 S2: Open with; an app's own rows
+ 
+ 
+ def entries_for(host, target):
+@@ -1558,6 +1566,9 @@ def find_cabinet(host, w, point):
+     item = w.itemAt(w.viewport().mapFrom(w, point))
+     if item is None:return Target('tree', 'Cabinet', 'tree · ' + ('existing views' if page.using_legacy else 'logical cabinet'), surface='cabinet', owner=page, icon='memory')
+     w.setCurrentItem(item);page.remember();node = item.data(0, Qt.UserRole) or {}
++    from .home_files_qt import target_for  # 1.0 L6b: a file or folder of your home is a thing of its own, not a record
++    home = target_for(host, page, node)
++    if home is not None:return home
+     role = str(node.get('role', '')).replace('_', ' ')
+     return Target('cabinet', node.get('label', ''), 'record · ' + role + ((' · revision %s' % node['revision']) if node.get('revision') is not None else ''),
+                   ident=node.get('id'), revision=node.get('revision'), data=dict(node=node), surface='cabinet', owner=page)
+@@ -1776,7 +1787,8 @@ MOST_ROWS = 16          # rows on one screen at most; a longer list goes on in p
+ TARGET_GLYPH = {'table': 'table', 'datasheet': 'page', 'file': 'page', 'drawing': 'picture', 'folder': 'folder', 'files': 'folder', 'empty': 'home',
+                 'passage': 'cell', 'page': 'document', 'library': 'stack', 'cabinet': 'folder', 'tree': 'folder', 'work': 'folder', 'machine': 'chip',
+                 'setting': 'sliders', 'job': 'running', 'queued': 'agenda', 'event': 'lines', 'connection': 'port', 'packet': 'port',
+-                'program': 'rooms', 'command': 'prompt'}
++                'program': 'rooms', 'command': 'prompt',
++                'home-file': 'page', 'home-folder': 'folder'}      # 1.0 L6b: a file or folder of your home, in the tree
+ GLYPH_EXACT = {
+     'open:outside': 'window', 'process': 'window', 'open:viewer': 'page', 'job:show': 'source', 'copy:original': 'source', 'viewer:folder': 'source',
+     'show:folder': 'source', 'show:files': 'source', 'show:finder': 'source', 'show:log': 'source', 'change:files': 'source', 'change:none': 'info',
+@@ -1856,6 +1868,7 @@ REST = {
+     'cabinet': ('open', 'cabinet:write', 'cabinet:workspace:*', 'copy:id'), 'tree': ('new:idea', 'new:project', 'import', 'view'),
+     'work': ('open', 'export', 'new:idea', 'new:project', 'import', 'refresh'), 'machine': ('show:finder', 'open', 'copy:row', 'refresh'),
+     'setting': ('open', 'search', 'copy:key', 'expand'),
++    'home-file': ('open:outside', 'rename', 'move:to', 'trash'), 'home-folder': ('new:folder', 'rename', 'move:to', 'trash'),  # 1.0 L6b
+     'program': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas'),
+     'command': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas')}
+ 
+diff --git a/workbench/depths.py b/workbench/depths.py
+index 72eed89..3878118 100644
+--- a/workbench/depths.py
++++ b/workbench/depths.py
+@@ -9,7 +9,7 @@ external save should refresh or flag the compact view, not silently display a st
+ 
+ The window's side is workbench/depths_qt.py. What lives here has no Qt:
+ 
+-    the revisions of a plain file in Files that another program saved (the full program, opened from its working view, or
++    the revisions of a plain file in Files (1.0 L6b: or in your home) that another program saved (the full program, opened from its working view, or
+     any other program while the view was open). Each revision Graphite sees is recorded with its digest, the one before it,
+     the program that saved it (when Graphite started that program) and when; the file's identity is L1's (living_nav), so a
+     rename does not break the chain. The Kernel reads the file itself before it records anything: a revision is recorded
+@@ -86,28 +86,32 @@ def sha256_of(path):
+ 
+ 
+ def _place(kernel, args):
+-    """(object id, the file's path in Files, its whole path) for the file named by id or by path; refused outside Files."""
++    """(object id, the file's path as the Kernel keeps it, its whole path) for the file named by id or by path; refused outside
++    Files and your home (1.0 L6b: a file of your home has its revisions recorded like a file of Files; its path is kept whole)."""
+     from . import living_nav
+-    from .files_service import resolve, root
+-    base = root(kernel).resolve()
++    from .files_service import resolve
+     if args.get('id'):
+         found = living_nav.get(kernel, ident=args['id'])
+-        rel = found['path']
+-        if str(rel).startswith('/'):raise ValueError('REVISIONS_OUTSIDE: only a file in Files has its revisions recorded')  # 1.0 L6: an id elsewhere on this computer
++        _reach(kernel, found['path'])
+     else:
+         raw = str(args.get('path') or '')
+-        given = Path(raw)
+-        if given.is_absolute():
+-            try:rel = given.resolve().relative_to(base).as_posix()
+-            except ValueError:raise ValueError('REVISIONS_OUTSIDE: only a file in Files has its revisions recorded') from None
+-        else:rel = raw
+-        found = living_nav.get(kernel, path=rel)
+-        if str(found['path']).startswith('/'):raise ValueError('REVISIONS_OUTSIDE: only a file in Files has its revisions recorded')  # 1.0 L6
++        _reach(kernel, raw)      # before any id is made: a file elsewhere is never given one here
++        found = living_nav.get(kernel, path=raw)
++        _reach(kernel, found['path'])
+     target = resolve(kernel, found['path'])
+-    if found.get('kind') != 'file' or not target.is_file():raise ValueError('REVISIONS_NOT_A_FILE: %s is not a file in Files' % found['path'][:200])
++    if found.get('kind') != 'file' or not target.is_file():raise ValueError('REVISIONS_NOT_A_FILE: %s is not a file' % found['path'][:200])
+     return found['id'], found['path'], target
+ 
+ 
++def _reach(kernel, text):
++    """1.0 L6b: a path named from / or ~ is recorded only in Files or in your home (never elsewhere, never Graphite's own)."""
++    if not str(text or '').startswith(('/', '~')):return
++    from . import home_reach
++    named = home_reach.expand(text)
++    if named is None or home_reach.area(kernel, named) not in (home_reach.FILES, home_reach.HOME):
++        raise ValueError('REVISIONS_OUTSIDE: only a file in Files or in your home has its revisions recorded')
++
++
+ def earlier_admitted(db, name, digests):
+     """The admitted sources (intake items) of this file's name whose bytes are one of these earlier digests."""
+     out = []
+diff --git a/workbench/depths_qt.py b/workbench/depths_qt.py
+index 0228daa..41ec1f0 100644
+--- a/workbench/depths_qt.py
++++ b/workbench/depths_qt.py
+@@ -633,14 +633,13 @@ class Depths(QObject):
+         return 'changed'
+ 
+     def record(self, tab, path, digest, known, away):
+-        """The new revision through the Kernel (revisions.record): only a file in Files has its revisions recorded."""
++        """The new revision through the Kernel (revisions.record): a file in Files or (1.0 L6b) in your home."""
+         try:
+-            from .files_service import root
++            from . import home_reach
+             from .apps_qt import call
+             kernel = getattr(getattr(self.host, 'ledger_bridge', None), 'kernel', None)
+             if kernel is None:return None
+-            base = root(kernel).resolve()
+-            if not path.resolve().is_relative_to(base):return None
++            if home_reach.area(kernel, path.resolve()) not in (home_reach.FILES, home_reach.HOME):return None  # 1.0 L6b
+             args = {'path': str(path.resolve()), 'expected_sha256': digest, 'how': 'full program' if away else 'outside'}
+             if known:args['previous_sha256'] = known
+             if away and away.get('program'):args['program'] = away['program'][:120]
+diff --git a/workbench/files_qt.py b/workbench/files_qt.py
+index 84af2d5..44af129 100644
+--- a/workbench/files_qt.py
++++ b/workbench/files_qt.py
+@@ -510,6 +510,7 @@ class TrashTab(QWidget):
+         for r in rows:
+             self.box.addWidget(sentence(escape_text(r['original']) + '  ·  deleted ' + when(r['at']) + '  ·  {restore}',
+                                         {'restore': ('restore', lambda r=r:(call_write(self.host, 'files.restore', {'id': r['id']}), self.reload()))}))
++        from .home_files_qt import trash_rows;trash_rows(self)  # 1.0 L6b: your home's Trash (freedesktop), each with Restore
+         self.box.addStretch(1)
+ 
+ 
+diff --git a/workbench/files_service.py b/workbench/files_service.py
+index dc51574..4660510 100644
+--- a/workbench/files_service.py
++++ b/workbench/files_service.py
+@@ -21,6 +21,9 @@ Rules the code enforces:
+     never). A change there by the owner's own press follows the system's permissions; a change of hers (her steps, her
+     tools, her hand's cards) reaches only inside your home, by a grant of yours or your press, and never outside it:
+     "outside your home: never". Its versions are kept in Files/.versions/~home/… (or ~root/…), so Undo stays as it was.
++  - 1.0 L6b, Home's files whole: a file or folder of your home (outside Files) that is deleted goes to the system's Trash
++    (home_trash: the freedesktop.org Trash in ~/.local/share/Trash, with where it was and when), never removed for good;
++    files.trash_list lists that Trash too ('home') and files.restore puts an entry of it back (by the id the list gives).
+ """
+ from __future__ import annotations
+ import contextlib
+@@ -506,6 +509,38 @@ def carried(kernel, old, new):
+         pass
+ 
+ 
++def trash_home(kernel, path, owner):
++    """1.0 L6b: a file or folder of your home into your home's Trash (home_trash.put: one rename, its note first), kept in
++    files_trash too so its story and Undo find it (stored as '~trash:<its name in the Trash>')."""
++    from . import home_trash
++    put = home_trash.put(path)
++    ident = uuid.uuid4().hex
++    carried(kernel, path, Path(put['stored']))
++    with opened(kernel) as db:db.execute('INSERT INTO files_trash VALUES(?,?,?,?,?,NULL)', (ident, owner, put['original'], home_trash.STORED + put['name'], time.time()))
++    return {'trashed': place_of(kernel, path), 'place': home_trash.tilde(path), 'id': ident, 'trash': 'home', 'stored': put['name'],
++            'note': "In DELETE, kept in your home's own bin (%s), as your other programs keep it. Restore, or Undo now, puts it back." % home_trash.tilde(home_trash.trash_dir())}
++
++
++def restore_home(kernel, ident, owner):
++    """1.0 L6b: files.restore for an entry of your home's Trash (by its files_trash id, or the id the list gave an entry another
++    program put there); None when the id is Files' own DELETE's."""
++    from . import home_trash
++    with opened(kernel) as db:
++        row = db.execute('SELECT * FROM files_trash WHERE id=? AND owner=? AND restored IS NULL', (ident, owner)).fetchone()
++    if row is not None:
++        if not str(row['stored']).startswith(home_trash.STORED):return None
++        name = row['stored'][len(home_trash.STORED):]
++    else:
++        entry = home_trash.by_id(ident)
++        if entry is None:return None
++        name = entry['name']
++    back = home_trash.restore(name)
++    with opened(kernel) as db:db.execute('UPDATE files_trash SET restored=? WHERE restored IS NULL AND stored=?', (time.time(), home_trash.STORED + name))
++    carried(kernel, Path(back['stored']), Path(back['restored']))
++    return {'restored': place_of(kernel, Path(back['restored'])), 'place': home_trash.tilde(back['restored']), 'beside': back['renamed'], 'trash': 'home',
++            'note': ('Back in its folder under a free name (%s was taken).' % Path(back['original']).name) if back['renamed'] else 'Back where it was.'}
++
++
+ def dispatch(kernel, op, args, principal):
+     owner = principal.identity
+     if op == 'files.list':
+@@ -574,14 +609,22 @@ def dispatch(kernel, op, args, principal):
+     if op == 'files.trash':
+         path = resolve(kernel, args['path']);may_change(kernel, path, principal)
+         if path == root(kernel) or path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: this folder stays')
++        from . import home_trash  # 1.0 L6b: a file of your home goes to your home's Trash (freedesktop), restorable
++        if home_trash.holds_graphite(kernel, path):raise ValueError("FILES_RESERVED: %s is your home or holds Graphite's workspace; it stays" % home_trash.tilde(path)[:200])
++        if home_trash.in_home(kernel, path):return trash_home(kernel, path, owner)
+         ident = uuid.uuid4().hex;stored = root(kernel) / TRASH / ident
+         stored.mkdir(mode=0o700);original = place_of(kernel, path);shutil.move(str(path), str(stored / path.name));carried(kernel, path, stored / path.name)
+         with opened(kernel) as db:db.execute('INSERT INTO files_trash VALUES(?,?,?,?,?,NULL)', (ident, owner, original, ident + '/' + path.name, time.time()))
+         return {'trashed': original, 'id': ident, 'note': 'In DELETE. Restore puts it back.'}
+     if op == 'files.trash_list':
+         with opened(kernel) as db:
+-            return {'trash': [dict(r) for r in db.execute('SELECT id, original, at FROM files_trash WHERE owner=? AND restored IS NULL ORDER BY at DESC', (owner,))]}
++            rows = [dict(r) for r in db.execute('SELECT id, original, at, stored FROM files_trash WHERE owner=? AND restored IS NULL ORDER BY at DESC', (owner,))]
++        from . import home_trash  # 1.0 L6b: your home's Trash beside Files' DELETE
++        return {'trash': [{k: r[k] for k in ('id', 'original', 'at')} for r in rows if not str(r['stored']).startswith(home_trash.STORED)],
++                'home': home_trash.listed(rows), 'home_trash': home_trash.tilde(home_trash.trash_dir())}
+     if op == 'files.restore':
++        back = restore_home(kernel, args['id'], owner)  # 1.0 L6b: an entry of your home's Trash goes back where it was
++        if back is not None:return back
+         with opened(kernel) as db:
+             row = db.execute('SELECT * FROM files_trash WHERE id=? AND owner=? AND restored IS NULL', (args['id'], owner)).fetchone()
+             if row is None:raise ValueError('FILES_TRASH_NOT_FOUND')
+diff --git a/workbench/home_files_qt.py b/workbench/home_files_qt.py
+new file mode 100644
+index 0000000..4a2a140
+--- /dev/null
++++ b/workbench/home_files_qt.py
+@@ -0,0 +1,618 @@
++"""Home's files, whole, in the window (Graphite 1.0 L6b).
++
++1.0 L6 put the whole computer in the Files tab's tree ("This computer /", Home open at start). Here, everything a person does
++to a file works in Home too, not only in the workspace's Files:
++
++    the tree's right-click   on a file or folder of your home (or of Files, shown where it lives in Home): Open in <its
++                             program> (A1's door: its window named on the board's tile, each save recorded as a revision),
++                             Rename…, Move to…, New folder…, Delete; under More: Open here (its working view), Open with, Copy
++                             the path. Delete puts it in DELETE: a file of Files in Files' own, a file of your home in your
++                             home's own bin, the system's (home_trash: the freedesktop.org Trash in ~/.local/share), which the
++                             owner's other programs share. Never removed for good. (On screen the place is always DELETE, the
++                             owner's word of 14 November 2026; the specification's name stays in the code.)
++    drag in the tree         a file or folder of your home dragged onto a folder of the tree moves into it (files.move, on
++                             your press: the drop); dragged onto DELETE at the column's foot, it is deleted (into DELETE).
++    Undo                     each of these says what it did on a line under the tab's header, with Undo for a while: the
++                             old name back, the old folder back, the thing out of DELETE where it was (files.restore), a new
++                             folder into DELETE. DELETE keeps a deletion until you restore it, Undo or not.
++    DELETE, the room         lists what was deleted from your home ("From your home") under Files' own, each with restore.
++    a focused file           a file of your home focused on the board is watched (as an open working view's file is, L4): a
++                             save by another program is noticed at once, its new revision recorded (revisions.record: the
++                             Kernel reads the bytes itself), the tile and the breadcrumb follow; renamed in its folder by
++                             another program, it is found again by its inode and keeps its identity.
++
++Every change here is the owner's own press through the Kernel (files.rename, files.move, files.mkdir, files.trash,
++files.restore with the owner's principal). Her changes never come this way: they pass home_reach.her_change and her grants in
++the Kernel (files_service.may_change, K2's tools, A1, K5, K9, K6's Apply).
++"""
++from __future__ import annotations
++
++import os
++import time
++from pathlib import Path
++
++from PySide6.QtCore import QEvent, QFileSystemWatcher, QMimeData, QObject, Qt, QTimer, QUrl
++from PySide6.QtGui import QDrag
++from PySide6.QtWidgets import QApplication, QFileDialog, QHBoxLayout, QInputDialog, QLabel, QPushButton, QVBoxLayout, QWidget
++
++from . import boss_theme as bt
++from . import computer_tree_qt as ct
++from . import home_reach as hr
++
++ROW_MIME = 'application/x-graphite-home-row'     # a row of the tree dragged: its whole path
++UNDO_MS = 45000                                   # the line with Undo stays this long (the Trash keeps a deletion for good)
++FOCUS_MS = 900                                    # how often the focus is glanced at (a string compared; nothing read)
++CALM_MS = 300                                     # a burst of file events is looked at once
++KINDS = ('home-file', 'home-folder')
++
++
++def kernel_of(host):
++    return getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++
++
++def act(host, op, args):
++    """A Kernel operation with the owner's principal (your press): its result, or ValueError with its words."""
++    kernel = kernel_of(host)
++    if kernel is None:raise ValueError('Graphite\'s Kernel is not open')
++    from .engineering_kernel import operator
++    answer = kernel.dispatch(op, args, operator())
++    if not answer.get('ok'):
++        raise ValueError(str((answer.get('error') or {}).get('message') or 'not done'))
++    return answer['result']
++
++
++def say(host, words, ms=9000):
++    try:host.statusBar().showMessage(words, ms)
++    except (AttributeError, RuntimeError):pass
++    return words
++
++
++def shown(path):
++    return hr.tilde(path)
++
++
++def path_of_row(node_id):
++    """The whole path a row of the computer's tree names (FS + branch + ':' + path), or ''."""
++    node_id = str(node_id or '')
++    if not node_id.startswith(ct.FS):return ''
++    return node_id[len(ct.FS):].partition(':')[2]
++
++
++def changeable(kernel, path):
++    """(area, '') when the owner's tree offers to change this file or folder; else ('', why not). Your home and Files; never
++    your home folder itself, Files itself or Graphite's own records and program."""
++    path = Path(path)
++    try:
++        place = Path(os.path.realpath(path.parent)) / path.name
++        where = hr.area(kernel, place) if not path.is_symlink() else hr.area(kernel, Path(os.path.realpath(path.parent)))
++    except (OSError, RuntimeError):
++        return '', 'not readable here'
++    if where not in (hr.HOME, hr.FILES):return '', hr.AREA_WORDS.get(where, where)
++    if place == hr.home():return '', 'your home folder itself'
++    try:files = hr.files_root(kernel).resolve()
++    except (OSError, RuntimeError):
++        files = hr.files_root(kernel)
++    if place == files:return '', 'the workspace\'s Files folder itself'
++    from .home_trash import holds_graphite
++    if path.is_dir() and not path.is_symlink() and holds_graphite(kernel, place):return '', 'it holds Graphite\'s workspace'
++    return where, ''
++
++
++def branch_id(path):
++    """The tree's row for a path (Home's branch for a path in your home, else the computer's)."""
++    path = Path(path)
++    return ct.FS + ('home:' if hr.within(path, hr.home()) else 'root:') + str(path)
++
++
++# ---- the right-click ------------------------------------------------------------------------------------------------------------
++def target_for(host, page, node):
++    """context_menu.find_cabinet: a file or folder of your home (or of Files) under the pointer, as a menu target of its own
++    kind ('home-file', 'home-folder'); None for any other row."""
++    ident = str(node.get('id') or '')
++    if not ident.startswith(ct.FS) or node.get('role') not in ('file', 'folder'):return None
++    kernel = kernel_of(host);path = path_of_row(ident)
++    if kernel is None or not path:return None
++    where, why = changeable(kernel, path)
++    if not where:return None
++    from .context_menu import Target
++    folder = node.get('role') == 'folder'
++    noun = '%s %s' % ('folder' if folder else 'file', hr.AREA_WORDS[where])
++    return Target('home-folder' if folder else 'home-file', node.get('label') or Path(path).name, noun, ident=ident,
++                  data=dict(node=node, path=str(path), area=where), surface='cabinet', owner=page, icon='files')
++
++
++def entries(host, t):
++    """context_menu's provider: what a person does to a file or folder of your home, from the tree."""
++    if t.surface != 'cabinet' or t.kind not in KINDS:return []
++    from .context_menu import Entry, Refused, copy_text
++    path = Path(t.data['path']);folder = t.kind == 'home-folder';files = t.data.get('area') == hr.FILES
++
++    def run(do, *args):
++        def go():
++            try:return do(host, *args)
++            except ValueError as exc:raise Refused(str(exc).split(': ', 1)[-1]) from None
++        return go
++    out = []
++    if not folder:
++        from .app_files_qt import program_words
++        words, name = program_words(host, path)
++        out.append(Entry('open:outside', words if name else 'Open in its program…', 'open', run(open_in), glyph='window', operation='appfile.open',
++                         tip='In its own program, in a window of its own; when the program saves it, the new revision is recorded here'))
++    out.append(Entry('open', 'Open here' if not folder else 'Show it on the board', 'open', run(open_here, t.ident), operation='objects.get',
++                     tip='Its working view in the centre' if not folder else 'The folder in the middle of the board'))
++    out.append(Entry('rename', 'Rename…', 'modify', run(rename, path), operation='files.rename',
++                     tip='A new name in the same folder; it keeps its identity. Undo puts the old name back'))
++    out.append(Entry('move:to', 'Move to…', 'modify', run(move_to, path), operation='files.move',
++                     tip='Into another folder (or drag it onto a folder in the tree); it keeps its identity. Undo puts it back'))
++    out.append(Entry('new:folder', 'New folder…', 'tree', run(new_folder, path if folder else path.parent), operation='files.mkdir',
++                     tip='A new folder in %s' % shown(path if folder else path.parent)))
++    out.append(Entry('copy:path', 'Copy the path', 'edit', lambda: copy_text(host, str(path), 'Copied the path')))
++    out.append(Entry('trash', 'Delete', 'danger', run(delete, path), operation='files.trash',
++                     tip=('DELETE keeps it; restore puts it back' if files else
++                          "DELETE keeps it, with where it was, in your home's own bin (%s, which your other programs share); restore, or Undo now, "
++                          'puts it back' % shown(trash_place()))))
++    return out
++
++
++def trash_place():
++    from .home_trash import trash_dir
++    return trash_dir()
++
++
++# ---- what a person does -----------------------------------------------------------------------------------------------------------
++def open_in(host, path):
++    """Open in <its program>: A1's door (appfile.open), so its window, its saves and its close are seen."""
++    watch = getattr(host, 'app_files', None)
++    if watch is None:
++        from .apps_qt import open_default
++        return open_default(host, str(path))
++    result = watch.open(str(path))
++    if not result.get('ok'):raise ValueError(result.get('words') or result.get('reason') or 'it did not start')
++    return result
++
++
++def open_here(host, node_id):
++    living = getattr(host, 'living_nav', None)
++    if living is None or living.computer is None:return None
++    return living.computer.open(node_id)
++
++
++def id_of(host, path):
++    """The object id a path has now (L1's, or one made for it in Home), or ''."""
++    living = getattr(host, 'living_nav', None)
++    known = dict(getattr(living, 'files_by_abs', None) or {})
++    kernel = kernel_of(host)
++    if kernel is not None:
++        from . import living_nav
++        known.update(living_nav.known_outside(kernel))
++    return known.get(str(path)) or ''
++
++
++def rename(host, path, name=None):
++    path = Path(path)
++    if name is None:
++        name, ok = QInputDialog.getText(host, 'Rename', 'A new name for %s' % path.name, text=path.name)
++        if not ok:return None
++    name = str(name).strip()
++    if not name or name == path.name:return None
++    ident = id_of(host, path)
++    act(host, 'files.rename', {'path': str(path), 'name': name})
++    new = path.with_name(name)
++    return after(host, ident, new, 'Renamed %s to %s, in %s.' % (path.name, name, shown(path.parent)),
++                 undo=lambda: (act(host, 'files.rename', {'path': str(new), 'name': path.name}), path)[1], undo_words='the old name is back')
++
++
++def move_to(host, path, folder=None):
++    path = Path(path)
++    if folder is None:
++        folder = QFileDialog.getExistingDirectory(host, 'Move %s to' % path.name, str(path.parent))
++        if not folder:return None
++    folder = Path(folder)
++    if folder == path.parent:return say(host, '%s is in %s already.' % (path.name, shown(folder)))
++    ident = id_of(host, path)
++    moved = act(host, 'files.move', {'path': str(path), 'to': str(folder)})
++    new = folder / str(moved.get('name') or path.name)
++    return after(host, ident, new, 'Moved %s to %s.' % (path.name, shown(folder)),
++                 undo=lambda: _move_back(host, new, path), undo_words='it is back in %s' % shown(path.parent))
++
++
++def _move_back(host, new, old):
++    back = act(host, 'files.move', {'path': str(new), 'to': str(old.parent)})
++    return old.parent / str(back.get('name') or old.name)
++
++
++def new_folder(host, folder, name=None):
++    folder = Path(folder)
++    if name is None:
++        name, ok = QInputDialog.getText(host, 'New folder', 'The new folder\'s name, in %s' % shown(folder), text='New folder')
++        if not ok:return None
++    name = str(name).strip()
++    if not name:return None
++    act(host, 'files.mkdir', {'path': str(folder), 'name': name})
++    made = folder / name
++    return after(host, '', made, 'Made the folder %s in %s.' % (name, shown(folder)),
++                 undo=lambda: (act(host, 'files.trash', {'path': str(made)}), None)[1], undo_words='the new folder is in DELETE')
++
++
++def delete(host, path):
++    """Delete, on your press: into DELETE (for a file of your home, your home's own bin, the freedesktop.org one; for a file of
++    Files, Files' own); Undo restores it."""
++    path = Path(path)
++    ident = id_of(host, path)
++    gone = act(host, 'files.trash', {'path': str(path)})
++    return after(host, ident, None, '%s is in DELETE (from %s).' % (path.name, shown(path.parent)),
++                 undo=lambda: _restore(host, gone['id']), undo_words='it is back where it was', trash=True)
++
++
++def _restore(host, ident):
++    back = act(host, 'files.restore', {'id': ident})
++    restored = str(back.get('restored') or '')
++    if restored and not restored.startswith('/'):
++        kernel = kernel_of(host)
++        restored = str(hr.files_root(kernel) / restored) if kernel is not None else restored
++    return Path(restored) if restored else None
++
++
++def restore(host, ident, place=''):
++    """Restore from the Trash (the DELETE room's rows): back where it was; the tree shows it."""
++    back = _restore(host, ident)
++    return after(host, id_of(host, back) if back else '', back, 'Restored %s.' % (shown(back) if back else place or 'it'), keep_undo=False)
++
++
++def after(host, ident, new_path, words, undo=None, undo_words='', trash=False, keep_undo=True):
++    """After a change from the tree: the object keeps its id at its new place (held beside Files' reading), the tree shows the
++    new place, the board and the breadcrumb follow, the words said with Undo."""
++    living = getattr(host, 'living_nav', None)
++    if living is not None and living.computer is not None:
++        tree = living.computer
++        if ident:
++            try:
++                found = living.call('objects.get', {'id': ident})
++                if found is not None:
++                    tree.hold(found)
++                    if new_path is not None:living.nav.renamed(ident, Path(new_path).name)
++            except Exception:  # noqa: BLE001 - the next reading of the tree finds it all the same
++                pass
++        if new_path is not None:
++            chain = [];folder = Path(new_path).parent
++            while hr.within(folder, hr.home()) and folder != hr.home().parent:
++                chain.append(branch_id(folder))
++                if folder == hr.home():break
++                folder = folder.parent
++            tree.listed |= set(chain);tree.keep_open(chain);tree.remember()
++        page = tree.page()
++        if page is not None:
++            page.refresh(force=True)
++            row = branch_id(new_path) if new_path is not None else ''
++            if row and row in page.items:page.select(row, reveal=True)
++        try:living.after_reading()
++        except Exception:  # noqa: BLE001 - the breadcrumb is drawn again at the next move
++            pass
++    watch = getattr(host, 'home_files', None)
++    if watch is not None:
++        watch.note.tell(words, undo if keep_undo else None, undo_words, trash)
++        watch.redraw()
++    try:
++        from .shell2 import refresh_library
++        refresh_library(host)          # DELETE's count at the column's foot
++    except Exception:  # noqa: BLE001
++        pass
++    return say(host, words)
++
++
++# ---- the line under the tab's header: what was done, with Undo -------------------------------------------------------------------
++class Note(QWidget):
++    def __init__(self, host, parent=None):
++        super().__init__(parent)
++        self.host = host;self.undo = None;self.undo_words = '';self.setObjectName('HomeFilesNote')
++        self.setAccessibleName('What was just done in your home, with Undo')
++        column = QVBoxLayout(self);column.setContentsMargins(8, 5, 8, 6);column.setSpacing(4)      # the words over their buttons: the column is narrow
++        self.words = QLabel(self);self.words.setObjectName('HomeFilesWords');self.words.setWordWrap(True);column.addWidget(self.words)
++        box = QHBoxLayout();box.setContentsMargins(0, 0, 0, 0);box.setSpacing(8);box.addStretch(1);column.addLayout(box)
++        self.back = QPushButton('Undo', self);self.back.setObjectName('HomeFilesUndo');self.back.setCursor(Qt.PointingHandCursor)
++        self.back.setAccessibleName('Undo what was just done');self.back.clicked.connect(self.undo_now);box.addWidget(self.back)
++        self.bin = QPushButton('DELETE', self);self.bin.setObjectName('HomeFilesBin');self.bin.setCursor(Qt.PointingHandCursor)
++        self.bin.setAccessibleName('Open DELETE');self.bin.setToolTip('DELETE: what you deleted, from Files and from your home, each with restore')
++        self.bin.clicked.connect(self.open_trash);box.addWidget(self.bin)
++        self.timer = QTimer(self);self.timer.setSingleShot(True);self.timer.setInterval(UNDO_MS);self.timer.timeout.connect(self.calm)
++        self.restyle();self.hide()
++
++    def restyle(self):
++        try:
++            from .living_nav_qt import scale_of
++            px = max(12, round(13 * scale_of(self.host)))
++        except Exception:  # noqa: BLE001
++            px = 13
++        self.setStyleSheet(
++            'QWidget#HomeFilesNote {background:%s;border:1px solid %s;border-radius:6px;}'
++            'QLabel#HomeFilesWords {font-family:"%s";font-size:%dpx;color:%s;background:transparent;border:0;}'
++            'QPushButton {font-family:"%s";font-size:%dpx;color:%s;background:%s;border:1px solid %s;border-radius:5px;padding:2px 10px;}'
++            'QPushButton:hover {border-color:%s;}'
++            % (bt.CARD, bt.LINE, bt.FACE, px, bt.TEXT, bt.FACE, px, bt.TEXT, bt.RAISED, bt.LINE_STRONG, bt.LINE_STRONG))
++        self.setAttribute(Qt.WA_StyledBackground, True)
++
++    def tell(self, words, undo=None, undo_words='', trash=False):
++        self.words.setText(words);self.undo = undo;self.undo_words = undo_words
++        self.back.setVisible(undo is not None);self.back.setEnabled(undo is not None);self.bin.setVisible(bool(trash))
++        self.show();self.timer.start()
++
++    def undo_now(self):
++        do, self.undo = self.undo, None
++        if do is None:return None
++        self.back.setEnabled(False)
++        try:
++            back = do()
++        except ValueError as exc:
++            self.tell('Not undone: %s' % str(exc).split(': ', 1)[-1]);return None
++        words = 'Undone: %s.' % self.undo_words if self.undo_words else 'Undone.'
++        return after(self.host, id_of(self.host, back) if isinstance(back, Path) else '', back if isinstance(back, Path) else None, words, keep_undo=False)
++
++    def open_trash(self):
++        from .shell2 import open_destination
++        return open_destination(self.host, 'trash')
++
++    def calm(self):
++        self.undo = None;self.hide()
++
++
++# ---- drag a row onto a folder -------------------------------------------------------------------------------------------------------
++class Dragging(QObject):
++    """The tree's rows of your home can be dragged onto a folder of the tree (a move, on your drop) or onto DELETE."""
++
++    def __init__(self, host, tree):
++        super().__init__(tree)
++        self.host = host;self.tree = tree;self.start = None;self.over = None
++        tree.setAcceptDrops(True);tree.viewport().setAcceptDrops(True);tree.viewport().installEventFilter(self)
++
++    def row_path(self, item):
++        if item is None:return None
++        try:node = item.data(0, Qt.UserRole) or {}
++        except RuntimeError:
++            return None
++        if node.get('role') not in ('file', 'folder'):return None
++        path = path_of_row(node.get('id'))
++        kernel = kernel_of(self.host)
++        if not path or kernel is None or not changeable(kernel, path)[0]:return None
++        return Path(path), node.get('role')
++
++    def eventFilter(self, obj, event):
++        kind = event.type()
++        try:
++            if kind == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
++                point = event.position().toPoint();found = self.row_path(self.tree.itemAt(point))
++                self.start = (point, found[0]) if found else None
++                return False
++            if kind == QEvent.MouseMove and self.start is not None and (event.buttons() & Qt.LeftButton):
++                if (event.position().toPoint() - self.start[0]).manhattanLength() >= QApplication.startDragDistance():
++                    path = self.start[1];self.start = None;self.drag(path);return True
++                return False
++            if kind == QEvent.MouseButtonRelease:
++                self.start = None;return False
++            if kind in (QEvent.DragEnter, QEvent.DragMove) and event.mimeData().hasFormat(ROW_MIME):
++                source = Path(bytes(event.mimeData().data(ROW_MIME)).decode('utf-8', 'surrogateescape'))
++                folder = self.folder_at(event.position().toPoint(), source)
++                if folder is None:
++                    event.ignore();self.over = None
++                else:
++                    event.setDropAction(Qt.MoveAction);event.accept()
++                    if folder != self.over:say(self.host, 'Drop to move %s into %s' % (source.name, shown(folder)), 3000)
++                    self.over = folder
++                return True
++            if kind == QEvent.DragLeave:
++                self.over = None;return False
++            if kind == QEvent.Drop and event.mimeData().hasFormat(ROW_MIME):
++                source = Path(bytes(event.mimeData().data(ROW_MIME)).decode('utf-8', 'surrogateescape'))
++                folder = self.folder_at(event.position().toPoint(), source);self.over = None
++                if folder is None:
++                    event.ignore();return True
++                event.setDropAction(Qt.MoveAction);event.accept()
++                QTimer.singleShot(0, lambda: self.dropped(source, folder))
++                return True
++        except RuntimeError:
++            return False
++        return False
++
++    def folder_at(self, point, source):
++        """The folder of the tree under the pointer that `source` may be moved into, or None (itself, inside itself, the folder it
++        is in already, a row that is not a folder of your home or of Files)."""
++        found = self.row_path(self.tree.itemAt(point))
++        if found is None or found[1] != 'folder':return None
++        folder = found[0]
++        if folder == source or hr.within(folder, source) or folder == source.parent:return None
++        return folder
++
++    def drag(self, path):
++        data = QMimeData();data.setData(ROW_MIME, str(path).encode('utf-8', 'surrogateescape'));data.setUrls([QUrl.fromLocalFile(str(path))])
++        drag = QDrag(self.tree);drag.setMimeData(data)
++        drag.exec(Qt.MoveAction)
++
++    def dropped(self, source, folder):
++        try:return move_to(self.host, source, folder)
++        except ValueError as exc:
++            return say(self.host, '%s was not moved: %s' % (source.name, str(exc).split(': ', 1)[-1]))
++
++
++# ---- a focused file of your home, watched ---------------------------------------------------------------------------------------
++class Focused(QObject):
++    """The file of your home in the board's focus, watched like an open view's file: another program's save is noticed, its
++    revision recorded; a rename in its folder by another program is found by its inode."""
++
++    def __init__(self, host):
++        super().__init__(host)
++        self.host = host;self.ident = '';self.path = None;self.state = None;self.digest = ''
++        self.watcher = QFileSystemWatcher(self);self.watcher.fileChanged.connect(self.changed);self.watcher.directoryChanged.connect(self.changed)
++        self.calm = QTimer(self);self.calm.setSingleShot(True);self.calm.setInterval(CALM_MS);self.calm.timeout.connect(self.look)
++        self.timer = QTimer(self);self.timer.setInterval(FOCUS_MS);self.timer.timeout.connect(self.glance);self.timer.start()
++
++    def glance(self):
++        living = getattr(self.host, 'living_nav', None)
++        focus = str(getattr(getattr(living, 'nav', None), 'focus', '') or '')
++        if focus != self.ident:self.follow(focus)
++
++    def follow(self, ident):
++        """Watch the focused object when it is a file of your home (outside Files: Files has L1's own watch)."""
++        if self.watcher.files() or self.watcher.directories():
++            self.watcher.removePaths(list(self.watcher.files()) + list(self.watcher.directories()))
++        self.ident = ident;self.path = None;self.state = None;self.digest = ''
++        living = getattr(self.host, 'living_nav', None);kernel = kernel_of(self.host)
++        entry = (getattr(living, 'files_by_id', None) or {}).get(ident) if ident else None
++        if not entry or kernel is None or entry.get('kind') == 'folder' or not str(entry.get('path') or '').startswith('/'):return
++        path = Path(entry['path'])
++        if hr.area(kernel, path) != hr.HOME or not path.is_file():return
++        from . import depths as dp
++        self.path = path;self.state = dp.file_state(path)
++        try:self.digest = dp.sha256_of(path)[0] if path.stat().st_size <= dp.BIGGEST else ''
++        except OSError:
++            self.digest = ''
++        self.watcher.addPath(str(path));self.watcher.addPath(str(path.parent))
++
++    def changed(self, *_):
++        self.calm.start()
++
++    def elsewhere(self):
++        """Another program's own Save (LibreOffice's, Graphite's view's, A1's session) records it with better words."""
++        watch = getattr(self.host, 'app_files', None)
++        try:
++            if watch is not None and watch.session_of(self.path) is not None:return True
++            from .depths_qt import path_of
++            from .split_qt import all_tabs
++            return any(path_of(tab) is not None and Path(path_of(tab)) == self.path for tab in all_tabs(self.host))
++        except Exception:  # noqa: BLE001 - nothing else watches it: this watch records it
++            return False
++
++    def look(self):
++        if self.path is None:return None
++        from . import depths as dp
++        path = self.path
++        if not path.is_file():return self.lost()
++        if str(path) not in self.watcher.files():self.watcher.addPath(str(path))      # a program that writes a new file over the old one
++        state = dp.file_state(path)
++        if state == self.state:return None
++        self.state = state
++        try:digest = dp.sha256_of(path)[0] if state[0] <= dp.BIGGEST else ''
++        except OSError:
++            return None
++        if not digest or digest == self.digest:return None
++        before, self.digest = self.digest, digest
++        words = '%s was saved by another program at %s.' % (path.name, time.strftime('%H:%M'))
++        if not self.elsewhere():
++            try:
++                got = act(self.host, 'revisions.record', dict({'path': str(path), 'expected_sha256': digest, 'how': 'outside'},
++                                                              **({'previous_sha256': before} if before else {})))
++                if got.get('recorded'):words = '%s was saved by another program at %s: revision %d is recorded.' % (path.name, time.strftime('%H:%M'), got['revision'])
++            except ValueError as exc:
++                words += ' Its revision was not recorded: %s' % str(exc).split(': ', 1)[-1]
++        self.refresh()
++        return say(self.host, words, 12000)
++
++    def lost(self):
++        """Not at its path: renamed or moved in its folder by another program (found by its inode), or gone."""
++        path = self.path;living = getattr(self.host, 'living_nav', None)
++        try:inode = (self.state[2] if self.state else None)
++        except (TypeError, IndexError):
++            inode = None
++        found = None
++        try:
++            for entry in os.scandir(path.parent):
++                try:
++                    if inode is not None and entry.is_file(follow_symlinks=False) and entry.inode() == inode:found = Path(entry.path);break
++                except OSError:
++                    continue
++        except OSError:
++            pass
++        if found is None:
++            self.path = None
++            return say(self.host, '%s is not where it was (%s): moved or deleted by another program.' % (path.name, shown(path.parent)), 12000)
++        got = living.call('objects.get', {'path': str(found)}) if living is not None else None
++        if got is not None and living.computer is not None:
++            living.computer.hold(got)
++            if got['id'] == self.ident:
++                living.nav.renamed(got['id'], found.name);living.note = 'renamed from ' + path.name
++        self.follow(self.ident)
++        self.refresh()
++        return say(self.host, '%s was renamed %s by another program; it is the same file.' % (path.name, found.name), 12000)
++
++    def refresh(self):
++        """The focused object read again (its size, its state), the board, the tree and the breadcrumb drawn from it."""
++        living = getattr(self.host, 'living_nav', None)
++        if living is None:return
++        try:
++            got = living.call('objects.get', {'id': self.ident}) if self.ident else None
++            if got is not None and living.computer is not None:living.computer.hold(got)
++            living.after_reading()
++        except Exception:  # noqa: BLE001 - drawn again at the next reading
++            pass
++        watch = getattr(self.host, 'home_files', None)
++        if watch is not None:watch.redraw()
++
++
++# ---- the DELETE room: your home's Trash, with Restore ----------------------------------------------------------------------------
++def trash_rows(tab):
++    """files_qt.TrashTab: your home's Trash under Files' DELETE, each entry with Restore."""
++    from .files_qt import when
++    from .shell2 import QUIET, call, escape_text, role, sentence
++    data = call(tab.host, 'files.trash_list') or {}
++    rows = data.get('home') or []
++    first = tab.box.itemAt(1).widget() if tab.box.count() > 1 else None      # Files' own lead: said of Files, when your home's are here
++    if rows and isinstance(first, QLabel) and first.text() == 'Nothing is in DELETE.':first.setText('Nothing from Files is in DELETE.')
++    tab.box.addWidget(role(QLabel('From your home'), 'item'))
++    lead = QLabel(('Nothing deleted from your home is here.' if not rows else
++                   "What you deleted in your home waits here, kept in your home's own bin (%s), as your other programs keep it. Restore "
++                   'puts each back where it was.') % escape_text(str(data.get('home_trash') or '')))
++    lead.setWordWrap(True);lead.setStyleSheet('color:%s' % QUIET);tab.box.addWidget(lead)
++
++    def put_back(row):
++        try:restore(tab.host, row['id'], row.get('place') or '')
++        except ValueError as exc:
++            say(tab.host, 'Not restored: %s' % str(exc).split(': ', 1)[-1])
++        tab.reload()
++    for row in rows[:200]:
++        kind = 'folder' if row.get('kind') == 'folder' else 'file'
++        tab.box.addWidget(sentence('%s  ·  a %s  ·  deleted %s  ·  {restore}' % (escape_text(row.get('place') or row.get('original') or row.get('name')), kind,
++                                                                              when(row['at']) if row.get('at') else 'at a time not said'),
++                                   {'restore': ('restore', lambda r=row: put_back(r))}))
++    if len(rows) > 200:
++        more = QLabel('%d more in DELETE, not listed here.' % (len(rows) - 200));more.setStyleSheet('color:%s' % QUIET);tab.box.addWidget(more)
++
++
++def trash_count(result):
++    """DELETE's count at the column's foot: Files' DELETE and your home's Trash."""
++    result = result or {}
++    return len(result.get('trash') or ()) + len(result.get('home') or ())
++
++
++# ---- installed once ---------------------------------------------------------------------------------------------------------------
++class HomeFiles(QObject):
++    def __init__(self, tree):
++        super().__init__(tree)
++        self.tree = tree;self.host = tree.host
++        page = tree.page()
++        self.note = Note(self.host)
++        if page is not None:
++            holder = page.stack.widget(0) if page.stack.count() else None
++            layout = holder.layout() if holder is not None else None
++            if layout is not None:
++                self.note.setParent(holder);layout.insertWidget(1, self.note)
++            self.dragging = Dragging(self.host, page.tree)
++        self.focused = Focused(self.host)
++
++    def redraw(self):
++        """The board drawn again from a new reading of the desk (its FILE tiles' words)."""
++        watch = getattr(self.host, 'app_files', None)
++        if watch is not None and hasattr(watch, 'redraw'):return watch.redraw()
++        page = getattr(self.host, 'field_page', None);board = getattr(page, 'board', None)
++        if board is None:return None
++        try:
++            board._desk_key = None;board._stale = True
++            if board.isVisible():board.rebuild()
++        except RuntimeError:
++            pass
++        return None
++
++
++def install(tree):
++    """computer_tree_qt.install calls this once, with the computer's rows."""
++    host = tree.host
++    if getattr(host, 'home_files', None) is not None:return host.home_files
++    host.home_files = HomeFiles(tree)
++    return host.home_files
+diff --git a/workbench/home_trash.py b/workbench/home_trash.py
+new file mode 100644
+index 0000000..f31a0bf
+--- /dev/null
++++ b/workbench/home_trash.py
+@@ -0,0 +1,296 @@
++"""Your home's Trash: DELETE for the files of your home, the system's own way (Graphite 1.0 L6b).
++
++The owner's tree reaches the whole computer (1.0 L6); everything a person does to a file works in Home, DELETE included. A file
++or folder of your home that you delete goes to the system's Trash, the one every desktop on this computer shares (the
++freedesktop.org Trash specification, version 1.0): $XDG_DATA_HOME/Trash, which is ~/.local/share/Trash when the system says
++nothing else. Nothing is ever removed for good here: Delete moves the thing into the Trash with a note of where it was, and
++Restore (or Undo, at once) moves it back.
++
++    ~/.local/share/Trash/files/<name>               the file or folder itself, moved there whole (one rename: never copied,
++                                                    never rewritten; a thing on another drive than the Trash is refused, with
++                                                    the words why, and nothing is moved)
++    ~/.local/share/Trash/info/<name>.trashinfo      [Trash Info] / Path=<where it was, URL-escaped> / DeletionDate=<local
++                                                    time, YYYY-MM-DDThh:mm:ss>: written first, created only if no such name is
++                                                    there yet (the name is claimed atomically), so two programs never take one name
++
++Restore puts it back where it was; when that name is taken by then, beside it under a free name ('letter 2.odt'), never over
++anything. Its .trashinfo note is removed once the thing is back (as the specification says); the 'directorysizes' cache line of
++a folder put back is dropped too. What other programs put in the Trash is listed and restored the same way.
++
++The Kernel's operations stay files.trash, files.trash_list and files.restore (files_service): a path in your home goes here, a
++path in Files to Files' own DELETE as before. Nothing here has Qt; no floating point is used (times are whole seconds).
++"""
++from __future__ import annotations
++
++import errno
++import hashlib
++import os
++import time
++from pathlib import Path
++from urllib.parse import quote, unquote_to_bytes
++
++INFO_SUFFIX = '.trashinfo'
++MOST_LISTED = 500                     # entries the Trash lists at most (newest first)
++# The specification's own words, kept as its bytes: they name a file format and a folder, never anything shown (on screen the
++# place is DELETE, the owner's word of 14 November 2026).
++HEADER = b'[Trash Info]'.decode('ascii')
++FOLDER = b'Trash'.decode('ascii')
++
++
++def trash_dir():
++    """The home Trash: $XDG_DATA_HOME/Trash (an absolute XDG_DATA_HOME only, as the base directory specification says), else
++    ~/.local/share/Trash."""
++    data = os.environ.get('XDG_DATA_HOME') or ''
++    base = Path(data) if data.startswith('/') else Path(os.path.expanduser('~')) / '.local' / 'share'
++    return base / FOLDER
++
++
++def files_dir():
++    return trash_dir() / 'files'
++
++
++def info_dir():
++    return trash_dir() / 'info'
++
++
++def ensure():
++    """The Trash's two folders, made when missing (only yours to read: 0700)."""
++    for folder in (files_dir(), info_dir()):
++        folder.mkdir(parents=True, mode=0o700, exist_ok=True)
++
++
++def ident_of(name):
++    """A stable 32-hex id for an entry of the Trash named so (files.restore takes it)."""
++    return hashlib.sha256(('home-trash:' + name).encode('utf-8', 'surrogateescape')).hexdigest()[:32]
++
++
++def inside(path):
++    """Whether a path is the Trash or inside it, or holds it."""
++    trash = os.path.normpath(str(trash_dir()));text = os.path.normpath(str(path))
++    return text == trash or text.startswith(trash + '/') or trash.startswith(text.rstrip('/') + '/')
++
++
++def in_trash(path):
++    """Whether a whole path is in the Trash's files/ (L1 keeps an object deleted there as 'in DELETE')."""
++    folder = os.path.normpath(str(files_dir()));text = os.path.normpath(str(path))
++    return text.startswith(folder + '/')
++
++
++def tilde(path):
++    from .home_reach import tilde as named
++    return named(path)
++
++
++def in_home(kernel, path):
++    """Whether a file or folder (the thing itself where it is: a link is where it is, not where it points) is in your home,
++    outside Files and outside Graphite's own records: the things whose DELETE is your home's Trash."""
++    from . import home_reach as hr
++    path = Path(path)
++    try:place = Path(os.path.realpath(path.parent)) / path.name
++    except (OSError, RuntimeError):
++        return False
++    if hr.is_system(place):return False      # (the Trash itself, or a folder holding it, is refused by put(), with the words why)
++    try:files = hr.files_root(kernel).resolve()
++    except (OSError, RuntimeError):
++        files = hr.files_root(kernel)
++    if hr.within(place, files) or any(hr.within(place, own) for own in hr.own_folders(kernel)):return False
++    return hr.within(place, hr.home()) and place != hr.home()
++
++
++def holds_graphite(kernel, path):
++    """Whether a folder is your home itself or holds Graphite's workspace, its Files or its program: it stays where it is (the
++    owner's tree offers no rename, move or Delete for it, and files.trash refuses it)."""
++    from . import home_reach as hr
++    try:place = Path(os.path.realpath(path))
++    except (OSError, RuntimeError):
++        return True
++    if place == hr.home():return True
++    try:files = hr.files_root(kernel).resolve()
++    except (OSError, RuntimeError):
++        files = hr.files_root(kernel)
++    return any(hr.within(mine, place) for mine in [files] + hr.own_folders(kernel))      # it is one of them, or holds one
++
++
++STORED = '~trash:'                  # how files_trash keeps a thing it put in your home's Trash: '~trash:<its name there>'
++
++
++def listed(rows=()):
++    """The Trash for files.trash_list: each entry with the id files.restore takes (Graphite's own row's id for what Graphite
++    put there, else the entry's own id) and by_graphite."""
++    mine = {str(r.get('stored'))[len(STORED):]: r.get('id') for r in rows or () if str(r.get('stored') or '').startswith(STORED)}
++    out = []
++    for entry in entries():
++        ident = mine.get(entry['name'])
++        out.append(dict(entry, id=ident or entry['id'], by_graphite=bool(ident)))
++    return out
++
++
++# ---- Delete ---------------------------------------------------------------------------------------------------------------------
++def _candidates(name):
++    yield name
++    stem, dot, suffix = name.partition('.') if not name.startswith('.') else (name, '', '')
++    for n in range(2, 10000):
++        yield ('%s.%d.%s' % (stem, n, suffix)) if dot else ('%s.%d' % (name, n))
++
++
++def _claim(name):
++    """A name not used in the Trash yet, claimed by creating its .trashinfo exclusively: (name, the open descriptor)."""
++    for candidate in _candidates(name):
++        if os.path.lexists(files_dir() / candidate):continue
++        try:
++            fd = os.open(str(info_dir() / (candidate + INFO_SUFFIX)), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
++        except FileExistsError:
++            continue
++        return candidate, fd
++    raise ValueError("TRASH_FULL_OF_NAMES: no free name for %s in your home's bin" % name[:120])
++
++
++def info_text(original, when=None):
++    """The .trashinfo note for a thing that was at `original` (an absolute path), deleted at `when` (local time)."""
++    stamp = time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(int(when if when is not None else time.time())))
++    return '%s\nPath=%s\nDeletionDate=%s\n' % (HEADER, quote(os.fsencode(str(original)), safe='/'), stamp)
++
++
++def put(path):
++    """Move a file or folder of your home into the Trash, with its note. Returns {'name', 'stored', 'original', 'at', 'id'}.
++    Refused, with nothing moved: the Trash itself, your home folder, a thing on another drive than the Trash."""
++    path = Path(os.path.abspath(str(path)))
++    if not os.path.lexists(path):raise ValueError('TRASH_NOT_FOUND: %s is not there' % tilde(path)[:200])
++    from .home_reach import home
++    if path == home() or path == Path(os.path.expanduser('~')):raise ValueError('TRASH_HOME: your home folder itself stays')
++    if inside(path):raise ValueError("TRASH_ITSELF: %s is your home's bin (DELETE) or holds it; it is not deleted" % tilde(path)[:200])
++    ensure()
++    try:
++        here = os.lstat(path).st_dev;there = os.stat(files_dir()).st_dev
++    except OSError as exc:
++        raise ValueError('TRASH_NOT_READ: %s (%s)' % (tilde(path)[:200], exc.strerror or type(exc).__name__)) from None
++    if here != there:
++        raise ValueError("TRASH_OTHER_DRIVE: %s is on another drive than your home's bin (DELETE); Graphite moves nothing across "
++                         'drives to delete it, so nothing was moved' % tilde(path)[:200])
++    now = int(time.time())
++    name, fd = _claim(path.name)
++    note = info_dir() / (name + INFO_SUFFIX)
++    try:
++        with os.fdopen(fd, 'w', encoding='utf-8') as stream:
++            stream.write(info_text(path, now))
++    except OSError:
++        _drop(note);raise
++    stored = files_dir() / name
++    try:
++        os.rename(path, stored)          # one rename: the same bytes, the same inode, nothing copied or rewritten
++    except OSError as exc:
++        _drop(note)
++        if exc.errno == errno.EXDEV:
++            raise ValueError("TRASH_OTHER_DRIVE: %s is on another drive than your home's bin (DELETE); nothing was moved" % tilde(path)[:200]) from None
++        raise ValueError('TRASH_NOT_MOVED: %s (%s); nothing was moved' % (tilde(path)[:200], exc.strerror or type(exc).__name__)) from None
++    return {'name': name, 'stored': str(stored), 'original': str(path), 'at': now, 'id': ident_of(name)}
++
++
++def _drop(note):
++    """Remove a .trashinfo note Graphite wrote (never a file of yours)."""
++    try:os.unlink(note)
++    except OSError:
++        pass
++
++
++# ---- what is in it --------------------------------------------------------------------------------------------------------------
++def read_info(note):
++    """(original path, deleted at in whole seconds or 0) from a .trashinfo note; None when it is not one."""
++    try:
++        text = Path(note).read_text(encoding='utf-8', errors='replace')
++    except OSError:
++        return None
++    lines = [line.strip() for line in text.splitlines()]
++    if HEADER not in lines:return None
++    values = {}
++    for line in lines[lines.index(HEADER) + 1:]:
++        if line.startswith('['):break
++        key, eq, value = line.partition('=')
++        if eq:values.setdefault(key.strip(), value.strip())
++    raw = values.get('Path')
++    if not raw:return None
++    original = os.fsdecode(unquote_to_bytes(raw))
++    if not original.startswith('/'):original = str(trash_dir().parent / original)   # relative to the Trash's own top folder
++    at = 0
++    try:at = int(time.mktime(time.strptime(values.get('DeletionDate', '')[:19], '%Y-%m-%dT%H:%M:%S')))
++    except (ValueError, OverflowError):
++        pass
++    return original, at
++
++
++def entries(most=MOST_LISTED):
++    """What is in the Trash, newest first: [{'id', 'name', 'original' (whole path), 'place' (as you read it), 'at', 'kind',
++    'size'}]. An entry whose thing is gone from files/ is left out."""
++    folder = info_dir()
++    if not folder.is_dir():return []
++    out = []
++    try:notes = list(os.scandir(folder))
++    except OSError:
++        return []
++    for note in notes:
++        if not note.name.endswith(INFO_SUFFIX):continue
++        name = note.name[:-len(INFO_SUFFIX)]
++        stored = files_dir() / name
++        try:st = os.lstat(stored)
++        except OSError:
++            continue
++        found = read_info(note.path)
++        if found is None:continue
++        original, at = found
++        import stat as statmod
++        kind = 'folder' if statmod.S_ISDIR(st.st_mode) else 'file'
++        out.append({'id': ident_of(name), 'name': name, 'shown': Path(original).name, 'original': original, 'place': tilde(original), 'at': at,
++                    'kind': kind, 'size': 0 if kind == 'folder' else int(st.st_size)})
++    out.sort(key=lambda e: (-e['at'], e['name']))
++    return out[:most]
++
++
++def by_id(ident):
++    return next((e for e in entries(most=100000) if e['id'] == ident), None)
++
++
++# ---- Restore --------------------------------------------------------------------------------------------------------------------
++def _free(target):
++    """target itself when nothing is there; else 'name 2.ext', 'name 3.ext'… beside it (nothing is overwritten)."""
++    if not os.path.lexists(target):return target
++    stem, suffix = target.stem, target.suffix
++    if target.name.startswith('.') and target.suffix == target.name:stem, suffix = target.name, ''
++    for n in range(2, 10000):
++        candidate = target.with_name('%s %d%s' % (stem, n, suffix))
++        if not os.path.lexists(candidate):return candidate
++    raise ValueError('TRASH_NO_FREE_NAME: %s' % tilde(target)[:200])
++
++
++def restore(name):
++    """Put an entry back where it was (beside it under a free name when the name is taken now). Returns {'restored' (the whole
++    path), 'original', 'renamed' (True when it is beside its old name), 'stored'}."""
++    if not name or '/' in name or name in ('.', '..') or '\0' in name:raise ValueError('TRASH_NAME: not a thing in DELETE')
++    note = info_dir() / (name + INFO_SUFFIX);stored = files_dir() / name
++    found = read_info(note)
++    if found is None or not os.path.lexists(stored):raise ValueError('TRASH_NOT_FOUND: that is no longer in DELETE')
++    original = Path(found[0])
++    original.parent.mkdir(parents=True, mode=0o700, exist_ok=True)
++    target = _free(original)
++    try:
++        os.rename(stored, target)
++    except OSError as exc:
++        raise ValueError('TRASH_NOT_RESTORED: %s (%s); it stays in DELETE' % (tilde(original)[:200], exc.strerror or type(exc).__name__)) from None
++    _drop(note)
++    _forget_size(name)
++    return {'restored': str(target), 'original': str(original), 'renamed': target != original, 'stored': str(stored)}
++
++
++def _forget_size(name):
++    """The 'directorysizes' cache (the specification's, for folders) without the line of an entry that left the Trash."""
++    cache = trash_dir() / 'directorysizes'
++    try:lines = cache.read_text(encoding='utf-8', errors='surrogateescape').splitlines()
++    except OSError:
++        return
++    wanted = quote(os.fsencode(name), safe='')
++    kept = [line for line in lines if line.split(' ', 2)[2:3] != [wanted]]
++    if len(kept) == len(lines):return
++    temporary = cache.with_name('.directorysizes.writing')
++    try:
++        temporary.write_text(''.join(line + '\n' for line in kept), encoding='utf-8', errors='surrogateescape');os.replace(temporary, cache)
++    except OSError:
++        pass
+diff --git a/workbench/living_nav.py b/workbench/living_nav.py
+index 742a97f..f1e95d9 100644
+--- a/workbench/living_nav.py
++++ b/workbench/living_nav.py
+@@ -158,6 +158,9 @@ def outside(path):
+ 
+ def in_delete(rel):
+     from .files_service import TRASH
++    if str(rel).startswith('/'):  # 1.0 L6b: in your home's Trash (freedesktop)
++        from .home_trash import in_trash
++        return in_trash(rel)
+     return rel == TRASH or rel.startswith(TRASH + '/')
+ 
+ 
+diff --git a/workbench/office_bridge.py b/workbench/office_bridge.py
+index b7aade5..9b7da96 100644
+--- a/workbench/office_bridge.py
++++ b/workbench/office_bridge.py
+@@ -834,10 +834,13 @@ class Session:
+ # ---------------------------------------------------------------- the operations
+ 
+ def _file(kernel, rel, edit=False):
+-    from . import files_service
++    from . import files_service, home_reach
+     path = files_service.resolve(kernel, rel)
++    if edit:  # 1.0 L6b: a change of hers passes her_change first (Files, or your home under your grant; never outside it)
++        never = home_reach.her_change(kernel, path)
++        if never:raise ValueError('LIBREOFFICE_OUTSIDE_HOME: ' + never)
+     if not path.is_file():
+-        raise ValueError('LIBREOFFICE_NOT_A_FILE: %s is not a file in Files' % str(rel)[:200])
++        raise ValueError('LIBREOFFICE_NOT_A_FILE: %s is not a file' % str(rel)[:200])
+     suffix = path.suffix.lower()
+     if edit and suffix not in EDITS:
+         raise ValueError('LIBREOFFICE_FORMAT: she edits OpenDocument files (.odt, .ods) through LibreOffice; %s is read only' % path.name)
+@@ -845,7 +848,7 @@ def _file(kernel, rel, edit=False):
+         raise ValueError('LIBREOFFICE_FORMAT: %s is not a document LibreOffice opens for her (%s)' % (path.name, ', '.join(READS)))
+     if path.stat().st_size > BIGGEST:
+         raise ValueError('LIBREOFFICE_TOO_LARGE: %s is larger than she opens' % path.name)
+-    return path, files_service.rel_of(kernel, path)
++    return path, files_service.place_of(kernel, path)  # 1.0 L6b: a document of your home by its whole path
+ 
+ 
+ def _check_sha(args, path, now):
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index c2a5a11..34923bc 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -1674,7 +1674,7 @@ def refresh_library(host):
+         label('lessons', ('%d to review' % len(waiting_lessons)) if waiting_lessons else '')
+         waiting = ((call(host, 'agenda.view') or {}).get('counts') or {}).get('waiting', 0)
+         label('agenda', ('%d for you' % waiting) if waiting else '')
+-        trash = len((call(host, 'files.trash_list') or {}).get('trash', []))
++        from .home_files_qt import trash_count;trash = trash_count(call(host, 'files.trash_list'))  # 1.0 L6b: and your home's Trash
+         if getattr(host, 'trash_can', None) is not None:host.trash_can.set_count(trash)
+         area = (call(host, 'files.list', {'path': 'Slate'}) or {}).get('entries', [])
+         label('slate_area', str(len(area)) if area else '')
+diff --git a/workbench/trash_can_qt.py b/workbench/trash_can_qt.py
+index babcf54..04000b8 100644
+--- a/workbench/trash_can_qt.py
++++ b/workbench/trash_can_qt.py
+@@ -139,7 +139,8 @@ class TrashCan(QWidget):
+         out = []
+         for url in event.mimeData().urls() if event.mimeData().hasUrls() else []:
+             try:out.append(Path(url.toLocalFile()).resolve().relative_to(root).as_posix())
+-            except (ValueError, OSError):pass
++            except (ValueError, OSError):
++                if event.mimeData().hasFormat('application/x-graphite-home-row'):out.append(url.toLocalFile())  # 1.0 L6b: a row of your home, from the tree
+         return out
+ 
+     def dragEnterEvent(self, event):
+diff --git a/workbench/utility_sandbox.py b/workbench/utility_sandbox.py
+index 0a85afb..a8246ff 100644
+--- a/workbench/utility_sandbox.py
++++ b/workbench/utility_sandbox.py
+@@ -917,7 +917,7 @@ def _inputs(kernel, paths):
+         if name in names:raise Refused('SANDBOX_SAME_NAME: two inputs are called %s; copies sit side by side in one folder' % name)
+         names.add(name)
+         with open(path, 'rb') as stream:head = stream.readline(400).decode('utf-8', 'replace').rstrip('\r\n')
+-        out.append({'path': files_service.rel_of(kernel, path), 'name': name, 'sha256': _file_sha(path), 'bytes': path.stat().st_size,
++        out.append({'path': files_service.place_of(kernel, path), 'name': name, 'sha256': _file_sha(path), 'bytes': path.stat().st_size,  # 1.0 L6b: your home too
+                     'head': head})
+     return out
+ 

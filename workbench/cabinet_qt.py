@@ -233,7 +233,7 @@ class CabinetPage(QWidget):
         self.tell_status()
         if getattr(self.host,'trash_can',None) is not None:
             count=self.host.ledger_bridge.kernel.dispatch('files.trash_list',{},operator())
-            if count['ok']:self.host.trash_can.set_count(len(count['result']['trash']))
+            if count['ok']:from .home_files_qt import trash_count;self.host.trash_can.set_count(trash_count(count['result']))  # 1.0 L6b: and your home's Trash
 
     def tell_status(self):
         """HATCH DESK D1b: the status line is out of the pane; its words are the Cabinet tab's tooltip."""

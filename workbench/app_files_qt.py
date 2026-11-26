@@ -67,11 +67,12 @@ class AppFiles(QObject):
 
     # ---- opening ----------------------------------------------------------------------------------------------------------------
     def in_files(self, path):
+        """A file this door opens: in Files, or (1.0 L6b) in your home."""
         kernel = kernel_of(self.host)
         if kernel is None:return False
         try:
-            from .files_service import root
-            return Path(path).resolve().is_relative_to(root(kernel).resolve()) and Path(path).is_file()
+            from . import home_reach
+            return Path(path).is_file() and home_reach.area(kernel, Path(path)) in (home_reach.FILES, home_reach.HOME)  # 1.0 L6b
         except (OSError, ValueError):
             return False
 
@@ -250,8 +251,8 @@ class AppFiles(QObject):
         kernel = kernel_of(self.host)
         if kernel is None:return None
         try:
-            from .files_service import root
-            rel = Path(path).resolve().relative_to(root(kernel).resolve()).as_posix()
+            from .files_service import place_of
+            rel = place_of(kernel, Path(path).resolve())  # 1.0 L6b: a file of your home by its whole path
         except (OSError, ValueError):
             return None
         return next((r for r in self.sessions.values() if r.get('path') == rel and r.get('state') != 'closed'), None)

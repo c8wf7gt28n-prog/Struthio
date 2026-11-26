@@ -376,4 +376,10 @@ class ComputerTree(QObject):
 
 def install(living):
     """LivingNav (living_nav_qt) calls this once: the computer's rows in its tree."""
-    return ComputerTree(living)
+    tree = ComputerTree(living)
+    try:
+        from .home_files_qt import install as home_files
+        home_files(tree)      # 1.0 L6b: rename, move (drag), new folder and Delete (into DELETE) in your home, with Undo; a focused file watched
+    except Exception:  # noqa: BLE001 - the tree stands without them
+        pass
+    return tree

@@ -769,9 +769,12 @@ def _same_text_digest(text):
 # ================================================================== the file on disk
 
 def _resolve(kernel, rel, must_exist=True):
-    from . import files_service
-    try:return files_service.resolve(kernel, rel, must_exist=must_exist)
+    from . import files_service, home_reach
+    try:path = files_service.resolve(kernel, rel, must_exist=must_exist)
     except (ValueError, OSError) as why:raise Refused('NOT_IN_FILES: %s' % str(why)[:160]) from None
+    never = home_reach.her_change(kernel, path)  # 1.0 L6b: her hand works only on a file of Files or of your home
+    if never:raise Refused('OUTSIDE_HOME: %s' % never[:300])
+    return path
 
 
 def file_sha(path):

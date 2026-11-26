@@ -9,7 +9,7 @@ external save should refresh or flag the compact view, not silently display a st
 
 The window's side is workbench/depths_qt.py. What lives here has no Qt:
 
-    the revisions of a plain file in Files that another program saved (the full program, opened from its working view, or
+    the revisions of a plain file in Files (1.0 L6b: or in your home) that another program saved (the full program, opened from its working view, or
     any other program while the view was open). Each revision Graphite sees is recorded with its digest, the one before it,
     the program that saved it (when Graphite started that program) and when; the file's identity is L1's (living_nav), so a
     rename does not break the chain. The Kernel reads the file itself before it records anything: a revision is recorded
@@ -86,26 +86,30 @@ def sha256_of(path):
 
 
 def _place(kernel, args):
-    """(object id, the file's path in Files, its whole path) for the file named by id or by path; refused outside Files."""
+    """(object id, the file's path as the Kernel keeps it, its whole path) for the file named by id or by path; refused outside
+    Files and your home (1.0 L6b: a file of your home has its revisions recorded like a file of Files; its path is kept whole)."""
     from . import living_nav
-    from .files_service import resolve, root
-    base = root(kernel).resolve()
+    from .files_service import resolve
     if args.get('id'):
         found = living_nav.get(kernel, ident=args['id'])
-        rel = found['path']
-        if str(rel).startswith('/'):raise ValueError('REVISIONS_OUTSIDE: only a file in Files has its revisions recorded')  # 1.0 L6: an id elsewhere on this computer
+        _reach(kernel, found['path'])
     else:
         raw = str(args.get('path') or '')
-        given = Path(raw)
-        if given.is_absolute():
-            try:rel = given.resolve().relative_to(base).as_posix()
-            except ValueError:raise ValueError('REVISIONS_OUTSIDE: only a file in Files has its revisions recorded') from None
-        else:rel = raw
-        found = living_nav.get(kernel, path=rel)
-        if str(found['path']).startswith('/'):raise ValueError('REVISIONS_OUTSIDE: only a file in Files has its revisions recorded')  # 1.0 L6
+        _reach(kernel, raw)      # before any id is made: a file elsewhere is never given one here
+        found = living_nav.get(kernel, path=raw)
+        _reach(kernel, found['path'])
     target = resolve(kernel, found['path'])
-    if found.get('kind') != 'file' or not target.is_file():raise ValueError('REVISIONS_NOT_A_FILE: %s is not a file in Files' % found['path'][:200])
+    if found.get('kind') != 'file' or not target.is_file():raise ValueError('REVISIONS_NOT_A_FILE: %s is not a file' % found['path'][:200])
     return found['id'], found['path'], target
+
+
+def _reach(kernel, text):
+    """1.0 L6b: a path named from / or ~ is recorded only in Files or in your home (never elsewhere, never Graphite's own)."""
+    if not str(text or '').startswith(('/', '~')):return
+    from . import home_reach
+    named = home_reach.expand(text)
+    if named is None or home_reach.area(kernel, named) not in (home_reach.FILES, home_reach.HOME):
+        raise ValueError('REVISIONS_OUTSIDE: only a file in Files or in your home has its revisions recorded')
 
 
 def earlier_admitted(db, name, digests):

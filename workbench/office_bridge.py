@@ -834,10 +834,13 @@ class Session:
 # ---------------------------------------------------------------- the operations
 
 def _file(kernel, rel, edit=False):
-    from . import files_service
+    from . import files_service, home_reach
     path = files_service.resolve(kernel, rel)
+    if edit:  # 1.0 L6b: a change of hers passes her_change first (Files, or your home under your grant; never outside it)
+        never = home_reach.her_change(kernel, path)
+        if never:raise ValueError('LIBREOFFICE_OUTSIDE_HOME: ' + never)
     if not path.is_file():
-        raise ValueError('LIBREOFFICE_NOT_A_FILE: %s is not a file in Files' % str(rel)[:200])
+        raise ValueError('LIBREOFFICE_NOT_A_FILE: %s is not a file' % str(rel)[:200])
     suffix = path.suffix.lower()
     if edit and suffix not in EDITS:
         raise ValueError('LIBREOFFICE_FORMAT: she edits OpenDocument files (.odt, .ods) through LibreOffice; %s is read only' % path.name)
@@ -845,7 +848,7 @@ def _file(kernel, rel, edit=False):
         raise ValueError('LIBREOFFICE_FORMAT: %s is not a document LibreOffice opens for her (%s)' % (path.name, ', '.join(READS)))
     if path.stat().st_size > BIGGEST:
         raise ValueError('LIBREOFFICE_TOO_LARGE: %s is larger than she opens' % path.name)
-    return path, files_service.rel_of(kernel, path)
+    return path, files_service.place_of(kernel, path)  # 1.0 L6b: a document of your home by its whole path
 
 
 def _check_sha(args, path, now):

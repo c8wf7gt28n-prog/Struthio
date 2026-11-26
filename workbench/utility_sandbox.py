@@ -917,7 +917,7 @@ def _inputs(kernel, paths):
         if name in names:raise Refused('SANDBOX_SAME_NAME: two inputs are called %s; copies sit side by side in one folder' % name)
         names.add(name)
         with open(path, 'rb') as stream:head = stream.readline(400).decode('utf-8', 'replace').rstrip('\r\n')
-        out.append({'path': files_service.rel_of(kernel, path), 'name': name, 'sha256': _file_sha(path), 'bytes': path.stat().st_size,
+        out.append({'path': files_service.place_of(kernel, path), 'name': name, 'sha256': _file_sha(path), 'bytes': path.stat().st_size,  # 1.0 L6b: your home too
                     'head': head})
     return out
 

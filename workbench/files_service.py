@@ -21,6 +21,9 @@ Rules the code enforces:
     never). A change there by the owner's own press follows the system's permissions; a change of hers (her steps, her
     tools, her hand's cards) reaches only inside your home, by a grant of yours or your press, and never outside it:
     "outside your home: never". Its versions are kept in Files/.versions/~home/… (or ~root/…), so Undo stays as it was.
+  - 1.0 L6b, Home's files whole: a file or folder of your home (outside Files) that is deleted goes to the system's Trash
+    (home_trash: the freedesktop.org Trash in ~/.local/share/Trash, with where it was and when), never removed for good;
+    files.trash_list lists that Trash too ('home') and files.restore puts an entry of it back (by the id the list gives).
 """
 from __future__ import annotations
 import contextlib
@@ -506,6 +509,38 @@ def carried(kernel, old, new):
         pass
 
 
+def trash_home(kernel, path, owner):
+    """1.0 L6b: a file or folder of your home into your home's Trash (home_trash.put: one rename, its note first), kept in
+    files_trash too so its story and Undo find it (stored as '~trash:<its name in the Trash>')."""
+    from . import home_trash
+    put = home_trash.put(path)
+    ident = uuid.uuid4().hex
+    carried(kernel, path, Path(put['stored']))
+    with opened(kernel) as db:db.execute('INSERT INTO files_trash VALUES(?,?,?,?,?,NULL)', (ident, owner, put['original'], home_trash.STORED + put['name'], time.time()))
+    return {'trashed': place_of(kernel, path), 'place': home_trash.tilde(path), 'id': ident, 'trash': 'home', 'stored': put['name'],
+            'note': "In DELETE, kept in your home's own bin (%s), as your other programs keep it. Restore, or Undo now, puts it back." % home_trash.tilde(home_trash.trash_dir())}
+
+
+def restore_home(kernel, ident, owner):
+    """1.0 L6b: files.restore for an entry of your home's Trash (by its files_trash id, or the id the list gave an entry another
+    program put there); None when the id is Files' own DELETE's."""
+    from . import home_trash
+    with opened(kernel) as db:
+        row = db.execute('SELECT * FROM files_trash WHERE id=? AND owner=? AND restored IS NULL', (ident, owner)).fetchone()
+    if row is not None:
+        if not str(row['stored']).startswith(home_trash.STORED):return None
+        name = row['stored'][len(home_trash.STORED):]
+    else:
+        entry = home_trash.by_id(ident)
+        if entry is None:return None
+        name = entry['name']
+    back = home_trash.restore(name)
+    with opened(kernel) as db:db.execute('UPDATE files_trash SET restored=? WHERE restored IS NULL AND stored=?', (time.time(), home_trash.STORED + name))
+    carried(kernel, Path(back['stored']), Path(back['restored']))
+    return {'restored': place_of(kernel, Path(back['restored'])), 'place': home_trash.tilde(back['restored']), 'beside': back['renamed'], 'trash': 'home',
+            'note': ('Back in its folder under a free name (%s was taken).' % Path(back['original']).name) if back['renamed'] else 'Back where it was.'}
+
+
 def dispatch(kernel, op, args, principal):
     owner = principal.identity
     if op == 'files.list':
@@ -574,14 +609,22 @@ def dispatch(kernel, op, args, principal):
     if op == 'files.trash':
         path = resolve(kernel, args['path']);may_change(kernel, path, principal)
         if path == root(kernel) or path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: this folder stays')
+        from . import home_trash  # 1.0 L6b: a file of your home goes to your home's Trash (freedesktop), restorable
+        if home_trash.holds_graphite(kernel, path):raise ValueError("FILES_RESERVED: %s is your home or holds Graphite's workspace; it stays" % home_trash.tilde(path)[:200])
+        if home_trash.in_home(kernel, path):return trash_home(kernel, path, owner)
         ident = uuid.uuid4().hex;stored = root(kernel) / TRASH / ident
         stored.mkdir(mode=0o700);original = place_of(kernel, path);shutil.move(str(path), str(stored / path.name));carried(kernel, path, stored / path.name)
         with opened(kernel) as db:db.execute('INSERT INTO files_trash VALUES(?,?,?,?,?,NULL)', (ident, owner, original, ident + '/' + path.name, time.time()))
         return {'trashed': original, 'id': ident, 'note': 'In DELETE. Restore puts it back.'}
     if op == 'files.trash_list':
         with opened(kernel) as db:
-            return {'trash': [dict(r) for r in db.execute('SELECT id, original, at FROM files_trash WHERE owner=? AND restored IS NULL ORDER BY at DESC', (owner,))]}
+            rows = [dict(r) for r in db.execute('SELECT id, original, at, stored FROM files_trash WHERE owner=? AND restored IS NULL ORDER BY at DESC', (owner,))]
+        from . import home_trash  # 1.0 L6b: your home's Trash beside Files' DELETE
+        return {'trash': [{k: r[k] for k in ('id', 'original', 'at')} for r in rows if not str(r['stored']).startswith(home_trash.STORED)],
+                'home': home_trash.listed(rows), 'home_trash': home_trash.tilde(home_trash.trash_dir())}
     if op == 'files.restore':
+        back = restore_home(kernel, args['id'], owner)  # 1.0 L6b: an entry of your home's Trash goes back where it was
+        if back is not None:return back
         with opened(kernel) as db:
             row = db.execute('SELECT * FROM files_trash WHERE id=? AND owner=? AND restored IS NULL', (args['id'], owner)).fetchone()
             if row is None:raise ValueError('FILES_TRASH_NOT_FOUND')

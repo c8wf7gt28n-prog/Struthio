@@ -139,7 +139,8 @@ class TrashCan(QWidget):
         out = []
         for url in event.mimeData().urls() if event.mimeData().hasUrls() else []:
             try:out.append(Path(url.toLocalFile()).resolve().relative_to(root).as_posix())
-            except (ValueError, OSError):pass
+            except (ValueError, OSError):
+                if event.mimeData().hasFormat('application/x-graphite-home-row'):out.append(url.toLocalFile())  # 1.0 L6b: a row of your home, from the tree
         return out
 
     def dragEnterEvent(self, event):

@@ -158,6 +158,9 @@ def outside(path):
 
 def in_delete(rel):
     from .files_service import TRASH
+    if str(rel).startswith('/'):  # 1.0 L6b: in your home's Trash (freedesktop)
+        from .home_trash import in_trash
+        return in_trash(rel)
     return rel == TRASH or rel.startswith(TRASH + '/')
 
 

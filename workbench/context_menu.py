@@ -1473,12 +1473,20 @@ def apps_entries(host, t):
     return context_entries(host, t)
 
 
+def home_entries(host, t):
+    """1.0 L6b (Home's files, whole): Open in its program, Rename, Move to, New folder, Delete into DELETE (home_files_qt)."""
+    from .home_files_qt import entries
+    return entries(host, t)
+
+
 # The providers, in the order they are asked (each a small function: target -> entries).
 PROVIDERS = (('document', document_entries), ('file', file_entries), ('files', files_entries), ('files-place', files_place_entries),
              ('finder', finder_entries), ('finder-place', finder_place_entries), ('library', library_entries), ('library-place', library_place_entries),
              ('cabinet', cabinet_entries), ('cabinet-tree', cabinet_tree_entries), ('activity', activity_selection_entries), ('machine', machine_entries),
              ('settings', settings_entries), ('job', job_entries), ('queued', queued_entries), ('network', network_entries), ('event', event_entries),
-             ('empty', empty_entries), ('field', field_entries), ('apps', apps_entries))   # 1.0 S2: Open with; an app's own rows
+             ('empty', empty_entries), ('field', field_entries),
+             ('home', home_entries),   # 1.0 L6b: a file or folder of your home, from the tree (its Open in <program> before S2's own)
+             ('apps', apps_entries))   # 1.0 S2: Open with; an app's own rows
 
 
 def entries_for(host, target):
@@ -1558,6 +1566,9 @@ def find_cabinet(host, w, point):
     item = w.itemAt(w.viewport().mapFrom(w, point))
     if item is None:return Target('tree', 'Cabinet', 'tree · ' + ('existing views' if page.using_legacy else 'logical cabinet'), surface='cabinet', owner=page, icon='memory')
     w.setCurrentItem(item);page.remember();node = item.data(0, Qt.UserRole) or {}
+    from .home_files_qt import target_for  # 1.0 L6b: a file or folder of your home is a thing of its own, not a record
+    home = target_for(host, page, node)
+    if home is not None:return home
     role = str(node.get('role', '')).replace('_', ' ')
     return Target('cabinet', node.get('label', ''), 'record · ' + role + ((' · revision %s' % node['revision']) if node.get('revision') is not None else ''),
                   ident=node.get('id'), revision=node.get('revision'), data=dict(node=node), surface='cabinet', owner=page)
@@ -1776,7 +1787,8 @@ MOST_ROWS = 16          # rows on one screen at most; a longer list goes on in p
 TARGET_GLYPH = {'table': 'table', 'datasheet': 'page', 'file': 'page', 'drawing': 'picture', 'folder': 'folder', 'files': 'folder', 'empty': 'home',
                 'passage': 'cell', 'page': 'document', 'library': 'stack', 'cabinet': 'folder', 'tree': 'folder', 'work': 'folder', 'machine': 'chip',
                 'setting': 'sliders', 'job': 'running', 'queued': 'agenda', 'event': 'lines', 'connection': 'port', 'packet': 'port',
-                'program': 'rooms', 'command': 'prompt'}
+                'program': 'rooms', 'command': 'prompt',
+                'home-file': 'page', 'home-folder': 'folder'}      # 1.0 L6b: a file or folder of your home, in the tree
 GLYPH_EXACT = {
     'open:outside': 'window', 'process': 'window', 'open:viewer': 'page', 'job:show': 'source', 'copy:original': 'source', 'viewer:folder': 'source',
     'show:folder': 'source', 'show:files': 'source', 'show:finder': 'source', 'show:log': 'source', 'change:files': 'source', 'change:none': 'info',
@@ -1856,6 +1868,7 @@ REST = {
     'cabinet': ('open', 'cabinet:write', 'cabinet:workspace:*', 'copy:id'), 'tree': ('new:idea', 'new:project', 'import', 'view'),
     'work': ('open', 'export', 'new:idea', 'new:project', 'import', 'refresh'), 'machine': ('show:finder', 'open', 'copy:row', 'refresh'),
     'setting': ('open', 'search', 'copy:key', 'expand'),
+    'home-file': ('open:outside', 'rename', 'move:to', 'trash'), 'home-folder': ('new:folder', 'rename', 'move:to', 'trash'),  # 1.0 L6b
     'program': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas'),
     'command': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas')}
 

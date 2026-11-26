@@ -42,6 +42,9 @@ Kernel operations (one block in engineering_kernel.py and engineering_cli.py, co
     appfile.list  {open?, path?, id?, limit?}  read     the sessions, newest first, with their tile words
 appfile.list is an observer (activity.OBSERVER_OPERATIONS): the board reads it each time it is drawn.
 
+1.0 L6b: a file of your home opens the same way (its path kept whole, ~/… as you read it); her opening a file to work in it
+(K9's hand goes through this door) passes home_reach.her_change first, so nothing of hers lands outside your home.
+
 Her rules hold: a program is started only on a press (the owner's, or hers under a grant through the Kernel), argv only and
 never a shell; a revision is recorded only when its bytes are on disk; nothing is sent anywhere; no floating point here (times
 are whole nanoseconds, digests are text).
@@ -245,8 +248,8 @@ def _place(kernel, args):
     from . import depths
     try:return depths._place(kernel, args)
     except ValueError as exc:
-        if str(exc).startswith('REVISIONS_OUTSIDE'):
-            raise ValueError('APPFILE_OUTSIDE: a file of Files is opened here, so its saves can be recorded; this one is outside Files') from None
+        if str(exc).startswith('REVISIONS_OUTSIDE'):  # 1.0 L6b: Files or your home
+            raise ValueError('APPFILE_OUTSIDE: a file in Files or in your home is opened here, so its saves can be recorded; this one is outside them') from None
         raise
 
 
@@ -270,6 +273,10 @@ def open_file(kernel, args, principal):
     """appfile.open: start the program on the file and keep the session."""
     from . import depths, files_service
     ident, rel, target = _place(kernel, args)
+    from . import home_reach  # 1.0 L6b: her work (her hand opening a file to work in it) passes her_change first
+    if home_reach.in_her_work(principal):
+        never = home_reach.her_change(kernel, target)
+        if never:raise ValueError('APPFILE_OUTSIDE_HOME: ' + never)
     if target.stat().st_size > BIGGEST:raise ValueError('APPFILE_TOO_LARGE: %s is larger than Graphite reads whole to see its revisions' % target.name)
     route, app, program, name, reason = choose(target, str(args.get('app') or ''), bool(args.get('chosen')))
     if not route:raise ValueError('APPFILE_NO_PROGRAM: ' + reason)
@@ -277,7 +284,8 @@ def open_file(kernel, args, principal):
     watched = {}
     for path in watched_with(target, program):
         try:
-            rel_path = path.resolve().relative_to(base).as_posix()
+            rel_path = files_service.place_of(kernel, path.resolve())  # 1.0 L6b: a file of your home is kept by its whole path
+            if rel_path.startswith('/') and not str(rel).startswith('/') or rel_path.startswith('..'):continue
             watched[rel_path] = [depths.sha256_of(path)[0]] + _file_state(path)
         except (OSError, ValueError):
             continue

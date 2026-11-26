@@ -633,14 +633,13 @@ class Depths(QObject):
         return 'changed'
 
     def record(self, tab, path, digest, known, away):
-        """The new revision through the Kernel (revisions.record): only a file in Files has its revisions recorded."""
+        """The new revision through the Kernel (revisions.record): a file in Files or (1.0 L6b) in your home."""
         try:
-            from .files_service import root
+            from . import home_reach
             from .apps_qt import call
             kernel = getattr(getattr(self.host, 'ledger_bridge', None), 'kernel', None)
             if kernel is None:return None
-            base = root(kernel).resolve()
-            if not path.resolve().is_relative_to(base):return None
+            if home_reach.area(kernel, path.resolve()) not in (home_reach.FILES, home_reach.HOME):return None  # 1.0 L6b
             args = {'path': str(path.resolve()), 'expected_sha256': digest, 'how': 'full program' if away else 'outside'}
             if known:args['previous_sha256'] = known
             if away and away.get('program'):args['program'] = away['program'][:120]

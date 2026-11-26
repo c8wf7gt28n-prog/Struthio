@@ -1677,7 +1677,7 @@ def refresh_library(host):
         label('lessons', ('%d to review' % len(waiting_lessons)) if waiting_lessons else '')
         waiting = ((call(host, 'agenda.view') or {}).get('counts') or {}).get('waiting', 0)
         label('agenda', ('%d for you' % waiting) if waiting else '')
-        trash = len((call(host, 'files.trash_list') or {}).get('trash', []))
+        from .home_files_qt import trash_count;trash = trash_count(call(host, 'files.trash_list'))  # 1.0 L6b: and your home's Trash
         if getattr(host, 'trash_can', None) is not None:host.trash_can.set_count(trash)
         area = (call(host, 'files.list', {'path': 'Slate'}) or {}).get('entries', [])
         label('slate_area', str(len(area)) if area else '')

@@ -510,6 +510,7 @@ class TrashTab(QWidget):
         for r in rows:
             self.box.addWidget(sentence(escape_text(r['original']) + '  ·  deleted ' + when(r['at']) + '  ·  {restore}',
                                         {'restore': ('restore', lambda r=r:(call_write(self.host, 'files.restore', {'id': r['id']}), self.reload()))}))
+        from .home_files_qt import trash_rows;trash_rows(self)  # 1.0 L6b: your home's Trash (freedesktop), each with Restore
         self.box.addStretch(1)
 
 
