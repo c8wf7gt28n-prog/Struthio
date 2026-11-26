@@ -1,0 +1,1873 @@
+diff --git a/LS_XSESSION.sh b/LS_XSESSION.sh
+index c12d7f3..56006c5 100755
+--- a/LS_XSESSION.sh
++++ b/LS_XSESSION.sh
+@@ -2,8 +2,8 @@
+ # The dedicated session's supervisor (Graphite 1.0 S1, the session that survives). Private session client: Debian login
+ # files and other desktops stay untouched.
+ #
+-# For the whole session it keeps the D-Bus session (dbus-run-session, below) and Fluxbox (started again if it ends), and it
+-# runs Graphite's window (START_OFFICE.sh) as its child:
++# For the whole session it keeps the D-Bus session (dbus-run-session, below), Fluxbox (started again if it ends) and the
++# permission prompt agent lxpolkit when it is installed (1.0 S5), and it runs Graphite's window (START_OFFICE.sh) as its child:
+ #   - Graphite ends with status 0 (Return to Debian, or the ordinary close after Log out, Restart or Shut down asked the
+ #     system): the session ends;
+ #   - Graphite asked to be started again (a hand-over request in the session folder, workbench/session_launch.py) and ended
+@@ -78,8 +78,25 @@ ledger_start_window_manager() {
+ ledger_graphite_pid=''
+ ledger_pause_pid=''
+ ledger_ending=''
++# 1.0 S5: the permission prompt agent, so the system's own permission questions (a restart, a drive, a network) can be
++# answered in this session: lxpolkit, when it is installed, for the whole session. Graphite reads its process id
++# (ARC_LEDGER_POLKIT_AGENT_PID) to know the questions can be answered; the password is typed into the agent's prompt
++# (the system's own), never into Graphite.
++ledger_polkit_pid=''
++ledger_start_polkit_agent() {
++  if command -v lxpolkit >/dev/null 2>&1; then
++    lxpolkit >/dev/null 2>&1 &
++    ledger_polkit_pid=$!
++    export ARC_LEDGER_POLKIT_AGENT_PID="$ledger_polkit_pid"
++    ledger_log_line "permission prompt agent lxpolkit started (process $ledger_polkit_pid)"
++  else
++    unset ARC_LEDGER_POLKIT_AGENT_PID
++    ledger_log_line "no permission prompt agent: lxpolkit is not installed, so the system cannot ask for permission here"
++  fi
++}
+ ledger_session_cleanup() {
+   if [[ -n "$ledger_pause_pid" ]]; then kill "$ledger_pause_pid" 2>/dev/null || true; fi
++  if [[ -n "$ledger_polkit_pid" ]]; then kill "$ledger_polkit_pid" 2>/dev/null || true; fi  # 1.0 S5
+   if [[ -n "$ledger_window_manager_pid" ]]; then
+     kill "$ledger_window_manager_pid" 2>/dev/null || true
+     wait "$ledger_window_manager_pid" 2>/dev/null || true
+@@ -146,6 +163,7 @@ ledger_read_hand_over() { # the hand-over request (NUL-separated +NAME=value and
+ 
+ export ARC_LEDGER_FULLSCREEN=1 ARC_LEDGER_XSESSION=1
+ ledger_start_window_manager
++ledger_start_polkit_agent  # 1.0 S5
+ ledger_restarts=0
+ ledger_failures=0
+ ledger_status=0
+diff --git a/workbench/leave_apps.py b/workbench/leave_apps.py
+new file mode 100644
+index 0000000..f809c8c
+--- /dev/null
++++ b/workbench/leave_apps.py
+@@ -0,0 +1,196 @@
++"""Graphite 1.0 S5 · The leave flow's open apps: before Return to Debian, Log out, Restart or Shut down, which apps are still
++open, and asking them to close politely first.
++
++The apps you opened run in sessions of their own (session_launch), so they outlive Graphite's window; they end only with
++the session itself, and work not saved in them would be lost. So before the session or the computer ends:
++
++  Log out, Restart, Shut down   the System menu's confirmation names the apps still open (confirm_words); after you confirm,
++                                this dialog asks each to close (S3's polite close, _NET_CLOSE_WINDOW: the app may ask you
++                                to save) and waits for them; then Graphite closes the ordinary way and asks the system.
++  Return to Debian              (the dedicated session only: elsewhere the apps belong to the desktop you came from) the same
++                                dialog first, as the question itself.
++
++The dialog lists each app window (its program, its title) with its state in words: OPEN, ASKED TO CLOSE, CLOSED, ASKING YOU
++(a dialog of that app appeared, "Save changes?" perhaps: Show brings it forward, you answer it there), CANNOT BE ASKED (the app
++takes no polite close: close it from inside it). Its answers: Ask them to close (then it goes on by itself once every app
++has closed), Go on without closing them (they end with the session), Cancel (nothing more is done; an app already closed
++stays closed). Nothing is ever killed or forced.
++
++Without a window list (no X, Graphite's window drawn offscreen) there is nothing to say and the leave goes on as before.
++"""
++from __future__ import annotations
++
++import time
++
++from PySide6.QtCore import Qt, QTimer
++from PySide6.QtWidgets import (QApplication, QDialog, QGridLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout,
++                               QWidget)
++
++from . import boss_theme as bt
++from . import windows_x11 as wx
++
++WORDS = {'logout': 'log out', 'restart': 'restart', 'shutdown': 'shut down', 'leave': 'return to Debian'}
++THEN = {'logout': 'your login session ends', 'restart': 'this computer restarts', 'shutdown': 'this computer shuts down',
++        'leave': 'this session ends'}
++WAIT_SECONDS = 12            # after asking, how long before the dialog says which apps are still open, and why perhaps
++TICK_MS = 400                # how often the dialog reads the windows while it waits
++CLOSED, GO_ON, CANCEL, NONE = 'closed', 'go_on', 'cancel', 'none'
++
++
++def reading(watcher=None):
++    """(the app windows open now, read fresh; why there is no list). Only when Graphite's window is on X (as the strip)."""
++    if watcher is None:
++        app = QApplication.instance()
++        if app is None or QApplication.platformName() != 'xcb':
++            return [], 'Graphite\'s window is not on an X display here, so it cannot see the apps\' windows'
++        watcher = wx.shared()
++    if not watcher.start():return [], watcher.reason
++    snap = watcher.refresh()
++    if not snap.get('available'):return [], snap.get('reason', '')
++    return [r for r in snap['windows'] if r['listed'] and not r['graphite']], ''
++
++
++def mains(rows):
++    """The apps' own windows (a dialog is answered in its app, never closed from here)."""
++    return [r for r in rows if not r['dialog']]
++
++
++def name(row):
++    return '%s (%s)' % (row['program'], row['title']) if row['title'] and row['title'] != row['program'] else row['program']
++
++
++def confirm_words(action, watcher=None):
++    """The line the confirmation adds when apps are open ('' when none, or no list)."""
++    rows, _ = reading(watcher)
++    apps = mains(rows)
++    if not apps:return ''
++    listed = ', '.join(name(r) for r in apps[:6]) + (' and %d more' % (len(apps) - 6) if len(apps) > 6 else '')
++    return ('\n\nApps still open: %s. After you confirm, Graphite asks each to close, the polite way (an app may ask you to '
++            'save first), before %s.' % (listed, THEN.get(action, 'the session ends')))
++
++
++def word(text, tone):
++    colour = {'live': bt.READY, 'wait': bt.AMBER_TEXT, 'stop': bt.STOP}.get(tone, bt.QUIET)
++    label = QLabel(text.upper());label.setTextFormat(Qt.PlainText)
++    label.setStyleSheet('QLabel {color:%s; font-family:"%s"; letter-spacing:1px;}' % (colour, bt.MONO))
++    return label
++
++
++class LeaveAppsDialog(QDialog):
++    """The open apps before leaving; result() after exec: CLOSED, GO_ON or CANCEL (self.outcome)."""
++
++    def __init__(self, host, action, rows, watcher=None):
++        super().__init__(host);self.host = host;self.action = action;self.watcher = watcher
++        self.rows = list(rows);self.asked = {};self.gone = {};self.refused = {};self.started = None;self.outcome = CANCEL
++        self.setWindowTitle('Apps are still open');self.setModal(True);self.setMinimumWidth(560)
++        box = QVBoxLayout(self);box.setContentsMargins(22, 18, 22, 16);box.setSpacing(10)
++        self.heading = QLabel('Before you %s, these apps are still open:' % WORDS.get(action, 'leave'));self.heading.setWordWrap(True)
++        self.heading.setProperty('arcRole2', 'card');box.addWidget(self.heading)
++        self.list = QWidget();self.grid = QGridLayout(self.list);self.grid.setContentsMargins(0, 4, 0, 4);self.grid.setHorizontalSpacing(14)
++        scroll = QScrollArea();scroll.setWidgetResizable(True);scroll.setWidget(self.list);scroll.setMaximumHeight(260);scroll.setFrameShape(QScrollArea.NoFrame)
++        box.addWidget(scroll)
++        self.explain = QLabel(('They end when %s, and work not saved in them is lost. Graphite can ask each one to close first, '
++                               'the polite way: an app with unsaved work may ask you to save it. Nothing is forced.') % THEN.get(action, 'the session ends'))
++        self.explain.setWordWrap(True);box.addWidget(self.explain)
++        self.status = QLabel('');self.status.setWordWrap(True);box.addWidget(self.status)
++        line = QHBoxLayout();line.addStretch(1)
++        self.ask = QPushButton('Ask them to close');self.go = QPushButton('Go on without closing them');self.cancel = QPushButton('Cancel')
++        for b in (self.ask, self.go, self.cancel):b.setAutoDefault(False);line.addWidget(b)
++        self.ask.setDefault(True)
++        self.ask.clicked.connect(self.ask_all);self.go.clicked.connect(self.go_on);self.cancel.clicked.connect(self.reject)
++        box.addLayout(line)
++        self.timer = QTimer(self);self.timer.setInterval(TICK_MS);self.timer.timeout.connect(self.tick)
++        self.draw()
++
++    # -- reading
++    def read(self):
++        rows, why = reading(self.watcher)
++        if why:return
++        seen = {r['window'] for r in rows}
++        for r in self.rows:
++            if r['window'] not in seen and r['window'] not in self.gone:self.gone[r['window']] = time.monotonic()
++        known = {r['window'] for r in self.rows}
++        self.rows += [r for r in rows if r['window'] not in known]      # a new window (a "Save changes?" dialog) joins the list
++        fresh = {r['window']: r for r in rows}
++        self.rows = [fresh.get(r['window'], r) for r in self.rows]
++
++    def open_rows(self):
++        return [r for r in self.rows if r['window'] not in self.gone]
++
++    def state(self, row):
++        w = row['window']
++        if w in self.gone:return 'closed', 'live'
++        if row['dialog']:return 'asking you', 'wait'
++        if w in self.refused:return 'cannot be asked', 'stop'
++        if w in self.asked:return 'asked to close', 'wait'
++        return 'open', 'quiet'
++
++    def draw(self):
++        while self.grid.count():
++            item = self.grid.takeAt(0)
++            if item.widget() is not None:item.widget().deleteLater()
++        for i, row in enumerate(self.rows):
++            words, tone = self.state(row)
++            label = QLabel(name(row) + ('   · a window of ' + self.owner_of(row) if row['dialog'] and self.owner_of(row) else ''))
++            label.setTextFormat(Qt.PlainText);label.setWordWrap(True)
++            self.grid.addWidget(label, i, 0);self.grid.addWidget(word(words, tone), i, 1)
++            if row['window'] not in self.gone:
++                show = QPushButton('Show');show.setAutoDefault(False);show.setToolTip('Bring this window forward, to answer it there')
++                show.clicked.connect(lambda checked=False, w=row['window']: self.show_window(w))
++                self.grid.addWidget(show, i, 2)
++        self.grid.setColumnStretch(0, 1)
++
++    def owner_of(self, row):
++        parent = next((r for r in self.rows if r['window'] == row.get('transient_for')), None)
++        return parent['program'] if parent else ''
++
++    # -- acting (your presses)
++    def ask_all(self):
++        watcher = self.watcher or wx.shared()
++        for row in mains(self.open_rows()):
++            answer = watcher.close(row['window'])
++            if answer.get('asked'):self.asked[row['window']] = time.monotonic();self.refused.pop(row['window'], None)
++            else:self.refused[row['window']] = answer.get('reason') or 'not asked'
++        self.started = time.monotonic()
++        self.ask.setEnabled(False);self.ask.setText('Asked');self.go.setText('Go on anyway')
++        self.status.setText('Asked. Waiting for the apps to close…')
++        self.timer.start();self.draw()
++
++    def show_window(self, window):
++        watcher = self.watcher or wx.shared()
++        answer = watcher.activate(window)
++        if not answer.get('asked'):self.status.setText('Could not bring it forward: ' + (answer.get('reason') or 'no reason given'))
++
++    def go_on(self):
++        self.outcome = GO_ON;self.timer.stop();self.accept()
++
++    def reject(self):
++        self.outcome = CANCEL;self.timer.stop();super().reject()
++
++    def tick(self):
++        self.read();self.draw()
++        left = self.open_rows()
++        if not left:
++            self.timer.stop();self.status.setText('All the apps have closed.');self.ask.setEnabled(False);self.go.setEnabled(False)
++            self.outcome = CLOSED;QTimer.singleShot(500, self.accept);return
++        if self.started is not None and time.monotonic() - self.started > WAIT_SECONDS:
++            asking = [r for r in left if r['dialog']]
++            names_ = ', '.join(name(r) for r in left[:5])
++            self.status.setText('Still open: %s.%s' % (names_, (' An app is asking you something in its own window (unsaved work, perhaps): '
++                                                                'press Show, answer it there, and Graphite goes on once it has closed.')
++                                                       if asking else ' An app may be asking you about unsaved work: press Show to see it.'))
++            self.ask.setEnabled(True);self.ask.setText('Ask again');self.started = None
++
++
++def before_leaving(host, action, watcher=None):
++    """The apps step of the leave flow. NONE (no app open, or no list here: nothing asked), CLOSED (every app closed after
++    being asked), GO_ON (you chose to go on with apps open) or CANCEL."""
++    rows, _ = reading(watcher)
++    if not rows:return NONE
++    dialog = LeaveAppsDialog(host, action, rows, watcher)
++    host.leave_apps_dialog = dialog
++    try:
++        dialog.exec()
++        return dialog.outcome
++    finally:
++        host.leave_apps_dialog = None
+diff --git a/workbench/navigation_qt.py b/workbench/navigation_qt.py
+index 7c227ec..1fddb47 100644
+--- a/workbench/navigation_qt.py
++++ b/workbench/navigation_qt.py
+@@ -102,7 +102,16 @@ class NavigationController(QObject):
+                     self.reveal_record(tab.current)
+                     path=self.trail(tab.current)
+                     if path:tab.breadcrumb.setText('FILED IN / '+' / '.join(row['label'] for row in (path[:-1] or path)))
+-            elif type(tab).__name__=='MachineRoom':nav.show_view('machine')  # 1.0 S4: a Machine page keeps the Machine tab in the left pane
++            elif callable(getattr(tab,'settings_row',None)):  # 1.0 S5: a page of Settings ▸ This computer keeps Settings, on its row
++                nav.show_view('settings')
++                from .system_settings_qt import select_row
++                select_row(self.host,tab.key)
++            elif type(tab).__name__=='MachineRoom':
++                kept=nav.current_view()=='settings' and tab.key in ('sound','screens','network','power')  # 1.0 S5: opened from Settings ▸ This computer
++                nav.show_view('settings' if kept else 'machine')  # 1.0 S4: a Machine page keeps the Machine tab in the left pane (1.0 S5: or Settings)
++                if kept:  # 1.0 S5
++                    from .system_settings_qt import select_row
++                    select_row(self.host,tab.key)
+             else:
+                 # Other workspaces retain a cabinet anchor; this is not ownership.
+                 nav.show(False)
+diff --git a/workbench/notify_qt.py b/workbench/notify_qt.py
+new file mode 100644
+index 0000000..b6c4a06
+--- /dev/null
++++ b/workbench/notify_qt.py
+@@ -0,0 +1,278 @@
++"""Graphite 1.0 S5 · Notifications shown quietly: a toast at the foot of her column that never takes the focus.
++
++notify_server keeps what programs send; this shows it. A toast stands just above the foot of her column (the right pane's
++foot, where "ask Kasandra…" is), the newest at the bottom, at most SHOWN at once:
++
++    ◆ NOTIFICATION · “Rail Demo app” · 14:02                                ✕
++    Bench readings saved
++    Rev B is on disk
++    [Open] [Later]                                                kept in Log
++
++An urgent one says ▲ URGENT (the word and the shape, its colour only beside them) and stays until you close it; the others
++go after their time (the pointer resting on one holds it). Pressing an action sends ActionInvoked to the program; pressing
++the words sends its "default" action when it has one; ✕ closes it (NotificationClosed, reason 2). None of it takes the
++keyboard: the toast and its buttons never take the focus, so the writing line or the app you type in keeps it.
++
++When an app is in front (Graphite's window is not the active one, on X), the toast is a small window of its own at the
++upper right, made so the window manager never gives it the focus (an override-redirect tooltip window that does not accept
++focus); otherwise it is part of Graphite's window. Offscreen it is always part of the window.
++
++Settings ▸ This computer ▸ Notifications chooses between "Show a toast" and "Only keep them in Log" (urgent ones always show);
++the choice is kept in the session (notifications.toasts). Every notification is kept in Log either way (Events), unless
++the program marked it transient.
++"""
++from __future__ import annotations
++
++import time
++
++from PySide6.QtCore import QEvent, QObject, QRect, Qt, QTimer
++from PySide6.QtGui import QColor, QFont
++from PySide6.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QPushButton, QToolButton, QVBoxLayout, QWidget
++
++from . import boss_theme as bt
++from . import notify_server as ns
++
++SHOWN = 3                   # toasts on screen at once (the others wait their time out of sight, and are in Log)
++WIDTH_MOST = 440            # a toast's width at 14 pt
++GAP = 8
++
++
++def toasts_on(host):
++    try:return bool(((host.session.state.get('notifications') or {}).get('toasts', True)))
++    except AttributeError:return True
++
++
++def set_toasts(host, on):
++    try:
++        state = dict(host.session.state.get('notifications') or {});state['toasts'] = bool(on)
++        host.session.state['notifications'] = state;host.session.save()
++    except (AttributeError, OSError):
++        pass
++
++
++def scale_of(host):
++    try:
++        from .shell2 import scale_of as s
++        return max(1.0, min(1.6, s(host)))
++    except Exception:  # noqa: BLE001
++        return 1.0
++
++
++class Toast(QFrame):
++    """One notification. Built from plain labels and buttons that never take the focus."""
++
++    def __init__(self, shelf, note, floating=False):
++        flags = (Qt.ToolTip | Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus) if floating else Qt.Widget
++        super().__init__(None if floating else shelf.host, flags)
++        self.shelf = shelf;self.note = note;self.floating = floating
++        self.setObjectName('GraphiteToast');self.setFocusPolicy(Qt.NoFocus)
++        self.setAttribute(Qt.WA_ShowWithoutActivating, True)
++        if floating:self.setAttribute(Qt.WA_X11DoNotAcceptFocus, True)
++        self.setCursor(Qt.ArrowCursor)
++        s = scale_of(shelf.host)
++        outer = QVBoxLayout(self);outer.setContentsMargins(round(14 * s), round(10 * s), round(10 * s), round(10 * s));outer.setSpacing(round(4 * s))
++        head = QHBoxLayout();head.setSpacing(round(8 * s))
++        self.kind = QLabel();self.kind.setTextFormat(Qt.PlainText)
++        self.who = QLabel();self.who.setTextFormat(Qt.PlainText)
++        self.close_ = QToolButton();self.close_.setText('✕');self.close_.setFocusPolicy(Qt.NoFocus);self.close_.setAutoRaise(True)
++        self.close_.setToolTip('Close this notification');self.close_.setAccessibleName('Close this notification')
++        self.close_.clicked.connect(lambda: shelf.dismiss(self.note['id']))
++        head.addWidget(self.kind);head.addWidget(self.who, 1);head.addWidget(self.close_)
++        outer.addLayout(head)
++        self.summary = QLabel();self.summary.setTextFormat(Qt.PlainText);self.summary.setWordWrap(True)
++        self.body = QLabel();self.body.setTextFormat(Qt.PlainText);self.body.setWordWrap(True)
++        for label in (self.summary, self.body):label.setFocusPolicy(Qt.NoFocus);label.setCursor(Qt.PointingHandCursor);label.installEventFilter(self)
++        outer.addWidget(self.summary);outer.addWidget(self.body)
++        self.foot = QHBoxLayout();self.foot.setSpacing(round(6 * s));outer.addLayout(self.foot)
++        self.kept = QLabel();self.kept.setTextFormat(Qt.PlainText)
++        self.buttons = []
++        self.fill(note)
++
++    def fill(self, note):
++        self.note = note;s = scale_of(self.shelf.host)
++        urgent = note['urgency'] == 2
++        edge = bt.STOP if urgent else bt.READY
++        self.setStyleSheet('QFrame#GraphiteToast {background:%s; border:1px solid %s; border-left:%dpx solid %s; border-radius:6px;}'
++                           ' QLabel {background:transparent; border:0;}'
++                           ' QToolButton {color:%s; background:transparent; border:0; padding:0 4px;} QToolButton:hover {color:%s;}'
++                           % (bt.CARD, bt.LINE_STRONG, max(3, round(3 * s)), edge, bt.QUIET, bt.TEXT))
++        self.kind.setText('▲ URGENT' if urgent else '◆ NOTIFICATION')
++        self.kind.setStyleSheet('QLabel {color:%s; font-family:"%s"; letter-spacing:1px;}' % (edge, bt.MONO))
++        self.who.setText('· “%s” · %s' % (note['app'] or 'an app', ns.clock(note['at'])))
++        self.who.setStyleSheet('QLabel {color:%s;}' % bt.QUIET)
++        self.summary.setText(note['summary'] or '(no title)')
++        font = QFont(self.summary.font());font.setWeight(QFont.DemiBold);self.summary.setFont(font)
++        self.summary.setStyleSheet('QLabel {color:%s;}' % bt.TEXT)
++        body = note['body']
++        lines = body.splitlines()
++        if len(lines) > 3 or len(body) > 260:body = ('\n'.join(lines[:3]))[:257].rstrip() + '…'
++        self.body.setText(body);self.body.setVisible(bool(body))
++        self.body.setStyleSheet('QLabel {color:%s;}' % bt.QUIET)
++        default = any(k == 'default' for k, _ in note['actions'])
++        tip = 'Press the words to answer the app (its default action).' if default else ''
++        self.summary.setToolTip(tip);self.body.setToolTip(tip)
++        while self.foot.count():
++            item = self.foot.takeAt(0)
++            widget = item.widget()
++            if widget is not None and widget is not self.kept:widget.deleteLater()
++        self.buttons = []
++        from .shell2 import button
++        for key, label in note['actions']:
++            if key == 'default':continue
++            b = button(label, 'tool', 'Tell the app: ' + label);b.setFocusPolicy(Qt.NoFocus);b.setAccessibleName(label)
++            b.clicked.connect(lambda checked=False, key=key: self.shelf.invoke(self.note['id'], key))
++            self.foot.addWidget(b);self.buttons.append(b)
++        self.foot.addStretch(1)
++        self.kept.setText('kept in Log' if note.get('logged') else ('not kept (the app asked)' if note.get('transient') else 'shown only'))
++        self.kept.setStyleSheet('QLabel {color:%s;}' % bt.FAINT)
++        self.foot.addWidget(self.kept)
++        words = '%s from “%s”: %s. %s' % ('Urgent notification' if urgent else 'Notification', note['app'] or 'an app', note['summary'], note['body'])
++        self.setAccessibleName(words.strip());self.setToolTip('')
++        self.adjustSize()
++
++    def eventFilter(self, obj, event):
++        if event.type() == QEvent.MouseButtonRelease and obj in (self.summary, self.body):
++            if any(k == 'default' for k, _ in self.note['actions']):self.shelf.invoke(self.note['id'], 'default')
++            return True
++        return super().eventFilter(obj, event)
++
++    def enterEvent(self, event):
++        self.shelf.hold(self.note['id'], True);super().enterEvent(event)
++
++    def leaveEvent(self, event):
++        self.shelf.hold(self.note['id'], False);super().leaveEvent(event)
++
++    def words(self):
++        """The toast as it reads (the smoke script's view of it)."""
++        parts = [self.kind.text(), self.who.text(), self.summary.text()]
++        if self.body.isVisible():parts.append(self.body.text())
++        parts += ['[%s]' % b.text() for b in self.buttons] + [self.kept.text()]
++        return ' | '.join(p for p in parts if p)
++
++
++class Shelf(QObject):
++    """The toasts of one window: shown, timed, placed above the foot of her column."""
++
++    def __init__(self, host, service):
++        super().__init__(host);self.host = host;self.service = service
++        self.toasts = {};self.timers = {};self.order = []
++        service.notes.listen(self.changed)
++        host.installEventFilter(self)
++        pane = getattr(host, 'right_pane', None)
++        if pane is not None:pane.installEventFilter(self)
++
++    # the notes
++    def changed(self, kind, note):
++        if getattr(self.host, '_closing', False):return
++        if kind in ('shown', 'replaced'):
++            self.arm(note)
++            if note['urgency'] == 2 or toasts_on(self.host):self.show_note(note)
++        elif kind == 'closed':
++            self.drop(note['id'])
++
++    def arm(self, note):
++        timer = self.timers.pop(note['id'], None)
++        if timer is not None:timer.stop();timer.deleteLater()
++        if note['seconds']:
++            timer = QTimer(self);timer.setSingleShot(True);timer.setInterval(int(note['seconds'] * 1000))
++            timer.timeout.connect(lambda ident=note['id']: self.service.expire(ident))
++            timer.start();self.timers[note['id']] = timer
++
++    def hold(self, ident, on):
++        timer = self.timers.get(ident)
++        if timer is None:return
++        if on:timer.stop()
++        else:timer.start(max(3000, min(timer.interval(), 6000)))
++
++    def floating(self):
++        """A toast of its own above the apps: only on X, while an app (not Graphite's window) is in front."""
++        app = QApplication.instance()
++        if app is None or QApplication.platformName() != 'xcb':return False
++        active = QApplication.activeWindow()
++        return active is None or (active is not self.host and active.window() is not self.host)
++
++    def show_note(self, note):
++        toast = self.toasts.get(note['id'])
++        if toast is not None:
++            try:toast.fill(note)
++            except RuntimeError:toast = None
++        if toast is None:
++            toast = Toast(self, note, floating=self.floating());self.toasts[note['id']] = toast
++        if note['id'] in self.order:self.order.remove(note['id'])
++        self.order.append(note['id'])
++        self.place()
++
++    def drop(self, ident):
++        timer = self.timers.pop(ident, None)
++        if timer is not None:timer.stop();timer.deleteLater()
++        toast = self.toasts.pop(ident, None)
++        if ident in self.order:self.order.remove(ident)
++        if toast is not None:
++            toast.hide();toast.deleteLater()
++        self.place()
++
++    def dismiss(self, ident):
++        self.service.dismiss(ident)
++
++    def invoke(self, ident, key):
++        self.service.invoke(ident, key)
++
++    def shown(self):
++        """The toasts on screen, oldest first."""
++        return [self.toasts[i] for i in self.order[-SHOWN:] if i in self.toasts]
++
++    # where they stand
++    def anchor(self):
++        """(x, bottom, width) in the window: above the foot of her column; else the lower right of the window."""
++        host = self.host;s = scale_of(host)
++        pane = getattr(host, 'right_pane', None);foot = getattr(pane, 'foot', None)
++        if pane is not None and foot is not None and pane.isVisible() and pane.width() > 200:
++            inset = getattr(pane, 'inset', 16)
++            top_left = pane.mapTo(host, foot.geometry().topLeft())
++            x = pane.mapTo(host, pane.rect().topLeft()).x() + inset
++            width = min(round(WIDTH_MOST * s), pane.width() - 2 * inset)
++            return x, top_left.y() - GAP, width
++        width = min(round(WIDTH_MOST * s), host.width() - 32)
++        return host.width() - width - 16, host.height() - 48, width
++
++    def place(self):
++        if getattr(self.host, '_closing', False):return
++        shown = self.shown();x, bottom, width = self.anchor()
++        hidden = [t for i, t in self.toasts.items() if t not in shown]
++        for t in hidden:t.hide()
++        screen = (self.host.screen() or QApplication.primaryScreen()).availableGeometry() if any(t.floating for t in shown) else QRect()
++        float_y = screen.top() + 16
++        for toast in reversed(shown):      # the newest at the bottom, nearest the foot
++            toast.setFixedWidth(width);toast.adjustSize();h = toast.sizeHint().height()
++            if toast.floating:
++                toast.setGeometry(screen.right() - width - 16, float_y, width, h);float_y += h + GAP
++            else:
++                bottom -= h;toast.setGeometry(x, bottom, width, h);bottom -= GAP
++            toast.show();toast.raise_()
++
++    def eventFilter(self, obj, event):
++        if event.type() in (QEvent.Resize, QEvent.Show) and self.toasts:QTimer.singleShot(0, self.place)
++        return False
++
++
++def log_note(host, note):
++    """Kept in Log: one line in the activity journal (Log's Events), the program's name as the name it gave."""
++    from . import activity
++    result = activity.record(host.root, 'DESKTOP', 'notification', 'SHOWN', ns.log_words(note))
++    return result.get('committed', False)
++
++
++def install(host):
++    """The notes, the server (when Graphite is the session's notification server here) and the shelf; host.notifications
++    is the Service (its status() says whether it serves and why not)."""
++    notes = ns.Notes(log=lambda note: log_note(host, note))
++    service = ns.Service(notes)
++    try:service.start()
++    except Exception as exc:  # noqa: BLE001 - a bus that broke never stops the window
++        service.state, service.why = 'failed', 'Graphite could not offer its notifications: %s' % (str(exc)[:160] or type(exc).__name__)
++    host.notifications = service
++    host.notification_shelf = Shelf(host, service)
++    app = QApplication.instance()
++    if app is not None:app.aboutToQuit.connect(service.stop)
++    host.destroyed.connect(lambda *_: service.stop())
++    return service
+diff --git a/workbench/notify_server.py b/workbench/notify_server.py
+new file mode 100644
+index 0000000..edf3d31
+--- /dev/null
++++ b/workbench/notify_server.py
+@@ -0,0 +1,318 @@
++"""Graphite 1.0 S5 · Graphite as the session's notification server (org.freedesktop.Notifications, spec 1.2, over QtDBus).
++
++Programs say things ("download finished", "the battery is low") by calling org.freedesktop.Notifications on the session bus,
++as notify-send does. In the dedicated session Graphite owns that name, so those calls arrive here:
++
++  Notify(app_name, replaces_id, app_icon, summary, body, actions, hints, expire_timeout) -> id
++                          the notification is kept (the newest NOTES_KEPT), shown quietly by notify_qt (a toast at the foot
++                          of her column that never takes the focus) and written to the activity journal, so Log keeps it
++                          ("Notification from an app · “Rail Demo app”: Bench readings saved — Rev B is on disk"). A
++                          replaces_id that is not 0 updates that notification and keeps its id.
++  CloseNotification(id)   closes it; NotificationClosed(id, 3) is sent.
++  GetCapabilities()       body, actions, persistence (they are kept in Log).
++  GetServerInformation()  Graphite, Graphite, Graphite's version, 1.2.
++  NotificationClosed(id, reason)   1 it expired, 2 you closed it, 3 the program closed it, 4 other (Graphite closed).
++  ActionInvoked(id, action_key)    you pressed one of its actions (the "default" action: you pressed its words).
++
++What a program sends is data, never an instruction: the words are shown as plain text (markup taken out, the length capped),
++Kasandra does not act on them, and a program's name is always shown as the name it gave ("“…”"), so a program calling
++itself Kasandra is never read as her. Nothing here sends anything out. An urgent notification (urgency 2) stays until you
++close it; expire_timeout -1 is Graphite's own time (DEFAULT_SECONDS), 0 never. A "transient" notification is shown but
++not kept in Log (the spec's word). A program that floods is kept to FLOOD_PER_MINUTE lines in Log a minute; the rest are
++counted.
++
++Whether Graphite serves: in the dedicated session (ARC_LEDGER_XSESSION=1), or wherever GRAPHITE_NOTIFICATIONS=1; never with
++GRAPHITE_NOTIFICATIONS=0. Graphite never takes the name from a program that already holds it (another desktop's own
++notifications go on as they were): it says who holds it. Without a session bus it says so. The name goes with Graphite's
++process; the supervisor starts Graphite again and it takes the name again.
++"""
++from __future__ import annotations
++
++import html
++import os
++import re
++import time
++
++NAME = 'org.freedesktop.Notifications'
++PATH = '/org/freedesktop/Notifications'
++SPEC = '1.2'
++CAPABILITIES = ('body', 'actions', 'persistence')
++DEFAULT_SECONDS = 8                # how long a notification shows when the program leaves it to Graphite (-1)
++LONGEST_SECONDS = 60               # a program's own time is kept between 2 s and this
++NOTES_KEPT = 200                   # the newest kept in memory (the Settings page's list); Log keeps them all
++FLOOD_PER_MINUTE = 20              # lines in Log from one program in a minute; the rest are counted
++SUMMARY_MOST, BODY_MOST, APP_MOST, ACTIONS_MOST = 200, 1000, 80, 6
++REASONS = {1: 'expired', 2: 'closed by you', 3: 'closed by the app', 4: 'closed by Graphite'}
++URGENCY = {0: 'low', 1: 'normal', 2: 'urgent'}
++TAG = re.compile(r'<[^>]{0,200}>')
++CONTROL = re.compile(r'[\x00-\x08\x0b-\x1f\x7f]')
++
++
++def wanted(environ=None):
++    """(serve, why): whether Graphite should be the session's notification server here."""
++    environ = os.environ if environ is None else environ
++    said = str(environ.get('GRAPHITE_NOTIFICATIONS', '')).strip().lower()
++    if said in ('0', 'off', 'no'):return False, 'Graphite does not show notifications here: GRAPHITE_NOTIFICATIONS is off.'
++    if said in ('1', 'on', 'yes'):return True, ''
++    if environ.get('ARC_LEDGER_XSESSION') == '1':return True, ''
++    return False, ('Graphite shows notifications from apps in its own session (Graphite as the desktop). Here it was started '
++                   'inside another desktop, which shows them itself.')
++
++
++def plain(text, most):
++    """A program's words as plain text: markup taken out, entities read, controls dropped, at most `most` characters."""
++    text = TAG.sub('', str(text or ''))
++    text = html.unescape(text)
++    text = CONTROL.sub(' ', text).strip()
++    return text if len(text) <= most else text[:most - 1].rstrip() + '…'
++
++
++def number(value, default=0):
++    try:return int(value)
++    except (TypeError, ValueError):return default
++
++
++def hint_words(hints):
++    """The hints Graphite reads, as plain values (image data and anything else unknown is left out)."""
++    out = {}
++    for key in ('urgency', 'category', 'desktop-entry', 'transient', 'resident', 'suppress-sound'):
++        value = (hints or {}).get(key)
++        if value is None:continue
++        if key == 'urgency':out[key] = max(0, min(2, number(value, 1)))
++        elif key in ('transient', 'resident', 'suppress-sound'):out[key] = bool(value) if not isinstance(value, str) else value.lower() in ('1', 'true')
++        elif isinstance(value, str):out[key] = plain(value, 80)
++    return out
++
++
++def clock(stamp):
++    return time.strftime('%H:%M', time.localtime(stamp))
++
++
++def log_words(note):
++    """The line Log keeps (the program's name as the name it gave)."""
++    body = (' — ' + note['body']) if note['body'] else ''
++    urgent = ' (urgent)' if note['urgency'] == 2 else ''
++    return '“%s”: %s%s%s' % (note['app'] or 'an app with no name', note['summary'] or '(no title)', body, urgent)
++
++
++class Notes:
++    """The notifications as Graphite keeps them, with no Qt: made, replaced, closed, an action pressed. Each change calls
++    `changed(kind, note)` ('shown', 'replaced', 'closed', 'action'). The D-Bus side (Service) and the window (notify_qt) both
++    use one Notes."""
++
++    def __init__(self, log=None, clock_=time.time):
++        self.log = log;self.now = clock_
++        self.open = {};self.kept = [];self.next_id = 1;self.listeners = [];self.flood = {};self.counted = 0
++
++    def listen(self, fn):
++        self.listeners.append(fn)
++
++    def _tell(self, kind, note):
++        for fn in list(self.listeners):
++            try:fn(kind, note)
++            except Exception:  # noqa: BLE001 - a listener that broke never stops a program's notification
++                continue
++
++    def add(self, app, replaces_id, icon, summary, body, actions, hints, expire_timeout):
++        replaces_id = number(replaces_id)
++        hints = hint_words(dict(hints or {}))
++        pairs = list(actions or [])
++        acts = [(plain(pairs[i], 64), plain(pairs[i + 1], 40) or plain(pairs[i], 40)) for i in range(0, len(pairs) - 1, 2)][:ACTIONS_MOST]
++        if replaces_id > 0:
++            ident = replaces_id;self.next_id = max(self.next_id, ident + 1)
++        else:
++            ident = self.next_id;self.next_id += 1
++        urgency = hints.get('urgency', 1)
++        timeout = number(expire_timeout, -1)
++        if urgency == 2:seconds = None                                           # urgent: until you close it
++        elif timeout == 0:seconds = None
++        elif timeout < 0:seconds = DEFAULT_SECONDS
++        else:seconds = max(2, min(LONGEST_SECONDS, round(timeout / 1000)))
++        note = dict(id=ident, app=plain(app, APP_MOST), icon=plain(icon, 200), summary=plain(summary, SUMMARY_MOST),
++                    body=plain(body, BODY_MOST), actions=acts, urgency=urgency, urgency_words=URGENCY[urgency],
++                    category=hints.get('category', ''), desktop_entry=hints.get('desktop-entry', ''),
++                    transient=bool(hints.get('transient')), resident=bool(hints.get('resident')), seconds=seconds,
++                    at=self.now(), closed=None, logged=False)
++        replaced = ident in self.open
++        self.open[ident] = note
++        self.kept = [n for n in self.kept if n['id'] != ident] + [note]
++        del self.kept[:-NOTES_KEPT]
++        note['logged'] = self._log(note)
++        self._tell('replaced' if replaced else 'shown', note)
++        return ident
++
++    def _log(self, note):
++        """Into the activity journal (Log's Events), unless the program called it transient or floods."""
++        if note['transient'] or self.log is None:return False
++        minute = int(self.now() // 60);key = note['app'] or '?'
++        count = self.flood.get(key)
++        if count is None or count[0] != minute:count = [minute, 0]
++        count[1] += 1;self.flood[key] = count
++        if count[1] > FLOOD_PER_MINUTE:
++            self.counted += 1;return False
++        try:self.log(note)
++        except Exception:  # noqa: BLE001 - Log that cannot be written never stops the notification being shown
++            return False
++        return True
++
++    def close(self, ident, reason):
++        note = self.open.pop(number(ident), None)
++        if note is None:return None
++        note['closed'] = REASONS.get(reason, REASONS[4]);note['closed_code'] = reason;note['closed_at'] = self.now()
++        self._tell('closed', note)
++        return note
++
++    def action(self, ident, key):
++        note = self.open.get(number(ident))
++        if note is None:return None
++        keys = [k for k, _ in note['actions']]
++        if key not in keys and key != 'default':return None
++        note['pressed'] = key
++        self._tell('action', note)
++        return note
++
++    def recent(self, limit=20):
++        return [dict(n) for n in reversed(self.kept[-limit:])]
++
++
++# ---- the D-Bus side ---------------------------------------------------------------------------------------------------------
++_CLASSES = []
++
++
++def _server_class():
++    """The exported object, made on first use (Qt is imported then): exactly the four methods and two signals of the spec,
++    nothing else of Graphite's is reachable on the bus."""
++    if _CLASSES:return _CLASSES[0]
++    from PySide6.QtCore import ClassInfo, QObject, Signal, Slot
++    from PySide6.QtDBus import QDBusMessage
++
++    @ClassInfo({'D-Bus Interface': NAME})
++    class Server(QObject):
++        NotificationClosed = Signal('uint', 'uint')
++        ActionInvoked = Signal('uint', str)
++
++        def __init__(self, service):
++            super().__init__();self.service = service
++
++        @Slot(str, 'uint', str, str, str, 'QStringList', 'QVariantMap', int, result='uint')
++        def Notify(self, app_name, replaces_id, app_icon, summary, body, actions, hints, expire_timeout):  # noqa: N802 - the spec's names
++            return self.service.notify(app_name, replaces_id, app_icon, summary, body, list(actions or []), dict(hints or {}), expire_timeout)
++
++        @Slot('uint')
++        def CloseNotification(self, ident):  # noqa: N802
++            self.service.close(ident, 3)
++
++        @Slot(result='QStringList')
++        def GetCapabilities(self):  # noqa: N802
++            return list(CAPABILITIES)
++
++        @Slot(QDBusMessage)
++        def GetServerInformation(self, message):  # noqa: N802
++            message.setDelayedReply(True)
++            reply = message.createReply();reply.setArguments(['Graphite', 'Graphite', version(), SPEC])
++            self.service.bus.send(reply)
++
++    _CLASSES.append(Server)
++    return Server
++
++
++def version():
++    """Graphite's version as the kit's MANIFEST.json says it (GetServerInformation)."""
++    try:
++        import json
++        from pathlib import Path
++        said = json.loads((Path(__file__).resolve().parent.parent / 'MANIFEST.json').read_text(encoding='utf-8')).get('version')
++        if isinstance(said, str) and re.fullmatch(r'[\w.+-]{1,32}', said):return said
++    except (OSError, ValueError, AttributeError):pass
++    return '1.0'
++
++
++def _int(value):
++    """A Qt enum or a number, as a number (PySide6's enums do not compare equal to ints)."""
++    return int(getattr(value, 'value', value))
++
++
++class Service:
++    """Graphite on the session bus as org.freedesktop.Notifications: start() takes the name (never from a program that holds
++    it), stop() gives it back. state: 'serving', 'elsewhere' (another program holds the name), 'no bus', 'off' (not wanted
++    here), 'failed'; why: the plain words."""
++
++    def __init__(self, notes=None, environ=None, bus=None):
++        self.notes = notes or Notes();self.environ = environ;self.bus = bus;self.server = None
++        self.state = 'off';self.why = '';self.owner = ''
++
++    def start(self, force=False):
++        serve, why = wanted(self.environ)
++        if not serve and not force:
++            self.state, self.why = 'off', why;return False
++        from PySide6.QtDBus import QDBusConnection, QDBusConnectionInterface
++        bus = self.bus or QDBusConnection.sessionBus();self.bus = bus
++        if not bus.isConnected():
++            self.state, self.why = 'no bus', ('There is no session bus here (%s), so programs cannot send notifications to '
++                                              'Graphite.' % (bus.lastError().message() or 'not connected'));return False
++        face = bus.interface()
++        held = face.isServiceRegistered(NAME)
++        if held.isValid() and held.value():
++            owner = face.serviceOwner(NAME)
++            self.owner = owner.value() if owner.isValid() else ''
++            pid = face.servicePid(NAME)
++            pid = pid.value() if pid.isValid() else 0
++            self.state, self.why = 'elsewhere', ('Another program already shows the notifications here (%s%s), so Graphite leaves '
++                                                 'them to it.' % (program_of(pid) or 'bus name ' + self.owner, (', process %d' % pid) if pid else ''))
++            return False
++        self.server = _server_class()(self)
++        if not bus.registerObject(PATH, self.server, QDBusConnection.ExportAllSlots | QDBusConnection.ExportAllSignals):
++            self.state, self.why = 'failed', 'Graphite could not offer its notification object: ' + (bus.lastError().message() or 'refused')
++            self.server = None;return False
++        reply = face.registerService(NAME, QDBusConnectionInterface.DontQueueService, QDBusConnectionInterface.DontAllowReplacement)
++        if not reply.isValid() or _int(reply.value()) != _int(QDBusConnectionInterface.ServiceRegistered):
++            bus.unregisterObject(PATH);self.server = None
++            self.state, self.why = 'elsewhere', 'Another program took the notifications name first, so Graphite leaves them to it.'
++            return False
++        self.state, self.why = 'serving', 'Graphite shows the notifications apps send in this session, and keeps them in Log.'
++        return True
++
++    def stop(self):
++        if self.state != 'serving' or self.bus is None:return
++        try:
++            self.bus.unregisterService(NAME);self.bus.unregisterObject(PATH)
++        except RuntimeError:  # the bus went with the application
++            pass
++        self.server = None;self.state, self.why = 'off', 'Graphite has closed.'
++
++    # what the program asked
++    def notify(self, app, replaces_id, icon, summary, body, actions, hints, expire_timeout):
++        return self.notes.add(app, replaces_id, icon, summary, body, actions, hints, expire_timeout)
++
++    def close(self, ident, reason):
++        note = self.notes.close(ident, reason)
++        if note is not None and self.server is not None:self.server.NotificationClosed.emit(int(note['id']), int(reason))
++        return note
++
++    # what you did
++    def invoke(self, ident, key):
++        """You pressed an action (or the notification's words: 'default'): ActionInvoked, then it closes (2) unless it is
++        resident."""
++        note = self.notes.action(ident, key)
++        if note is None:return None
++        if self.server is not None:self.server.ActionInvoked.emit(int(note['id']), str(key))
++        if not note['resident']:self.close(note['id'], 2)
++        return note
++
++    def dismiss(self, ident):
++        return self.close(ident, 2)
++
++    def expire(self, ident):
++        return self.close(ident, 1)
++
++    def status(self):
++        return dict(state=self.state, why=self.why, owner=self.owner, capabilities=list(CAPABILITIES), spec=SPEC,
++                    shown=len(self.notes.kept), open=len(self.notes.open), not_logged=self.notes.counted)
++
++
++def program_of(pid):
++    """A process's program name from /proc (who holds the notifications name), or ''."""
++    try:
++        with open('/proc/%d/comm' % int(pid), encoding='utf-8') as f:return f.read().strip()[:40]
++    except (OSError, ValueError, TypeError):
++        return ''
+diff --git a/workbench/polkit_agent.py b/workbench/polkit_agent.py
+new file mode 100644
+index 0000000..b72c0a3
+--- /dev/null
++++ b/workbench/polkit_agent.py
+@@ -0,0 +1,60 @@
++"""Graphite 1.0 S5 · Is there a permission prompt agent in this session?
++
++When a program asks the system for something that needs your permission (logind's restart or power-off answered
++"challenge", udisks2 mounting a drive, NetworkManager changing a connection), polkit asks you through an authentication
++agent: a small program of your session that shows the system's own password prompt. You type the password into that
++prompt, never into Graphite; Graphite never sees or keeps it.
++
++The dedicated session (LS_XSESSION.sh) starts lxpolkit beside Fluxbox when it is installed and exports its process id
++(ARC_LEDGER_POLKIT_AGENT_PID). agent() says whether an agent is running for this user: that process when it still runs as
++one of the known agents, else any known agent of this user found in /proc (another desktop's own agent). session_power
++offers the actions logind answers "challenge" for only when an agent is running here.
++"""
++from __future__ import annotations
++
++import os
++
++AGENTS = {'lxpolkit': 'lxpolkit', 'polkit-gnome-au': 'the GNOME permission agent', 'polkit-mate-aut': 'the MATE permission agent',
++          'lxqt-policykit-': 'the LXQt permission agent', 'polkit-kde-auth': 'the KDE permission agent',
++          'xfce-polkit': 'the Xfce permission agent', 'polkit-agent-he': None}      # comm names are cut at 15 characters
++SHIPPED = 'lxpolkit'
++ENV = 'ARC_LEDGER_POLKIT_AGENT_PID'
++NONE_HERE = ('No permission prompt agent is running in this session, so the system cannot ask for your permission here. '
++             'The dedicated session starts lxpolkit when it is installed (Debian package lxpolkit, in the 1.0 System set).')
++
++
++def _comm(proc, pid):
++    try:
++        with open(os.path.join(proc, str(int(pid)), 'comm'), encoding='utf-8') as f:return f.read().strip()
++    except (OSError, ValueError):
++        return None
++
++
++def _mine(proc, pid):
++    try:return os.stat(os.path.join(proc, str(int(pid)))).st_uid == os.getuid()
++    except (OSError, ValueError, AttributeError):
++        return False
++
++
++def agent(environ=None, proc='/proc', scan=None):
++    """dict(running, name, pid, words): the permission prompt agent of this session, or why there is none. `scan`: also look
++    for any known agent of this user in /proc (by default only when reading this process's own environment, so a caller
++    that passes an environment of its own gets an answer from that environment alone)."""
++    scan = (environ is None) if scan is None else scan
++    environ = os.environ if environ is None else environ
++    said = str(environ.get(ENV, '') or '').strip()
++    if said.isdigit():
++        comm = _comm(proc, said)
++        if comm and AGENTS.get(comm) and _mine(proc, said):
++            return dict(running=True, name=comm, pid=int(said), words='Permission prompts are answered by %s (process %s), started with this session.' % (AGENTS[comm], said))
++    try:
++        entries = [e for e in os.listdir(proc) if e.isdigit()] if scan else []
++    except OSError:
++        entries = []
++    for pid in entries:
++        comm = _comm(proc, pid)
++        if comm and AGENTS.get(comm) and _mine(proc, pid):
++            return dict(running=True, name=comm, pid=int(pid), words='Permission prompts are answered by %s (process %s).' % (AGENTS[comm], pid))
++    if said.isdigit():
++        return dict(running=False, name=None, pid=None, words='The permission prompt agent started with this session (process %s) has ended. ' % said + NONE_HERE)
++    return dict(running=False, name=None, pid=None, words=NONE_HERE)
+diff --git a/workbench/session_power.py b/workbench/session_power.py
+index 9f6da83..9abf3e9 100644
+--- a/workbench/session_power.py
++++ b/workbench/session_power.py
+@@ -8,7 +8,8 @@ owner's confirmation, and it uses only the system's own interfaces:
+ 
+   availability   systemd-logind on the system D-Bus (org.freedesktop.login1, in this process, nothing started): the Manager's
+                  CanReboot and CanPowerOff ('yes' is offered; 'challenge' is offered where the system can ask for permission,
+-                 but not in the dedicated session, which has no permission prompt; 'na' and 'no' show the action unavailable
++                 but not in the dedicated session unless its permission prompt agent runs (1.0 S5: LS_XSESSION.sh starts
++                 lxpolkit; polkit_agent says whether it runs); 'na' and 'no' show the action unavailable
+                  with the reason) and this program's own login session (the session object 'self' and its Id)
+   Log out        loginctl terminate-session <this session's id>       scope: this login session
+   Restart        systemctl reboot                                     scope: this computer
+@@ -231,9 +232,9 @@ def availability(platform=None, environ=None, only=None):
+     (the locker and a display), Suspend, Log out, Restart and Shut down (from logind), and the leave row (always available,
+     with its label). `only`: the actions wanted (run_action asks for its own alone). No session: Suspend, Log out, Restart and
+     Shut down unavailable with NO_SESSION. 'challenge' (the system asks for permission itself) is offered, except in the
+-    dedicated session: it starts no permission agent (LS_XSESSION.sh runs fluxbox and Graphite only) and the command runs
+-    without a terminal, so nothing could answer the system's question, and Graphite would have closed for nothing. Suspend
+-    needs Lock: no locker, no suspend."""
++    dedicated session when no permission agent runs there (1.0 S5: LS_XSESSION.sh starts lxpolkit when it is installed; with
++    none, the command runs without a terminal, so nothing could answer the system's question, and Graphite would have closed
++    for nothing). Suspend needs Lock: no locker, no suspend."""
+     environ = os.environ if environ is None else environ
+     wanted = [key for key in GROUP if only is None or key in only]
+     out = {}
+@@ -261,10 +262,11 @@ def availability(platform=None, environ=None, only=None):
+         try:value = str(system(('logind', *MANAGER, method)) or '')
+         except Exception as exc:  # noqa: BLE001 - an answer that cannot be read is 'unavailable', with what went wrong
+             out[action] = dict(available=False, reason='logind did not answer %s: %s' % (method, str(exc).strip()[:160] or type(exc).__name__), value=None, session=session);continue
+-        offered = value == 'yes' or (value == 'challenge' and not dedicated(environ))
++        prompts = _prompt_agent(environ) if value == 'challenge' and dedicated(environ) else None  # 1.0 S5: lxpolkit answers 'challenge'
++        offered = value == 'yes' or (value == 'challenge' and (not dedicated(environ) or bool(prompts and prompts['running'])))  # 1.0 S5
+         if value == 'yes':reason = 'Allowed for your account (logind %s: yes).' % method
+-        elif offered:reason = 'Allowed after the system asks for permission (logind %s: challenge).' % method
+-        elif value == 'challenge':reason = WORDS[action] + ' is unavailable here: ' + NO_PROMPT % {'restart':'reboot', 'shutdown':'poweroff', 'suspend':'suspend'}[action] + '.'
++        elif offered:reason = 'Allowed after the system asks for permission (logind %s: challenge).' % method + (' ' + prompts['words'] if prompts else '')  # 1.0 S5
++        elif value == 'challenge':reason = WORDS[action] + ' is unavailable here: ' + NO_PROMPT % {'restart':'reboot', 'shutdown':'poweroff', 'suspend':'suspend'}[action] + '.' + (' ' + prompts['words'] if prompts else '')  # 1.0 S5
+         else:reason = WORDS[action] + ' is unavailable: ' + LOGIND_WORDS.get(value, 'logind answered %r' % value) + '.'
+         if action == 'suspend' and offered and not lock['available']:
+             offered = False;reason = 'Suspend is unavailable here: it locks the screen first. ' + lock['reason']
+@@ -273,6 +275,16 @@ def availability(platform=None, environ=None, only=None):
+     return _ordered(out)
+ 
+ 
++def _prompt_agent(environ):
++    """1.0 S5: the session's permission prompt agent (polkit_agent; the dedicated session starts lxpolkit), or None when it
++    cannot be read. With one running, the actions logind answers 'challenge' are offered: the system asks in its own prompt."""
++    try:
++        from .polkit_agent import agent
++        return agent(environ, scan=environ is os.environ)
++    except Exception:  # noqa: BLE001 - reading the agent never fails the menu; without it 'challenge' stays unavailable
++        return None
++
++
+ def command(action, state):
+     """The argv for an available action (the session id filled in for Log out)."""
+     return tuple(part.replace('{session}', str(state.get('session') or '')) for part in COMMANDS[action])
+@@ -351,9 +363,29 @@ def confirm(host, action):
+     text = (EFFECTS[action] + '\n\nGraphite closes first, the ordinary way: the return copy and your open files as you chose, running '
+             'assignments paused (or continued by the Graphite service), the local model and the tracked command stopped, the session '
+             'saved. Then ' + THEN[action] + '.\n\nCancel leaves Graphite open as it is: nothing has been stopped.')
++    text += _apps_words(action)  # 1.0 S5: the apps still open, asked to close politely after you confirm
+     return QMessageBox.question(host, title, text, QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel) == QMessageBox.Yes
+ 
+ 
++def _apps_words(action):
++    """1.0 S5: the confirmation's line naming the apps still open ('' with none, or with no window list here)."""
++    try:
++        from .leave_apps import confirm_words
++        return confirm_words(action)
++    except Exception:  # noqa: BLE001 - the confirmation never fails for want of the window list
++        return ''
++
++
++def _apps_closed(host, action):
++    """1.0 S5: the leave flow's apps step (leave_apps): the apps still open are named and, on your word, asked to close
++    politely before the session ends. False only when you cancelled there."""
++    try:
++        from . import leave_apps
++        return leave_apps.before_leaving(host, action) != leave_apps.CANCEL
++    except ImportError:
++        return True
++
++
+ def tell(host, title, text):
+     """Say why in a dialog (the whole reason) and, while the window is open, in the status line (the title only: a long line
+     there would take room from the panes while it lasts). After Graphite has closed, the dialog stands alone."""
+@@ -387,6 +419,9 @@ def run_action(host, action, platform=None):
+     if not confirm(host, action):
+         undo_leave(left);_say(host, WORDS[action] + ' cancelled · Graphite stays open; nothing was stopped')
+         return dict(state='CANCELLED', step='confirm', left=left, closed=False)
++    if not _apps_closed(host, action):  # 1.0 S5: the apps still open, asked to close politely first (never killed)
++        undo_leave(left);_say(host, WORDS[action] + ' cancelled · Graphite stays open')
++        return dict(state='CANCELLED', step='apps', left=left, closed=False)
+     state = availability(platform, only=(action,))[action]  # again: the session or the permission may have changed while the questions were open
+     if not state['available']:
+         undo_leave(left);tell(host, WORDS[action] + ' is unavailable', state['reason'] + '\nGraphite stays open; nothing was stopped.')
+@@ -423,6 +458,7 @@ def run_action(host, action, platform=None):
+ def leave(host):
+     """Return to Debian or Exit Graphite: the existing leave, the return-thread review (default Continue working), then the
+     window's own close with its save prompts. No command is issued."""
++    if dedicated() and not _apps_closed(host, 'leave'):return False  # 1.0 S5: the apps end with this session: named, asked to close first
+     thread = getattr(host, 'return_thread', None)
+     if thread is not None and hasattr(thread, 'review_exit'):return thread.review_exit()
+     return host.close()
+diff --git a/workbench/settings_qt.py b/workbench/settings_qt.py
+index b5b6bf2..7a3f41f 100644
+--- a/workbench/settings_qt.py
++++ b/workbench/settings_qt.py
+@@ -264,6 +264,16 @@ class SettingsTab(QWidget):
+     def toggle_detail(self):self.detail.setVisible(not self.detail.isVisible())
+ 
+ 
++def system_nodes():
++    """1.0 S5: the computer's own settings (system_settings_qt): default apps, sound, screens, network, power, the session,
++    notifications. None when the module is not there."""
++    try:
++        from .system_settings_qt import nodes
++        return nodes()
++    except ImportError:
++        return []
++
++
+ class SettingsNavigator:
+     """Separate left view; the cabinet widget, selection and scrolling survive."""
+     def __init__(self,host,box,footer_line=None,footer_settings=None):
+@@ -295,12 +305,12 @@ class SettingsNavigator:
+         self.strip=MachineStrip(host);host.machine_strip=self.strip
+         box.insertWidget(0,self.stack,1);box.insertWidget(0,self.bar);box.insertWidget(0,self.strip)
+         self.items={}
+-        for node in settings_registry.nodes():
++        for node in system_nodes()+settings_registry.nodes():  # 1.0 S5: This computer first, then Graphite's own
+             item=QTreeWidgetItem([node['label']]);item.setData(0,Qt.UserRole,node);self.items[node['id']]=item
+             if node['parent']:self.items[node['parent']].addChild(item)
+             else:self.tree.addTopLevelItem(item)
+-            if node['target']:
+-                item.setForeground(0,QColor(INK));item.setToolTip(0,node['target'])
++            if node['target'] or node.get('page'):  # 1.0 S5: a page row is chosen as a setting is
++                item.setForeground(0,QColor(INK));item.setToolTip(0,node['target'] or node.get('tip',''))
+         expanded=self.saved.get('expanded')
+         for ident,item in self.items.items():
+             if item.childCount():item.setExpanded(ident in expanded if expanded is not None else True)
+@@ -360,6 +370,11 @@ class SettingsNavigator:
+     def selected(self):
+         self.remember();key=self.selected_key()
+         if key:self.host.ledger_bridge.show_settings(key=key)
++        else:  # 1.0 S5: a row of This computer opens its page in the centre
++            item=self.tree.currentItem();node=item.data(0,Qt.UserRole) if item else {}
++            if node and node.get('page'):
++                from .system_settings_qt import open_page
++                open_page(self.host,node['page'])
+ 
+     def remember(self,*_):
+         if self.remembering:return
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index cdecce1..fea2580 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -3490,6 +3490,13 @@ class Shell2(QObject):
+         install_living_nav(host)  # 1.0 L1: one navigation state: the tree and the centre share one focus; the breadcrumb, Back, Forward
+         from .her_column_qt import install as install_her_column
+         install_her_column(host)  # 1.0 P1: her column as in the owner's picture; the equalizer moves into it, the ask line into the right foot
++        try:  # 1.0 S5: Graphite as the session's notification server (toasts at her column's foot, kept in Log), and the app strip as a dock
++            from .notify_qt import install as install_notifications
++            install_notifications(host)  # 1.0 S5
++            from .system_dock_qt import install as install_dock
++            install_dock(host)  # 1.0 S5
++        except ImportError:  # 1.0 S5
++            pass
+         host.tabs.currentChanged.connect(self.sync_worksheet)
+         host.central_stack.currentChanged.connect(self.sync_worksheet)
+         from .graphite_brand import use_pointer
+diff --git a/workbench/system_dock_qt.py b/workbench/system_dock_qt.py
+new file mode 100644
+index 0000000..2cf4b02
+--- /dev/null
++++ b/workbench/system_dock_qt.py
+@@ -0,0 +1,342 @@
++"""Graphite 1.0 S5 · The strip as a dock: the open app windows and a "Graphite" entry in a slim window of their own.
++
++S3's strip lives inside Graphite's window, so an app in front of Graphite hides it. In the dedicated session the strip
++therefore also stands in a slim window of its own across the top of the screen, of the dock type with a strut:
++
++  _NET_WM_WINDOW_TYPE   _NET_WM_WINDOW_TYPE_DOCK: the window manager keeps it above the apps, never gives it the focus,
++                        never decorates it, and keeps it on every desktop (_NET_WM_DESKTOP 0xFFFFFFFF as well);
++  _NET_WM_STRUT_PARTIAL its band at the top of the screen (and _NET_WM_STRUT, for managers that read only that), so the
++                        window manager places and maximises the apps below it.
++
++Both are written on the dock's own X window through ctypes on the system's libX11 (as windows_x11 reads), before the window
++is shown, then read back; Qt's own dock attribute says the same. Its first entry is "Graphite" (Graphite's mark and the
++word; ▸ and a rule under it while Graphite's window is the active one): one press always brings Graphite's window forward
++(the window manager is asked, as a task list asks, and it is verified active). After it, S3's strip: each app window, one
++press brings it forward, the right-click minimises or closes it politely; Graphite's own open dialogs stand apart at the
++right end. With no app window open it says so in quiet words.
++
++When it stands: in the dedicated session (ARC_LEDGER_XSESSION=1), or wherever GRAPHITE_DOCK=1; never with GRAPHITE_DOCK=0;
++only when Graphite's window is on X (the xcb platform) and libX11 answers. Otherwise the strip stays inside Graphite's
++window exactly as S3 built it, and status() says why there is no dock.
++
++Graphite's window in the dedicated session is full screen: while it is in front it covers the dock (a full-screen window
++stands above docks), so S3's strip inside it still shows the windows; while an app is in front, the dock shows. When
++Graphite's window is not full screen it sits below the dock like any app, and its own strip gives way to the dock's
++(windows_strip_qt.WindowStrip.room asks carries_strip()).
++"""
++from __future__ import annotations
++
++import ctypes
++import os
++import time
++
++from PySide6.QtCore import QEvent, QRect, QSize, Qt, QTimer
++from PySide6.QtGui import QColor, QFontMetrics, QGuiApplication, QPainter
++from PySide6.QtWidgets import QAbstractButton, QApplication, QLabel, QWidget
++
++from . import boss_theme as bt
++from . import windows_x11 as wx
++from .windows_strip_qt import WindowStrip, hub, slim
++
++ENV = 'GRAPHITE_DOCK'
++ALL_DESKTOPS = 0xFFFFFFFF
++PropModeReplace = 0
++DOCK_TYPE = '_NET_WM_WINDOW_TYPE_DOCK'
++
++
++def wanted(environ=None, platform=None):
++    """(stand, why not): whether the dock should stand here."""
++    environ = os.environ if environ is None else environ
++    said = str(environ.get(ENV, '')).strip().lower()
++    if said in ('0', 'off', 'no'):return False, 'The app strip stays in Graphite\'s window: GRAPHITE_DOCK is off.'
++    if said not in ('1', 'on', 'yes') and environ.get('ARC_LEDGER_XSESSION') != '1':
++        return False, ('The app strip stays in Graphite\'s window: Graphite was started inside another desktop, whose own '
++                       'panel keeps the apps reachable.')
++    platform = platform if platform is not None else (QGuiApplication.platformName() if QGuiApplication.instance() else '')
++    if platform != 'xcb':
++        return False, ('The app strip stays in Graphite\'s window: Graphite\'s window is not on an X display here (it is drawn %s).'
++                       % ('offscreen' if platform == 'offscreen' else 'by ' + (platform or 'no window system')))
++    reason = wx.why_not(environ)
++    if reason:return False, 'The app strip stays in Graphite\'s window: ' + reason + '.'
++    return True, ''
++
++
++# ---- the X properties, through ctypes ----------------------------------------------------------------------------------------
++def _declare(lib):
++    c_void_p, c_ulong, c_int = ctypes.c_void_p, ctypes.c_ulong, ctypes.c_int
++    sig = {'XChangeProperty': ([c_void_p, c_ulong, c_ulong, c_ulong, c_int, c_int, c_void_p, c_int], c_int),
++           'XMapWindow': ([c_void_p, c_ulong], c_int), 'XUnmapWindow': ([c_void_p, c_ulong], c_int)}
++    for name, (args, result) in sig.items():
++        f = getattr(lib, name);f.argtypes = args;f.restype = result
++    return lib
++
++
++def _put(xb, window, name, kind, values):
++    data = (ctypes.c_long * len(values))(*[int(v) for v in values])
++    xb.x.XChangeProperty(xb.dpy, int(window), xb.atom(name), int(kind), 32, PropModeReplace, ctypes.cast(data, ctypes.c_void_p), len(values))
++
++
++def strut_values(x, y, width, height):
++    """(_NET_WM_STRUT, _NET_WM_STRUT_PARTIAL) for a band across the top of a screen at (x, y) of `width`, `height` tall, in
++    the root window's pixels."""
++    top = y + height
++    return [0, 0, top, 0], [0, 0, top, 0, 0, 0, 0, 0, x, x + width - 1, 0, 0]
++
++
++def mark_dock(window, rect, display=None):
++    """Write the dock's type, its desktop (all) and its strut on X window `window` for `rect` (x, y, w, h in the root's
++    pixels), through Graphite's own X connection; read them back. Returns dict(ok, type, strut, partial, why)."""
++    try:
++        xb = wx.XlibBackend(display)
++    except wx.Unavailable as exc:
++        return dict(ok=False, why=str(exc), type=None, strut=None, partial=None)
++    try:
++        _declare(xb.x)
++        strut, partial = strut_values(*rect)
++        with xb.calls():
++            _put(xb, window, '_NET_WM_WINDOW_TYPE', wx.XA_ATOM, [xb.atom(DOCK_TYPE)])
++            _put(xb, window, '_NET_WM_DESKTOP', wx.XA_CARDINAL, [ALL_DESKTOPS])
++            _put(xb, window, '_NET_WM_STRUT', wx.XA_CARDINAL, strut)
++            _put(xb, window, '_NET_WM_STRUT_PARTIAL', wx.XA_CARDINAL, partial)
++        return read_marks(window, xb)
++    finally:
++        xb.close_display()
++
++
++def read_marks(window, xb=None, display=None):
++    """What the dock's X window says it is, read from the X server: its type, its strut, its desktop."""
++    own = xb is None
++    if own:
++        try:xb = wx.XlibBackend(display)
++        except wx.Unavailable as exc:return dict(ok=False, why=str(exc), type=None, strut=None, partial=None)
++    try:
++        with xb.calls():
++            types = [xb.atom_name(t) for t in xb.prop(window, '_NET_WM_WINDOW_TYPE', wx.XA_ATOM) or []]
++            strut = [int(v) for v in xb.prop(window, '_NET_WM_STRUT', wx.XA_CARDINAL) or []]
++            partial = [int(v) for v in xb.prop(window, '_NET_WM_STRUT_PARTIAL', wx.XA_CARDINAL) or []]
++            desktop = [int(v) & 0xFFFFFFFF for v in xb.prop(window, '_NET_WM_DESKTOP', wx.XA_CARDINAL) or []]
++        ok = DOCK_TYPE in types and len(partial) == 12 and partial[2] > 0
++        return dict(ok=ok, type=types[0] if types else None, types=types, strut=strut, partial=partial,
++                    desktop=desktop[0] if desktop else None, why='' if ok else 'the X server does not show the dock\'s marks')
++    finally:
++        if own:xb.close_display()
++
++
++def remap(window, display=None):
++    """Unmap and map the window again, so a window manager that read its type before reads it again."""
++    try:xb = wx.XlibBackend(display)
++    except wx.Unavailable:return False
++    try:
++        _declare(xb.x)
++        with xb.calls():
++            xb.x.XUnmapWindow(xb.dpy, int(window));xb.x.XSync(xb.dpy, 0);xb.x.XMapWindow(xb.dpy, int(window))
++        return True
++    finally:
++        xb.close_display()
++
++
++# ---- the window ----------------------------------------------------------------------------------------------------------------
++class DockStrip(WindowStrip):
++    """S3's strip, standing in the dock: laid out by the dock instead of the head."""
++    in_dock = True
++
++    def __init__(self, host, dock, parent):
++        self.dock = dock
++        super().__init__(host, parent)
++
++    def relayout(self):
++        QTimer.singleShot(0, self.dock.arrange)
++
++    def show_snapshot(self, snap):
++        super().show_snapshot(snap)
++        if snap is not None:self.dock.follow(snap)
++
++
++class GraphiteEntry(QAbstractButton):
++    """"Graphite": the mark and the word; ▸ and a rule under it while Graphite's window is the active one."""
++
++    def __init__(self, dock):
++        super().__init__(dock);self.dock = dock;self.active = False
++        self.setText('Graphite');self.setCursor(Qt.PointingHandCursor);self.setFocusPolicy(Qt.NoFocus);self.setAttribute(Qt.WA_Hover)
++        self.setAccessibleName('Graphite: bring Graphite\'s window forward')
++        self.setToolTip('Graphite\nPress to bring Graphite\'s window forward.')
++
++    def natural(self, h):
++        fm = QFontMetrics(self.font())
++        return h + fm.horizontalAdvance('▸ Graphite') + 24
++
++    def sizeHint(self):
++        return QSize(self.natural(30), 30)
++
++    def paintEvent(self, event):
++        from .graphite_brand import mark_icon
++        p = QPainter(self);w, h = self.width(), self.height()
++        if self.isDown():p.fillRect(self.rect(), QColor(bt.LINE))
++        elif self.underMouse():p.fillRect(self.rect(), QColor(bt.RAISED))
++        x = 8;fm = QFontMetrics(self.font())
++        if self.active:
++            p.setPen(QColor(bt.TEXT));p.drawText(QRect(x, 0, fm.horizontalAdvance('▸ '), h - 2), Qt.AlignLeft | Qt.AlignVCenter, '▸')
++            x += fm.horizontalAdvance('▸ ')
++        px = max(14, h - 12)
++        mark_icon(px).paint(p, QRect(x, (h - px) // 2, px, px));x += px + 6
++        p.setPen(QColor(bt.TEXT if self.active or self.underMouse() else bt.QUIET))
++        p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, 'Graphite')
++        if self.active:p.fillRect(0, h - 2, w, 2, QColor(bt.FOCUS))
++        p.fillRect(w - 1, round(h * 0.22), 1, round(h * 0.56), QColor(bt.LINE_MID))
++        p.end()
++
++
++class Dock(QWidget):
++    """The slim window of the dock type across the top of the screen."""
++
++    def __init__(self, host):
++        super().__init__(None, Qt.Window | Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus | Qt.WindowStaysOnTopHint)
++        self.host = host;self.marks = {};self.last = None;self.standing = False;self.why = ''
++        self.setObjectName('GraphiteDock');self.setWindowTitle('Graphite · app windows');self.setAccessibleName('Open windows and Graphite')
++        self.setAttribute(Qt.WA_X11NetWmWindowTypeDock, True);self.setAttribute(Qt.WA_ShowWithoutActivating, True)
++        self.setAttribute(Qt.WA_X11DoNotAcceptFocus, True);self.setFocusPolicy(Qt.NoFocus)
++        self.entry = GraphiteEntry(self);self.entry.clicked.connect(self.bring_graphite)
++        self.box = QWidget(self);self.strip = DockStrip(host, self, self.box)
++        self.quiet = QLabel(self);self.quiet.setTextFormat(Qt.PlainText)
++        host.installEventFilter(self)
++
++    # -- standing
++    def band(self):
++        """(the screen's rect in logical pixels, the dock's height, the device pixel ratio)."""
++        screen = self.host.screen() or QGuiApplication.primaryScreen()
++        scale = getattr(getattr(self.host, 'desk', None), 'scale', 1.0) or 1.0
++        return screen.geometry(), slim(scale), screen.devicePixelRatio()
++
++    def stand(self):
++        """Mark the dock's X window, show it, read its marks back. True when it stands as a dock."""
++        g, h, dpr = self.band()
++        self.setGeometry(g.x(), g.y(), g.width(), h);self.setFixedSize(g.width(), h)
++        window = int(self.winId())
++        rect = (round(g.x() * dpr), round(g.y() * dpr), round(g.width() * dpr), round(h * dpr))
++        self.marks = mark_dock(window, rect)
++        self.show();self.move(g.x(), g.y())
++        QApplication.processEvents()
++        self.marks = read_marks(window)
++        if self.marks.get('ok'):
++            self.standing, self.why = True, ''
++        elif self.marks.get('type') != DOCK_TYPE and not self.marks.get('why', '').startswith(wx.NO_LIST):
++            mark_dock(window, rect);remap(window);QApplication.processEvents()      # Qt wrote another type at the map: say it again
++            self.marks = read_marks(window);self.standing = bool(self.marks.get('ok'))
++            self.why = '' if self.standing else self.marks.get('why', 'the dock could not be marked')
++        else:
++            self.standing, self.why = False, self.marks.get('why', 'the dock could not be marked')
++        self.arrange();self.strip.begin()
++        screen = self.host.screen() or QGuiApplication.primaryScreen()
++        try:screen.geometryChanged.connect(lambda *_: QTimer.singleShot(0, self.again))
++        except (RuntimeError, AttributeError):pass
++        return self.standing
++
++    def again(self):
++        """The screen changed: the band and the strut follow it."""
++        if not self.isVisible():return
++        g, h, dpr = self.band()
++        self.setFixedSize(g.width(), h);self.setGeometry(g.x(), g.y(), g.width(), h)
++        self.marks = mark_dock(int(self.winId()), (round(g.x() * dpr), round(g.y() * dpr), round(g.width() * dpr), round(h * dpr)))
++        self.arrange()
++
++    def carries_strip(self):
++        """Whether the dock is the one the owner sees while Graphite's window is in front: it stands, and Graphite's window is
++        not full screen (a full-screen window covers the dock while it is active)."""
++        try:return self.standing and self.isVisible() and not self.host.isFullScreen()
++        except RuntimeError:return False
++
++    def status(self):
++        return dict(standing=self.standing, why=self.why, type=self.marks.get('type'), strut=self.marks.get('strut'),
++                    partial=self.marks.get('partial'), desktop=self.marks.get('desktop'), carries=self.carries_strip(),
++                    geometry=(self.x(), self.y(), self.width(), self.height()))
++
++    # -- the layout
++    def arrange(self):
++        if getattr(self.host, '_closing', False):return
++        from .desk_qt import Desk
++        h = self.height();s = min(max(getattr(getattr(self.host, 'desk', None), 'scale', 1.0) or 1.0, 1.0), 1.6)
++        self.entry.ensurePolished();ew = self.entry.natural(h)
++        self.entry.setGeometry(0, 0, ew, h)
++        x0 = ew + round(4 * s);w = max(0, self.width() - x0)
++        self.box.setGeometry(x0, 0, w, h)
++        d = Desk(width=w, pane=0, workspace=w, band=h, inset=round(8 * s), gap=0, symbol=0, scale=s, left=0, right=w, line=0)
++        self.strip.place(d, 0, h if self.strip.wanted else 0)
++        words = '' if self.strip.wanted else self.strip.words()
++        self.quiet.setText(words);self.quiet.setVisible(bool(words))
++        self.quiet.setStyleSheet('QLabel {color:%s;background:transparent;}' % bt.FAINT)
++        self.quiet.setGeometry(x0 + round(12 * s), 0, max(0, w - round(24 * s)), h)
++        self.update()
++
++    def follow(self, snap):
++        """Each reading of the windows: whether Graphite's window is the active one (▸ on the entry)."""
++        try:own = int(self.host.winId())
++        except RuntimeError:return
++        active = bool(snap.get('available')) and int(snap.get('active') or 0) == own
++        if active != self.entry.active:self.entry.active = active;self.entry.update()
++        if not self.strip.wanted:self.arrange()
++
++    def paintEvent(self, event):
++        p = QPainter(self)
++        p.fillRect(self.rect(), QColor(bt.GROUND))
++        p.fillRect(0, self.height() - 1, self.width(), 1, QColor(bt.LINE))
++        p.end()
++
++    # -- the press
++    def bring_graphite(self):
++        """Bring Graphite's window forward: Qt raises and activates it, and the window manager is asked as a task list asks
++        (_NET_ACTIVE_WINDOW); verified when Graphite's window is the active one."""
++        host = self.host
++        try:
++            if host.isMinimized():host.setWindowState(host.windowState() & ~Qt.WindowMinimized)
++            host.show();host.raise_();host.activateWindow()
++            window = int(host.winId())
++        except RuntimeError:
++            return None
++        watcher = hub().watcher
++        answer = watcher.activate(window, wait=0.5) if watcher.available else dict(asked=True, verified=False, how='Qt only', reason=watcher.reason)
++        self.last = dict(answer, at=time.time())
++        hub().settle.start()
++        return self.last
++
++    def eventFilter(self, obj, event):
++        if obj is self.host and event.type() == QEvent.WindowStateChange:
++            strip = getattr(self.host, 'window_strip', None)
++            if strip is not None:strip.relayout()      # full screen or not: the head's own strip gives way to the dock, or not
++        return False
++
++
++def install(host):
++    """The dock, when it should stand here (after the window is shown); host.system_dock is the Dock or None, and
++    host.dock_status() says whether it stands and why not."""
++    host.system_dock = None
++    stand, why = wanted()
++    state = dict(standing=False, why=why)
++    host.dock_status = lambda: host.system_dock.status() if host.system_dock is not None else dict(state)
++    if not stand:return None
++    made = []
++
++    def begin():
++        if getattr(host, '_closing', False):return
++        try:
++            dock = Dock(host);made.append(dock)
++            if dock.stand():
++                host.system_dock = dock
++                strip = getattr(host, 'window_strip', None)
++                if strip is not None:strip.relayout()
++            else:
++                state['why'] = 'The app strip stays in Graphite\'s window: the dock could not be made (%s).' % (dock.why or 'no reason given')
++                dock.hide();dock.deleteLater()
++        except Exception as exc:  # noqa: BLE001 - a dock that cannot stand leaves the strip where S3 put it
++            state['why'] = 'The app strip stays in Graphite\'s window: %s.' % (str(exc)[:160] or type(exc).__name__)
++            host.system_dock = None
++
++    def gone(*_):
++        while made:
++            dock = made.pop()
++            try:dock.hide();dock.deleteLater()
++            except RuntimeError:pass
++    QTimer.singleShot(0, begin)
++    app = QApplication.instance()
++    if app is not None:app.aboutToQuit.connect(gone)
++    host.destroyed.connect(gone)
++    return True
+diff --git a/workbench/system_settings_qt.py b/workbench/system_settings_qt.py
+new file mode 100644
+index 0000000..d87bec6
+--- /dev/null
++++ b/workbench/system_settings_qt.py
+@@ -0,0 +1,358 @@
++"""Graphite 1.0 S5 · The Settings tree on real settings: "This computer".
++
++The left pane's Settings tab keeps Graphite's own settings (Workspace, Assistant) and gains, first, a root of the
++computer's own settings. Each row opens its page in the centre; every change there is your press, reads its effect back,
++and says DONE only then:
++
++  Default apps    which app opens each kind of file and address (S2, apps_catalog): the app in force and where that is
++                  said (your own mimeapps.list or the system's), the apps that take the kind, Make it the default (the
++                  Kernel's apps.default, approve scope, written to your own ~/.config/mimeapps.list and read back), and Use
++                  the system's choice (your line taken back out).
++  Sound           S4's Sound page (machine_room_qt): volume, mute, the output in use.
++  Screens         S4's Screens page: each screen's mode, primary, on or off, mirror or extend, with Keep or go back.
++  Network         S4's Network page: networking and Wi-Fi, the networks heard, Join (the password goes to NetworkManager).
++  Power           S4's Power page: the battery and the mains.
++  Session         S1's session: Lock, Suspend, Log out, Restart, Shut down, Return to Debian with whether each is available
++                  and why (each press is the System menu's own), the permission prompt agent (polkit_agent), the app strip
++                  as a dock (system_dock_qt), the notifications, the console route.
++  Notifications   S5's notification server (notify_server): whether Graphite shows what apps send here and why not; Show a
++                  toast or Only keep them in Log (urgent ones always show); the newest ones with their state, and Close or
++                  their actions while they are open; Log opens the Events stream where every one is kept.
++
++The S4 rows open S4's own pages (the same functions; the left pane stays on Settings while you came from it).
++"""
++from __future__ import annotations
++
++import os
++import time
++
++from PySide6.QtCore import Qt, QTimer
++from PySide6.QtWidgets import QComboBox, QFrame, QScrollArea, QVBoxLayout, QWidget
++
++from . import boss_theme as bt
++from .machine_room_qt import card, press, row, word, words
++
++ROOT = 'settings:system'
++MACHINE = ('sound', 'screens', 'network', 'power')
++ROWS = (('apps', 'Default apps', 'Which app opens each kind of file and address. Written to your own mimeapps.list and read back.'),
++        ('sound', 'Sound', 'Volume, mute and the output in use (PipeWire, through wpctl).'),
++        ('screens', 'Screens', 'Which screens, their modes, primary, mirror or extend (xrandr), with Keep or go back.'),
++        ('network', 'Network', 'Networking and Wi-Fi on or off, the networks heard, Join (NetworkManager keeps the password).'),
++        ('power', 'Power', 'The battery and the mains (UPower).'),
++        ('session', 'Session', 'Lock, Suspend, Log out, Restart, Shut down, Return to Debian; permission prompts; the app strip.'),
++        ('notifications', 'Notifications', 'What apps tell you: shown as a toast at the foot of her column, and kept in Log.'))
++TITLES = {key: label for key, label, _ in ROWS}
++PAGE_SECONDS = 3
++SESSION_SECONDS = 10     # the session page asks logind again this often while it shows
++# The kinds of file and address the Default apps page offers (the owner's words); a web address sets http and https together.
++KINDS = (('x-scheme-handler/https', 'Web addresses', ('x-scheme-handler/http',)),
++         ('x-scheme-handler/mailto', 'Mail addresses', ()),
++         ('application/pdf', 'PDF files', ()),
++         ('text/plain', 'Plain text files', ()),
++         ('text/markdown', 'Markdown files', ()),
++         ('text/csv', 'CSV tables', ()),
++         ('text/html', 'Web pages saved as files', ()),
++         ('image/png', 'PNG pictures', ()),
++         ('image/jpeg', 'JPEG pictures', ()),
++         ('image/svg+xml', 'SVG drawings', ()),
++         ('application/vnd.oasis.opendocument.text', 'OpenDocument texts', ()),
++         ('application/vnd.oasis.opendocument.spreadsheet', 'OpenDocument spreadsheets', ()),
++         ('application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'Word documents', ()),
++         ('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Excel workbooks', ()),
++         ('audio/mpeg', 'MP3 sound', ()),
++         ('video/mp4', 'MP4 video', ()),
++         ('inode/directory', 'Folders', ()))
++
++
++def nodes():
++    """The tree's nodes for this computer, in settings_registry.nodes()' shape (role 'system_page', the page's key in 'page')."""
++    out = [dict(id=ROOT, parent=None, role='settings_root', label='This computer', target=None, scope=None, provider='system_settings',
++                tip='Settings of this computer: default apps, sound, screens, network, power, the session and notifications.')]
++    for key, label, tip in ROWS:
++        out.append(dict(id='system:' + key, parent=ROOT, role='system_page', label=label, target=None, scope=None,
++                        provider='system_settings', page=key, tip=tip + '\nChoose it to open its page in the centre.'))
++    return out
++
++
++def open_page(host, key):
++    """A row of This computer chosen: its page in the centre (S4's own page for sound, screens, network and power)."""
++    if key in MACHINE:
++        from . import machine_room_qt
++        return machine_room_qt.show(host, key)
++    return show(host, key)
++
++
++def select_row(host, key):
++    """Show the row of this page in the Settings tree, without opening anything again."""
++    nav = getattr(host, 'settings_navigator', None);item = getattr(nav, 'items', {}).get('system:' + key) if nav is not None else None
++    if item is None:return
++    from PySide6.QtCore import QSignalBlocker
++    with QSignalBlocker(nav.tree):
++        parent = item.parent()
++        while parent:parent.setExpanded(True);parent = parent.parent()
++        nav.tree.setCurrentItem(item);nav.tree.scrollToItem(item)
++
++
++def clock(stamp):
++    return time.strftime('%H:%M:%S', time.localtime(stamp)) if stamp else 'not read'
++
++
++class SystemSettingsRoom(QWidget):
++    """One of This computer's own pages in the centre (a room tab): Default apps, Session or Notifications."""
++
++    def __init__(self, host, key):
++        super().__init__();self.host = host;self.key = key if key in ('apps', 'session', 'notifications') else 'session'
++        self.setObjectName('LibraryTab');self.setProperty('ledgerRoom', True);self.setAccessibleName('Settings: ' + self.title())
++        self.last = None;self.seen = None;self.data = None;self.choices = {};self.presses = {}
++        outer = QVBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0)
++        self.scroll = QScrollArea();self.scroll.setWidgetResizable(True);self.scroll.setFrameShape(QFrame.NoFrame);outer.addWidget(self.scroll)
++        self.timer = QTimer(self);self.timer.setInterval((SESSION_SECONDS if self.key == 'session' else PAGE_SECONDS) * 1000)
++        self.timer.timeout.connect(self.tick);self.timer.start()
++        self.reload(force=True)
++
++    def title(self):return TITLES[self.key]
++
++    def settings_row(self):
++        """navigation_qt: this page keeps the left pane on Settings, on its row."""
++        return 'system:' + self.key
++
++    def inspector(self):
++        return self.title(), [(self.title(), (self.data or {}).get('short', ''))]
++
++    # -- reading
++    def tick(self):
++        if getattr(self.host, '_closing', False):self.timer.stop();return
++        if not self.isVisible():return
++        focus = self.focusWidget()
++        if isinstance(focus, QComboBox) and focus.hasFocus():return      # never redraw under the owner's hand
++        self.reload()
++
++    def reload(self, force=False):
++        data = getattr(self, 'read_' + self.key)()
++        seen = repr(sorted((k, v) for k, v in data.items() if k != 'read_at'))
++        if not force and seen == self.seen:return
++        self.data = data;self.seen = seen;self.draw()
++
++    def read_apps(self):
++        from . import apps_catalog as ac
++        try:catalog = ac.scan()
++        except (OSError, ValueError) as exc:return dict(error=str(exc), kinds=[], short='not read', read_at=time.time())
++        mine = str(ac.config_home() / 'mimeapps.list');kinds = []
++        for mime, label, also in KINDS:
++            try:
++                ident, said_by = ac.default_for(mime, catalog)
++                apps = [(app.id, app.name, how) for app, how in ac.apps_for(mime, catalog)]
++            except (OSError, ValueError):
++                ident, said_by, apps = None, '', []
++            app = catalog.get(ident) if ident else None
++            kinds.append(dict(type=mime, label=label, also=also, default=ident, name=app.name if app else '', said_by=said_by,
++                              yours=bool(said_by) and said_by == mine, apps=apps))
++        chosen = sum(1 for k in kinds if k['default'])
++        return dict(kinds=kinds, mine=mine, short='%d of %d kinds have an app' % (chosen, len(kinds)), read_at=time.time(), error='')
++
++    def read_session(self):
++        from . import polkit_agent, session_power
++        try:states = session_power.availability()
++        except Exception as exc:  # noqa: BLE001 - the page says what went wrong; the window goes on
++            states = {key: dict(available=False, reason='Could not read: %s' % exc) for key in session_power.GROUP}
++        notes = getattr(self.host, 'notifications', None)
++        dock = self.host.dock_status() if callable(getattr(self.host, 'dock_status', None)) else dict(standing=False, why='The app strip stays in Graphite\'s window.')
++        return dict(dedicated=session_power.dedicated(), restarts=os.environ.get('ARC_LEDGER_SESSION_RESTARTS', ''),
++                    states={k: dict(available=v['available'], reason=v['reason'], label=v.get('label')) for k, v in states.items()},
++                    agent=polkit_agent.agent(), dock=dict(standing=dock.get('standing'), why=dock.get('why', '')),
++                    notes=notes.status() if notes is not None else dict(state='off', why='Graphite\'s notifications are not installed in this window.'),
++                    short='Graphite is this session' if session_power.dedicated() else 'inside another desktop', read_at=time.time())
++
++    def read_notifications(self):
++        from .notify_qt import toasts_on
++        notes = getattr(self.host, 'notifications', None)
++        status = notes.status() if notes is not None else dict(state='off', why='Graphite\'s notifications are not installed in this window.')
++        recent = notes.notes.recent(12) if notes is not None else []
++        return dict(status=status, toasts=toasts_on(self.host),
++                    recent=[dict(id=n['id'], app=n['app'], summary=n['summary'], at=n['at'], closed=n['closed'], urgency=n['urgency'],
++                                 actions=n['actions'], logged=n.get('logged'), transient=n.get('transient')) for n in recent],
++                    short={'serving': 'shown here, kept in Log'}.get(status['state'], 'not shown here'), read_at=time.time())
++
++    # -- drawing
++    def draw(self):
++        self.choices = {};self.presses = {}
++        page = QWidget();box = QVBoxLayout(page);box.setContentsMargins(40, 26, 40, 20);box.setSpacing(14)
++        box.addWidget(words(self.title(), 'title'))
++        box.addWidget(words('SETTINGS / THIS COMPUTER / ' + self.title().upper(), 'quiet'))
++        if self.last:
++            done = self.last.get('ok') and self.last.get('verified')
++            box.addLayout(row(word('done' if done else 'not done', 'live' if done else 'stop'), words(self.last.get('said', '')), stretch_at=1))
++        getattr(self, 'draw_' + self.key)(box)
++        box.addStretch(1)
++        old = self.scroll.takeWidget();self.scroll.setWidget(page)
++        if old is not None:old.deleteLater()
++
++    # Default apps -------------------------------------------------------------------------------------------------------------
++    def draw_apps(self, box):
++        data = self.data
++        box.addWidget(words('Which app opens each kind of file and address. A change is written to your own %s and read back '
++                            'before it is said; the system\'s own lists are never written. Read at %s.' % (data.get('mine', 'mimeapps.list'), clock(data['read_at'])), 'quiet'))
++        if data.get('error'):
++            frame, inner = card();inner.addWidget(word('not read', 'stop'));inner.addWidget(words(data['error']));box.addWidget(frame);return
++        for kind in data['kinds']:
++            frame, inner = card()
++            if kind['default']:
++                state = word('your choice' if kind['yours'] else 'the system\'s', 'live' if kind['yours'] else 'quiet')
++                said = 'Opens with %s.' % kind['name']
++            else:
++                state = word('none chosen', 'quiet');said = 'No app is chosen: Open with asks each time.'
++            inner.addLayout(row(words(kind['label'], 'card'), state, stretch_at=0))
++            inner.addWidget(words(said + ((' Said by ' + kind['said_by'] + '.') if kind['said_by'] and not kind['yours'] else ''), 'quiet'))
++            if not kind['apps']:
++                inner.addWidget(words('No installed app says it opens these.', 'quiet'))
++            else:
++                choice = QComboBox();choice.setAccessibleName('Apps for ' + kind['label'])
++                for ident, name, how in kind['apps']:choice.addItem('%s%s' % (name, ' (in force)' if ident == kind['default'] else ''), ident)
++                self.choices[kind['type']] = choice
++                make = press('Make it the default', lambda checked=False, k=kind, c=choice: self.make_default(k, c.currentData()),
++                             'Open %s with this app from now on' % kind['label'].lower())
++                self.presses[('make', kind['type'])] = make;acts = [choice, make]
++                if kind['yours']:
++                    back = press('Use the system\'s choice', lambda checked=False, k=kind: self.make_default(k, ''),
++                                 'Take your own line for %s back out of your mimeapps.list' % kind['label'].lower())
++                    self.presses[('back', kind['type'])] = back;acts.append(back)
++                inner.addLayout(row(*acts))
++            box.addWidget(frame)
++
++    def make_default(self, kind, ident):
++        """Your press: apps.default through the Kernel (S2: approve scope, read back), for the kind and its companions."""
++        from . import apps_qt
++        results = []
++        for mime in (kind['type'], *kind['also']):
++            try:results.append(apps_qt.call(self.host, 'apps.default', {'type': mime, 'id': ident}))
++            except ValueError as exc:results.append(dict(verified=False, words=str(exc)))
++        ok = all(r.get('verified') for r in results)
++        said = results[0].get('words', '') if results else ''
++        if ok and kind['also']:said = '%s now open with %s.' % (kind['label'], next((n for i, n, _ in kind['apps'] if i == ident), ident)) if ident else '%s: your own choice is taken out.' % kind['label']
++        self.last = dict(ok=ok, verified=ok, said=said or ('Done.' if ok else 'Not done.'))
++        self.reload(force=True)
++        return self.last
++
++    # Session ------------------------------------------------------------------------------------------------------------------
++    def draw_session(self, box):
++        from . import session_power as power
++        data = self.data
++        if data['dedicated']:
++            lead = ('Graphite is this session: Fluxbox stays hidden, and if Graphite\'s window ends unexpectedly the session starts '
++                    'it again while your apps stay open%s.' % ((' (started again %s time%s so far)' % (data['restarts'], '' if data['restarts'] == '1' else 's')) if data['restarts'] not in ('', '0') else ''))
++        else:
++            lead = 'Graphite runs inside another desktop here: these act on that desktop\'s session.'
++        box.addWidget(words(lead + ' Read at %s.' % clock(data['read_at']), 'quiet'))
++        frame, inner = card();inner.addWidget(words('Leave and power', 'card'))
++        run = {'leave': power.leave, 'lock': power.run_lock, 'suspend': power.run_suspend}
++        for key, state in data['states'].items():
++            label = state.get('label') or power.WORDS.get(key, key)
++            act = press(label, lambda checked=False, key=key: self.session_act(key), power.SCOPES.get(key, ''), state['available'])
++            inner.addLayout(row(act, word('available' if state['available'] else 'unavailable', 'live' if state['available'] else 'stop'),
++                                words(short(state['reason'])), stretch_at=2))
++        box.addWidget(frame)
++        agent = data['agent']
++        frame, inner = card()
++        inner.addLayout(row(words('Permission prompts', 'card'), word('answered' if agent['running'] else 'none here', 'live' if agent['running'] else 'stop'), stretch_at=0))
++        inner.addWidget(words(agent['words'] + ' When an app or Graphite asks the system for something that needs your permission, '
++                              'the system\'s own prompt asks for your password: you type it there, never into Graphite.'))
++        box.addWidget(frame)
++        dock = data['dock']
++        frame, inner = card()
++        inner.addLayout(row(words('The app strip', 'card'), word('a dock' if dock['standing'] else 'in the window', 'live' if dock['standing'] else 'quiet'), stretch_at=0))
++        inner.addWidget(words('The app windows and Graphite stand in a slim dock across the top of the screen, above every app; '
++                              'apps are placed below it, and its first entry always brings Graphite back.' if dock['standing'] else
++                              (dock['why'] or 'The app strip stays in Graphite\'s window.')))
++        box.addWidget(frame)
++        notes = data['notes']
++        frame, inner = card()
++        inner.addLayout(row(words('Notifications', 'card'), word('shown here' if notes['state'] == 'serving' else 'not shown here',
++                                                                 'live' if notes['state'] == 'serving' else 'quiet'), stretch_at=0))
++        inner.addWidget(words(notes['why']))
++        inner.addLayout(row(press('Notifications…', lambda: open_page(self.host, 'notifications'), 'Open the Notifications page')))
++        box.addWidget(frame)
++        frame, inner = card();inner.addWidget(words('The console route', 'card'))
++        inner.addWidget(words('Return to Debian ends this session at the text login; the computer stays on. From the text login, '
++                              'START_MINIMAL_DEBIAN.sh in Graphite\'s folder starts this session again.'))
++        box.addWidget(frame)
++
++    def session_act(self, key):
++        """Your press: the System menu's own action (the same questions, confirmation and order)."""
++        from . import session_power as power
++        if key == 'leave':return power.leave(self.host)
++        if key == 'lock':return power.run_lock(self.host)
++        if key == 'suspend':return power.run_suspend(self.host)
++        return power.run_action(self.host, key)
++
++    # Notifications ------------------------------------------------------------------------------------------------------------
++    def draw_notifications(self, box):
++        data = self.data;status = data['status']
++        frame, inner = card()
++        serving = status['state'] == 'serving'
++        inner.addLayout(row(words('Graphite as the notification server', 'card'), word('serving' if serving else 'not serving', 'live' if serving else 'quiet'), stretch_at=0))
++        inner.addWidget(words(status['why']))
++        if serving:
++            inner.addWidget(words('Apps send their notifications to Graphite on the session bus (org.freedesktop.Notifications). '
++                                  'What they say is shown as plain words, never acted on, and kept in Log (Events).', 'quiet'))
++        box.addWidget(frame)
++        frame, inner = card();inner.addWidget(words('How they are shown', 'card'))
++        on = data['toasts']
++        inner.addLayout(row(press(('● ' if on else '○ ') + 'Show a toast', lambda: self.set_toasts(True), 'At the foot of her column; it never takes the keyboard'),
++                            word('chosen', 'live') if on else None,
++                            press(('● ' if not on else '○ ') + 'Only keep them in Log', lambda: self.set_toasts(False), 'Nothing shows; Log keeps each one'),
++                            word('chosen', 'live') if not on else None))
++        inner.addWidget(words('Urgent notifications always show, and stay until you close them.', 'quiet'))
++        box.addWidget(frame)
++        frame, inner = card()
++        inner.addLayout(row(words('The newest', 'card'), press('Log', self.open_log, 'Open Log\'s Events, where every notification is kept'), stretch_at=0))
++        if not data['recent']:inner.addWidget(words('None yet.', 'quiet'))
++        for n in data['recent']:
++            state = (n['closed'] or 'open')
++            parts = [words('%s · “%s” · %s' % (time.strftime('%H:%M', time.localtime(n['at'])), n['app'] or 'an app', n['summary'] or '(no title)')),
++                     word(('urgent · ' if n['urgency'] == 2 else '') + state, 'wait' if n['urgency'] == 2 and not n['closed'] else 'live' if not n['closed'] else 'quiet')]
++            if not n['closed'] and serving:
++                notes = self.host.notifications
++                for key, label in n['actions']:
++                    if key != 'default':parts.append(press(label, lambda checked=False, i=n['id'], k=key: (notes.invoke(i, k), self.reload(force=True)), 'Tell the app: ' + label))
++                parts.append(press('Close', lambda checked=False, i=n['id']: (notes.dismiss(i), self.reload(force=True)), 'Close this notification'))
++            inner.addLayout(row(*parts, stretch_at=0))
++        box.addWidget(frame)
++
++    def set_toasts(self, on):
++        from .notify_qt import set_toasts, toasts_on
++        set_toasts(self.host, on)
++        ok = toasts_on(self.host) == bool(on)
++        self.last = dict(ok=ok, verified=ok, said='Notifications now show as a toast and are kept in Log.' if on else 'Notifications are now only kept in Log (urgent ones still show).')
++        self.reload(force=True)
++
++    def open_log(self):
++        bar = getattr(self.host, 'type_bar', None);console = getattr(self.host, 'console', None)
++        try:
++            if bar is not None:bar.set_target('log', focus=False)
++            if console is not None:console.open('log', focus=False)
++        except (TypeError, AttributeError, RuntimeError):
++            if bar is not None:bar.set_target('log')
++
++
++def short(text, most=150):
++    text = ' '.join(str(text or '').split())
++    return text if len(text) <= most else text[:most - 1].rstrip() + '…'
++
++
++def show(host, key):
++    """Open (or bring forward) one of This computer's own pages in the centre."""
++    close = getattr(host, '_close_start', None)
++    if callable(close):close()
++    tabs = host.tabs
++    for i in range(tabs.count()):
++        widget = tabs.widget(i)
++        if isinstance(widget, SystemSettingsRoom) and widget.key == key:
++            tabs.setCurrentIndex(i);widget.reload(force=True);return widget
++    tab = SystemSettingsRoom(host, key);tabs.addTab(tab, tab.title());tabs.setCurrentWidget(tab)
++    return tab
++
++
++def reopen(host, row):
++    """workspace_tabs: a saved page comes back by its title."""
++    key = {v: k for k, v in TITLES.items()}.get(str(row.get('title') or ''), 'session')
++    return open_page(host, key)
+diff --git a/workbench/tail_words.py b/workbench/tail_words.py
+index 064493f..5fcbed5 100644
+--- a/workbench/tail_words.py
++++ b/workbench/tail_words.py
+@@ -17,6 +17,8 @@ WORDS = {
+ STATES = {'REQUEST_COMPLETED': '', 'COMPLETED': '', 'READY': '', 'FOCUSED': '', 'SET_ASIDE': '', 'REQUEST_RECEIVED': '…',
+           'DENIED_OR_FAILED': '· failed', 'Completed': '· done', 'completed': '· done', 'Failed': '· failed', 'Queued': '· queued', 'Running': '· running', 'FAILED': '· failed', 'DENIED': '· refused', 'CANCELLED': '· cancelled', 'BLOCKED': '· waiting for a project'}
+ QUIET_ORIGINS = {'GUI', 'DESKTOP', 'desktop-owner', 'owner', 'Kernel', 'KERNEL'}
++WORDS['notification'] = 'Notification from an app'      # 1.0 S5: what an app told you (notify_server), kept in Log
++STATES['SHOWN'] = ''                                     # 1.0 S5
+ 
+ 
+ def shown_origin(origin):
+diff --git a/workbench/windows_strip_qt.py b/workbench/windows_strip_qt.py
+index 019bbc0..8b977d8 100644
+--- a/workbench/windows_strip_qt.py
++++ b/workbench/windows_strip_qt.py
+@@ -328,6 +328,8 @@ class WindowStrip(QWidget):
+ 
+     # -- the layout (called by TopBar.place)
+     def room(self, scale):
++        dock = getattr(self.host, 'system_dock', None)  # 1.0 S5: the dock (system_dock_qt) carries the strip while it is the one in sight
++        if dock is not None and not getattr(self, 'in_dock', False) and dock.carries_strip():return 0  # 1.0 S5
+         return slim(scale) if self.wanted else 0
+ 
+     def place(self, d, y, height):
+diff --git a/workbench/workspace_tabs.py b/workbench/workspace_tabs.py
+index 09eae89..75c3af9 100644
+--- a/workbench/workspace_tabs.py
++++ b/workbench/workspace_tabs.py
+@@ -261,6 +261,9 @@ class WorkspaceTabs(QTabWidget):
+         if row.get('kind')=='MachineRoom':      # 1.0 S4: a Machine page (Storage, Power, Network, Sound, Screens), by its title
+             from .machine_room_qt import reopen
+             return reopen(self.host,row)
++        if row.get('kind')=='SystemSettingsRoom':      # 1.0 S5: a page of Settings ▸ This computer, by its title
++            from .system_settings_qt import reopen as reopen_settings
++            return reopen_settings(self.host,row)
+         if row.get('kind') in ('ComputerTab','PillsTab'):      # This Computer, and Pills and Paired Computers (menus2)
+             from importlib import import_module
+             return import_module({'ComputerTab':'.computer_qt','PillsTab':'.pills_qt'}[row['kind']],__package__).show(self.host)

@@ -302,6 +302,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 06:02 UTC: **The 5-hour usage limit stopped all four builders at about 05:10** (S5, L5, K2, K5). Their partial
+  diffs saved to `wip/2026-11-26_b100_saved/partial/` (S5 1,873 lines, L5 1,266, K2 1,472, K5 361). Their worktrees
+  and agents are kept; resumed now with SendMessage (S5 ac23db279a7ed37c3, L5 a5fd90fb1dbbc0d74, K2 a2990cd9e7f088ef1,
+  K5 adac4901859e6d943). If they are gone after a reset: new builders from the same briefs, "apply the partial patch
+  first".
+
 - 26 Nov 05:05 UTC: **1.0 P2 merged** (19614b6: the Day look, HALT in every look with `workbench/halt.py`, her column's
   gap gone; smoke Day 24/24, Graphite 20/20, Kasandra 20/20). The merge check (`finish_merge.sh`) now opens the window
   in Day too. Day frames sent to the owner. Its notes: HALT reads the same work hold as Stop all (K3 may keep them
