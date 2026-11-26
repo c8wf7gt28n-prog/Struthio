@@ -382,6 +382,12 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 18:10 UTC: Hourly wake-up while X3, X4 and D2 run: carry on. X3 has 11 of 12 sessions written (11, her hand
+  in a program, remains). X4 has sessions 1 to 3 walked and is on 4, 5 and 10. X3's later "for D2" items were sent to
+  D2. Findings so far for after 1.0: the tree is single-select; Search finds desk records but not Home files (X4,
+  session 2); Undo takes back only the last of a bulk move (X4, session 3). Program windows at 0,0 under the
+  stand-in manager are a stand-in fault; Fluxbox places them and keeps the strut.
+
 - 26 Nov 17:42 UTC: **D2 launched early** (the polish pass, agent a9d3552b50ed7df22), while X3 and X4 still run, so that
   two slots are not idle. It has every earlier note. X3's and X4's "for D2" lists go to it by message as they land;
   conflicts with their in-place fixes are reconciled at merge. Running: X3, X4, D2. Queue: X1 after D2; R2 last.
