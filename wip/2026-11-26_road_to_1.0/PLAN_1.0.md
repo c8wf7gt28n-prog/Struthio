@@ -307,6 +307,22 @@ figure, a wide or square one as before. Reduce motion stops the shimmer and stat
 until the owner's picture is admitted; the owner's picture never enters the repository (the 1.0 kit carries it to the
 owner separately, outside the source).
 
+**L6 · The whole computer in the tree** (the owner, 26 Nov: "Shouldn't the files part of the left tree start at root
+/?"). The Files tab starts at **/** (named "This computer"), so every folder the owner's account can read is reachable:
+under it **Home** (the owner's home folder) opens by default and is where the tree lands at start; removable drives
+(S4) also stand as their own rows near the top ("Drives"); the other system folders are listed collapsed, and the
+pseudo-filesystems (/proc, /sys, /dev, /run) are shown as such and never read for the board, relevance or ids. Hidden
+files (dot-names) are hidden by default with a "Show hidden" switch. Graphite's own workspace is a folder in Home like
+any other, and its records (Concern, Sources, Sheets, Calculations, Findings, Questions) stay in the tree as the **Desk**
+drawer, as L1 built it. L1's stable ids extend to any path lazily (an id is made when a file is focused, opened or
+linked, never by scanning the disk); the board can focus any file. The owner's own actions anywhere follow the
+system's permissions (Graphite never asks for more). **Kas's reach:** she may read where the owner can read (reads
+never send anything out: her model is local and sealed); her changes (K2's file tools, K3's grants, K6's Apply, A1)
+reach **only inside Home**, under grants as before, and never outside it, at any place of the dial; a grant's folder
+may be any folder in Home (not only the workspace's Files). *Acceptance:* the tree's top is "This computer /", Home open
+and selected at start, a USB drive under Drives; /proc shown but not read; a grant for a folder in Home outside the
+workspace lets her note step run there; a step targeting /etc stops as "outside your home: never".
+
 ### Wave 4 — the ghost acting
 
 **K2 · Tools and observation receipts.** `workbench/tools_registry.py`: every tool Kas may use (the Kernel operations,

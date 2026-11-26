@@ -256,6 +256,12 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 10:25 (L6, the owner asked "Shouldn't the files part of the left tree start at root /?"): yes. The Files tab
+  starts at "This computer /", Home open and selected at start, Drives near the top, system folders collapsed,
+  /proc /sys /dev /run shown but never read, hidden files hidden by default (a switch shows them); Graphite's records
+  stay as the Desk drawer. Kas may read where the owner can; her changes reach only inside Home, under grants, never
+  outside it at any place of the dial.
+
 - 26 Nov 08:15 (the owner asked "How come we never have a LLM running? Kas is meant to be an AI agentic user of the
   system also?"): taken: (1) from K4 on, every slice where the model has a part runs its acceptance once with the real
   4B here (under the model lock) and shows her with the model ready; X1's day runs with the 4B loaded; (2) K9 added:
@@ -315,6 +321,8 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 10:25 UTC: **L6 added** (the whole computer in the Files tree, from /). Starts when a builder slot frees.
 
 - 26 Nov 10:15 UTC: wake-up (carry on). **A1 launched** (programs by window and file; agent aeace60d345d175df).
   Running: K8, K9, K4b, A1. Still to start: F1, F2, X1, X2, R1, R2.
