@@ -733,6 +733,8 @@
    "research.review": "workbench/research_service.py#dispatch",
    "research.status": "workbench/research_service.py#dispatch",
    "reviews.get": "workbench/project_desk.py#dispatch",
+   "revisions.list": "workbench/depths.py#dispatch",
+   "revisions.record": "workbench/depths.py#dispatch",
    "rules.check": "workbench/rules.py#dispatch",
    "rules.get": "workbench/rules.py#dispatch",
    "rules.list": "workbench/rules.py#dispatch",
@@ -1053,9 +1055,9 @@
   }
  },
  "counts": {
-  "adapters": 855,
+  "adapters": 857,
   "job_tools": 113,
-  "operations": 855,
+  "operations": 857,
   "settings": 48
  },
  "formulas": {
@@ -7427,6 +7429,27 @@
    },
    "scope": "read"
   },
+  "revisions.list": {
+   "arguments": "0980bcc74db0ba533e7898d6adbf1cbba254f62801b085c6bf1e00717aba6f0a",
+   "properties": {
+    "id": "61d17f98bc93de8b",
+    "limit": "29f310fc03343755",
+    "path": "e5b3001aa5951151"
+   },
+   "scope": "read"
+  },
+  "revisions.record": {
+   "arguments": "9a70d9113e88282ad2e58eadbb312785507c50d56e8f2fbe1f14ae9f011f3361",
+   "properties": {
+    "expected_sha256": "f4618f4ae4b25223",
+    "how": "719d0c6bac3171c1",
+    "id": "61d17f98bc93de8b",
+    "path": "e5b3001aa5951151",
+    "previous_sha256": "f4618f4ae4b25223",
+    "program": "d6e25d5c4e0ea921"
+   },
+   "scope": "execute"
+  },
   "rules.check": {
    "arguments": "b1ac8a4bca81c23e1b2a3cbbad71a40d4b47a20879349ae55b1f7604feb41cb6",
    "properties": {
@@ -8396,7 +8419,7 @@
  },
  "release": "Graphite 0.8.7",
  "schema": "graphite.registry-record/1",
- "schema_digest": "90b85965f2131f913ea59f39e4070c0f751564fad595aa50ff85584d8c3bfc9e",
+ "schema_digest": "c273d3f6bc44aee181af64a27244846c772fe941828fe00c51800923b1f16b83",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

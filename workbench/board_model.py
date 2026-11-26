@@ -270,6 +270,10 @@ class Desk:
         self._checks()
         self._plain_files()
         self._kept(kept)
+        try:      # 1.0 L4: a file saved again in another program: its earlier revision, admitted, and what rests on it are to recheck
+            from .depths import mark_board;mark_board(self)
+        except Exception:  # noqa: BLE001 - the board stands without it
+            pass
         self.assignments = []            # (objective, {object ids its steps read}) of the owner's recent assignments (1.0 K1)
 
     # ---- what the reader kept ------------------------------------------------------------------------------------------
@@ -661,6 +665,9 @@ def basis(desk, edge):
         digest = (b.target or {}).get('sha256') if b is not None and isinstance(b.target, dict) else ''
         return 'same bytes', ['The file %s in Files has the same bytes as the admitted source %s.' % (an, bn),
                               'Checked by their SHA-256%s.' % ((' (%s…)' % str(digest)[:16]) if digest else '')]
+    if edge.relation == 'saved again':      # 1.0 L4: the file saved again in another program, and its earlier revision admitted
+        from .depths import saved_again_basis
+        return saved_again_basis(desk, edge)
     if edge.relation == 'condition':
         return edge.label or 'its words changed', ['A total bound to the words of “%s”: %s.' % (an, edge.label or 'its words changed')]
     if edge.relation == 'quote':
@@ -695,6 +702,7 @@ def short_basis(desk, edge, tile_id, focus=''):
     if edge.relation == 'revision':return 'earlier revision' if feeds else 'worked again from it'
     if edge.relation == 'question':return 'read for the question' if feeds else 'asked of %s' % name
     if edge.relation == 'same bytes':return 'the same bytes'
+    if edge.relation == 'saved again':return ('saved again · %s' % edge.said) if feeds else 'an earlier revision of %s · recheck' % it      # 1.0 L4
     return ('%s · %s' % (edge.label, name)) if edge.label else ('rests on %s' % name if not feeds else 'read by %s' % name)
 
 

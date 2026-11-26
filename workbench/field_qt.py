@@ -72,7 +72,7 @@ KEYS = (('h', 'Move'),
         ('h', 'Also'),
         ('k', 'Menu key\tor right-click: the same things as a cascading menu, on the sheet under the pointer'),
         ('h', 'With the mouse'),
-        ('k', 'click\topen a sheet; the right button shows what can be done with the sheet under it'),
+        ('k', 'click\tselect a sheet; a double click opens it; the right button shows what can be done with the sheet under it'),      # 1.0 L4
         ('k', 'drag\tthe ground, or the bars at the edges, to move the surface; Ctrl and the wheel for size'),
         ('k', 'every key\tshown on the surface is a place to click, and does what the key does'),
         ('k', 'F9\tthe Field, from anywhere in Graphite'),
@@ -774,7 +774,7 @@ class FieldView(QWidget):
         elif self.texture and self.reading is None:      # the pointer's light moved: only the two places it was and is are drawn again
             self.update(QRegion(self._lit(was)).united(QRegion(self._lit(self._mouse))))
         obj = self.field.get(ident) if ident else None
-        tip = hot[3] if hot else ('%s%s\nClick opens it · right-click for what can be done' % (obj.title, (' · ' + STATE_WORD.get(obj.state, obj.state)) if obj.state else '')) if obj is not None else ''
+        tip = hot[3] if hot else ('%s%s\nDouble-click opens it · right-click for what can be done' % (obj.title, (' · ' + STATE_WORD.get(obj.state, obj.state)) if obj.state else '')) if obj is not None else ''
         if tip:QToolTip.showText(event.globalPosition().toPoint(), tip, self)
         else:QToolTip.hideText()
 
@@ -786,10 +786,20 @@ class FieldView(QWidget):
         if self._panned:
             self._panned = False;self._point(Qt.ArrowCursor);return
         ident = press[1]
-        if ident and self._hit(event.position()) == ident:      # a click on a sheet: it is the selected one, and it opens
+        if ident and self._hit(event.position()) == ident:      # a click on a sheet: it is the selected one (1.0 L4: one click focuses; a double click opens)
             if ident != self.field.selected:
                 self.field.select(ident);self._describe()
-            self.update();lift = self._guard_second_click(event.timestamp());self.opened.emit(self.selected());lift()
+            self.update()
+
+    def mouseDoubleClickEvent(self, event):
+        """1.0 L4: a double click on a sheet opens its working view (one click only focuses it)."""
+        if event.button() != Qt.LeftButton or self.reading is not None or self.revisions is not None:return super().mouseDoubleClickEvent(event)
+        ident = '' if self._hot_at(event.position()) is not None or self._bar_at(event.position()) else self._hit(event.position())
+        if not ident:return super().mouseDoubleClickEvent(event)
+        self._press = None
+        if ident != self.field.selected:
+            self.field.select(ident);self._describe()
+        self.update();lift = self._guard_second_click(event.timestamp());self.opened.emit(self.selected());lift()
 
     def _guard_second_click(self, stamp=0):
         """A sheet opens on one click. A hand that double-clicks to open would land its second click on whatever the newly

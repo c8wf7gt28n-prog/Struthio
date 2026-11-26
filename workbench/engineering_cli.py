@@ -120,6 +120,7 @@ def schemas():
     from .relevance import FIELDS as RELEVANCE_FIELDS  # 1.0 L3 (relevance): relevance.why, .pin, .turn_down, .clear
     from .her_portrait import FIELDS as PORTRAIT_FIELDS  # 1.0 P1 (her column): her portrait, admitted
     from .machine_real import FIELDS as MACHINE_REAL_FIELDS  # 1.0 S4 (the Machine, real): machine.state
+    from .depths import FIELDS as DEPTH_FIELDS  # 1.0 L4 (depths): revisions.record, revisions.list
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -241,6 +242,7 @@ def schemas():
         **RELEVANCE_FIELDS,  # 1.0 L3 (relevance)
         **PORTRAIT_FIELDS,  # 1.0 P1 (her column): her portrait, admitted
         **MACHINE_REAL_FIELDS,  # 1.0 S4 (the Machine, real): machine.state
+        **DEPTH_FIELDS,  # 1.0 L4 (depths): revisions.record, revisions.list
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

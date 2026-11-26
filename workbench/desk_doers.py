@@ -285,6 +285,14 @@ def mouse(widget, pos, button=None, release=True):
     if release:Q.QApplication.sendEvent(widget, Q.QMouseEvent(Q.QEvent.MouseButtonRelease, at, gp, button, Q.Qt.NoButton, Q.Qt.NoModifier))
 
 
+def double(widget, pos):
+    """1.0 L4: the second click of a double click at `pos`, after mouse(): its double-click event and its release."""
+    check_stop()
+    at = Q.QPointF(pos);gp = Q.QPointF(widget.mapToGlobal(at.toPoint()))
+    Q.QApplication.sendEvent(widget, Q.QMouseEvent(Q.QEvent.MouseButtonDblClick, at, gp, Q.Qt.LeftButton, Q.Qt.LeftButton, Q.Qt.NoModifier))
+    Q.QApplication.sendEvent(widget, Q.QMouseEvent(Q.QEvent.MouseButtonRelease, at, gp, Q.Qt.LeftButton, Q.Qt.NoButton, Q.Qt.NoModifier))
+
+
 def right_click(widget, pos):
     """A right-click's ContextMenu event at `pos` in `widget` (the router opens Graphite's menu for what is there)."""
     check_stop()
@@ -856,6 +864,7 @@ def go_open(c):
             point_by_keys(c, view, obj.id);field_keys(c, view, [Q.Qt.Key_Return])
         else:
             mouse(view, sheet_point(view, obj.id))
+            double(view, sheet_point(view, obj.id))      # 1.0 L4: one click focuses a sheet; the second click of a double click opens it
         settle(host, 60, 6)       # the opening click's guard lets go a moment after
         return 'The page for “%s” is open.' % obj.title, {'tab': tab_said(host)}
     tab = files_tab(host);view, item = file_item(tab, a['path'])

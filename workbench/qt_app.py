@@ -201,7 +201,8 @@ class CodeEditor(QPlainTextEdit):
     def _highlight(self):
         extra = []
         line = QTextEdit.ExtraSelection()
-        line.format.setBackground(QColor('#f2e9da'))
+        from . import boss_theme as _look  # 1.0 L4: the line in hand in the look's own raised ground (a fixed light band hid its words in the dark looks)
+        line.format.setBackground(QColor(_look.RAISED))
         line.format.setProperty(QTextFormat.FullWidthSelection, True)
         line.cursor = self.textCursor()
         line.cursor.clearSelection()
@@ -3497,6 +3498,9 @@ class WorkbenchWindow(QMainWindow):
         w = self.tabs.widget(index)
         if w is None:
             return True
+        from . import depths_qt  # 1.0 L4: a working view opened from the board asks Save, Don't save, Cancel, and closing comes back to the board
+        if not depths_qt.may_close(self, w):
+            return False
         if hasattr(w, "can_close_concern") and not w.can_close_concern():
             return False
         if hasattr(w, "can_close_pdf") and not w.can_close_pdf():
@@ -3516,6 +3520,7 @@ class WorkbenchWindow(QMainWindow):
             if getattr(w,'recovery_owned',False):self.recovery.remove(engine.rel(w.path,self.root))
             if self.split_editor is not None and self.split_editor.document() is w.document():
                 self._close_split()
+        back = depths_qt.closing(self, w)  # 1.0 L4: where it goes back to, read before the tab is taken out
         self.tabs.removeTab(index)
         if w is self.sim_trace:
             # Never destroy the session controller when its detail view closes.
@@ -3523,6 +3528,8 @@ class WorkbenchWindow(QMainWindow):
             w.hide()
         else:
             w.deleteLater()
+        if depths_qt.closed(self, back):  # 1.0 L4: closing comes back to the same board
+            return True
         if self.tabs.count() == 0 and not self.tabs.replacing:
             self.show_start()
         return True

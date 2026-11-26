@@ -3488,6 +3488,8 @@ class Shell2(QObject):
         install_panes(host)  # HATCH DESK D1b: both panes: three tabs, the active tree or face, the foot (Trash and its empty mirror)
         from .living_nav_qt import install as install_living_nav
         install_living_nav(host)  # 1.0 L1: one navigation state: the tree and the centre share one focus; the breadcrumb, Back, Forward
+        from .depths_qt import install as install_depths
+        install_depths(host)  # 1.0 L4: depths: Board on the breadcrumb, Save and Return, Full program, Close, the line, open files watched
         from .her_column_qt import install as install_her_column
         install_her_column(host)  # 1.0 P1: her column as in the owner's picture; the equalizer moves into it, the ask line into the right foot
         host.tabs.currentChanged.connect(self.sync_worksheet)
