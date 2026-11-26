@@ -382,6 +382,18 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 26 Nov 23:03 UTC: **1.0 X4 merged** (81b949d: twelve power-user sessions; power_demo.py; the DELETE room scrolls; a busy
+  eject names the program). Its account is in `X4.account.md`. Its faults break items of section 2, so **two last
+  slices were written and launched**:
+  * **F3**, the walkthroughs' faults: a fetch cut short by a network drop must never be "done (verified)" (item 13); a
+    grant given under HALT must carry its task after RESUME (item 10); TRACE on the focused finding; her column true
+    after a restart and with the model's state; TRACE/CHECK ALL, HALT/RESUME, asking and the board rebuild off the
+    window's thread; the HALT toast off "Waits for you"; Search opening the board and finding Home's files by name;
+    accessibility names and Tab.
+  * **L6c**, bulk files: the tree's multi-selection with one Undo per batch; a line that moves or deletes (asking); the
+    sandbox's cap 8 → 64 and Undo for its new files.
+  Running: F3, L6c. Then R2. 45 slices: 41 merged, P5 cancelled.
+
 - 26 Nov 21:46 UTC: **The §18 day with the real 4B on the merged tree** (coordinator, once, 21:43–21:46 under the lock;
   log `X1.real4B_merged_coordinator.log`, frames `frames_X1_real4B/`): the 4B started in 65 s; the day ran steps 1 to
   13 with no dialog and no traceback. She noticed "Rail Demo summary still says 3 W", and PLAN was TAKEN in 5,468 ms

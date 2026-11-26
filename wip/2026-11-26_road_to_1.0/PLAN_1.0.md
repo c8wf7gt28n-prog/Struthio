@@ -494,6 +494,30 @@ background reads with no assignment open. Her state word follows her work only. 
 plans a tidy of Downloads from the file tools; one grant press covers the tidy's folder-making and moves; her state
 word QUIET while only Graphite reads.
 
+**F3 · The walkthroughs' faults** (added at X4's merge, 26 Nov, from X4's and X1's accounts; each breaks an item of
+section 2). (1) Item 13: a fetch cut short when the network dropped was counted "done (verified)" and NET still said "her
+fetch". A fetch is verified only when it is whole, and a step that needs the network while it is down is "blocked: needs
+the network". (2) Item 10: a grant given while HALT holds must carry its assignment through after RESUME and its own
+Resume, and the built-in grant "edit files in her own area, always" must cover a proposed step writing there. (3) TRACE
+from her column on a finding focused on the board traces that finding (it asked "Which of these did you mean?"). (4) Her
+column tells the truth at once: after a restart it reads ACTIVE WORK and FINDINGS from the journal and the desk (it said
+"No assignment is open" with one waiting); her model line follows the brain's state (it said "no model yet" with the 4B
+sealed, and "her model is answering" after it stopped); ACTIVE WORK follows Stop. (5) The window's thread does no work
+over 100 ms where X4 measured seconds: TRACE and CHECK ALL (4.2 s), HALT and RESUME (1.5 to 1.8 s), asking her (1.8 s),
+the board's rebuild after a cell change (2.1 s), on F2's floor workers. (6) The HALT toast never covers "Waits for you".
+(7) Search: a hit opens the board's focus (not the old Cabinet record tab) and Back returns to the results; Home's files
+are found by name; several words match separately. (8) Accessibility: every keyboard stop has a name a screen reader can
+say (X4 found seven without), and Tab reaches the presses in a scrolled page (Storage's Mount and Eject). *Acceptance:*
+each case replayed as X4 walked it (its scripts are in scratch), before and after.
+
+**L6c · Bulk files** (added at X4's merge, 26 Nov: "the power user's first want"). The Files tree selects many rows
+(click, a range, add one); Move to…, Copy to… and Delete act on all of them in one press, with one line and **one Undo
+for the batch**. A line can move or delete what it lists, as a step that asks (one press, the count and the folder shown;
+Undo for the batch). The sandbox takes a folder's worth (its file cap raised from 8 to 64 within its size limit), and its
+Apply offers Undo for the files it made new. *Acceptance:* 48 invoices moved in one press and put back with one Undo; 50
+deleted and 3 restored; a line moving a pattern's worth with one Undo; the dedupe utility over 24 photos with Apply and
+Undo.
+
 ### Wave 5 — the door, the floor, the Apps by hand
 
 **F1 · The door's mechanics.** A touch stops her: any owner input in the window while her hand drives it pauses the
