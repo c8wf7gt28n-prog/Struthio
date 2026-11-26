@@ -256,6 +256,12 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 26 Nov 10:55 (P4, the owner: a default look "apple/microsoft level refined for the 1.0 launch"): Day, rebuilt on one
+  set of design tokens, is the launch look, with Night as its dark twin; Inter bundled for the interface (SIL OFL; staged
+  in scratch `$S/in/fonts/stage/inter/` from Debian's fonts-inter 4.0, with its copyright file) beside the bundled IBM
+  Plex Mono; an existing profile moves to Day once on 1.0's first start, with a line saying where its earlier look is.
+  Graphite and Kasandra stay as alternatives. HALT keeps the owner's green triangle.
+
 - 26 Nov 10:40 (the owner: the foot's Kasandra option goes, she has her column; "take more control of how the desktop
   is designed"): the builder's design direction written, `wip/2026-11-26_road_to_1.0/DESIGN_DIRECTION_1.0.md` (places
   and their one job, one language of states, one centre bar, her column ordered by what waits for you, the foot as the
@@ -328,6 +334,9 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 26 Nov 10:55 UTC: **P4 added** (the launch look: tokens, Inter, Day refined, Night). Order after the running four:
+  L6, D1, P4, F1, F2, then D2, X1, X2, R1, R2.
 
 - 26 Nov 10:40 UTC: **D1 and D2 added** (the design direction; the foot without Kasandra). Order after the running
   four (K8, K9, K4b, A1): L6, D1, F1, F2, then D2, X1, X2, R1, R2.

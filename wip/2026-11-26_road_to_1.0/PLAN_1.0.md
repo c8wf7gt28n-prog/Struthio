@@ -433,6 +433,14 @@ the "Waits for you" band at the top of her column; Day as a fresh profile's look
 *Acceptance:* the foot has no Kasandra; a Graphite line typed in Line runs; "recheck the startup power" typed in Line
 offers Ask Kasandra → and, pressed, lands in her column as a plan (K4); frames in three looks at two sizes.
 
+**P4 · The launch look** (the owner, 26 Nov: "Day or other modes, I want you to create a default version that is
+apple/microsoft level refined for the 1.0 launch"). `DESIGN_DIRECTION_1.0.md` section 9: `workbench/design_tokens.py`
+for Day and Night; Inter bundled (Regular, Medium, SemiBold, Display SemiBold, with its licence) beside the bundled
+IBM Plex Mono; Day rebuilt on the tokens and Night made from them; every surface reads the tokens; the move to Day on
+1.0's first start. *Acceptance:* frames of every main surface (board, working view, split, her column, Apps, Machine,
+Settings, menus, the dock, a toast, the Grants page, the sandbox tab, an empty workspace) in Day and Night at 1920x1200
+and 1366x768; every text pair measured ≥ 4.5:1; no colour literal for Day or Night outside the tokens.
+
 **D2 · The polish pass** (after every feature slice, before X1): every surface in three looks at two sizes, fixed in
 place to the design direction; a frame atlas for the owner.
 
