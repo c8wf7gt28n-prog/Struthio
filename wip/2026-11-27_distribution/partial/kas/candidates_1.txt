@@ -1,0 +1,236 @@
+# files and folders
+coreutils: ls cp mv rm mkdir du df sha256sum split shred stat touch ln chmod chown sort wc head tail tee date timeout nice
+findutils: find xargs
+plocate: plocate updatedb
+ncdu: ncdu
+duf: duf
+fdupes: fdupes
+jdupes: jdupes
+rdfind: rdfind
+rmlint: rmlint
+ripgrep: rg
+fd-find: fdfind
+fzf: fzf
+bat: batcat
+tree: tree
+recoll: recoll recollindex recollq
+pdfgrep: pdfgrep
+rename: file-rename rename
+renameutils: qmv imv
+mmv: mmv
+moreutils: vidir sponge ts
+7zip: 7z 7za 7zr
+7zip-standalone: 7zz
+unzip: unzip
+zip: zip
+unrar-free: unrar-free
+unrar: unrar
+unar: unar lsar
+tar: tar
+xz-utils: xz
+zstd: zstd
+rsync: rsync
+rclone: rclone
+diffutils: diff cmp
+meld: meld
+file: file
+dos2unix: dos2unix unix2dos
+uchardet: uchardet
+libc-bin: iconv
+trash-cli: trash-put trash-list trash-restore trash-empty
+libglib2.0-bin: gio
+gnupg: gpg
+age: age
+gocryptfs: gocryptfs
+cryptsetup-bin: cryptsetup
+libimage-exiftool-perl: exiftool
+detox: detox
+testdisk: testdisk photorec
+gddrescue: ddrescue
+attr: getfattr
+acl: getfacl setfacl
+inotify-tools: inotifywait
+# documents
+libreoffice: soffice libreoffice
+libreoffice-common: soffice
+libreoffice-writer:
+libreoffice-calc:
+libreoffice-impress:
+libreoffice-draw:
+python3-uno:
+libreoffice-gtk3:
+unoconv: unoconv
+poppler-utils: pdfunite pdfseparate pdftotext pdftoppm pdfinfo pdfimages pdffonts pdfsig pdfattach pdfdetach pdftocairo
+qpdf: qpdf
+pdftk-java: pdftk
+ghostscript: gs ps2pdf
+ocrmypdf: ocrmypdf
+tesseract-ocr: tesseract
+tesseract-ocr-eng:
+tesseract-ocr-deu:
+tesseract-ocr-osd:
+img2pdf: img2pdf
+pandoc: pandoc
+weasyprint: weasyprint
+typst: typst
+texlive-xetex: xelatex
+texlive-latex-base: pdflatex
+calibre: ebook-convert
+diffpdf: diffpdf
+diff-pdf-wx: diff-pdf
+mat2: mat2
+python3-pypdf:
+python3-pdfplumber:
+python3-pdfminer: pdf2txt
+python3-fitz:
+mupdf-tools: mutool
+pdfarranger: pdfarranger
+xournalpp: xournalpp
+csvkit: in2csv csvsql csvstat csvcut csvlook
+xlsx2csv: xlsx2csv
+gnumeric: ssconvert
+miller: mlr
+visidata: vd
+sqlite3: sqlite3
+hunspell: hunspell
+aspell: aspell
+languagetool:
+antiword: antiword
+catdoc: catdoc
+docx2txt: docx2txt
+cups-client: lp lpstat cancel lpq lprm lpoptions
+cups: lpadmin cupsenable cupsdisable cupsaccept lpinfo cupsctl
+cups-bsd: lpr
+cups-pk-helper:
+system-config-printer: system-config-printer
+ipp-usb: ipp-usb
+printer-driver-all:
+sane-utils: scanimage
+sane-airscan:
+simple-scan: simple-scan
+glabels: glabels-3 glabels-3-batch
+glabels-qt: glabels-qt
+libnotify-bin: notify-send
+okular: okular
+evince: evince
+# pictures audio video
+imagemagick: magick convert mogrify identify montage compare
+imagemagick-7.q16: magick-im7.q16 convert-im7.q16 identify-im7.q16 mogrify-im7.q16 montage-im7.q16 compare-im7.q16
+graphicsmagick: gm
+gimp: gimp gimp-console gimp-console-3.0
+libheif-examples: heif-dec heif-convert heif-info heif-enc
+libjpeg-turbo-progs: jpegtran exifautotran cjpeg djpeg
+jpegoptim: jpegoptim
+optipng: optipng
+pngquant: pngquant
+oxipng: oxipng
+webp: cwebp dwebp
+librsvg2-bin: rsvg-convert
+potrace: potrace
+icoutils: icotool
+qrencode: qrencode
+zbar-tools: zbarimg
+darktable: darktable-cli darktable
+rawtherapee: rawtherapee-cli
+scrot: scrot
+maim: maim
+flameshot: flameshot
+ffmpeg: ffmpeg ffprobe ffplay
+mediainfo: mediainfo
+mkvtoolnix: mkvmerge mkvextract
+handbrake-cli: HandBrakeCLI
+sox: sox soxi
+lame: lame
+flac: flac metaflac
+opus-tools: opusenc
+vorbis-tools: oggenc
+id3v2: id3v2
+eyed3: eyeD3
+kid3-cli: kid3-cli
+picard: picard
+abcde: abcde
+pipewire-bin: pw-record pw-play pw-top pw-cli pw-dump
+wireplumber: wpctl
+pulseaudio-utils: pactl
+alsa-utils: arecord aplay amixer alsamixer speaker-test
+v4l-utils: v4l2-ctl
+espeak-ng: espeak-ng
+yt-dlp: yt-dlp
+obs-studio: obs
+simplescreenrecorder: simplescreenrecorder
+audacity: audacity
+kdenlive: kdenlive melt
+shotcut: shotcut
+vlc: vlc cvlc
+mpv: mpv
+whisper.cpp:
+whisper-cpp:
+assimp-utils: assimp
+meshlab: meshlab meshlabserver
+openscad: openscad
+# web
+curl: curl
+wget: wget
+wget2: wget2
+aria2: aria2c
+monolith: monolith
+httrack: httrack
+wkhtmltopdf: wkhtmltopdf
+chromium: chromium
+firefox-esr: firefox-esr firefox
+w3m: w3m
+lynx: lynx
+html2text: html2text
+python3-html2text: html2markdown
+python3-bs4:
+python3-lxml:
+python3-readability:
+newsboat: newsboat
+ca-certificates:
+dnsutils: dig nslookup
+bind9-dnsutils: dig nslookup
+whois: whois
+# software
+apt: apt apt-get apt-cache apt-mark apt-config
+dpkg: dpkg dpkg-query dpkg-deb
+apt-file: apt-file
+command-not-found: command-not-found
+packagekit:
+packagekit-tools: pkcon pkmon
+appstream: appstreamcli
+aptitude: aptitude
+debsums: debsums
+needrestart: needrestart
+unattended-upgrades: unattended-upgrade unattended-upgrades
+apt-listchanges: apt-listchanges
+apt-listbugs: apt-listbugs
+debian-goodies: checkrestart dgrep popbugs
+deborphan: deborphan
+etckeeper: etckeeper
+apt-show-versions: apt-show-versions
+flatpak: flatpak
+snapd: snap
+gnome-software: gnome-software
+plasma-discover: plasma-discover
+synaptic: synaptic synaptic-pkexec
+gdebi-core: gdebi
+wine: wine
+wine64:
+winetricks: winetricks
+dosbox: dosbox
+dosbox-x: dosbox-x
+dosemu2:
+freedos:
+fontconfig: fc-cache fc-list fc-match
+ttf-mscorefonts-installer:
+fonts-liberation:
+fonts-liberation2:
+fonts-crosextra-carlito:
+fonts-crosextra-caladea:
+libavcodec-extra:
+fwupd: fwupdmgr
+firmware-amd-graphics:
+firmware-linux-free:
+checkinstall: checkinstall
+stow: stow
+debfoster: debfoster

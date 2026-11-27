@@ -1,0 +1,40 @@
+workbench/return_thread_qt.py:4:from PySide6.QtGui import QAction,QKeySequence
+workbench/return_thread_qt.py:32:        self.a_return=QAction('Return thread…',host);self.a_return.setShortcut(QKeySequence('Ctrl+Alt+R'))
+workbench/shell2.py:18:from PySide6.QtGui import QColor, QFont, QFontDatabase, QIcon, QKeySequence, QPainter, QPen, QShortcut
+workbench/shell2.py:614:        QShortcut(QKeySequence('Ctrl+L'), host, activated=self.path.edit_location)
+workbench/shell2.py:1482:        QShortcut(QKeySequence('Ctrl+Return'), self.text, activated=self.save)
+workbench/shell2.py:3528:        QShortcut(QKeySequence("Ctrl+K"), host, activated=self.search)  # the writing line in Search (HATCH DESK D3)
+workbench/shell2.py:3529:        QShortcut(QKeySequence('Ctrl+Shift+N'), host, activated=lambda:capture_dialog(host))
+workbench/chain_menu.py:528:    from PySide6.QtGui import QKeySequence, QShortcut
+workbench/chain_menu.py:531:    QShortcut(QKeySequence('Ctrl+Shift+Space'), host, activated=lambda:open_here(host))
+workbench/organizer_qt.py:331:    action.setShortcut('Ctrl+Shift+J');action.triggered.connect(bridge.show_organizer)
+workbench/document_qt.py:17:from PySide6.QtGui import QColor, QFont, QKeySequence, QPalette, QShortcut, QTextBlockFormat, QTextCharFormat, QTextCursor, QTextDocument, QTextFormat
+workbench/document_qt.py:263:            shortcut = QShortcut(QKeySequence(keys), self.page); shortcut.setContext(Qt.WidgetWithChildrenShortcut); shortcut.activated.connect(slot)
+workbench/investigations_qt.py:10:from PySide6.QtGui import QKeySequence, QShortcut
+workbench/investigations_qt.py:258:            shortcut = QShortcut(text)
+workbench/investigations_qt.py:259:            shortcut.setKeys([QKeySequence(key) for key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Space)])
+workbench/console_qt.py:34:from PySide6.QtGui import QKeySequence, QShortcut, QTextCursor
+workbench/console_qt.py:700:    QShortcut(QKeySequence('Ctrl+`'), host, activated=lambda:console.open())
+workbench/console_qt.py:701:    for key, mode in (('Ctrl+Alt+`', 'shell'),):QShortcut(QKeySequence(key), host, activated=lambda m=mode:console.open(m))
+workbench/qt_app.py:32:from PySide6.QtGui import QAction, QActionGroup, QBrush, QColor, QDesktopServices, QFont, QFontDatabase, QIcon, QImage, QKeySequence, QPainter, QPainterPath, QPalette, QPen, QPixmap, QRegion, QTextDocument, QTextCursor, QTextFormat
+workbench/qt_app.py:2666:            a.setShortcuts([QKeySequence(s) if isinstance(s, str) else QKeySequence(s) for s in seqs])
+workbench/qt_app.py:2676:        self.a_new = A('&New File…', self.new_file, QKeySequence.New, 'Create a file in the selected folder')
+workbench/qt_app.py:2677:        self.a_open = A('&Open…', self.open_dialog, QKeySequence.Open, 'Open a file', QStyle.SP_DialogOpenButton)
+workbench/qt_app.py:2681:        self.a_save = A('&Save', lambda: self.save_document(), QKeySequence.Save, 'Save the current file',
+workbench/qt_app.py:2686:        self.a_undo = A('&Undo', lambda: self._ed('undo'), QKeySequence.Undo)
+workbench/qt_app.py:2688:        self.a_cut = A('Cu&t', lambda: self._ed('cut'), QKeySequence.Cut)
+workbench/qt_app.py:2689:        self.a_copy = A('&Copy', lambda: self._ed('copy'), QKeySequence.Copy)
+workbench/qt_app.py:2690:        self.a_paste = A('&Paste', lambda: self._ed('paste'), QKeySequence.Paste)
+workbench/qt_app.py:2691:        self.a_select = A('Select &All', lambda: self._ed('selectAll'), QKeySequence.SelectAll)
+workbench/qt_app.py:2692:        self.a_find = A('&Find…', self.find, QKeySequence.Find)
+workbench/qt_app.py:3047:                    shortcuts=' / '.join(seq.toString(QKeySequence.NativeText) for seq in action.shortcuts())
+workbench/menus2.py:170:            a.setCheckable(True);a.setShortcut('Alt+%d' % number);host.addAction(a);talk.addAction(a);host.a_talk[key] = a
+workbench/menus2.py:172:        host.a_talk_stac.setShortcut('Alt+2');host.addAction(host.a_talk_stac);host.a_talk['stac'] = host.a_talk['slate'] = host.a_talk['line']      # 1.0 D1
+workbench/menus2.py:174:        host.a_run_operation.setShortcut('Alt+3');host.addAction(host.a_run_operation);host.a_talk['kernel'] = host.a_run_operation
+workbench/menus2.py:196:        host.a_field = QAction('Field', host);host.a_field.setShortcut('F9')
+workbench/tool_faces.py:274:        if line.isShortcutVisibleInContextMenu():line.setShortcutVisibleInContextMenu(False)
+workbench/context_menu.py:43:from PySide6.QtGui import QColor, QContextMenuEvent, QCursor, QFontMetricsF, QGuiApplication, QKeySequence, QPainter, QPainterPath, QPen, QShortcut
+workbench/context_menu.py:2949:    for sequence in (QKeySequence(Qt.Key_Menu), QKeySequence('Shift+F10')):
+workbench/context_menu.py:2950:        shortcut = QShortcut(sequence, host);shortcut.setContext(Qt.WindowShortcut);shortcut.activated.connect(lambda:open_at_focus(host));keys.append(shortcut)
+workbench/living_nav_qt.py:35:from PySide6.QtGui import QColor, QFontMetrics, QIcon, QKeySequence, QPainter, QPainterPath, QPen, QPixmap, QShortcut
+workbench/living_nav_qt.py:241:            QShortcut(QKeySequence(keys), host, activated=go)

@@ -1,0 +1,624 @@
+{
+ "tier": "rerun",
+ "looks": [
+  "graphite"
+ ],
+ "wall_seconds": 395.6,
+ "state": "FAILED",
+ "failing": 58,
+ "not_run": 0,
+ "skipped": 0,
+ "tests_run": 386,
+ "rows": [
+  {
+   "module": "tools/name_sweep.py",
+   "look": "graphite",
+   "kind": "sweep",
+   "ran": 1,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 9.0,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/name_sweep.py",
+     "message": "NAME SWEEP, the code: 3 places"
+    }
+   ],
+   "log": "logs/graphite/name_sweep.py.out"
+  },
+  {
+   "module": "test_system_menu",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 31,
+   "failed": 4,
+   "skipped": 0,
+   "seconds": 13.0,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RealWindowLeaveTests.test_log_out_closes_graphite_the_ordinary_way_before_its_command",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    },
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RunActionTests.test_a_command_refused_after_the_close_says_why",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    },
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RunActionTests.test_the_close_holds_the_applications_quit_until_the_command_has_answered",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    },
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RunActionTests.test_the_questions_then_the_confirmation_then_the_close_then_the_command",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    }
+   ],
+   "log": "logs/graphite/test_system_menu.out"
+  },
+  {
+   "module": "test_session_start",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 28,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 51.4,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_session_start.SecondStart.test_a_session_left_with_rooms_open_starts_again_and_again",
+     "message": "AssertionError: <workbench.field_page.FieldPage(0x3c1ec8b0, name=\"FieldPage\") at 0x7f838463d080> is not <PySide6.QtWidgets.QSplitter(0x3b284a20) at 0x7f839c8a5ac0>"
+    },
+    {
+     "test": "FAIL tests_integrated.test_session_start.StartScript.test_left_with_home_in_front_and_a_room_open_the_next_starts_open_the_office",
+     "message": "AssertionError: Tuples differ: (False, False, 'workspace') != (True, False, 'home') First differing element 0: False True - (False, False, 'workspace') + (True, False, 'home') : Home was in front at leaving, and is when the window is built"
+    }
+   ],
+   "log": "logs/graphite/test_session_start.out"
+  },
+  {
+   "module": "test_graphite",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 29,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 10.0,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_graphite.RenameGuardTests.test_public_name_and_internal_identities",
+     "message": "AssertionError: 'line' != 'slate' - line + slate : the first mode is hers (Kasandra, in every look); its key stays slate"
+    }
+   ],
+   "log": "logs/graphite/test_graphite.out"
+  },
+  {
+   "module": "test_context_menu",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 45,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 57.5,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_context_menu.Window.test_inspect_in_the_line_puts_the_equivalent_command_in_assignment_and_runs_nothing",
+     "message": "AssertionError: 'line' != 'slate' - line + slate"
+    },
+    {
+     "test": "FAIL tests_integrated.test_context_menu.Window.test_log_events_connections_and_packets",
+     "message": "AssertionError: 'line' != 'slate' - line + slate"
+    }
+   ],
+   "log": "logs/graphite/test_context_menu.out"
+  },
+  {
+   "module": "test_faces_find_light",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 34,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 0.9,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_faces_find_light.DeskLightTests.test_white_paper_comes_down_and_black_ink_stays_black_and_the_page_itself_is_untouched",
+     "message": "AssertionError: 100.0 not less than 65 : day: well below white"
+    }
+   ],
+   "log": "logs/graphite/test_faces_find_light.out"
+  },
+  {
+   "module": "test_kasandra",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 20,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 1.3,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_kasandra.StateTests.test_the_state_of_the_work_in_order_of_what_matters",
+     "message": "AssertionError: 'idle' != 'working' - idle + working"
+    }
+   ],
+   "log": "logs/graphite/test_kasandra.out"
+  },
+  {
+   "module": "test_one_name",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 19,
+   "failed": 3,
+   "skipped": 0,
+   "seconds": 127.3,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_one_name.TheCode.test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed",
+     "message": "AssertionError: Lists differ: [('workbench/depths_qt.py', 390, 'Save and[109 chars]rn')] != [] First list contains 3 additional elements. First extra element 0: ('workbench/depths_qt.py', 390, 'Save and Return') + [] - [('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 440, 'Save and Return')] : these words name"
+    },
+    {
+     "test": "FAIL tests_integrated.test_one_name.TheWindow.test_no_word_on_screen_says_stacy_in_either_look (look='graphite')",
+     "message": "AssertionError: Lists differ: ['the writing line: to her', 'Rules: her art plate opened'] != [] First list contains 2 additional elements. First extra element 0: 'the writing line: to her' - ['the writing line: to her', 'Rules: her art plate opened'] + [] : every place of the walk was reached"
+    },
+    {
+     "test": "FAIL tests_integrated.test_one_name.TheWindow.test_no_word_on_screen_says_stacy_in_either_look (look='kasandra')",
+     "message": "AssertionError: Lists differ: ['the writing line: to her', 'Rules: her art plate opened'] != [] First list contains 2 additional elements. First extra element 0: 'the writing line: to her' - ['the writing line: to her', 'Rules: her art plate opened'] + [] : every place of the walk was reached"
+    }
+   ],
+   "log": "logs/graphite/test_one_name.out"
+  },
+  {
+   "module": "test_campaign",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 23,
+   "failed": 3,
+   "skipped": 0,
+   "seconds": 15.9,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_campaign.CampaignTests.test_r19_and_r22_meet_the_spec_and_are_plain_passes",
+     "message": "AssertionError: 'Fail' != 'Pass' - Fail + Pass : ('R19', \"case broke after 3 of 28 checks met: ValueError: '--backend' is not in list\")"
+    },
+    {
+     "test": "FAIL tests_integrated.test_campaign.CampaignTests.test_resource_cases_pass_on_current_behaviour",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('R01', '1 of 11 checks missed; first: estimate_bytes expected 28726879197, observed 33480074205')"
+    },
+    {
+     "test": "FAIL tests_integrated.test_campaign.CampaignTests.test_run_into_an_existing_folder_moves_the_earlier_run_aside",
+     "message": "AssertionError: False is not true : SUMMARY run_stale: 1 cases, Pass 0, Pass (current code; the spec asks otherwise) 0, Partial 1, Blocked 0, Fail 0, Timeout 0. Pass means every check matched the current code, not that the spec is met."
+    }
+   ],
+   "log": "logs/graphite/test_campaign.out"
+  },
+  {
+   "module": "test_rail_demo",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 38,
+   "failed": 7,
+   "skipped": 0,
+   "seconds": 97.1,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_as_played_on_the_owners_workspace_finds_each_name_here_and_passes",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_on_a_small_window",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_the_scene_leaves_the_records_of_rail_demo_as_it_found_them",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    }
+   ],
+   "log": "logs/graphite/test_rail_demo.out"
+  },
+  {
+   "module": "test_rail_demo_campaign",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 26,
+   "failed": 3,
+   "skipped": 0,
+   "seconds": 105.3,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_rail_demo_campaign.TheRuns.test_every_twin_passes_with_nothing_of_the_owners_here",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('DP01a', '1 of 54 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\"', None)"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo_campaign.TheRuns.test_p01_is_played_on_rail_demo_in_the_graphite_look_and_in_the_kasandra_look",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('graphite', '1 of 54 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\"', None)"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo_campaign.TheSceneCaseWhereItsNamesAreFound.test_the_case_finds_each_name_there_and_meets_the_scenes_own_checks",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : [{'check': '9:desk.line.target', 'expected': 'her', 'observed': 'line', 'ok': False}]"
+    }
+   ],
+   "log": "logs/graphite/test_rail_demo_campaign.out"
+  },
+  {
+   "module": "test_resource_rules",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 19,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 8.9,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_resource_rules.Margins.test_autos_headroom_stays_with_its_budget_at_admission_and_launch",
+     "message": "AssertionError: Tuples differ: (31930, 4096) != (27397, 4096) First differing element 0: 31930 27397 - (31930, 4096) ?   - ^^ + (27397, 4096) ?  ++  ^"
+    },
+    {
+     "test": "FAIL tests_integrated.test_resource_rules.Ready.test_a_restored_model_with_an_empty_reply_is_not_ready",
+     "message": "AssertionError: Lists differ: [4194406, 4194407] != [] First list contains 2 additional elements. First extra element 0: 4194406 - [4194406, 4194407] + []"
+    }
+   ],
+   "log": "logs/graphite/test_resource_rules.out"
+  },
+  {
+   "module": "test_desk_acts",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 28.0,
+   "state": "FAILED",
+   "exit": -11,
+   "failures": [
+    {
+     "test": "the module",
+     "message": "Extension modules: shiboken6.Shiboken, PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets, PySide6.QtSvg, PySide6.QtDBus, PySide6.QtTest (total: 7)"
+    }
+   ],
+   "log": "logs/graphite/test_desk_acts.out"
+  },
+  {
+   "module": "test_desk_scenes",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 5,
+   "failed": 5,
+   "skipped": 0,
+   "seconds": 45.1,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_keys",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_keys_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse_on_a_small_window",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    }
+   ],
+   "log": "logs/graphite/test_desk_scenes.out"
+  },
+  {
+   "module": "test_delete_words",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 6,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 15.4,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_delete_words.TheCan.test_the_can_says_DELETE_in_kasandra",
+     "message": "AssertionError: Lists differ: [181, 1094, 120, 29] != [218, 1094, 120, 29] First differing element 0: 181 218 - [181, 1094, 120, 29] ?    - + [218, 1094, 120, 29] ?  +"
+    }
+   ],
+   "log": "logs/graphite/test_delete_words.out"
+  },
+  {
+   "module": "test_kasandra_column",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 18,
+   "failed": 6,
+   "skipped": 0,
+   "seconds": 26.0,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Column.test_apps_is_the_struthio_then_words",
+     "message": "AssertionError: 1863 not greater than 1880"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Column.test_her_words_have_the_room",
+     "message": "AssertionError: 259 not greater than or equal to 295 : about 17 px wider than in 0.8.2"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Column.test_the_picture_is_gone_and_the_masthead_is_level_with_the_tabs",
+     "message": "AssertionError: 317 != 354"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Review.test_a_name_that_fits_a_line_is_never_cut_at_its_end",
+     "message": "AssertionError: False is not true : {'leaded': False, 'plain': False, 'room': 249, 'long_breaks': 4, 'long_whole': True}"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Review.test_a_note_in_the_viewer_keeps_the_desk_and_cuts_no_action",
+     "message": "AssertionError: Lists differ: [317, 317, 317] != [354, 354, 354] First differing element 0: 317 354 - [317, 317, 317] + [354, 354, 354]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Review.test_waiting_on_the_agenda_is_waiting_for_her",
+     "message": "AssertionError: Tuples differ: ('idle', 'awaiting_approval', 'quiet') != ('idle', 'awaiting_approval', 'waits for you') First differing element 2: 'quiet' 'waits for you' - ('idle', 'awaiting_approval', 'quiet') ?                                ^ --- + ('idle', 'awaiting_approval', 'waits for you') ?                                ^^^^^^^^^^^^"
+    }
+   ],
+   "log": "logs/graphite/test_kasandra_column.out"
+  },
+  {
+   "module": "test_colour_vision",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 7,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 0.4,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_colour_vision.EveryLook.test_every_pair_under_the_threshold_is_told_apart_by_a_reviewed_word_or_shape",
+     "message": "AssertionError: Items in the second set but not the first: 'day' 'night' : every look is checked"
+    },
+    {
+     "test": "FAIL tests_integrated.test_colour_vision.EveryLook.test_the_tool_prints_both_looks_and_says_when_a_pair_is_left",
+     "message": "AssertionError: 1 != 0 : WED fails / line       #ff6b60 #34c26a     69.7     25.8     15.2     18.7      4.3     4.3 in weak green 1.0   NOT REVIEWED fails / wire       #ff6b60 #34c26a     69.7     25.8     15.2     18.7      4.3     4.3 in weak green 1.0   NOT REVIEWED stopped / line     #ff6b60 #34c26a     69.7     25.8     15.2     18.7      4.3     4.3 in weak green 1.0   NOT REVIEWED stopped "
+    }
+   ],
+   "log": "logs/graphite/test_colour_vision.out"
+  },
+  {
+   "module": "test_tool_selection",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 5,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 0.5,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_tool_selection.Selection.test_plan_profile_keeps_its_direct_set_and_adds_the_chosen_tools",
+     "message": "AssertionError: 5161 not less than 5000"
+    }
+   ],
+   "log": "logs/graphite/test_tool_selection.out"
+  },
+  {
+   "module": "test_math_money_dates",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 33,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 1.4,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_math_money_dates.Lines.test_kasandra_is_offered_money_and_dates_for_a_budget_or_a_deadline_and_not_for_a_plot",
+     "message": "AssertionError: 5022 not less than 5000 : open the price list sheet"
+    }
+   ],
+   "log": "logs/graphite/test_math_money_dates.out"
+  },
+  {
+   "module": "tools/check_context_menu_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 10.4,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_context_menu_ui.py",
+     "message": "no report: AssertionError: <workbench.context_menu.ContextMenu(0x3b43dc40, name=\"ContextMenu\") at 0x7ff4bf463240>"
+    }
+   ],
+   "log": "logs/graphite/check_context_menu_ui.py.out"
+  },
+  {
+   "module": "tools/check_finder_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 10.9,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_finder_ui.py",
+     "message": "no report: AssertionError: ('1920 Today', \"PlusButton:Add an app to the list '⊕' needs 22 px, has 20; QPushButton:Check All: Every check the desk has, run now; what ran and what waits is said in Talk 'CHECK ALL' needs 59 px, has 57\")"
+    }
+   ],
+   "log": "logs/graphite/check_finder_ui.py.out"
+  },
+  {
+   "module": "tools/check_machine_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 6.9,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_machine_ui.py",
+     "message": "no report: KeyError: 'settings_navigation'"
+    }
+   ],
+   "log": "logs/graphite/check_machine_ui.py.out"
+  },
+  {
+   "module": "tools/check_cabinet_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 11.7,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_cabinet_ui.py",
+     "message": "no report: AssertionError"
+    }
+   ],
+   "log": "logs/graphite/check_cabinet_ui.py.out"
+  },
+  {
+   "module": "tools/check_navigation_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 11.2,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_navigation_ui.py",
+     "message": "no report: AssertionError"
+    }
+   ],
+   "log": "logs/graphite/check_navigation_ui.py.out"
+  },
+  {
+   "module": "tools/check_operations_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 9.6,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_operations_ui.py",
+     "message": "no report: AssertionError"
+    }
+   ],
+   "log": "logs/graphite/check_operations_ui.py.out"
+  },
+  {
+   "module": "tools/check_settings_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 15.3,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_settings_ui.py",
+     "message": "no report: KeyError: 'settings_navigation'"
+    }
+   ],
+   "log": "logs/graphite/check_settings_ui.py.out"
+  },
+  {
+   "module": "DP01a,DP01b,DP01c,DP01d",
+   "look": "graphite",
+   "kind": "scene",
+   "ran": 4,
+   "failed": 4,
+   "skipped": 0,
+   "seconds": 94.9,
+   "state": "FAILED",
+   "exit": 0,
+   "failures": [
+    {
+     "test": "?",
+     "message": "Partial: 1 of 54 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    },
+    {
+     "test": "?",
+     "message": "Partial: 1 of 55 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    },
+    {
+     "test": "?",
+     "message": "Partial: 1 of 56 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    },
+    {
+     "test": "?",
+     "message": "Partial: 1 of 57 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    }
+   ],
+   "log": "logs/graphite/DP01a_DP01b_DP01c_DP01d.out"
+  }
+ ]
+}

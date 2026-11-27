@@ -14,3 +14,15 @@ rerun: 27 units with GRAPHITE_APPEARANCE=graphite
 [13/27] graphite  tools/check_navigation_ui.py                   11.2s  failed
 [14/27] graphite  test_system_menu                               13.0s  failed
 [15/27] graphite  tools/check_settings_ui.py                     15.3s  failed
+[16/27] graphite  test_campaign                                  15.9s  failed
+[17/27] graphite  test_delete_words                              15.4s  failed
+[18/27] graphite  tools/check_machine_ui.py                       6.9s  failed
+[19/27] graphite  tools/check_operations_ui.py                    9.6s  failed
+[20/27] graphite  test_graphite                                  10.0s  failed
+[21/27] graphite  test_faces_find_light                           0.9s  failed
+[22/27] graphite  test_kasandra                                   1.3s  failed
+[23/27] graphite  tools/name_sweep.py                             9.0s  failed
+[24/27] graphite  test_colour_vision                              0.4s  failed
+[25/27] graphite  test_tool_selection                             0.5s  failed
+[26/27] graphite  test_math_money_dates                           1.4s  failed
+[27/27] graphite  test_resource_rules                             8.9s  failed

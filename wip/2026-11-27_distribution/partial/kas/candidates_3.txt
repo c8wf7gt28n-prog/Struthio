@@ -1,0 +1,235 @@
+tealdeer: tldr
+fpga-trellis: ecppack
+bmaptool: bmaptool
+iotop-c: iotop-c
+mount: mount umount losetup swapon
+fdisk: fdisk sfdisk cfdisk
+wtmpdb: last wtmpdb
+rfkill: rfkill
+gpg: gpg
+gpgv: gpgv
+recollcmd: recollindex recollq
+recollgui: recoll
+libreoffice-common: soffice libreoffice
+cups-client: lp lpstat cancel lpadmin cupsenable cupsdisable lpinfo cupsctl lpoptions
+cups-bsd: lpr lpq lprm
+vlc-bin: vlc cvlc
+melt: melt
+pyflakes3: pyflakes3
+python3-minimal: python3
+pkgconf-bin: pkgconf pkg-config
+docker-cli: docker
+clamav-freshclam: freshclam
+nm-connection-editor: nm-connection-editor
+bind9-dnsutils: dig nslookup
+bind9-host: host
+uuid-runtime: uuidgen
+util-linux-extra: hwclock
+python3-paraview: pvpython
+gnome-system-monitor: gnome-system-monitor
+baobab: baobab
+gnome-logs: gnome-logs
+file-roller: file-roller
+engrampa: engrampa
+xarchiver: xarchiver
+keepassxc: keepassxc keepassxc-cli
+pass: pass
+seahorse: seahorse
+thunderbird: thunderbird
+claws-mail: claws-mail
+remind: remind rem
+khal: khal
+calcurse: calcurse
+taskwarrior: task
+gcalcli: gcalcli
+speedtest-cli: speedtest-cli
+iperf3: iperf3
+wavemon: wavemon
+network-manager-gnome: nm-applet
+pavucontrol: pavucontrol
+qpwgraph: qpwgraph
+easyeffects: easyeffects
+cheese: cheese
+guvcview: guvcview
+gnome-screenshot: gnome-screenshot
+kazam: kazam
+peek: peek
+gifsicle: gifsicle
+gifski: gifski
+exiv2: exiv2
+digikam: digikam
+shotwell: shotwell
+gthumb: gthumb
+geeqie: geeqie
+krita: krita
+kolourpaint: kolourpaint
+pinta: pinta
+drawing: drawing
+scribus: scribus
+gscan2pdf: gscan2pdf
+skanpage: skanpage
+skanlite: skanlite
+paperwork-gtk: paperwork-gtk
+texlive-extra-utils: pdfjam pdfcrop
+djvulibre-bin: ddjvu djvused
+zathura: zathura
+hunspell-en-us:
+hunspell-en-gb:
+fonts-noto:
+gucharmap: gucharmap
+gnome-characters: gnome-characters
+cups-filters:
+cups-browsed: cups-browsed
+printer-driver-brlaser:
+printer-driver-gutenprint:
+printer-driver-escpr:
+hplip: hp-setup hp-check
+gnome-firmware: gnome-firmware
+bleachbit: bleachbit
+grsync: grsync
+luckybackup: luckybackup
+clonezilla: clonezilla
+partclone: partclone.ext4
+rpi-imager: rpi-imager
+xorriso: xorriso
+genisoimage: genisoimage isoinfo
+brasero: brasero
+k3b: k3b
+cabextract: cabextract
+innoextract: innoextract
+msitools: msiextract msiinfo
+unshield: unshield
+wimtools: wimlib-imagex
+chntpw: chntpw
+dislocker: dislocker dislocker-fuse
+libbde-utils: bdemount bdeinfo
+pst-utils: readpst lspst
+tnef: tnef
+mdbtools: mdb-export mdb-tables
+wv: wvText
+unrtf: unrtf
+libwpd-tools: wpd2text wpd2html
+libwps-tools: wps2text wps2html
+dbview: dbview
+dbf2mysql:
+lhasa: lha lhasa
+arj: arj
+zoo: zoo
+arc: arc
+nomarch: nomarch
+recode: recode
+enca: enca
+q4wine: q4wine
+lutris: lutris
+steam-installer: steam
+playonlinux: playonlinux
+innoextract: innoextract
+p7zip-full:
+p7zip:
+libfuse2t64:
+fuse3: fusermount3
+appimagelauncher:
+flatseal:
+gnome-software-plugin-flatpak:
+plasma-discover-backend-flatpak:
+apt-transport-https:
+software-properties-common: add-apt-repository
+software-properties-gtk: software-properties-gtk
+extrepo: extrepo
+debian-archive-keyring:
+debootstrap: debootstrap
+nala: nala
+apt-forktracer: apt-forktracer
+aptitude: aptitude-curses
+apt-utils:
+dctrl-tools: grep-dctrl grep-status grep-available
+wajig: wajig
+popularity-contest:
+reportbug: reportbug
+how-can-i-help: how-can-i-help
+debian-security-support: check-support-status
+debsecan: debsecan
+needrestart: needrestart
+systemd-container: systemd-nspawn machinectl
+polkitd: pkaction pkcheck pkttyagent
+policykit-1:
+polkitd-pkla:
+lxpolkit: lxpolkit
+mate-polkit:
+lxqt-policykit: lxqt-policykit-agent
+gnome-keyring: gnome-keyring-daemon
+libsecret-tools: secret-tool
+libpam-fprintd:
+fprintd: fprintd-enroll fprintd-verify
+iwd: iwctl
+wpasupplicant: wpa_cli wpa_supplicant
+ethtool: ethtool
+isc-dhcp-client: dhclient
+dhcpcd-base: dhcpcd
+avahi-utils: avahi-browse
+net-tools: ifconfig netstat route arp
+arp-scan: arp-scan
+openvpn: openvpn
+network-manager-openconnect:
+tor: tor
+torbrowser-launcher: torbrowser-launcher
+gnome-clocks:
+xfce4-terminal: xfce4-terminal
+xterm: xterm
+alacritty: alacritty
+kitty: kitty
+fish: fish
+zsh: zsh
+powershell:
+pwsh:
+mc: mc
+ranger: ranger
+nnn: nnn
+doublecmd-qt: doublecmd
+krusader: krusader
+gnome-commander: gnome-commander
+far2l: far2l
+thunar: thunar
+pcmanfm-qt: pcmanfm-qt
+xfe: xfe
+qdirstat: qdirstat
+filelight: filelight
+czkawka-gui:
+fslint:
+gprename: gprename
+krename: krename
+thunar-bulk-rename:
+catfish: catfish
+fsearch: fsearch
+gnome-search-tool:
+locate: locate
+mlocate:
+tracker:
+localsearch: localsearch
+dupeguru: dupeguru
+hashdeep: hashdeep sha256deep
+rhash: rhash
+par2: par2
+gtkhash: gtkhash
+veracrypt:
+zulucrypt-gui: zuluCrypt-gui
+tomb: tomb
+ecryptfs-utils: ecryptfs-setup-private
+fscrypt: fscrypt
+sirikali: sirikali
+cryfs: cryfs
+encfs: encfs
+secure-delete: srm
+nwipe: nwipe
+hdparm: hdparm
+sg3-utils: sg_format
+fio: fio
+f3: f3probe f3write f3read
+badblocks:
+gsmartcontrol: gsmartcontrol
+zfsutils-linux: zfs zpool
+mdadm: mdadm
+lvm2: lvs pvs vgs
+snapper: snapper
+btrbk: btrbk
+grub-btrfs:

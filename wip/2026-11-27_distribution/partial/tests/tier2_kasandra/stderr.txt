@@ -1,0 +1,8 @@
+tier 2: 106 runs in kasandra, 2 at a time (process namespace, nice 19); logs under /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/dist/tests/tier2_kasandra
+[1/106] kasandra  test_desk_acts                                 27.5s  failed
+[2/106] kasandra  test_rail_demo                                100.6s  failed
+[3/106] kasandra  test_one_name                                 128.8s  failed
+[4/106] kasandra  DP01a,DP01b,DP01c,DP01d                       112.2s  failed
+[5/106] kasandra  test_rail_demo_campaign                       128.0s  failed
+[6/106] kasandra  test_desk_scenes                               49.8s  failed
+[7/106] kasandra  tools/check_finder_ui.py                       68.4s  passed

@@ -1,0 +1,29 @@
+look      kind      module, check or scene                                 ran failed skipped  seconds  state
+graphite  sweep     tools/name_sweep.py                                      1      1       0      9.0  failed
+graphite  module    test_system_menu                                        31      4       0     13.0  failed
+graphite  module    test_session_start                                      28      2       0     51.4  failed
+graphite  module    test_graphite                                           29      1       0     10.0  failed
+graphite  module    test_context_menu                                       45      2       0     57.5  failed
+graphite  module    test_faces_find_light                                   34      1       0      0.9  failed
+graphite  module    test_kasandra                                           20      1       0      1.3  failed
+graphite  module    test_one_name                                           19      3       0    127.3  failed
+graphite  module    test_campaign                                           23      3       0     15.9  failed
+graphite  module    test_rail_demo                                          38      7       0     97.1  failed
+graphite  module    test_rail_demo_campaign                                 26      3       0    105.3  failed
+graphite  module    test_resource_rules                                     19      2       0      8.9  failed
+graphite  module    test_desk_acts                                           0      1       0     28.0  failed
+graphite  module    test_desk_scenes                                         5      5       0     45.1  failed
+graphite  module    test_delete_words                                        6      1       0     15.4  failed
+graphite  module    test_kasandra_column                                    18      6       0     26.0  failed
+graphite  module    test_colour_vision                                       7      2       0      0.4  failed
+graphite  module    test_tool_selection                                      5      1       0      0.5  failed
+graphite  module    test_math_money_dates                                   33      1       0      1.4  failed
+graphite  check     tools/check_context_menu_ui.py                           0      1       0     10.4  failed
+graphite  check     tools/check_finder_ui.py                                 0      1       0     10.9  failed
+graphite  check     tools/check_machine_ui.py                                0      1       0      6.9  failed
+graphite  check     tools/check_cabinet_ui.py                                0      1       0     11.7  failed
+graphite  check     tools/check_navigation_ui.py                             0      1       0     11.2  failed
+graphite  check     tools/check_operations_ui.py                             0      1       0      9.6  failed
+graphite  check     tools/check_settings_ui.py                               0      1       0     15.3  failed
+graphite  scene     DP01a,DP01b,DP01c,DP01d                                  4      4       0     94.9  failed
+58 failing: graphite tools/name_sweep.py; graphite test_system_menu; graphite test_session_start; graphite test_graphite; graphite test_context_menu; graphite test_faces_find_light; graphite test_kasandra; graphite test_one_name; graphite test_campaign; graphite test_rail_demo; graphite test_rail_demo_campaign; graphite test_resource_rules; graphite test_desk_acts; graphite test_desk_scenes; graphite test_delete_words; graphite test_kasandra_column; graphite test_colour_vision; graphite test_tool_selection; graphite test_math_money_dates; graphite tools/check_context_menu_ui.py; graphite tools/check_finder_ui.py; graphite tools/check_machine_ui.py; graphite tools/check_cabinet_ui.py; graphite tools/check_navigation_ui.py; graphite tools/check_operations_ui.py; graphite tools/check_settings_ui.py; graphite DP01a,DP01b,DP01c,DP01d

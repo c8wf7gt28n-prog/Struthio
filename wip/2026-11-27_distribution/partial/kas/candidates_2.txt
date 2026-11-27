@@ -1,0 +1,329 @@
+# system
+util-linux: lsblk findmnt mount umount fdisk blkid dmesg lscpu fstrim wipefs mkfs lslogins last lastb rfkill uuidgen losetup fallocate swapon mkswap hwclock chsh
+udisks2: udisksctl
+smartmontools: smartctl
+nvme-cli: nvme
+gnome-disk-utility: gnome-disks
+gparted: gparted
+parted: parted
+e2fsprogs: mkfs.ext4 fsck.ext4 e2fsck tune2fs resize2fs
+dosfstools: mkfs.vfat fsck.vfat fatlabel
+exfatprogs: mkfs.exfat fsck.exfat
+ntfs-3g: ntfs-3g ntfsfix mkfs.ntfs ntfslabel
+btrfs-progs: btrfs
+bmap-tools: bmaptool
+usbimager:
+gnome-multi-writer: gnome-multi-writer
+procps: ps top free pgrep pkill vmstat uptime sysctl watch
+psmisc: killall pstree fuser
+htop: htop
+btop: btop
+iotop-c: iotop-c iotop
+sysstat: iostat sar mpstat pidstat
+smem: smem
+lsof: lsof
+x11-utils: xkill xprop xev xwininfo xdpyinfo
+systemd: systemctl journalctl loginctl timedatectl hostnamectl localectl systemd-analyze systemd-run systemd-inhibit busctl systemd-cat coredumpctl systemd-escape systemd-path resolvectl networkctl
+systemd-coredump: coredumpctl
+systemd-resolved: resolvectl
+systemd-timesyncd:
+systemd-oomd:
+systemd-zram-generator:
+zram-tools:
+earlyoom: earlyoom
+chrony: chronyc
+adduser: adduser deluser addgroup
+passwd: passwd usermod gpasswd chage chfn
+login:
+sudo: sudo visudo
+pkexec: pkexec
+polkitd:
+lxpolkit:
+accountsservice:
+network-manager: nmcli nmtui nm-online
+network-manager-openvpn:
+network-manager-applet: nm-connection-editor
+wireguard-tools: wg wg-quick
+openvpn: openvpn
+iw: iw
+wireless-tools: iwconfig
+iproute2: ip ss bridge tc
+iputils-ping: ping
+traceroute: traceroute
+mtr-tiny: mtr
+nmap: nmap
+netcat-openbsd: nc
+tcpdump: tcpdump
+nethogs: nethogs
+iftop: iftop
+bluez: bluetoothctl btmgmt
+blueman: blueman-manager
+libspa-0.2-bluetooth:
+ufw: ufw
+gufw: gufw
+nftables: nft
+firewalld: firewall-cmd
+fail2ban: fail2ban-client
+openssh-client: ssh ssh-keygen ssh-copy-id scp sftp ssh-add
+openssh-server: sshd
+sshfs: sshfs
+smbclient: smbclient
+cifs-utils: mount.cifs
+samba: smbd
+gvfs-backends:
+gvfs-fuse:
+nfs-common: mount.nfs showmount
+remmina: remmina
+freerdp3-x11: xfreerdp3
+tigervnc-viewer: xtigervncviewer
+kdeconnect: kdeconnect-cli
+android-file-transfer: aft-mtp-mount
+jmtpfs: jmtpfs
+adb: adb
+borgbackup: borg
+restic: restic
+deja-dup: deja-dup
+duplicity: duplicity
+timeshift: timeshift
+rsnapshot: rsnapshot
+vorta: vorta
+backintime-qt: backintime-qt
+syncthing: syncthing
+upower: upower
+power-profiles-daemon: powerprofilesctl
+tlp: tlp tlp-stat
+powertop: powertop
+lm-sensors: sensors sensors-detect
+thinkfan: thinkfan
+brightnessctl: brightnessctl
+redshift: redshift
+x11-xserver-utils: xrandr xset xgamma xhost xmodmap
+arandr: arandr
+autorandr: autorandr
+xinput: xinput
+x11-xkb-utils: setxkbmap xkbcomp
+keyboard-configuration:
+console-setup:
+locales: locale-gen
+tzdata:
+pciutils: lspci
+usbutils: lsusb
+lshw: lshw
+inxi: inxi
+dmidecode: dmidecode
+hwinfo: hwinfo
+cpu-x: cpu-x
+vulkan-tools: vulkaninfo vkcube
+mesa-utils: glxinfo glxgears
+radeontop: radeontop
+nvtop: nvtop
+amdgpu-top:
+grub2-common: update-grub grub-install
+grub-common: grub-mkconfig
+initramfs-tools: update-initramfs
+linux-image-amd64:
+qemu-system-x86: qemu-system-x86_64
+virt-manager: virt-manager
+gnome-boxes: gnome-boxes
+libvirt-daemon-system:
+virtualbox: virtualbox
+podman: podman
+docker.io: docker
+distrobox: distrobox
+clamav: clamscan freshclam
+rkhunter: rkhunter
+lynis: lynis
+logrotate: logrotate
+rsyslog: rsyslogd
+lnav: lnav
+xclip: xclip
+xsel: xsel
+xdotool: xdotool
+wmctrl: wmctrl
+xdg-utils: xdg-open xdg-mime xdg-settings
+desktop-file-utils: update-desktop-database desktop-file-validate
+at-spi2-core:
+python3-pyatspi:
+xsecurelock: xsecurelock
+# command line / automation
+bash: bash
+shellcheck: shellcheck
+shfmt: shfmt
+man-db: man whatis apropos
+manpages:
+manpages-dev:
+tealdeer: tldr
+tldr:
+info: info
+bash-completion:
+cron: cron crontab
+systemd-cron:
+anacron: anacron
+at: at atq atrm
+incron: incrond
+entr: entr
+watchexec-cli: watchexec
+jq: jq
+yq: yq
+gawk: gawk
+sed: sed
+grep: grep
+bc: bc
+units: units
+tmux: tmux
+screen: screen
+pv: pv
+parallel: parallel
+expect: expect
+zenity: zenity
+yad: yad
+msmtp: msmtp
+s-nail: s-nail
+bubblewrap: bwrap
+firejail: firejail
+dosfstools:
+mtools: mcopy mdir
+# engineering
+kicad: kicad kicad-cli pcbnew eeschema
+kicad-libraries:
+kicad-packages3d:
+kibot: kibot
+gerbv: gerbv
+pcb2gcode: pcb2gcode
+freecad: freecad freecadcmd
+freecad-python3: freecad freecadcmd freecad-python3 freecadcmd-python3
+blender: blender
+godot3: godot3
+godot3-server: godot3-server
+godot:
+godot4:
+ngspice: ngspice
+ngspice-doc:
+gnuplot: gnuplot
+gnuplot-nox: gnuplot-nox gnuplot
+inkscape: inkscape
+openscad: openscad
+librecad: librecad
+qcad:
+solvespace: solvespace solvespace-cli
+cura: cura
+prusa-slicer: prusa-slicer
+slic3r: slic3r
+gtkwave: gtkwave vcd2fst
+iverilog: iverilog vvp
+verilator: verilator
+yosys: yosys
+nextpnr-ecp5: nextpnr-ecp5
+nextpnr-ice40: nextpnr-ice40
+fpga-icestorm: icepack iceprog
+prjtrellis: ecppack
+openocd: openocd
+flashrom: flashrom
+avrdude: avrdude
+gcc-avr: avr-gcc
+gcc-arm-none-eabi: arm-none-eabi-gcc
+gcc-riscv64-unknown-elf: riscv64-unknown-elf-gcc
+arduino: arduino
+arduino-cli:
+platformio: pio platformio
+dfu-util: dfu-util
+stlink-tools: st-flash st-info
+sigrok-cli: sigrok-cli
+pulseview: pulseview
+minicom: minicom
+picocom: picocom
+tio: tio
+octave: octave octave-cli
+python3-numpy:
+python3-scipy:
+python3-matplotlib:
+python3-pandas:
+python3-skrf:
+qucs-s:
+xschem: xschem
+magic: magic
+klayout: klayout
+elmerfem-csc:
+calculix-ccx: ccx
+gmsh: gmsh
+paraview: paraview pvpython
+cloudcompare:
+f3d: f3d
+# development
+git: git
+git-lfs: git-lfs
+gh: gh
+gitk: gitk
+git-gui: git-gui
+tig: tig
+python3: python3
+python3-venv:
+python3-pip: pip3 pip
+pipx: pipx
+python3-full:
+uv:
+ruff: ruff
+python3-pyflakes: pyflakes3
+pyflakes3: pyflakes3
+pylint: pylint
+black: black
+mypy: mypy
+python3-pytest: pytest-3 pytest
+ipython3: ipython3
+jupyter-notebook: jupyter-notebook
+build-essential:
+gcc: gcc
+g++: g++
+make: make
+cmake: cmake
+meson: meson
+ninja-build: ninja
+autoconf: autoconf
+automake: automake
+pkgconf: pkg-config pkgconf
+devscripts: debuild dch uscan
+equivs: equivs-build
+gdb: gdb
+valgrind: valgrind
+strace: strace
+ltrace: ltrace
+clang: clang
+clangd: clangd
+cppcheck: cppcheck
+nodejs: node nodejs
+npm: npm
+rustc: rustc
+cargo: cargo
+golang-go: go
+default-jdk-headless:
+codium:
+geany: geany
+kate: kate
+vim: vim
+neovim: nvim
+nano: nano
+micro: micro
+mousepad: mousepad
+featherpad: featherpad
+gedit: gedit
+ghex: ghex
+sqlitebrowser: sqlitebrowser
+# learning
+debian-reference-en:
+debian-reference-common: debian-reference
+debian-handbook:
+debian-faq:
+installation-guide-amd64:
+doc-debian:
+linux-doc:
+kiwix:
+kiwix-tools: kiwix-serve kiwix-search
+zim-tools: zimdump zimsearch
+zeal: zeal
+cheat:
+# her upkeep
+llama.cpp:
+llama-cpp:
+python3-huggingface-hub: huggingface-cli
+libvulkan1:
+mesa-vulkan-drivers:
