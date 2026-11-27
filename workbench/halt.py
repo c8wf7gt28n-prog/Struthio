@@ -34,6 +34,8 @@ WORDS = {
     'held': ' Also held: %s.',
     'hand': ' My hand stopped before its next press.',
     'turns': ' My model’s answer was closed.',
+    'nothing_turns': 'HALT: my model’s answer was closed, and nothing else of mine was running. I hold all my work until you '
+                     'press RESUME. Your desktop, apps and Graphite’s jobs go on.',      # 1.0 F3 (X4 S11): never "nothing" and "closed" at once
     'not_held': 'HALT could not hold my work: %s. Use Stop all on the meters if anything of mine is still running.',
     'released': 'RESUME: the hold is lifted. Nothing stopped was restarted: what HALT stopped waits for your Resume on it '
                 '(in “Waits for you”), which checks every step first.',      # 1.0 D2 (X3): say that her work waits for that press
@@ -78,21 +80,27 @@ def _names(titles):
     return ', '.join(names[:-1]) + ' and ' + names[-1] if len(names) > 1 else names[0]
 
 
-def press(host):
-    """HALT: hold her work, stop what of hers runs, stop her hand, show the moment, say what was stopped."""
-    kernel, owner = _kernel(host)
-    out = {'held': False, 'stopped': [], 'held_work': [], 'hand': False, 'turns': 0, 'jobs': [], 'words': '', 'error': ''}
+def _alone(host, operation):
+    """1.0 F3: the Kernel's part of a press on a thread of its own (a Kernel of its own on the same workspace), so the
+    window's thread never waits for it; None when there is no workspace here (the caller does it as before)."""
     try:
-        answer = kernel.dispatch('halt.press', {}, owner)
-        if answer.get('ok'):
-            report = answer['result']
-            out.update(held=True, stopped=list(report.get('stopped') or ()), held_work=list(report.get('held_work') or ()),
-                       turns=int(report.get('turns') or 0), jobs=list(report.get('jobs') or ()))
-        else:
-            error = answer.get('error') or {}
-            out['error'] = str(error.get('message') if isinstance(error, dict) else error)[:200] or 'refused'
-    except Exception as exc:  # noqa: BLE001 - said in words, and the rest still stops what it can
-        out['error'] = str(exc)[:200] or type(exc).__name__
+        from .off_window import kernel_root, run_alone
+    except Exception:  # noqa: BLE001
+        return None
+    root = kernel_root(host)
+    if root is None:return None
+
+    def work():
+        from .engineering_kernel import Kernel, operator
+        return Kernel(root).dispatch(operation, {}, operator())
+    return work, run_alone
+
+
+def press(host, then=None):
+    """HALT: hold her work, stop what of hers runs, stop her hand, show the moment, say what was stopped. 1.0 F3: her hand,
+    AGENT-01's older work and the moment stop at once here; the hold itself (each assignment's stop, the model's turns, the
+    sandboxes) is made on a thread of its own, and her words come when it has landed (then(out), when given)."""
+    out = {'held': False, 'stopped': [], 'held_work': [], 'hand': False, 'turns': 0, 'jobs': [], 'words': '', 'error': ''}
     hand = getattr(host, 'her_hand', None)
     try:
         if hand is not None and hand.active():
@@ -111,38 +119,77 @@ def press(host):
         moment(host, 'halt')
     except Exception:  # noqa: BLE001
         pass
-    if out['held']:
-        words = WORDS['stopped'] % _names(out['stopped']) if out['stopped'] else WORDS['nothing']
-        if out['held_work']:words += WORDS['held'] % _names(out['held_work'][:3])
-        if out['turns'] or out['jobs']:words += WORDS['turns']
-    else:
-        words = WORDS['not_held'] % out['error']
-    if out['hand']:words += WORDS['hand']
-    out['words'] = words
-    _say(host, words)
-    _refresh(host)
+
+    def landed(answer, error):
+        try:_landed(answer, error)
+        finally:
+            if then is not None:then(out)
+
+    def _landed(answer, error):
+        if error is not None:answer = {'ok': False, 'error': {'message': str(error)[:200] or type(error).__name__}}
+        if (answer or {}).get('ok'):
+            report = answer['result']
+            out.update(held=True, stopped=list(report.get('stopped') or ()), held_work=list(report.get('held_work') or ()),
+                       turns=int(report.get('turns') or 0), jobs=list(report.get('jobs') or ()))
+        else:
+            err = (answer or {}).get('error') or {}
+            out['error'] = str(err.get('message') if isinstance(err, dict) else err)[:200] or 'refused'
+        if out['held']:
+            words = WORDS['stopped'] % _names(out['stopped']) if out['stopped'] else (WORDS['nothing_turns'] if out['turns'] or out['jobs'] else WORDS['nothing'])
+            if out['held_work']:words += WORDS['held'] % _names(out['held_work'][:3])
+            if (out['turns'] or out['jobs']) and out['stopped']:words += WORDS['turns']
+        else:
+            words = WORDS['not_held'] % out['error']
+        if out['hand']:words += WORDS['hand']
+        out['words'] = words
+        _say(host, words)
+        _refresh(host)
+    alone = _alone(host, 'halt.press')
+    if alone is None:      # as before, here
+        kernel, owner = _kernel(host)
+        try:landed(kernel.dispatch('halt.press', {}, owner), None)
+        except Exception as exc:  # noqa: BLE001 - said in words, and the rest still stops what it can
+            landed(None, exc)
+        return out
+    work, run_alone = alone
+    run_alone(work, landed, name='graphite-halt')
     return out
 
 
-def release(host):
-    """RESUME: lift HALT's hold. Nothing that was stopped is started again here."""
-    kernel, owner = _kernel(host)
-    try:
-        answer = kernel.dispatch('halt.release', {}, owner)
-    except Exception as exc:  # noqa: BLE001
-        answer = {'ok': False, 'error': {'message': str(exc)}}
-    if answer.get('ok'):
-        words = WORDS['released'];done = True
-        if (answer.get('result') or {}).get('jobs_held'):words += WORDS['released_jobs']
-    else:
-        error = answer.get('error') or {}
-        why = str(error.get('message') if isinstance(error, dict) else error or 'refused')
-        words = WORDS['not_released'] % why.split(': ', 1)[-1][:200];done = False
-    column = getattr(host, 'her_column', None)
-    if column is not None and done:column.seen_held = False
-    _say(host, words)
-    _refresh(host)
-    return {'released': done, 'words': words}
+def release(host, then=None):
+    """RESUME: lift HALT's hold. Nothing that was stopped is started again here. 1.0 F3: lifted on a thread of its own; her
+    words when it has landed."""
+    result = {'released': False, 'words': ''}
+
+    def landed(answer, error):
+        try:_landed(answer, error)
+        finally:
+            if then is not None:then(result)
+
+    def _landed(answer, error):
+        if error is not None:answer = {'ok': False, 'error': {'message': str(error)}}
+        if (answer or {}).get('ok'):
+            words = WORDS['released'];done = True
+            if (answer.get('result') or {}).get('jobs_held'):words += WORDS['released_jobs']
+        else:
+            err = (answer or {}).get('error') or {}
+            why = str(err.get('message') if isinstance(err, dict) else err or 'refused')
+            words = WORDS['not_released'] % why.split(': ', 1)[-1][:200];done = False
+        column = getattr(host, 'her_column', None)
+        if column is not None and done:column.seen_held = False
+        result.update(released=done, words=words)
+        _say(host, words)
+        _refresh(host)
+    alone = _alone(host, 'halt.release')
+    if alone is None:
+        kernel, owner = _kernel(host)
+        try:landed(kernel.dispatch('halt.release', {}, owner), None)
+        except Exception as exc:  # noqa: BLE001
+            landed(None, exc)
+        return result
+    work, run_alone = alone
+    run_alone(work, landed, name='graphite-resume')
+    return result
 
 
 def _refresh(host):
@@ -153,6 +200,7 @@ def _refresh(host):
         pass
     column = getattr(host, 'her_column', None)
     try:
-        if column is not None:column.refresh(force=True)
+        if column is not None:
+            from . import floor;floor.column_soon(column)      # 1.0 F3: read again off the window's thread
     except Exception:  # noqa: BLE001
         pass

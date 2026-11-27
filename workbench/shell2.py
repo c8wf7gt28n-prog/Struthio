@@ -1107,8 +1107,8 @@ class OneBox(QLineEdit):
         if event.reason() not in (Qt.PopupFocusReason, Qt.ActiveWindowFocusReason):self.popup.hide()
 
     def focusNextPrevChild(self, forward):
-        if self.console_page(self.text()):return False  # Tab completes a console line; it does not leave the box
-        return super().focusNextPrevChild(forward)
+        if self.text().strip() and self.console_page(self.text()):return False  # Tab completes a console line; it does not leave the box
+        return super().focusNextPrevChild(forward)      # 1.0 F3: an empty line (Search's too) lets Tab move on: never a trap
 
     def console_page(self, text):
         """Which console page a line goes to (None: Graphite in Assignment, the filter in Log). Shell: every line is the
@@ -1150,8 +1150,10 @@ class OneBox(QLineEdit):
             line = console.recall(walk, -1 if event.key() == Qt.Key_Up else 1, self.text())  # a console line: its page's history, as in a terminal
             if line is not None:self.setText(line);self.update_results(line);self._walked = (self.mode(), walk, line)
             return
-        if page and event.key() == Qt.Key_Tab:
-            self.setText(console.complete_line(page, self.text()));self.update_results(self.text());return
+        if page and event.key() == Qt.Key_Tab and self.text().strip():
+            done = console.complete_line(page, self.text())
+            if done != self.text():self.setText(done);self.update_results(self.text());return
+            QLineEdit.focusNextPrevChild(self, True);return      # 1.0 F3: nothing to complete: Tab moves on (never a trap)
         if event.key() in (Qt.Key_Down, Qt.Key_Up) and self.popup.isVisible():self.popup.move_selection(1 if event.key() == Qt.Key_Down else -1);return
         if event.key() == Qt.Key_Escape:self.popup.hide();self.clearFocus();return
         super().keyPressEvent(event)
@@ -2184,7 +2186,8 @@ class SlateFace(QWidget):
         code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + line)
         answer_first = bool(thing.get('whole'))       # when the rows are the whole answer (a doubt, a what-if, a brief), they are read first and the line that read them comes after
         if not answer_first:card.box.addWidget(code)
-        r = engineering(self.host.root).dispatch(operation, arguments, operator())
+        from .off_window import take      # 1.0 F3: a line read on a worker a moment before (TRACE), else read here
+        r = take(operation, arguments) or engineering(self.host.root).dispatch(operation, arguments, operator())
         rows = (r['result'].get('rows') or []) if r.get('ok') and isinstance(r.get('result'), dict) else []
         if r.get('ok') and rows and all(isinstance(row, dict) for row in rows):  # a row a block, a field a line; what is empty is not said
             said = '\n\n'.join('\n'.join('%s: %s' % (key, value if isinstance(value, str) else json.dumps(value, ensure_ascii=False))[:400]
@@ -2839,24 +2842,25 @@ class SlateFace(QWidget):
             from .relevance import note_request;note_request(_l3_kernel(self.host.root), text)
         except Exception:  # noqa: BLE001 - noting the request never stands in the way of answering it
             pass
-        if self.own_word(text):return
+        chosen = isinstance(self.thing, dict) and bool(self.thing.get('explicit')) and bool(self.thing.get('title')) and self.thing['title'] in text  # 1.0 F3: a card chosen by its own press (TRACE, DOUBT) is that card, never "which of these?"
+        if not chosen and self.own_word(text):return
         from .library_qt import asked as library_asked      # 0.8.7 W7: a question of the Library, answered by Ask the Library
-        if library_asked(self, text):return
+        if not chosen and library_asked(self, text):return
         from .network_qt import asked as web_asked      # 1.0 K8: "look up …" on the web: the step planned from your words, sent only by your press
-        if web_asked(self, text):return
+        if not chosen and web_asked(self, text):return
         from .everyday_desk import asked as everyday_asked  # 1.0 X3: "what did we spend on groceries this month?" from a spreadsheet of your home
-        if everyday_asked(self, text):return
+        if not chosen and everyday_asked(self, text):return
         from .home_pages import asked as pages_asked  # 1.0 K10: "what does the manual say about …?" from its pages, the page named
-        if pages_asked(self, text):return
-        if self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
-        if self.made_asked(text):return
-        if self.set_asked(text):return
-        if self.run_asked(text):return
+        if not chosen and pages_asked(self, text):return
+        if not chosen and self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
+        if not chosen and self.made_asked(text):return
+        if not chosen and self.set_asked(text):return
+        if not chosen and self.run_asked(text):return
         from .desk_review import asked as review_asked      # 1.0 X1: "review this assembly … sufficient?": the desk's findings say it
-        if review_asked(self, text):return
-        if self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
-        if self.plan_asked(text):return
-        thing = self.what_if(text)
+        if not chosen and review_asked(self, text):return
+        if not chosen and self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
+        if not chosen and self.plan_asked(text):return
+        thing = None if chosen else self.what_if(text)      # 1.0 F3
         if thing and thing.get('refusal'):
             self.thing = None;self.mine(text);self.say(thing['refusal']);return
         thing = thing or self.thing_asked_about(text)
@@ -3560,6 +3564,11 @@ class Shell2(QObject):
         install_app_files(host)  # 1.0 A1: files open in other programs: the window named on the board's tile, each save recorded, the close said
         from .launch_look import install as install_launch_look
         install_launch_look(host)  # 1.0 P4: 1.0's one move to Day on a profile from before, said in one line, once
+        try:  # 1.0 F3: every keyboard stop says a name; Tab walks into a scrolled page's presses
+            from .a11y_names import install as install_names
+            install_names(host)
+        except ImportError:  # 1.0 F3
+            pass
         host.tabs.currentChanged.connect(self.sync_worksheet)
         host.central_stack.currentChanged.connect(self.sync_worksheet)
         from .graphite_brand import use_pointer

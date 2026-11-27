@@ -552,8 +552,11 @@ class Console(QWidget):
     # -- Find ------------------------------------------------------------------------------
     def run_find(self, text):
         from .shell2 import library_files
+        from . import search_reach as sr      # 1.0 F3: every word on its own; Home by name; a hit opens on the board
+        wanted = sr.words(text)
         parts = []
-        files = (call(self.host, 'files.find', {'text': text, 'limit': 30}) or {}).get('records', [])
+        files = (call(self.host, 'files.find', {'text': sr.longest(text) or text, 'limit': 60}) or {}).get('records', [])
+        files = [e for e in files if sr.holds('%s %s' % (e.get('path', ''), e.get('found') or e.get('kind_words', '')), wanted)][:30]      # 1.0 F3
         if files:
             root = Path((call(self.host, 'files.list', {}) or {}).get('root', '.'))
             lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda p=root / e['path']:self.host.open_in_viewer(p)), escape(e['path']), QUIET, escape(e.get('found') or e.get('kind_words', '')))
@@ -562,19 +565,24 @@ class Console(QWidget):
             more = '  ' + self.link('show in Files', lambda t=text:files_show(self.host).show_question(t)) + '  ·  ' + \
                    self.link('keep as a smart folder', lambda t=text:self.keep_smart(t))
             parts.append('<span style="color:%s;">FILES · %d</span>%s<br>' % (QUIET, len(files), more) + '<br>'.join(lines))
+        home, stopped = sr.home_names(self.host, text)      # 1.0 F3: your home's files and folders, by their names
+        if home:
+            from .home_reach import tilde
+            lines = ['%s  %s%s' % (self.link('open', lambda p=p:sr.open_home(self.host, p)), escape(tilde(str(p))), '/' if d else '') for p, d in home]
+            parts.append('<span style="color:%s;">HOME · %d%s</span><br>' % (QUIET, len(home), (' · ' + escape(stopped)) if stopped else '') + '<br>'.join(lines))
         # HATCH DESK D1b: the cabinet's query box and the settings filter left the left pane; finding a record or a setting by
         # its words is here, in Search (D3). The same match as the boxes: label and role, label and key.
-        records = cabinet_records(self.host, text)
+        records = sr.records(self.host, text)      # 1.0 F3: every word; each name once; the desk's object first
         if records:
-            lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda i=n['id']:reveal_record(self.host, i)), escape(n['label']), QUIET, escape(n['role'].replace('_', ' ')))
+            lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda i=n['id']:sr.open_record(self.host, i)), escape(n['label']), QUIET, escape(n['role'].replace('_', ' ')))
                      for n in records]
             parts.append('<span style="color:%s;">CABINET · %d</span><br>' % (QUIET, len(records)) + '<br>'.join(lines))
-        found = setting_rows(text)
+        found = [n for n in setting_rows(sr.longest(text) or text, limit=40) if sr.holds(n['label'] + ' ' + n['target'], wanted)][:12]      # 1.0 F3
         if found:
             lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda k=n['target']:self.host.ledger_bridge.show_settings(key=k)), escape(n['label']), QUIET, escape(n['target']))
                      for n in found]
             parts.append('<span style="color:%s;">SETTINGS · %d</span><br>' % (QUIET, len(found)) + '<br>'.join(lines))
-        received = [e for e in library_files(self.host, limit=400) if text.casefold() in e['name'].casefold()][:15]
+        received = [e for e in library_files(self.host, limit=400) if sr.holds(e['name'], wanted)][:15]      # 1.0 F3
         if received:
             lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda e=e:self.host.shell2.open_library_file(e)), escape(e['name']), QUIET, escape(e['delivery'])) for e in received]
             parts.append('<span style="color:%s;">RECEIVED · %d</span><br>' % (QUIET, len(received)) + '<br>'.join(lines))
@@ -584,7 +592,8 @@ class Console(QWidget):
             parts.append('<span style="color:%s;">COMMANDS</span><br>' % QUIET + '<br>'.join(lines))
         from . import activity
         from .tail_words import readable
-        events = [e for e in activity.tail(self.host.root, query=text, limit=200).get('events', []) if e.get('state') != 'REQUEST_RECEIVED'][-12:]
+        events = [e for e in activity.tail(self.host.root, query=sr.longest(text) or text, limit=400).get('events', []) if e.get('state') != 'REQUEST_RECEIVED'
+                  and sr.holds(readable(e), wanted)][-12:]      # 1.0 F3: every word
         if events:
             lines = ['%s  %s' % (time.strftime('%H:%M:%S', time.localtime(e['at'])), escape(readable(e))) for e in reversed(events)]
             parts.append('<span style="color:%s;">TIMELINE · %d</span><br>' % (QUIET, len(events)) + '<br>'.join(lines))

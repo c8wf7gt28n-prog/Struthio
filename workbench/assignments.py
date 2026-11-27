@@ -987,6 +987,8 @@ def _run_one(kernel, ident, principal, epoch=None):
                 output = _output(step, observation, result)
     except NotVerified as why:
         outcome = 'not verified';result = {'reason': str(why)[:400]}
+    except Blocked as why:      # 1.0 F3: its check found a precondition gone as it checked (the network down): blocked, never done
+        outcome = 'blocked after sent' if sent else 'failed';result = {'reason': str(why)[:400]}
     except Exception as why:  # noqa: BLE001 - a step that went wrong is recorded as such, never left running or called done
         outcome = 'not verified' if sent else 'failed';result = {'reason': str(why)[:400] or type(why).__name__}
     elapsed = _now_ms() - began
@@ -1013,6 +1015,9 @@ def _run_one(kernel, ident, principal, epoch=None):
         elif outcome == 'failed':
             live.update(status='blocked', reason=(result or {}).get('reason', ''))
             entry, words, detail = 'BLOCKED', 'Step %d could not start: %s' % (live['n'], live['reason']), {}
+        elif outcome == 'blocked after sent':      # 1.0 F3
+            live.update(status='blocked', reason=(result or {}).get('reason', ''))
+            entry, words, detail = 'BLOCKED', 'Step %d was sent and is blocked: %s. It is not called done.' % (live['n'], live['reason']), {'elapsed_ms': elapsed}
         else:
             live.update(status='needs review', reason=(result or {}).get('reason', 'not verified'))
             entry, words, detail = 'NOT_VERIFIED', 'Step %d was sent and is not verified: %s. It is not called done.' % (live['n'], live['reason']), {'elapsed_ms': elapsed}
@@ -1278,7 +1283,7 @@ def status(kernel, ident, principal):
     else:line = 'Step %d (%s) is ready.' % (nxt['n'], nxt['title'])
     stop_call = {'operation': 'assignment.stop', 'arguments': {'id': value['id']}} if value['state'] not in (DONE, STOPPED) else None
     actions = _actions(value, words, nxt, stop_call)
-    if GRANT_ACTION is not None and value['state'] not in (DONE, STOPPED, HELD):      # 1.0 K3: "Grant this for this assignment"
+    if GRANT_ACTION is not None and value['state'] not in (DONE, STOPPED):      # 1.0 K3: "Grant this for this assignment" (1.0 F3: while HALT holds too: it authorises, nothing runs)
         try:
             one = GRANT_ACTION(kernel, value, nxt, principal)
             if one:actions.insert(0, one)

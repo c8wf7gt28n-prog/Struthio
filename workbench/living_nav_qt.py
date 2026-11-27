@@ -650,9 +650,13 @@ class LivingNav(QObject):
         return entry
 
     def back(self):
+        leaving = self.nav.current      # 1.0 F3: Back from a place Search opened: the results in front again
         self.snapshot();entry = self.nav.back()
         if entry is not None:self.restore(entry)
         self.show_crumbs()
+        if leaving is not None and getattr(leaving, 'via', '') == 'search':
+            from .search_reach import back_to_results
+            back_to_results(self.host)
 
     def forward(self):
         self.snapshot();entry = self.nav.forward()

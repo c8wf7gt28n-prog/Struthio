@@ -195,6 +195,11 @@ def state(root=None, fresh=False, bus=None):
         reading = _read_state(bus)
         with _LOCK:
             _CACHE[kind] = cached = (now_ms(), reading)
+            if reading[0] == 'offline':      # 1.0 F3: the network went down: her fetch in flight ends now, cut short, never done
+                for active in _ACTIVE.values():
+                    cancel = active.get('cancel')
+                    if cancel is not None and not cancel.is_set():
+                        cancel.why = 'the network went down while it came (%s, %s)' % (STATES[reading[0]][0], reading[1]);cancel.set()
     return _compose(root, cached)
 
 
@@ -207,8 +212,10 @@ def _compose(root, cached):
         last = dict(_LAST.get(key) or {}) if key else {}
     active.pop('cancel', None)
     out = {'schema': SCHEMA, 'state': value, 'word': word, 'shape': shape, 'why': why, 'source': source, 'at': cached[0],
-           'fetching': active or None, 'last': last or None}
-    if active:
+           'fetching': (active or None) if value != 'offline' else None, 'last': last or None}      # 1.0 F3: never "her fetch" while it is down
+    if active and value == 'offline':
+        out['ending'] = active      # 1.0 F3: a fetch still closing after the network went down (cut short, never done)
+    if out['fetching']:
         out['said'] = '%s %s: %s' % (STATES['fetching'][1], STATES['fetching'][0], active.get('host', ''))
     else:
         out['said'] = '%s %s' % (shape, word)
@@ -393,19 +400,41 @@ def _fetch(address, cancel):
     except (urllib.error.URLError, OSError, ValueError) as error:
         why = getattr(error, 'reason', error)
         raise Refused('WEB_UNREACHED: %s could not be reached (%s); nothing was kept' % (urlsplit(address).hostname, str(why)[:120])) from None
+    import http.client
     with response:
         kind = (response.headers.get_content_type() or 'application/octet-stream').lower()
         charset = response.headers.get_content_charset() or ''
-        chunks, size, complete = [], 0, True
+        declared = _declared(response.headers)      # 1.0 F3: the length the page said it has (none when chunked or unsaid)
+        chunks, size, complete, cut = [], 0, True, ''
         while True:
-            if cancel.is_set():raise Refused('WEB_HALTED: HALT stopped her fetch; what was read is thrown away and nothing was kept')
-            piece = response.read(65536)
+            if cancel.is_set():
+                if getattr(cancel, 'why', ''):      # 1.0 F3: the network went down while it came: what came is kept, cut short
+                    complete, cut = False, cancel.why;break
+                raise Refused('WEB_HALTED: HALT stopped her fetch; what was read is thrown away and nothing was kept')
+            try:piece = response.read(65536)
+            except (http.client.IncompleteRead, OSError) as broke:      # 1.0 F3: the connection broke (reset, timed out, ended early)
+                part = getattr(broke, 'partial', b'') or b''
+                if part:chunks.append(part);size += len(part)
+                complete, cut = False, 'the connection broke after %d bytes (%s)' % (size, str(broke)[:80] or type(broke).__name__);break
             if not piece:break
             chunks.append(piece);size += len(piece)
-            if size > MOST_BYTES:complete = False;break
+            if size > MOST_BYTES:complete, cut = False, 'longer than the %d bytes kept' % MOST_BYTES;break
+        if complete and declared is not None and size < declared:      # 1.0 F3: the connection ended before the page said it would
+            complete, cut = False, 'the connection ended at %d of the %d bytes the page declared' % (size, declared)
+        if complete and cancel.is_set() and getattr(cancel, 'why', ''):complete, cut = False, cancel.why      # 1.0 F3
         body = b''.join(chunks)[:MOST_BYTES]
         return {'final': response.geturl(), 'status': int(getattr(response, 'status', 200) or 200), 'type': kind, 'charset': charset,
-                'body': body, 'complete': complete}
+                'body': body, 'complete': complete, 'cut': cut, 'declared': declared}
+
+
+def _declared(headers):
+    """1.0 F3: the page's declared length (Content-Length, identity encoding), or None when it declares none."""
+    if (headers.get('Transfer-Encoding') or '').strip().lower() not in ('', 'identity'):return None
+    try:
+        value = int(str(headers.get('Content-Length') or '').strip())
+    except ValueError:
+        return None
+    return value if value >= 0 else None
 
 
 # ================================================================================================== a page, as text
@@ -567,6 +596,7 @@ def _keep(kernel, principal, kind, where, got, read, by, words=''):
     payload = {'schema': PAGE, 'id': ident, 'owner': principal.identity, 'kind': kind, 'address': where['address'],
                'final': final['address'], 'host': where['host'], 'site': where['site'], 'at': at, 'status': got['status'],
                'type': got['type'], 'bytes': len(got['body']), 'sha256': sha, 'complete': bool(got['complete']),
+               'cut': str(got.get('cut') or '')[:200], 'declared': got.get('declared'),      # 1.0 F3: why it is cut short, and the length it declared
                'title': read['title'], 'lines': read['lines'], 'hidden': read['hidden'], 'links': read['links'][:MOST_LINKS],
                'readable': read['readable'], 'note': read['note'], 'by': by, 'words': words,
                'door': {'rules': door.rules, 'withheld': door.withheld(), 'aimed': bool(door.aimed()), 'lines': len(door.lines)}}
@@ -633,7 +663,8 @@ def owner_html(door, value, hidden):
     from . import doorway
     e = _html.escape
     head = '<p><b>%s</b><br/><span>%s · fetched from %s · %s</span></p>' % (
-        e(value.get('title') or value['host']), e(value['final'][:300]), e(value['host']), 'complete' if value['complete'] else 'cut short at %d bytes' % value['bytes'])
+        e(value.get('title') or value['host']), e(value['final'][:300]), e(value['host']), 'complete' if value['complete'] else
+        'cut short at %d bytes%s' % (value['bytes'], (': ' + e(value['cut'])) if value.get('cut') else ''))      # 1.0 F3: and why
     body = doorway.owner_html(door, '') if value.get('readable', True) else '<p>%s</p>' % e(value.get('note') or '')
     rest = []
     for h in hidden:
@@ -690,7 +721,7 @@ def _online(kernel):
 @contextlib.contextmanager
 def _fetching(kernel, where, kind):
     key = str(getattr(kernel, 'root', ''))
-    cancel = threading.Event()
+    cancel = threading.Event();cancel.why = ''      # 1.0 F3: why it was cut ('' for HALT)
     with _LOCK:_ACTIVE[key] = {'host': where['host'], 'site': where['site'], 'at': now_ms(), 'kind': kind, 'cancel': cancel}
     try:
         yield cancel
@@ -725,8 +756,10 @@ def _receipts(kernel, principal, op, where, page=None, refused=''):
             return tr.record(kernel, tr.receipt('network.fetch', op, where['site'], 'refused', 'observed', False, refused, place=place, owner=principal.identity))
         sent = tr.receipt('network.fetch', op, where['site'], 'dispatched', 'observed', False, 'sent; the page is not yet read back from quarantine',
                           place=place, basis='the call came back', owner=principal.identity)
-        done = tr.receipt('network.fetch', op, 'web:' + page['id'], 'verified', 'observed', bool(page['complete']),
-                          'kept in quarantine and read back with its digest (%d bytes from %s)' % (page['bytes'], page['host']),
+        whole = bool(page['complete'])      # 1.0 F3: a page cut short is kept, never verified
+        done = tr.receipt('network.fetch', op, 'web:' + page['id'], 'verified' if whole else 'not verified', 'observed', whole,
+                          ('kept in quarantine and read back with its digest (%d bytes from %s)' % (page['bytes'], page['host'])) if whole else
+                          ('cut short, kept in quarantine as it came (%d bytes from %s): %s' % (page['bytes'], page['host'], page.get('cut') or 'not whole')),
                           revision=page['sha256'], place=place, basis='sha256', owner=principal.identity, follows=sent['id'])
         return tr.record(kernel, sent, done)
     except Exception:  # noqa: BLE001 - receipts that cannot be kept never undo the fetch
@@ -734,8 +767,10 @@ def _receipts(kernel, principal, op, where, page=None, refused=''):
 
 
 def _summary(page, door_count):
+    whole = bool(page.get('complete', True))      # 1.0 F3: a page cut short is not a fetch that came
     return {'host': page['host'], 'at': page['at'], 'id': page['id'], 'title': page.get('title') or page['host'], 'kind': page['kind'],
-            'withheld': door_count, 'hidden': len(page.get('hidden') or ()), 'ok': True, 'why': ''}
+            'withheld': door_count, 'hidden': len(page.get('hidden') or ()), 'ok': whole,
+            'why': '' if whole else 'cut short: %s' % (page.get('cut') or 'it did not come whole')}
 
 
 def _run(kernel, principal, kind, where, by, words=''):
@@ -756,7 +791,8 @@ def _run(kernel, principal, kind, where, by, words=''):
     view = page_view(kernel, page['id'], principal)
     view['receipts'] = [r.get('id') for r in receipts]
     view['said'] = 'Fetched from %s and kept in quarantine (%d bytes%s), read as data. %s' % (
-        page['host'], page['bytes'], '' if page['complete'] else ', cut short', view['card'])
+        page['host'], page['bytes'], '' if page['complete'] else ', cut short: %s; not whole, so nothing rests on it' % (page.get('cut') or 'it did not come whole'),
+        view['card'])      # 1.0 F3: why it is cut short
     return view
 
 
@@ -873,7 +909,16 @@ if _asg is not None:
 
         def verify(self, kernel, read, arguments, result, prepared, step):
             if not isinstance(result, dict) or not result.get('id'):raise _asg.NotVerified('no page came back')
-            return self._observed(kernel, result['id'], step)
+            seen = self._observed(kernel, result['id'], step)
+            # 1.0 F3: verified only when the page is whole and the network is up as it is checked: a page cut short while the
+            # network went down, or any page checked while it is down, is "needs the network", never done.
+            reading = state(getattr(kernel, 'root', None), fresh=True)
+            cut = '' if seen['complete'] else (seen.get('cut') or 'it did not come whole')
+            if reading['state'] != 'online':
+                raise _asg.Blocked('%s; %s' % (needs_words(reading), ('the page from %s was cut short (%s): kept in quarantine, not counted done' % (seen['host'], cut))
+                                               if cut else 'the page from %s came, and the network is down as it is checked: not counted done' % seen['host']))
+            if cut:raise _asg.NotVerified('the page from %s was cut short (%s): it is kept in quarantine and not counted done' % (seen['host'], cut))
+            return seen
 
         @staticmethod
         def _observed(kernel, ident, step=None):
@@ -885,6 +930,7 @@ if _asg is not None:
             if seen != value['sha256']:raise _asg.NotVerified('the page does not read back from quarantine with its digest')
             held = len((value.get('door') or {}).get('withheld') or ()) + len(value.get('hidden') or ())
             return {'object': 'web:' + ident, 'revision': value['sha256'], 'by': 'sha256', 'complete': bool(value['complete']),
+                    'cut': value.get('cut') or '',      # 1.0 F3
                     'how': 'observed', 'page': ident, 'host': value['host'], 'path': value['address'][:300],
                     'words': 'fetched from %s, kept in quarantine and read back (%d bytes%s); read as data, %d line%s withheld from the model'
                              % (value['host'], value['bytes'], '' if value['complete'] else ', cut short', held, '' if held == 1 else 's')}

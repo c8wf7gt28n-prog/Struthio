@@ -39,6 +39,7 @@ class HaltButton(QToolButton):
 
     def refresh(self, _read=None):
         if getattr(self.host, '_closing', False):return
+        if self.busy:return      # 1.0 F3: your press is on its way; a reading made before it never puts the old word back
         from . import floor      # 1.0 F2: the timer's reading of the hold is made off the window's thread, then shown
         if _read is None and floor.gather(self.host, lambda read: read('halt.status'),
                                           lambda extra: self.refresh(_read=floor.answered(self.host, 'halt.status') or {}), key=('halt', id(self))):return
@@ -52,13 +53,17 @@ class HaltButton(QToolButton):
     def act(self):
         if self.busy:return
         self.busy = True
+        from . import halt
+
+        def landed(_out=None):      # 1.0 F3: the hold (or its lifting) made on a thread of its own; read again when it has landed
+            self.busy = False;self.refresh()
         try:
-            from . import halt
-            if self.held:halt.release(self.host)
-            else:halt.press(self.host)
-        finally:
+            if self.held:halt.release(self.host, then=landed)
+            else:halt.press(self.host, then=landed)
+            self.held = not self.held;self._name();self.update()      # 1.0 F3: your press is said at once
+        except Exception:  # noqa: BLE001 - read again as before
             from . import floor
-            self.busy = False;self.refresh(_read=floor.MISS)      # 1.0 F2: your press is said at once (read here)
+            self.busy = False;self.refresh(_read=floor.MISS)
 
     # -- the face ---------------------------------------------------------------------------------------------------------
     def word_font(self):

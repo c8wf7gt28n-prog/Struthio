@@ -675,8 +675,16 @@ def field_objects(page, view, most=MOST_OBJECTS):
 def in_sight(view, most=MOST_OBJECTS):
     """The titles of the sheets a pointer can reach now (their middle is in the Field's room), at most `most`."""
     try:
-        body = view._layout()
-        seen = [o.title for o in view.field.objects if (lambda r: r is not None and body.contains(r.center()))(view.sheet_rect(o.id, body))]
+        placed = getattr(view, '_placed', None) or {}      # 1.0 F3: the placing the Field was last drawn with (laying out a large desk again held the window)
+        body = view.body() if placed else view._layout()
+        placed = view._placed;z = float(view.zoom);sx, sy = float(view.scroll_x), float(view.scroll_y)      # 1.0 F3: the same sum as sheet_rect's, once per desk
+        left, top, right, bottom = body.left(), body.top(), body.right(), body.bottom()
+        seen = []
+        for o in view.field.objects:
+            p = placed.get(o.id)
+            if p is None:continue
+            x = left + (p.x - sx + p.w / 2) * z;y = top + (p.y - sy + p.h / 2) * z
+            if left <= x <= right and top <= y <= bottom:seen.append(o.title)
     except Exception:  # noqa: BLE001 - a view that cannot be laid out shows nothing in sight
         return []
     return seen[:most]

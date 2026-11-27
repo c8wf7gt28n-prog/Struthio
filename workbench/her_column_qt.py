@@ -48,6 +48,7 @@ carries meaning also has a word or a shape. No key is named in any of its words.
 """
 from __future__ import annotations
 
+import re
 import threading
 import time
 
@@ -69,6 +70,8 @@ WORDS = {
     'findings': 'FINDINGS (live)',
     'next': 'NEXT STEPS',
     'nothing_active': 'No assignment is open.',
+    'reading_work': 'Reading her journal…',      # 1.0 F3: until her journal is read after a start, never "nothing"
+    'reading_desk': 'Reading the desk…',      # 1.0 F3
     'last_done': 'Last: “{title}”, {state}.',      # 1.0 X1: with nothing open, the last one and its journal, one press away
     'its_journal': 'Its journal',
     'nothing_found': 'No findings on this desk yet.',
@@ -598,10 +601,10 @@ class WorkLine(QWidget):
         for w in (self.who, self.words, self.bar, self.percent, self.detail):w.show()      # 1.0 K9: the hand line alone hides them
         if view is None:
             face = self.column.face
-            if getattr(face, 'job', None):
+            if getattr(face, 'job', None) and getattr(self.column, 'brain_state', None) in (None, 'READY'):      # 1.0 F3: only while her model is up
                 self._checks([]);self.bar.set(0, False);self.percent.setText('');self.detail.setText(say('answering'));self.show();return
             self.resting = True
-            self.hide();return
+            self.detail.setText('');self.hide();return      # 1.0 F3: nothing said of a model turn that is over
         done = [s for s in view.get('steps') or () if str(s.get('journal_says', '')).startswith('done')]
         self._checks([('✓', 'Step %d · %s · %s' % (s['n'], plain(s['title']), s['journal_says'])) for s in done][-most_checks:])
         self.bar.set(view.get('progress', 0));self.percent.setText('%d%%' % int(view.get('progress', 0) or 0))
@@ -724,6 +727,14 @@ class WorkRow(QWidget):
         if not call:return
         done, why = press(self.column.host, call['operation'], call['arguments'])
         self.column.say_words(say('stopped', title=plain(self.row.get('title'))) if done is not None else say('stop_refused', why=why))
+        if isinstance(done, dict) and done.get('state_words'):      # 1.0 F3: ACTIVE WORK follows your Stop at once, from what the Stop gave back
+            row = dict(self.row, state_words=done['state_words'], state_word=done.get('state_word') or str(done['state_words']).upper(),
+                       stop=done.get('stop'), actions=done.get('actions') or [], line=done.get('line') or self.row.get('line'))
+            for i, r in enumerate(self.column.rows):
+                if r.get('id') == self.ident:self.column.rows[i] = row
+            try:self.show_row(int(self.number.text() or 1), row, self.compact)
+            except (ValueError, RuntimeError):
+                pass
         from . import floor;floor.column_soon(self.column)      # 1.0 F2: read again off the window's thread
 
     def open_journal(self):
@@ -737,7 +748,7 @@ class ActiveWork(QWidget):
         self.head = heading(host, say('active'));box.addWidget(self.head)
         self.rows = [];self.list = QVBoxLayout();self.list.setSpacing(px(host, 4));box.addLayout(self.list)
         self.more = row_label(host, '', quiet=True, size=12);box.addWidget(self.more)
-        self.none = row_label(host, say('nothing_active'), quiet=True, size=12);box.addWidget(self.none)
+        self.none = row_label(host, say('reading_work'), quiet=True, size=12);box.addWidget(self.none)      # 1.0 F3: until the first reading
         self.last = QLabel();self.last.setObjectName('HerLastWork');self.last.setWordWrap(True);self.last.setTextFormat(Qt.RichText)      # 1.0 X1
         ink(self.last, px(host, 12), bt.QUIET, None, bt.FACE);self.last.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.last.linkActivated.connect(lambda _=None: self.column.show_journal(self.last_id) if self.last_id else None)
@@ -763,6 +774,7 @@ class ActiveWork(QWidget):
             else:row.hide()
         hidden = max(0, total - min(len(rows), most))
         self.more.setText(say('more', count=hidden) if hidden else '');self.more.setVisible(bool(hidden))
+        self.none.setText(say('nothing_active'))      # 1.0 F3: read: now it may say so
         self.none.setVisible(not rows)
 
 
@@ -775,7 +787,8 @@ class Findings(QWidget):
         box.addWidget(heading(host, say('findings')))
         self.rows = [];self.list = QVBoxLayout();self.list.setSpacing(1);box.addLayout(self.list)
         self.more = row_label(host, '', quiet=True, size=12);box.addWidget(self.more)
-        self.none = row_label(host, say('nothing_found'), quiet=True, size=12);box.addWidget(self.none)
+        self.none = row_label(host, say('reading_desk'), quiet=True, size=12);box.addWidget(self.none)      # 1.0 F3: until the first reading
+        self.read_once = False
 
     def _row(self):
         host = self.column.host
@@ -804,6 +817,7 @@ class Findings(QWidget):
                 holder.setAccessibleName('%s: %s' % (word, found['text']));holder.show()
             else:holder.hide()
         self.more.setText(say('more', count=hidden) if hidden else '');self.more.setVisible(bool(hidden))
+        self.none.setText(say('nothing_found') if self.read_once else say('reading_desk'))      # 1.0 F3
         self.none.setVisible(not rows)
 
 
@@ -960,8 +974,15 @@ class Moment(QWidget):
     def place(self):
         face = self.column.face;head = self.column.head      # 1.0 P4 no avatar: a card of words under her head
         top = head.geometry().bottom() + 4 if head is not None else 0
+        band = getattr(self.column, 'waits', None)      # 1.0 F3: never over "Waits for you": the moment stands below it
+        try:
+            if band is not None and band.isVisible() and band.height() > 0:
+                top = max(top, band.mapTo(face, QPoint(0, band.height())).y() + 4)
+        except RuntimeError:
+            pass
         tall = max(120, min(face.height() - top - 8, round(face.height() * 0.46)))
         if self.art is not None and self.art.isNull():tall = px(self.host, 92)      # words only: the hologram is the art
+        if top + tall > face.height():tall = max(px(self.host, 48), face.height() - top - 4)      # 1.0 F3: a short column: smaller, never over the band
         self.setGeometry(0, top, face.width(), tall)
 
     def end(self):
@@ -1056,7 +1077,8 @@ class HerColumn(QObject):
         self.read_portrait()
         from . import floor      # 1.0 F2: her column's reads are made off the window's thread, then drawn
         self.timer = QTimer(self);self.timer.setInterval(TICK);self.timer.timeout.connect(lambda: floor.column_tick(self));self.timer.start()
-        QTimer.singleShot(0, lambda: floor.column_soon(self))
+        self.brain_state = None      # 1.0 F3: her model's state as her column last read it (brain.status, with her work)
+        QTimer.singleShot(0, lambda: floor.column_soon(self, first=True))      # 1.0 F3: at once, never behind the floor's queue
         stage = getattr(host, 'hologram', None)      # her hologram, placed before this column was, stands aside until a moment
         if stage is not None:QTimer.singleShot(0, stage.place_now)
 
@@ -1227,13 +1249,16 @@ class HerColumn(QObject):
     def kernel(self):
         return _kernel(self.host)
 
-    def refresh(self, force=False):
-        """Read the work (every tick), and the findings and the desk's waiting cards (every DESK_EVERY ticks, or forced)."""
+    def refresh(self, force=False, parts=None):
+        """Read the work (every tick), and the findings and the desk's waiting cards (every DESK_EVERY ticks, or forced).
+        1.0 F3: parts, what a gathering brought (her work alone after a press or at a start, then the desk)."""
         if getattr(self.host, '_closing', False):return
         if not force and not self.face.isVisible():return
-        self.ticks += 1
+        chosen = parts is not None;parts = parts or ('work', 'desk')      # 1.0 F3: parts as a gathering brought them (exactly), else as before
+        if 'work' in parts:self.ticks += 1
         self.size_parts();self.fit_soon()      # 1.0 P2: the sections follow the exchange
-        try:self.read_work()
+        try:
+            if 'work' in parts:self.read_work()      # 1.0 F3
         except Exception:  # noqa: BLE001 - a column never takes the window down
             pass
         try:      # 1.0 D1: what waits for you, read with the work
@@ -1244,8 +1269,10 @@ class HerColumn(QObject):
                 if scroll.minimumHeight() != want:scroll.setMinimumHeight(want)
         except Exception:  # noqa: BLE001
             pass
-        if force or self.ticks % DESK_EVERY == 1:
-            try:self.read_desk()
+        if ('desk' in parts or 'findings' in parts or 'cards' in parts) and (force or chosen or self.ticks % DESK_EVERY == 1):      # 1.0 F3: parts
+            try:
+                self.read_desk(findings='cards' not in parts or 'desk' in parts, cards='findings' not in parts or 'desk' in parts)
+                if 'cards' not in parts or 'desk' in parts:self.found.read_once = True
             except Exception:  # noqa: BLE001
                 pass
         try:self.show_state();self.found.show_rows(self.findings_rows, 2 if self.squeezed() else 4)      # 1.0 D1: squeezed (compact, as before, or something waits)
@@ -1259,6 +1286,7 @@ class HerColumn(QObject):
     def read_work(self):
         from . import assignments
         kernel, owner = self.kernel()
+        self.follow_brain()      # 1.0 F3: her model's state first: the progress line below says "answering" only while it is up
         listing = read(self.host, 'assignment.list', {'open': True, 'limit': 5}) or {}
         rows = list(listing.get('assignments') or ())
         order = {'working': 0, 'waiting for your word': 1, 'needs review': 1, 'blocked': 1, 'interrupted': 1, 'held': 2, 'ready': 2,
@@ -1281,12 +1309,16 @@ class HerColumn(QObject):
             self.active.show_last(getattr(self, '_x1_last', None) if not rows and not older else None)
         except Exception:  # noqa: BLE001
             pass
+        later = {}
         if self.seen_work is not None:
+            from . import floor as _floor
             for ident, title in self.seen_work.items():
                 if ident not in ids:
-                    gone = read(self.host, 'assignment.status', {'id': ident}) or {}
+                    gone = _floor.answered(self.host, 'assignment.status', {'id': ident})      # 1.0 F3: as gathered, never read here
+                    if gone is _floor.MISS and getattr(self.host, '_f2_answers', None):later[ident] = title;continue      # the next gathering reads it
+                    gone = (gone if gone is not _floor.MISS else read(self.host, 'assignment.status', {'id': ident})) or {}
                     if gone.get('state') == 'done':moment(self.host, 'done', title)
-        self.seen_work = ids
+        self.seen_work = dict(ids, **later)
         try:
             from . import halt_gate      # 1.0 K3: HALT's own hold (Stop all's hold of Graphite's jobs is not HALT)
             from . import floor      # 1.0 F2: as gathered off the window's thread, else read now
@@ -1302,9 +1334,36 @@ class HerColumn(QObject):
         self.seen_held = held
         _ = (assignments, kernel, owner)
 
-    def read_desk(self):
+    def follow_brain(self):
+        """1.0 F3: her model line, her model's ring and "her model is answering" follow the brain's state as gathered with her
+        work (never read here on the window's thread): "no model yet" only when no model is ready, never while one is."""
+        from . import floor
+        brain = floor.answered(self.host, 'brain.status')
+        if brain is floor.MISS or not isinstance(brain, dict):return
+        state = str(brain.get('state') or '');self.brain_state = state
+        self.host._status_brain = {'READY': 'ready', 'MODEL_STOPPED': 'stopped', 'NO_MODEL_SELECTED': 'none yet'}.get(state, 'unknown')
+        model = getattr(self.face, 'model', None)
+        if model is None:return
+        shown = model.text()
+        if state == 'READY' and (not shown or 'no model yet' in shown):
+            name = None
+            models = floor.answered(self.host, 'brain.models')
+            chosen = (brain.get('selection') or {}).get('model_id')
+            for m in (models.get('models') or ()) if isinstance(models, dict) else ():
+                if m.get('id') == chosen:
+                    weights = next((f.get('name') for f in m.get('files') or () if f.get('role') == 'weights'), None)
+                    if weights:name = re.sub(r'(?i)[-_.]?(q\d.*|f16|bf16)?\.gguf$', '', weights).replace('-', ' ')      # as shell2.model_name says it
+            model.setText(name or 'a model')      # the face's own refresh adds the rest at its tick
+        elif state != 'READY' and shown and 'no model yet' not in shown:
+            model.setText('no model yet');model.setToolTip('no model yet')
+
+    def read_desk(self, findings=True, cards=True):
         """FINDINGS (live): every open investigation's findings, refuted first; what each would do next. And the desk's
-        waiting cards for NEXT STEPS (field.read, an observer)."""
+        waiting cards for NEXT STEPS (field.read, an observer). 1.0 F3: findings and cards, each as its own gathering brought
+        it (at a start the findings are said before the whole desk is read)."""
+        if not findings:
+            rows = list(self.findings_rows or ())
+            self._f3_cards(cards, rows);return
         rows = [];states = {}
         listing = read(self.host, 'investigation.list') or {}
         for inv in list(listing.get('investigations') or ())[:4]:
@@ -1325,9 +1384,16 @@ class HerColumn(QObject):
             for ident, (state, text) in states.items():
                 if state == 'REFUTED' and self.seen_findings.get(ident, ('', ''))[0] != 'REFUTED':moment(self.host, 'refuted', text)
         self.seen_findings = states
-        desk = read(self.host, 'field.read') or {}
-        self.waiting = list(desk.get('waiting') or ())
-        self.last_desk = time.monotonic()
+        self._f3_cards(cards, rows)
+
+    def _f3_cards(self, cards, rows):
+        """The desk's waiting cards (field.read) when this gathering brought them, else as last read (1.0 F3); the RECHECK
+        marks on the findings from them."""
+        if cards:
+            desk = read(self.host, 'field.read') or {}
+            self.waiting = list(desk.get('waiting') or ());self._f3_stale_from = desk
+            self.last_desk = time.monotonic()
+        desk = getattr(self, '_f3_stale_from', None) or {}
         # 1.0 X1: a finding the desk marks RECHECK (what it rests on changed since) says so here as the board does, never SUPPORTED
         stale = {str(r.get('id')) for r in desk.get('objects') or () if r.get('kind') == 'finding' and str(r.get('state')) == 'recheck'}
         for row in rows:
@@ -1335,7 +1401,8 @@ class HerColumn(QObject):
         if stale:
             rank = ['REFUTED', 'RECHECK'] + [name for name, _ in FINDING_LOOK if name != 'REFUTED'] + ['NEXT']
             rows.sort(key=lambda r: rank.index(r['state']) if r['state'] in rank else len(rank))
-        self.look_for_old_values()      # 1.0 X1
+        self.findings_rows = rows
+        if cards:self.look_for_old_values()      # 1.0 X1
 
     def look_for_old_values(self):
         """1.0 X1 (day_notice): when the calculations marked RECHECK change, look off the window's thread for written words
@@ -1382,7 +1449,7 @@ class HerColumn(QObject):
         return 'idle' if state == 'viewing' else state
 
     def show_state(self):
-        state = self.state();ready = getattr(self.host, '_status_brain', '') == 'ready'
+        state = self.state();ready = (self.brain_state == 'READY') if getattr(self, 'brain_state', None) else getattr(self.host, '_status_brain', '') == 'ready'      # 1.0 F3
         self.head.show_state(state, ready);self.head.stage.portrait.set_state(state)
         if state != getattr(self, 'shown_state', None):      # 1.0 D1: the dock says it too when it needs you (state_words)
             self.shown_state = state
@@ -1531,14 +1598,44 @@ class HerColumn(QObject):
         page = self.field()
         if page is None:self.say_words(say('no_field'));return None
         obj = page.view.selected()
+        board_focus = self.board_focus(page)      # 1.0 F3: the card focused on the board is the one TRACE (and the rest) act on
+        if board_focus is not None:obj = board_focus
         if key == 'brief':return field_page.brief(self.host)
-        if key == 'check':return field_page.check_desk(self.host)
+        if key == 'check':      # 1.0 F3: CHECK ALL's reads rehearsed on a worker, then performed here from what was read
+            from . import off_window
+            from .field_do import sweep
+            from .field_source import read_field
+
+            def rehearse(kernel, principal):
+                field, _ = read_field(kernel, principal, title='', skip=set())
+                sweep(kernel, principal, field);kernel.dispatch('field.doubt', {}, principal)
+            return off_window.with_reads(self.host, rehearse, lambda: field_page.check_desk(self.host), key=('f3-check', id(self)))
         if obj is None:self.say_words(say('select_first'));return None
         if key == 'do':return field_page.do(self.host, obj)
         if key == 'doubt':return field_page.doubt(self.host, obj)
-        if key == 'trace':return field_page.trace(self.host, obj)
+        if key == 'trace':      # 1.0 F3: its line's read made on a worker first; the trace then answers from it at once
+            from . import off_window
+            from .field_do import call as line_call, js
+            try:operation, arguments = line_call('field.trace %s | pick rows | select way,steps,kind,title,state,by' % js(id=obj.id))
+            except Exception:  # noqa: BLE001 - traced as before
+                return field_page.trace(self.host, obj)
+            off_window.prefetch(self.host, operation, arguments, lambda: field_page.trace(self.host, obj))
+            return None
         if key == 'line':return field_page.stac_in_line(self.host, obj) if obj.stac else self.say_words(say('select_first'))
         return None
+
+    def board_focus(self, page):
+        """1.0 F3: the card focused on the board (the Field's object), when the board is in front and has a focus; else None."""
+        try:
+            board = getattr(page, 'board', None);inner = getattr(board, 'board', None)
+            focus = getattr(inner, 'focus', None) if inner is not None else None
+            if focus is None or not board.isVisible():return None
+            obj = page.view.field.get(focus.id)
+            if obj is not None and page.view.field.selected != obj.id:
+                page.view.field.select(obj.id)      # the Field's selection follows: one selection, as the board shows it
+            return obj
+        except Exception:  # noqa: BLE001 - the Field's own selection, as before
+            return None
 
     # -- the exchange -------------------------------------------------------------------------------------------------------
     def say_words(self, words):

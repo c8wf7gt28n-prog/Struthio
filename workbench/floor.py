@@ -210,9 +210,10 @@ def _root_of(host):
     return root
 
 
-def gather(host, plan, done, key=None):
+def gather(host, plan, done, key=None, own_thread=False):
     """plan(read) runs on a worker with the worker's Kernel; done() runs on the window's thread with what was read in force
-    (answered()). False when nothing could be started (no workspace): the caller reads as before."""
+    (answered()). False when nothing could be started (no workspace): the caller reads as before. 1.0 F3: own_thread, on a
+    thread of its own (her column's first reading after a start, never behind the floor's queue)."""
     root = _root_of(host)
     if root is None:return False
 
@@ -241,6 +242,19 @@ def gather(host, plan, done, key=None):
         finally:
             host._f2_answers = None;host._f2_extra = None
 
+    if own_thread:      # 1.0 F3
+        relay = _relay_now()
+
+        def alone():
+            result = error = None
+            try:result = work()
+            except Exception as exc:  # noqa: BLE001 - said to done(), never raised in a thread
+                error = exc
+            try:relay.landed.emit((landed, result, error, None))
+            except RuntimeError:      # the window has gone
+                pass
+        threading.Thread(target=alone, name='graphite-floor-first', daemon=True).start()
+        return True
     return submit(work, landed, key) or True
 
 
@@ -256,18 +270,25 @@ QUIET_EVERY = 4              # nothing changed and nothing working: her column r
 _column_kept = {}            # id(column) -> what its last gathering read: the change mark, the work's reads, the desk's
 
 
-def column_plan(ident, seen, desk, force=False):
+def column_plan(ident, seen, desk, force=False, work=True, findings=True, cards=True):
     """The reads her column's refresh makes (her_column_qt: read_work, the grants' fold, read_desk), in its own words. When
     the workspace's change mark has not moved and nothing of hers is working, the last reading is drawn again instead (at
-    most QUIET_EVERY ticks running), so a quiet desk costs nothing; a press (force) always reads."""
+    most QUIET_EVERY ticks running), so a quiet desk costs nothing; a press (force) always reads. 1.0 F3: work=False reads
+    the desk alone (her work is read in a quick gathering of its own); the work's and the desk's marks are kept apart, a read
+    that failed is never kept as "nothing", and two gatherings at once each keep only their own part."""
     def plan(read):
         mark = head(read.root)
         with _lock:
             kept = dict(_column_kept.get(ident) or {})
+        mine = {}      # 1.0 F3: what this gathering keeps (merged under the lock at its end)
         same = not force and mark is not None and kept.get('head') == mark
-        if same and not kept.get('working') and kept.get('work') is not None and kept.get('work_age', 0) < QUIET_EVERY:
-            read.got.update(kept['work']);kept['work_age'] = kept.get('work_age', 0) + 1
+        same_desk = not force and mark is not None and kept.get('desk_head', kept.get('head')) == mark
+        if not work:
+            pass
+        elif same and not kept.get('working') and kept.get('work') is not None and kept.get('work_age', 0) < QUIET_EVERY:
+            read.got.update(kept['work']);mine['work_age'] = kept.get('work_age', 0) + 1
             if kept.get('halt') is not None:read.extra['halt'] = kept['halt']
+            if (read('brain.status') or {}).get('state') == 'READY':read('brain.models')      # 1.0 F3: her model's state, every tick (a model can stop with nothing else changed)
         else:
             before = set(read.got)
             listing = read('assignment.list', {'open': True, 'limit': 5}) or {}
@@ -285,21 +306,32 @@ def column_plan(ident, seen, desk, force=False):
                 read.extra['halt'] = halt_gate.status(read.kernel)
             except Exception:  # noqa: BLE001 - read on the window's thread as before
                 pass
-            kept.update(work={k: v for k, v in read.got.items() if k not in before}, work_age=0, halt=read.extra.get('halt'),
+            if (read('brain.status') or {}).get('state') == 'READY':read('brain.models')      # 1.0 F3: her model line follows the brain's state
+            reads = {k: v for k, v in read.got.items() if k not in before}
+            failed = any(v is None for k, v in reads.items() if k.startswith('assignment.list'))
+            mine.update(work=None if failed else reads, work_age=0, halt=read.extra.get('halt'), head=mark,
                         working=working is not None or bool((live or {}).get('live')))
-        if desk:
-            if same and kept.get('desk') is not None and kept.get('desk_age', 0) < QUIET_EVERY:
-                read.got.update(kept['desk']);kept['desk_age'] = kept.get('desk_age', 0) + 1
+        if desk and findings and cards:
+            if same_desk and kept.get('desk') is not None and kept.get('desk_age', 0) < QUIET_EVERY:
+                read.got.update(kept['desk']);mine['desk_age'] = kept.get('desk_age', 0) + 1
             else:
                 before = set(read.got)
                 listing = read('investigation.list') or {}
                 for inv in list(listing.get('investigations') or ())[:4]:
                     read('investigation.sheet', {'id': inv['id']})
                 read('field.read')
-                kept.update(desk={k: v for k, v in read.got.items() if k not in before}, desk_age=0)
-        kept['head'] = mark
+                reads = {k: v for k, v in read.got.items() if k not in before}
+                failed = any(v is None for k, v in reads.items() if k.startswith(('investigation.list', 'field.read')))
+                mine.update(desk=None if failed else reads, desk_age=0, desk_head=mark)
+        elif desk:      # 1.0 F3: the findings alone, or the desk's cards alone (each its own gathering, after a press or at a start)
+            if findings:
+                listing = read('investigation.list') or {}
+                for inv in list(listing.get('investigations') or ())[:4]:
+                    read('investigation.sheet', {'id': inv['id']})
+            if cards:read('field.read')
         with _lock:
-            _column_kept[ident] = kept
+            now = dict(_column_kept.get(ident) or {});now.update(mine)
+            _column_kept[ident] = now
     return plan
 
 
@@ -317,21 +349,32 @@ def column_tick(column):
     from .her_column_qt import DESK_EVERY
     desk = (column.ticks + 1) % DESK_EVERY == 1
     seen = set((getattr(column, 'seen_work', None) or {}).keys())
-    started = gather(column.host, column_plan(id(column), seen, desk), lambda extra: _column_draw(column, False), key=('her-column', id(column)))
+    gen = getattr(column, '_f3_gen', 0)      # 1.0 F3: a reading begun before your press is not drawn over what the press showed
+    started = gather(column.host, column_plan(id(column), seen, desk), lambda extra: _column_draw(column, False, ('work', 'desk') if desk else ('work',))
+                     if getattr(column, '_f3_gen', 0) == gen else None,      # 1.0 F3: drawn as gathered (the desk only when it was read)
+                     key=('her-column', id(column)))
     if not started:column.refresh()
 
 
-def column_soon(column):
-    """After a press: her column read again (with the findings and the desk) off the window's thread, then drawn."""
+def column_soon(column, first=False):
+    """After a press: her column read again off the window's thread, then drawn. 1.0 F3: her work first, in a quick gathering
+    of its own (ACTIVE WORK follows a Stop at once), then the findings and the desk; at a start (first) each on a thread of
+    its own, so what the journal and the desk hold is said at once, never "nothing" while it is being read."""
     if not _column_ok(column):return
+    column._f3_gen = getattr(column, '_f3_gen', 0) + 1      # 1.0 F3: readings begun before this press are not drawn
     seen = set((getattr(column, 'seen_work', None) or {}).keys())
-    started = gather(column.host, column_plan(id(column), seen, True, force=True), lambda extra: _column_draw(column, True), key=('her-column', id(column)))
-    if not started:column.refresh(force=True)
+    started = gather(column.host, column_plan(id(column), seen, False, force=True), lambda extra: _column_draw(column, True, ('work',)),
+                     key=('her-column-work', id(column)), own_thread=first)
+    if not started:column.refresh(force=True);return
+    gather(column.host, column_plan(id(column), seen, True, force=True, work=False, cards=False), lambda extra: _column_draw(column, True, ('findings',)),
+           key=('her-column', id(column)), own_thread=first)      # FINDINGS, said before the whole desk is read
+    gather(column.host, column_plan(id(column), seen, True, force=True, work=False, findings=False), lambda extra: _column_draw(column, True, ('cards',)),
+           key=('her-column-cards', id(column)), own_thread=first)      # the desk's cards for NEXT STEPS
 
 
-def _column_draw(column, force):
+def _column_draw(column, force, parts=None):
     if not _column_ok(column):return
-    try:column.refresh(force=force)
+    try:column.refresh(force=force, parts=parts)      # 1.0 F3: parts
     except RuntimeError:      # the column went with its window
         pass
 

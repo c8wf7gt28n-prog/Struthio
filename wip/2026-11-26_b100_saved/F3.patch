@@ -1,0 +1,1624 @@
+diff --git a/workbench/a11y_names.py b/workbench/a11y_names.py
+new file mode 100644
+index 0000000..83d6ea5
+--- /dev/null
++++ b/workbench/a11y_names.py
+@@ -0,0 +1,105 @@
++"""Graphite 1.0 F3 · every keyboard stop has a name a screen reader can say, and Tab reaches the presses of a scrolled page
++(the walkthroughs' faults, item 8; X4's session 12).
++
++X4 pressed Tab through the window: seven stops had no name a screen reader could say (a scroll area, a press, three
++labels, two of the centre's glyph presses, the Brain room press), and the presses of a page in a scroll area (Storage's
++Mount and Eject safely) were never reached: the scroll area took the focus as a whole.
++
++    install(host)     one watcher on the window: when a part takes the keyboard's focus with no name of its own, it is
++                      given one from what it shows (its words, its tooltip's first sentence, its placeholder, or what the
++                      focused label's link says), never from an internal object name; a scroll area whose page holds
++                      presses of its own hands the focus on to them (Tab walks into the page, and the page scrolls to the
++                      press in focus).
++    name_of(widget)   the name it would be given (also for a reader of the window).
++
++It names and lets Tab through; it never presses anything.
++"""
++from __future__ import annotations
++
++import re
++
++from PySide6.QtCore import QEvent, QObject, Qt
++from PySide6.QtWidgets import (QAbstractButton, QAbstractScrollArea, QApplication, QComboBox, QLabel, QLineEdit, QScrollArea,
++                               QTabBar, QTextEdit, QPlainTextEdit, QWidget)
++
++WORDS = {'scroll': 'A scrolled page', 'label': 'A line of words',
++         'field': 'A place to type', 'press': 'A press'}
++SAYABLE = re.compile(r'[A-Za-z]{2,}')
++_FOCUS_IN = QEvent.FocusIn
++
++
++def _plain(text):
++    text = re.sub(r'<[^>]+>', ' ', str(text or ''))
++    text = re.sub(r'[←-⯿■-◿☀-➿⌀-⏿]', ' ', text)      # glyphs a reader cannot say
++    return ' '.join(text.replace('&', '').split())
++
++
++def _sentence(text):
++    first = re.split(r'(?<=[.:;])\s', _plain(text), maxsplit=1)[0].strip(' .:;')
++    return first[:120]
++
++
++def name_of(widget):
++    """A name to say for this part, from what it shows; '' when it shows nothing to say."""
++    for source in ((widget.text() if isinstance(widget, (QAbstractButton, QLabel)) else ''),
++                   (widget.placeholderText() if isinstance(widget, QLineEdit) else ''),
++                   (widget.currentText() if isinstance(widget, QComboBox) else ''),
++                   widget.toolTip(), widget.accessibleDescription(), widget.statusTip(), widget.whatsThis()):
++        said = _sentence(source)
++        if SAYABLE.search(said):return said
++    if isinstance(widget, QAbstractScrollArea):return WORDS['scroll']
++    if isinstance(widget, QLabel):return WORDS['label']
++    if isinstance(widget, (QLineEdit, QTextEdit, QPlainTextEdit)):return WORDS['field']
++    if isinstance(widget, QAbstractButton):return WORDS['press']
++    return ''
++
++
++def _presses_inside(area):
++    page = area.widget() if isinstance(area, QScrollArea) else None
++    if page is None:return False
++    return any(w.focusPolicy() & Qt.TabFocus and w.isVisibleTo(page) for w in page.findChildren(QWidget))
++
++
++class Namer(QObject):
++    """On the application: names a part as it takes the focus; lets Tab into a scrolled page's presses."""
++
++    def __init__(self, host):
++        super().__init__(host);self.host = host
++
++    def eventFilter(self, watched, event):
++        if event.type() == _FOCUS_IN and isinstance(watched, QWidget):
++            try:self.focused(watched, event)
++            except RuntimeError:      # a part going away as it is focused
++                pass
++        return False
++
++    def focused(self, widget, event):
++        if widget.window() is not self.host:return
++        if isinstance(widget, QScrollArea) and _presses_inside(widget):      # Tab walks into the page, never stops on its frame
++            widget.setFocusPolicy(Qt.NoFocus)
++            if event.reason() in (Qt.TabFocusReason, Qt.BacktabFocusReason):
++                forward = event.reason() == Qt.TabFocusReason
++                page = widget.widget()
++                inside = [w for w in page.findChildren(QWidget) if w.focusPolicy() & Qt.TabFocus and w.isVisibleTo(page) and w.isEnabled()]
++                if inside:
++                    target = inside[0] if forward else inside[-1]
++                    target.setFocus(event.reason());widget.ensureWidgetVisible(target)
++                    return
++        if not widget.accessibleName() or not SAYABLE.search(widget.accessibleName()):
++            said = name_of(widget)
++            if said:widget.setAccessibleName(said)
++        parent = widget.parentWidget()      # a press inside a scrolled page is brought into sight as Tab reaches it
++        while parent is not None:
++            if isinstance(parent, QScrollArea) and parent.widget() is not None and parent.widget().isAncestorOf(widget):
++                parent.ensureWidgetVisible(widget);break
++            parent = parent.parentWidget()
++
++
++def install(host):
++    if getattr(host, '_f3_namer', None) is not None:return host._f3_namer
++    app = QApplication.instance()
++    if app is None:return None
++    namer = Namer(host);app.installEventFilter(namer);host._f3_namer = namer
++    for tab_bar in host.findChildren(QTabBar):      # the tabs' own bar: its name, as its current tab says
++        if not tab_bar.accessibleName():tab_bar.setAccessibleName('Tabs')
++    return namer
+diff --git a/workbench/assignments.py b/workbench/assignments.py
+index 4fe50e8..d3e742d 100644
+--- a/workbench/assignments.py
++++ b/workbench/assignments.py
+@@ -987,6 +987,8 @@ def _run_one(kernel, ident, principal, epoch=None):
+                 output = _output(step, observation, result)
+     except NotVerified as why:
+         outcome = 'not verified';result = {'reason': str(why)[:400]}
++    except Blocked as why:      # 1.0 F3: its check found a precondition gone as it checked (the network down): blocked, never done
++        outcome = 'blocked after sent' if sent else 'failed';result = {'reason': str(why)[:400]}
+     except Exception as why:  # noqa: BLE001 - a step that went wrong is recorded as such, never left running or called done
+         outcome = 'not verified' if sent else 'failed';result = {'reason': str(why)[:400] or type(why).__name__}
+     elapsed = _now_ms() - began
+@@ -1013,6 +1015,9 @@ def _run_one(kernel, ident, principal, epoch=None):
+         elif outcome == 'failed':
+             live.update(status='blocked', reason=(result or {}).get('reason', ''))
+             entry, words, detail = 'BLOCKED', 'Step %d could not start: %s' % (live['n'], live['reason']), {}
++        elif outcome == 'blocked after sent':      # 1.0 F3
++            live.update(status='blocked', reason=(result or {}).get('reason', ''))
++            entry, words, detail = 'BLOCKED', 'Step %d was sent and is blocked: %s. It is not called done.' % (live['n'], live['reason']), {'elapsed_ms': elapsed}
+         else:
+             live.update(status='needs review', reason=(result or {}).get('reason', 'not verified'))
+             entry, words, detail = 'NOT_VERIFIED', 'Step %d was sent and is not verified: %s. It is not called done.' % (live['n'], live['reason']), {'elapsed_ms': elapsed}
+@@ -1278,7 +1283,7 @@ def status(kernel, ident, principal):
+     else:line = 'Step %d (%s) is ready.' % (nxt['n'], nxt['title'])
+     stop_call = {'operation': 'assignment.stop', 'arguments': {'id': value['id']}} if value['state'] not in (DONE, STOPPED) else None
+     actions = _actions(value, words, nxt, stop_call)
+-    if GRANT_ACTION is not None and value['state'] not in (DONE, STOPPED, HELD):      # 1.0 K3: "Grant this for this assignment"
++    if GRANT_ACTION is not None and value['state'] not in (DONE, STOPPED):      # 1.0 K3: "Grant this for this assignment" (1.0 F3: while HALT holds too: it authorises, nothing runs)
+         try:
+             one = GRANT_ACTION(kernel, value, nxt, principal)
+             if one:actions.insert(0, one)
+diff --git a/workbench/console_qt.py b/workbench/console_qt.py
+index 678edd0..9d1f41c 100644
+--- a/workbench/console_qt.py
++++ b/workbench/console_qt.py
+@@ -550,8 +550,11 @@ class Console(QWidget):
+     # -- Find ------------------------------------------------------------------------------
+     def run_find(self, text):
+         from .shell2 import library_files
++        from . import search_reach as sr      # 1.0 F3: every word on its own; Home by name; a hit opens on the board
++        wanted = sr.words(text)
+         parts = []
+-        files = (call(self.host, 'files.find', {'text': text, 'limit': 30}) or {}).get('records', [])
++        files = (call(self.host, 'files.find', {'text': sr.longest(text) or text, 'limit': 60}) or {}).get('records', [])
++        files = [e for e in files if sr.holds('%s %s' % (e.get('path', ''), e.get('found') or e.get('kind_words', '')), wanted)][:30]      # 1.0 F3
+         if files:
+             root = Path((call(self.host, 'files.list', {}) or {}).get('root', '.'))
+             lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda p=root / e['path']:self.host.open_in_viewer(p)), escape(e['path']), QUIET, escape(e.get('found') or e.get('kind_words', '')))
+@@ -560,19 +563,24 @@ class Console(QWidget):
+             more = '  ' + self.link('show in Files', lambda t=text:files_show(self.host).show_question(t)) + '  ·  ' + \
+                    self.link('keep as a smart folder', lambda t=text:self.keep_smart(t))
+             parts.append('<span style="color:%s;">FILES · %d</span>%s<br>' % (QUIET, len(files), more) + '<br>'.join(lines))
++        home, stopped = sr.home_names(self.host, text)      # 1.0 F3: your home's files and folders, by their names
++        if home:
++            from .home_reach import tilde
++            lines = ['%s  %s%s' % (self.link('open', lambda p=p:sr.open_home(self.host, p)), escape(tilde(str(p))), '/' if d else '') for p, d in home]
++            parts.append('<span style="color:%s;">HOME · %d%s</span><br>' % (QUIET, len(home), (' · ' + escape(stopped)) if stopped else '') + '<br>'.join(lines))
+         # HATCH DESK D1b: the cabinet's query box and the settings filter left the left pane; finding a record or a setting by
+         # its words is here, in Search (D3). The same match as the boxes: label and role, label and key.
+-        records = cabinet_records(self.host, text)
++        records = sr.records(self.host, text)      # 1.0 F3: every word; each name once; the desk's object first
+         if records:
+-            lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda i=n['id']:reveal_record(self.host, i)), escape(n['label']), QUIET, escape(n['role'].replace('_', ' ')))
++            lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda i=n['id']:sr.open_record(self.host, i)), escape(n['label']), QUIET, escape(n['role'].replace('_', ' ')))
+                      for n in records]
+             parts.append('<span style="color:%s;">CABINET · %d</span><br>' % (QUIET, len(records)) + '<br>'.join(lines))
+-        found = setting_rows(text)
++        found = [n for n in setting_rows(sr.longest(text) or text, limit=40) if sr.holds(n['label'] + ' ' + n['target'], wanted)][:12]      # 1.0 F3
+         if found:
+             lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda k=n['target']:self.host.ledger_bridge.show_settings(key=k)), escape(n['label']), QUIET, escape(n['target']))
+                      for n in found]
+             parts.append('<span style="color:%s;">SETTINGS · %d</span><br>' % (QUIET, len(found)) + '<br>'.join(lines))
+-        received = [e for e in library_files(self.host, limit=400) if text.casefold() in e['name'].casefold()][:15]
++        received = [e for e in library_files(self.host, limit=400) if sr.holds(e['name'], wanted)][:15]      # 1.0 F3
+         if received:
+             lines = ['%s  %s  <span style="color:%s;">%s</span>' % (self.link('open', lambda e=e:self.host.shell2.open_library_file(e)), escape(e['name']), QUIET, escape(e['delivery'])) for e in received]
+             parts.append('<span style="color:%s;">RECEIVED · %d</span><br>' % (QUIET, len(received)) + '<br>'.join(lines))
+@@ -582,7 +590,8 @@ class Console(QWidget):
+             parts.append('<span style="color:%s;">COMMANDS</span><br>' % QUIET + '<br>'.join(lines))
+         from . import activity
+         from .tail_words import readable
+-        events = [e for e in activity.tail(self.host.root, query=text, limit=200).get('events', []) if e.get('state') != 'REQUEST_RECEIVED'][-12:]
++        events = [e for e in activity.tail(self.host.root, query=sr.longest(text) or text, limit=400).get('events', []) if e.get('state') != 'REQUEST_RECEIVED'
++                  and sr.holds(readable(e), wanted)][-12:]      # 1.0 F3: every word
+         if events:
+             lines = ['%s  %s' % (time.strftime('%H:%M:%S', time.localtime(e['at'])), escape(readable(e))) for e in reversed(events)]
+             parts.append('<span style="color:%s;">TIMELINE · %d</span><br>' % (QUIET, len(events)) + '<br>'.join(lines))
+diff --git a/workbench/desk_doers.py b/workbench/desk_doers.py
+index bfb027b..52a35f8 100644
+--- a/workbench/desk_doers.py
++++ b/workbench/desk_doers.py
+@@ -675,8 +675,16 @@ def field_objects(page, view, most=MOST_OBJECTS):
+ def in_sight(view, most=MOST_OBJECTS):
+     """The titles of the sheets a pointer can reach now (their middle is in the Field's room), at most `most`."""
+     try:
+-        body = view._layout()
+-        seen = [o.title for o in view.field.objects if (lambda r: r is not None and body.contains(r.center()))(view.sheet_rect(o.id, body))]
++        placed = getattr(view, '_placed', None) or {}      # 1.0 F3: the placing the Field was last drawn with (laying out a large desk again held the window)
++        body = view.body() if placed else view._layout()
++        placed = view._placed;z = float(view.zoom);sx, sy = float(view.scroll_x), float(view.scroll_y)      # 1.0 F3: the same sum as sheet_rect's, once per desk
++        left, top, right, bottom = body.left(), body.top(), body.right(), body.bottom()
++        seen = []
++        for o in view.field.objects:
++            p = placed.get(o.id)
++            if p is None:continue
++            x = left + (p.x - sx + p.w / 2) * z;y = top + (p.y - sy + p.h / 2) * z
++            if left <= x <= right and top <= y <= bottom:seen.append(o.title)
+     except Exception:  # noqa: BLE001 - a view that cannot be laid out shows nothing in sight
+         return []
+     return seen[:most]
+diff --git a/workbench/floor.py b/workbench/floor.py
+index a9c0a8f..7d331da 100644
+--- a/workbench/floor.py
++++ b/workbench/floor.py
+@@ -210,9 +210,10 @@ def _root_of(host):
+     return root
+ 
+ 
+-def gather(host, plan, done, key=None):
++def gather(host, plan, done, key=None, own_thread=False):
+     """plan(read) runs on a worker with the worker's Kernel; done() runs on the window's thread with what was read in force
+-    (answered()). False when nothing could be started (no workspace): the caller reads as before."""
++    (answered()). False when nothing could be started (no workspace): the caller reads as before. 1.0 F3: own_thread, on a
++    thread of its own (her column's first reading after a start, never behind the floor's queue)."""
+     root = _root_of(host)
+     if root is None:return False
+ 
+@@ -241,6 +242,19 @@ def gather(host, plan, done, key=None):
+         finally:
+             host._f2_answers = None;host._f2_extra = None
+ 
++    if own_thread:      # 1.0 F3
++        relay = _relay_now()
++
++        def alone():
++            result = error = None
++            try:result = work()
++            except Exception as exc:  # noqa: BLE001 - said to done(), never raised in a thread
++                error = exc
++            try:relay.landed.emit((landed, result, error, None))
++            except RuntimeError:      # the window has gone
++                pass
++        threading.Thread(target=alone, name='graphite-floor-first', daemon=True).start()
++        return True
+     return submit(work, landed, key) or True
+ 
+ 
+@@ -256,18 +270,25 @@ QUIET_EVERY = 4              # nothing changed and nothing working: her column r
+ _column_kept = {}            # id(column) -> what its last gathering read: the change mark, the work's reads, the desk's
+ 
+ 
+-def column_plan(ident, seen, desk, force=False):
++def column_plan(ident, seen, desk, force=False, work=True, findings=True, cards=True):
+     """The reads her column's refresh makes (her_column_qt: read_work, the grants' fold, read_desk), in its own words. When
+     the workspace's change mark has not moved and nothing of hers is working, the last reading is drawn again instead (at
+-    most QUIET_EVERY ticks running), so a quiet desk costs nothing; a press (force) always reads."""
++    most QUIET_EVERY ticks running), so a quiet desk costs nothing; a press (force) always reads. 1.0 F3: work=False reads
++    the desk alone (her work is read in a quick gathering of its own); the work's and the desk's marks are kept apart, a read
++    that failed is never kept as "nothing", and two gatherings at once each keep only their own part."""
+     def plan(read):
+         mark = head(read.root)
+         with _lock:
+             kept = dict(_column_kept.get(ident) or {})
++        mine = {}      # 1.0 F3: what this gathering keeps (merged under the lock at its end)
+         same = not force and mark is not None and kept.get('head') == mark
+-        if same and not kept.get('working') and kept.get('work') is not None and kept.get('work_age', 0) < QUIET_EVERY:
+-            read.got.update(kept['work']);kept['work_age'] = kept.get('work_age', 0) + 1
++        same_desk = not force and mark is not None and kept.get('desk_head', kept.get('head')) == mark
++        if not work:
++            pass
++        elif same and not kept.get('working') and kept.get('work') is not None and kept.get('work_age', 0) < QUIET_EVERY:
++            read.got.update(kept['work']);mine['work_age'] = kept.get('work_age', 0) + 1
+             if kept.get('halt') is not None:read.extra['halt'] = kept['halt']
++            if (read('brain.status') or {}).get('state') == 'READY':read('brain.models')      # 1.0 F3: her model's state, every tick (a model can stop with nothing else changed)
+         else:
+             before = set(read.got)
+             listing = read('assignment.list', {'open': True, 'limit': 5}) or {}
+@@ -285,21 +306,32 @@ def column_plan(ident, seen, desk, force=False):
+                 read.extra['halt'] = halt_gate.status(read.kernel)
+             except Exception:  # noqa: BLE001 - read on the window's thread as before
+                 pass
+-            kept.update(work={k: v for k, v in read.got.items() if k not in before}, work_age=0, halt=read.extra.get('halt'),
++            if (read('brain.status') or {}).get('state') == 'READY':read('brain.models')      # 1.0 F3: her model line follows the brain's state
++            reads = {k: v for k, v in read.got.items() if k not in before}
++            failed = any(v is None for k, v in reads.items() if k.startswith('assignment.list'))
++            mine.update(work=None if failed else reads, work_age=0, halt=read.extra.get('halt'), head=mark,
+                         working=working is not None or bool((live or {}).get('live')))
+-        if desk:
+-            if same and kept.get('desk') is not None and kept.get('desk_age', 0) < QUIET_EVERY:
+-                read.got.update(kept['desk']);kept['desk_age'] = kept.get('desk_age', 0) + 1
++        if desk and findings and cards:
++            if same_desk and kept.get('desk') is not None and kept.get('desk_age', 0) < QUIET_EVERY:
++                read.got.update(kept['desk']);mine['desk_age'] = kept.get('desk_age', 0) + 1
+             else:
+                 before = set(read.got)
+                 listing = read('investigation.list') or {}
+                 for inv in list(listing.get('investigations') or ())[:4]:
+                     read('investigation.sheet', {'id': inv['id']})
+                 read('field.read')
+-                kept.update(desk={k: v for k, v in read.got.items() if k not in before}, desk_age=0)
+-        kept['head'] = mark
++                reads = {k: v for k, v in read.got.items() if k not in before}
++                failed = any(v is None for k, v in reads.items() if k.startswith(('investigation.list', 'field.read')))
++                mine.update(desk=None if failed else reads, desk_age=0, desk_head=mark)
++        elif desk:      # 1.0 F3: the findings alone, or the desk's cards alone (each its own gathering, after a press or at a start)
++            if findings:
++                listing = read('investigation.list') or {}
++                for inv in list(listing.get('investigations') or ())[:4]:
++                    read('investigation.sheet', {'id': inv['id']})
++            if cards:read('field.read')
+         with _lock:
+-            _column_kept[ident] = kept
++            now = dict(_column_kept.get(ident) or {});now.update(mine)
++            _column_kept[ident] = now
+     return plan
+ 
+ 
+@@ -317,21 +349,32 @@ def column_tick(column):
+     from .her_column_qt import DESK_EVERY
+     desk = (column.ticks + 1) % DESK_EVERY == 1
+     seen = set((getattr(column, 'seen_work', None) or {}).keys())
+-    started = gather(column.host, column_plan(id(column), seen, desk), lambda extra: _column_draw(column, False), key=('her-column', id(column)))
++    gen = getattr(column, '_f3_gen', 0)      # 1.0 F3: a reading begun before your press is not drawn over what the press showed
++    started = gather(column.host, column_plan(id(column), seen, desk), lambda extra: _column_draw(column, False, ('work', 'desk') if desk else ('work',))
++                     if getattr(column, '_f3_gen', 0) == gen else None,      # 1.0 F3: drawn as gathered (the desk only when it was read)
++                     key=('her-column', id(column)))
+     if not started:column.refresh()
+ 
+ 
+-def column_soon(column):
+-    """After a press: her column read again (with the findings and the desk) off the window's thread, then drawn."""
++def column_soon(column, first=False):
++    """After a press: her column read again off the window's thread, then drawn. 1.0 F3: her work first, in a quick gathering
++    of its own (ACTIVE WORK follows a Stop at once), then the findings and the desk; at a start (first) each on a thread of
++    its own, so what the journal and the desk hold is said at once, never "nothing" while it is being read."""
+     if not _column_ok(column):return
++    column._f3_gen = getattr(column, '_f3_gen', 0) + 1      # 1.0 F3: readings begun before this press are not drawn
+     seen = set((getattr(column, 'seen_work', None) or {}).keys())
+-    started = gather(column.host, column_plan(id(column), seen, True, force=True), lambda extra: _column_draw(column, True), key=('her-column', id(column)))
+-    if not started:column.refresh(force=True)
++    started = gather(column.host, column_plan(id(column), seen, False, force=True), lambda extra: _column_draw(column, True, ('work',)),
++                     key=('her-column-work', id(column)), own_thread=first)
++    if not started:column.refresh(force=True);return
++    gather(column.host, column_plan(id(column), seen, True, force=True, work=False, cards=False), lambda extra: _column_draw(column, True, ('findings',)),
++           key=('her-column', id(column)), own_thread=first)      # FINDINGS, said before the whole desk is read
++    gather(column.host, column_plan(id(column), seen, True, force=True, work=False, findings=False), lambda extra: _column_draw(column, True, ('cards',)),
++           key=('her-column-cards', id(column)), own_thread=first)      # the desk's cards for NEXT STEPS
+ 
+ 
+-def _column_draw(column, force):
++def _column_draw(column, force, parts=None):
+     if not _column_ok(column):return
+-    try:column.refresh(force=force)
++    try:column.refresh(force=force, parts=parts)      # 1.0 F3: parts
+     except RuntimeError:      # the column went with its window
+         pass
+ 
+diff --git a/workbench/grants.py b/workbench/grants.py
+index 112adf9..2197db4 100644
+--- a/workbench/grants.py
++++ b/workbench/grants.py
+@@ -690,7 +690,7 @@ def _resolved(value, step):
+         return None
+ 
+ 
+-def authorise(kernel, ident, principal, runner=False):
++def authorise(kernel, ident, principal, runner=False, held_ok=False):
+     """assignments.AUTHORISE, called by K1 outside its own transactions (when a plan is made, and when the runner reaches
+     its next step): each proposed change that a grant of yours in force covers (never one that always asks, the model's
+     pick alone, or one marked for your approval) is authorised by that grant, and the journal says so. With runner: a
+@@ -702,7 +702,8 @@ def authorise(kernel, ident, principal, runner=False):
+             value = A._load(db, ident, principal)
+     except ValueError:
+         return []
+-    if value['state'] != A.OPEN:return []      # running, held, stopped or done: nothing is authorised meanwhile
++    open_states = (A.OPEN, A.HELD, A.STOPPED) if held_ok else (A.OPEN,)      # 1.0 F3: your grant pressed while HALT holds authorises its step (nothing runs until its Resume)
++    if value['state'] not in open_states:return []      # running, held, stopped or done: nothing is authorised meanwhile
+     nxt = A._next(value);plans = {}
+     for step in value['steps']:
+         if step['status'] != 'proposed' or not _grantable(step):continue
+@@ -713,7 +714,7 @@ def authorise(kernel, ident, principal, runner=False):
+         if never:
+             if runner and nxt is not None and step['key'] == nxt['key']:plans[step['key']] = ('never', never, A.digest(step['arguments']))
+             continue
+-        grant = covering(kernel, principal.identity, step['operation'], arguments, value['id'], include_built_in=False)
++        grant = covering(kernel, principal.identity, step['operation'], arguments, value['id'], include_built_in=True)      # 1.0 F3: her own area's standing grant covers a proposed step writing there (never the model's pick alone: _grantable)
+         if grant is not None:
+             plans[step['key']] = ('grant', grant, A.digest(step['arguments']))
+         elif runner and nxt is not None and step['key'] == nxt['key']:
+@@ -723,7 +724,7 @@ def authorise(kernel, ident, principal, runner=False):
+     said = []
+     with A._writing(kernel) as db:
+         value = A._load(db, ident, principal)
+-        if value['state'] != A.OPEN:return []
++        if value['state'] not in open_states:return []      # 1.0 F3
+         for step in value['steps']:
+             plan = plans.get(step['key'])
+             if plan is None or step['status'] != 'proposed' or A.digest(step['arguments']) != plan[-1]:continue
+@@ -789,11 +790,13 @@ def _authorise_named(kernel, assignment, key, principal):
+         if step is None:raise ValueError('There is no step %s' % key)
+         if step['status'] == 'blocked' and str(step.get('reason', '')).startswith(NEEDS):
+             step.update(status='proposed', reason='');A._save(db, value)
+-    said = authorise(kernel, assignment, principal)
++    said = authorise(kernel, assignment, principal, held_ok=True)      # 1.0 F3: also while HALT holds it (it runs only after its Resume)
+     with kernel.db() as db:
+         value = A._load(db, assignment, principal)
+     step = next(s for s in value['steps'] if s['key'] == key)
+     if step['status'] != 'authorised':said.append('Step %d is not covered by that grant: it waits for your word.' % step['n'])
++    elif value['state'] in (A.HELD, A.STOPPED):      # 1.0 F3
++        said.append('Her work on it is held: step %d runs when you resume it (RESUME, then its own Resume).' % step['n'])
+     return said
+ 
+ 
+diff --git a/workbench/halt.py b/workbench/halt.py
+index 83e3ebf..3617d12 100644
+--- a/workbench/halt.py
++++ b/workbench/halt.py
+@@ -34,6 +34,8 @@ WORDS = {
+     'held': ' Also held: %s.',
+     'hand': ' My hand stopped before its next press.',
+     'turns': ' My model’s answer was closed.',
++    'nothing_turns': 'HALT: my model’s answer was closed, and nothing else of mine was running. I hold all my work until you '
++                     'press RESUME. Your desktop, apps and Graphite’s jobs go on.',      # 1.0 F3 (X4 S11): never "nothing" and "closed" at once
+     'not_held': 'HALT could not hold my work: %s. Use Stop all on the meters if anything of mine is still running.',
+     'released': 'RESUME: the hold is lifted. Nothing stopped was restarted: what HALT stopped waits for your Resume on it '
+                 '(in “Waits for you”), which checks every step first.',      # 1.0 D2 (X3): say that her work waits for that press
+@@ -78,21 +80,27 @@ def _names(titles):
+     return ', '.join(names[:-1]) + ' and ' + names[-1] if len(names) > 1 else names[0]
+ 
+ 
+-def press(host):
+-    """HALT: hold her work, stop what of hers runs, stop her hand, show the moment, say what was stopped."""
+-    kernel, owner = _kernel(host)
+-    out = {'held': False, 'stopped': [], 'held_work': [], 'hand': False, 'turns': 0, 'jobs': [], 'words': '', 'error': ''}
++def _alone(host, operation):
++    """1.0 F3: the Kernel's part of a press on a thread of its own (a Kernel of its own on the same workspace), so the
++    window's thread never waits for it; None when there is no workspace here (the caller does it as before)."""
+     try:
+-        answer = kernel.dispatch('halt.press', {}, owner)
+-        if answer.get('ok'):
+-            report = answer['result']
+-            out.update(held=True, stopped=list(report.get('stopped') or ()), held_work=list(report.get('held_work') or ()),
+-                       turns=int(report.get('turns') or 0), jobs=list(report.get('jobs') or ()))
+-        else:
+-            error = answer.get('error') or {}
+-            out['error'] = str(error.get('message') if isinstance(error, dict) else error)[:200] or 'refused'
+-    except Exception as exc:  # noqa: BLE001 - said in words, and the rest still stops what it can
+-        out['error'] = str(exc)[:200] or type(exc).__name__
++        from .off_window import kernel_root, run_alone
++    except Exception:  # noqa: BLE001
++        return None
++    root = kernel_root(host)
++    if root is None:return None
++
++    def work():
++        from .engineering_kernel import Kernel, operator
++        return Kernel(root).dispatch(operation, {}, operator())
++    return work, run_alone
++
++
++def press(host, then=None):
++    """HALT: hold her work, stop what of hers runs, stop her hand, show the moment, say what was stopped. 1.0 F3: her hand,
++    AGENT-01's older work and the moment stop at once here; the hold itself (each assignment's stop, the model's turns, the
++    sandboxes) is made on a thread of its own, and her words come when it has landed (then(out), when given)."""
++    out = {'held': False, 'stopped': [], 'held_work': [], 'hand': False, 'turns': 0, 'jobs': [], 'words': '', 'error': ''}
+     hand = getattr(host, 'her_hand', None)
+     try:
+         if hand is not None and hand.active():
+@@ -111,38 +119,77 @@ def press(host):
+         moment(host, 'halt')
+     except Exception:  # noqa: BLE001
+         pass
+-    if out['held']:
+-        words = WORDS['stopped'] % _names(out['stopped']) if out['stopped'] else WORDS['nothing']
+-        if out['held_work']:words += WORDS['held'] % _names(out['held_work'][:3])
+-        if out['turns'] or out['jobs']:words += WORDS['turns']
+-    else:
+-        words = WORDS['not_held'] % out['error']
+-    if out['hand']:words += WORDS['hand']
+-    out['words'] = words
+-    _say(host, words)
+-    _refresh(host)
++
++    def landed(answer, error):
++        try:_landed(answer, error)
++        finally:
++            if then is not None:then(out)
++
++    def _landed(answer, error):
++        if error is not None:answer = {'ok': False, 'error': {'message': str(error)[:200] or type(error).__name__}}
++        if (answer or {}).get('ok'):
++            report = answer['result']
++            out.update(held=True, stopped=list(report.get('stopped') or ()), held_work=list(report.get('held_work') or ()),
++                       turns=int(report.get('turns') or 0), jobs=list(report.get('jobs') or ()))
++        else:
++            err = (answer or {}).get('error') or {}
++            out['error'] = str(err.get('message') if isinstance(err, dict) else err)[:200] or 'refused'
++        if out['held']:
++            words = WORDS['stopped'] % _names(out['stopped']) if out['stopped'] else (WORDS['nothing_turns'] if out['turns'] or out['jobs'] else WORDS['nothing'])
++            if out['held_work']:words += WORDS['held'] % _names(out['held_work'][:3])
++            if (out['turns'] or out['jobs']) and out['stopped']:words += WORDS['turns']
++        else:
++            words = WORDS['not_held'] % out['error']
++        if out['hand']:words += WORDS['hand']
++        out['words'] = words
++        _say(host, words)
++        _refresh(host)
++    alone = _alone(host, 'halt.press')
++    if alone is None:      # as before, here
++        kernel, owner = _kernel(host)
++        try:landed(kernel.dispatch('halt.press', {}, owner), None)
++        except Exception as exc:  # noqa: BLE001 - said in words, and the rest still stops what it can
++            landed(None, exc)
++        return out
++    work, run_alone = alone
++    run_alone(work, landed, name='graphite-halt')
+     return out
+ 
+ 
+-def release(host):
+-    """RESUME: lift HALT's hold. Nothing that was stopped is started again here."""
+-    kernel, owner = _kernel(host)
+-    try:
+-        answer = kernel.dispatch('halt.release', {}, owner)
+-    except Exception as exc:  # noqa: BLE001
+-        answer = {'ok': False, 'error': {'message': str(exc)}}
+-    if answer.get('ok'):
+-        words = WORDS['released'];done = True
+-        if (answer.get('result') or {}).get('jobs_held'):words += WORDS['released_jobs']
+-    else:
+-        error = answer.get('error') or {}
+-        why = str(error.get('message') if isinstance(error, dict) else error or 'refused')
+-        words = WORDS['not_released'] % why.split(': ', 1)[-1][:200];done = False
+-    column = getattr(host, 'her_column', None)
+-    if column is not None and done:column.seen_held = False
+-    _say(host, words)
+-    _refresh(host)
+-    return {'released': done, 'words': words}
++def release(host, then=None):
++    """RESUME: lift HALT's hold. Nothing that was stopped is started again here. 1.0 F3: lifted on a thread of its own; her
++    words when it has landed."""
++    result = {'released': False, 'words': ''}
++
++    def landed(answer, error):
++        try:_landed(answer, error)
++        finally:
++            if then is not None:then(result)
++
++    def _landed(answer, error):
++        if error is not None:answer = {'ok': False, 'error': {'message': str(error)}}
++        if (answer or {}).get('ok'):
++            words = WORDS['released'];done = True
++            if (answer.get('result') or {}).get('jobs_held'):words += WORDS['released_jobs']
++        else:
++            err = (answer or {}).get('error') or {}
++            why = str(err.get('message') if isinstance(err, dict) else err or 'refused')
++            words = WORDS['not_released'] % why.split(': ', 1)[-1][:200];done = False
++        column = getattr(host, 'her_column', None)
++        if column is not None and done:column.seen_held = False
++        result.update(released=done, words=words)
++        _say(host, words)
++        _refresh(host)
++    alone = _alone(host, 'halt.release')
++    if alone is None:
++        kernel, owner = _kernel(host)
++        try:landed(kernel.dispatch('halt.release', {}, owner), None)
++        except Exception as exc:  # noqa: BLE001
++            landed(None, exc)
++        return result
++    work, run_alone = alone
++    run_alone(work, landed, name='graphite-resume')
++    return result
+ 
+ 
+ def _refresh(host):
+@@ -153,6 +200,7 @@ def _refresh(host):
+         pass
+     column = getattr(host, 'her_column', None)
+     try:
+-        if column is not None:column.refresh(force=True)
++        if column is not None:
++            from . import floor;floor.column_soon(column)      # 1.0 F3: read again off the window's thread
+     except Exception:  # noqa: BLE001
+         pass
+diff --git a/workbench/halt_qt.py b/workbench/halt_qt.py
+index 2f207b1..4202e32 100644
+--- a/workbench/halt_qt.py
++++ b/workbench/halt_qt.py
+@@ -39,6 +39,7 @@ class HaltButton(QToolButton):
+ 
+     def refresh(self, _read=None):
+         if getattr(self.host, '_closing', False):return
++        if self.busy:return      # 1.0 F3: your press is on its way; a reading made before it never puts the old word back
+         from . import floor      # 1.0 F2: the timer's reading of the hold is made off the window's thread, then shown
+         if _read is None and floor.gather(self.host, lambda read: read('halt.status'),
+                                           lambda extra: self.refresh(_read=floor.answered(self.host, 'halt.status') or {}), key=('halt', id(self))):return
+@@ -52,13 +53,17 @@ class HaltButton(QToolButton):
+     def act(self):
+         if self.busy:return
+         self.busy = True
++        from . import halt
++
++        def landed(_out=None):      # 1.0 F3: the hold (or its lifting) made on a thread of its own; read again when it has landed
++            self.busy = False;self.refresh()
+         try:
+-            from . import halt
+-            if self.held:halt.release(self.host)
+-            else:halt.press(self.host)
+-        finally:
++            if self.held:halt.release(self.host, then=landed)
++            else:halt.press(self.host, then=landed)
++            self.held = not self.held;self._name();self.update()      # 1.0 F3: your press is said at once
++        except Exception:  # noqa: BLE001 - read again as before
+             from . import floor
+-            self.busy = False;self.refresh(_read=floor.MISS)      # 1.0 F2: your press is said at once (read here)
++            self.busy = False;self.refresh(_read=floor.MISS)
+ 
+     # -- the face ---------------------------------------------------------------------------------------------------------
+     def word_font(self):
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index d2e9216..11f2a58 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -48,6 +48,7 @@ carries meaning also has a word or a shape. No key is named in any of its words.
+ """
+ from __future__ import annotations
+ 
++import re
+ import threading
+ import time
+ 
+@@ -69,6 +70,8 @@ WORDS = {
+     'findings': 'FINDINGS (live)',
+     'next': 'NEXT STEPS',
+     'nothing_active': 'No assignment is open.',
++    'reading_work': 'Reading her journal…',      # 1.0 F3: until her journal is read after a start, never "nothing"
++    'reading_desk': 'Reading the desk…',      # 1.0 F3
+     'last_done': 'Last: “{title}”, {state}.',      # 1.0 X1: with nothing open, the last one and its journal, one press away
+     'its_journal': 'Its journal',
+     'nothing_found': 'No findings on this desk yet.',
+@@ -598,10 +601,10 @@ class WorkLine(QWidget):
+         for w in (self.who, self.words, self.bar, self.percent, self.detail):w.show()      # 1.0 K9: the hand line alone hides them
+         if view is None:
+             face = self.column.face
+-            if getattr(face, 'job', None):
++            if getattr(face, 'job', None) and getattr(self.column, 'brain_state', None) in (None, 'READY'):      # 1.0 F3: only while her model is up
+                 self._checks([]);self.bar.set(0, False);self.percent.setText('');self.detail.setText(say('answering'));self.show();return
+             self.resting = True
+-            self.hide();return
++            self.detail.setText('');self.hide();return      # 1.0 F3: nothing said of a model turn that is over
+         done = [s for s in view.get('steps') or () if str(s.get('journal_says', '')).startswith('done')]
+         self._checks([('✓', 'Step %d · %s · %s' % (s['n'], plain(s['title']), s['journal_says'])) for s in done][-most_checks:])
+         self.bar.set(view.get('progress', 0));self.percent.setText('%d%%' % int(view.get('progress', 0) or 0))
+@@ -724,6 +727,14 @@ class WorkRow(QWidget):
+         if not call:return
+         done, why = press(self.column.host, call['operation'], call['arguments'])
+         self.column.say_words(say('stopped', title=plain(self.row.get('title'))) if done is not None else say('stop_refused', why=why))
++        if isinstance(done, dict) and done.get('state_words'):      # 1.0 F3: ACTIVE WORK follows your Stop at once, from what the Stop gave back
++            row = dict(self.row, state_words=done['state_words'], state_word=done.get('state_word') or str(done['state_words']).upper(),
++                       stop=done.get('stop'), actions=done.get('actions') or [], line=done.get('line') or self.row.get('line'))
++            for i, r in enumerate(self.column.rows):
++                if r.get('id') == self.ident:self.column.rows[i] = row
++            try:self.show_row(int(self.number.text() or 1), row, self.compact)
++            except (ValueError, RuntimeError):
++                pass
+         from . import floor;floor.column_soon(self.column)      # 1.0 F2: read again off the window's thread
+ 
+     def open_journal(self):
+@@ -737,7 +748,7 @@ class ActiveWork(QWidget):
+         self.head = heading(host, say('active'));box.addWidget(self.head)
+         self.rows = [];self.list = QVBoxLayout();self.list.setSpacing(px(host, 4));box.addLayout(self.list)
+         self.more = row_label(host, '', quiet=True, size=12);box.addWidget(self.more)
+-        self.none = row_label(host, say('nothing_active'), quiet=True, size=12);box.addWidget(self.none)
++        self.none = row_label(host, say('reading_work'), quiet=True, size=12);box.addWidget(self.none)      # 1.0 F3: until the first reading
+         self.last = QLabel();self.last.setObjectName('HerLastWork');self.last.setWordWrap(True);self.last.setTextFormat(Qt.RichText)      # 1.0 X1
+         ink(self.last, px(host, 12), bt.QUIET, None, bt.FACE);self.last.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+         self.last.linkActivated.connect(lambda _=None: self.column.show_journal(self.last_id) if self.last_id else None)
+@@ -763,6 +774,7 @@ class ActiveWork(QWidget):
+             else:row.hide()
+         hidden = max(0, total - min(len(rows), most))
+         self.more.setText(say('more', count=hidden) if hidden else '');self.more.setVisible(bool(hidden))
++        self.none.setText(say('nothing_active'))      # 1.0 F3: read: now it may say so
+         self.none.setVisible(not rows)
+ 
+ 
+@@ -775,7 +787,8 @@ class Findings(QWidget):
+         box.addWidget(heading(host, say('findings')))
+         self.rows = [];self.list = QVBoxLayout();self.list.setSpacing(1);box.addLayout(self.list)
+         self.more = row_label(host, '', quiet=True, size=12);box.addWidget(self.more)
+-        self.none = row_label(host, say('nothing_found'), quiet=True, size=12);box.addWidget(self.none)
++        self.none = row_label(host, say('reading_desk'), quiet=True, size=12);box.addWidget(self.none)      # 1.0 F3: until the first reading
++        self.read_once = False
+ 
+     def _row(self):
+         host = self.column.host
+@@ -804,6 +817,7 @@ class Findings(QWidget):
+                 holder.setAccessibleName('%s: %s' % (word, found['text']));holder.show()
+             else:holder.hide()
+         self.more.setText(say('more', count=hidden) if hidden else '');self.more.setVisible(bool(hidden))
++        self.none.setText(say('nothing_found') if self.read_once else say('reading_desk'))      # 1.0 F3
+         self.none.setVisible(not rows)
+ 
+ 
+@@ -960,8 +974,15 @@ class Moment(QWidget):
+     def place(self):
+         face = self.column.face;head = self.column.head      # 1.0 P4 no avatar: a card of words under her head
+         top = head.geometry().bottom() + 4 if head is not None else 0
++        band = getattr(self.column, 'waits', None)      # 1.0 F3: never over "Waits for you": the moment stands below it
++        try:
++            if band is not None and band.isVisible() and band.height() > 0:
++                top = max(top, band.mapTo(face, QPoint(0, band.height())).y() + 4)
++        except RuntimeError:
++            pass
+         tall = max(120, min(face.height() - top - 8, round(face.height() * 0.46)))
+         if self.art is not None and self.art.isNull():tall = px(self.host, 92)      # words only: the hologram is the art
++        if top + tall > face.height():tall = max(px(self.host, 48), face.height() - top - 4)      # 1.0 F3: a short column: smaller, never over the band
+         self.setGeometry(0, top, face.width(), tall)
+ 
+     def end(self):
+@@ -1056,7 +1077,8 @@ class HerColumn(QObject):
+         self.read_portrait()
+         from . import floor      # 1.0 F2: her column's reads are made off the window's thread, then drawn
+         self.timer = QTimer(self);self.timer.setInterval(TICK);self.timer.timeout.connect(lambda: floor.column_tick(self));self.timer.start()
+-        QTimer.singleShot(0, lambda: floor.column_soon(self))
++        self.brain_state = None      # 1.0 F3: her model's state as her column last read it (brain.status, with her work)
++        QTimer.singleShot(0, lambda: floor.column_soon(self, first=True))      # 1.0 F3: at once, never behind the floor's queue
+         stage = getattr(host, 'hologram', None)      # her hologram, placed before this column was, stands aside until a moment
+         if stage is not None:QTimer.singleShot(0, stage.place_now)
+ 
+@@ -1227,13 +1249,16 @@ class HerColumn(QObject):
+     def kernel(self):
+         return _kernel(self.host)
+ 
+-    def refresh(self, force=False):
+-        """Read the work (every tick), and the findings and the desk's waiting cards (every DESK_EVERY ticks, or forced)."""
++    def refresh(self, force=False, parts=None):
++        """Read the work (every tick), and the findings and the desk's waiting cards (every DESK_EVERY ticks, or forced).
++        1.0 F3: parts, what a gathering brought (her work alone after a press or at a start, then the desk)."""
+         if getattr(self.host, '_closing', False):return
+         if not force and not self.face.isVisible():return
+-        self.ticks += 1
++        chosen = parts is not None;parts = parts or ('work', 'desk')      # 1.0 F3: parts as a gathering brought them (exactly), else as before
++        if 'work' in parts:self.ticks += 1
+         self.size_parts();self.fit_soon()      # 1.0 P2: the sections follow the exchange
+-        try:self.read_work()
++        try:
++            if 'work' in parts:self.read_work()      # 1.0 F3
+         except Exception:  # noqa: BLE001 - a column never takes the window down
+             pass
+         try:      # 1.0 D1: what waits for you, read with the work
+@@ -1244,8 +1269,10 @@ class HerColumn(QObject):
+                 if scroll.minimumHeight() != want:scroll.setMinimumHeight(want)
+         except Exception:  # noqa: BLE001
+             pass
+-        if force or self.ticks % DESK_EVERY == 1:
+-            try:self.read_desk()
++        if ('desk' in parts or 'findings' in parts or 'cards' in parts) and (force or chosen or self.ticks % DESK_EVERY == 1):      # 1.0 F3: parts
++            try:
++                self.read_desk(findings='cards' not in parts or 'desk' in parts, cards='findings' not in parts or 'desk' in parts)
++                if 'cards' not in parts or 'desk' in parts:self.found.read_once = True
+             except Exception:  # noqa: BLE001
+                 pass
+         try:self.show_state();self.found.show_rows(self.findings_rows, 2 if self.squeezed() else 4)      # 1.0 D1: squeezed (compact, as before, or something waits)
+@@ -1259,6 +1286,7 @@ class HerColumn(QObject):
+     def read_work(self):
+         from . import assignments
+         kernel, owner = self.kernel()
++        self.follow_brain()      # 1.0 F3: her model's state first: the progress line below says "answering" only while it is up
+         listing = read(self.host, 'assignment.list', {'open': True, 'limit': 5}) or {}
+         rows = list(listing.get('assignments') or ())
+         order = {'working': 0, 'waiting for your word': 1, 'needs review': 1, 'blocked': 1, 'interrupted': 1, 'held': 2, 'ready': 2,
+@@ -1281,12 +1309,16 @@ class HerColumn(QObject):
+             self.active.show_last(getattr(self, '_x1_last', None) if not rows and not older else None)
+         except Exception:  # noqa: BLE001
+             pass
++        later = {}
+         if self.seen_work is not None:
++            from . import floor as _floor
+             for ident, title in self.seen_work.items():
+                 if ident not in ids:
+-                    gone = read(self.host, 'assignment.status', {'id': ident}) or {}
++                    gone = _floor.answered(self.host, 'assignment.status', {'id': ident})      # 1.0 F3: as gathered, never read here
++                    if gone is _floor.MISS and getattr(self.host, '_f2_answers', None):later[ident] = title;continue      # the next gathering reads it
++                    gone = (gone if gone is not _floor.MISS else read(self.host, 'assignment.status', {'id': ident})) or {}
+                     if gone.get('state') == 'done':moment(self.host, 'done', title)
+-        self.seen_work = ids
++        self.seen_work = dict(ids, **later)
+         try:
+             from . import halt_gate      # 1.0 K3: HALT's own hold (Stop all's hold of Graphite's jobs is not HALT)
+             from . import floor      # 1.0 F2: as gathered off the window's thread, else read now
+@@ -1302,9 +1334,36 @@ class HerColumn(QObject):
+         self.seen_held = held
+         _ = (assignments, kernel, owner)
+ 
+-    def read_desk(self):
++    def follow_brain(self):
++        """1.0 F3: her model line, her model's ring and "her model is answering" follow the brain's state as gathered with her
++        work (never read here on the window's thread): "no model yet" only when no model is ready, never while one is."""
++        from . import floor
++        brain = floor.answered(self.host, 'brain.status')
++        if brain is floor.MISS or not isinstance(brain, dict):return
++        state = str(brain.get('state') or '');self.brain_state = state
++        self.host._status_brain = {'READY': 'ready', 'MODEL_STOPPED': 'stopped', 'NO_MODEL_SELECTED': 'none yet'}.get(state, 'unknown')
++        model = getattr(self.face, 'model', None)
++        if model is None:return
++        shown = model.text()
++        if state == 'READY' and (not shown or 'no model yet' in shown):
++            name = None
++            models = floor.answered(self.host, 'brain.models')
++            chosen = (brain.get('selection') or {}).get('model_id')
++            for m in (models.get('models') or ()) if isinstance(models, dict) else ():
++                if m.get('id') == chosen:
++                    weights = next((f.get('name') for f in m.get('files') or () if f.get('role') == 'weights'), None)
++                    if weights:name = re.sub(r'(?i)[-_.]?(q\d.*|f16|bf16)?\.gguf$', '', weights).replace('-', ' ')      # as shell2.model_name says it
++            model.setText(name or 'a model')      # the face's own refresh adds the rest at its tick
++        elif state != 'READY' and shown and 'no model yet' not in shown:
++            model.setText('no model yet');model.setToolTip('no model yet')
++
++    def read_desk(self, findings=True, cards=True):
+         """FINDINGS (live): every open investigation's findings, refuted first; what each would do next. And the desk's
+-        waiting cards for NEXT STEPS (field.read, an observer)."""
++        waiting cards for NEXT STEPS (field.read, an observer). 1.0 F3: findings and cards, each as its own gathering brought
++        it (at a start the findings are said before the whole desk is read)."""
++        if not findings:
++            rows = list(self.findings_rows or ())
++            self._f3_cards(cards, rows);return
+         rows = [];states = {}
+         listing = read(self.host, 'investigation.list') or {}
+         for inv in list(listing.get('investigations') or ())[:4]:
+@@ -1325,9 +1384,16 @@ class HerColumn(QObject):
+             for ident, (state, text) in states.items():
+                 if state == 'REFUTED' and self.seen_findings.get(ident, ('', ''))[0] != 'REFUTED':moment(self.host, 'refuted', text)
+         self.seen_findings = states
+-        desk = read(self.host, 'field.read') or {}
+-        self.waiting = list(desk.get('waiting') or ())
+-        self.last_desk = time.monotonic()
++        self._f3_cards(cards, rows)
++
++    def _f3_cards(self, cards, rows):
++        """The desk's waiting cards (field.read) when this gathering brought them, else as last read (1.0 F3); the RECHECK
++        marks on the findings from them."""
++        if cards:
++            desk = read(self.host, 'field.read') or {}
++            self.waiting = list(desk.get('waiting') or ());self._f3_stale_from = desk
++            self.last_desk = time.monotonic()
++        desk = getattr(self, '_f3_stale_from', None) or {}
+         # 1.0 X1: a finding the desk marks RECHECK (what it rests on changed since) says so here as the board does, never SUPPORTED
+         stale = {str(r.get('id')) for r in desk.get('objects') or () if r.get('kind') == 'finding' and str(r.get('state')) == 'recheck'}
+         for row in rows:
+@@ -1335,7 +1401,8 @@ class HerColumn(QObject):
+         if stale:
+             rank = ['REFUTED', 'RECHECK'] + [name for name, _ in FINDING_LOOK if name != 'REFUTED'] + ['NEXT']
+             rows.sort(key=lambda r: rank.index(r['state']) if r['state'] in rank else len(rank))
+-        self.look_for_old_values()      # 1.0 X1
++        self.findings_rows = rows
++        if cards:self.look_for_old_values()      # 1.0 X1
+ 
+     def look_for_old_values(self):
+         """1.0 X1 (day_notice): when the calculations marked RECHECK change, look off the window's thread for written words
+@@ -1382,7 +1449,7 @@ class HerColumn(QObject):
+         return 'idle' if state == 'viewing' else state
+ 
+     def show_state(self):
+-        state = self.state();ready = getattr(self.host, '_status_brain', '') == 'ready'
++        state = self.state();ready = (self.brain_state == 'READY') if getattr(self, 'brain_state', None) else getattr(self.host, '_status_brain', '') == 'ready'      # 1.0 F3
+         self.head.show_state(state, ready);self.head.stage.portrait.set_state(state)
+         if state != getattr(self, 'shown_state', None):      # 1.0 D1: the dock says it too when it needs you (state_words)
+             self.shown_state = state
+@@ -1531,15 +1598,45 @@ class HerColumn(QObject):
+         page = self.field()
+         if page is None:self.say_words(say('no_field'));return None
+         obj = page.view.selected()
++        board_focus = self.board_focus(page)      # 1.0 F3: the card focused on the board is the one TRACE (and the rest) act on
++        if board_focus is not None:obj = board_focus
+         if key == 'brief':return field_page.brief(self.host)
+-        if key == 'check':return field_page.check_desk(self.host)
++        if key == 'check':      # 1.0 F3: CHECK ALL's reads rehearsed on a worker, then performed here from what was read
++            from . import off_window
++            from .field_do import sweep
++            from .field_source import read_field
++
++            def rehearse(kernel, principal):
++                field, _ = read_field(kernel, principal, title='', skip=set())
++                sweep(kernel, principal, field);kernel.dispatch('field.doubt', {}, principal)
++            return off_window.with_reads(self.host, rehearse, lambda: field_page.check_desk(self.host), key=('f3-check', id(self)))
+         if obj is None:self.say_words(say('select_first'));return None
+         if key == 'do':return field_page.do(self.host, obj)
+         if key == 'doubt':return field_page.doubt(self.host, obj)
+-        if key == 'trace':return field_page.trace(self.host, obj)
++        if key == 'trace':      # 1.0 F3: its line's read made on a worker first; the trace then answers from it at once
++            from . import off_window
++            from .field_do import call as line_call, js
++            try:operation, arguments = line_call('field.trace %s | pick rows | select way,steps,kind,title,state,by' % js(id=obj.id))
++            except Exception:  # noqa: BLE001 - traced as before
++                return field_page.trace(self.host, obj)
++            off_window.prefetch(self.host, operation, arguments, lambda: field_page.trace(self.host, obj))
++            return None
+         if key == 'line':return field_page.stac_in_line(self.host, obj) if obj.stac else self.say_words(say('select_first'))
+         return None
+ 
++    def board_focus(self, page):
++        """1.0 F3: the card focused on the board (the Field's object), when the board is in front and has a focus; else None."""
++        try:
++            board = getattr(page, 'board', None);inner = getattr(board, 'board', None)
++            focus = getattr(inner, 'focus', None) if inner is not None else None
++            if focus is None or not board.isVisible():return None
++            obj = page.view.field.get(focus.id)
++            if obj is not None and page.view.field.selected != obj.id:
++                page.view.field.select(obj.id)      # the Field's selection follows: one selection, as the board shows it
++            return obj
++        except Exception:  # noqa: BLE001 - the Field's own selection, as before
++            return None
++
+     # -- the exchange -------------------------------------------------------------------------------------------------------
+     def say_words(self, words):
+         try:
+diff --git a/workbench/living_nav_qt.py b/workbench/living_nav_qt.py
+index 63d5df8..1cdfa52 100644
+--- a/workbench/living_nav_qt.py
++++ b/workbench/living_nav_qt.py
+@@ -650,9 +650,13 @@ class LivingNav(QObject):
+         return entry
+ 
+     def back(self):
++        leaving = self.nav.current      # 1.0 F3: Back from a place Search opened: the results in front again
+         self.snapshot();entry = self.nav.back()
+         if entry is not None:self.restore(entry)
+         self.show_crumbs()
++        if leaving is not None and getattr(leaving, 'via', '') == 'search':
++            from .search_reach import back_to_results
++            back_to_results(self.host)
+ 
+     def forward(self):
+         self.snapshot();entry = self.nav.forward()
+diff --git a/workbench/network_governed.py b/workbench/network_governed.py
+index 4359b4a..ffee4fb 100644
+--- a/workbench/network_governed.py
++++ b/workbench/network_governed.py
+@@ -195,6 +195,11 @@ def state(root=None, fresh=False, bus=None):
+         reading = _read_state(bus)
+         with _LOCK:
+             _CACHE[kind] = cached = (now_ms(), reading)
++            if reading[0] == 'offline':      # 1.0 F3: the network went down: her fetch in flight ends now, cut short, never done
++                for active in _ACTIVE.values():
++                    cancel = active.get('cancel')
++                    if cancel is not None and not cancel.is_set():
++                        cancel.why = 'the network went down while it came (%s, %s)' % (STATES[reading[0]][0], reading[1]);cancel.set()
+     return _compose(root, cached)
+ 
+ 
+@@ -207,8 +212,10 @@ def _compose(root, cached):
+         last = dict(_LAST.get(key) or {}) if key else {}
+     active.pop('cancel', None)
+     out = {'schema': SCHEMA, 'state': value, 'word': word, 'shape': shape, 'why': why, 'source': source, 'at': cached[0],
+-           'fetching': active or None, 'last': last or None}
+-    if active:
++           'fetching': (active or None) if value != 'offline' else None, 'last': last or None}      # 1.0 F3: never "her fetch" while it is down
++    if active and value == 'offline':
++        out['ending'] = active      # 1.0 F3: a fetch still closing after the network went down (cut short, never done)
++    if out['fetching']:
+         out['said'] = '%s %s: %s' % (STATES['fetching'][1], STATES['fetching'][0], active.get('host', ''))
+     else:
+         out['said'] = '%s %s' % (shape, word)
+@@ -393,19 +400,41 @@ def _fetch(address, cancel):
+     except (urllib.error.URLError, OSError, ValueError) as error:
+         why = getattr(error, 'reason', error)
+         raise Refused('WEB_UNREACHED: %s could not be reached (%s); nothing was kept' % (urlsplit(address).hostname, str(why)[:120])) from None
++    import http.client
+     with response:
+         kind = (response.headers.get_content_type() or 'application/octet-stream').lower()
+         charset = response.headers.get_content_charset() or ''
+-        chunks, size, complete = [], 0, True
++        declared = _declared(response.headers)      # 1.0 F3: the length the page said it has (none when chunked or unsaid)
++        chunks, size, complete, cut = [], 0, True, ''
+         while True:
+-            if cancel.is_set():raise Refused('WEB_HALTED: HALT stopped her fetch; what was read is thrown away and nothing was kept')
+-            piece = response.read(65536)
++            if cancel.is_set():
++                if getattr(cancel, 'why', ''):      # 1.0 F3: the network went down while it came: what came is kept, cut short
++                    complete, cut = False, cancel.why;break
++                raise Refused('WEB_HALTED: HALT stopped her fetch; what was read is thrown away and nothing was kept')
++            try:piece = response.read(65536)
++            except (http.client.IncompleteRead, OSError) as broke:      # 1.0 F3: the connection broke (reset, timed out, ended early)
++                part = getattr(broke, 'partial', b'') or b''
++                if part:chunks.append(part);size += len(part)
++                complete, cut = False, 'the connection broke after %d bytes (%s)' % (size, str(broke)[:80] or type(broke).__name__);break
+             if not piece:break
+             chunks.append(piece);size += len(piece)
+-            if size > MOST_BYTES:complete = False;break
++            if size > MOST_BYTES:complete, cut = False, 'longer than the %d bytes kept' % MOST_BYTES;break
++        if complete and declared is not None and size < declared:      # 1.0 F3: the connection ended before the page said it would
++            complete, cut = False, 'the connection ended at %d of the %d bytes the page declared' % (size, declared)
++        if complete and cancel.is_set() and getattr(cancel, 'why', ''):complete, cut = False, cancel.why      # 1.0 F3
+         body = b''.join(chunks)[:MOST_BYTES]
+         return {'final': response.geturl(), 'status': int(getattr(response, 'status', 200) or 200), 'type': kind, 'charset': charset,
+-                'body': body, 'complete': complete}
++                'body': body, 'complete': complete, 'cut': cut, 'declared': declared}
++
++
++def _declared(headers):
++    """1.0 F3: the page's declared length (Content-Length, identity encoding), or None when it declares none."""
++    if (headers.get('Transfer-Encoding') or '').strip().lower() not in ('', 'identity'):return None
++    try:
++        value = int(str(headers.get('Content-Length') or '').strip())
++    except ValueError:
++        return None
++    return value if value >= 0 else None
+ 
+ 
+ # ================================================================================================== a page, as text
+@@ -567,6 +596,7 @@ def _keep(kernel, principal, kind, where, got, read, by, words=''):
+     payload = {'schema': PAGE, 'id': ident, 'owner': principal.identity, 'kind': kind, 'address': where['address'],
+                'final': final['address'], 'host': where['host'], 'site': where['site'], 'at': at, 'status': got['status'],
+                'type': got['type'], 'bytes': len(got['body']), 'sha256': sha, 'complete': bool(got['complete']),
++               'cut': str(got.get('cut') or '')[:200], 'declared': got.get('declared'),      # 1.0 F3: why it is cut short, and the length it declared
+                'title': read['title'], 'lines': read['lines'], 'hidden': read['hidden'], 'links': read['links'][:MOST_LINKS],
+                'readable': read['readable'], 'note': read['note'], 'by': by, 'words': words,
+                'door': {'rules': door.rules, 'withheld': door.withheld(), 'aimed': bool(door.aimed()), 'lines': len(door.lines)}}
+@@ -633,7 +663,8 @@ def owner_html(door, value, hidden):
+     from . import doorway
+     e = _html.escape
+     head = '<p><b>%s</b><br/><span>%s · fetched from %s · %s</span></p>' % (
+-        e(value.get('title') or value['host']), e(value['final'][:300]), e(value['host']), 'complete' if value['complete'] else 'cut short at %d bytes' % value['bytes'])
++        e(value.get('title') or value['host']), e(value['final'][:300]), e(value['host']), 'complete' if value['complete'] else
++        'cut short at %d bytes%s' % (value['bytes'], (': ' + e(value['cut'])) if value.get('cut') else ''))      # 1.0 F3: and why
+     body = doorway.owner_html(door, '') if value.get('readable', True) else '<p>%s</p>' % e(value.get('note') or '')
+     rest = []
+     for h in hidden:
+@@ -690,7 +721,7 @@ def _online(kernel):
+ @contextlib.contextmanager
+ def _fetching(kernel, where, kind):
+     key = str(getattr(kernel, 'root', ''))
+-    cancel = threading.Event()
++    cancel = threading.Event();cancel.why = ''      # 1.0 F3: why it was cut ('' for HALT)
+     with _LOCK:_ACTIVE[key] = {'host': where['host'], 'site': where['site'], 'at': now_ms(), 'kind': kind, 'cancel': cancel}
+     try:
+         yield cancel
+@@ -725,8 +756,10 @@ def _receipts(kernel, principal, op, where, page=None, refused=''):
+             return tr.record(kernel, tr.receipt('network.fetch', op, where['site'], 'refused', 'observed', False, refused, place=place, owner=principal.identity))
+         sent = tr.receipt('network.fetch', op, where['site'], 'dispatched', 'observed', False, 'sent; the page is not yet read back from quarantine',
+                           place=place, basis='the call came back', owner=principal.identity)
+-        done = tr.receipt('network.fetch', op, 'web:' + page['id'], 'verified', 'observed', bool(page['complete']),
+-                          'kept in quarantine and read back with its digest (%d bytes from %s)' % (page['bytes'], page['host']),
++        whole = bool(page['complete'])      # 1.0 F3: a page cut short is kept, never verified
++        done = tr.receipt('network.fetch', op, 'web:' + page['id'], 'verified' if whole else 'not verified', 'observed', whole,
++                          ('kept in quarantine and read back with its digest (%d bytes from %s)' % (page['bytes'], page['host'])) if whole else
++                          ('cut short, kept in quarantine as it came (%d bytes from %s): %s' % (page['bytes'], page['host'], page.get('cut') or 'not whole')),
+                           revision=page['sha256'], place=place, basis='sha256', owner=principal.identity, follows=sent['id'])
+         return tr.record(kernel, sent, done)
+     except Exception:  # noqa: BLE001 - receipts that cannot be kept never undo the fetch
+@@ -734,8 +767,10 @@ def _receipts(kernel, principal, op, where, page=None, refused=''):
+ 
+ 
+ def _summary(page, door_count):
++    whole = bool(page.get('complete', True))      # 1.0 F3: a page cut short is not a fetch that came
+     return {'host': page['host'], 'at': page['at'], 'id': page['id'], 'title': page.get('title') or page['host'], 'kind': page['kind'],
+-            'withheld': door_count, 'hidden': len(page.get('hidden') or ()), 'ok': True, 'why': ''}
++            'withheld': door_count, 'hidden': len(page.get('hidden') or ()), 'ok': whole,
++            'why': '' if whole else 'cut short: %s' % (page.get('cut') or 'it did not come whole')}
+ 
+ 
+ def _run(kernel, principal, kind, where, by, words=''):
+@@ -756,7 +791,8 @@ def _run(kernel, principal, kind, where, by, words=''):
+     view = page_view(kernel, page['id'], principal)
+     view['receipts'] = [r.get('id') for r in receipts]
+     view['said'] = 'Fetched from %s and kept in quarantine (%d bytes%s), read as data. %s' % (
+-        page['host'], page['bytes'], '' if page['complete'] else ', cut short', view['card'])
++        page['host'], page['bytes'], '' if page['complete'] else ', cut short: %s; not whole, so nothing rests on it' % (page.get('cut') or 'it did not come whole'),
++        view['card'])      # 1.0 F3: why it is cut short
+     return view
+ 
+ 
+@@ -873,7 +909,16 @@ if _asg is not None:
+ 
+         def verify(self, kernel, read, arguments, result, prepared, step):
+             if not isinstance(result, dict) or not result.get('id'):raise _asg.NotVerified('no page came back')
+-            return self._observed(kernel, result['id'], step)
++            seen = self._observed(kernel, result['id'], step)
++            # 1.0 F3: verified only when the page is whole and the network is up as it is checked: a page cut short while the
++            # network went down, or any page checked while it is down, is "needs the network", never done.
++            reading = state(getattr(kernel, 'root', None), fresh=True)
++            cut = '' if seen['complete'] else (seen.get('cut') or 'it did not come whole')
++            if reading['state'] != 'online':
++                raise _asg.Blocked('%s; %s' % (needs_words(reading), ('the page from %s was cut short (%s): kept in quarantine, not counted done' % (seen['host'], cut))
++                                               if cut else 'the page from %s came, and the network is down as it is checked: not counted done' % seen['host']))
++            if cut:raise _asg.NotVerified('the page from %s was cut short (%s): it is kept in quarantine and not counted done' % (seen['host'], cut))
++            return seen
+ 
+         @staticmethod
+         def _observed(kernel, ident, step=None):
+@@ -885,6 +930,7 @@ if _asg is not None:
+             if seen != value['sha256']:raise _asg.NotVerified('the page does not read back from quarantine with its digest')
+             held = len((value.get('door') or {}).get('withheld') or ()) + len(value.get('hidden') or ())
+             return {'object': 'web:' + ident, 'revision': value['sha256'], 'by': 'sha256', 'complete': bool(value['complete']),
++                    'cut': value.get('cut') or '',      # 1.0 F3
+                     'how': 'observed', 'page': ident, 'host': value['host'], 'path': value['address'][:300],
+                     'words': 'fetched from %s, kept in quarantine and read back (%d bytes%s); read as data, %d line%s withheld from the model'
+                              % (value['host'], value['bytes'], '' if value['complete'] else ', cut short', held, '' if held == 1 else 's')}
+diff --git a/workbench/network_qt.py b/workbench/network_qt.py
+index d2256f0..a225fda 100644
+--- a/workbench/network_qt.py
++++ b/workbench/network_qt.py
+@@ -341,7 +341,26 @@ def asked(face, text):
+     from .shell2 import call_write, escape_text, sentence
+     host = face.host
+     face.thing = None;face.mine(text)
+-    answer = call_write(host, 'web.lookup', {'request': text})
++    try:      # 1.0 F3: the plan (an assignment, the network read afresh) is made off the window's thread (X4: 1.8 s held here)
++        from .engineering_kernel import Kernel, operator
++        from .off_window import kernel_root, run_alone
++        root = kernel_root(host)
++        if root is not None:
++            run_alone(lambda: Kernel(root).dispatch('web.lookup', {'request': text}, operator()),
++                      lambda answer, error: _planned(face, text, answer if error is None else {'ok': False, 'error': {'message': str(error)}}),
++                      name='graphite-web-lookup')
++            return True
++    except ImportError:
++        pass
++    return _planned(face, text, call_write(host, 'web.lookup', {'request': text}))
++
++
++def _planned(face, text, answer):
++    """1.0 F3: what asked() says once the plan is made (its words, its one press)."""
++    from .shell2 import escape_text, sentence
++    host = face.host
++    if getattr(host, '_closing', False):return True
++    answer = answer if isinstance(answer, dict) else {}
+     if not answer.get('ok'):
+         face.say(str((answer.get('error') or {}).get('message', 'I could not plan that')).split(': ', 1)[-1]);return True
+     v = answer['result'];G = v['assignment'];words = v['words']
+@@ -375,7 +394,8 @@ def asked(face, text):
+         pass
+     column = getattr(host, 'her_column', None)
+     if column is not None:
+-        try:column.refresh(force=True)
++        try:
++            from . import floor;floor.column_soon(column)      # 1.0 F3: read again off the window's thread
+         except Exception:  # noqa: BLE001
+             pass
+     _ = escape_text
+diff --git a/workbench/off_window.py b/workbench/off_window.py
+new file mode 100644
+index 0000000..70753c4
+--- /dev/null
++++ b/workbench/off_window.py
+@@ -0,0 +1,164 @@
++"""Graphite 1.0 F3 · presses whose Kernel work is done off the window's thread (the walkthroughs' faults, item 5).
++
++X4 measured the window's thread held for seconds by a few presses: TRACE and CHECK ALL (4.2 s), HALT and RESUME (1.5 to
++1.8 s). Each press keeps its own logic; only where its reads and writes run changes:
++
++    run_alone(fn, done)      fn() on a thread of its own (never behind the floor's queue: HALT must not wait for a reading);
++                             done(result, error) on the window's thread, through the floor's relay.
++    with_reads(host, rehearse, perform)
++                             the press rehearsed on a floor worker with a Recorder on the worker's own Kernel (every read it
++                             makes is kept, its answer as the Kernel gave it); then performed on the window's thread with the
++                             window's Kernel answering those same reads from what was kept (a Replayer): the press's own code
++                             runs unchanged, and its reads cost the window nothing. Only reads (CAPABILITIES 'read') are ever
++                             kept or answered from what was kept; a change always runs for real, on the window's Kernel.
++    prefetch(operation, arguments) / take(operation, arguments)
++                             one read made on a worker before a press needs it (TRACE's line), taken once by the press.
++
++Nothing here decides anything: what a press reads is what the Kernel answered a moment before, on the same workspace.
++"""
++from __future__ import annotations
++
++import json
++import threading
++import time
++
++from . import floor
++
++KEEP_S = 30.0                # a prefetched answer is taken within this long, or read again
++_LOCK = threading.Lock()
++
++
++def _key(operation, arguments):
++    return str(operation) + ' ' + json.dumps(arguments or {}, sort_keys=True, default=str)
++
++
++def _reads(operation):
++    try:
++        from .engineering_kernel import CAPABILITIES
++        return CAPABILITIES.get(operation) == 'read'
++    except Exception:  # noqa: BLE001 - not known: never answered from what was kept
++        return False
++
++
++class Recorder:
++    """A worker's Kernel that keeps what each read answered (a change is never made here: refused before it is sent)."""
++
++    def __init__(self, kernel):
++        self._kernel = kernel;self.seen = {}
++
++    def dispatch(self, operation, arguments, principal, *a, **k):
++        if not _reads(operation):
++            return {'ok': False, 'error': {'code': 'REHEARSAL', 'message': 'a change is made only when the press is performed'}}
++        answer = self._kernel.dispatch(operation, arguments, principal, *a, **k)
++        self.seen.setdefault(_key(operation, arguments), answer)
++        return answer
++
++    def __getattr__(self, name):
++        return getattr(self._kernel, name)
++
++
++class Replayer:
++    """The window's Kernel, answering each kept read once from what was kept; everything else as it always does."""
++
++    def __init__(self, kernel, seen):
++        self._kernel = kernel;self.seen = dict(seen or {});self.hits = 0;self.misses = 0
++
++    def dispatch(self, operation, arguments, principal, *a, **k):
++        if _reads(operation):
++            hit = self.seen.pop(_key(operation, arguments), None)
++            if hit is not None:
++                self.hits += 1;return hit
++        self.misses += 1
++        return self._kernel.dispatch(operation, arguments, principal, *a, **k)
++
++    def __getattr__(self, name):
++        return getattr(self._kernel, name)
++
++
++def run_alone(fn, done=None, name='graphite-press'):
++    """fn() on a thread of its own; done(result, error) on the window's thread."""
++    relay = floor._relay_now()
++
++    def alone():
++        result = error = None
++        try:result = fn()
++        except Exception as exc:  # noqa: BLE001 - said to done(), never raised in a thread
++            error = exc
++        try:relay.landed.emit((done, result, error, None))
++        except RuntimeError:      # the window has gone
++            pass
++    threading.Thread(target=alone, name=name, daemon=True).start()
++    return True
++
++
++def kernel_root(host):
++    kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++    return getattr(kernel, 'root', None) or getattr(host, 'root', None)
++
++
++def with_reads(host, rehearse, perform, key=None):
++    """rehearse(recorder, principal) on a floor worker; then perform() on the window's thread with the window's Kernel (its
++    ledger_bridge's) answering the reads rehearsed. Without a workspace Kernel, perform() at once, as before."""
++    bridge = getattr(host, 'ledger_bridge', None)
++    root = floor._root_of(host)
++    if bridge is None or getattr(bridge, 'kernel', None) is None or root is None:
++        return perform()
++
++    def work():
++        from .engineering_kernel import operator
++        recorder = Recorder(floor.kernel_for(root))
++        try:rehearse(recorder, operator())
++        except Exception:  # noqa: BLE001 - what could not be rehearsed is read as before, when performed
++            pass
++        return recorder.seen
++
++    def done(seen, error):      # (run on a thread of its own: a long rehearsal never holds her column's readings back)
++        if getattr(host, '_closing', False):return
++        real = bridge.kernel
++        replay = Replayer(real, seen if error is None else {})
++        bridge.kernel = replay
++        try:perform()
++        finally:
++            if bridge.kernel is replay:bridge.kernel = real
++        host._f3_replayed = (replay.hits, replay.misses)
++    if key is not None:
++        with _LOCK:
++            if key in _BUSY:return None      # the same press already on its way
++            _BUSY.add(key)
++
++    def landed(seen, error):
++        with _LOCK:_BUSY.discard(key)
++        done(seen, error)
++    run_alone(work, landed, name='graphite-rehearsal')
++    return None
++
++
++# ---- one read made before a press needs it ------------------------------------------------------------------------------
++_KEPT = {}
++_BUSY = set()
++
++
++def prefetch(host, operation, arguments, then):
++    """operation (a read) on a floor worker; then() on the window's thread once its answer is kept for take()."""
++    root = floor._root_of(host)
++    if root is None or not _reads(operation):
++        then();return False
++
++    def work():
++        from .engineering_kernel import operator
++        return floor.kernel_for(root).dispatch(operation, arguments or {}, operator())
++
++    def done(answer, error):
++        if error is None and isinstance(answer, dict):
++            with _LOCK:_KEPT[_key(operation, arguments)] = (time.monotonic(), answer)
++        if not getattr(host, '_closing', False):then()
++    run_alone(work, done, name='graphite-prefetch')      # a thread of its own: never behind her column's readings
++    return True
++
++
++def take(operation, arguments):
++    """The answer prefetched for this read (once), or None."""
++    with _LOCK:
++        held = _KEPT.pop(_key(operation, arguments), None)
++    if held is None or time.monotonic() - held[0] > KEEP_S:return None
++    return held[1]
+diff --git a/workbench/search_reach.py b/workbench/search_reach.py
+new file mode 100644
+index 0000000..a3ebade
+--- /dev/null
++++ b/workbench/search_reach.py
+@@ -0,0 +1,163 @@
++"""Graphite 1.0 F3 · Search as a power user searches (the walkthroughs' faults, item 7; X4's session 2).
++
++X4 searched "invoice" with 48 invoices in ~/Downloads and found nothing; "startup duration" found nothing though both words
++stand on one finding; "open" on a found record went to the old Cabinet record tab, and Back did not come back to the
++results. Here, for the console's Search (console_qt.run_find):
++
++    words(text)           the words typed, each matched on its own (all of them, in any order), never as one phrase
++    holds(text, words)    whether every word is in a name or a line
++    home_names(text)      files and folders of your home found by their names (hidden ones and Graphite's own workspace
++                          left out; a walk with a budget, so the window never waits on a large home: what was not looked
++                          through is said)
++    records(host, text)   the cabinet's and the desk's rows by every word, each name once (a desk object before a cabinet
++                          record of the same name: the board's is the one that opens)
++    open_record / open_home
++                          a hit is focused on the board as a click in the tree focuses it (the history notes it came from
++                          Search), and the results stay in front in the console
++    back_to_results(host) Back from a place Search opened brings the results in front again (living_nav_qt.back calls it)
++
++Search only reads: nothing here writes a record, and a name is read from the file system, never a file's contents.
++"""
++from __future__ import annotations
++
++import os
++import time
++from pathlib import Path
++
++HOME_BUDGET_MS = 80          # the walk of your home's names stops after this long (the rest is said, not hidden)
++HOME_MOST = 20000            # names looked at, at most
++HOME_DEPTH = 7               # folders deep, at most
++HOME_HITS = 30
++
++
++def words(text):
++    return [w for w in str(text or '').casefold().split() if w]
++
++
++def holds(text, wanted):
++    text = str(text or '').casefold()
++    return all(w in text for w in wanted)
++
++
++def longest(text):
++    """The longest of the words (what a phrase-matching reader is asked for; the rest are matched here)."""
++    ws = words(text)
++    return max(ws, key=len) if ws else ''
++
++
++def home_names(host, text, limit=HOME_HITS):
++    """[(path, is_folder)], and '' or the words saying the walk stopped before the end of your home."""
++    wanted = words(text)
++    if not wanted:return [], ''
++    try:
++        from .home_reach import home
++        top = Path(home())
++    except Exception:  # noqa: BLE001
++        top = Path.home()
++    skip = set()
++    try:skip.add(str(Path(getattr(host, 'root', '')).resolve()))      # Graphite's own workspace: its Files are Search's FILES
++    except OSError:
++        pass
++    found = [];seen = 0;stopped = '';began = time.monotonic()
++    queue = [(top, 0)]
++    while queue:
++        folder, depth = queue.pop(0)
++        try:entries = list(os.scandir(folder))
++        except OSError:
++            continue
++        entries.sort(key=lambda e: e.name.casefold())
++        for entry in entries:
++            seen += 1
++            if entry.name.startswith('.'):continue
++            try:is_dir = entry.is_dir(follow_symlinks=False)
++            except OSError:
++                is_dir = False
++            if is_dir and str(Path(entry.path).resolve()) in skip:continue
++            if holds(entry.name, wanted):
++                found.append((Path(entry.path), is_dir))
++                if len(found) >= limit:return found, 'the first %d found' % limit
++            if is_dir and depth + 1 < HOME_DEPTH:queue.append((Path(entry.path), depth + 1))
++        if seen >= HOME_MOST or (time.monotonic() - began) * 1000 > HOME_BUDGET_MS:
++            stopped = 'looked through the first %d names of your home' % seen if queue else ''
++            break
++    return found, stopped
++
++
++def records(host, text, limit=15):
++    """The tree's rows (the cabinet's records and the desk's objects) whose name and kind hold every word; each name once."""
++    wanted = words(text)
++    page = getattr(host, 'cabinet_page', None)
++    nodes = (page.model or {}).get('nodes', []) if page is not None else []
++    from .living_nav_qt import LIVING
++    hits = [n for n in nodes if wanted and holds('%s %s' % (n.get('label', ''), n.get('role', '')), wanted)
++            and n.get('role') not in ('drawer', 'folder_view') and not str(n.get('id', '')).startswith('living:fs:')]
++    try:      # the desk's objects by what they say too (a sheet's lines, a finding's role), not their names alone
++        from .living_nav_qt import living
++        nav = living(host);desk = getattr(getattr(nav, 'desk_raw', None), 'objects', None) or ()
++        named = {str(n.get('id')) for n in hits}
++        for obj in desk:
++            ident = LIVING + str(obj.id)
++            if ident in named or ident not in (nav.nodes or {}):continue
++            said = ' '.join(str(x) for x in (obj.title, obj.kind, obj.role, obj.where, ' '.join(str(l) for l in obj.lines or ())))
++            if wanted and holds(said, wanted):
++                node = nav.nodes[ident];hits.append(dict(node, role=node.get('role') or obj.kind))
++    except Exception:  # noqa: BLE001 - the names alone, as before
++        pass
++    best = {}
++    for n in hits:      # a desk object before a cabinet record of the same name; one row a name
++        name = str(n.get('label', '')).casefold()
++        mine = str(n.get('id', '')).startswith(LIVING)
++        if name not in best or (mine and not str(best[name].get('id', '')).startswith(LIVING)):best[name] = n
++    order = {id(n): i for i, n in enumerate(hits)}
++    return sorted(best.values(), key=lambda n: (not str(n.get('id', '')).startswith(LIVING), order.get(id(n), 0)))[:limit]
++
++
++def open_record(host, node_id):
++    """A found row: a desk object is focused on the board; a cabinet record with the name of a desk object, that object;
++    else the record opens where it belongs, as before. The results stay in front."""
++    from .living_nav_qt import LIVING, living
++    nav = living(host)
++    if nav is not None:
++        target = node_id if str(node_id).startswith(LIVING) else None
++        if target is None:
++            node = (nav.nodes or {}).get(node_id) or {}
++            label = str(node.get('label', '')).casefold()
++            target = next((i for i, n in (nav.nodes or {}).items() if str(i).startswith(LIVING) and not str(i).startswith('living:fs:')
++                           and n.get('role') not in ('drawer', 'folder_view') and str(n.get('label', '')).casefold() == label), None) if label else None
++        if target is not None and nav.go_node(target, via='search'):
++            keep_results(host);return True
++    from .console_qt import reveal_record
++    reveal_record(host, node_id)
++    keep_results(host)
++    return False
++
++
++def open_home(host, path):
++    """A file or folder of your home found by its name: focused on the board as a click in the tree focuses it."""
++    from .living_nav_qt import living
++    nav = living(host);path = Path(path)
++    if nav is None:return False
++    found = nav.call('objects.get', {'path': str(path)})
++    if not found or not found.get('id'):
++        host.statusBar().showMessage('%s could not be focused: %s' % (path.name, nav.problem or 'not read'), 6000);return False
++    if nav.computer is not None:nav.computer.hold(found)
++    nav.go(found['id'], 'search', 'board', title=path.name)
++    keep_results(host)
++    return True
++
++
++def keep_results(host):
++    from PySide6.QtCore import QTimer
++    QTimer.singleShot(0, lambda: back_to_results(host))
++
++
++def back_to_results(host):
++    """The console's Search results in front again (they are kept in its page; nothing is searched again)."""
++    console = getattr(host, 'console', None)
++    if console is None or getattr(host, '_closing', False):return False
++    try:
++        if console.mode != 'find':console.set_mode('find')
++        console.open(focus=False)
++    except Exception:  # noqa: BLE001 - the results stay where they are
++        return False
++    return True
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 1557bc3..852062e 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -1107,8 +1107,8 @@ class OneBox(QLineEdit):
+         if event.reason() not in (Qt.PopupFocusReason, Qt.ActiveWindowFocusReason):self.popup.hide()
+ 
+     def focusNextPrevChild(self, forward):
+-        if self.console_page(self.text()):return False  # Tab completes a console line; it does not leave the box
+-        return super().focusNextPrevChild(forward)
++        if self.text().strip() and self.console_page(self.text()):return False  # Tab completes a console line; it does not leave the box
++        return super().focusNextPrevChild(forward)      # 1.0 F3: an empty line (Search's too) lets Tab move on: never a trap
+ 
+     def console_page(self, text):
+         """Which console page a line goes to (None: Graphite in Assignment, the filter in Log). Shell: every line is the
+@@ -1150,8 +1150,10 @@ class OneBox(QLineEdit):
+             line = console.recall(walk, -1 if event.key() == Qt.Key_Up else 1, self.text())  # a console line: its page's history, as in a terminal
+             if line is not None:self.setText(line);self.update_results(line);self._walked = (self.mode(), walk, line)
+             return
+-        if page and event.key() == Qt.Key_Tab:
+-            self.setText(console.complete_line(page, self.text()));self.update_results(self.text());return
++        if page and event.key() == Qt.Key_Tab and self.text().strip():
++            done = console.complete_line(page, self.text())
++            if done != self.text():self.setText(done);self.update_results(self.text());return
++            QLineEdit.focusNextPrevChild(self, True);return      # 1.0 F3: nothing to complete: Tab moves on (never a trap)
+         if event.key() in (Qt.Key_Down, Qt.Key_Up) and self.popup.isVisible():self.popup.move_selection(1 if event.key() == Qt.Key_Down else -1);return
+         if event.key() == Qt.Key_Escape:self.popup.hide();self.clearFocus();return
+         super().keyPressEvent(event)
+@@ -2178,7 +2180,8 @@ class SlateFace(QWidget):
+         code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + line)
+         answer_first = bool(thing.get('whole'))       # when the rows are the whole answer (a doubt, a what-if, a brief), they are read first and the line that read them comes after
+         if not answer_first:card.box.addWidget(code)
+-        r = engineering(self.host.root).dispatch(operation, arguments, operator())
++        from .off_window import take      # 1.0 F3: a line read on a worker a moment before (TRACE), else read here
++        r = take(operation, arguments) or engineering(self.host.root).dispatch(operation, arguments, operator())
+         rows = (r['result'].get('rows') or []) if r.get('ok') and isinstance(r.get('result'), dict) else []
+         if r.get('ok') and rows and all(isinstance(row, dict) for row in rows):  # a row a block, a field a line; what is empty is not said
+             said = '\n\n'.join('\n'.join('%s: %s' % (key, value if isinstance(value, str) else json.dumps(value, ensure_ascii=False))[:400]
+@@ -2833,24 +2836,25 @@ class SlateFace(QWidget):
+             from .relevance import note_request;note_request(_l3_kernel(self.host.root), text)
+         except Exception:  # noqa: BLE001 - noting the request never stands in the way of answering it
+             pass
+-        if self.own_word(text):return
++        chosen = isinstance(self.thing, dict) and bool(self.thing.get('explicit')) and bool(self.thing.get('title')) and self.thing['title'] in text  # 1.0 F3: a card chosen by its own press (TRACE, DOUBT) is that card, never "which of these?"
++        if not chosen and self.own_word(text):return
+         from .library_qt import asked as library_asked      # 0.8.7 W7: a question of the Library, answered by Ask the Library
+-        if library_asked(self, text):return
++        if not chosen and library_asked(self, text):return
+         from .network_qt import asked as web_asked      # 1.0 K8: "look up …" on the web: the step planned from your words, sent only by your press
+-        if web_asked(self, text):return
++        if not chosen and web_asked(self, text):return
+         from .everyday_desk import asked as everyday_asked  # 1.0 X3: "what did we spend on groceries this month?" from a spreadsheet of your home
+-        if everyday_asked(self, text):return
++        if not chosen and everyday_asked(self, text):return
+         from .home_pages import asked as pages_asked  # 1.0 K10: "what does the manual say about …?" from its pages, the page named
+-        if pages_asked(self, text):return
+-        if self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
+-        if self.made_asked(text):return
+-        if self.set_asked(text):return
+-        if self.run_asked(text):return
++        if not chosen and pages_asked(self, text):return
++        if not chosen and self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
++        if not chosen and self.made_asked(text):return
++        if not chosen and self.set_asked(text):return
++        if not chosen and self.run_asked(text):return
+         from .desk_review import asked as review_asked      # 1.0 X1: "review this assembly … sufficient?": the desk's findings say it
+-        if review_asked(self, text):return
+-        if self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
+-        if self.plan_asked(text):return
+-        thing = self.what_if(text)
++        if not chosen and review_asked(self, text):return
++        if not chosen and self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
++        if not chosen and self.plan_asked(text):return
++        thing = None if chosen else self.what_if(text)      # 1.0 F3
+         if thing and thing.get('refusal'):
+             self.thing = None;self.mine(text);self.say(thing['refusal']);return
+         thing = thing or self.thing_asked_about(text)
+@@ -3554,6 +3558,11 @@ class Shell2(QObject):
+         install_app_files(host)  # 1.0 A1: files open in other programs: the window named on the board's tile, each save recorded, the close said
+         from .launch_look import install as install_launch_look
+         install_launch_look(host)  # 1.0 P4: 1.0's one move to Day on a profile from before, said in one line, once
++        try:  # 1.0 F3: every keyboard stop says a name; Tab walks into a scrolled page's presses
++            from .a11y_names import install as install_names
++            install_names(host)
++        except ImportError:  # 1.0 F3
++            pass
+         host.tabs.currentChanged.connect(self.sync_worksheet)
+         host.central_stack.currentChanged.connect(self.sync_worksheet)
+         from .graphite_brand import use_pointer
+diff --git a/workbench/waits_qt.py b/workbench/waits_qt.py
+index 29a0728..3262f96 100644
+--- a/workbench/waits_qt.py
++++ b/workbench/waits_qt.py
+@@ -36,7 +36,8 @@ WORDS = {'head': 'WAITS FOR YOU', 'head_count': 'WAITS FOR YOU [{count}]', 'more
+          'grant_words': 'It asks to {words}. Nothing was sent.', 'question': 'Her question: {words}',
+          'no_model': 'No model is loaded. She still reads the records, checks the desk and plans from it. Her model is added in the Brain room → Add file.',
+          'brain_room': 'Brain room', 'grant_short': 'Grant it',
+-         'grant_words_set': 'It asks for {count} grants in one press, {scope}: {words}. Nothing was sent.'}  # 1.0 K10
++         'grant_words_set': 'It asks for {count} grants in one press, {scope}: {words}. Nothing was sent.',  # 1.0 K10
++         'held': 'Held by your HALT. Its own Resume checks every step first, then carries on.', 'resume': 'Resume'}  # 1.0 F3
+ GRANT_OPS = ('grant.give', 'grant.give.set')      # 1.0 K10: one grant, or several in one press (home_plan), each its own record
+ 
+ 
+@@ -67,6 +68,12 @@ def items(column):
+             out.append(('needs_word', title, line, str(authorise.get('words')),
+                         lambda r=row, a=authorise: column.take_step({'kind': 'assignment', 'call': a, 'title': plain(r.get('title') or '')}),
+                         '%s of “%s”: your press. Nothing runs until you give it.' % (authorise.get('words'), title)))
++        elif words_ == 'held' and not getattr(column, 'seen_held', False):      # 1.0 F3: after RESUME, what HALT held waits for its own Resume here
++            resume = next((a for a in actions if a.get('words') == 'Resume'), None)
++            if resume is not None:
++                out.append(('held', title, WORDS['held'], WORDS['resume'],
++                            lambda r=row, a=resume: column.take_step({'kind': 'assignment', 'call': a, 'title': plain(r.get('title') or '')}),
++                            'Resume “%s”: every step is checked first; a step done is never done again; then it carries on under your grants.' % title))
+     question = her_question(column.host)
+     if question:
+         out.append(('needs_word', '', WORDS['question'].format(words=question), WORDS['answer'], lambda: show_question(column),
+@@ -145,7 +152,7 @@ class WaitRow(QFrame):
+     def show_item(self, item, compact):
+         key, title, words, press, fn, tip = item
+         self.key = key;self.compact = compact;whole = key == 'needs_grant' or not compact      # a grant is said whole, always
+-        self.mark.set(key, bt.OWNER);self.word.setText(sw.word(key))
++        self.mark.set(key, bt.OWNER);self.word.setText(sw.word(key).upper() if key == 'held' else sw.word(key))      # 1.0 F3: HELD, in capitals as the band's other words
+         self.title.setText(title);self.title.setVisible(bool(title))
+         self.words.setText(words);self.words.setVisible(bool(words) and whole);self.words.setAccessibleName(words)
+         self.short.setText(words);self.short.setVisible(bool(words) and not whole);self.short.setToolTip(words)
+@@ -236,4 +243,7 @@ def install(column, outer):
+ def carried(column, action):
+     """Whether NEXT STEPS should leave this assignment press to the band (it is said in one place)."""
+     if getattr(column, 'waits', None) is None:return False
++    if action.get('operation') == 'assignment.resume':      # 1.0 F3: a held assignment's Resume is in the band
++        ident = (action.get('arguments') or {}).get('id')
++        return any(r.get('id') == ident and r.get('state_words') == 'held' for r in getattr(column, 'rows', None) or ()) and not getattr(column, 'seen_held', False)
+     return action.get('operation') in GRANT_OPS or str(action.get('words') or '').startswith('Authorise')      # 1.0 K10: a set too

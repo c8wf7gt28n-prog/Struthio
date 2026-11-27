@@ -341,7 +341,26 @@ def asked(face, text):
     from .shell2 import call_write, escape_text, sentence
     host = face.host
     face.thing = None;face.mine(text)
-    answer = call_write(host, 'web.lookup', {'request': text})
+    try:      # 1.0 F3: the plan (an assignment, the network read afresh) is made off the window's thread (X4: 1.8 s held here)
+        from .engineering_kernel import Kernel, operator
+        from .off_window import kernel_root, run_alone
+        root = kernel_root(host)
+        if root is not None:
+            run_alone(lambda: Kernel(root).dispatch('web.lookup', {'request': text}, operator()),
+                      lambda answer, error: _planned(face, text, answer if error is None else {'ok': False, 'error': {'message': str(error)}}),
+                      name='graphite-web-lookup')
+            return True
+    except ImportError:
+        pass
+    return _planned(face, text, call_write(host, 'web.lookup', {'request': text}))
+
+
+def _planned(face, text, answer):
+    """1.0 F3: what asked() says once the plan is made (its words, its one press)."""
+    from .shell2 import escape_text, sentence
+    host = face.host
+    if getattr(host, '_closing', False):return True
+    answer = answer if isinstance(answer, dict) else {}
     if not answer.get('ok'):
         face.say(str((answer.get('error') or {}).get('message', 'I could not plan that')).split(': ', 1)[-1]);return True
     v = answer['result'];G = v['assignment'];words = v['words']
@@ -375,7 +394,8 @@ def asked(face, text):
         pass
     column = getattr(host, 'her_column', None)
     if column is not None:
-        try:column.refresh(force=True)
+        try:
+            from . import floor;floor.column_soon(column)      # 1.0 F3: read again off the window's thread
         except Exception:  # noqa: BLE001
             pass
     _ = escape_text

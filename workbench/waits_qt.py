@@ -36,7 +36,8 @@ WORDS = {'head': 'WAITS FOR YOU', 'head_count': 'WAITS FOR YOU [{count}]', 'more
          'grant_words': 'It asks to {words}. Nothing was sent.', 'question': 'Her question: {words}',
          'no_model': 'No model is loaded. She still reads the records, checks the desk and plans from it. Her model is added in the Brain room → Add file.',
          'brain_room': 'Brain room', 'grant_short': 'Grant it',
-         'grant_words_set': 'It asks for {count} grants in one press, {scope}: {words}. Nothing was sent.'}  # 1.0 K10
+         'grant_words_set': 'It asks for {count} grants in one press, {scope}: {words}. Nothing was sent.',  # 1.0 K10
+         'held': 'Held by your HALT. Its own Resume checks every step first, then carries on.', 'resume': 'Resume'}  # 1.0 F3
 GRANT_OPS = ('grant.give', 'grant.give.set')      # 1.0 K10: one grant, or several in one press (home_plan), each its own record
 
 
@@ -67,6 +68,12 @@ def items(column):
             out.append(('needs_word', title, line, str(authorise.get('words')),
                         lambda r=row, a=authorise: column.take_step({'kind': 'assignment', 'call': a, 'title': plain(r.get('title') or '')}),
                         '%s of “%s”: your press. Nothing runs until you give it.' % (authorise.get('words'), title)))
+        elif words_ == 'held' and not getattr(column, 'seen_held', False):      # 1.0 F3: after RESUME, what HALT held waits for its own Resume here
+            resume = next((a for a in actions if a.get('words') == 'Resume'), None)
+            if resume is not None:
+                out.append(('held', title, WORDS['held'], WORDS['resume'],
+                            lambda r=row, a=resume: column.take_step({'kind': 'assignment', 'call': a, 'title': plain(r.get('title') or '')}),
+                            'Resume “%s”: every step is checked first; a step done is never done again; then it carries on under your grants.' % title))
     question = her_question(column.host)
     if question:
         out.append(('needs_word', '', WORDS['question'].format(words=question), WORDS['answer'], lambda: show_question(column),
@@ -145,7 +152,7 @@ class WaitRow(QFrame):
     def show_item(self, item, compact):
         key, title, words, press, fn, tip = item
         self.key = key;self.compact = compact;whole = key == 'needs_grant' or not compact      # a grant is said whole, always
-        self.mark.set(key, bt.OWNER);self.word.setText(sw.word(key))
+        self.mark.set(key, bt.OWNER);self.word.setText(sw.word(key).upper() if key == 'held' else sw.word(key))      # 1.0 F3: HELD, in capitals as the band's other words
         self.title.setText(title);self.title.setVisible(bool(title))
         self.words.setText(words);self.words.setVisible(bool(words) and whole);self.words.setAccessibleName(words)
         self.short.setText(words);self.short.setVisible(bool(words) and not whole);self.short.setToolTip(words)
@@ -236,4 +243,7 @@ def install(column, outer):
 def carried(column, action):
     """Whether NEXT STEPS should leave this assignment press to the band (it is said in one place)."""
     if getattr(column, 'waits', None) is None:return False
+    if action.get('operation') == 'assignment.resume':      # 1.0 F3: a held assignment's Resume is in the band
+        ident = (action.get('arguments') or {}).get('id')
+        return any(r.get('id') == ident and r.get('state_words') == 'held' for r in getattr(column, 'rows', None) or ()) and not getattr(column, 'seen_held', False)
     return action.get('operation') in GRANT_OPS or str(action.get('words') or '').startswith('Authorise')      # 1.0 K10: a set too

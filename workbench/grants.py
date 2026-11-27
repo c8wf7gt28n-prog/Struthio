@@ -690,7 +690,7 @@ def _resolved(value, step):
         return None
 
 
-def authorise(kernel, ident, principal, runner=False):
+def authorise(kernel, ident, principal, runner=False, held_ok=False):
     """assignments.AUTHORISE, called by K1 outside its own transactions (when a plan is made, and when the runner reaches
     its next step): each proposed change that a grant of yours in force covers (never one that always asks, the model's
     pick alone, or one marked for your approval) is authorised by that grant, and the journal says so. With runner: a
@@ -702,7 +702,8 @@ def authorise(kernel, ident, principal, runner=False):
             value = A._load(db, ident, principal)
     except ValueError:
         return []
-    if value['state'] != A.OPEN:return []      # running, held, stopped or done: nothing is authorised meanwhile
+    open_states = (A.OPEN, A.HELD, A.STOPPED) if held_ok else (A.OPEN,)      # 1.0 F3: your grant pressed while HALT holds authorises its step (nothing runs until its Resume)
+    if value['state'] not in open_states:return []      # running, held, stopped or done: nothing is authorised meanwhile
     nxt = A._next(value);plans = {}
     for step in value['steps']:
         if step['status'] != 'proposed' or not _grantable(step):continue
@@ -713,7 +714,7 @@ def authorise(kernel, ident, principal, runner=False):
         if never:
             if runner and nxt is not None and step['key'] == nxt['key']:plans[step['key']] = ('never', never, A.digest(step['arguments']))
             continue
-        grant = covering(kernel, principal.identity, step['operation'], arguments, value['id'], include_built_in=False)
+        grant = covering(kernel, principal.identity, step['operation'], arguments, value['id'], include_built_in=True)      # 1.0 F3: her own area's standing grant covers a proposed step writing there (never the model's pick alone: _grantable)
         if grant is not None:
             plans[step['key']] = ('grant', grant, A.digest(step['arguments']))
         elif runner and nxt is not None and step['key'] == nxt['key']:
@@ -723,7 +724,7 @@ def authorise(kernel, ident, principal, runner=False):
     said = []
     with A._writing(kernel) as db:
         value = A._load(db, ident, principal)
-        if value['state'] != A.OPEN:return []
+        if value['state'] not in open_states:return []      # 1.0 F3
         for step in value['steps']:
             plan = plans.get(step['key'])
             if plan is None or step['status'] != 'proposed' or A.digest(step['arguments']) != plan[-1]:continue
@@ -789,11 +790,13 @@ def _authorise_named(kernel, assignment, key, principal):
         if step is None:raise ValueError('There is no step %s' % key)
         if step['status'] == 'blocked' and str(step.get('reason', '')).startswith(NEEDS):
             step.update(status='proposed', reason='');A._save(db, value)
-    said = authorise(kernel, assignment, principal)
+    said = authorise(kernel, assignment, principal, held_ok=True)      # 1.0 F3: also while HALT holds it (it runs only after its Resume)
     with kernel.db() as db:
         value = A._load(db, assignment, principal)
     step = next(s for s in value['steps'] if s['key'] == key)
     if step['status'] != 'authorised':said.append('Step %d is not covered by that grant: it waits for your word.' % step['n'])
+    elif value['state'] in (A.HELD, A.STOPPED):      # 1.0 F3
+        said.append('Her work on it is held: step %d runs when you resume it (RESUME, then its own Resume).' % step['n'])
     return said
 
 
