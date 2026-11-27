@@ -25,7 +25,7 @@ head -1 DEBIAN_USB.sha256 | sha256sum --check --quiet -          # the inventory
 # the 1.0 debs: each one must be in the inventory with its checksum
 mkdir -p debs; cp "$DEBS"/*.deb debs/
 n=$(ls debs/*.deb | wc -l); echo "1.0 debs: $n"
-grep -E '  debs/' DEBIAN_USB.sha256 | while read -r sum name; do [ -f "$name" ] && echo "$sum  $name"; done > ../debs_new.sha256
+grep -E '  debs/' DEBIAN_USB.sha256 | while read -r sum name; do if [ -f "$name" ]; then echo "$sum  $name"; fi; done > ../debs_new.sha256
 [ "$(wc -l < ../debs_new.sha256)" -eq "$n" ] || { echo "a 1.0 deb is missing from the inventory"; exit 3; }
 sha256sum --check --strict --quiet ../debs_new.sha256 && echo "every 1.0 deb matches the inventory"
 cp "$START" ../START_HERE.md
