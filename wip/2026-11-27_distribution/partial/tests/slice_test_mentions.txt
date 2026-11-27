@@ -1,0 +1,32 @@
+[D1/findings_for_the_coordinator] Day is now the look of any window started with a fresh profile and no GRAPHITE_APPEARANCE: tests and tools that open the window in a fresh HOME will now see Day (colour or look assertions that assumed Graphite may need GRAPHITE_APPEARANCE=graphite).
+
+[F2b/findings_for_the_coordinator] tests_integrated/test_lit_controls.py reads the desktop's receipt right after publish_settings_readback(); the write now lands on a floor worker. Its assertion is still true (it reads the receipt an earlier tick wrote while settle() ran); if it ever reads too early, a settle after the call fixes it. Not changed, not run (the owner's rule).
+
+[L1/findings_for_the_coordinator] Possible existing-test sensitivity (not run, by the rule): tests that count the cabinet tree's rows or click its empty bottom area (tests_integrated/test_context_menu.py 'the_trees_refresh...' clicks 4 px above the tree's bottom expecting no row) see two more collapsed rows (Files, Desk) under Concern.
+
+[L4/findings_for_the_coordinator] Window checks (not run): a tools/check_*_ui.py that clicks a Field sheet once expecting it to open would now need a double click; none was found by a search of tools/ and tests_integrated/.
+
+[L4/decisions] Her hand's go.open on a Field sheet by the pointer sends a double click now (desk_doers), so the existing go.open {sheet} acts (test_desk_acts) stay true under the new one-click rule; the smoke ran it (B10).
+
+[L5/findings_for_the_coordinator] Possible test sensitivities (not run, by the rule): a check that right-clicks the tab strip expecting the workspace menu; a check that drags a board tile expecting a pan; a check that opens two objects from the board expecting the second to replace the first (Preview). None was found by a search of tests_integrated/ and tools/check_*_ui.py.
+
+[L6/findings_for_the_coordinator] Patch applies cleanly (git apply --check) to the base bed61f2 and to current main claude/epic-galileo-c7k11y (workbench/ and tests_integrated/).
+
+[L6b/findings_for_the_coordinator] The plan's words 'DELETE to the system's Trash' and the frame list's 'Delete to Trash' conflict with the owner's standing word (DELETE) and test_delete_words; I kept DELETE on screen. If the owner wants the system's word for the home bin, that test needs his decision.
+
+[L6b/decisions] On screen the place is DELETE everywhere (the owner's word of 14 Nov, held by tests_integrated/test_delete_words.py: no 'Trash' string constant in workbench/*.py): the menu row is 'Delete' (key trash), the Undo line says 'is in DELETE', the room's section is 'From your home'; the plan's and the coordinator's 'Delete to Trash' wording was not used. The bin's real folder (~/.local/share/Trash) is shown only as a path computed at run time in the room's lead; the specification's words ([Trash Info], the folder name) are bytes constants.
+
+[M1/smoke] {"script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/M1/smoke.py (modes lint and live), run by /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b100/M1/run.sh on a throwaway copy under the wrapper; run.sh seal runs workbench.seal_model_checks and run.sh sweep runs workbench.model_check --stages S2T (both under the model lock)", "output": {"lint (no model)": ["  --flash-attn on                                                admitted", "  --flash-attn maybe                                             refused", "  --cache-type-k q8_0 --cache-type-v q8_0                        admitted", "  --cache-type-k q4_0                                            refused", "  --load-mode auto                                               admitted", "  --load-mode mmap                                               refused", "  --jinja                                                        admitted", "  --reasoning off                                                admitted", "  --reasoning on                    
+
+[P1/findings_for_the_coordinator] Tests changed but not run (owner rule): test_kasandra_column (Column, Review cursor), test_one_name (window report), test_hologram via the probe. tools/check_*_ui.py window checks were not looked at for the head equalizer or the old masthead; any that measure them will need the same update at merge.
+
+[P2/findings_for_the_coordinator] tests_integrated/test_session_start.py iterates presentation_preferences.APPEARANCES, so test_her_column_says_now_once_in_every_look now also probes 'day' (not run here), and it asserts the look.set enum equals the looks in order: desk_acts now offers ('graphite', 'kasandra', 'day').
+
+[P4/findings_for_the_coordinator] Tests touched by P4 that were not changed because they stay true: test_kasandra (choose), test_kasandra_column (portrait None, PanelInk type), test_one_name. A menu test that lists Arrange's items exactly would now see Appearance there (none found by grep).
+
+[S4/findings_for_the_coordinator] Window checks not run (owner's rule): tools/check_machine_ui.py was updated where its section list and the connections id became untrue. Its capture caption still says "six sections"; it is only words.
+
+[S5/findings_for_the_coordinator] tests_integrated/test_context_menu.py (about line 472) right-clicks the Settings tree's first child, now 'Default apps' under This computer instead of a Workspace group; its assertions (kind 'setting'; expand, collapse, search offered) still hold by reading, not run.
+
+[S5/decisions] polkit_agent: the session's ARC_LEDGER_POLKIT_AGENT_PID checked against /proc comm (lxpolkit and other known agents, same uid); a /proc scan only when reading Graphite's own environment, so an explicit environment (as in the tests) is answered from itself alone. NO_PROMPT's words are unchanged (test_system_menu's assertions still hold by reading); the agent's words are appended.
+

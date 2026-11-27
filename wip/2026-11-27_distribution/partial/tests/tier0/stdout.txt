@@ -1,0 +1,44 @@
+look      kind      module, check or scene                                 ran failed skipped  seconds  state
+graphite  module    test_stacy_hand                                         20      0       0      0.2  passed
+graphite  module    test_desk_acts (PureRules)                              12      1       0     11.9  failed
+graphite  module    test_resource_rules                                     19      2       0     11.2  failed
+graphite  module    test_memory_settings                                    10      0       0      2.9  passed
+graphite  module    test_model_settings                                     16      0       0      8.5  passed
+graphite  module    test_release_check                                      25      0       0     10.5  passed
+graphite  module    test_project_desk                                       14      0       0      5.7  passed
+graphite  module    test_one_name (TheName, TheSweepItself, TheCode)        15      1       0     15.0  failed
+graphite  module    test_conditions                                         16      0       0      3.4  passed
+graphite  module    test_network_watch                                      50      0       0      5.6  passed
+graphite  module    test_documents                                          13      0       0      2.3  passed
+graphite  module    test_cabinet_actions                                     9      0       0      2.2  passed
+graphite  module    test_record_paths                                        3      0       0      0.1  passed
+graphite  module    test_change_sets                                        14      0       0      6.6  passed
+graphite  module    test_continuing_work                                    15      0       0      7.9  passed
+graphite  module    test_workspace_backup                                    7      0       0      2.9  passed
+graphite  module    test_service_lifecycle                                  23      0       0      2.7  passed
+graphite  module    test_line_rules                                         24      0       0      2.9  passed
+graphite  module    test_faces_find_light                                   34      2       0      0.8  failed
+graphite  module    test_joined_work                                         9      0       0      1.6  passed
+graphite  module    test_kasandra                                           20      1       0      1.3  failed
+graphite  module    test_cabinet                                            14      0       0      2.7  passed
+graphite  module    test_operations                                         16      0       0      5.4  passed
+graphite  module    test_colour_vision                                       7      2       0      0.4  failed
+graphite  module    test_stacy_start                                        14      0       0      5.9  passed
+graphite  module    test_deployment                                         16      0       0      9.8  passed
+graphite test_desk_acts (PureRules):
+  FAIL tests_integrated.test_desk_acts.PureRules.test_no_act_is_a_kernel_name: AssertionError: False is not true
+graphite test_resource_rules:
+  FAIL tests_integrated.test_resource_rules.Margins.test_autos_headroom_stays_with_its_budget_at_admission_and_launch: AssertionError: Tuples differ: (31930, 4096) != (27397, 4096) First differing element 0: 31930 27397 - (31930, 4096) ?   - ^^ + (27397, 4096) ?  ++  ^
+  FAIL tests_integrated.test_resource_rules.Ready.test_a_restored_model_with_an_empty_reply_is_not_ready: AssertionError: Lists differ: [4194406, 4194407] != [] First list contains 2 additional elements. First extra element 0: 4194406 - [4194406, 4194407] + []
+graphite test_one_name (TheName, TheSweepItself, TheCode):
+  FAIL tests_integrated.test_one_name.TheCode.test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed: AssertionError: Lists differ: [('workbench/depths_qt.py', 390, 'Save and[109 chars]rn')] != [] First list contains 3 additional elements. First extra element 0: ('workbench/depths_qt.py', 390, 'Save and Return') + [] - [('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 440, 'Save and Return')] : these words name
+graphite test_faces_find_light:
+  FAIL tests_integrated.test_faces_find_light.DeskLightTests.test_white_paper_comes_down_and_black_ink_stays_black_and_the_page_itself_is_untouched: AssertionError: 100.0 not less than 65 : the tone is well below white
+  FAIL tests_integrated.test_faces_find_light.GlowDialTests.test_the_dial_opens_on_neon_and_follows_the_session: AssertionError: 0 != 3.0
+graphite test_kasandra:
+  FAIL tests_integrated.test_kasandra.StateTests.test_the_state_of_the_work_in_order_of_what_matters: AssertionError: 'idle' != 'working' - idle + working
+graphite test_colour_vision:
+  FAIL tests_integrated.test_colour_vision.EveryLook.test_every_pair_under_the_threshold_is_told_apart_by_a_reviewed_word_or_shape: AssertionError: Items in the second set but not the first: 'night' 'day' : every look is checked
+  FAIL tests_integrated.test_colour_vision.EveryLook.test_the_tool_prints_both_looks_and_says_when_a_pair_is_left: AssertionError: 1 != 0 : WED fails / line       #ff6b60 #34c26a     69.7     25.8     15.2     18.7      4.3     4.3 in weak green 1.0   NOT REVIEWED fails / wire       #ff6b60 #34c26a     69.7     25.8     15.2     18.7      4.3     4.3 in weak green 1.0   NOT REVIEWED stopped / line     #ff6b60 #34c26a     69.7     25.8     15.2     18.7      4.3     4.3 in weak green 1.0   NOT REVIEWED stopped 
+tier 0: 26 runs, 435 tests, 1m 08s wall, graphite
+9 failing: graphite test_desk_acts (PureRules); graphite test_resource_rules; graphite test_one_name (TheName, TheSweepItself, TheCode); graphite test_faces_find_light; graphite test_kasandra; graphite test_colour_vision

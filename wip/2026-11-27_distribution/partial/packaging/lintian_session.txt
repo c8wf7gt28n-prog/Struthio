@@ -1,0 +1,14 @@
+A future release will drop --no-tag-display-limit; please use '--tag-display-limit 0' instead.
+running with root privileges is not recommended!
+E: graphite-session: bogus-mail-host Maintainer root@localhost
+E: graphite-session: bogus-mail-host-in-debian-changelog root@localhost (for version 1.0-1) [usr/share/doc/graphite-session/changelog.Debian.gz:1]
+E: graphite-session: root-in-contact Maintainer "Graphite packaging trial" <root@localhost>
+W: graphite-session: initial-upload-closes-no-bugs [usr/share/doc/graphite-session/changelog.Debian.gz:1]
+W: graphite-session: no-manual-page [usr/bin/graphite-session]
+I: graphite-session: desktop-entry-lacks-icon-entry [usr/share/xsessions/graphite.desktop]
+I: graphite-session: desktop-entry-lacks-keywords-entry [usr/share/xsessions/graphite.desktop]
+I: graphite-session: no-md5sums-control-file
+
+real	0m2.215s
+user	0m2.006s
+sys	0m0.190s

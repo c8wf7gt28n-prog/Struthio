@@ -1,0 +1,16 @@
+total 136652
+-rw-r--r-- 1 root root      1988 Nov 27 22:14 graphite-session_1.0-1_all.deb
+-rw-r--r-- 1 root root 139922800 Nov 27 22:14 graphite_1.0-1_all.deb
+=== A: both packages, with Recommends off (apt.conf), --assume-no ===
+0 upgraded, 416 newly installed, 0 to remove and 3 not upgraded.
+Need to get 210 MB/350 MB of archives.
+After this operation, 1001 MB of additional disk space will be used.
+=== B: graphite only ===
+0 upgraded, 181 newly installed, 0 to remove and 3 not upgraded.
+Need to get 118 MB/258 MB of archives.
+After this operation, 661 MB of additional disk space will be used.
+=== C: both with Recommends (full desktop incl. lightdm, LibreOffice) ===
+The following packages will be upgraded:
+1 upgraded, 863 newly installed, 0 to remove and 2 not upgraded.
+Need to get 527 MB/667 MB of archives.
+After this operation, 2102 MB of additional disk space will be used.

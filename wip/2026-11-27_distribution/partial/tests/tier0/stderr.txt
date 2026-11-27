@@ -1,0 +1,27 @@
+tier 0: 26 runs in graphite, 2 at a time (process namespace, nice 19); logs under /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/dist/tests/tier0
+[1/26] graphite  test_stacy_hand                                 0.2s  passed
+[2/26] graphite  test_desk_acts (PureRules)                     11.9s  failed
+[3/26] graphite  test_one_name (TheName, TheSweepItself, TheC   15.0s  failed
+[4/26] graphite  test_memory_settings                            2.9s  passed
+[5/26] graphite  test_resource_rules                            11.2s  failed
+[6/26] graphite  test_model_settings                             8.5s  passed
+[7/26] graphite  test_project_desk                               5.7s  passed
+[8/26] graphite  test_release_check                             10.5s  passed
+[9/26] graphite  test_conditions                                 3.4s  passed
+[10/26] graphite  test_documents                                  2.3s  passed
+[11/26] graphite  test_network_watch                              5.6s  passed
+[12/26] graphite  test_record_paths                               0.1s  passed
+[13/26] graphite  test_cabinet_actions                            2.2s  passed
+[14/26] graphite  test_change_sets                                6.6s  passed
+[15/26] graphite  test_continuing_work                            7.9s  passed
+[16/26] graphite  test_workspace_backup                           2.9s  passed
+[17/26] graphite  test_service_lifecycle                          2.7s  passed
+[18/26] graphite  test_faces_find_light                           0.8s  failed
+[19/26] graphite  test_line_rules                                 2.9s  passed
+[20/26] graphite  test_joined_work                                1.6s  passed
+[21/26] graphite  test_kasandra                                   1.3s  failed
+[22/26] graphite  test_cabinet                                    2.7s  passed
+[23/26] graphite  test_colour_vision                              0.4s  failed
+[24/26] graphite  test_operations                                 5.4s  passed
+[25/26] graphite  test_stacy_start                                5.9s  passed
+[26/26] graphite  test_deployment                                 9.8s  passed

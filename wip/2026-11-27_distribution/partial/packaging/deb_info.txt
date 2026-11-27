@@ -1,0 +1,39 @@
+== graphite-session_1.0-1_all.deb
+ new Debian package, version 2.0.
+ size 1988 bytes: control archive=776 bytes.
+     962 bytes,    15 lines      control
+ Package: graphite-session
+ Source: graphite
+ Version: 1.0-1
+ Architecture: all
+ Maintainer: Graphite packaging trial <root@localhost>
+ Installed-Size: 40
+ Section: x11
+ Priority: optional
+ Depends: graphite (= 1.0-1), xserver-xorg, xinit, fluxbox, x11-xserver-utils, xauth, dbus-user-session | dbus-x11, libpam-systemd, network-manager, wpasupplicant, wireless-regdb, libgl1-mesa-dri, udisks2, eject, upower, pipewire, pipewire-pulse, wireplumber, alsa-ucm-conf, alsa-topology-conf, xsecu
+ Recommends: lightdm, lightdm-gtk-greeter, libreoffice-calc, libreoffice-writer, libreoffice-gtk3, python3-uno
+ Provides: x-session-manager
+ Description: Graphite as the login session
+  The X session entry (shown by a display manager as "Graphite"), the session
+  supervisor and the system services the Living Desktop uses: drives, sound,
+  Wi-Fi, the battery, Lock and the system's permission prompts.
+== graphite_1.0-1_all.deb
+ new Debian package, version 2.0.
+ size 139922800 bytes: control archive=1004 bytes.
+    1137 bytes,    14 lines      control
+     213 bytes,     6 lines   *  postinst             #!/bin/sh
+     118 bytes,     4 lines   *  prerm                #!/bin/sh
+ Package: graphite
+ Version: 1.0-1
+ Architecture: all
+ Maintainer: Graphite packaging trial <root@localhost>
+ Installed-Size: 172088
+ Section: x11
+ Priority: optional
+ Depends: python3 (>= 3.11), python3-pyside6.qtcore, python3-pyside6.qtgui, python3-pyside6.qtwidgets, python3-pyside6.qtsvg, python3-pyside6.qtdbus, python3-pyside6.qtpdf, python3-pyside6.qtpdfwidgets, python3-cryptography (>= 41), python3-pypdf, poppler-utils, libgl1, libegl1, libxkbcommon-x11-0, 
+ Recommends: graphite-session, python3-pyside6.qtmultimedia, python3-pyside6.qtmultimediawidgets, libreoffice-calc, libreoffice-writer, libreoffice-gtk3, python3-uno, python3-docx, at-spi2-core, libvulkan1, mesa-vulkan-drivers, libgomp1
+ Suggests: python3-sympy, python3-z3, python3-pyside6.qtwebenginewidgets, wireshark-common, bubblewrap
+ Description: local-first desktop workspace with an assistant (Kasandra)
+  Graphite is a desktop for one Debian computer: files, apps, the machine and
+  settings in one window, with Kasandra, an assistant that works under the
+  owner's grants. This is a trial package made during a packaging audit.

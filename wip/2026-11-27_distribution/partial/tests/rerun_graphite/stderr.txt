@@ -1,0 +1,14 @@
+rerun: 27 units with GRAPHITE_APPEARANCE=graphite
+[1/27] graphite  test_desk_acts                                 28.0s  failed
+[2/27] graphite  test_rail_demo                                 97.1s  failed
+[3/27] graphite  test_one_name                                 127.3s  failed
+[4/27] graphite  DP01a,DP01b,DP01c,DP01d                        94.9s  failed
+[5/27] graphite  tools/check_finder_ui.py                       10.9s  failed
+[6/27] graphite  test_rail_demo_campaign                       105.3s  failed
+[7/27] graphite  test_desk_scenes                               45.1s  failed
+[8/27] graphite  test_context_menu                              57.5s  failed
+[9/27] graphite  test_kasandra_column                           26.0s  failed
+[10/27] graphite  tools/check_context_menu_ui.py                 10.4s  failed
+[11/27] graphite  test_session_start                             51.4s  failed
+[12/27] graphite  tools/check_cabinet_ui.py                      11.7s  failed
+[13/27] graphite  tools/check_navigation_ui.py                   11.2s  failed

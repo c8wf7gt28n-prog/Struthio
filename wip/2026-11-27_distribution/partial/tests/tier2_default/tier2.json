@@ -1,0 +1,1664 @@
+{
+ "tier": 2,
+ "looks": [
+  "graphite"
+ ],
+ "started": "2026-11-27T22:10:45",
+ "wall_seconds": 663.0,
+ "workers": 2,
+ "isolation": "process namespace, nice 19",
+ "state": "FAILED",
+ "failing": 60,
+ "not_run": 0,
+ "skipped": 5,
+ "tests_run": 1264,
+ "rows": [
+  {
+   "module": "tools/check_release.py",
+   "look": "graphite",
+   "kind": "integrity",
+   "ran": 5,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 6.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_release.py.out"
+  },
+  {
+   "module": "tools/name_sweep.py",
+   "look": "graphite",
+   "kind": "sweep",
+   "ran": 1,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 8.7,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/name_sweep.py",
+     "message": "NAME SWEEP, the code: 3 places"
+    }
+   ],
+   "log": "logs/graphite/name_sweep.py.out"
+  },
+  {
+   "module": "test_launcher",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 17,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 5.7,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_launcher.out"
+  },
+  {
+   "module": "test_system_menu",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 31,
+   "failed": 4,
+   "skipped": 0,
+   "seconds": 12.5,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RealWindowLeaveTests.test_log_out_closes_graphite_the_ordinary_way_before_its_command",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    },
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RunActionTests.test_a_command_refused_after_the_close_says_why",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    },
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RunActionTests.test_the_close_holds_the_applications_quit_until_the_command_has_answered",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    },
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RunActionTests.test_the_questions_then_the_confirmation_then_the_close_then_the_command",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    }
+   ],
+   "log": "logs/graphite/test_system_menu.out"
+  },
+  {
+   "module": "test_service_lifecycle",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 23,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_service_lifecycle.out"
+  },
+  {
+   "module": "test_operations",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 16,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 2.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_operations.out"
+  },
+  {
+   "module": "test_explore",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 13,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 4.0,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_explore.out"
+  },
+  {
+   "module": "test_release_check",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 25,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 7.3,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_release_check.out"
+  },
+  {
+   "module": "test_readiness",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 10,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 4.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_readiness.out"
+  },
+  {
+   "module": "test_settings_registry",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 19,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 2.7,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_settings_registry.out"
+  },
+  {
+   "module": "test_continue_setting",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 2,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.7,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_continue_setting.out"
+  },
+  {
+   "module": "test_hardware_settings",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 8,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.7,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_hardware_settings.out"
+  },
+  {
+   "module": "test_presentation_settings",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 16,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 2.5,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_presentation_settings.out"
+  },
+  {
+   "module": "test_settings_advanced",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 15,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 2.2,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_settings_advanced.out"
+  },
+  {
+   "module": "test_memory_settings",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 10,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_memory_settings.out"
+  },
+  {
+   "module": "test_model_settings",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 16,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 6.5,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_model_settings.out"
+  },
+  {
+   "module": "test_install_media",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 17,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_install_media.out"
+  },
+  {
+   "module": "test_startup_scripts",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 5,
+   "seconds": 1.3,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_startup_scripts.out"
+  },
+  {
+   "module": "test_session_start",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 28,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 65.6,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_session_start.SecondStart.test_a_session_left_with_rooms_open_starts_again_and_again",
+     "message": "AssertionError: <workbench.field_page.FieldPage(0x20084af0, name=\"FieldPage\") at 0x7f95c00df940> is not <PySide6.QtWidgets.QSplitter(0x1e765330) at 0x7f95c1b54b80>"
+    },
+    {
+     "test": "FAIL tests_integrated.test_session_start.StartScript.test_left_with_home_in_front_and_a_room_open_the_next_starts_open_the_office",
+     "message": "AssertionError: Tuples differ: (False, False, 'workspace') != (True, False, 'home') First differing element 0: False True - (False, False, 'workspace') + (True, False, 'home') : Home was in front at leaving, and is when the window is built"
+    }
+   ],
+   "log": "logs/graphite/test_session_start.out"
+  },
+  {
+   "module": "test_desk",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 27,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_desk.out"
+  },
+  {
+   "module": "test_frame",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 12,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_frame.out"
+  },
+  {
+   "module": "test_paper",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 17,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_paper.out"
+  },
+  {
+   "module": "test_machine",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 6,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_machine.out"
+  },
+  {
+   "module": "test_documents",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 13,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_documents.out"
+  },
+  {
+   "module": "test_graphite",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 29,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 10.3,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "ERROR tests_integrated.test_graphite.MarkAndTileTests.test_the_word_graphite_is_drawn_by_its_ink_from_the_inset_and_centred",
+     "message": "IndexError: list index out of range"
+    },
+    {
+     "test": "FAIL tests_integrated.test_graphite.RenameGuardTests.test_public_name_and_internal_identities",
+     "message": "AssertionError: 'line' != 'slate' - line + slate : the first mode is hers (Kasandra, in every look); its key stays slate"
+    }
+   ],
+   "log": "logs/graphite/test_graphite.out"
+  },
+  {
+   "module": "test_writing_line",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 32,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 2.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_writing_line.out"
+  },
+  {
+   "module": "test_context_menu",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 45,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 72.9,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_context_menu.Window.test_inspect_in_the_line_puts_the_equivalent_command_in_assignment_and_runs_nothing",
+     "message": "AssertionError: 'line' != 'slate' - line + slate"
+    },
+    {
+     "test": "FAIL tests_integrated.test_context_menu.Window.test_log_events_connections_and_packets",
+     "message": "AssertionError: 'line' != 'slate' - line + slate"
+    }
+   ],
+   "log": "logs/graphite/test_context_menu.out"
+  },
+  {
+   "module": "test_faces_find_light",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 34,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 0.8,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_faces_find_light.DeskLightTests.test_white_paper_comes_down_and_black_ink_stays_black_and_the_page_itself_is_untouched",
+     "message": "AssertionError: 100.0 not less than 65 : the tone is well below white"
+    },
+    {
+     "test": "FAIL tests_integrated.test_faces_find_light.GlowDialTests.test_the_dial_opens_on_neon_and_follows_the_session",
+     "message": "AssertionError: 0 != 3.0"
+    }
+   ],
+   "log": "logs/graphite/test_faces_find_light.out"
+  },
+  {
+   "module": "test_lit_controls",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 4,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 15.3,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_lit_controls.out"
+  },
+  {
+   "module": "test_whole_words",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 6,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_whole_words.out"
+  },
+  {
+   "module": "test_pane_width",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 2,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 6.2,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_pane_width.out"
+  },
+  {
+   "module": "test_stacy_hand",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 20,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_stacy_hand.out"
+  },
+  {
+   "module": "test_stacy_start",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 3.2,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_stacy_start.out"
+  },
+  {
+   "module": "test_kasandra",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 20,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 1.0,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_kasandra.StateTests.test_the_state_of_the_work_in_order_of_what_matters",
+     "message": "AssertionError: 'idle' != 'working' - idle + working"
+    }
+   ],
+   "log": "logs/graphite/test_kasandra.out"
+  },
+  {
+   "module": "test_one_name",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 19,
+   "failed": 3,
+   "skipped": 0,
+   "seconds": 147.4,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_one_name.TheCode.test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed",
+     "message": "AssertionError: Lists differ: [('workbench/depths_qt.py', 390, 'Save and[109 chars]rn')] != [] First list contains 3 additional elements. First extra element 0: ('workbench/depths_qt.py', 390, 'Save and Return') + [] - [('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 440, 'Save and Return')] : these words name"
+    },
+    {
+     "test": "FAIL tests_integrated.test_one_name.TheWindow.test_no_word_on_screen_says_stacy_in_either_look (look='graphite')",
+     "message": "AssertionError: Lists differ: ['the writing line: to her', 'Rules: her art plate opened'] != [] First list contains 2 additional elements. First extra element 0: 'the writing line: to her' - ['the writing line: to her', 'Rules: her art plate opened'] + [] : every place of the walk was reached"
+    },
+    {
+     "test": "FAIL tests_integrated.test_one_name.TheWindow.test_no_word_on_screen_says_stacy_in_either_look (look='kasandra')",
+     "message": "AssertionError: Lists differ: ['the writing line: to her', 'Rules: her art plate opened'] != [] First list contains 2 additional elements. First extra element 0: 'the writing line: to her' - ['the writing line: to her', 'Rules: her art plate opened'] + [] : every place of the walk was reached"
+    }
+   ],
+   "log": "logs/graphite/test_one_name.out",
+   "note": "sweeps the window in both looks itself, so it runs once"
+  },
+  {
+   "module": "test_campaign",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 23,
+   "failed": 3,
+   "skipped": 0,
+   "seconds": 16.0,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_campaign.CampaignTests.test_r19_and_r22_meet_the_spec_and_are_plain_passes",
+     "message": "AssertionError: 'Fail' != 'Pass' - Fail + Pass : ('R19', \"case broke after 3 of 28 checks met: ValueError: '--backend' is not in list\")"
+    },
+    {
+     "test": "FAIL tests_integrated.test_campaign.CampaignTests.test_resource_cases_pass_on_current_behaviour",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('R01', '1 of 11 checks missed; first: estimate_bytes expected 28726879197, observed 33480074205')"
+    },
+    {
+     "test": "FAIL tests_integrated.test_campaign.CampaignTests.test_run_into_an_existing_folder_moves_the_earlier_run_aside",
+     "message": "AssertionError: False is not true : SUMMARY run_stale: 1 cases, Pass 0, Pass (current code; the spec asks otherwise) 0, Partial 1, Blocked 0, Fail 0, Timeout 0. Pass means every check matched the current code, not that the spec is met."
+    }
+   ],
+   "log": "logs/graphite/test_campaign.out"
+  },
+  {
+   "module": "test_rail_demo",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 38,
+   "failed": 7,
+   "skipped": 0,
+   "seconds": 103.2,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_as_played_on_the_owners_workspace_finds_each_name_here_and_passes",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_on_a_small_window",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_the_scene_leaves_the_records_of_rail_demo_as_it_found_them",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    }
+   ],
+   "log": "logs/graphite/test_rail_demo.out"
+  },
+  {
+   "module": "test_rail_demo_campaign",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 26,
+   "failed": 3,
+   "skipped": 0,
+   "seconds": 114.8,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_rail_demo_campaign.TheRuns.test_every_twin_passes_with_nothing_of_the_owners_here",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('DP01a', '1 of 54 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\"', None)"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo_campaign.TheRuns.test_p01_is_played_on_rail_demo_in_the_graphite_look_and_in_the_kasandra_look",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('graphite', '1 of 54 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\"', None)"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo_campaign.TheSceneCaseWhereItsNamesAreFound.test_the_case_finds_each_name_there_and_meets_the_scenes_own_checks",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : [{'check': '9:desk.line.target', 'expected': 'her', 'observed': 'line', 'ok': False}]"
+    }
+   ],
+   "log": "logs/graphite/test_rail_demo_campaign.out",
+   "note": "plays the scene in both looks itself, so it runs once"
+  },
+  {
+   "module": "test_resource_rules",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 19,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 9.2,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_resource_rules.Margins.test_autos_headroom_stays_with_its_budget_at_admission_and_launch",
+     "message": "AssertionError: Tuples differ: (31930, 4096) != (27397, 4096) First differing element 0: 31930 27397 - (31930, 4096) ?   - ^^ + (27397, 4096) ?  ++  ^"
+    },
+    {
+     "test": "FAIL tests_integrated.test_resource_rules.Ready.test_a_restored_model_with_an_empty_reply_is_not_ready",
+     "message": "AssertionError: Lists differ: [4194406, 4194407] != [] First list contains 2 additional elements. First extra element 0: 4194406 - [4194406, 4194407] + []"
+    }
+   ],
+   "log": "logs/graphite/test_resource_rules.out"
+  },
+  {
+   "module": "test_record_paths",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 3,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_record_paths.out"
+  },
+  {
+   "module": "test_viewer_kinds",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 2,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_viewer_kinds.out"
+  },
+  {
+   "module": "test_planted_bugs",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 4,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.0,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_planted_bugs.out"
+  },
+  {
+   "module": "test_desk_acts",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 44.0,
+   "state": "FAILED",
+   "exit": -11,
+   "failures": [
+    {
+     "test": "the module",
+     "message": "This plugin does not support grabbing the keyboard"
+    }
+   ],
+   "log": "logs/graphite/test_desk_acts.out"
+  },
+  {
+   "module": "test_desk_scenes",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 5,
+   "failed": 5,
+   "skipped": 0,
+   "seconds": 51.1,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_keys",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_keys_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse_on_a_small_window",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    }
+   ],
+   "log": "logs/graphite/test_desk_scenes.out"
+  },
+  {
+   "module": "test_delete_words",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 6,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 14.8,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_delete_words.TheCan.test_the_can_says_DELETE_in_kasandra",
+     "message": "AssertionError: Lists differ: [181, 1094, 120, 29] != [218, 1094, 120, 29] First differing element 0: 181 218 - [181, 1094, 120, 29] ?    - + [218, 1094, 120, 29] ?  +"
+    }
+   ],
+   "log": "logs/graphite/test_delete_words.out"
+  },
+  {
+   "module": "test_typewriter_faces",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 13,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 9.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_typewriter_faces.out"
+  },
+  {
+   "module": "test_hologram",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 23,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 24.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_hologram.out"
+  },
+  {
+   "module": "test_kasandra_column",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 18,
+   "failed": 6,
+   "skipped": 0,
+   "seconds": 25.1,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Column.test_apps_is_the_struthio_then_words",
+     "message": "AssertionError: 1863 not greater than 1880"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Column.test_her_words_have_the_room",
+     "message": "AssertionError: 259 not greater than or equal to 295 : about 17 px wider than in 0.8.2"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Column.test_the_picture_is_gone_and_the_masthead_is_level_with_the_tabs",
+     "message": "AssertionError: 317 != 354"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Review.test_a_name_that_fits_a_line_is_never_cut_at_its_end",
+     "message": "AssertionError: False is not true : {'leaded': False, 'plain': False, 'room': 259, 'long_breaks': 3, 'long_whole': True}"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Review.test_a_note_in_the_viewer_keeps_the_desk_and_cuts_no_action",
+     "message": "AssertionError: Lists differ: [317, 317, 317] != [354, 354, 354] First differing element 0: 317 354 - [317, 317, 317] + [354, 354, 354]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Review.test_waiting_on_the_agenda_is_waiting_for_her",
+     "message": "AssertionError: Tuples differ: ('idle', 'awaiting_approval', 'quiet') != ('idle', 'awaiting_approval', 'waits for you') First differing element 2: 'quiet' 'waits for you' - ('idle', 'awaiting_approval', 'quiet') ?                                ^ --- + ('idle', 'awaiting_approval', 'waits for you') ?                                ^^^^^^^^^^^^"
+    }
+   ],
+   "log": "logs/graphite/test_kasandra_column.out"
+  },
+  {
+   "module": "test_kasandra_highlight",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 20,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 21.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_kasandra_highlight.out"
+  },
+  {
+   "module": "test_colour_vision",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 7,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 0.3,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_colour_vision.EveryLook.test_every_pair_under_the_threshold_is_told_apart_by_a_reviewed_word_or_shape",
+     "message": "AssertionError: Items in the second set but not the first: 'night' 'day' : every look is checked"
+    },
+    {
+     "test": "FAIL tests_integrated.test_colour_vision.EveryLook.test_the_tool_prints_both_looks_and_says_when_a_pair_is_left",
+     "message": "AssertionError: 1 != 0 : WED fails / line       #ff6b60 #34c26a     69.7     25.8     15.2     18.7      4.3     4.3 in weak green 1.0   NOT REVIEWED fails / wire       #ff6b60 #34c26a     69.7     25.8     15.2     18.7      4.3     4.3 in weak green 1.0   NOT REVIEWED stopped / line     #ff6b60 #34c26a     69.7     25.8     15.2     18.7      4.3     4.3 in weak green 1.0   NOT REVIEWED stopped "
+    }
+   ],
+   "log": "logs/graphite/test_colour_vision.out"
+  },
+  {
+   "module": "test_run_tiers",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 31.0,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_run_tiers.out"
+  },
+  {
+   "module": "test_tool_selection",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 5,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 0.5,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_tool_selection.Selection.test_plan_profile_keeps_its_direct_set_and_adds_the_chosen_tools",
+     "message": "AssertionError: 5161 not less than 5000"
+    }
+   ],
+   "log": "logs/graphite/test_tool_selection.out"
+  },
+  {
+   "module": "test_agent_loop",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 24,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 6.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_agent_loop.out"
+  },
+  {
+   "module": "test_conditions",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 16,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 2.2,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_conditions.out"
+  },
+  {
+   "module": "test_related",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 11,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.3,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_related.out"
+  },
+  {
+   "module": "test_browse",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 6,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_browse.out"
+  },
+  {
+   "module": "test_vocabulary",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 9,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_vocabulary.out"
+  },
+  {
+   "module": "test_model_turn",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 28,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 3.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_model_turn.out"
+  },
+  {
+   "module": "test_profile_files",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 16,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 4.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_profile_files.out"
+  },
+  {
+   "module": "test_network_watch",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 50,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 4.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_network_watch.out"
+  },
+  {
+   "module": "test_cabinet",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_cabinet.out"
+  },
+  {
+   "module": "test_cabinet_actions",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 9,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_cabinet_actions.out"
+  },
+  {
+   "module": "test_memory_cabinet",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 9,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.3,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_memory_cabinet.out"
+  },
+  {
+   "module": "test_return_thread",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 9,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.2,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_return_thread.out"
+  },
+  {
+   "module": "test_tool_atlas",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 8,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 4.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_tool_atlas.out"
+  },
+  {
+   "module": "test_algorithm_atlas",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 10,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 2.0,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_algorithm_atlas.out"
+  },
+  {
+   "module": "test_discovery",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 13,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 4.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_discovery.out"
+  },
+  {
+   "module": "test_problem",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 7,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 3.0,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_problem.out"
+  },
+  {
+   "module": "test_exact_math",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 6,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_exact_math.out"
+  },
+  {
+   "module": "test_reasoning_graph",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 7,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_reasoning_graph.out"
+  },
+  {
+   "module": "test_adaptive_contract",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_adaptive_contract.out"
+  },
+  {
+   "module": "test_joined_work",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 9,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_joined_work.out"
+  },
+  {
+   "module": "test_line_rules",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 24,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_line_rules.out"
+  },
+  {
+   "module": "test_math_core",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 33,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_math_core.out"
+  },
+  {
+   "module": "test_math_lines",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 13,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 6.3,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_math_lines.out"
+  },
+  {
+   "module": "test_math_money_dates",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 33,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 1.3,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_math_money_dates.Lines.test_kasandra_is_offered_money_and_dates_for_a_budget_or_a_deadline_and_not_for_a_plot",
+     "message": "AssertionError: 5022 not less than 5000 : open the price list sheet"
+    }
+   ],
+   "log": "logs/graphite/test_math_money_dates.out"
+  },
+  {
+   "module": "test_workspace_backup",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 7,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 1.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_workspace_backup.out"
+  },
+  {
+   "module": "test_project_desk",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 5.0,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_project_desk.out"
+  },
+  {
+   "module": "test_slate_reasoning",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 12,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 12.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_slate_reasoning.out"
+  },
+  {
+   "module": "test_change_sets",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 5.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_change_sets.out"
+  },
+  {
+   "module": "test_continuing_work",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 15,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 6.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_continuing_work.out"
+  },
+  {
+   "module": "test_deployment",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 16,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 7.3,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_deployment.out"
+  },
+  {
+   "module": "test_exact_math_solvers",
+   "look": "graphite",
+   "kind": "module",
+   "ran": 2,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 4.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/test_exact_math_solvers.out"
+  },
+  {
+   "module": "tools/check_context_menu_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 9.0,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_context_menu_ui.py",
+     "message": "no report: AssertionError: <workbench.context_menu.ContextMenu(0x443e1490, name=\"ContextMenu\") at 0x7fb036af18c0>"
+    }
+   ],
+   "log": "logs/graphite/check_context_menu_ui.py.out"
+  },
+  {
+   "module": "tools/check_finder_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 11.6,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_finder_ui.py",
+     "message": "no report: AssertionError: ('1920 Today', \"AppsButton:Apps 'Apps' needs 39 px, has 31; PlusButton:Add an app to the list '⊕' needs 22 px, has 12\")"
+    }
+   ],
+   "log": "logs/graphite/check_finder_ui.py.out"
+  },
+  {
+   "module": "tools/check_machine_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 6.6,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_machine_ui.py",
+     "message": "no report: KeyError: 'settings_navigation'"
+    }
+   ],
+   "log": "logs/graphite/check_machine_ui.py.out"
+  },
+  {
+   "module": "tools/check_document_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 7.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_document_ui.py.out"
+  },
+  {
+   "module": "tools/check_agent_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 16.5,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_agent_ui.py.out"
+  },
+  {
+   "module": "tools/check_continue_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 23.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_continue_ui.py.out"
+  },
+  {
+   "module": "tools/check_model_turn_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 14.7,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_model_turn_ui.py.out"
+  },
+  {
+   "module": "tools/check_files_about_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 9.5,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_files_about_ui.py.out"
+  },
+  {
+   "module": "tools/check_service_integration_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 16,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 9.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_service_integration_ui.py.out"
+  },
+  {
+   "module": "tools/check_hardware_settings_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 8,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 7.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_hardware_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_cabinet_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 9.0,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_cabinet_ui.py",
+     "message": "no report: AssertionError"
+    }
+   ],
+   "log": "logs/graphite/check_cabinet_ui.py.out"
+  },
+  {
+   "module": "tools/check_cabinet_actions_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 10,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 6.2,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_cabinet_actions_ui.py.out"
+  },
+  {
+   "module": "tools/check_explore_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 15,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 12.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_explore_ui.py.out"
+  },
+  {
+   "module": "tools/check_navigation_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 7.8,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_navigation_ui.py",
+     "message": "no report: AssertionError"
+    }
+   ],
+   "log": "logs/graphite/check_navigation_ui.py.out"
+  },
+  {
+   "module": "tools/check_operations_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 9.6,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_operations_ui.py",
+     "message": "no report: AssertionError"
+    }
+   ],
+   "log": "logs/graphite/check_operations_ui.py.out"
+  },
+  {
+   "module": "tools/check_presentation_settings_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 11,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 9.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_presentation_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_return_thread_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 17,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 9.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_return_thread_ui.py.out"
+  },
+  {
+   "module": "tools/check_memory_cabinet_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 10.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_memory_cabinet_ui.py.out"
+  },
+  {
+   "module": "tools/check_memory_settings_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 13,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 10.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_memory_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_model_settings_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 11,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 10.7,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_model_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_settings_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 14.7,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_settings_ui.py",
+     "message": "no report: KeyError: 'settings_navigation'"
+    }
+   ],
+   "log": "logs/graphite/check_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_settings_02_ui.py",
+   "look": "graphite",
+   "kind": "check",
+   "ran": 15,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 18.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/graphite/check_settings_02_ui.py.out"
+  },
+  {
+   "module": "DP01a,DP01b,DP01c,DP01d",
+   "look": "graphite",
+   "kind": "scene",
+   "ran": 4,
+   "failed": 4,
+   "skipped": 0,
+   "seconds": 103.3,
+   "state": "FAILED",
+   "exit": 0,
+   "failures": [
+    {
+     "test": "?",
+     "message": "Partial: 1 of 54 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    },
+    {
+     "test": "?",
+     "message": "Partial: 1 of 55 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    },
+    {
+     "test": "?",
+     "message": "Partial: 1 of 56 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    },
+    {
+     "test": "?",
+     "message": "Partial: 1 of 57 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    }
+   ],
+   "log": "logs/graphite/DP01a_DP01b_DP01c_DP01d.out"
+  }
+ ]
+}
