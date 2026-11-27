@@ -89,6 +89,7 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 | 0.8.4 · Tests you can believe | **DELIVERED 20 Nov 03:35 UTC** (commit b6bdb50; `wip/2026-11-20_release_084/`) |
 | 0.8.5 · Maths in lines | **DELIVERED 20 Nov** |
 | 0.8.6 · Kas's mind without a model | **RELEASED UNTESTED 20 Nov 15:21 UTC** (kit from d97127c; `wip/2026-11-20_release_086/`) |
+| 1.0 · The Living Desktop and the Ghost in the Shell | **CUTTING 27 Nov** (commit 3393e1a) |
 | 0.8.7 · Kas's mind with the model, interwoven | **RELEASED UNTESTED 26 Nov** (kit from ddf0aed; `wip/2026-11-26_release_087/`) |
 | the test pass | **dropped by the owner** (26 Nov: "No testing") |
 | **1.0 · The Living Desktop and the Ghost in the Shell** | **BUILDING** (plan: `wip/2026-11-26_road_to_1.0/PLAN_1.0.md`) |
@@ -381,6 +382,16 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 27 Nov 00:09 UTC: **1.0 F3 merged** (b8c3a4e: the walkthroughs' faults. A cut-short fetch is "blocked: needs the
+  network". A grant under HALT carries its task after RESUME and its own Resume, and her area's standing grant covers her
+  steps. TRACE traces the focused finding. Her column reads the journal at once and follows her model. HALT, RESUME,
+  TRACE, CHECK ALL and asking her run off the window's thread, and nothing held the window over 100 ms under its own
+  loop on Rail Demo. The HALT notice is off "Waits for you". Search matches each word, finds Home files by name and opens
+  the board. Every keyboard stop is named). **All feature slices are merged (44; P5 cancelled).** **R2 begun: Graphite
+  1.0 committed** (3393e1a: version 1.0, README for 1.0, the packager's note, the release notes brought in line with
+  F3 and L6c, the start page). **The cut is running** from 3393e1a into `$S/work/kit_100` (cut_1.0.sh; log
+  `$S/work/cut_100.log`).
 
 - 26 Nov 23:46 UTC: **1.0 L6c merged** (bulk files: the tree's multi-selection; Move/Copy/Delete for a choice with one
   Undo for the batch, done off the window's thread; lines ending in move/copy/delete asking first; the sandbox up to 64
