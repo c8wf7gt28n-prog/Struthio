@@ -12,3 +12,5 @@ rerun: 27 units with GRAPHITE_APPEARANCE=graphite
 [11/27] graphite  test_session_start                             51.4s  failed
 [12/27] graphite  tools/check_cabinet_ui.py                      11.7s  failed
 [13/27] graphite  tools/check_navigation_ui.py                   11.2s  failed
+[14/27] graphite  test_system_menu                               13.0s  failed
+[15/27] graphite  tools/check_settings_ui.py                     15.3s  failed
