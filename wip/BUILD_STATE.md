@@ -3,7 +3,36 @@
 **Read this first on every wake-up.** It is updated after every step and pushed. If this file and anything else disagree,
 this file is newer.
 
-## NOW: Graphite 1.0 is released, untested; everything left waits for the owner's ThinkPad (27 Nov 2026)
+## NOW: make Graphite distribution ready (the owner, 27 Nov 2026)
+
+The owner, 27 Nov, after 1.0 was delivered: "I'm stuck at work all day, so we have time to go crazy. Because remember
+this is meant to be MY full gui for Debian. I'm mostly comfortable in windows and dos. But I know I can only get what I
+want in Debian so I have to switch. If I lift all rules and allow minimal tests, do you think you can make it fully
+distribution ready?" Before that the owner asked whether the builder wanted "a free pass at everything ... without my
+rules holding you back".
+
+- **Taken as: go.** Build Graphite 1.1, the distribution candidate, unattended, through the hourly wake-up
+  (`trig_017RpY8VWubnaTQN5DVGpS6g`, re-enabled 27 Nov).
+- **What "distribution ready" means here:** installs like real Debian software (a package; a bootable image if this
+  machine can build one); a full GUI for Debian (software, printers, Bluetooth, date and time, users, power, with no
+  console needed); comfortable for a Windows and DOS person (their keys, Explorer habits, DOS commands in Terminal);
+  runs on machines that are not the ThinkPad; a test suite that passes; the old rooms cleared out; licences clean for
+  redistribution. **Not possible here:** real hardware. The result is a distribution candidate; real machines give the
+  final word.
+- **Rules lifted by the owner and now used:** testing is allowed (minimal tests: the tiers, on copies); old surfaces may
+  be removed; the builder may redesign (layout, her presence, wording), each change listed for the owner to strike.
+- **Rules kept by the builder's own choice:** the owner's name, email, workspace and pictures never enter the repository
+  or any outside request; Kas's authority rules (the model proposes, the desk disposes; grants; HALT); tests and the app
+  run only on throwaway copies, wrapped; the branch `claude/epic-galileo-c7k11y` only, no pull request (the session's
+  own constraint); commit and push after every step.
+- **Commit trailer since 27 Nov:** `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>` and the Claude-Session line.
+- **Working folder:** `wip/2026-11-27_distribution/` (the audit, the plan); scratch `$S/work/dist/`.
+- **Step 1 (running):** the distribution audit, a workflow of eight auditors and a critic: the test suite's true state;
+  packaging, install and image; Windows and DOS comfort; full-GUI-for-Debian coverage; the new user's view (old rooms,
+  old names, first run, docs); hardware and portability; security and privacy; licences. Then the plan
+  (`wip/2026-11-27_distribution/PLAN_1.1.md`), then builders as for 1.0 (briefs, worktrees, merge_one.sh).
+
+## Before: Graphite 1.0 is released, untested (27 Nov 2026)
 
 1.0 was cut on 27 Nov from commit 9f42ae5 and sent to the owner (`wip/2026-11-27_release_100/`: START_HERE.md, cut.log,
 SHA256SUMS.kit, release_check_restored.json PASSED, screens). The kit's 15 ZIPs and the frame atlas were in scratch
@@ -392,6 +421,9 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 27 Nov 01:00 UTC: **New mandate: make Graphite distribution ready** (the owner's words are in NOW). The wake-up is
+  re-enabled. The distribution audit workflow is launched; its findings go to `wip/2026-11-27_distribution/`.
 
 - 27 Nov 00:12 UTC: **GRAPHITE 1.0 RELEASED, UNTESTED.** The first cut stopped on the coordinator's script (fixed,
   58a9076). The second cut's release check FAILED on its privacy scan: two lines only looked like machine paths, an
