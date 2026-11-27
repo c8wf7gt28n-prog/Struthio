@@ -11,6 +11,11 @@ want in Debian so I have to switch. If I lift all rules and allow minimal tests,
 distribution ready?" Before that the owner asked whether the builder wanted "a free pass at everything ... without my
 rules holding you back".
 
+- **The design brief (the owner, 27 Nov, a few minutes later):** "Feel free to change anything under the hood and
+  anything visible. Think the functionality of windows, with the graceful class of Apple, and the freedom power of
+  Linux". So: nothing in the code or on the screen is fixed any more. Where a new design reverses one of the owner's
+  explicit earlier decisions (HALT upper left, no picture of Kas, DELETE as the bin's word, no key printed on screen,
+  the tree from the root), it is listed in the release notes for the owner to strike.
 - **Taken as: go.** Build Graphite 1.1, the distribution candidate, unattended, through the hourly wake-up
   (`trig_017RpY8VWubnaTQN5DVGpS6g`, re-enabled 27 Nov).
 - **What "distribution ready" means here:** installs like real Debian software (a package; a bootable image if this
@@ -27,6 +32,9 @@ rules holding you back".
   own constraint); commit and push after every step.
 - **Commit trailer since 27 Nov:** `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>` and the Claude-Session line.
 - **Working folder:** `wip/2026-11-27_distribution/` (the audit, the plan); scratch `$S/work/dist/`.
+- **Step 1b (running beside it):** the design panel, a workflow: three independent designs of the whole desktop from
+  the brief (familiar first, calm first, power first), three judges, one synthesis. Drafts in `$S/work/dist/design/`;
+  the result becomes `wip/2026-11-27_distribution/DESIGN_DIRECTION_1.1.md`.
 - **Step 1 (running):** the distribution audit, a workflow of eight auditors and a critic: the test suite's true state;
   packaging, install and image; Windows and DOS comfort; full-GUI-for-Debian coverage; the new user's view (old rooms,
   old names, first run, docs); hardware and portability; security and privacy; licences. Then the plan
