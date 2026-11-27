@@ -422,8 +422,8 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
-- 27 Nov 01:00 UTC: **New mandate: make Graphite distribution ready** (the owner's words are in NOW). The wake-up is
-  re-enabled. The distribution audit workflow is launched; its findings go to `wip/2026-11-27_distribution/`.
+- 27 Nov 22:07 UTC: **New mandate: make Graphite distribution ready** (the owner's words are in NOW). The wake-up is
+  re-enabled. The distribution audit workflow is launched (run `wf_7bcd2320-6cd`; its script is in the session's workflows folder; auditors' notes in `$S/work/dist/<key>/NOTES.md`); its findings go to `wip/2026-11-27_distribution/`. If the run died with the session, re-run the audit from the dimension list in NOW.
 
 - 27 Nov 00:12 UTC: **GRAPHITE 1.0 RELEASED, UNTESTED.** The first cut stopped on the coordinator's script (fixed,
   58a9076). The second cut's release check FAILED on its privacy scan: two lines only looked like machine paths, an
