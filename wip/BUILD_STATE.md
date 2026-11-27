@@ -21,6 +21,14 @@ rules holding you back".
   whole Linux box (commands, software, the system, the big apps, automation, teaching a Windows and DOS person Debian),
   grounded in the machine's own documentation, under the same authority rules (the owner's press for every change;
   system changes through the system's own permission prompt).
+- **Her character (the owner, 27 Nov, 22:30):** "Kasandra is like Kate Libby (from hackers movie) :)". Taken as her
+  manner, not a copy of the film's character: sharp, fast, sure of her craft, at home on the command line, dry wit,
+  short sentences, no padding, never talks down, on the owner's side. No film lines, no handle from the film, no
+  likeness (and still no picture of her, the owner's earlier decision). One guard from her own rules: she is sure only
+  about what is verified; where nothing is proven she says so just as plainly. It lands in her character file
+  (`workbench/kasandra/character_starter.md`: the registers, manner, joining words, never-say, lengths), in every
+  sentence the window says for her, and in how she teaches Debian to a Windows and DOS person. A slice of its own in
+  the 1.1 plan (KV: her voice), after the Kas panel reports.
 - **Taken as: go.** Build Graphite 1.1, the distribution candidate, unattended, through the hourly wake-up
   (`trig_017RpY8VWubnaTQN5DVGpS6g`, re-enabled 27 Nov).
 - **What "distribution ready" means here:** installs like real Debian software (a package; a bootable image if this
