@@ -60,7 +60,7 @@ bash "$HOME/Applications/Graphite-1.0/LEDGER.sh" backup create --root ~/Concern/
 
 **Your 0.8.7 workspace in 1.0.** 1.0 reads a 0.8.x workspace as it is: it adds tables of its own and changes none of
 0.8.7's. Here, a workspace written by 0.8.7 opened in 1.0 with every record, word, setting and the dial intact, and its
-files were byte-identical afterwards. One known gap: a task Kas left running in 0.8.7 does not show in ACTIVE WORK yet.
+files were byte-identical afterwards. A task Kas left running in 0.8.7 shows in ACTIVE WORK with its own Stop.
 Keep the backup above all the same.
 
 **The cold start, and stalls.** Note how long the first start takes from the start command to the window (a photo of a
