@@ -1,0 +1,178 @@
+look      kind      module, check or scene                                 ran failed skipped  seconds  state
+kasandra  integrity tools/check_release.py                                   0      0       0      0.0  not run
+kasandra  sweep     tools/name_sweep.py                                      0      0       0      0.0  not run
+kasandra  module    test_launcher                                            0      0       0      0.0  not run
+kasandra  module    test_system_menu                                        31      4       0     13.1  failed
+kasandra  module    test_service_lifecycle                                   0      0       0      0.0  not run
+kasandra  module    test_operations                                          0      0       0      0.0  not run
+kasandra  module    test_explore                                             0      0       0      0.0  not run
+kasandra  module    test_release_check                                       0      0       0      0.0  not run
+kasandra  module    test_readiness                                           0      0       0      0.0  not run
+kasandra  module    test_settings_registry                                   0      0       0      0.0  not run
+kasandra  module    test_continue_setting                                    0      0       0      0.0  not run
+kasandra  module    test_hardware_settings                                   0      0       0      0.0  not run
+kasandra  module    test_presentation_settings                               0      0       0      0.0  not run
+kasandra  module    test_settings_advanced                                   0      0       0      0.0  not run
+kasandra  module    test_memory_settings                                     0      0       0      0.0  not run
+kasandra  module    test_model_settings                                      0      0       0      0.0  not run
+kasandra  module    test_install_media                                       0      0       0      0.0  not run
+kasandra  module    test_startup_scripts                                     0      0       0      0.0  not run
+kasandra  module    test_session_start                                      28      2       0     51.3  failed
+kasandra  module    test_desk                                                0      0       0      0.0  not run
+kasandra  module    test_frame                                               0      0       0      0.0  not run
+kasandra  module    test_paper                                               0      0       0      0.0  not run
+kasandra  module    test_machine                                             0      0       0      0.0  not run
+kasandra  module    test_documents                                           0      0       0      0.0  not run
+kasandra  module    test_graphite                                            0      0       0      0.0  not run
+kasandra  module    test_writing_line                                        0      0       0      0.0  not run
+kasandra  module    test_context_menu                                       45      2       0     60.6  failed
+kasandra  module    test_faces_find_light                                    0      0       0      0.0  not run
+kasandra  module    test_lit_controls                                        4      0       0     16.8  passed
+kasandra  module    test_whole_words                                         0      0       0      0.0  not run
+kasandra  module    test_pane_width                                          0      0       0      0.0  not run
+kasandra  module    test_stacy_hand                                          0      0       0      0.0  not run
+kasandra  module    test_stacy_start                                         0      0       0      0.0  not run
+kasandra  module    test_kasandra                                            0      0       0      0.0  not run
+kasandra  module    test_one_name                                           19      3       0    128.8  failed
+kasandra  module    test_campaign                                           23      3       0     15.7  failed
+kasandra  module    test_rail_demo                                          38      7       0    100.6  failed
+kasandra  module    test_rail_demo_campaign                                 26      3       0    128.0  failed
+kasandra  module    test_resource_rules                                      0      0       0      0.0  not run
+kasandra  module    test_record_paths                                        0      0       0      0.0  not run
+kasandra  module    test_viewer_kinds                                        0      0       0      0.0  not run
+kasandra  module    test_planted_bugs                                        0      0       0      0.0  not run
+kasandra  module    test_desk_acts                                           0      1       0     27.5  failed
+kasandra  module    test_desk_scenes                                         5      5       0     49.8  failed
+kasandra  module    test_delete_words                                        6      1       0     15.5  failed
+kasandra  module    test_typewriter_faces                                    0      0       0      0.0  not run
+kasandra  module    test_hologram                                           23      0       0     23.7  passed
+kasandra  module    test_kasandra_column                                    18      6       0     28.2  failed
+kasandra  module    test_kasandra_highlight                                 20      0       0     23.4  passed
+kasandra  module    test_colour_vision                                       0      0       0      0.0  not run
+kasandra  module    test_run_tiers                                          14      0       0     31.8  passed
+kasandra  module    test_tool_selection                                      0      0       0      0.0  not run
+kasandra  module    test_agent_loop                                          0      0       0      0.0  not run
+kasandra  module    test_conditions                                          0      0       0      0.0  not run
+kasandra  module    test_related                                             0      0       0      0.0  not run
+kasandra  module    test_browse                                              0      0       0      0.0  not run
+kasandra  module    test_vocabulary                                          0      0       0      0.0  not run
+kasandra  module    test_model_turn                                          0      0       0      0.0  not run
+kasandra  module    test_profile_files                                       0      0       0      0.0  not run
+kasandra  module    test_network_watch                                       0      0       0      0.0  not run
+kasandra  module    test_cabinet                                             0      0       0      0.0  not run
+kasandra  module    test_cabinet_actions                                     0      0       0      0.0  not run
+kasandra  module    test_memory_cabinet                                      0      0       0      0.0  not run
+kasandra  module    test_return_thread                                       0      0       0      0.0  not run
+kasandra  module    test_tool_atlas                                          0      0       0      0.0  not run
+kasandra  module    test_algorithm_atlas                                     0      0       0      0.0  not run
+kasandra  module    test_discovery                                           0      0       0      0.0  not run
+kasandra  module    test_problem                                             0      0       0      0.0  not run
+kasandra  module    test_exact_math                                          0      0       0      0.0  not run
+kasandra  module    test_reasoning_graph                                     0      0       0      0.0  not run
+kasandra  module    test_adaptive_contract                                   0      0       0      0.0  not run
+kasandra  module    test_joined_work                                         0      0       0      0.0  not run
+kasandra  module    test_line_rules                                          0      0       0      0.0  not run
+kasandra  module    test_math_core                                           0      0       0      0.0  not run
+kasandra  module    test_math_lines                                          0      0       0      0.0  not run
+kasandra  module    test_math_money_dates                                    0      0       0      0.0  not run
+kasandra  module    test_workspace_backup                                    0      0       0      0.0  not run
+kasandra  module    test_project_desk                                        0      0       0      0.0  not run
+kasandra  module    test_slate_reasoning                                    12      0       0     13.7  passed
+kasandra  module    test_change_sets                                         0      0       0      0.0  not run
+kasandra  module    test_continuing_work                                     0      0       0      0.0  not run
+kasandra  module    test_deployment                                          0      0       0      0.0  not run
+kasandra  module    test_exact_math_solvers                                  0      0       0      0.0  not run
+kasandra  check     tools/check_context_menu_ui.py                          13      0       0     21.4  passed
+kasandra  check     tools/check_finder_ui.py                                 0      0       0     68.4  passed
+kasandra  check     tools/check_machine_ui.py                                0      1       0      7.3  failed
+kasandra  check     tools/check_document_ui.py                               0      0       0      8.5  passed
+kasandra  check     tools/check_agent_ui.py                                  0      0       0     16.3  passed
+kasandra  check     tools/check_continue_ui.py                               0      0       0     21.0  passed
+kasandra  check     tools/check_model_turn_ui.py                             0      0       0     15.2  passed
+kasandra  check     tools/check_files_about_ui.py                            0      0       0     10.1  passed
+kasandra  check     tools/check_service_integration_ui.py                   16      0       0      9.3  passed
+kasandra  check     tools/check_hardware_settings_ui.py                      8      0       0      8.6  passed
+kasandra  check     tools/check_cabinet_ui.py                                0      1       0      9.7  failed
+kasandra  check     tools/check_cabinet_actions_ui.py                       10      0       0      7.4  passed
+kasandra  check     tools/check_explore_ui.py                               15      0       0     13.1  passed
+kasandra  check     tools/check_navigation_ui.py                             0      1       0      8.9  failed
+kasandra  check     tools/check_operations_ui.py                             0      1       0     10.1  failed
+kasandra  check     tools/check_presentation_settings_ui.py                 11      0       0     10.6  passed
+kasandra  check     tools/check_return_thread_ui.py                         17      0       0     11.1  passed
+kasandra  check     tools/check_memory_cabinet_ui.py                        14      0       0     11.8  passed
+kasandra  check     tools/check_memory_settings_ui.py                        0      1       0     10.3  interrupted
+kasandra  check     tools/check_model_settings_ui.py                         0      1       0      3.4  interrupted
+kasandra  check     tools/check_settings_ui.py                               0      1       0     15.5  failed
+kasandra  check     tools/check_settings_02_ui.py                           15      0       0     19.9  passed
+kasandra  scene     DP01a,DP01b,DP01c,DP01d                                  4      4       0    112.2  failed
+kasandra test_system_menu:
+  ERROR tests_integrated.test_system_menu.RealWindowLeaveTests.test_log_out_closes_graphite_the_ordinary_way_before_its_command: AttributeError: 'FakeLogind' object has no attribute 'reason'
+  ERROR tests_integrated.test_system_menu.RunActionTests.test_a_command_refused_after_the_close_says_why: AttributeError: 'FakeLogind' object has no attribute 'reason'
+  ERROR tests_integrated.test_system_menu.RunActionTests.test_the_close_holds_the_applications_quit_until_the_command_has_answered: AttributeError: 'FakeLogind' object has no attribute 'reason'
+  ERROR tests_integrated.test_system_menu.RunActionTests.test_the_questions_then_the_confirmation_then_the_close_then_the_command: AttributeError: 'FakeLogind' object has no attribute 'reason'
+kasandra test_session_start:
+  FAIL tests_integrated.test_session_start.SecondStart.test_a_session_left_with_rooms_open_starts_again_and_again: AssertionError: <workbench.field_page.FieldPage(0x1264a440, name="FieldPage") at 0x7fa72d692000> is not <PySide6.QtWidgets.QSplitter(0xed69b30) at 0x7fa7482866c0>
+  FAIL tests_integrated.test_session_start.StartScript.test_left_with_home_in_front_and_a_room_open_the_next_starts_open_the_office: AssertionError: Tuples differ: (False, False, 'workspace') != (True, False, 'home') First differing element 0: False True - (False, False, 'workspace') + (True, False, 'home') : Home was in front at leaving, and is when the window is built
+kasandra test_context_menu:
+  FAIL tests_integrated.test_context_menu.Window.test_inspect_in_the_line_puts_the_equivalent_command_in_assignment_and_runs_nothing: AssertionError: 'line' != 'slate' - line + slate
+  FAIL tests_integrated.test_context_menu.Window.test_log_events_connections_and_packets: AssertionError: 'line' != 'slate' - line + slate
+kasandra test_one_name:
+  FAIL tests_integrated.test_one_name.TheCode.test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed: AssertionError: Lists differ: [('workbench/depths_qt.py', 390, 'Save and[109 chars]rn')] != [] First list contains 3 additional elements. First extra element 0: ('workbench/depths_qt.py', 390, 'Save and Return') + [] - [('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 440, 'Save and Return')] : these words name
+  FAIL tests_integrated.test_one_name.TheWindow.test_no_word_on_screen_says_stacy_in_either_look (look='graphite'): AssertionError: Lists differ: ['the writing line: to her', 'Rules: her art plate opened'] != [] First list contains 2 additional elements. First extra element 0: 'the writing line: to her' - ['the writing line: to her', 'Rules: her art plate opened'] + [] : every place of the walk was reached
+  FAIL tests_integrated.test_one_name.TheWindow.test_no_word_on_screen_says_stacy_in_either_look (look='kasandra'): AssertionError: Lists differ: ['the writing line: to her', 'Rules: her art plate opened'] != [] First list contains 2 additional elements. First extra element 0: 'the writing line: to her' - ['the writing line: to her', 'Rules: her art plate opened'] + [] : every place of the walk was reached
+kasandra test_campaign:
+  FAIL tests_integrated.test_campaign.CampaignTests.test_r19_and_r22_meet_the_spec_and_are_plain_passes: AssertionError: 'Fail' != 'Pass' - Fail + Pass : ('R19', "case broke after 3 of 28 checks met: ValueError: '--backend' is not in list")
+  FAIL tests_integrated.test_campaign.CampaignTests.test_resource_cases_pass_on_current_behaviour: AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('R01', '1 of 11 checks missed; first: estimate_bytes expected 28726879197, observed 33480074205')
+  FAIL tests_integrated.test_campaign.CampaignTests.test_run_into_an_existing_folder_moves_the_earlier_run_aside: AssertionError: False is not true : SUMMARY run_stale: 1 cases, Pass 0, Pass (current code; the spec asks otherwise) 0, Partial 1, Blocked 0, Fail 0, Timeout 0. Pass means every check matched the current code, not that the spec is met.
+kasandra test_rail_demo:
+  FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_as_played_on_the_owners_workspace_finds_each_name_here_and_passes: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys_reduced_motion: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_on_a_small_window: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_reduced_motion: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_the_scene_leaves_the_records_of_rail_demo_as_it_found_them: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+kasandra test_rail_demo_campaign:
+  FAIL tests_integrated.test_rail_demo_campaign.TheRuns.test_every_twin_passes_with_nothing_of_the_owners_here: AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('DP01a', '1 of 54 checks missed; first: 9:desk.line.target expected "her", observed "line"', None)
+  FAIL tests_integrated.test_rail_demo_campaign.TheRuns.test_p01_is_played_on_rail_demo_in_the_graphite_look_and_in_the_kasandra_look: AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('graphite', '1 of 54 checks missed; first: 9:desk.line.target expected "her", observed "line"', None)
+  FAIL tests_integrated.test_rail_demo_campaign.TheSceneCaseWhereItsNamesAreFound.test_the_case_finds_each_name_there_and_meets_the_scenes_own_checks: AssertionError: 'Partial' != 'Pass' - Partial + Pass : [{'check': '9:desk.line.target', 'expected': 'her', 'observed': 'line', 'ok': False}]
+kasandra test_desk_acts:
+  the module: This plugin does not support grabbing the keyboard
+kasandra test_desk_scenes:
+  FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_keys: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_keys_reduced_motion: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse_on_a_small_window: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+  FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse_reduced_motion: AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]
+kasandra test_delete_words:
+  FAIL tests_integrated.test_delete_words.TheCan.test_the_can_says_DELETE_in_kasandra: AssertionError: Lists differ: [181, 1094, 120, 29] != [218, 1094, 120, 29] First differing element 0: 181 218 - [181, 1094, 120, 29] ?    - + [218, 1094, 120, 29] ?  +
+kasandra test_kasandra_column:
+  FAIL tests_integrated.test_kasandra_column.Column.test_apps_is_the_struthio_then_words: AssertionError: 1863 not greater than 1880
+  FAIL tests_integrated.test_kasandra_column.Column.test_her_words_have_the_room: AssertionError: 259 not greater than or equal to 295 : about 17 px wider than in 0.8.2
+  FAIL tests_integrated.test_kasandra_column.Column.test_the_picture_is_gone_and_the_masthead_is_level_with_the_tabs: AssertionError: 317 != 354
+  FAIL tests_integrated.test_kasandra_column.Review.test_a_name_that_fits_a_line_is_never_cut_at_its_end: AssertionError: False is not true : {'leaded': False, 'plain': False, 'room': 259, 'long_breaks': 3, 'long_whole': True}
+  FAIL tests_integrated.test_kasandra_column.Review.test_a_note_in_the_viewer_keeps_the_desk_and_cuts_no_action: AssertionError: Lists differ: [317, 317, 317] != [354, 354, 354] First differing element 0: 317 354 - [317, 317, 317] + [354, 354, 354]
+  FAIL tests_integrated.test_kasandra_column.Review.test_waiting_on_the_agenda_is_waiting_for_her: AssertionError: Tuples differ: ('idle', 'awaiting_approval', 'quiet') != ('idle', 'awaiting_approval', 'waits for you') First differing element 2: 'quiet' 'waits for you' - ('idle', 'awaiting_approval', 'quiet') ?                                ^ --- + ('idle', 'awaiting_approval', 'waits for you') ?                                ^^^^^^^^^^^^
+kasandra tools/check_machine_ui.py:
+  tools/check_machine_ui.py: no report: KeyError: 'settings_navigation'
+kasandra tools/check_cabinet_ui.py:
+  tools/check_cabinet_ui.py: no report: AssertionError
+kasandra tools/check_navigation_ui.py:
+  tools/check_navigation_ui.py: no report: AssertionError
+kasandra tools/check_operations_ui.py:
+  tools/check_operations_ui.py: no report: AssertionError
+kasandra tools/check_memory_settings_ui.py:
+  tools/check_memory_settings_ui.py: stopped: the run was interrupted
+  tools/check_memory_settings_ui.py: no report: Owner-private values and histories are isolated and omitted from the optional activity-sharing aggregate
+kasandra tools/check_model_settings_ui.py:
+  tools/check_model_settings_ui.py: stopped: the run was interrupted
+  tools/check_model_settings_ui.py: no report: exit -9
+kasandra tools/check_settings_ui.py:
+  tools/check_settings_ui.py: no report: KeyError: 'settings_navigation'
+kasandra DP01a,DP01b,DP01c,DP01d:
+  ?: Partial: 1 of 54 checks missed; first: 9:desk.line.target expected "her", observed "line"
+  ?: Partial: 1 of 55 checks missed; first: 9:desk.line.target expected "her", observed "line"
+  ?: Partial: 1 of 56 checks missed; first: 9:desk.line.target expected "her", observed "line"
+  ?: Partial: 1 of 57 checks missed; first: 9:desk.line.target expected "her", observed "line"
+tier 2: 106 runs, 312 tests, 9m 39s wall, kasandra
+interrupted, 67 of 106 not run; 48 failing: kasandra test_system_menu; kasandra test_session_start; kasandra test_context_menu; kasandra test_one_name; kasandra test_campaign; kasandra test_rail_demo; kasandra test_rail_demo_campaign; kasandra test_desk_acts; kasandra test_desk_scenes; kasandra test_delete_words; kasandra test_kasandra_column; kasandra tools/check_machine_ui.py; kasandra tools/check_cabinet_ui.py; kasandra tools/check_navigation_ui.py; kasandra tools/check_operations_ui.py; kasandra tools/check_memory_settings_ui.py; kasandra tools/check_model_settings_ui.py; kasandra tools/check_settings_ui.py; kasandra DP01a,DP01b,DP01c,DP01d

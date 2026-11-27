@@ -1,0 +1,1616 @@
+{
+ "tier": 2,
+ "looks": [
+  "kasandra"
+ ],
+ "started": "2026-11-27T22:32:50",
+ "wall_seconds": 579.6,
+ "workers": 2,
+ "isolation": "process namespace, nice 19",
+ "state": "INTERRUPTED",
+ "failing": 48,
+ "not_run": 67,
+ "skipped": 0,
+ "tests_run": 312,
+ "rows": [
+  {
+   "module": "tools/check_release.py",
+   "look": "kasandra",
+   "kind": "integrity",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "tools/name_sweep.py",
+   "look": "kasandra",
+   "kind": "sweep",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_launcher",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_system_menu",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 31,
+   "failed": 4,
+   "skipped": 0,
+   "seconds": 13.1,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RealWindowLeaveTests.test_log_out_closes_graphite_the_ordinary_way_before_its_command",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    },
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RunActionTests.test_a_command_refused_after_the_close_says_why",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    },
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RunActionTests.test_the_close_holds_the_applications_quit_until_the_command_has_answered",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    },
+    {
+     "test": "ERROR tests_integrated.test_system_menu.RunActionTests.test_the_questions_then_the_confirmation_then_the_close_then_the_command",
+     "message": "AttributeError: 'FakeLogind' object has no attribute 'reason'"
+    }
+   ],
+   "log": "logs/kasandra/test_system_menu.out"
+  },
+  {
+   "module": "test_service_lifecycle",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_operations",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_explore",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_release_check",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_readiness",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_settings_registry",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_continue_setting",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_hardware_settings",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_presentation_settings",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_settings_advanced",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_memory_settings",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_model_settings",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_install_media",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_startup_scripts",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_session_start",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 28,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 51.3,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_session_start.SecondStart.test_a_session_left_with_rooms_open_starts_again_and_again",
+     "message": "AssertionError: <workbench.field_page.FieldPage(0x1264a440, name=\"FieldPage\") at 0x7fa72d692000> is not <PySide6.QtWidgets.QSplitter(0xed69b30) at 0x7fa7482866c0>"
+    },
+    {
+     "test": "FAIL tests_integrated.test_session_start.StartScript.test_left_with_home_in_front_and_a_room_open_the_next_starts_open_the_office",
+     "message": "AssertionError: Tuples differ: (False, False, 'workspace') != (True, False, 'home') First differing element 0: False True - (False, False, 'workspace') + (True, False, 'home') : Home was in front at leaving, and is when the window is built"
+    }
+   ],
+   "log": "logs/kasandra/test_session_start.out"
+  },
+  {
+   "module": "test_desk",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_frame",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_paper",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_machine",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_documents",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_graphite",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_writing_line",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_context_menu",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 45,
+   "failed": 2,
+   "skipped": 0,
+   "seconds": 60.6,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_context_menu.Window.test_inspect_in_the_line_puts_the_equivalent_command_in_assignment_and_runs_nothing",
+     "message": "AssertionError: 'line' != 'slate' - line + slate"
+    },
+    {
+     "test": "FAIL tests_integrated.test_context_menu.Window.test_log_events_connections_and_packets",
+     "message": "AssertionError: 'line' != 'slate' - line + slate"
+    }
+   ],
+   "log": "logs/kasandra/test_context_menu.out"
+  },
+  {
+   "module": "test_faces_find_light",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_lit_controls",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 4,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 16.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/test_lit_controls.out"
+  },
+  {
+   "module": "test_whole_words",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_pane_width",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_stacy_hand",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_stacy_start",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_kasandra",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_one_name",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 19,
+   "failed": 3,
+   "skipped": 0,
+   "seconds": 128.8,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_one_name.TheCode.test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed",
+     "message": "AssertionError: Lists differ: [('workbench/depths_qt.py', 390, 'Save and[109 chars]rn')] != [] First list contains 3 additional elements. First extra element 0: ('workbench/depths_qt.py', 390, 'Save and Return') + [] - [('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 390, 'Save and Return'), -  ('workbench/depths_qt.py', 440, 'Save and Return')] : these words name"
+    },
+    {
+     "test": "FAIL tests_integrated.test_one_name.TheWindow.test_no_word_on_screen_says_stacy_in_either_look (look='graphite')",
+     "message": "AssertionError: Lists differ: ['the writing line: to her', 'Rules: her art plate opened'] != [] First list contains 2 additional elements. First extra element 0: 'the writing line: to her' - ['the writing line: to her', 'Rules: her art plate opened'] + [] : every place of the walk was reached"
+    },
+    {
+     "test": "FAIL tests_integrated.test_one_name.TheWindow.test_no_word_on_screen_says_stacy_in_either_look (look='kasandra')",
+     "message": "AssertionError: Lists differ: ['the writing line: to her', 'Rules: her art plate opened'] != [] First list contains 2 additional elements. First extra element 0: 'the writing line: to her' - ['the writing line: to her', 'Rules: her art plate opened'] + [] : every place of the walk was reached"
+    }
+   ],
+   "log": "logs/kasandra/test_one_name.out",
+   "note": "sweeps the window in both looks itself, so it runs once"
+  },
+  {
+   "module": "test_campaign",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 23,
+   "failed": 3,
+   "skipped": 0,
+   "seconds": 15.7,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_campaign.CampaignTests.test_r19_and_r22_meet_the_spec_and_are_plain_passes",
+     "message": "AssertionError: 'Fail' != 'Pass' - Fail + Pass : ('R19', \"case broke after 3 of 28 checks met: ValueError: '--backend' is not in list\")"
+    },
+    {
+     "test": "FAIL tests_integrated.test_campaign.CampaignTests.test_resource_cases_pass_on_current_behaviour",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('R01', '1 of 11 checks missed; first: estimate_bytes expected 28726879197, observed 33480074205')"
+    },
+    {
+     "test": "FAIL tests_integrated.test_campaign.CampaignTests.test_run_into_an_existing_folder_moves_the_earlier_run_aside",
+     "message": "AssertionError: False is not true : SUMMARY run_stale: 1 cases, Pass 0, Pass (current code; the spec asks otherwise) 0, Partial 1, Blocked 0, Fail 0, Timeout 0. Pass means every check matched the current code, not that the spec is met."
+    }
+   ],
+   "log": "logs/kasandra/test_campaign.out"
+  },
+  {
+   "module": "test_rail_demo",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 38,
+   "failed": 7,
+   "skipped": 0,
+   "seconds": 100.6,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_as_played_on_the_owners_workspace_finds_each_name_here_and_passes",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_on_a_small_window",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo.ThePlayableSceneOnRailDemo.test_the_scene_leaves_the_records_of_rail_demo_as_it_found_them",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    }
+   ],
+   "log": "logs/kasandra/test_rail_demo.out"
+  },
+  {
+   "module": "test_rail_demo_campaign",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 26,
+   "failed": 3,
+   "skipped": 0,
+   "seconds": 128.0,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_rail_demo_campaign.TheRuns.test_every_twin_passes_with_nothing_of_the_owners_here",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('DP01a', '1 of 54 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\"', None)"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo_campaign.TheRuns.test_p01_is_played_on_rail_demo_in_the_graphite_look_and_in_the_kasandra_look",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : ('graphite', '1 of 54 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\"', None)"
+    },
+    {
+     "test": "FAIL tests_integrated.test_rail_demo_campaign.TheSceneCaseWhereItsNamesAreFound.test_the_case_finds_each_name_there_and_meets_the_scenes_own_checks",
+     "message": "AssertionError: 'Partial' != 'Pass' - Partial + Pass : [{'check': '9:desk.line.target', 'expected': 'her', 'observed': 'line', 'ok': False}]"
+    }
+   ],
+   "log": "logs/kasandra/test_rail_demo_campaign.out",
+   "note": "plays the scene in both looks itself, so it runs once"
+  },
+  {
+   "module": "test_resource_rules",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_record_paths",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_viewer_kinds",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_planted_bugs",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_desk_acts",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 27.5,
+   "state": "FAILED",
+   "exit": -11,
+   "failures": [
+    {
+     "test": "the module",
+     "message": "This plugin does not support grabbing the keyboard"
+    }
+   ],
+   "log": "logs/kasandra/test_desk_acts.out"
+  },
+  {
+   "module": "test_desk_scenes",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 5,
+   "failed": 5,
+   "skipped": 0,
+   "seconds": 49.8,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_keys",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_keys_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse_on_a_small_window",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_desk_scenes.PlayableScene.test_p01_by_mouse_reduced_motion",
+     "message": "AssertionError: False is not true : [(9, {'path': 'desk.line.target', 'want': 'her', 'got': 'line', 'ok': False})]"
+    }
+   ],
+   "log": "logs/kasandra/test_desk_scenes.out"
+  },
+  {
+   "module": "test_delete_words",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 6,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 15.5,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_delete_words.TheCan.test_the_can_says_DELETE_in_kasandra",
+     "message": "AssertionError: Lists differ: [181, 1094, 120, 29] != [218, 1094, 120, 29] First differing element 0: 181 218 - [181, 1094, 120, 29] ?    - + [218, 1094, 120, 29] ?  +"
+    }
+   ],
+   "log": "logs/kasandra/test_delete_words.out"
+  },
+  {
+   "module": "test_typewriter_faces",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_hologram",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 23,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 23.7,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/test_hologram.out"
+  },
+  {
+   "module": "test_kasandra_column",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 18,
+   "failed": 6,
+   "skipped": 0,
+   "seconds": 28.2,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Column.test_apps_is_the_struthio_then_words",
+     "message": "AssertionError: 1863 not greater than 1880"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Column.test_her_words_have_the_room",
+     "message": "AssertionError: 259 not greater than or equal to 295 : about 17 px wider than in 0.8.2"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Column.test_the_picture_is_gone_and_the_masthead_is_level_with_the_tabs",
+     "message": "AssertionError: 317 != 354"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Review.test_a_name_that_fits_a_line_is_never_cut_at_its_end",
+     "message": "AssertionError: False is not true : {'leaded': False, 'plain': False, 'room': 259, 'long_breaks': 3, 'long_whole': True}"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Review.test_a_note_in_the_viewer_keeps_the_desk_and_cuts_no_action",
+     "message": "AssertionError: Lists differ: [317, 317, 317] != [354, 354, 354] First differing element 0: 317 354 - [317, 317, 317] + [354, 354, 354]"
+    },
+    {
+     "test": "FAIL tests_integrated.test_kasandra_column.Review.test_waiting_on_the_agenda_is_waiting_for_her",
+     "message": "AssertionError: Tuples differ: ('idle', 'awaiting_approval', 'quiet') != ('idle', 'awaiting_approval', 'waits for you') First differing element 2: 'quiet' 'waits for you' - ('idle', 'awaiting_approval', 'quiet') ?                                ^ --- + ('idle', 'awaiting_approval', 'waits for you') ?                                ^^^^^^^^^^^^"
+    }
+   ],
+   "log": "logs/kasandra/test_kasandra_column.out"
+  },
+  {
+   "module": "test_kasandra_highlight",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 20,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 23.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/test_kasandra_highlight.out"
+  },
+  {
+   "module": "test_colour_vision",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_run_tiers",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 31.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/test_run_tiers.out"
+  },
+  {
+   "module": "test_tool_selection",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_agent_loop",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_conditions",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_related",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_browse",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_vocabulary",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_model_turn",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_profile_files",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_network_watch",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_cabinet",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_cabinet_actions",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_memory_cabinet",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_return_thread",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_tool_atlas",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_algorithm_atlas",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_discovery",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_problem",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_exact_math",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_reasoning_graph",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_adaptive_contract",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_joined_work",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_line_rules",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_math_core",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_math_lines",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_math_money_dates",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_workspace_backup",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_project_desk",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_slate_reasoning",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 12,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 13.7,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/test_slate_reasoning.out"
+  },
+  {
+   "module": "test_change_sets",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_continuing_work",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_deployment",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "test_exact_math_solvers",
+   "look": "kasandra",
+   "kind": "module",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 0.0,
+   "state": "NOT RUN",
+   "exit": null,
+   "failures": [],
+   "log": null
+  },
+  {
+   "module": "tools/check_context_menu_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 13,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 21.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_context_menu_ui.py.out"
+  },
+  {
+   "module": "tools/check_finder_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 68.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_finder_ui.py.out"
+  },
+  {
+   "module": "tools/check_machine_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 7.3,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_machine_ui.py",
+     "message": "no report: KeyError: 'settings_navigation'"
+    }
+   ],
+   "log": "logs/kasandra/check_machine_ui.py.out"
+  },
+  {
+   "module": "tools/check_document_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 8.5,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_document_ui.py.out"
+  },
+  {
+   "module": "tools/check_agent_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 16.3,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_agent_ui.py.out"
+  },
+  {
+   "module": "tools/check_continue_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 21.0,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_continue_ui.py.out"
+  },
+  {
+   "module": "tools/check_model_turn_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 15.2,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_model_turn_ui.py.out"
+  },
+  {
+   "module": "tools/check_files_about_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 10.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_files_about_ui.py.out"
+  },
+  {
+   "module": "tools/check_service_integration_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 16,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 9.3,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_service_integration_ui.py.out"
+  },
+  {
+   "module": "tools/check_hardware_settings_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 8,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 8.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_hardware_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_cabinet_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 9.7,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_cabinet_ui.py",
+     "message": "no report: AssertionError"
+    }
+   ],
+   "log": "logs/kasandra/check_cabinet_ui.py.out"
+  },
+  {
+   "module": "tools/check_cabinet_actions_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 10,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 7.4,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_cabinet_actions_ui.py.out"
+  },
+  {
+   "module": "tools/check_explore_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 15,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 13.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_explore_ui.py.out"
+  },
+  {
+   "module": "tools/check_navigation_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 8.9,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_navigation_ui.py",
+     "message": "no report: AssertionError"
+    }
+   ],
+   "log": "logs/kasandra/check_navigation_ui.py.out"
+  },
+  {
+   "module": "tools/check_operations_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 10.1,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_operations_ui.py",
+     "message": "no report: AssertionError"
+    }
+   ],
+   "log": "logs/kasandra/check_operations_ui.py.out"
+  },
+  {
+   "module": "tools/check_presentation_settings_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 11,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 10.6,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_presentation_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_return_thread_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 17,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 11.1,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_return_thread_ui.py.out"
+  },
+  {
+   "module": "tools/check_memory_cabinet_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 14,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 11.8,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_memory_cabinet_ui.py.out"
+  },
+  {
+   "module": "tools/check_memory_settings_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 10.3,
+   "state": "INTERRUPTED",
+   "exit": -9,
+   "failures": [
+    {
+     "test": "tools/check_memory_settings_ui.py",
+     "message": "stopped: the run was interrupted"
+    },
+    {
+     "test": "tools/check_memory_settings_ui.py",
+     "message": "no report: Owner-private values and histories are isolated and omitted from the optional activity-sharing aggregate"
+    }
+   ],
+   "log": "logs/kasandra/check_memory_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_model_settings_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 3.4,
+   "state": "INTERRUPTED",
+   "exit": -9,
+   "failures": [
+    {
+     "test": "tools/check_model_settings_ui.py",
+     "message": "stopped: the run was interrupted"
+    },
+    {
+     "test": "tools/check_model_settings_ui.py",
+     "message": "no report: exit -9"
+    }
+   ],
+   "log": "logs/kasandra/check_model_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_settings_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 0,
+   "failed": 1,
+   "skipped": 0,
+   "seconds": 15.5,
+   "state": "FAILED",
+   "exit": 1,
+   "failures": [
+    {
+     "test": "tools/check_settings_ui.py",
+     "message": "no report: KeyError: 'settings_navigation'"
+    }
+   ],
+   "log": "logs/kasandra/check_settings_ui.py.out"
+  },
+  {
+   "module": "tools/check_settings_02_ui.py",
+   "look": "kasandra",
+   "kind": "check",
+   "ran": 15,
+   "failed": 0,
+   "skipped": 0,
+   "seconds": 19.9,
+   "state": "PASSED",
+   "exit": 0,
+   "failures": [],
+   "log": "logs/kasandra/check_settings_02_ui.py.out"
+  },
+  {
+   "module": "DP01a,DP01b,DP01c,DP01d",
+   "look": "kasandra",
+   "kind": "scene",
+   "ran": 4,
+   "failed": 4,
+   "skipped": 0,
+   "seconds": 112.2,
+   "state": "FAILED",
+   "exit": 0,
+   "failures": [
+    {
+     "test": "?",
+     "message": "Partial: 1 of 54 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    },
+    {
+     "test": "?",
+     "message": "Partial: 1 of 55 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    },
+    {
+     "test": "?",
+     "message": "Partial: 1 of 56 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    },
+    {
+     "test": "?",
+     "message": "Partial: 1 of 57 checks missed; first: 9:desk.line.target expected \"her\", observed \"line\""
+    }
+   ],
+   "log": "logs/kasandra/DP01a_DP01b_DP01c_DP01d.out"
+  }
+ ]
+}
