@@ -36,7 +36,9 @@ tuning, the §18 day on Rail Demo, and what to send back, with numbered photos. 
 ## The whole computer
 
 - **Files** start at "This computer /" with Home open. In Home: open in its app, Rename, Move to, Copy to, New folder,
-  Delete to the system's own bin (and Restore), drag to move, each with a line and Undo. Graphite never deletes Home
+  Delete to the system's own bin (and Restore), drag to move, each with a line and Undo. Choose many rows at once (a
+  click, a range, add one) and move, copy or delete them in one press with **one Undo for the batch**; a line can end
+  in move, copy or delete, and asks first. Graphite never deletes Home
   itself or the folder holding its workspace. On screen the bin is DELETE, by your rule.
 - **Apps** lists what is installed, from the apps' own desktop entries, by category, with a search line; ⊕ adds one to
   your list; Open with on any file; "Always open PDFs with this" sets the default.
@@ -118,8 +120,11 @@ tuning, the §18 day on Rail Demo, and what to send back, with numbered photos. 
 
 ## The floor
 
-- Reads run beside her writes, so the window no longer waits for her. The longest stall during a task here fell from
-  0.34–0.75 s to about 0.10–0.13 s; the 0.1 s goal is not met in every run (what is left is the window's own drawing).
+- Reads run beside her writes, so the window no longer waits for her; HALT, RESUME, TRACE, CHECK ALL and asking her do
+  their work off the window's thread. Measured under the window's own event loop on Rail Demo, nothing held the window
+  over 0.1 s (TRACE answered in 0.14 s, CHECK ALL in 0.74 s, HALT and RESUME in 0.04 to 0.06 s, all without freezing
+  it). Still over 0.1 s here: the first tree read at a start (1.1 to 1.6 s), opening the Machine page, and the start of
+  asking her (about 0.3 s).
 - The cold start is about a third faster here (4.7–6 s offscreen).
 - A 0.8.7 workspace opens in 1.0 as it is: 1.0 adds tables of its own and changes none of 0.8.7's. A task Kas left
   running in 0.8.7 shows in ACTIVE WORK with its own Stop.
@@ -156,9 +161,11 @@ sessions, walked in the window under a stand-in display, each with frames and a 
 
 What these walks found was fixed in place where it was small, and in four slices where it was not: her reach in Home
 (reading your documents' pages, file tools for her plans, one press for a folder's permissions), the walkthroughs'
-faults (a cut-short fetch is never "done"; a permission given under HALT carries its task after RESUME; TRACE on the
-focused finding; her column true after a restart; the long stalls moved off the window's thread; Search opening the
-board), bulk files (many rows at once with one Undo for the batch), and the polish pass.
+faults (a cut-short fetch is never "done"; a permission given under HALT carries its task after RESUME and its own
+Resume; TRACE on the focused finding; her column true after a restart and with her model's state; the long stalls moved
+off the window's thread; the HALT notice off "Waits for you"; Search matching each word, finding Home's files by name
+and opening the board; every keyboard stop named), bulk files (many rows at once, one Undo for the batch, lines that
+move or delete after asking, the sandbox taking a folder's worth with Undo for what it made), and the polish pass.
 
 ## What was measured, and what was not
 
@@ -183,9 +190,13 @@ rule above. Each is a default; say the word and it changes.
 - **Her model planning a tidy**: the 4B here answered "the bin for every group" once and "look at Downloads" eight
   times; the desk refused both, so nothing harmful ran, but it planned nothing useful. The desk's own tidy works with
   no model. The 35B's planning is untried.
-- The window's longest stall is near but not always under 0.1 s.
-- The tree selects one item at a time; Search finds the desk's records but not your Home files; Undo after a bulk move
-  takes back only the last file.
+- A few moments still hold the window over 0.1 s (the first tree read at a start, opening the Machine page, the start
+  of asking her); your stall log on the ThinkPad will say which matter there.
+- A task step that puts a line's money total into words stops: the total arrives as a decimal number, and her rule
+  refuses to word a number that is not exact (X4's "Groceries note"). Her answer to "what did we spend on groceries?"
+  is exact and unaffected.
+- Dragging many chosen files onto a folder is wired but was never exercised (no real drag here).
+- Search matches each word in the desk's records and in your Home's file names, not inside your files' text.
 - The whole-desk view (the Field) cuts tiles at its edges at 1366x768; the Arrange menu splits into two columns there.
 - She edits only .odt and .ods in LibreOffice (.docx and .xlsx are read only). Her hand reaches LibreOffice opened as
   an ordinary app; the Calc sessions Graphite owns and her own hidden LibreOffice expose nothing to accessibility.

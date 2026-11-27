@@ -1,64 +1,47 @@
-# Graphite 0.8.7 · Kas's mind with the model, interwoven: it proposes, the desk checks; Check her model on this machine (built, not tested)
+# Graphite 1.0 · The Living Desktop and the Ghost in the Shell (built, not tested)
 
-Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
-one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
-on. Graphite is the public name of the workspace; its assistant is Kasandra (Kas for short), under that one name in every look; before November 6, 2026 the program was called Ledger &
-Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
+Graphite is a desktop for one minimal Debian computer: it is the session, the whole computer is in it, and its assistant,
+Kasandra (Kas for short), is an agent user of the system who works beside you under your authority. Everything stays on
+that computer unless you turn a service on. Before November 6, 2026 the program was called Ledger & Slate; folders,
+scripts, settings keys and internal names keep those earlier names for compatibility.
 
-- **From the ThinkPad** · the eight menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide) stand in the open across the head; one dial sets how strongly the desk glows (Rules ▸ Desk artwork ▸ Glow: Soft, Bright, Neon; it opens on Neon); no key is printed beside the thing it does; the left trees are green circuit traces with the path to the current row lit; the menus' lines carry glyphs.
-- **No System menu** · the four meters at the foot are doors: click **CPU** for Graphite's work (what runs and waits, Stop all jobs), **GPU** for Kasandra's model and Graphite's services, **RAM** for memory and Machine, **TXT** for the Full chat and what Kasandra has in view. Leaving (Log out, Exit Graphite, Restart, Shut down) is at the foot of the **Work** menu; the game is at the foot of **Programs**. The equalizer in the head shows everything that moves (processor, kernel, memory, disks, network, graphics); click it for what each reads. A small control at the left end of the line opens the room above it: one chevron for more, two for taller, one down to close.
-- **A start in another program** · say "start a Godot project called Lander" and Kasandra makes a folder in Files with the smallest project that runs (project file, one scene, one script) and a page of first steps, written for the Godot on this computer; the Godot room reads it back, and opening it in Godot is a step that waits for you, or is hers with a free hand. One Undo deletes the folder (DELETE gives it back).
-- **Kasandra's hand** · two words under her face (in the Kasandra look, on her masthead, after what she speaks with) say how far she acts by herself; click them to change it. **Ask first**: every change waits for your Approve. **Do and show** (what it opens with): a change you ask her for is made at once and shown, with one **Undo** that puts back exactly what it took. **Free hand**: she also makes the changes the records mark for approval and, after a change, brings back to current what stood on it. Say "make a folder called Bracket" or "write a file called plan.txt saying …" and it is in Files as if you had saved it, with an Undo that deletes it (DELETE gives it back). What cannot be undone always asks. Her trail (**What she did…**) lists every act.
-- **One line to type on** · five names stand at the left of the line at the bottom: Kasandra, Terminal, Search, Web, Log. The lit one gets the words. Web opens an address, or searches for words, in this computer's own browser; with Kasandra or Search lit, a line that is only an address (https://…, www.…, localhost) is opened there too, and anything else stays with whom it was typed to. The arrow at the line's end says what it will do, and turns green to run a line that reads.
-- **The head and the right pane** · the middle of the head is an equalizer: each bar is one processor thread of this computer over the last second. The right pane is one view, Kasandra: her face (in the Kasandra look, her masthead; her picture stands as a hologram in the left pane's lower part), **This** (what is open or selected), **Now** (what is running and what waits), and the conversation.
-- **Simple at rest** · the bar above the work says the name of what is open (click it for its address); tools are drawn glyphs with no boxes; Kasandra is the right pane; the name of a thing is said once.
-- **The map** · **Z** glides back to show the whole desk, and from that far a sheet is the glyph of its kind, its name in letters that stay readable, and the mark of its state. The Field opens as it was last seen.
-- **Find, everywhere** · Find (Ctrl+F) opens one line above the work on whatever is open: writing, the cells of a sheet, a list, the lines of a finding, the words of a PDF page. Enter for the next place, Shift+Enter for the one before, Esc to close.
-- **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
-- **Once** · each action has one visible home (its key is the second road, the right button on a thing is that thing's own road) and a name is said once. Save is lit only when a press would save something.
-- **Buttons** · an action is a button (a dark plate with a quiet edge, never a bright outline) and a word that only goes somewhere is underlined, so the interface is never mistaken for the work. A PDF page is shown in the desk's light, its paper brought down from white; its own light is one line away under **More ▾**. The sheet, the PDF and the page of writing each have one row of tools, with what is needed now and then under **More ▾**; the keys at the foot of the Field are buttons.
-- **Icons** · every tool is one of Graphite's own drawn glyphs with no box at all; what is particular to a page keeps its words beside its glyph. Work ▸ Rules ▸ Buttons ▸ Words brings back worded plates.
-- **The mouse first** · above whatever is open in the centre: **‹ Field**, Find, **−** **+**, Undo, Redo, Save, always in the same place. In the Field **Z** shows the whole desk and the bars at the edges drag; the right button on a sheet shows what can be done with it.
-- **Amber** · one amber halo marks where the keys go (the selected sheet, the page being read, or the writing line); what waits for you is lit at its mark, and Approve glows until it is pressed.
-- **Green** · the pointer (the mark's two facets, aimed at 11 o'clock) is drawn in the desk's green and carries a little light over the Field; whatever it is over answers in green, and what is live glows. Amber stays for what is selected and what waits for you. The Clean desk keeps the green and drops the glow.
-- **The mouse** · click a tile in the Field to open it in the centre; **‹ Field** above the centre comes back to the same tile; the buttons at the foot of the Field do what their keys do; a change that waits has an **Approve** button. Ask Kasandra "set B3 to 300" and, with her hand at Do and show, it is done at once with an Undo; at Ask first it waits for your Approve with what it would move marked.
-- **Every key** · press **?** in the Field for a card of every key. The doubt (X), the desk check (C) and the brief (B) open on a page over the work at your reading size; the doubt and the check step aside at the next key.
-- **Look ahead** · with a sheet or a calculation selected in the Field, ask "what if B4 were 100?": the cell is set without changing anything, the wires are followed, and the Field marks everything that would move with what it would say (**Esc** clears).
-- **The brief** · press **B** in the Field: the whole desk written up as one page, from the records and by no model; **G** keeps it as a page that knows when the desk has moved on.
-- **Right-click** · on a sheet in the Field the menu cascades: What if › a number › a value to try; Doubt it › what Kasandra finds, each row opening its evidence; Trace it › every step back and on; What can be done › the steps; Your words ›.
-- **Your own words** · `word waits = field.read | pick waiting | select kind,title,state`, then `waits`, `waits | count`, `words`, `forget waits`: a line kept under a word of yours.
-- **Doubt** · press **X** on a sheet in the Field: Kasandra cross-examines it for what a plausible result may hide (an edited input, mixed conditions, one source, a check that cannot fail, a number recorded nowhere) and **D** offers the step that removes the doubt.
-- **A line reads the desk** · `field.read | pick waiting | select kind,title,state`; `this` is the sheet selected in the Field; **T** traces a thing to its source; ask "what if B3 were 320?" about a calculation and nothing is changed.
-- **Doing** · press **D** on a sheet in the Field for the steps the records offer (a read runs; a change that waits is marked "asks first" and waits for **G**, your go; with Kasandra's hand at Do and show or Free hand, the others are done when you take them); **C** checks the desk and offers to settle what needs no decision of yours.
-- **The shelf** · press **P** in the Field: every program and room in six fixed columns; Enter opens one.
-- **The Field** · press **F9** (or Arrange → Field, or type `field` in the writing strip): the work in this workspace as sheets with the wires that say what feeds what. Arrow keys follow the wires, Enter opens the real page, Esc comes back. Kasandra's rail shows the line that reads the selected sheet: **S** puts it in the writing strip, **Shift+Enter** runs it. **N** shows this computer's network the same way; **W** returns to the work. It is the first slice of the objects and instruments desktop (master specification, sections 70 to 72), new in 0.3. Right-click a sheet (or press the Menu key) for what can be done with it. Guide → What's New has the rest.
-- **Visual baseline** · [Visual Pass 1 reference review](docs/BOSS_VISUAL_PASS_01_REVISION.md) compares the five owner references with the revised worksheet, PDF evidence review and research journal.
-- **Halfway release** · [P08–P10](docs/BOSS_HALFWAY_P10.md) covers resident model handling, project collections and reviewed PDF tables that become sheets and reports.
-- **Evidence preparation** · [Intelligent data arrangement P07](docs/INTELLIGENT_DATA_P07.md) covers source preparation, exact calculations and follow-up passages.
-- **Resource scheduling** · [Traffic cop P06](docs/TRAFFIC_COP_P06.md) covers shared-memory admission, foreground turns and readable waiting reasons.
-- **Hardware route:** read [ThinkPad / Vulkan P05](docs/THINKPAD_VULKAN_P05.md): the bundled Vulkan worker, hardware profile, launch defaults, actual backend readback and CPU fallback.
-- **Current desk:** read [BOSS M1](docs/BOSS_M1.md): the new native interface, path, contextual commands and constructed chains.
-- **Earlier guide:** read [the daily guide](docs/DAILY_GUIDE.md) (the desk, the programs list, the four meters and leaving, the
-  writing line and its four modes, Log with its Events and Network streams, the right-click menu, documents, assignments, the
-  Finder, Ingress and Egress, the local model, the game behind the mark).
-- **Working on it:** read [RECORD_OF_DIRECTIONS.md](RECORD_OF_DIRECTIONS.md) first: the owner's directions, where the
-  knowledge is, where things stand and how to continue.
+- **Graphite is the session.** A supervisor keeps it alive; your apps outlive a crash of its window; a dock across the
+  top brings any window forward; Lock, Suspend, Log out, Restart, Shut down and Return to Debian are plain actions that
+  close apps politely.
+- **The whole computer.** Files from "This computer /" with Home open (rename, move, copy, delete to the bin, many at
+  once, each batch with one Undo); Apps from what is installed; the Machine for real (USB drives, sound, screens,
+  network and Wi-Fi, the battery); Settings that change real settings; notifications kept in Log.
+- **The Living Desktop.** The bulletin board: what you select sits in the middle with its neighbours around it, sized by
+  relevance; recorded links solid, guessed ones dashed; Why am I shown?, Pin, Turn down. Double-click to work on it;
+  Save and Return; tabs and a split; Back and Forward. The foot is the computer's line: Line, Terminal, Search, Web, Log.
+- **The ghost in the shell.** Kas plans a task from the registered tools, asks for each permission in plain words, and
+  marks a step done only when its effect is verified; a journal survives a crash or a Stop. She edits Writer and Calc
+  documents through LibreOffice, works in your apps through accessibility while you watch (a touch stops her), runs a
+  utility she writes only sealed on copies, reads the web only as quarantined data, and reads the pages of your
+  documents in Home. HALT stops all of her work and nothing else. The model proposes; the desk disposes.
+- **Her model.** llama.cpp v1.0.0, sealed; the model check measures your machine and tunes it toward 99 tokens a
+  second; an optional quick model takes a kind of question only where it passed its exam.
+- **The look.** Day, the launch look, and Night, its twin, from one set of design tokens with the Inter typeface;
+  Graphite and Kasandra as alternatives. No picture of Kas: her name, her state and her work.
 
-The supplied Graphite 0.1 baseline has historical mechanical and offscreen evidence from the build container, and live trials of the small Qwen models
-where the docs say so. The owner reports (13 November 2026) that 0.4.6 is installed and running on the ThinkPad; no account of what was tried
-there is recorded yet, nothing later has run there, and the owner's model file has not been tried. Nothing here claims
-any of it is accepted.
+**Start here:** [Your first evening with 1.0](docs/ACCEPTANCE_1.0.md) (the install, your paper's §2 test, the model, the
+§18 day, what to send back), [the ThinkPad page](docs/THINKPAD_FIRST_INSTALL.md), and
+[What's new in 1.0](docs/RELEASE_NOTES_1.0.md). In Graphite: Guide ▸ The Living Desktop, and Guide ▸ Kasandra, the Ghost
+in the Shell.
 
-The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **References → Read technical PDF → Review table** to make a sheet from a reviewed source. Open **Project Desk → Ask Kasandra → Prepare evidence** to see matching project passages and exact results before a model turn. Live model and owner-host Vulkan qualification remain pending. P11 covers full native programs.
+**Not tested.** By the owner's rule ("No testing") nothing in 1.0 has been through the test suite, the tiers or the
+window checks, and nothing of it has run on the ThinkPad. It was built in a cloud machine without a screen, USB, sound,
+Wi-Fi, suspend or Radeon, and seen working there offscreen and against stand-ins, with twenty-four walkthroughs and the
+paper's §18 day walked in the window (the day with a real 4B model). The 35B has never been loaded anywhere.
 
 ## Install
 
-From the release volumes (`Graphite_0.8.7_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
+From the release volumes (`Graphite_1.0_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
 example a USB stick), as your ordinary Debian user:
 
 ```
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.8.7" --minimal-session --vulkan --plan
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.8.7" --minimal-session --vulkan --yes
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-1.0" --minimal-session --vulkan --plan
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-1.0" --minimal-session --vulkan --yes
 ```
 
 `INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
@@ -149,7 +132,7 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_0.8.7_full.zip PARTS "Graphite 0.8.7"
+python3 tools/package_release_parts.py OUT/Graphite_1.0_full.zip PARTS "Graphite 1.0"
 ```
 
 Graphite's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).

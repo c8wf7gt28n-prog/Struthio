@@ -9040,7 +9040,7 @@
    "scope": "read"
   }
  },
- "release": "Graphite 0.8.7",
+ "release": "Graphite 1.0",
  "schema": "graphite.registry-record/1",
  "schema_digest": "93cfd77ccfd4fb4227d71fbb93359dc96b4d6591b510304e9a19c3c9e5cb4066",
  "settings": {

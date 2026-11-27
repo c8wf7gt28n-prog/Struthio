@@ -85,8 +85,9 @@ MTP. Check the sha256 before anything else. Then the model check, on mains: the 
   beside the 35B takes a kind of question only where it passed its exam.
 - **The launch look.** Day, rebuilt on one set of design tokens with the Inter typeface, and Night, its dark twin;
   Graphite and Kasandra stay as alternatives. Her column has no picture: her name, her state and her work.
-- **The floor.** Reads run beside her writes, the window's stalls are near a tenth of a second, the cold start is about
-  a third faster, and a 0.8.7 workspace opens in 1.0 as it is.
+- **The floor.** Reads run beside her writes and her heavy presses run off the window's thread, so it no longer waits for
+  her; the cold start is about a third faster; a 0.8.7 workspace opens in 1.0 as it is.
+- **Bulk files.** Many rows at once in the tree, moved, copied or deleted in one press with one Undo for the batch.
 - `docs/RELEASE_NOTES_1.0.md` (Guide ▸ What's New) has all of it, with what was measured, what was not, and what 1.0
   does not do yet.
 
