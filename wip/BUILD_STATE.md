@@ -16,6 +16,11 @@ rules holding you back".
   Linux". So: nothing in the code or on the screen is fixed any more. Where a new design reverses one of the owner's
   explicit earlier decisions (HALT upper left, no picture of Kas, DELETE as the bin's word, no key printed on screen,
   the tree from the root), it is listed in the release notes for the owner to strike.
+- **Kas is the point (the owner, 27 Nov, 22:20):** "Kasandra is the "super power" of this project. Make her very useful
+  at everything in a world where a full loaded Linux box is the computer I use." So 1.1's third pillar: Kas reaches the
+  whole Linux box (commands, software, the system, the big apps, automation, teaching a Windows and DOS person Debian),
+  grounded in the machine's own documentation, under the same authority rules (the owner's press for every change;
+  system changes through the system's own permission prompt).
 - **Taken as: go.** Build Graphite 1.1, the distribution candidate, unattended, through the hourly wake-up
   (`trig_017RpY8VWubnaTQN5DVGpS6g`, re-enabled 27 Nov).
 - **What "distribution ready" means here:** installs like real Debian software (a package; a bootable image if this
@@ -35,6 +40,10 @@ rules holding you back".
 - **Step 1b (running beside it):** the design panel, a workflow: three independent designs of the whole desktop from
   the brief (familiar first, calm first, power first), three judges, one synthesis. Drafts in `$S/work/dist/design/`;
   the result becomes `wip/2026-11-27_distribution/DESIGN_DIRECTION_1.1.md`.
+- **Step 1c (running beside them):** the Kas panel, a workflow: five scouts (what she can do today; the tasks of a
+  full Linux box; a safe way to run any command; grounding in man pages and help; what a small local model can
+  reliably do, measured on the 4B), an architect, two skeptics, a revision. Drafts in `$S/work/dist/kas/`; the result
+  becomes `wip/2026-11-27_distribution/KAS_1.1.md`.
 - **Step 1 (running):** the distribution audit, a workflow of eight auditors and a critic: the test suite's true state;
   packaging, install and image; Windows and DOS comfort; full-GUI-for-Debian coverage; the new user's view (old rooms,
   old names, first run, docs); hardware and portability; security and privacy; licences. Then the plan
