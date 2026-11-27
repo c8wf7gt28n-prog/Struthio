@@ -3,7 +3,17 @@
 **Read this first on every wake-up.** It is updated after every step and pushed. If this file and anything else disagree,
 this file is newer.
 
-## NOW: build straight to Graphite 1.0 (the owner, 26 Nov 2026)
+## NOW: Graphite 1.0 is released, untested; everything left waits for the owner's ThinkPad (27 Nov 2026)
+
+1.0 was cut on 27 Nov from commit 9f42ae5 and sent to the owner (`wip/2026-11-27_release_100/`: START_HERE.md, cut.log,
+SHA256SUMS.kit, release_check_restored.json PASSED, screens). The kit's 15 ZIPs and the frame atlas were in scratch
+(`$S/work/kit_100/deliver/`, `$S/work/b100/D2/atlas/`). The hourly wake-up was disabled at delivery. What remains needs
+the owner: the acceptance evening (`docs/ACCEPTANCE_1.0.md`), the 35B's results, and the test pass the owner's rule
+skipped. Open after 1.0 (from the walkthroughs, in the release notes' "What 1.0 does not do yet"): the Groceries note's
+decimal total, the few stalls left over 0.1 s, drag of many rows, Search inside files' text, the Field at 1366, the
+board's outputs after an update, Office panels clipped at the split's edge.
+
+## Before: build straight to Graphite 1.0 (the owner, 26 Nov 2026)
 
 "Let's go default. No testing. I want to just build straight to 1.0 no stops. Save your work to survive session
 resets. I don't want anything until we land 1.0 fully. You can send updates or screenshots along the way."
@@ -89,10 +99,10 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 | 0.8.4 · Tests you can believe | **DELIVERED 20 Nov 03:35 UTC** (commit b6bdb50; `wip/2026-11-20_release_084/`) |
 | 0.8.5 · Maths in lines | **DELIVERED 20 Nov** |
 | 0.8.6 · Kas's mind without a model | **RELEASED UNTESTED 20 Nov 15:21 UTC** (kit from d97127c; `wip/2026-11-20_release_086/`) |
-| 1.0 · The Living Desktop and the Ghost in the Shell | **CUTTING 27 Nov** (commit 3393e1a) |
+| 1.0 · The Living Desktop and the Ghost in the Shell | **RELEASED UNTESTED 27 Nov** (kit from 9f42ae5; `wip/2026-11-27_release_100/`) |
 | 0.8.7 · Kas's mind with the model, interwoven | **RELEASED UNTESTED 26 Nov** (kit from ddf0aed; `wip/2026-11-26_release_087/`) |
 | the test pass | **dropped by the owner** (26 Nov: "No testing") |
-| **1.0 · The Living Desktop and the Ghost in the Shell** | **BUILDING** (plan: `wip/2026-11-26_road_to_1.0/PLAN_1.0.md`) |
+| **1.0 · The Living Desktop and the Ghost in the Shell** | **RELEASED UNTESTED 27 Nov** (plan: `wip/2026-11-26_road_to_1.0/PLAN_1.0.md`) |
 
 ## 0.8.4 steps
 
@@ -382,6 +392,13 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 27 Nov 00:12 UTC: **GRAPHITE 1.0 RELEASED, UNTESTED.** The first cut stopped on the coordinator's script (fixed,
+  58a9076). The second cut's release check FAILED on its privacy scan: two lines only looked like machine paths, an
+  example folder in the acceptance page and a docstring in power_demo, both reworded (9f42ae5). The third cut, from
+  9f42ae5: 10 application parts and 4 System additions (136 debs, each matching the inventory), every ZIP under 15 MB.
+  The restored tree matches the commit except wip/, tools/planted_bugs and tools/i05_kit. Release check on the
+  restored tree PASSED (1,559 files). Kit sent to the owner with the frame atlas. The wake-up is disabled.
 
 - 27 Nov 00:09 UTC: **1.0 F3 merged** (b8c3a4e: the walkthroughs' faults. A cut-short fetch is "blocked: needs the
   network". A grant under HALT carries its task after RESUME and its own Resume, and her area's standing grant covers her

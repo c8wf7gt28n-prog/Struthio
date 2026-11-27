@@ -1,0 +1,42 @@
+1.0 debs: 136
+every 1.0 deb matches the inventory
+Program extracted and verified · nothing installed · next: bash /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/kit_100/Restored/INSTALL_DEBIAN.sh --quick
+Only in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/kit_100/src/tools: i05_kit
+Only in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/kit_100/src/tools: planted_bugs
+Only in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/kit_100/src: wip
+release check on the restored tree: PASSED | files 1559 | Graphite 1.0
+system additions: 4 ZIPs for 136 debs
+ 
+4096 .
+4096 ..
+90992 Graphite_1.0_START_HERE.zip
+14930809 Graphite_1.0_part_01.zip
+14822440 Graphite_1.0_part_02.zip
+14699803 Graphite_1.0_part_03.zip
+14722303 Graphite_1.0_part_04.zip
+14878217 Graphite_1.0_part_05.zip
+14861999 Graphite_1.0_part_06.zip
+14859187 Graphite_1.0_part_07.zip
+14865700 Graphite_1.0_part_08.zip
+14912878 Graphite_1.0_part_09.zip
+13474909 Graphite_1.0_part_10.zip
+9601348 Graphite_1.0_system_add_part_01.zip
+12502080 Graphite_1.0_system_add_part_02.zip
+13677258 Graphite_1.0_system_add_part_03.zip
+7166776 Graphite_1.0_system_add_part_04.zip
+every ZIP is under 15,000,000 bytes
+     3344  2026-11-27 00:11   Graphite_Transfer/WHAT_THE_1.0_SYSTEM_SET_ADDS.md
+    23973  2026-11-27 00:11   Graphite_Transfer/INSTALL_LS.py
+        0  2026-11-27 00:11   Graphite_Transfer/App/
+     4711  2026-11-27 00:11   Graphite_Transfer/App/PREPARE_DEBIAN.sh
+    58170  2026-11-27 00:11   Graphite_Transfer/App/DEBIAN_USB.sha256
+     4271  2026-11-27 00:11   Graphite_Transfer/App/RELEASE_PARTS.json
+     1180  2026-11-27 00:11   Graphite_Transfer/App/INSTALL_GRAPHITE.sh
+    23973  2026-11-27 00:11   Graphite_Transfer/App/INSTALL_LS.py
+    88281  2026-11-27 00:11   Graphite_Transfer/App/OFFLINE_FILES.json
+      910  2026-11-27 00:11   Graphite_Transfer/App/SHA256SUMS
+    27488  2026-11-27 00:11   Graphite_Transfer/SYSTEM_SET_1.0.json
+     6768  2026-11-27 00:11   Graphite_Transfer/START_HERE.md
+---------                     -------
+   243069                     13 files
+exit 0

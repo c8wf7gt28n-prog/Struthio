@@ -96,3 +96,20 @@ MTP. Check the sha256 before anything else. Then the model check, on mains: the 
 Graphite's own code and documents are free software under the GNU General Public License, version 2 only. `COPYING` in
 the restored tree holds the owner's note and the full licence text; `RIGHTS.md` says what is kept back. Inter and IBM
 Plex are under the SIL Open Font License; llama.cpp under MIT (`THIRD_PARTY_NOTICES.md`).
+
+## What was and was not checked
+
+Cut on 27 November 2026 in a cloud build container, offscreen, from commit `9f42ae5`:
+
+- **The parts.** Ten application parts (`Graphite_1.0_part_01.zip` to `_10`) and four System additions
+  (`Graphite_1.0_system_add_part_01.zip` to `_04`, the 136 packages, each matching `DEBIAN_USB.sha256`). Every ZIP is
+  under 15,000,000 bytes. `SHA256SUMS.kit` beside them lists every ZIP's checksum.
+- **Restored.** These parts restore with `INSTALL_LS.py` (`--offline --extract-only`). The restored tree matches the
+  commit file for file, except the folders left out on purpose (`wip/`, the build's working notes, and
+  `tools/planted_bugs/` and `tools/i05_kit/`, the build's own test material). The release check on the restored tree
+  passed (1,559 files; the payload's privacy scan clean).
+- **Not run:** the test suite, the tiers and the window checks (your rule); the 35B; anything on a real screen, USB, sound,
+  Wi-Fi, suspend or Radeon; the Debian packages were resolved in a simulation only, never installed.
+- **Seen here:** each part's builder ran one script of the design's own examples; at each merge Graphite started and its
+  window opened offscreen in four looks; twenty-four walkthroughs and the paper's §18 day were walked in the window (the
+  day twice with a real 4B: once by its builder, once on the merged code before the cut).
