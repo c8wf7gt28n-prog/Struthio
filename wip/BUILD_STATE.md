@@ -45,6 +45,22 @@ rules holding you back".
   own constraint); commit and push after every step.
 - **Commit trailer since 27 Nov:** `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>` and the Claude-Session line.
 - **Working folder:** `wip/2026-11-27_distribution/` (the audit, the plan); scratch `$S/work/dist/`.
+- **SURVIVING RESETS (the owner, 27 Nov 22:25: "Save your work often to survive usage resets").**
+  * `bash wip/build_tools/save_dist.sh` copies every small finished output of the panels and builders from
+    `$S/work/dist/` into `wip/2026-11-27_distribution/partial/` and pushes (a path-limited commit of its own folder).
+    `bash wip/build_tools/save_dist.sh loop` does it every 10 minutes for about 110 minutes: **keep one loop running in
+    the background; restart it at every wake-up and whenever it ends.** It skips any file holding the owner's details
+    (patterns in `$S/work/private_patterns.txt`, scratch only).
+  * The three panels' scripts are in `wip/build_tools/workflows/` (audit, design panel, Kas panel). Their run ids:
+    audit `wf_7bcd2320-6cd`, design `wf_28a73e63-619`, Kas `wf_5b8b6d1a-6b6`.
+  * **If a usage limit stopped a panel** (same session, scratch still there): `Workflow` with `scriptPath` = the
+    session's copy of the script (same file name under the session's `workflows/scripts/`) and `resumeFromRunId` = its
+    run id: finished agents come from cache, the rest run.
+  * **If the container was replaced** (scratch gone): rebuild the environment (section below), then run the script from
+    `wip/build_tools/workflows/` afresh. What each finished auditor, designer and scout wrote is already in
+    `partial/<key>/`: read those first and cut finished agents out of the script before re-running.
+  * Builders (once the plan exists): as for 1.0, each saves its patch and notes to scratch after every milestone;
+    `save_dist.sh` carries their briefs; the coordinator saves partial diffs to `wip/.../partial/` when a limit stops them.
 - **Step 1b (running beside it):** the design panel, a workflow: three independent designs of the whole desktop from
   the brief (familiar first, calm first, power first), three judges, one synthesis. Drafts in `$S/work/dist/design/`;
   the result becomes `wip/2026-11-27_distribution/DESIGN_DIRECTION_1.1.md`.
@@ -446,6 +462,11 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 27 Nov 22:30 UTC: The owner: save often to survive resets. `wip/build_tools/save_dist.sh` written and run (first
+  save 8d0febd: the packaging, tests, design and Kas folders so far); the three workflow scripts saved in
+  `wip/build_tools/workflows/`; a background save loop started. Earlier this hour: the design brief, Kas as the
+  superpower and her character recorded in NOW; the design panel and the Kas panel launched beside the audit.
 
 - 27 Nov 22:07 UTC: **New mandate: make Graphite distribution ready** (the owner's words are in NOW). The wake-up is
   re-enabled. The distribution audit workflow is launched (run `wf_7bcd2320-6cd`; its script is in the session's workflows folder; auditors' notes in `$S/work/dist/<key>/NOTES.md`); its findings go to `wip/2026-11-27_distribution/`. If the run died with the session, re-run the audit from the dimension list in NOW.
