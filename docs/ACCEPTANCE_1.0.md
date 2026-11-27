@@ -288,7 +288,7 @@ the answer claims.
     example):
 
     ```sh
-    d="/home/you/Graphite demos/Rail Demo 2026-12-01 20.15.00"; cd "$HOME/Applications/Graphite-1.0" && env -u ARC_LEDGER_EDITION ARC1_WORKBENCH_CONFIG_HOME="$d/profile" ARC_LEDGER_WORKSPACE="$d/workspace" ARC_LEDGER_CONCERN="$d/Concern" setsid -f .venv/bin/python -m workbench.launch
+    d="$HOME/Graphite demos/Rail Demo 2026-12-01 20.15.00"; cd "$HOME/Applications/Graphite-1.0" && env -u ARC_LEDGER_EDITION ARC1_WORKBENCH_CONFIG_HOME="$d/profile" ARC_LEDGER_WORKSPACE="$d/workspace" ARC_LEDGER_CONCERN="$d/Concern" setsid -f .venv/bin/python -m workbench.launch
     ```
 
     You should see the desk as you left it: the sources, the summary at its new revision, the changed reading, the

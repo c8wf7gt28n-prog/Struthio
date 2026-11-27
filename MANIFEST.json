@@ -1038,8 +1038,8 @@
       "sha256": "0b8f95fd2c9737236dbc6fb8c13c55f56920d4e0222516405b09d165369f01f6"
     },
     "docs/ACCEPTANCE_1.0.md": {
-      "bytes": 23690,
-      "sha256": "16c19e9a2e6aadfa9ac165702d79e46d173635042f191ca5c4f29150e922331b"
+      "bytes": 23686,
+      "sha256": "fd753d2fdbae5f3fc0d3f6263bad29f775a276d45645ac6bd3f4ed4b63691eb3"
     },
     "docs/ACTIONS_01/actions01-registry-comparison.json": {
       "bytes": 341,
@@ -5286,8 +5286,8 @@
       "sha256": "db831bc3a86650557df4077d7f17aa1cebc07d4f40630cf7e2d383f4636f3bb6"
     },
     "workbench/power_demo.py": {
-      "bytes": 23154,
-      "sha256": "f6b17fab823606c537a0dcc6ab2b8bc814a5480973d73fda2d73d12212bf021d"
+      "bytes": 23166,
+      "sha256": "9f5e943e587c7c0ab5c024ef0e3ed39829fe6ee7339eed48401003515aa34687"
     },
     "workbench/presentation_preferences.py": {
       "bytes": 1805,

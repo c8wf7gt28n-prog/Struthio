@@ -30,7 +30,7 @@ summed here as Fractions, never as floating point.
 
 The door: `python -m workbench.power_demo FOLDER [--no-desk]` builds it in FOLDER (a new or empty throwaway folder): the home
 folder in FOLDER/home, the drives' contents in FOLDER/drives/<LABEL>, Graphite's workspace where a fresh install keeps it
-(FOLDER/home/Concern/Ledger) and a profile of its own in FOLDER/profile. It never writes into the home folder of the person
+(Concern/Ledger inside that home folder) and a profile of its own in FOLDER/profile. It never writes into the home folder of the person
 at the computer: the window that walks it is started with environment(FOLDER), whose HOME is FOLDER/home. The files are the
 same bytes every time; the desk's records carry the workspace's own ids and times.
 
