@@ -1,0 +1,89 @@
+{
+  "state": "PASSED",
+  "checker": "tools/check_hatch.py",
+  "entry": "tools/check_release.py",
+  "release": {
+    "manifest_release": "1.1.5",
+    "manifest_version": "1.1.5",
+    "record": "docs/GRAPHITE_0.1_REGISTRY.json",
+    "name": "Kas",
+    "short": "1.1.5",
+    "title": "Kas 1.1.5"
+  },
+  "notice": "Registration counts and passing checks are not readiness or acceptance.",
+  "runtime": {
+    "state": "PASSED",
+    "payload": {
+      "state": "VERIFIED",
+      "files": 1664,
+      "version": "1.1.5",
+      "problems": [],
+      "parts_not_installed": [],
+      "meaning": "Payload matches the local manifest; this does not authenticate its publisher."
+    },
+    "foundation": "VERIFIED_SOURCE_BINDINGS",
+    "capabilities": 962,
+    "schema_digest": "8801fadf33a5dc92bf1fe53b20465c4aaa0cf96cc8e668d0c07dfee1df6341cf",
+    "python_files_parsed": 1350,
+    "errors": [],
+    "scope": "Runtime integrity, source bindings, syntax and registry agreement; no physical qualification"
+  },
+  "registry": {
+    "state": "PASSED",
+    "record": "MATCHES",
+    "record_file": "docs/GRAPHITE_0.1_REGISTRY.json",
+    "operations": 962,
+    "recorded_operations": 962,
+    "job_tools": 113,
+    "recorded_job_tools": 113,
+    "schema_digest": "8801fadf33a5dc92bf1fe53b20465c4aaa0cf96cc8e668d0c07dfee1df6341cf",
+    "recorded_schema_digest": "8801fadf33a5dc92bf1fe53b20465c4aaa0cf96cc8e668d0c07dfee1df6341cf",
+    "differences": []
+  },
+  "settings": {
+    "state": "PASSED",
+    "record": "MATCHES",
+    "record_file": "docs/GRAPHITE_0.1_REGISTRY.json",
+    "count": 53,
+    "recorded_count": 53,
+    "digest": "666f9f4a7108f05f2477617e4484e3d4cbf0664bcee0b430e049cc47e1282aa8",
+    "recorded_digest": "666f9f4a7108f05f2477617e4484e3d4cbf0664bcee0b430e049cc47e1282aa8",
+    "differences": []
+  },
+  "adapters": {
+    "state": "PASSED",
+    "record": "MATCHES",
+    "record_file": "docs/GRAPHITE_0.1_REGISTRY.json",
+    "operations_served": 962,
+    "differences": []
+  },
+  "payload_privacy": {
+    "state": "PASSED",
+    "files_scanned": 1664,
+    "archives_scanned": 6,
+    "patterns": [
+      "developer-machine-path",
+      "github-token",
+      "private-key",
+      "provider-key",
+      "her-character-file",
+      "her-portrait"
+    ],
+    "findings": [],
+    "accepted": [
+      {
+        "file": "runtimes/python-wasi/python-wasi.zip!lib/python3.13/_sysconfigdata__wasi_wasm32-wasi.py",
+        "category": "developer-machine-path",
+        "reason": "the build path of the pinned upstream WASI runtime (/home/runner, the machine that built it); the archive is pinned by its sha256"
+      },
+      {
+        "file": "runtimes/python-wasi/python-wasi.zip!python.wasm",
+        "category": "developer-machine-path",
+        "reason": "the build path of the pinned upstream WASI runtime (/home/runner, the machine that built it); the archive is pinned by its sha256"
+      }
+    ],
+    "problems": [],
+    "reading": "Values are never printed: only the file and the category."
+  },
+  "failed_sections": []
+}

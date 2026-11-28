@@ -1,0 +1,34 @@
+commit 7bf7622189b4964ab2aa47795e51e01d997c0af8, Debian version 1.1.5
+kas-computer: 1668 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r115/debs/kas-computer_1.1.5_all.deb (82232252 bytes)
+kas-llama-runtime: 2 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r115/debs/kas-llama-runtime_1.1.5_amd64.deb (57990920 bytes)
+kas-session: 3 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r115/debs/kas-session_1.1.5_all.deb (2724 bytes)
+kas-desktop: 1 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r115/debs/kas-desktop_1.1.5_all.deb (2188 bytes)
+graphite: 0 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r115/debs/graphite_1.1.5_all.deb (1668 bytes)
+graphite-llama-runtime: 0 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r115/debs/graphite-llama-runtime_1.1.5_all.deb (1704 bytes)
+graphite-session: 0 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r115/debs/graphite-session_1.1.5_all.deb (1688 bytes)
+graphite-desktop: 0 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r115/debs/graphite-desktop_1.1.5_all.deb (1700 bytes)
+earlier kit joined and checked
+replacing kas-computer_1.1.4_all.deb
+replacing kas-llama-runtime_1.1.4_amd64.deb
+replacing kas-session_1.1.4_all.deb
+replacing kas-desktop_1.1.4_all.deb
+replacing graphite_1.1.4_all.deb
+replacing graphite-llama-runtime_1.1.4_all.deb
+replacing graphite-session_1.1.4_all.deb
+replacing graphite-desktop_1.1.4_all.deb
+repository: 429 packages
+{"zips": 33, "pieces": 17, "files": 433, "largest_zip": 14490638, "bytes": 394792432}
+kit: 39 files, 394851153 bytes, the largest 14490638 bytes (all under 15,000,000)
+2287 PIECES.sha256
+44243 SHA256SUMS
+4409 START_HERE.md
+3451 install.sh
+kit files: 39
