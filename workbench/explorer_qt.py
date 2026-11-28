@@ -621,9 +621,13 @@ class Explorer(QObject):
             return self.show(parent, via='breadcrumb', chosen=[self.folder]) if parent != self.folder else None
         if what == 'all':self.page.view_widget().selectAll();return None
         if what == 'undo':
-            note = getattr(getattr(host, 'home_files', None), 'note', None)
-            if note is not None and getattr(note, 'undo', None) is not None:return note.undo_now()
-            return say(host, 'Nothing to take back here.')
+            # 1.1: a paste's files land before its Undo is recorded; a quick Ctrl+Z waits up to a second for it
+            def take_back(left=10):
+                note = getattr(getattr(host, 'home_files', None), 'note', None)
+                if note is not None and getattr(note, 'undo', None) is not None:return note.undo_now()
+                if left > 0:return QTimer.singleShot(100, lambda: take_back(left - 1))
+                return say(host, 'Nothing to take back here.')
+            return take_back()
         if what == 'address':self.address.setFocus(Qt.ShortcutFocusReason);self.address.selectAll();return None
         if what == 'board':return self.set_view('board')
         return None

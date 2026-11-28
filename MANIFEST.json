@@ -4386,8 +4386,8 @@
       "sha256": "1235f2c3f4c64398ee35e7b8be754780c1d5c32b5dec11c49a32ec1a4307b088"
     },
     "workbench/explorer_qt.py": {
-      "bytes": 48489,
-      "sha256": "3ae414f988a4bcea888f2060fbcf235fd6ae72e4d2b94d7f384401b788b0502b"
+      "bytes": 48767,
+      "sha256": "8e58815cd38820f22babf84a0ea90a6382126166b4f9051e0cf7fd06f26413ef"
     },
     "workbench/export_board_view.py": {
       "bytes": 2391,

@@ -104,9 +104,9 @@ Graphite opens the same workspace and settings.
 ### Under the hood
 
 - **The test suites run green again.** 1.0 was built with no tests, by your rule. Tier 0 is at 0 failing in Day and
-  Graphite, and tier 2 has three named failures.
-- **Faults fixed:** fifteen real program faults, among them a crash when a tab's icon was freed, HALT's size, and the
-  window strip at 1366.
+  Graphite, and tier 2 has two named failures.
+- **Faults fixed:** sixteen real program faults, among them a crash when a tab's icon was freed, HALT's size, the
+  window strip at 1366, and a quick Ctrl+Z after a paste in the Explorer finding nothing to take back.
 - **The guides** use the new words, and a test keeps them so.
 
 ## What was tested, and what was not
@@ -114,7 +114,7 @@ Graphite opens the same workspace and settings.
 By your rule, tests were minimal: each piece has its own test file, and at each merge the seed was rebuilt and the
 window opened offscreen in all four looks. On the final tree:
 
-- **The new parts' tests:** about 170 tests across them pass on a copy.
+- **The new parts' tests:** 164 tests across them pass on a copy.
 - **The release check** passes on the exact commit the kit was cut from.
 - **The packages:** built with dpkg-deb, and installed in a clean Debian 13 chroot that held the 1.0 System set
   (preview 1).
@@ -152,7 +152,7 @@ Smaller items:
 - **On the bar:** no Pin and no drives in the tray.
 - **Command… is not yet everywhere:** it is missing on Start's tiles and on the board.
 - **Kas's words:** her older phrase tables are not yet in her new voice.
-- **Tests:** three named tier 2 failures remain.
+- **Tests:** two named tier 2 failures remain (the Ctrl+Z race the third was is fixed).
 
 ## Reversals for you to strike
 
