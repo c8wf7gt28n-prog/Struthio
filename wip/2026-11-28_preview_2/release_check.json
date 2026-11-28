@@ -1,0 +1,89 @@
+{
+  "state": "PASSED",
+  "checker": "tools/check_hatch.py",
+  "entry": "tools/check_release.py",
+  "release": {
+    "manifest_release": "1.1~pre2",
+    "manifest_version": "1.1~pre2",
+    "record": "docs/GRAPHITE_0.1_REGISTRY.json",
+    "name": "Graphite",
+    "short": "1.1~pre2",
+    "title": "Graphite 1.1~pre2"
+  },
+  "notice": "Registration counts and passing checks are not readiness or acceptance.",
+  "runtime": {
+    "state": "PASSED",
+    "payload": {
+      "state": "VERIFIED",
+      "files": 1589,
+      "version": "1.1~pre2",
+      "problems": [],
+      "parts_not_installed": [],
+      "meaning": "Payload matches the local manifest; this does not authenticate its publisher."
+    },
+    "foundation": "VERIFIED_SOURCE_BINDINGS",
+    "capabilities": 924,
+    "schema_digest": "96900b6d0dd401f62e9d2ccfffa1f16be334f13af54a79d792807848688a1399",
+    "python_files_parsed": 1322,
+    "errors": [],
+    "scope": "Runtime integrity, source bindings, syntax and registry agreement; no physical qualification"
+  },
+  "registry": {
+    "state": "PASSED",
+    "record": "MATCHES",
+    "record_file": "docs/GRAPHITE_0.1_REGISTRY.json",
+    "operations": 924,
+    "recorded_operations": 924,
+    "job_tools": 113,
+    "recorded_job_tools": 113,
+    "schema_digest": "96900b6d0dd401f62e9d2ccfffa1f16be334f13af54a79d792807848688a1399",
+    "recorded_schema_digest": "96900b6d0dd401f62e9d2ccfffa1f16be334f13af54a79d792807848688a1399",
+    "differences": []
+  },
+  "settings": {
+    "state": "PASSED",
+    "record": "MATCHES",
+    "record_file": "docs/GRAPHITE_0.1_REGISTRY.json",
+    "count": 53,
+    "recorded_count": 53,
+    "digest": "4b40d4280f3420aa473adadf74e7891f6177cf1ff2293598b91346200e97c09b",
+    "recorded_digest": "4b40d4280f3420aa473adadf74e7891f6177cf1ff2293598b91346200e97c09b",
+    "differences": []
+  },
+  "adapters": {
+    "state": "PASSED",
+    "record": "MATCHES",
+    "record_file": "docs/GRAPHITE_0.1_REGISTRY.json",
+    "operations_served": 924,
+    "differences": []
+  },
+  "payload_privacy": {
+    "state": "PASSED",
+    "files_scanned": 1589,
+    "archives_scanned": 6,
+    "patterns": [
+      "developer-machine-path",
+      "github-token",
+      "private-key",
+      "provider-key",
+      "her-character-file",
+      "her-portrait"
+    ],
+    "findings": [],
+    "accepted": [
+      {
+        "file": "runtimes/python-wasi/python-wasi.zip!lib/python3.13/_sysconfigdata__wasi_wasm32-wasi.py",
+        "category": "developer-machine-path",
+        "reason": "the build path of the pinned upstream WASI runtime (/home/runner, the machine that built it); the archive is pinned by its sha256"
+      },
+      {
+        "file": "runtimes/python-wasi/python-wasi.zip!python.wasm",
+        "category": "developer-machine-path",
+        "reason": "the build path of the pinned upstream WASI runtime (/home/runner, the machine that built it); the archive is pinned by its sha256"
+      }
+    ],
+    "problems": [],
+    "reading": "Values are never printed: only the file and the category."
+  },
+  "failed_sections": []
+}
