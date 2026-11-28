@@ -116,6 +116,11 @@ rules holding you back".
     **K0 launched 03:11** (agent af4ff2b1d5e893a73; its brief carries a full scope: the head's six menus with an old ->
     new table, the details pane, tokens 1.1, "Command..." if time). Running: KV, B2, K0. Next: B3 after KV; then T2
     (the rest of the tiers, with B1/E1/K0's new truths); then cut preview 2.
+  * **KV merged (548c98f, 03:16):** her voice (kas_voice.py; 634 templates, 0 problems). Frames sent. Open from KV:
+    her older phrase tables (phrases.py, understand.py, desk_acts.py, hand_door.py) not rewritten; no 4B check of the
+    new character card; 2 pane-width failures in test_kasandra_column predate KV (T2). **B3 launched 03:17** (agent
+    af210bf9ff6a6d0f3: her chip, HALT on the bar, her panel over any app, permission cards from her chip, and the
+    Kernel's raw refusals put in her plain words). Running: B2, K0, B3. Next: T2, then cut preview 2.
   * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
