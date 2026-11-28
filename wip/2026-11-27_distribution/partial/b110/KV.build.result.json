@@ -1,0 +1,525 @@
+{
+ "item": "KV",
+ "status": "done",
+ "summary": "Her voice, 1.1: character_starter.md rewritten (sharp, dry, short; sentence cap 20 words, plain 3 / formal 3 / warm 2 sentences; never-say adds \"trust me\" and \"obviously\"; card 153 tokens by estimate). Her lines rewritten in that voice: her column (incl. her hand), Waits for you, HALT and RESUME, grants, plans, refusals, the no-model line, empty states, moment cards, the review answer, her talk in shell2 (now templates in workbench/kas_voice.py). Five modules that registered her words but were never collected now join the sweep. mind_words.check() passes over 634 templates (497 before), every sentence at most 20 words. GUIDE_KASANDRA.md gains \"Her voice\" and quotes her new lines. 88-row before/after table.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV.patch",
+ "files_changed": [
+  "docs/GUIDE_KASANDRA.md",
+  "tests_integrated/test_kas_voice.py",
+  "tools/check_hatch.py",
+  "workbench/desk_review.py",
+  "workbench/everyday_desk.py",
+  "workbench/grants_qt.py",
+  "workbench/halt.py",
+  "workbench/her_column_qt.py",
+  "workbench/her_hand_qt.py",
+  "workbench/home_pages.py",
+  "workbench/kas_voice.py (new)",
+  "workbench/kasandra/character_starter.md",
+  "workbench/mind_panel_qt.py",
+  "workbench/mind_words.py",
+  "workbench/model_marks_qt.py",
+  "workbench/objective_plan.py",
+  "workbench/shell2.py",
+  "workbench/voice_character.py",
+  "workbench/voice_facts.py",
+  "workbench/voice_lexicon.py",
+  "workbench/waits_qt.py"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_kas_voice.py (12 tests; joined FOCUSED_MODULES in tools/check_hatch.py)",
+  "ran": [
+   "tests_integrated.test_kas_voice: 12 ran, OK",
+   "tests_integrated.test_kasandra_column: 18 ran, 2 failures (test_her_words_have_the_room 285 != 322; test_a_name_that_fits_a_line_is_never_cut_at_its_end 249 < 255). The same 2 fail on an unchanged copy of the starting tree: pane widths, not words; T1 notes list kasandra_column as not re-run.",
+   "mind_words.check(): 0 problems over 634 templates",
+   "tools/name_sweep.in_guides on the two Guide pages: nothing found"
+  ],
+  "output_tail": [
+   "----------------------------------------------------------------------",
+   "Ran 12 tests in 0.332s",
+   "",
+   "OK"
+  ]
+ },
+ "existing_tests_changed": [],
+ "decisions": [
+  "The 20-word cap is the starter's \"sentence: at most 20 words\", so it holds for every registered template and for the voice gate's filled frames (the file has one sentence length, not one per register). Formal and warm lines are held to 20 too.",
+  "Her talk's inline sentences in shell2 moved to templates in a module of my own (kas_voice.py) so the sweep reads them; each shell2 site is one small edit marked \"1.1 KV\".",
+  "waits_qt, halt and five modules that registered words without being collected (desk_review, day_notice, everyday_desk, home_pages, objective_plan) joined mind_words.MODULES; their long sentences were split.",
+  "Third person in the column (her journal, her question, She still reads) became first person where it is her line; the head's status labels stay short (\"model ready\", \"no model yet\").",
+  "Never claim more than the records: press_done stays \"done\" (its effect is not known to be verified); \"Done, verified\" only on her hand's verified end and the all-steps-verified moment; the review answer says \"Not proven sufficient.\" \"Not verified. Here is what I checked: ...\" is a template (kas_voice.NOT_VERIFIED); her hand's not-verified line leads with \"Not verified. I checked\".",
+  "Refusals, losses and permissions are plain, no wit: \"Refused: ...\", \"Not stopped: ...\", \"Not taken back, and nothing changed: ...\", \"I need your grant to ... Nothing was sent.\"",
+  "No name, line or handle from the film in code, data or comments; no picture.",
+  "The Guide's two pages read as GUIDE_KASANDRA.md and GUIDE_LIVING_DESKTOP.md: the Kasandra page gains \"Her voice\" and quotes her new no-model, HALT and RESUME lines; the Living Desktop page quotes none of her lines and is unchanged.",
+  "Button labels and headings (Grant this for this assignment, ACTIVE WORK, Resume) kept: commands and furniture, not sentences."
+ ],
+ "findings_for_the_coordinator": [
+  "test_kasandra_column fails 2 layout-width tests on the starting tree itself (not KV).",
+  "Five modules registered her words with mind_words but were never in MODULES, so check() never read them; fixed here.",
+  "Her review answer on Rail Demo (desk_review) had sentences of 22 and 25 words; now at most 13.",
+  "The voice gate now refuses a filled frame with a sentence over 20 words; where it refuses, the 0.8.6 words stand (mind_panel fallback). No real-model run was made to see how often the 4B's frames hit the cap.",
+  "Frames: the refusal is real (a grant.give press the Kernel refuses); the done-and-verified moment is staged through her_column_qt.moment with the real template (no assignment was carried to its end).",
+  "Older phrase tables of hers (phrases.py, understand.py, desk_acts.py, hand_door.py) are not swept and not rewritten here."
+ ],
+ "frames": [
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV/frames/1920x1200_day_review.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV/frames/1920x1200_day_refusal.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV/frames/1920x1200_day_done.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV/frames/1366x768_day_review.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV/frames/1366x768_day_refusal.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV/frames/1366x768_day_done.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV/frames/1920x1200_kasandra_review.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV/frames/1920x1200_kasandra_refusal.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KV/frames/1920x1200_kasandra_done.png",
+  "plus <size>_<look>_column_<what>.png crops of her column for each"
+ ],
+ "not_done": [
+  "No real-model check of the new character card with the 4B (optional in the notes; skipped for the budget).",
+  "phrases.py, understand.py, desk_acts.py, hand_door.py and other older lines of hers are not rewritten.",
+  "GUIDE_LIVING_DESKTOP.md unchanged (it quotes none of her lines).",
+  "Nothing ran on the owner's ThinkPad."
+ ],
+ "release_note": "Kasandra speaks in a sharper voice: short, dry, sure only of what is verified. Where nothing is proven she says so: \"Not verified. Here is what I checked.\" No sentence of hers runs over twenty words.",
+ "before_after_table": [
+  {
+   "where": "her_column_qt.answering",
+   "before": "her model is answering",
+   "after": "model answering"
+  },
+  {
+   "where": "her_column_qt.carry_started",
+   "before": "Carrying on with “{title}”. Its bar shows how far it has come.",
+   "after": "Back on “{title}”. The bar shows how far."
+  },
+  {
+   "where": "her_column_qt.model_ready",
+   "before": "her model is ready",
+   "after": "model ready"
+  },
+  {
+   "where": "her_column_qt.moment_done",
+   "before": "An assignment is done, every step verified: “{title}”.",
+   "after": "Done, every step verified: “{title}”."
+  },
+  {
+   "where": "her_column_qt.moment_halt",
+   "before": "HALT: her managed work is stopped. Your programs and the desktop go on.",
+   "after": "HALT. All my work is stopped. Your Apps and the desktop run on."
+  },
+  {
+   "where": "her_column_qt.moment_hint",
+   "before": "A click puts this away.",
+   "after": "Click to put this away."
+  },
+  {
+   "where": "her_column_qt.moment_refuted",
+   "before": "A finding was refuted: “{title}”.",
+   "after": "Finding refuted: “{title}”."
+  },
+  {
+   "where": "her_column_qt.no_field",
+   "before": "The Field could not be shown here, so the command has nothing to act on.",
+   "after": "The Field is not showing here, so this command has nothing to work on."
+  },
+  {
+   "where": "her_column_qt.nothing_active",
+   "before": "No assignment is open.",
+   "after": "No assignment open. Ask me for one."
+  },
+  {
+   "where": "her_column_qt.nothing_found",
+   "before": "No findings on this desk yet.",
+   "after": "No findings yet."
+  },
+  {
+   "where": "her_column_qt.press_refused",
+   "before": "That press was refused: {why}",
+   "after": "Refused: {why}"
+  },
+  {
+   "where": "her_column_qt.reading_work",
+   "before": "Reading her journal…",
+   "after": "Reading my journal…"
+  },
+  {
+   "where": "her_column_qt.select_first",
+   "before": "Select a card on the Field first: the command acts on the card you select.",
+   "after": "Select a card on the Field first. The command works on that card."
+  },
+  {
+   "where": "her_column_qt.stop_refused",
+   "before": "It could not be stopped: {why}",
+   "after": "Not stopped: {why}"
+  },
+  {
+   "where": "her_column_qt.stopped",
+   "before": "You stopped “{title}”. What was done stays done; nothing more starts.",
+   "after": "Stopped “{title}”. Done steps stay done. Nothing new starts."
+  },
+  {
+   "where": "mind_panel.could_not",
+   "before": "I could not work this out: {why}",
+   "after": "Could not work it out: {why}"
+  },
+  {
+   "where": "mind_panel.not_goal",
+   "before": "This card is not a goal over the desk’s data, so there is no other way of reading it to work out. Why gives its reasons.",
+   "after": "This card is not a goal over the desk’s data, so there is no other reading to work out. Why gives its reasons."
+  },
+  {
+   "where": "mind_panel.walk_none",
+   "before": "There are no wires to walk: nothing else on the desk feeds it.",
+   "after": "No wires to walk. Nothing else on the desk feeds it."
+  },
+  {
+   "where": "model_marks_qt.forget_tip",
+   "before": "Forget this turn: its messages, its answer and my checks go; only that it was asked, and how it ended, stays",
+   "after": "Forget this turn: its messages, its answer and my checks go. Only that it was asked, and how it ended, stays"
+  },
+  {
+   "where": "voice_facts.tolerance_most",
+   "before": "the desk has no tolerance for the {name}, so this is judged at the reading; the answer stands for any tolerance up to {bound}",
+   "after": "with no tolerance on the {name}, it is judged at the reading; the answer stands for tolerances up to {bound}"
+  },
+  {
+   "where": "voice_facts.tolerance_none",
+   "before": "the desk has no tolerance for the {name}, so this is judged at the reading; the answer stands for any tolerance under {bound}",
+   "after": "with no tolerance on the {name}, this is judged at the reading; the answer stands for any tolerance under {bound}"
+  },
+  {
+   "where": "voice_lexicon.reason.WORD_CALENDAR",
+   "before": "The frame writes a month, a weekday or a span of days: a date comes from the receipt or not at all.",
+   "after": "The frame writes a month, weekday or span of days. A date comes from the receipt or not at all."
+  },
+  {
+   "where": "halt.stopped",
+   "before": "HALT: I stopped %s and hold all my work until you press RESUME. Each journal says what was done and what was only prepared. Your desktop, apps and Graphite’s jobs go on.",
+   "after": "HALT. I stopped %s. All my work holds until you press RESUME. Each journal says what was done and what was only prepared. Your desktop, Apps and Graphite’s jobs run on."
+  },
+  {
+   "where": "halt.nothing",
+   "before": "HALT: nothing of mine was running. I hold all my work until you press RESUME. Your desktop, apps and Graphite’s jobs go on.",
+   "after": "HALT. Nothing of mine was running. All my work holds until you press RESUME. Your desktop, Apps and Graphite’s jobs run on."
+  },
+  {
+   "where": "halt.turns",
+   "before": " My model’s answer was closed.",
+   "after": " My model was cut off mid-answer."
+  },
+  {
+   "where": "halt.nothing_turns",
+   "before": "HALT: my model’s answer was closed, and nothing else of mine was running. I hold all my work until you press RESUME. Your desktop, apps and Graphite’s jobs go on.",
+   "after": "HALT. My model was cut off mid-answer; nothing else of mine was running. All my work holds until you press RESUME. Your desktop, Apps and Graphite’s jobs run on."
+  },
+  {
+   "where": "halt.not_held",
+   "before": "HALT could not hold my work: %s. Use Stop all on the meters if anything of mine is still running.",
+   "after": "HALT did not hold: %s. If anything of mine still runs, use Stop all on the meters."
+  },
+  {
+   "where": "halt.released",
+   "before": "RESUME: the hold is lifted. Nothing stopped was restarted: what HALT stopped waits for your Resume on it (in “Waits for you”), which checks every step first.",
+   "after": "RESUME. The hold is lifted. Nothing I stopped has restarted. Each stopped assignment waits for its own Resume in “Waits for you”, which checks every step first."
+  },
+  {
+   "where": "halt.released_jobs",
+   "before": " Graphite’s jobs are still held by Stop all; lift that on its own card.",
+   "after": " Graphite’s jobs are still held by Stop all. Lift that on its own card."
+  },
+  {
+   "where": "waits_qt.grant_words",
+   "before": "It asks to {words}. Nothing was sent.",
+   "after": "I need your grant to {words}. Nothing was sent."
+  },
+  {
+   "where": "waits_qt.question",
+   "before": "Her question: {words}",
+   "after": "My question: {words}"
+  },
+  {
+   "where": "waits_qt.no_model",
+   "before": "No model is loaded. She still reads the records, checks the desk and plans from it. Her model is added in the Brain room → Add file.",
+   "after": "No model loaded. I still read the records, check the desk and plan. Add one in the Brain room → Add file."
+  },
+  {
+   "where": "waits_qt.grant_words_set",
+   "before": "It asks for {count} grants in one press, {scope}: {words}. Nothing was sent.",
+   "after": "I need {count} grants in one press, {scope}: {words}. Nothing was sent."
+  },
+  {
+   "where": "waits_qt.held",
+   "before": "Held by your HALT. Its own Resume checks every step first, then carries on.",
+   "after": "Held by your HALT. Its Resume checks every step, then carries on."
+  },
+  {
+   "where": "desk_review.head",
+   "before": "What the records say, finding by finding (the desk’s findings and their evidence, not my own judgement):",
+   "after": "What the records say, finding by finding. Their evidence, not my judgement:"
+  },
+  {
+   "where": "desk_review.not_cleared",
+   "before": "So I cannot call it sufficient. What is supported holds; what is refuted, in recheck or open is not cleared, and finishing one part does not clear the rest.",
+   "after": "Not proven sufficient. Supported findings hold. Refuted, recheck and open ones are not cleared, and clearing one does not clear the rest."
+  },
+  {
+   "where": "desk_review.cleared",
+   "before": "Every finding on this desk is supported and no question is open. That is the records’ word, not a judgement of the design.",
+   "after": "Every finding here is supported and no question is open. That is the records’ word, not a verdict on the design."
+  },
+  {
+   "where": "desk_review.how",
+   "before": "Each line is a record of the desk; FINDINGS (live) and the board show the same, and DOUBT asks what a supported one may hide.",
+   "after": "Each line is a desk record. FINDINGS (live) and the board show the same. DOUBT asks what a supported one may hide."
+  },
+  {
+   "where": "desk_review.recheck",
+   "before": "◧ RECHECK · {text} (what it rests on changed since; it holds only once it is worked again)",
+   "after": "◧ RECHECK · {text} (what it rests on changed; it holds again only once it is worked again)"
+  },
+  {
+   "where": "kas_voice.greet",
+   "before": "Ask about what is open. Say “this” and I take what is in the middle of the board. What I read, I show as a line you can run yourself.",
+   "after": "Ask about what is open. “This” means what is in the middle of the board. What I read, I show as a line you can run."
+  },
+  {
+   "where": "kas_voice.steps",
+   "before": "What can be done about “%s”. A number in the Field takes a step, or choose it here.%s",
+   "after": "For “{title}”, this can be done. Press its number in the Field, or choose here.{rule}"
+  },
+  {
+   "where": "kas_voice.steps_all_ask",
+   "before": " One that changes something asks first.",
+   "after": " Anything that changes something asks first."
+  },
+  {
+   "where": "kas_voice.steps_some_ask",
+   "before": " A step marked “asks first” waits for you; any other that changes something I do at once and show.",
+   "after": " Steps marked “asks first” wait for you. Other changes I make at once, and show."
+  },
+  {
+   "where": "kas_voice.step_waits_why",
+   "before": "For “%s”: %s. This waits for you: %s.",
+   "after": "For “{title}”: {words}. It waits for you: {why}."
+  },
+  {
+   "where": "kas_voice.step_waits",
+   "before": "For “%s”: %s. This changes something, so it waits for you.",
+   "after": "For “{title}”: {words}. It changes something, so it waits for your press."
+  },
+  {
+   "where": "kas_voice.trail",
+   "before": "What I did by myself, the latest first:",
+   "after": "What I did on my own, newest first:"
+  },
+  {
+   "where": "kas_voice.trail_none",
+   "before": "I have not done anything by myself yet. With my hand at “Do and show”, a change you ask me for is done at once and listed here.",
+   "after": "Nothing done on my own yet. At “Do and show”, a change you ask for is made at once and listed here."
+  },
+  {
+   "where": "kas_voice.undo_twice",
+   "before": "That one has already been taken back.",
+   "after": "Already taken back."
+  },
+  {
+   "where": "kas_voice.undo_failed",
+   "before": "It could not be taken back, and nothing was changed: %s",
+   "after": "Not taken back, and nothing changed: {why}"
+  },
+  {
+   "where": "kas_voice.always",
+   "before": "Wherever my hand is set, these wait for you, because they cannot be undone:",
+   "after": "These always wait for you, wherever my hand is set. They cannot be undone:"
+  },
+  {
+   "where": "kas_voice.name_kept",
+   "before": "“%s” is a name Graphite keeps for a folder of its own. Give the project another: start a Godot project called …",
+   "after": "“{name}” is a name Graphite keeps for a folder of its own. Pick another: start a Godot project called …"
+  },
+  {
+   "where": "kas_voice.name_taken",
+   "before": "There is already something called “%s” in Files, and I do not write over what is there. Give it another name: start a Godot project called …",
+   "after": "Files already has a “{name}”, and I do not write over what is there. Pick another: start a Godot project called …"
+  },
+  {
+   "where": "kas_voice.not_made",
+   "before": "Nothing was made: the folder “%s” could not be made (%s).",
+   "after": "Nothing made. The folder “{name}” could not be made ({why})."
+  },
+  {
+   "where": "kas_voice.stopped_at",
+   "before": "I stopped at the step that was refused, after %d of %d. What this start made is in “%s” in Files; delete that folder if you do not want it (DELETE gives it back).",
+   "after": "Stopped at the refused step, after {n} of {count}. What I made is in “{name}” in Files. Delete that folder if you do not want it; DELETE gives it back."
+  },
+  {
+   "where": "kas_voice.name_kept_start",
+   "before": "“%s” begins with a name Graphite keeps for a folder of its own. Give it another name.",
+   "after": "“{name}” starts with a name Graphite keeps for a folder of its own. Pick another name."
+  },
+  {
+   "where": "kas_voice.name_taken_own",
+   "before": "There is already something called “%s” in Files. I do not write over what is there by myself: say another name.",
+   "after": "Files already has a “{name}”. I do not write over it on my own. Give me another name."
+  },
+  {
+   "where": "kas_voice.term_busy",
+   "before": "The Terminal is still running a command, so I have not run this one: it is in the line, with Terminal chosen, for when that one has ended.",
+   "after": "The Terminal is busy, so I have not run this. It is in the line, Terminal chosen, for when that ends."
+  },
+  {
+   "where": "kas_voice.term_none",
+   "before": "There is no Terminal in this window, so I have not run it.",
+   "after": "No Terminal in this window, so I have not run it."
+  },
+  {
+   "where": "kas_voice.term_ran",
+   "before": "I ran it in the Terminal: %s. It only reads; what it answered is above the line.",
+   "after": "Ran in the Terminal: {command}. It only reads. The answer is above the line."
+  },
+  {
+   "where": "kas_voice.term_ask_first",
+   "before": "My hand is at “Ask first”, so it is yours to run: it is in the line, with Terminal chosen.",
+   "after": "My hand is at “Ask first”, so this one is yours. It is in the line, Terminal chosen."
+  },
+  {
+   "where": "kas_voice.term_may_change",
+   "before": "That command may change something, or I cannot tell that it only reads, so it is yours to run: it is in the line, with Terminal chosen.",
+   "after": "That may change something, or I cannot tell it only reads. So it is yours: it is in the line, Terminal chosen."
+  },
+  {
+   "where": "kas_voice.desk_none",
+   "before": "I read the desk: %d thing%s. Nothing waits for you.",
+   "after": "Desk read: {count} {things}. Nothing waits for you."
+  },
+  {
+   "where": "kas_voice.desk_waits",
+   "before": "I read the desk: %d thing%s. %d wait%s for you:",
+   "after": "Desk read: {count} {things}. Waiting for you, {n}:"
+  },
+  {
+   "where": "kas_voice.busy",
+   "before": "I am still answering the last question. Stop it from the Brain room, or wait a moment.",
+   "after": "Still on your last question. Stop it in the Brain room, or give me a moment."
+  },
+  {
+   "where": "kas_voice.records_only",
+   "before": "No model is loaded, so this is not in my own words. This is what the records say about “%s”, and the line that reads it:",
+   "after": "No model loaded, so these are not my words. Here is what the records say about “{title}”, and the line that reads them:"
+  },
+  {
+   "where": "kas_voice.file_only",
+   "before": "I have no brain running yet, so this is what Graphite itself knows about it.",
+   "after": "No model loaded. Here is what Graphite itself knows about it."
+  },
+  {
+   "where": "kas_voice.choose_model",
+   "before": "For answers in my own words, choose a model; I run on this computer.",
+   "after": "For answers in my own words, choose a model. It runs on this computer."
+  },
+  {
+   "where": "kas_voice.no_model",
+   "before": "I have no brain running yet. Drop a GGUF model on the Brain room, or choose one.",
+   "after": "No model loaded. I still read the records and check the desk. Drop a GGUF model on the Brain room, or choose one."
+  },
+  {
+   "where": "kas_voice.no_words",
+   "before": "I read it, but I could not put it in words: %s",
+   "after": "I read it, but could not put it in words: {why}"
+  },
+  {
+   "where": "kas_voice.today_no_model",
+   "before": "Graphite has no brain running yet. {choose} to start one; it runs on this computer.",
+   "after": "No model loaded yet. {choose} to start one; it runs on this computer."
+  },
+  {
+   "where": "kas_voice.command_busy",
+   "before": "Wait for the current command to finish.",
+   "after": "One command at a time. Wait for this one to finish."
+  },
+  {
+   "where": "kas_voice.plan_expired",
+   "before": "This plan expired. Ask for a fresh plan.",
+   "after": "This plan has expired. Ask me for a fresh one."
+  },
+  {
+   "where": "kas_voice.failed",
+   "before": "That did not work: %s",
+   "after": "That failed: {why}"
+  },
+  {
+   "where": "her_column_qt.hand_acting",
+   "before": "▸ My hand in %s: %s",
+   "after": "▸ My hand in {program}: {act}"
+  },
+  {
+   "where": "her_column_qt.hand_touch",
+   "before": "▮▮ Stopped by your touch, in %s",
+   "after": "▮▮ You took over in {program}, so I stopped"
+  },
+  {
+   "where": "her_column_qt.hand_done",
+   "before": "✓ My hand · %s",
+   "after": "✓ Done, verified · {words}"
+  },
+  {
+   "where": "her_column_qt.hand_not_verified",
+   "before": "◆ Not verified · %s",
+   "after": "◆ Not verified. I checked · {words}"
+  },
+  {
+   "where": "objective_plan.halted",
+   "before": "HALT holds my work, so my model was not asked and nothing runs: this is the desk’s own plan, offered for when you lift it.",
+   "after": "HALT holds my work, so my model was not asked and nothing runs. This is the desk’s own plan, for when you lift it."
+  },
+  {
+   "where": "objective_plan.model_not_asked",
+   "before": "My model was not asked: its answer would not come in the time left for this request, so this is the desk’s own plan.",
+   "after": "My model was not asked: its answer would not come in the time left. So this is the desk’s own plan."
+  },
+  {
+   "where": "home_pages.withheld",
+   "before": "{count} lines of it are written to an assistant or hide characters, so I withheld them: they are not read to the model and not quoted.",
+   "after": "{count} lines of it are written to an assistant or hide characters. I withheld them: not read to the model, not quoted."
+  },
+  {
+   "where": "everyday_desk.no_budget",
+   "before": "I found no spreadsheet to read for that: put the budget in focus, or keep one spreadsheet named budget in Documents.",
+   "after": "I found no spreadsheet to read for that. Put the budget in focus, or keep one spreadsheet named budget in Documents."
+  },
+  {
+   "where": "everyday_desk.none_spent",
+   "before": "Nothing was spent on {what} in {month}: no row of the sheet “{sheet}” in “{file}” says so, read at revision {revision}.",
+   "after": "Nothing was spent on {what} in {month}. No row of the sheet “{sheet}” in “{file}” says so, read at revision {revision}."
+  },
+  {
+   "where": "her_hand_qt (choose)",
+   "before": "No model is loaded, so which of these you meant is yours to choose:",
+   "after": "No model loaded. Which of these did you mean?"
+  },
+  {
+   "where": "her_hand_qt (late)",
+   "before": "My model did not answer in time, so which of these you meant is yours to choose:",
+   "after": "My model ran out of time. Which of these did you mean?"
+  },
+  {
+   "where": "her_hand_qt (late default)",
+   "before": "My model did not answer in time, so I took the first of these, which only moves the window: %s.",
+   "after": "My model ran out of time, so I took the first. It only moves the window: %s."
+  },
+  {
+   "where": "her_hand_qt (not that)",
+   "before": "Not that: I will not read these words this way again.",
+   "after": "Understood. I will not read those words that way again."
+  },
+  {
+   "where": "her_hand_qt (touch)",
+   "before": "You touched the window again, so I stopped putting it back.",
+   "after": "You touched the window, so I stopped putting it back."
+  },
+  {
+   "where": "grants_qt (ask)",
+   "before": "It asks to %s. Nothing was sent.",
+   "after": "I need your grant to %s. Nothing was sent."
+  }
+ ]
+}

@@ -1,0 +1,43 @@
+{
+ "item": "B1",
+ "status": "done",
+ "summary": "The bar: new workbench/bar_qt.py, one dock-type X window along the bottom of the screen (44 px at 1920x1200, 40 at 1366x768) with _NET_WM_STRUT and _NET_WM_STRUT_PARTIAL at the bottom, read back from the X server; it replaces 1.0's top dock (shell2 installs the bar, not the dock). Slots left to right: start (Start: brings Graphite forward and opens Apps until B2), line (placeholder field), windows (Graphite first, then S3's strip of app windows: running = underline, active = filled plate + accent rule; one press brings forward via _NET_ACTIVE_WINDOW; right-click Minimise / Close (polite)), kas (placeholder: her state's shape and word), tray (network, sound, power: drawn glyph + word, fixed widths; each opens a flyout above it holding machine_room_qt's own MachineRoom page, compact, plus 'More on the Machine page'), clock (W1's clock moved here: time over date, the month rises above it). register_slot(name, widget_factory) fills a slot in standing and later bars; a failing factory keeps the default and says why. Colours from design_tokens (Day/Night).",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/B1.patch",
+ "files_changed": [
+  "workbench/bar_qt.py (new)",
+  "tests_integrated/test_bar.py (new)",
+  "workbench/shell2.py (install the bar, 1.1 B1)",
+  "workbench/notify_qt.py (floating toasts rise above the bar, 1.1 B1)",
+  "workbench/dock_clock_qt.py (month rises above a low clock; docstring, 1.1 B1)",
+  "workbench/system_dock_qt.py (docstring only)"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_bar.py (13 tests, acceptance first)",
+  "ran": "tests_integrated.test_bar + test_windows_hand KeysFromAnyApp clock test (dock_clock_qt touched), offscreen on the throwaway copy",
+  "output_tail": "Ran 14 tests in 0.387s\nOK"
+ },
+ "smoke": "Under Xvfb with S3's stand-in manager, two xterms, S4's stand-in UPower/NetworkManager (session bus) and wpctl, Rail Demo, Day and Night at 1366x768 and 1920x1200 (4 runs, 0 tracebacks): bar standing at y=H-h, type DOCK, partial [0,0,0,40|44,0,0,0,0,0,0,0,W-1], desktop 0xffffffff; lists both xterms and Graphite; press on an xterm -> that xterm active (marked); press on Graphite -> asked and verified; all three flyouts visible above the bar with the page's presses; month above the bar; Graphite started full screen became maximised. Frames: b110/B1/frames/<WxH>_<look>_<what>.png (20).",
+ "existing_tests_changed": [],
+ "decisions": [
+  "host.system_dock is the bar (also host.graphite_bar), so her column's arrange(), the head strip's room() and the System page's dock_status() keep working unchanged; system_dock_qt stays as the library of X helpers the bar reuses, no longer installed.",
+  "In the dedicated session (ARC_LEDGER_FULLSCREEN=1) Graphite's window is maximised above the bar once the bar stands, instead of full screen (which would cover the bar); F11 still gives full screen. A reversal of 1.0's full-screen start for the owner to strike.",
+  "Height by screen size only: 44 when the screen is 1600x900 or larger, else 40; not multiplied by the interface scale.",
+  "Flyouts embed machine_room_qt.MachineRoom itself (subclassed in bar_qt for compact margins, no horizontal scroll) so the actions, off-thread changes and DONE-only-when-read-back are the page's own; 440 px wide at 40, 460 at 44. Tray readings land in host._machine_real, shared with the page.",
+  "Tray words: network Online/Local only/Connecting/Offline/Off/Unknown (NetworkManager state), sound NN %/Muted/No output/Unknown, power NN %/Mains/No battery/Unknown; the why in the tip; each item as wide as its longest word.",
+  "Start placeholder brings Graphite forward and opens its Apps (W1's act 'apps'); the line placeholder does nothing but say so in its tip; Kas placeholder shows her state (shape + word) and brings Graphite forward.",
+  "GRAPHITE_BAR=0/1 controls it; 1.0's GRAPHITE_DOCK is still honoured.",
+  "Floating toasts rise above the bar's right end (design s5) when the bar stands; otherwise as before."
+ ],
+ "findings_for_the_coordinator": [
+  "Only real Fluxbox can show apps kept clear of the strut; the stand-in manager reads no strut (the smoke placed windows as a strut-reading manager would; 'app_above_bar' frames say so). Fluxbox's init (graphite-do) does not set fullMaximization (default false, which is what the strut needs).",
+  "Xvfb smoke needed b100/S3/xcblibs on LD_LIBRARY_PATH and Xvfb started by hand, as W1 found.",
+  "No Kernel operation added; registry unchanged.",
+  "Tests touched: none changed; 1.0 had no test of the dock's install."
+ ],
+ "not_done": [
+  "The design's 'icon only at 1366' window buttons (titles shown at both sizes; the strip narrows and folds into '... n more').",
+  "Drives and notifications tray slots, the Desktop corner and Pin in the right-click (design s5, not in B1's text).",
+  "Start, the line and Kas are placeholders for B2/B3."
+ ],
+ "release_note": "One bar along the bottom of the screen, above every app: Start, a search field to come, Graphite and your open windows (press to bring one forward, right-click to minimise or close), Kas, network, sound and battery with their controls one press away, and the clock with the month. It replaces the strip at the top of the screen."
+}

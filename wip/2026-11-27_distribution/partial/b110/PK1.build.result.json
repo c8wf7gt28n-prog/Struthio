@@ -1,0 +1,34 @@
+{
+ "item": "PK1",
+ "status": "done",
+ "summary": "Debian packages and a graphical way in: debian/ + tools/build_deb.sh (graphite all 82 MB, graphite-llama-runtime amd64 58 MB, graphite-session, graphite-desktop; version from workbench/version.py), tools/build_repo.sh (debootstrap trixie chroot, System set installed, closure resolved against the chroot AND the 1.0 System set's dpkg status), tools/build_kit.sh (45 files, ZIPs/pieces all < 15,000,000 bytes, JOIN.sh, install.sh, START_HERE.md in two stages). Acceptance in a Debian 13.8 chroot with the System set and no network: JOIN.sh OK, install.sh installs graphite+graphite-session (317 new), graphite --check ARC1_LAUNCH_OK as an ordinary user, doctor ACCEPTED on PySide6 6.8.2.1 / cryptography 43.0.0, payload VERIFIED, seed VERIFIED_SOURCE_BINDINGS, 0 paths written under /usr, apt remove leaves ~/Concern/Office and the profile; graphite-desktop resolves from the kit alone (37 new, lightdm + greeter). lintian 2.122: 0 errors.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/PK1.patch",
+ "files_changed": ["debian/control", "debian/copyright", "debian/source/format", "debian/graphite.desktop", "debian/graphite-xsession.desktop", "debian/50-graphite.conf", "debian/graphite.postinst", "debian/graphite.prerm", "debian/bin/graphite", "debian/bin/graphite-doctor", "debian/bin/graphite-session", "debian/bin/graphite-startx", "debian/kit/START_HERE.md", "debian/kit/JOIN.sh", "debian/kit/install.sh", "debian/kit/system-set-1.0.status", "tools/debian_pkg.py", "tools/build_deb.sh", "tools/build_repo.sh", "tools/build_kit.sh", "tools/check_hatch.py", "tools/package_graphite.py", "workbench/accepted_versions.py", "workbench/doctor.py", "workbench/hatch_readiness.py", "workbench/launch.py", "workbench/release_integrity.py", "START_MINIMAL_DEBIAN.sh", "tests_integrated/test_debian_packages.py"],
+ "tests": {
+  "added": "tests_integrated/test_debian_packages.py (14 tests)",
+  "ran": "test_debian_packages, test_release_check, test_readiness, test_session_start, test_startup_scripts, test_install_media, test_graphite, test_machine, test_workspace_backup, test_project_desk",
+  "output_tail": "test_debian_packages + test_release_check: Ran 39 tests, OK. test_readiness, test_startup_scripts, test_install_media, test_machine, test_workspace_backup, test_project_desk: OK. test_session_start 2 failures and test_graphite 1 failure + 1 error: the same four the packaging audit found failing on the clean tree (untouched by PK1)."
+ },
+ "existing_tests_changed": "None. tools/check_hatch.py's focused set gained test_debian_packages, because test_release_check requires every test module to be listed.",
+ "decisions": [
+  "Packages are built with dpkg-deb from debian/control by tools/debian_pkg.py (there is no debhelper on the host); no debian/rules. Native version: '1.0'; '1.1-pre1' becomes '1.1~pre1'.",
+  "One program folder, /usr/lib/graphite (MANIFEST still verifies). graphite-llama-runtime installs only the two llama archives into it; graphite ships PACKAGE_PARTS.json, and release_integrity.verify treats a part that is wholly absent as 'parts_not_installed' and a half part as damage.",
+  "LS_XSESSION.sh and START_MINIMAL_DEBIAN.sh stay in the graphite package (they are seed inputs the doctor checks). graphite-session owns /usr/bin/graphite-session, /usr/bin/graphite-startx and /usr/share/xsessions/graphite.desktop. The tree has no Fluxbox files (W1 writes the keys from the session script), so none are packaged.",
+  "graphite-desktop Depends on graphite and graphite-session. lightdm, lightdm-gtk-greeter, firmware and microcode are only Recommends. LibreOffice is a Suggests of graphite, since the System set already has it.",
+  "The 1.0 System set is in the tree as debian/kit/system-set-1.0.status (R1's simulated owner dpkg status, reduced fields). build_repo resolves against it as well as against the real chroot, so the 60 upgrades the owner needs are in the kit.",
+  "install.sh copies the repository to /var/lib/graphite-kit/repo and adds 'deb [trusted=yes] file:... ./' (or signed-by when the repository carries a key from --sign-with). It has --check, --desktop and --forget modes.",
+  "Doctor and readiness use workbench/accepted_versions.py: PySide6 6.8.x >= 6.8.2, cryptography >= 43 and Qt 6.8.x >= 6.8.2 get the state ACCEPTED beside PINNED.",
+  "launch.py: a packaged install reads /etc/graphite/install.json, not /usr/lib/install.json, and the repair words name apt. debian/ is left out of the payload (NOT_SHIPPED)."
+ ],
+ "findings_for_the_coordinator": [
+  "The kit is kept at b110/PK1/kit (45 files, 464 MB, largest 14,376,600 bytes). Its graphite-session .deb was built before one fix: its xsession entry says Type=XSession (a lintian warning; LightDM reads it). The tree now says Type=Application. Rebuild the kit at the cut: build_deb, build_repo (about 3 minutes), build_kit.",
+  "The kit includes firmware-nvidia-graphics (39 MB) and firmware-mediatek (20 MB), pulled in by firmware-misc-nonfree's Recommends. Dropping firmware-misc-nonfree from graphite-desktop's Recommends saves about 60 MB.",
+  "Disk is at 80 % (df) with the kit kept. The chroot was on /dev/shm and is deleted; the copy is deleted.",
+  "Regenerate MANIFEST and the seed at merge: START_MINIMAL_DEBIAN.sh is a seed input and changed.",
+  "lintian warnings left: no-manual-page, duplicate-font-file (Inter, OpenDyslexic), opentype embedding, jar-not-in-usr-share and a relative classpath (office-uno jar), .gitignore in the payload. 0 errors.",
+  "games/struthio has no licence assigned (RIGHTS.md) but is in the package payload; criterion 12 needs a decision.",
+  "Not checkable here: the login screen, LightDM and the session under it."
+ ],
+ "not_done": ["The login screen itself (cannot be checked here)", "debian/rules for dpkg-buildpackage, and an autopkgtest", "man pages", "a 'Graphite (safe start)' failsafe session entry", "a systemd user unit for the host service", "signing was not exercised (no key; the --sign-with path is written but untested)", "in-app updater words for a dpkg-owned install", "a first-start offer to remove ~/Applications/Graphite-*"],
+ "release_note": "Graphite now installs as Debian software. From the kit's folder, run JOIN.sh, then install.sh as root: it runs apt install graphite graphite-session, and you start it with graphite-startx as before. Optionally, graphite-desktop adds a LightDM login screen; two commands undo it. Your ~/Applications/Graphite-1.0 and your workspace stay, and START_HERE.md says how to go back. The doctor accepts Debian's own PySide6 6.8.2.1."
+}

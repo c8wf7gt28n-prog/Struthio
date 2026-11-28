@@ -1,0 +1,51 @@
+{
+ "item": "E1",
+ "status": "done",
+ "summary": "Explorer. The Files tree reads Quick access (Home, Desktop, Documents, Downloads, Pictures, Music; user-dirs.dirs names), the Desk lifted to the top, This computer (System (C:) = /, one press down; udisks2 drives with letters and free space), then Concern; the can at the foot says 'Recycle Bin' on a new profile, DELETE on a 1.0 profile (Rules > The bin's name). A folder chosen in the tree opens in the centre (new ExplorerPage in central_stack): List (Name, Modified, Type, Size, Links; a press sorts, again reverses; Ctrl/Shift multi-select), Icons (QImageReader thumbnails on the floor's workers, cached in ~/.cache/graphite/thumbs), Board (1.0's board of the chosen thing, unchanged). The one centre bar gets an address field (~, /, relative, C:\\ D:\\) in place of the breadcrumb, and List/Icons/Board (also on the board: List brings the folder back). Back/Forward walk folders (living_nav depth 'explorer'). W1's keys, clipboard and Properties, and L6c's batch with one Undo, work over the list; a right-click menu in words. The window starts with Home in List: never a blank centre.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/E1.patch",
+ "files_changed": [
+  "workbench/explorer.py (new)",
+  "workbench/explorer_qt.py (new)",
+  "tests_integrated/test_explorer.py (new)",
+  "workbench/living_nav.py",
+  "workbench/session.py",
+  "workbench/trash_can_qt.py",
+  "workbench/menus2.py",
+  "workbench/shell2.py",
+  "tests_integrated/test_delete_words.py",
+  "tests_integrated/kasandra_window_probe.py"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_explorer.py: 16 tests (11 on a real offscreen window over the Everyday Home, acceptance first; 5 without a window)",
+  "ran": "tests_integrated.test_explorer and tests_integrated.test_delete_words (22 tests) on the throwaway copy",
+  "output_tail": "----------------------------------------------------------------------\nRan 22 tests in 36.048s\n\nOK"
+ },
+ "existing_tests_changed": [
+  "test_delete_words.TheCan: a new profile's can says 'Recycle Bin' (the plan's new truth) with that word in its tip; kasandra 1920 size [162,29], rect [139,1094,162,29] (was [120,29], [218,1094,120,29]); the two tests renamed test_the_can_says_the_bins_word_in_kasandra/_graphite",
+  "kasandra_window_probe.case_delete: reports can.word and measures the expected box with it (was the constant DELETE)"
+ ],
+ "decisions": [
+  "The bin's word lives in the session: Session.load with no file gives 'Recycle Bin', an existing file without the key gives 'DELETE'; Rules > The bin's name switches it live. Only the can, its tip and the Files note lines (through note.tell) use the new word; other DELETE strings (tail_words, the OneBox search place, status-bar lines elsewhere) are unchanged.",
+  "The Explorer is its own page in central_stack (like the Field), not a working tab, so the one bar's depth is '' there; it leaves when a tab comes forward or _close_start runs (wrapped); leave_field or _close_start run before it shows.",
+  "Quick access holds the Home row with its whole subtree (collapsed at start) plus leaf rows for the five folders; the Desk is lifted to the top level; This computer loses the Drives drawer and the folders of / move under System (C:). Done by wrapping living_nav.tree_model (explorer.arrange); computer_tree_qt is not edited.",
+  "A file chosen in the tree opens its folder in the Explorer with it chosen; a folder whose remembered view is Board goes to the board as in 1.0; Desk records open on the board unchanged.",
+  "Views are remembered per folder in $XDG_CONFIG_HOME/graphite/explorer.json; a folder mostly of pictures opens in Icons the first time, every other in List. The sort order is one for the session, not per folder.",
+  "Links column: recorded links only (Desk.recorded on the board's reading of the desk); possible links are not counted (cost).",
+  "A folder is listed through the Kernel (ledger.browse, at most 2000 rows) on the window's thread; thumbnails off it. Home's view lists Home's folders only.",
+  "On the board's narrow bar the breadcrumb gives way first, then the Icons button hides (List and Board stay)."
+ ],
+ "findings_for_the_coordinator": [
+  "At start the centre is now the Explorer on Home when no tab is open (it was the empty workspace_split). Tier tests that assume central_stack is workspace_split right after start, or that the tree's first top row is 'This computer /' (kasandra_window_probe's tree cases use topLevelItem(0)), may need the new truth; I ran only my tests and test_delete_words.",
+  "living_nav.DEPTHS gained 'explorer'; the session state gains 'bin_word'. No new Kernel operation; no registry change.",
+  "Drive rows with letters and free space were checked on synthetic rows only (no system D-Bus here, so the tree shows no drive)."
+ ],
+ "not_done": [
+  "Recent files and drives in Home's view (the design's 'Home shows folders, drives and recent files')",
+  "Possible-link counts in Links",
+  "Space quick look, Send to, 'Copy/Move to the other pane', and Properties' Connections/Revisions/Permissions pages (design section 4, beyond E1's acceptance)",
+  "The rest of Graphite's DELETE wording on a Recycle Bin profile",
+  "Nothing ran on the ThinkPad, under Fluxbox or Xvfb: frames are offscreen grabs"
+ ],
+ "frames": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/E1/frames/ (1366x768_day_*, 1920x1200_day_*, 1920x1200_night_*: quick_access, downloads_list_by_size, pictures_icons, board_of_a_sheet)",
+ "release_note": "Files is an Explorer now: Quick access, the Desk and This computer in the tree; a folder opens in the centre as a List you can sort, as Icons with picture thumbnails, or on the Board; type a path in the bar to go there. On a new profile the bin is called Recycle Bin (Rules > The bin's name)."
+}

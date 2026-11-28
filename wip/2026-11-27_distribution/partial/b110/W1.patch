@@ -1,0 +1,1984 @@
+diff --git a/LS_XSESSION.sh b/LS_XSESSION.sh
+index 56006c5..def3ba1 100755
+--- a/LS_XSESSION.sh
++++ b/LS_XSESSION.sh
+@@ -71,8 +71,17 @@ fi
+ # Fluxbox, hidden, for the whole session (started again if it ends, at most five times).
+ ledger_window_manager_pid=''
+ ledger_window_manager_starts=0
++ledger_fluxbox_rc=''  # 1.1 W1: Fluxbox's files for this session (the keys that work whichever app is in front), never ~/.fluxbox
++ledger_write_keys() {  # 1.1 W1: graphite-do writes keys and init into the session folder; Fluxbox reads them with -rc
++  local writer="$ledger_program/tools/graphite-do"
++  if [[ -z "$ledger_session_dir" ]]; then return 1; fi
++  if ! [[ -f "$writer" ]]; then writer="$(command -v graphite-do 2>/dev/null)" || return 1; fi
++  ledger_fluxbox_rc="$(python3 -B "$writer" --write-keys "$ledger_session_dir/fluxbox" 2>/dev/null)" || { ledger_fluxbox_rc=''; return 1; }
++  ledger_log_line "the keys from any app: $ledger_session_dir/fluxbox/keys"
++}
+ ledger_start_window_manager() {
+-  fluxbox -no-slit -no-toolbar &
++  if [[ -z "$ledger_fluxbox_rc" ]]; then ledger_write_keys || true; fi  # 1.1 W1
++  fluxbox -no-slit -no-toolbar ${ledger_fluxbox_rc:+-rc "$ledger_fluxbox_rc"} &  # 1.1 W1: -rc, the session's keys
+   ledger_window_manager_pid=$!; ledger_window_manager_starts=$(( ledger_window_manager_starts + 1 ))
+ }
+ ledger_graphite_pid=''
+diff --git a/tests_integrated/test_one_name.py b/tests_integrated/test_one_name.py
+index 962f763..5b32eda 100644
+--- a/tests_integrated/test_one_name.py
++++ b/tests_integrated/test_one_name.py
+@@ -142,7 +142,9 @@ class TheSweepItself(unittest.TestCase):
+         self.assertEqual(name_sweep.in_guides(ROOT),[])
+         with tempfile.TemporaryDirectory() as temp:
+             (Path(temp)/'GUIDE.md').write_text('Open the Field.\nSearch commands with Ctrl+Shift+P.\nThe Programs list is at the upper right.\n'+name_sweep.KEYS_KEPT[-1][0]+'\n',encoding='utf-8')
+-            self.assertEqual([(page,number) for page,number,_ in name_sweep.in_guides(temp,('GUIDE.md',))],[('GUIDE.md',2),('GUIDE.md',3)])
++            # 1.1 W1: a Guide page may name a key now (keys are shown; "Show keys" hides them in menus and tips); Programs is still Apps
++            self.assertEqual([(page,number) for page,number,_ in name_sweep.in_guides(temp,('GUIDE.md',))],[('GUIDE.md',3)])
++            self.assertEqual([(page,number) for page,number,_ in name_sweep.in_guides(temp,('GUIDE.md',),keys=True)],[('GUIDE.md',2),('GUIDE.md',3)])
+ 
+     def test_the_code_sweep_reads_sentences_and_not_documentation(self):
+         with tempfile.TemporaryDirectory() as temp:
+@@ -197,11 +199,28 @@ class TheCode(unittest.TestCase):
+         for (file,start),why in name_sweep.CODE_KEPT.items():
+             self.assertTrue(any(f==file and words.startswith(start[:160]) for f,_,words in everything),(file,start));self.assertTrue(why.strip(),(file,start))
+ 
+-    def test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed(self):
+-        # 0.8.4's review: a dozen shown words still named a key where the walk does not go (a status line, a note, a tip on a
+-        # page no desk act opens). Every sentence that names one is gone or kept in name_sweep.KEYS_CODE_KEPT with its reason.
+-        left=name_sweep.keys_in_code(ROOT)
+-        self.assertEqual(left,[],'these words name a key on screen: say what to click instead, or say in tools/name_sweep.KEYS_CODE_KEPT why the key stays')
++    def test_keys_are_shown_in_menus_and_tips_and_show_keys_hides_them(self):
++        # 1.1 W1 moves this test to the new truth (PLAN_1.1.md section 6, reversing the owner's rule of 13 Nov): a sentence in the
++        # code may name a key, menus print a line's key beside it, and the one setting "Show keys" turns every printed key off.
++        # The finder still finds them (keys_in_code: a list to read), and KEYS_CODE_KEPT's reviewed entries still stand.
++        from PySide6.QtGui import QAction
++        from PySide6.QtWidgets import QApplication,QMenu
++        from workbench import tool_faces,windows_hand
++        app=QApplication.instance() or QApplication([])
++        with tempfile.TemporaryDirectory() as temp:
++            env={'XDG_CONFIG_HOME':temp}
++            with patch.dict(os.environ,env):
++                for shown in (True,False):
++                    windows_hand.write(show_keys=shown)
++                    menu=QMenu();line=QAction('Copy',menu);line.setShortcut('Ctrl+C');menu.addAction(line);tab=menu.addAction('Run\tAlt+3')
++                    tool_faces.dress(menu)
++                    self.assertEqual(line.isShortcutVisibleInContextMenu(),shown)
++                    self.assertEqual(tab.text(),'Run\tAlt+3' if shown else 'Run')
++                    self.assertEqual(windows_hand.keyed('Rename','F2'),'Rename (F2)' if shown else 'Rename')
++                    self.assertEqual(name_sweep.named_in('Rename (F2)','toolTip',keys=not windows_hand.show_keys()),[] if shown else ['key'])
++                    menu.deleteLater()
++        app.processEvents()
++        self.assertTrue(name_sweep.keys_in_code(ROOT,kept={}),'the finder still finds the keys the code names')
+         everything=name_sweep.keys_in_code(ROOT,kept={})
+         for (file,start),why in name_sweep.KEYS_CODE_KEPT.items():
+             self.assertTrue((ROOT/file).exists(),file);self.assertGreater(len(why),20,(file,start))
+diff --git a/tests_integrated/test_windows_hand.py b/tests_integrated/test_windows_hand.py
+new file mode 100644
+index 0000000..55d1443
+--- /dev/null
++++ b/tests_integrated/test_windows_hand.py
+@@ -0,0 +1,246 @@
++"""1.1 W1, a Windows hand's keys and DOS words (PLAN_1.1.md, W1).
++
++Acceptance first: 60 DOS lines each give the expected Debian command; the file clipboard cuts three files and pastes them
++with one Undo; the Fluxbox keys file is written and graphite-do speaks to a running window's door. Then what never runs
++(rm, format, chkdsk), deleting for good (your press only), Properties, the clock, the Terminal's own use of DOS words.
++
++Only Fluxbox on a real session can show the keys reaching graphite-do from another app; here graphite-do is called
++directly against the door, as the key would call it.
++
++Run alone:  python3 -B -m unittest -v tests_integrated.test_windows_hand
++"""
++import json, os, subprocess, sys, tempfile, time, unittest
++from pathlib import Path
++from types import SimpleNamespace
++from unittest.mock import patch
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++
++ROOT = Path(__file__).resolve().parents[1]
++PLACES = {'C': '/', 'D': '/media/me/STICK', 'E': '/media/me/PHOTOS'}
++HAS_TREE = lambda name: '/usr/bin/' + name
++NO_TREE = lambda name: None
++SIXTY = [  # (DOS, the Debian command shown)
++    ('dir', 'ls -l'), ('DIR', 'ls -l'), ('dir /w', 'ls'), ('dir /b', 'ls -1'), ('dir /s', 'ls -lR'), ('dir /a', 'ls -la'),
++    ('dir /s /a', 'ls -laR'), ('dir/s', 'ls -lR'), ('dir /s /b', 'find .'), ('dir /s /b *.txt', "find . -name '*.txt'"),
++    ('dir /od', 'ls -ltr'), ('dir /o-d', 'ls -lt'), ('dir /os', 'ls -lSr'), ('dir *.pdf', 'ls -l *.pdf'), ('dir C:\\', 'ls -l /'),
++    ('dir D:\\Letters', 'ls -l /media/me/STICK/Letters'), ('dir "My Files"', "ls -l 'My Files'"), ('dir /ad', 'ls -ld */'),
++    ('cd..', 'cd ..'), ('cd\\', 'cd /'), ('cd \\Users', 'cd /Users'), ('cd D:\\Photos', 'cd /media/me/STICK/Photos'),
++    ('D:', 'cd /media/me/STICK'), ('e:', 'cd /media/me/PHOTOS'), ('C:', 'cd /'), ('cls', 'clear'),
++    ('copy a.txt b.txt', 'cp -n a.txt b.txt'), ('copy /y a.txt b.txt', 'cp a.txt b.txt'), ('copy notes.txt D:\\', 'cp -n notes.txt /media/me/STICK'),
++    ('xcopy docs backup /s /e', 'cp -rn docs/. backup'), ('xcopy docs backup /s /e /y', 'cp -r docs/. backup'),
++    ('move a.txt Old', 'mv -n a.txt Old'), ('move /y a.txt Old', 'mv a.txt Old'), ('del a.txt', 'gio trash a.txt'),
++    ('del /q *.tmp', 'gio trash *.tmp'), ('erase old.log', 'gio trash old.log'), ('ren a.txt b.txt', 'mv -n a.txt b.txt'),
++    ('ren *.txt *.bak', 'for f in *.txt; do mv -n -- "$f" "${f%.txt}.bak"; done'), ('md Letters\\2026', 'mkdir -p Letters/2026'),
++    ('rd Old', 'rmdir Old'), ('rd /s /q Old', 'gio trash Old'), ('type notes.txt', 'cat notes.txt'), ('more < notes.txt', 'more < notes.txt'),
++    ('tree /a', 'tree -d --charset=ascii'), ('tree /f', 'tree'), ('attrib +r a.txt', 'chmod a-w a.txt'), ('attrib -r a.txt', 'chmod u+w a.txt'),
++    ('ver', 'cat /etc/debian_version && uname -sr'), ('date', "date '+%A %d %B %Y'"), ('time /t', 'date +%H:%M'),
++    ('set', 'env | sort'), ('set HO', "env | grep -i '^HO'"), ('path', 'echo $PATH'), ('echo %HOME%', 'echo "${HOME}"'),
++    ('find "invoice" notes.txt', "grep -F invoice notes.txt"), ('find /i /n "tax" a.txt', "grep -Fin tax a.txt"),
++    ('dir | find "pdf"', 'ls -l | grep -F pdf'), ('ipconfig', 'ip -brief address'), ('ipconfig /all', 'ip address'),
++    ('ping debian.org', 'ping -c 4 debian.org'), ('ping -n 2 debian.org', 'ping -c 2 debian.org'), ('ping -t debian.org', 'ping debian.org'),
++    ('tasklist', 'ps -e -o pid,rss,comm --sort=comm'), ('taskkill /pid 4242', 'kill 4242'), ('taskkill /f /im firefox.exe', 'pkill -9 -x firefox'),
++    ('dir /?', 'ls --help'), ('echo hello > nul', 'echo hello > /dev/null'),
++]
++
++
++class DosWords(unittest.TestCase):
++    def test_sixty_dos_lines_give_the_expected_debian_command(self):
++        from workbench import dos_words as dw
++        self.assertGreaterEqual(len(SIXTY), 60)
++        wrong = []
++        for dos, debian in SIXTY:
++            said = dw.translate(dos, cwd='/home/me', places=PLACES, which=HAS_TREE)
++            got = said.command if said is not None else None
++            if got != debian:wrong.append((dos, debian, got))
++        self.assertEqual(wrong, [])
++        said = dw.translate('dir /s', cwd='/home/me', places=PLACES)
++        self.assertEqual(said.shown(), 'dir /s \u2192 ls -lR')      # the line above the output, as the plan shows it
++
++    def test_a_debian_line_goes_to_the_shell_as_typed(self):
++        from workbench import dos_words as dw
++        for line in ('ls -la', 'find . -name "*.txt"', 'echo hi', 'cd docs', 'ping -c 3 debian.org', 'time ls', 'type ls',
++                     'set -e', 'mkdir new', 'tree', 'grep -r tax .', 'cat a.txt | sort', 'more notes.txt', 'date -u'):
++            self.assertIsNone(dw.translate(line, cwd='/home/me', places=PLACES, which=HAS_TREE), line)
++        self.assertEqual(dw.translate('tree', cwd='/home/me', places=PLACES, which=NO_TREE), None)
++        self.assertEqual(dw.translate('tree /f', cwd='/home/me', places=PLACES, which=NO_TREE).command, 'find .')
++
++    def test_nothing_in_dos_words_runs_rm_and_format_and_chkdsk_are_only_explained(self):
++        from workbench import dos_words as dw
++        for dos, _ in SIXTY + [('del /s /q *.bak', ''), ('rd /s Old', ''), ('rmdir /s /q Old', '')]:
++            said = dw.translate(dos, cwd='/home/me', places=PLACES, which=HAS_TREE)
++            self.assertNotRegex(said.run + ' ', r'(^|[;&| ])rm ', dos)
++        for dos in ('del a.txt', 'rd /s /q Old', 'del /s /q *.bak'):
++            said = dw.translate(dos, cwd='/home/me', places=PLACES);self.assertEqual((said.kind, said.run), ('trash', ''), dos)
++        self.assertTrue(dw.translate('del *.*', cwd='/home/me', places=PLACES).ask)
++        self.assertFalse(dw.translate('del /q *.*', cwd='/home/me', places=PLACES).ask)
++        for dos in ('format D:', 'chkdsk C:', 'chkdsk', 'fdisk', 'diskpart', 'date 01-12-2026', 'ipconfig /release', 'attrib +h a.txt'):
++            said = dw.translate(dos, cwd='/home/me', places=PLACES)
++            self.assertEqual((said.kind, said.run), ('explain', ''), dos);self.assertTrue(said.words, dos)
++        self.assertIn('never run', dw.translate('format D:', places=PLACES).words)
++        said = dw.translate('F:', cwd='/home/me', places=PLACES)
++        self.assertEqual(said.kind, 'explain');self.assertIn('no drive F:', said.words)
++
++    def test_drive_letters_are_the_mounted_drives_in_order(self):
++        from workbench import dos_words as dw
++        mounts = ('/dev/sda2 / ext4 rw 0 0\n/dev/sdb1 /media/me/STICK vfat rw 0 0\nproc /proc proc rw 0 0\n'
++                  '/dev/sdc1 /media/me/MY\\040PHOTOS exfat rw 0 0\n/dev/sdd1 /mnt/backup ext4 rw 0 0\n')
++        self.assertEqual(dw.drives(mounts), {'C': '/', 'D': '/media/me/STICK', 'E': '/media/me/MY PHOTOS', 'F': '/mnt/backup'})
++        here = dw.drives(mounts)
++        self.assertEqual(dw.translate('cd\\', cwd='/media/me/STICK/Letters', places=here).target, '/media/me/STICK')
++        self.assertEqual(dw.translate('dir E:\\', cwd='/home/me', places=here).command, "ls -l '/media/me/MY PHOTOS'")
++
++    def test_the_terminal_shows_the_debian_command_then_runs_it_or_only_shows_it(self):
++        from workbench import dos_words as dw
++        with tempfile.TemporaryDirectory() as temp:
++            ran, said = [], []
++            console = SimpleNamespace(working_dir=lambda: Path(temp), sign_text=lambda: '~ $', say=lambda html, echo=None: said.append((html, echo)),
++                                      run_shell=lambda line, extra_env=None: ran.append((line, extra_env)), link=lambda label, fn: label, host=None)
++            with patch.object(dw, 'drives', return_value=PLACES):
++                self.assertTrue(dw.in_terminal(console, 'dir /s', mode='on'))
++                self.assertEqual(ran, [('ls -lR', None)]);self.assertIn('dir /s \u2192 ls -lR', said[0][0])
++                self.assertTrue(dw.in_terminal(console, 'set NAME=Me', mode='on'))
++                self.assertTrue(dw.in_terminal(console, 'type a.txt', mode='on'))
++                self.assertEqual(ran[-1], ('cat a.txt', {'NAME': 'Me'}))
++                ran.clear();said.clear()
++                self.assertTrue(dw.in_terminal(console, 'dir /s', mode='show'))
++                self.assertEqual(ran, []);self.assertIn('nothing was run', said[-1][0])
++                self.assertFalse(dw.in_terminal(console, 'dir /s', mode='off'))
++                self.assertFalse(dw.in_terminal(console, 'ls -la', mode='on'))
++
++
++class FileClipboard(unittest.TestCase):
++    def setUp(self):
++        self.temp = tempfile.TemporaryDirectory();base = Path(self.temp.name)
++        self.home = base / 'home';self.home.mkdir();(base / 'ws').mkdir()
++        self.env = patch.dict(os.environ, {'HOME': str(self.home), 'XDG_DATA_HOME': str(self.home / '.local/share'), 'XDG_CONFIG_HOME': str(self.home / '.config')})
++        self.env.start()
++        from workbench.engineering_kernel import Kernel, operator
++        self.kernel = Kernel(base / 'ws');self.owner = operator()
++
++    def tearDown(self):
++        self.env.stop();self.temp.cleanup()
++
++    def test_three_files_cut_and_pasted_with_one_undo(self):
++        from workbench import windows_hand as wh
++        downloads = self.home / 'Downloads';invoices = self.home / 'Invoices';downloads.mkdir();invoices.mkdir()
++        names = ['invoice-1.pdf', 'invoice-2.pdf', 'invoice-3.pdf']
++        for n in names:(downloads / n).write_text(n)
++        clip = wh.FileClipboard()
++        self.assertEqual(clip.hold([downloads / n for n in names], 'move'), '3 files cut: paste them in a folder.')
++        answer = clip.paste(self.kernel, invoices, self.owner)
++        self.assertTrue(answer.get('ok'), answer);result = answer['result']
++        self.assertEqual(result['done'], 3);self.assertEqual(sorted(p.name for p in invoices.iterdir()), names)
++        self.assertEqual(list(downloads.iterdir()), []);self.assertEqual(clip.paths, [], 'a cut is pasted once')
++        back = self.kernel.dispatch('files.batch_undo', {'batch': result['batch']}, self.owner)      # ONE Undo for the paste
++        self.assertTrue(back.get('ok'), back);self.assertEqual(back['result']['back'], 3)
++        self.assertEqual(sorted(p.name for p in downloads.iterdir()), names);self.assertEqual(list(invoices.iterdir()), [])
++
++    def test_a_copy_pastes_again_and_never_writes_over(self):
++        from workbench import windows_hand as wh
++        (self.home / 'a.txt').write_text('one');target = self.home / 'Copies';target.mkdir()
++        clip = wh.FileClipboard();clip.hold([self.home / 'a.txt'], 'copy')
++        for _ in range(2):self.assertTrue(clip.paste(self.kernel, target, self.owner).get('ok'))
++        self.assertEqual(len(list(target.iterdir())), 2, 'the second paste took a free name');self.assertEqual((self.home / 'a.txt').read_text(), 'one')
++        self.assertEqual(wh.FileClipboard().words(), 'Nothing is held to paste.')
++
++    def test_delete_for_good_is_your_press_only_and_only_in_your_home(self):
++        from workbench.engineering_kernel import Principal
++        from workbench import home_reach as hr
++        doomed = self.home / 'old.txt';doomed.write_text('x')
++        with patch.object(hr, 'in_her_work', return_value=True):
++            refused = self.kernel.dispatch('files.delete_for_good', {'path': str(doomed)}, self.owner)
++        self.assertFalse(refused.get('ok'));self.assertIn('your press only', str(refused['error']));self.assertTrue(doomed.exists())
++        outside = self.kernel.dispatch('files.delete_for_good', {'path': '/etc/hostname'}, self.owner)
++        self.assertFalse(outside.get('ok'))
++        home_itself = self.kernel.dispatch('files.delete_for_good', {'path': str(self.home)}, self.owner)
++        self.assertFalse(home_itself.get('ok'));self.assertTrue(self.home.exists())
++        done = self.kernel.dispatch('files.delete_for_good', {'path': str(doomed)}, self.owner)
++        self.assertTrue(done.get('ok'), done);self.assertFalse(doomed.exists());self.assertIn('cannot be put back', done['result']['words'])
++
++    def test_properties_say_what_the_file_is_in_words(self):
++        from workbench import windows_hand as wh
++        f = self.home / 'letter.txt';f.write_text('hello');os.chmod(f, 0o640)
++        rows = dict(wh.properties(f, query=lambda kind: 'invented-editor.desktop' if kind == 'text/plain' else ''))
++        self.assertEqual(rows['Name'], 'letter.txt');self.assertIn('TXT file', rows['Kind']);self.assertEqual(rows['Size'], '5 bytes')
++        self.assertEqual(rows['Where'], '~');self.assertTrue(rows['Who may'].startswith('You may read and change it; others in the group'))
++        self.assertIn('everyone else may neither read nor change it', rows['Who may'])
++        self.assertEqual(rows['Opens with'], 'invented-editor')
++        self.assertEqual([r[0] for r in wh.properties(self.home)][:3], ['Name', 'Kind', 'Size'])
++
++    def test_the_two_settings_are_kept_and_show_keys_is_on_at_first(self):
++        from workbench import windows_hand as wh
++        self.assertEqual(wh.read(), {'show_keys': True, 'dos_words': 'on'})
++        wh.write(show_keys=False, dos_words='show');self.assertEqual(wh.read(), {'show_keys': False, 'dos_words': 'show'})
++        wh.write(dos_words='nonsense');self.assertEqual(wh.dos_words(), 'show')
++
++
++class KeysFromAnyApp(unittest.TestCase):
++    def test_the_fluxbox_keys_file_names_each_key_and_graphite_do(self):
++        tool = ROOT / 'tools' / 'graphite-do'
++        with tempfile.TemporaryDirectory() as temp:
++            out = subprocess.run([sys.executable, '-B', str(tool), '--write-keys', temp + '/fluxbox'], capture_output=True, text=True, timeout=30)
++            self.assertEqual(out.returncode, 0, out.stderr);init = Path(out.stdout.strip())
++            self.assertEqual(init, Path(temp) / 'fluxbox' / 'init')
++            self.assertIn('session.keyFile:\t%s/fluxbox/keys' % temp, init.read_text())
++            keys = (Path(temp) / 'fluxbox' / 'keys').read_text()
++        for line in ('Super_L :Exec "%s" apps' % tool, 'Mod4 e :Exec "%s" files' % tool, 'Mod4 d :Exec "%s" show' % tool, 'Mod4 l :Exec "%s" lock' % tool,
++                     'Control Mod1 Delete :Exec "%s" tasks' % tool, 'Print :Exec "%s" screenshot' % tool, 'Mod1 F4 :Close'):
++            self.assertIn(line + '\n', keys)
++        self.assertRegex(keys, r'\nMod1 Tab :NextWindow')
++        self.assertTrue(os.access(tool, os.X_OK))
++        script = (ROOT / 'LS_XSESSION.sh').read_text()
++        self.assertIn('--write-keys "$ledger_session_dir/fluxbox"', script);self.assertIn('${ledger_fluxbox_rc:+-rc "$ledger_fluxbox_rc"}', script)
++
++    def test_graphite_do_speaks_to_the_running_windows_door(self):
++        from PySide6.QtWidgets import QApplication, QMainWindow
++        from workbench import windows_keys_qt as wk
++        app = QApplication.instance() or QApplication([])
++        with tempfile.TemporaryDirectory() as temp:
++            host = QMainWindow();sock = Path(temp) / 'do.sock'
++            door = wk.Door(host, sock);self.assertTrue(door.listening, door.why);self.assertEqual(oct(sock.stat().st_mode & 0o777), '0o600')
++            env = dict(os.environ, GRAPHITE_DO_SOCKET=str(sock), HOME=temp)
++            answers = {}
++            with patch.object(wk, 'screenshot', lambda h: str(Path(temp) / 'Pictures/Screenshots/Screenshot.png')):
++                for verb in ('ping', 'show', 'screenshot', 'nonsense'):
++                    child = subprocess.Popen([sys.executable, '-B', str(ROOT / 'tools' / 'graphite-do'), verb], env=env, stdout=subprocess.PIPE, text=True)
++                    deadline = time.monotonic() + 20
++                    while child.poll() is None and time.monotonic() < deadline:app.processEvents();time.sleep(0.01)
++                    answers[verb] = (child.returncode, child.stdout.read().strip());child.stdout.close()
++            self.assertEqual(answers['ping'], (0, 'Graphite is here.'))
++            self.assertEqual(answers['show'], (0, 'Graphite is in front.'))
++            self.assertEqual(answers['screenshot'][0], 0);self.assertIn('Screenshots', answers['screenshot'][1])
++            self.assertEqual(answers['nonsense'][0], 1);self.assertIn('graphite-do knows', answers['nonsense'][1])
++            self.assertEqual(door.heard, ['ping', 'show', 'screenshot'], 'an unknown word never reaches the window')
++            door.close();self.assertFalse(sock.exists());host.deleteLater()
++        out = subprocess.run([sys.executable, '-B', str(ROOT / 'tools' / 'graphite-do'), 'ping'], env=dict(os.environ, GRAPHITE_DO_SOCKET='/nonexistent/x.sock'),
++                             capture_output=True, text=True, timeout=30)
++        self.assertEqual(out.returncode, 1);self.assertIn('Graphite is not running here', out.stdout)
++
++    def test_printscreen_saves_a_picture_into_screenshots_and_says_so(self):
++        from PySide6.QtWidgets import QApplication, QMainWindow
++        from workbench import windows_keys_qt as wk
++        app = QApplication.instance() or QApplication([])
++        with tempfile.TemporaryDirectory() as temp:
++            host = QMainWindow();host.resize(320, 200);host.show();app.processEvents()
++            made = wk.screenshot(host, Path(temp) / 'Pictures' / 'Screenshots', now=0)
++            if not made:self.skipTest('this display gives no picture of the screen')
++            self.assertTrue(Path(made).is_file());self.assertTrue(Path(made).name.startswith('Screenshot '))
++            self.assertIn('Saved a picture of the screen', host.statusBar().currentMessage())
++            host.close();host.deleteLater()
++
++    def test_the_clock_says_the_time_and_the_date_and_a_press_shows_the_month(self):
++        from PySide6.QtWidgets import QApplication, QWidget
++        from workbench import dock_clock_qt as dc
++        app = QApplication.instance() or QApplication([])
++        stamp = time.mktime((2026, 11, 28, 14, 5, 0, 0, 0, -1))
++        self.assertEqual(dc.words(stamp), ('14:05', 'Sat 28 Nov', 'Saturday 28 November 2026'))
++        bar = QWidget();bar.resize(1366, 28);clock = dc.attach(bar)
++        self.assertRegex(clock.text(), r'^\d\d:\d\d \u00b7 \w{3} \d{1,2} \w{3}$')
++        width = dc.place(clock, bar, 28);self.assertEqual(clock.geometry().right() + 1, 1366);self.assertGreater(width, 40)
++        month = clock.show_month();app.processEvents()
++        self.assertTrue(month.isVisible());self.assertTrue(month.today.text().startswith('Today is '))
++        month.close();bar.deleteLater()
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tools/graphite-do b/tools/graphite-do
+new file mode 100755
+index 0000000..54f77dc
+--- /dev/null
++++ b/tools/graphite-do
+@@ -0,0 +1,110 @@
++#!/usr/bin/env python3
++"""graphite-do (Graphite 1.1 W1): the keys that work whichever app is in front, said to the running Graphite window.
++
++  graphite-do WORD            WORD is one of: apps files show lock tasks screenshot ping. The running window does it
++                              (workbench/windows_keys_qt.Door) and answers in one line; the exit status is 0 when done.
++  graphite-do --write-keys D  writes Fluxbox's files for the session into the folder D: D/keys (the keys) and D/init
++                              (Fluxbox's settings, naming that keys file); prints D/init, for fluxbox -rc. LS_XSESSION.sh
++                              does this, so the owner's own ~/.fluxbox is never touched.
++
++The socket is the window's: GRAPHITE_DO_SOCKET, else $XDG_RUNTIME_DIR/graphite-do.sock, else /tmp/graphite-do-UID.sock,
++the window's own user only. Nothing here leaves the computer. Standard library only, so a key press starts it quickly.
++"""
++import json
++import os
++import socket
++import sys
++
++VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping')
++# Fluxbox's key lines (its own syntax): the key, then what it does. Mod4 is the Windows key, Mod1 is Alt.
++KEYS = (
++    ('Super_L', 'apps', 'the Windows key opens Apps'),
++    ('Super_R', 'apps', 'the right Windows key too'),
++    ('Mod4 e', 'files', 'Win+E opens Files'),
++    ('Mod4 d', 'show', 'Win+D shows Graphite'),
++    ('Mod4 l', 'lock', 'Win+L locks the screen'),
++    ('Control Mod1 Delete', 'tasks', "Ctrl+Alt+Del opens Graphite's page of what runs"),
++    ('Print', 'screenshot', 'PrintScreen saves a picture of the screen into ~/Pictures/Screenshots'),
++)
++FLUXBOX_OWN = (
++    ('Mod1 Tab', ':NextWindow {static groups} (workspace=[current])', 'Alt+Tab goes to the next window'),
++    ('Mod1 Shift Tab', ':PrevWindow {static groups} (workspace=[current])', 'Alt+Shift+Tab goes back'),
++    ('Mod1 F4', ':Close', 'Alt+F4 closes the window in front'),
++)
++
++
++def socket_path(environ=None):
++    environ = os.environ if environ is None else environ
++    if environ.get('GRAPHITE_DO_SOCKET'):return environ['GRAPHITE_DO_SOCKET']
++    run = environ.get('XDG_RUNTIME_DIR')
++    if run and os.path.isdir(run):return os.path.join(run, 'graphite-do.sock')
++    return '/tmp/graphite-do-%d.sock' % os.getuid()
++
++
++def ask(verb, path=None, timeout=10.0):
++    """Say one word to the window: its answer {ok, words}."""
++    if verb not in VERBS:return {'ok': False, 'words': 'graphite-do knows: ' + ', '.join(VERBS)}
++    path = path or socket_path()
++    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM);s.settimeout(timeout)
++    try:
++        s.connect(path)
++        s.sendall((verb + '\n').encode('utf-8'))
++        data = b''
++        while not data.endswith(b'\n'):
++            chunk = s.recv(4096)
++            if not chunk:break
++            data += chunk
++    except OSError as exc:
++        return {'ok': False, 'words': 'Graphite is not running here (%s).' % (exc.strerror or exc)}
++    finally:
++        s.close()
++    try:return json.loads(data.decode('utf-8', 'replace') or '{}')
++    except ValueError:
++        return {'ok': False, 'words': 'Graphite gave no answer.'}
++
++
++def quoted(text):
++    return '"%s"' % text.replace('\\', '\\\\').replace('"', '\\"')
++
++
++def keys_text(command):
++    """Fluxbox's keys file: each key, what it does, and why, in Fluxbox's own syntax."""
++    lines = ['# Graphite 1.1: the keys that work whichever app is in front. Written by the session (LS_XSESSION.sh);',
++             '# a new session writes it again, so a change here lasts one session.']
++    for key, verb, why in KEYS:
++        lines.append('# %s' % why);lines.append('%s :Exec %s %s' % (key, quoted(command), verb))
++    for key, does, why in FLUXBOX_OWN:
++        lines.append('# %s' % why);lines.append('%s %s' % (key, does))
++    return '\n'.join(lines) + '\n'
++
++
++def init_text(keys_file):
++    return ('session.keyFile:\t%s\n' % keys_file + 'session.screen0.toolbar.visible:\tfalse\n'
++            'session.screen0.slit.autoHide:\ttrue\nsession.screen0.workspaces:\t1\n')
++
++
++def write_keys(folder, command=None):
++    """D/keys and D/init for this session; returns D/init."""
++    command = command or os.path.abspath(sys.argv[0] if sys.argv and sys.argv[0].endswith('graphite-do') else __file__)
++    os.makedirs(folder, mode=0o700, exist_ok=True)
++    keys = os.path.join(folder, 'keys');init = os.path.join(folder, 'init')
++    for path, text in ((keys, keys_text(command)), (init, init_text(keys))):
++        temp = path + '.tmp'
++        with open(temp, 'w', encoding='utf-8') as out:out.write(text)
++        os.replace(temp, path)
++    return init
++
++
++def main(argv=None):
++    argv = sys.argv[1:] if argv is None else argv
++    if len(argv) == 2 and argv[0] == '--write-keys':
++        print(write_keys(argv[1]));return 0
++    if len(argv) != 1 or argv[0] in ('-h', '--help'):
++        print('graphite-do WORD   (WORD: %s)\ngraphite-do --write-keys FOLDER' % ' '.join(VERBS));return 0 if argv[:1] in (['-h'], ['--help']) else 2
++    answer = ask(argv[0].lower())
++    print(answer.get('words') or ('done' if answer.get('ok') else 'not done'))
++    return 0 if answer.get('ok') else 1
++
++
++if __name__ == '__main__':
++    sys.exit(main())
+diff --git a/tools/name_sweep.py b/tools/name_sweep.py
+index ce7226f..e20cd53 100644
+--- a/tools/name_sweep.py
++++ b/tools/name_sweep.py
+@@ -6,6 +6,10 @@ until 0.8.3: she is Kasandra in every look (workbench/assistant_identity.py; the
+ Otherwise we have too many people"). And two words more (0.8.4): "Programs", which on screen is "Apps"; and a key, since
+ no keyboard shortcut is printed on screen (KEYS; in the program's own words, KEY_KINDS: its labels, tips, status tips,
+ "what's this", names and descriptions for a reader, titles; KEYS_KEPT is the reviewed list of words that keep their key).
++1.1 W1 moves the key to a new truth (PLAN_1.1.md section 6, reversing the owner's rule of 13 Nov): menus and tips show their
++keys, and the setting "Show keys" (workbench/windows_hand) turns them off. So a key is looked for only where it is asked
++for (named_in(..., keys=True), the default, and sweep(..., keys=...)); the walk asks for it only with "Show keys" off, the
++Guide pages may name keys, and the code's sentences that name one (keys_in_code) are a list to read, not a failure.
+ 
+   in_guides(root)        every line of the pages Guide opens in the program that names a key or says "Programs"
+ 
+@@ -173,28 +177,30 @@ def words_of(widget):
+     return [(kind, words) for kind, words in out if words]
+ 
+ 
+-def named_in(words, kind=None):
++def named_in(words, kind=None, keys=True):
+     """Which of NEVER these words say, an identity shown as it is stored set aside. A key is looked for when the words
+     are the program's own (`kind` in KEY_KINDS, or not given), with the words of KEYS_KEPT set aside."""
++    look_for_keys = keys      # 1.1 W1: False where keys may be shown
+     rest = KEPT.sub(' ', RECORD.sub(' ', words));out = []
+     keys = words      # for a key, the words as they stand: an identity joins no key, and KEYS_KEPT is written in whole words
+     for kept, _why in KEYS_KEPT:keys = keys.replace(kept, ' ')
+     for name, (pattern, _) in NEVER.items():
+-        if name == 'key' and kind is not None and kind not in KEY_KINDS:continue
++        if name == 'key' and (not look_for_keys or kind is not None and kind not in KEY_KINDS):continue      # 1.1 W1: keys=False, keys may be shown
+         if pattern.search(keys if name == 'key' else rest):out.append(name)
+     return out
+ 
+ 
+-def in_guides(root=ROOT, pages=GUIDE_PAGES):
+-    """Every line of the pages Guide opens in the program that names a key or says "Programs" -> [(page, line, words)]."""
++def in_guides(root=ROOT, pages=GUIDE_PAGES, keys=False):
++    """Every line of the pages Guide opens in the program that says "Programs" (or names a key, with keys=True: 1.1 W1, a
++    Guide page may name a key now, since a Windows hand learns keys from it) -> [(page, line, words)]."""
+     out = []
+     for page in pages:
+         for number, line in enumerate((Path(root) / page).read_text(encoding='utf-8').splitlines(), 1):
+-            if any(name in ('key', 'programs') for name in named_in(line, 'text')):out.append((page, number, line.strip()[:160]))
++            if any(name in ('key', 'programs') for name in named_in(line, 'text', keys=keys)):out.append((page, number, line.strip()[:160]))
+     return out
+ 
+ 
+-def sweep(window, where, found=None, read=None):
++def sweep(window, where, found=None, read=None, keys=True):
+     """Read every widget of the program (the window's, and whatever stands beside it: a menu, a card, a page over the work)
+     and every menu line. `found` gathers what names a NEVER; `read` gathers every word read, so that a caller can tell a
+     sweep that found nothing from one that read nothing."""
+@@ -204,7 +210,7 @@ def sweep(window, where, found=None, read=None):
+     seen = {(f['name'], f['widget'], f['kind'], f['words']) for f in found}
+     def note(owner, kind, words):
+         if read is not None:read.add(words)
+-        for name in named_in(words, kind):
++        for name in named_in(words, kind, keys=keys):      # 1.1 W1: keys=False where keys may be shown
+             row = (name, owner, kind, words[:200])
+             if row not in seen:
+                 seen.add(row);found.append(dict(name=name, where=where, widget=owner, kind=kind, words=words[:200]))
+@@ -241,9 +247,11 @@ def walk(window, settle, log=None):
+     from workbench import desk_acts, local_brain, log_qt
+     from workbench.desk_doers import run
+     found, places, read = [], [], set()
++    from workbench.windows_hand import show_keys
++    keys = not show_keys()      # 1.1 W1: with "Show keys" on (the default), menus and tips may print a key
+     def look(where, done=True, must=None):
+         open_menus(window);settle();here = set()
+-        sweep(window, where, found, here);read.update(here)
++        sweep(window, where, found, here, keys=keys);read.update(here)
+         if must is not None and not any(must in words for words in here):done = False
+         places.append(dict(where=where, done=bool(done)))
+         if log:log('%s%s' % (where, '' if done else ' (the act was not done)'))
+@@ -384,7 +392,7 @@ def keys_in_code(root=ROOT, folders=('workbench',), kept=None):
+ 
+ 
+ if __name__ == '__main__':
+-    left = in_code() + keys_in_code()
++    left = in_code()      # 1.1 W1: a sentence that names a key is no failure now (keys are shown; "Show keys" hides them)
+     for file, line, words in left:print('%s:%d: %r' % (file, line, words))
+     print('NAME SWEEP, the code: %d place%s' % (len(left), '' if len(left) == 1 else 's'))
+     sys.exit(1 if left else 0)
+diff --git a/workbench/console_qt.py b/workbench/console_qt.py
+index 7067441..8274c59 100644
+--- a/workbench/console_qt.py
++++ b/workbench/console_qt.py
+@@ -618,6 +618,9 @@ class Console(QWidget):
+ 
+     def run_shell(self, text, extra_env=None):
+         if self.process is not None:self.say(self.refused('a command is still running; stop it first'), echo=self.sign_text() + ' ' + text);return
++        if not getattr(self, '_dos_inner', False):  # 1.1 W1: DOS words: the Debian command shown above its output, then run
++            from .dos_words import in_terminal
++            if in_terminal(self, text):return
+         if text == 'cd' or text.startswith('cd '):
+             target = text[2:].strip() or '~'
+             path = Path(target).expanduser();path = path if path.is_absolute() else self.working_dir() / path
+diff --git a/workbench/dock_clock_qt.py b/workbench/dock_clock_qt.py
+new file mode 100644
+index 0000000..1f2b0b2
+--- /dev/null
++++ b/workbench/dock_clock_qt.py
+@@ -0,0 +1,91 @@
++"""The clock at the dock's right end (Graphite 1.1 W1): the time and the date; a press shows the month.
++
++PLAN_1.1.md, W1 (d). The dock (system_dock_qt.Dock) stands in the dedicated session across the top of the screen; its right
++end now says the time and the date ("14:05 · Sat 28 Nov"), read again at each new minute. A press opens a small page with the
++month (a calendar, today marked by the calendar's own frame and in words under it); a press elsewhere or Esc closes it.
++"""
++from __future__ import annotations
++
++import time
++
++from PySide6.QtCore import QDate, QSize, Qt, QTimer
++from PySide6.QtGui import QColor, QFontMetrics, QPainter
++from PySide6.QtWidgets import QAbstractButton, QCalendarWidget, QFrame, QLabel, QVBoxLayout
++
++from . import boss_theme as bt
++
++
++def words(now=None):
++    """('14:05', 'Sat 28 Nov', 'Saturday 28 November 2026'): the time, the date short, and in full for a reader."""
++    t = time.localtime(now)
++    return time.strftime('%H:%M', t), time.strftime('%a %d %b', t).replace(' 0', ' '), time.strftime('%A %d %B %Y', t).replace(' 0', ' ')
++
++
++class Month(QFrame):
++    """The month, shown under the clock."""
++
++    def __init__(self, anchor):
++        super().__init__(None, Qt.Popup | Qt.FramelessWindowHint)
++        self.setObjectName('GraphiteMonth');self.setAccessibleName('The month')
++        layout = QVBoxLayout(self);layout.setContentsMargins(8, 8, 8, 8)
++        self.calendar = QCalendarWidget(self);self.calendar.setGridVisible(True)
++        self.calendar.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
++        self.today = QLabel(self);self.today.setAlignment(Qt.AlignCenter)
++        layout.addWidget(self.calendar);layout.addWidget(self.today)
++        self.anchor = anchor
++
++    def open(self, now=None):
++        self.calendar.setSelectedDate(QDate.currentDate());self.calendar.showToday()
++        self.today.setText('Today is ' + words(now)[2])
++        self.adjustSize()
++        at = self.anchor.mapToGlobal(self.anchor.rect().bottomRight())
++        self.move(at.x() - self.width(), at.y() + 2);self.show()
++        return self
++
++
++class Clock(QAbstractButton):
++    """The time and the date, at the dock's right end."""
++
++    def __init__(self, parent):
++        super().__init__(parent)
++        self.setObjectName('GraphiteClock');self.setFocusPolicy(Qt.NoFocus);self.setCursor(Qt.PointingHandCursor)
++        self.month = None
++        self.timer = QTimer(self);self.timer.setSingleShot(True);self.timer.timeout.connect(self.tick)
++        self.clicked.connect(self.show_month)
++        self.tick()
++
++    def tick(self):
++        clock, day, whole = words()
++        self.setText('%s · %s' % (clock, day));self.setAccessibleName('%s, %s' % (clock, whole))
++        self.setToolTip('%s · a press shows the month' % whole)
++        self.update()
++        self.timer.start(max(500, int((60 - time.time() % 60) * 1000) + 50))      # at the next minute
++
++    def natural(self, h):
++        return QFontMetrics(self.font()).horizontalAdvance(self.text()) + round(h * 0.8)
++
++    def sizeHint(self):
++        return QSize(self.natural(24), 24)
++
++    def show_month(self):
++        if self.month is None:self.month = Month(self)
++        return self.month.open()
++
++    def paintEvent(self, event):
++        p = QPainter(self)
++        if self.isDown() or self.underMouse():p.fillRect(self.rect(), QColor(bt.RAISED))
++        p.setPen(QColor(bt.TEXT))
++        p.drawText(self.rect().adjusted(0, 0, -round(self.height() * 0.4), 0), Qt.AlignRight | Qt.AlignVCenter, self.text())
++        p.end()
++
++
++def attach(dock):
++    """system_dock_qt.Dock makes its clock here."""
++    return Clock(dock)
++
++
++def place(clock, dock, h):
++    """The clock's room at the dock's right end: its width (taken off the strip's room)."""
++    if clock is None:return 0
++    w = clock.natural(h);clock.setGeometry(dock.width() - w, 0, w, h)
++    return w
+diff --git a/workbench/dos_words.py b/workbench/dos_words.py
+new file mode 100644
+index 0000000..fa74fe5
+--- /dev/null
++++ b/workbench/dos_words.py
+@@ -0,0 +1,605 @@
++"""DOS words in the Terminal (Graphite 1.1 W1): a Windows-and-DOS hand types what it knows; Debian runs, and is shown.
++
++PLAN_1.1.md, W1 (e): `dir`, `cd..`, `cd\\`, `cls`, `copy`, `xcopy`, `move`, `del`, `ren`, `md`, `rd`, `type`, `more`, `tree`,
++`attrib`, `ver`, `date`, `time`, `set`, `path`, `echo`, `find`, `help`, `exit`, `ipconfig`, `ping`, `tasklist`, `taskkill`,
++drive letters (C: is /, the other letters are the mounted drives in order), backslashes and the common switches. Each line
++is translated to the Debian command and that command is shown on a line above its output ("dir /s → ls -lR"), so the owner
++learns it.
++
++WHAT IS NEVER RUN. `del`, `erase` and `rd /s` go to the bin through the Kernel's files.batch (act delete: your home's own
++bin, the freedesktop.org one, with one Undo for all of them); nothing here ever runs rm. `format`, `chkdsk`, `fdisk` and
++`diskpart` are explained, never run. Copy, xcopy, move and ren never overwrite unless /y is given (cp -n, mv -n).
++
++WHEN A LINE IS DOS. A word only DOS has (dir, cls, copy, xcopy, move, del, ren, md, rd, attrib, ver, ipconfig, tasklist,
++taskkill, path, help, exit, a drive letter) is always DOS. A word Debian has too (echo, find, set, type, more, tree, date,
++time, ping, cd, mkdir, rmdir) is DOS only when the line says so: a /switch, a backslash, a drive letter, %NAME%, a quoted
++first word for find, a file name for type. Anything else goes to the shell exactly as typed.
++
++The setting (windows_hand.dos_words()): 'on' translates and runs; 'show' shows the Debian command and runs nothing ("show me
++only"); 'off' leaves every line to the shell as typed.
++
++translate(line, cwd, drives, which) is pure (tests give the drives and which programs are installed); in_terminal(console,
++text) is the Terminal's own use of it (console_qt.Console.run_shell asks it first).
++"""
++from __future__ import annotations
++
++import glob
++import os
++import re
++import shlex
++import shutil
++from dataclasses import dataclass, field
++from pathlib import Path
++
++ARROW = '\u2192'
++# words only DOS has: the line is DOS
++DOS_ONLY = frozenset(('dir', 'cls', 'copy', 'xcopy', 'move', 'del', 'erase', 'ren', 'md', 'rd', 'attrib', 'ver', 'ipconfig',
++                      'tasklist', 'taskkill', 'path', 'help', 'exit', 'format', 'chkdsk', 'fdisk', 'diskpart', 'findstr'))
++# words Debian has as well: DOS only when the line shows it
++BOTH = frozenset(('echo', 'find', 'set', 'type', 'more', 'tree', 'date', 'time', 'ping', 'cd', 'chdir', 'mkdir', 'rmdir', 'rename'))
++NEVER_RUN = {
++    'format': 'format erases a whole drive. On Debian a drive is made new with mkfs (for example mkfs.vfat on the drive\'s '
++              'partition), as the system\'s administrator, with the drive not in use. DOS words never run it.',
++    'chkdsk': 'chkdsk checks a drive. On Debian that is fsck, run as the system\'s administrator on a drive that is not in use '
++              '(for example fsck on the drive\'s partition). DOS words never run it. To see how full the drives are: df -h.',
++    'fdisk': 'fdisk changes how a drive is divided. Debian has fdisk too, for the system\'s administrator; DOS words never run it.',
++    'diskpart': 'diskpart changes how a drive is divided. On Debian that is fdisk or parted, for the system\'s administrator; '
++                'DOS words never run it.',
++}
++SWITCH = re.compile(r'^/(\?|[a-z](?:[:-]?[a-z])?|pid|im|fi)$', re.I)
++DRIVE = re.compile(r'^([A-Za-z]):(.*)$')
++VAR = re.compile(r'%([A-Za-z_][A-Za-z0-9_]*)%')
++PLAIN = re.compile(r'^[A-Za-z0-9_./*?\[\]+=:,@%^-]+$')
++DEBIAN_HELP = {'dir': 'ls', 'copy': 'cp', 'xcopy': 'cp', 'move': 'mv', 'ren': 'mv', 'md': 'mkdir', 'rd': 'rmdir', 'type': 'cat',
++               'more': 'more', 'tree': 'tree', 'attrib': 'chmod', 'find': 'grep', 'findstr': 'grep', 'ipconfig': 'ip',
++               'ping': 'ping', 'tasklist': 'ps', 'taskkill': 'kill', 'date': 'date', 'time': 'date', 'del': 'gio', 'erase': 'gio'}
++HELP_ROWS = (('dir', 'ls -l', 'list a folder'), ('cd.. / cd\\', 'cd .. / cd /', 'up one folder / to the top'),
++             ('cls', 'clear', 'clear the Terminal'), ('copy a b', 'cp -n a b', 'copy (never over a file unless /y)'),
++             ('xcopy a b /s /e', 'cp -rn a/. b', 'copy a folder and all in it'), ('move a b', 'mv -n a b', 'move'),
++             ('del a', 'gio trash a', 'into the bin, with Undo'), ('ren a b', 'mv -n a b', 'rename'),
++             ('md a', 'mkdir -p a', 'make a folder'), ('rd a', 'rmdir a', 'take away an empty folder'),
++             ('type a', 'cat a', 'show a file'), ('more a', 'more a', 'show a file a page at a time'),
++             ('tree', 'tree -d', 'the folders in a tree'), ('attrib +r a', 'chmod a-w a', 'read-only'),
++             ('ver', 'uname -sr', 'the system\'s version'), ('date / time', 'date', 'today and the time'),
++             ('set', 'env', 'the settings of this Terminal'), ('path', 'echo $PATH', 'where programs are found'),
++             ('echo %HOME%', 'echo $HOME', 'say something, or a setting'), ('find "x" a', 'grep -F x a', 'lines that hold x'),
++             ('ipconfig', 'ip -brief address', 'this computer\'s network addresses'), ('ping host', 'ping -c 4 host', 'is it there'),
++             ('tasklist', 'ps -e', 'what runs'), ('taskkill /pid 12', 'kill 12', 'stop a program'),
++             ('C: D: E:', 'cd / and the drives', 'C: is the top of the computer; D: on are the drives plugged in'),
++             ('exit', '', 'close the Terminal'))
++
++
++@dataclass
++class Said:
++    """One DOS line, translated. kind: run (a Debian command), cd, cls, trash, env, help, explain, exit."""
++    dos: str
++    kind: str
++    command: str = ''          # the Debian command, as shown
++    run: str = ''              # what the shell runs (the command itself, always, for kind run)
++    words: str = ''            # plain words: what it does, or why it is not run
++    target: str = ''           # cd: the folder
++    paths: list = field(default_factory=list)   # trash: the patterns, as given (translated)
++    recursive: bool = False    # trash: del /s
++    ask: bool = False          # trash: *.* without /q asks first
++    env: dict = field(default_factory=dict)     # env: NAME -> value
++
++    def shown(self):
++        """The line above the output: 'dir /s → ls -lR'."""
++        right = self.command or ('explained, not run' if self.kind == 'explain' else self.kind)
++        return '%s %s %s' % (self.dos.strip(), ARROW, right)
++
++
++# ---- the drives ---------------------------------------------------------------------------------------------------------------
++def _unescape(text):
++    return re.sub(r'\\([0-7]{3})', lambda m: chr(int(m.group(1), 8)), text)
++
++
++def drives(mounts=None):
++    """{'C': '/', 'D': the first mounted drive, ...}: the drives mounted under /media, /run/media or /mnt, in the order they
++    were mounted (/proc/mounts). `mounts` is that file's text, for tests."""
++    if mounts is None:
++        try:mounts = Path('/proc/mounts').read_text(encoding='utf-8', errors='replace')
++        except OSError:
++            mounts = ''
++    out = {'C': '/'};letter = ord('D')
++    for line in mounts.splitlines():
++        parts = line.split()
++        if len(parts) < 2:continue
++        point = _unescape(parts[1])
++        if not point.startswith(('/media/', '/run/media/', '/mnt/')) or point in out.values():continue
++        if letter > ord('Z'):break
++        out[chr(letter)] = point;letter += 1
++    return out
++
++
++def drive_of(path, places):
++    """The letter whose place holds `path` (the longest), 'C' for anything else."""
++    best, size = 'C', 0
++    for letter, place in places.items():
++        if letter != 'C' and (str(path) == place or str(path).startswith(place.rstrip('/') + '/')) and len(place) > size:best, size = letter, len(place)
++    return best
++
++
++# ---- words ------------------------------------------------------------------------------------------------------------------
++def split(line):
++    """DOS words: whitespace apart, "quoted words" kept whole. [(text, quoted)]."""
++    out, word, quoted, inside, any_quote = [], '', False, False, False
++    for ch in line:
++        if ch == '"':inside = not inside;any_quote = True;continue
++        if ch.isspace() and not inside:
++            if word or any_quote:out.append((word, any_quote))
++            word, any_quote = '', False;continue
++        word += ch
++    if word or any_quote:out.append((word, any_quote))
++    return out
++
++
++def q(text):
++    """One word for the shell: as it is when it is plain (a pattern keeps its * and ?), quoted when it is not."""
++    if text and PLAIN.match(text):return text
++    if text.startswith('~/') and PLAIN.match(text[2:] or 'x'):return text
++    return shlex.quote(text)
++
++
++def to_path(text, cwd, places):
++    """A DOS path as Debian's: C:\\x is /x, D:\\x the first drive's x, \\x the top of the drive you are on, a\\b is a/b."""
++    text = text.replace('\\', '/')
++    if text in ('*.*',):return '*'
++    if text.endswith('/*.*'):text = text[:-3] + '*'
++    m = DRIVE.match(text)
++    if m and len(m.group(1)) == 1:
++        place = places.get(m.group(1).upper())
++        if place is None:raise LookupError(m.group(1).upper())
++        rest = m.group(2).lstrip('/')
++        if not rest:return place
++        return place.rstrip('/') + '/' + rest
++    if text.startswith('/'):
++        here = places.get(drive_of(cwd, places), '/') if cwd is not None else '/'
++        if here == '/' or text == '/':return here if text == '/' else text
++        return here.rstrip('/') + text
++    return text
++
++
++def _switches(words):
++    """(the switches, lowercased without their slash, and the other words) of a command's words."""
++    sw, rest = [], []
++    for text, quoted in words:
++        if not quoted and text.startswith('/') and len(text) > 1:
++            pieces = re.findall(r'/[^/]+', text)
++            if pieces and all(SWITCH.match(p) for p in pieces):
++                sw += [p[1:].lower() for p in pieces];continue
++        rest.append((text, quoted))
++    return sw, rest
++
++
++def _first(line):
++    """The command word and what follows, with DOS's glued forms parted: cd.. cd\\ dir/s."""
++    stripped = line.strip()
++    m = re.match(r'^(cd|chdir)(\.\.?|\\.*)$', stripped.split(' ')[0], re.I)
++    if m:return m.group(1).lower(), (m.group(2) + stripped[len(m.group(0)):]).strip()
++    m = re.match(r'^([A-Za-z]+)(/.*)?$', stripped.split(' ')[0])
++    head = stripped.split(' ')[0]
++    if m and m.group(2) and m.group(1).lower() in DOS_ONLY | BOTH:return m.group(1).lower(), (m.group(2) + stripped[len(head):]).strip()
++    return head.lower(), stripped[len(head):].strip()
++
++
++def _marked(word, rest):
++    """Whether a word Debian has too is used the DOS way here."""
++    words = split(rest)
++    sw, _ = _switches(words)
++    if re.search(r'>\s*nul\b', rest, re.I):return True      # > nul is DOS's own nothing
++    if sw or '\\' in rest or VAR.search(rest) or any(DRIVE.match(t) and len(t) >= 2 and t[1] == ':' for t, _ in words):return True
++    if word == 'find':return bool(words) and words[0][1]
++    if word == 'type':return bool(words) and all(('.' in t or os.sep in t) for t, _ in words)
++    if word == 'set':return not words or '=' in rest or not rest.startswith(('-', '+'))
++    if word in ('date', 'time'):return not words or bool(re.match(r'\d', rest))      # alone, or a new date or time
++    if word == 'echo':return rest.strip().lower() in ('.', 'off', 'on') or rest.startswith('.')
++    if word == 'ping':return bool(words) and not any(t.startswith('-') and t.lower() not in ('-t', '-n', '-l', '-4', '-6', '-w') for t, _ in words)
++    if word == 'more':return '<' in rest
++    return False
++
++
++def is_dos(line):
++    """Whether this line is DOS words (see the module's note)."""
++    for part in _pipeline(line):
++        word, rest = _first(part)
++        if DRIVE.match(word) and word.endswith(':') and len(word) == 2 and not rest:return True
++        if word in DOS_ONLY:return True
++        if word in ('cd', 'chdir') and (rest.startswith(('.', '\\')) and part.strip().lower().startswith(('cd.', 'cd\\', 'chdir.', 'chdir\\')) or _marked(word, rest)):return True
++        if word in BOTH and word not in ('cd', 'chdir') and _marked(word, rest):return True
++    return False
++
++
++def _pipeline(line):
++    """The line's parts between unquoted bars."""
++    parts, word, inside = [], '', False
++    for ch in line:
++        if ch == '"':inside = not inside
++        if ch == '|' and not inside:parts.append(word);word = '';continue
++        word += ch
++    parts.append(word)
++    return [p for p in parts]
++
++
++def _redirect(words, cwd, places):
++    """A redirect at the end ('> nul', '>> log.txt'): its Debian words, and the words before it."""
++    out = []
++    for n, (text, quoted) in enumerate(words):
++        if not quoted and text in ('>', '>>', '<') and n + 1 < len(words):
++            target = words[n + 1][0]
++            target = '/dev/null' if target.lower() == 'nul' else q(to_path(target, cwd, places))
++            return words[:n], ' %s %s' % (text, target) + ''.join(' ' + w for w, _ in words[n + 2:])
++        if not quoted and text.startswith(('>', '<')) and len(text) > 1 and text not in ('>>',):
++            sign = '>>' if text.startswith('>>') else text[0]
++            target = text[len(sign):];target = '/dev/null' if target.lower() == 'nul' else q(to_path(target, cwd, places))
++            return words[:n], ' %s %s' % (sign, target)
++        out.append((text, quoted))
++    return out, ''
++
++
++# ---- each word ----------------------------------------------------------------------------------------------------------------
++def translate(line, cwd=None, places=None, which=shutil.which):
++    """The Said for one line of DOS words, or None when it is not DOS (the shell takes it as typed)."""
++    if not line or not line.strip() or not is_dos(line):return None
++    places = drives() if places is None else places
++    parts = _pipeline(line)
++    if len(parts) > 1:
++        said = [_one(p, cwd, places, which, piped=True) for p in parts]
++        if any(s.kind != 'run' for s in said):
++            return Said(line, 'explain', words='%s cannot be one step of a line joined with |; type it on its own.' % next(s.dos.strip() for s in said if s.kind != 'run'))
++        command = ' | '.join(s.command for s in said)
++        return Said(line, 'run', command, command)
++    return _one(line, cwd, places, which)
++
++
++def _run(dos, command, words=''):
++    return Said(dos, 'run', command, command, words)
++
++
++def _one(line, cwd, places, which, piped=False):
++    word, rest = _first(line)
++    dos = line.strip()
++    try:
++        if DRIVE.match(word) and word.endswith(':') and len(word) == 2 and not rest:
++            return Said(dos, 'cd', 'cd ' + q(to_path(word, cwd, places)), target=to_path(word, cwd, places))
++        words = split(rest)
++        sw, args = _switches(words)
++        args, tail = _redirect(args, cwd, places)
++        paths = [to_path(t, cwd, places) for t, _ in args]
++        if '?' in sw and word not in ('help',):
++            debian = DEBIAN_HELP.get(word)
++            if debian:return _run(dos, '%s --help' % debian)
++            return Said(dos, 'help', words=_help_words(word))
++        if word in NEVER_RUN:return Said(dos, 'explain', words=NEVER_RUN[word])
++        doer = DOERS.get(word)
++        if doer is None:return _run(dos, dos)      # a part of a DOS line that is Debian's already (sort, grep): as typed
++        said = doer(dos, sw, args, paths, cwd, places, which)
++        if tail and said.kind == 'run':said.command += tail;said.run += tail
++        return said
++    except LookupError as exc:
++        known = ', '.join('%s: (%s)' % (k, v) for k, v in sorted(places.items()))
++        return Said(dos, 'explain', words='There is no drive %s: here. The drives are %s.' % (exc.args[0], known))
++
++
++def _dir(dos, sw, args, paths, cwd, places, which):
++    s = 's' in sw;b = 'b' in sw;w = 'w' in sw
++    a = any(x.startswith('a') for x in sw)
++    target = ' '.join(q(p) for p in paths)
++    if s and b:
++        pattern = next((p for p in paths if any(c in p for c in '*?')), '')
++        where = next((q(p) for p in paths if not any(c in p for c in '*?')), '.')
++        return _run(dos, 'find %s%s' % (where, (' -name ' + shlex.quote(Path(pattern).name)) if pattern else ''))
++    if 'ad' in sw or 'a:d' in sw:return _run(dos, 'ls -ld %s' % ((target.rstrip('/') + '/*/') if target else '*/'))
++    if 'ah' in sw or 'a:h' in sw:return _run(dos, 'ls -ld %s' % ((target.rstrip('/') + '/.*') if target else '.*'))
++    flags = '1' if b else '' if w else 'l'
++    if a:flags += 'a'
++    order = next((x for x in sw if x.startswith('o')), '')
++    flags += {'od': 'tr', 'o:d': 'tr', 'o-d': 't', 'os': 'Sr', 'o:s': 'Sr', 'o-s': 'S', 'o-n': 'r'}.get(order, '')
++    if s:flags += 'R'
++    return _run(dos, ('ls -%s' % flags if flags else 'ls') + (' ' + target if target else ''))
++
++
++def _cd(dos, sw, args, paths, cwd, places, which):
++    if not paths:return _run(dos, 'pwd')
++    target = paths[0]
++    if target == '':target = '/'
++    return Said(dos, 'cd', 'cd ' + q(target), target=target)
++
++
++def _cls(dos, *_):
++    return Said(dos, 'cls', 'clear')
++
++
++def _copy(dos, sw, args, paths, cwd, places, which):
++    if any('+' in t for t, _ in args):
++        return Said(dos, 'explain', words='copy with + joins files into one. On Debian: cat a b > c (it writes c over); type it that way if you mean it.')
++    if not paths:return Said(dos, 'explain', words='copy needs a file: copy a.txt b.txt, or copy a.txt into a folder.')
++    dest = paths[1:] or ['.']
++    return _run(dos, '%s %s %s' % ('cp' if 'y' in sw else 'cp -n', q(paths[0]), ' '.join(q(p) for p in dest)),
++                '' if 'y' in sw else 'a file already there is never written over (/y writes over it)')
++
++
++def _xcopy(dos, sw, args, paths, cwd, places, which):
++    if not paths:return Said(dos, 'explain', words='xcopy needs a folder: xcopy docs backup /s /e.')
++    src = paths[0];dest = paths[1] if len(paths) > 1 else '.'
++    deep = 's' in sw or 'e' in sw
++    over = 'y' in sw
++    if deep and not any(c in src for c in '*?'):
++        return _run(dos, 'cp -r%s %s %s' % ('' if over else 'n', q(src.rstrip('/') + '/.'), q(dest)))
++    return _run(dos, 'cp%s %s %s' % ('' if over else ' -n', q(src), q(dest)))
++
++
++def _move(dos, sw, args, paths, cwd, places, which):
++    if len(paths) < 2:return Said(dos, 'explain', words='move needs what and where: move a.txt D:\\.')
++    return _run(dos, '%s %s' % ('mv' if 'y' in sw else 'mv -n', ' '.join(q(p) for p in paths)))
++
++
++def _del(dos, sw, args, paths, cwd, places, which):
++    if not paths:return Said(dos, 'explain', words='del needs a file: del a.txt, or del *.tmp.')
++    everything = any(Path(p).name in ('*', '*.*') for p in paths)
++    shown = 'gio trash ' + ' '.join(q(p) for p in paths)
++    return Said(dos, 'trash', shown, paths=list(paths), recursive='s' in sw, ask=everything and 'q' not in sw,
++                words='into the bin, with Undo; nothing is deleted for good')
++
++
++def _ren(dos, sw, args, paths, cwd, places, which):
++    if len(paths) != 2:return Said(dos, 'explain', words='ren needs the old name and the new: ren a.txt b.txt.')
++    old, new = paths
++    m1, m2 = re.fullmatch(r'\*\.([^*?/]+)', old), re.fullmatch(r'\*\.([^*?/]+)', new)
++    if m1 and m2:
++        command = 'for f in *.%s; do mv -n -- "$f" "${f%%.%s}.%s"; done' % (m1.group(1), m1.group(1), m2.group(1))
++        return _run(dos, command)
++    if any(c in old + new for c in '*?'):return Said(dos, 'explain', words='ren with patterns works here for *.a *.b only; Debian\'s rename takes the rest.')
++    return _run(dos, 'mv -n %s %s' % (q(old), q(new)))
++
++
++def _md(dos, sw, args, paths, cwd, places, which):
++    if not paths:return Said(dos, 'explain', words='md needs a name: md Letters.')
++    return _run(dos, 'mkdir -p ' + ' '.join(q(p) for p in paths))
++
++
++def _rd(dos, sw, args, paths, cwd, places, which):
++    if not paths:return Said(dos, 'explain', words='rd needs a folder: rd Old.')
++    if 's' in sw:
++        return Said(dos, 'trash', 'gio trash ' + ' '.join(q(p) for p in paths), paths=list(paths), ask='q' not in sw,
++                    words='the folder and all in it into the bin, with Undo; nothing is deleted for good')
++    return _run(dos, 'rmdir ' + ' '.join(q(p) for p in paths), 'only an empty folder is taken away')
++
++
++def _type(dos, sw, args, paths, cwd, places, which):
++    if not paths:return Said(dos, 'explain', words='type needs a file: type notes.txt.')
++    return _run(dos, 'cat ' + ' '.join(q(p) for p in paths))
++
++
++def _more(dos, sw, args, paths, cwd, places, which):
++    return _run(dos, 'more' + ''.join(' ' + q(p) for p in paths))
++
++
++def _tree(dos, sw, args, paths, cwd, places, which):
++    where = ' '.join(q(p) for p in paths)
++    files = 'f' in sw
++    if which('tree'):
++        return _run(dos, 'tree%s%s%s' % ('' if files else ' -d', ' --charset=ascii' if 'a' in sw else '', (' ' + where) if where else ''))
++    return _run(dos, 'find %s%s' % (where or '.', '' if files else ' -type d'))
++
++
++def _attrib(dos, sw, args, paths, cwd, places, which):
++    signs = [t for t, _ in args if re.fullmatch(r'[+-][rhsa]', t, re.I)]
++    files = [to_path(t, cwd, places) for t, _ in args if t not in signs]
++    if not signs:return _run(dos, 'ls -l' + ''.join(' ' + q(p) for p in files))
++    sign = signs[0].lower()
++    if sign in ('+h', '-h'):
++        return Said(dos, 'explain', words='On Debian a hidden file is one whose name starts with a dot: mv notes.txt .notes.txt hides it. Not done here.')
++    if sign in ('+s', '-s', '+a', '-a'):
++        return Said(dos, 'explain', words='Debian has no system or archive mark on a file; who may read and change it is what chmod sets.')
++    if not files:return Said(dos, 'explain', words='attrib %s needs a file.' % sign)
++    return _run(dos, '%s %s' % ('chmod a-w' if sign == '+r' else 'chmod u+w', ' '.join(q(p) for p in files)))
++
++
++def _ver(dos, *_):
++    return _run(dos, 'cat /etc/debian_version && uname -sr')
++
++
++def _date(dos, sw, args, paths, cwd, places, which):
++    if args:return Said(dos, 'explain', words='Setting the date is the system\'s: timedatectl set-time, which asks for the system\'s permission. Not done from DOS words.')
++    return _run(dos, "date '+%A %d %B %Y'")
++
++
++def _time(dos, sw, args, paths, cwd, places, which):
++    if args:return Said(dos, 'explain', words='Setting the time is the system\'s: timedatectl set-time, which asks for the system\'s permission. Not done from DOS words.')
++    return _run(dos, 'date +%H:%M' if 't' in sw else 'date +%H:%M:%S')
++
++
++def _set(dos, sw, args, paths, cwd, places, which):
++    text = ' '.join(t for t, _ in args)
++    if not text:return _run(dos, 'env | sort')
++    if '=' in text:
++        name, _, value = text.partition('=');name = name.strip()
++        if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', name):return Said(dos, 'explain', words='A setting\'s name is letters, digits and _.')
++        value = VAR.sub(lambda m: '$' + m.group(1), value)
++        return Said(dos, 'env', 'export %s=%s' % (name, q(value)), env={name: value}, words='set for the commands of this Terminal')
++    return _run(dos, 'env | grep -i ' + shlex.quote('^' + text))
++
++
++def _path(dos, sw, args, paths, cwd, places, which):
++    text = ' '.join(t for t, _ in args)
++    if not text:return _run(dos, 'echo $PATH')
++    if text.strip() == ';':return Said(dos, 'explain', words='path ; would leave this Terminal with no programs to find; not done.')
++    value = ':'.join(to_path(p, cwd, places) for p in text.split(';') if p)
++    value = VAR.sub(lambda m: '$' + m.group(1), value)
++    return Said(dos, 'env', 'export PATH=%s' % value, env={'PATH': value}, words='set for the commands of this Terminal')
++
++
++def _echo(dos, sw, args, paths, cwd, places, which):
++    raw = dos[4:]
++    if raw.strip().lower() in ('off', 'on'):return Said(dos, 'explain', words='Debian\'s shell does not repeat the commands it runs, so there is no echo off.')
++    if raw.startswith('.'):return _run(dos, 'echo' + (' ' + raw[1:].strip() if raw[1:].strip() else ''))
++    text = VAR.sub(lambda m: '${%s}' % m.group(1), ' '.join(t for t, _ in args))
++    return _run(dos, 'echo "%s"' % text.replace('"', '\\"') if '$' in text else 'echo ' + ' '.join(q(t) for t, _ in args))
++
++
++def _find(dos, sw, args, paths, cwd, places, which):
++    if not args:return Said(dos, 'explain', words='find needs the words in quotes: find "invoice" notes.txt.')
++    flags = ''.join(f for f, k in (('i', 'i'), ('c', 'c'), ('n', 'n'), ('v', 'v')) if k in sw)
++    files = [to_path(t, cwd, places) for t, _ in args[1:]]
++    return _run(dos, 'grep -F%s %s%s' % (flags, shlex.quote(args[0][0]), ''.join(' ' + q(p) for p in files)))
++
++
++def _findstr(dos, sw, args, paths, cwd, places, which):
++    fixed = next((s[2:] for s in sw if s.startswith('c:')), None)
++    flags = ''.join(f for f, k in (('i', 'i'), ('n', 'n'), ('v', 'v'), ('r', 's')) if k in sw)
++    if not args:return Said(dos, 'explain', words='findstr needs the words: findstr invoice *.txt.')
++    words = args[0][0];files = [to_path(t, cwd, places) for t, _ in args[1:]]
++    return _run(dos, 'grep%s %s%s' % ((' -' + flags) if flags else '', shlex.quote(words), ''.join(' ' + q(p) for p in files)))
++
++
++def _help(dos, sw, args, paths, cwd, places, which):
++    if args:
++        word = args[0][0].lower()
++        debian = DEBIAN_HELP.get(word)
++        if debian:return _run(dos, '%s --help' % debian)
++        return Said(dos, 'help', words=_help_words(word))
++    return Said(dos, 'help', words=_help_words(''))
++
++
++def _help_words(word):
++    rows = [r for r in HELP_ROWS if not word or r[0].split(' ')[0] == word]
++    return '\n'.join('%-18s %-22s %s' % r for r in (rows or HELP_ROWS))
++
++
++def _exit(dos, *_):
++    return Said(dos, 'exit', words='the Terminal closes')
++
++
++def _ipconfig(dos, sw, args, paths, cwd, places, which):
++    if any(s in sw for s in ('release', 'renew')) or any(t.lower() in ('/release', '/renew') for t, _ in args):
++        return Said(dos, 'explain', words='A new network address is the network manager\'s: nmcli connection up (the connection\'s name). Not done from DOS words.')
++    if any(t.lower() == '/flushdns' for t, _ in args):
++        return Said(dos, 'explain', words='On Debian: resolvectl flush-caches, which asks for the system\'s permission. Not done from DOS words.')
++    if 'all' in sw or any(t.lower() == '/all' for t, _ in args):return _run(dos, 'ip address')
++    return _run(dos, 'ip -brief address')
++
++
++def _ping(dos, sw, args, paths, cwd, places, which):
++    words = [t for t, _ in args];count = '4';forever = False;host = ''
++    n = 0
++    while n < len(words):
++        t = words[n].lower()
++        if t == '-t':forever = True
++        elif t == '-n' and n + 1 < len(words):count = words[n + 1];n += 1
++        elif t in ('-4', '-6'):pass
++        elif t in ('-l', '-w') and n + 1 < len(words):n += 1
++        else:host = words[n]
++        n += 1
++    if not host:return Said(dos, 'explain', words='ping needs a name or an address: ping debian.org.')
++    if not count.isdigit():count = '4'
++    return _run(dos, 'ping %s' % q(host) if forever else 'ping -c %s %s' % (count, q(host)))
++
++
++def _tasklist(dos, sw, args, paths, cwd, places, which):
++    return _run(dos, 'ps -e -o pid,rss,comm --sort=comm')
++
++
++def _taskkill(dos, sw, args, paths, cwd, places, which):
++    words = [t for t, _ in args]
++    force = 'f' in sw
++    if 'pid' in sw and words and words[0].isdigit():return _run(dos, 'kill%s %s' % (' -9' if force else '', words[0]))
++    if 'im' in sw and words:
++        name = re.sub(r'\.exe$', '', words[0], flags=re.I)
++        return _run(dos, 'pkill%s -x %s' % (' -9' if force else '', q(name)))
++    return Said(dos, 'explain', words='taskkill needs /pid and a number, or /im and a name: taskkill /im firefox.exe.')
++
++
++DOERS = {'dir': _dir, 'cd': _cd, 'chdir': _cd, 'cls': _cls, 'copy': _copy, 'xcopy': _xcopy, 'move': _move, 'del': _del,
++         'erase': _del, 'ren': _ren, 'rename': _ren, 'md': _md, 'mkdir': _md, 'rd': _rd, 'rmdir': _rd, 'type': _type,
++         'more': _more, 'tree': _tree, 'attrib': _attrib, 'ver': _ver, 'date': _date, 'time': _time, 'set': _set,
++         'path': _path, 'echo': _echo, 'find': _find, 'findstr': _findstr, 'help': _help, 'exit': _exit,
++         'ipconfig': _ipconfig, 'ping': _ping, 'tasklist': _tasklist, 'taskkill': _taskkill}
++
++
++# ---- the bin, for del ------------------------------------------------------------------------------------------------------------
++def expand(said, cwd):
++    """The files a del names, found now in `cwd` (a pattern matched as the shell would; /s through every folder below)."""
++    out = []
++    for pattern in said.paths:
++        base = pattern if os.path.isabs(pattern) else os.path.join(str(cwd), pattern)
++        if said.recursive:
++            folder, name = os.path.split(base)
++            found = sorted(glob.glob(os.path.join(folder, '**', name), recursive=True))
++        else:
++            found = sorted(glob.glob(base)) if any(c in pattern for c in '*?[') else ([base] if os.path.lexists(base) else [])
++        for f in found:
++            if said.kind == 'trash' and said.dos.split()[0].lower() in ('del', 'erase') and os.path.isdir(f) and not os.path.islink(f):continue
++            if f not in out:out.append(f)
++    return out
++
++
++# ---- in the Terminal ---------------------------------------------------------------------------------------------------------
++def in_terminal(console, text, mode=None):
++    """console_qt.Console.run_shell asks this first: True when the line was DOS words and is handled here (shown, then run,
++    or shown only); False when the shell takes it as typed."""
++    from html import escape
++    from . import windows_hand
++    mode = mode or windows_hand.dos_words()
++    if mode == 'off':return False
++    cwd = console.working_dir()
++    said = translate(text, cwd=cwd)
++    if said is None:return False
++    console.say('<span style="opacity:0.8;">%s</span>%s' % (escape(said.shown()), ('<br>' + escape(said.words)) if said.words and said.kind != 'help' else ''),
++                echo=console.sign_text() + ' ' + text)
++    if mode == 'show':
++        console.say(escape('Shown only: DOS words are set to "show me only", so nothing was run.'));return True
++    if said.kind == 'run':
++        inner(console, said.run);return True
++    if said.kind == 'cd':
++        inner(console, 'cd ' + said.target);return True
++    if said.kind == 'cls':
++        try:console.output.clear();console.blocks = 0
++        except (AttributeError, RuntimeError):pass
++        return True
++    if said.kind == 'exit':
++        for name in ('set_size',):
++            if hasattr(console, name):getattr(console, name)(0)
++        return True
++    if said.kind == 'env':
++        env = getattr(console, 'dos_env', None)
++        if env is None:env = console.dos_env = {}
++        env.update(said.env);return True
++    if said.kind == 'help':
++        console.say('<pre style="margin:0;">%s</pre>' % escape(said.words));return True
++    if said.kind == 'explain':return True
++    if said.kind == 'trash':
++        files = expand(said, cwd)
++        if not files:console.say(escape('Nothing there by that name, so nothing went to the bin (del takes files; rd /s takes a folder).'));return True
++        if said.ask:
++            console.say('%s %s · %s' % (escape('%d in %s. Put them all in the bin?' % (len(files), cwd)),
++                                         console.link('Put them in the bin', lambda: to_bin(console, files)), console.link('not now', lambda: console.say('Nothing was done.'))))
++            return True
++        to_bin(console, files);return True
++    return False
++
++
++def inner(console, line):
++    """The Debian command run as the shell runs any line (its own echo, output and exit), with this Terminal's DOS settings."""
++    console._dos_inner = True
++    try:console.run_shell(line, extra_env=dict(getattr(console, 'dos_env', None) or {}) or None)
++    finally:
++        console._dos_inner = False
++
++
++def to_bin(console, files):
++    """del: the files into the bin through the Kernel's batch (files.batch, act delete: your own press), one Undo for all."""
++    from html import escape
++    kernel = getattr(getattr(console.host, 'ledger_bridge', None), 'kernel', None)
++    if kernel is None:console.say(escape('Graphite\'s Kernel is not open, so nothing went to the bin.'));return None
++    from .engineering_kernel import operator
++    answer = kernel.dispatch('files.batch', {'act': 'delete', 'paths': [str(f) for f in files][:1000]}, operator())
++    if not answer.get('ok'):
++        console.say(escape('Not done: %s' % str((answer.get('error') or {}).get('message') or 'not done')));return answer
++    result = answer['result']
++
++    def undo():
++        back = kernel.dispatch('files.batch_undo', {'batch': result['batch']}, operator())
++        console.say(escape(back['result']['words'] if back.get('ok') else 'Not undone: %s' % (back.get('error') or {}).get('message')))
++    console.say('%s %s' % (escape(result['words']), console.link('Undo', undo) if result.get('done') else ''))
++    return answer
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index e89504c..c23c3ea 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -135,6 +135,7 @@ def schemas():
+     from .quick_model import FIELDS as QUICK_MODEL_FIELDS  # 1.0 M2 (a quick model beside hers): brain.quick.status, .use, .stop, .split
+     from .home_pages import FIELDS as HOME_PAGES_FIELDS  # 1.0 K10 (her reach in Home, finished): file.pages
+     from .home_plan import FIELDS as HOME_PLAN_FIELDS  # 1.0 K10 (her reach in Home, finished): grant.give.set
++    from .windows_hand import FIELDS as WINDOWS_HAND_FIELDS  # 1.1 W1 (a Windows hand's keys): files.delete_for_good
+     from .bulk_files import FIELDS as BULK_FILES_FIELDS  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
+     from .stac_words import FIELDS as WORD_FIELDS
+     from .agent_operations import FIELDS
+@@ -272,6 +273,7 @@ def schemas():
+         **QUICK_MODEL_FIELDS,  # 1.0 M2 (a quick model beside hers): brain.quick.status, .use, .stop, .split
+         **HOME_PAGES_FIELDS,  # 1.0 K10 (her reach in Home, finished): file.pages
+         **HOME_PLAN_FIELDS,  # 1.0 K10 (her reach in Home, finished): grant.give.set
++        **WINDOWS_HAND_FIELDS,  # 1.1 W1 (a Windows hand's keys): files.delete_for_good
+         **BULK_FILES_FIELDS,  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
+         **WORD_FIELDS,
+         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index e970f45..d1f3c2f 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -100,6 +100,7 @@ from . import hand_door  # 1.0 F1 (the door's mechanics): hand.door (read); hand
+ from . import quick_model  # 1.0 M2 (a quick model beside hers): brain.quick.status (read); brain.quick.stop, brain.quick.split (execute); brain.quick.use (approve) (recorded additions)
+ from . import everyday_desk  # noqa: F401  1.0 X3 (everyday sessions): the desk's planner learns tidy and put back (K4's PLAN_VERBS hook); no operation of its own
+ from . import home_pages, home_plan  # 1.0 K10 (her reach in Home, finished): file.pages (read: a document's pages as data, through the doorway); grant.give.set (approve: one press, a grant per operation); registry tools 24 to 27 (recorded additions)
++from . import windows_hand  # 1.1 W1 (a Windows hand's keys): files.delete_for_good (approve: Shift+Delete asked first; your press only, never her work)
+ from . import bulk_files  # 1.0 L6c (bulk files): files.batch_plan, files.batches (read); files.batch (execute: many files moved, copied or deleted in one press); files.batch_undo (approve: the whole batch put back as one) (recorded additions)
+ 
+ PROGRAM_HANDLERS = {
+@@ -308,6 +309,7 @@ CAPABILITIES = {
+     **quick_model.SCOPES,  # 1.0 M2 (a quick model beside hers): loading it is your approval (a model start); the split and its Undo, and stopping it, are execute
+     **home_pages.SCOPES,  # 1.0 K10 (her reach in Home, finished): a document's pages read as data is a read
+     **home_plan.SCOPES,  # 1.0 K10 (her reach in Home, finished): several grants in one press are your press (approve), each its own record
++    **windows_hand.SCOPES,  # 1.1 W1 (a Windows hand's keys): deleting for good is approve, your press after the window asked
+     **bulk_files.SCOPES,  # 1.0 L6c (bulk files): the plan and the list are reads; a batch is execute, your press; its Undo is approve
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+@@ -778,6 +780,7 @@ class Kernel:
+         if op in quick_model.FIELDS:return quick_model.dispatch(self,op,a,p)   # 1.0 M2 (a quick model beside hers): a quick kind goes to it only after its exam on its own key, measured faster
+         if op in home_pages.FIELDS:return home_pages.dispatch(self,op,a,p)   # 1.0 K10 (her reach in Home, finished): a document of your home read page by page, every line through the doorway
+         if op in home_plan.FIELDS:return home_plan.dispatch(self,op,a,p)   # 1.0 K10 (her reach in Home, finished): a folder's grants in one press, the Kernel still checking each step's own operation
++        if op in windows_hand.FIELDS:return windows_hand.dispatch(self,op,a,p)   # 1.1 W1 (a Windows hand's keys): Shift+Delete, removed without the bin, your press only
+         if op in bulk_files.FIELDS:return bulk_files.dispatch(self,op,a,p)   # 1.0 L6c (bulk files): one press for many files, recorded as one change with every file's before and after, one Undo
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index 64d3201..a7149cd 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -245,7 +245,9 @@ def rebuild(host):
+             from .boss_qt import appearance_menu
+             from .tool_faces import menu as buttons_menu
+             from .shell2 import hand_menu
+-            menu.addMenu(appearance_menu(host));menu.addMenu(buttons_menu(host));menu.addMenu(hand_menu(host));return      # the desk's art, its buttons (words or glyphs), and how far Stacy acts by herself
++            menu.addMenu(appearance_menu(host));menu.addMenu(buttons_menu(host));menu.addMenu(hand_menu(host))
++            from .windows_keys_qt import rules_lines  # 1.1 W1
++            rules_lines(host, menu);return  # 1.1 W1: Show keys, and DOS words in the Terminal      # the desk's art, its buttons (words or glyphs), and how far Stacy acts by herself
+         if key == '@targets' and hasattr(host, 'target_menu'):menu.addMenu(host.target_menu);return
+         if key == '@appearance':      # 1.0 P4: Arrange ▸ Appearance, where 1.0's one line about the move to Day sends you
+             from .boss_qt import looks_menu
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 070459d..18bf598 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -3562,6 +3562,11 @@ class Shell2(QObject):
+             pass
+         from .app_files_qt import install as install_app_files
+         install_app_files(host)  # 1.0 A1: files open in other programs: the window named on the board's tile, each save recorded, the close said
++        try:  # 1.1 W1: a Windows hand's keys in Files, graphite-do's door for the keys from any app, keys shown in menus
++            from .windows_keys_qt import install as install_windows_keys
++            install_windows_keys(host)  # 1.1 W1
++        except ImportError:  # 1.1 W1
++            pass
+         from .launch_look import install as install_launch_look
+         install_launch_look(host)  # 1.0 P4: 1.0's one move to Day on a profile from before, said in one line, once
+         try:  # 1.0 F3: every keyboard stop says a name; Tab walks into a scrolled page's presses
+diff --git a/workbench/system_dock_qt.py b/workbench/system_dock_qt.py
+index 2b4fd59..5d22367 100644
+--- a/workbench/system_dock_qt.py
++++ b/workbench/system_dock_qt.py
+@@ -216,6 +216,8 @@ class Dock(QWidget):
+         self.entry = GraphiteEntry(self);self.entry.clicked.connect(self.bring_graphite)
+         self.box = QWidget(self);self.strip = DockStrip(host, self, self.box)
+         self.quiet = QLabel(self);self.quiet.setTextFormat(Qt.PlainText)
++        from .dock_clock_qt import attach as attach_clock  # 1.1 W1
++        self.clock = attach_clock(self)  # 1.1 W1: the time and the date at the right end; a press shows the month
+         host.installEventFilter(self)
+ 
+     # -- standing
+@@ -275,7 +277,9 @@ class Dock(QWidget):
+         h = self.height();s = min(max(getattr(getattr(self.host, 'desk', None), 'scale', 1.0) or 1.0, 1.0), 1.6)
+         self.entry.ensurePolished();ew = self.entry.natural(h)
+         self.entry.setGeometry(0, 0, ew, h)
+-        x0 = ew + round(4 * s);w = max(0, self.width() - x0)
++        from .dock_clock_qt import place as place_clock  # 1.1 W1
++        cw = place_clock(getattr(self, 'clock', None), self, h)  # 1.1 W1: the clock's room at the right end
++        x0 = ew + round(4 * s);w = max(0, self.width() - x0 - cw)  # 1.1 W1: less the clock
+         self.box.setGeometry(x0, 0, w, h)
+         d = Desk(width=w, pane=0, workspace=w, band=h, inset=round(8 * s), gap=0, symbol=0, scale=s, left=0, right=w, line=0)
+         self.strip.place(d, 0, h if self.strip.wanted else 0)
+diff --git a/workbench/tool_faces.py b/workbench/tool_faces.py
+index b59ae74..3ab5053 100644
+--- a/workbench/tool_faces.py
++++ b/workbench/tool_faces.py
+@@ -267,12 +267,14 @@ def dress(menu):
+     on = STATE['mode'] == 'icons'
+     if bool(menu.property('glyphs')) != on:      # the menu's own sheet makes room for a column of glyphs, or closes it
+         menu.setProperty('glyphs', on);style = menu.style();style.unpolish(menu);style.polish(menu)
++    from .windows_hand import show_keys  # 1.1 W1
++    keys_shown = show_keys()  # 1.1 W1: menus show their keys again (PLAN_1.1.md section 6); the setting "Show keys" turns them off
+     for line in menu.actions():
+         if line.isSeparator():continue
+         # 0.5.2 ("We don't need to display keyboard shortcuts anywhere ... keep it sleek and tidy"): a line shows its words.
+-        # The key still does what it did; it is no longer printed beside them, nor written into the line after a tab.
+-        if line.isShortcutVisibleInContextMenu():line.setShortcutVisibleInContextMenu(False)
+-        if '\t' in line.text():line.setText(line.text().split('\t')[0])
++        # 1.1 W1 reverses it: with "Show keys" on (the default) a line shows its key beside its words; off, as 0.5.2 had it.
++        line.setShortcutVisibleInContextMenu(keys_shown)  # 1.1 W1
++        if '\t' in line.text() and not keys_shown:line.setText(line.text().split('\t')[0])  # 1.1 W1: cut only with keys hidden
+         if '&' in line.text().replace('&&', ''):line.setText(line.text().replace('&&', '\0').replace('&', '').replace('\0', '&&'))      # nor an underlined letter
+         inner = line.menu()
+         if inner is not None and not inner.property('glyphDressed'):
+@@ -292,9 +294,10 @@ def start(host):
+     """Read the choice the session keeps. Called once, before the work pages are made."""
+     chosen = getattr(getattr(host, 'session', None), 'state', {}).get(KEY, OPENS_WITH)
+     STATE['mode'] = chosen if chosen in MODES else OPENS_WITH
+-    try:        # no menu anywhere in the program prints a key beside a line (0.5.2); the keys work as they did
++    try:        # 1.1 W1: menus print a line's key beside it while "Show keys" is on (0.5.2 to 1.0 printed none); the keys work either way
+         from PySide6.QtCore import QCoreApplication
+-        QCoreApplication.setAttribute(Qt.AA_DontShowShortcutsInContextMenus, True)
++        from .windows_hand import show_keys  # 1.1 W1
++        QCoreApplication.setAttribute(Qt.AA_DontShowShortcutsInContextMenus, not show_keys())  # 1.1 W1
+     except Exception:  # noqa: BLE001 - how a menu is printed is never worth an error
+         pass
+ 
+diff --git a/workbench/windows_hand.py b/workbench/windows_hand.py
+new file mode 100644
+index 0000000..70a9d9b
+--- /dev/null
++++ b/workbench/windows_hand.py
+@@ -0,0 +1,217 @@
++"""A Windows hand's keys (Graphite 1.1 W1): the two settings, the file clipboard, Properties' words, and deleting for good.
++
++PLAN_1.1.md, W1. What is held here has no window in it (windows_keys_qt is the window's side):
++
++  the settings     "Show keys" (menus and tips show their keys; off, no key is printed, as 0.5.2 to 1.0 had it: this reverses
++                   the owner's rule of 13 Nov, PLAN_1.1.md section 6) and "DOS words" in the Terminal: on, off, or "show me
++                   only" (dos_words). Kept in Graphite's own small file, $XDG_CONFIG_HOME/graphite/windows_hand.json.
++  the clipboard    Ctrl+C and Ctrl+X on files hold their paths (copy or cut); Ctrl+V in a folder is ONE change: the Kernel's
++                   files.batch (1.0 L6c: act copy or move, to that folder), so one Undo puts the whole paste back
++                   (files.batch_undo). A cut is held until it is pasted once; a copy can be pasted again.
++  Properties       a small page's words: name, kind, size, dates, where it is, who may read and change it in words, what
++                   opens it.
++  for good         Shift+Delete asks first, then files.delete_for_good: the one operation in Graphite that removes a file
++                   without the bin. It is your press only (approve; her work is refused it, whatever her grants say), and
++                   only for a file or folder the Files tree may change (home_files_qt.changeable: your home and Files,
++                   never your home itself, Files itself, Graphite's own records or a folder holding them).
++
++Kernel operation (one block in engineering_kernel.py and engineering_cli.py, commented 1.1 W1):
++  files.delete_for_good  {path}   approve   removed without the bin, after the window asked; never her work
++"""
++from __future__ import annotations
++
++import json
++import mimetypes
++import os
++import shutil
++import stat
++import subprocess
++import time
++from pathlib import Path
++
++DOS_MODES = ('on', 'show', 'off')
++DOS_WORDS = {'on': 'On: translated and run', 'show': 'Show me only: translated and shown, never run', 'off': 'Off: every line as typed'}
++DEFAULTS = {'show_keys': True, 'dos_words': 'on'}
++PATH = {'type': 'string', 'minLength': 1, 'maxLength': 1000}
++FIELDS = {'files.delete_for_good': ({'path': PATH}, ['path'])}
++SCOPES = {'files.delete_for_good': 'approve'}
++
++
++# ---- the two settings ------------------------------------------------------------------------------------------------------------
++def settings_file(environ=None):
++    environ = os.environ if environ is None else environ
++    base = environ.get('XDG_CONFIG_HOME') or os.path.join(environ.get('HOME') or str(Path.home()), '.config')
++    return Path(base) / 'graphite' / 'windows_hand.json'
++
++
++def read(environ=None):
++    out = dict(DEFAULTS)
++    try:
++        got = json.loads(settings_file(environ).read_text(encoding='utf-8'))
++        if isinstance(got.get('show_keys'), bool):out['show_keys'] = got['show_keys']
++        if got.get('dos_words') in DOS_MODES:out['dos_words'] = got['dos_words']
++    except (OSError, ValueError, AttributeError):
++        pass
++    return out
++
++
++def write(environ=None, **changes):
++    now = read(environ)
++    if isinstance(changes.get('show_keys'), bool):now['show_keys'] = changes['show_keys']
++    if changes.get('dos_words') in DOS_MODES:now['dos_words'] = changes['dos_words']
++    path = settings_file(environ)
++    try:
++        path.parent.mkdir(parents=True, exist_ok=True)
++        temp = path.with_suffix('.tmp');temp.write_text(json.dumps(now, indent=1), encoding='utf-8');os.replace(temp, path)
++    except OSError:
++        pass
++    return now
++
++
++def show_keys(environ=None):
++    return read(environ)['show_keys']
++
++
++def dos_words(environ=None):
++    return read(environ)['dos_words']
++
++
++def keyed(words, keys, shown=None):
++    """A tip with its key when keys are shown: 'Rename (F2)'; the words alone when they are not."""
++    shown = show_keys() if shown is None else shown
++    keys = [k for k in (keys if isinstance(keys, (list, tuple)) else [keys]) if k]
++    return '%s (%s)' % (words, ' or '.join(keys)) if shown and keys else words
++
++
++# ---- the file clipboard -----------------------------------------------------------------------------------------------------------
++class FileClipboard:
++    """Files held by Ctrl+C (copy) or Ctrl+X (cut); a paste is one files.batch, so one Undo puts it all back."""
++
++    def __init__(self):
++        self.paths, self.act = [], ''
++
++    def hold(self, paths, act):
++        if act not in ('copy', 'move'):raise ValueError('copy or move')
++        self.paths = [str(p) for p in paths if str(p)];self.act = act if self.paths else ''
++        return self.words()
++
++    def words(self):
++        if not self.paths:return 'Nothing is held to paste.'
++        from .bulk_files import counted
++        return '%s %s: paste them in a folder.' % (counted(self.paths), 'copied' if self.act == 'copy' else 'cut')
++
++    def batch_args(self, folder):
++        """files.batch's arguments for a paste into `folder`."""
++        if not self.paths:raise ValueError('Nothing is held to paste.')
++        return {'act': self.act, 'paths': list(self.paths)[:1000], 'to': str(folder)}
++
++    def pasted(self, result):
++        """After a paste: a cut is pasted once (its files are where they were pasted now); a copy stays held."""
++        if self.act == 'move' and result.get('done'):self.paths, self.act = [], ''
++
++    def paste(self, kernel, folder, principal):
++        """The paste through the Kernel (the owner's press): files.batch, whose result names the batch for its one Undo."""
++        answer = kernel.dispatch('files.batch', self.batch_args(folder), principal)
++        if answer.get('ok'):self.pasted(answer['result'])
++        return answer
++
++
++# ---- Properties ------------------------------------------------------------------------------------------------------------------
++def _size_words(size):
++    for unit, step in (('GB', 1 << 30), ('MB', 1 << 20), ('KB', 1 << 10)):
++        if size >= step:return '%.1f %s (%s bytes)' % (size / step, unit, format(size, ','))
++    return '%d bytes' % size
++
++
++def _when(seconds):
++    return time.strftime('%A %d %B %Y, %H:%M', time.localtime(seconds))
++
++
++def _who(mode, owner_name, group_name, mine):
++    def can(r, w):
++        return 'read and change it' if r and w else 'read it' if r else 'change it but not read it' if w else 'neither read nor change it'
++    you = 'You' if mine else 'Its owner, %s,' % owner_name
++    parts = ['%s may %s' % (you, can(mode & stat.S_IRUSR, mode & stat.S_IWUSR)),
++             'others in the group %s may %s' % (group_name, can(mode & stat.S_IRGRP, mode & stat.S_IWGRP)),
++             'everyone else may %s' % can(mode & stat.S_IROTH, mode & stat.S_IWOTH)]
++    return '; '.join(parts) + '.'
++
++
++def opens_with(path, query=None):
++    """The app that opens this kind of file (the system's default, xdg-mime), in its own name, or ''."""
++    kind = mimetypes.guess_type(str(path))[0] or ('inode/directory' if Path(path).is_dir() else '')
++    if not kind:return ''
++    if query is None:
++        def query(k):
++            if not shutil.which('xdg-mime'):return ''
++            try:return subprocess.run(['xdg-mime', 'query', 'default', k], capture_output=True, text=True, timeout=3).stdout.strip()
++            except (OSError, subprocess.SubprocessError):return ''
++    desktop = query(kind)
++    if not desktop:return ''
++    for folder in (Path.home() / '.local/share/applications', Path('/usr/local/share/applications'), Path('/usr/share/applications')):
++        entry = folder / desktop
++        try:
++            for line in entry.read_text(encoding='utf-8', errors='replace').splitlines():
++                if line.startswith('Name='):return line[5:].strip()
++        except OSError:
++            continue
++    return desktop[:-8] if desktop.endswith('.desktop') else desktop
++
++
++def properties(path, query=None):
++    """Properties' rows, in order: [(label, words)]."""
++    import grp
++    import pwd
++    path = Path(path)
++    st = path.lstat()
++    if path.is_symlink():kind = 'A link to %s' % os.readlink(path)
++    elif path.is_dir():kind = 'A folder'
++    else:
++        guessed = mimetypes.guess_type(str(path))[0]
++        kind = ('A %s file' % path.suffix[1:].upper() if path.suffix else 'A file') + (' (%s)' % guessed if guessed else '')
++    if path.is_dir() and not path.is_symlink():
++        try:
++            inside = list(os.scandir(path))
++            size = '%d thing%s inside' % (len(inside), '' if len(inside) == 1 else 's')
++        except OSError:
++            size = 'not readable here'
++    else:size = _size_words(st.st_size)
++    try:owner = pwd.getpwuid(st.st_uid).pw_name
++    except KeyError:
++        owner = str(st.st_uid)
++    try:group = grp.getgrgid(st.st_gid).gr_name
++    except KeyError:
++        group = str(st.st_gid)
++    from . import home_reach as hr
++    rows = [('Name', path.name), ('Kind', kind), ('Size', size), ('Where', hr.tilde(path.parent)),
++            ('Changed', _when(st.st_mtime)), ('Opened', _when(st.st_atime)), ('Status changed', _when(st.st_ctime)),
++            ('Who may', _who(st.st_mode, owner, group, st.st_uid == os.getuid()))]
++    app = opens_with(path, query) if not path.is_dir() else ''
++    rows.append(('Opens with', app or 'no app is set for this kind of file'))
++    return rows
++
++
++# ---- for good ----------------------------------------------------------------------------------------------------------------------
++def delete_for_good(kernel, args, principal):
++    """files.delete_for_good: the window asked first (Shift+Delete); removed without the bin. Your press only."""
++    from . import home_reach as hr
++    from .home_files_qt import changeable
++    if hr.in_her_work(principal):
++        raise ValueError('FILES_FOR_GOOD_OWNER_ONLY: deleting for good is your press only; Kasandra puts things in the bin')
++    path = Path(os.path.abspath(hr.expand(str(args['path'])) or args['path']))
++    if not os.path.lexists(path):raise ValueError('FILES_NOT_FOUND: ' + hr.tilde(path)[:200])
++    where, why = changeable(kernel, path)
++    if not where:raise ValueError('FILES_FOR_GOOD_NOT_HERE: %s is %s; only a file of your home or of Files is deleted for good' % (path.name, why))
++    kind = 'folder' if path.is_dir() and not path.is_symlink() else 'file'
++    if kind == 'folder':shutil.rmtree(path)
++    else:path.unlink()
++    from . import activity
++    try:activity.record(kernel.root, principal.identity, 'files.delete_for_good', 'REQUEST_COMPLETED', str(path)[:300])
++    except Exception:  # noqa: BLE001 - the record is a courtesy; the deletion is done and said
++        pass
++    return {'path': str(path), 'kind': kind, 'words': '%s was deleted for good (not in the bin; it cannot be put back).' % path.name}
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'files.delete_for_good':return delete_for_good(kernel, args, principal)
++    raise ValueError('FILES_UNKNOWN_OPERATION')
+diff --git a/workbench/windows_keys_qt.py b/workbench/windows_keys_qt.py
+new file mode 100644
+index 0000000..4cbbd8b
+--- /dev/null
++++ b/workbench/windows_keys_qt.py
+@@ -0,0 +1,372 @@
++"""A Windows hand's keys in Graphite's window (Graphite 1.1 W1), and the keys that work whichever app is in front.
++
++PLAN_1.1.md, W1 (a) to (c). windows_hand holds the settings, the file clipboard and Properties' words; here is the window:
++
++  in Files         over the Files tree (the keys go to the tree first, so the window's own Copy and Paste for text do not
++                   take them): Ctrl+C and Ctrl+X hold the chosen files, Ctrl+V pastes them into the folder in front as one
++                   change with one Undo (files.batch); F2 renames; Delete puts the chosen in the bin (one Undo); Shift+Delete
++                   asks, then deletes for good; Enter opens a file in its app; Alt+Enter shows Properties; F5 reads the
++                   folders again; Backspace goes back; Ctrl+A chooses every row; Ctrl+Z takes the last change back.
++  Properties       a small page: name, kind, size, dates, where it is, who may read and change it, what opens it. Esc closes.
++  from any app     graphite-do (tools/graphite-do) speaks to the running window over a local socket of this user's
++                   ($XDG_RUNTIME_DIR/graphite-do.sock): apps, files, show, lock, tasks, screenshot. Fluxbox's keys file,
++                   written by the session (LS_XSESSION.sh, graphite-do --write-keys), puts them on the Windows key, Win+E,
++                   Win+D, Win+L, Ctrl+Alt+Del and PrintScreen; Alt+Tab and Alt+F4 are Fluxbox's own NextWindow and Close.
++  Show keys        Rules ▸ Show keys: menus and tips print their keys (the default in 1.1), or none (as 0.5.2 to 1.0).
++  DOS words        Rules ▸ DOS words: on, show me only, off (dos_words).
++
++Every change here is the owner's own press through the Kernel, as the tree's right-click is (home_files_qt, bulk_files_qt).
++"""
++from __future__ import annotations
++
++import json
++import os
++import time
++from pathlib import Path
++
++from PySide6.QtCore import QEvent, QObject, Qt, QTimer
++from PySide6.QtGui import QAction, QActionGroup, QGuiApplication, QKeySequence
++from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLabel, QMenu, QMessageBox, QVBoxLayout
++
++from . import windows_hand as wh
++
++VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping')
++SOCKET_NAME = 'graphite-do.sock'
++
++
++def socket_path(environ=None):
++    """Where the window listens: GRAPHITE_DO_SOCKET, else $XDG_RUNTIME_DIR/graphite-do.sock, else one in the temporary folder
++    named for this user. tools/graphite-do reads the same."""
++    environ = os.environ if environ is None else environ
++    if environ.get('GRAPHITE_DO_SOCKET'):return Path(environ['GRAPHITE_DO_SOCKET'])
++    run = environ.get('XDG_RUNTIME_DIR')
++    if run and os.path.isdir(run):return Path(run) / SOCKET_NAME
++    return Path('/tmp') / ('graphite-do-%d.sock' % os.getuid())
++
++
++def say(host, words, ms=9000):
++    try:host.statusBar().showMessage(words, ms)
++    except (AttributeError, RuntimeError):pass
++    return words
++
++
++def kernel_of(host):
++    return getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++
++
++# ---- the Files tree's keys ---------------------------------------------------------------------------------------------------------
++KEYS = {  # (key, modifiers) -> what it does
++    (Qt.Key_C, Qt.ControlModifier): 'copy', (Qt.Key_X, Qt.ControlModifier): 'cut', (Qt.Key_V, Qt.ControlModifier): 'paste',
++    (Qt.Key_F2, Qt.NoModifier): 'rename', (Qt.Key_Delete, Qt.NoModifier): 'delete', (Qt.Key_Delete, Qt.ShiftModifier): 'for_good',
++    (Qt.Key_Return, Qt.NoModifier): 'open', (Qt.Key_Enter, Qt.KeypadModifier): 'open', (Qt.Key_Return, Qt.AltModifier): 'properties',
++    (Qt.Key_Enter, Qt.AltModifier | Qt.KeypadModifier): 'properties', (Qt.Key_F5, Qt.NoModifier): 'read_again',
++    (Qt.Key_Backspace, Qt.NoModifier): 'back', (Qt.Key_A, Qt.ControlModifier): 'all', (Qt.Key_Z, Qt.ControlModifier): 'undo',
++}
++TIPS = {'copy': ('Copy', 'Ctrl+C'), 'cut': ('Cut', 'Ctrl+X'), 'paste': ('Paste', 'Ctrl+V'), 'rename': ('Rename', 'F2'),
++        'delete': ('Delete (into the bin)', 'Delete'), 'for_good': ('Delete for good (asks first)', 'Shift+Delete'),
++        'open': ('Open', 'Enter'), 'properties': ('Properties', 'Alt+Enter'), 'read_again': ('Read again', 'F5'),
++        'back': ('Back', 'Backspace'), 'all': ('Choose all', 'Ctrl+A'), 'undo': ('Undo', 'Ctrl+Z')}
++
++
++def chosen(host):
++    """[(path, 'file'|'folder')] the Files tree has chosen (its rows of files and folders), in the tree's order."""
++    page = getattr(host, 'cabinet_page', None)
++    if page is None:return []
++    from .home_files_qt import path_of_row
++    try:items = page.tree.selectedItems() or ([page.tree.currentItem()] if page.tree.currentItem() is not None else [])
++    except RuntimeError:
++        return []
++    order = {id(item): n for n, item in enumerate(page.items.values())}
++    out = []
++    for item in sorted(items, key=lambda i: order.get(id(i), 0)):
++        node = item.data(0, Qt.UserRole) or {}
++        path = path_of_row(node.get('id')) if node.get('role') in ('file', 'folder') else ''
++        if path:out.append((path, node.get('role')))
++    return out
++
++
++def current(host):
++    """(path, role) of the tree's current row, or ('', '')."""
++    page = getattr(host, 'cabinet_page', None)
++    if page is None:return '', ''
++    from .home_files_qt import path_of_row
++    item = page.tree.currentItem()
++    node = (item.data(0, Qt.UserRole) or {}) if item is not None else {}
++    path = path_of_row(node.get('id')) if node.get('role') in ('file', 'folder') else ''
++    return (path, node.get('role')) if path else ('', '')
++
++
++def folder_in_front(host):
++    """The folder a paste goes into: the current row when it is a folder, else the folder that holds it."""
++    path, role = current(host)
++    if not path:return ''
++    return path if role == 'folder' else str(Path(path).parent)
++
++
++class TreeKeys(QObject):
++    """The Files tree's Windows keys (an event filter: the tree takes them before the window's own actions)."""
++
++    def __init__(self, host, tree):
++        super().__init__(tree)
++        self.host = host;self.tree = tree;self.clipboard = wh.FileClipboard();self.last = ''
++        tree.installEventFilter(self)
++
++    def eventFilter(self, obj, event):
++        kind = event.type()
++        if kind not in (QEvent.ShortcutOverride, QEvent.KeyPress):return False
++        try:what = KEYS.get((event.key(), event.modifiers()))
++        except RuntimeError:
++            return False
++        if what is None:return False
++        if what == 'open' and current(self.host)[1] != 'file':return False      # a folder or a record: the tree's own Enter
++        if kind == QEvent.ShortcutOverride:event.accept();return True
++        self.last = what
++        try:self.do(what)
++        except ValueError as exc:
++            say(self.host, 'Not done: %s' % str(exc).split(': ', 1)[-1])
++        return True
++
++    def do(self, what):
++        host = self.host
++        from . import bulk_files_qt as bq
++        from . import home_files_qt as hq
++        rows = chosen(host);paths = [p for p, _ in rows]
++        if what in ('copy', 'cut'):
++            if not paths:return say(host, 'Choose a file or folder first.')
++            return say(host, self.clipboard.hold(paths, 'copy' if what == 'copy' else 'move'))
++        if what == 'paste':
++            folder = folder_in_front(host)
++            if not self.clipboard.paths:return say(host, 'Nothing is held to paste: copy or cut a file first.')
++            if not folder:return say(host, 'Choose the folder to paste into.')
++            args = self.clipboard.batch_args(folder)
++            return bq.batch(host, args['act'], args['paths'], to=args['to'], said=self.clipboard.pasted)
++        if what == 'rename':
++            path, _ = current(host)
++            return hq.rename(host, path) if path else say(host, 'Choose a file or folder to rename.')
++        if what == 'delete':
++            if not paths:return None
++            return hq.delete(host, paths[0]) if len(paths) == 1 else bq.batch(host, 'delete', paths)
++        if what == 'for_good':return for_good(host, paths)
++        if what == 'open':return hq.open_in(host, current(host)[0])
++        if what == 'properties':
++            path, _ = current(host)
++            return show_properties(host, path) if path else None
++        if what == 'read_again':
++            page = getattr(host, 'cabinet_page', None)
++            if page is not None:page.refresh(force=True)
++            return say(host, 'Read again.')
++        if what == 'back':
++            living = getattr(host, 'living_nav', None)
++            return living.back() if living is not None else None
++        if what == 'all':self.tree.selectAll();return None
++        if what == 'undo':
++            note = getattr(getattr(host, 'home_files', None), 'note', None)
++            if note is not None and getattr(note, 'undo', None) is not None:return note.undo_now()
++            return say(host, 'Nothing to take back here.')
++        return None
++
++
++def for_good(host, paths, ask=None):
++    """Shift+Delete: asks first, in words; then files.delete_for_good for each (your press). `ask` is for tests."""
++    paths = [str(p) for p in paths]
++    if not paths:return None
++    from .bulk_files import counted
++    names = ', '.join(Path(p).name for p in paths[:3]) + (' and %d more' % (len(paths) - 3) if len(paths) > 3 else '')
++    question = 'Delete %s for good? %s will not go to the bin, and cannot be put back.' % (counted(paths), names)
++    if ask is None:
++        box = QMessageBox(QMessageBox.Warning, 'Delete for good', question, QMessageBox.NoButton, host)
++        yes = box.addButton('Delete for good', QMessageBox.DestructiveRole);no = box.addButton('Keep them', QMessageBox.RejectRole)
++        box.setDefaultButton(no);box.setEscapeButton(no);box.exec()
++        agreed = box.clickedButton() is yes
++    else:agreed = bool(ask(question))
++    if not agreed:return say(host, 'Nothing was deleted.')
++    kernel = kernel_of(host)
++    if kernel is None:return say(host, 'Graphite\'s Kernel is not open; nothing was deleted.')
++    from .engineering_kernel import operator
++    gone, left = [], []
++    for p in paths:
++        answer = kernel.dispatch('files.delete_for_good', {'path': p}, operator())
++        (gone if answer.get('ok') else left).append((p, answer))
++    page = getattr(host, 'cabinet_page', None)
++    if page is not None:
++        try:page.refresh(force=True)
++        except RuntimeError:pass
++    words = 'Deleted for good: %s.' % (counted([p for p, _ in gone]) if gone else 'nothing')
++    if left:words += ' Not deleted: %s.' % '; '.join('%s (%s)' % (Path(p).name, str((a.get('error') or {}).get('message', '')).split(': ', 1)[-1]) for p, a in left[:3])
++    return say(host, words)
++
++
++# ---- Properties --------------------------------------------------------------------------------------------------------------------
++class PropertiesPage(QDialog):
++    """Alt+Enter: a small page of what the file is. Esc or Close closes it."""
++
++    def __init__(self, host, path, query=None):
++        super().__init__(host)
++        self.setWindowTitle('Properties · %s' % Path(path).name);self.setObjectName('GraphiteProperties')
++        layout = QVBoxLayout(self);form = QFormLayout();layout.addLayout(form)
++        self.rows = wh.properties(path, query)
++        for label, words in self.rows:
++            value = QLabel(words);value.setWordWrap(True);value.setTextInteractionFlags(Qt.TextSelectableByMouse)
++            form.addRow(label, value)
++        buttons = QDialogButtonBox(QDialogButtonBox.Close);buttons.rejected.connect(self.reject);layout.addWidget(buttons)
++        self.setMinimumWidth(420);self.adjustSize()      # as tall as its rows, no more
++
++
++def show_properties(host, path, query=None):
++    try:page = PropertiesPage(host, path, query)
++    except OSError as exc:
++        return say(host, 'No properties: %s' % (exc.strerror or exc))
++    page.show();page.raise_();host._properties_page = page
++    return page
++
++
++# ---- the screen's picture ----------------------------------------------------------------------------------------------------------
++def screenshot(host, folder=None, now=None):
++    """PrintScreen: a picture of the whole screen into ~/Pictures/Screenshots, and says so. The path, or '' when not saved."""
++    folder = Path(folder) if folder else Path.home() / 'Pictures' / 'Screenshots'
++    stamp = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime(now))
++    try:folder.mkdir(parents=True, exist_ok=True)
++    except OSError as exc:
++        say(host, 'No picture of the screen: %s' % (exc.strerror or exc));return ''
++    target = folder / ('Screenshot %s.png' % stamp);n = 2
++    while target.exists():target = folder / ('Screenshot %s (%d).png' % (stamp, n));n += 1
++    screen = QGuiApplication.primaryScreen()
++    picture = screen.grabWindow(0) if screen is not None else None
++    if picture is None or picture.isNull() or not picture.save(str(target), 'PNG'):
++        say(host, 'No picture of the screen: this screen gave none.');return ''
++    from . import home_reach as hr
++    say(host, 'Saved a picture of the screen: %s' % hr.tilde(target), 12000)
++    return str(target)
++
++
++# ---- the keys from any app: graphite-do's door ------------------------------------------------------------------------------------
++def bring(host):
++    try:
++        if host.isMinimized():host.showNormal()
++        host.show();host.raise_();host.activateWindow()
++    except RuntimeError:
++        pass
++
++
++def act(host, verb):
++    """What one of graphite-do's words does in the window: {ok, words}."""
++    if verb not in VERBS:return {'ok': False, 'words': 'graphite-do knows: %s' % ', '.join(VERBS)}
++    if verb == 'ping':return {'ok': True, 'words': 'Graphite is here.'}
++    if verb == 'screenshot':
++        made = screenshot(host)
++        return {'ok': bool(made), 'words': ('Saved %s' % made) if made else 'No picture was saved.', 'path': made}
++    bring(host)
++    if verb == 'show':return {'ok': True, 'words': 'Graphite is in front.'}
++    if verb == 'apps':
++        top = getattr(getattr(host, 'shell2', None), 'top', None)
++        if top is None or getattr(top, 'programs', None) is None:return {'ok': False, 'words': 'Apps is not on this window.'}
++        top.programs.click();return {'ok': True, 'words': 'Apps is open.'}
++    if verb == 'files':
++        from .desk_doers import run
++        out = run(host, 'go.files', {}, door='owner')
++        return {'ok': bool(out.get('ok')), 'words': out.get('words') or str((out.get('error') or {}).get('words') or '')}
++    if verb == 'tasks':
++        top = getattr(getattr(host, 'shell2', None), 'top', None);pulse = getattr(top, 'pulse', None)
++        if pulse is None:return {'ok': False, 'words': 'The page of what runs is not on this window.'}
++        pulse.open_card('CPU');return {'ok': True, 'words': 'What runs is shown.'}
++    if verb == 'lock':
++        from .session_power import run_lock
++        result = run_lock(host)
++        return {'ok': bool(result.get('locked')), 'words': result.get('reason', '')}
++    return {'ok': False, 'words': 'not known'}
++
++
++class Door(QObject):
++    """The local socket graphite-do speaks to: one line in (a word of VERBS), one line of JSON out. Only this user's."""
++
++    def __init__(self, host, path=None):
++        super().__init__(host)
++        from PySide6.QtNetwork import QLocalServer
++        self.host = host;self.path = Path(path) if path else socket_path();self.heard = []
++        self.server = QLocalServer(self);self.server.setSocketOptions(QLocalServer.UserAccessOption)
++        try:
++            if self.path.exists():
++                if _alive(self.path):self.why = 'another Graphite answers there';self.listening = False;return
++                self.path.unlink()
++        except OSError:
++            pass
++        self.listening = self.server.listen(str(self.path))
++        self.why = '' if self.listening else self.server.errorString()
++        if self.listening:
++            try:os.chmod(self.path, 0o600)
++            except OSError:pass
++        self.server.newConnection.connect(self.arrived)
++
++    def arrived(self):
++        while self.server.hasPendingConnections():
++            sock = self.server.nextPendingConnection()
++            sock.readyRead.connect(lambda s=sock: self.read(s))
++            sock.disconnected.connect(sock.deleteLater)
++
++    def read(self, sock):
++        if not sock.canReadLine():return
++        verb = bytes(sock.readLine()).decode('utf-8', 'replace').strip().lower()[:40]
++        self.heard.append(verb)
++        try:answer = act(self.host, verb)
++        except Exception as exc:  # noqa: BLE001 - the key's answer says why; the window goes on
++            answer = {'ok': False, 'words': str(exc)[:200]}
++        sock.write((json.dumps(answer) + '\n').encode('utf-8'));sock.flush();sock.disconnectFromServer()
++
++    def close(self):
++        self.server.close()
++        try:self.path.unlink()
++        except OSError:pass
++
++
++def _alive(path):
++    import socket
++    probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM);probe.settimeout(0.5)
++    try:probe.connect(str(path));return True
++    except OSError:
++        return False
++    finally:
++        probe.close()
++
++
++# ---- Show keys, in menus and tips ------------------------------------------------------------------------------------------------
++def apply_show_keys(host, shown=None):
++    """Every action of the window shows its key in a menu, or none; the app's default for menus follows."""
++    from PySide6.QtCore import QCoreApplication
++    shown = wh.show_keys() if shown is None else shown
++    QCoreApplication.setAttribute(Qt.AA_DontShowShortcutsInContextMenus, not shown)
++    for action in host.findChildren(QAction):
++        try:action.setShortcutVisibleInContextMenu(shown)
++        except RuntimeError:pass
++    return shown
++
++
++def rules_lines(host, menu):
++    """Rules: "Show keys" (a tick) and "DOS words" (on, show me only, off)."""
++    line = QAction('Show keys', menu);line.setCheckable(True);line.setChecked(wh.show_keys())
++    line.setToolTip('Menus and tips show their keys; untick it and no key is printed')
++    line.toggled.connect(lambda on: (wh.write(show_keys=bool(on)), apply_show_keys(host, bool(on)),
++                                     say(host, 'Keys are shown in menus and tips.' if on else 'No key is printed in menus and tips.')))
++    menu.addAction(line)
++    words = QMenu('DOS words', menu);group = QActionGroup(words);group.setExclusive(True)
++    for mode in wh.DOS_MODES:
++        row = words.addAction(wh.DOS_WORDS[mode]);row.setCheckable(True);row.setChecked(wh.dos_words() == mode);group.addAction(row)
++        row.triggered.connect(lambda checked=False, mode=mode: (wh.write(dos_words=mode), say(host, 'DOS words in the Terminal: %s.' % wh.DOS_WORDS[mode])))
++    menu.addMenu(words)
++    return line, words
++
++
++# ---- install --------------------------------------------------------------------------------------------------------------------
++def install(host):
++    """shell2 calls this once the panes stand: the Files tree's keys, graphite-do's door, keys shown in menus."""
++    if getattr(host, 'windows_keys', None) is not None:return host.windows_keys
++    page = getattr(host, 'cabinet_page', None)
++    host.windows_keys = TreeKeys(host, page.tree) if page is not None else None
++    if os.environ.get('GRAPHITE_DO', '1') != '0':
++        try:
++            host.graphite_door = Door(host)
++            from PySide6.QtWidgets import QApplication
++            QApplication.instance().aboutToQuit.connect(host.graphite_door.close)
++        except Exception:  # noqa: BLE001 - no door: the keys inside the window still work
++            host.graphite_door = None
++    QTimer.singleShot(0, lambda: apply_show_keys(host))
++    return host.windows_keys

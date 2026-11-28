@@ -1,0 +1,7 @@
+{
+ "item": "T2",
+ "status": "partial (in progress: tier 2 Day+Graphite running; see T2.progress.md)",
+ "summary": "Tier 0 in Day: 3 failing, all fixed (focused set, a planted check name, the glyph test to W1's printed keys). Guides swept to the six head menus, the bar, Start, Quick access and the Recycle Bin. Tier 2 in Day and Graphite running; fixes so far: rail demo reduced motion in Day, a menu leaked by test_one_name.TheCode, HALT's size hint at the 32 px head, the Finder's long name now whole at 1366.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/T2.patch",
+ "not_done": ["tier 2 results not yet complete", "test_words_match not yet run"]
+}

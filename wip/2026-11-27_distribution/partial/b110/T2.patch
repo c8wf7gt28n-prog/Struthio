@@ -1,0 +1,815 @@
+diff --git a/GETTING_STARTED.md b/GETTING_STARTED.md
+index e6f969d..eccb543 100644
+--- a/GETTING_STARTED.md
++++ b/GETTING_STARTED.md
+@@ -1,8 +1,8 @@
+ # Getting started with Graphite 1.0
+ 
+ Graphite is the whole desktop and its assistant, Kasandra (Kas), under one name (before November 6, 2026: Ledger & Slate;
+-folders, scripts and settings keys keep the earlier names). This page is the first ten minutes. Guide ▸ The Living Desktop
+-is the tour of the window, Guide ▸ Kasandra, the Ghost in the Shell is hers, and Guide ▸ Your First Evening with 1.0 is the
++folders, scripts and settings keys keep the earlier names). This page is the first ten minutes. Help ▸ The Living Desktop
++is the tour of the window, Help ▸ Kasandra, the Ghost in the Shell is hers, and Help ▸ Your First Evening with 1.0 is the
+ acceptance evening on the ThinkPad.
+ 
+ *Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on the ThinkPad
+@@ -22,27 +22,30 @@ yet. The first real proof is that evening.*
+ ## The first ten minutes
+ 
+ 1. **The window.** HALT upper left; the menus across the head (File, Edit, View, Go, Tools, Help; View ▸ Details pane, or
+-   Alt+P, shows the chosen thing at the right of the centre); Apps ⊕ upper right. On the left the tabs Files, Machine and Settings, with DELETE at their foot; the board in the
++   Alt+P, shows the chosen thing at the right of the centre); Apps at the head's right. On the left the tabs Files, Machine and
++   Settings, with the Recycle Bin at their foot (DELETE on a profile from 1.0; Tools ▸ The bin's name); the Explorer in the
+    centre; Kasandra's column on the right; at the foot Line · Terminal · Search · Web · Log, the writing line and the meters
+-   CPU GPU RAM TXT NET. In the dedicated session a slim dock across the top holds Graphite and your app windows.
+-2. **Files** starts at "This computer /" with Home open. Select a file and it becomes the focus of the board, with what it
+-   is connected to around it: solid wires are recorded, dashed ones only possible and "not verified". A double-click opens
++   CPU GPU RAM TXT NET. In the dedicated session one bar along the bottom of the screen, above every app, holds Start, the
++   line, Graphite and your app windows, Kas, the tray and the clock.
++2. **Files** is an Explorer: Quick access (Home, Desktop, Documents, Downloads, Pictures, Music), the Desk and This
++   computer in the tree, and the window starts with Home as a List in the centre (List, Icons or Board; type a path in the
++   bar to go there). Show a file on the Board and it becomes the focus, with what it is connected to around it: solid wires are recorded, dashed ones only possible and "not verified". A double-click opens
+    it in the centre; use Save and Return to come back to the same board.
+-3. **Apps** lists what is installed on this computer. Open one: its window appears in the dock, and one press there brings
+-   it forward. Right-click a file for Open with.
++3. **Start** (the Windows key, or Start on the bar) lists the apps installed on this computer, by kind; type to find one.
++   Open one: its window appears on the bar, and one press there brings it forward. Right-click a file for Open with.
+ 4. **The Machine tab** reads the computer itself: USB drives (eject safely), the battery, the network and Wi-Fi, sound and
+    screens. Where a service is missing it says so, and why.
+ 5. **Ask Kasandra in her column**: the ask line at the foot of her column, with its send arrow. With no model she answers
+    what your records can answer and plans from them; words typed in Line at the foot are offered to her with Ask
+    Kasandra →. Every change of hers waits for your word or a grant you gave, and is done only when it is verified.
+-6. **Try Rail Demo** (Guide ▸ Try Rail Demo): an invented 12 V rail, built in a new folder of its own and opened in a
++6. **Try Rail Demo** (Help ▸ Try Rail Demo): an invented 12 V rail, built in a new folder of its own and opened in a
+    window of its own. Nothing of it reaches your workspace.
+ 7. **Her model is optional.** The Brain room (the GPU meter's card at the foot) ▸ Add file. The ThinkPad page names the
+    file and its checksum.
+ 8. **HALT** stops all of her work at once and nothing else; it reads RESUME while held, and RESUME restarts nothing by
+    itself.
+-9. **Leaving:** the session group at the foot of the Work menu reads Lock, Suspend, Log out, Restart, Shut down, Return to
+-   Debian. Before you leave, Graphite names the apps still open and asks each to close politely.
++9. **Leaving:** the session group at the foot of the File menu (and Start's foot) reads Lock, Suspend, Log out, Restart,
++   Shut down, Return to Debian. Before you leave, Graphite names the apps still open and asks each to close politely.
+ 
+ ## The older rooms, still there
+ 
+diff --git a/README.md b/README.md
+index 2012d41..a27b649 100644
+--- a/README.md
++++ b/README.md
+@@ -5,10 +5,10 @@ Kasandra (Kas for short), is an agent user of the system who works beside you un
+ that computer unless you turn a service on. Before November 6, 2026 the program was called Ledger & Slate; folders,
+ scripts, settings keys and internal names keep those earlier names for compatibility.
+ 
+-- **Graphite is the session.** A supervisor keeps it alive; your apps outlive a crash of its window; a dock across the
+-  top brings any window forward; Lock, Suspend, Log out, Restart, Shut down and Return to Debian are plain actions that
++- **Graphite is the session.** A supervisor keeps it alive; your apps outlive a crash of its window; one bar along the
++  bottom of the screen holds Start, the line and every open window, and brings any window forward; Lock, Suspend, Log out, Restart, Shut down and Return to Debian are plain actions that
+   close apps politely.
+-- **The whole computer.** Files from "This computer /" with Home open (rename, move, copy, delete to the bin, many at
++- **The whole computer.** Files as an Explorer, from Quick access to This computer, Home open as a List (rename, move, copy, delete to the bin, many at
+   once, each batch with one Undo); Apps from what is installed; the Machine for real (USB drives, sound, screens,
+   network and Wi-Fi, the battery); Settings that change real settings; notifications kept in Log.
+ - **The Living Desktop.** The bulletin board: what you select sits in the middle with its neighbours around it, sized by
+@@ -26,7 +26,7 @@ scripts, settings keys and internal names keep those earlier names for compatibi
+ 
+ **Start here:** [Your first evening with 1.0](docs/ACCEPTANCE_1.0.md) (the install, your paper's §2 test, the model, the
+ §18 day, what to send back), [the ThinkPad page](docs/THINKPAD_FIRST_INSTALL.md), and
+-[What's new in 1.0](docs/RELEASE_NOTES_1.0.md). In Graphite: Guide ▸ The Living Desktop, and Guide ▸ Kasandra, the Ghost
++[What's new in 1.0](docs/RELEASE_NOTES_1.0.md). In Graphite: Help ▸ The Living Desktop, and Help ▸ Kasandra, the Ghost
+ in the Shell.
+ 
+ **Not tested.** By the owner's rule ("No testing") nothing in 1.0 has been through the test suite, the tiers or the
+@@ -69,7 +69,7 @@ bash START_MINIMAL_DEBIAN.sh   # from a Debian text login: the dedicated fullscr
+ bash START_OFFICE.sh           # from an existing desktop: the ordinary window on the Office workspace (~/Concern/Office)
+ ```
+ 
+-Leave through the Work menu's last group → Return to Debian, or Exit Graphite on an
++Leave through the File menu's last group (or the foot of Start) → Return to Debian, or Exit Graphite on an
+ existing desktop. The same group's Log out, Restart and Shut down first save or set aside your work as leaving does, ask you
+ to confirm, and then ask the system's own logind (never sudo); without a login session they say they are unavailable. On Windows, `START_OFFICE.cmd` starts the same program after Python
+ and `requirements-qt.txt` are installed.
+@@ -121,7 +121,7 @@ check is integrity, not readiness or acceptance. Tests run one module at a time:
+ 
+ ## Paired exchange, signed releases and deployment
+ 
+-Arrange → Exchange & deployment holds recipient-bound request and result pills, pinned mutual TLS 1.3, replay protection,
++Go ▸ Exchange & deployment holds recipient-bound request and result pills, pinned mutual TLS 1.3, replay protection,
+ explicit signed offline release verification and recovery, reviewable launch files and optional read-only phone progress.
+ A received pill stays in quarantine until explicitly accepted; returned edits become a frozen working-copy proposal, and
+ originals still need separate owner publication. Nothing starts merely by opening the panel. Read docs/STAGE6.md before
+diff --git a/docs/ACCEPTANCE_1.0.md b/docs/ACCEPTANCE_1.0.md
+index a33efe9..db351f6 100644
+--- a/docs/ACCEPTANCE_1.0.md
++++ b/docs/ACCEPTANCE_1.0.md
+@@ -22,7 +22,7 @@ stick with a few ordinary files on it (not the kit's drive).
+ 
+ **Where the details are.** `docs/THINKPAD_FIRST_INSTALL.md` (the ThinkPad page: the install, the model file, the console
+ route if the screen stops answering) and `docs/MINIMAL_DEBIAN_INSTALL_01.md` (the dedicated session). This page points to
+-them rather than repeating them. In Graphite, Guide ▸ The Living Desktop and Guide ▸ Kasandra, the Ghost in the Shell say
++them rather than repeating them. In Graphite, Help ▸ The Living Desktop and Help ▸ Kasandra, the Ghost in the Shell say
+ what each part of the window is.
+ 
+ ---
+@@ -89,10 +89,10 @@ bash "$HOME/Applications/Graphite-1.0/START_MINIMAL_DEBIAN.sh"
+ ```
+ 
+ You should see: the window in **Day** (light, calm), with one line saying that Graphite 1.0 starts in Day and that your
+-earlier look is in Arrange ▸ Appearance; HALT upper left; Apps ⊕ upper right; Files on the left, starting at "This
+-computer /" with Home open and chosen; the board in the centre; Kasandra's column on the right with the equalizer across
++earlier look is in View ▸ Appearance; HALT upper left; the menus File, Edit, View, Go, Tools, Help; Apps ⊕ at the head's
++right; Files on the left, Quick access first, with Home chosen and open as a List in the centre; Kasandra's column on the right with the equalizer across
+ its top and no picture of her; at the foot Line · Terminal · Search · Web · Log and the meters CPU GPU RAM TXT NET; and the
+-slim dock across the very top.
++bar along the very bottom (Start, the line, the windows, Kas, the tray, the clock).
+ 
+ **No model.** Her column must show ○ beside her name and say that no model is loaded and what she can still do. If it
+ shows ● with a model ready, stop the model in the Brain room (the GPU meter's card at the foot) before you go on.
+@@ -101,11 +101,12 @@ shows ● with a model ready, stop the model in the Brain room (the GPU meter's
+ 
+ ### 2.2 Two apps, and material between them
+ 
+-1. Open **Apps** (upper right). It lists what is installed on this computer by kind, with a search line. **Photo 3.**
++1. Open **Start** on the bar (or press the Windows key). It lists what is installed on this computer by kind; type to find
++   one. (**Apps** at the head's right lists the same, with a search line.) **Photo 3.**
+ 2. Open LibreOffice Writer, then a second app that is not LibreOffice (a text editor, Firefox, an image viewer: whatever
+    Apps lists). If only LibreOffice is installed, use Writer and Calc, and say so.
+-3. The dock shows both windows with their titles, the active one marked. Press each in the dock: it comes forward. Press
+-   the dock's Graphite entry: Graphite comes back. **Photo 4:** the dock with both apps.
++3. The bar shows both windows with their titles, the active one marked. Press each on the bar: it comes forward. Press
++   the bar's Graphite entry: Graphite comes back. **Photo 4:** the bar with both apps.
+ 4. Exchange material: copy a passage from one app and paste it into the other (each app's own Edit menu); then save a
+    file in one and open the saved file in the other. Say whether both ways worked.
+ 5. In Graphite, find the saved file in Files (under Home), right-click it, Open with: the apps that take that kind of file
+@@ -121,7 +122,7 @@ pkill --oldest --signal KILL --full workbench.launch
+ 
+ This ends Graphite's window the hard way, as a crash would. You should see: Graphite's window gone for a few seconds, then
+ back, with a line saying it was started again; both apps still open, their windows untouched. **Photo 5:** Graphite back,
+-with the line, and the dock with both apps.
++with the line, and the bar with both apps.
+ 
+ ### 2.4 A USB drive
+ 
+@@ -133,8 +134,8 @@ with the line, and the dock with both apps.
+ 
+ ### 2.5 Suspend and resume
+ 
+-1. From the foot of the **Work** menu: the session group reads Lock, Suspend, Log out, Restart, Shut down, Return to
+-   Debian. **Photo 8:** the Work menu open.
++1. From the foot of the **File** menu: the session group reads Lock, Suspend, Log out, Restart, Shut down, Return to
++   Debian. **Photo 8:** the File menu open.
+ 2. Choose **Lock** first: the screen locker shows; type your password into it (never into Graphite); you are back.
+ 3. Choose **Suspend**: the screen locks first, then the computer sleeps. Wake it, type your password into the locker.
+    You should see Graphite and your open apps exactly as they were. **Photo 9:** after the wake.
+@@ -154,7 +155,7 @@ Each is optional; take a photo of whatever reads wrong.
+ 
+ ### 2.7 Return to the console
+ 
+-Choose **Return to Debian** at the foot of the Work menu with an app still open. You should see Graphite name the apps
++Choose **Return to Debian** at the foot of the File menu with an app still open. You should see Graphite name the apps
+ still open and ask each to close politely (an app may ask you to save; nothing is killed). **Photo 10:** that question.
+ Then the text console, with `Graphite ended with status 0` and a line saying how many times Graphite was started again in
+ this session (one, from 2.3). **Photo 11:** the console.
+@@ -221,7 +222,7 @@ worksheet, and the summary page and the report play the previous report.
+ Her model should be ready (Part 3). Where a step says what she should answer, the words will differ; what matters is what
+ the answer claims.
+ 
+-1. **Guide ▸ Try Rail Demo**, then **Build it** on her card. It is built in a new folder of its own under
++1. **Help ▸ Try Rail Demo**, then **Build it** on her card. It is built in a new folder of its own under
+    `~/Graphite demos`, never in your workspace, and opens in a window of its own. Her card names the folder: write it down.
+    **Photo 15:** Rail Demo's window.
+ 
+@@ -302,7 +303,7 @@ the desktop and your apps keep running; HALT reads RESUME. Press RESUME: nothing
+ 
+ ## Part 5 · Leave, and what to send back
+ 
+-Choose **Return to Debian** (or Shut down) from the foot of the Work menu.
++Choose **Return to Debian** (or Shut down) from the foot of the File menu.
+ 
+ **Send back:**
+ 
+diff --git a/docs/DAILY_GUIDE.md b/docs/DAILY_GUIDE.md
+index 2a82df5..8ff2fc5 100644
+--- a/docs/DAILY_GUIDE.md
++++ b/docs/DAILY_GUIDE.md
+@@ -6,7 +6,7 @@ November 7, 2026 · Graphite 0.1. Graphite is the public name of the workspace (
+ 
+ - From a text login on the minimal Debian machine: `bash START_MINIMAL_DEBIAN.sh`. It starts the dedicated Fluxbox session with Graphite fullscreen and prints `Graphite ended with status N` when you leave. From an existing desktop the same command opens the fullscreen Office instead; `bash START_OFFICE.sh` opens the ordinary window.
+ - Graphite opens on the work. When this workspace has anything in it you start in the Field (below), with what waits for you selected; Esc goes to where you left off. An empty workspace starts on Home. Home's own choice "Start: always Home" starts on Home every time.
+-- Leave through the last group of the Work menu → Return to Debian (in the dedicated session) or Exit Graphite (elsewhere). Graphite asks about unsaved files, offers a return copy, stops its own model and tracked commands, then closes. The computer stays on.
++- Leave through the last group of the File menu (or the foot of Start) → Return to Debian (in the dedicated session) or Exit Graphite (elsewhere). Graphite asks about unsaved files, offers a return copy, stops its own model and tracked commands, then closes. The computer stays on.
+ - The same group holds Log out (this login session), Restart and Shut down (this computer). Each asks what leaving asks (unsaved files, the return copy), then asks you to confirm, naming what it affects. Nothing is stopped before you confirm, and Cancel leaves Graphite as it was. Then Graphite closes the ordinary way (the local model and tracked commands stop, running assignments pause, the session is saved) and only then asks the system itself (logind, through loginctl or systemctl, never sudo), because ending the session or the computer ends Graphite at once.
+ - When the system does not allow one of them, or Graphite is not running in a login session, its row says unavailable; F1, its tooltip and choosing it say why, and Graphite stays open. In the dedicated session nothing can answer the system's own permission prompt, so a Restart or Shut down that would need one is unavailable there: Return to Debian and use `systemctl reboot` or `systemctl poweroff` at the text login. If the system refuses at the very last moment, Graphite has already closed with your work saved and tells you why.
+ - Graphite services (the admission of new work) are separate from leaving: click the GPU meter → Graphite services → On, Off, Restart cycle Graphite's own services, never the computer, and keep the desktop open.
+@@ -51,23 +51,23 @@ An action is a button, a dark plate with a quiet edge; a word that only goes som
+ **More ▾ → Show the page in its own light** shows it as the file has it, and the choice is kept.
+ **Find** (Ctrl+F) opens one line above the work and searches whatever is open: writing, the cells of a sheet, a list, the lines of a finding, the words of a PDF page; Enter goes to the next place, Shift+Enter to the one before, Esc closes it.
+ With the whole desk in the window (**Z**), each sheet is the glyph of its kind, its name and the mark of its state, all large enough to read; the Field opens as you last saw it.
+-The menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide) stand across the head from the middle column's left edge, and follow it when you resize the columns. Over the left column is the equalizer (0.8.6): glowing tubes, one for each processor thread of this computer (up to sixteen), then the kernel, memory, disks, network and graphics in pairs; a tube in amber is near its limit, a dot over a tube is its recent peak, sinking, and the faint trace behind them is all of it together over the last two minutes (amber along the floor while Graphite itself is working; with Reduce motion it holds still). The bar above the work says the name of what is open and whether it is saved; click the name for its address, which comes up at the head while you type it.
++The menus (File, Edit, View, Go, Tools, Help since 1.1) stand across the head from the middle column's left edge, and follow it when you resize the columns. Over the left column is the equalizer (0.8.6): glowing tubes, one for each processor thread of this computer (up to sixteen), then the kernel, memory, disks, network and graphics in pairs; a tube in amber is near its limit, a dot over a tube is its recent peak, sinking, and the faint trace behind them is all of it together over the last two minutes (amber along the floor while Graphite itself is working; with Reduce motion it holds still). The bar above the work says the name of what is open and whether it is saved; click the name for its address, which comes up at the head while you type it.
+ The right pane is one view, **Kasandra**: her face (in the Kasandra look, her masthead: her name, the state of the work, what she speaks with and her hand; her picture stands as a hologram in the left pane's lower part), **This** (what is open, or the sheet selected in the Field; **more** opens everything about it), **Now** (what is running and what waits for you; **activity** opens the whole list), then the conversation. While the whole of either is up, the pane's title is the way back.
+-**Kasandra's hand.** Under her face, beneath what she speaks with (in the Kasandra look, on her masthead, after it), two words say how far she acts by herself; click them (or **Rules ▸ Kasandra's hand**) to change it. **Ask first**: every change waits for your Approve. **Do and show**: a change you ask her for is made at once; she says what she did, and its card has **Undo**, which puts back exactly what it took and is refused if the thing was changed again since. **Free hand**: she also makes the changes the records mark for approval, and after a change she checks the desk and brings back to current what stood on it. On every place, what cannot be undone asks first (sending to another computer, removing what cannot be brought back, emptying DELETE, ending the session, a Terminal command that is not a plain read). **What she did…** in the same menu is her trail. Say "make a folder called Bracket", "write a file called Bracket/plan.txt saying cut the stock first", "start a page called Bench plan" or "make a note called Rail idea that says try a ferrite" and the thing is where your own would be; a folder or file she made has an Undo that deletes it (DELETE gives it back), and she never writes over a file that is there. Say "run df -h" and she runs a command that only reads; any other command she puts in the line for you.
+-**A start in Godot.** Say "start a Godot project called Lander" (or "get me started in Godot"). Kasandra makes the folder `Lander` in Files with `project.godot`, `main.tscn`, `main.gd` and `START_HERE.md` (the first five minutes in Godot), written for the Godot on this computer: Godot 3, which Debian installs as the package `godot3`, or Godot 4. She says what the Godot room reads it as; "Open it in Godot" waits for your Approve (with a free hand she opens it); the words on her card read the first steps, read the script, or open the Godot room, which inspects the project, opens it in Godot or plays a scene. Undo moves the folder to DELETE.
++**Kasandra's hand.** Under her face, beneath what she speaks with (in the Kasandra look, on her masthead, after it), two words say how far she acts by herself; click them (or **Tools ▸ Kasandra's hand**) to change it. **Ask first**: every change waits for your Approve. **Do and show**: a change you ask her for is made at once; she says what she did, and its card has **Undo**, which puts back exactly what it took and is refused if the thing was changed again since. **Free hand**: she also makes the changes the records mark for approval, and after a change she checks the desk and brings back to current what stood on it. On every place, what cannot be undone asks first (sending to another computer, removing what cannot be brought back, emptying the Recycle Bin, ending the session, a Terminal command that is not a plain read). **What she did…** in the same menu is her trail. Say "make a folder called Bracket", "write a file called Bracket/plan.txt saying cut the stock first", "start a page called Bench plan" or "make a note called Rail idea that says try a ferrite" and the thing is where your own would be; a folder or file she made has an Undo that deletes it (the Recycle Bin gives it back), and she never writes over a file that is there. Say "run df -h" and she runs a command that only reads; any other command she puts in the line for you.
++**A start in Godot.** Say "start a Godot project called Lander" (or "get me started in Godot"). Kasandra makes the folder `Lander` in Files with `project.godot`, `main.tscn`, `main.gd` and `START_HERE.md` (the first five minutes in Godot), written for the Godot on this computer: Godot 3, which Debian installs as the package `godot3`, or Godot 4. She says what the Godot room reads it as; "Open it in Godot" waits for your Approve (with a free hand she opens it); the words on her card read the first steps, read the script, or open the Godot room, which inspects the project, opens it in Godot or plays a scene. Undo moves the folder to the Recycle Bin.
+ The line at the bottom is the one place you type. Five names stand at its left (**Kasandra · Terminal · Search · Web · Log**) and the lit one gets the words. Web opens an address, or searches for words, in this computer's own browser (Graphite fetches nothing); with Kasandra or Search lit, a line that is only an address (https://…, www.…, localhost) is opened there too, and anything else stays with whom it was typed to: typing never changes the name that is lit. The arrow at the end says what it will do; when the line reads as a line it turns green and runs it.
+-**Two appearances (0.8.0).** **Rules ▸ Desk artwork ▸ Appearance** chooses **Graphite** (pencil, paper and amber) or **Kasandra** (indigo; burnt yellow for what is selected or has the keyboard, the row you are on in a menu a solid burnt-yellow bar; cyan for what is ready and under the pointer; raspberry for what waits for your Approve, lavender with a dashed edge for a recheck). Apps in the upper right is the owner's Struthio in both looks (0.8.6; her neon kp logo was Apps in Kasandra before). The choice is this computer's and is used from the next start; choosing it offers to start again now. The assistant is Kasandra in both. In Kasandra headings are in a typewriter face, and her pictures follow the work: the quiet bench at rest, her hand by Enter while a change waits for you, notes while she answers or a job runs, the pencil down after an Approve, a loose cable after a refusal. The Office shows her office with the kasandra protocol wordmark. Clean shows no pictures in either.
++**Two appearances (0.8.0).** **View ▸ Appearance** chooses **Graphite** (pencil, paper and amber) or **Kasandra** (indigo; burnt yellow for what is selected or has the keyboard, the row you are on in a menu a solid burnt-yellow bar; cyan for what is ready and under the pointer; raspberry for what waits for your Approve, lavender with a dashed edge for a recheck). Apps at the head's right is the owner's Struthio in both looks (0.8.6; her neon kp logo was Apps in Kasandra before). The choice is this computer's and is used from the next start; choosing it offers to start again now. The assistant is Kasandra in both. In Kasandra headings are in a typewriter face, and her pictures follow the work: the quiet bench at rest, her hand by Enter while a change waits for you, notes while she answers or a job runs, the pencil down after an Approve, a loose cable after a refusal. The Office shows her office with the kasandra protocol wordmark. Clean shows no pictures in either.
+ 
+-**Rules ▸ Desk artwork ▸ Glow** sets how strongly the desk glows: Soft, Bright or Neon (what it opens with). Keys work as they always did but are not printed beside what they do; the **?** key in the Field lists them. In the left tree the traces from the root to the row you are on are lit.
+-Every tool is one of Graphite's own glyphs with no box (a tool particular to a page keeps its words beside its glyph; a glyph alone says its name in its tip); **Work ▸ Rules ▸ Buttons ▸ Words** brings back worded plates.
++**View ▸ Desk artwork ▸ Glow** sets how strongly the desk glows: Soft, Bright or Neon (what it opens with). Since 1.1 a menu prints each row's key beside its words (**View ▸ Show keys** turns them off; the keys work either way); the **?** key in the Field lists them. In the left tree the traces from the root to the row you are on are lit.
++Every tool is one of Graphite's own glyphs with no box (a tool particular to a page keeps its words beside its glyph; a glyph alone says its name in its tip); **View ▸ Buttons ▸ Words** brings back worded plates.
+ `docs/RELEASE_NOTES_0.8.3.md`, `docs/RELEASE_NOTES_0.8.2.md`, `docs/RELEASE_NOTES_0.8.1.md`, `docs/RELEASE_NOTES_0.8.0.md`, `docs/RELEASE_NOTES_0.7.0.md`, `docs/RELEASE_NOTES_0.6.1.md`, `docs/RELEASE_NOTES_0.6.0.md`, `docs/RELEASE_NOTES_0.5.3.md`, `docs/RELEASE_NOTES_0.5.2.md`, `docs/RELEASE_NOTES_0.5.1.md`, `docs/RELEASE_NOTES_0.5.0.md`, `docs/RELEASE_NOTES_0.4.9.md`, `docs/RELEASE_NOTES_0.4.8.md`, `docs/RELEASE_NOTES_0.4.7.md`, `docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+ 
+ ## The desk
+ 
+ The window is one symmetrical desk: two graphite bands, the head at the top and the writing line at the bottom, with warm paper between them, a pane at each side and your work in the centre. Both panes are one width (drag either edge and both follow; Settings → Workspace → Left column width sets both), and the desk is mirrored about the window's centre to the pixel. Lettering on the bands is pale, as if erased from the shading; words you can act on are eraser pink; the choice in use has a short yellow mark under it. Words you may skip (a caption, a note, an explanation) are in the script, and what you act on or read first stays in print. The desk's measures are in docs/GRAPHITE_DESK.md, and its "Where things went" says where each older control went.
+ 
+-1. **The head.** Over the left column, the equalizer: this computer at work in six groups (processor, kernel, memory, disks, network, graphics); click it for what each reads now, and which tubes are near their limit, in words. Work · Revise · Tools · Arrange · Commands · Rules · Properties · Guide start at the middle column's left edge. At the right, Apps: the owner's Struthio. (There is no System menu since 0.7.0: see The four meters, and leaving, below.)
+-2. **The left pane.** Three tabs, Machine · Cabinet · Settings, each a tree with connecting branch lines, and DELETE, larger, at the lower right (DELETE keeps what you delete; restore puts it back). Machine is this computer (processor, memory, storage, connections, devices, installed tools); every row's tooltip says where and when its reading was taken, and the Machine row's carries the one-line machine summary. Cabinet is your work by project: ideas, documents, assignments, questions, working copies. Settings is the shared registry Graphite reads too, under Workspace and Assistant. Nothing else sits in the pane: Import and Export are in Work, the cabinet's views and Refresh are under Arrange and on the tree's right-click, and Search finds records and settings by their words.
++1. **The head.** Over the left column, the equalizer: this computer at work in six groups (processor, kernel, memory, disks, network, graphics); click it for what each reads now, and which tubes are near their limit, in words. File · Edit · View · Go · Tools · Help start at the middle column's left edge. At the right, Apps: the owner's Struthio. (There is no System menu since 0.7.0: see The four meters, and leaving, below.)
++2. **The left pane.** Three tabs, Machine · Cabinet · Settings, each a tree with connecting branch lines, and the Recycle Bin (DELETE on a profile from 1.0), larger, at the lower right (the bin keeps what you delete; restore puts it back). Machine is this computer (processor, memory, storage, connections, devices, installed tools); every row's tooltip says where and when its reading was taken, and the Machine row's carries the one-line machine summary. Cabinet is your work by project: ideas, documents, assignments, questions, working copies. Settings is the shared registry Graphite reads too, under Workspace and Assistant. Nothing else sits in the pane: Import and Export are in File, the cabinet's views and Refresh are under View and on the tree's right-click, and Search finds records and settings by their words.
+ 3. **The centre.** The real work. Documents, source files, calculations and workspaces open here. One Preview tab reuses itself; up to five pins stay; workspaces opened from a menu are rooms beside your Preview and never replace it. With nothing open the centre is the Finder (below).
+ 4. **The right pane.** Kasandra. Her face, what she speaks with, and two words for her hand (how far she acts by herself; click them to change it). **This:** what is open or selected, with **more** for everything about it (Context). **Now:** what runs and what waits for you, with **activity** for the whole list. Then the conversation. While Context or Activity is up, a title at the top of the pane is the way back to her.
+ 5. **The writing line.** The lower band, as tall as the head. Under the left column five names, Kasandra · Terminal · Search · Web · Log: the lit one gets what you type. From the middle column's left edge, one long line to write in (its empty hint is `prompt`), then a small control that opens the room above the line (one chevron: more; two: taller; one down: close), then the arrow (cyan in Kasandra, orange in Graphite), which says what it will do and ends at the middle column's right edge. Under the right column the four meters, CPU · GPU · RAM · TXT, evenly spaced, each a door (below).
+@@ -78,7 +78,7 @@ The pointer is the Graphite mark's two facets aimed at eleven o'clock, the click
+ 
+ The cat at the lower left, pale paper on the band, opens the programs list: one click, even while it dozes, or Space or Enter when it has the focus (its tooltip says Open programs). It rests with graphite eyes, glances sideways with yellow eyes and a question-mark tail when you point at it, lifts a paw while the list is open, and closes its eyes after a quiet while. Under Reduce motion it changes pose at once.
+ 
+-The list is like the Programs folder of a Start menu: every program and capability Graphite has, one plain name and one small graphite icon each, A to Z (Agenda, Assignments, Calculator, Documents, Files, the KiCad, KiBot, ngspice, Yosys, nextpnr & Trellis and HDL checks, Laboratory, Local model, Memory, Methods, Office, Projects, Questions, References, Settings, Sources, Tool Atlas, Work trail), then Explore the workshop. Type a name's first letters to jump to it; Up, Down, Home and End move; Return opens; Escape closes. A row's word at the right says only what Graphite observed: open, N running or interrupted, needs setup (a program was not found), unavailable. F1 or the tooltip gives the full description: what opens, what Graphite can do there, what is missing. Opening a row runs nothing. Creating things is not in the list: New Idea (Ctrl+Shift+N) and New Project are under Work.
++The list is like the Programs folder of a Start menu: every program and capability Graphite has, one plain name and one small graphite icon each, A to Z (Agenda, Assignments, Calculator, Documents, Files, the KiCad, KiBot, ngspice, Yosys, nextpnr & Trellis and HDL checks, Laboratory, Local model, Memory, Methods, Office, Projects, Questions, References, Settings, Sources, Tool Atlas, Work trail), then Explore the workshop. Type a name's first letters to jump to it; Up, Down, Home and End move; Return opens; Escape closes. A row's word at the right says only what Graphite observed: open, N running or interrupted, needs setup (a program was not found), unavailable. F1 or the tooltip gives the full description: what opens, what Graphite can do there, what is missing. Opening a row runs nothing. Creating things is not in the list: New Idea (Ctrl+Shift+N) and New Project are under File.
+ 
+ ## The four meters, and leaving
+ 
+@@ -88,8 +88,8 @@ The System menu is gone since 0.7.0. Each meter (0.8.6) is a glowing ring with i
+ - **GPU**: Kasandra's model (**Brain room**) and **Graphite services** On · Off · Restart: Graphite's own services, never the computer.
+ - **RAM**: memory in use, swapping, disks and network, and **Machine** (this computer, in the left pane).
+ - **TXT**: **Full chat**, and **What she has in view**.
+-- **Game** is the last row of **Programs**: STRUTHIO, in its own window, paused at tick zero (below, The game behind the mark).
+-- At the foot of the **Work** menu: **Log out**, **Return to Debian** or **Exit Graphite**, **Restart**, **Shut down** (above, Start and stop).
++- **Game** is the last row of **Apps**: STRUTHIO, in its own window, paused at tick zero (below, The game behind the mark).
++- At the foot of the **File** menu: **Log out**, **Return to Debian** or **Exit Graphite**, **Restart**, **Shut down** (above, Start and stop).
+ 
+ From the keyboard the symbol opens with Game under focus; Stop all jobs is one Down away.
+ 
+@@ -97,7 +97,7 @@ From the keyboard the symbol opens with Game under focus; Stop all jobs is one D
+ 
+ One place to type. Ctrl+K puts the cursor there in Search from anywhere. Choose a mode with its word at the right, with Alt and a number, or by typing its lead character first on an empty line:
+ 
+-- **Assignment** (Alt+1): give Graphite work in your own words and press Enter. A typed line that reads (the structured commands) runs only when you press Ctrl+Enter, and the line says so while what you typed is one; Enter never runs it. Up on the empty line brings back the line you ran. A line starting with `/` runs an operation by name (Alt+3, or Commands → Run an operation…).
++- **Assignment** (Alt+1): give Graphite work in your own words and press Enter. A typed line that reads (the structured commands) runs only when you press Ctrl+Enter, and the line says so while what you typed is one; Enter never runs it. Up on the empty line brings back the line you ran. A line starting with `/` runs an operation by name (Alt+3, or Tools ▸ Commands ▸ Run an operation…).
+ - **Shell** (Alt+5, or start with `$`): the line goes to your configured shell, in your Files folder; the word reads Bash when that shell is bash.
+ - **Search** (Ctrl+K, Alt+4, or start with `?`): files and their words, the cabinet, settings and commands, results under the line as you type; Enter searches everything.
+ - **Log** (Alt+6): above the line at Half or Tall, two streams chosen with the Events and Network tabs (below).
+@@ -178,7 +178,7 @@ Place the file anywhere on the computer, register it in the Brain room (Add a mo
+ 
+ ## The game behind the mark
+ 
+-Game, the last row of Programs, opens STRUTHIO ARCADE 1.9.0 in its own window, in desk mode: keyboard only (no touch controls are shown), no title screen, and a new run waits on the pause screen at tick zero with the keys listed. ← → (or A D) flap left and right, ↑ W or Space flap hard, ↓ (S) darts, Esc pauses; a flap key starts the run and resumes it. Game over offers NEW RUN only (Space or Enter), paused at tick zero again. Desk runs save to their own run slots, apart from the web game's. The game window keeps its own storage on this computer, separate from the phone game (which stays as it is and keeps its saves and high scores on the phone), and Graphite serves the game at the same local address each time (127.0.0.1:47913), so the window's saved runs and high scores last from one session to the next. If something else holds that address, Graphite uses a free one for that session, and that session's saves stay with it.
++Game, the last row of Apps, opens STRUTHIO ARCADE 1.9.0 in its own window, in desk mode: keyboard only (no touch controls are shown), no title screen, and a new run waits on the pause screen at tick zero with the keys listed. ← → (or A D) flap left and right, ↑ W or Space flap hard, ↓ (S) darts, Esc pauses; a flap key starts the run and resumes it. Game over offers NEW RUN only (Space or Enter), paused at tick zero again. Desk runs save to their own run slots, apart from the web game's. The game window keeps its own storage on this computer, separate from the phone game (which stays as it is and keeps its saves and high scores on the phone), and Graphite serves the game at the same local address each time (127.0.0.1:47913), so the window's saved runs and high scores last from one session to the next. If something else holds that address, Graphite uses a free one for that session, and that session's saves stay with it.
+ 
+ ## What is not yet in place
+ 
+diff --git a/docs/GUIDE_KASANDRA.md b/docs/GUIDE_KASANDRA.md
+index ff914c2..fbdf659 100644
+--- a/docs/GUIDE_KASANDRA.md
++++ b/docs/GUIDE_KASANDRA.md
+@@ -1,7 +1,7 @@
+ # Kasandra, the Ghost in the Shell
+ 
+ *Graphite 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
+-the ThinkPad yet. The first real proof is your first evening (Guide ▸ Your First Evening with 1.0).*
++the ThinkPad yet. The first real proof is your first evening (Help ▸ Your First Evening with 1.0).*
+ 
+ Kasandra (Kas) works beside you on the same material, through the same doors you use. Her rule is the desk's rule:
+ **the model proposes; the desk disposes.** Nothing a model writes becomes a fact, a decision or a change without the desk's
+@@ -9,7 +9,7 @@ check; a change only the model chose is never done, at any place of her dial; se
+ done only when its effect is verified. With no model loaded she is still there: her dictionary reads most requests, the
+ maths and the checks are the desk's, and she plans from your records.
+ 
+-The window around her is Guide ▸ The Living Desktop.
++The window around her is Help ▸ The Living Desktop.
+ 
+ ## Her voice
+ 
+@@ -58,7 +58,7 @@ folds.
+ 
+ ## How she does a task
+ 
+-Say you ask: *"Recheck the startup power and update the summary page"* (on Rail Demo: Guide ▸ Try Rail Demo).
++Say you ask: *"Recheck the startup power and update the summary page"* (on Rail Demo: Help ▸ Try Rail Demo).
+ 
+ 1. **She reads your words.** Her dictionary reads most requests with no model. When it cannot, the model may read them,
+    only into the desk's verbs and only from words you typed: "I took it as: …", with **Do** and **Not that**.
+@@ -92,7 +92,7 @@ accessibility, replace it, save with the app's own Save, and count the save only
+ - **A touch stops her.** Any key or press of yours pauses her at once, between two of her acts: ▮▮ stopped by you.
+   **Continue** lets her go on; **Stop** puts your window back as it was (the menus she opened closed, your focus, cursor,
+   selection, tabs and scroll), each part checked and said. When she finishes she gives your keyboard and pointer back.
+-- Her changes on the desk follow her dial (Rules ▸ Kasandra's hand), and one Undo on her card takes back all of one
++- Her changes on the desk follow her dial (Tools ▸ Kasandra's hand), and one Undo on her card takes back all of one
+   request's changes.
+ - This needs the desktop's accessibility service and LibreOffice's GTK plugin, both in the 1.0 System set.
+ 
+diff --git a/docs/GUIDE_LIVING_DESKTOP.md b/docs/GUIDE_LIVING_DESKTOP.md
+index f31dba6..cce0cac 100644
+--- a/docs/GUIDE_LIVING_DESKTOP.md
++++ b/docs/GUIDE_LIVING_DESKTOP.md
+@@ -3,22 +3,24 @@
+ *Graphite 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
+ the ThinkPad yet. Where this page says what you see, it says what was built and seen working on the build machine, with
+ no screen and with stand-ins for the USB drive, the sound, the Wi-Fi and the battery. The first real proof is your first
+-evening (Guide ▸ Your First Evening with 1.0).*
++evening (Help ▸ Your First Evening with 1.0).*
+ 
+ Graphite is the whole desktop: the session, your files, your apps, the machine, and Kasandra (Kas), on one screen. With
+-no model loaded, everything on this page works. Her own page is Guide ▸ Kasandra, the Ghost in the Shell.
++no model loaded, everything on this page works. Her own page is Help ▸ Kasandra, the Ghost in the Shell.
+ 
+ ## The screen at a glance
+ 
+-- **The head**, the session and the authority: HALT upper left; the menus Work, Revise, Tools, Arrange, Commands, Rules,
+-  Properties and Guide; Apps ⊕ upper right.
+-- **The left**, where things are: the tabs Files, Machine and Settings; the Desk drawer of records; DELETE at the foot.
+-- **The centre**, the thing, what it is connected to, and working on it: the board, the working view, tabs and the split.
++- **The head**, the session and the authority: HALT upper left; the menus File, Edit, View, Go, Tools and Help (1.1; the
++  rows of 1.0's eight menus are all there, each under its new name); Apps ⊕ at the head's right.
++- **The left**, where things are: the tabs Files, Machine and Settings; the Desk drawer of records; the Recycle Bin at the foot (DELETE on a
++  profile from 1.0).
++- **The centre**, the thing, what it is connected to, and working on it: the Explorer (List, Icons, Board), the working
++  view, tabs and the split.
+ - **The right**, who works with you: Kasandra's column.
+ - **The foot**, the computer's own line and its vital signs: Line · Terminal · Search · Web · Log, the writing line, and
+   the meters CPU GPU RAM TXT NET.
+-- **The dock**, in the dedicated session: a slim band above everything, with a Graphite entry and the windows of your
+-  apps.
++- **The bar**, in the dedicated session: one bar along the bottom of the screen, above every app: Start, the line,
++  Graphite and the windows of your apps, Kas, the tray and the clock.
+ 
+ Nothing lives in two places. Kas is spoken to in her column; the foot is the computer's line.
+ 
+@@ -28,11 +30,14 @@ Nothing lives in two places. Kas is spoken to in her column; the foot is the com
+   Graphite's window ends unexpectedly, the session starts it again after a short wait (2 seconds, then 4, then 8, at most
+   30), up to three times in a row; after that it returns to the text console with a plain message. Your apps stay open
+   meanwhile, because each app starts in a session of its own.
+-- **The dock.** A slim band across the top of the screen, above every app: the Graphite entry always brings Graphite back;
+-  each open app window stands there with its icon and title, the active one marked. One press brings a window forward; a
++- **The bar.** One bar along the bottom of the screen, above every app. **Start** (or the Windows key) holds your apps by
++  kind, your recent files and the session group; type at once and **the line** finds and does apps, files, settings,
++  commands, DOS words and sums, or asks Kasandra. The Graphite entry always brings Graphite back; each open app window
++  stands there with its title, the active one marked. The tray holds the network, sound and power, and the clock shows
++  the month on a press. One press brings a window forward; a
+   right-click minimises it or asks it to close (the app may ask to save; nothing is forced). Where there is no window list,
+   the strip stays away and says so.
+-- **The session group**, at the foot of the Work menu: Lock, Suspend, Log out, Restart, Shut down, Return to Debian. Lock
++- **The session group**, at the foot of the File menu and of Start: Lock, Suspend, Log out, Restart, Shut down, Return to Debian. Lock
+   starts the system's screen locker; your password is typed into it, never into Graphite. Suspend always locks first, then
+   puts the computer to sleep, and waits until a file Kas is writing is finished. Before Log out, Restart, Shut down or
+   Return to Debian, Graphite names the apps still open and asks each to close politely; it never kills one.
+@@ -43,7 +48,7 @@ Nothing lives in two places. Kas is spoken to in her column; the foot is the com
+ 
+ ## Apps ⊕
+ 
+-- **Apps** (upper right) lists what is installed on this computer, from the apps' own desktop entries, by kind, with their
++- **Apps** (at the head's right; Start on the bar shows the same apps) lists what is installed on this computer, from the apps' own desktop entries, by kind, with their
+   own icons and a search line. Graphite's own rooms stand under their own heading. **⊕** beside it puts any app, or a
+   command of your own, on your list.
+ - Every app starts in a session of its own, never through a shell, so it stays open if Graphite starts again.
+@@ -54,19 +59,21 @@ Nothing lives in two places. Kas is spoken to in her column; the foot is the com
+ 
+ ## Files: the whole computer
+ 
+-- The Files tab starts at **This computer /**. **Home** (your home folder) is open and chosen when Graphite starts;
+-  **Drives** stands right under it (USB sticks, cards and discs). Every other folder your account can read is one press
++- The Files tab reads **Quick access** first (Home, Desktop, Documents, Downloads, Pictures, Music), then the **Desk**,
++  then **This computer**: System (C:) is /, and each drive (USB sticks, cards and discs) has its letter and its free space.
++  Graphite starts with **Home** chosen, as a List in the centre. Every other folder your account can read is one press
+   away. The system's own pseudo-folders (/proc, /sys, /dev, /run) are shown but never read. Names that start with a dot
+   appear when you turn on **Show hidden** in the tab's header.
+ - Graphite's own workspace is a folder in Home like any other, marked with Graphite's sign. Its records stand in the
+   **Desk** drawer: the concern, its sources, sheets, calculations, findings and questions.
+ - In Home you can open a file in its app (its saves are recorded as revisions), rename it, move it (also by dragging it
+   onto a folder), make a new folder beside it, and delete it, each with Undo.
+-- **DELETE**, at the foot of the left column, is the system's own bin, shared with your other apps: a file deleted from
+-  your home goes there with where it was and when, DELETE lists it under *From your home*, and restore puts it back, never
++- The **Recycle Bin** (DELETE on a profile from 1.0; Tools ▸ The bin's name), at the foot of the left column, is the
++  system's own bin, shared with your other apps: a file deleted from your home goes there with where it was and when, the
++  bin lists it under *From your home*, and restore puts it back, never
+   over another file.
+ - A file renamed or moved, by Graphite or by another app, stays the same object: its new name shows in the tree, on the
+-  board and in the breadcrumb.
++  board and in the address.
+ 
+ ## The Machine and Settings
+ 
+@@ -86,8 +93,10 @@ this computer" and why.
+ **Settings ▸ This computer** reaches the same things as settings: default apps, sound, screens, network, power, the
+ session and notifications, beside Graphite's own settings.
+ 
+-## The centre: the bulletin board
++## The centre: the Explorer and the bulletin board
+ 
++- **A folder** chosen in the tree opens in the centre as a **List** (Name, Modified, Type, Size, Links; a press on a
++  heading sorts, again reverses), as **Icons** with picture thumbnails, or on the **Board**, the bulletin board below.
+ - **Select something** in Files, in the Desk drawer or in a search result, and it becomes the focus of the board: the large
+   tile in the middle, with what is connected to it around it on rings (its sources, the revisions of a limit, the
+   calculations made from it, the findings about it, open questions, pages that quote it). Select a tile and the tree opens
+@@ -103,7 +112,8 @@ session and notifications, beside Graphite's own settings.
+   as "and 12 more", which opens. Right-click a tile for **Why am I shown?** (the reasons in words), **Pin** ("pinned by
+   you": drawn large, first), **Turn down** (put with the group at the edge, its link kept; Turn up again undoes it) and
+   **Open beside**. Truth, confidence and authority keep their own marks: a large tile is relevant, not true.
+-- **The centre bar**, one bar at every depth: Back, Forward and the breadcrumb (where you are); on the board, its counts
++- **The centre bar**, one bar at every depth: Back, Forward and the address (where you are; type a path, ~ or C:\ to go
++  there), and List, Icons and Board; on the board, its counts
+   ("7 recorded · 3 possible, not verified") and **Whole desk**, the whole desk as sheets with what feeds what.
+ - An empty board says what to do: "Select something on the left; what it is connected to appears here." A tile with no
+   links says why.
+@@ -153,13 +163,13 @@ and restarts nothing by itself.
+ 
+ **Day** is the launch look: light and calm, green for what is live, blue for the wires, the rings and what is selected.
+ **Night** is Day's dark twin. **Graphite** and **Kasandra** stay as characterful alternatives in the same layout.
+-Choose in Arrange ▸ Appearance. In every look each state keeps its word and its shape, so no colour has to be told
++Choose in View ▸ Appearance. In every look each state keeps its word and its shape, so no colour has to be told
+ apart. No picture of Kasandra appears in any look.
+ 
+ ## What 1.0 does not do, said plainly
+ 
+-- Nothing is tested (the owner's rule). Only the ThinkPad can show the dock on a real screen, real USB drives, Wi-Fi,
++- Nothing is tested (the owner's rule). Only the ThinkPad can show the bar on a real screen, real USB drives, Wi-Fi,
+   sound, suspend and lock, the system's permission prompts, the Radeon and the 35B's speed.
+ - The split is not restored at the next start (its tabs are). No encrypted drives; no enterprise or hidden Wi-Fi.
+ - The older rooms (Changes, Continuing work, Exchange & deployment, the Project Desk, the Field) are still there, under
+-  Arrange; the board is the centre's home.
++  Go; the Explorer is the centre's home, with the board one press away.
+diff --git a/docs/KAS_MIND_EVENING.md b/docs/KAS_MIND_EVENING.md
+index 2e1ed93..65fc205 100644
+--- a/docs/KAS_MIND_EVENING.md
++++ b/docs/KAS_MIND_EVENING.md
+@@ -6,12 +6,12 @@ you the same choices as buttons when no model is loaded. Everything here works w
+ 
+ *Since 1.0:* you speak to her in her ask line, at the foot of her column ("ask Kasandra…", with its send arrow); words
+ typed in Line at the foot of the window are offered to her with Ask Kasandra →. Her column has no picture of her in any
+-look. The rest of the window is Guide ▸ The Living Desktop; what she does beyond these ten things is Guide ▸ Kasandra, the
++look. The rest of the window is Help ▸ The Living Desktop; what she does beyond these ten things is Help ▸ Kasandra, the
+ Ghost in the Shell.
+ 
+ Two invented desks carry the examples. **Rail Demo** (a 12 V rail: bench readings, and limits in Rev A, archived, and
+-Rev B, current) is built by Guide ▸ Try Rail Demo. **Home Demo** is an invented household: a tenancy under the *Demoland
+-Tenancy Act (invented)*, a bank sheet and two typed money sheets, built by Guide ▸ Try Home Demo. Each is built through the
++Rev B, current) is built by Help ▸ Try Rail Demo. **Home Demo** is an invented household: a tenancy under the *Demoland
++Tenancy Act (invented)*, a bank sheet and two typed money sheets, built by Help ▸ Try Home Demo. Each is built through the
+ Kernel's own doors in a new folder of its own, never in your workspace; her card says so before anything is built, and the
+ demo opens on the Field in a window of its own. Every Home Demo legal page says INVENTED: NOT THE LAW OF ANY PLACE.
+ "Today" in every example is Friday 20 November 2026.
+@@ -20,7 +20,7 @@ Ten things to try, one for each thing she can do.
+ 
+ ## 1. Why, with the wires lit
+ 
+-Open Rail Demo (Guide ▸ Try Rail Demo), right-click the finding "Startup is inside the Rev B limit of 40 ms" and choose
++Open Rail Demo (Help ▸ Try Rail Demo), right-click the finding "Startup is inside the Rev B limit of 40 ms" and choose
+ Why. Her column shows a short proof: 45 ms is at most 40 ms does not hold, 5 ms over; each line says its state and where
+ it came from, and clicking a line selects that card and lights the proof's wires in the Field while the rest of the desk
+ steps back. Next and Back walk the proof card by card from the source end; the last line says what would change it.
+diff --git a/docs/THINKPAD_FIRST_INSTALL.md b/docs/THINKPAD_FIRST_INSTALL.md
+index 5d04f06..ed4e5c5 100644
+--- a/docs/THINKPAD_FIRST_INSTALL.md
++++ b/docs/THINKPAD_FIRST_INSTALL.md
+@@ -6,7 +6,7 @@ Kasandra's column saying what she can do without one. Use the ordinary Debian ac
+ workspace.
+ 
+ **Built, not tested.** Nothing in 1.0 has run on this ThinkPad yet. The acceptance evening, `docs/ACCEPTANCE_1.0.md`
+-(Guide ▸ Your First Evening with 1.0), walks through the install, your paper's test, her model and the day on Rail Demo,
++(Help ▸ Your First Evening with 1.0), walks through the install, your paper's test, her model and the day on Rail Demo,
+ and says what to send back; this page holds the details it points to.
+ 
+ ## Observed hardware
+@@ -64,7 +64,7 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
+ 
+ ## First work in the desk
+ 
+-Since 1.0 the centre's home is the board: select the workshop's sheet in Files or in the Desk drawer and it stands in the middle with its source, report and findings around it; a double-click opens it, and Save and Return to the board brings you back. Kasandra is spoken to in her ask line at the foot of her column; the line at the window's foot is the computer's (Line, Terminal, Search, Web, Log). Guide ▸ The Living Desktop is the tour. The Field below is the whole desk as sheets (the board's Whole desk, or Arrange ▸ Field).
++Since 1.0 the centre's home is the board: select the workshop's sheet in Files or in the Desk drawer and it stands in the middle with its source, report and findings around it; a double-click opens it, and Save and Return to the board brings you back. Kasandra is spoken to in her ask line at the foot of her column; the line at the window's foot is the computer's (Line, Terminal, Search, Web, Log). Help ▸ The Living Desktop is the tour. The Field below is the whole desk as sheets (the board's Whole desk, or Go ▸ Field).
+ 
+ - Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the line that reads the selected sheet in Line at the foot and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
+ 
+@@ -136,10 +136,10 @@ Graphite checks current RAM headroom and the owner's foreground turn before appl
+ 
+ ## Desk artwork
+ 
+-Since 1.0 no picture of Kasandra appears anywhere, in any look (the owner, 26 November 2026: "No kas avatar anymore"): her column opens with the equalizer, her name, her model and her state word. The look itself is chosen in **Arrange → Appearance**: Day (the launch look), Night, Graphite or Kasandra. **Rules → Desk artwork** keeps the workshop's art plates (**Art plates**), the glow, and the Illustrated, ASCII and Clean modes.
++Since 1.0 no picture of Kasandra appears anywhere, in any look (the owner, 26 November 2026: "No kas avatar anymore"): her column opens with the equalizer, her name, her model and her state word. The look itself is chosen in **View → Appearance**: Day (the launch look), Night, Graphite or Kasandra. **View → Desk artwork** keeps the workshop's art plates (**Art plates**), the glow, and the Illustrated, ASCII and Clean modes.
+ 
+ ## Fast-forward screensaver
+ 
+-Open **Rules → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The workshop scene shows, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Graphite controls.
++Open **View → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The workshop scene shows, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Graphite controls.
+ 
+ Automatic start is off by default. The same menu offers five, fifteen, and thirty minutes of idle time while Graphite is active. Move the pointer, click, or press a key to return to the same desk. **Reduce optional motion** shows a still frame. For a password-protected lock, use the system's lock screen.
+diff --git a/tests_integrated/test_delete_words.py b/tests_integrated/test_delete_words.py
+index b63e296..9efce4d 100644
+--- a/tests_integrated/test_delete_words.py
++++ b/tests_integrated/test_delete_words.py
+@@ -43,7 +43,7 @@ class TheCan(unittest.TestCase):
+ 
+     def test_the_can_says_the_bins_word_in_kasandra(self):
+         out = probe('kasandra', 1920, 1200, 'delete')
+-        self.check(out, 1.0);self.assertEqual(out['size'], [162, 29]);self.assertEqual(out['rect'], [139, 1094, 162, 29])      # 1.1 E1: Recycle Bin is wider than DELETE (right edge 301, as T1 measured in the 317 px pane)
++        self.check(out, 1.0);self.assertEqual(out['size'], [162, 29]);self.assertEqual(out['rect'], [139, 1106, 162, 29])      # 1.1 E1: Recycle Bin is wider than DELETE (right edge 301, as T1 measured in the 317 px pane); 1.1 T2: 12 px lower on K0's 48 px foot (was 60)
+ 
+     def test_the_can_says_the_bins_word_in_graphite(self):
+         self.check(probe('graphite', 1366, 768, 'delete'), 0.8)
+diff --git a/tests_integrated/test_faces_find_light.py b/tests_integrated/test_faces_find_light.py
+index 6abd8c5..a17c9b4 100644
+--- a/tests_integrated/test_faces_find_light.py
++++ b/tests_integrated/test_faces_find_light.py
+@@ -53,11 +53,14 @@ class GlyphSetTests(unittest.TestCase):
+     def test_a_menu_line_is_looked_up_without_its_mnemonic_its_key_or_its_dots(self):
+         self.assertEqual([tool_faces.named(w) for w in ('&Undo','Find…\tCtrl+F','New &File…','Pin / Unpin workspace\tCtrl+Shift+K')],['Undo','Find','New File','Pin / Unpin workspace'])
+ 
+-    def test_a_menu_line_shows_its_words_and_never_its_key(self):
++    def test_a_menu_line_shows_its_words_and_its_key_while_keys_are_shown(self):
+         from PySide6.QtGui import QKeySequence
+         from PySide6.QtWidgets import QMenu
++        from unittest import mock
+         menu=QMenu();save=menu.addAction('&Save');save.setShortcut(QKeySequence('Ctrl+S'));idea=menu.addAction('New Idea…\tCtrl+Shift+N')
+-        tool_faces.dress(menu)
++        tool_faces.dress(menu)  # 1.1 T2: W1 reversed 0.5.2: with "Show keys" on (the default) a line shows its key beside its words
++        self.assertTrue(save.isShortcutVisibleInContextMenu());self.assertEqual(idea.text(),'New Idea…\tCtrl+Shift+N','a key after a tab is kept')
++        with mock.patch('workbench.windows_hand.show_keys',return_value=False):tool_faces.dress(menu)  # "Show keys" off: as 0.5.2 had it
+         self.assertFalse(save.isShortcutVisibleInContextMenu());self.assertEqual(save.shortcut().toString(),'Ctrl+S','the key still works; it is not printed')
+         self.assertEqual(idea.text(),'New Idea…','a key written into a line after a tab is taken out of it')
+         self.assertEqual(save.text(),'Save','and no letter is underlined');both=menu.addAction('Find && Replace');tool_faces.dress(menu);self.assertEqual(both.text(),'Find && Replace','a real ampersand stays')
+diff --git a/tests_integrated/test_one_name.py b/tests_integrated/test_one_name.py
+index 3cc70d3..e1c2255 100644
+--- a/tests_integrated/test_one_name.py
++++ b/tests_integrated/test_one_name.py
+@@ -218,7 +218,7 @@ class TheCode(unittest.TestCase):
+                     self.assertEqual(tab.text(),'Run\tAlt+3' if shown else 'Run')
+                     self.assertEqual(windows_hand.keyed('Rename','F2'),'Rename (F2)' if shown else 'Rename')
+                     self.assertEqual(name_sweep.named_in('Rename (F2)','toolTip',keys=not windows_hand.show_keys()),[] if shown else ['key'])
+-                    menu.deleteLater()
++                    import shiboken6;shiboken6.delete(menu)      # 1.1 T2: deleteLater outside an event loop left this menu standing, and TheSweepItself's sweep read its 'Run\tAlt+3'
+         app.processEvents()
+         self.assertTrue(name_sweep.keys_in_code(ROOT,kept={}),'the finder still finds the keys the code names')
+         everything=name_sweep.keys_in_code(ROOT,kept={})
+diff --git a/tests_integrated/test_rail_demo.py b/tests_integrated/test_rail_demo.py
+index 3446d26..3c33937 100644
+--- a/tests_integrated/test_rail_demo.py
++++ b/tests_integrated/test_rail_demo.py
+@@ -696,8 +696,9 @@ class ThePlayableSceneOnRailDemo(unittest.TestCase):
+         out=self.play('mouse_still')
+         trace=next(s for s in out['steps'] if s['act']=='sheet.trace')
+         self.assertIs(trace['result']['route']['animating'],False)
+-        from workbench import menu_catch
+-        self.assertIs(menu_catch.calm(WINDOW['w']),False,'the motion is put back as the scene found it')
++        from workbench import menu_catch, boss_theme
++        still_look=boss_theme.glow()<=0      # 1.1 T2: Day and Night draw no glow, so they are always calm (1.0 P4)
++        self.assertIs(menu_catch.calm(WINDOW['w']),still_look,'the motion is put back as the scene found it')
+ 
+     def test_the_scene_leaves_the_records_of_rail_demo_as_it_found_them(self):
+         from workbench.engineering_kernel import operator
+diff --git a/tests_integrated/test_tiers_green.py b/tests_integrated/test_tiers_green.py
+index 55d3199..c051b34 100644
+--- a/tests_integrated/test_tiers_green.py
++++ b/tests_integrated/test_tiers_green.py
+@@ -90,10 +90,10 @@ class TheLooks(unittest.TestCase):
+         with self.assertRaises(Exception):tiers.looks_of('noir')
+ 
+     def test_only_runs_what_it_names(self):
+-        units, _ = tiers.plan(2, ['graphite', 'day'], tiers.config(), modules=['test_a', 'test_b'], checks=['tools/check_x_ui.py'])
+-        kept = tiers.only(units, ['test_b', 'check_x_ui.py'])
++        units, _ = tiers.plan(2, ['graphite', 'day'], tiers.config(), modules=['test_a', 'test_b'], checks=['tools/check_x_window.py'])
++        kept = tiers.only(units, ['test_b', 'check_x_window.py'])
+         self.assertEqual(sorted((u['name'], u['look']) for u in kept),
+-                         [('test_b', 'day'), ('test_b', 'graphite'), ('tools/check_x_ui.py', 'day'), ('tools/check_x_ui.py', 'graphite')])
++                         [('test_b', 'day'), ('test_b', 'graphite'), ('tools/check_x_window.py', 'day'), ('tools/check_x_window.py', 'graphite')])
+ 
+ 
+ class Remembered(unittest.TestCase):
+diff --git a/tests_integrated/test_words_match.py b/tests_integrated/test_words_match.py
+new file mode 100644
+index 0000000..372952d
+--- /dev/null
++++ b/tests_integrated/test_words_match.py
+@@ -0,0 +1,145 @@
++"""1.1 T2: the words to match. The guides beside the program say what the 1.1 window says: the six head menus (K0's
++head_menus.MOVED gives old -> new), the bar along the bottom (B1, in place of 1.0's dock), Start on the Windows key (B2),
++Files as an Explorer from Quick access (E1) and the Recycle Bin a new profile shows (E1). And the tiers hold the modules
++the 1.1 slices added.
++
++Run: python3 -B -m unittest tests_integrated.test_words_match
++"""
++import re
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++
++# The owner's guides of the current program: the Help pages (guide_pages), Getting Started, the daily guide, the ThinkPad
++# page and the README. Release notes and the dated HATCH and BOSS records say what was true when they were written.
++GUIDES = ('README.md', 'GETTING_STARTED.md', 'docs/DAILY_GUIDE.md', 'docs/GUIDE_LIVING_DESKTOP.md', 'docs/GUIDE_KASANDRA.md',
++          'docs/ACCEPTANCE_1.0.md', 'docs/KAS_MIND_EVENING.md', 'docs/THINKPAD_FIRST_INSTALL.md')
++
++
++def text(name):
++    return (ROOT / name).read_text(encoding='utf-8')
++
++
++def paragraphs(name):
++    return [' '.join(block.split()) for block in re.split(r'\n\s*\n', text(name))]
++
++
++def old_menus():
++    """The 1.0 head menus that 1.1 no longer has, read from head_menus.MOVED (its old places' first words)."""
++    from workbench import head_menus
++    first = {re.match(r'[A-Za-z]+', old).group(0) for old, _new in head_menus.MOVED}
++    return sorted(first - set(head_menus.HEAD) - {'new'})
++
++
++def old_menu_pattern():
++    names = '|'.join(old_menus())
++    return re.compile(r'(?<!Tools ▸ )(?<!Tools → )\*{0,2}\b(%s)\*{0,2} ?(▸|→|›)|\b(the|of the) \*{0,2}(%s)\*{0,2} menu\b|'
++                      r'\b(Work|Revise) ?[,·] ?(Revise|Tools)\b' % (names, names))
++
++
++def menu_paths(paragraph):
++    """(menu, first row) for each 'Menu ▸ Row' a paragraph names with one of the six head menus."""
++    from workbench import head_menus
++    heads = '|'.join(head_menus.HEAD)
++    return [(m.group(1), m.group(3).strip(' *')) for m in
++            re.finditer(r'\b(%s)\*{0,2} (▸|→) \*{0,2}([A-Z](?:[^▸→.,;:()*\n]|\.(?=\d))*?)(?=\*\*| ▸| →|[,;:()]|\.(?!\d)|$)' % heads, paragraph)]
++
++
++def a_label(words, source):
++    """Whether the program writes these words as a whole label: a string of their own (or up to its key or …), or through
++    assistant_identity.named(), which reads an older name as Kasandra."""
++    return bool(re.search('[\'"]%s[\'"…\t]' % re.escape(words), source)
++                or re.search('named\\([\'"]%s[\'"]' % re.escape(words.replace('Kasandra', 'Stacy')), source))
++
++
++class TheMenusTheGuidesName(unittest.TestCase):
++    def test_no_guide_names_a_menu_that_no_longer_exists(self):
++        """The acceptance: Work, Revise, Arrange, Commands, Rules, Properties and Guide are gone from the head."""
++        pattern = old_menu_pattern(); found = []
++        for name in GUIDES:
++            for n, line in enumerate(text(name).splitlines(), 1):
++                if pattern.search(line):found.append((name, n, line.strip()[:120]))
++        self.assertEqual(found, [])
++
++    def test_the_old_menus_are_read_from_head_menus_moved(self):
++        self.assertEqual(old_menus(), ['Arrange', 'Commands', 'Guide', 'Properties', 'Revise', 'Rules', 'Work'])
++        self.assertTrue(old_menu_pattern().search('choose Arrange ▸ Appearance'))
++        self.assertTrue(old_menu_pattern().search('the foot of the **Work** menu'))
++        self.assertFalse(old_menu_pattern().search('Tools ▸ Commands ▸ Run an operation…'), 'Commands is a menu of Tools now')
++
++    def test_each_new_place_in_moved_is_a_head_menu(self):
++        from workbench import head_menus
++        for _old, new in head_menus.MOVED:
++            self.assertIn(new.split(' ▸ ')[0], head_menus.HEAD, new)
++        self.assertEqual(head_menus.HEAD, ('File', 'Edit', 'View', 'Go', 'Tools', 'Help'))
++
++    def test_a_guide_that_lists_the_head_menus_lists_the_six(self):
++        for name in ('GETTING_STARTED.md', 'docs/GUIDE_LIVING_DESKTOP.md', 'docs/DAILY_GUIDE.md'):
++            page = ' '.join(text(name).split())
++            self.assertTrue(re.search(r'File, Edit, View, Go, Tools,? (and )?Help|File · Edit · View · Go · Tools · Help', page), name)
++
++    def test_every_row_a_guide_names_under_a_head_menu_is_a_row_of_the_program(self):
++        """'Help ▸ Try Rail Demo', 'View ▸ Appearance', 'Tools ▸ Kasandra's hand': each row's words are the program's own."""
++        source = '\n'.join(p.read_text(encoding='utf-8') for p in sorted((ROOT / 'workbench').glob('*.py')))
++        missing = []; seen = 0
++        for name in GUIDES:
++            for paragraph in paragraphs(name):
++                for menu, row in menu_paths(paragraph):
++                    seen += 1
++                    words = row.rstrip('…').split()      # a row is named with the sentence that follows it: its longest label counts
++                    if not any(a_label(' '.join(words[:k]), source) for k in range(len(words), 0, -1)):missing.append((name, menu, row))
++        self.assertGreater(seen, 20)
++        self.assertEqual(missing, [])
++
++    def test_the_launch_line_sends_the_owner_to_a_menu_that_is_there(self):
++        from workbench import head_menus, launch_look
++        self.assertIn('View ▸ Appearance', launch_look.LINE)
++        self.assertEqual([m for m, _row in menu_paths(launch_look.LINE)], ['View'])
++        self.assertIn('View', head_menus.HEAD)
++
++
++class TheScreenTheGuidesDescribe(unittest.TestCase):
++    def test_no_guide_speaks_of_the_dock(self):
++        """B1: one bar along the bottom of the screen replaced 1.0's dock across the top."""
++        found = [(name, n) for name in GUIDES for n, line in enumerate(text(name).splitlines(), 1) if re.search(r'\bdock\b', line, re.I)]
++        self.assertEqual(found, [])
++        for name in ('GETTING_STARTED.md', 'docs/GUIDE_LIVING_DESKTOP.md', 'README.md'):
++            self.assertRegex(' '.join(text(name).split()), r'bar along the\s+bottom of the screen', name)
++
++    def test_apps_are_never_said_to_be_upper_right(self):
++        found = [(name, n) for name in GUIDES for n, line in enumerate(text(name).splitlines(), 1)
++                 if re.search(r'Apps[^.\n]{0,12}upper right|\(upper right\)', line)]
++        self.assertEqual(found, [])
++
++    def test_start_on_the_windows_key_is_in_the_first_ten_minutes(self):
++        page = ' '.join(text('GETTING_STARTED.md').split())
++        self.assertIn('**Start** (the Windows key, or Start on the bar)', page)
++
++    def test_where_a_guide_says_delete_it_also_says_recycle_bin(self):
++        """E1: a new profile's bin says Recycle Bin; DELETE is what a profile from 1.0 keeps. A paragraph that names the
++        can as DELETE says the new word too."""
++        found = []
++        for name in GUIDES:
++            for paragraph in paragraphs(name):
++                if re.search(r'\bDELETE\b', paragraph) and 'Recycle Bin' not in paragraph:found.append((name, paragraph[:100]))
++        self.assertEqual(found, [])
++
++    def test_files_start_at_quick_access_not_this_computer(self):
++        """E1: the tree reads Quick access first; the window starts with Home as a List."""
++        for name in ('GETTING_STARTED.md', 'docs/GUIDE_LIVING_DESKTOP.md', 'docs/ACCEPTANCE_1.0.md'):
++            page = ' '.join(text(name).split())
++            self.assertIn('Quick access', page, name)
++            self.assertNotRegex(page, r'start(s|ing)? at \**"?This computer /', name)
++
++
++class TheTiersHoldTheNewModules(unittest.TestCase):
++    def test_the_modules_the_1_1_slices_added_run_in_tier_2(self):
++        from tools import check_hatch
++        for module in ('test_windows_hand', 'test_bar', 'test_explorer', 'test_start_line', 'test_frame_k0', 'test_words_match'):
++            self.assertTrue((ROOT / 'tests_integrated' / (module + '.py')).is_file(), module)
++            self.assertIn(module, check_hatch.FOCUSED_MODULES, module)
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tools/check_cabinet_ui.py b/tools/check_cabinet_ui.py
+index da75055..164d5b6 100644
+--- a/tools/check_cabinet_ui.py
++++ b/tools/check_cabinet_ui.py
+@@ -115,7 +115,8 @@ with tempfile.TemporaryDirectory(prefix='ledger-cabinet-master-',dir=Path.home()
+  room=select('project:'+first['id']);capture('Ledger_Slate_HATCH_Cabinet_01_Poem_Desktop.png')
+  fields=[field for kind in (QLineEdit,QPlainTextEdit,QTextEdit) for field in w.findChildren(kind) if not field.isReadOnly() and field.placeholderText() and field.objectName()!='CentreFindWords']  # Find's own line (0.5.0) says what it finds
+  # 1.1 T1: 1.0's own lines say what they take (D2: the writing line by its mode; P1: her column's ask; S2: the Apps search)
+- said={'OneBox':typebar_qt.PLACEHOLDERS[bar.target],'HerAsk':'ask Kasandra…','AppsSearchLine':'Find an app'}
++ said={'OneBox':typebar_qt.PLACEHOLDERS[bar.target],'HerAsk':'ask Kasandra…','AppsSearchLine':'Find an app',
++       'ExplorerAddress':'a folder or a file: ~/Documents, /etc, C:\\'}      # 1.1 T2: E1's address line says what it takes
+  assert fields and all(f.placeholderText()==said.get(f.objectName(),'prompt') for f in fields),[(f.objectName(),f.placeholderText()) for f in fields if f.placeholderText()!=said.get(f.objectName(),'prompt')]
+  record('Every instantiated editable field with a placeholder says exactly poem, but 1.0\'s own lines, which say what they take')
+  # The written passages are in the prose family at the prose size and follow a change of it; the record's own data stays in the
+diff --git a/tools/check_finder_ui.py b/tools/check_finder_ui.py
+index e5c4e71..d12e9c7 100644
+--- a/tools/check_finder_ui.py
++++ b/tools/check_finder_ui.py
+@@ -236,7 +236,7 @@ capture('Ledger_Slate_AGENT_01_Finder_06_Compact_1366.png','The Finder’s List
+ page.set_view('columns');settle();whole('1366 Columns');capture('Ledger_Slate_AGENT_01_Finder_07_Columns_1366.png','Columns at 1366 by 768 (the Columns view scrolls sideways by design)')
+ page.set_view('list');page.go(TODAY);settle();continue_whole('1366 Today')
+ page.go(str(LONG));settle();whole('1366 long folder name');last=[b for b in page.path_bar.findChildren(QPushButton) if b.isVisible()][-1]
+-elided=last.text();assert page.path_words()[-1]==LONG.name and '…' in elided and last.toolTip()==str(LONG),(elided,page.path_words()[-1:])
++elided=last.text();assert page.path_words()[-1]==LONG.name and ('…' in elided or elided==LONG.name) and last.toolTip()==str(LONG),(elided,page.path_words()[-1:])      # 1.1 T2: whole where the 1.1 centre has the room (whole() above holds it uncut), else elided
+ page.go(TODAY);settle()
+ check('11 1366×768: the list, the preview and the five parts stay visible; every word whole and nothing in the centre scrolls sideways at 1920×1200 and 1366×768: the toolbar folds %s into ⋯ (whose Show hidden files row changed the count 5 → 6 and back), the List folds %s; Today’s Continue row keeps a document five folders deep a whole link; a %d-character folder name elides in the middle at the foot (“%s”, whole in its tooltip)'%(' · '.join(FOLD_WORDS[f] for f in compact['folded']),' · '.join(compact['list_hidden']) or 'nothing',len(LONG.name),elided))
+ # 11b · 18 pt at 1366×768: the toolbar folds further, a deep path folds its leading folders into …
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index 00316f1..dd4cbbe 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -104,7 +104,11 @@ FOCUSED_MODULES=(
+  'test_workspace_backup','test_project_desk','test_slate_reasoning','test_change_sets','test_continuing_work','test_deployment',
+ 
+  # 1.1 T1: the tiers green: the real faults the 27 November tier runs found, and the tier runner's looks
+- 'test_tiers_green')
++ 'test_tiers_green',
++ # 1.1 T2: the modules the 1.1 slices added (W1 the Windows hand, B1 the bar, E1 the Explorer, B2 Start and the line, K0 the frame)
++ 'test_windows_hand','test_bar','test_explorer','test_start_line','test_frame_k0',
++ # 1.1 T2: the words to match: the guides name the six head menus, the bar, Start and the Recycle Bin
++ 'test_words_match')
+ # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.
+ ON_DEMAND_MODULES={
+  'test_exact_math_solvers':'the SymPy and Z3 solvers in a child worker; needs requirements-math.txt'}
+diff --git a/tools/check_machine_ui.py b/tools/check_machine_ui.py
+index 0d6238a..3d46cc7 100644
+--- a/tools/check_machine_ui.py
++++ b/tools/check_machine_ui.py
+@@ -127,10 +127,10 @@ assert w.a_import in w.menu_groups['File'].actions() and w.a_export in w.menu_gr
+ trash=w.trash_can;parent=trash.parentWidget()
+ while parent is not None:
+  assert not isinstance(parent,QAbstractScrollArea),'Trash must stay outside the scrolling tree';parent=parent.parentWidget()
+-def trash_pinned(view):
++def trash_pinned(view):      # 1.1 T2: E1's can says Recycle Bin, wider than DELETE: its middle, not its left edge, is right of the dock's middle
+  dock=w.nav_dock.geometry();pos=trash.mapTo(w,trash.rect().topLeft());stack_bottom=nav.stack.mapTo(w,nav.stack.rect().bottomLeft()).y()
+  assert trash.isVisible() and not strip.isVisible(),view
+- assert pos.x()>dock.center().x() and pos.x()+trash.width()<=dock.right()+1 and pos.y()>=stack_bottom-1 and pos.y()+trash.height()<=dock.bottom()+1,(view,pos,dock,stack_bottom)
++ assert pos.x()+trash.width()/2>dock.center().x() and pos.x()+trash.width()<=dock.right()+1 and pos.y()>=stack_bottom-1 and pos.y()+trash.height()<=dock.bottom()+1,(view,pos,dock,stack_bottom)
+  strip_samples.append(dict(view=view,text=strip.label.full,sampled_at=strip.sample['sampled_at']))
+ for view in VIEWS:
+  nav.show_view(view);settle();assert nav.current_view()==view;trash_pinned(view);assert STRIP.match(strip.label.full),strip.label.full
+diff --git a/workbench/halt_qt.py b/workbench/halt_qt.py
+index 4202e32..01baea7 100644
+--- a/workbench/halt_qt.py
++++ b/workbench/halt_qt.py
+@@ -94,7 +94,9 @@ class HaltButton(QToolButton):
+         return round(8 * min(max(self.scale, 0.8), 1.4))
+ 
+     def sizeHint(self):
+-        h = max(28, round(40 * self.scale));return QSize(self.need(h), h)
++        h = max(28, round(40 * self.scale))
++        if self.testAttribute(Qt.WA_Resized) and self.height() > 0:h = self.height()      # 1.1 T2: placed, the face at the height it was given (K0's 32 px head gives 24, not 40)
++        return QSize(self.need(h), h)
+ 
+     def paintEvent(self, event):
+         p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
