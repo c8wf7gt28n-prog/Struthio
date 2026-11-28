@@ -236,7 +236,10 @@ price (4.5:1 kept), and Reduce motion stops whatever moves.
 The owner then: "But both the orange and green working together with grey (like screen burns)". So **Night: Duo** becomes
 the default. Green is the computer: files, text, the terminal and the system. Amber is Kas and the owner's word: her
 chip and panel, Waits for you, HALT, the selection and the presses. Grey is the past: burn-in, disabled things and
-tertiary text. Amber-only and Green-only remain as choices.
+tertiary text. Amber-only and Green-only remain as choices. The owner: "This is like the other hero view so really
+make it creative awesome". So Duo is a hero look, like Kasandra: two tubes on one desk (the computer green, her panel
+an amber tube beside it, warming up a beat later), burn-ins that belong where they are, her words typed out by an amber
+block cursor, an amber seven-segment clock, and green VU meters with amber peaks.
 
 **C0 · A real terminal.** The drop-down Terminal (B4) and 1.0's Terminal are not terminal devices: vim, top, less
 and sudo's password prompt do not work in them. Give the drop-down a real terminal (a pseudo-terminal running the
