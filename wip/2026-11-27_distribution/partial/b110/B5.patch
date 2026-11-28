@@ -1,0 +1,812 @@
+diff --git a/tests_integrated/test_bar.py b/tests_integrated/test_bar.py
+index 22faf6a..57dcd65 100644
+--- a/tests_integrated/test_bar.py
++++ b/tests_integrated/test_bar.py
+@@ -1,8 +1,8 @@
+ """1.1 B1, the bar (PLAN_1.1.md, B1): one bar along the bottom of the screen, above every app, in its own X window.
+ 
+ Acceptance first: the bar's height at both screen sizes and its strut at the bottom; the windows slot lists Graphite and two
+-app windows, marks the active one and a press brings one forward; the tray's three flyouts open above it with the Machine
+-page's own actions; register_slot fills a slot without editing bar_qt. Then the slots' order, the tray's words, the clock's
++app windows, marks the active one and a press brings one forward; the tray's Quick Settings (1.1 B5) opens above it with the
++Machine page's own actions; register_slot fills a slot without editing bar_qt. Then the slots' order, the tray's words, the clock's
+ month, the toasts above the bar, the head's strip giving way, and why it does not stand where it should not.
+ 
+ Under Xvfb with the stand-in window manager the whole of it is the builder's smoke (it needs an X server, a window manager
+@@ -92,19 +92,19 @@ class TheBar(unittest.TestCase):
+         self.assertTrue(slot.graphite.active)
+         self.assertIn('Graphite (active)', slot.words());self.assertEqual([r['program'] for r in strip.programs], ['XTerm', 'XTerm'])
+ 
+-    def test_the_trays_three_flyouts_open_above_it_with_the_machine_pages_own_actions(self):
+-        tray = self.bar.slot('tray')
++    def test_the_trays_quick_settings_opens_the_three_sections_above_it_with_the_machine_pages_own_actions(self):
++        tray = self.bar.slot('tray')      # 1.1 B5: one Quick Settings button, one panel with the three sections (was three flyouts)
+         for key in self.b.TRAY:tray.landed(key, self.read[key])
+         self.assertEqual([tray.items[k].word for k in self.b.TRAY], ['Online', '55 %', '76 %'])
+-        for key, wants in (('network', 'Turn Wi-Fi off'), ('sound', None), ('power', None)):
+-            fly = self.bar.open_flyout(key, tray.items[key]);pump()
+-            self.assertTrue(fly.isVisible(), key);self.assertEqual(fly.room.key, key);self.assertEqual(self.bar.open_key, key)
++        for key in self.b.TRAY:
++            fly = self.bar.open_flyout(key, tray.button);pump()
++            self.assertTrue(fly.isVisible(), key);self.assertEqual(sorted(fly.rooms), sorted(self.b.TRAY));self.assertEqual(self.bar.open_key, 'quick')
+             self.assertLessEqual(fly.geometry().bottom(), self.bar.geometry().top(), key)      # above the bar
+             presses = [b.text() for b in fly.findChildren(QPushButton)]
+             self.assertIn(self.b.MORE_WORDS, presses)
+-            if wants:self.assertIn(wants, presses);self.assertIn('Disconnect', presses)
+-            if key == 'sound':self.assertEqual(fly.findChildren(QSlider)[0].value(), 55)
+-            if key == 'power':self.assertTrue(any('76 %' in w.text() for w in fly.findChildren(__import__('PySide6.QtWidgets', fromlist=['QLabel']).QLabel)))
++            self.assertIn('Turn Wi-Fi off', presses);self.assertIn('Disconnect', presses)
++            self.assertEqual(fly.findChildren(QSlider)[0].value(), 55)
++            self.assertTrue(any('76 %' in w.text() for w in fly.findChildren(__import__('PySide6.QtWidgets', fromlist=['QLabel']).QLabel)))
+             fly.close();pump()
+             self.assertIsNone(self.bar.open_key)
+ 
+@@ -149,9 +149,9 @@ class TheBar(unittest.TestCase):
+         gone = self.b.tray_words('power', dict(available=False, why='Not available on this computer: UPower is not running'))
+         self.assertEqual(gone[0], 'Unknown');self.assertIn('UPower is not running', gone[1])
+         self.assertEqual(self.b.tray_words('sound', None)[0], '…')
+-        for key in self.b.TRAY:      # a fixed width: the longest word of each fits, so nothing shifts
+-            item = self.bar.slot('tray').items[key];w = item.natural(40)
+-            item.show_reading(dict(available=False, why='x'));self.assertEqual(item.natural(40), w)
++        button = self.bar.slot('tray').button;w = button.natural(40)      # 1.1 B5: one button, a fixed width: nothing shifts
++        for key in self.b.TRAY:
++            self.bar.slot('tray').items[key].show_reading(dict(available=False, why='x'));self.assertEqual(button.natural(40), w)
+ 
+     def test_the_clock_says_the_time_over_the_date_and_its_month_rises_above_the_bar(self):
+         from workbench.dock_clock_qt import words
+diff --git a/tests_integrated/test_one_line_b4.py b/tests_integrated/test_one_line_b4.py
+index ee9e99c..060761b 100644
+--- a/tests_integrated/test_one_line_b4.py
++++ b/tests_integrated/test_one_line_b4.py
+@@ -205,17 +205,17 @@ class OneLine(unittest.TestCase):
+         line.setText('');line.returnPressed.emit()
+ 
+     def test_the_meters_are_one_tray_item_whose_rows_are_the_doors(self):
+-        w = self.w;item = self.ff.meters_item(w);self.assertIsNotNone(item)
++        w = self.w;item = self.ff.meters_item(w);self.assertIsNotNone(item)      # 1.1 B5: the Quick Settings button
+         read = self.ff.readings(w);self.assertEqual(tuple(read), self.ff.METER_KEYS)
+-        self.assertIn('CPU', item.toolTip() or self.ff.meters_words(read))
+-        fly = item.open_meters();self.settle(40)
+-        self.assertEqual(list(fly.rows), list(self.ff.METER_KEYS))
++        item.show_words();self.assertIn('Meters: CPU', item.toolTip())
++        fly = item.tray.open_panel();self.settle(40)
++        rows = fly.sections['meters'].rows;self.assertEqual(list(rows), list(self.ff.METER_KEYS))
+         with patch('workbench.meter_cards.open_card', return_value=None) as card:
+-            fly.rows['RAM'].click();self.settle(40)
++            rows['RAM'].click();self.settle(40)
+         card.assert_called_once_with(w, item, 'RAM')
+         with patch('workbench.meter_cards.open_card', return_value=None) as card:
+             w.shell2.top.pulse.open_card('CPU')
+-        card.assert_called_once_with(w, item, 'CPU')      # Ctrl+Alt+Del's card (graphite-do tasks) opens above the tray item
++        card.assert_called_once_with(w, item, 'CPU')      # Ctrl+Alt+Del's card (graphite-do tasks) opens above Quick Settings
+ 
+ 
+ class QRectStandIn:
+diff --git a/tests_integrated/test_quiet_bar.py b/tests_integrated/test_quiet_bar.py
+new file mode 100644
+index 0000000..6fb8b90
+--- /dev/null
++++ b/tests_integrated/test_quiet_bar.py
+@@ -0,0 +1,160 @@
++"""1.1 B5, a quieter bar (PLAN_1.1.md, B5): network, sound and power are one Quick Settings button.
++
++Acceptance first: at 1366x768 three app windows fit on the bar beside Start, the line, Kas with HALT, Quick Settings and the
++clock, nothing folded into "more"; one press opens one panel with network, sound, battery and the meters. Then: the button's
++words and its fixed width, nothing the tray or the meters did is lost (each section's way to the Machine page, each meter's
++card, bar.open_flyout for its callers), a second press closes it, the meters stay in the foot while the foot stays, the head
++gives Apps up while the bar stands, and Start carries "Add an app to the list".
++
++Offscreen, with the bar made and marked standing by hand; the readings are invented (test_bar's). Run alone:
++python3 -B -m unittest -v tests_integrated.test_quiet_bar
++"""
++import os, tempfile, unittest
++from types import SimpleNamespace
++from unittest.mock import patch
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++
++from PySide6.QtCore import QEvent  # noqa: E402
++from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QSlider, QWidget  # noqa: E402
++
++APP = QApplication.instance() or QApplication([])
++
++from tests_integrated.test_bar import readings, row  # noqa: E402
++from tests_integrated.test_kas_bar import Host  # noqa: E402
++
++
++def pump(n=6):
++    for _ in range(n):APP.processEvents()
++
++
++class QuietBar(unittest.TestCase):
++
++    def setUp(self):
++        self.home = tempfile.mkdtemp(prefix='quietbar-')
++        self.env = patch.dict(os.environ, {'XDG_CONFIG_HOME': os.path.join(self.home, 'config')});self.env.start()
++        self.read = readings()
++        self.patches = [patch('workbench.halt.held', return_value=False), patch('workbench.floor.gather', return_value=False),
++                        patch('workbench.floor.column_soon', return_value=None),
++                        patch('workbench.machine_real.read', side_effect=lambda key, bus=None: dict(self.read[key]))]
++        for p in self.patches:p.start()
++        from workbench import bar_qt, foot_fold_qt, halt_qt, kas_panel_qt, quick_settings_qt, start_qt
++        self.b, self.q, self.ff = bar_qt, quick_settings_qt, foot_fold_qt
++        self.host = Host(self.home);self.host.show()
++        self.host.shell2.top.halt = halt_qt.HaltButton(self.host, self.host.shell2.top)
++        self.ctl = kas_panel_qt.install(self.host)
++        bar_qt.register_slot('start', start_qt.StartSlot);bar_qt.register_slot('line', start_qt.LineSlot)
++        self.bar = bar_qt.Bar(self.host);self.bar.setFixedSize(1366, 40);self.bar.move(0, 728);self.bar.show()
++        self.bar.standing = True;self.host.graphite_bar = self.bar;self.bar.arrange();pump()
++
++    def tearDown(self):
++        self.ctl.timer.stop()
++        for fly in list(self.bar.flyouts.values()):fly.close()
++        for name in self.b.SLOTS:self.b._FACTORIES.pop(name, None)
++        self.bar.hide();self.bar.deleteLater();self.host._closing = True;self.host.hide();self.host.deleteLater()
++        APP.sendPostedEvents(None, QEvent.DeferredDelete);pump(3)
++        for p in self.patches:p.stop()
++        self.env.stop()
++
++    def tray(self, meters=True):
++        if meters:self.b.register_slot('tray', self.ff.MetersTray);pump()
++        tray = self.bar.slot('tray')
++        for key in self.b.TRAY:tray.landed(key, self.read[key])
++        return tray
++
++    # ---- acceptance ---------------------------------------------------------------------------------------------------------
++    def test_a_at_1366_three_app_windows_fit_beside_kas_halt_and_the_clock(self):
++        self.tray()
++        slot = self.bar.slot('windows');strip = slot.strip
++        snap = dict(available=True, active=0x600002, windows=[row(0x600001, 'Notes.txt - Mousepad', 'Mousepad'),
++                                                              row(0x600002, 'Invented Shop - Mozilla Firefox', 'Firefox', active=True),
++                                                              row(0x600003, 'demo@box: ~/Files', 'XTerm')])
++        strip.show_snapshot(snap);pump();self.bar.arrange();slot.lay();pump()
++        entries = sorted((b for b in strip.buttons.values() if b.row is not None and b.isVisible()), key=lambda b: b.x())
++        self.assertEqual(len(entries), 3, 'three app windows on the bar');self.assertEqual(strip.folded, [], 'none folded into more')
++        self.assertFalse(strip.more.isVisible())
++        self.assertTrue(all(b.width() >= 110 for b in entries), [b.width() for b in entries])      # each its title, readable
++        kas = self.bar.slot('kas');self.assertIsInstance(kas, __import__('workbench.kas_panel_qt', fromlist=['KasSlot']).KasSlot)
++        self.assertTrue(kas.halt.isVisible() and kas.halt.width() > 0, 'HALT beside her name')
++        clock = self.bar.slot('clock').geometry();self.assertEqual(clock.right() + 1, 1366)
++        self.assertLessEqual(entries[-1].mapTo(self.bar, entries[-1].rect().topRight()).x(), kas.geometry().left())
++        self.assertLessEqual(self.bar.slot('tray').width(), 90, 'the tray is one button: three glyphs')
++
++    def test_b_one_press_opens_network_sound_battery_and_the_meters(self):
++        tray = self.tray();tray.button.click();pump()
++        panel = tray.panel;self.assertIsNotNone(panel);self.assertTrue(panel.isVisible())
++        self.assertEqual(list(panel.sections), ['network', 'sound', 'power', 'meters'])
++        self.assertLessEqual(panel.geometry().bottom(), self.bar.geometry().top(), 'above the bar')
++        self.assertGreaterEqual(panel.geometry().top(), 0, 'inside the screen')
++        presses = [b.text() for b in panel.findChildren(QPushButton)]
++        self.assertIn('Turn Wi-Fi off', presses);self.assertIn('Disconnect', presses)
++        self.assertEqual(presses.count(self.b.MORE_WORDS), 3, 'each section its way to the Machine page')
++        self.assertEqual(panel.findChildren(QSlider)[0].value(), 55)
++        self.assertTrue(any('76 %' in w.text() for w in panel.sections['power'].findChildren(QLabel)))
++        self.assertEqual(list(panel.sections['meters'].rows), list(self.ff.METER_KEYS))
++        self.assertEqual(self.bar.open_key, self.q.PANEL_KEY)
++
++    # ---- the rest ----------------------------------------------------------------------------------------------------------
++    def test_the_button_says_every_word_in_its_tip_and_name_in_a_fixed_width(self):
++        tray = self.tray();button = tray.button
++        self.assertEqual(button.accessibleName(), 'Quick Settings: network Online, sound 55 %, power 76 %')
++        tip = button.toolTip()
++        for words in ('Network: connected (Wi-Fi Harbour Lane)', 'Sound: 55 % on Built-in speakers', 'Power: battery', 'Meters: CPU'):
++            self.assertIn(words, tip)
++        self.assertEqual([tray.items[k].glyph for k in self.b.TRAY], [('network', 'online'), ('sound', 55, False), ('power', 76, False, 'battery')])
++        w = button.natural(40)
++        tray.landed('power', dict(self.read['power'], available=False, why='UPower is not running', sampled_at=9e12))
++        self.assertEqual(button.natural(40), w, 'nothing shifts');self.assertIn('power Unknown', button.accessibleName())
++        self.assertGreater(button.natural(44), w)
++
++    def test_nothing_the_tray_or_the_meters_did_is_lost(self):
++        tray = self.tray()
++        for key in self.b.TRAY:
++            panel = tray.open_panel();pump()
++            with patch.object(self.bar, 'open_machine', return_value=None) as whole:
++                panel.more[key].click();pump()
++            whole.assert_called_once_with(key)
++        panel = tray.open_panel();pump()
++        with patch('workbench.meter_cards.open_card', return_value=None) as card:
++            panel.sections['meters'].rows['RAM'].click();pump()
++        card.assert_called_once_with(self.host, tray.button, 'RAM')
++        self.assertIs(self.ff.meters_item(self.host), tray.button, 'the meters\' cards open above Quick Settings')
++
++    def test_bar_open_flyout_opens_the_one_panel_with_that_section_in_sight(self):
++        tray = self.tray();panel = self.bar.open_flyout('sound');pump()
++        self.assertIs(panel, tray.panel);self.assertEqual(list(panel.sections), ['network', 'sound', 'power', 'meters'])
++
++    def test_a_second_press_closes_it_and_a_third_opens_it_again(self):
++        tray = self.tray();tray.button.click();pump()
++        tray.button.click();pump();self.assertIsNone(tray.panel);self.assertIsNone(self.bar.open_key)
++        self.assertNotIn(self.q.PANEL_KEY, self.bar.flyouts)
++        first = tray.open_panel();first.close();second = tray.open_panel()      # the old one goes after the new one opened
++        APP.sendPostedEvents(None, QEvent.DeferredDelete);pump()
++        self.assertIsNot(second, first);self.assertIs(self.bar.flyouts.get(self.q.PANEL_KEY), second);self.assertIs(tray.panel, second)
++
++    def test_while_the_foot_stays_the_meters_stay_in_it(self):
++        tray = self.tray(meters=False);self.assertIsInstance(tray, self.q.QuickTray);self.assertFalse(tray.with_meters)
++        panel = tray.open_panel();pump()
++        self.assertEqual(list(panel.sections), ['network', 'sound', 'power']);self.assertNotIn('Meters', tray.button.toolTip())
++
++    def test_the_head_gives_apps_up_while_the_bar_stands(self):
++        apps, plus = QWidget(), QWidget();apps.show();plus.show()
++        top = SimpleNamespace(host=SimpleNamespace(graphite_bar=SimpleNamespace(standing=True)), programs=apps, apps_add=plus)
++        self.assertTrue(self.q.head_free(top));self.assertFalse(apps.isVisible() or plus.isVisible())
++        apps.show();top.host.graphite_bar.standing = False
++        self.assertFalse(self.q.head_free(top));self.assertTrue(apps.isVisible(), 'without the bar the head keeps Apps')
++        self.assertFalse(self.q.head_free(SimpleNamespace(host=SimpleNamespace(graphite_bar=None))))
++
++    def test_start_carries_add_an_app_to_the_list(self):
++        from workbench import apps_qt, start_qt
++        panel = start_qt.StartPanel(self.host, 'start')
++        try:
++            self.assertEqual(panel.add_app.accessibleName(), apps_qt.ADD_WORDS)
++            with patch.object(apps_qt.AddDialog, 'open', return_value=None):
++                panel.show();pump();panel.add_app.click();pump()
++            self.assertFalse(panel.isVisible(), 'Start closes; the dialog opens')
++        finally:
++            panel.close();panel.deleteLater()
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/workbench/bar_qt.py b/workbench/bar_qt.py
+index 6671433..8e05c6c 100644
+--- a/workbench/bar_qt.py
++++ b/workbench/bar_qt.py
+@@ -16,7 +16,8 @@ Named slots, left to right (SLOTS):
+   kas      a placeholder (B3 fills it): her name and her state, its shape and its word
+   tray     network, sound and power, each a glyph and a word in a fixed width so nothing shifts; a press opens a small
+            flyout above it with the Machine page's own actions (machine_room_qt's page, made compact; machine_real reads
+-           and changes, on the owner's press only, each change said DONE only when read back)
++           and changes, on the owner's press only, each change said DONE only when read back). 1.1 B5: the three are one
++           Quick Settings button (quick_settings_qt), one press opening one panel with every section
+   clock    the time over the date; a press shows the month (W1's clock, moved here from the dock)
+ 
+ register_slot(name, widget_factory) lets a later slice fill a slot without editing this file: widget_factory(bar) returns
+@@ -679,7 +680,12 @@ class BarClock(Clock):
+         p.drawText(QRect(0, half + 1, w, half - 3), Qt.AlignHCenter | Qt.AlignTop, day);p.end()
+ 
+ 
+-DEFAULTS = dict(start=StartButton, line=LineField, windows=WindowsSlot, kas=KasChip, tray=Tray, clock=BarClock)
++def quick_tray(bar):      # 1.1 B5: the tray is one Quick Settings button (quick_settings_qt); Tray stays for what builds on it
++    from .quick_settings_qt import QuickTray
++    return QuickTray(bar)
++
++
++DEFAULTS = dict(start=StartButton, line=LineField, windows=WindowsSlot, kas=KasChip, tray=quick_tray, clock=BarClock)
+ 
+ 
+ # ---- the bar --------------------------------------------------------------------------------------------------------------------
+@@ -851,6 +857,8 @@ class Bar(QWidget):
+ 
+     def open_flyout(self, key, anchor=None):
+         """The flyout above the tray item `key` (network, sound or power); a second press on an open one closes it."""
++        tray = self.slots.get('tray')      # 1.1 B5: Quick Settings: one panel with every section, `key`'s in sight
++        if callable(getattr(tray, 'open_panel', None)):return tray.open_panel(key)
+         old = self.flyouts.get(key)
+         try:
+             if old is not None and old.isVisible():old.close();return None
+@@ -913,6 +921,7 @@ def install(host):
+                 state['left_full_screen'] = leave_full_screen(host)
+                 strip = getattr(host, 'window_strip', None)
+                 if strip is not None:strip.relayout()
++                from .quick_settings_qt import bar_stood; bar_stood(host)      # 1.1 B5: the head again: Apps leaves it, the menus go left
+             else:
+                 state['why'] = 'The bar does not stand: it could not be made a dock (%s).' % (bar.why or 'no reason given')
+                 bar.hide();bar.deleteLater()
+diff --git a/workbench/foot_fold_qt.py b/workbench/foot_fold_qt.py
+index 137af90..7d8d666 100644
+--- a/workbench/foot_fold_qt.py
++++ b/workbench/foot_fold_qt.py
+@@ -13,11 +13,11 @@ from __future__ import annotations
+ 
+ import os
+ 
+-from PySide6.QtCore import QEvent, QObject, QRect, QRectF, QSize, Qt, QTimer
+-from PySide6.QtGui import QColor, QFontMetrics, QPainter
+-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout
++from PySide6.QtCore import QEvent, QObject, Qt, QTimer
++from PySide6.QtWidgets import QLabel, QLineEdit
+ 
+ from . import bar_qt
++from .quick_settings_qt import QuickTray      # 1.1 B5
+ 
+ # Old place -> new place (the owner reads this table; the release notes carry it). K0's head_menus.MOVED is its model.
+ FOOT_MOVED = (
+@@ -35,7 +35,7 @@ FOOT_MOVED = (
+     ('Log: Events and Network, filtered from the line (Alt+6)',
+      'View ▸ Log (Alt+6): the working area\'s Log, with its own Filter line (Enter filters; Ctrl+Enter captures, in Network)'),
+     ('The meters CPU, GPU, RAM, TXT and NET at the foot\'s right, each a door to its card',
+-     'The bar\'s tray: one item, Meters (its bars, and CPU in words on the tall bar); a press opens the five, each the same door'),
++     'The bar\'s Quick Settings (1.1 B5): every meter in its tip; a press opens its panel, the five its fourth section, each the same door'),
+     ('The arrow at the line\'s end, Ctrl+Enter and Ask Kasandra →', "Enter on the bar's line (its first row), or a press on any row"),
+     ('Expand and Collapse (the room above the line)', 'View ▸ Console ▸ One Line, Half, Tall (as before), and Ctrl+`'),
+     ('Short messages ("Saved as…") at the line', 'The working area\'s message line, as before (the foot only repeated them)'),
+@@ -182,7 +182,7 @@ def open_log(host, toggle=True):
+     return True
+ 
+ 
+-# ---- the meters: one item in the bar's tray ---------------------------------------------------------------------------------------
++# ---- the meters: the Quick Settings' fourth section -------------------------------------------------------------------------------------
+ METER_KEYS = ('CPU', 'GPU', 'RAM', 'TXT', 'NET')
+ 
+ 
+@@ -209,65 +209,8 @@ def meters_words(read):
+     return ', '.join('%s %s' % (key, read.get(key, ('—', None))[0]) for key in METER_KEYS)
+ 
+ 
+-class MetersItem(bar_qt.BarButton):
+-    """The meters in the bar's tray: three bars (CPU, GPU and RAM: their heights are their shares, an empty box when there is
+-    no reading), and CPU in words on the tall bar; a press opens the five, each the door its meter was."""
+-
+-    def __init__(self, tray):
+-        super().__init__(tray, 'Meters');self.tray = tray;self.read = {};self.flyout = None
+-        self.clicked.connect(self.open_meters)
+-        self.timer = QTimer(self);self.timer.setInterval(2000);self.timer.timeout.connect(self.refresh);self.timer.start()
+-        QTimer.singleShot(0, self.refresh)
+-
+-    def word(self):
+-        return 'CPU %s' % self.read.get('CPU', ('—', None))[0]
+-
+-    def natural(self, h):
+-        glyph = round(h * 0.42) + 2 * round(h * 0.25)
+-        if h <= bar_qt.SHORT:return glyph
+-        return glyph + 6 + QFontMetrics(bar_qt.bar_font(h)).horizontalAdvance('CPU 100 %')
+-
+-    def refresh(self):
+-        try:host = self.tray.bar.host
+-        except RuntimeError:
+-            return
+-        if getattr(host, '_closing', False):self.timer.stop();return
+-        self.read = readings(host);words = meters_words(self.read)
+-        self.setToolTip('Meters: %s\nA press opens the five; each opens its card.' % words);self.setAccessibleName('Meters: ' + words)
+-        self.update()
+-
+-    def paintEvent(self, event):
+-        c = bar_qt.ink();p = QPainter(self);w, h = self.width(), self.height()
+-        try:opened = self.flyout is not None and self.flyout.isVisible()
+-        except RuntimeError:opened = False
+-        self.ground(p, c, opened)
+-        side = round(h * 0.42);x0 = round(h * 0.25);top = (h - side) / 2.0;bw = max(3, round(side / 4.0));gap = max(2, round((side - 3 * bw) / 2.0))
+-        p.setRenderHint(QPainter.Antialiasing)
+-        for i, key in enumerate(('CPU', 'GPU', 'RAM')):
+-            share = self.read.get(key, ('—', None))[1];x = x0 + i * (bw + gap)
+-            box = QRectF(x + 0.5, top + 0.5, bw - 1, side - 1)
+-            p.setPen(QColor(c['tertiary']));p.setBrush(Qt.NoBrush);p.drawRect(box)
+-            if share is not None:
+-                fill = max(1.0, (side - 2) * max(0.0, min(1.0, float(share))))
+-                p.fillRect(QRectF(x + 1, top + side - 1 - fill, bw - 2, fill), QColor(c['text']))
+-        if h > bar_qt.SHORT:
+-            x = x0 + side + 6;p.setFont(bar_qt.bar_font(h));p.setPen(QColor(c['text'] if self.underMouse() else c['secondary']))
+-            p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, self.word())
+-        p.end()
+-
+-    def open_meters(self):
+-        try:
+-            if self.flyout is not None and self.flyout.isVisible():self.flyout.close();return None
+-        except RuntimeError:
+-            self.flyout = None
+-        bar = self.tray.bar
+-        for fly in list(getattr(bar, 'flyouts', {}).values()):
+-            try:fly.close()
+-            except RuntimeError:pass
+-        self.flyout = MetersFlyout(self);self.flyout.setAttribute(Qt.WA_DeleteOnClose, True)
+-        self.flyout.destroyed.connect(lambda *_: setattr(self, 'flyout', None))
+-        self.update()
+-        return self.flyout.open_above()
++# 1.1 B5: B4's MetersItem and MetersFlyout became the Quick Settings panel's fourth section (quick_settings_qt.MetersSection,
++# its rows these doors); the one button shows network, sound and power, the meters in its tip.
+ 
+ 
+ class DoorWords(QLabel):
+@@ -281,62 +224,13 @@ class DoorWords(QLabel):
+         super().mouseReleaseEvent(event)
+ 
+ 
+-class MetersFlyout(QFrame):
+-    """The five meters above their tray item, each a row in words with the door it was (meter_cards)."""
+-
+-    def __init__(self, item):
+-        super().__init__(None, Qt.Popup | Qt.FramelessWindowHint)
+-        from .meter_cards import DOORS
+-        self.item = item;host = item.tray.bar.host;self.host = host;c = bar_qt.ink()
+-        self.setObjectName('GraphiteMetersFlyout');self.setAccessibleName('Meters, from the bar')
+-        self.setStyleSheet('QFrame#GraphiteMetersFlyout {background:%s; border:1px solid %s;} QLabel {color:%s; background:transparent;}'
+-                           ' QLabel[role="quiet"] {color:%s;} QPushButton {color:%s; background:transparent; border:0; text-align:left; padding:6px 8px;}'
+-                           ' QPushButton:hover {background:%s;}' % (c['surface'], c['stroke'], c['text'], c['secondary'], c['text'], c['hover_side']))
+-        box = QVBoxLayout(self);box.setContentsMargins(14, 12, 14, 12);box.setSpacing(6)
+-        head = QLabel('Meters · this computer, now', self);f = head.font();f.setBold(True);head.setFont(f);box.addWidget(head)
+-        grid = QGridLayout();grid.setHorizontalSpacing(12);grid.setVerticalSpacing(2);box.addLayout(grid)
+-        self.rows = {};read = readings(host)
+-        for r, key in enumerate(METER_KEYS):
+-            words = read[key][0]
+-            b = QPushButton('%s   %s' % (key, words), self);b.setCursor(Qt.PointingHandCursor);b.setMinimumWidth(130)
+-            b.setAccessibleName('%s %s: %s' % (key, words, DOORS[key]));b.clicked.connect(lambda checked=False, key=key: self.door(key))
+-            door = DoorWords(DOORS[key], lambda key=key: self.door(key), self);door.setProperty('role', 'quiet');door.setWordWrap(True)
+-            door.setCursor(Qt.PointingHandCursor);door.setToolTip('Opens: ' + DOORS[key])
+-            grid.addWidget(b, r, 0);grid.addWidget(door, r, 1);self.rows[key] = b
+-        note = QLabel('Each opens what its meter is about, as the foot\'s meters did.', self);note.setProperty('role', 'quiet');box.addWidget(note)
+-
+-    def door(self, key):
+-        """A meter's card, above the tray item (meter_cards.open_card: the same card as 1.0's meter opened)."""
+-        item = self.item;host = self.host
+-        self.close()
+-        from .meter_cards import open_card
+-        return open_card(host, item, key)
+-
+-    def open_above(self):
+-        item = self.item;bar = item.tray.bar
+-        self.setFixedWidth(500 if bar.height() >= bar_qt.TALL else 460);self.adjustSize()
+-        screen = (bar.screen() or item.screen()).geometry()
+-        right = item.mapToGlobal(item.rect().topRight()).x() + 1
+-        x = max(screen.left(), min(right, screen.right() + 1) - self.width())
+-        top = bar.mapToGlobal(bar.rect().topLeft()).y()
+-        self.move(x, top - self.height() - 6);self.show();self.raise_()
+-        return self
+-
+-
+-class MetersTray(bar_qt.Tray):
+-    """B1's tray (network, sound, power) with the meters first: their one home once the foot has folded."""
++class MetersTray(QuickTray):
++    """The bar's Quick Settings with the meters as its fourth section: their one home once the foot has folded (1.1 B5)."""
++    with_meters = True
+ 
+     def __init__(self, bar):
+-        super().__init__(bar);self.meters = MetersItem(self)
+-        self.setAccessibleName('The tray: meters, network, sound and power')
+-
+-    def bar_width(self, h):
+-        return self.meters.natural(h) + super().bar_width(h)
+-
+-    def resizeEvent(self, event):
+-        h = self.height();w = self.meters.natural(h);self.meters.setGeometry(0, 0, w, h);x = w
+-        for key in bar_qt.TRAY:
+-            w = self.items[key].natural(h);self.items[key].setGeometry(x, 0, w, h);x += w
++        super().__init__(bar);self.meters = self.button      # the meters' cards open above the Quick Settings button
++        self.setAccessibleName('The tray: Quick Settings (network, sound, power and the meters)');self.button.show_words()
+ 
+ 
+ def meters_item(host):
+diff --git a/workbench/quick_settings_qt.py b/workbench/quick_settings_qt.py
+new file mode 100644
+index 0000000..6ae43b9
+--- /dev/null
++++ b/workbench/quick_settings_qt.py
+@@ -0,0 +1,289 @@
++"""Graphite 1.1 B5 · A quieter bar: network, sound and power are one Quick Settings button, as Windows 11's.
++
++PLAN_1.1.md, B5. B1's tray gave network, sound and power a button each, and B4 put the meters beside them; at 1366x768 they
++took room the app windows want. Here the three are one button on the bar: their three glyphs side by side (each state its
++own shape, bar_qt.paint_glyph), every word in its tip and its accessible name. One press opens one panel above it with the
++three Machine sections stacked (machine_room_qt's own pages, compact, each with its way to the whole page: nothing the
++flyouts did is lost) and, once the foot has folded (foot_fold_qt), the meters as a fourth section: CPU, GPU, RAM, TXT and
++NET, each row the door its meter was (meter_cards). A second press, Esc or a press elsewhere closes it.
++
++The readings are B1's (machine_real, off the window's thread, every TRAY_SECONDS; kept in host._machine_real for the Machine
++page); nothing changes but by the owner's press on a section's own controls, each change DONE only when read back.
++
++Graphite's head, while the bar stands: Apps and its plus leave it (Start does that job; "Add an app to the list" is beside
++Start's Apps heading), and the menus start at the head's left edge, as a Windows app's; the equalizer stands after them.
++Without the bar the head stays as K0 left it.
++"""
++from __future__ import annotations
++
++from PySide6.QtCore import QEvent, Qt, QTimer
++from PySide6.QtGui import QGuiApplication, QPainter
++from PySide6.QtWidgets import QFrame, QGridLayout, QPushButton, QScrollArea, QVBoxLayout, QWidget
++
++from . import bar_qt
++
++NAME = 'Quick Settings'
++TITLES = {'network': 'Network', 'sound': 'Sound', 'power': 'Power'}
++SECTIONS = bar_qt.TRAY + ('meters',)
++PANEL_KEY = 'quick'                   # bar.open_key and bar.flyouts' key while the panel is open
++METERS_NOTE = 'This computer, now. Each opens its card, as the foot\'s meters did.'
++
++
++class Reading:
++    """One section's reading as the tray holds it: tray_words' word, tip and glyph (B1's TrayItem without a button of its own)."""
++
++    def __init__(self, tray, key):
++        self.tray = tray;self.key = key;self.data = None
++        self.word, self.tip, self.glyph = bar_qt.tray_words(key, None)
++
++    def show_reading(self, data):
++        self.data = data;self.word, self.tip, self.glyph = bar_qt.tray_words(self.key, data)
++        self.tray.button.show_words()
++
++    def update(self):
++        self.tray.button.update()
++
++
++class QuickButton(bar_qt.BarButton):
++    """The one button: the three glyphs side by side in a fixed width (nothing shifts); its words in the tip and the name."""
++
++    def __init__(self, tray):
++        super().__init__(tray, NAME);self.tray = tray
++        self.clicked.connect(lambda: tray.open_panel())
++        self.show_words()
++
++    def natural(self, h):
++        side = round(h * 0.42)
++        return 2 * round(h * 0.25) + 3 * side + 2 * round(h * 0.2)
++
++    def words(self):
++        """Every section in words, one line each (the tip), and the short form (the accessible name)."""
++        items = self.tray.items
++        lines = ['%s: %s' % (TITLES[key], items[key].tip.split('\n')[0].split(': ', 1)[-1]) for key in bar_qt.TRAY]
++        short = ', '.join('%s %s' % (TITLES[key].lower(), items[key].word) for key in bar_qt.TRAY)
++        if self.tray.with_meters:
++            try:
++                from .foot_fold_qt import meters_words, readings
++                lines.append('Meters: ' + meters_words(readings(self.tray.bar.host)))
++            except RuntimeError:
++                pass
++        return lines, short
++
++    def show_words(self):
++        lines, short = self.words()
++        more = 'network, sound, power and the meters' if self.tray.with_meters else 'network, sound and power'
++        self.setToolTip('%s\n%s\nA press opens %s.' % (NAME, '\n'.join(lines), more))
++        self.setAccessibleName('%s: %s' % (NAME, short));self.update()
++
++    def event(self, event):
++        if event.type() == QEvent.ToolTip:self.show_words()      # the meters' words as they read now
++        return super().event(event)
++
++    def paintEvent(self, event):
++        c = bar_qt.ink();p = QPainter(self);h = self.height()
++        self.ground(p, c, self.tray.bar.open_key == PANEL_KEY)
++        side = round(h * 0.42);x = round(h * 0.25);gap = round(h * 0.2)
++        for key in bar_qt.TRAY:
++            bar_qt.paint_glyph(p, self.tray.items[key].glyph, x, h / 2.0, side, c['text'], c['tertiary']);x += side + gap
++        p.end()
++
++
++class QuickTray(QWidget):
++    """The bar's tray slot: the one Quick Settings button. items holds the three readings (B1's tray reads them, read/landed)."""
++    with_meters = False      # foot_fold_qt.MetersTray: the meters are its fourth section once the foot has folded
++    read = bar_qt.Tray.read
++    landed = bar_qt.Tray.landed
++
++    def __init__(self, bar):
++        super().__init__(bar);self.bar = bar;self.panel = None
++        self.items = {key: Reading(self, key) for key in bar_qt.TRAY}
++        self.button = QuickButton(self)
++        self.setAccessibleName('The tray: ' + NAME)
++        self.timer = QTimer(self);self.timer.setInterval(bar_qt.TRAY_SECONDS * 1000);self.timer.timeout.connect(self.read);self.timer.start()
++        QTimer.singleShot(0, self.read)
++
++    def bar_width(self, h):
++        return self.button.natural(h)
++
++    def resizeEvent(self, event):
++        self.button.setGeometry(0, 0, self.button.natural(self.height()), self.height())
++
++    def gone(self, panel):
++        if self.bar.flyouts.get(PANEL_KEY) is panel:self.bar.flyouts.pop(PANEL_KEY, None)
++        if self.panel is panel:self.panel = None
++
++    def open_panel(self, key=None):
++        """The panel above the button, `key`'s section in sight; a second press on an open one closes it."""
++        bar = self.bar
++        try:
++            if self.panel is not None and self.panel.isVisible():self.panel.close();return None
++        except RuntimeError:
++            self.panel = None
++        for other in list(bar.flyouts.values()):
++            try:other.close()
++            except RuntimeError:pass
++        panel = QuickPanel(self);panel.setAttribute(Qt.WA_DeleteOnClose, True)
++        panel.destroyed.connect(lambda *_, panel=panel: self.gone(panel))
++        self.panel = panel;bar.flyouts[PANEL_KEY] = panel;bar.open_key = PANEL_KEY;self.button.update()
++        panel.open_above(self.button)
++        if key in panel.sections:panel.scroll.ensureWidgetVisible(panel.sections[key], 0, 0)
++        return panel
++
++
++def machine_room(host, key):
++    """machine_room_qt's page of `key`, made compact for the panel (B1's flyout's own)."""
++    from .machine_room_qt import MachineRoom
++
++    class QuickRoom(MachineRoom):
++        def draw(self):
++            self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)      # the page wraps to the panel's width
++            super().draw()
++            page = self.scroll.widget()
++            if page is not None and page.layout() is not None:
++                page.layout().setContentsMargins(16, 10, 16, 4);page.layout().setSpacing(8)
++    return QuickRoom(host, key)
++
++
++class MetersSection(QWidget):
++    """The meters as the panel's fourth section: B4's rows, each the door its meter was (meter_cards.open_card, above the
++    Quick Settings button)."""
++
++    def __init__(self, panel):
++        super().__init__(panel);self.panel = panel;self.host = panel.bar.host
++        from .foot_fold_qt import METER_KEYS, DoorWords, readings
++        from .machine_room_qt import words
++        from .meter_cards import DOORS
++        self.keys = METER_KEYS;self.readings = readings
++        self.setAccessibleName('Meters')
++        box = QVBoxLayout(self);box.setContentsMargins(16, 10, 16, 6);box.setSpacing(6)
++        box.addWidget(words('Meters', 'title'));box.addWidget(words(METERS_NOTE, 'quiet'))
++        grid = QGridLayout();grid.setHorizontalSpacing(12);grid.setVerticalSpacing(2);box.addLayout(grid)
++        self.rows = {};self.doors = DOORS
++        for r, key in enumerate(METER_KEYS):
++            b = QPushButton(self);b.setObjectName('QuickMeter');b.setCursor(Qt.PointingHandCursor);b.setMinimumWidth(124)
++            b.clicked.connect(lambda checked=False, key=key: self.door(key))
++            door = DoorWords(DOORS[key], lambda key=key: self.door(key), self);door.setProperty('role', 'quiet');door.setWordWrap(True)
++            door.setCursor(Qt.PointingHandCursor);door.setToolTip('Opens: ' + DOORS[key])
++            grid.addWidget(b, r, 0);grid.addWidget(door, r, 1);grid.setColumnStretch(1, 1);self.rows[key] = b
++        self.show_readings()
++        self.timer = QTimer(self);self.timer.setInterval(2000);self.timer.timeout.connect(self.show_readings);self.timer.start()
++
++    def show_readings(self):
++        try:read = self.readings(self.host)
++        except RuntimeError:return
++        for key, b in self.rows.items():
++            words = read[key][0];b.setText('%s   %s' % (key, words));b.setAccessibleName('%s %s: %s' % (key, words, self.doors[key]))
++
++    def door(self, key):
++        """A meter's card, above the Quick Settings button (the same card as 1.0's meter opened)."""
++        anchor = self.panel.tray.button;host = self.host
++        self.panel.close()
++        from .meter_cards import open_card
++        return open_card(host, anchor, key)
++
++
++class QuickPanel(QFrame):
++    """One panel above the button: Network, Sound and Power (each the Machine page's own section and its way to the whole
++    page), then the meters when the foot has folded."""
++
++    def __init__(self, tray):
++        super().__init__(None, Qt.Popup | Qt.FramelessWindowHint)
++        self.tray = tray;self.bar = bar = tray.bar;c = bar_qt.ink()
++        self.setObjectName('GraphiteQuickSettings');self.setAccessibleName(NAME + ', from the bar')
++        self.setStyleSheet('QFrame#GraphiteQuickSettings {background:%s; border:1px solid %s;}'
++                           ' QFrame#QuickRule {background:%s; border:0;}'
++                           ' QPushButton#QuickMore {color:%s; background:transparent; border:0; padding:2px 16px 6px 16px; text-align:left;}'
++                           ' QPushButton#QuickMore:hover {text-decoration:underline;}'
++                           ' QPushButton#QuickMeter {color:%s; background:transparent; border:0; text-align:left; padding:5px 8px;}'
++                           ' QPushButton#QuickMeter:hover {background:%s;}'
++                           % (c['surface'], c['stroke'], c['hairline'], c['accent_text'], c['text'], c['hover_side']))
++        outer = QVBoxLayout(self);outer.setContentsMargins(1, 1, 1, 1);outer.setSpacing(0)
++        self.scroll = QScrollArea(self);self.scroll.setWidgetResizable(True);self.scroll.setFrameShape(QFrame.NoFrame)
++        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff);outer.addWidget(self.scroll)
++        body = QWidget();body.setObjectName('QuickBody');body.setStyleSheet('QWidget#QuickBody {background:%s;}' % c['surface'])
++        col = QVBoxLayout(body);col.setContentsMargins(0, 0, 0, 0);col.setSpacing(0)
++        self.sections = {};self.rooms = {};self.more = {}
++        keys = SECTIONS if tray.with_meters else bar_qt.TRAY
++        for at, key in enumerate(keys):
++            if at:
++                rule = QFrame(body);rule.setObjectName('QuickRule');rule.setFixedHeight(1);col.addWidget(rule)
++            if key == 'meters':
++                section = MetersSection(self)
++            else:
++                section = QWidget(body);section.setAccessibleName(TITLES[key]);box = QVBoxLayout(section)
++                box.setContentsMargins(0, 0, 0, 0);box.setSpacing(0)
++                room = machine_room(bar.host, key);self.rooms[key] = room;box.addWidget(room)
++                more = QPushButton(bar_qt.MORE_WORDS, section);more.setObjectName('QuickMore');more.setFlat(True)
++                more.setCursor(Qt.PointingHandCursor);more.setAccessibleName('%s: %s' % (TITLES[key], bar_qt.MORE_WORDS))
++                more.clicked.connect(lambda checked=False, key=key: self.whole_page(key));box.addWidget(more);self.more[key] = more
++            self.sections[key] = section;col.addWidget(section)
++        col.addStretch(1)
++        self.scroll.setWidget(body)
++
++    def whole_page(self, key):
++        self.close();return self.bar.open_machine(key)
++
++    def open_above(self, anchor):
++        bar = self.bar;width = 460 if bar.height() >= bar_qt.TALL else 440
++        screen = (bar.screen() or QGuiApplication.primaryScreen()).geometry()
++        top = bar.mapToGlobal(bar.rect().topLeft()).y()
++        room_for = max(240, top - screen.top() - 12)      # the panel never reaches above the screen
++        whole = 2
++        for key, section in self.sections.items():
++            if key in self.rooms:
++                room = self.rooms[key];page = room.scroll.widget();need = 160
++                if page is not None and page.layout() is not None:
++                    lay = page.layout()
++                    need = lay.heightForWidth(width - 4) if lay.hasHeightForWidth() else lay.sizeHint().height()
++                room.setFixedHeight(min(max(120, need + 4), round(room_for * 0.6)))
++                whole += room.height() + self.more[key].sizeHint().height() + 1
++            else:
++                lay = section.layout()
++                whole += (lay.heightForWidth(width - 4) if lay.hasHeightForWidth() else section.sizeHint().height()) + 1
++        self.setFixedWidth(width);self.scroll.setFixedHeight(min(whole, room_for));self.adjustSize()
++        right = anchor.mapToGlobal(anchor.rect().topRight()).x() + 1
++        x = max(screen.left(), min(right, screen.right() + 1) - self.width())
++        self.move(x, top - self.height() - 6);self.show();self.raise_()
++        return self
++
++    def hideEvent(self, event):
++        if self.bar.open_key == PANEL_KEY:
++            self.bar.open_key = None
++            try:self.tray.button.update()
++            except RuntimeError:pass
++        super().hideEvent(event)
++
++
++def quick_tray(bar):
++    """The bar's own tray (bar_qt.DEFAULTS): Quick Settings."""
++    return QuickTray(bar)
++
++
++# ---- Graphite's head while the bar stands ---------------------------------------------------------------------------------------
++def head_free(top):
++    """shell2's head: True while the bar stands (Start is there): Apps and its plus leave the head and the menus start at its
++    left edge. They are hidden here; the objects stay for their callers."""
++    bar = getattr(getattr(top, 'host', None), 'graphite_bar', None)
++    try:free = bool(bar is not None and getattr(bar, 'standing', False))
++    except RuntimeError:free = False
++    if free:
++        for widget in (getattr(top, 'programs', None), getattr(top, 'apps_add', None)):
++            if widget is not None and widget.isVisible():widget.hide()
++    return free
++
++
++def place_equalizer(top, d, left, right, gap):
++    """With the head free, the equalizer stands after the menus (as wide as over the left column, at most), unless the address
++    line has the keyboard there."""
++    eq = getattr(top, 'equalizer', None)
++    if eq is None or getattr(eq, 'in_column', False):return
++    h = d.band;tall = max(16, h - 2 * round(4 * min(d.scale, 1.4)))
++    x = left + 2 * gap;wide = max(0, min(d.pane - 2 * d.inset, right - x - gap))
++    eq.setGeometry(x, (h - tall) // 2, wide, tall);eq.setVisible(wide >= 48 and not top.path.isVisible())
++
++
++def bar_stood(host):
++    """bar_qt.install, once the bar stands: the head is placed again (Apps leaves it, the menus go to its left edge)."""
++    top = getattr(getattr(host, 'shell2', None), 'top', None)
++    place = getattr(top, 'place', None)
++    if callable(place):QTimer.singleShot(0, lambda: place(getattr(host, 'desk', None)))
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 8f219e6..b3a378d 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -792,13 +792,15 @@ class TopBar(QWidget):
+                 if not widget.icon().isNull():width += widget.iconSize().width() + (round(8 * min(d.scale, 1.4)) if widget.text() else 0)
+                 width = max(width, widget.sizeHint().width())      # 1.1 T1: the word Apps (Day, Night) gets the room its style asks
+             x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
++            from .quick_settings_qt import head_free; free = head_free(self)      # 1.1 B5: the bar stands: Apps and its plus leave the head (Start)
++            if free:x = d.width - o      # 1.1 B5
+             from .network_qt import place_head as place_net; x = place_net(self, x, h, gap, d)      # 1.0 K8: the network's word, left of Apps
+             # The familiar menus from the middle column's left edge. In a window too narrow for all of them the rightmost
+             # fold into ⋯, which lists every menu.
+             words = self.menu_words();air = round(22 * min(d.scale, 1.4))
+             widths = [word.fontMetrics().horizontalAdvance(word.text()) + air for word in words]
+             fold = self.more_menus.fontMetrics().horizontalAdvance('⋯') + round(26 * min(d.scale, 1.4));kept = 0
+-            left = d.left + edge(d.scale)
++            left = o if free else d.left + edge(d.scale)      # 1.1 B5: with the bar, the menus from the head's left edge, as a Windows app's
+             for keep in range(len(words), -1, -1):
+                 if left + sum(widths[:keep]) + (fold if keep < len(words) else 0) + gap <= x or keep == 0:
+                     kept = keep;break
+@@ -820,6 +822,7 @@ class TopBar(QWidget):
+             if not getattr(self.equalizer, 'in_column', False):      # 1.0 P1: once it is in her column the upper left stays empty (HALT's place, K3)
+                 self.equalizer.setGeometry(o, (h - tall) // 2, wide, tall)
+                 self.equalizer.setVisible(wide >= 48)
++            if free:from .quick_settings_qt import place_equalizer; place_equalizer(self, d, left, x, gap)      # 1.1 B5: after the menus
+             from .halt_qt import place_head as place_halt; place_halt(self, d)      # 1.0 P2: HALT upper left
+             self.folded_menus = self.headings()
+             self.plan = None
+diff --git a/workbench/start_qt.py b/workbench/start_qt.py
+index 62e35f4..e4592df 100644
+--- a/workbench/start_qt.py
++++ b/workbench/start_qt.py
+@@ -374,7 +374,14 @@ class StartPanel(QFrame):
+         left = QVBoxLayout();right = QVBoxLayout()
+         for column, title, view in ((left, 'Apps', self.apps), (right, 'Recent', self.recent)):
+             head = QLabel(title, self.home);head.setFont(font(tokens.TYPE['subhead'][0], QFont.DemiBold))
+-            head.setStyleSheet('color:%s; padding-left:12px;' % c['text']);column.addWidget(head);column.addWidget(view, 1)
++            head.setStyleSheet('color:%s; padding-left:12px;' % c['text'])
++            if view is self.apps:      # 1.1 B5: Apps' plus left the head; "Add an app to the list" is here, beside Start's Apps
++                from .apps_qt import PlusButton
++                line = QHBoxLayout();line.setSpacing(4);line.addWidget(head);line.addStretch(1)
++                self.add_app = PlusButton(self.host, self.home);self.add_app.setFixedSize(28, 28);self.add_app.clicked.connect(self.close)
++                line.addWidget(self.add_app);column.addLayout(line)
++            else:column.addWidget(head)
++            column.addWidget(view, 1)
+         lay.addLayout(left, 58);rule = QFrame(self.home);rule.setFixedWidth(1);rule.setStyleSheet('background:%s;' % c['hairline']);lay.addWidget(rule)
+         lay.addLayout(right, 42)
+         self.fill_home()
