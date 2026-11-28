@@ -209,6 +209,13 @@ quoting the page.
 
 ### Preview 4 and the candidate (outline)
 
+**C0 · A real terminal.** The drop-down Terminal (B4) and 1.0's Terminal are not terminal devices: vim, top, less
+and sudo's password prompt do not work in them. Give the drop-down a real terminal (a pseudo-terminal running the
+owner's shell) that keeps what B4 built: it drops from the top edge on Win+` and Ctrl+Alt+T, over any app, and leaves
+when done; DOS words still work and still show the Debian command they ran; the owner's own shell rc is untouched.
+*Acceptance:* vim opens, edits and saves a file; top runs and q quits; sudo asks for its password in it; dir prints
+the Debian line and runs it; Win+` hides it and gives the keys back.
+
 **C1 · Software and updates** (find, install, remove, update, with the system door). **C2 · Printers, Bluetooth, date
 and time, users, power.** **C3 · The Task Manager.** **Z1 · The live image** and its boot smoke. **Z2 · The security
 review** of the authority code and the new doors, and the minimal authority tests. **Z3 · Licences**, the package's

@@ -172,7 +172,9 @@ rules holding you back".
     `$S/work/pre3/kit/`. New reversal 10: no foot.
   * **PREVIEW 4 (next):** KS2 (the command tool; agent a88c9be1a1b3a34f3, resumed), KS3 (the system door; agent
     ae5e42fdc7d044a11, resumed), then KS4 (grounding), a real PTY terminal, wiring KS2's root refusals to KS3's
-    offers, C1-C3. **Before cutting it: rebuild the repository with tools/build_repo.sh** (KS3 adds packages).
+    offers, C1-C3. **Before cutting it: rebuild the repository with tools/build_repo.sh** (KS3 and C0 add packages).
+    **C0 launched 07:08** (agent a814611a3d1e991ed: a real terminal in the drop-down, xterm -into preferred; a new slice
+    in PLAN_1.1 §5). Running: KS2, KS3, C0.
   * **Preview 2 building (done):** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
