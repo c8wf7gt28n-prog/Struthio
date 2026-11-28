@@ -46,8 +46,11 @@ to 1.0. `apt remove graphite` removes the program and never touches your files.
 - `format` and `chkdsk` are explained, never run.
 - Rules ▸ DOS words sets on, show me only, or off.
 
-**The test tiers, made to run again.** 1.0 was merged with no test run, as you asked. Preview 1 repaired the test tiers
-and fixed the program faults they found (TIERS_RESULT below).
+**The test tiers, made to run again.** 1.0 was merged with no test run, as you asked. Preview 1 made the test tiers
+run again. They found 11 real faults, and all are fixed. One was a crash: a tab's icon was freed while Qt still painted
+it. Others were wrong names at Kas's door to the desk and Apps too narrow in Day. About 14 tests were moved to what 1.0
+decided. In the Graphite look, tier 2 went from 60 failing to 23 before the last fixes. The whole tiers were not run
+again after them, and the Kasandra and Night looks were not run.
 
 ## What was tested, and what was not
 
@@ -71,6 +74,7 @@ These have **not** been exercised here, because the build machine has no screen:
   make and keep.
 - No man pages, no "safe start" session entry, and no in-app updater words for a dpkg-owned install.
 - There is no Guide page for the keys or the DOS words yet.
+- The test tiers are not yet at zero failing: the rest is in preview 2.
 - Kas's sharper voice (KV) moved to preview 2.
 - Preview 2 brings one bar along the bottom above every app (Start, the line, the windows, Kas with HALT, the tray, the
   clock), the Explorer (Quick access, List, Icons and Board views) and File/Edit/View/Go/Tools/Help menus.
