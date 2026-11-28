@@ -1,0 +1,30 @@
+commit 491f2fadf2c745db397e604417a763fd4110cfda, Debian version 1.1.4
+kas-computer: 1667 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r114/debs/kas-computer_1.1.4_all.deb (82233320 bytes)
+kas-llama-runtime: 2 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r114/debs/kas-llama-runtime_1.1.4_amd64.deb (57989860 bytes)
+kas-session: 3 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r114/debs/kas-session_1.1.4_all.deb (2728 bytes)
+kas-desktop: 1 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r114/debs/kas-desktop_1.1.4_all.deb (2188 bytes)
+graphite: 0 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r114/debs/graphite_1.1.4_all.deb (1668 bytes)
+graphite-llama-runtime: 0 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r114/debs/graphite-llama-runtime_1.1.4_all.deb (1708 bytes)
+graphite-session: 0 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r114/debs/graphite-session_1.1.4_all.deb (1692 bytes)
+graphite-desktop: 0 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r114/debs/graphite-desktop_1.1.4_all.deb (1700 bytes)
+earlier kit joined and checked
+replacing graphite_1.1.3_all.deb
+replacing graphite-llama-runtime_1.1.3_amd64.deb
+replacing graphite-session_1.1.3_all.deb
+replacing graphite-desktop_1.1.3_all.deb
+repository: 429 packages
+{"zips": 33, "pieces": 17, "files": 433, "largest_zip": 14490638, "bytes": 394792249}
+kit: 39 files, 394850970 bytes, the largest 14490638 bytes (all under 15,000,000)
+2287 PIECES.sha256
+44243 SHA256SUMS
+4409 START_HERE.md
+3451 install.sh
+kit files: 39
