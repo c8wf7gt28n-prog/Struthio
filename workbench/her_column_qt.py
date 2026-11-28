@@ -63,44 +63,52 @@ from .assistant_identity import named
 from .equalizer_qt import GROUPS, Equalizer
 
 # Her words here: fixed templates (mind_words.check: no exclamation mark, no sentence over 30 words, no digit in the fixed
-# words, every number through a slot that names its record).
+# words, every number through a slot that names its record). 1.1 KV: in her voice (kas_voice): short, dry, sure only of
+# what is verified; her hand's lines (hand_*) are templates here too, so the sweep reads them.
 WORDS = {
     'active': 'ACTIVE WORK',
     'active_count': 'ACTIVE WORK [{count}]',
     'findings': 'FINDINGS (live)',
     'next': 'NEXT STEPS',
-    'nothing_active': 'No assignment is open.',
-    'reading_work': 'Reading her journal…',      # 1.0 F3: until her journal is read after a start, never "nothing"
+    'nothing_active': 'No assignment open. Ask me for one.',
+    'reading_work': 'Reading my journal…',      # 1.0 F3: until her journal is read after a start, never "nothing"
     'reading_desk': 'Reading the desk…',      # 1.0 F3
     'last_done': 'Last: “{title}”, {state}.',      # 1.0 X1: with nothing open, the last one and its journal, one press away
     'its_journal': 'Its journal',
-    'nothing_found': 'No findings on this desk yet.',
+    'nothing_found': 'No findings yet.',
     'nothing_next': 'Nothing waits for you.',
     'more': 'and {count} more',
     'running': 'Running…',
     'step_of': 'step {n} of {count}',
     'left': '{time} left',
-    'answering': 'her model is answering',
+    'answering': 'model answering',
     'ask': 'ask Kasandra…',
     'send': 'Send',
     'stop': 'Stop',
-    'stopped': 'You stopped “{title}”. What was done stays done; nothing more starts.',
-    'stop_refused': 'It could not be stopped: {why}',
-    'press_refused': 'That press was refused: {why}',
+    'stopped': 'Stopped “{title}”. Done steps stay done. Nothing new starts.',
+    'stop_refused': 'Not stopped: {why}',
+    'press_refused': 'Refused: {why}',
     'press_done': '{words}: done.',
-    'carry_started': 'Carrying on with “{title}”. Its bar shows how far it has come.',
+    'carry_started': 'Back on “{title}”. The bar shows how far.',
     'carry_ended': '“{title}”: {line}',
-    'select_first': 'Select a card on the Field first: the command acts on the card you select.',
-    'no_field': 'The Field could not be shown here, so the command has nothing to act on.',
+    'select_first': 'Select a card on the Field first. The command works on that card.',
+    'no_field': 'The Field is not showing here, so this command has nothing to work on.',
     'journal_head': '“{title}”, {state}. {line}',
     'journal_step': 'Step {n}, {title}: {says}.',
     'journal_says': '{says}',
-    'moment_refuted': 'A finding was refuted: “{title}”.',
-    'moment_done': 'An assignment is done, every step verified: “{title}”.',
-    'moment_halt': 'HALT: her managed work is stopped. Your programs and the desktop go on.',
-    'moment_hint': 'A click puts this away.',
+    'moment_refuted': 'Finding refuted: “{title}”.',
+    'moment_done': 'Done, every step verified: “{title}”.',
+    'moment_halt': 'HALT. All my work is stopped. Your Apps and the desktop run on.',
+    'moment_hint': 'Click to put this away.',
     'model_none': 'no model loaded',
-    'model_ready': 'her model is ready',
+    'model_ready': 'model ready',
+    'hand_acting': '▸ My hand in {program}: {act}',
+    'hand_touch': '▮▮ You took over in {program}, so I stopped',
+    'hand_halt': '▮▮ Stopped by HALT, in {program}',
+    'hand_dialog': '◆ A dialog in {program} is yours to answer',
+    'hand_done': '✓ Done, verified · {words}',
+    'hand_not_verified': '◆ Not verified. I checked · {words}',
+    'hand_refused': '■ I did not act · {words}',
 }
 NUMBERS = {'active_count': {'count': 'the open assignments (assignment.list)'},
            'more': {'count': 'the rows not shown (assignment.list, investigation.sheet)'},
@@ -549,13 +557,12 @@ def hand_words(live, now_ms=None):
     keep = {'acting': 60, 'stopped by your touch': 900, 'stopped by HALT': 900, 'waiting for you': 900, 'done': 120, 'not verified': 600, 'refused': 120}
     if state not in keep or age > keep[state]:return ''
     program = plain(live.get('program') or 'a program')
-    if state == 'acting':
-        return '▸ My hand in %s: %s' % (program, plain(live.get('act') or live.get('words') or ''))      # how she acts: in the tooltip
-    if state == 'stopped by your touch':return '▮▮ Stopped by your touch, in %s' % program      # what was done and not: the row's note (1.0 F1: D1's shape)
-    if state == 'stopped by HALT':return '▮▮ Stopped by HALT, in %s' % program
-    if state == 'waiting for you':return '◆ A dialog in %s is yours to answer' % program
-    lead = {'done': '✓ My hand', 'not verified': '◆ Not verified', 'refused': '■ I did not act'}[state]
-    return '%s · %s' % (lead, plain(live.get('words') or ''))
+    if state == 'acting':      # 1.1 KV: her hand's lines are her templates (WORDS hand_*)
+        return say('hand_acting', program=program, act=plain(live.get('act') or live.get('words') or ''))      # how she acts: in the tooltip
+    if state == 'stopped by your touch':return say('hand_touch', program=program)      # what was done and not: the row's note (1.0 F1: D1's shape)
+    if state == 'stopped by HALT':return say('hand_halt', program=program)
+    if state == 'waiting for you':return say('hand_dialog', program=program)
+    return say({'done': 'hand_done', 'not verified': 'hand_not_verified', 'refused': 'hand_refused'}[state], words=plain(live.get('words') or ''))
 
 
 def _door_view():

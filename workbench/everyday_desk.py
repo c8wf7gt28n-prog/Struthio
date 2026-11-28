@@ -52,17 +52,19 @@ OTHER = 'Other'
 WORDS = {
     'reading': 'I am reading “{file}” for {what} in {month}.',
     'spent': 'We spent {total} on {what} in {month}: {count} rows of the sheet “{sheet}” in “{file}” ({rows}), read at revision {revision}.',
-    'none_spent': 'Nothing was spent on {what} in {month}: no row of the sheet “{sheet}” in “{file}” says so, read at revision {revision}.',
+    'none_spent': 'Nothing was spent on {what} in {month}. No row of the sheet “{sheet}” in “{file}” says so, read at revision {revision}.',
     'receipt': 'Receipt: {tool}, {object}, sheet {sheet}, revision {revision}, {complete}, {status}.',
-    'no_budget': 'I found no spreadsheet to read for that: put the budget in focus, or keep one spreadsheet named budget in Documents.',
+    'no_budget': 'I found no spreadsheet to read for that. Put the budget in focus, or keep one spreadsheet named budget in Documents.',
     'two_budgets': 'Two spreadsheets could be meant, “{one}” and “{two}”: put the one you mean in focus and ask again.',
-    'no_columns': 'The sheet “{sheet}” in “{file}” has no header row naming Date, Category and Amount, so I do not add it up.',
+    'no_columns': 'The sheet “{sheet}” in “{file}” has no header row naming Date, Category and Amount. So I do not add it up.',
     'not_read': 'I could not read “{file}”: {why}',
     'odd_amount': 'Row {row} of “{sheet}” holds “{text}” as an amount, which is not a number, so I give no total.',
 }
 try:
     from . import mind_words
-    mind_words.register('everyday_desk', WORDS, kind='sentence')
+    mind_words.register('everyday_desk', WORDS, kind='sentence', numbers={'spent': {      # 1.1 KV: the sweep reads these now
+        'total': 'the sum of the amounts read (the budget sheet)', 'count': 'the rows read (the budget sheet)',
+        'rows': 'the rows read (the budget sheet)'}})
 except Exception:  # noqa: BLE001 - the words stand without the check
     pass
 

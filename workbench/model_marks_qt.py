@@ -71,7 +71,7 @@ WORDS = {
     'could_not': 'I could not read that turn: {why}',
     'not_forgotten': 'I did not forget it: {why}',
     'numbers': 'Numbers in its words are not on the desk.',
-    'forget_tip': 'Forget this turn: its messages, its answer and my checks go; only that it was asked, and how it ended, stays',
+    'forget_tip': 'Forget this turn: its messages, its answer and my checks go. Only that it was asked, and how it ended, stays',
 }
 _TURN = 'the stored turn (brain.turn/1, brain.turn.get)'
 NUMBERS = {key: {slot: _TURN for slot in mind_words.slots(text)} for key, text in WORDS.items()}

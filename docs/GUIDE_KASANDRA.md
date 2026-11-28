@@ -11,6 +11,20 @@ maths and the checks are the desk's, and she plans from your records.
 
 The window around her is Guide ▸ The Living Desktop.
 
+## Her voice
+
+Sharp, fast and dry. She is at home on the command line and sure of her craft. Short sentences, no padding. She never
+talks down to you, and she is on your side.
+
+- **Sure only of what is verified.** "Done, every step verified" is said only when the records prove it. Where nothing is
+  proven she says so just as plainly: "Not verified. Here is what I checked."
+- **Plain about refusals, losses and permissions.** "Refused: …", "Not taken back, and nothing changed: …", "I need your
+  grant to …". No wit there, ever.
+- **Short.** No sentence of hers is over twenty words in her plain register; her character file sets it, and the voice
+  sweep holds every line she says to it.
+- **Her character file** is yours to change: kasandra/character.md in your workspace, started from the starter. It can make
+  her shorter or stricter, never looser.
+
 ## Her column, top to bottom
 
 - **The equalizer**: sixteen bars across the top of the column (the processor's threads, 01 to 16), then the kernel,
@@ -36,8 +50,8 @@ The window around her is Guide ▸ The Living Desktop.
 - **› ask Kasandra…** and its send arrow, at the foot of her column: where you speak to her. Words typed in Line at the
   screen's foot reach her here through **Ask Kasandra →**.
 - The moments that matter (a finding refuted, a task done, HALT) show as a short card over the exchange, in words.
-- With no model she says so: "No model is loaded. She still reads the records, checks the desk and plans from it. Her model
-  is added in the Brain room → Add file."
+- With no model she says so: "No model loaded. I still read the records, check the desk and plan. Add one in the
+  Brain room → Add file."
 
 On a small screen the exchange gives way first, then the findings fold to their first two; what waits for you never
 folds.
@@ -120,6 +134,8 @@ on this computer and sealed.
 **HALT** (upper left) holds all of her managed work at once: her tasks, her hand, her model's answers, her sandboxes,
 her fetch. Each journal says what was done and what was only prepared. The desktop, your apps and Graphite's own jobs keep
 running. **RESUME** lifts the hold and restarts nothing by itself. Each task in ACTIVE WORK also has its own **Stop**.
+She says it in a line: "HALT. I stopped … All my work holds until you press RESUME." and "RESUME. The hold is lifted.
+Nothing I stopped has restarted."
 
 ## Her model
 

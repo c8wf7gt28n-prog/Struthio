@@ -216,3 +216,11 @@ MODULES = MODULES + ('workbench.library_service',)
 MODULES = MODULES + ('workbench.voice_column', 'workbench.library_qt')
 # ---- end of 0.8.7 W7 --------------------------------------------------------------------------------------------------------
 MODULES = MODULES + ('workbench.app_files',)      # 1.0 A1: her words when a file is open in another program
+# ---- 1.1 KV, her voice: her talk's lines (kas_voice), "Waits for you" (waits_qt) and HALT and RESUME (halt) join the sweep ----
+MODULES = MODULES + ('workbench.kas_voice', 'workbench.waits_qt', 'workbench.halt',
+                     # modules that registered her words but were not collected, so the sweep never read them
+                     'workbench.desk_review', 'workbench.day_notice', 'workbench.everyday_desk', 'workbench.home_pages',
+                     'workbench.objective_plan')
+STYLE = STYLE + ('1.1: sharp, fast and dry; short sentences, no padding, never talking down, on your side; sure only of what is '
+                 'verified, and "Not verified. Here is what I checked." where nothing is proven.',)
+# ---- end of 1.1 KV ---------------------------------------------------------------------------------------------------------

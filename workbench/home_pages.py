@@ -74,10 +74,10 @@ WORDS = {
     'nothing': 'I read “{file}” ({count} {unit}): it says nothing about {topic}. No line in it carries those words.',
     'nothing_model': 'I read “{file}” ({count} {unit}): it says nothing about {topic}. No line in it carries those words, and my '
                      'model, asked about its pages, pointed at none.',
-    'withheld': '{count} lines of it are written to an assistant or hide characters, so I withheld them: they are not read to '
-                'the model and not quoted.',
-    'withheld_one': 'One line of it is written to an assistant or hides characters, so I withheld it: it is not read to the model '
-                    'and not quoted.',
+    'withheld': '{count} lines of it are written to an assistant or hide characters. I withheld them: not read to the model, '
+                'not quoted.',      # 1.1 KV
+    'withheld_one': 'One line of it is written to an assistant or hides characters. I withheld it: not read to the model, '
+                    'not quoted.',
     'read_how': 'Read as data ({count} {unit}, revision {revision}), every line checked at the doorway.',
     'receipt': 'Receipt: {tool}, {where}, {complete}, {status}.',
     'not_read': 'I could not read “{file}”: {why}',

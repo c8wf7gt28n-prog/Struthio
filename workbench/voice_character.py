@@ -18,7 +18,8 @@ force, so a never-say phrase in any registered template fails the sweep (mind_wo
 (mind_words.scan_text); the voice gate (voice_gate, C4) takes its never-say list and its lengths from here (never_say(),
 budgets()); FRAME's system message carries card(), at most CARD_MOST tokens: held to it by the bundled tokenizer's exact
 count when the caller passes one (count=), else by grammars.estimate, an upper estimate (the starter's card: 155 by the
-estimate, 120 by the 4B's tokenizer, so the estimate leaves little room for additions). The file adds to her floor and never lifts
+estimate, 120 by the 4B's tokenizer, so the estimate leaves little room for additions;
+1.1 KV's shorter starter: 153 by the estimate). The file adds to her floor and never lifts
 it: the exclamation mark and the 0.8.6 banned words stay banned, and a sentence is never allowed more than mind_words'
 MAX_WORDS.
 

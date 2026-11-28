@@ -20,6 +20,7 @@ from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit, QListWidge
 
 # BOSS presentation; public names remain for existing room imports.
 from . import boss_theme as bt
+from . import kas_voice as kv      # 1.1 KV: her talk's lines, in her voice and swept
 from .boss_theme import (GROUND, PANEL, CARD, RAISED, LINE, LINE_STRONG, TEXT, QUIET, FAINT,
     AMBER, AMBER_SOFT, AMBER_EDGE, AMBER_TEXT, PENCIL_DEEP, ERASER, ERASER_DEEP, ERASER_MARK,
     TEAL, TEAL_SOFT, TEAL_EDGE, TEAL_TEXT, READY, STOP)
@@ -2049,7 +2050,7 @@ class SlateFace(QWidget):
             self.folding = Folding(self.thread, lambda:self.fold_earlier())      # her words fold at the column's width, a name whole where it fits a line
         else:self.lines.setContentsMargins(0, 0, 14, 0);self.lines.setSpacing(10)
         self.scroll.setWidget(self.thread);outer.addWidget(self.scroll, 1)
-        self.say('Ask about what is open. Say “this” and I take what is in the middle of the board. What I read, I show as a line you can run yourself.')      # 1.0 D2: no "Field", no "sheet" (X3)
+        self.say(kv.say('greet'))      # 1.0 D2: no "Field", no "sheet" (X3); 1.1 KV
         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
         self.input.returnPressed.connect(self.send);self.input.setAccessibleName(named('Message Stacy'));self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
         hint = role(QLabel('Write in your own words; finishing the line sends it'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button
@@ -2234,9 +2235,8 @@ class SlateFace(QWidget):
         """What can be done about a thing: each step a word to choose, numbered as the Field numbers them. `take(n)` takes one."""
         from .field_page import _waits
         asks = [step.kind == 'write' and _waits(self.host, step) for step in steps[:9]];writes = [step.kind == 'write' for step in steps[:9]]
-        rule = ('' if not any(writes) else ' One that changes something asks first.' if asks == writes else
-                ' A step marked “asks first” waits for you; any other that changes something I do at once and show.')
-        card = self.say('What can be done about “%s”. A number in the Field takes a step, or choose it here.%s' % (title, rule))
+        rule = ('' if not any(writes) else kv.say('steps_all_ask') if asks == writes else kv.say('steps_some_ask'))      # 1.1 KV
+        card = self.say(kv.say('steps', title=title, rule=rule))
         for n, step in enumerate(steps[:9]):
             words = '%d  %s' % (n + 1, step.words) + ('  ·  asks first' if asks[n] else '')
             card.box.addWidget(sentence('{go}', {'go': (words, lambda n=n, line=step.line:take(n, line))}))      # the word takes this step, not whatever stands at its number later
@@ -2261,10 +2261,11 @@ class SlateFace(QWidget):
             operation, arguments = '', {}
         place = stacy_hand.level(self.host)
         mine = bool(asked and operation and stacy_hand.hers(place, step.scope, operation, arguments))
-        if mine:lead = 'For “%s”: %s.' % (title, step.words[:1].lower() + step.words[1:])
+        said = step.words[:1].lower() + step.words[1:]      # 1.1 KV: her lines (kas_voice)
+        if mine:lead = kv.say('step_mine', title=title, words=said)
         elif asked and place != 'ask':
-            lead = 'For “%s”: %s. This waits for you: %s.' % (title, step.words[:1].lower() + step.words[1:], stacy_hand.why_waits(place, step.scope, operation, arguments))
-        else:lead = 'For “%s”: %s. This changes something, so it waits for you.' % (title, step.words[:1].lower() + step.words[1:])
+            lead = kv.say('step_waits_why', title=title, words=said, why=stacy_hand.why_waits(place, step.scope, operation, arguments))
+        else:lead = kv.say('step_waits', title=title, words=said)
         card = self.say(lead)
         if step.why:
             why = QLabel(breakable(step.why[:1].upper() + step.why[1:] + '.'));why.setWordWrap(True);why.setStyleSheet('color:%s' % QUIET)
@@ -2359,9 +2360,9 @@ class SlateFace(QWidget):
         if card.undone:
             stacy_hand.taken_back(self.host.session.state, card.entry)
             result = r['result'] if isinstance(r.get('result'), dict) else {}
-            said = 'Taken back. ' + str(result.get('words') or ('“%s” is in DELETE, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else ''))
+            said = 'Taken back. ' + str(result.get('words') or (kv.say('undo_trash', name=result['trashed']) if isinstance(result.get('trashed'), str) else ''))      # 1.1 KV
         else:
-            said = 'It could not be taken back, and nothing was changed: ' + str((r.get('error') or {}).get('message'))[:400]
+            said = kv.say('undo_failed', why=str((r.get('error') or {}).get('message'))[:400])      # 1.1 KV
         try:self.host.session.save()
         except Exception:  # noqa: BLE001
             pass
@@ -2416,7 +2417,7 @@ class SlateFace(QWidget):
         moves = [{'at': e.get('at', ''), 'words': 'On the desk: ' + str(e.get('words') or e.get('act') or ''), 'line': '', 'undo': '', 'word': '',
                   'state': 'done' if e.get('state') == 'done' else 'refused', 'move': True} for e in stacy_hand.desk_trail(self.host.session.state)]
         acts = sorted(acts + moves, key=lambda e: str(e.get('at', '')), reverse=True)
-        card = self.say('What I did by myself, the latest first:' if acts else 'I have not done anything by myself yet. With my hand at “Do and show”, a change you ask me for is done at once and listed here.')
+        card = self.say(kv.say('trail') if acts else kv.say('trail_none'))      # 1.1 KV
         marks = {'done': '', 'undone': ' · taken back', 'refused': ' · refused, nothing changed'}
         for entry in acts[:12]:
             line = QLabel(breakable('%s  %s%s' % (entry['at'], entry['words'], marks.get(entry['state'], ''))));line.setWordWrap(True)
@@ -2432,20 +2433,20 @@ class SlateFace(QWidget):
     def undo_entry(self, entry):
         """Undo from the trail: the same line, once."""
         from . import stacy_hand
-        if entry.get('state') != 'done' or not entry.get('undo'):return self.say('That one has already been taken back.')
+        if entry.get('state') != 'done' or not entry.get('undo'):return self.say(kv.say('undo_twice'))      # 1.1 KV
         changed = self.changed_since(entry)
         r = {'ok': False, 'error': {'message': changed}} if changed else self.run_line(entry['undo'])
         if r.get('ok'):
             stacy_hand.taken_back(self.host.session.state, entry)
             result = r['result'] if isinstance(r.get('result'), dict) else {}
-            card = self.say(('Taken back: %s. ' % entry['words']) + str(result.get('words') or ('“%s” is in DELETE, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else '')))
+            card = self.say(kv.say('undo_done', words=entry['words']) + str(result.get('words') or (kv.say('undo_trash', name=result['trashed']) if isinstance(result.get('trashed'), str) else '')))      # 1.1 KV
             page = getattr(self.host, 'field_page', None)
             if page is not None:
                 try:page.refresh(force=True)
                 except Exception:  # noqa: BLE001 - the change is undone; the Field reads again on its next look
                     pass
         else:
-            card = self.say('It could not be taken back, and nothing was changed: ' + str((r.get('error') or {}).get('message'))[:400])
+            card = self.say(kv.say('undo_failed', why=str((r.get('error') or {}).get('message'))[:400]))      # 1.1 KV
         try:self.host.session.save()
         except Exception:  # noqa: BLE001
             pass
@@ -2454,7 +2455,7 @@ class SlateFace(QWidget):
     def say_always(self):
         """What asks on every place of the dial, and the Terminal commands that are hers."""
         from . import stacy_hand
-        card = self.say('Wherever my hand is set, these wait for you, because they cannot be undone:')
+        card = self.say(kv.say('always'))      # 1.1 KV
         for _, why in stacy_hand.ALWAYS_ASKS:
             line = QLabel(breakable('· ' + why[:1].upper() + why[1:]));line.setWordWrap(True);line.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(line)
         more = QLabel(breakable('In the Terminal I run by myself only commands that read and change nothing: %s and the like, one at a time, with nothing piped or redirected. '
@@ -2476,9 +2477,9 @@ class SlateFace(QWidget):
         program, name = asked;folder = stacy_start.folder_name(name)
         self.thing = None;self.mine(text)
         if stacy_start.reserved(folder):
-            self.say('“%s” is a name Graphite keeps for a folder of its own. Give the project another: start a Godot project called …' % folder);return True
+            self.say(kv.say('name_kept', name=folder));return True      # 1.1 KV
         if self.run_line(op('files.get', path=folder)).get('ok'):
-            self.say('There is already something called “%s” in Files, and I do not write over what is there. Give it another name: start a Godot project called …' % folder);return True
+            self.say(kv.say('name_taken', name=folder));return True      # 1.1 KV
         tool = stacy_start.godot_tool();files = stacy_start.start_files(name, tool)
         holder = type('Started', (), {'title': folder})()
         parts = [(holder, Step('Make the folder', 'write', op('files.mkdir', path='', name=folder), '', 'execute'))]
@@ -2502,13 +2503,13 @@ class SlateFace(QWidget):
         if went < len(card.plan):
             self.made_done(False, None)
             if not went:                           # the first step was refused: this start made nothing
-                self.say('Nothing was made: the folder “%s” could not be made (%s).' % (folder, str(results[0][2])[:160] if results else 'refused'));return
+                self.say(kv.say('not_made', name=folder, why=str(results[0][2])[:160] if results else 'refused'));return      # 1.1 KV
             if card.hers:                          # an act of hers that stopped part-way is still a line in her trail; it has no Undo
                 stacy_hand.record(self.host.session.state, 'Started a Godot %d project and stopped part-way · “%s”' % (tool['major'], folder), card.plan[0][1].line, '', word, True)
                 try:self.host.session.save()
                 except Exception:  # noqa: BLE001
                     pass
-            self.say('I stopped at the step that was refused, after %d of %d. What this start made is in “%s” in Files; delete that folder if you do not want it (DELETE gives it back).' % (went, len(card.plan), folder));return
+            self.say(kv.say('stopped_at', n=went, count=len(card.plan), name=folder));return      # 1.1 KV
         if card.hers:
             undo = '/files.trash ' + json.dumps({'path': folder}, ensure_ascii=False, separators=(', ', ': '))
             import hashlib
@@ -2566,9 +2567,9 @@ class SlateFace(QWidget):
         if kind in ('file', 'folder'):
             from .stacy_start import reserved
             if reserved(name):
-                self.say('“%s” begins with a name Graphite keeps for a folder of its own. Give it another name.' % name);return True
+                self.say(kv.say('name_kept_start', name=name));return True      # 1.1 KV
             if self.run_line(op('files.get', path=name)).get('ok'):
-                self.say('There is already something called “%s” in Files. I do not write over what is there by myself: say another name.' % name);return True
+                self.say(kv.say('name_taken_own', name=name));return True      # 1.1 KV
             parent, _, leaf = name.rpartition('/')
             step = (Step('Make a folder called “%s”' % name, 'write', op('files.mkdir', path=parent, name=leaf), 'a new, empty folder in Files; Undo deletes it, and DELETE gives it back', 'execute') if kind == 'folder' else
                     Step('Make a file called “%s”' % name, 'write', op('files.write', path=name, text=words), 'a new file in Files with those words; Undo deletes it, and DELETE gives it back', 'execute'))
@@ -2606,20 +2607,18 @@ class SlateFace(QWidget):
             if console is None or getattr(console, 'process', None) is not None:      # nothing to run it in, or a command is still running there
                 if bar is not None:
                     bar.set_target('shell', focus=False);bar.box.setText(command)
-                self.say('The Terminal is still running a command, so I have not run this one: it is in the line, with Terminal chosen, for when that one has ended.'
-                         if console is not None else 'There is no Terminal in this window, so I have not run it.')
+                self.say(kv.say('term_busy') if console is not None else kv.say('term_none'))      # 1.1 KV
                 return True
             to_console(self.host, 'shell', command)
             stacy_hand.record(self.host.session.state, 'Ran in the Terminal: ' + command, '$ ' + command, '', text.strip(), True)
             try:self.host.session.save()
             except Exception:  # noqa: BLE001
                 pass
-            self.say('I ran it in the Terminal: %s. It only reads; what it answered is above the line.' % command)
+            self.say(kv.say('term_ran', command=command))      # 1.1 KV
             return True
         if bar is not None:
             bar.set_target('shell', focus=False);bar.box.setText(command)
-        self.say(('My hand is at “Ask first”, so' if stacy_hand.terminal_hers(command) else 'That command may change something, or I cannot tell that it only reads, so')
-                 + ' it is yours to run: it is in the line, with Terminal chosen.')
+        self.say(kv.say('term_ask_first') if stacy_hand.terminal_hers(command) else kv.say('term_may_change'))      # 1.1 KV
         return True
 
     def objective_asked(self, text):
@@ -2660,9 +2659,9 @@ class SlateFace(QWidget):
         `go(object)` goes to one of them in the Field and says what can be done about it. `plan` is the changes that would
         settle what can be settled without a decision of the owner's; `settle()` puts them up for one Run."""
         if not waiting:
-            card = self.say('I read the desk: %d thing%s. Nothing waits for you.' % (count, '' if count == 1 else 's'))
+            card = self.say(kv.say('desk_none', count=count, things=kv.things(count)))      # 1.1 KV
         else:
-            card = self.say('I read the desk: %d thing%s. %d wait%s for you:' % (count, '' if count == 1 else 's', len(waiting), 's' if len(waiting) == 1 else ''))
+            card = self.say(kv.say('desk_waits', count=count, things=kv.things(count), n=len(waiting)))      # 1.1 KV
             for n, (obj, why, steps) in enumerate(waiting[:12]):
                 card.box.addWidget(sentence('{go}', {'go': ('“%s”' % obj.title, lambda obj=obj:go(obj))}))
                 first = next((step for step in steps if step.kind == 'write'), None)
@@ -2868,7 +2867,7 @@ class SlateFace(QWidget):
         if thing and not about:about = '%s “%s”, read with the line: %s' % (thing['kind'], thing['title'], thing['stac'])
         about = about or self.current_item()
         self.mine(text)
-        if self.job:self.say('I am still answering the last question. Stop it from the Brain room, or wait a moment.');return
+        if self.job:self.say(kv.say('busy'));return      # 1.1 KV
         # A question whose thing was named exactly (its menu, T, a what-if) is hers to read; any other may be the open page's to do.
         direct = None if thing and thing.get('explicit') else self.direct_request(text)
         if direct is not None:self.say(direct);return
@@ -2893,20 +2892,19 @@ class SlateFace(QWidget):
             if thing.get('feeds'):facts.append('It feeds: %s.' % '; '.join(thing['feeds'][:8]))
             r = engineering(self.host.root).dispatch('brain.ask', {'message': question + '\n\n' + RECORDS_HINT + '\n' + '\n'.join(facts) + '\nRows read from it:\n' + rows, 'mode': 'chat',
                                                                    'request_key': uuid.uuid4().hex}, operator())
-            if not r.get('ok'):self.say('I read it, but I could not put it in words: ' + r['error']['message']);return
+            if not r.get('ok'):self.say(kv.say('no_words', why=r['error']['message']));return      # 1.1 KV
             self.job = r['result']['id'];self.job_epoch = self.host._operation_epoch;self.grounded = True
             self.pending = self.say('In my words…');self.timer.start()
             return
         if brain.get('state') != 'READY' and thing:  # no model, but the records can answer about this thing, and she says how she read them
-            card = self.answer_in_stac(thing, thing.get('intro') or 'No model is loaded, so this is not in my own words. This is what the records say about “%s”, and the line that reads it:' % thing['title'])
+            card = self.answer_in_stac(thing, thing.get('intro') or kv.say('records_only', title=thing['title']))      # 1.1 KV
             if not thing.get('intro'):         # a trace or a what-if is whole without a model; an open question about a sheet is not
                 card.box.addWidget(sentence('{choose}', {'choose': ('Choose a model', lambda:open_destination(self.host, 'slate').pick_model())}))
             return
         if brain.get('state') != 'READY':
             if selected:  # no brain, but Ledger can still say what it knows about the file
-                self.explain_file(selected, 'I have no brain running yet, so this is what Graphite itself knows about it.')
-            card = self.say('For answers in my own words, choose a model; I run on this computer.' if selected else
-                            'I have no brain running yet. Drop a GGUF model on the Brain room, or choose one.')
+                self.explain_file(selected, kv.say('file_only'))      # 1.1 KV
+            card = self.say(kv.say('choose_model') if selected else kv.say('no_model'))      # 1.1 KV
             if hasattr(self.host.tabs.currentWidget(), 'slate_request'):
                 note = QLabel('On this page I still make direct edits without a model: bold, italic, underline, heading, subheading, body, code, plain, “replace x with y”, undo. '
                               '“Add up the numbers on this page” I work out myself: the total goes under your words and stays bound to them.')
@@ -3034,13 +3032,13 @@ class SlateFace(QWidget):
         from .stacy_foundation import seed_status
         bridge = self.host.ledger_bridge
         if bridge.busy:
-            self.say('Wait for the current command to finish.')
+            self.say(kv.say('command_busy'))      # 1.1 KV
             return
         seed = seed_status(bridge.kernel.root)
         if (not seed_id or seed.get('state') != 'VERIFIED_SOURCE_BINDINGS' or seed.get('seed_id') != seed_id
                 or epoch != self.host._operation_epoch or self.host._closing):
             button.setEnabled(False)
-            self.say('This plan expired. Ask for a fresh plan.')
+            self.say(kv.say('plan_expired'))      # 1.1 KV
             return
         button.setEnabled(False)
         button.setText('Running…')
@@ -3137,7 +3135,7 @@ class SlateFace(QWidget):
             from .office_building_qt import readable_result
             bubble = self.say(readable_result(r['result']) if isinstance(r['result'], dict) else str(r['result'])[:2000])
         else:
-            bubble = self.say('That did not work: ' + r['error']['message'])
+            bubble = self.say(kv.say('failed', why=r['error']['message']))      # 1.1 KV
         row = QHBoxLayout();ask = QLabel('Was this right?');ask.setStyleSheet('color:%s' % QUIET);row.addWidget(ask, 1)
         for text, mark in (('Right', 'GOOD'), ('Wrong', 'BAD')):
             b = button(text, 'quiet');b.clicked.connect(lambda checked=False, m=mark, w=row:self.mark(program, m, w));row.addWidget(b)
@@ -3459,7 +3457,7 @@ class TodayPage(QWidget):
             asks = ('What arrived today?', 'Show the held files', 'Summarize the newest delivery')
             self.slate.say('Try: {a0} · {a1} · {a2}', **{'a%d' % i:(ask, lambda a=ask:self.host.shell2.ask(a)) for i, ask in enumerate(asks)})
         else:
-            self.slate.say('Graphite has no brain running yet. {choose} to start one; it runs on this computer.', choose=('Choose a model', lambda:open_destination(self.host, 'slate').pick_model()))
+            self.slate.say(kv.say('today_no_model', choose='{choose}'), choose=('Choose a model', lambda:open_destination(self.host, 'slate').pick_model()))      # 1.1 KV
         patterns = (call(self.host, 'matrix.patterns', {'limit': 10}) or {}).get('patterns', [])
         best = max((p for p in patterns if p['tries'] >= 2), key=lambda p:(p['success_rate'], p['tries']), default=None)
         if best:

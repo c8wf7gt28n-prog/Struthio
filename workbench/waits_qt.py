@@ -27,17 +27,22 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
 
 from . import boss_theme as bt
+from . import mind_words      # 1.1 KV
 from . import state_words as sw
 from .her_column_qt import heading, ink, plain, px, row_label, small_button
 
 MOST = 3                # at most this many rows; the rest are counted (they stand in ACTIVE WORK too)
 WORDS = {'head': 'WAITS FOR YOU', 'head_count': 'WAITS FOR YOU [{count}]', 'more': 'and {count} more in ACTIVE WORK',
          'grant': 'Grant this for this assignment', 'review': 'Review it', 'answer': 'Answer it',
-         'grant_words': 'It asks to {words}. Nothing was sent.', 'question': 'Her question: {words}',
-         'no_model': 'No model is loaded. She still reads the records, checks the desk and plans from it. Her model is added in the Brain room → Add file.',
+         'grant_words': 'I need your grant to {words}. Nothing was sent.', 'question': 'My question: {words}',
+         'no_model': 'No model loaded. I still read the records, check the desk and plan. Add one in the Brain room → Add file.',
          'brain_room': 'Brain room', 'grant_short': 'Grant it',
-         'grant_words_set': 'It asks for {count} grants in one press, {scope}: {words}. Nothing was sent.',  # 1.0 K10
-         'held': 'Held by your HALT. Its own Resume checks every step first, then carries on.', 'resume': 'Resume'}  # 1.0 F3
+         'grant_words_set': 'I need {count} grants in one press, {scope}: {words}. Nothing was sent.',  # 1.0 K10
+         'held': 'Held by your HALT. Its Resume checks every step, then carries on.', 'resume': 'Resume'}  # 1.0 F3
+# 1.1 KV: in her voice, and swept with her other words (mind_words.check)
+mind_words.register('waits_qt', WORDS, kind='sentence', numbers={
+    'head_count': {'count': 'the rows that wait (assignment.list)'}, 'more': {'count': 'the rows not shown (assignment.list)'},
+    'grant_words_set': {'count': 'the grants asked in one press (grant.give.set)'}})
 GRANT_OPS = ('grant.give', 'grant.give.set')      # 1.0 K10: one grant, or several in one press (home_plan), each its own record
 
 

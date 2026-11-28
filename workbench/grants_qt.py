@@ -81,7 +81,7 @@ class GrantFold(QWidget):
             words = plain(action.get('grant_words') or '')
             if compact:words = re.sub(r' \(“[^”]*”\)', '', words)      # a short column: the assignment is named in ACTIVE WORK above
             self.title.setText(plain(row.get('title') or ''));self.title.setVisible(not compact)
-            self.words.setText(('It asks to %s.' if compact else 'It asks to %s. Nothing was sent.') % words)
+            self.words.setText(('I need your grant to %s.' if compact else 'I need your grant to %s. Nothing was sent.') % words)      # 1.1 KV
             ink(self.words, px(host, 12 if compact else 13), bt.TEXT, None, bt.FACE)
             self.words.setAccessibleName(self.words.text());self.card.show()
         else:
@@ -169,7 +169,7 @@ class GrantsTab(QWidget):
                 box.addWidget(label)
         box.addWidget(role(QLabel('IN FORCE'), 'section'))
         rows = view.get('in_force') or []
-        if not rows:box.addWidget(self.quiet('No grant of yours is in force: every change she proposes waits for your word.'))
+        if not rows:box.addWidget(self.quiet('No grant of yours is in force. Every change she proposes waits for your word.'))
         for g in rows:
             used = ('used %d times' % g['uses'] if g.get('uses') != 1 else 'used once') if g.get('uses') else 'not used yet'
             label = sentence('● %s<br><span style="color:%s">given %s by %s  ·  %s</span>  ·  {revoke}' % (

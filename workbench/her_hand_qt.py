@@ -584,14 +584,14 @@ class HerHand(QObject):
         (1.0 F1) the tabs, the lists' selection, the scroll, the Field's size and your keyboard (hand_door_qt), read back."""
         from .desk_doers import run, settle
         t = self.turn;snap = self.snapshot
-        if t is None or snap is None:return {'back': False, 'words': 'There is nothing to put back.'}
+        if t is None or snap is None:return {'back': False, 'words': 'Nothing to put back.'}
         self.timer.stop();self.pointer.clear()
         self.stop_flag = False;t.putting_back = True;t.pending = None
         self.set_state('acting', '')
         moved = 0;words = ''
         try:
             for _ in range(planner.BUDGET.depth):
-                if self.stop_flag:words = 'You touched the window again, so I stopped putting it back.';break
+                if self.stop_flag:words = 'You touched the window, so I stopped putting it back.';break
                 desk, state, world = self.read()
                 world = world if (world.sheets and state.face == 'work') else (self.snapshot_world or t.world)
                 if planner.back_to(state, snap) and not state.popups:break
@@ -773,7 +773,7 @@ class HerHand(QObject):
             request = None
         t.request = request                                 # 0.8.7 B4: the GOAL turn and her one question card share one request
         if request is None or request.port is None:
-            return self._choose_in_words(t, 'No model is loaded, so which of these you meant is yours to choose:')
+            return self._choose_in_words(t, 'No model loaded. Which of these did you mean?')
         t.model.update(asked=True, started=time.monotonic(), calls=1)
         holder = {}
 
@@ -785,7 +785,7 @@ class HerHand(QObject):
         thread = threading.Thread(target=run, name='her-goal-turn', daemon=True);thread.start()
         t.model['holder'] = holder;t.model['thread'] = thread
         self.set_state('thinking')
-        self._clock(self.say(named('I am asking my model which of these you meant: %s.') % '; '.join(o.words for o in b.options)), request, thread, stop)
+        self._clock(self.say(named('Asking my model which you meant: %s.') % '; '.join(o.words for o in b.options)), request, thread, stop)
         QTimer.singleShot(POLL_MS, self.poll_goal)
         return True
 
@@ -926,16 +926,16 @@ class HerHand(QObject):
         key = reading.said_key(t.text)
         self.not_that += [(key, s['verb'], s['thing']) for s in got.get('steps') or () if s.get('state') == 'OK' and s.get('thing')]
         if got.get('saying'):                       # 0.8.7 B5: a saying's reading: nothing counts against the model
-            self.say('Not that: I will not read these words this way again.');return
+            self.say('Understood. I will not read those words that way again.');return
         verbs = [s['verb'] for s in got.get('steps') or () if s.get('state') == 'OK']
         try:                                        # 0.8.7 B5: no row; the verb's tally counts one correction
             kernel, p = self._kernel()
             done = kernel.dispatch('phrases.not_that', {'verbs': verbs, **({'model_key': t.model_key} if getattr(t, 'model_key', None) else {})}, p)
-            self.say(done['result']['words'] if done.get('ok') else 'Not that: I will not read these words this way again.')
+            self.say(done['result']['words'] if done.get('ok') else 'Understood. I will not read those words that way again.')
             for v in (done.get('result') or {}).get('dropped') or ():
                 if v in verbs:self.say(phrases.WORDS['dropped'].format(verb=v))
         except Exception:  # noqa: BLE001 - the tally cannot be written: the session's Not that still holds
-            self.say('Not that: I will not read these words this way again.')
+            self.say('Understood. I will not read those words that way again.')
 
     # -- 0.8.7 B5 · your words: Do, Remember or a click on her question agree; Retire takes a saying back ---------------------
     def _agree(self, t, got, tally=True):
@@ -1008,7 +1008,7 @@ class HerHand(QObject):
         t.model.update(seconds=round(elapsed, 3))
         if answer is None:
             t.model['outcome'] = 'FAILED'
-            return self._choose_in_words(t, 'I could not ask my model (%s), so which of these you meant is yours to choose:' % holder.get('error', 'no answer'))
+            return self._choose_in_words(t, 'I could not ask my model (%s). Which of these did you mean?' % holder.get('error', 'no answer'))
         verdict = answer.verdict
         t.model.update(outcome=answer.outcome, why=answer.why, price_ms=answer.price_ms, deadline_ms=answer.deadline_ms,
                        raw=answer.said.for_check() if answer.said is not None else None, turn=answer.turn,
@@ -1054,13 +1054,13 @@ class HerHand(QObject):
         if top is not None and top.acts in ('read', 'navigates') and stacy_hand.level(self.host) in ('show', 'free') and top.goals():
             t.model['default'] = top.words
             return self._begin_from(t, top.goals(), 'DEDUCED', default=True)
-        self._choose_in_words(t, 'My model did not answer in time, so which of these you meant is yours to choose:')
+        self._choose_in_words(t, 'My model ran out of time. Which of these did you mean?')
 
     def _begin_from(self, t, pairs, origin, default=False):
         model = t.model
         nt = self.start(t.text, pairs, t.word, origin=origin)
         nt.model = model;nt.brief = getattr(t, 'brief', None);nt.found = getattr(t, 'found', None)
-        if default:self.say('My model did not answer in time, so I took the first of these, which only moves the window: %s.' % model.get('default'))
+        if default:self.say('My model ran out of time, so I took the first. It only moves the window: %s.' % model.get('default'))
         return nt
 
     def _choose_in_words(self, t, lead):
@@ -1178,7 +1178,7 @@ class HerHand(QObject):
         stop = self._stoppable(request)          # 0.8.7 W7: her clock's Stop reaches the turn
         thread = threading.Thread(target=run, name='her-pick-turn', daemon=True);thread.start()
         t.model['calls'] = int(t.model.get('calls') or 0) + 1
-        self.set_state('thinking');self._clock(self.say(named('I am asking my model which of these your answer chooses.')), request, thread, stop)
+        self.set_state('thinking');self._clock(self.say(named('Asking my model which of these your answer picks.')), request, thread, stop)
 
         def poll():
             if thread.is_alive():QTimer.singleShot(POLL_MS, poll);return

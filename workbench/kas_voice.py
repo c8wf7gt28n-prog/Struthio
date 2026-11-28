@@ -1,0 +1,84 @@
+"""Her voice (Graphite 1.1 KV): the lines she says in her talk, kept here as templates so the voice sweep reads them.
+
+Her manner, as the owner asked for it in 1.1 (no line, name or picture from anywhere): sharp, fast, sure of her craft, at home on the command line, dry, short sentences, no padding, never talking down, on the owner's side. Her
+character file says it for the model (workbench/kasandra/character_starter.md); this module holds her fixed lines.
+
+One guard, which no line here weakens: she is sure only of what is verified. Where nothing is proven she says so just as
+plainly (NOT_VERIFIED), and she never jokes about a refusal, a loss or a permission: those lines are plain and exact.
+
+Every line is registered with mind_words like any other template, so mind_words.check() sweeps it: no exclamation mark,
+no sentence over her character's sentence length (20 words in the starter), no digit in the fixed words, every number
+through a slot that names its record, none of the banned or never-say words. say(key, **slots) fills one.
+
+Pure Python: no Qt, no Kernel, no model.
+"""
+from __future__ import annotations
+
+from . import mind_words
+
+NOT_VERIFIED = 'Not verified. Here is what I checked: {checked}.'
+
+WORDS = {
+    # her talk's first line (the test reads its first sentence)
+    'greet': 'Ask about what is open. “This” means what is in the middle of the board. What I read, I show as a line you can run.',
+    # what can be done about a thing (plans)
+    'steps': 'For “{title}”, this can be done. Press its number in the Field, or choose here.{rule}',
+    'steps_all_ask': ' Anything that changes something asks first.',
+    'steps_some_ask': ' Steps marked “asks first” wait for you. Other changes I make at once, and show.',
+    'step_mine': 'For “{title}”: {words}.',
+    'step_waits_why': 'For “{title}”: {words}. It waits for you: {why}.',
+    'step_waits': 'For “{title}”: {words}. It changes something, so it waits for your press.',
+    # what she did on her own, and taking it back
+    'trail': 'What I did on my own, newest first:',
+    'trail_none': 'Nothing done on my own yet. At “Do and show”, a change you ask for is made at once and listed here.',
+    'undo_twice': 'Already taken back.',
+    'undo_done': 'Taken back: {words}. ',
+    'undo_trash': '“{name}” is in DELETE, which gives it back.',
+    'undo_failed': 'Not taken back, and nothing changed: {why}',
+    'always': 'These always wait for you, wherever my hand is set. They cannot be undone:',
+    # names she will not take (refusals: plain, no wit)
+    'name_kept': '“{name}” is a name Graphite keeps for a folder of its own. Pick another: start a Godot project called …',
+    'name_taken': 'Files already has a “{name}”, and I do not write over what is there. Pick another: start a Godot project called …',
+    'not_made': 'Nothing made. The folder “{name}” could not be made ({why}).',
+    'stopped_at': 'Stopped at the refused step, after {n} of {count}. What I made is in “{name}” in Files. '
+                  'Delete that folder if you do not want it; DELETE gives it back.',
+    'name_kept_start': '“{name}” starts with a name Graphite keeps for a folder of its own. Pick another name.',
+    'name_taken_own': 'Files already has a “{name}”. I do not write over it on my own. Give me another name.',
+    # the Terminal
+    'term_busy': 'The Terminal is busy, so I have not run this. It is in the line, Terminal chosen, for when that ends.',
+    'term_none': 'No Terminal in this window, so I have not run it.',
+    'term_ran': 'Ran in the Terminal: {command}. It only reads. The answer is above the line.',
+    'term_ask_first': 'My hand is at “Ask first”, so this one is yours. It is in the line, Terminal chosen.',
+    'term_may_change': 'That may change something, or I cannot tell it only reads. So it is yours: it is in the line, Terminal chosen.',
+    # the desk read
+    'desk_none': 'Desk read: {count} {things}. Nothing waits for you.',
+    'desk_waits': 'Desk read: {count} {things}. Waiting for you, {n}:',
+    # her model, and none
+    'busy': 'Still on your last question. Stop it in the Brain room, or give me a moment.',
+    'records_only': 'No model loaded, so these are not my words. Here is what the records say about “{title}”, and the line that reads them:',
+    'file_only': 'No model loaded. Here is what Graphite itself knows about it.',
+    'choose_model': 'For answers in my own words, choose a model. It runs on this computer.',
+    'no_model': 'No model loaded. I still read the records and check the desk. Drop a GGUF model on the Brain room, or choose one.',
+    'no_words': 'I read it, but could not put it in words: {why}',
+    'today_no_model': 'No model loaded yet. {choose} to start one; it runs on this computer.',
+    # commands and plans
+    'command_busy': 'One command at a time. Wait for this one to finish.',
+    'plan_expired': 'This plan has expired. Ask me for a fresh one.',
+    'failed': 'That failed: {why}',
+    # the guard: nothing proven, said as plainly as a proof
+    'not_verified': NOT_VERIFIED,
+}
+NUMBERS = {'stopped_at': {'n': 'the steps that went (godot start results)', 'count': 'the start plan\'s steps (godot start plan)'},
+           'desk_none': {'count': 'the desk\'s things (desk read)'},
+           'desk_waits': {'count': 'the desk\'s things (desk read)', 'n': 'the things that wait (desk read)'}}
+mind_words.register('kas_voice', WORDS, kind='sentence', numbers=NUMBERS)
+
+
+def say(key, **slots):
+    """One of her lines with its slots filled."""
+    return mind_words.say('kas_voice', key, **slots)
+
+
+def things(count):
+    """'thing' or 'things' for a count (her desk read)."""
+    return 'thing' if count == 1 else 'things'

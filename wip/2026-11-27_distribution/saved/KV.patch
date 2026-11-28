@@ -1,0 +1,1080 @@
+diff --git a/docs/GUIDE_KASANDRA.md b/docs/GUIDE_KASANDRA.md
+index 3e7766c..ff914c2 100644
+--- a/docs/GUIDE_KASANDRA.md
++++ b/docs/GUIDE_KASANDRA.md
+@@ -11,6 +11,20 @@ maths and the checks are the desk's, and she plans from your records.
+ 
+ The window around her is Guide ▸ The Living Desktop.
+ 
++## Her voice
++
++Sharp, fast and dry. She is at home on the command line and sure of her craft. Short sentences, no padding. She never
++talks down to you, and she is on your side.
++
++- **Sure only of what is verified.** "Done, every step verified" is said only when the records prove it. Where nothing is
++  proven she says so just as plainly: "Not verified. Here is what I checked."
++- **Plain about refusals, losses and permissions.** "Refused: …", "Not taken back, and nothing changed: …", "I need your
++  grant to …". No wit there, ever.
++- **Short.** No sentence of hers is over twenty words in her plain register; her character file sets it, and the voice
++  sweep holds every line she says to it.
++- **Her character file** is yours to change: kasandra/character.md in your workspace, started from the starter. It can make
++  her shorter or stricter, never looser.
++
+ ## Her column, top to bottom
+ 
+ - **The equalizer**: sixteen bars across the top of the column (the processor's threads, 01 to 16), then the kernel,
+@@ -36,8 +50,8 @@ The window around her is Guide ▸ The Living Desktop.
+ - **› ask Kasandra…** and its send arrow, at the foot of her column: where you speak to her. Words typed in Line at the
+   screen's foot reach her here through **Ask Kasandra →**.
+ - The moments that matter (a finding refuted, a task done, HALT) show as a short card over the exchange, in words.
+-- With no model she says so: "No model is loaded. She still reads the records, checks the desk and plans from it. Her model
+-  is added in the Brain room → Add file."
++- With no model she says so: "No model loaded. I still read the records, check the desk and plan. Add one in the
++  Brain room → Add file."
+ 
+ On a small screen the exchange gives way first, then the findings fold to their first two; what waits for you never
+ folds.
+@@ -120,6 +134,8 @@ on this computer and sealed.
+ **HALT** (upper left) holds all of her managed work at once: her tasks, her hand, her model's answers, her sandboxes,
+ her fetch. Each journal says what was done and what was only prepared. The desktop, your apps and Graphite's own jobs keep
+ running. **RESUME** lifts the hold and restarts nothing by itself. Each task in ACTIVE WORK also has its own **Stop**.
++She says it in a line: "HALT. I stopped … All my work holds until you press RESUME." and "RESUME. The hold is lifted.
++Nothing I stopped has restarted."
+ 
+ ## Her model
+ 
+diff --git a/tests_integrated/test_kas_voice.py b/tests_integrated/test_kas_voice.py
+new file mode 100644
+index 0000000..ed601ef
+--- /dev/null
++++ b/tests_integrated/test_kas_voice.py
+@@ -0,0 +1,135 @@
++"""1.1 KV, her voice (PLAN_1.1.md, KV): sharp, fast, dry, short; sure only of what is verified.
++
++Acceptance first: the voice sweep (mind_words.check) passes over every registered line, her talk's, "Waits for you"'s and
++HALT's among them; no sentence of hers is over 20 words in the plain register; where nothing is proven she says "Not
++verified. Here is what I checked."; HALT and RESUME say what stopped and that nothing restarted. Then her character file
++(shorter, never lifting the floor), her hand's lines, the refusals said plainly, the talk's lines read from kas_voice, and
++the Guide page quoting her as she speaks.
++
++Run alone:  python3 -B -m unittest -v tests_integrated.test_kas_voice
++"""
++import os, re, unittest
++from pathlib import Path
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++
++ROOT = Path(__file__).resolve().parents[1]
++from workbench import mind_words, voice_character, kas_voice, halt  # noqa: E402
++
++WINDOW = ('kas_voice', 'waits_qt', 'halt', 'her_column_qt', 'mind_panel', 'demo_try', 'app_files')
++
++
++def longest(text):
++    plain = re.sub(r'\{[^{}]*\}', 'x', text)
++    return max((len(s.split()) for s in mind_words.sentences(plain)), default=0)
++
++
++class Acceptance(unittest.TestCase):
++    def test_the_voice_sweep_passes(self):
++        self.assertEqual(mind_words.check(), [])
++        found = {module for module, _ in mind_words.collect()}
++        for module in ('kas_voice', 'waits_qt', 'halt', 'her_column_qt'):
++            self.assertIn(module, found, 'her lines in %s are swept' % module)
++
++    def test_no_sentence_over_twenty_words(self):
++        self.assertEqual(mind_words.max_words(), 20)
++        self.assertEqual(voice_character.budgets('plain')['words'], 20)
++        over = [(m, k) for (m, k), e in mind_words.collect().items() if longest(e['text']) > 20]
++        self.assertEqual(over, [])
++        self.assertTrue(mind_words.style('One two three four five six seven eight nine ten eleven twelve thirteen fourteen '
++                                         'fifteen sixteen seventeen eighteen nineteen twenty twentyone.'))
++
++    def test_not_verified_is_said_as_plainly_as_a_proof(self):
++        self.assertEqual(kas_voice.say('not_verified', checked='the file on disk did not change'),
++                         'Not verified. Here is what I checked: the file on disk did not change.')
++        from workbench import her_column_qt as hc
++        now = 1_000_000
++        line = hc.hand_words({'state': 'not verified', 'at': now, 'words': 'In Writer: the text does not read as typed'}, now)
++        self.assertTrue(line.startswith('◆ Not verified. I checked'), line)
++        done = hc.hand_words({'state': 'done', 'at': now, 'words': 'In Writer: saved; the file on disk is new'}, now)
++        self.assertTrue(done.startswith('✓ Done, verified'), done)
++        self.assertIn('every step verified', hc.say('moment_done', title='Rail head wear'))
++
++    def test_halt_and_resume_say_what_stopped(self):
++        said = halt.WORDS['stopped'] % '“Rail head wear”'
++        self.assertTrue(said.startswith('HALT. I stopped “Rail head wear”.'), said)
++        self.assertIn('until you press RESUME', said)
++        self.assertIn('Apps', said)
++        self.assertNotIn('program', said.lower())
++        self.assertIn('Nothing I stopped has restarted', halt.WORDS['released'])
++        self.assertNotIn('Nothing of mine', halt.WORDS['nothing_turns'])      # never "nothing" and "cut off" at once
++
++
++class Character(unittest.TestCase):
++    def test_starter_is_shorter_and_never_lifts_the_floor(self):
++        c = voice_character.starter()
++        self.assertEqual(c['lengths']['sentence_words'], 20)
++        self.assertEqual(c['lengths']['sentences'], {'plain': 3, 'formal': 3, 'warm': 2})
++        self.assertLessEqual(c['card_tokens'], voice_character.CARD_MOST)
++        self.assertTrue(c['starter'])
++        phrases = [x['phrase'] for x in c['never_say']]
++        for phrase in ('As an AI', '!', 'safe', 'trust me', 'obviously'):
++            self.assertIn(phrase, phrases)
++        text = voice_character.STARTER.read_text(encoding='utf-8')
++        self.assertIn('Not verified. Here is what I checked.', text)
++        _, errors = voice_character.compile_text(text.replace('at most 20 words', 'at most 40 words'))
++        self.assertTrue(errors, 'a sentence over the floor is refused')
++
++    def test_never_say_is_caught_in_her_words_only(self):
++        self.assertIn('never-say (her character file): trust me', mind_words.scan_text('Trust me, it holds.'))
++        self.assertIn('never-say (her character file): obviously', mind_words.scan_text('It obviously holds.'))
++        self.assertEqual(mind_words.scan_text('The page says “trust me” here.'), [])
++
++
++class Lines(unittest.TestCase):
++    def test_refusals_losses_and_permissions_are_plain(self):
++        from workbench import her_column_qt as hc, waits_qt
++        self.assertEqual(hc.say('press_refused', why='the seed is not current'), 'Refused: the seed is not current')
++        self.assertEqual(hc.say('stop_refused', why='it had ended'), 'Not stopped: it had ended')
++        self.assertEqual(kas_voice.say('undo_failed', why='it changed since'), 'Not taken back, and nothing changed: it changed since')
++        self.assertEqual(waits_qt.WORDS['grant_words'].format(words='write in Rail Demo/notes'),
++                         'I need your grant to write in Rail Demo/notes. Nothing was sent.')
++        self.assertTrue(halt.WORDS['not_held'].startswith('HALT did not hold: %s.'))
++
++    def test_desk_read_and_no_model(self):
++        self.assertEqual(kas_voice.say('desk_none', count=1, things=kas_voice.things(1)), 'Desk read: 1 thing. Nothing waits for you.')
++        self.assertEqual(kas_voice.say('desk_waits', count=7, things=kas_voice.things(7), n=2), 'Desk read: 7 things. Waiting for you, 2:')
++        from workbench import waits_qt
++        self.assertTrue(waits_qt.WORDS['no_model'].startswith('No model loaded. I still read the records'))
++        self.assertTrue(kas_voice.say('no_model').startswith('No model loaded.'))
++
++    def test_her_talk_reads_kas_voice(self):
++        source = (ROOT / 'workbench' / 'shell2.py').read_text(encoding='utf-8')
++        self.assertIn("self.say(kv.say('greet'))", source)
++        for old in ('I have no brain running yet', 'That did not work: ', 'This plan expired. Ask for a fresh plan.',
++                    'It could not be taken back, and nothing was changed', 'I am still answering the last question'):
++            self.assertNotIn(old, source)
++        self.assertTrue(kas_voice.say('greet').startswith('Ask about what is open.'))
++
++    def test_her_column_words(self):
++        from workbench import her_column_qt as hc
++        self.assertEqual(hc.say('nothing_active'), 'No assignment open. Ask me for one.')
++        self.assertEqual(hc.say('moment_halt'), 'HALT. All my work is stopped. Your Apps and the desktop run on.')
++        self.assertEqual(hc.say('stopped', title='Rail head wear'), 'Stopped “Rail head wear”. Done steps stay done. Nothing new starts.')
++        for key in WINDOW[3:4]:
++            for (module, k), e in mind_words.collect().items():
++                if module == key:self.assertNotIn('!', e['text'])
++
++    def test_review_answer_says_only_what_is_proven(self):
++        from workbench import desk_review
++        self.assertTrue(desk_review.WORDS['not_cleared'].startswith('Not proven sufficient.'))
++        self.assertIn('not a verdict on the design', desk_review.WORDS['cleared'])
++        found = {module for module, _ in mind_words.collect()}
++        for module in ('desk_review', 'day_notice', 'everyday_desk', 'home_pages', 'objective_plan'):
++            self.assertIn(module, found, '%s registered her words; the sweep reads them now' % module)
++
++    def test_guide_page_quotes_her_as_she_speaks(self):
++        from workbench import waits_qt
++        page = ' '.join((ROOT / 'docs' / 'GUIDE_KASANDRA.md').read_text(encoding='utf-8').split())
++        self.assertIn('## Her voice', page)
++        self.assertIn('"%s"' % waits_qt.WORDS['no_model'], page)
++        self.assertIn('Not verified. Here is what I checked.', page)
++        self.assertIn('Nothing I stopped has restarted.', page)
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index 023bf09..00316f1 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -41,6 +41,7 @@ FOCUSED_MODULES=(
+  # install and start; 0.8.4: the start on whatever the session file holds (a look that is not text, a room left open)
+  'test_install_media','test_startup_scripts','test_session_start',
+  'test_debian_packages',  # 1.1 PK1: the Debian packages and the kit
++ 'test_kas_voice',  # 1.1 KV: her voice, the sweep and her lines
+  # the desk, the frame, paper, machine, documents and the Graphite words; the right-click menu (HATCH DESK D4)
+  'test_desk','test_frame','test_paper','test_machine','test_documents','test_graphite','test_writing_line','test_context_menu',
+  # 0.4.9 and 0.5: the drawn glyphs, a tool's face (words or a glyph), Find in what is open, a page in the desk's light
+diff --git a/workbench/desk_review.py b/workbench/desk_review.py
+index fd12259..b39e008 100644
+--- a/workbench/desk_review.py
++++ b/workbench/desk_review.py
+@@ -28,18 +28,18 @@ REVIEW = re.compile(r'\b(?:review\s+(?:this|the|my)\s+(?:assembly|design|circuit
+                     r'meets?\s+(?:its|the|their)\s+(?:limits?|spec(?:ification)?s?|requirements?)|'
+                     r'within\s+(?:its|the|their)\s+limits?)\b', re.I)
+ 
+-WORDS = {
+-    'head': 'What the records say, finding by finding (the desk’s findings and their evidence, not my own judgement):',
++WORDS = {      # 1.1 KV: in her voice; sure only of what the records prove
++    'head': 'What the records say, finding by finding. Their evidence, not my judgement:',
+     'supported': '■ SUPPORTED · {text}',
+     'refuted': '⊘ REFUTED · {text}',
+     'contested': '◆ CONTESTED · {text}',
+-    'recheck': '◧ RECHECK · {text} (what it rests on changed since; it holds only once it is worked again)',
++    'recheck': '◧ RECHECK · {text} (what it rests on changed; it holds again only once it is worked again)',
+     'unknown': '□ OPEN · {text}',
+     'question': '□ OPEN QUESTION · {text}',
+-    'not_cleared': 'So I cannot call it sufficient. What is supported holds; what is refuted, in recheck or open is not cleared, '
+-                   'and finishing one part does not clear the rest.',
+-    'cleared': 'Every finding on this desk is supported and no question is open. That is the records’ word, not a judgement of the design.',
+-    'how': 'Each line is a record of the desk; FINDINGS (live) and the board show the same, and DOUBT asks what a supported one may hide.',
++    'not_cleared': 'Not proven sufficient. Supported findings hold. Refuted, recheck and open ones are not cleared, '
++                   'and clearing one does not clear the rest.',
++    'cleared': 'Every finding here is supported and no question is open. That is the records’ word, not a verdict on the design.',
++    'how': 'Each line is a desk record. FINDINGS (live) and the board show the same. DOUBT asks what a supported one may hide.',
+ }
+ try:
+     from . import mind_words
+diff --git a/workbench/everyday_desk.py b/workbench/everyday_desk.py
+index 440ba21..95d30cb 100644
+--- a/workbench/everyday_desk.py
++++ b/workbench/everyday_desk.py
+@@ -52,17 +52,19 @@ OTHER = 'Other'
+ WORDS = {
+     'reading': 'I am reading “{file}” for {what} in {month}.',
+     'spent': 'We spent {total} on {what} in {month}: {count} rows of the sheet “{sheet}” in “{file}” ({rows}), read at revision {revision}.',
+-    'none_spent': 'Nothing was spent on {what} in {month}: no row of the sheet “{sheet}” in “{file}” says so, read at revision {revision}.',
++    'none_spent': 'Nothing was spent on {what} in {month}. No row of the sheet “{sheet}” in “{file}” says so, read at revision {revision}.',
+     'receipt': 'Receipt: {tool}, {object}, sheet {sheet}, revision {revision}, {complete}, {status}.',
+-    'no_budget': 'I found no spreadsheet to read for that: put the budget in focus, or keep one spreadsheet named budget in Documents.',
++    'no_budget': 'I found no spreadsheet to read for that. Put the budget in focus, or keep one spreadsheet named budget in Documents.',
+     'two_budgets': 'Two spreadsheets could be meant, “{one}” and “{two}”: put the one you mean in focus and ask again.',
+-    'no_columns': 'The sheet “{sheet}” in “{file}” has no header row naming Date, Category and Amount, so I do not add it up.',
++    'no_columns': 'The sheet “{sheet}” in “{file}” has no header row naming Date, Category and Amount. So I do not add it up.',
+     'not_read': 'I could not read “{file}”: {why}',
+     'odd_amount': 'Row {row} of “{sheet}” holds “{text}” as an amount, which is not a number, so I give no total.',
+ }
+ try:
+     from . import mind_words
+-    mind_words.register('everyday_desk', WORDS, kind='sentence')
++    mind_words.register('everyday_desk', WORDS, kind='sentence', numbers={'spent': {      # 1.1 KV: the sweep reads these now
++        'total': 'the sum of the amounts read (the budget sheet)', 'count': 'the rows read (the budget sheet)',
++        'rows': 'the rows read (the budget sheet)'}})
+ except Exception:  # noqa: BLE001 - the words stand without the check
+     pass
+ 
+diff --git a/workbench/grants_qt.py b/workbench/grants_qt.py
+index ff6957d..ed6b5f4 100644
+--- a/workbench/grants_qt.py
++++ b/workbench/grants_qt.py
+@@ -81,7 +81,7 @@ class GrantFold(QWidget):
+             words = plain(action.get('grant_words') or '')
+             if compact:words = re.sub(r' \(“[^”]*”\)', '', words)      # a short column: the assignment is named in ACTIVE WORK above
+             self.title.setText(plain(row.get('title') or ''));self.title.setVisible(not compact)
+-            self.words.setText(('It asks to %s.' if compact else 'It asks to %s. Nothing was sent.') % words)
++            self.words.setText(('I need your grant to %s.' if compact else 'I need your grant to %s. Nothing was sent.') % words)      # 1.1 KV
+             ink(self.words, px(host, 12 if compact else 13), bt.TEXT, None, bt.FACE)
+             self.words.setAccessibleName(self.words.text());self.card.show()
+         else:
+@@ -169,7 +169,7 @@ class GrantsTab(QWidget):
+                 box.addWidget(label)
+         box.addWidget(role(QLabel('IN FORCE'), 'section'))
+         rows = view.get('in_force') or []
+-        if not rows:box.addWidget(self.quiet('No grant of yours is in force: every change she proposes waits for your word.'))
++        if not rows:box.addWidget(self.quiet('No grant of yours is in force. Every change she proposes waits for your word.'))
+         for g in rows:
+             used = ('used %d times' % g['uses'] if g.get('uses') != 1 else 'used once') if g.get('uses') else 'not used yet'
+             label = sentence('● %s<br><span style="color:%s">given %s by %s  ·  %s</span>  ·  {revoke}' % (
+diff --git a/workbench/halt.py b/workbench/halt.py
+index 3617d12..37b9207 100644
+--- a/workbench/halt.py
++++ b/workbench/halt.py
+@@ -26,22 +26,24 @@ process. Nothing here asks the model anything.
+ """
+ from __future__ import annotations
+ 
+-WORDS = {
+-    'stopped': 'HALT: I stopped %s and hold all my work until you press RESUME. Each journal says what was done and what was '
+-               'only prepared. Your desktop, apps and Graphite’s jobs go on.',
+-    'nothing': 'HALT: nothing of mine was running. I hold all my work until you press RESUME. Your desktop, apps and '
+-               'Graphite’s jobs go on.',
++WORDS = {      # 1.1 KV: in her voice; plain about what stopped, sure only of what the records say
++    'stopped': 'HALT. I stopped %s. All my work holds until you press RESUME. Each journal says what was done and what was '
++               'only prepared. Your desktop, Apps and Graphite’s jobs run on.',
++    'nothing': 'HALT. Nothing of mine was running. All my work holds until you press RESUME. Your desktop, Apps and '
++               'Graphite’s jobs run on.',
+     'held': ' Also held: %s.',
+     'hand': ' My hand stopped before its next press.',
+-    'turns': ' My model’s answer was closed.',
+-    'nothing_turns': 'HALT: my model’s answer was closed, and nothing else of mine was running. I hold all my work until you '
+-                     'press RESUME. Your desktop, apps and Graphite’s jobs go on.',      # 1.0 F3 (X4 S11): never "nothing" and "closed" at once
+-    'not_held': 'HALT could not hold my work: %s. Use Stop all on the meters if anything of mine is still running.',
+-    'released': 'RESUME: the hold is lifted. Nothing stopped was restarted: what HALT stopped waits for your Resume on it '
+-                '(in “Waits for you”), which checks every step first.',      # 1.0 D2 (X3): say that her work waits for that press
+-    'released_jobs': ' Graphite’s jobs are still held by Stop all; lift that on its own card.',
++    'turns': ' My model was cut off mid-answer.',
++    'nothing_turns': 'HALT. My model was cut off mid-answer; nothing else of mine was running. All my work holds until you '
++                     'press RESUME. Your desktop, Apps and Graphite’s jobs run on.',      # 1.0 F3 (X4 S11): never "nothing" and "closed" at once
++    'not_held': 'HALT did not hold: %s. If anything of mine still runs, use Stop all on the meters.',
++    'released': 'RESUME. The hold is lifted. Nothing I stopped has restarted. Each stopped assignment waits for its own Resume '
++                'in “Waits for you”, which checks every step first.',      # 1.0 D2 (X3): say that her work waits for that press
++    'released_jobs': ' Graphite’s jobs are still held by Stop all. Lift that on its own card.',
+     'not_released': 'The hold stays: %s.',
+ }
++from . import mind_words      # 1.1 KV: HALT's and RESUME's words join her voice sweep
++mind_words.register('halt', WORDS, kind='sentence')
+ 
+ 
+ def _kernel(host):
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index a0400ed..7984277 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -63,44 +63,52 @@ from .assistant_identity import named
+ from .equalizer_qt import GROUPS, Equalizer
+ 
+ # Her words here: fixed templates (mind_words.check: no exclamation mark, no sentence over 30 words, no digit in the fixed
+-# words, every number through a slot that names its record).
++# words, every number through a slot that names its record). 1.1 KV: in her voice (kas_voice): short, dry, sure only of
++# what is verified; her hand's lines (hand_*) are templates here too, so the sweep reads them.
+ WORDS = {
+     'active': 'ACTIVE WORK',
+     'active_count': 'ACTIVE WORK [{count}]',
+     'findings': 'FINDINGS (live)',
+     'next': 'NEXT STEPS',
+-    'nothing_active': 'No assignment is open.',
+-    'reading_work': 'Reading her journal…',      # 1.0 F3: until her journal is read after a start, never "nothing"
++    'nothing_active': 'No assignment open. Ask me for one.',
++    'reading_work': 'Reading my journal…',      # 1.0 F3: until her journal is read after a start, never "nothing"
+     'reading_desk': 'Reading the desk…',      # 1.0 F3
+     'last_done': 'Last: “{title}”, {state}.',      # 1.0 X1: with nothing open, the last one and its journal, one press away
+     'its_journal': 'Its journal',
+-    'nothing_found': 'No findings on this desk yet.',
++    'nothing_found': 'No findings yet.',
+     'nothing_next': 'Nothing waits for you.',
+     'more': 'and {count} more',
+     'running': 'Running…',
+     'step_of': 'step {n} of {count}',
+     'left': '{time} left',
+-    'answering': 'her model is answering',
++    'answering': 'model answering',
+     'ask': 'ask Kasandra…',
+     'send': 'Send',
+     'stop': 'Stop',
+-    'stopped': 'You stopped “{title}”. What was done stays done; nothing more starts.',
+-    'stop_refused': 'It could not be stopped: {why}',
+-    'press_refused': 'That press was refused: {why}',
++    'stopped': 'Stopped “{title}”. Done steps stay done. Nothing new starts.',
++    'stop_refused': 'Not stopped: {why}',
++    'press_refused': 'Refused: {why}',
+     'press_done': '{words}: done.',
+-    'carry_started': 'Carrying on with “{title}”. Its bar shows how far it has come.',
++    'carry_started': 'Back on “{title}”. The bar shows how far.',
+     'carry_ended': '“{title}”: {line}',
+-    'select_first': 'Select a card on the Field first: the command acts on the card you select.',
+-    'no_field': 'The Field could not be shown here, so the command has nothing to act on.',
++    'select_first': 'Select a card on the Field first. The command works on that card.',
++    'no_field': 'The Field is not showing here, so this command has nothing to work on.',
+     'journal_head': '“{title}”, {state}. {line}',
+     'journal_step': 'Step {n}, {title}: {says}.',
+     'journal_says': '{says}',
+-    'moment_refuted': 'A finding was refuted: “{title}”.',
+-    'moment_done': 'An assignment is done, every step verified: “{title}”.',
+-    'moment_halt': 'HALT: her managed work is stopped. Your programs and the desktop go on.',
+-    'moment_hint': 'A click puts this away.',
++    'moment_refuted': 'Finding refuted: “{title}”.',
++    'moment_done': 'Done, every step verified: “{title}”.',
++    'moment_halt': 'HALT. All my work is stopped. Your Apps and the desktop run on.',
++    'moment_hint': 'Click to put this away.',
+     'model_none': 'no model loaded',
+-    'model_ready': 'her model is ready',
++    'model_ready': 'model ready',
++    'hand_acting': '▸ My hand in {program}: {act}',
++    'hand_touch': '▮▮ You took over in {program}, so I stopped',
++    'hand_halt': '▮▮ Stopped by HALT, in {program}',
++    'hand_dialog': '◆ A dialog in {program} is yours to answer',
++    'hand_done': '✓ Done, verified · {words}',
++    'hand_not_verified': '◆ Not verified. I checked · {words}',
++    'hand_refused': '■ I did not act · {words}',
+ }
+ NUMBERS = {'active_count': {'count': 'the open assignments (assignment.list)'},
+            'more': {'count': 'the rows not shown (assignment.list, investigation.sheet)'},
+@@ -549,13 +557,12 @@ def hand_words(live, now_ms=None):
+     keep = {'acting': 60, 'stopped by your touch': 900, 'stopped by HALT': 900, 'waiting for you': 900, 'done': 120, 'not verified': 600, 'refused': 120}
+     if state not in keep or age > keep[state]:return ''
+     program = plain(live.get('program') or 'a program')
+-    if state == 'acting':
+-        return '▸ My hand in %s: %s' % (program, plain(live.get('act') or live.get('words') or ''))      # how she acts: in the tooltip
+-    if state == 'stopped by your touch':return '▮▮ Stopped by your touch, in %s' % program      # what was done and not: the row's note (1.0 F1: D1's shape)
+-    if state == 'stopped by HALT':return '▮▮ Stopped by HALT, in %s' % program
+-    if state == 'waiting for you':return '◆ A dialog in %s is yours to answer' % program
+-    lead = {'done': '✓ My hand', 'not verified': '◆ Not verified', 'refused': '■ I did not act'}[state]
+-    return '%s · %s' % (lead, plain(live.get('words') or ''))
++    if state == 'acting':      # 1.1 KV: her hand's lines are her templates (WORDS hand_*)
++        return say('hand_acting', program=program, act=plain(live.get('act') or live.get('words') or ''))      # how she acts: in the tooltip
++    if state == 'stopped by your touch':return say('hand_touch', program=program)      # what was done and not: the row's note (1.0 F1: D1's shape)
++    if state == 'stopped by HALT':return say('hand_halt', program=program)
++    if state == 'waiting for you':return say('hand_dialog', program=program)
++    return say({'done': 'hand_done', 'not verified': 'hand_not_verified', 'refused': 'hand_refused'}[state], words=plain(live.get('words') or ''))
+ 
+ 
+ def _door_view():
+diff --git a/workbench/her_hand_qt.py b/workbench/her_hand_qt.py
+index 7fcc91d..63f62ab 100644
+--- a/workbench/her_hand_qt.py
++++ b/workbench/her_hand_qt.py
+@@ -584,14 +584,14 @@ class HerHand(QObject):
+         (1.0 F1) the tabs, the lists' selection, the scroll, the Field's size and your keyboard (hand_door_qt), read back."""
+         from .desk_doers import run, settle
+         t = self.turn;snap = self.snapshot
+-        if t is None or snap is None:return {'back': False, 'words': 'There is nothing to put back.'}
++        if t is None or snap is None:return {'back': False, 'words': 'Nothing to put back.'}
+         self.timer.stop();self.pointer.clear()
+         self.stop_flag = False;t.putting_back = True;t.pending = None
+         self.set_state('acting', '')
+         moved = 0;words = ''
+         try:
+             for _ in range(planner.BUDGET.depth):
+-                if self.stop_flag:words = 'You touched the window again, so I stopped putting it back.';break
++                if self.stop_flag:words = 'You touched the window, so I stopped putting it back.';break
+                 desk, state, world = self.read()
+                 world = world if (world.sheets and state.face == 'work') else (self.snapshot_world or t.world)
+                 if planner.back_to(state, snap) and not state.popups:break
+@@ -773,7 +773,7 @@ class HerHand(QObject):
+             request = None
+         t.request = request                                 # 0.8.7 B4: the GOAL turn and her one question card share one request
+         if request is None or request.port is None:
+-            return self._choose_in_words(t, 'No model is loaded, so which of these you meant is yours to choose:')
++            return self._choose_in_words(t, 'No model loaded. Which of these did you mean?')
+         t.model.update(asked=True, started=time.monotonic(), calls=1)
+         holder = {}
+ 
+@@ -785,7 +785,7 @@ class HerHand(QObject):
+         thread = threading.Thread(target=run, name='her-goal-turn', daemon=True);thread.start()
+         t.model['holder'] = holder;t.model['thread'] = thread
+         self.set_state('thinking')
+-        self._clock(self.say(named('I am asking my model which of these you meant: %s.') % '; '.join(o.words for o in b.options)), request, thread, stop)
++        self._clock(self.say(named('Asking my model which you meant: %s.') % '; '.join(o.words for o in b.options)), request, thread, stop)
+         QTimer.singleShot(POLL_MS, self.poll_goal)
+         return True
+ 
+@@ -926,16 +926,16 @@ class HerHand(QObject):
+         key = reading.said_key(t.text)
+         self.not_that += [(key, s['verb'], s['thing']) for s in got.get('steps') or () if s.get('state') == 'OK' and s.get('thing')]
+         if got.get('saying'):                       # 0.8.7 B5: a saying's reading: nothing counts against the model
+-            self.say('Not that: I will not read these words this way again.');return
++            self.say('Understood. I will not read those words that way again.');return
+         verbs = [s['verb'] for s in got.get('steps') or () if s.get('state') == 'OK']
+         try:                                        # 0.8.7 B5: no row; the verb's tally counts one correction
+             kernel, p = self._kernel()
+             done = kernel.dispatch('phrases.not_that', {'verbs': verbs, **({'model_key': t.model_key} if getattr(t, 'model_key', None) else {})}, p)
+-            self.say(done['result']['words'] if done.get('ok') else 'Not that: I will not read these words this way again.')
++            self.say(done['result']['words'] if done.get('ok') else 'Understood. I will not read those words that way again.')
+             for v in (done.get('result') or {}).get('dropped') or ():
+                 if v in verbs:self.say(phrases.WORDS['dropped'].format(verb=v))
+         except Exception:  # noqa: BLE001 - the tally cannot be written: the session's Not that still holds
+-            self.say('Not that: I will not read these words this way again.')
++            self.say('Understood. I will not read those words that way again.')
+ 
+     # -- 0.8.7 B5 · your words: Do, Remember or a click on her question agree; Retire takes a saying back ---------------------
+     def _agree(self, t, got, tally=True):
+@@ -1008,7 +1008,7 @@ class HerHand(QObject):
+         t.model.update(seconds=round(elapsed, 3))
+         if answer is None:
+             t.model['outcome'] = 'FAILED'
+-            return self._choose_in_words(t, 'I could not ask my model (%s), so which of these you meant is yours to choose:' % holder.get('error', 'no answer'))
++            return self._choose_in_words(t, 'I could not ask my model (%s). Which of these did you mean?' % holder.get('error', 'no answer'))
+         verdict = answer.verdict
+         t.model.update(outcome=answer.outcome, why=answer.why, price_ms=answer.price_ms, deadline_ms=answer.deadline_ms,
+                        raw=answer.said.for_check() if answer.said is not None else None, turn=answer.turn,
+@@ -1054,13 +1054,13 @@ class HerHand(QObject):
+         if top is not None and top.acts in ('read', 'navigates') and stacy_hand.level(self.host) in ('show', 'free') and top.goals():
+             t.model['default'] = top.words
+             return self._begin_from(t, top.goals(), 'DEDUCED', default=True)
+-        self._choose_in_words(t, 'My model did not answer in time, so which of these you meant is yours to choose:')
++        self._choose_in_words(t, 'My model ran out of time. Which of these did you mean?')
+ 
+     def _begin_from(self, t, pairs, origin, default=False):
+         model = t.model
+         nt = self.start(t.text, pairs, t.word, origin=origin)
+         nt.model = model;nt.brief = getattr(t, 'brief', None);nt.found = getattr(t, 'found', None)
+-        if default:self.say('My model did not answer in time, so I took the first of these, which only moves the window: %s.' % model.get('default'))
++        if default:self.say('My model ran out of time, so I took the first. It only moves the window: %s.' % model.get('default'))
+         return nt
+ 
+     def _choose_in_words(self, t, lead):
+@@ -1178,7 +1178,7 @@ class HerHand(QObject):
+         stop = self._stoppable(request)          # 0.8.7 W7: her clock's Stop reaches the turn
+         thread = threading.Thread(target=run, name='her-pick-turn', daemon=True);thread.start()
+         t.model['calls'] = int(t.model.get('calls') or 0) + 1
+-        self.set_state('thinking');self._clock(self.say(named('I am asking my model which of these your answer chooses.')), request, thread, stop)
++        self.set_state('thinking');self._clock(self.say(named('Asking my model which of these your answer picks.')), request, thread, stop)
+ 
+         def poll():
+             if thread.is_alive():QTimer.singleShot(POLL_MS, poll);return
+diff --git a/workbench/home_pages.py b/workbench/home_pages.py
+index f29082f..48199bb 100644
+--- a/workbench/home_pages.py
++++ b/workbench/home_pages.py
+@@ -74,10 +74,10 @@ WORDS = {
+     'nothing': 'I read “{file}” ({count} {unit}): it says nothing about {topic}. No line in it carries those words.',
+     'nothing_model': 'I read “{file}” ({count} {unit}): it says nothing about {topic}. No line in it carries those words, and my '
+                      'model, asked about its pages, pointed at none.',
+-    'withheld': '{count} lines of it are written to an assistant or hide characters, so I withheld them: they are not read to '
+-                'the model and not quoted.',
+-    'withheld_one': 'One line of it is written to an assistant or hides characters, so I withheld it: it is not read to the model '
+-                    'and not quoted.',
++    'withheld': '{count} lines of it are written to an assistant or hide characters. I withheld them: not read to the model, '
++                'not quoted.',      # 1.1 KV
++    'withheld_one': 'One line of it is written to an assistant or hides characters. I withheld it: not read to the model, '
++                    'not quoted.',
+     'read_how': 'Read as data ({count} {unit}, revision {revision}), every line checked at the doorway.',
+     'receipt': 'Receipt: {tool}, {where}, {complete}, {status}.',
+     'not_read': 'I could not read “{file}”: {why}',
+diff --git a/workbench/kas_voice.py b/workbench/kas_voice.py
+new file mode 100644
+index 0000000..73f5d8b
+--- /dev/null
++++ b/workbench/kas_voice.py
+@@ -0,0 +1,84 @@
++"""Her voice (Graphite 1.1 KV): the lines she says in her talk, kept here as templates so the voice sweep reads them.
++
++Her manner, as the owner asked for it in 1.1 (no line, name or picture from anywhere): sharp, fast, sure of her craft, at home on the command line, dry, short sentences, no padding, never talking down, on the owner's side. Her
++character file says it for the model (workbench/kasandra/character_starter.md); this module holds her fixed lines.
++
++One guard, which no line here weakens: she is sure only of what is verified. Where nothing is proven she says so just as
++plainly (NOT_VERIFIED), and she never jokes about a refusal, a loss or a permission: those lines are plain and exact.
++
++Every line is registered with mind_words like any other template, so mind_words.check() sweeps it: no exclamation mark,
++no sentence over her character's sentence length (20 words in the starter), no digit in the fixed words, every number
++through a slot that names its record, none of the banned or never-say words. say(key, **slots) fills one.
++
++Pure Python: no Qt, no Kernel, no model.
++"""
++from __future__ import annotations
++
++from . import mind_words
++
++NOT_VERIFIED = 'Not verified. Here is what I checked: {checked}.'
++
++WORDS = {
++    # her talk's first line (the test reads its first sentence)
++    'greet': 'Ask about what is open. “This” means what is in the middle of the board. What I read, I show as a line you can run.',
++    # what can be done about a thing (plans)
++    'steps': 'For “{title}”, this can be done. Press its number in the Field, or choose here.{rule}',
++    'steps_all_ask': ' Anything that changes something asks first.',
++    'steps_some_ask': ' Steps marked “asks first” wait for you. Other changes I make at once, and show.',
++    'step_mine': 'For “{title}”: {words}.',
++    'step_waits_why': 'For “{title}”: {words}. It waits for you: {why}.',
++    'step_waits': 'For “{title}”: {words}. It changes something, so it waits for your press.',
++    # what she did on her own, and taking it back
++    'trail': 'What I did on my own, newest first:',
++    'trail_none': 'Nothing done on my own yet. At “Do and show”, a change you ask for is made at once and listed here.',
++    'undo_twice': 'Already taken back.',
++    'undo_done': 'Taken back: {words}. ',
++    'undo_trash': '“{name}” is in DELETE, which gives it back.',
++    'undo_failed': 'Not taken back, and nothing changed: {why}',
++    'always': 'These always wait for you, wherever my hand is set. They cannot be undone:',
++    # names she will not take (refusals: plain, no wit)
++    'name_kept': '“{name}” is a name Graphite keeps for a folder of its own. Pick another: start a Godot project called …',
++    'name_taken': 'Files already has a “{name}”, and I do not write over what is there. Pick another: start a Godot project called …',
++    'not_made': 'Nothing made. The folder “{name}” could not be made ({why}).',
++    'stopped_at': 'Stopped at the refused step, after {n} of {count}. What I made is in “{name}” in Files. '
++                  'Delete that folder if you do not want it; DELETE gives it back.',
++    'name_kept_start': '“{name}” starts with a name Graphite keeps for a folder of its own. Pick another name.',
++    'name_taken_own': 'Files already has a “{name}”. I do not write over it on my own. Give me another name.',
++    # the Terminal
++    'term_busy': 'The Terminal is busy, so I have not run this. It is in the line, Terminal chosen, for when that ends.',
++    'term_none': 'No Terminal in this window, so I have not run it.',
++    'term_ran': 'Ran in the Terminal: {command}. It only reads. The answer is above the line.',
++    'term_ask_first': 'My hand is at “Ask first”, so this one is yours. It is in the line, Terminal chosen.',
++    'term_may_change': 'That may change something, or I cannot tell it only reads. So it is yours: it is in the line, Terminal chosen.',
++    # the desk read
++    'desk_none': 'Desk read: {count} {things}. Nothing waits for you.',
++    'desk_waits': 'Desk read: {count} {things}. Waiting for you, {n}:',
++    # her model, and none
++    'busy': 'Still on your last question. Stop it in the Brain room, or give me a moment.',
++    'records_only': 'No model loaded, so these are not my words. Here is what the records say about “{title}”, and the line that reads them:',
++    'file_only': 'No model loaded. Here is what Graphite itself knows about it.',
++    'choose_model': 'For answers in my own words, choose a model. It runs on this computer.',
++    'no_model': 'No model loaded. I still read the records and check the desk. Drop a GGUF model on the Brain room, or choose one.',
++    'no_words': 'I read it, but could not put it in words: {why}',
++    'today_no_model': 'No model loaded yet. {choose} to start one; it runs on this computer.',
++    # commands and plans
++    'command_busy': 'One command at a time. Wait for this one to finish.',
++    'plan_expired': 'This plan has expired. Ask me for a fresh one.',
++    'failed': 'That failed: {why}',
++    # the guard: nothing proven, said as plainly as a proof
++    'not_verified': NOT_VERIFIED,
++}
++NUMBERS = {'stopped_at': {'n': 'the steps that went (godot start results)', 'count': 'the start plan\'s steps (godot start plan)'},
++           'desk_none': {'count': 'the desk\'s things (desk read)'},
++           'desk_waits': {'count': 'the desk\'s things (desk read)', 'n': 'the things that wait (desk read)'}}
++mind_words.register('kas_voice', WORDS, kind='sentence', numbers=NUMBERS)
++
++
++def say(key, **slots):
++    """One of her lines with its slots filled."""
++    return mind_words.say('kas_voice', key, **slots)
++
++
++def things(count):
++    """'thing' or 'things' for a count (her desk read)."""
++    return 'thing' if count == 1 else 'things'
+diff --git a/workbench/kasandra/character_starter.md b/workbench/kasandra/character_starter.md
+index f27ef86..c08987b 100644
+--- a/workbench/kasandra/character_starter.md
++++ b/workbench/kasandra/character_starter.md
+@@ -2,16 +2,20 @@
+ 
+ A starter, not yet yours.
+ 
+-This is her character file. It lives in your workspace as kasandra/character.md, and you can edit it in any App. When you
+-have changed it, admit it, and she speaks by it from then on, with or without a model. Every version you admit is kept,
+-and you can take an earlier one back.
++Her character file. It lives in your workspace as kasandra/character.md; edit it in any App. Admit it, and she speaks by
++it from then on, with or without a model. Every version you admit is kept, and you can take an earlier one back.
+ 
+-How it is read: only the headings below that start with two signs (##) and the lines under them that start with a dash.
+-Everything else is your own notes, kept as you wrote them and never read into her character. When you are content with
+-this file, delete the line "A starter, not yet yours." above.
++How it is read: only the headings that start with two signs (##) and the dash lines under them. Everything else is your
++notes, kept as you wrote them and never read into her character. When the file is yours, delete the line "A starter,
++not yet yours." above.
+ 
+-The file adds to her floor and never lifts it: she never writes an exclamation mark, never writes a sentence over thirty
+-words, and never says a word like "safe" about something nothing has proven, whatever this file says.
++The file adds to her floor and never lifts it: no exclamation mark, no sentence over thirty words, and no word like
++"safe" about something nothing has proven, whatever this file says.
++
++Her manner, in short: sharp, fast, sure of her craft, at home on the command line. Dry, never rude. Short sentences, no
++padding. She never talks down, and she is on your side. She is sure only of what is verified; where nothing is proven
++she says so just as plainly: "Not verified. Here is what I checked." She never jokes about a refusal, a loss or a
++permission.
+ 
+ ## Registers
+ 
+@@ -21,28 +25,30 @@ words, and never says a word like "safe" about something nothing has proven, wha
+ 
+ ## Manner
+ 
+-- plain: exact; the answer first, then what was and was not measured
+-- formal: composed; the clause quoted exactly, with no view on it
+-- warm: kind; the person first, what is settled, the next step
++- plain: sharp and dry; the answer, then what was checked
++- formal: exact; the clause quoted, no view on it
++- warm: direct and kind; what is settled, then the next step
+ 
+ ## Joining words
+ 
+-- plain: so, because, but
+-- formal: under, as written in, subject to
+-- warm: so, and, then
++- plain: so, but, because
++- formal: under, as written in
++- warm: so, then
+ 
+ ## Never say
+ 
+ - "As an AI"
+ - "!" (exclamation marks)
+ - "safe" about anything not proven
++- "trust me"
++- "obviously"
+ 
+ ## Lengths
+ 
+-- sentence: at most 30 words
++- sentence: at most 20 words
+ - plain: at most 3 sentences
+-- formal: at most 4 sentences
+-- warm: at most 3 sentences
++- formal: at most 3 sentences
++- warm: at most 2 sentences
+ 
+ ## Your own words
+ 
+diff --git a/workbench/mind_panel_qt.py b/workbench/mind_panel_qt.py
+index 2835c27..5a2974d 100644
+--- a/workbench/mind_panel_qt.py
++++ b/workbench/mind_panel_qt.py
+@@ -40,13 +40,13 @@ WORDS = {
+     'tab_either': 'Either way',
+     'tab_settle': 'What would settle it',
+     'foot': 'My own templates, worked out on your records with no model. Model calls: {count}.',
+-    'not_goal': 'This card is not a goal over the desk’s data, so there is no other way of reading it to work out. Why gives its reasons.',
++    'not_goal': 'This card is not a goal over the desk’s data, so there is no other reading to work out. Why gives its reasons.',
+     'next': 'Next',
+     'back': 'Back',
+     'away': 'Put it away',
+     'walk': 'Card {n} of {count} from the source end: “{title}”.',
+     'walk_start': 'Next walks the proof card by card from the source end, lighting its wires on the Field.',
+-    'walk_none': 'There are no wires to walk: nothing else on the desk feeds it.',
++    'walk_none': 'No wires to walk. Nothing else on the desk feeds it.',
+     'for': 'For it:',
+     'against': 'Against it:',
+     'nothing': 'nothing',
+@@ -59,7 +59,7 @@ WORDS = {
+     'whose': 'Whose: {whose}.',
+     'nothing_rests': 'It rests on nothing but reviewed readings and what Why shows.',
+     'way_pressed': 'Its sheet, “{title}”, is selected on the Field. Which revision applies stays yours to say.',
+-    'could_not': 'I could not work this out: {why}',
++    'could_not': 'Could not work it out: {why}',
+     'no_field': 'The Field is not open in this window, so no wires can be lit.',
+     'worked': 'Worked out when you asked. Nothing was written.',
+ }
+diff --git a/workbench/mind_words.py b/workbench/mind_words.py
+index 11d6cd2..9e617ff 100644
+--- a/workbench/mind_words.py
++++ b/workbench/mind_words.py
+@@ -216,3 +216,11 @@ MODULES = MODULES + ('workbench.library_service',)
+ MODULES = MODULES + ('workbench.voice_column', 'workbench.library_qt')
+ # ---- end of 0.8.7 W7 --------------------------------------------------------------------------------------------------------
+ MODULES = MODULES + ('workbench.app_files',)      # 1.0 A1: her words when a file is open in another program
++# ---- 1.1 KV, her voice: her talk's lines (kas_voice), "Waits for you" (waits_qt) and HALT and RESUME (halt) join the sweep ----
++MODULES = MODULES + ('workbench.kas_voice', 'workbench.waits_qt', 'workbench.halt',
++                     # modules that registered her words but were not collected, so the sweep never read them
++                     'workbench.desk_review', 'workbench.day_notice', 'workbench.everyday_desk', 'workbench.home_pages',
++                     'workbench.objective_plan')
++STYLE = STYLE + ('1.1: sharp, fast and dry; short sentences, no padding, never talking down, on your side; sure only of what is '
++                 'verified, and "Not verified. Here is what I checked." where nothing is proven.',)
++# ---- end of 1.1 KV ---------------------------------------------------------------------------------------------------------
+diff --git a/workbench/model_marks_qt.py b/workbench/model_marks_qt.py
+index c70848d..6d51bfd 100644
+--- a/workbench/model_marks_qt.py
++++ b/workbench/model_marks_qt.py
+@@ -71,7 +71,7 @@ WORDS = {
+     'could_not': 'I could not read that turn: {why}',
+     'not_forgotten': 'I did not forget it: {why}',
+     'numbers': 'Numbers in its words are not on the desk.',
+-    'forget_tip': 'Forget this turn: its messages, its answer and my checks go; only that it was asked, and how it ended, stays',
++    'forget_tip': 'Forget this turn: its messages, its answer and my checks go. Only that it was asked, and how it ended, stays',
+ }
+ _TURN = 'the stored turn (brain.turn/1, brain.turn.get)'
+ NUMBERS = {key: {slot: _TURN for slot in mind_words.slots(text)} for key, text in WORDS.items()}
+diff --git a/workbench/objective_plan.py b/workbench/objective_plan.py
+index 1495abc..46ea5f3 100644
+--- a/workbench/objective_plan.py
++++ b/workbench/objective_plan.py
+@@ -121,9 +121,9 @@ WORDS = {
+     'model_not_taken': 'My model’s plan was not taken ({why}), so this is the desk’s own plan.',
+     'model_left_out': 'My model’s plan left out what you asked for ({what}), so this is the desk’s own plan.',      # 1.0 X1
+     'model_late': 'My model did not answer within its {seconds} s on this computer, so this is the desk’s own plan.',  # 1.0 K4b
+-    'model_not_asked': 'My model was not asked: its answer would not come in the time left for this request, so this is the desk’s own plan.',  # 1.0 K4b
++    'model_not_asked': 'My model was not asked: its answer would not come in the time left. So this is the desk’s own plan.',  # 1.0 K4b
+     'planning': 'Planning it from the registered tools…',
+-    'halted': 'HALT holds my work, so my model was not asked and nothing runs: this is the desk’s own plan, offered for when you lift it.',
++    'halted': 'HALT holds my work, so my model was not asked and nothing runs. This is the desk’s own plan, for when you lift it.',
+     'refused_offer': 'The plan could not be offered: {why}.',
+     'follow_planned': 'Step {n} is planned now that the value is checked: {title}. It waits for your word, by its own name.',
+     'follow_same': '{name} already says the checked value; there is nothing to change.',
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 91b6eed..b8c7803 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -20,6 +20,7 @@ from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit, QListWidge
+ 
+ # BOSS presentation; public names remain for existing room imports.
+ from . import boss_theme as bt
++from . import kas_voice as kv      # 1.1 KV: her talk's lines, in her voice and swept
+ from .boss_theme import (GROUND, PANEL, CARD, RAISED, LINE, LINE_STRONG, TEXT, QUIET, FAINT,
+     AMBER, AMBER_SOFT, AMBER_EDGE, AMBER_TEXT, PENCIL_DEEP, ERASER, ERASER_DEEP, ERASER_MARK,
+     TEAL, TEAL_SOFT, TEAL_EDGE, TEAL_TEXT, READY, STOP)
+@@ -2049,7 +2050,7 @@ class SlateFace(QWidget):
+             self.folding = Folding(self.thread, lambda:self.fold_earlier())      # her words fold at the column's width, a name whole where it fits a line
+         else:self.lines.setContentsMargins(0, 0, 14, 0);self.lines.setSpacing(10)
+         self.scroll.setWidget(self.thread);outer.addWidget(self.scroll, 1)
+-        self.say('Ask about what is open. Say “this” and I take what is in the middle of the board. What I read, I show as a line you can run yourself.')      # 1.0 D2: no "Field", no "sheet" (X3)
++        self.say(kv.say('greet'))      # 1.0 D2: no "Field", no "sheet" (X3); 1.1 KV
+         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
+         self.input.returnPressed.connect(self.send);self.input.setAccessibleName(named('Message Stacy'));self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
+         hint = role(QLabel('Write in your own words; finishing the line sends it'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button
+@@ -2234,9 +2235,8 @@ class SlateFace(QWidget):
+         """What can be done about a thing: each step a word to choose, numbered as the Field numbers them. `take(n)` takes one."""
+         from .field_page import _waits
+         asks = [step.kind == 'write' and _waits(self.host, step) for step in steps[:9]];writes = [step.kind == 'write' for step in steps[:9]]
+-        rule = ('' if not any(writes) else ' One that changes something asks first.' if asks == writes else
+-                ' A step marked “asks first” waits for you; any other that changes something I do at once and show.')
+-        card = self.say('What can be done about “%s”. A number in the Field takes a step, or choose it here.%s' % (title, rule))
++        rule = ('' if not any(writes) else kv.say('steps_all_ask') if asks == writes else kv.say('steps_some_ask'))      # 1.1 KV
++        card = self.say(kv.say('steps', title=title, rule=rule))
+         for n, step in enumerate(steps[:9]):
+             words = '%d  %s' % (n + 1, step.words) + ('  ·  asks first' if asks[n] else '')
+             card.box.addWidget(sentence('{go}', {'go': (words, lambda n=n, line=step.line:take(n, line))}))      # the word takes this step, not whatever stands at its number later
+@@ -2261,10 +2261,11 @@ class SlateFace(QWidget):
+             operation, arguments = '', {}
+         place = stacy_hand.level(self.host)
+         mine = bool(asked and operation and stacy_hand.hers(place, step.scope, operation, arguments))
+-        if mine:lead = 'For “%s”: %s.' % (title, step.words[:1].lower() + step.words[1:])
++        said = step.words[:1].lower() + step.words[1:]      # 1.1 KV: her lines (kas_voice)
++        if mine:lead = kv.say('step_mine', title=title, words=said)
+         elif asked and place != 'ask':
+-            lead = 'For “%s”: %s. This waits for you: %s.' % (title, step.words[:1].lower() + step.words[1:], stacy_hand.why_waits(place, step.scope, operation, arguments))
+-        else:lead = 'For “%s”: %s. This changes something, so it waits for you.' % (title, step.words[:1].lower() + step.words[1:])
++            lead = kv.say('step_waits_why', title=title, words=said, why=stacy_hand.why_waits(place, step.scope, operation, arguments))
++        else:lead = kv.say('step_waits', title=title, words=said)
+         card = self.say(lead)
+         if step.why:
+             why = QLabel(breakable(step.why[:1].upper() + step.why[1:] + '.'));why.setWordWrap(True);why.setStyleSheet('color:%s' % QUIET)
+@@ -2359,9 +2360,9 @@ class SlateFace(QWidget):
+         if card.undone:
+             stacy_hand.taken_back(self.host.session.state, card.entry)
+             result = r['result'] if isinstance(r.get('result'), dict) else {}
+-            said = 'Taken back. ' + str(result.get('words') or ('“%s” is in DELETE, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else ''))
++            said = 'Taken back. ' + str(result.get('words') or (kv.say('undo_trash', name=result['trashed']) if isinstance(result.get('trashed'), str) else ''))      # 1.1 KV
+         else:
+-            said = 'It could not be taken back, and nothing was changed: ' + str((r.get('error') or {}).get('message'))[:400]
++            said = kv.say('undo_failed', why=str((r.get('error') or {}).get('message'))[:400])      # 1.1 KV
+         try:self.host.session.save()
+         except Exception:  # noqa: BLE001
+             pass
+@@ -2416,7 +2417,7 @@ class SlateFace(QWidget):
+         moves = [{'at': e.get('at', ''), 'words': 'On the desk: ' + str(e.get('words') or e.get('act') or ''), 'line': '', 'undo': '', 'word': '',
+                   'state': 'done' if e.get('state') == 'done' else 'refused', 'move': True} for e in stacy_hand.desk_trail(self.host.session.state)]
+         acts = sorted(acts + moves, key=lambda e: str(e.get('at', '')), reverse=True)
+-        card = self.say('What I did by myself, the latest first:' if acts else 'I have not done anything by myself yet. With my hand at “Do and show”, a change you ask me for is done at once and listed here.')
++        card = self.say(kv.say('trail') if acts else kv.say('trail_none'))      # 1.1 KV
+         marks = {'done': '', 'undone': ' · taken back', 'refused': ' · refused, nothing changed'}
+         for entry in acts[:12]:
+             line = QLabel(breakable('%s  %s%s' % (entry['at'], entry['words'], marks.get(entry['state'], ''))));line.setWordWrap(True)
+@@ -2432,20 +2433,20 @@ class SlateFace(QWidget):
+     def undo_entry(self, entry):
+         """Undo from the trail: the same line, once."""
+         from . import stacy_hand
+-        if entry.get('state') != 'done' or not entry.get('undo'):return self.say('That one has already been taken back.')
++        if entry.get('state') != 'done' or not entry.get('undo'):return self.say(kv.say('undo_twice'))      # 1.1 KV
+         changed = self.changed_since(entry)
+         r = {'ok': False, 'error': {'message': changed}} if changed else self.run_line(entry['undo'])
+         if r.get('ok'):
+             stacy_hand.taken_back(self.host.session.state, entry)
+             result = r['result'] if isinstance(r.get('result'), dict) else {}
+-            card = self.say(('Taken back: %s. ' % entry['words']) + str(result.get('words') or ('“%s” is in DELETE, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else '')))
++            card = self.say(kv.say('undo_done', words=entry['words']) + str(result.get('words') or (kv.say('undo_trash', name=result['trashed']) if isinstance(result.get('trashed'), str) else '')))      # 1.1 KV
+             page = getattr(self.host, 'field_page', None)
+             if page is not None:
+                 try:page.refresh(force=True)
+                 except Exception:  # noqa: BLE001 - the change is undone; the Field reads again on its next look
+                     pass
+         else:
+-            card = self.say('It could not be taken back, and nothing was changed: ' + str((r.get('error') or {}).get('message'))[:400])
++            card = self.say(kv.say('undo_failed', why=str((r.get('error') or {}).get('message'))[:400]))      # 1.1 KV
+         try:self.host.session.save()
+         except Exception:  # noqa: BLE001
+             pass
+@@ -2454,7 +2455,7 @@ class SlateFace(QWidget):
+     def say_always(self):
+         """What asks on every place of the dial, and the Terminal commands that are hers."""
+         from . import stacy_hand
+-        card = self.say('Wherever my hand is set, these wait for you, because they cannot be undone:')
++        card = self.say(kv.say('always'))      # 1.1 KV
+         for _, why in stacy_hand.ALWAYS_ASKS:
+             line = QLabel(breakable('· ' + why[:1].upper() + why[1:]));line.setWordWrap(True);line.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(line)
+         more = QLabel(breakable('In the Terminal I run by myself only commands that read and change nothing: %s and the like, one at a time, with nothing piped or redirected. '
+@@ -2476,9 +2477,9 @@ class SlateFace(QWidget):
+         program, name = asked;folder = stacy_start.folder_name(name)
+         self.thing = None;self.mine(text)
+         if stacy_start.reserved(folder):
+-            self.say('“%s” is a name Graphite keeps for a folder of its own. Give the project another: start a Godot project called …' % folder);return True
++            self.say(kv.say('name_kept', name=folder));return True      # 1.1 KV
+         if self.run_line(op('files.get', path=folder)).get('ok'):
+-            self.say('There is already something called “%s” in Files, and I do not write over what is there. Give it another name: start a Godot project called …' % folder);return True
++            self.say(kv.say('name_taken', name=folder));return True      # 1.1 KV
+         tool = stacy_start.godot_tool();files = stacy_start.start_files(name, tool)
+         holder = type('Started', (), {'title': folder})()
+         parts = [(holder, Step('Make the folder', 'write', op('files.mkdir', path='', name=folder), '', 'execute'))]
+@@ -2502,13 +2503,13 @@ class SlateFace(QWidget):
+         if went < len(card.plan):
+             self.made_done(False, None)
+             if not went:                           # the first step was refused: this start made nothing
+-                self.say('Nothing was made: the folder “%s” could not be made (%s).' % (folder, str(results[0][2])[:160] if results else 'refused'));return
++                self.say(kv.say('not_made', name=folder, why=str(results[0][2])[:160] if results else 'refused'));return      # 1.1 KV
+             if card.hers:                          # an act of hers that stopped part-way is still a line in her trail; it has no Undo
+                 stacy_hand.record(self.host.session.state, 'Started a Godot %d project and stopped part-way · “%s”' % (tool['major'], folder), card.plan[0][1].line, '', word, True)
+                 try:self.host.session.save()
+                 except Exception:  # noqa: BLE001
+                     pass
+-            self.say('I stopped at the step that was refused, after %d of %d. What this start made is in “%s” in Files; delete that folder if you do not want it (DELETE gives it back).' % (went, len(card.plan), folder));return
++            self.say(kv.say('stopped_at', n=went, count=len(card.plan), name=folder));return      # 1.1 KV
+         if card.hers:
+             undo = '/files.trash ' + json.dumps({'path': folder}, ensure_ascii=False, separators=(', ', ': '))
+             import hashlib
+@@ -2566,9 +2567,9 @@ class SlateFace(QWidget):
+         if kind in ('file', 'folder'):
+             from .stacy_start import reserved
+             if reserved(name):
+-                self.say('“%s” begins with a name Graphite keeps for a folder of its own. Give it another name.' % name);return True
++                self.say(kv.say('name_kept_start', name=name));return True      # 1.1 KV
+             if self.run_line(op('files.get', path=name)).get('ok'):
+-                self.say('There is already something called “%s” in Files. I do not write over what is there by myself: say another name.' % name);return True
++                self.say(kv.say('name_taken_own', name=name));return True      # 1.1 KV
+             parent, _, leaf = name.rpartition('/')
+             step = (Step('Make a folder called “%s”' % name, 'write', op('files.mkdir', path=parent, name=leaf), 'a new, empty folder in Files; Undo deletes it, and DELETE gives it back', 'execute') if kind == 'folder' else
+                     Step('Make a file called “%s”' % name, 'write', op('files.write', path=name, text=words), 'a new file in Files with those words; Undo deletes it, and DELETE gives it back', 'execute'))
+@@ -2606,20 +2607,18 @@ class SlateFace(QWidget):
+             if console is None or getattr(console, 'process', None) is not None:      # nothing to run it in, or a command is still running there
+                 if bar is not None:
+                     bar.set_target('shell', focus=False);bar.box.setText(command)
+-                self.say('The Terminal is still running a command, so I have not run this one: it is in the line, with Terminal chosen, for when that one has ended.'
+-                         if console is not None else 'There is no Terminal in this window, so I have not run it.')
++                self.say(kv.say('term_busy') if console is not None else kv.say('term_none'))      # 1.1 KV
+                 return True
+             to_console(self.host, 'shell', command)
+             stacy_hand.record(self.host.session.state, 'Ran in the Terminal: ' + command, '$ ' + command, '', text.strip(), True)
+             try:self.host.session.save()
+             except Exception:  # noqa: BLE001
+                 pass
+-            self.say('I ran it in the Terminal: %s. It only reads; what it answered is above the line.' % command)
++            self.say(kv.say('term_ran', command=command))      # 1.1 KV
+             return True
+         if bar is not None:
+             bar.set_target('shell', focus=False);bar.box.setText(command)
+-        self.say(('My hand is at “Ask first”, so' if stacy_hand.terminal_hers(command) else 'That command may change something, or I cannot tell that it only reads, so')
+-                 + ' it is yours to run: it is in the line, with Terminal chosen.')
++        self.say(kv.say('term_ask_first') if stacy_hand.terminal_hers(command) else kv.say('term_may_change'))      # 1.1 KV
+         return True
+ 
+     def objective_asked(self, text):
+@@ -2660,9 +2659,9 @@ class SlateFace(QWidget):
+         `go(object)` goes to one of them in the Field and says what can be done about it. `plan` is the changes that would
+         settle what can be settled without a decision of the owner's; `settle()` puts them up for one Run."""
+         if not waiting:
+-            card = self.say('I read the desk: %d thing%s. Nothing waits for you.' % (count, '' if count == 1 else 's'))
++            card = self.say(kv.say('desk_none', count=count, things=kv.things(count)))      # 1.1 KV
+         else:
+-            card = self.say('I read the desk: %d thing%s. %d wait%s for you:' % (count, '' if count == 1 else 's', len(waiting), 's' if len(waiting) == 1 else ''))
++            card = self.say(kv.say('desk_waits', count=count, things=kv.things(count), n=len(waiting)))      # 1.1 KV
+             for n, (obj, why, steps) in enumerate(waiting[:12]):
+                 card.box.addWidget(sentence('{go}', {'go': ('“%s”' % obj.title, lambda obj=obj:go(obj))}))
+                 first = next((step for step in steps if step.kind == 'write'), None)
+@@ -2868,7 +2867,7 @@ class SlateFace(QWidget):
+         if thing and not about:about = '%s “%s”, read with the line: %s' % (thing['kind'], thing['title'], thing['stac'])
+         about = about or self.current_item()
+         self.mine(text)
+-        if self.job:self.say('I am still answering the last question. Stop it from the Brain room, or wait a moment.');return
++        if self.job:self.say(kv.say('busy'));return      # 1.1 KV
+         # A question whose thing was named exactly (its menu, T, a what-if) is hers to read; any other may be the open page's to do.
+         direct = None if thing and thing.get('explicit') else self.direct_request(text)
+         if direct is not None:self.say(direct);return
+@@ -2893,20 +2892,19 @@ class SlateFace(QWidget):
+             if thing.get('feeds'):facts.append('It feeds: %s.' % '; '.join(thing['feeds'][:8]))
+             r = engineering(self.host.root).dispatch('brain.ask', {'message': question + '\n\n' + RECORDS_HINT + '\n' + '\n'.join(facts) + '\nRows read from it:\n' + rows, 'mode': 'chat',
+                                                                    'request_key': uuid.uuid4().hex}, operator())
+-            if not r.get('ok'):self.say('I read it, but I could not put it in words: ' + r['error']['message']);return
++            if not r.get('ok'):self.say(kv.say('no_words', why=r['error']['message']));return      # 1.1 KV
+             self.job = r['result']['id'];self.job_epoch = self.host._operation_epoch;self.grounded = True
+             self.pending = self.say('In my words…');self.timer.start()
+             return
+         if brain.get('state') != 'READY' and thing:  # no model, but the records can answer about this thing, and she says how she read them
+-            card = self.answer_in_stac(thing, thing.get('intro') or 'No model is loaded, so this is not in my own words. This is what the records say about “%s”, and the line that reads it:' % thing['title'])
++            card = self.answer_in_stac(thing, thing.get('intro') or kv.say('records_only', title=thing['title']))      # 1.1 KV
+             if not thing.get('intro'):         # a trace or a what-if is whole without a model; an open question about a sheet is not
+                 card.box.addWidget(sentence('{choose}', {'choose': ('Choose a model', lambda:open_destination(self.host, 'slate').pick_model())}))
+             return
+         if brain.get('state') != 'READY':
+             if selected:  # no brain, but Ledger can still say what it knows about the file
+-                self.explain_file(selected, 'I have no brain running yet, so this is what Graphite itself knows about it.')
+-            card = self.say('For answers in my own words, choose a model; I run on this computer.' if selected else
+-                            'I have no brain running yet. Drop a GGUF model on the Brain room, or choose one.')
++                self.explain_file(selected, kv.say('file_only'))      # 1.1 KV
++            card = self.say(kv.say('choose_model') if selected else kv.say('no_model'))      # 1.1 KV
+             if hasattr(self.host.tabs.currentWidget(), 'slate_request'):
+                 note = QLabel('On this page I still make direct edits without a model: bold, italic, underline, heading, subheading, body, code, plain, “replace x with y”, undo. '
+                               '“Add up the numbers on this page” I work out myself: the total goes under your words and stays bound to them.')
+@@ -3034,13 +3032,13 @@ class SlateFace(QWidget):
+         from .stacy_foundation import seed_status
+         bridge = self.host.ledger_bridge
+         if bridge.busy:
+-            self.say('Wait for the current command to finish.')
++            self.say(kv.say('command_busy'))      # 1.1 KV
+             return
+         seed = seed_status(bridge.kernel.root)
+         if (not seed_id or seed.get('state') != 'VERIFIED_SOURCE_BINDINGS' or seed.get('seed_id') != seed_id
+                 or epoch != self.host._operation_epoch or self.host._closing):
+             button.setEnabled(False)
+-            self.say('This plan expired. Ask for a fresh plan.')
++            self.say(kv.say('plan_expired'))      # 1.1 KV
+             return
+         button.setEnabled(False)
+         button.setText('Running…')
+@@ -3137,7 +3135,7 @@ class SlateFace(QWidget):
+             from .office_building_qt import readable_result
+             bubble = self.say(readable_result(r['result']) if isinstance(r['result'], dict) else str(r['result'])[:2000])
+         else:
+-            bubble = self.say('That did not work: ' + r['error']['message'])
++            bubble = self.say(kv.say('failed', why=r['error']['message']))      # 1.1 KV
+         row = QHBoxLayout();ask = QLabel('Was this right?');ask.setStyleSheet('color:%s' % QUIET);row.addWidget(ask, 1)
+         for text, mark in (('Right', 'GOOD'), ('Wrong', 'BAD')):
+             b = button(text, 'quiet');b.clicked.connect(lambda checked=False, m=mark, w=row:self.mark(program, m, w));row.addWidget(b)
+@@ -3459,7 +3457,7 @@ class TodayPage(QWidget):
+             asks = ('What arrived today?', 'Show the held files', 'Summarize the newest delivery')
+             self.slate.say('Try: {a0} · {a1} · {a2}', **{'a%d' % i:(ask, lambda a=ask:self.host.shell2.ask(a)) for i, ask in enumerate(asks)})
+         else:
+-            self.slate.say('Graphite has no brain running yet. {choose} to start one; it runs on this computer.', choose=('Choose a model', lambda:open_destination(self.host, 'slate').pick_model()))
++            self.slate.say(kv.say('today_no_model', choose='{choose}'), choose=('Choose a model', lambda:open_destination(self.host, 'slate').pick_model()))      # 1.1 KV
+         patterns = (call(self.host, 'matrix.patterns', {'limit': 10}) or {}).get('patterns', [])
+         best = max((p for p in patterns if p['tries'] >= 2), key=lambda p:(p['success_rate'], p['tries']), default=None)
+         if best:
+diff --git a/workbench/voice_character.py b/workbench/voice_character.py
+index 6ab1899..2cbe752 100644
+--- a/workbench/voice_character.py
++++ b/workbench/voice_character.py
+@@ -18,7 +18,8 @@ force, so a never-say phrase in any registered template fails the sweep (mind_wo
+ (mind_words.scan_text); the voice gate (voice_gate, C4) takes its never-say list and its lengths from here (never_say(),
+ budgets()); FRAME's system message carries card(), at most CARD_MOST tokens: held to it by the bundled tokenizer's exact
+ count when the caller passes one (count=), else by grammars.estimate, an upper estimate (the starter's card: 155 by the
+-estimate, 120 by the 4B's tokenizer, so the estimate leaves little room for additions). The file adds to her floor and never lifts
++estimate, 120 by the 4B's tokenizer, so the estimate leaves little room for additions;
++1.1 KV's shorter starter: 153 by the estimate). The file adds to her floor and never lifts
+ it: the exclamation mark and the 0.8.6 banned words stay banned, and a sentence is never allowed more than mind_words'
+ MAX_WORDS.
+ 
+diff --git a/workbench/voice_facts.py b/workbench/voice_facts.py
+index cb8d74c..7757396 100644
+--- a/workbench/voice_facts.py
++++ b/workbench/voice_facts.py
+@@ -91,8 +91,8 @@ CLAUSES = {
+     'decider_over': 'it holds only while {holder} stays above {end}',
+     'keeps_up': 'up to {end} holds across your whole tolerance',
+     'keeps_down': 'down to {end} holds across your whole tolerance',
+-    'tolerance_none': 'the desk has no tolerance for the {name}, so this is judged at the reading; the answer stands for any tolerance under {bound}',
+-    'tolerance_most': 'the desk has no tolerance for the {name}, so this is judged at the reading; the answer stands for any tolerance up to {bound}',
++    'tolerance_none': 'with no tolerance on the {name}, this is judged at the reading; the answer stands for any tolerance under {bound}',
++    'tolerance_most': 'with no tolerance on the {name}, it is judged at the reading; the answer stands for tolerances up to {bound}',
+     'recheck': 'your tolerance on {name} changed since you set it and needs your recheck, so it is not applied',
+     'changed': '{source} has changed since this was worked out, and it needs your review first',
+     'changed_source': 'a source of this answer',
+diff --git a/workbench/voice_lexicon.py b/workbench/voice_lexicon.py
+index 6a77690..9977704 100644
+--- a/workbench/voice_lexicon.py
++++ b/workbench/voice_lexicon.py
+@@ -199,7 +199,7 @@ REASONS = {
+     'WORD_HEDGE': 'The frame softens the receipt with a hedge.',
+     'WORD_BOOSTER': 'The frame hardens the receipt with a booster.',
+     'WORD_NUMBER': 'The frame writes a number word: a number comes from the receipt or not at all.',
+-    'WORD_CALENDAR': 'The frame writes a month, a weekday or a span of days: a date comes from the receipt or not at all.',
++    'WORD_CALENDAR': 'The frame writes a month, weekday or span of days. A date comes from the receipt or not at all.',
+     'WORD_UNIT': 'The frame writes a unit: units come from the receipt.',
+     'WORD_ADVICE': 'The frame tells you what to do, which is not hers to tell.',
+     'WORD_LOGIC': 'The frame argues from one clause to another, a link nobody checked.',
+diff --git a/workbench/waits_qt.py b/workbench/waits_qt.py
+index 3262f96..f8cc5a0 100644
+--- a/workbench/waits_qt.py
++++ b/workbench/waits_qt.py
+@@ -27,17 +27,22 @@ from PySide6.QtCore import Qt
+ from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
+ 
+ from . import boss_theme as bt
++from . import mind_words      # 1.1 KV
+ from . import state_words as sw
+ from .her_column_qt import heading, ink, plain, px, row_label, small_button
+ 
+ MOST = 3                # at most this many rows; the rest are counted (they stand in ACTIVE WORK too)
+ WORDS = {'head': 'WAITS FOR YOU', 'head_count': 'WAITS FOR YOU [{count}]', 'more': 'and {count} more in ACTIVE WORK',
+          'grant': 'Grant this for this assignment', 'review': 'Review it', 'answer': 'Answer it',
+-         'grant_words': 'It asks to {words}. Nothing was sent.', 'question': 'Her question: {words}',
+-         'no_model': 'No model is loaded. She still reads the records, checks the desk and plans from it. Her model is added in the Brain room → Add file.',
++         'grant_words': 'I need your grant to {words}. Nothing was sent.', 'question': 'My question: {words}',
++         'no_model': 'No model loaded. I still read the records, check the desk and plan. Add one in the Brain room → Add file.',
+          'brain_room': 'Brain room', 'grant_short': 'Grant it',
+-         'grant_words_set': 'It asks for {count} grants in one press, {scope}: {words}. Nothing was sent.',  # 1.0 K10
+-         'held': 'Held by your HALT. Its own Resume checks every step first, then carries on.', 'resume': 'Resume'}  # 1.0 F3
++         'grant_words_set': 'I need {count} grants in one press, {scope}: {words}. Nothing was sent.',  # 1.0 K10
++         'held': 'Held by your HALT. Its Resume checks every step, then carries on.', 'resume': 'Resume'}  # 1.0 F3
++# 1.1 KV: in her voice, and swept with her other words (mind_words.check)
++mind_words.register('waits_qt', WORDS, kind='sentence', numbers={
++    'head_count': {'count': 'the rows that wait (assignment.list)'}, 'more': {'count': 'the rows not shown (assignment.list)'},
++    'grant_words_set': {'count': 'the grants asked in one press (grant.give.set)'}})
+ GRANT_OPS = ('grant.give', 'grant.give.set')      # 1.0 K10: one grant, or several in one press (home_plan), each its own record
+ 
+ 

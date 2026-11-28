@@ -41,6 +41,7 @@ FOCUSED_MODULES=(
  # install and start; 0.8.4: the start on whatever the session file holds (a look that is not text, a room left open)
  'test_install_media','test_startup_scripts','test_session_start',
  'test_debian_packages',  # 1.1 PK1: the Debian packages and the kit
+ 'test_kas_voice',  # 1.1 KV: her voice, the sweep and her lines
  # the desk, the frame, paper, machine, documents and the Graphite words; the right-click menu (HATCH DESK D4)
  'test_desk','test_frame','test_paper','test_machine','test_documents','test_graphite','test_writing_line','test_context_menu',
  # 0.4.9 and 0.5: the drawn glyphs, a tool's face (words or a glyph), Find in what is open, a page in the desk's light

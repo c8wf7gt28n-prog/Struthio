@@ -121,9 +121,9 @@ WORDS = {
     'model_not_taken': 'My model’s plan was not taken ({why}), so this is the desk’s own plan.',
     'model_left_out': 'My model’s plan left out what you asked for ({what}), so this is the desk’s own plan.',      # 1.0 X1
     'model_late': 'My model did not answer within its {seconds} s on this computer, so this is the desk’s own plan.',  # 1.0 K4b
-    'model_not_asked': 'My model was not asked: its answer would not come in the time left for this request, so this is the desk’s own plan.',  # 1.0 K4b
+    'model_not_asked': 'My model was not asked: its answer would not come in the time left. So this is the desk’s own plan.',  # 1.0 K4b
     'planning': 'Planning it from the registered tools…',
-    'halted': 'HALT holds my work, so my model was not asked and nothing runs: this is the desk’s own plan, offered for when you lift it.',
+    'halted': 'HALT holds my work, so my model was not asked and nothing runs. This is the desk’s own plan, for when you lift it.',
     'refused_offer': 'The plan could not be offered: {why}.',
     'follow_planned': 'Step {n} is planned now that the value is checked: {title}. It waits for your word, by its own name.',
     'follow_same': '{name} already says the checked value; there is nothing to change.',

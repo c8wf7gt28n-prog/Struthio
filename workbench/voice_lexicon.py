@@ -199,7 +199,7 @@ REASONS = {
     'WORD_HEDGE': 'The frame softens the receipt with a hedge.',
     'WORD_BOOSTER': 'The frame hardens the receipt with a booster.',
     'WORD_NUMBER': 'The frame writes a number word: a number comes from the receipt or not at all.',
-    'WORD_CALENDAR': 'The frame writes a month, a weekday or a span of days: a date comes from the receipt or not at all.',
+    'WORD_CALENDAR': 'The frame writes a month, weekday or span of days. A date comes from the receipt or not at all.',
     'WORD_UNIT': 'The frame writes a unit: units come from the receipt.',
     'WORD_ADVICE': 'The frame tells you what to do, which is not hers to tell.',
     'WORD_LOGIC': 'The frame argues from one clause to another, a link nobody checked.',

@@ -28,18 +28,18 @@ REVIEW = re.compile(r'\b(?:review\s+(?:this|the|my)\s+(?:assembly|design|circuit
                     r'meets?\s+(?:its|the|their)\s+(?:limits?|spec(?:ification)?s?|requirements?)|'
                     r'within\s+(?:its|the|their)\s+limits?)\b', re.I)
 
-WORDS = {
-    'head': 'What the records say, finding by finding (the desk’s findings and their evidence, not my own judgement):',
+WORDS = {      # 1.1 KV: in her voice; sure only of what the records prove
+    'head': 'What the records say, finding by finding. Their evidence, not my judgement:',
     'supported': '■ SUPPORTED · {text}',
     'refuted': '⊘ REFUTED · {text}',
     'contested': '◆ CONTESTED · {text}',
-    'recheck': '◧ RECHECK · {text} (what it rests on changed since; it holds only once it is worked again)',
+    'recheck': '◧ RECHECK · {text} (what it rests on changed; it holds again only once it is worked again)',
     'unknown': '□ OPEN · {text}',
     'question': '□ OPEN QUESTION · {text}',
-    'not_cleared': 'So I cannot call it sufficient. What is supported holds; what is refuted, in recheck or open is not cleared, '
-                   'and finishing one part does not clear the rest.',
-    'cleared': 'Every finding on this desk is supported and no question is open. That is the records’ word, not a judgement of the design.',
-    'how': 'Each line is a record of the desk; FINDINGS (live) and the board show the same, and DOUBT asks what a supported one may hide.',
+    'not_cleared': 'Not proven sufficient. Supported findings hold. Refuted, recheck and open ones are not cleared, '
+                   'and clearing one does not clear the rest.',
+    'cleared': 'Every finding here is supported and no question is open. That is the records’ word, not a verdict on the design.',
+    'how': 'Each line is a desk record. FINDINGS (live) and the board show the same. DOUBT asks what a supported one may hide.',
 }
 try:
     from . import mind_words
