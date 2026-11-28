@@ -94,6 +94,14 @@ rules holding you back".
   (her voice) after T1 is merged. Merge order: T1, W1, PK1, KV. Then set the version to 1.1~pre1, write
   `docs/RELEASE_NOTES_1.1_pre1.md` (what is new, what was tested, the reversals for the owner to strike), take PK1's kit
   from `$S/work/b110/PK1/kit/`, rebuild it from the merged commit with `tools/build_kit.sh`, and send it.
+  * **28 Nov ~03:20 UTC:** PK1 merged (d094ade), W1 merged (1a31b4b). T1's turn ended without a result; resumed by
+    SendMessage to write T1.build.result.json. **Decision: preview 1 is cut as soon as T1 is merged; KV moves to
+    preview 2** (the owner's "release what you can"). The notes are written (`docs/RELEASE_NOTES_1.1_pre1.md`, fill
+    in T1's line). **The cut: `bash wip/build_tools/cut_pre.sh COMMIT $S/work/pre1`** (joins PK1's kit, replaces
+    Graphite's four packages with ones built from COMMIT, re-indexes, packs; no chroot, no network). Then send
+    `$S/work/pre1/kit/*` and SHA256SUMS.kit, and log it in `wip/2026-11-28_preview_1/`.
+  * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4) and E1 (Explorer; agent aa4ef2c59a1f3ccb3). Then KV,
+    B2, B3, K0. The brief maker now finds slices that start mid-paragraph (4dc4563).
 
 ## Before: Graphite 1.0 is released, untested (27 Nov 2026)
 
