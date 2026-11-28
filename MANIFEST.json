@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "1.1",
+  "version": "1.1.1",
   "package_profile": "runtime",
-  "note": "Graphite 1.1: your desktop for Debian. One bar above every app, the Explorer, File/Edit/View/Go/Tools/Help, Windows keys and DOS words, a drop-down Terminal; Kas on the bar with HALT, her voice, her forty recipes and her command tool, each change shown first and done only on your press; installs as Debian packages. Minimal tests, by the owner's rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.md.",
+  "note": "Graphite 1.1.1: the system door (software, services, the clock, the computer's name, accounts) through Debian's own polkit prompt, each change shown first and done only on your press. Still in it: Graphite 1.1, your desktop for Debian. Minimal tests, by the owner's rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.1.md and docs/RELEASE_NOTES_1.1.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -70,8 +70,8 @@
       "sha256": "86ebd78b0610520f9d6c0dccd0a729a586623aded0435fec7faa4a1afe14bbb0"
     },
     "README.md": {
-      "bytes": 10338,
-      "sha256": "bb74e92742de8587f2d9442ff08b4da5b2b6aa1ecbe32fa83f4bb7de82b322b5"
+      "bytes": 10499,
+      "sha256": "dfc433f03bf8f3900fae6f05fd95a021f61ab3a5c1469669e4fc54494963ed4b"
     },
     "RECORD_OF_DIRECTIONS.md": {
       "bytes": 39804,
@@ -1314,8 +1314,8 @@
       "sha256": "2737b8806f988b188d7d921efabca5b8f021db7e7f2d070d525b22452ecafa67"
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
-      "bytes": 341384,
-      "sha256": "d76eaaa8108f323c8c46b33d89181a2179fda4923b2ea93416f69f6bfaaf8853"
+      "bytes": 341386,
+      "sha256": "077d074a409c9ecd7eb9f7f274c16f2698c393765905c4fb86330ba99f070e71"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -1752,6 +1752,10 @@
     "docs/RELEASE_NOTES_1.0.md": {
       "bytes": 16872,
       "sha256": "d4e2a02b0ab9fcafe2f1a3d0a51db4bc22357c39b714591b2b6879f99786aa69"
+    },
+    "docs/RELEASE_NOTES_1.1.1.md": {
+      "bytes": 3250,
+      "sha256": "67ca8ba74f610941f7620164673c68ffdd0fe2ba5032f4f17b9c5c0527a454cb"
     },
     "docs/RELEASE_NOTES_1.1.md": {
       "bytes": 11084,
@@ -2290,16 +2294,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 2133306,
-      "sha256": "f521c0ce05eaf02977ba9de1f181d5d08380532c3ab6adaf65286753891da056"
+      "bytes": 2133468,
+      "sha256": "20d9da97c3d242f431c67a36fb1dce776a782ec003e69d864af34867083c9c8a"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4820992,
-      "sha256": "f17e85ec7786e9b0a6aa608bb08d1f342a2c4536cd6cd99d95879f6a0f11fc52"
+      "sha256": "fe00f9cd1d5dad3004ce4e63c0cba83df40c4c893e95ec1dad7ca87eacce0227"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "c3a3de00bf47b7fd249cf0c0ec6a747ea0bb2fbf2c613685904bc2e331966a80"
+      "sha256": "328ba95bb7bc642592e011458586ecdc7250ee9668e01f264979e158e03ff017"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3594,8 +3598,8 @@
       "sha256": "35cd691305f0deabb97c11e44937bb494cdc117af0aca08ca72e8b694f5c982c"
     },
     "tools/package_graphite.py": {
-      "bytes": 11012,
-      "sha256": "9c97f8b18dcbc81450737e9bf56c43fe9b571694781ee5939669a9e5c580c519"
+      "bytes": 10965,
+      "sha256": "0cf61a7fea99801ff0408d5f6b6544a7da373e1fd3cb6da9a10a44a790129b61"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -6430,8 +6434,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 21675,
-      "sha256": "f5c64793eeb5a777b030a1f9df12703187ad1d18c020dcc0ba73ab7772257c34"
+      "bytes": 22084,
+      "sha256": "212174308cfa62806b7c6a745e627ef082541a3b08a40944034bd3ef318d0d3a"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -6606,5 +6610,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "1.1"
+  "graphite_release": "1.1.1"
 }

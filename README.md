@@ -1,6 +1,7 @@
 # Graphite 1.1 · Your desktop for Debian
 
-**Graphite 1.1** (28 November 2026) makes Graphite a full desktop for Debian for a Windows-and-DOS hand. It installs as
+**Graphite 1.1.1** (28 November 2026) adds the system door (software, services, the clock and accounts through
+Debian's own password prompt; [notes](docs/RELEASE_NOTES_1.1.1.md)). **Graphite 1.1** makes Graphite a full desktop for Debian for a Windows-and-DOS hand. It installs as
 Debian packages from a folder repository. One bar along the bottom holds Start, the line, your windows, Kas with HALT,
 the tray and the clock. Files is an Explorer, the menus are File, Edit, View, Go, Tools and Help, Windows keys and DOS
 words work, and a Terminal drops from the top. Kas speaks sharp and dry, and runs forty recipes and a classified command
