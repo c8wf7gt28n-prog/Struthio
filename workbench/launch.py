@@ -18,7 +18,8 @@ import sys
 import traceback
 
 APP = Path(__file__).resolve().parents[1]
-INSTALL = APP.parent / 'install.json'
+PACKAGED = APP == Path('/usr/lib/graphite')  # 1.1 PK1: installed by the Debian package graphite
+INSTALL = Path('/etc/graphite/install.json') if PACKAGED else APP.parent / 'install.json'  # 1.1 PK1: never /usr/lib/install.json
 try:
     from workbench.version import NAME as PRODUCT
 except Exception:  # noqa: BLE001 - the failure message must work even when the package is damaged
@@ -50,7 +51,9 @@ def choose_frontend():
         import PySide6  # noqa: F401
         return 'qt'
     except ImportError:
-        raise RuntimeError('PySide6 is required for %s. Run bash INSTALL_LEDGER.sh --quick to repair the Qt runtime.' % PRODUCT)
+        repair = ('As root run: apt install --reinstall graphite' if PACKAGED  # 1.1 PK1
+                  else 'Run bash INSTALL_LEDGER.sh --quick to repair the Qt runtime.')
+        raise RuntimeError('PySide6 is required for %s. %s' % (PRODUCT, repair))
 
 
 def alert(title, text):

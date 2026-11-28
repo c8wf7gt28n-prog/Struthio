@@ -57,12 +57,13 @@ def database(path):
 
 
 def dependencies():
+    from .accepted_versions import ACCEPTED, PINS, state  # 1.1 PK1: Debian's own versions are accepted beside the wheel pins
     rows = []
-    for name, pin in (('PySide6', '6.8.3'), ('cryptography', '50.0.2')):
+    for name, pin in PINS.items():
         try: version = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError: version = None
-        rows.append({'package': name, 'expected': pin, 'installed': version,
-                     'state': 'PINNED' if version == pin else 'MISSING' if version is None else 'DIFFERENT_VERSION'})
+        rows.append({'package': name, 'expected': pin, 'accepted': ACCEPTED[name], 'installed': version,
+                     'state': state(name, version)})
     return rows
 
 
@@ -93,7 +94,7 @@ def probe(root=None):
         value = rows['inventory']; rows['inventory'] = {k: value[k] for k in ('schema', 'operation_count', 'schema_digest', 'storage')}
     deps = dependencies()
     if not (3, 11) <= sys.version_info[:2] < (3, 14): errors.append('python_version')
-    if any(r['state'] != 'PINNED' for r in deps): errors.append('desktop_dependencies')
+    if any(r['state'] not in ('PINNED', 'ACCEPTED') for r in deps): errors.append('desktop_dependencies')  # 1.1 PK1
     if rows['payload'].get('state') != 'VERIFIED': errors.append('payload')
     if rows['foundation'].get('state') != 'VERIFIED_SOURCE_BINDINGS': errors.append('foundation')
     if rows['ranked_search'].get('state') != 'AVAILABLE': errors.append('ranked_search')
@@ -150,7 +151,7 @@ def main(argv=None):
                 print(name.replace('_', ' ') + ': ' + result[name]['state'])
             print('Registered operations: ' + str(result['inventory'].get('operation_count', 'unavailable')))
             print('Ranked local search: ' + result['ranked_search']['state'])
-            for d in result['dependencies']: print(d['package'] + ': ' + d['state'] + ' (expected ' + d['expected'] + ')')
+            for d in result['dependencies']: print(d['package'] + ': ' + d['state'] + ' (' + str(d['installed']) + '; expected ' + d['expected'] + ' or ' + d['accepted'] + ')')  # 1.1 PK1
             if args.self_test: print('Disposable save / restart / restore: ' + result['self_test']['state'])
             if args.qt_check: print('Disposable Qt check: ' + result['desktop']['state'])
             print('No model or physical hardware was qualified. Use --json for measurements and details.')

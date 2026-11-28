@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Graphite
+GenericName=Desktop workspace
+Comment=Files, apps and the computer in one window, with Kasandra
+Exec=graphite
+Icon=graphite
+Terminal=false
+Categories=Office;Utility;
+Keywords=desktop;workspace;assistant;Kasandra;

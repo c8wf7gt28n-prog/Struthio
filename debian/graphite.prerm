@@ -1,0 +1,7 @@
+#!/bin/sh
+# 1.1 PK1: remove the byte-compiled files the postinst made; dpkg removes the rest. Homes are never touched.
+set -e
+if [ -d /usr/lib/graphite ]; then
+    find /usr/lib/graphite -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
+fi
+exit 0

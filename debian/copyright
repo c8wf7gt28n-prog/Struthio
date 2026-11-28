@@ -1,0 +1,20 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Graphite
+Comment: 1.1 PK1. The full rights statement is /usr/lib/graphite/RIGHTS.md, the
+ licences of the bundled fonts, artwork and runtimes are in
+ /usr/lib/graphite/THIRD_PARTY_NOTICES.md and beside each runtime.
+
+Files: *
+Copyright: 2026 the owner of the Graphite project
+License: GPL-2
+ Graphite's own code and documents: GNU General Public License, version 2
+ only. On Debian systems the full text is /usr/share/common-licenses/GPL-2.
+Comment: Not covered by the GPL (RIGHTS.md): the artwork under branding/ and
+ the names, which may be copied unchanged together with Graphite only, and
+ games/struthio, which has no licence assigned here. This package is for the
+ Graphite archive, not for Debian main.
+
+Files: runtimes/llama.cpp/*
+Copyright: The ggml authors
+License: MIT
+ The full text is /usr/lib/graphite/runtimes/llama.cpp/b12359/LICENSE.

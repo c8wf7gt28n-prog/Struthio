@@ -1,0 +1,8 @@
+#!/bin/sh
+# 1.1 PK1: byte-compile the program once, as root, so an ordinary user never needs to write under /usr.
+# No maintainer script touches a home folder.
+set -e
+if [ "$1" = configure ] && command -v py3compile >/dev/null 2>&1; then
+    py3compile /usr/lib/graphite >/dev/null 2>&1 || true
+fi
+exit 0

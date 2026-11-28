@@ -1,0 +1,67 @@
+# 1.1 PK1: the Debian packages of Graphite. tools/build_deb.sh reads this file (one stanza per binary package) and
+# fills @VERSION@ from workbench/version.py. Depends were checked against Debian 13 (trixie); see
+# wip/2026-11-27_distribution/partial/packaging/NOTES.md section 5.1.
+Source: graphite
+Section: x11
+Priority: optional
+Maintainer: Graphite packaging <packaging@graphite.invalid>
+Rules-Requires-Root: no
+Standards-Version: 4.7.2
+
+Package: graphite
+Architecture: all
+Section: x11
+Depends: python3 (>= 3.11), python3 (<< 3.14), python3-pyside6.qtcore (>= 6.8.2), python3-pyside6.qtgui,
+ python3-pyside6.qtwidgets, python3-pyside6.qtsvg, python3-pyside6.qtdbus, python3-pyside6.qttest,
+ python3-pyside6.qtpdf, python3-pyside6.qtpdfwidgets, python3-cryptography (>= 43), python3-pypdf (>= 5.4),
+ poppler-utils, procps, libgl1, libegl1, libxkbcommon-x11-0, libxcb-cursor0, fonts-dejavu-core, xdg-utils
+Recommends: graphite-session, graphite-llama-runtime, python3-pyside6.qtmultimedia,
+ python3-pyside6.qtmultimediawidgets, python3-docx, at-spi2-core
+Suggests: graphite-desktop, python3-sympy, python3-z3, python3-pyside6.qtwebenginewidgets, bubblewrap,
+ libreoffice-calc, libreoffice-writer, python3-uno
+Description: local-first desktop workspace with an assistant (Kasandra)
+ Graphite is a desktop for one Debian computer: files, apps, the machine and
+ its settings in one window, with Kasandra (Kas), an assistant that proposes
+ and waits for the owner's press before anything changes.
+ .
+ The program lives in /usr/lib/graphite; the workspace and settings stay in
+ the user's home and are never touched by installing or removing it.
+
+Package: graphite-llama-runtime
+Architecture: amd64
+Section: misc
+Depends: graphite (= @VERSION@), libgomp1, libssl3t64, libstdc++6, zlib1g, libzstd1, libvulkan1
+Recommends: mesa-vulkan-drivers
+Description: bundled llama.cpp runtime for Graphite's assistant
+ The prebuilt llama.cpp b12359 archives (CPU and Vulkan builds) that Graphite
+ unpacks into the user's profile when a local model is chosen. Kept apart so
+ that the graphite package stays small. No model is included.
+
+Package: graphite-session
+Architecture: all
+Section: x11
+Depends: graphite (= @VERSION@), xserver-xorg, xinit, fluxbox, x11-xserver-utils, xauth,
+ dbus-user-session | dbus-x11, libpam-systemd, network-manager, wpasupplicant, wireless-regdb, libgl1-mesa-dri,
+ udisks2, eject, upower, pipewire, pipewire-pulse, wireplumber, alsa-ucm-conf, alsa-topology-conf, xsecurelock,
+ lxpolkit, polkitd, x11-utils, at-spi2-core, python3-pyatspi, librsvg2-common, xterm
+Recommends: xdg-user-dirs
+Description: Graphite as the whole session
+ The X session entry a display manager shows as "Graphite"
+ (/usr/share/xsessions/graphite.desktop, running graphite-session, the
+ session supervisor with Fluxbox), and graphite-startx, which starts the same
+ session from the text console as before. Depends on the system services the
+ desktop uses: drives, sound, Wi-Fi, the battery, Lock and permission prompts.
+
+Package: graphite-desktop
+Architecture: all
+Section: metapackages
+Depends: graphite (= @VERSION@), graphite-session (= @VERSION@)
+Recommends: lightdm, lightdm-gtk-greeter, firmware-linux-free, firmware-amd-graphics, firmware-iwlwifi,
+ firmware-realtek, amd64-microcode, intel-microcode
+Suggests: firefox-esr, cups, system-config-printer, bluez, fonts-liberation, hunspell-en-us, 7zip
+Description: Graphite with a graphical login (metapackage)
+ Installs Graphite and its session and recommends LightDM with its GTK
+ greeter, configured (user-session=graphite) to start the Graphite session
+ after the login screen. Firmware and microcode are only recommended.
+ Removing lightdm returns the computer to the text console, where
+ graphite-startx still starts Graphite.

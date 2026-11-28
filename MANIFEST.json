@@ -90,8 +90,8 @@
       "sha256": "7ed032ae04229ba33c41bc55c7653636b82350bb00a5071c213693a56ac8c7e9"
     },
     "START_MINIMAL_DEBIAN.sh": {
-      "bytes": 3251,
-      "sha256": "65b2f9b45ca5656240688c31f6bc9e2e5dcb118a69fde9002fbcba177a78c6e3"
+      "bytes": 3354,
+      "sha256": "501607a7ab13fa0b7412cf49ea4137b993df6241bb7047de258fa7a3bd22ea27"
     },
     "START_OFFICE.cmd": {
       "bytes": 237,
@@ -2275,7 +2275,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 2093638,
-      "sha256": "6654d864a255f6d21d632bd18f589a03439858697255bb1b727c093330408600"
+      "sha256": "d82b5eb7ec41118d4cadff0c2a121ae67b40383075e364153d1c38bdd28c3f85"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4730880,
@@ -2283,7 +2283,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "7936e21a087ef2a9ca494a3a174da2138c7ff089352565221d18e789103fc2e1"
+      "sha256": "ff65bcccb8e93e04a2b03f38bf5229dbfc221bd06043049aa2889fe207630a5d"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3025,6 +3025,10 @@
       "bytes": 22494,
       "sha256": "d050a97817fd469132923508697f64aec436fd696058ed4bacfac1b6ffef54d2"
     },
+    "tests_integrated/test_debian_packages.py": {
+      "bytes": 13083,
+      "sha256": "f1b91448ee81ada0409c8d5741c89f99cfb01f4a06f537dd594c432d7e4c0b49"
+    },
     "tests_integrated/test_delete_words.py": {
       "bytes": 4865,
       "sha256": "31c66f0e7c926611bbd44f3375556f500e400496dc7875ef577d80764714fbe4"
@@ -3297,9 +3301,21 @@
       "bytes": 44177,
       "sha256": "20f316db0045598abf8e47bffef68af669052d3933f4596a368949cbed55e8eb"
     },
+    "tools/build_deb.sh": {
+      "bytes": 1978,
+      "sha256": "f0bdf6f35908062f61a7d1dc2be6d8f9b963c89a3e1d4f39f02a18c53d162f64"
+    },
+    "tools/build_kit.sh": {
+      "bytes": 1750,
+      "sha256": "53c3918d186c8f5d4e22c279238dbb4e230c4dff08915124c81f870a63ee4de6"
+    },
     "tools/build_project_spec.py": {
       "bytes": 8651,
       "sha256": "f80529bc886802a0479797f69fd8885d9d15f1aa5f57b79119fa2d487d8ef64b"
+    },
+    "tools/build_repo.sh": {
+      "bytes": 9234,
+      "sha256": "0d4fac755682d57f9a79f50bcf17a1fde300af53946534d7ddc536408edd21fa"
     },
     "tools/campaign.py": {
       "bytes": 4679,
@@ -3414,8 +3430,8 @@
       "sha256": "871cc8ecb2e66ff89bcc7fd8fd96d5458c2baa90fd9a339a0f6b6ccf86640f96"
     },
     "tools/check_hatch.py": {
-      "bytes": 34404,
-      "sha256": "c0451c24559452c03b9508296ff45be18cd0f37cdbd18d0d6b7262ce916b8686"
+      "bytes": 34473,
+      "sha256": "379273f6673046690566fdf49f2606a746a17f32dc331ae526adb34e5b40f8fa"
     },
     "tools/check_machine_ui.py": {
       "bytes": 17826,
@@ -3485,6 +3501,10 @@
       "bytes": 6277,
       "sha256": "e0bf32299f98dcc600f7ddc342186556fb36a3c001afae29ef91e1ced48b6ae7"
     },
+    "tools/debian_pkg.py": {
+      "bytes": 17299,
+      "sha256": "ccefdfe608595338c33cba9556605a896191a29274408ddb76e5468fbeef25bf"
+    },
     "tools/derive_typewriter.py": {
       "bytes": 12471,
       "sha256": "73541fcd9a4c0101a317b5f571f67ae7ceefd10b1722d1661b098f3e08d9d312"
@@ -3502,8 +3522,8 @@
       "sha256": "8f0834b18db876e9bfd121a70f7b649cfbfe632e6bf6c1bf68f056dd358b2bd9"
     },
     "tools/package_graphite.py": {
-      "bytes": 11046,
-      "sha256": "3ff1ae163e5a904acf2085be10d4a9121cb3d126be597bbe8ca625081f193dde"
+      "bytes": 11131,
+      "sha256": "503c2787be49111c678076e0ab64f2a1e808ab30347105eef17d629d38398211"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -3568,6 +3588,10 @@
     "workbench/a11y_reader.py": {
       "bytes": 47558,
       "sha256": "ad11f2366c46c672a423705633b95bf9282c81b52684c52b060b4e10efde8f4d"
+    },
+    "workbench/accepted_versions.py": {
+      "bytes": 1708,
+      "sha256": "42c5ff9646160ff7ec76398419db0e13f1725821806cc48f8e9c3e11196725e5"
     },
     "workbench/activity.py": {
       "bytes": 16277,
@@ -4130,8 +4154,8 @@
       "sha256": "24b97346dda7ee8dddb5e4044999b976c255c6187df3f59ee8fdab6dc6d1c89a"
     },
     "workbench/doctor.py": {
-      "bytes": 9631,
-      "sha256": "51e168eaa2b1f8d1c10f9bebbf7292746428bf12ea088330b8a778cbd50799f7"
+      "bytes": 9776,
+      "sha256": "5acdee8421588d72eb1d50e3526f1695c5d771fab56283dc6528c963694add92"
     },
     "workbench/document_qt.py": {
       "bytes": 52515,
@@ -4434,8 +4458,8 @@
       "sha256": "a68bf2f2e55ac2da5405177732c278d67459be6b817e32a5717d478c3b1d5914"
     },
     "workbench/hatch_readiness.py": {
-      "bytes": 16681,
-      "sha256": "4a51cfb247664b6fef1e37362fbd00e9fd7fc0c609d800b029245f36541ebd23"
+      "bytes": 16814,
+      "sha256": "b280ed14585b8af27990a8e71c158a18575bfe3862755174d5b918e160dcc70e"
     },
     "workbench/hdl_qt.py": {
       "bytes": 20028,
@@ -4674,8 +4698,8 @@
       "sha256": "44316a155cfd36ad14933950ed142a55858395f27f98117d1762cacad1fa4fdd"
     },
     "workbench/launch.py": {
-      "bytes": 6309,
-      "sha256": "5bf20f0f680248b5bd403b9ed9eed799cdd9c2f5633942b18f86f8cb92b0970a"
+      "bytes": 6626,
+      "sha256": "edae92ee50eb5817051a02fab2af9fe72145576ad2eb2b41617ac466ff986bd1"
     },
     "workbench/launch_look.py": {
       "bytes": 5897,
@@ -5546,8 +5570,8 @@
       "sha256": "02f54a8b159ac1d77db8f27c7eb24dc95c4622a818bbf96f0c5e98e5d5f2905b"
     },
     "workbench/release_integrity.py": {
-      "bytes": 1907,
-      "sha256": "1e695e91eb779455c43abd75925c86c9380199d690b9ee80de6447cb98a2074b"
+      "bytes": 3193,
+      "sha256": "73ef531a69be7e6d29a9a572e7b4be70dec890fa99958944538aec687f79992e"
     },
     "workbench/release_publisher.py": {
       "bytes": 6306,

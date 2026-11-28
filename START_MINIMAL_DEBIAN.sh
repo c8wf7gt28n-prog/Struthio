@@ -15,10 +15,12 @@ fi
 if [[ $# -gt 0 ]]; then
   echo "The dedicated session takes no arguments (got: $*). From a text login run START_MINIMAL_DEBIAN.sh alone; options such as --doctor or --version work with: bash $ledger_program/START_OFFICE.sh $*" >&2; exit 1
 fi
+ledger_repair='Run INSTALL_DEBIAN.sh --minimal-session --quick, or install the matching USB prerequisites.'
+if [[ "$ledger_program" == /usr/lib/graphite ]]; then ledger_repair='As root run: apt install graphite-session'; fi  # 1.1 PK1: the packaged program
 for ledger_command in startx fluxbox dbus-run-session; do
-  command -v "$ledger_command" >/dev/null || { echo "Missing $ledger_command. Run INSTALL_DEBIAN.sh --minimal-session --quick, or install the matching USB prerequisites." >&2; exit 1; }
+  command -v "$ledger_command" >/dev/null || { echo "Missing $ledger_command. $ledger_repair" >&2; exit 1; }
 done
-command -v Xorg >/dev/null || command -v X >/dev/null || { echo 'Missing an X server (Xorg). Run INSTALL_DEBIAN.sh --minimal-session --quick, or install the matching USB prerequisites.' >&2; exit 1; }
+command -v Xorg >/dev/null || command -v X >/dev/null || { echo "Missing an X server (Xorg). $ledger_repair" >&2; exit 1; }
 ledger_record="${XDG_STATE_HOME:-$HOME/.local/state}/ledger-slate/last-session.json"
 rm -f -- "$ledger_record" 2>/dev/null || true
 ledger_rc=0

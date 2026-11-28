@@ -96,7 +96,8 @@ def collect(workspace=None,model=None):
     def qt():
         from PySide6.QtCore import qVersion
         from PySide6 import QtWidgets
-        return {'ready':qVersion()=='6.8.3','version':qVersion(),'state':'IMPORTED','scope':'Core/Widgets imports only; no window opened.'}
+        from .accepted_versions import qt_ready  # 1.1 PK1: Debian 13's Qt 6.8.2 is accepted beside the pinned 6.8.3
+        return {'ready':qt_ready(qVersion()),'version':qVersion(),'state':'IMPORTED','scope':'Core/Widgets imports only; no window opened.'}
     probe('qt',qt)
     chosen=Path(model) if model else selected_model(workspace)
     probe('model',lambda:model_probe(chosen))
@@ -220,7 +221,7 @@ def main(argv=None):
         'pinned_math':'pinned SymPy, mpmath and Z3','native_office_bridge':'Calc/Writer and Java bridge',
         'protected_python':'protected Python (wasmtime==50.0.1)','local_loopback':'local TCP sockets',
         'reference_runtime':'pinned b12359 (llama.cpp v1.0.0) CPU runtime','reference_model':'exact reference GGUF',
-        'reference_memory':'6 GiB available memory','qt_core_widgets':'Qt Core/Widgets 6.8.3',
+        'reference_memory':'6 GiB available memory','qt_core_widgets':'Qt Core/Widgets 6.8 (6.8.2 or later)',
         'connectable_x11':'connectable X11 display and xdpyinfo','unix_sockets':'Unix sockets'}
     for key,gate in report['gates'].items():
         lines.append(key+': '+('READY TO ATTEMPT' if gate['ready'] else 'BLOCKED'))

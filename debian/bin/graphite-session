@@ -1,0 +1,4 @@
+#!/bin/sh
+# 1.1 PK1: the Graphite session for a display manager (graphite.desktop in /usr/share/xsessions) or for startx:
+# the session supervisor (LS_XSESSION.sh) of the packaged program, with Fluxbox.
+exec /bin/bash /usr/lib/graphite/LS_XSESSION.sh "$@"

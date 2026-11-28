@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Graphite
+Comment=Graphite is the whole desktop
+Exec=graphite-session
+TryExec=graphite-session
+DesktopNames=Graphite
