@@ -61,17 +61,34 @@ rules holding you back".
     `partial/<key>/`: read those first and cut finished agents out of the script before re-running.
   * Builders (once the plan exists): as for 1.0, each saves its patch and notes to scratch after every milestone;
     `save_dist.sh` carries their briefs; the coordinator saves partial diffs to `wip/.../partial/` when a limit stops them.
-- **Step 1b (running beside it):** the design panel, a workflow: three independent designs of the whole desktop from
+- **Step 1b (27 Nov, cut by the limit):** the design panel, a workflow: three independent designs of the whole desktop from
   the brief (familiar first, calm first, power first), three judges, one synthesis. Drafts in `$S/work/dist/design/`;
   the result becomes `wip/2026-11-27_distribution/DESIGN_DIRECTION_1.1.md`.
-- **Step 1c (running beside them):** the Kas panel, a workflow: five scouts (what she can do today; the tasks of a
-  full Linux box; a safe way to run any command; grounding in man pages and help; what a small local model can
-  reliably do, measured on the 4B), an architect, two skeptics, a revision. Drafts in `$S/work/dist/kas/`; the result
-  becomes `wip/2026-11-27_distribution/KAS_1.1.md`.
-- **Step 1 (running):** the distribution audit, a workflow of eight auditors and a critic: the test suite's true state;
-  packaging, install and image; Windows and DOS comfort; full-GUI-for-Debian coverage; the new user's view (old rooms,
-  old names, first run, docs); hardware and portability; security and privacy; licences. Then the plan
-  (`wip/2026-11-27_distribution/PLAN_1.1.md`), then builders as for 1.0 (briefs, worktrees, merge_one.sh).
+- **THE PLAN (28 Nov): `wip/2026-11-27_distribution/PLAN_1.1.md`** (previews, lean) and
+  `DESIGN_DIRECTION_1.1.md` (the coordinator's decision: the "Familiar" design as the base, grafts from "Calm" and
+  "Power"). The owner, 28 Nov: "Can you take into consideration my weekly limit and release what you can if it's not
+  finished. So I don't have to wait several days to finish, before I test what I can?" and "Save every 5 minutes and or
+  at milestones". So:
+  * **1.1 arrives as previews** (pre1 … pre4, then 1.1). **Whenever a preview's slices are merged, cut it and send it at
+    once. If a limit stops the build for long, cut what is merged and send that.**
+  * **Lean:** no fan-out panels; at most three builders at once, each `Agent` with worktree isolation and
+    `model: opus` (resumable by SendMessage after a limit; a workflow's agents are lost at a limit, as on 27 Nov);
+    briefs by `bash wip/build_tools/make_brief_11.sh KEY` (header `BRIEF_HEADER_1.1.md` + the slice from PLAN_1.1.md),
+    outputs in `$S/work/b110/KEY.{patch,progress.md,build.result.json}`; merge with
+    `bash wip/build_tools/merge_one.sh $S/work/b110 wip/2026-11-27_distribution/saved KEY AGENTID > log 2>&1; rc=$?`.
+  * **Saving:** `bash wip/build_tools/save_dist.sh loop` every 5 minutes (it now carries the builders' patches, notes
+    and results into `partial/b110/`); restart the loop whenever it ends; commit and push at every milestone.
+- **What the 27 Nov panels left** (the limit cut all three at about 22:45; not re-run): the packaging audit, whole
+  (`partial/packaging/NOTES.md`: a trial .deb installed with apt in a Debian 13 chroot and Graphite ran on Debian's own
+  PySide6); three design proposals (`partial/design/`); a tier run (`partial/tests/`, `$S/work/dist/tests/`: tier 0,
+  9 failing of 435; tier 2 Graphite look, 60 failing of 1,264); one Kas scout's notes (`partial/kas/scout_today.md`).
+  Not done and deferred to the slices that need them: the security, licence, portability, full-GUI and new-user audits
+  (Z2, Z3, Z4, C1-C3), the Kas design (written by the coordinator before pre3).
+- **PREVIEW 1 (building since 28 Nov 02:20 UTC):** T1 (the tiers green; agent a53b94a2d319143f4), PK1 (Debian packages
+  and a graphical way in; agent a4075904eb9426023), W1 (Windows keys and DOS words; agent a7a99d7625947120e). Then KV
+  (her voice) after T1 is merged. Merge order: T1, W1, PK1, KV. Then set the version to 1.1~pre1, write
+  `docs/RELEASE_NOTES_1.1_pre1.md` (what is new, what was tested, the reversals for the owner to strike), take PK1's kit
+  from `$S/work/b110/PK1/kit/`, rebuild it from the merged commit with `tools/build_kit.sh`, and send it.
 
 ## Before: Graphite 1.0 is released, untested (27 Nov 2026)
 
@@ -462,6 +479,12 @@ instruction); no other new tests or reviews.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
+
+- 28 Nov 02:25 UTC: **The 5-hour limit cut all three panels at about 22:45 on 27 Nov** (2.1 M tokens; 3 of 22 agents
+  returned); reset 01:50. The owner asked for saves every 5 minutes and for releases as they are ready, within the
+  weekly limit. Done: the saver at 5 minutes (and carrying builders' patches); **PLAN_1.1.md and
+  DESIGN_DIRECTION_1.1.md written by the coordinator** from what survived (e8ae9bf); the brief header and
+  `make_brief_11.sh`; **preview 1's first three builders launched on Opus: T1, PK1, W1.**
 
 - 27 Nov 22:30 UTC: The owner: save often to survive resets. `wip/build_tools/save_dist.sh` written and run (first
   save 8d0febd: the packaging, tests, design and Kas folders so far); the three workflow scripts saved in
