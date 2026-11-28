@@ -2032,10 +2032,10 @@ index 0000000..6c8b872
 +    return None
 diff --git a/workbench/system_door_qt.py b/workbench/system_door_qt.py
 new file mode 100644
-index 0000000..509bff3
+index 0000000..3a94e75
 --- /dev/null
 +++ b/workbench/system_door_qt.py
-@@ -0,0 +1,411 @@
+@@ -0,0 +1,412 @@
 +"""The system door in her talk, her column, the line and Settings (Graphite 1.1 KS3). The door itself is system_door's.
 +
 +Where it shows (the coordinator's note of 28 Nov):
@@ -2348,7 +2348,7 @@ index 0000000..509bff3
 +        """The page: read off the window's thread (system.door.state, system.door.runs); each press shows a plan in her talk."""
 +
 +        def __init__(self, host):
-+            super().__init__();self.host = host;self.data = None;self.fields = {}
++            super().__init__();self.host = host;self.key = 'door';self.data = None;self.fields = {}      # key: navigation_qt keeps Settings on this row
 +            self.setObjectName('LibraryTab');self.setProperty('ledgerRoom', True);self.setAccessibleName('Settings: ' + TITLE)
 +            outer = QVBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0)
 +            self.scroll = QScrollArea();self.scroll.setWidgetResizable(True);self.scroll.setFrameShape(QFrame.NoFrame);outer.addWidget(self.scroll)
@@ -2429,8 +2429,9 @@ index 0000000..509bff3
 +            frame, inner = card();inner.addWidget(words('Accounts', 'section'))
 +            for a in st.get('accounts') or []:
 +                inner.addLayout(row(word('account'), words('%s · %s' % (a['login'], a['real'] or 'no real name')), stretch_at=1))
-+            inner.addLayout(row(self.field('login', 'Account name, for example ana'), self.field('real', 'Real name, for example Ana Tern'),
-+                                press('Add a standard account…', lambda: self.ask('user.add', 'login')), stretch_at=None))
++            login = self.field('login', 'Account name, for example ana');login.setMinimumWidth(260)
++            inner.addLayout(row(login, self.field('real', 'Real name, for example Ana Tern'),
++                                press('Add a standard account…', lambda: self.ask('user.add', 'login')), stretch_at=1))
 +            inner.addWidget(words('The door never sets another person’s password.', 'quiet'))
 +            box.addWidget(frame)
 +            runs = ((data.get('runs') or {}).get('result') or {}).get('runs') or []
