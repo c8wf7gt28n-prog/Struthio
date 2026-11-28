@@ -205,6 +205,7 @@ sessions with Windows hands.
 | The tree from "This computer /" (26 Nov) | Quick access first, the root one press down | 1.0's first sight was system folders | pre2 |
 | DELETE as the bin's word (14 Nov) | "Recycle Bin" on new installs; the owner's profile keeps DELETE | a capital verb reads as an act | pre2 |
 | The eight menus' names | File, Edit, View, Go, Tools, Help over the same actions | the names a Windows hand knows | pre2 |
+| Graphite full screen (the session) | Graphite maximised above the bar | the bar stays above every app | pre2 |
 | "Outside your home: never" for Kas | System changes through the system's own prompt, the owner present | a full Linux box means software and services | pre3 |
 
 Not reversed: no picture of Kas; Apps, never Programs; Day as the launch look; every state a word and a shape.

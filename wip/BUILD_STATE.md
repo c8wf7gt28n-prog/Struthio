@@ -106,6 +106,10 @@ rules holding you back".
   * **The owner, 28 Nov 03:00: "Send screenshots when available".** So: at every merge, send that slice's frames
     (each builder saves whole-window PNGs in `$S/work/b110/KEY/frames/`, invented content only); preview 1's frames
     (W1's: the window, the dock's clock, keys in the Edit menu, Properties, the month) were sent at 03:02.
+  * **B1 merged (716116e, 03:08):** the bar (`workbench/bar_qt.py`); frames sent at 03:09. Its reversal for the owner
+    to strike, for the pre2 notes: Graphite opens maximised above the bar, not full screen. Its not_done: icon-only
+    window buttons at 1366, the drives and notifications tray slots, Pin. **B2 launched 03:10** (agent
+    a05778e29f715262d) into B1's Start and line slots.
   * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
