@@ -87,7 +87,8 @@ rules holding you back".
   `$S/work/r112/kit/`; no repository rebuild: xterm and libglib2.0-bin were already in it).
   **The owner, 28 Nov ~07:55: "Remember night mode is to look like old computers that only had orange and black /
   green and black monitors....but updated to 2026 but still old school modern".** N1 (PLAN_1.1 §5) launched (agent
-  ade8117f2400fc7e8); B5 (agent a7e3d385b9ace247f) still building. Both go into **1.1.3**: merge, version, notes,
+  ade8117f2400fc7e8; the owner then: "Screen burns and all the fun", sent to it as CRT effects); B5 merged (55d41fb).
+  Both go into **1.1.3**: merge, version, notes,
   cut_pre.sh (no new packages expected), release check, send with frames.
 - **GRAPHITE 1.1.1 RELEASED (07:41 UTC, 28 Nov): the system door.** KS3 merged (a94a1fe); version 1.1.1 (6d0fcc4);
   the repository rebuilt with tools/build_repo.sh (425 packages, with packagekit, accountsservice, lxpolkit, polkitd);
