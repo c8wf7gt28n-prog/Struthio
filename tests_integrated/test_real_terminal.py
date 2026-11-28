@@ -206,7 +206,7 @@ class TheRc(unittest.TestCase):
 class Pieces(unittest.TestCase):
     PLACES = {'C': '/', 'D': '/media/stick'}
 
-    def ask(self, line, mode='on', cwd='/home/someone/Files'):
+    def ask(self, line, mode='on', cwd='/srv/demo/Files'):
         return rc.answer(line, cwd, mode=mode, places=self.PLACES, which=lambda name: '/usr/bin/' + name)
 
     def test_i_dos_lines_become_their_debian_command_others_stay(self):

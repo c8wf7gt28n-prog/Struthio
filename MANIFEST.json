@@ -3258,8 +3258,8 @@
       "sha256": "ce5243c981328922df4ea7b1c3a907e76607e0f596782b3c9bfdb87dfdff26fa"
     },
     "tests_integrated/test_real_terminal.py": {
-      "bytes": 14370,
-      "sha256": "5f82f6ec18aae3762bd2ab6e8d5a97d3d480c661d9d7819e3ef49f0769e749b7"
+      "bytes": 14366,
+      "sha256": "a2158917e178011ecdf0c3406d236423b989aa508e8c908b1f19f1b45737df13"
     },
     "tests_integrated/test_reasoning_graph.py": {
       "bytes": 4031,
