@@ -82,6 +82,13 @@ rules holding you back".
   resumed) and B5 (a quieter bar; agent a7e3d385b9ace247f) run lean for **1.1.2**. When both land: merge, rebuild the
   repository (C0 adds xterm as a Depends: tools/build_repo.sh as in `$S/work/r111/build.sh`), version 1.1.2, short notes,
   cut, release check, send the whole kit. If the limit stops them, their saves are in `$S/work/b110/` and partial/b110/.
+- **GRAPHITE 1.1.2 RELEASED (08:04 UTC): a real terminal** (C0 merged 8809174; cut from f3e5740, release check PASSED
+  after a test's /home path was changed; 17 files sent; record `wip/2026-11-28_release_112/`; base kit
+  `$S/work/r112/kit/`; no repository rebuild: xterm and libglib2.0-bin were already in it).
+  **The owner, 28 Nov ~07:55: "Remember night mode is to look like old computers that only had orange and black /
+  green and black monitors....but updated to 2026 but still old school modern".** N1 (PLAN_1.1 §5) launched (agent
+  ade8117f2400fc7e8); B5 (agent a7e3d385b9ace247f) still building. Both go into **1.1.3**: merge, version, notes,
+  cut_pre.sh (no new packages expected), release check, send with frames.
 - **GRAPHITE 1.1.1 RELEASED (07:41 UTC, 28 Nov): the system door.** KS3 merged (a94a1fe); version 1.1.1 (6d0fcc4);
   the repository rebuilt with tools/build_repo.sh (425 packages, with packagekit, accountsservice, lxpolkit, polkitd);
   release check PASSED (1,650 files); the whole new kit (39 files) sent with `docs/RELEASE_NOTES_1.1.1.md`; record
