@@ -14,7 +14,7 @@ class BrainTab(ServiceTab):
     def __init__(self,host):
         super().__init__(host);self.job=None;self._models=[];self._selected_id=None;self.setAcceptDrops(True)
         self._launch_loading=False;self._launch_dirty=set();self._launch_saved={}
-        heading=QLabel('GRAPHITE · BRAIN');heading.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(heading)
+        heading=QLabel('KAS · BRAIN');heading.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(heading)
         self.note=QLabel('Drop a GGUF file or complete model folder. Weights stay outside the program ZIP. Inspection starts no inference.');self.note.setWordWrap(True);self.outer.addWidget(self.note)
         self.outer.addWidget(self.status)
         # 0.8.7, the sealed room: the seal in words under the model's state, how she knows (each check made at start),
@@ -42,7 +42,7 @@ class BrainTab(ServiceTab):
         control_content=QWidget();controls=QVBoxLayout(control_content);controls.setContentsMargins(6,6,6,6)
         self.launch_scroll=QScrollArea();self.launch_scroll.setWidgetResizable(True);self.launch_scroll.setWidget(control_content)
         row=QHBoxLayout();trials=QPushButton('Run answer, line, exact-edit and clarification trials');trials.clicked.connect(self.task_trials);row.addWidget(trials);row.addStretch(1);controls.addLayout(row)
-        self.copy=QCheckBox('Copy into Graphite’s model store');self.copy.setToolTip('Copies stay outside the program ZIP. Otherwise Graphite references the selected files in their original location.');controls.addWidget(self.copy)
+        self.copy=QCheckBox('Copy into Kas’s model store');self.copy.setToolTip('Copies stay outside the program ZIP. Otherwise Kas references the selected files in their original location.');controls.addWidget(self.copy)
         options=QGridLayout();self.context=QSpinBox();self.context.setRange(512,8192);self.context.setSingleStep(512);self.context.setValue(2048)
         self.memory=QSpinBox();self.memory.setRange(0,262144);self.memory.setSingleStep(512);self.memory.setSpecialValueText('Auto');self.memory.setValue(0)
         self.threads=QSpinBox();self.threads.setRange(1,32);self.threads.setValue(4)
@@ -161,8 +161,8 @@ class BrainTab(ServiceTab):
         self.show_help(turns.stored_switches(self.kernel))
         message=(result.get('error') or {}).get('message') or ''
         self.help_note.setText('Nothing to undo yet.' if 'NOTHING_TO_UNDO' in message else 'The switch was not changed.')
-    def title(self):return 'Graphite · Brain'
-    def info(self):return 'Local CPU / Vulkan inference · external weights · scoped Graphite tools'
+    def title(self):return 'Kas · Brain'
+    def info(self):return 'Local CPU / Vulkan inference · external weights · scoped Kas tools'
     def options(self):
         value={key:self.field_value(widget) for key,widget in self.launch_fields.items() if key!='memory_mb'}
         if self.memory.value():value['memory_mb']=self.memory.value()

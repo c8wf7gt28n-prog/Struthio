@@ -124,7 +124,7 @@ def main(argv=None):
                 result = b.create(args.root, args.out, args.include_models) if args.action == 'create' else b.verify(args.backup) if args.action == 'verify' else b.restore(args.backup, args.to, args.profile)
         print(json.dumps(result, indent=2)); return 0
     except Exception as exc:
-        print('Graphite ' + type(exc).__name__ + ': ' + str(exc), file=sys.stderr); return 1
+        print('Kas ' + type(exc).__name__ + ': ' + str(exc), file=sys.stderr); return 1
 
 
 if __name__ == '__main__': raise SystemExit(main())

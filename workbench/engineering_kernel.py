@@ -1115,7 +1115,7 @@ class Kernel:
             "ledger.desktop_tests",
         } <= set(c["required_tools"]):
             raise KernelError(
-                "Graphite self-development requires kernel and desktop regression tools"
+                "Kas self-development requires kernel and desktop regression tools"
             )
         self.save("candidates", c, db)
         return {k: v for k, v in c.items() if k != "base"}
@@ -1227,7 +1227,7 @@ class Kernel:
                     raise KernelError("Baseline repair acceptance requires the independent operator")
                 if any(name.startswith("workbench/") for name in c["changes"]):
                     raise KernelError(
-                        "Running Graphite cannot self-replace; stage/restart workflow required"
+                        "Running Kas cannot self-replace; stage/restart workflow required"
                     )
                 c["journal"] = {
                     "operation": "accept",
@@ -1332,7 +1332,7 @@ class Kernel:
 
     def submit(self, a, p):
         if not ledger_control.value(self,'operations.services_enabled'):
-            raise KernelError('LEDGER_SERVICES_OFF: use Menu → Graphite services → On before submitting new work')
+            raise KernelError('LEDGER_SERVICES_OFF: use Menu → Kas services → On before submitting new work')
         tool = a["tool"]
         if tool in lab_service.JOB_TOOLS:
             if a.get('candidate') or a.get('isolation'):raise KernelError('Lab jobs use owned selected snapshots')

@@ -312,7 +312,7 @@ def install(host):
     service = ns.Service(notes)
     try:service.start()
     except Exception as exc:  # noqa: BLE001 - a bus that broke never stops the window
-        service.state, service.why = 'failed', 'Graphite could not offer its notifications: %s' % (str(exc)[:160] or type(exc).__name__)
+        service.state, service.why = 'failed', 'Kas could not offer its notifications: %s' % (str(exc)[:160] or type(exc).__name__)
     host.notifications = service
     host.notification_shelf = Shelf(host, service)
     app = QApplication.instance()

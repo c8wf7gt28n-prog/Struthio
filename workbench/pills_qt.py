@@ -22,13 +22,13 @@ class PillsTab(QWidget):
         page = QWidget();box = QVBoxLayout(page);box.setContentsMargins(40, 26, 40, 20);box.setSpacing(10)
         box.addWidget(role(QLabel('Pills'), 'title'))
         box.addWidget(quiet('Work travels between computers as pills: signed, self-describing packages. A pill asks; this '
-                            'Graphite decides. Nothing in a pill is run, and its original stays on the computer that sent it.'))
+                            'Kas decides. Nothing in a pill is run, and its original stays on the computer that sent it.'))
         if self.opened:self.show_pill(box)
         info = call(self.host, 'pills.identity') or {'card': {}, 'peers': []};card = info['card']
         grid = QGridLayout();grid.setHorizontalSpacing(36);grid.setVerticalSpacing(8)
-        left = QVBoxLayout();left.addWidget(role(QLabel('THIS GRAPHITE'), 'section'))
-        left.addWidget(QLabel('%s · key %s' % (escape_text(card.get('name', 'Graphite')), card.get('key', '?'))))
-        left.addWidget(sentence('{save} to give to your workstation', {'save': ('Save this Graphite\'s card', self.save_card)}))
+        left = QVBoxLayout();left.addWidget(role(QLabel('THIS KAS'), 'section'))
+        left.addWidget(QLabel('%s · key %s' % (escape_text(card.get('name', 'Kas')), card.get('key', '?'))))
+        left.addWidget(sentence('{save} to give to your workstation', {'save': ('Save this Kas\'s card', self.save_card)}))
         right = QVBoxLayout();right.addWidget(role(QLabel('PAIRED COMPUTERS'), 'section'))
         for peer in info['peers']:
             right.addWidget(sentence('%s · code %s · {forget}' % (escape_text(peer['name']), peer['code']), {'forget': ('forget', lambda k=peer['key'], n=peer['name']:self.unpair(k, n))}))
@@ -44,7 +44,7 @@ class PillsTab(QWidget):
         if not rows:box.addWidget(quiet('None yet. Open a .pill file in Files, or with {open}.'.replace('{open}', 'the word below')))
         box.addWidget(sentence('{open}  ·  {fetch}  ·  {send}', {'open': ('Open a pill…', self.choose), 'fetch': ('Fetch over the link…', self.fetch),
                                                               'send': ('Send over the link…', self.send)}))
-        box.addWidget(quiet('The link is optional: this Graphite connects out to your workstation\'s pill service and never listens. '
+        box.addWidget(quiet('The link is optional: this Kas connects out to your workstation\'s pill service and never listens. '
                             'Pills fetched this way wait in Files › Received › Pills until you open and accept them.'))
         box.addStretch(1);self.scroll.setWidget(page)
 
@@ -65,7 +65,7 @@ class PillsTab(QWidget):
         if not v.get('new'):box.addWidget(quiet('Already accepted here.'));return
         if not v.get('permitted'):box.addWidget(QLabel(escape_text(v.get('why_not', 'Not permitted.'))));return
         box.addWidget(sentence('{mine} · {slate}', {'mine': ('Accept as my working copy', lambda:self.accept(False)),
-                                                    'slate': ('Accept and assign it to Graphite', lambda:self.accept(True))}))
+                                                    'slate': ('Accept and assign it to Kas', lambda:self.accept(True))}))
 
     def accept(self, for_slate):
         r = call_write(self.host, 'pills.accept', {'path': str(self.opened), 'for_slate': for_slate})
@@ -114,7 +114,7 @@ class PillsTab(QWidget):
 
     def save_card(self):
         card = (call(self.host, 'pills.identity') or {}).get('card')
-        name, _ = QFileDialog.getSaveFileName(self, 'Save this Graphite\'s card', str(Path.home() / 'ledger-card.json'), 'Cards (*.json)')
+        name, _ = QFileDialog.getSaveFileName(self, 'Save this Kas\'s card', str(Path.home() / 'ledger-card.json'), 'Cards (*.json)')
         if name and card:Path(name).write_text(json.dumps(card, indent=1))
 
     def pair(self):
@@ -135,7 +135,7 @@ class PillsTab(QWidget):
 
     def inspector(self):
         info = call(self.host, 'pills.identity') or {'card': {}, 'peers': []}
-        return 'Pills', [('This Graphite', info['card'].get('key', '?')[:12])] + [(p['name'], 'paired') for p in info['peers']]
+        return 'Pills', [('This Kas', info['card'].get('key', '?')[:12])] + [(p['name'], 'paired') for p in info['peers']]
 
 
 def show(host, path=None):

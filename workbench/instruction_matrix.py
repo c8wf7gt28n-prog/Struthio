@@ -304,5 +304,5 @@ def dispatch(kernel, op, args, principal):
         raw = ('\n'.join(lines) + ('\n' if lines else '')).encode('utf-8')
         memory.publish(path, raw)
         return {'state': 'EXPORTED', 'path': str(path), 'rows': len(lines), 'bytes': len(raw),
-                'use': 'Training data for fine-tuning outside Graphite. Graphite itself never changes model weights.'}
+                'use': 'Training data for fine-tuning outside Kas. Kas itself never changes model weights.'}
     raise ValueError('MATRIX_OPERATION_UNKNOWN')

@@ -67,7 +67,7 @@ class CellDialog(QDialog):
 
 class CSVColumns(QDialog):
     def __init__(self,parent,doc):
-        super().__init__(parent);self.setWindowTitle('CSV column types');self.resize(700,520);box=QVBoxLayout(self);box.addWidget(plain('Choose types explicitly. Keep identifiers as text to preserve leading zeroes. Unit annotations remain Graphite metadata; a Unit column travels with external files.'))
+        super().__init__(parent);self.setWindowTitle('CSV column types');self.resize(700,520);box=QVBoxLayout(self);box.addWidget(plain('Choose types explicitly. Keep identifiers as text to preserve leading zeroes. Unit annotations remain Kas metadata; a Unit column travels with external files.'))
         self.header=QCheckBox('The first row contains column headings.');self.header.setChecked(True);box.addWidget(self.header);cells=doc['sheets'][0]['cells'];columns=max((t.xy(a)[1] for a in cells),default=1);self.grid=QTableWidget(columns,3);self.grid.setHorizontalHeaderLabels(['Column','Read as','Unit annotation']);self.grid.horizontalHeader().setSectionResizeMode(0,QHeaderView.Stretch);box.addWidget(self.grid,1)
         for c in range(1,columns+1):
             key=t.address(1,c)[:-1];name=str(cells.get(key+'1',{}).get('value',''));item=QTableWidgetItem(key+' · '+name);item.setFlags(item.flags()&~Qt.ItemIsEditable);self.grid.setItem(c-1,0,item);typ=QComboBox();typ.addItems(['text','number','boolean','date']);self.grid.setCellWidget(c-1,1,typ);self.grid.setCellWidget(c-1,2,QLineEdit())

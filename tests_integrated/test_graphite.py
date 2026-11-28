@@ -131,14 +131,14 @@ class MarkAndTileTests(unittest.TestCase):
             word=shell2.Wordmark(holder);font=QFont(family);font.setPixelSize(px);word.setFont(font);word.set_face(script,stroke)
             hint=word.sizeHint();word.setGeometry(16,0,hint.width(),60)
             ink=word.ink_rect();self.assertEqual(ink.left(),0.0);self.assertAlmostEqual(ink.center().y(),30.0,9)
-            self.assertEqual(hint.width(),math.ceil(max(ink.width(),word.fontMetrics().horizontalAdvance('Graphite'))))
+            self.assertEqual(hint.width(),math.ceil(max(ink.width(),word.fontMetrics().horizontalAdvance('Kas'))))
             img=holder.grab().toImage();ground=QColor('#4a4741').lightness()
             # 1.1 T1: the ink is whatever differs from the ground: light on Graphite's, dark in Day's (1.0 D1, P2), not only lighter
             cols=sorted({x for x in range(img.width()) for y in range(60) if abs(img.pixelColor(x,y).lightness()-ground)>8})
             rows=sorted({y for x in range(img.width()) for y in range(60) if abs(img.pixelColor(x,y).lightness()-ground)>8})
             self.assertEqual(cols[0],16,(family,'the ink starts at the widget\'s left edge'));self.assertLessEqual(cols[-1],15+hint.width())
             self.assertAlmostEqual((rows[0]+rows[-1]+1)/2.0,30.0,delta=.5,msg=(family,'the ink centred in the band\'s height'))
-            self.assertEqual(word.text(),'Graphite');self.assertEqual(word.accessibleName(),'Graphite')
+            self.assertEqual(word.text(),'Kas');self.assertEqual(word.accessibleName(),'Kas')
 
     def test_quiet_words_print_a_status_and_set_an_explanation_in_the_script(self):
         """The quiet-script rule in the panes (shell2.QuietWords): setText is print; explain() sets the note in the script
@@ -195,7 +195,7 @@ class MarkAndTileTests(unittest.TestCase):
                                   ('Each row\'s slider: left is more urgent, right is nicer.','WORK · nothing running','\n')):
                 words=shell2.QuietWords(host);words.explain(note,lead=lead,sep=sep or '\n');words.resize(220,words.heightForWidth(220));self.assertEqual(outside(words),0,note)
             from PySide6.QtWidgets import QLabel
-            for text in ('Good evening.','Nothing new','Graphite'):
+            for text in ('Good evening.','Nothing new','Kas'):
                 label=QLabel(text);shell2.pleasantry(label,SimpleNamespace(session=SimpleNamespace(state={})),34);label.adjustSize();self.assertEqual(outside(label),0,text)
         finally:shell2.SCRIPT_ON[0]=saved
 
@@ -263,14 +263,14 @@ class RenameGuardTests(unittest.TestCase):
            # V01 W1: the left column's cabinet and concern navigator, the centre foot, and the modules whose shown words W1 renamed
            'cabinet','concern_qt','control_qt','pills','pills_qt','locations','stacy_language','release_updates','remote_service')
     KEPT={('files_qt.py','Slate'),                                   # the Files/Slate folder's name on disk (files_service.SLATE)
-          ('files_qt.py',"Graphite's area (the Slate folder). Graphite writes here directly; every change keeps the version before it, and deletions go to DELETE."),
+          ('files_qt.py',"Kas's area (the Slate folder). Kas writes here directly; every change keeps the version before it, and deletions go to DELETE."),
           ('shell2.py','Slate'),('shell2.py','Slate/answer '),       # files.list path=Slate; a kept answer's path in Files/Slate
           ('shell2.py','\n(What Ledger knows:'),                     # pages written before the rename still split cleanly
           ('typebar_qt.py','files.list path=Slate  ·  help copies.review  ·  ops agenda'),  # a staC example naming that folder
           ('settings_qt.py','Slate'),                                # a stored settings category (a hidden filter value)
           ('hatch_qt.py','Hatch'),('hatch_qt.py','QToolButton#Hatch {background:transparent;border:0;padding:2px 3px;}'),  # object name and its stylesheet
           ('doctor.py','Ledger'),('doctor.py','Ledger sources'),     # the ~/Concern/Ledger folder name; a stored search term
-          ('hatch_readiness.py','Graphite - HATCH readiness'),        # the HATCH checkpoint name stays internal
+          ('hatch_readiness.py','Kas - HATCH readiness'),        # the HATCH checkpoint name stays internal
           ('hatch_readiness.py','NOT_PERFORMED; preflight never closes I05, I06 or a HATCH milestone.'),
           ('control_qt.py','Slate'),                                 # the same stored settings category, shown as Assistant
           ('locations.py','Ledger'),                                 # the ~/Concern/Ledger workspace folder on disk
@@ -302,9 +302,9 @@ class RenameGuardTests(unittest.TestCase):
 
     def test_public_name_and_internal_identities(self):
         from workbench import version,hatch_qt,typebar_qt,desktop_header_qt
-        self.assertEqual((version.NAME,version.title()),('Graphite','Graphite '+version.SHORT))  # the number is test_release_check's
+        self.assertEqual((version.NAME,version.title()),('Kas','Kas '+version.SHORT))  # the number is test_release_check's
         self.assertEqual(typebar_qt.TARGETS[0][0],'line','the first mode is Line (1.0 D1 renamed it; 1.1 T1: the test follows), its old key slate maps to it')
-        self.assertEqual((hatch_qt.HatchButton.NAME,hatch_qt.SERVICES_MENU),('Open apps','Graphite services'))  # HATCH DESK D2: the cat opens the programs list
+        self.assertEqual((hatch_qt.HatchButton.NAME,hatch_qt.SERVICES_MENU),('Open apps','Kas services'))  # HATCH DESK D2: the cat opens the programs list
         self.assertEqual(desktop_header_qt.SlateSwitch.__name__,'SlateSwitch','class names are internal and stay')
 
     def test_settings_speak_graphite_and_show_workspace_and_assistant(self):
@@ -322,7 +322,7 @@ class RenameGuardTests(unittest.TestCase):
                 self.assertIsNone(re.search(r'\b(Ledger|Slate|Hatch)\b',shown[field]),(spec['key'],field,shown[field]))
             self.assertEqual({k:v for k,v in shown.items() if k!='root_name'},spec,'only the root name is added')
         labels={n['target']:n['label'] for n in reg.nodes() if n['role']=='setting'}
-        self.assertEqual(labels['stacy.enabled'],'Allow new Graphite AI activity')
+        self.assertEqual(labels['stacy.enabled'],'Allow new Kas AI activity')
 
     def test_the_catalog_seed_says_graphite_and_an_old_seed_is_shown_so(self):
         """A new catalog seeds the 'ledger' row as Graphite (its id stays). A catalog made before the rename keeps its stored
@@ -332,23 +332,23 @@ class RenameGuardTests(unittest.TestCase):
         from sdk.cli.arc1cli import concern_catalog as cc
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'concern/catalog.sqlite3';store=cc.Catalog(path)
-            self.assertEqual((store.get('ledger')['title'],store.get('operations')['summary']),('Graphite','Graphite maintenance, installation and recovery.'))
+            self.assertEqual((store.get('ledger')['title'],store.get('operations')['summary']),('Kas','Kas maintenance, installation and recovery.'))
             with sqlite3.connect(path) as db:db.execute("UPDATE objects SET title='Ledger' WHERE id='ledger'")
             self.assertEqual(cc.Catalog(path).get('ledger')['title'],'Ledger','a stored row is never rewritten')
-        self.assertEqual(cc.shown('ledger','Ledger'),'Graphite');self.assertEqual(cc.shown('ledger','Ledger of parts'),'Ledger of parts')
+        self.assertEqual(cc.shown('ledger','Ledger'),'Kas');self.assertEqual(cc.shown('ledger','Ledger of parts'),'Ledger of parts')
         self.assertEqual(cc.shown('projects','Ledger'),'Ledger','only the seed row itself');self.assertEqual(cc.shown('operations','Operations'),'Operations')
-        self.assertEqual(cc.shown('operations','Ledger maintenance, installation and recovery.','summary'),'Graphite maintenance, installation and recovery.')
+        self.assertEqual(cc.shown('operations','Ledger maintenance, installation and recovery.','summary'),'Kas maintenance, installation and recovery.')
 
     def test_words_written_before_the_rename_stay_readable(self):
         """A condition card's result paragraph is found by its block id, never by its words, so pages that say "checked by Slate"
         keep working; new results say Graphite. A reason stored before the rename is shown as written."""
         from workbench import conditions,agent_qt
-        self.assertIn('checked by Graphite',conditions.result_words([{'text':'1 kg'}],{'text':'1 kg'}))
+        self.assertIn('checked by Kas',conditions.result_words([{'text':'1 kg'}],{'text':'1 kg'}))
         rows=[{'id':'a','state':'PAUSED','request':'add up','paused_reason':'Ledger closed'}]
         with patch.object(agent_qt,'summaries',return_value=rows),patch.object(agent_qt,'service_report',return_value=[],create=True):
             try:out=[t for t,_,_ in agent_qt.today_rows(object())]
             except Exception as e:self.skipTest('today_rows needs a host here: %s'%e)
-        self.assertIn('Graphite paused: add up (Ledger closed)',out)
+        self.assertIn('Kas paused: add up (Ledger closed)',out)
 
 
 if __name__=='__main__':

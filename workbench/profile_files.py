@@ -52,7 +52,7 @@ PURPOSES = {'where': 'Asking where Ingress is', 'find': 'Looking through Files',
             'ingress': 'Listing Ingress by name', 'read': 'Reading the first lines of %s', 'write': 'Starting the findings page',
             'lines': 'Writing line %d of %d on the findings page'}
 NO_TOPIC = 'Say what the files should be about, like “find files about pellets”.'
-PAGE_MOVED = 'The findings page changed while Graphite was writing it; Resume writes a fresh page instead of merging.'
+PAGE_MOVED = 'The findings page changed while Kas was writing it; Resume writes a fresh page instead of merging.'
 
 # The owner's words: a verb, a noun, a link word and the topic, in that order. Up to three words may come before the verb
 # ("please", "Slate,") and up to four between the verb and the noun ("me all the", "any recent"). A kind of file (files,
@@ -340,7 +340,7 @@ class FilesAbout(base.Profile):
         if key.startswith('read_'): return dict(step.get('arguments') or {})
         if key == 'write':
             topic = self.topic(state); searched = context.get('searched') or [needle_of(topic)]
-            text = 'Request: “%s” · Graphite searched Files for %s' % (one_line(state.get('request'), 1000), ', then '.join('“%s”' % s for s in searched))
+            text = 'Request: “%s” · Kas searched Files for %s' % (one_line(state.get('request'), 1000), ', then '.join('“%s”' % s for s in searched))
             return {'title': one_line('Files about ' + topic, 200), 'text': text, 'origin': 'SLATE'}
         if key.startswith('lines_'):
             if context.get('document_revision') is None or not context.get('document'): raise ValueError('Start the findings page first: no page is known yet.')
@@ -406,7 +406,7 @@ class FilesAbout(base.Profile):
             if following is not None and str(following.get('key', '')).startswith('lines_'): return {'context_updates': updates}
             matches = list(context.get('matches') or []); ingress = list(context.get('ingress_matches') or []); read = list(context.get('read') or [])
             topic = self.topic(state); total = len(matches) + len(ingress)
-            summary = '%d file%s about %s: %d in Files, %d waiting in Ingress; Graphite read the first lines of %d.' % (total, '' if total == 1 else 's', topic, len(matches), len(ingress), len(read))
+            summary = '%d file%s about %s: %d in Files, %d waiting in Ingress; Kas read the first lines of %d.' % (total, '' if total == 1 else 's', topic, len(matches), len(ingress), len(read))
             return {'context_updates': updates, 'claims': [{'role': 'FINDING', 'text': summary}], 'done': True,
                     'reason': 'Found %d file%s about %s; the findings page is in Documents' % (total, '' if total == 1 else 's', topic)}
         return {}
@@ -416,7 +416,7 @@ class FilesAbout(base.Profile):
         key = step['key']; words = str(error); plan = state.get('plan') or []; cursor = state.get('cursor', 0); context = state.get('context') or {}
         rest = [dict(s) for s in plan[cursor + 1:]]
         if key == 'where':
-            out = {'waiting': 'Graphite could not ask where Ingress is (%s). Resume goes on with Files alone.' % words}
+            out = {'waiting': 'Kas could not ask where Ingress is (%s). Resume goes on with Files alone.' % words}
             if rest: out['steps'] = rest
             return out
         if key == 'ingress':
@@ -427,7 +427,7 @@ class FilesAbout(base.Profile):
             return out
         if key.startswith('read_'):
             name = step.get('name') or (step.get('arguments') or {}).get('path')
-            return {'waiting': 'Graphite could not read %s (%s). Resume goes on without it.' % (name, words), 'steps': rest or [self.write_step()]}
+            return {'waiting': 'Kas could not read %s (%s). Resume goes on without it.' % (name, words), 'steps': rest or [self.write_step()]}
         if key.startswith('lines_') and 'REVISION_CHANGED' in words: return {'waiting': PAGE_MOVED, 'steps': [self.write_step()]}
         return {'waiting': 'Step %s (%s) did not run: %s' % (key, step.get('purpose') or key, words)}
 

@@ -8,7 +8,7 @@ are unchanged.
 
   python3 -m workbench.version
 """
-NAME = 'Graphite'
+NAME = 'Kas'      # 1.1 R1: the public name (the owner, 28 Nov: "kas only kas"); identifiers keep graphite
 VERSION = '1.1.3'
 SHORT = '1.1.3'
 LINEAGE = ('1.1.3: Night as a phosphor monitor (Amber or Green on near-black, brightness the only hierarchy, inverse video, IBM Plex Mono for the chrome) with CRT effects (burn-in, afterglow, a warm-up line, scanlines, a vignette, a block cursor; Off, Subtle, Full); a quieter bar (one Quick Settings button with the meters; the menus at the left edge).',

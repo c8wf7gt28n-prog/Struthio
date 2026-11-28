@@ -89,7 +89,7 @@ def rc_text(python=None, script=None):
     python = python or sys.executable or 'python3'
     script = script or str(Path(__file__).resolve())
     words = '|'.join(first_words())
-    return r'''# Graphite's Terminal (1.1.1 C0): made by Graphite for its drop-down Terminal only. Your own files are not changed.
+    return r'''# Kas's Terminal (1.1.1 C0): made by Kas for its drop-down Terminal only. Your own files are not changed.
 # Your ~/.bashrc first, as any terminal of yours reads it; then DOS words (dir, copy, del...), which show the Debian command
 # they run and leave it in the line's history. Tools > DOS words: off leaves every line to bash as typed.
 if [ -f "$HOME/.bashrc" ]; then . "$HOME/.bashrc"; fi

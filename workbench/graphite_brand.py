@@ -36,7 +36,7 @@ CAT_DETAIL = GRAPHITE     # the eyes at rest, the pupils, the closed eyes, the p
 CAT_IRIS = PENCIL         # the irises round the graphite pupils on hover and while the programs list is open
 CAT_NOSE = ERASER_MARK    # the nose and the inner ears, always: a small soft eraser pink
 CAT_FOCUS = ERASER_MARK   # keyboard focus: the short mark under the cat
-WORD = 'GRAPHITE'
+WORD = 'KAS'
 
 # The sharpened point, in the boot mockup's own pixels (224 by 177 from its top-left wedge corner).
 MARK_BOX = (224.0, 177.0)

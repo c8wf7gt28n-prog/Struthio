@@ -103,7 +103,7 @@ class StacyFoundationTab(QWidget):
         self.bridge, self.kernel = bridge, bridge.kernel
         self.last_packet = None
         box = QVBoxLayout(self)
-        heading = QLabel('GRAPHITE KNOWLEDGE · foundation')
+        heading = QLabel('KAS KNOWLEDGE · foundation')
         heading.setObjectName('section')
         box.addWidget(heading)
         self.status = QLabel()
@@ -184,7 +184,7 @@ class StacyFoundationTab(QWidget):
         row.addWidget(self.note, 1); box.addLayout(row)
         self.refresh()
 
-    def title(self): return 'Graphite · knowledge'
+    def title(self): return 'Kas · knowledge'
 
     def request(self, operation, args=None):
         result = self.kernel.dispatch(operation, args or {}, operator())
@@ -199,7 +199,7 @@ class StacyFoundationTab(QWidget):
         self.status.setText(f"Seed {state} · {seed['records']} records · {data['registered_operations']} operations · {data['registered_job_tools']} job tools")
         self.status.setToolTip(json.dumps(seed,indent=2))
         self.summary.setPlainText(
-            'GRAPHITE FIRST\n\n' + foundation.OWNER_INTENT + '\n\n'
+            'KAS FIRST\n\n' + foundation.OWNER_INTENT + '\n\n'
             'AVAILABLE IN THIS PASS\n'
             '• Indexed, source-bound knowledge seed with original source references.\n'
             '• Capability schemas with honest missing-input states.\n'

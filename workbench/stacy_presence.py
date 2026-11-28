@@ -32,7 +32,7 @@ class ReactionBubble(QWidget):
 
     def set_words(self, title, detail):
         self.heading.setText(title);self.detail.setText(detail)
-        self.setAccessibleName('Graphite: '+title)
+        self.setAccessibleName('Kas: '+title)
         self.setAccessibleDescription(detail)
         self.adjustSize()
 
@@ -125,7 +125,7 @@ class StacyPresence(QObject):
         if not manual:self.last_automatic=now
         self.last_cue={'title':title,'detail':detail,'manual':manual}
         self.bubble.set_words(title,detail)
-        self.anchor.setAccessibleDescription('Graphite: '+title+' '+detail)
+        self.anchor.setAccessibleDescription('Kas: '+title+' '+detail)
         self.anchor.ticker.setInterval(40 if not self.anchor.reduce_motion() else 80)
         self.tick();self.anchor.update()
         return True

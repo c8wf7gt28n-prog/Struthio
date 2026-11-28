@@ -104,10 +104,10 @@ class FilesTab(QWidget):
         sentence('{new}  ·  {smart}  ·  {work}  ·  {import}  ·  {export}  ·  {view}  ·  {all}', words, self.actions)
         area = parts[:1] == ['Slate'];working = parts[:1] == [WORKING]
         self.copies = {c['work']: c for c in (call(self.host, 'copies.list') or {}).get('copies', []) if c['state'] == 'WORKING'} if working else {}
-        self.lead.setText(("Graphite's area (the Slate folder). Graphite writes here directly; every change keeps the version before it, and deletions go to DELETE."
+        self.lead.setText(("Kas's area (the Slate folder). Kas writes here directly; every change keeps the version before it, and deletions go to DELETE."
                            if area else 'Working copies of files elsewhere in your home folder. Edit them freely: the originals stay as they are '
                            'until you review a copy and choose to update its original.' if working else 'An ordinary folder on this computer: any Debian program can open it too. Deleting moves it to DELETE, '
-                           'and every change Graphite makes keeps the version before it.'))
+                           'and every change Kas makes keeps the version before it.'))
         self.fill()
         hidden = self.listing.get('hidden', 0)
         self.foot.setText(('%d machine file%s hidden.' % (hidden, '' if hidden == 1 else 's')) if hidden and not self.show_all else '')
@@ -160,7 +160,7 @@ class FilesTab(QWidget):
         story = (call(self.host, 'files.story', {'path': e['path']}) or {}).get('events', [])
         rows[2:2] = [('History' if i == 0 else '', when(event['at']) + ' · ' + event['what']) for i, event in enumerate(story[:6])]  # near the top: where it has been
         c = self.copy_for(e['path'])
-        if c:rows[:0] = [('Working copy of', c['source_words']), ('State', c['status']), ('Graphite may edit', 'Yes' if c['for_slate'] else 'No')]
+        if c:rows[:0] = [('Working copy of', c['source_words']), ('State', c['status']), ('Kas may edit', 'Yes' if c['for_slate'] else 'No')]
         return 'Files · ' + e['name'], rows
 
     def tell_inspector(self):
@@ -306,8 +306,8 @@ class FilesTab(QWidget):
         if what.startswith('A folder'):chosen = QFileDialog.getExistingDirectory(self, 'Work on a copy of a folder', str(Path.home()))
         else:chosen, _ = QFileDialog.getOpenFileName(self, 'Work on a copy of a file', str(Path.home()))
         if not chosen:return
-        give = QMessageBox.question(self, 'Work on a copy', 'Graphite keeps the original where it is and makes a working copy in Files.\n\n'
-                                    'May Graphite edit this working copy too? (The original stays yours either way.)')
+        give = QMessageBox.question(self, 'Work on a copy', 'Kas keeps the original where it is and makes a working copy in Files.\n\n'
+                                    'May Kas edit this working copy too? (The original stays yours either way.)')
         r = call_write(self.host, 'copies.start', {'source': chosen, 'for_slate': give == QMessageBox.Yes})
         if not r.get('ok'):QMessageBox.information(self, 'Work on a copy', (r.get('error') or {}).get('message', 'Not started').split(': ', 1)[-1]);return
         self.host.statusBar().showMessage('Working copy made. %s is unchanged.' % r['result']['source_words'], 7000)
@@ -321,7 +321,7 @@ class FilesTab(QWidget):
 
     def slate_on_copy(self, c):
         what, ok = QInputDialog.getText(self, named('Ask Stacy to work on ') + c['name'], 'What should it do? (It works on the copy; you review its revision.)')
-        if ok and what.strip():self.act('agenda.add', {'title': what.strip()[:400], 'copy': c['id']}, "In Graphite's Agenda. Its revision will wait for your review.")
+        if ok and what.strip():self.act('agenda.add', {'title': what.strip()[:400], 'copy': c['id']}, "In Kas's Agenda. Its revision will wait for your review.")
 
     def review_copy(self, c):
         from .compare_qt import show
@@ -411,7 +411,7 @@ class FilesTab(QWidget):
         from .explain import explain
         value = call(self.host, 'files.get', {'path': e['path']}) or {}
         options = (explain(value)['suggestions'] if value else []) + ['Look at ' + e['name'] + ' and tell me what needs attention']
-        choice, ok = QInputDialog.getItem(self, 'Add to the Agenda', 'What Graphite should do (a line runs as written; words wait for its brain):', options, 0, True)
+        choice, ok = QInputDialog.getItem(self, 'Add to the Agenda', 'What Kas should do (a line runs as written; words wait for its brain):', options, 0, True)
         if ok and choice.strip():
             text = choice.strip()
             self.act('agenda.add', {'title': text[:400], **({'program': text} if text.startswith('@') else {})}, 'Added to the Agenda')

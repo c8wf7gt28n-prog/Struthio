@@ -85,7 +85,7 @@ WORDS = {
     'step_of': 'step {n} of {count}',
     'left': '{time} left',
     'answering': 'model answering',
-    'ask': 'ask Kasandra…',
+    'ask': 'ask Kas…',
     'send': 'Send',
     'stop': 'Stop',
     'stopped': 'Stopped “{title}”. Done steps stay done. Nothing new starts.',

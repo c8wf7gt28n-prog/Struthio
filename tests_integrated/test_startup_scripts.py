@@ -117,10 +117,10 @@ class StartupScriptTests(unittest.TestCase):
     def test_text_login_start_reads_back_the_recorded_status_and_exits_with_it(self):
         record=json.dumps(dict(status=3,utc='2026-11-03T00:00:00Z',log=str(self.state/'ledger-slate'/'launch-error.log')))
         result=self.run_unprivileged('START_MINIMAL_DEBIAN.sh',STUB_RECORD=record)
-        self.assertEqual(result.returncode,3,result.stderr);self.assertIn('Graphite ended with status 3 · details: '+str(self.state/'ledger-slate'/'launch-error.log'),result.stdout)
+        self.assertEqual(result.returncode,3,result.stderr);self.assertIn('Kas ended with status 3 · details: '+str(self.state/'ledger-slate'/'launch-error.log'),result.stdout)
         self.assertIn('startx args: '+str(self.prog/'LS_XSESSION.sh')+' --',self.logged())
         result=self.run_unprivileged('START_MINIMAL_DEBIAN.sh',STUB_RECORD=json.dumps(dict(status=0,utc='2026-11-03T00:00:00Z',log=None)))
-        self.assertEqual(result.returncode,0,result.stderr);self.assertIn('Graphite ended with status 0\n',result.stdout);self.assertNotIn('details',result.stdout)
+        self.assertEqual(result.returncode,0,result.stderr);self.assertIn('Kas ended with status 0\n',result.stdout);self.assertNotIn('details',result.stdout)
 
     def test_text_login_start_removes_a_stale_record_and_says_when_nothing_was_recorded(self):
         self.record.parent.mkdir(parents=True);self.record.write_text(json.dumps(dict(status=7,utc='old',log=None)))
@@ -186,7 +186,7 @@ class StartupScriptTests(unittest.TestCase):
             def prepare(app):raise RuntimeError('fixture failure before any window')
         with patch.dict(os.environ,{'XDG_STATE_HOME':str(self.state)}),patch.dict(sys.modules,{'prepare_release':Broken}),patch.object(launch,'alert',lambda title,text:alerts.append((title,text))),contextlib.redirect_stderr(io.StringIO()) as err:
             self.assertEqual(launch.main([]),1)
-        self.assertEqual(alerts[0][0],'Graphite could not start');self.assertIn('Details: '+str(writable),alerts[0][1]);self.assertIn('fixture failure before any window',writable.read_text());self.assertIn('RuntimeError: fixture failure',err.getvalue())
+        self.assertEqual(alerts[0][0],'Kas could not start');self.assertIn('Details: '+str(writable),alerts[0][1]);self.assertIn('fixture failure before any window',writable.read_text());self.assertIn('RuntimeError: fixture failure',err.getvalue())
         alerts.clear()
         with patch.dict(os.environ,{'XDG_STATE_HOME':str(blocker/'state')}),patch.dict(sys.modules,{'prepare_release':Broken}),patch.object(launch,'alert',lambda title,text:alerts.append((title,text))),patch.object(launch,'INSTALL',blocker/'install.json'),contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(launch.main([]),1)

@@ -49,7 +49,7 @@ class ModeTests(unittest.TestCase):
 
     def test_destination_hint_names_the_mode(self):
         assistant = bar.destination_hint('line')      # 1.0 D1: Line
-        self.assertTrue(assistant.startswith('Line · '));self.assertIn('words for Kasandra are offered to her column',assistant)
+        self.assertTrue(assistant.startswith('Line · '));self.assertIn('words for Kas are offered to her column',assistant)
         for hint in bar.HINTS.values():
             for key in ('Enter','Ctrl+','Tab ','Esc'):self.assertNotIn(key,hint,'the line names no key')
         self.assertEqual(bar.destination_hint('stac'),assistant)
@@ -131,7 +131,7 @@ class FilterGrammarTests(unittest.TestCase):
         self.assertEqual((f['hosts'],f['ports'],f['protocols'],f['words'],f['errors']),(['10.0.0.5'],[443],['tcp'],['firefox'],[]))
         f=log.parse_filter('10.0.0.5:8080 :53 udp established proc systemd-resolved example.org 192.168.1.0/24')
         self.assertEqual((f['hosts'],f['names'],f['ports'],f['protocols'],f['states'],f['words']),(['10.0.0.5','192.168.1.0/24'],['example.org'],[8080,53],['udp'],['established'],['systemd-resolved']))
-        self.assertEqual(f['errors'],['names are not looked up (Graphite makes no DNS request): example.org; give its address'],'a name is never looked up, and says so')
+        self.assertEqual(f['errors'],['names are not looked up (Kas makes no DNS request): example.org; give its address'],'a name is never looked up, and says so')
         self.assertEqual(log.parse_filter('localhost')['hosts'],['127.0.0.1','::1'])
         self.assertEqual(log.parse_filter('port 70000')['errors'],['not a port (1 to 65535): 70000'])
         self.assertEqual(log.parse_filter('99999')['errors'],['not a port (1 to 65535): 99999'])
@@ -320,7 +320,7 @@ class LogViewTests(unittest.TestCase):
         and an empty packet list took the room. The reason is as tall as its words in its own scroll (up to NOTE_LINES there,
         the rest by scrolling); while capture is unavailable and nothing is shown the packet list steps aside, and packets bring
         it back."""
-        reason=' '.join(['No capture tool is installed (Graphite captures through dumpcap or tcpdump).']+['To enable capture on Debian: as the administrator, apt install wireshark-common.']*4)
+        reason=' '.join(['No capture tool is installed (Kas captures through dumpcap or tcpdump).']+['To enable capture on Debian: as the administrator, apt install wireshark-common.']*4)
         fake,state=self.network_fake({'state':'UNAVAILABLE','reason':reason});view=log.LogView(host_with({'log_stream':'network'}),fake)
         from PySide6.QtWidgets import QBoxLayout
         for width in (560,1200):
@@ -364,7 +364,7 @@ class LogViewTests(unittest.TestCase):
         fake,state=self.network_fake();view=log.LogView(host_with({'log_stream':'network'}),fake);view.refresh(force=True)
         with patch.object(QMessageBox,'question',return_value=QMessageBox.Yes) as asked:self.assertIsNone(view.start_capture('example.org'))
         self.assertEqual(asked.call_count,0,'nothing to confirm: it would capture nothing');self.assertNotIn('network.capture.start',[op for op,_ in fake.calls])
-        self.assertEqual(view.capture_words.text(),'Not captured');self.assertIn('names are not looked up (Graphite makes no DNS request): example.org',view.capture_note.text())
+        self.assertEqual(view.capture_words.text(),'Not captured');self.assertIn('names are not looked up (Kas makes no DNS request): example.org',view.capture_note.text())
         view.refresh();view.refresh();self.assertIn('names are not looked up',view.capture_note.text(),'it stays while the stream refreshes')
         refusals=iter(['NETWORK_CAPTURE_STOPPING: the last capture is still stopping; try again in a moment.'])
         def refused(operation,arguments,original=fake.__call__):
@@ -384,7 +384,7 @@ class LogViewTests(unittest.TestCase):
     def test_a_proposed_capture_is_shown_for_the_owner(self):
         """A capture Graphite proposed during an assignment (D5 keeps it; only the owner may start one) is shown while capture
         is idle, in D5's words; nothing starts by itself."""
-        words='Graphite proposes capturing packet headers with the filter “port 443” on every interface for 60 seconds (at most 2,000 packets). Only you can start it: Log, Network, type the filter “port 443”, then Capture… in the head row.'
+        words='Kas proposes capturing packet headers with the filter “port 443” on every interface for 60 seconds (at most 2,000 packets). Only you can start it: Log, Network, type the filter “port 443”, then Capture… in the head row.'
         fake,state=self.network_fake({'state':'IDLE','proposal':{'filter':'port 443','words':words}});view=log.LogView(host_with({'log_stream':'network'}),fake);view.refresh(force=True)
         self.assertEqual(view.capture_note.text(),words);self.assertEqual(view.capture_words.text(),'Capture idle')
         self.assertNotIn('network.capture.start',[op for op,_ in fake.calls])
@@ -455,7 +455,7 @@ class LineTests(unittest.TestCase):
                 self.key(text)
             self.assertEqual(self.ran,[('stac','files.list'),('stac','@files:stock.csv | rows')]);self.assertEqual(self.asked,[])
             self.key('show me the files')
-        self.assertEqual(len(self.ran),2,'words are not run');self.assertEqual(self.asked,['show me the files'],'Ask Kasandra → gives them to her')
+        self.assertEqual(len(self.ran),2,'words are not run');self.assertEqual(self.asked,['show me the files'],'Ask Kas → gives them to her')
 
     def test_the_results_go_when_the_line_is_left(self):
         """0.8.2: a line put in the writing line (the right-click's Put it in the writing line) opened its results, and they
@@ -484,7 +484,7 @@ class LineTests(unittest.TestCase):
             self.box.setText('files.list');b.context_kind='stac';b.submit_line()
             self.assertEqual(self.ran,[('stac','files.list')]);self.assertEqual(self.asked,[],'a line that reads as staC is run, not asked about')
             self.box.setText('show me the files');b.context_kind='hers';b.submit_line()
-            self.assertEqual(self.asked,['show me the files']);self.assertEqual(len(self.ran),1,'words go to her (1.0 D1: Ask Kasandra →)')
+            self.assertEqual(self.asked,['show me the files']);self.assertEqual(len(self.ran),1,'words go to her (1.0 D1: Ask Kas →)')
             self.box.setText('   ');b.context_kind='stac';b.submit_line();self.assertEqual(len(self.ran),1,'an empty line does nothing')
 
     def test_up_and_down_walk_the_typed_stac_history_in_line(self):
@@ -508,7 +508,7 @@ class LineTests(unittest.TestCase):
     def test_the_line_offers_stac_for_ctrl_enter_and_search_searches(self):
         with patch('workbench.shell2.call',return_value=None):
             rows=self.box.results('files.list');self.assertEqual(rows[0],('section','A LINE · THE ARROW RUNS IT',None));self.assertEqual(rows[1][0],'stac')
-            self.assertEqual(rows[3][0],'ask','1.0 D1: then Ask Kasandra →');self.assertTrue(rows[3][1].startswith('Ask Kasandra →'))
+            self.assertEqual(rows[3][0],'ask','1.0 D1: then Ask Kas →');self.assertTrue(rows[3][1].startswith('Ask Kas →'))
             words=self.box.results('show me the files')
             self.assertNotIn(('section','A LINE · THE ARROW RUNS IT',None),words);self.assertEqual(words[1][0],'ask','words for her: the offer first')
             self.host.type_target='find';self.host.type_bar.target='find'

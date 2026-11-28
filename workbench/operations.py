@@ -8,7 +8,7 @@ SCOPES={'ledger.operations':'read'}
 # one service sentence from service_lifecycle.SUMMARIES that the snapshot carries beside it (V-05: one phrasing everywhere).
 SERVICES_HELD='Ledger services off'
 AI_HELD='New Slate activity off'
-PUBLIC_REASONS={AI_HELD:'New Graphite AI activity off'}  # GRAPHITE-01: the public words for a machine word
+PUBLIC_REASONS={AI_HELD:'New Kas AI activity off'}  # GRAPHITE-01: the public words for a machine word
 
 
 def tool_words(tool,state=None):

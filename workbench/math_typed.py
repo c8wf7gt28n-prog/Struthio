@@ -329,7 +329,7 @@ def receipt(record, kit):
         lines.append('Guarantee: none claimed, since no end of it was worked out again (an open end, or no end at all).')
     if record.get('obligations'):lines.append('Assumed: every denominator is not zero.' if all(o.get('condition') == 'DENOMINATOR_NONZERO' for o in record['obligations'])
                                              else 'Open: a denominator may be zero over the ranges.')
-    lines.append('Worked out by Graphite in exact fractions from the numbers in this line; no model was asked.')
+    lines.append('Worked out by Kas in exact fractions from the numbers in this line; no model was asked.')
     lines.append(NOT_ADVICE)
     return lines
 

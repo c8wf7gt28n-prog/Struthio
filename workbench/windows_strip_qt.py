@@ -97,7 +97,7 @@ class Hub(QObject):
         platform = QApplication.platformName() if QApplication.instance() is not None else ''
         reason = wx.why_not()
         if reason is None and platform != 'xcb':
-            reason = wx.NO_LIST + ": Graphite's window is not on the X display here (it is drawn %s)" % (
+            reason = wx.NO_LIST + ": the computer's window is not on the X display here (it is drawn %s)" % (
                 'offscreen' if platform == 'offscreen' else 'by ' + (platform or 'no window system'))
         if reason:
             self.state = 'none';self.reason = reason;return
@@ -362,10 +362,10 @@ class WindowStrip(QWidget):
         # Graphite's own dialogs at the right end, apart.
         for w in reversed(self.dialogs):
             key = ('own', id(w));keep.add(key);b = self.entry(key);b.target = w;b.row = None
-            title = w.windowTitle() or 'Graphite'
+            title = w.windowTitle() or 'Kas'
             b.face(title, mark_icon(icon_px), False, w.isMinimized(), icon_px, pad)
             width = min(round(ENTRY_MOST * s * 0.8), b.natural())
-            b.setToolTip("Graphite's own window: %s\nPress to bring it forward." % title);b.setAccessibleName("Graphite's window " + title)
+            b.setToolTip("Kas's own window: %s\nPress to bring it forward." % title);b.setAccessibleName("The computer's window " + title)
             x1 -= width;b.setGeometry(x1, 0, width, h);b.show();x1 -= gap
         self.rule_x = x1 if self.dialogs else None
         if self.dialogs:x1 -= gap * 2

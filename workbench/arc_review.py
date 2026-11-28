@@ -69,7 +69,7 @@ class CandidateReviewTab(QWidget):
         self.explanation.setWordWrap(True);box.addWidget(self.explanation)
         row=QHBoxLayout()
         for title,asset,method in [('Open engineering controls','evidence',host.show_engineering),
-                ('Discuss with Graphite','clip',host.open_clip),('Open current source','c',lambda:host.open_document(self.source_path))]:
+                ('Discuss with Kas','clip',host.open_clip),('Open current source','c',lambda:host.open_document(self.source_path))]:
             button=QPushButton(icon(host.root,asset),title);button.clicked.connect(lambda checked=False,fn=method:self.follow(fn));row.addWidget(button)
         box.addLayout(row)
 

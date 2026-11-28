@@ -70,7 +70,7 @@ class StudyTab(ServiceTab):
         for text,approved in [('Approve procedure',True),('Reject procedure',False)]:b=QPushButton(text);b.clicked.connect(lambda checked=False,a=approved:self.review(a));row.addWidget(b)
         self.procedure_info=QPlainTextEdit();self.procedure_info.setReadOnly(True);self.procedure_info.setMinimumHeight(250);box.addWidget(self.procedure_info,1);self.page(procedure,'2 · Procedure')
         tools=QWidget();box=QVBoxLayout(tools);self.limits=QPlainTextEdit(json.dumps(service.c.DEFAULT,indent=2));self.limits.setMinimumHeight(220);box.addWidget(self.limits)
-        note=QLabel('Limits apply to newly created sessions. Idle pilot: Linux, Graphite focused, no recent input, fresh CPU/RAM/power readings and no other Kernel work. No model tokens or cloud calls.');note.setWordWrap(True);box.addWidget(note)
+        note=QLabel('Limits apply to newly created sessions. Idle pilot: Linux, Kas focused, no recent input, fresh CPU/RAM/power readings and no other Kernel work. No model tokens or cloud calls.');note.setWordWrap(True);box.addWidget(note)
         for text,fn in [('Save study limits',self.save_limits),('Show six feature proposals',lambda:self.call('study.radar',{},self.show_extra)),('Seal private edition',self.export_edition),('Restore private edition',self.restore_edition)]:b=QPushButton(text);b.clicked.connect(fn);box.addWidget(b)
         self.extra=QPlainTextEdit();self.extra.setReadOnly(True);self.extra.setMinimumHeight(260);box.addWidget(self.extra,1);self.page(tools,'3 · Limits / editions');self.outer.addWidget(self.status)
         self.timer=QTimer(self);self.timer.setInterval(700);self.timer.timeout.connect(self.poll);self.timer.start();QTimer.singleShot(0,self.reload)
@@ -108,7 +108,7 @@ class StudyTab(ServiceTab):
             if v['state'] in service.TERMINAL:self.job=None;self.status.setText('Study job '+v['state']);self.load()
         self.call('jobs.get',{'id':self.job},loaded)
     def pause(self):
-        if self.selected():self.call('study.pause',{'id':self.selected(),'reason':'Owner paused the study from Graphite'},lambda v:(self.status.setText('Study paused; committed stages retained.'),self.load()))
+        if self.selected():self.call('study.pause',{'id':self.selected(),'reason':'Owner paused the study from Kas'},lambda v:(self.status.setText('Study paused; committed stages retained.'),self.load()))
     def resume(self):
         if self.selected():self.call('study.resume',{'id':self.selected()},lambda v:(self.status.setText('Resumed from persisted stages. Idle remains separately controlled.'),self.load()))
     def arm(self,enabled):

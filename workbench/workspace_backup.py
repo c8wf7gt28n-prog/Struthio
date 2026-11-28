@@ -160,7 +160,7 @@ def verify(backup):
 def create(root, out, include_models=False):
     root = safe_base(root); profile = safe_base(state_backup.config_dir())
     if locations.contains_program(root) or not locations.marker(root):
-        raise ValueError('Choose a separate Graphite workspace, such as ~/Concern/Office')
+        raise ValueError('Choose a separate Kas workspace, such as ~/Concern/Office')
     if nested(profile, root) or nested(root, profile):
         raise ValueError('Keep the profile and workspace in separate folders before backing up')
     out = fresh(out)

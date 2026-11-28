@@ -50,7 +50,7 @@ class Host(QWidget):
     """A stand-in for Graphite's window: what the bar reads of it."""
 
     def __init__(self):
-        super().__init__();self.setWindowTitle('Graphite');self.resize(1366, 728)
+        super().__init__();self.setWindowTitle('Kas');self.resize(1366, 728)
         self.her_column = SimpleNamespace(shown_state='idle');self._closing = False
 
 
@@ -90,7 +90,7 @@ class TheBar(unittest.TestCase):
         asked.assert_called_once_with(0x600001)
         strip.show_snapshot(dict(snap, active=int(self.host.winId())));pump()
         self.assertTrue(slot.graphite.active)
-        self.assertIn('Graphite (active)', slot.words());self.assertEqual([r['program'] for r in strip.programs], ['XTerm', 'XTerm'])
+        self.assertIn('Computer (active)', slot.words());self.assertEqual([r['program'] for r in strip.programs], ['XTerm', 'XTerm'])
 
     def test_the_trays_quick_settings_opens_the_three_sections_above_it_with_the_machine_pages_own_actions(self):
         tray = self.bar.slot('tray')      # 1.1 B5: one Quick Settings button, one panel with the three sections (was three flyouts)

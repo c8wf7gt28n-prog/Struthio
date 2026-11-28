@@ -32,14 +32,14 @@ class ClipWorkspaceTab(QWidget):
         layout = QVBoxLayout(self)
         header = QHBoxLayout()
         self.portrait = QLabel()
-        self.portrait.setAccessibleName('Graphite, your workspace assistant')
+        self.portrait.setAccessibleName('Kas, your workspace assistant')
         self.portrait.setFixedSize(104, 130)
         self.portrait.setAlignment(Qt.AlignCenter)
         self.portrait.setPixmap(bird_icon(host.root).pixmap(300,300).scaled(
             QSize(104, 130), Qt.KeepAspectRatio, Qt.SmoothTransformation))
         header.addWidget(self.portrait)
         label = QLabel(
-            "GRAPHITE · COMMANDS\nLocal commands use the shared Kernel. Gemini can propose commands for your review."
+            "KAS · COMMANDS\nLocal commands use the shared Kernel. Gemini can propose commands for your review."
         )
         label.setWordWrap(True)
         header.addWidget(label, 1)
@@ -69,24 +69,24 @@ class ClipWorkspaceTab(QWidget):
         button.clicked.connect(self.ask_component)
         layout.addWidget(button)
         self.transcript.setPlainText(
-            "Graphite local commands\nUse /commands to discover the registered operations. /set KEY VALUE changes a validated setting.\n/open brain link · /build struthio.build · /jobs · /tail\nLocal commands need no provider key. Source proposals keep the existing candidate/review workflow.\n"
+            "Kas local commands\nUse /commands to discover the registered operations. /set KEY VALUE changes a validated setting.\n/open brain link · /build struthio.build · /jobs · /tail\nLocal commands need no provider key. Source proposals keep the existing candidate/review workflow.\n"
         )
         host.ledger_bridge.command_finished.connect(self.transcript.appendPlainText)
 
     def title(self):
-        return "Graphite · Engineering conversation"
+        return "Kas · Engineering conversation"
 
     def load_component(self,reference):
         r=self.kernel.dispatch('workshop.component_context',{'component':reference},self.principal)
         if r['ok'] and 'component' in r['result']:
             self.selected_component=r['result']
-            self.transcript.appendPlainText('\nGraphite local source context · '+reference+'\n'+json.dumps(r['result'],indent=2))
+            self.transcript.appendPlainText('\nKas local source context · '+reference+'\n'+json.dumps(r['result'],indent=2))
         elif r['ok']:self.transcript.appendPlainText(r['result'].get('reason') or 'No source context for '+reference)
         else:self.transcript.appendPlainText(r['error']['message'])
 
     def ask_component(self):
         if not self.selected_component:
-            self.transcript.appendPlainText('Choose a component in Brain Link and select Discuss in Graphite.');return
+            self.transcript.appendPlainText('Choose a component in Brain Link and select Discuss in Kas.');return
         if not self.share_component.isChecked():
             self.transcript.appendPlainText('Select the source-sharing checkbox before sending component context.');return
         data=self.selected_component

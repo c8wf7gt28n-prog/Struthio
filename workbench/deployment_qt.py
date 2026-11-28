@@ -74,7 +74,7 @@ class DeploymentTab(QWidget):
   self.actions(box,[('Preview request files',self.preview_request),('Export reviewed request',self.export_request),('Show exchange receipts',lambda:self.run('exchange.list',{}))])
   self.note(box,'Preview lists every pill/1 filename exclusion. Export queues bytes for an explicitly started TLS listener and also creates a USB-transferable .pill. No work is granted by transport.')
   incoming=QFormLayout();box.addLayout(incoming);self.incoming=self.field(incoming,'Received pill','Choose a quarantined .pill file')
-  self.delegate=QCheckBox('Make an accepted request copy available to Graphite');box.addWidget(self.delegate)
+  self.delegate=QCheckBox('Make an accepted request copy available to Kas');box.addWidget(self.delegate)
   self.actions(box,[('Choose & inspect pill',self.inspect_pill),('Accept request as working copy',self.accept),('Stage returned edits for review',self.stage),('Open Changes',lambda:__import__('workbench.change_sets_qt',fromlist=['show']).show(self.host))])
   self.findings=QPlainTextEdit();writing_prompt(self.findings, 'Findings to return with the selected received working copy');self.findings.setMaximumHeight(100);box.addWidget(self.findings)
   self.actions(box,[('Export signed result',lambda:self.run('exchange.return',{'copy':self.copies.currentData(),'findings':self.findings.toPlainText()}))])
@@ -139,18 +139,18 @@ class DeploymentTab(QWidget):
   form=QFormLayout();box.addLayout(form);self.root_path=self.field(form,'Publisher root file');self.root_hash=self.field(form,'Verified root SHA-256');self.bundle_path=self.field(form,'Signed offline bundle')
   self.actions(box,[('Bootstrap verified publisher root',lambda:self.run('releases.trust',{'root':self.root_path.text(),'expected_sha256':self.root_hash.text().strip()})),('Verify & preview update',self.preview_update)])
   self.release_dir=self.field(form,'New or owned release store','A directory outside the program and Office')
-  self.actions(box,[('Prepare closed-Graphite install command',self.install_command)])
-  self.note(box,'Close Graphite and its coordinator before running the command. Installation verifies a full workspace/profile backup, retains the old program, and switches a recoverable program pointer. It does not start code or migrate data. Pointer reversion does not restore data; use a verified backup into new destinations before an incompatible older program.')
+  self.actions(box,[('Prepare the install command for a closed Kas',self.install_command)])
+  self.note(box,'Close Kas and its coordinator before running the command. Installation verifies a full workspace/profile backup, retains the old program, and switches a recoverable program pointer. It does not start code or migrate data. Pointer reversion does not restore data; use a verified backup into new destinations before an incompatible older program.')
 
  def preview_update(self):
-  def ready(value):self.update=value;self.message.setText('Signed metadata and program bytes verified. Inspect the publisher, compatibility and version before closing Graphite to install.')
+  def ready(value):self.update=value;self.message.setText('Signed metadata and program bytes verified. Inspect the publisher, compatibility and version before closing Kas to install.')
   self.run('releases.preview',{'bundle':self.bundle_path.text()},ready)
 
  def install_command(self):
   if not self.update or not self.release_dir.text():self.message.setText('Review an update and choose its release store first.');return
   from .session import config_dir
   command=[sys.executable,'-m','workbench.release_cli','--root',str(self.host.root),'--profile',str(config_dir()),'install',self.update['id'],'--digest',self.update['content_digest'],'--directory',self.release_dir.text()]
-  self.record.setPlainText('Close Graphite and its coordinator, then run from this program directory:\n\n'+shlex.join(command));self.message.setText('Installation command prepared; no program pointer was changed.')
+  self.record.setPlainText('Close Kas and its coordinator, then run from this program directory:\n\n'+shlex.join(command));self.message.setText('Installation command prepared; no program pointer was changed.')
 
  def build_deployment(self):
   box=self.page('Computer & appliance');self.note(box,'Single-computer use remains the default. Prepare launch files for review here; activate them explicitly on the real host. Appliance display, protected workers and physical two-machine operation require their own walkthrough.')

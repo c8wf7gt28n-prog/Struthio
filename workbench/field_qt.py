@@ -75,7 +75,7 @@ KEYS = (('h', 'Move'),
         ('k', 'click\tselect a sheet; a double click opens it; the right button shows what can be done with the sheet under it'),      # 1.0 L4
         ('k', 'drag\tthe ground, or the bars at the edges, to move the surface; Ctrl and the wheel for size'),
         ('k', 'every key\tshown on the surface is a place to click, and does what the key does'),
-        ('k', 'F9\tthe Field, from anywhere in Graphite'),
+        ('k', 'F9\tthe Field, from anywhere in Kas'),
         ('k', 'this\tin the writing strip: the selected sheet (this | count, then Ctrl+Enter)'),
         ('k', 'word\tin the writing strip: word NAME = LINE keeps a line under a word of your own'))
 

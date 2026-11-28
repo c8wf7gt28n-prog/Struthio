@@ -206,15 +206,15 @@ class KeysFromAnyApp(unittest.TestCase):
                     deadline = time.monotonic() + 20
                     while child.poll() is None and time.monotonic() < deadline:app.processEvents();time.sleep(0.01)
                     answers[verb] = (child.returncode, child.stdout.read().strip());child.stdout.close()
-            self.assertEqual(answers['ping'], (0, 'Graphite is here.'))
-            self.assertEqual(answers['show'], (0, 'Graphite is in front.'))
+            self.assertEqual(answers['ping'], (0, 'Kas is here.'))
+            self.assertEqual(answers['show'], (0, 'Kas is in front.'))
             self.assertEqual(answers['screenshot'][0], 0);self.assertIn('Screenshots', answers['screenshot'][1])
-            self.assertEqual(answers['nonsense'][0], 1);self.assertIn('graphite-do knows', answers['nonsense'][1])
+            self.assertEqual(answers['nonsense'][0], 1);self.assertIn('kas-do knows', answers['nonsense'][1])      # 1.1 R1: the command says its new name
             self.assertEqual(door.heard, ['ping', 'show', 'screenshot'], 'an unknown word never reaches the window')
             door.close();self.assertFalse(sock.exists());host.deleteLater()
         out = subprocess.run([sys.executable, '-B', str(ROOT / 'tools' / 'graphite-do'), 'ping'], env=dict(os.environ, GRAPHITE_DO_SOCKET='/nonexistent/x.sock'),
                              capture_output=True, text=True, timeout=30)
-        self.assertEqual(out.returncode, 1);self.assertIn('Graphite is not running here', out.stdout)
+        self.assertEqual(out.returncode, 1);self.assertIn('Kas is not running here', out.stdout)
 
     def test_printscreen_saves_a_picture_into_screenshots_and_says_so(self):
         from PySide6.QtWidgets import QApplication, QMainWindow

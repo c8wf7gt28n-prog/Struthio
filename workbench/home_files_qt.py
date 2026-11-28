@@ -54,7 +54,7 @@ def kernel_of(host):
 def act(host, op, args):
     """A Kernel operation with the owner's principal (your press): its result, or ValueError with its words."""
     kernel = kernel_of(host)
-    if kernel is None:raise ValueError('Graphite\'s Kernel is not open')
+    if kernel is None:raise ValueError('Kas\'s Kernel is not open')
     from .engineering_kernel import operator
     answer = kernel.dispatch(op, args, operator())
     if not answer.get('ok'):
@@ -95,7 +95,7 @@ def changeable(kernel, path):
         files = hr.files_root(kernel)
     if place == files:return '', 'the workspace\'s Files folder itself'
     from .home_trash import holds_graphite
-    if path.is_dir() and not path.is_symlink() and holds_graphite(kernel, place):return '', 'it holds Graphite\'s workspace'
+    if path.is_dir() and not path.is_symlink() and holds_graphite(kernel, place):return '', 'it holds Kas\'s workspace'
     return where, ''
 
 

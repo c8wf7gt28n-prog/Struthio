@@ -386,12 +386,12 @@ class Explorer(QObject):
             field_page.leave_field(host)
         if getattr(host, '_home_active', False):host._close_start()
         if not self.in_front():host.central_stack.setCurrentWidget(self.page)
-        host.setWindowTitle('%s — Graphite' % (Path(self.folder).name or self.folder))
+        host.setWindowTitle('%s — Kas' % (Path(self.folder).name or self.folder))
 
     # ---- reading and showing a folder ----------------------------------------------------------------------------------------
     def read(self, path):
         kernel = kernel_of(self.host)
-        if kernel is None:return None, 'Graphite\'s Kernel is not open yet'
+        if kernel is None:return None, 'Kas\'s Kernel is not open yet'
         from .engineering_kernel import operator
         computer = self.computer();hidden = bool(getattr(computer, 'hidden', False))
         try:answer = kernel.dispatch('ledger.browse', {'path': str(path), 'all': hidden, 'limit': LIMIT}, operator())

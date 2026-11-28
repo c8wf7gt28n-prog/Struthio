@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Graphite
+Upstream-Name: Kas (formerly Graphite)
 Comment: 1.1 PK1. The full rights statement is /usr/lib/graphite/RIGHTS.md, the
  licences of the bundled fonts, artwork and runtimes are in
  /usr/lib/graphite/THIRD_PARTY_NOTICES.md and beside each runtime.

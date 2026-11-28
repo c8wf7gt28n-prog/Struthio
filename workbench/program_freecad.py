@@ -262,7 +262,7 @@ def dispatch(kernel, operation, args, principal):
         if not editor:
             raise ValueError('The FreeCAD editor is unavailable on this host.')
         if not metadata['editor_safe']:
-            raise ValueError('This document declares scripted objects or embedded scripts. Graphite can inspect its stored geometry.')
+            raise ValueError('This document declares scripted objects or embedded scripts. Kas can inspect its stored geometry.')
         path = record_io.project_path(base, name)
         if _source(base, name)['sha256'] != digest:
             raise ValueError('The source changed before handoff. Inspect it again.')

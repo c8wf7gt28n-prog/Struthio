@@ -31,7 +31,7 @@ class NativeProjectTab(ServiceTab):
         for label in ('Open source','Build native project','Boot native game','Inspect'):self.buttons[label].setEnabled(exists)
         self.overview.setHtml('<h1 style="color:#182330">'+html.escape(self.selected() or 'Your next game')+'</h1><p style="color:#182330">'+
             ('An existing native C project. Open its source, build it, then boot it in the host model.' if exists else
-             'Choose a lowercase project name, then Create project. Graphite will make a new example from the SDK template.')+'</p>')
+             'Choose a lowercase project name, then Create project. Kas will make a new example from the SDK template.')+'</p>')
     def inspect(self):
         name=self.selected()
         self.call('native.inspect',{'name':name},lambda r:self.loaded(r) if name==self.selected() else None)

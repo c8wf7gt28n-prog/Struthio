@@ -152,18 +152,18 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(explore_qt.capability_text(spice,False),'ngspice profiles · needs setup')
         self.assertEqual(explore_qt.capability_text(dict(spice,running_jobs=1),True),'ngspice profiles · needs setup · open · 1 running')
         tip=explore_qt.capability_tip(spice);lines=tip.split('\n')
-        self.assertEqual(lines[1],"Opens: Graphite's ngspice checks and controls in a Graphite workspace; ngspice itself is not opened")
-        self.assertTrue(lines[2].startswith('Graphite can: spice.'),lines[2]);self.assertEqual(lines[3],'Needs: ngspice')
+        self.assertEqual(lines[1],"Opens: Kas's ngspice checks and controls in a Kas workspace; ngspice itself is not opened")
+        self.assertTrue(lines[2].startswith('Kas can: spice.'),lines[2]);self.assertEqual(lines[3],'Needs: ngspice')
         self.assertEqual(lines[-4:],['Qualification: not assessed on this host.','Context: none selected','Opening runs no tool.',explore_qt.ROOM_NOTE])
         self.assertIn('Context: My idea · idea',explore_qt.capability_tip(spice,None,{'label':'My idea','role':'idea'}))
         self.assertIn('Context: a thought · working copy',explore_qt.capability_tip(spice,None,{'label':'a thought','role':'working_copy'}))
         self.assertEqual(explore_qt.needs_line(dict(spice,tool_status='Detected · checks remain')),'Prerequisites present (unmeasured)')
         self.assertEqual(explore_qt.needs_line(dict(spice,tool_status='Not assessed')),'Prerequisites: no native profile to check')
-        self.assertEqual(explore_qt.needs_line(dict(spice,tool_status='Use existing controls')),'Prerequisites: none beyond Graphite')
+        self.assertEqual(explore_qt.needs_line(dict(spice,tool_status='Use existing controls')),'Prerequisites: none beyond Kas')
         for entry in rows.values():
             tip=explore_qt.capability_tip(entry,{'state':'READY'});text=explore_qt.capability_text(entry,False,{'state':'READY'})
             self.assertIn('Qualification: not assessed on this host.',tip);self.assertIn('Preview and pins are not replaced',tip)
-            self.assertIn('Opens: '+entry['presentation'],tip);self.assertIn('\nGraphite can: ',tip);self.assertIn('\nOpening runs no tool.',tip)
+            self.assertIn('Opens: '+entry['presentation'],tip);self.assertIn('\nKas can: ',tip);self.assertIn('\nOpening runs no tool.',tip)
             self.assertEqual(text.endswith(' · needs setup') or ' · needs setup · ' in text,entry['tool_status']=='Needs setup',text)
             self.assertNotIn('ready to run',tip)
             for word in (str(len(CAPABILITIES)),str(len(TOOLS)),'registered operations','registered job tools'):self.assertNotIn(word,tip);self.assertNotIn(word,text)
@@ -188,7 +188,7 @@ class LauncherTests(unittest.TestCase):
             self.assertIn('no application window is embedded',rows[key]['presentation'])
         self.assertEqual(rows['office']['presentation_kind'],'operations');self.assertIn('no application window is embedded',rows['office']['presentation'])
         self.assertEqual({k for k,r in rows.items() if r['presentation_kind']=='workspace'},set(rows)-set(PROGRAM_TITLES)-set(PROGRAM_ROOMS)-{'office'})
-        self.assertTrue(all(r['presentation']=='Graphite workspace' for k,r in rows.items() if r['presentation_kind']=='workspace'))
+        self.assertTrue(all(r['presentation']=='Kas workspace' for k,r in rows.items() if r['presentation_kind']=='workspace'))
         # The explain line in Explore's Kind column has a word for every kind.
         self.assertEqual(set(explore_qt.PRESENTATION_WORDS),set(explore.KINDS))
 
@@ -197,10 +197,10 @@ class LauncherTests(unittest.TestCase):
         System menu's row; the old disabled "not in this edition" row is superseded by the owner's brief)."""
         dedicated=hatch_qt.session_exit({'ARC_LEDGER_XSESSION':'1'})
         self.assertEqual(dedicated['label'],'Return to Debian');self.assertTrue(dedicated['dedicated']);self.assertIn('Debian text login',dedicated['tip'])
-        self.assertIn('computer stays on',dedicated['tip']);self.assertEqual(dedicated['scope'],'this Graphite session')
+        self.assertIn('computer stays on',dedicated['tip']);self.assertEqual(dedicated['scope'],'this Kas session')
         for environ in ({},{'ARC_LEDGER_FULLSCREEN':'1'},{'ARC_LEDGER_XSESSION':'0'}):
             plain=hatch_qt.session_exit(environ)
-            self.assertEqual(plain['label'],'Exit Graphite');self.assertFalse(plain['dedicated']);self.assertIn('stays open',plain['tip'])
+            self.assertEqual(plain['label'],'Exit Kas');self.assertFalse(plain['dedicated']);self.assertIn('stays open',plain['tip'])
         with patch.dict(os.environ,{'ARC_LEDGER_XSESSION':'1'}):self.assertEqual(hatch_qt.session_exit()['label'],'Return to Debian')
         self.assertFalse(any(hasattr(hatch_qt,name) for name in ('POWER_ROW','NO_POWER','POWER_WORDS','power_tip')),'the old disabled row is gone')
 
@@ -229,14 +229,14 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(set(lst.rows_by_key),{row[0] for row in explore.VIEWS},'every capability of the Hatch groups, once')
         self.assertEqual(set(button.entries),set(lst.rows_by_key));self.assertIs(lst.explore_row.action,button.explore_action)
         self.assertEqual(programs_qt.order(),[k for k in sorted(lst.rows_by_key,key=lambda k:(programs_qt.PLAIN[k].casefold(),k))])
-        for gone in ('New Idea','New Project','Services','Graphite services','Exit Graphite','Return to Debian','Log out','Restart','Shut down','Recent'):
+        for gone in ('New Idea','New Project','Services','Kas services','Exit Kas','Return to Debian','Log out','Restart','Shut down','Recent'):
             self.assertFalse(any(w.startswith(gone) for w in words),gone)
         objects=list(lst.rows())
         for _ in range(3):self.assertTrue(button.prepare())
         self.assertEqual(lst.rows(),objects,'created once; each opening refills their words')
         icons={row.icon_key for row in objects};self.assertEqual(len(icons),len(objects),'one small icon each');self.assertNotIn('window',icons)
         for key,row in lst.rows_by_key.items():
-            tip=row.toolTip();self.assertIn('Opens: ',tip);self.assertIn('Graphite can: ',tip);self.assertIn('Opening runs no tool.',tip)
+            tip=row.toolTip();self.assertIn('Opens: ',tip);self.assertIn('Kas can: ',tip);self.assertIn('Opening runs no tool.',tip)
             self.assertEqual(row.action.property('title'),next(v[1] for v in explore.VIEWS if v[0]==key),'the catalogue\'s own title stays with the row')
         self.assertEqual((button.accessibleName(),button.toolTip(),lst.accessibleName()),('Open apps','Open apps','Apps'))
         self.assertEqual(self.kernel.listing('jobs'),[]);self.assertEqual(host.status.messages,[])
@@ -284,7 +284,7 @@ class LauncherTests(unittest.TestCase):
         for key in PROGRAM_ROUTES:
             row=rows[key];self.assertTrue(row.isEnabled());self.assertEqual(row.caption,'needs setup',key);self.assertIn('\nNeeds: ',row.toolTip())
         self.assertIn('Needs: kicad-cli',rows['kicad'].toolTip())
-        self.assertIn("Opens: Graphite's KiCad checks and controls in a Graphite workspace; KiCad itself is not opened",rows['kicad'].toolTip())
+        self.assertIn("Opens: Kas's KiCad checks and controls in a Kas workspace; KiCad itself is not opened",rows['kicad'].toolTip())
         self.assertTrue(all('Context: A thought for the doorway · idea' in r.toolTip() for r in rows.values()))
         self.assertEqual(self.kernel.listing('jobs'),[])
 

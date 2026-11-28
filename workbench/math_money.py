@@ -143,7 +143,7 @@ def _rates(rows):
     rates = {}
     for row in rows or ():
         for code in (row['from'], row['to']):
-            if code not in CODES:typed.refuse('UNSUPPORTED', '%s is not a currency code Graphite knows: write the three letters of ISO 4217, such as USD or EUR' % code)
+            if code not in CODES:typed.refuse('UNSUPPORTED', '%s is not a currency code Kas knows: write the three letters of ISO 4217, such as USD or EUR' % code)
         if row['from'] == row['to'] or row['from'] in rates:typed.refuse('UNSUPPORTED', 'Give one rate for each currency, from it to another')
         if not DECIMAL.fullmatch(row['rate']) or rational(row['rate']) <= 0:typed.refuse('UNSUPPORTED', 'Write a rate as a positive exact decimal, such as 1.08')
         rates[row['from']] = (row['to'], rational(row['rate']))
@@ -164,7 +164,7 @@ def _amounts(expression, rates, block):
     out, literals, at = [], {}, 0
     for found in AMOUNT.finditer(expression):
         code = found.group(2)
-        if code not in CODES:typed.refuse('UNSUPPORTED', '%s is not a currency code Graphite knows: write the three letters of ISO 4217, such as USD or EUR' % code)
+        if code not in CODES:typed.refuse('UNSUPPORTED', '%s is not a currency code Kas knows: write the three letters of ISO 4217, such as USD or EUR' % code)
         value, code = _convert(rational(found.group(1)), code, rates, found.group(0), block)
         out.append(expression[at:found.start()]);start = len(''.join(out).encode());text = number_record(value)['decimal']
         out.append(text);literals[(start, start + len(text.encode()))] = code;at = found.end()
@@ -205,7 +205,7 @@ def _spec(args, block):
     for row in args.get('given') or ():
         name, code = row['name'], row.get('currency')
         if name in named:typed.refuse('UNSUPPORTED', 'Give %s one value or one range' % name)
-        if code and code not in CODES:typed.refuse('UNSUPPORTED', '%s is not a currency code Graphite knows: write the three letters of ISO 4217, such as USD or EUR' % code)
+        if code and code not in CODES:typed.refuse('UNSUPPORTED', '%s is not a currency code Kas knows: write the three letters of ISO 4217, such as USD or EUR' % code)
         ends = [rational(row['lo'])] + ([rational(row['hi'])] if 'hi' in row else [])
         if code and not all(DECIMAL.fullmatch(row[k]) for k in ('lo', 'hi') if k in row):typed.refuse('UNSUPPORTED', 'Write an amount as an exact decimal, such as 950.50')
         converted = [_convert(end, code, rates, name, block) for end in ends] if code else [(end, None) for end in ends]

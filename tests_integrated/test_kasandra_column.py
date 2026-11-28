@@ -33,9 +33,9 @@ class Column(unittest.TestCase):
             self.assertIsNone(out['portrait']);self.assertEqual(out['face_inks'], 0);self.assertTrue(out['masthead'])
             # 1.0 P1: her column opens with her head (her portrait over the equalizer, her name, her state); the masthead is
             # kept, out of sight, for what reads it, so its rule is no longer drawn level with the tabs
-            head = out['her_head'];self.assertTrue(head['shown']);self.assertEqual(head['name'], 'Kasandra');self.assertFalse(head['masthead_shown'])
+            head = out['her_head'];self.assertTrue(head['shown']);self.assertEqual(head['name'], 'Kas');self.assertFalse(head['masthead_shown'])
             self.assertLessEqual(head['top'], 12);self.assertEqual(out['pane'], 317)      # 1.1 T1: the pane is what its content needs; with P1's head (no masthead in view) 317, was 354
-            self.assertEqual(out['name'], ['Kasandra', 'Kasandra Elite'])
+            self.assertEqual(out['name'], ['Kas', 'Kasandra Elite'])
             self.assertEqual(out['model_family'], 'Kasandra Elite Mono')
             shown, tip, given = out['model_long']
             self.assertIn('…', shown);self.assertEqual(tip, given);self.assertLess(len(shown), len(given))
@@ -77,7 +77,7 @@ class Column(unittest.TestCase):
             self.assertLessEqual(x + w, size, 'in the head, at its right end');self.assertGreater(x + w, size - 80)      # 1.1 T1: 1.0 S2's ⊕ stands to its right
             lx, ly, lw, lh = apps['logo_rect'];self.assertEqual((lw, lh), (17.0, 24.0));self.assertGreaterEqual(ly, 4, 'clear of the band\'s rule')
             self.assertEqual(out['apps_words'], '[#] Apps \u25be');self.assertFalse(out['apps_words_logo'], 'a logo whose bytes differ is not shown')
-            self.assertTrue(out['window_icon_graphite'], 'the window keeps Graphite\'s sharpened point')
+            self.assertTrue(out['window_icon_graphite'], 'the window keeps Kas\'s sharpened point')
 
     def test_its_neon_follows_the_glow_dial_and_is_none_on_the_clean_desk(self):
         light = self.wide['apps_light']
@@ -108,7 +108,7 @@ class Review(unittest.TestCase):
         self.assertEqual(out['console']['spacing'][1], 0.0, 'the reading profile\'s prose spacing stays off the Terminal')
 
     def test_the_font_report_says_her_face_is_the_default(self):
-        self.assertEqual(self.out['font_report'], ['APPLIED_WITH_FALLBACK', "Kasandra's face (the default)"])
+        self.assertEqual(self.out['font_report'], ['APPLIED_WITH_FALLBACK', "Kas's face (the default)"])
 
     def test_a_name_that_fits_a_line_is_never_cut_at_its_end(self):
         fold = self.out['fold']

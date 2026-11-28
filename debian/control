@@ -1,67 +1,119 @@
-# 1.1 PK1: the Debian packages of Graphite. tools/build_deb.sh reads this file (one stanza per binary package) and
+# 1.1 PK1: the Debian packages of Kas (1.1 R1: renamed from graphite*, the owner, 28 Nov: "kas only kas"). tools/build_deb.sh reads this file (one stanza per binary package) and
 # fills @VERSION@ from workbench/version.py. Depends were checked against Debian 13 (trixie); see
 # wip/2026-11-27_distribution/partial/packaging/NOTES.md section 5.1.
-Source: graphite
+Source: kas-computer
 Section: x11
 Priority: optional
-Maintainer: Graphite packaging <packaging@graphite.invalid>
+Maintainer: Kas packaging <packaging@kas-computer.invalid>
 Rules-Requires-Root: no
 Standards-Version: 4.7.2
+# 1.1 R1: never a bare "kas": Debian 13 has an unrelated package of that name with a higher version. Each kas-* package
+# Provides, Replaces and Breaks its graphite* name, and the graphite* packages below are transitional (they depend on
+# kas-*), so `apt upgrade` from the 1.1.3 graphite* packages moves across. Internal paths keep graphite
+# (/usr/lib/graphite, /usr/share/xsessions/graphite.desktop, user-session=graphite).
 
-Package: graphite
+Package: kas-computer
 Architecture: all
 Section: x11
 Depends: python3 (>= 3.11), python3 (<< 3.14), python3-pyside6.qtcore (>= 6.8.2), python3-pyside6.qtgui,
  python3-pyside6.qtwidgets, python3-pyside6.qtsvg, python3-pyside6.qtdbus, python3-pyside6.qttest,
  python3-pyside6.qtpdf, python3-pyside6.qtpdfwidgets, python3-cryptography (>= 43), python3-pypdf (>= 5.4),
  poppler-utils, procps, libgl1, libegl1, libxkbcommon-x11-0, libxcb-cursor0, fonts-dejavu-core, xdg-utils
-Recommends: graphite-session, graphite-llama-runtime, python3-pyside6.qtmultimedia,
+Provides: graphite (= @VERSION@)
+Replaces: graphite (<< @VERSION@)
+Breaks: graphite (<< @VERSION@)
+Recommends: kas-session, kas-llama-runtime, python3-pyside6.qtmultimedia,
  python3-pyside6.qtmultimediawidgets, python3-docx, at-spi2-core
-Suggests: graphite-desktop, python3-sympy, python3-z3, python3-pyside6.qtwebenginewidgets, bubblewrap,
+Suggests: kas-desktop, python3-sympy, python3-z3, python3-pyside6.qtwebenginewidgets, bubblewrap,
  libreoffice-calc, libreoffice-writer, python3-uno
-Description: local-first desktop workspace with an assistant (Kasandra)
- Graphite is a desktop for one Debian computer: files, apps, the machine and
- its settings in one window, with Kasandra (Kas), an assistant that proposes
- and waits for the owner's press before anything changes.
+Description: local-first desktop for Debian with an assistant, Kas
+ Kas is a desktop for one Debian computer: files, apps, the machine and its
+ settings in one window, with Kas, an assistant that proposes and waits for
+ the owner's press before anything changes. The window is kas-computer.
  .
  The program lives in /usr/lib/graphite; the workspace and settings stay in
  the user's home and are never touched by installing or removing it.
 
-Package: graphite-llama-runtime
+Package: kas-llama-runtime
 Architecture: amd64
 Section: misc
-Depends: graphite (= @VERSION@), libgomp1, libssl3t64, libstdc++6, zlib1g, libzstd1, libvulkan1
+Depends: kas-computer (= @VERSION@), libgomp1, libssl3t64, libstdc++6, zlib1g, libzstd1, libvulkan1
+Provides: graphite-llama-runtime (= @VERSION@)
+Replaces: graphite-llama-runtime (<< @VERSION@)
+Breaks: graphite-llama-runtime (<< @VERSION@)
 Recommends: mesa-vulkan-drivers
-Description: bundled llama.cpp runtime for Graphite's assistant
- The prebuilt llama.cpp b12359 archives (CPU and Vulkan builds) that Graphite
+Description: bundled llama.cpp runtime for Kas
+ The prebuilt llama.cpp b12359 archives (CPU and Vulkan builds) that Kas
  unpacks into the user's profile when a local model is chosen. Kept apart so
- that the graphite package stays small. No model is included.
+ that the kas-computer package stays small. No model is included.
 
-Package: graphite-session
+Package: kas-session
 Architecture: all
 Section: x11
-Depends: graphite (= @VERSION@), xserver-xorg, xinit, fluxbox, x11-xserver-utils, xauth,
+Depends: kas-computer (= @VERSION@), xserver-xorg, xinit, fluxbox, x11-xserver-utils, xauth,
  dbus-user-session | dbus-x11, libpam-systemd, network-manager, wpasupplicant, wireless-regdb, libgl1-mesa-dri,
  udisks2, eject, upower, pipewire, pipewire-pulse, wireplumber, alsa-ucm-conf, alsa-topology-conf, xsecurelock,
  lxpolkit, polkitd, x11-utils, at-spi2-core, python3-pyatspi, librsvg2-common, xterm, libglib2.0-bin
+Provides: graphite-session (= @VERSION@)
+Replaces: graphite-session (<< @VERSION@)
+Breaks: graphite-session (<< @VERSION@)
 Recommends: xdg-user-dirs, packagekit, accountsservice
-Description: Graphite as the whole session
- The X session entry a display manager shows as "Graphite"
- (/usr/share/xsessions/graphite.desktop, running graphite-session, the
- session supervisor with Fluxbox), and graphite-startx, which starts the same
+Description: Kas as the whole session
+ The X session entry a display manager shows as "Kas"
+ (/usr/share/xsessions/graphite.desktop, running kas-session, the
+ session supervisor with Fluxbox), and kas-startx, which starts the same
  session from the text console as before. Depends on the system services the
  desktop uses: drives, sound, Wi-Fi, the battery, Lock and permission prompts.
 
-Package: graphite-desktop
+Package: kas-desktop
 Architecture: all
 Section: metapackages
-Depends: graphite (= @VERSION@), graphite-session (= @VERSION@)
+Depends: kas-computer (= @VERSION@), kas-session (= @VERSION@)
+Provides: graphite-desktop (= @VERSION@)
+Replaces: graphite-desktop (<< @VERSION@)
+Breaks: graphite-desktop (<< @VERSION@)
 Recommends: lightdm, lightdm-gtk-greeter, firmware-linux-free, firmware-amd-graphics, firmware-iwlwifi,
  firmware-realtek, amd64-microcode, intel-microcode
 Suggests: firefox-esr, cups, system-config-printer, bluez, fonts-liberation, hunspell-en-us, 7zip
-Description: Graphite with a graphical login (metapackage)
- Installs Graphite and its session and recommends LightDM with its GTK
- greeter, configured (user-session=graphite) to start the Graphite session
+Description: Kas with a graphical login (metapackage)
+ Installs Kas and its session and recommends LightDM with its GTK
+ greeter, configured (user-session=graphite) to start the Kas session
  after the login screen. Firmware and microcode are only recommended.
  Removing lightdm returns the computer to the text console, where
- graphite-startx still starts Graphite.
+ kas-startx still starts Kas.
+
+# 1.1 R1: transitional, one release: the old name moves to kas-computer on `apt upgrade`; it may then be removed.
+Package: graphite
+Architecture: all
+Section: oldlibs
+Depends: kas-computer (= @VERSION@)
+Description: transitional package: graphite is now kas-computer
+ This package moves the desktop (Kas, formerly named Graphite) to its new name,
+ kas-computer. It holds no files and can be removed safely.
+
+# 1.1 R1: transitional, one release: the old name moves to kas-llama-runtime on `apt upgrade`; it may then be removed.
+Package: graphite-llama-runtime
+Architecture: all
+Section: oldlibs
+Depends: kas-llama-runtime (= @VERSION@)
+Description: transitional package: graphite-llama-runtime is now kas-llama-runtime
+ This package moves the bundled llama.cpp runtime (Kas, formerly named Graphite) to its new name,
+ kas-llama-runtime. It holds no files and can be removed safely.
+
+# 1.1 R1: transitional, one release: the old name moves to kas-session on `apt upgrade`; it may then be removed.
+Package: graphite-session
+Architecture: all
+Section: oldlibs
+Depends: kas-session (= @VERSION@)
+Description: transitional package: graphite-session is now kas-session
+ This package moves the whole session (Kas, formerly named Graphite) to its new name,
+ kas-session. It holds no files and can be removed safely.
+
+# 1.1 R1: transitional, one release: the old name moves to kas-desktop on `apt upgrade`; it may then be removed.
+Package: graphite-desktop
+Architecture: all
+Section: oldlibs
+Depends: kas-desktop (= @VERSION@)
+Description: transitional package: graphite-desktop is now kas-desktop
+ This package moves the graphical login (Kas, formerly named Graphite) to its new name,
+ kas-desktop. It holds no files and can be removed safely.

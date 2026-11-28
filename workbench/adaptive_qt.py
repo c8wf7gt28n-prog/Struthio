@@ -122,7 +122,7 @@ class AdaptivePane(QWidget):
                 row=self.inputs.rowCount();self.inputs.insertRow(row)
                 for col,text in enumerate((name,'','','s')):self.inputs.setItem(row,col,QTableWidgetItem(text))
                 self.inputs.item(row,0).setFlags(self.inputs.item(row,0).flags()&~Qt.ItemIsEditable)
-        finding=state.get('finding');self.detail.setPlainText('Graphite proposes:\n'+finding['text']+'\n\nUnreviewed interpretation; actual observation identities remain available.' if finding else 'Right-click an actual observation to inspect its retained receipt.')
+        finding=state.get('finding');self.detail.setPlainText('Kas proposes:\n'+finding['text']+'\n\nUnreviewed interpretation; actual observation identities remain available.' if finding else 'Right-click an actual observation to inspect its retained receipt.')
         if state['state']=='READY':self.timer.start()
         else:self.timer.stop()
 
@@ -194,7 +194,7 @@ class AdaptivePane(QWidget):
             decision=next((d for d in self.current['decisions'] if d['id']==branch['decision']),None)
             if decision:
                 updates=[u for u in decision['candidate']['updates'] if u['candidate']==branch['key']]
-                action=menu.addAction('Why Graphite changed this alternative');action.triggered.connect(lambda:self.detail.setPlainText(json.dumps({'interpretations':updates,'authority':'Model proposal for its recorded case; inspect the actual observations.'},indent=2)))
+                action=menu.addAction('Why Kas changed this alternative');action.triggered.connect(lambda:self.detail.setPlainText(json.dumps({'interpretations':updates,'authority':'Model proposal for its recorded case; inspect the actual observations.'},indent=2)))
         if branch.get('observations'):
             aliases={'O'+str(i+1):o for i,o in enumerate(self.current['observations'])}
             observations=[aliases[a] for a in dict.fromkeys(branch['observations']) if a in aliases]

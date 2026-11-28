@@ -101,7 +101,7 @@ def last_position(db, owner):
 
 def item(row):
     value = dict(row)
-    value['origin_words'] = 'Graphite suggested' if value['origin'] == 'slate' else 'you added'
+    value['origin_words'] = 'Kas suggested' if value['origin'] == 'slate' else 'you added'
     return value
 
 
@@ -135,7 +135,7 @@ def kernel_rows(kernel, principal):
         from . import files_service
         with files_service.opened(kernel) as db:
             for row in db.execute("SELECT id, path, why FROM files_proposals WHERE owner=? AND state='WAITING' ORDER BY at", (principal.identity,)):
-                rows['waiting'].append({'kind': 'proposal', 'id': row['id'], 'title': 'Change ' + row['path'], 'reason': 'Graphite proposed it: ' + row['why'],
+                rows['waiting'].append({'kind': 'proposal', 'id': row['id'], 'title': 'Change ' + row['path'], 'reason': 'Kas proposed it: ' + row['why'],
                                         'path': row['path']})
     except (OSError, ValueError, sqlite3.Error):pass
     return rows
@@ -188,7 +188,7 @@ def view(kernel, principal, clock=None):
                      'continuing_work_authority':'SEPARATE_EXACT_OWNER_GRANT'}}
     out['waiting'] = [{'kind': 'watch', 'id': r['id'], 'title': 'A watched question changed: ' + r['title'][:120], 'reason': r['outcome'], 'program': r['program']}
                       for r in rows if r.get('watch') and r.get('changed')] + out['waiting']
-    if out['suggested']:out['waiting'] = out['waiting'] + [{'kind': 'suggestions', 'title': '%d suggestion%s from Graphite' % (
+    if out['suggested']:out['waiting'] = out['waiting'] + [{'kind': 'suggestions', 'title': '%d suggestion%s from Kas' % (
         len(out['suggested']), '' if len(out['suggested']) == 1 else 's'), 'reason': 'Add them to Next, or say not now.'}]
     out['counts'] = {k: len(out[k]) for k in ('now', 'next', 'waiting', 'later', 'suggested')}
     return out
@@ -208,9 +208,9 @@ def add(kernel, args, principal, origin='you', parent=None, why='', state=None):
         from . import working_copies
         with working_copies.opened(kernel) as cdb:
             c = working_copies.the_copy(cdb, args['copy'])
-        if not c['for_slate'] or c['state'] != 'WORKING':raise ValueError('AGENDA_COPY_NOT_GIVEN: give Graphite this working copy first')
-        if (c['kind'] or 'file') != 'file':raise ValueError('AGENDA_COPY_ONE_FILE: Graphite rewrites one file at a time')
-        if args.get('program'):raise ValueError('AGENDA_COPY_IN_WORDS: say in words what Graphite should do with the copy')
+        if not c['for_slate'] or c['state'] != 'WORKING':raise ValueError('AGENDA_COPY_NOT_GIVEN: give Kas this working copy first')
+        if (c['kind'] or 'file') != 'file':raise ValueError('AGENDA_COPY_ONE_FILE: Kas rewrites one file at a time')
+        if args.get('program'):raise ValueError('AGENDA_COPY_IN_WORDS: say in words what Kas should do with the copy')
     with opened(kernel) as db:
         if when.get('after'):owned(db, when['after'], principal.identity)
         ident = uuid.uuid4().hex;clock = time.time()
@@ -379,7 +379,7 @@ def ask_slate(kernel, db, row, principal, clock):
     if not brain.get('ok') or (brain.get('result') or {}).get('state') != 'READY':
         db.execute("UPDATE agenda_items SET due=?, reason=?, updated=? WHERE id=?",
                    (clock + RETRY_AFTER, named("Waiting for Stacy's brain: choose a model in Brain, and she will take it up."), clock, row['id']))
-        return {'ran': None, 'reason': 'Graphite has no brain running for a question in words.'}
+        return {'ran': None, 'reason': 'Kas has no brain running for a question in words.'}
     asked = kernel.dispatch('brain.ask', {'message': row['title'], 'mode': 'plan'},
                             Principal(principal.identity, frozenset({'read', 'execute'}), principal.paths, principal.tools, principal.mode))
     if not asked.get('ok'):
@@ -401,7 +401,7 @@ def work_on_copy(kernel, db, row, principal, clock):
     if not brain.get('ok') or (brain.get('result') or {}).get('state') != 'READY':
         db.execute("UPDATE agenda_items SET due=?, reason=?, updated=? WHERE id=?",
                    (clock + RETRY_AFTER, named("Waiting for Stacy's brain: choose a model in Brain, and she will take it up."), clock, row['id']))
-        return {'ran': None, 'reason': 'Graphite has no brain running to work on the copy.'}
+        return {'ran': None, 'reason': 'Kas has no brain running to work on the copy.'}
     with working_copies.opened(kernel) as cdb:c = working_copies.the_copy(cdb, row['copy'])
     data = (files_service.root(kernel) / c['work']).read_bytes()
     if str(c['work']).lower().endswith('.xlsx'):  # a workbook: he sees its cells and answers with only the cells to change
@@ -420,10 +420,10 @@ def work_on_copy(kernel, db, row, principal, clock):
         db.execute("UPDATE agenda_items SET state='RUNNING', job=?, due=NULL, reason=NULL, updated=? WHERE id=?", (job, clock, row['id']))
         return {'ran': row['id'], 'state': 'RUNNING', 'job': job, 'authority': ['read', 'execute']}
     if b'\x00' in data[:8192] or len(data) > COPY_TEXT * 2:
-        finish(db, row, 'FAILED', 'Graphite rewrites text files up to about %d characters; this one is not.' % COPY_TEXT);return {'ran': row['id'], 'state': 'FAILED'}
+        finish(db, row, 'FAILED', 'Kas rewrites text files up to about %d characters; this one is not.' % COPY_TEXT);return {'ran': row['id'], 'state': 'FAILED'}
     text = data.decode('utf-8', 'replace')
     if len(text) > COPY_TEXT:
-        finish(db, row, 'FAILED', 'Graphite rewrites text files up to about %d characters; this one is longer.' % COPY_TEXT);return {'ran': row['id'], 'state': 'FAILED'}
+        finish(db, row, 'FAILED', 'Kas rewrites text files up to about %d characters; this one is longer.' % COPY_TEXT);return {'ran': row['id'], 'state': 'FAILED'}
     message = ('Work on the file %s as asked: %s\nReply with the whole new file, and nothing else, between a line %s and a line ```.\n\n%s\n%s\n```'
                % (Path(c['source']).name, row['title'], FENCE, FENCE, text))
     asked = kernel.dispatch('brain.ask', {'message': message[:8000], 'mode': 'chat'},
@@ -442,11 +442,11 @@ def finish_copy(kernel, db, row, principal, text):
     with working_copies.opened(kernel) as cdb:c0 = working_copies.the_copy(cdb, row['copy'])
     if str(c0['work']).lower().endswith('.xlsx'):return finish_cells(kernel, db, row, principal, text, c0)
     start = text.find(FENCE)
-    if start < 0:finish(db, row, 'FAILED', "Graphite's answer did not contain a whole file, so nothing was changed.");return
+    if start < 0:finish(db, row, 'FAILED', "Kas's answer did not contain a whole file, so nothing was changed.");return
     body = text[start + len(FENCE):]
     body = body[2:] if body.startswith('\r\n') else body[1:] if body.startswith('\n') else body  # the line break after the fence
     end = body.rfind('```')
-    if end < 0:finish(db, row, 'FAILED', "Graphite's answer did not close the file, so nothing was changed.");return
+    if end < 0:finish(db, row, 'FAILED', "Kas's answer did not close the file, so nothing was changed.");return
     body = body[:end]
     slate = Principal(principal.identity, frozenset({'read', 'execute'}), principal.paths, principal.tools, principal.mode)
     with working_copies.opened(kernel) as cdb:c = working_copies.the_copy(cdb, row['copy'])
@@ -463,9 +463,9 @@ def finish_cells(kernel, db, row, principal, text, c):
     from .engineering_kernel import Principal
     from . import sheet_edit
     start = text.find(sheet_edit.FENCE)
-    if start < 0:finish(db, row, 'FAILED', "Graphite's answer did not list cells to change, so nothing was changed.");return
+    if start < 0:finish(db, row, 'FAILED', "Kas's answer did not list cells to change, so nothing was changed.");return
     body = text[start + len(sheet_edit.FENCE):].lstrip('\r\n');end = body.rfind('```')
-    if end < 0:finish(db, row, 'FAILED', "Graphite's answer did not close the list of cells, so nothing was changed.");return
+    if end < 0:finish(db, row, 'FAILED', "Kas's answer did not close the list of cells, so nothing was changed.");return
     slate = Principal(principal.identity, frozenset({'read', 'execute'}), principal.paths, principal.tools, principal.mode)
     wrote = kernel.dispatch('files.cells', {'path': c['work'], 'changes': body[:end]}, slate)
     if not wrote.get('ok'):finish(db, row, 'FAILED', (wrote.get('error') or {}).get('message', 'could not change the cells'));return

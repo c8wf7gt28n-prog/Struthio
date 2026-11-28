@@ -46,7 +46,7 @@ def open_line(path):
     if route == 'bridge':
         bridge = getattr(program, 'bridge', '') or 'its bridge'
         return ('/appfile.open path=%s' % shlex.quote(str(target)),
-                'Open goes through Graphite\'s own %s bridge (%s), not a command line: this is the Kernel\'s operation that does it.' % (name, bridge))
+                'Open goes through Kas\'s own %s bridge (%s), not a command line: this is the Kernel\'s operation that does it.' % (name, bridge))
     if route != 'app' or app is None:
         why = str(reason or 'no app here says it opens this').split(':')[0].strip()
         return '', 'Open asks you to choose an app (Open with): %s.' % why
@@ -67,13 +67,13 @@ def lines_for(path):
     path = Path(path);out = []
     if path.is_dir():
         out.append(dict(title='What it is', line=graphite_line(path),
-                        words='As a Graphite line: Enter on it in the bar\'s line lists this folder on the line page.'))
+                        words='As a Kas line: Enter on it in the bar\'s line lists this folder on the line page.'))
         out.append(dict(title='In the Terminal', line='cd %s' % shlex.quote(str(path)), words='Goes there in the Terminal (DOS\'s cd too).'))
         return out
     line, words = open_line(path)
     out.append(dict(title='What Open runs', line=line, words=words))
     out.append(dict(title='What it is', line=graphite_line(path),
-                    words='As a Graphite line: Enter on it in the bar\'s line reads it on the line page.'))
+                    words='As a Kas line: Enter on it in the bar\'s line reads it on the line page.'))
     return out
 
 

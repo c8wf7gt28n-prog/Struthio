@@ -1,6 +1,6 @@
-# Graphite 1.0 · your first evening on the ThinkPad
+# Kas 1.0 · your first evening on the ThinkPad
 
-**Built, not tested.** By your rule ("No testing") nothing in Graphite 1.0 has been through a test, a tier or a window
+**Built, not tested.** By your rule ("No testing") nothing in Kas 1.0 has been through a test, a tier or a window
 check, and nothing of it has run on your ThinkPad. It was built in a cloud machine with no screen, no USB port, no sound,
 no Wi-Fi, no suspend and no Radeon, and seen working there offscreen and against stand-ins. **The first real proof of
 1.0 is this evening.** Whatever you see that differs from this page is a result: photograph it and send it.
@@ -9,7 +9,7 @@ The evening has five parts. Each step says what to do, what you should see, and 
 numbered; name each file by its number (for example `photo-07.jpg`).
 
 1. **Install from the kit** (about 30 minutes).
-2. **Graphite as the computer, with no model**: your paper, section 2 (about 45 minutes).
+2. **Kas as the computer, with no model**: your paper, section 2 (about 45 minutes).
 3. **Her model**: the 35B with its MTP head, the model check and its tuning (60 to 90 minutes, most of it waiting).
 4. **The day**: your paper, section 18, on Rail Demo, with her model ready (about 45 minutes).
 5. **Leave, and what to send back** (about 15 minutes).
@@ -22,7 +22,7 @@ stick with a few ordinary files on it (not the kit's drive).
 
 **Where the details are.** `docs/THINKPAD_FIRST_INSTALL.md` (the ThinkPad page: the install, the model file, the console
 route if the screen stops answering) and `docs/MINIMAL_DEBIAN_INSTALL_01.md` (the dedicated session). This page points to
-them rather than repeating them. In Graphite, Help ▸ The Living Desktop and Help ▸ Kasandra, the Ghost in the Shell say
+them rather than repeating them. In Kas, Help ▸ The Living Desktop and Help ▸ Kas, the Ghost in the Shell say
 what each part of the window is.
 
 ---
@@ -46,7 +46,7 @@ bash INSTALL_GRAPHITE.sh --system      # as root: install them (PREPARE_DEBIAN.s
 4. From your ordinary account, in the same `App` folder:
 
    ```sh
-   bash INSTALL_GRAPHITE.sh               # installs Graphite 1.0 into a new folder under ~/Applications
+   bash INSTALL_GRAPHITE.sh               # installs Kas 1.0 into a new folder under ~/Applications
    ```
 
    The installer names the folder it made (`~/Applications/Graphite-1.0`). Your 0.8.x folders and your workspace stay as
@@ -64,21 +64,21 @@ files were byte-identical afterwards. A task Kas left running in 0.8.7 shows in 
 Keep the backup above all the same.
 
 **The cold start, and stalls.** Note how long the first start takes from the start command to the window (a photo of a
-clock at each end is enough); here it was 5 to 6 seconds. To let Graphite measure itself, start it once with its stall
+clock at each end is enough); here it was 5 to 6 seconds. To let Kas measure itself, start it once with its stall
 log:
 
 ```sh
 GRAPHITE_STALL_LOG="$HOME/graphite-stalls.txt" bash "$HOME/Applications/Graphite-1.0/START_MINIMAL_DEBIAN.sh"
 ```
 
-Every moment the window does not answer for more than a tenth of a second is written there, with the part of Graphite
+Every moment the window does not answer for more than a tenth of a second is written there, with the part of Kas
 that held it. Send that file back with the rest.
 
-## Part 2 · Graphite as the computer, with no model (your paper, section 2)
+## Part 2 · Kas as the computer, with no model (your paper, section 2)
 
 Your paper's test: start the machine without a model, open two unrelated apps, exchange material between them, connect a
-USB drive, suspend and resume, then return to the console deliberately. And 1.0's own promise beside it: if Graphite's
-window ends, your apps stay open and Graphite comes back.
+USB drive, suspend and resume, then return to the console deliberately. And 1.0's own promise beside it: if Kas's
+window ends, your apps stay open and Kas comes back.
 
 ### 2.1 Start
 
@@ -88,9 +88,9 @@ From the text login:
 bash "$HOME/Applications/Graphite-1.0/START_MINIMAL_DEBIAN.sh"
 ```
 
-You should see: the window in **Day** (light, calm), with one line saying that Graphite 1.0 starts in Day and that your
+You should see: the window in **Day** (light, calm), with one line saying that Kas 1.0 starts in Day and that your
 earlier look is in View ▸ Appearance; HALT upper left; the menus File, Edit, View, Go, Tools, Help; Apps ⊕ at the head's
-right; Files on the left, Quick access first, with Home chosen and open as a List in the centre; Kasandra's column on the right with the equalizer across
+right; Files on the left, Quick access first, with Home chosen and open as a List in the centre; Kas's column on the right with the equalizer across
 its top and no picture of her; at the foot Line · Terminal · Search · Web · Log and the meters CPU GPU RAM TXT NET; and the
 bar along the very bottom (Start, the line, the windows, Kas, the tray, the clock).
 
@@ -106,13 +106,13 @@ shows ● with a model ready, stop the model in the Brain room (the GPU meter's 
 2. Open LibreOffice Writer, then a second app that is not LibreOffice (a text editor, Firefox, an image viewer: whatever
    Apps lists). If only LibreOffice is installed, use Writer and Calc, and say so.
 3. The bar shows both windows with their titles, the active one marked. Press each on the bar: it comes forward. Press
-   the bar's Graphite entry: Graphite comes back. **Photo 4:** the bar with both apps.
+   the bar's Kas entry: Kas comes back. **Photo 4:** the bar with both apps.
 4. Exchange material: copy a passage from one app and paste it into the other (each app's own Edit menu); then save a
    file in one and open the saved file in the other. Say whether both ways worked.
-5. In Graphite, find the saved file in Files (under Home), right-click it, Open with: the apps that take that kind of file
+5. In Kas, find the saved file in Files (under Home), right-click it, Open with: the apps that take that kind of file
    are listed, the default first.
 
-### 2.3 Graphite comes back; your apps stay
+### 2.3 Kas comes back; your apps stay
 
 With both apps still open, choose Terminal at the foot and run:
 
@@ -120,8 +120,8 @@ With both apps still open, choose Terminal at the foot and run:
 pkill --oldest --signal KILL --full workbench.launch
 ```
 
-This ends Graphite's window the hard way, as a crash would. You should see: Graphite's window gone for a few seconds, then
-back, with a line saying it was started again; both apps still open, their windows untouched. **Photo 5:** Graphite back,
+This ends the computer's window the hard way, as a crash would. You should see: the computer's window gone for a few seconds, then
+back, with a line saying it was started again; both apps still open, their windows untouched. **Photo 5:** Kas back,
 with the line, and the bar with both apps.
 
 ### 2.4 A USB drive
@@ -136,9 +136,9 @@ with the line, and the bar with both apps.
 
 1. From the foot of the **File** menu: the session group reads Lock, Suspend, Log out, Restart, Shut down, Return to
    Debian. **Photo 8:** the File menu open.
-2. Choose **Lock** first: the screen locker shows; type your password into it (never into Graphite); you are back.
+2. Choose **Lock** first: the screen locker shows; type your password into it (never into Kas); you are back.
 3. Choose **Suspend**: the screen locks first, then the computer sleeps. Wake it, type your password into the locker.
-   You should see Graphite and your open apps exactly as they were. **Photo 9:** after the wake.
+   You should see Kas and your open apps exactly as they were. **Photo 9:** after the wake.
 
 ### 2.6 A few minutes in the Machine (if you can)
 
@@ -147,7 +147,7 @@ Each is optional; take a photo of whatever reads wrong.
 - **Power:** the battery and the mains read correctly.
 - **Network:** the Wi-Fi networks listed; NET at the foot reads ● online. With Wi-Fi as your only connection, turning it
   off makes NET read ⊘ offline.
-  Joining a network asks for its password in Graphite's page, and the system's network service keeps it.
+  Joining a network asks for its password in Kas's page, and the system's network service keeps it.
 - **Sound:** the volume and mute change the real sound.
 - **Screens:** with a second screen plugged in, mirror or extend; the change goes back by itself after 15 seconds unless
   you press Keep.
@@ -155,9 +155,9 @@ Each is optional; take a photo of whatever reads wrong.
 
 ### 2.7 Return to the console
 
-Choose **Return to Debian** at the foot of the File menu with an app still open. You should see Graphite name the apps
+Choose **Return to Debian** at the foot of the File menu with an app still open. You should see Kas name the apps
 still open and ask each to close politely (an app may ask you to save; nothing is killed). **Photo 10:** that question.
-Then the text console, with `Graphite ended with status 0` and a line saying how many times Graphite was started again in
+Then the text console, with `Kas ended with status 0` and a line saying how many times Kas was started again in
 this session (one, from 2.3). **Photo 11:** the console.
 
 ## Part 3 · Her model
@@ -165,12 +165,12 @@ this session (one, from 2.3). **Photo 11:** the console.
 ### 3.1 The 35B with its MTP head
 
 The model file that carries its own multi-token prediction head, its exact name, size and checksum are on the ThinkPad
-page, `docs/THINKPAD_FIRST_INSTALL.md`, section "The first evening with the model (Graphite 1.0)". Download it on a
+page, `docs/THINKPAD_FIRST_INSTALL.md`, section "The first evening with the model (Kas 1.0)". Download it on a
 computer with the network, check its checksum with `sha256sum` before anything else, and copy it to the ThinkPad. If you
 do not have it, the 35B file you used with 0.8.7 does for everything here; the card will then say that multi-token
 prediction was not tried.
 
-Start Graphite again (2.1). In the **Brain room** (the GPU meter's card at the foot): **Add file**, choose the model, and
+Start Kas again (2.1). In the **Brain room** (the GPU meter's card at the foot): **Add file**, choose the model, and
 select it in the list. A new model file is a new model to her: her exam is sat again for it in the check below. Her
 column should show ● beside her name, with the model's name. **Photo 12:** the Brain room with the model ready, its
 runtime line naming llama.cpp b12359.
@@ -243,7 +243,7 @@ the answer claims.
    goal "Settled power is at most the settled power limit" rests on its row 2; the wire from its PDF names page 1, the
    version and the source's SHA-256). A dashed wire says "possible · not verified". **Photo 16:** the board with a wire's
    basis open.
-4. **Open it:** double-click it. Its working view fills the centre; Kasandra's column stays beside it.
+4. **Open it:** double-click it. Its working view fills the centre; Kas's column stays beside it.
 5. **Ask her,** in her ask line at the foot of her column: *Kas, review this assembly and tell me whether the proposed
    power supply is sufficient.* She answers from the desk's records, finding by finding, each with its state word and
    shape (her model is not asked to judge it): ⊘ REFUTED "Startup is inside the Rev B limit of 40 ms", ■ SUPPORTED
@@ -284,7 +284,7 @@ the answer claims.
     the rest). Finishing one part must not become an all-clear. **Photo 22:** FINDINGS and ACTIVE WORK together.
 12. **Close the working views** (One pane, then Close on the centre bar, until the board is back). You should be back on
     the board on the object that was in focus, with its links. **Photo 23.**
-13. **Close Rail Demo for the evening, and come back.** Close Rail Demo's window. Then choose Terminal at Graphite's foot
+13. **Close Rail Demo for the evening, and come back.** Close Rail Demo's window. Then choose Terminal at Kas's foot
     and open it again on the same folder, with the folder her card named between the first quotes (the one below is an
     example):
 
@@ -313,7 +313,7 @@ Choose **Return to Debian** (or Shut down) from the foot of the File menu.
    run prints where). They are written only if their privacy scan is clean: no path beyond the model's file name, no host or
    user name, none of your work. Send the card of every run (3.2), and say which measured settings you applied.
 3. **The session's own record**, from `~/.local/state/ledger-slate/`: `session.log` (one line for each start and end of
-   Graphite and Fluxbox in each session), `last-session.json` (the last session's status and restarts) and
+   Kas and Fluxbox in each session), `last-session.json` (the last session's status and restarts) and
    `launch-error.log` if there is one. Look at them first: they hold times, statuses and process numbers, and
    `launch-error.log` can name folders in your home.
 4. **Rail Demo's records and her task's journal**: the whole Rail Demo folder her card named (only invented data, though
@@ -333,7 +333,7 @@ files), or a backup.
 
 ## If something goes wrong
 
-- **Graphite's window ends by itself:** the session starts it again after 2 seconds, then 4, then 8, at most three times in
+- **the computer's window ends by itself:** the session starts it again after 2 seconds, then 4, then 8, at most three times in
   a row; after that it returns to the text console with a plain message. Photograph the message; `session.log` has the
   rest.
 - **The screen stops answering:** the console route is in `docs/THINKPAD_FIRST_INSTALL.md`, section "If the screen stops

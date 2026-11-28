@@ -28,7 +28,7 @@ def show(host,requested=''):
     else:
         tab=EmptyWorkspaceTab(host);host.tabs.addTab(tab,tab.title())
     tab.reason.setText(((requested+' works on an attached, reviewed project.') if requested else 'This works on an attached, reviewed project.')+
-                       ' Your own projects stay in their own folders until you attach one; everything else in Graphite works without one.')
+                       ' Your own projects stay in their own folders until you attach one; everything else in Kas works without one.')
     host.tabs.setCurrentWidget(tab);return tab
 
 
@@ -57,7 +57,7 @@ def show_home(host):
     if not host._home_active:
         host._home_dock_state=host.saveState(engine_layout_version());host._home_output_visible=host.output_dock.isVisible()
     host._home_active=True;host.output_dock.hide();host.cart_dock.hide();host.central_stack.setCurrentWidget(page)
-    host.context_bar.hide();host.doc_info.hide();host.clip.hide();host.set_view_preference(last_surface='home');host.setWindowTitle('Home — Graphite')
+    host.context_bar.hide();host.doc_info.hide();host.clip.hide();host.set_view_preference(last_surface='home');host.setWindowTitle('Home — Kas')
     from .arc_desktop import refresh
     refresh(host);return page
 
@@ -71,7 +71,7 @@ class HomeDashboard(QWidget):
         from PySide6.QtWidgets import QFrame
         outer = QVBoxLayout(self);outer.setContentsMargins(30, 24, 30, 20);outer.setSpacing(14)
         top = QHBoxLayout()
-        self.heading = QLabel('Graphite');self.heading.setStyleSheet('color:#edaa69;font-weight:bold;font-size:22px')
+        self.heading = QLabel('Kas');self.heading.setStyleSheet('color:#edaa69;font-weight:bold;font-size:22px')
         self.where = QLabel();self.where.setStyleSheet('color:#84d1d1')
         heading = QVBoxLayout();heading.addWidget(self.heading);heading.addWidget(self.where);top.addLayout(heading, 1)
         resume = QPushButton('Back to work');resume.setToolTip('Return to the files and rooms you had open');resume.clicked.connect(host.resume_workspace);top.addWidget(resume)
@@ -88,9 +88,9 @@ class HomeDashboard(QWidget):
             row_box.addStretch(1);box.addLayout(row_box);grid.addWidget(frame, row, column);return body
         nav = lambda d:(lambda:host.ledger_bridge.navigation()[d]())
         self.office = card('Office', 0, 0, [('Open Office', nav('office')), ('Receive files…', self.receive_files)])
-        self.slate = card('Graphite', 0, 1, [('Open Graphite', nav('slate')), (named('Ask Stacy'), host.open_clip)])
+        self.slate = card('Kas', 0, 1, [('Open Kas', nav('slate')), (named('Ask Stacy'), host.open_clip)])
         self.files = card('Files', 1, 0, [('Open in viewer…', lambda:host.open_in_viewer()), ('Find a file…', host.quick_open)])
-        self.matrix = card('What Graphite has learned', 1, 1, [('Instruction matrix', self.open_matrix)])
+        self.matrix = card('What Kas has learned', 1, 1, [('Instruction matrix', self.open_matrix)])
         outer.addLayout(grid, 1)
         more = QHBoxLayout();more.addWidget(QLabel('More:'))
         for label, destination in (('Organizer', 'organizer'), ('Memory', 'memory'), ('Knowledge', 'stacy_knowledge'), ('References', 'references'),

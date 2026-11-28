@@ -24,16 +24,16 @@ NAVIGATION={'DiscoveryTab':'discovery','AlgorithmAtlasTab':'algorithms','ToolAtl
 # 0.8.3 wrote none. A class name is not shown: StacyFoundationTab would read 'Stacy foundation' (0.8.4).
 SHOWN_AS={'DocumentsTab':'Documents','FilesTab':'Files','LibraryTab':'Library','TrashTab':'DELETE','AgendaTab':'Agenda','ChangesTab':'Changes',
           'DeploymentTab':'Exchange & deployment','WorkTab':'Night Shift','InvestigationTab':'Investigations','ProjectDeskTab':'Project Desk',
-          'OfficeBuildingTab':'Office','SlateRoomTab':'Graphite','ReturnTab':'Return thread','HostPanel':'Service details','ComputerTab':'This computer',
+          'OfficeBuildingTab':'Office','SlateRoomTab':'Kas','ReturnTab':'Return thread','HostPanel':'Service details','ComputerTab':'This computer',
           'PillsTab':'Pills','CompareTab':'Compare','ExploreTab':'Explore','SettingsTab':'Settings','BlenderRoom':'Blender','CartridgeRoom':'Cartridge Bay',
           'DeliveryRoom':'Delivery','FreeCADRoom':'FreeCAD','GodotRoom':'Godot','InkscapeRoom':'Inkscape','MailRoom':'Mail','MediaRoom':'Media Bench',
           'PrintProofRoom':'Print Proof','TransferRoom':'Transfer','DiscoveryTab':'Inquiries','AlgorithmAtlasTab':'Algorithm & Theory Atlas',
-          'ToolAtlasTab':'Tool Atlas','CommandsTab':'Graphite commands','WorkTrailTab':'Work trail','OrganizerTab':'Organizer','PackageTab':'Package desk',
-          'View':'Object Glass','BrainTab':'Graphite · Brain','IntakeTab':'Graphite · Intake','ReferenceTab':'Graphite · References',
-          'KnowledgeTab':'Graphite · Source connections','MemoryTab':'Graphite · Memory','AwarenessTab':'Graphite awareness',
+          'ToolAtlasTab':'Tool Atlas','CommandsTab':'Kas commands','WorkTrailTab':'Work trail','OrganizerTab':'Organizer','PackageTab':'Package desk',
+          'View':'Object Glass','BrainTab':'Kas · Brain','IntakeTab':'Kas · Intake','ReferenceTab':'Kas · References',
+          'KnowledgeTab':'Kas · Source connections','MemoryTab':'Kas · Memory','AwarenessTab':'Kas awareness',
           'DeveloperToolsTab':'Source assistance · Host debugger','KiBotTab':'KiBot · outputs','SpiceTab':'ngspice · circuits','YosysTab':'Yosys · synthesis',
-          'ImplementationTab':'FPGA · route / pack','HdlTab':'HDL · simulation / traces','StacyFoundationTab':'Graphite · knowledge',
-          'EngineeringTab':'Engineering · Jobs & Candidates','BrainLinkTab':'Brain Link','ClipWorkspaceTab':'Graphite · Engineering conversation',
+          'ImplementationTab':'FPGA · route / pack','HdlTab':'HDL · simulation / traces','StacyFoundationTab':'Kas · knowledge',
+          'EngineeringTab':'Engineering · Jobs & Candidates','BrainLinkTab':'Brain Link','ClipWorkspaceTab':'Kas · Engineering conversation',
           'GenesisTab':'ARC Concern · Genesis','RegisterTab':'Engineering Register','VendorTab':'Vendor Vault','DevelopmentTab':'Development Lab',
           'ManualTab':'R10 Manual','ReadinessTab':'Console Readiness','ToolInventoryTab':'Tool Inventory','ProjectSearchTab':'Project Search',
           'BoardViewerTab':'R10 Board Layers','QTextBrowser':'Installation Guide','PdfDocumentTab':'A PDF'}
@@ -325,7 +325,7 @@ class WorkspaceTabs(QTabWidget):
                 traceback.print_exc();tab=None;why='it failed to open'
             if tab is None or self.indexOf(tab)<0:
                 gone=any(row.get(k) for k in ('path','pdf_item','concern','device'))
-                self.set_aside(row,why or ('it is no longer there' if gone else 'Graphite cannot reopen this kind of tab'));continue
+                self.set_aside(row,why or ('it is no longer there' if gone else 'Kas cannot reopen this kind of tab'));continue
             if isinstance(row.get('concern_context'),str):tab.setProperty('concern_context',row['concern_context'])
             if row.get('working') and not row.get('pinned'):self.working(tab)  # 1.0 L5
             if row.get('pinned'):self.pin(tab)

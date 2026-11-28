@@ -65,7 +65,7 @@ class RecordDialog(QDialog):
         self.add_text('actor', 'Recorded by', FOUNDER)
         note = ('Records the supplied document and its exact fingerprint. A filename or local name entry does not verify a signature or identity.'
                 if kind == 'execution' else
-                'Record the actual written instrument and its scope. This records your declaration; it grants no Graphite account permissions.'
+                'Record the actual written instrument and its scope. This records your declaration; it grants no Kas account permissions.'
                 if kind == 'delegation' else
                 'This records a source edition for review. Written rights and explicit owner review are required before recording acceptance.'
                 if kind == 'work' else
@@ -100,7 +100,7 @@ class RecordDialog(QDialog):
             if names:
                 self.sources = names; self.source_view.setPlainText('\n'.join(names))
         except ValueError:
-            QMessageBox.information(self, 'Project source files', 'Choose files inside this Graphite project.')
+            QMessageBox.information(self, 'Project source files', 'Choose files inside this Kas project.')
 
     def add_file(self, key, title, types='Documents (*)'):
         field = QLineEdit(); field.setReadOnly(True); field.setAccessibleName(title)
@@ -210,7 +210,7 @@ class GenesisTab(QWidget):
         self.button(row, 'Revoke…', self.revoke)
         self.button(row, 'Save copy…', self.save_object)
         layout.addLayout(row)
-        layout.addWidget(label('Source editions are fingerprinted. Acceptance records require written rights for the same bytes. Graphite account and source-merge approvals use their existing controls.'))
+        layout.addWidget(label('Source editions are fingerprinted. Acceptance records require written rights for the same bytes. Kas account and source-merge approvals use their existing controls.'))
         self.pages.addTab(page, 'Concern register')
 
     def build_files(self):

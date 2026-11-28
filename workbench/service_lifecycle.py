@@ -18,11 +18,11 @@ FIELDS={'id':(str,),'action':(str,),'actor':(str,),'desktop_id':(str,),'pid':(in
 COUNTS=('queued','running','live_workers','protected_workers','stale_running')
 SUMMARIES={'ADMISSION_ON':'New work enabled','ADMISSION_HELD':'New work held; full service stop not confirmed',
     'DRAINING':'Finishing running work; new work held','STOPPING':'Closing owned model, phone and tool services',
-    'OFF':'Graphite services off; desktop stays open','ON':'New work enabled',
+    'OFF':'Kas services off; desktop stays open','ON':'New work enabled',
     'FAILED':'Service cycle incomplete; inspect before switching On','HELD':'A newer service decision interrupted this cycle',
     'CHANGED':'Admission or Stop changed; previous cycle is no longer current',
     'INTERRUPTED':'Service cycle interrupted; choose On or Off explicitly',
-    'UNAVAILABLE':'Graphite service state unavailable; inspect before continuing'}
+    'UNAVAILABLE':'Kas service state unavailable; inspect before continuing'}
 CONTROL_PLANE='Desktop and service controls stay available; the computer stays on'
 
 
@@ -261,7 +261,7 @@ def snapshot(kernel):
 def require_admission(kernel):
     with kernel.db() as db:
         enabled,_=admission(db)
-        if not enabled:raise ValueError('LEDGER_SERVICES_OFF: use Menu → Graphite services → On before starting work')
+        if not enabled:raise ValueError('LEDGER_SERVICES_OFF: use Menu → Kas services → On before starting work')
         work_trail.accepting(kernel,db)
 
 

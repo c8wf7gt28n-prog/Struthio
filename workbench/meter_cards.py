@@ -28,8 +28,8 @@ from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLay
 
 from . import boss_theme as t
 
-DOORS = {'CPU': 'Graphite’s work: what runs and waits, and Stop all jobs',
-         'GPU': named('Stacy’s model and Graphite’s services'),
+DOORS = {'CPU': 'Kas’s work: what runs and waits, and Stop all jobs',
+         'GPU': named('Stacy’s model and Kas’s services'),
          'RAM': 'Memory, and this computer',
          'TXT': named('The conversation, and what Stacy has in view')}
 from .net_meter import DOOR as _NET_DOOR, net_card      # 1.0 D1: NET, the fifth meter
@@ -81,7 +81,7 @@ def cpu_card(host, anchor):
     from .desktop_header_qt import NicePopup
     card = getattr(host, '_cpu_card', None)
     if card is None:
-        card = host._cpu_card = NicePopup(host, anchor);card.title.setText('PROCESSOR · GRAPHITE’S WORK')
+        card = host._cpu_card = NicePopup(host, anchor);card.title.setText('PROCESSOR · KAS’S WORK')
         if getattr(card, 'game', None) is not None:card.game.hide()      # the game is among the programs now
     card.refresh();return card
 
@@ -89,7 +89,7 @@ def cpu_card(host, anchor):
 def gpu_card(host, anchor):
     from .host_observations import gpu
     from .shell2 import open_destination
-    card = MeterCard(host, named('GRAPHICS · STACY’S MODEL AND GRAPHITE’S SERVICES'))
+    card = MeterCard(host, named('GRAPHICS · STACY’S MODEL AND KAS’S SERVICES'))
     busy = gpu();card.line(('The graphics processor is %d%% busy.' % busy) if busy is not None else 'This graphics driver does not report how busy it is.')
     face = getattr(getattr(host, 'shell2', None), 'face', None)
     if face is not None and face.model.text():card.line(named('Stacy ') + face.model.text() + '.', quiet=True)
@@ -101,14 +101,14 @@ def gpu_card(host, anchor):
             pass
         state = dict(getattr(life, 'state', {}) or {});phase = state.get('phase');busy_now = phase in ('DRAINING', 'STOPPING', 'UNAVAILABLE')
         if state.get('summary'):card.line(str(state['summary']), quiet=True)
-        row = card.row('Graphite services')
+        row = card.row('Kas services')
         from .system_menu_qt import CHOICES, CHOICE_TIPS
         for key, word in CHOICES:
             on = not busy_now and (key != 'On' or not state.get('admission_enabled') or state.get('work_held')) and not (key == 'Off' and phase == 'OFF')
             card.word(word, lambda key=key:life.request(key), CHOICE_TIPS[key], row=row, enabled=on)
         row.addStretch(1)
         details = getattr(host, 'a_host_service', None)
-        if details is not None:card.word('Service details', details.trigger, 'What each of Graphite’s services is doing')
+        if details is not None:card.word('Service details', details.trigger, 'What each of Kas’s services is doing')
     return card
 
 
@@ -126,7 +126,7 @@ def ram_card(host, anchor):
     def machine():
         bar = getattr(getattr(host, 'settings_navigator', None), 'bar', None)
         if bar is not None and len(getattr(bar, 'buttons', ())) > 1:bar.buttons[1].click()
-    card.word('Machine', machine, 'This computer, described: its processor, graphics, disks and what Graphite found installed')
+    card.word('Machine', machine, 'This computer, described: its processor, graphics, disks and what Kas found installed')
     return card
 
 

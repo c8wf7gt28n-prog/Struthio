@@ -58,7 +58,7 @@ def gb(n):
 class Pulse(QWidget):
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('Pulse');self.setCursor(Qt.PointingHandCursor)
-        self.setAccessibleName('This computer and Graphite');self.cpu = deque([0.0] * SAMPLES, maxlen=SAMPLES)
+        self.setAccessibleName('This computer and Kas');self.cpu = deque([0.0] * SAMPLES, maxlen=SAMPLES)
         self.mem = deque([0.0] * SAMPLES, maxlen=SAMPLES);self._last = read_cpu();self.brain = {};self.active = [];self.next = []
         self.font = QFont(SANS);self.font.setPixelSize(15)
         self.timer = QTimer(self, interval=2000);self.timer.timeout.connect(self.sample);self.timer.start()
@@ -92,13 +92,13 @@ class Pulse(QWidget):
 
     def slate_words(self):
         state = self.slate_state()
-        if state == 'working':return 'Graphite · %d running' % len(self.active)
+        if state == 'working':return 'Kas · %d running' % len(self.active)
         if state == 'ready':
             name = None
             try:name = self.host.shell2.model_name(self.brain)
             except Exception:pass
-            return 'Graphite · ' + (name or 'ready')
-        return {'stopped': 'Graphite · brain stopped', 'none': 'Graphite · no brain yet'}[state]
+            return 'Kas · ' + (name or 'ready')
+        return {'stopped': 'Kas · brain stopped', 'none': 'Kas · no brain yet'}[state]
 
     def summary(self):
         return 'Processor %d%% · memory %d%% · %s · click for more' % (round(self.cpu[-1] * 100), round(self.mem[-1] * 100), self.slate_words())
@@ -160,7 +160,7 @@ class Pulse(QWidget):
         for line in info:m.addAction(line).setEnabled(False)
         computer = getattr(self.host, 'a_computer', None)
         if computer is not None:m.addAction('What this computer supports…', computer.trigger)
-        heading(m, 'Graphite')
+        heading(m, 'Kas')
         m.addAction(self.slate_words()).setEnabled(False)
         if self.slate_state() == 'none':
             m.addAction('Choose a model…', lambda:open_destination(self.host, 'slate').pick_model())
@@ -184,7 +184,7 @@ class Pulse(QWidget):
             if row.get('state') in ('NEXT',):sub.addAction('Pause', lambda i=row['id']:(call_write(self.host, 'agenda.pause', {'id': i}), self.refresh()))
             if row.get('state') == 'PAUSED':sub.addAction('Resume', lambda i=row['id']:(call_write(self.host, 'agenda.resume', {'id': i}), self.refresh()))
             sub.addAction('Cancel this', lambda i=row['id']:(call_write(self.host, 'agenda.cancel', {'id': i, 'reason': 'Cancelled from the pulse.'}), self.refresh()))
-        m.addAction("Graphite's Agenda", lambda:open_destination(self.host, 'agenda'))
+        m.addAction("Kas's Agenda", lambda:open_destination(self.host, 'agenda'))
         stop = getattr(self.host, 'a_master_stop', None)
         if stop is not None:m.addSeparator();m.addAction(stop)
         try:

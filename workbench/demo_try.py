@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 
 DEMOS = {'rail': ('Rail Demo', 'workbench.rail_demo'), 'home': ('Home Demo', 'workbench.home_demo')}
-FOLDER = 'Graphite demos'            # under your home folder: a fresh folder for each demo you try
+FOLDER = 'Kas demos'            # under your home folder: a fresh folder for each demo you try
 BUILD_SECONDS = 240                  # a build that has not finished by then is stopped, and the card says so
 
 WORDS = {

@@ -612,9 +612,9 @@ def basis(desk, edge):
     if edge.kind == INFERRED:
         lines = ['Possible: %s; not verified.' % edge.said]
         if edge.relation == 'same words':
-            lines.append('Found by matching their words, not by any record of Graphite\'s.')
+            lines.append('Found by matching their words, not by any record of Kas\'s.')
         elif edge.relation == 'same component':
-            lines.append('Found by the component\'s name in both, not by any record of Graphite\'s.')
+            lines.append('Found by the component\'s name in both, not by any record of Kas\'s.')
         elif edge.relation == 'used together':
             lines.append('Each is recorded as used by that record; nothing records a link between the two of them.')
         elif edge.relation == 'revision by name':

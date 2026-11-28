@@ -271,7 +271,7 @@ class Handler(BaseHTTPRequestHandler):
             base=locations.program(self.server.kernel.root)/'branding/slate';data=record_io.strict_json((base/'assets.json').read_bytes())
             row=data['files']['slate_keyposes.png'];raw=(base/'slate_keyposes.png').read_bytes()
             if len(raw)!=row['bytes'] or hashlib.sha256(raw).hexdigest()!=row['sha256']:
-                self.send(503,{'error':'Graphite artwork unavailable'});return
+                self.send(503,{'error':'Kas artwork unavailable'});return
             self.send(200,raw,'image/png');return
         if self.path == '/reading-cjk.otf':
             font=locations.program(self.server.kernel.root)/'branding/fonts/NotoSansCJKsc-Regular.otf'

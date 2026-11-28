@@ -13,8 +13,8 @@
 #   --keep-chroot      leave the chroot (with the System set installed) in WORK/chroot for an install test
 # What it does: debootstrap --variant=minbase trixie (the debootstrap and keyring files are fetched from the mirror and
 # checked against its signed index when debootstrap is not installed); installs the packages the System set's status
-# lists; then downloads, with Recommends, what `apt-get install graphite graphite-session graphite-llama-runtime
-# graphite-desktop` needs twice: against that chroot, and against the System set's status (its exact versions). The
+# lists; then downloads, with Recommends, what `apt-get install kas-computer kas-session kas-llama-runtime
+# kas-desktop` needs twice: against that chroot, and against the System set's status (its exact versions). The
 # repository is flat (Packages, Packages.xz, Release) and CLOSURE.txt says what came in and why.
 set -euo pipefail
 tree="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -102,7 +102,7 @@ inroot apt-get clean
 "$python" "$helper" index "$debs" --label 'Graphite packages' >/dev/null
 echo 'deb [trusted=yes] file:/graphite-debs ./' > "$root/etc/apt/sources.list.d/graphite-debs.list"
 inroot apt-get update -q >>"$log" 2>&1
-wanted='graphite graphite-session graphite-llama-runtime graphite-desktop'
+wanted='kas-computer kas-session kas-llama-runtime kas-desktop'      # 1.1 R1: the kas-* packages (the transitional graphite* ones are copied with the rest of debs)
 say 'downloading the closure against the chroot (System set installed, today'"'"'s versions)'
 mkdir -p "$root/var/cache/graphite-a/partial" "$root/var/cache/graphite-b/partial"
 inroot sh -c "apt-get install -s -o APT::Install-Recommends=true $wanted > /root/plan-chroot.txt && apt-get install -y -q --download-only -o APT::Install-Recommends=true -o Dir::Cache::archives=/var/cache/graphite-a $wanted" >>"$log" 2>&1
@@ -113,7 +113,7 @@ inroot sh -c "apt-get install -s -o Dir::State::status=/root/system-set.status -
 find "$out" -maxdepth 1 -name '*.deb' -delete
 cp -n "$debs"/*.deb "$out"/
 for cache in graphite-a graphite-b; do find "$root/var/cache/$cache" -maxdepth 1 -name '*.deb' -exec cp -n {} "$out"/ \; ; done
-count="$("$python" "$helper" index "$out" --label 'Graphite kit')"
+count="$("$python" "$helper" index "$out" --label 'Graphite kit')"      # 1.1 R1: the Label (and Origin, Suite, Codename) stay: apt refuses a source whose Release values change
 { echo "Graphite kit repository: $count packages, $(du -sm "$out" | cut -f1) MB"; echo
   echo "== against the chroot with the System set installed (today's versions):"; grep -E '^(Inst|[0-9]+ upgraded)' "$root/root/plan-chroot.txt" || true; echo
   echo "== against the System set status (its exact versions):"; grep -E '^(Inst|[0-9]+ upgraded)' "$root/root/plan-status.txt" || true

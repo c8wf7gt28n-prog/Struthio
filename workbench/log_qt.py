@@ -60,9 +60,9 @@ NETWORK_OPERATIONS = ('network.observe', 'network.capture.start', 'network.captu
 EVENT_OPERATIONS = ('ledger.activity', 'ledger.journal.status')
 STREAMS = (('events', 'Events'), ('network', 'Network'))
 # 0.8.4: no key is named (the keys work as they did): the arrow sends what is typed, and Capture… is a word to click.
-HINTS = {'events': "words in Graphite's events, to filter them",
+HINTS = {'events': "words in Kas's events, to filter them",
          'network': 'host 10.0.0.5 · port 443 · firefox · tcp, to filter  ·  Capture… captures with it'}
-NOTES = {'events': "Graphite's own events; words in the line filter them, choose one to pin it.",
+NOTES = {'events': "Kas's own events; words in the line filter them, choose one to pin it.",
          'network': 'A host, a port, a process or a protocol in the line filters it; Capture… captures headers.'}
 CAPTURE_SECONDS = 60      # a capture's bound, in the confirmation's words (D5 bounds it again)
 CAPTURE_PACKETS = 2000    # and its packet bound
@@ -204,7 +204,7 @@ def assignment_text(entry):
     if kind == 'event':
         e = entry.get('event') or {}
         said = ' · '.join(str(x) for x in (stamp(e.get('at')), e.get('operation'), e.get('state'), e.get('detail')) if x)
-        return 'About this Graphite event (%s): ' % said
+        return 'About this Kas event (%s): ' % said
     if kind == 'connection':
         who = ', %s' % entry['process'] + (' pid %s' % entry['pid'] if entry.get('pid') else '') if entry.get('process') else ''
         return 'About this network connection (%s %s → %s, %s%s): ' % (entry.get('proto') or '', address(entry.get('local'), entry.get('lport')),
@@ -231,10 +231,10 @@ def filter_lines(filter_text):
 def confirmation_words(filter_text, seconds=CAPTURE_SECONDS, packets=CAPTURE_PACKETS):
     """What the first capture of a run asks, exactly (the filter as the capture tool receives it: filter_lines)."""
     return ('Capture this computer\'s network traffic?\n\n'
-            'Graphite records packet headers only: addresses, ports, protocol, length and TCP flags, never what the packets carry.\n'
+            'Kas records packet headers only: addresses, ports, protocol, length and TCP flags, never what the packets carry.\n'
             'It listens on this computer\'s own interfaces, not in promiscuous mode, so only traffic to and from this computer.\n'
             'It stops after %d seconds or %d packets, whichever comes first; Stop capture or Master Stop ends it sooner.\n'
-            'Nothing leaves the computer: the headers stay here, for you and for Graphite during an assignment.\n\n%s'
+            'Nothing leaves the computer: the headers stay here, for you and for Kas during an assignment.\n\n%s'
             % (seconds, packets, filter_lines(filter_text)))
 
 

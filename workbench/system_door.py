@@ -90,7 +90,8 @@ REAL = re.compile(r'^[^\x00-\x1f:,=\\]{1,64}$')
 # packages it never removes (the session and the door); the services say no to most of these themselves, the door first.
 KEPT_UNITS = re.compile(r'^(dbus|dbus-broker|polkit|systemd-[a-z-]+|display-manager|lightdm|gdm3?|sddm|getty@.*|user@.*|'
                         r'user-runtime-dir@.*|packagekit|accounts-daemon|graphite.*)\.(service|socket)$')
-KEPT_PACKAGES = frozenset(('graphite', 'graphite-session', 'graphite-desktop', 'packagekit', 'polkitd', 'lxpolkit', 'dbus', 'dbus-daemon',
+KEPT_PACKAGES = frozenset(('kas-computer', 'kas-session', 'kas-desktop', 'kas-llama-runtime',      # 1.1 R1: the kas-* packages
+                           'graphite', 'graphite-session', 'graphite-desktop', 'packagekit', 'polkitd', 'lxpolkit', 'dbus', 'dbus-daemon',
                            'dbus-bin', 'systemd', 'systemd-sysv', 'apt', 'dpkg', 'libc6', 'sudo', 'fluxbox', 'xserver-xorg', 'xserver-xorg-core',
                            'python3', 'base-files', 'init', 'login', 'passwd', 'accountsservice', 'network-manager'))
 RESERVED_LOGINS = frozenset(('root', 'admin', 'administrator', 'daemon', 'bin', 'sys', 'sync', 'games', 'man', 'lp', 'mail', 'news', 'uucp',

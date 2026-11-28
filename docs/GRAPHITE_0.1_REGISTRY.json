@@ -9385,22 +9385,22 @@
    "scope": "read"
   }
  },
- "release": "Graphite 1.1.3",
+ "release": "Kas 1.1.3",
  "schema": "graphite.registry-record/1",
  "schema_digest": "8801fadf33a5dc92bf1fe53b20465c4aaa0cf96cc8e668d0c07dfee1df6341cf",
  "settings": {
   "agent.continue_when_closed": {
-   "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+   "definition": "f7a0350d3721ff2556e387cb76f4cbf7ab0b57a98120ce5ceedfbe1ed8b32c1c",
    "fields": {
     "application": "d61dd121d043f47f",
     "category": "a7b5921026935493",
     "default": "b5bea41b6c623f7c",
     "dependencies": "4f53cda18c2baa0c",
-    "description": "a933e8cf596dc2f0",
-    "effect": "1b44b1547e64e568",
+    "description": "96ab119c802f83eb",
+    "effect": "e4881ec94dfa9557",
     "group": "a4d3b034ea3f706d",
     "key": "45c39dd7bc799df2",
-    "label": "253cf93c8adc7805",
+    "label": "79d5417658d53f74",
     "overrides": "4f53cda18c2baa0c",
     "requires_owner": "b5bea41b6c623f7c",
     "root": "a7b5921026935493",
@@ -10219,14 +10219,14 @@
    }
   },
   "operations.priority": {
-   "definition": "a8a9b0f855f029227c51dea8cd4170b4371987137dd1bc2bd32f2d4e95a6a231",
+   "definition": "dbcff0e41ab630aff74d800e64ca9077c5e1f402268ab5105dbdde756fc015d5",
    "fields": {
     "application": "d61dd121d043f47f",
     "category": "1653365f65b9061d",
     "choices": "1d64602fabfaa88a",
     "default": "82fbb169e7983248",
     "dependencies": "4f53cda18c2baa0c",
-    "description": "cb264dba2ea86651",
+    "description": "a517d997888f77ba",
     "effect": "1d904875d03b87dc",
     "group": "1653365f65b9061d",
     "key": "86d2832c59002f90",
@@ -10265,17 +10265,17 @@
    }
   },
   "operations.services_enabled": {
-   "definition": "bbd56b5300b1d7d60eb07a1b393dd4f2109be479ff7d9db1fd8364d2417b36f5",
+   "definition": "5136344e6036ed9193091a4d3b43b7cee1518a73d48461273dabdf7b5d1c0409",
    "fields": {
     "application": "60060042289e5269",
     "category": "1653365f65b9061d",
     "default": "b5bea41b6c623f7c",
     "dependencies": "4f53cda18c2baa0c",
-    "description": "623c7c914f4e8f95",
+    "description": "8c5de7a72dc84306",
     "effect": "99e7c82568f35f48",
     "group": "1653365f65b9061d",
     "key": "f4fb772ca78b520c",
-    "label": "6a9ad5d80d3522b0",
+    "label": "b8c183fb61b26694",
     "overrides": "4f53cda18c2baa0c",
     "requires_owner": "b5bea41b6c623f7c",
     "root": "e41b7584e2350adb",
@@ -10486,7 +10486,7 @@
    }
   },
   "stacy.actions": {
-   "definition": "60a4a014d6100ddb695c016fda349890f962587bab669a9bbe96a487d8e0d2d0",
+   "definition": "52c40e8546a8ba0fa970993115c1cb9c4e5a594e6f9ec59729afd346c18eee03",
    "fields": {
     "application": "d61dd121d043f47f",
     "category": "a7b5921026935493",
@@ -10496,7 +10496,7 @@
     "effect": "1d904875d03b87dc",
     "group": "98fb1c874b1e5746",
     "key": "31d135622a0c3c50",
-    "label": "5c08823133d48680",
+    "label": "1212c84c23361e10",
     "overrides": "4f53cda18c2baa0c",
     "root": "a7b5921026935493",
     "scope": "cacb62e4d89d5c7d",
@@ -10507,17 +10507,17 @@
    }
   },
   "stacy.enabled": {
-   "definition": "4f547578ede8fc48bf1735700352c13e28c629fac165665caac3347f25fc9ee8",
+   "definition": "465d7c73ec61a62e91c8a24f9424c0bd27625605aef928ba24cfda9380ab0b3c",
    "fields": {
     "application": "60060042289e5269",
     "category": "a7b5921026935493",
     "default": "b5bea41b6c623f7c",
     "dependencies": "4f53cda18c2baa0c",
-    "description": "7119dd7a2ce3992a",
+    "description": "7eaffb7eb3425823",
     "effect": "99e7c82568f35f48",
     "group": "56172b61145c1202",
     "key": "8255f38bebfb24b1",
-    "label": "17f5110464a137f6",
+    "label": "985271ababfdb6d7",
     "overrides": "4f53cda18c2baa0c",
     "requires_owner": "b5bea41b6c623f7c",
     "root": "a7b5921026935493",
@@ -10529,7 +10529,7 @@
    }
   },
   "stacy.provider": {
-   "definition": "8198ed2290324c5552e8551306947a9495afd202241f95c6dc8d2e7a83fdf87c",
+   "definition": "22cde8921e2fc9a218fa67a3bf7bee47156c638484d4e45a4ec2364f7b1ef3a6",
    "fields": {
     "application": "d61dd121d043f47f",
     "category": "a7b5921026935493",
@@ -10540,7 +10540,7 @@
     "effect": "1d904875d03b87dc",
     "group": "da4732eac52f8f5c",
     "key": "0b47b2168341d5fb",
-    "label": "d3ca65ee30b18021",
+    "label": "b15f1d2a2f0d2178",
     "overrides": "4f53cda18c2baa0c",
     "requires_owner": "b5bea41b6c623f7c",
     "root": "a7b5921026935493",
@@ -10552,7 +10552,7 @@
    }
   },
   "stacy.reactions": {
-   "definition": "fa49a9e791654af61fc6bebc500e06e58b8ebdb4906c33c17d554f9b40c52e9b",
+   "definition": "3522dd1a1d4f3b51be7719b4a46e1bba662b4a64c161121fd596a23c14f2256c",
    "fields": {
     "application": "60060042289e5269",
     "category": "a7b5921026935493",
@@ -10562,7 +10562,7 @@
     "effect": "99e7c82568f35f48",
     "group": "56172b61145c1202",
     "key": "ea33f12da234a596",
-    "label": "4ca6184953e48548",
+    "label": "a72d04ce62267904",
     "overrides": "4f53cda18c2baa0c",
     "root": "a7b5921026935493",
     "scope": "d018c242b62e9632",
@@ -10638,7 +10638,7 @@
    }
   }
  },
- "settings_digest": "4b40d4280f3420aa473adadf74e7891f6177cf1ff2293598b91346200e97c09b",
+ "settings_digest": "666f9f4a7108f05f2477617e4484e3d4cbf0664bcee0b430e049cc47e1282aa8",
  "settings_order": [
   "reading.family",
   "reading.prose_family",

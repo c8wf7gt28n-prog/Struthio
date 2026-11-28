@@ -24,7 +24,7 @@ from . import boss_theme as bt
 from . import design_tokens as dt
 from .presentation_preferences import APPEARANCE_EARLIER, LAUNCH_MARK, LAUNCH_MARKED
 
-LINE = 'Graphite 1.0 starts in Day. Your earlier look is in View ▸ Appearance.'      # 1.1 K0: View (1.0's Arrange)
+LINE = 'Kas 1.0 starts in Day. Your earlier look is in View ▸ Appearance.'      # 1.1 K0: View (1.0's Arrange)
 LINE_MS = 15000
 
 

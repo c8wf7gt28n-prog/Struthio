@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 1.1 PK1: install Graphite from the kit's folder repository with apt. Run as root (su -), after bash JOIN.sh:
+# 1.1 PK1: install Kas from the kit's folder repository with apt. Run as root (su -), after bash JOIN.sh:
 #   bash install.sh --check      show what apt would do; changes nothing
-#   bash install.sh              stage 1: graphite and graphite-session (start with graphite-startx, as before)
-#   bash install.sh --desktop    stage 2, optional: graphite-desktop, the graphical login (LightDM)
+#   bash install.sh              stage 1: kas-computer and kas-session (start with kas-startx, as before)
+#   bash install.sh --desktop    stage 2, optional: kas-desktop, the graphical login (LightDM)
 #   bash install.sh --forget     remove the kit's apt source and its copy (installed packages stay)
 # The repository is copied to /var/lib/graphite-kit/repo and added as an apt source. A preview kit is not signed: the
 # source is marked trusted and every file is checked by sha256 (SHA256SUMS here, and apt checks each package against
@@ -35,18 +35,18 @@ else
   echo "deb [trusted=yes] file:$place ./" > "$list"
 fi
 apt-get update -o Dir::Etc::sourcelist="$list" -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0
-packages='graphite graphite-session'
-[[ "$mode" == --desktop ]] && packages='graphite-desktop'
+packages='kas-computer kas-session'
+[[ "$mode" == --desktop ]] && packages='kas-desktop'
 if [[ "$mode" == --check ]]; then
   apt-get install -s $packages | grep -E '^(Inst|Conf|Remv|[0-9]+ upgraded|E:)' || true
   echo 'Nothing was changed (--check).'; exit 0
 fi
 apt-get install -y $packages
 if [[ "$mode" == --desktop ]]; then
-  echo 'Installed graphite-desktop. At the next boot the login screen offers the Graphite session.'
-  echo 'To go back to the text console:  systemctl disable lightdm   (then reboot; graphite-startx still works there)'
-  echo 'To remove the login screen:      apt remove graphite-desktop lightdm lightdm-gtk-greeter'
+  echo 'Installed kas-desktop. At the next boot the login screen offers the Kas session.'
+  echo 'To go back to the text console:  systemctl disable lightdm   (then reboot; kas-startx still works there)'
+  echo 'To remove the login screen:      apt remove kas-desktop lightdm lightdm-gtk-greeter'
 else
-  echo 'Installed graphite and graphite-session. Log out of root, log in as your user on the text console and type:'
-  echo '  graphite-startx'
+  echo 'Installed kas-computer and kas-session. Log out of root, log in as your user on the text console and type:'
+  echo '  kas-startx'
 fi

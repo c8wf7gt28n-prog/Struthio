@@ -6,14 +6,14 @@ from sdk.cli.arc1cli.object_context import principal_key
 
 class WindowsPanel(QGroupBox):
     def __init__(self, host):
-        super().__init__("Graphite Windows")
+        super().__init__("Kas Windows")
         self.host = host
         self.controller = host.object_glass
         self.serial = 0
         self.rows = {}
         box = QVBoxLayout(self)
         self.enabled = QCheckBox("Enable resumable windows")
-        self.enabled.setAccessibleName("Enable Graphite logical windows for this owner")
+        self.enabled.setAccessibleName("Enable Kas logical windows for this owner")
         box.addWidget(self.enabled)
         self.controls = QGroupBox()
         controls = QVBoxLayout(self.controls)

@@ -202,7 +202,7 @@ def _join_registry():
                 grant='copy files into the folder', target='path', verify=copied.how, writes_files=True),
         tr.Tool(26, 'files.trash', 'Put a file or a folder in the bin: DELETE keeps it, and Restore puts it back (never an unrecoverable '
                 'delete).', 'files', 'change', ('files.trash',), arguments=(path,),
-                preconditions=('it is there', "it is not your home itself, Graphite's own area or Egress"),
+                preconditions=('it is there', "it is not your home itself, Kas's own area or Egress"),
                 effects='it is in the bin (DELETE)', undone='Restore it from DELETE (Undo puts it back at once)',
                 grant='put files in the bin in the folder', target='path', verify=binned.how, writes_files=True),
     )

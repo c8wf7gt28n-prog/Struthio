@@ -100,7 +100,7 @@ class MachineStrip(QWidget):
         self.label.set_full(' · '.join(parts))
         page = getattr(self.host, 'machine_page', None)
         if page is not None and page.items:page.strip_line(self.label.full)
-        detail = ('Observed %s on the computer Graphite runs on · processor /proc/cpuinfo · RAM /proc/meminfo · free space os.statvfs of the workspace mount'
+        detail = ('Observed %s on the computer Kas runs on · processor /proc/cpuinfo · RAM /proc/meminfo · free space os.statvfs of the workspace mount'
                   ' · network /sys/class/net operstate and carrier%s. Unavailable values stay unavailable; nothing is animated.'
                   % (when(clock), (' (' + ', '.join(names) + ')') if names else ''))
         self.setToolTip(detail); self.setAccessibleDescription(detail)
@@ -195,7 +195,7 @@ class MachinePage(QWidget):
             else:
                 work.setText(0, 'Work · no projects yet'); work.setData(0, Qt.UserRole, dict(kind='work_empty', id='work'))
             settings = self.add(None, 'settings', 'Settings', dict(kind='settings', id='settings'))
-            settings.setForeground(0, QColor(INK)); settings.setToolTip(0, 'Show the Graphite settings hierarchy in this column')
+            settings.setForeground(0, QColor(INK)); settings.setToolTip(0, 'Show the Kas settings hierarchy in this column')
             for ident, item in self.items.items():
                 if item.childCount():
                     item.setExpanded(ident in self.expanded)
@@ -237,7 +237,7 @@ class MachinePage(QWidget):
             return machine_room_qt.describe(self, data)
         if kind == 'root':
             host = model.get('host') or {}
-            return '\n'.join(['Machine · the computer Graphite runs on now',
+            return '\n'.join(['Machine · the computer Kas runs on now',
                               'Observed %s · sources /proc, /sys and os.statvfs · nothing was run' % when(model.get('sampled_at')),
                               'Kernel %s · host name %s' % (host.get('kernel') or 'not observed', host.get('hostname') or 'not observed'),
                               'Program folder: %s' % (model.get('program_folder') or 'not observed'), 'Workspace: %s' % (model.get('workspace') or 'not observed'),

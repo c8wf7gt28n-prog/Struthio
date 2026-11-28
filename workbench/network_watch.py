@@ -87,7 +87,7 @@ BPF_PROTOCOLS = {'tcp': 'tcp', 'udp': 'udp', 'icmp': 'icmp', 'icmp6': 'icmp6', '
                  'tcp6': 'ip6 and tcp', 'udp6': 'ip6 and udp', 'sctp': 'sctp', 'igmp': 'igmp'}
 BPF_SAFE = re.compile(r'[a-z0-9 .:/()]*')
 CANONICAL_HOST = re.compile(r'[0-9a-f.:/]{2,49}')   # what ipaddress writes for an address or a network: nothing else is a host
-NO_NAMES = 'names are not looked up (Graphite makes no DNS request): %s; give its address'
+NO_NAMES = 'names are not looked up (Kas makes no DNS request): %s; give its address'
 NO_ZONE = 'not a host: %s (an address with a zone after %% is not taken: give the address alone)'
 
 FIELDS_FILTER = {'type': 'string', 'maxLength': FILTER_LIMIT}
@@ -450,22 +450,22 @@ def parse_filter(text):
                 else: add('ports', port)
             elif kind == 'protocols':
                 if vlow in PROTOCOLS: add('protocols', vlow)
-                else: out['errors'].append('not a protocol Graphite knows: ' + clip(value, 60))
+                else: out['errors'].append('not a protocol Kas knows: ' + clip(value, 60))
             elif kind == 'states':
                 if vlow in STATES: add('states', vlow)
                 else: out['errors'].append('not a connection state: ' + clip(value, 60))
             elif WORD.fullmatch(value): add('words', vlow)
-            else: out['errors'].append('not a name Graphite accepts: ' + clip(value, 60))
+            else: out['errors'].append('not a name Kas accepts: ' + clip(value, 60))
             continue
         if low in OPERATORS:
             out['errors'].append('“%s” is not part of the filter: words of one kind widen, of different kinds narrow' % clip(token, 10)); continue
         if low in EITHER_END:
             out['errors'].append('“%s” is not part of the filter: a host or a port matches either end of a conversation' % low); continue
         if low in CAPTURE_WORDS:
-            out['errors'].append('“%s” is a capture-filter word Graphite’s filter does not take: it takes hosts, ports, protocols, '
+            out['errors'].append('“%s” is a capture-filter word Kas’s filter does not take: it takes hosts, ports, protocols, '
                                  'states and names (proc %s for a program of that name)' % (low, low)); continue
         if low in OTHER_PROTOCOLS:
-            out['errors'].append('“%s” is a protocol Graphite’s filter does not select: it selects %s' % (low, ' '.join(BPF_PROTOCOLS))); continue
+            out['errors'].append('“%s” is a protocol Kas’s filter does not select: it selects %s' % (low, ' '.join(BPF_PROTOCOLS))); continue
         port = _port(token)
         if port is not None: add('ports', port); continue
         if low in PROTOCOLS: add('protocols', low); continue
@@ -571,7 +571,7 @@ INSTALL = ('as the administrator, apt install wireshark-common, and answer Yes w
            'able to capture packets')
 RECONFIGURE = 'as the administrator, dpkg-reconfigure wireshark-common, and answer Yes: non-superusers may capture packets'
 RELOG = 'log out and in again, so the session carries the wireshark group'
-NEVER = ('Graphite only explains: it never runs these commands, never asks for the administrator’s password and never changes '
+NEVER = ('Kas only explains: it never runs these commands, never asks for the administrator’s password and never changes '
          'the system’s permissions.')
 
 
@@ -635,7 +635,7 @@ def probe(path_text=None, euid=None, groups=None, login=None, etc=ETC, exists=os
     steps_all = debian_steps(login); join = join_step(login)
     if not any(found.values()):
         return {'state': 'UNAVAILABLE', 'tool': None, 'path': None, 'enable': steps_all,
-                'reason': 'No capture tool is installed (Graphite captures through dumpcap or tcpdump). To enable capture on Debian: '
+                'reason': 'No capture tool is installed (Kas captures through dumpcap or tcpdump). To enable capture on Debian: '
                           + '; then '.join(steps_all) + '. ' + NEVER, 'signature': None}
     verdicts = []
     for name in TOOLS:
@@ -664,7 +664,7 @@ def probe(path_text=None, euid=None, groups=None, login=None, etc=ETC, exists=os
                           + RECONFIGURE + '; then ' + join + '; then ' + RELOG + '.')
                 steps = [RECONFIGURE, join, RELOG]
         else:
-            reason = ('tcpdump is installed but may capture only as the administrator, and Graphite never runs as the administrator. '
+            reason = ('tcpdump is installed but may capture only as the administrator, and Kas never runs as the administrator. '
                       'For capture without the administrator, install wireshark-common (' + '; then '.join(steps_all) + '), or give tcpdump '
                       'capture capabilities yourself (as the administrator, setcap cap_net_raw,cap_net_admin=eip ' + path + ').')
             steps = list(steps_all)

@@ -37,7 +37,7 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
-ASK = 'Ask Kasandra'
+ASK = 'Ask Kas'
 VERBS = ('Open', 'Run', 'Calculate', ASK, 'Explain', 'Edit', 'Show')      # 1.1 KS1: Show (a recipe: what it would do, nothing changes)
 SECTIONS = ('APPS', 'SETTINGS', 'FILES', 'DESK', 'COMMANDS')
 MOST = dict(APPS=6, SETTINGS=4, FILES=6, DESK=4, COMMANDS=5)
@@ -63,7 +63,7 @@ WINDOWS = (
     (('explorer', 'file explorer', 'my computer', 'this pc', 'windows explorer'), 'do', 'files', 'File Explorer in Windows'),
     (('task manager', 'taskmgr'), 'do', 'tasks', 'Task Manager in Windows'),
     (('regedit', 'registry', 'registry editor'), 'explain', 'There is no registry here: settings are plain files, most of them in '
-                                                            'the hidden folder .config in your home. Graphite\'s own are in Settings.',
+                                                            'the hidden folder .config in your home. Kas\'s own are in Settings.',
      'Registry Editor in Windows'),
 )
 WINDOWS_TITLES = {'settings': 'Settings', 'terminal': 'Terminal', 'files': 'Files', 'tasks': 'What runs'}
@@ -89,7 +89,7 @@ class Row:
         """What Enter does on this row, in words: "Enter: Open Firefox"."""
         name = self.title if len(self.title) <= 40 else self.title[:38] + '…'
         if self.kind == 'sum':return 'Enter: Calculate · puts %s in the line and copies it' % self.extra.get('answer', '')
-        if self.kind == 'ask':return 'Enter: Ask Kasandra · in her column; she proposes, you decide'
+        if self.kind == 'ask':return 'Enter: Ask Kas · in her column; she proposes, you decide'
         if self.extra.get('recipe'):return self.detail.replace('Enter ', 'Enter: ', 1)      # 1.1 KS1: a recipe's row shows what it would do
         if self.extra.get('command'):return self.detail.replace('Enter ', 'Enter: ', 1)      # 1.1 KS2: a command's row says what Enter does
         return 'Enter: %s %s' % (self.verb, name)
@@ -190,7 +190,7 @@ def program_of(text, which=shutil.which):
 def terminal_rows(text, which=shutil.which, led=False):
     words = clean(text).lstrip('$>').strip()
     if not words or (not led and not program_of(words, which)):return []
-    return [Row('terminal', 'Run %s in the Terminal' % short(words, 40), 'A command of this computer, in Graphite\'s Terminal', 'Run', words, icon='terminal')]
+    return [Row('terminal', 'Run %s in the Terminal' % short(words, 40), 'A command of this computer, in Kas\'s Terminal', 'Run', words, icon='terminal')]
 
 
 def operation_rows(text):
@@ -208,7 +208,7 @@ def operation_rows(text):
     for n in names:
         line = '/' + n + ((' ' + found.group(2)) if found.group(2) and n == name else '')
         scope = CAPABILITIES[n]
-        rows.append(Row('operation', 'Run the operation %s' % short(line.lstrip('/'), 44), 'An operation of Graphite\'s Kernel · %s' % SCOPE_WORDS.get(scope, scope),
+        rows.append(Row('operation', 'Run the operation %s' % short(line.lstrip('/'), 44), 'An operation of Kas\'s Kernel · %s' % SCOPE_WORDS.get(scope, scope),
                         'Run', line, section='COMMANDS', icon='command',
                         tip='On the operations page; one that needs your approval asks there for a second press.'))
     return rows
@@ -220,7 +220,7 @@ SCOPE_WORDS = {'read': 'it reads', 'execute': 'it does', 'approve': 'it asks for
 def line_rows(text, reading=''):
     words = clean(text)
     if reading != 'line' and not words.startswith('@'):return []
-    return [Row('line', 'Run the line %s' % short(words, 44), 'A Graphite line: it reads, on the line page', 'Run', words, icon='command')]
+    return [Row('line', 'Run the line %s' % short(words, 44), 'A Kas line: it reads, on the line page', 'Run', words, icon='command')]
 
 
 # ---- apps, settings, files, the desk, commands -----------------------------------------------------------------------------------
@@ -279,8 +279,8 @@ def windows_rows(text):
     kind, target, beside = found
     if kind == 'explain':return [Row('explain', 'Settings are files here', target, 'Explain', target, beside, icon='settings')]
     title = WINDOWS_TITLES.get(target or kind, target or kind)
-    detail = {'settings': "Graphite's settings", 'terminal': 'Graphite\'s Terminal: DOS words work there',
-              'do': {'files': 'Your files, the Explorer of this computer', 'tasks': 'The programs that run, and Kasandra\'s work'}.get(target, '')}[kind]
+    detail = {'settings': "Kas's settings", 'terminal': 'Kas\'s Terminal: DOS words work there',
+              'do': {'files': 'Your files, the Explorer of this computer', 'tasks': 'The programs that run, and Kas\'s work'}.get(target, '')}[kind]
     return [Row('place', title, detail, 'Open', (kind, target), beside, '', icon={'settings': 'settings', 'terminal': 'terminal'}.get(kind, 'command'))]
 
 
@@ -315,7 +315,7 @@ def command_rows(found, most=MOST['COMMANDS']):
     rows = []
     for label, fn in found[:most]:
         verb = 'Open' if label.startswith(('Go to', 'Open', 'Project', 'Files', 'Settings')) else 'Run'
-        rows.append(Row('command', label, 'A command of Graphite', verb, fn, section='COMMANDS', icon='command'))
+        rows.append(Row('command', label, 'A command of Kas', verb, fn, section='COMMANDS', icon='command'))
     return rows
 
 

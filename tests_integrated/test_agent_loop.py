@@ -389,7 +389,7 @@ class Loop(unittest.TestCase):
     def test_release_hands_the_work_over_and_refuses_what_is_not_running(self):
         a=self.assign(looks(3))
         out=self.call('agent.release',{'id':a['id']});row=out['assignment']   # READY: the owner asked for it to run, so it is RUNNING for the service
-        self.assertEqual((row['state'],row['driver'],row['lease_live'],row['steps_used']),('RUNNING',None,False,0));self.assertIn('Graphite service continues',out['next'])
+        self.assertEqual((row['state'],row['driver'],row['lease_live'],row['steps_used']),('RUNNING',None,False,0));self.assertIn('Kas service continues',out['next'])
         self.call('agent.step',{'id':a['id']});row=self.call('agent.release',{'id':a['id']})['assignment']
         self.assertEqual((row['state'],row['driver'],row['lease_live'],row['steps_used']),('RUNNING',None,False,1))
         self.assertEqual([r['id'] for r in loop.pump(self.kernel)],[a['id']])   # released: the service may step it at once
@@ -435,7 +435,7 @@ class Loop(unittest.TestCase):
             out=loop.pump(self.kernel)
         self.assertEqual((out[0]['id'],out[0]['state']),(a['id'],'WAITING'))
         row=self.call('agent.status',{'id':a['id']})['assignments'][0]
-        self.assertEqual((row['state'],row['reason']),('WAITING','The Graphite service could not step it: disk gone'))
+        self.assertEqual((row['state'],row['reason']),('WAITING','The Kas service could not step it: disk gone'))
         self.assertEqual(self.jobs(),0)
 
     def test_pause_all_pauses_ready_and_running_assignments_of_every_owner(self):
@@ -570,10 +570,10 @@ class Loop(unittest.TestCase):
         # Today: a paused assignment the service stepped says why it paused, as AGENT-01's paused row does
         self.call('agent.release',{'id':b['id']});loop.pump(self.kernel);loop.pump(self.kernel)
         self.call('agent.pause',{'id':b['id'],'reason':'Master Stop'})
-        rows=[(t,w) for t,w,_ in agent_qt.today_rows(host) if 'While Graphite was closed' in t]
-        self.assertEqual(rows,[('While Graphite was closed, it took 2 steps on “run the given steps” · now paused (Master Stop)','resume')])
+        rows=[(t,w) for t,w,_ in agent_qt.today_rows(host) if 'While Kas was closed' in t]
+        self.assertEqual(rows,[('While Kas was closed, it took 2 steps on “run the given steps” · now paused (Master Stop)','resume')])
         self.assertEqual(agent_qt.closed_words({'service_steps':1,'updated':time.time(),'working_on':'x','state':'DONE','paused_reason':None}),
-                         'While Graphite was closed, it took 1 step on “x” · now done')
+                         'While Kas was closed, it took 1 step on “x” · now done')
         self.assertEqual(self.jobs(),0)
 
 

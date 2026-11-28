@@ -23,7 +23,7 @@ INSTALL = Path('/etc/graphite/install.json') if PACKAGED else APP.parent / 'inst
 try:
     from workbench.version import NAME as PRODUCT
 except Exception:  # noqa: BLE001 - the failure message must work even when the package is damaged
-    PRODUCT = 'Graphite'
+    PRODUCT = 'Kas'
 
 
 def install_info():

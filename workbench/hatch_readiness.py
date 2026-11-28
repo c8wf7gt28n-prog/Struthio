@@ -53,7 +53,7 @@ def model_probe(path):
     sha=digest.hexdigest();ready=current and sha==REFERENCE_SHA
     return {'state':'REFERENCE_HASH_VERIFIED' if ready else 'CHANGED_DURING_READ' if not current else 'DIFFERENT_MODEL',
         'ready':ready,'path':str(path),'bytes':after.st_size,'sha256':sha,'required_sha256':REFERENCE_SHA,
-        'seconds':time.monotonic()-began,'notice':'This I05 reference family uses its recorded model. Other models remain usable through their existing Graphite routes.'}
+        'seconds':time.monotonic()-began,'notice':'This I05 reference family uses its recorded model. Other models remain usable through their existing Kas routes.'}
 
 
 def socket_probe(family):
@@ -216,7 +216,7 @@ def main(argv=None):
     if args.run:
         report['trial']=run_trial(args.run,report,folder,budget)
         (folder/'readiness.json').write_text(json.dumps(report,indent=2)+'\n')
-    lines=['Graphite - HATCH readiness',report['state'],'']
+    lines=['Kas - HATCH readiness',report['state'],'']
     labels={'linux_host':'Linux host','program_integrity':'program/source integrity','operation_registry':'command registry',
         'pinned_math':'pinned SymPy, mpmath and Z3','native_office_bridge':'Calc/Writer and Java bridge',
         'protected_python':'protected Python (wasmtime==50.0.1)','local_loopback':'local TCP sockets',

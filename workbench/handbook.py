@@ -82,7 +82,7 @@ def ensure(root):
     generation = folder/'generations'/stamp
     generation.mkdir(parents=True,exist_ok=True)
     document = '<!doctype html><html lang="en"><meta charset="utf-8"><title>The Orange Book</title><style>'+CSS+'</style><body>'
-    document += '<h1>The Orange Book</h1><p>Graphite</p><nav>'      # 1.0 D2: the old workshop name read on screen (as X3 found in the window's title)
+    document += '<h1>The Orange Book</h1><p>Kas</p><nav>'      # 1.0 D2: the old workshop name read on screen (as X3 found in the window's title)
     document += '<br>'.join('<a href="#'+p['id']+'">'+html.escape(p['title'])+'</a>' for p in pages)+'</nav>'
     document += ''.join('<section class="page" id="'+p['id']+'">'+p['html']+'</section>' for p in pages)+'</body></html>'
     io.write_json(generation/'pages.json',pages)

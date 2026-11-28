@@ -39,7 +39,7 @@ def row_of(summary):
     state = str(summary.get('state') or '')
     said = words(state);used = int(summary.get('steps_used') or 0)
     why = str((summary.get('paused_reason') or summary.get('reason') or '') if state in ('PAUSED', 'WAITING') else '')
-    title = str(summary.get('working_on') or summary.get('request') or 'An assignment from Graphite 0.8')
+    title = str(summary.get('working_on') or summary.get('request') or 'An assignment from Kas 0.8')
     return {'id': summary['id'], 'older': True, 'title': title, 'state': state, 'state_words': said, 'state_word': said.upper(),
             'progress': 0, 'time_left': steps_words(used), 'steps_short': '%d step%s' % (used, '' if used == 1 else 's'), 'line': why,
             'stop': {'operation': 'agent.stop', 'arguments': {'id': summary['id'], 'reason': 'Stop'}}}
@@ -58,7 +58,7 @@ def journal_words(view):
     rows = (view or {}).get('assignments') or []
     row = next((r for r in rows if isinstance(r, dict)), None)
     if row is None:return ''
-    lines = ['“%s”, %s (an assignment from Graphite 0.8).' % (row.get('working_on') or '', words(row.get('state')))]
+    lines = ['“%s”, %s (an assignment from Kas 0.8).' % (row.get('working_on') or '', words(row.get('state')))]
     if row.get('doing_now'):lines.append('Now: %s' % row['doing_now'])
     for item in (row.get('found') or ())[:4]:lines.append('Found: %s (%s)' % (item.get('text'), str(item.get('evidence_state') or '').lower()))
     for item in (row.get('needs_you') or ())[:3]:lines.append('Needs you: %s' % (item.get('text') if isinstance(item, dict) else item))

@@ -581,7 +581,7 @@ class Check:
         times = sorted(t['elapsed_ms'] for t in second if isinstance(t['elapsed_ms'], int))
         out['kept_turn_ms'] = times[len(times) // 2] if times else None
         out['four_kind_slots'] = {'state': 'NOT_RUN', 'why': 'this release launches one slot; the four-kind-slot arm is a launch '
-                                  'line Graphite does not make (design 6.4: tried only if reuse misses)'}
+                                  'line Kas does not make (design 6.4: tried only if reuse misses)'}
         out['checkpoint'] = self.checkpoint_growth()
         out['stop'] = self.stop_latency()
         return out
@@ -934,7 +934,7 @@ def proposal(key, value, why):
 def card(report):
     """The plain card (the .txt), ending with "Her model on this machine: ..." (design 6.2)."""
     st = report['stages'];k = report['predictions']
-    lines = ['Graphite %s · the model check · %s' % (report.get('graphite'), report.get('date')),
+    lines = ['Kas %s · the model check · %s' % (report.get('graphite'), report.get('date')),
              'Model: %s%s' % (_get(report, 'model', 'file'), ' (a hybrid)' if _get(report, 'model', 'memory_shape') == 'HYBRID' else ''), '']
     for key, words, *_ in STAGES:
         s = st.get(key) or {'state': 'NOT_RUN', 'why': 'not reached'}
@@ -1023,7 +1023,7 @@ def default_out():
 def main(argv=None):
     ap = argparse.ArgumentParser(prog='python -B -m workbench.model_check', description='Check her model on this machine.')
     ap.add_argument('--model', type=Path, help='the model file (GGUF)')
-    ap.add_argument('--out', type=Path, help='the run folder (default: under Graphite\'s own settings folder)')
+    ap.add_argument('--out', type=Path, help='the run folder (default: under Kas\'s own settings folder)')
     ap.add_argument('--plan', action='store_true', help='show the stages and their estimated times; start nothing')
     ap.add_argument('--overnight', action='store_true', help='also S7: the full exam and the I05 arms (hours, on mains)')
     ap.add_argument('--also', type=Path, help='S6: another model file (the 35B on the processor, or the 4B on the Radeon)')

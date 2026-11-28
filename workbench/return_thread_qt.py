@@ -110,7 +110,7 @@ class ReturnController(QObject):
         inventory=self.inventory();dialog=QDialog(self.host);dialog.setObjectName('ReturnExitReview')
         from .shell2 import scale_of
         # V-20: dialog words on the desk's chrome scale (16 px at the default size), not the reading size.
-        dialog.setWindowTitle('Leave Graphite?');dialog.resize(660,460);dialog.setStyleSheet(STYLE+'QLabel {font-size:%dpx;}'%max(10,round(16*scale_of(self.host))))
+        dialog.setWindowTitle('Leave Kas?');dialog.resize(660,460);dialog.setStyleSheet(STYLE+'QLabel {font-size:%dpx;}'%max(10,round(16*scale_of(self.host))))
         box=QVBoxLayout(dialog);box.setContentsMargins(24,22,24,22);box.setSpacing(14)
         title=words('Leave a thread for your return.');title.setProperty('arcReadingRole','heading');box.addWidget(title)
         box.addWidget(words('Files with edits: '+str(len(inventory['edited']))+' · Cabinet drafts: '+str(len(inventory['drafts']))))
@@ -121,7 +121,7 @@ class ReturnController(QObject):
         # V-20: the three actions are words in a row at their own width, so the focus rule and the hit area match the word.
         from .theme2 import as_words
         row=QHBoxLayout();box.addLayout(row)
-        keep=action('Keep and close Graphite',lambda:dialog.done(1));row.addWidget(keep)
+        keep=action('Keep and close Kas',lambda:dialog.done(1));row.addWidget(keep)
         skip=action('Close without a new return copy',lambda:dialog.done(2));row.addWidget(skip)
         skip.setToolTip('Retain the earlier stored return copy. Current thread/cabinet changes may be lost. Existing file save prompts still apply.')
         back=action('Continue working',dialog.reject);row.addWidget(back);row.addStretch(1);back.setFocus(Qt.OtherFocusReason)

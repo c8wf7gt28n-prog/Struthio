@@ -107,7 +107,7 @@ def argv(window, shell, rc_path, size=(100, 24), extra=()):
            'Shift Ctrl <Key>V: insert-selection(CLIPBOARD)']
     res += ['XTerm*color%d: %s' % (n, c) for n, c in enumerate(colours)]
     out = ['xterm', '-into', str(int(window)), '-geometry', '%dx%d' % size, '-fa', FACE, '-fs', ('%g' % points),
-           '-bg', ground, '-fg', words, '-cr', words, '-b', '8', '+sb', '-sl', '5000', '-title', 'Graphite · Terminal', '-u8']
+           '-bg', ground, '-fg', words, '-cr', words, '-b', '8', '+sb', '-sl', '5000', '-title', 'Kas · Terminal', '-u8']
     for r in res:out += ['-xrm', r]
     out += list(extra)
     if os.path.basename(shell) == 'bash':return out + ['-e', shell, '--rcfile', str(rc_path), '-i']

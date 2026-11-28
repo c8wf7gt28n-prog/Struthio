@@ -29,7 +29,7 @@ import subprocess
 import sys
 import tempfile
 
-APP_NAME = 'Graphite'  # the name a person reads: shortcuts, the Apps & Features entry, setup's messages
+APP_NAME = 'Kas'  # the name a person reads: shortcuts, the Apps & Features entry, setup's messages
 BACKUP_FOLDER = 'Arc Ledger backups'  # the earlier name stays: Windows backups made before the rename are found where they were
 APP_ID = 'ARC1Workbench'
 PUBLISHER = 'ARC-1 project'
@@ -239,7 +239,7 @@ def ensure_ledger_closed(app_dir):
     try:
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
-        raise SetupError('Graphite is running. Quit it and stop its background service '
+        raise SetupError('Kas is running. Quit it and stop its background service '
                          '(python3 -m workbench.host_cli stop), then run setup again; nothing was changed.')
     finally:
         os.close(fd)
@@ -311,7 +311,7 @@ foreach ($p in $places) {
   $s.Arguments = $env:ARC1_ARGS
   $s.WorkingDirectory = $env:ARC1_WORKDIR
   $s.IconLocation = $env:ARC1_ICON
-  $s.Description = 'Graphite - the workspace and its assistant'
+  $s.Description = 'Kas - the workspace and its assistant'
   $s.Save()
   Write-Output $p
 }
@@ -357,7 +357,7 @@ foreach ($p in $places) {
     def uninstaller(self, target, base_python):
         return 'Uninstall ARC-1 Workbench.cmd', (
             '@echo off\r\n'
-            'rem Removes Graphite for this user. Files you changed are backed up first.\r\n'
+            'rem Removes Kas for this user. Files you changed are backed up first.\r\n'
             'copy /y "%~dp0app\\workbench\\setup_arc1.py" "%TEMP%\\arc1_workbench_setup.py" >nul\r\n'
             'cd /d "%TEMP%"\r\n'
             'rem One line on purpose: this file is deleted while it runs, and cmd reads batch files line by line.\r\n'
@@ -384,7 +384,7 @@ class PosixPlatform:
         return Path(os.environ.get('XDG_DATA_HOME') or Path.home() / '.local' / 'share') / 'applications'
 
     def create_shortcuts(self, spec, desktop):
-        text = ('[Desktop Entry]\nType=Application\nName=%s\nComment=The Graphite workspace and its assistant\n'
+        text = ('[Desktop Entry]\nType=Application\nName=%s\nComment=The Kas workspace and its assistant\n'
                 'Exec="%s" %s\nPath=%s\nIcon=%s\nTerminal=false\nCategories=Development;\n'
                 % (APP_NAME, spec['target'], spec['args'], spec['workdir'], spec['icon_png']))
         made = []
@@ -413,7 +413,7 @@ class PosixPlatform:
 
     def uninstaller(self, target, base_python):
         return 'Uninstall ARC-1 Workbench.sh', (
-            '#!/bin/sh\n# Removes Graphite for this user. Files you changed are backed up first.\n'
+            '#!/bin/sh\n# Removes Kas for this user. Files you changed are backed up first.\n'
             'here="$(cd "$(dirname "$0")" && pwd)"\n'
             'cp "$here/app/workbench/setup_arc1.py" "${TMPDIR:-/tmp}/arc1_workbench_setup.py"\n'
             'cd "${TMPDIR:-/tmp}" && exec "%s" -I "${TMPDIR:-/tmp}/arc1_workbench_setup.py" uninstall --target "$here"\n'
@@ -439,7 +439,7 @@ def install(source, target=None, assume_yes=False, desktop=True, wheels=None, sk
     source = Path(source).resolve()
     target = Path(target or default_target()).resolve()
     if not looks_like_arc1(source):
-        raise SetupError('%s does not look like a Graphite folder (extract the ZIP first)' % source)
+        raise SetupError('%s does not look like a Kas folder (extract the ZIP first)' % source)
     if target == source or target in source.parents or source in target.parents:
         raise SetupError('Install folder and source folder must be separate: %s' % target)
     if sys.version_info < MIN_PYTHON:
@@ -485,7 +485,7 @@ def install(source, target=None, assume_yes=False, desktop=True, wheels=None, sk
             app.rename(old)
         except OSError:
             shutil.rmtree(incoming, ignore_errors=True)
-            raise SetupError('Graphite seems to be running (its folder is in use). Close it and run the '
+            raise SetupError('Kas seems to be running (its folder is in use). Close it and run the '
                              'installer again; nothing was replaced.')
     incoming.rename(app)
     if old.exists():
@@ -503,7 +503,7 @@ def install(source, target=None, assume_yes=False, desktop=True, wheels=None, sk
             try:
                 shutil.rmtree(vpy.parent.parent)
             except OSError:
-                raise SetupError('The private Python environment is in use. Close Graphite and run the '
+                raise SetupError('The private Python environment is in use. Close Kas and run the '
                                  'installer again.')
         code, out = run([base_python, '-m', 'venv', str(vpy.parent.parent)], 600)
         if code != 0:
@@ -644,7 +644,7 @@ def uninstall(target=None, assume_yes=False, ui=None, plat=None):
         try:                                   # fails on Windows while Workbench has the folder open
             app.rename(target / 'app.removing')
         except OSError:
-            raise SetupError('Graphite seems to be running. Close it and uninstall again; nothing was removed.')
+            raise SetupError('Kas seems to be running. Close it and uninstall again; nothing was removed.')
     plat.remove_shortcuts(info.get('shortcuts', []))
     plat.unregister()
     shutil.rmtree(target, ignore_errors=True)
@@ -686,7 +686,7 @@ def main(argv=None):
         print('\nStopped.')
         return 1
     except OSError as e:
-        print('\nSetup stopped: %s\nIf Graphite is open, close it and run setup again.' % e)
+        print('\nSetup stopped: %s\nIf Kas is open, close it and run setup again.' % e)
         return 1
     return 0
 

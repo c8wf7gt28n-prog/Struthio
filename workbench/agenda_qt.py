@@ -50,7 +50,7 @@ class AgendaTab(QWidget):
         rules = view.get('rules', {})
         rows.append(('How it runs', 'one due item at a time, %s-only; up to %d suggestions; stops after %d rounds that find nothing new; nothing new starts without your say-so'
                      % (rules.get('authority', 'read'), rules.get('max_suggestions', 3), rules.get('quiet_limit', 2))))
-        return 'Graphite\'s Agenda', rows
+        return 'Kas\'s Agenda', rows
 
     def showEvent(self, event):super().showEvent(event);self.reload();self.timer.start()
 
@@ -75,12 +75,12 @@ class AgendaTab(QWidget):
         view = call(self.host, 'agenda.view') or {'now': [], 'next': [], 'waiting': [], 'later': [], 'suggested': [], 'done': []}
         self.view = view
         page = QWidget();box = QVBoxLayout(page);box.setContentsMargins(48, 32, 48, 24);box.setSpacing(18)
-        box.addWidget(role(QLabel("Graphite's Agenda"), 'title'))
+        box.addWidget(role(QLabel("Kas's Agenda"), 'title'))
         lead = role(QLabel('What it is doing, what comes next and what it is waiting for. Nothing new starts without your say-so.'), 'lead')
         lead.setWordWrap(True);lead.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);box.addWidget(lead)
         row = QHBoxLayout();row.setSpacing(16)
         old = getattr(self, 'entry', None)
-        self.entry = QLineEdit(old.text() if old is not None else '');writing_prompt(self.entry, 'Add something for Graphite to do next, in words or as a line')
+        self.entry = QLineEdit(old.text() if old is not None else '');writing_prompt(self.entry, 'Add something for Kas to do next, in words or as a line')
         self.entry.setAccessibleName('Add to Next');self.entry.returnPressed.connect(self.add);row.addWidget(self.entry, 1)
         row.addWidget(sentence('nice {nice}', {'nice': (self.nice, self.cycle_nice)}));box.addLayout(row)
         if not view['now'] and not view['next']:
@@ -90,7 +90,7 @@ class AgendaTab(QWidget):
         self.section(box, 'NOW', view['now'], self.now_row, 'Nothing is running.')
         self.section(box, 'NEXT · IN ORDER', view['next'], self.next_row, 'Nothing is next.', keep=6)
         self.section(box, 'WAITING FOR YOU', view['waiting'], self.waiting_row, 'Nothing is waiting for you.', keep=6)
-        if view['suggested']:self.section(box, 'SUGGESTED BY GRAPHITE · NEXT STEPS', view['suggested'], self.suggested_row, '')
+        if view['suggested']:self.section(box, 'SUGGESTED BY KAS · NEXT STEPS', view['suggested'], self.suggested_row, '')
         self.section(box, 'LATER', view['later'], self.later_row, 'Nothing is scheduled.', keep=0, folded='%d scheduled')
         self.section(box, 'DONE', view['done'][:30], self.done_row, 'Nothing has finished yet.', keep=0, folded='%d finished')
         if self._empties:
@@ -163,7 +163,7 @@ class AgendaTab(QWidget):
         if i:words['up'] = ('move up', lambda r=r, i=i:self.act('agenda.move', {'id': r['id'], 'position': i - 1}))
         extra = [r['reason']] if r.get('reason') else []
         if r['nice'] == 'background':extra.append('waits until the computer is idle')
-        if r.get('origin') == 'slate':extra.append('Graphite suggested')
+        if r.get('origin') == 'slate':extra.append('Kas suggested')
         w = QWidget();col = QVBoxLayout(w);col.setContentsMargins(0, 0, 0, 0);col.setSpacing(3)
         head = QLabel(r['title']);head.setWordWrap(True);col.addWidget(head)
         label = sentence(text + '  ·  {pause}' + ('  ·  {up}' if i else '') + '  ·  {cancel}' + ''.join('  ·  ' + escape_text(e) for e in extra), words)

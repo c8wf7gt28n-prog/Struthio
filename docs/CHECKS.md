@@ -5,7 +5,7 @@ One command runs the checks at the size the moment needs:
 ```
 python3 tools/run_tiers.py 0                      # at every change: under a minute
 python3 tools/run_tiers.py 1 [--changed REF]      # before a commit: tier 0 and what imports a changed file
-python3 tools/run_tiers.py 2                      # at a release: everything, in every look (1.1: Graphite, Kasandra, Day, Night)
+python3 tools/run_tiers.py 2                      # at a release: everything, in every look (1.1: Pencil, Indigo, Day, Night; keys graphite, kasandra, day, night)
 python3 tools/run_tiers.py 2 --look graphite,day --only test_x,check_y_ui.py   # again, only what failed
 ```
 
@@ -21,8 +21,8 @@ folder). `--against EARLIER.json` says what changed since an earlier run of the 
 | 3 | the ThinkPad: the check, the scenes on the real display, an evening of use | each release, by the owner | not run here |
 
 Each module, window check and scene runs in a process of its own, with an empty home folder and a temporary folder of its
-own, offscreen, at the lowest priority, in the look it is given: Kasandra's with `GRAPHITE_APPEARANCE=kasandra`,
-Graphite's with the variable unset, the default the owner starts with. None of the program's own variables passes from
+own, offscreen, at the lowest priority, in the look it is given: Kas's with `GRAPHITE_APPEARANCE=kasandra`,
+Kas's with the variable unset, the default the owner starts with. None of the program's own variables passes from
 the shell that starts the run (`ARC_LEDGER_*` such as the workspace a switch chose, `ARC1_WORKBENCH_*`, `LEDGER_*`,
 `GRAPHITE_*`), nor the `XDG_*_HOME` folders or `PYTHONPATH`. It runs in a process namespace of its own where the machine
 allows one (as root, or with user namespaces), and elsewhere, as on the owner's machine as a normal user, in a process
@@ -97,7 +97,7 @@ the pane) and the probes' remaining checks as assertions in the modules that alr
 
 ## Fixed waits
 
-Measured on 19 November by timing every `QTest.qWait` and `time.sleep` in one run of each window check (Graphite's look):
+Measured on 19 November by timing every `QTest.qWait` and `time.sleep` in one run of each window check (Kas's look):
 the 22 checks spent 115 of their 351 seconds waiting (33%). Tier 0 hardly waits at all (two pauses of 0.3 s in
 `test_network_watch`, the time a real capture thread needs). Two checks wait for more than half their time:
 
@@ -119,14 +119,14 @@ On 19 November 2026, on a copy of the tree (four cores, another build's two test
 3.5), each child at nice 19 in a process namespace of its own, two at a time:
 
 - **Tier 0:** 39.9 s, 39.4 s and 38.6 s in three runs; 25 runs, 412 tests, 0 failing. After the review's fixes, on the
-  same tree: 35 s, 37 s and 37 s in Graphite's look and 38 s in Kasandra's; then, with another build's tests running
+  same tree: 35 s, 37 s and 37 s in the Pencil look and 38 s in the Indigo look; then, with another build's tests running
   beside it (the children took 98 s between them instead of 67 s), 52 s and 47 s. Under a minute each time, but that
   margin is what a busy machine takes.
 - **Tier 1** for a one-line change in `workbench/agenda_qt.py` (with the seed made current again): it chose
   `test_delete_words`, `test_hologram`, `test_kasandra_column`, `test_session_start` and `test_typewriter_faces`; 30 runs,
   492 tests, 1 min 46 s, 0 failing.
-- **Tier 2,** one look after the other: Graphite 11 min 36 s, Kasandra 11 min 35 s; each 100 runs, 1,160 tests, the 22
-  window checks (220 steps), the scene 4 of 4, 0 failing. In Graphite's look the children took 1,391 s between them: the
+- **Tier 2,** one look after the other: Kas 11 min 36 s, Kas 11 min 35 s; each 100 runs, 1,160 tests, the 22
+  window checks (220 steps), the scene 4 of 4, 0 failing. In Kas's look the children took 1,391 s between them: the
   modules 920 s (the slowest `test_desk_acts`, 187 s), the window checks 372 s (`check_finder_ui` 68 s), the scene 90 s,
   the name sweep 5 s and the release check's sections 4 s. Two at a time, the run takes half of that.
 

@@ -58,7 +58,7 @@ class AssetGalleryTab(QWidget):
             QSize(340, 425), Qt.KeepAspectRatio, Qt.SmoothTransformation))
         layout.addWidget(preview)
         title = QLabel('SLATE'); title.setAlignment(Qt.AlignCenter); layout.addWidget(title)
-        note = QLabel('Slate is the Struthio bird. This preview uses the unchanged approved resting pose. The desktop bird faces into the work and admits brief event cues; its badge reports actual work state.')
+        note = QLabel('Slate is the ostrich. This preview uses the unchanged approved resting pose. The desktop bird faces into the work and admits brief event cues; its badge reports actual work state.')
         note.setWordWrap(True); layout.addWidget(note); layout.addStretch()
         scroll = QScrollArea(); scroll.setWidgetResizable(True); scroll.setWidget(body); return scroll
     def part_page(self,prefix,title):

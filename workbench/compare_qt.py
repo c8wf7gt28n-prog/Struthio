@@ -57,7 +57,7 @@ class CompareTab(QWidget):
         if d.get('same_bytes'):rows.append(('Bytes', 'the same'))
         c = d.get('copy')
         if c:
-            rows[:0] = [('Working copy of', c['source_words']), ('State', c['status']), ('Graphite may edit', 'Yes' if c['for_slate'] else 'No'),
+            rows[:0] = [('Working copy of', c['source_words']), ('State', c['status']), ('Kas may edit', 'Yes' if c['for_slate'] else 'No'),
                         ('Address', '@copies:' + c['id'])]
             if c.get('last_update'):rows.append(('Last update', 'revision applied · Undo is in Files'))
         return self.title(), rows
@@ -172,9 +172,9 @@ class CompareTab(QWidget):
         elif c['original'] == 'changed':
             outside = d.get('outside') or {}
             if c.get('kind') == 'folder':
-                lines.append(escape_text('Files in the original folder changed outside Graphite since the work began. Nothing will be replaced.') + '  {refresh}  ·  {new}')
+                lines.append(escape_text('Files in the original folder changed outside Kas since the work began. Nothing will be replaced.') + '  {refresh}  ·  {new}')
             else:
-                lines.append(escape_text('The original changed outside Graphite since the work began (%s lines added, %s removed there). It will not be replaced.'
+                lines.append(escape_text('The original changed outside Kas since the work began (%s lines added, %s removed there). It will not be replaced.'
                                          % (outside.get('added', '?'), outside.get('removed', '?'))) + '  {merge}  ·  {refresh}  ·  {new}')
                 words['merge'] = ('bring the outside change in', self.merge)
             words['refresh'] = ('compare with the changed original', self.refresh)
@@ -212,7 +212,7 @@ class CompareTab(QWidget):
             if not r.get('ok'):self.copy_done(r, '');return
             c = call_write(self.host, 'copies.get', {'id': c['id']})['result']
         stem, dot, suffix = c['name'].rpartition('.')
-        name, ok = QInputDialog.getText(self, 'Save as a new file', 'Beside the original, named:', text=(stem + ' (from Graphite).' + suffix) if dot else c['name'] + ' (from Graphite)')
+        name, ok = QInputDialog.getText(self, 'Save as a new file', 'Beside the original, named:', text=(stem + ' (from Kas).' + suffix) if dot else c['name'] + ' (from Kas)')
         if not ok or not name.strip():return
         r = call_write(self.host, 'copies.save_new', {'id': c['id'], 'proposal': c['proposal']['id'], 'name': name.strip()})
         self.copy_done(r, ('Saved as %s. The original is unchanged.' % r['result']['saved_words']) if r.get('ok') else '')

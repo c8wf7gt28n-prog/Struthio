@@ -38,11 +38,11 @@ TAB_MIME = 'application/x-graphite-tab'
 OBJECT_MIME = 'application/x-graphite-object'
 SAY = {
     'focus': 'In focus',
-    'focus_tip': 'The pane in focus: the tree\'s highlight and Kasandra\'s “this” follow it.',
+    'focus_tip': 'The pane in focus: the tree\'s highlight and Kas\'s “this” follow it.',
     'beside': 'Beside · another object',
     'beside_same': 'Beside · the same object',
     'beside_empty': 'Beside · empty',
-    'beside_tip': ('This pane shows another object: “%s”. The tree\'s highlight and Kasandra\'s “this” follow the pane in focus; '
+    'beside_tip': ('This pane shows another object: “%s”. The tree\'s highlight and Kas\'s “this” follow the pane in focus; '
                    'a click here brings this pane into focus. Until then it keeps its place.'),
     'empty_tip': 'The other half is empty: drag a tab here, or a tile from the board, or choose a view below.',
     'stack': 'Stack', 'side': 'Side by side', 'one': 'One pane', 'split': 'Split',

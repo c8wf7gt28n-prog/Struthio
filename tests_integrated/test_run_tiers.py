@@ -189,11 +189,11 @@ FAKE = {
         ''',
     'tests_integrated/test_look.py': '''
         import os, unittest
-        class Kasandra(unittest.TestCase):
+        class Kas(unittest.TestCase):
             def test_the_look_it_was_given(self):
                 self.assertEqual(os.environ.get('GRAPHITE_APPEARANCE'), 'kasandra')
         class Default(unittest.TestCase):
-            def test_graphite_is_named_too(self):      # 1.1 T1: unset, a fresh profile starts in Day (1.0 D1), so Graphite is named
+            def test_graphite_is_named_too(self):      # 1.1 T1: unset, a fresh profile starts in Day (1.0 D1), so Kas is named
                 self.assertEqual(os.environ.get('GRAPHITE_APPEARANCE'), 'graphite')
         ''',
     'tests_integrated/test_fail.py': '''
@@ -289,7 +289,7 @@ class TheRunner(unittest.TestCase):
 
     def test_each_module_in_a_child_of_its_own_a_failure_with_its_message_and_a_time_limit_is_a_failure(self):
         units = [self.unit(n) for n in ('test_pass', 'test_fail', 'test_slow', 'test_broken', 'test_exits', 'test_nested', 'test_skips', 'test_leaves')]
-        units += [self.unit('test_look', 'kasandra', ['Kasandra']), self.unit('test_look', 'graphite', ['Default'])]
+        units += [self.unit('test_look', 'kasandra', ['Kas']), self.unit('test_look', 'graphite', ['Default'])]
         elsewhere = str(self.base / 'elsewhere')         # what the shell that starts a run may hold: none of it reaches a test
         shell = {'GRAPHITE_APPEARANCE': 'kasandra', 'ARC_LEDGER_WORKSPACE': elsewhere, 'ARC1_WORKBENCH_CONFIG_HOME': elsewhere,
                  'ARC_LEDGER_EDITION': 'service', 'LEDGER_QUALIFICATION_SECRET': 'not for tests', 'GRAPHITE_CAMPAIGN_FIXTURES': elsewhere}
@@ -303,7 +303,7 @@ class TheRunner(unittest.TestCase):
                           ('test_exits', 'kasandra', 0, 1, 0, 'FAILED'),     # it ended mid-test, with exit 0 and no word of unittest's
                           ('test_nested', 'kasandra', 1, 0, 0, 'PASSED'),    # the 'Ran 99 tests' it printed is not the count
                           ('test_skips', 'kasandra', 2, 0, 2, 'PASSED'), ('test_leaves', 'kasandra', 1, 0, 0, 'PASSED'),
-                          ('test_look (Kasandra)', 'kasandra', 1, 0, 0, 'PASSED'), ('test_look (Default)', 'graphite', 1, 0, 0, 'PASSED')])
+                          ('test_look (Kas)', 'kasandra', 1, 0, 0, 'PASSED'), ('test_look (Default)', 'graphite', 1, 0, 0, 'PASSED')])
         self.assertTrue(all(isinstance(r['seconds'], float) and (self.out / r['log']).is_file() for r in rows))
         failure = rows[1]['failures']
         self.assertEqual(len(failure), 1); self.assertIn('test_fail.Fail.test_seven', failure[0]['test'])

@@ -99,7 +99,7 @@ class IdleDisplayArt:
         painter.setFont(self._small)
         _text(painter, 42, 41, 'STRUTHIO WORKSHOP  /  AFTER HOURS', _AMBER)
         painter.setFont(self._title)
-        _text(painter, 40, 91, 'GRAPHITE', _PAPER)
+        _text(painter, 40, 91, 'KAS', _PAPER)
         painter.setFont(self._small)
         _text(painter, 43, 117, 'FIELD DISPLAY 07   /   LOCAL ARTWORK', _MUTED)
         badge = QRectF(1180, 44, 218, 43)
@@ -198,7 +198,7 @@ class IdleDisplayArt:
             image = kasandra_art.picture(base, scene, round(target.width()), round(target.height())) if scene else QImage()
             if not image.isNull():painter.drawImage(target, image)
             _line(painter, 856, 585, 1386, 585, _RULE);painter.setFont(self._small)
-            _text(painter, 856, 607, 'KASANDRA / ' + (scene['title'].upper() if scene else 'A QUIET ROOM'), _AMBER);_text(painter, 1222, 607, 'STRUTHIO MARK', _MUTED)
+            _text(painter, 856, 607, 'KAS / ' + (scene['title'].upper() if scene else 'A QUIET ROOM'), _AMBER);_text(painter, 1222, 607, 'STRUTHIO MARK', _MUTED)
             return
         if tape and self._tape is None:
             self._tape = QImage(str(self.folder / 'plates' / 'Brain on Disk.png'))
@@ -259,6 +259,6 @@ class IdleDisplayArt:
         _line(painter, 42, 827, 1398, 827, _RULE)
         painter.fillRect(QRectF(42, 850, 7, 7), _GREEN)
         painter.setFont(self._small)
-        _text(painter, 59, 858, 'GRAPHITE   /   IDLE DISPLAY', _MUTED)
+        _text(painter, 59, 858, 'KAS   /   IDLE DISPLAY', _MUTED)
         _text(painter, 507, 858, 'Move the pointer to return', _PAPER)
         _text(painter, 1213, 858, 'REEL LOOP   [A–B]', _AMBER)

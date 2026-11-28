@@ -1,7 +1,0 @@
-#!/bin/sh
-# 1.1 PK1: Graphite's window from the packaged program (what START_OFFICE.sh does in a folder install).
-# Options pass through: graphite --version, graphite --check, graphite --doctor.
-export ARC_LEDGER_EDITION=office ARC_LEDGER_OPEN="${ARC_LEDGER_OPEN:-office}"
-export PYTHONPATH="/usr/lib/graphite${PYTHONPATH:+:$PYTHONPATH}"
-cd /usr/lib/graphite || exit 1
-exec /usr/bin/python3 -m workbench.launch "$@"

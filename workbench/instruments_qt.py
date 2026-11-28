@@ -269,7 +269,7 @@ class ClipDock(QWidget):
         conversation=QPushButton(named('Ask Stacy…'));conversation.clicked.connect(expand)
         conversation.setAccessibleName(named('Open the conversation with Stacy'));entry.addWidget(conversation,1)
         self.advanced=QToolButton();self.advanced.setText('More');self.advanced.setCheckable(True)
-        self.advanced.setToolTip('Expand existing Graphite modes, job controls and message input')
+        self.advanced.setToolTip('Expand existing Kas modes, job controls and message input')
         entry.addWidget(self.advanced);layout.addLayout(entry)
         details=QWidget();details.setObjectName('ClipDetails')
         detail_layout=QVBoxLayout(details);detail_layout.setContentsMargins(0,0,0,0)
@@ -290,7 +290,7 @@ class ClipDock(QWidget):
         row = QHBoxLayout()
         self.input = QLineEdit()
         writing_prompt(self.input, named('Ask Stacy about this project…'))
-        self.input.setAccessibleName('Message to Graphite')
+        self.input.setAccessibleName('Message to Kas')
         self.input.returnPressed.connect(self.send)
         row.addWidget(self.input, 1)
         button = QPushButton('Send')
@@ -373,7 +373,7 @@ class ClipDock(QWidget):
 
     def set_busy(self, busy):
         self.busy=busy
-        self.status.setText('Waiting for Gemini response…' if busy else 'Idle · Graphite ready (Gemini setup may be required)')
+        self.status.setText('Waiting for Gemini response…' if busy else 'Idle · Kas ready (Gemini setup may be required)')
         self.progress.setVisible(bool(busy))
         self.input.setEnabled(not busy)
         self.send_button.setEnabled(not busy)

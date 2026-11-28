@@ -1,0 +1,6 @@
+#!/bin/sh
+# 1.1 PK1: the Kas session for a display manager (graphite.desktop in /usr/share/xsessions) or for startx:
+# the session supervisor (LS_XSESSION.sh) of the packaged program, with Fluxbox.
+# 1.1 R1: the graphite-* names stay one release as symlinks to this file (tools/debian_pkg.py); called by one, say the new name.
+case "${0##*/}" in graphite*) echo "${0##*/} is now kas-session; the old name goes in the next release." >&2 ;; esac
+exec /bin/bash /usr/lib/graphite/LS_XSESSION.sh "$@"

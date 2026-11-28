@@ -29,7 +29,7 @@ class PaletteTests(unittest.TestCase):
             self.assertEqual(boss_theme.chosen_appearance({}, path), 'kasandra')
             self.assertEqual(boss_theme.chosen_appearance({'GRAPHITE_APPEARANCE': 'graphite'}, path), 'graphite', 'the environment first')
             path.write_text(json.dumps({'appearance': 'lain'}))
-            self.assertEqual(boss_theme.chosen_appearance({}, path), 'graphite', 'an unknown name is Graphite')
+            self.assertEqual(boss_theme.chosen_appearance({}, path), 'graphite', 'an unknown name is Kas')
             path.write_text('{not json')
             self.assertEqual(boss_theme.chosen_appearance({}, path), 'graphite')
             self.assertEqual(boss_theme.chosen_appearance({'GRAPHITE_APPEARANCE': ' Kasandra '}, path), 'kasandra')
@@ -58,14 +58,14 @@ class PaletteTests(unittest.TestCase):
     def test_a_sheet_written_in_graphites_colours_takes_the_colours_of_their_roles(self):
         css = 'QLineEdit {background:#493225;color:#eee9dd;border:1px solid #ff9a36;} QLabel {color:#123456;}'
         with mock.patch.object(boss_theme, 'APPEARANCE', 'graphite'):
-            self.assertEqual(boss_theme.recolour(css), css, 'Graphite: unchanged')
+            self.assertEqual(boss_theme.recolour(css), css, 'Kas: unchanged')
         with mock.patch.object(boss_theme, 'APPEARANCE', 'kasandra'):
             k = boss_theme.PALETTES['kasandra'];lit = boss_theme.recolour(css)
             self.assertEqual(lit, 'QLineEdit {background:%s;color:%s;border:1px solid %s;} QLabel {color:#123456;}' % (k['ERASER'], k['TEXT'], k['AMBER_EDGE']))
 
     def test_a_line_you_can_run_stands_on_royal_purple_and_its_record_numbers_are_short(self):
         with mock.patch.object(boss_theme, 'APPEARANCE', 'graphite'):
-            self.assertEqual(boss_theme.line_sheet(), 'color:%s' % boss_theme.TEAL_TEXT, 'Graphite: its green, as before')
+            self.assertEqual(boss_theme.line_sheet(), 'color:%s' % boss_theme.TEAL_TEXT, 'Kas: its green, as before')
         with mock.patch.object(boss_theme, 'APPEARANCE', 'kasandra'), mock.patch.multiple(boss_theme, ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff'):
             sheet = boss_theme.line_sheet()
             self.assertIn('background:#271a58', sheet);self.assertIn('border-left:3px solid #7b4fd8', sheet);self.assertIn('color:#ebe2ff', sheet)
@@ -73,7 +73,7 @@ class PaletteTests(unittest.TestCase):
         self.assertEqual(boss_theme.eye(line), '/field.set {"id": "office:owner:3c9e0a…", "cell": "B3", "expected_revision": "8f41c2…"}')
         self.assertEqual(boss_theme.eye('field.read | pick waiting'), 'field.read | pick waiting', 'nothing to shorten')
         self.assertEqual(set(boss_theme.PALETTES['graphite']) >= {'ROYAL', 'ROYAL_SOFT', 'ROYAL_INK', 'ROYAL_TEXT', 'HONEY', 'VIOLET'}, True)
-        self.assertEqual(boss_theme.PALETTES['graphite']['ROYAL_TEXT'], boss_theme.PALETTES['graphite']['TEAL_TEXT'], 'Graphite keeps its green for lines')
+        self.assertEqual(boss_theme.PALETTES['graphite']['ROYAL_TEXT'], boss_theme.PALETTES['graphite']['TEAL_TEXT'], 'Kas keeps its green for lines')
 
     def test_the_appearance_is_this_computers_and_survives_another_project(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -182,7 +182,7 @@ class StateTests(unittest.TestCase):
     def test_the_state_of_the_work_in_order_of_what_matters(self):
         self.assertEqual(art.current_state(self.host()), 'idle')
         # 1.1 T1: since 1.0 K10 the equalizer's busy flag (any job of Graphite's own) is not her work; a job of hers is
-        self.assertEqual(art.current_state(self.host(busy=True)), 'idle', "Graphite's own work is not hers")
+        self.assertEqual(art.current_state(self.host(busy=True)), 'idle', "Kas's own work is not hers")
         self.assertEqual(art.current_state(self.host(hers=True)), 'working')
         self.assertEqual(art.current_state(self.host(job='j1')), 'working')
         self.assertEqual(art.current_state(self.host(would={'x': 'y'})), 'working')
@@ -215,7 +215,7 @@ class NameTests(unittest.TestCase):
         # 0.8.4, the owner: "Just kas. Otherwise we have too many people." Until 0.8.3 Graphite showed her as Stacy
         # (the window and the code are held to the one name by tests_integrated/test_one_name.py).
         for appearance in ('graphite', 'kasandra'):
-            self.assertEqual(self.run_with(appearance), ['Kasandra', 'Kasandra', 'Ask Kasandra about this', 'TEXT · WHAT KASANDRA HOLDS'], appearance)
+            self.assertEqual(self.run_with(appearance), ['Kas', 'Kas', 'Ask Kas about this', 'TEXT · WHAT KAS HOLDS'], appearance)
 
     def test_history_keeps_the_name_it_was_written_with(self):
         source = (ROOT / 'workbench' / 'local_brain.py').read_text(encoding='utf-8')

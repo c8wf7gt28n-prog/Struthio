@@ -41,7 +41,7 @@ def reading(watcher=None):
     if watcher is None:
         app = QApplication.instance()
         if app is None or QApplication.platformName() != 'xcb':
-            return [], 'Graphite\'s window is not on an X display here, so it cannot see the apps\' windows'
+            return [], 'The computer\'s window is not on an X display here, so it cannot see the apps\' windows'
         watcher = wx.shared()
     if not watcher.start():return [], watcher.reason
     snap = watcher.refresh()
@@ -64,7 +64,7 @@ def confirm_words(action, watcher=None):
     apps = mains(rows)
     if not apps:return ''
     listed = ', '.join(name(r) for r in apps[:6]) + (' and %d more' % (len(apps) - 6) if len(apps) > 6 else '')
-    return ('\n\nApps still open: %s. After you confirm, Graphite asks each to close, the polite way (an app may ask you to '
+    return ('\n\nApps still open: %s. After you confirm, Kas asks each to close, the polite way (an app may ask you to '
             'save first), before %s.' % (listed, THEN.get(action, 'the session ends')))
 
 
@@ -87,7 +87,7 @@ class LeaveAppsDialog(QDialog):
         self.heading.setProperty('arcRole2', 'card');box.addWidget(self.heading)
         self.list = QWidget();self.grid = QGridLayout(self.list);self.grid.setContentsMargins(0, 4, 0, 4);self.grid.setHorizontalSpacing(14)
         box.addWidget(self.list)
-        self.explain = QLabel(('They end when %s, and work not saved in them is lost. Graphite can ask each one to close first, '
+        self.explain = QLabel(('They end when %s, and work not saved in them is lost. Kas can ask each one to close first, '
                                'the polite way: an app with unsaved work may ask you to save it. Nothing is forced.') % THEN.get(action, 'the session ends'))
         self.explain.setWordWrap(True);box.addWidget(self.explain)
         self.status = QLabel('');self.status.setWordWrap(True);box.addWidget(self.status)
@@ -175,7 +175,7 @@ class LeaveAppsDialog(QDialog):
         if self.started is not None and time.monotonic() - self.started > WAIT_SECONDS:
             asking = [r for r in left if r['dialog']]
             self.status.setText('%d window%s still open.%s' % (len(left), '' if len(left) == 1 else 's', (' An app is asking you something in its own window '
-                                                                '(unsaved work, perhaps): press Show, answer it there, and Graphite goes on once it has closed.')
+                                                                '(unsaved work, perhaps): press Show, answer it there, and Kas goes on once it has closed.')
                                                        if asking else ' An app may be asking you about unsaved work: press Show to see it.'))
             self.adjustSize()
             self.ask.setEnabled(True);self.ask.setText('Ask again');self.started = None

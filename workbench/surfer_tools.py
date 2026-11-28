@@ -44,7 +44,7 @@ def discover(which=None):
     pillow=importlib.util.find_spec('PIL') is not None
     return {'state':'DETECTED' if len(programs)==3 and pillow and os.name=='posix' else 'NOT_AVAILABLE',
             'programs':programs,'pillow':pillow,'qualified':False,
-            'reason':'Native capture currently requires Linux Surfer, Xvfb, xauth and Pillow, installed separately. Graphite trace inspection works without these optional capture tools.'}
+            'reason':'Native capture currently requires Linux Surfer, Xvfb, xauth and Pillow, installed separately. Kas trace inspection works without these optional capture tools.'}
 
 
 def environment(tools,out):
@@ -129,7 +129,7 @@ def capture(tools,trace_path,selected,start,end,out,env):
             receipt={'selected':sorted(selected),'start_tick':start,'end_tick':end,'pixels':[1280,800],
                     'state_sha256':io.sha(state),'image_sha256':io.sha(out/'surfer.png'),'trace_sha256':io.sha(out/'trace.vcd'),
                     'duration_seconds':time.monotonic()-started,'native_file_loaded':True,
-                    'scope':'Actual native Surfer snapshot and saved state, not embedded Surfer controls. Graphite provides its own separate digital cursor/zoom inspector.'}
+                    'scope':'Actual native Surfer snapshot and saved state, not embedded Surfer controls. Kas provides its own separate digital cursor/zoom inspector.'}
             return receipt
     finally:
         refs=owned_tree([p.pid for p in (viewer,xvfb) if p is not None])
@@ -201,7 +201,7 @@ def report(root,ident=None):
 def dispatch(kernel,operation,args):
     if operation=='surfer.report':return report(kernel.root,args.get('id'))
     return {'schema':CONTRACT,'tool':discover(),'profiles':PROFILES,'latest':report(kernel.root),
-            'notice':'Actual native Surfer snapshots/saved state of verified digital VCDs. Graphite cursor/zoom inspection is a separate portable view; no physical timing claim.'}
+            'notice':'Actual native Surfer snapshots/saved state of verified digital VCDs. Kas cursor/zoom inspection is a separate portable view; no physical timing claim.'}
 
 
 if __name__=='__main__':

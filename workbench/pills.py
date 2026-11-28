@@ -81,7 +81,7 @@ def read(kernel, text, replay=True):
 def policy(pill):
     """This Ledger's own rule on what it is asked; a request cannot change it."""
     asked = set(pill.contract['requested'])
-    if asked - POLICY:raise ValueError('PILLS_NOT_PERMITTED: this Graphite does not accept requests for ' + ', '.join(sorted(asked - POLICY)))
+    if asked - POLICY:raise ValueError('PILLS_NOT_PERMITTED: this Kas does not accept requests for ' + ', '.join(sorted(asked - POLICY)))
 
 
 def described(kernel, row):
@@ -188,7 +188,7 @@ def dispatch(kernel, op, args, principal):
     if op == 'pills.open':
         path, _, pill = read(kernel, args['path'], replay=False)
         value = {'path': str(path), 'pill': pill.summary(), 'purpose': pill.contract['task']['purpose'], 'checks': [
-            'signed by %s, a paired computer' % pill.contract['sender']['name'], 'every file matches its hash', 'meant for this Graphite']}
+            'signed by %s, a paired computer' % pill.contract['sender']['name'], 'every file matches its hash', 'meant for this Kas']}
         try:
             if pill.kind == 'request':policy(pill)
             value['permitted'] = True

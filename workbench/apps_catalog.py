@@ -326,7 +326,7 @@ def judge(app, env=None, ours=()):
     if app.try_exec and not which(app.try_exec, env):whys.append('%s is not installed' % app.try_exec)
     app.listed = not whys;app.why = '; '.join(whys)
     if not app.exec:
-        app.available = False;app.reason = '%s starts only through D-Bus, which Graphite does not use to start apps.' % app.name;return app
+        app.available = False;app.reason = '%s starts only through D-Bus, which Kas does not use to start apps.' % app.name;return app
     try:parts = split_exec(unescape(app.exec))
     except ValueError as exc:
         app.available = False;app.reason = 'Its command line cannot be read: %s.' % exc;return app
@@ -335,7 +335,7 @@ def judge(app, env=None, ours=()):
     program = parts[0][0];found = which(program, env)
     app.takes = takes(parts)
     if Path(program).name in NEVER:
-        app.available = False;app.reason = 'Graphite never starts a program through %s.' % Path(program).name
+        app.available = False;app.reason = 'Kas never starts a program through %s.' % Path(program).name
     elif found is None:
         app.available = False;app.reason = '%s is not installed on this computer.' % program
     else:
@@ -942,7 +942,7 @@ def pin_app(row, catalog=None, env=None):
     app.takes = takes([(a, False) for a in argv])
     found = which(argv[0], env) if argv else None
     if not argv:app.available, app.reason = False, 'There is no command.'
-    elif Path(argv[0]).name in NEVER:app.available, app.reason = False, 'Graphite never starts a program through %s.' % Path(argv[0]).name
+    elif Path(argv[0]).name in NEVER:app.available, app.reason = False, 'Kas never starts a program through %s.' % Path(argv[0]).name
     elif found is None:app.available, app.reason = False, '%s is not installed on this computer.' % argv[0]
     else:app.program = found
     return app
@@ -968,7 +968,7 @@ def pin(ident='', name='', command_line='', env=None, catalog=None):
         if not parts:raise ValueError('APPS_COMMAND: there is no command')
         if any(q and '%' in a for a, q in parts):raise ValueError('APPS_COMMAND: a file code inside quotes would be read by a shell; take the quotes away')
         argv = [a for a, _ in parts]
-        if Path(argv[0]).name in NEVER:raise ValueError('APPS_COMMAND: Graphite never starts a program through %s' % Path(argv[0]).name)
+        if Path(argv[0]).name in NEVER:raise ValueError('APPS_COMMAND: Kas never starts a program through %s' % Path(argv[0]).name)
         if which(argv[0], env) is None:raise ValueError('APPS_COMMAND: %s is not installed on this computer' % argv[0])
         row = {'key': 'pin:' + hashlib.sha256(json.dumps(argv).encode('utf-8')).hexdigest()[:16], 'name': name or Path(argv[0]).name, 'argv': argv}
     rows = [r for r in rows if r['key'] != row['key']] + [row]

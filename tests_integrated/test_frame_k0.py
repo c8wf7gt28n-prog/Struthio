@@ -18,25 +18,25 @@ HEAD = ['File', 'Edit', 'View', 'Go', 'Tools', 'Help']
 ROWS_1_0 = {
     'Work': ['New File…', 'New Idea…', 'New Project…', 'Open…', 'Open in Universal Viewer…', 'Find a File…', 'Open Recent', 'Receive Files…',
              'Import (Ingress)…', 'Export (Egress)…', 'Work on a Copy of a File…', 'Save', 'Save All', 'Close', 'Recover Unsaved Work…',
-             'Lock', 'Suspend', 'Log out', 'Restart', 'Shut down', 'Exit Graphite'],
+             'Lock', 'Suspend', 'Log out', 'Restart', 'Shut down', 'Exit Kas'],
     'Revise': ['Undo', 'Redo', 'Cut', 'Copy', 'Paste', 'Select All', 'Find…', 'Find Next', 'Replace…', 'Go to Line…'],
-    'Arrange': ['Today', 'Field', 'Files', 'Library', 'Project Desk', 'Changes', 'Continuing work', 'Exchange & deployment', "Graphite's Agenda",
-                'Kasandra', 'Console', 'Cabinet', 'Refresh Machine View', 'Full Screen', 'Reading and Layout…', 'Appearance', 'Larger prose',
+    'Arrange': ['Today', 'Field', 'Files', 'Library', 'Project Desk', 'Changes', 'Continuing work', 'Exchange & deployment', "Kas's Agenda",
+                'Kas', 'Console', 'Cabinet', 'Refresh Machine View', 'Full Screen', 'Reading and Layout…', 'Appearance', 'Larger prose',
                 'Smaller prose', 'Word Wrap', 'Split Editor / Close Split', 'Pin / Unpin workspace', 'Reopen deferred tabs', 'Reset Window Layout'],
     'Tools': ['Explore capabilities…', 'Inquiries…', 'Algorithm & Theory Atlas…', 'Tool Atlas…', 'A Utility on Copies…', 'System Check',
-              'STOP / KILL all Graphite operations…', 'Engineering'],
-    'Commands': ['Graphite Commands…', 'Run an operation…', 'Chain Menu', 'Constructed chain', 'Writing Line', 'Command Palette…', 'Favorite commands'],
-    'Rules': ['Graphite Settings…', 'Desk artwork', 'Buttons', "Kasandra's hand", 'Show keys', 'DOS words', "The bin's name"],
+              'STOP / KILL all Kas operations…', 'Engineering'],
+    'Commands': ['Kas Commands…', 'Run an operation…', 'Chain Menu', 'Constructed chain', 'Writing Line', 'Command Palette…', 'Favorite commands'],
+    'Rules': ['Kas Settings…', 'Desk artwork', 'Buttons', "Kas's hand", 'Show keys', 'DOS words', "The bin's name"],
     'Properties': ['Inspector', 'This Computer…', 'Pills and Paired Computers…'],
-    'Guide': ['Getting Started', "What's New in", 'The Living Desktop', 'Kasandra, the Ghost in the Shell', 'Your First Evening with 1.0',
+    'Guide': ['Getting Started', "What's New in", 'The Living Desktop', 'Kas, the Ghost in the Shell', 'Your First Evening with 1.0',
               "An Evening with Kas's Mind", 'Try Rail Demo', 'Try Home Demo', 'Keyboard Shortcuts', 'Installation Guide', 'The Orange Book',
-              'About Graphite'],
+              'About Kas'],
 }
 WHERE = {'Work': ('File',), 'Revise': ('Edit',), 'Arrange': ('Go', 'View'), 'Tools': ('Tools',), 'Commands': ('Tools',),
          'Rules': ('Tools', 'View'), 'Properties': ('View', 'Tools'), 'Guide': ('Help',)}      # head_menus.MOVED
 KEYS = {('File', 'Open…'): 'Ctrl+O', ('Edit', 'Undo'): 'Ctrl+Z', ('Go', 'Today'): 'Ctrl+Alt+1', ('Go', 'Field'): 'F9',
-        ('View', 'Full Screen'): 'F11', ('View', 'Details pane'): 'Alt+P', ('Tools', 'Graphite Settings…'): 'Ctrl+,',
-        ('Tools', 'STOP / KILL all Graphite operations…'): 'Ctrl+Shift+F12', ('Help', 'Keyboard Shortcuts'): 'F1'}
+        ('View', 'Full Screen'): 'F11', ('View', 'Details pane'): 'Alt+P', ('Tools', 'Kas Settings…'): 'Ctrl+,',
+        ('Tools', 'STOP / KILL all Kas operations…'): 'Ctrl+Shift+F12', ('Help', 'Keyboard Shortcuts'): 'F1'}
 
 
 class Window(unittest.TestCase):
@@ -127,8 +127,8 @@ class Window(unittest.TestCase):
 
     def test_d_her_rules_the_stop_halt_and_apps_keep_their_places(self):
         rows = self.head_rows();tools = [words for d, words, _ in rows['Tools'] if d == 0]
-        self.assertIn("Kasandra's hand", tools, 'her rules: a row of their own')
-        self.assertIn('STOP / KILL all Graphite operations…', tools)
+        self.assertIn("Kas's hand", tools, 'her rules: a row of their own')
+        self.assertIn('STOP / KILL all Kas operations…', tools)
         top = self.w.shell2.top
         halt = getattr(top, 'halt', None);self.assertIsNotNone(halt)
         self.assertTrue(halt.isVisible() and halt.geometry().bottom() < 32, 'HALT in the head')

@@ -673,7 +673,7 @@ PLAIN = {'projects':'Projects', 'inquiries':'Questions', 'calculate':'Calculator
          'kicad':'KiCad checks', 'kibot':'KiBot outputs', 'spice':'ngspice profiles',
          'yosys':'Yosys synthesis', 'fpga':'nextpnr & Trellis', 'hdl':'HDL simulation checks'}
 EXPLORE = 'Explore the workshop'
-EXPLORE_TIP = ('Opens: the Explore workspace, a Graphite workspace that searches every workspace, method and registered operation. '
+EXPLORE_TIP = ('Opens: the Explore workspace, a Kas workspace that searches every workspace, method and registered operation. '
                'Opening runs no tool.')
 TOY_BOX = "the cat's toy box and your toolbox"
 # The captions a program row can show (status, in print): its row is never wider than its word and the longest of these.

@@ -68,7 +68,7 @@ def host_parity(root):
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(description='Graphite fixed host services')
+    parser=argparse.ArgumentParser(description='Kas fixed host services')
     parser.add_argument('action',choices=('inspect','parity','reference'))
     parser.add_argument('--root',type=Path,default=ROOT)
     args=parser.parse_args(argv)

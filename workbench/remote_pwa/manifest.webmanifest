@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Graphite",
-  "short_name": "Graphite",
-  "description": "Graphite, your office satellite.",
+  "name": "Kas",
+  "short_name": "Kas",
+  "description": "Kas, your office satellite.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

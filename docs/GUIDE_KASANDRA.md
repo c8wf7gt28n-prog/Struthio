@@ -1,9 +1,9 @@
-# Kasandra, the Ghost in the Shell
+# Kas, the Ghost in the Shell
 
-*Graphite 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
+*Kas 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
 the ThinkPad yet. The first real proof is your first evening (Help ▸ Your First Evening with 1.0).*
 
-Kasandra (Kas) works beside you on the same material, through the same doors you use. Her rule is the desk's rule:
+Kas works beside you on the same material, through the same doors you use. Her rule is the desk's rule:
 **the model proposes; the desk disposes.** Nothing a model writes becomes a fact, a decision or a change without the desk's
 check; a change only the model chose is never done, at any place of her dial; sending anything out always asks; a step is
 done only when its effect is verified. With no model loaded she is still there: her dictionary reads most requests, the
@@ -29,12 +29,12 @@ talks down to you, and she is on your side.
 
 - **The equalizer**: sixteen bars across the top of the column (the processor's threads, 01 to 16), then the kernel,
   memory, disks, network and graphics. It moves while she works. There is no picture of her, in any look.
-- **Her name**, "Kasandra", with a ring for her model (○ none loaded, ● ready), the name of her model, and her state word
+- **Her name**, "Kas", with a ring for her model (○ none loaded, ● ready), the name of her model, and her state word
   with its shape: ○ QUIET, ● WORKING, ◆ WAITS FOR YOU, ✓ DONE, ■ STOPPED, and ‖ HELD while HALT holds her work. Under it,
   what she speaks with and her hand (press it to change it).
 - **Waits for you**: a band that appears only when something waits for you (a step that needs your word ◆, your grant ◆
   with a key, or your review ◆ with an eye; a question card), each with its one press. It never folds away.
-- **The exchange**: "Your:" and "Kasandra:", the last few turns, the earlier ones behind "earlier", with check rows (✓)
+- **The exchange**: "Your:" and "Kas:", the last few turns, the earlier ones behind "earlier", with check rows (✓)
   under what she checked.
 - **The progress line**, while she works: the steps done as check rows, then "Running…" with its bar, its percent, the step
   and the time left.
@@ -47,8 +47,8 @@ talks down to you, and she is on your side.
 - **NEXT STEPS**: up to four numbered buttons; the one to take is marked ▸. Each is one press: Authorise step 2, Resume,
   Carry on, or one act on one card.
 - **DO · DOUBT · TRACE · BRIEF · LINE · CHECK ALL**: her six commands, on what is selected ("this").
-- **› ask Kasandra…** and its send arrow, at the foot of her column: where you speak to her. Words typed in Line at the
-  screen's foot reach her here through **Ask Kasandra →**.
+- **› ask Kas…** and its send arrow, at the foot of her column: where you speak to her. Words typed in Line at the
+  screen's foot reach her here through **Ask Kas →**.
 - The moments that matter (a finding refuted, a task done, HALT) show as a short card over the exchange, in words.
 - With no model she says so: "No model loaded. I still read the records, check the desk and plan. Add one in the
   Brain room → Add file."
@@ -62,7 +62,7 @@ Say you ask: *"Recheck the startup power and update the summary page"* (on Rail 
 
 1. **She reads your words.** Her dictionary reads most requests with no model. When it cannot, the model may read them,
    only into the desk's verbs and only from words you typed: "I took it as: …", with **Do** and **Not that**.
-2. **She makes a plan.** Each step uses one of her registered tools, from one numbered list: Graphite's records and maths,
+2. **She makes a plan.** Each step uses one of her registered tools, from one numbered list: Kas's records and maths,
    files, LibreOffice, the sandbox, windows, Apps, the Machine's state, the network. With no model the desk's own planner
    makes the plan. With a model, the model picks each step *by number* from that list and the desk checks every step's
    inputs and conditions; a step that is not on the list is left out, and she says so.
@@ -92,7 +92,7 @@ accessibility, replace it, save with the app's own Save, and count the save only
 - **A touch stops her.** Any key or press of yours pauses her at once, between two of her acts: ▮▮ stopped by you.
   **Continue** lets her go on; **Stop** puts your window back as it was (the menus she opened closed, your focus, cursor,
   selection, tabs and scroll), each part checked and said. When she finishes she gives your keyboard and pointer back.
-- Her changes on the desk follow her dial (Tools ▸ Kasandra's hand), and one Undo on her card takes back all of one
+- Her changes on the desk follow her dial (Tools ▸ Kas's hand), and one Undo on her card takes back all of one
   request's changes.
 - This needs the desktop's accessibility service and LibreOffice's GTK plugin, both in the 1.0 System set.
 
@@ -132,7 +132,7 @@ on this computer and sealed.
 ## HALT and Stop
 
 **HALT** (upper left) holds all of her managed work at once: her tasks, her hand, her model's answers, her sandboxes,
-her fetch. Each journal says what was done and what was only prepared. The desktop, your apps and Graphite's own jobs keep
+her fetch. Each journal says what was done and what was only prepared. The desktop, your apps and Kas's own jobs keep
 running. **RESUME** lifts the hold and restarts nothing by itself. Each task in ACTIVE WORK also has its own **Stop**.
 She says it in a line: "HALT. I stopped … All my work holds until you press RESUME." and "RESUME. The hold is lifted.
 Nothing I stopped has restarted."

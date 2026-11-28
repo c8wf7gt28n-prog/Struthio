@@ -197,7 +197,7 @@ def delete_for_good(kernel, args, principal):
     from . import home_reach as hr
     from .home_files_qt import changeable
     if hr.in_her_work(principal):
-        raise ValueError('FILES_FOR_GOOD_OWNER_ONLY: deleting for good is your press only; Kasandra puts things in the bin')
+        raise ValueError('FILES_FOR_GOOD_OWNER_ONLY: deleting for good is your press only; Kas puts things in the bin')
     path = Path(os.path.abspath(hr.expand(str(args['path'])) or args['path']))
     if not os.path.lexists(path):raise ValueError('FILES_NOT_FOUND: ' + hr.tilde(path)[:200])
     where, why = changeable(kernel, path)

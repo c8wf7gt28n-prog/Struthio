@@ -17,7 +17,7 @@ class LedgerLifecycle(QObject):
         super().__init__(host);self.host=host;self.receipt=None;self.pending=None;self.paused=[];self.model_before=None;self.busy=False
         self.worker=None;self.last_error=None
         from .service_lifecycle import unavailable
-        self.state=unavailable('Graphite service state not read yet')
+        self.state=unavailable('Kas service state not read yet')
         self.completed.connect(self.finished)
         self.timer=QTimer(self,interval=1000);self.timer.timeout.connect(self.drain);self.timer.start()
 
@@ -54,13 +54,13 @@ class LedgerLifecycle(QObject):
 
     def request(self,action):
         if self.pending or self.busy:
-            self.host.statusBar().showMessage('Graphite services are finishing the current cycle. Stop remains available.');return
+            self.host.statusBar().showMessage('Kas services are finishing the current cycle. Stop remains available.');return
         details={
-            'On':'Enable Graphite services and release the owner work hold? No cancelled job is replayed. Models and phone access keep their existing controls.',
+            'On':'Enable Kas services and release the owner work hold? No cancelled job is replayed. Models and phone access keep their existing controls.',
             'Off':'Save open work, cancel queued jobs and hold new work? Running jobs and provider replies finish before owned model, console, tool and phone services close. The desktop stays open.',
-            'Reboot':'Save open work, cancel queued jobs and let running work finish, then restart Graphite services here? A previously running model is requested again. Phone access stays off. The computer is not restarted.'}
+            'Reboot':'Save open work, cancel queued jobs and let running work finish, then restart Kas services here? A previously running model is requested again. Phone access stays off. The computer is not restarted.'}
         if action not in details:raise ValueError('Unknown menu action')
-        if QMessageBox.question(self.host,'Graphite services · '+SHOWN.get(action,action),details[action],
+        if QMessageBox.question(self.host,'Kas services · '+SHOWN.get(action,action),details[action],
                 QMessageBox.Yes|QMessageBox.Cancel,QMessageBox.Cancel)!=QMessageBox.Yes:return
         from .engineering_kernel import operator
         from . import service_lifecycle as services,local_brain
@@ -85,7 +85,7 @@ class LedgerLifecycle(QObject):
 
     def not_started(self,action,error):
         traceback.print_exc();self.model_before=None;self.refresh()
-        QMessageBox.warning(self.host,'Graphite services · '+SHOWN.get(action,action)+' not started',self.plain(error)+
+        QMessageBox.warning(self.host,'Kas services · '+SHOWN.get(action,action)+' not started',self.plain(error)+
             '\nNo service cycle was recorded; admission and running work are unchanged.\nInspect Operations and Work trail, then choose again.')
 
     def background(self,kind,callback):
@@ -143,7 +143,7 @@ class LedgerLifecycle(QObject):
         try:
             self.receipt=services.stopped(self.kernel,self.receipt,operator());action=self.pending;self.pending=None
             if action=='Reboot':self.start(restore_model=True)
-            else:self.host.statusBar().showMessage('Graphite services off · desktop open. System menu → Graphite services → On enables new work.');self.refresh()
+            else:self.host.statusBar().showMessage('Kas services off · desktop open. System menu → Kas services → On enables new work.');self.refresh()
         except Exception as exc:self.failed(exc)
 
     def start(self,restore_model=False):
@@ -152,7 +152,7 @@ class LedgerLifecycle(QObject):
         self.receipt=services.start(self.kernel,operator(),self.host.desktop_lease.stem,self.receipt if restore_model else None)
         self.pending=None;self.resume_timers()
         # Reboot revoked phone access during its drain; a plain On changes nothing about it.
-        note='New Graphite work enabled. No cancelled jobs replayed; '+('phone access stays off.' if restore_model else self.phone_note())
+        note='New Kas work enabled. No cancelled jobs replayed; '+('phone access stays off.' if restore_model else self.phone_note())
         if restore_model and self.model_before:note+=' '+self.restore_model()
         self.host.statusBar().showMessage(note,10000);self.model_before=None;self.refresh()
 
@@ -169,7 +169,7 @@ class LedgerLifecycle(QObject):
         from . import service_lifecycle as services,ledger_control
         try:
             if not ledger_control.value(self.kernel,'stacy.enabled'):
-                self.receipt=services.restore_note(self.kernel,self.receipt,operator(),'SKIPPED_SLATE_OFF');return 'Graphite AI is off; no model reload requested.'
+                self.receipt=services.restore_note(self.kernel,self.receipt,operator(),'SKIPPED_SLATE_OFF');return 'Kas AI is off; no model reload requested.'
             config=self.model_before.get('config',{});model_id=self.model_before['model_id']
             reply=self.kernel.dispatch('brain.model.use',dict(id=model_id,options={key:config[key] for key in ('context','threads','memory_mb') if key in config}),operator())
             job=(reply.get('result') or {}).get('id') if reply.get('ok') and isinstance(reply.get('result'),dict) else None
@@ -196,7 +196,7 @@ class LedgerLifecycle(QObject):
         tail='\nInspect Operations and Work trail before choosing On or Off.'
         if 'automatic restart' not in message:tail='\nNo automatic restart.'+tail
         if unrecorded:tail+='\nThe cycle state could not be recorded; the stored cycle may still read as active.'
-        QMessageBox.warning(self.host,'Graphite service cycle incomplete',message+tail)
+        QMessageBox.warning(self.host,'Kas service cycle incomplete',message+tail)
 
     def shutdown(self):
         """Desktop close: stop the timer and let a running close thread finish before its QObject goes away."""

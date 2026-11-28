@@ -13,7 +13,7 @@ class IntakeTab(ServiceTab):
     def __init__(self,host):
         super().__init__(host);self.job=None;self.detail_data=None;self.offset=0;self.total=0;self.generation=0;self.catalog_count=0;self._refreshing=False
         self.setAcceptDrops(True)
-        title=QLabel('GRAPHITE · REFERENCE INTAKE');title.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(title)
+        title=QLabel('KAS · REFERENCE INTAKE');title.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(title)
         self.note=QLabel('Import a copy into private quarantine. Review each file with its dependencies. Admission starts a V1 reference catalog; engineering qualification stays separate.');self.note.setWordWrap(True);self.outer.addWidget(self.note)
         row=QHBoxLayout();self.namespaces=QComboBox();self.namespaces.setAccessibleName('Private reference library');self.namespaces.currentIndexChanged.connect(self.changed_namespace);row.addWidget(self.namespaces,1)
         create=QPushButton('New library');create.clicked.connect(self.create);row.addWidget(create);refresh=QPushButton('Refresh');refresh.clicked.connect(self.refresh);row.addWidget(refresh);self.outer.addLayout(row)
@@ -49,7 +49,7 @@ class IntakeTab(ServiceTab):
         bundle=QPushButton('Admit selected bundle');bundle.setToolTip('Admit selected files as references. Select the related unadmitted files too. Every member and dependency must pass; the whole decision commits together.');bundle.clicked.connect(self.admit_bundle);self.outer.addWidget(bundle);self.buttons[bundle.text()]=bundle
         self.summary.setHtml('<p>Create a private reference library, then import a ZIP, file or folder.</p><p>Automatic admission starts disabled. Originals are copied without running imported content.</p>')
         self.timer=QTimer(self);self.timer.setInterval(900);self.timer.timeout.connect(self.poll);self.timer.start();QTimer.singleShot(0,self.load_namespaces)
-    def title(self):return 'Graphite · Intake'
+    def title(self):return 'Kas · Intake'
     def info(self):return 'Reference intake · %d available V1 files · catalog generation %d · hardware unqualified'%(self.catalog_count,self.generation)
     def ns(self):return self.namespaces.currentData()
     def load_namespaces(self):self.call('intake.namespaces',{},self.loaded_namespaces)

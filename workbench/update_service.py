@@ -25,7 +25,7 @@ def stage(k, id, p):
     return {
         "id": id,
         "state": "Staged",
-        "next": "Close Graphite, then python -m workbench.engineering_cli --operator apply-update "
+        "next": "Close Kas, then python -m workbench.engineering_cli --operator apply-update "
         + id,
         "accepted_source_unchanged": True,
     }
@@ -42,7 +42,7 @@ def ensure_closed(k):
             raise KernelError(
                 "Unreadable desktop lease; verify no running application before recovery"
             )
-        raise KernelError("Close the running Graphite desktop before applying an update")
+        raise KernelError("Close the running Kas desktop before applying an update")
     if any(j["state"] in ("Running", "Queued") for j in k.listing("jobs")):
         raise KernelError(
             "Finish or cancel active engineering jobs before application replacement"

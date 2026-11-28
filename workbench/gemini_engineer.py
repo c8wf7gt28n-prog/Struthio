@@ -4,7 +4,7 @@ import json
 from sdk.cli.arc1cli.workshop_contract import ACTION_FIELDS,MAX_CONTEXT
 from . import clip
 
-SYSTEM='''You are Graphite, inside the Graphite workspace. Investigate the approved engineering goal using only the declared tools. Read relevant source and actual diagnostics before proposing a justified change. Existing tests and hardware facts remain authoritative. A successful host test is not physical hardware proof. You may revise isolated scoped implementation files, never tests, permission code or accepted source. Explain changes and stop if the evidence is insufficient. Finish only with passing required checks; independent source acceptance remains outside your authority. Do not include private reasoning. Provide observable findings and actions.'''
+SYSTEM='''You are Kas, inside the Kas workspace. Investigate the approved engineering goal using only the declared tools. Read relevant source and actual diagnostics before proposing a justified change. Existing tests and hardware facts remain authoritative. A successful host test is not physical hardware proof. You may revise isolated scoped implementation files, never tests, permission code or accepted source. Explain changes and stop if the evidence is insufficient. Finish only with passing required checks; independent source acceptance remains outside your authority. Do not include private reasoning. Provide observable findings and actions.'''
 
 def available():
     s=clip.Settings.load()
@@ -14,8 +14,8 @@ def available():
 
 def turn(context,history,timeout=60):
     s=clip.Settings.load()
-    if not s.ready() or not s.model:raise clip.ClipError('Configure a Gemini key and explicit model in Graphite settings on this computer.','key')
-    functions=[{'name':name,'description':'Graphite bounded action '+name,
+    if not s.ready() or not s.model:raise clip.ClipError('Configure a Gemini key and explicit model in Kas settings on this computer.','key')
+    functions=[{'name':name,'description':'Kas bounded action '+name,
                 'parameters':{'type':'object','properties':props,'required':required}}
                for name,(props,required) in ACTION_FIELDS.items()]
     contents=[{'role':'user','parts':[{'text':json.dumps(context,separators=(',',':'))}]}]+history

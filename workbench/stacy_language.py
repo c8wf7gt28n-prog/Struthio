@@ -9,7 +9,7 @@ SCOPES={name:'read' for name in FIELDS}
 def _verified_seed_id(kernel):
     seed = stacy_foundation.seed_status(kernel.root)
     if seed['state'] != 'VERIFIED_SOURCE_BINDINGS':
-        raise ValueError('Graphite seed/source binding is not current')
+        raise ValueError('Kas seed/source binding is not current')
     return seed['seed_id']
 
 

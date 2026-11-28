@@ -47,7 +47,7 @@ def probe(kernel=None):
         from .workshop_sandbox import status
         s = status()  # runs /usr/bin/true inside Ledger's fixed profile
         add('bubblewrap (bwrap)', 'verified here' if s.get('available') else ('installed, but it did not start here' if shutil.which('bwrap') else 'not available'),
-            ('a program ran inside Graphite\'s profile just now' if s.get('available') else (s.get('reason') or 'bwrap is not installed'))[:160],
+            ('a program ran inside Kas\'s profile just now' if s.get('available') else (s.get('reason') or 'bwrap is not installed'))[:160],
             'Builds a private view of the computer for a program: only what it is given.')
     except Exception as exc:
         add('bubblewrap (bwrap)', 'available' if shutil.which('bwrap') else 'not available', str(exc)[:120], 'Builds a private view of the computer for a program.')
@@ -64,7 +64,7 @@ def probe(kernel=None):
             '%s · network: %s' % (info['words'], info['network']),
             'A launch probe only; it does not test forbidden access or aggregate resource containment. Continuing work uses separately qualified profiles.')
     except Exception as exc:
-        add('Confined runs', 'not available', str(exc)[:160], 'How Graphite runs programs and reads untrusted files; without it they are refused.')
+        add('Confined runs', 'not available', str(exc)[:160], 'How Kas runs programs and reads untrusted files; without it they are refused.')
     status_text = read('/proc/self/status') or ''
     seccomp = next((l.split(':', 1)[1].strip() for l in status_text.splitlines() if l.startswith('Seccomp:')), None)
     add('seccomp', 'available' if seccomp is not None else 'not known', 'filter mode %s in this process' % seccomp if seccomp is not None else 'not reported',

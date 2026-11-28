@@ -83,7 +83,7 @@ LINE_CHARS = 300                            # a longer line is wrapped (so the d
 MOST_LINKS = 200
 STATE_TTL_MS = 4000                         # the network's state is read again after this long
 RECENT_MS = 10 * 60 * 1000                  # her last fetch stays said in her column this long
-USER_AGENT = 'Graphite/1.0 (a desktop reading one page as data)'
+USER_AGENT = 'Kas/1.0 (a desktop reading one page as data)'
 NM_ONLINE = 70
 NM_WORDS = {0: 'NetworkManager does not know', 10: 'asleep', 20: 'disconnected', 30: 'disconnecting', 40: 'still connecting',
             50: 'connected to this place only: the web is out of reach', 60: 'connected to this place only: the web is out of reach',

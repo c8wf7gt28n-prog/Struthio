@@ -235,7 +235,7 @@ def _on_floor(host, op, args, done):
     except Exception:  # noqa: BLE001 - no floor here: the same call on the window's thread
         pass
     kernel = kernel_of(host)
-    answer = kernel.dispatch(op, args, operator()) if kernel is not None else {'ok': False, 'error': {'message': "Graphite's Kernel is not open"}}
+    answer = kernel.dispatch(op, args, operator()) if kernel is not None else {'ok': False, 'error': {'message': "Kas's Kernel is not open"}}
     done(answer);return False
 
 
@@ -431,7 +431,7 @@ def entries(host, t):
 def _plan(host, act, read):
     from .engineering_kernel import operator
     kernel = kernel_of(host)
-    if kernel is None:return {'ok': False, 'error': {'message': "Graphite's Kernel is not open"}}
+    if kernel is None:return {'ok': False, 'error': {'message': "Kas's Kernel is not open"}}
     args = {'act': act['act'], 'line': read}
     if act['to']:args['to'] = act['to']
     return kernel.dispatch('files.batch_plan', args, operator())

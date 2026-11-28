@@ -310,7 +310,7 @@ class Equalizer(QWidget):
         self.glide = QTimer(self);self.glide.setInterval(STEP);self.glide.timeout.connect(self.move)
         self.setToolTip('This computer at work, left to right: processor (a tube a thread), kernel, memory, disks, network, graphics. '
                         'Amber is near its limit; the trace behind is the last two minutes of all of it; amber along the floor while '
-                        'Graphite itself is working. Click for what each reads now.')
+                        'Kas itself is working. Click for what each reads now.')
 
     def sizeHint(self):
         return QSize(max(160, len(self.target) * 9 + (len(GROUPS) - 1) * 8 + 4), 44)
@@ -527,7 +527,7 @@ class ActivityCard(QFrame):
         for group in GROUPS:
             line = QLabel();line.setTextFormat(Qt.PlainText);line.setMinimumWidth(330);box.addWidget(line);self.lines[group] = line
         self.scope = QLabel();self.scope.setTextFormat(Qt.PlainText);self.scope.setWordWrap(True);self.scope.setProperty('role', 'note');box.addWidget(self.scope)
-        self.key = QLabel('A tube in amber is near its limit; a dot is its recent peak, sinking; amber along the floor while Graphite itself is working.')
+        self.key = QLabel('A tube in amber is near its limit; a dot is its recent peak, sinking; amber along the floor while Kas itself is working.')
         self.key.setTextFormat(Qt.PlainText);self.key.setWordWrap(True);self.key.setProperty('role', 'note');box.addWidget(self.key)
 
     def say(self, words, hot=None, trace=None):

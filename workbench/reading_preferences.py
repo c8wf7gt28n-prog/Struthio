@@ -222,7 +222,7 @@ class ReadingDialog(QDialog):
         note.setWordWrap(True);note.setProperty('arcReadingRole','prose');v.addWidget(note)
         self.prose_preview=QTextBrowser();self.prose_preview.setAccessibleName('Prose reading preview')
         self.prose_preview.setProperty('arcReadingPreview',True)
-        self.prose_preview.setPlainText('Graphite keeps your place.\n\nRead an original, inspect the evidence, then choose the next useful step.')
+        self.prose_preview.setPlainText('Kas keeps your place.\n\nRead an original, inspect the evidence, then choose the next useful step.')
         self.prose_preview.setMinimumHeight(160);v.addWidget(self.prose_preview)
         self.code_preview=QPlainTextEdit('int main(void) {\n    return 0;\n}')
         self.code_preview.setProperty('arcReadingPreview',True)

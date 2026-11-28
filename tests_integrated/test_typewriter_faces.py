@@ -100,7 +100,7 @@ class Words(unittest.TestCase):
 
     def test_every_letter_is_special_elites(self):
         words, source = metrics('Kasandra Elite', 16), metrics('Special Elite', 16)
-        for text in list(string.ascii_letters + string.punctuation + ' ') + ['DELETE', 'Kasandra', 'Terminal', 'Search', 'Web', 'Log', 'Files', 'Machine', 'Settings']:
+        for text in list(string.ascii_letters + string.punctuation + ' ') + ['DELETE', 'Kas', 'Terminal', 'Search', 'Web', 'Log', 'Files', 'Machine', 'Settings']:
             self.assertAlmostEqual(words.horizontalAdvance(text), source.horizontalAdvance(text), delta=0.01, msg=text)
         self.assertEqual(words.height(), 16.0)
 

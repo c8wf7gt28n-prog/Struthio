@@ -31,23 +31,23 @@ KEYS = frozenset(('@details', '@views', '@artwork', '@buttons', '@show_keys', '@
 
 # Old place -> new place (the owner reads this table; the release notes carry it).
 MOVED = (
-    ('Work (every row, in its order: New File … Recover Unsaved Work, then Lock … Exit Graphite)', 'File'),
+    ('Work (every row, in its order: New File … Recover Unsaved Work, then Lock … Exit Kas)', 'File'),
     ('Revise (every row: Undo … Go to Line)', 'Edit'),
-    ("Arrange: Today, Field, Files, Library, Project Desk, Changes, Continuing work, Exchange & deployment, Graphite's Agenda", 'Go'),
-    ('Arrange: Kasandra (her column)', 'View'),
+    ("Arrange: Today, Field, Files, Library, Project Desk, Changes, Continuing work, Exchange & deployment, Kas's Agenda", 'Go'),
+    ('Arrange: Kas (her column)', 'View'),
     ('Arrange: Console, Cabinet, Refresh Machine View, Full Screen, Reading and Layout…, Appearance, Larger / Smaller prose, '
      'Word Wrap, Split Editor, Pin / Unpin workspace, Reopen deferred tabs, Reset Window Layout', 'View'),
-    ('Tools (every row: Explore capabilities … STOP / KILL all Graphite operations…, Engineering)', 'Tools'),
-    ('Commands (every row: Graphite Commands…, Run an operation…, Chain Menu, Constructed chain, Writing Line, Command Palette…, '
+    ('Tools (every row: Explore capabilities … STOP / KILL all Kas operations…, Engineering)', 'Tools'),
+    ('Commands (every row: Kas Commands…, Run an operation…, Chain Menu, Constructed chain, Writing Line, Command Palette…, '
      'Favorite commands)', 'Tools ▸ Commands'),
-    ('Rules: Graphite Settings…', 'Tools'),
-    ("Rules: Kasandra's hand (her rules)", 'Tools'),
+    ('Rules: Kas Settings…', 'Tools'),
+    ("Rules: Kas's hand (her rules)", 'Tools'),
     ("Rules: DOS words, The bin's name", 'Tools'),
     ('Rules: Desk artwork, Buttons', 'View'),
     ('Rules: Show keys', 'View'),
     ('Properties: Inspector', 'View'),
     ('Properties: This Computer…, Pills and Paired Computers…', 'Tools'),
-    ('Guide (every row: Getting Started … About Graphite)', 'Help'),
+    ('Guide (every row: Getting Started … About Kas)', 'Help'),
     ('new: Details pane (Alt+P), List, Icons, Board', 'View'),
     ('Commands: Writing Line ▸ Log (Alt+6)', 'View ▸ Log'),      # 1.1 B4
 )

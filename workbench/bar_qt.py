@@ -168,7 +168,7 @@ def wanted(environ=None, platform=None):
     environ[OLD_ENV] = said
     stand, why = sd.wanted(environ, platform)
     if not stand:
-        why = why.replace('The app strip stays in Graphite\'s window', 'The bar does not stand: the open windows stay in Graphite\'s head')
+        why = why.replace('The app strip stays in the computer\'s window', 'The bar does not stand: the open windows stay in Kas\'s head')
         why = why.replace('GRAPHITE_DOCK is off', '%s is off' % (ENV if ENV in environ else OLD_ENV))
     return stand, why
 
@@ -204,7 +204,7 @@ class StartButton(BarButton):
 
     def __init__(self, bar):
         super().__init__(bar, 'Start');self.bar = bar;self.setText('Start')
-        self.setToolTip('Start\nFor now a press brings Graphite forward and opens its Apps.')
+        self.setToolTip('Start\nFor now a press brings Kas forward and opens its Apps.')
         self.clicked.connect(self.start)
 
     def natural(self, h):
@@ -233,7 +233,7 @@ class LineField(BarButton):
 
     def __init__(self, bar):
         super().__init__(bar, 'The line: search or command (arrives in the next slice)');self.bar = bar;self.setText(self.WORDS)
-        self.setToolTip('The line: it will find and do (apps, files, settings, commands, sums, Ask Kasandra).\nIt arrives with Start; nothing is done here yet.')
+        self.setToolTip('The line: it will find and do (apps, files, settings, commands, sums, Ask Kas).\nIt arrives with Start; nothing is done here yet.')
 
     def natural(self, h):
         return 280 if h >= TALL else 220
@@ -275,12 +275,13 @@ def entry_face(p, w, h, c, active, minimised, hover, down):
 
 
 class GraphiteButton(BarButton):
-    """Graphite, first among the windows: its mark and its name; a plate while Graphite's window is the active one; a ◆ when
+    WORD = 'Computer'      # 1.1 R1: the desktop's own entry, told apart from her (the owner, 28 Nov)
+    """Kas, first among the windows: its mark and its name; a plate while the computer's window is the active one; a ◆ when
     Kas waits for the owner's word (the shape and, in the tip, the words)."""
 
     def __init__(self, slot):
-        super().__init__(slot, 'Graphite: bring Graphite\'s window forward');self.slot = slot;self.active = False;self.setText('Graphite')
-        self.setToolTip('Graphite\nPress to bring Graphite\'s window forward.')
+        super().__init__(slot, 'Computer: bring the computer\'s window forward');self.slot = slot;self.active = False;self.setText(self.WORD)      # 1.1 R1: Computer, not Graphite
+        self.setToolTip('Computer\nPress to bring the computer\'s window forward.')
 
     def her_state(self):
         from . import state_words as sw
@@ -290,7 +291,7 @@ class GraphiteButton(BarButton):
 
     def natural(self, h):
         fm = QFontMetrics(bar_font(h, QFont.DemiBold))
-        return round(h * 0.25) * 2 + round(h * 0.45) + 8 + fm.horizontalAdvance('Graphite') + (round(h * 0.4) + 6 if self.her_state() else 0)
+        return round(h * 0.25) * 2 + round(h * 0.45) + 8 + fm.horizontalAdvance(self.WORD) + (round(h * 0.4) + 6 if self.her_state() else 0)
 
     def paintEvent(self, event):
         from .graphite_brand import mark_icon
@@ -301,13 +302,13 @@ class GraphiteButton(BarButton):
         mark_icon(px).paint(p, QRect(x, (h - px) // 2, px, px));x += px + 8
         font = bar_font(h, QFont.DemiBold if self.active else QFont.Medium);p.setFont(font)
         p.setPen(QColor(words_ink(c, self.active, self.isDown(), c['text'] if self.active or self.underMouse() else c['secondary'])))      # 1.1 N1
-        p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, 'Graphite')
+        p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, self.WORD)
         key = self.her_state()
-        words = 'Graphite%s\nPress to bring Graphite\'s window forward.' % (' (active)' if self.active else '')
+        words = 'Computer%s\nPress to bring the computer\'s window forward.' % (' (active)' if self.active else '')
         if key:
-            x += QFontMetrics(font).horizontalAdvance('Graphite') + 6;side = round(h * 0.32)
+            x += QFontMetrics(font).horizontalAdvance(self.WORD) + 6;side = round(h * 0.32)
             sw.paint(p, QRectF(x, (h - side) / 2.0, side, side), key, sw.colour_of(key))
-            words = 'Graphite: %s\nPress to bring Graphite\'s window forward.' % sw.said(key)
+            words = 'Computer: %s\nPress to bring the computer\'s window forward.' % sw.said(key)
         if words != self.toolTip():self.setToolTip(words)
         p.end()
 
@@ -385,7 +386,7 @@ class WindowsSlot(QWidget):
     """Graphite, then the open app windows."""
 
     def __init__(self, bar):
-        super().__init__(bar);self.bar = bar;self.setAccessibleName('Open windows and Graphite')
+        super().__init__(bar);self.bar = bar;self.setAccessibleName('Open windows and Computer')
         self.graphite = GraphiteButton(self);self.graphite.clicked.connect(bar.bring_graphite)
         self.box = QWidget(self);self.strip = BarStrip(bar.host, bar, self.box)
 
@@ -405,7 +406,7 @@ class WindowsSlot(QWidget):
 
     def words(self):
         """The slot in words: whether Graphite's window is active, and the strip's own words."""
-        return 'Graphite%s; %s' % (' (active)' if self.graphite.active else '', self.strip.words())
+        return 'Computer%s; %s' % (' (active)' if self.graphite.active else '', self.strip.words())
 
 
 # ---- Kas (B3 fills the slot) ----------------------------------------------------------------------------------------------------
@@ -413,7 +414,7 @@ class KasChip(BarButton):
     """Her name and her state: its shape and its word (the state words' table); a press brings Graphite, and her column, forward."""
 
     def __init__(self, bar):
-        super().__init__(bar, 'Kasandra');self.bar = bar;self.setText('Kas')
+        super().__init__(bar, 'Kas');self.bar = bar;self.setText('Kas')
 
     def state(self):
         """(key of the state words' table or '', the word): QUIET or WORKING where her own word stands."""
@@ -442,8 +443,8 @@ class KasChip(BarButton):
             p.drawEllipse(QRectF(x + 1, (h - side) / 2.0 + 1, side - 2, side - 2))
         x += side + 5;p.setFont(bar_font(h));p.setPen(QColor(c['secondary']))
         p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, word)
-        tip = 'Kasandra (Kas): %s\nPress to bring Graphite forward, where her column is.' % (sw.said(key) if key else word.lower())
-        if tip != self.toolTip():self.setToolTip(tip);self.setAccessibleName('Kasandra, ' + word)
+        tip = 'Kas: %s\nPress to bring the computer\'s window forward, where her column is.' % (sw.said(key) if key else word.lower())
+        if tip != self.toolTip():self.setToolTip(tip);self.setAccessibleName('Kas, ' + word)
         p.end()
 
 
@@ -708,7 +709,7 @@ class Bar(QWidget):
         super().__init__(None, Qt.Window | Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus | Qt.WindowStaysOnTopHint)
         self.host = host;self.marks = {};self.last = None;self.standing = False;self.why = '';self.open_key = None
         self.slots = {};self.slot_errors = {};self.flyouts = {}
-        self.setObjectName('GraphiteBar');self.setWindowTitle('Graphite · the bar');self.setAccessibleName('The bar')
+        self.setObjectName('GraphiteBar');self.setWindowTitle('Kas · the bar');self.setAccessibleName('The bar')
         self.setAttribute(Qt.WA_X11NetWmWindowTypeDock, True);self.setAttribute(Qt.WA_ShowWithoutActivating, True)
         self.setAttribute(Qt.WA_X11DoNotAcceptFocus, True);self.setFocusPolicy(Qt.NoFocus)
         for name in SLOTS:self.fill(name)

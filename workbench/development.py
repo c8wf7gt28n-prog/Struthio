@@ -132,7 +132,7 @@ def run(root,mode='compare'):
 def brief(root):
     data=inspect(root)
     if not data['prepared']:raise ValueError('Prepare the development case first')
-    case=data['case'];lines=['Graphite development brief',case['title'],case['problem'],
+    case=data['case'];lines=['Kas development brief',case['title'],case['problem'],
           'Acceptance: '+case['acceptance'],'Evidence: HOST_SIM only. Hardware HOLD; candidate not promoted.',
           'State: '+data['state'],'Editable sources: '+', '.join(case['working_sources'])]
     if data.get('latest'):

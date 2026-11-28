@@ -73,7 +73,7 @@ class OneLine(unittest.TestCase):
         w.type_dock.show();self.settle(120)
         self.assertFalse(w.type_dock.isVisible(), 'a reset that shows the foot again is undone')
         olds = ' '.join(old for old, _ in self.ff.FOOT_MOVED)
-        for job in ('Line', 'Search', 'Web', 'Terminal', 'Log', 'meters', 'Ask Kasandra', 'messages'):
+        for job in ('Line', 'Search', 'Web', 'Terminal', 'Log', 'meters', 'Ask Kas', 'messages'):
             self.assertIn(job, olds, 'the table says where %s went' % job)
 
     def test_b_everything_the_foot_did_is_reachable_each_in_one_place(self):
@@ -129,7 +129,7 @@ class OneLine(unittest.TestCase):
             card = cc.show(w, note)
         self.assertEqual(lines[0]['title'], 'What Open runs')
         self.assertEqual(lines[0]['line'], "notespad --new-window '%s'" % note, 'the exact command Open starts, the file in it')
-        self.assertEqual(lines[1]['line'], '@files:"~/Documents/shopping list.txt"', 'the Graphite line it is')
+        self.assertEqual(lines[1]['line'], '@files:"~/Documents/shopping list.txt"', 'the Kas line it is')
         card.copy(lines[0]['line']);from PySide6.QtWidgets import QApplication
         self.assertEqual(QApplication.clipboard().text(), lines[0]['line'], 'Copy')
         with patch('workbench.foot_fold_qt.put_in_line', return_value=True) as put:
@@ -157,7 +157,7 @@ class OneLine(unittest.TestCase):
             kas = wk.act(w, 'kas');halt = wk.act(w, 'halt');drop = wk.act(w, 'terminal')
         self.assertEqual((kas['words'], halt['words']), ('Her panel is open.', 'HALT is pressed: all of her work stops.'))
         toggle.assert_called_once_with();pause.assert_called_once_with()
-        self.assertFalse(bring.called, 'Graphite is not brought forward')
+        self.assertFalse(bring.called, 'Kas is not brought forward')
         self.assertTrue(drop['ok']);w.drop_terminal.leave();self.settle(300)
         with patch.object(ctl, 'pause_key', return_value=False):
             self.assertIn('RESUME is a press', wk.act(w, 'halt')['words'], 'Pause never presses RESUME')

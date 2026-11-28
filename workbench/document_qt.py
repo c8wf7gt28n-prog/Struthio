@@ -170,7 +170,7 @@ class DocumentPage(QTextEdit):
 
     def __init__(self, tab):
         super().__init__(); self.tab = tab; self.setObjectName('DocumentPage'); self.setAcceptRichText(False)
-        self.setProperty('arcReadingRole', 'prose'); self.setAccessibleName('Document page: write here; Graphite edits the same page')
+        self.setProperty('arcReadingRole', 'prose'); self.setAccessibleName('Document page: write here; Kas edits the same page')
         self.setFrameStyle(0); self.setTabChangesFocus(False); self.document().setDocumentMargin(44)
         palette = self.palette()
         palette.setColor(QPalette.Active, QPalette.Highlight, QColor(PENCIL_DEEP)); palette.setColor(QPalette.Active, QPalette.HighlightedText, QColor(TEXT))
@@ -393,7 +393,7 @@ class DocumentsTab(QWidget):
         self.open_document(value['result']['document']['id'])
 
     def describe(self, doc, prefix=None):
-        change = doc.get('last_change') or {}; actor = {'SLATE': 'Graphite', 'SLATE_MODEL': 'Graphite (model)', 'HUMAN': 'You', 'IMPORTED': 'Import'}.get(change.get('actor'), change.get('actor', ''))
+        change = doc.get('last_change') or {}; actor = {'SLATE': 'Kas', 'SLATE_MODEL': 'Kas (model)', 'HUMAN': 'You', 'IMPORTED': 'Import'}.get(change.get('actor'), change.get('actor', ''))
         words = ('%s %s' % (actor, change.get('words', ''))).strip()
         self.foot.setText(((prefix + ' · ') if prefix else '') + 'Saved · revision %d · %s%s' % (doc['revision'], words, (' · ' + when(change['at'])) if change.get('at') else ''))
 

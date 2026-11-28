@@ -72,7 +72,7 @@ from pathlib import Path
 SCHEMA = 'graphite.hand-door/1'
 HANDS = ('desk', 'program')
 STATES = ('resting', 'driving', 'paused', 'stopped', 'finished')
-WHERE = {'desk': "Graphite's window", 'program': 'your program'}
+WHERE = {'desk': "The computer's window", 'program': 'your program'}
 FINISH_PARTS = ('menus', 'focus', 'caret', 'selection', 'window')       # what she gives back when she finishes herself
 ALL_PARTS = ('menus', 'focus', 'caret', 'selection', 'place', 'window', 'tabs', 'scroll', 'zoom', 'lists')
 SETTLE_MS = 250

@@ -1,3 +1,0 @@
-#!/bin/sh
-# 1.1 PK1: start the Graphite session from the text console (tty1), exactly as START_MINIMAL_DEBIAN.sh did.
-exec /bin/bash /usr/lib/graphite/START_MINIMAL_DEBIAN.sh "$@"

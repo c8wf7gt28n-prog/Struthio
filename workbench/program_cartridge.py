@@ -109,7 +109,7 @@ def private_folder(path):
 def launch(kernel, record, data, core):
     profile_root = Path(kernel.state)
     if profile_root.is_symlink():
-        raise ValueError('Cartridge Bay requires local Graphite state.')
+        raise ValueError('Cartridge Bay requires local Kas state.')
     root = private_folder(profile_root / 'cartridge')
     profile = private_folder(root / f"{core['id']}-{record['sha256']}")
     lock_fd = os.open(profile / 'play.lock', os.O_RDONLY | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)

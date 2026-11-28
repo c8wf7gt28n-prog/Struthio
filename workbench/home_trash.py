@@ -165,7 +165,7 @@ def put(path):
     except OSError as exc:
         raise ValueError('TRASH_NOT_READ: %s (%s)' % (tilde(path)[:200], exc.strerror or type(exc).__name__)) from None
     if here != there:
-        raise ValueError("TRASH_OTHER_DRIVE: %s is on another drive than your home's bin (DELETE); Graphite moves nothing across "
+        raise ValueError("TRASH_OTHER_DRIVE: %s is on another drive than your home's bin (DELETE); Kas moves nothing across "
                          'drives to delete it, so nothing was moved' % tilde(path)[:200])
     now = int(time.time())
     name, fd = _claim(path.name)

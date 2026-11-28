@@ -63,7 +63,7 @@ def _read(kernel, principal, operation, arguments):
 
 def _watch(title, line):
     return Step('Watch it', 'write', op('agenda.add', title='Watch: ' + str(title)[:120], program=line, watch=True),
-                'Graphite asks again every few hours and speaks only when the answer is different', 'execute')
+                'Kas asks again every few hours and speaks only when the answer is different', 'execute')
 
 
 def _calculation(kernel, principal, obj, field):

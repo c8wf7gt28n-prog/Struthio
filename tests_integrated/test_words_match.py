@@ -50,7 +50,7 @@ def a_label(words, source):
     """Whether the program writes these words as a whole label: a string of their own (or up to its key or …), or through
     assistant_identity.named(), which reads an older name as Kasandra."""
     return bool(re.search('[\'"]%s[\'"…\t]' % re.escape(words), source)
-                or re.search('named\\([\'"]%s[\'"]' % re.escape(words.replace('Kasandra', 'Stacy')), source))
+                or re.search('named\\([\'"]%s[\'"]' % re.escape(words.replace('Kas', 'Stacy')), source))
 
 
 class TheMenusTheGuidesName(unittest.TestCase):

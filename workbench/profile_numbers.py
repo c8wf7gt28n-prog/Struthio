@@ -27,7 +27,7 @@ HELPER_EXTRACT = 'quantities_from_text'
 HELPER_SUM = 'sum_model'
 HELPER_CARD = 'condition_card'
 NO_NUMBERS = 'I found no numbers to add up on this page. Write them with their units, like 12.5 kg or 3 A, and ask again.'
-PAGE_MOVED = 'The page changed while Graphite was working on it; ask again and Graphite reads it afresh.'
+PAGE_MOVED = 'The page changed while Kas was working on it; ask again and Kas reads it afresh.'
 PURPOSES = {'read': 'Reading the page', 'extract': 'Finding the numbers with units on the page', 'sum': 'Adding them up with the exact calculator',
             'write': 'Writing the total under the page', 'card': 'Binding the total to the words it came from'}
 

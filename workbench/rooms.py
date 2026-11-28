@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QLabel, QListWidget, QListWidgetItem, QPushButton,
 ROOMS = (('home', 'Home', 'console', 'show_start', 'What is waiting, and where to start'),
          ('office', 'Office', 'import', 'show_office', 'Receive files, catalog them and read them'),
          ('files', 'Files', 'c', 'show_files', 'The files and tools you have open'),
-         ('slate', 'Graphite', 'brain-link', 'show_slate', 'The local brain, plans and the instruction matrix'),
+         ('slate', 'Kas', 'brain-link', 'show_slate', 'The local brain, plans and the instruction matrix'),
          ('engineering', 'Engineering', 'trace', None, 'ARC-1 views: Brain Link, Source, Simulator, Orange Book and tools'))
 # Earlier activity names still name the room that now holds them.
 ALIASES = {'brain': 'engineering', 'simulator': 'engineering', 'book': 'engineering', 'source': 'files'}
@@ -129,7 +129,7 @@ def add_live_tree(host):
     office = node('Office', 'office', 'import', tip='Receive files, catalog them and read them')
     host._live_inbox = node('Ingress', 'office', 'folder', office, 'Files that came in and wait to be received')
     host._live_deliveries = node('Deliveries', 'office', 'evidence', office, 'Recent deliveries')
-    slate = node('Graphite', 'slate', 'brain-link', tip='The local brain and what it has learned')
+    slate = node('Kas', 'slate', 'brain-link', tip='The local brain and what it has learned')
     host._live_brain = node('Brain', 'slate', 'brain-link', slate, 'The local model')
     host._live_matrix = node('Instruction matrix', 'slate', 'trace', slate, 'What worked and what failed')
     # Clicking a live branch opens its room (the click handler treats these like Ledger controls).

@@ -10,7 +10,7 @@ from .locations import program
 ART_MODES = ('illustrated', 'ascii', 'clean')
 WORKSHOP_PLATE = 'Workshop in the rain.png'
 CHARCOAL_PLATE = 'Workshop in charcoal.webp'
-MIDNIGHT_PORTRAIT = 'Kasandra after midnight.webp'
+MIDNIGHT_PORTRAIT = 'Kas after midnight.webp'
 FACE_MARK = ('+------+', '|  >_  |', '+------+')
 FACE = (0.262, 0.086, 0.488, 0.366)       # her face in that plate: left, top, width, height, as parts of the plate
 MIDNIGHT_WORKSHOP = 'Workshop after midnight.webp'
@@ -136,7 +136,7 @@ class ArtPanel(QWidget):
         self.art_folder = program(host.root) / 'branding' / 'boss'
         self.setObjectName('BossArt');self.setProperty('paperFunctionalInk', True)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.setAccessibleName(named('Stacy in the After Midnight workshop') if t.APPEARANCE == 'graphite' else 'Kasandra in her office')
+        self.setAccessibleName(named('Stacy in the After Midnight workshop') if t.APPEARANCE == 'graphite' else 'Kas in her office')
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         self.limit = None     # the most height Home can give the picture without scrolling (TodayPage.fit_art); None: no limit
         self.opened = 0       # Kasandra: the Office alternates its stills each time it is shown again, and keeps one while it is open
@@ -189,7 +189,7 @@ class ArtPanel(QWidget):
         else:
             font = QFont(t.MONO);font.setPixelSize(12);p.setFont(font)
             p.setPen(QColor(t.QUIET))
-            lines = ('// GRAPHITE  :  WORK IN PROGRESS',
+            lines = ('// KAS  :  WORK IN PROGRESS',
                      '   [ evidence ]  [ methods ]  [ useful work ]',
                      '   / / /   a computer you can work beside   / / /',
                      '// your tools. your records. your machine.')
@@ -210,8 +210,8 @@ class PanelInk(QWidget):
         self.setSizePolicy(QSizePolicy.Fixed if kind == 'face' else QSizePolicy.Ignored, QSizePolicy.Fixed)
         self.setAccessibleName(named({'portrait': 'Stacy in the worksheet evidence rail', 'bracket': 'ASCII bracket illustration',
                                       'journal': 'Stacy in the research journal', 'face': 'Stacy, the assistant'}[kind])
-                               if t.APPEARANCE == 'graphite' else {'portrait': 'Kasandra beside the worksheet', 'bracket': 'ASCII bracket illustration',
-                                'journal': 'Kasandra in the research journal', 'face': 'Kasandra, the assistant'}[kind])
+                               if t.APPEARANCE == 'graphite' else {'portrait': 'Kas beside the worksheet', 'bracket': 'ASCII bracket illustration',
+                                'journal': 'Kas in the research journal', 'face': 'Kas, the assistant'}[kind])
         if t.APPEARANCE == 'kasandra' and kind != 'bracket':      # her still follows the work: painted again when an act ends, and every two seconds
             from PySide6.QtCore import QTimer
             from . import kasandra_art
@@ -390,8 +390,8 @@ def appearance_menu(host):
     return menu
 
 
-APPEARANCE_WORDS = {'graphite': 'Graphite: pencil, paper and amber, as it has always been',
-                    'kasandra': 'Kasandra: indigo and a typewriter face for headings',      # 1.0 P4 no avatar: her art no longer follows the work
+APPEARANCE_WORDS = {'graphite': 'Pencil: pencil, paper and amber, as it has always been',      # 1.1 R1: once named Graphite
+                    'kasandra': 'Indigo: indigo and a typewriter face for headings',      # 1.1 R1: once named Kasandra      # 1.0 P4 no avatar: her art no longer follows the work
                     'day': 'Day: the launch look, light and calm; green for what is live, blue for the board\'s wires and what is selected',      # 1.0 P2, P4
                     'night': 'Night: a phosphor monitor, one colour on black',      # 1.0 P4; 1.1 N1
                     'night-duo': 'Night: Duo: green for the computer, amber for Kasandra and your word, grey for the past; a block says what is selected',      # 1.1 N1duo
@@ -483,7 +483,7 @@ def choose_appearance(host, key, ask=True, phosphor=None):
         host.statusBar().showMessage(word + ' is the appearance in use.', 5000);return True
     if ask:
         from PySide6.QtWidgets import QMessageBox
-        if QMessageBox.question(host, 'Appearance', word + ' is used from the next start. Start Graphite again now? '
+        if QMessageBox.question(host, 'Appearance', word + ' is used from the next start. Start Kas again now? '
                                 'It saves this window first.') == QMessageBox.Yes:
             from .shell2 import relaunch
             relaunch(host, host.root, drop=('GRAPHITE_APPEARANCE', 'GRAPHITE_PHOSPHOR'));return True      # 1.1 N1: the phosphor too

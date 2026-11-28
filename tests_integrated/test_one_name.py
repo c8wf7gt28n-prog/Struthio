@@ -75,12 +75,12 @@ class TheName(unittest.TestCase):
         for look in LOOKS:
             with self.subTest(look=look):
                 out=child(['-c',code],look,120);self.assertEqual(out.returncode,0,out.stderr[-2000:])
-                self.assertEqual(out.stdout.split('\n')[:5],[look,'Kasandra','Kasandra','Ask Kasandra about this','TEXT · WHAT KASANDRA HOLDS'])
+                self.assertEqual(out.stdout.split('\n')[:5],[look,'Kas','Kas','Ask Kas about this','TEXT · WHAT KAS HOLDS'])
 
     def test_named_leaves_what_is_not_text_alone(self):
         from workbench.assistant_identity import named
         self.assertIsNone(named(None));self.assertEqual(named(7),7);self.assertEqual(named('Terminal'),'Terminal')
-        self.assertEqual(named("Stacy's hand: STACY"),"Kasandra's hand: KASANDRA")
+        self.assertEqual(named("Stacy's hand: STACY"),"Kas's hand: KAS")
 
 
 class TheSweepItself(unittest.TestCase):
@@ -88,7 +88,7 @@ class TheSweepItself(unittest.TestCase):
         said=name_sweep.named_in
         self.assertEqual(said('Ask Stacy about this'),['stacy']);self.assertEqual(said('TEXT · WHAT STACY HOLDS'),['stacy'])
         self.assertEqual(said('a staC line'),['language']);self.assertEqual(said('stac ›'),['language'])
-        for words in ('Ask Kasandra about this','the call stack','stacy.hand','stacy_hand','arc.stacy-trail/1','stac.compile','Files/Slate'):
+        for words in ('Ask Kas about this','the call stack','stacy.hand','stacy_hand','arc.stacy-trail/1','stac.compile','Files/Slate'):
             self.assertEqual(said(words),[],words)
         self.assertEqual(said('stacy.hand set by Stacy'),['stacy'],'an identity is set aside, a name beside it is not')
         # an event printed whole as it is stored keeps its actor; words made from it for reading do not (name_sweep's note)
@@ -100,11 +100,11 @@ class TheSweepItself(unittest.TestCase):
         # 0.8.4: no keyboard shortcut is printed on screen, and the list is "Apps". These were tips of 0.8.3.
         said=name_sweep.named_in
         for words in ('Build the target for the work in front of you (F7)','Click: confirm Stop all · Ctrl+Shift+F12','Console\tCtrl+`','Run an operation…\tAlt+3',
-                      "words in Graphite's events  ·  Enter filters",'words and Enter filter them','Tab completes, Enter runs','Enter opens one, Esc comes back',
+                      "words in Kas's events  ·  Enter filters",'words and Enter filter them','Tab completes, Enter runs','Enter opens one, Esc comes back',
                       'Right or Enter opens the rows.','Move the pointer or press a key to return to work.','Select related files with Ctrl or Shift.','Ctrl Z takes it back',
                       'Arrow keys navigate, Z selects','Fill the display; F11 returns to the previous window',
                       # the review of 0.8.4: a key in brackets, another verb, a hyphen, the Mac's sign, keys by their own names
-                      'Show or hide the preview (Space)','Hide Graphite  (Esc)','Select a row and hit Enter','Save the page with Ctrl-S','Save the page with ⌘S',
+                      'Show or hide the preview (Space)','Hide Kas  (Esc)','Select a row and hit Enter','Save the page with Ctrl-S','Save the page with ⌘S',
                       'Backspace goes up a folder','PgUp scrolls the surface','Choose a row with the pointer or Return'):
             for kind in ('toolTip','statusTip','accessibleDescription','whatsThis','text'):
                 self.assertEqual(said(words,kind),['key'],(kind,words))
@@ -116,7 +116,7 @@ class TheSweepItself(unittest.TestCase):
                       'Matching F45 / F12 curves overlap.','Escape sequences are shown as typed.','net F3 / F4','the F7 net','Delete the row','Return to the list',
                       'Hit rate 92 %','Tap water','Shift-register outputs','Space (2 TB free)'):
             self.assertEqual(said(words,'toolTip'),[],words)
-        self.assertEqual(said('Programs Graphite does not manage keep running','toolTip'),['programs']);self.assertEqual(said('Programs','row'),['programs'])
+        self.assertEqual(said('Programs Kas does not manage keep running','toolTip'),['programs']);self.assertEqual(said('Programs','row'),['programs'])
         for words in ('Apps','the programs installed here','programs.mail.read','ProgramsList'):self.assertEqual(said(words),[],words)
         for kept,why in name_sweep.KEYS_KEPT:      # reviewed: a key that must be pressed, with nothing to click in its place
             self.assertTrue(name_sweep.KEYS.search(kept),kept);self.assertEqual(said('Open apps · '+kept,'accessibleDescription'),[],kept);self.assertGreater(len(why),20)
@@ -178,12 +178,12 @@ class TheSweepItself(unittest.TestCase):
         window=QWidget();layout=QVBoxLayout(window)
         hidden=QLabel('Ask Stacy');layout.addWidget(hidden);hidden.hide()
         button=QPushButton('Terminal');button.setToolTip('Stacy: ask in your own words');button.setAccessibleName('a staC line');layout.addWidget(button)
-        menu=QMenu('Rules',window);menu.addAction("Stacy's hand");layout.addWidget(QLabel('Kasandra'))
+        menu=QMenu('Rules',window);menu.addAction("Stacy's hand");layout.addWidget(QLabel('Kas'))
         read=set();found=name_sweep.sweep(window,'a test window',read=read)
         self.assertEqual(sorted((f['name'],f['widget'],f['kind'],f['words']) for f in found),
                          [('language','QPushButton','accessibleName','a staC line'),('stacy','QAction','text',"Stacy's hand"),('stacy','QAction','toolTip',"Stacy's hand"),
                           ('stacy','QLabel','text','Ask Stacy'),('stacy','QPushButton','toolTip','Stacy: ask in your own words')])
-        self.assertTrue({'Kasandra','Terminal','Rules'}<=read,read)
+        self.assertTrue({'Kas','Terminal','Rules'}<=read,read)
         self.assertEqual({f['where'] for f in found},{'a test window'})
         window.deleteLater();app.processEvents()
 
@@ -250,11 +250,11 @@ class TheCode(unittest.TestCase):
         pattern=name_sweep.NEVER['stacy'][0]
         for name in ('GETTING_STARTED.md','docs/WORKSHOP.md'):
             self.assertEqual([line for line in (ROOT/name).read_text(encoding='utf-8').splitlines() if pattern.search(line)],[],name)
-        self.assertIn('Ask Kasandra in her column',(ROOT/'GETTING_STARTED.md').read_text(encoding='utf-8'))      # 1.0 X2: the foot has no Kasandra mode (D1)
+        self.assertIn('Ask Kas in her column',(ROOT/'GETTING_STARTED.md').read_text(encoding='utf-8'))      # 1.0 X2: the foot has no Kasandra mode (D1)
         # The owner's guides beside the program say what the window says. A line may still say Stacy where it says what
         # changed (it then says Kasandra too) or points to the legal note (RIGHTS.md keeps Stacy as a name the owner holds).
         for name in ('README.md','docs/DAILY_GUIDE.md','docs/THINKPAD_FIRST_INSTALL.md'):
-            lines=[line[:160] for line in (ROOT/name).read_text(encoding='utf-8').splitlines() if pattern.search(line) and 'Kasandra' not in line and 'RIGHTS.md' not in line]
+            lines=[line[:160] for line in (ROOT/name).read_text(encoding='utf-8').splitlines() if pattern.search(line) and 'Kas' not in line and 'RIGHTS.md' not in line]
             self.assertEqual(lines,[],name)
 
 
@@ -269,10 +269,10 @@ class TheWindow(unittest.TestCase):
         for look in LOOKS:
             with self.subTest(look=look):
                 value=self.report(look)
-                self.assertEqual((value['look'],value['name']),(look,'Kasandra'))
+                self.assertEqual((value['look'],value['name']),(look,'Kas'))
                 self.assertEqual([p['where'] for p in value['places'] if not p['done']],[],'every place of the walk was reached')
                 self.assertGreaterEqual(len(value['places']),50);self.assertGreater(value['words'],800,'the sweep read the window')
-                for place in ('the right pane: activity','the Log: a brain event pinned','Search: a brain event in its timeline','Guide: About Graphite','Rules: the art plates, none of her'):      # 1.1 T1: no plate of her since 1.0 P4
+                for place in ('the right pane: activity','the Log: a brain event pinned','Search: a brain event in its timeline','Guide: About Kas','Rules: the art plates, none of her'):      # 1.1 T1: no plate of her since 1.0 P4
                     self.assertIn(place,[p['where'] for p in value['places']])
                 self.assertGreater(value['named'],20,'her name is read on the desk')
                 self.assertEqual(['%s · %s · %s %s: %s'%(f['name'],f['where'],f['widget'],f['kind'],f['words']) for f in value['found']],[])
@@ -281,8 +281,8 @@ class TheWindow(unittest.TestCase):
                     self.assertEqual((row['strip'],row['strip_shown']),('Line',True),size)      # 1.0 D1: her name is not at the foot
                     self.assertEqual((row['clipped'],row['clipped_back']),('',''),'%s: her name is whole wherever it is shown'%size)
                     self.assertGreaterEqual(row['said'],1,size)
-                    self.assertEqual(row['back'],['‹ Kasandra  ·  Activity',True,''],size)
-                    self.assertEqual(row['column'],['Kasandra',True],size)      # 1.0 P1: her column's head, in every look
+                    self.assertEqual(row['back'],['‹ Kas  ·  Activity',True,''],size)
+                    self.assertEqual(row['column'],['Kas',True],size)      # 1.0 P1: her column's head, in every look
 
 
 class History(unittest.TestCase):
@@ -312,7 +312,7 @@ class History(unittest.TestCase):
         ran=self.call('agenda.run_next')      # no model here: the item in words waits for her brain, and says so now
         self.assertIsNone(ran.get('ran'),ran)
         reasons=self.reasons()
-        self.assertEqual(reasons[new['id']],"Waiting for Kasandra's brain: choose a model in Brain, and she will take it up.")
+        self.assertEqual(reasons[new['id']],"Waiting for Kas's brain: choose a model in Brain, and she will take it up.")
         self.assertEqual(reasons[old['id']],OLD_REASON,'what was written under Stacy keeps the name it was written with')
 
     def test_a_brain_event_keeps_its_actor_and_is_read_with_her_name(self):
@@ -323,10 +323,10 @@ class History(unittest.TestCase):
         events=[e for e in activity.tail(self.kernel.root)['events'] if e.get('operation')=='brain.worker']
         self.assertEqual([(e['origin'],e['state']) for e in events],[('STACY','READY')],'the record keeps the actor it was written with')
         event=events[0]
-        self.assertEqual(tail_words.readable(event),'Kasandra · brain.worker')
-        self.assertTrue(log_qt.event_line(event).endswith('  Kasandra · brain.worker'),log_qt.event_line(event))
+        self.assertEqual(tail_words.readable(event),'Kas · brain.worker')
+        self.assertTrue(log_qt.event_line(event).endswith('  Kas · brain.worker'),log_qt.event_line(event))
         rows=dict(log_qt.details({'kind':'event','stream':'events','event':event}))
-        self.assertEqual((rows['origin'],rows['operation'],rows['state']),('KASANDRA','brain.worker','READY'))
+        self.assertEqual((rows['origin'],rows['operation'],rows['state']),('KAS','brain.worker','READY'))
         self.assertEqual(name_sweep.named_in(tail_words.readable(event)+' '+' '.join('%s %s'%row for row in rows.items())),[])
         # whoever else acted is read as before, and the owner's own acts name nobody
         self.assertEqual(tail_words.readable(activity.make_event('REMOTE','files.write','COMPLETED')),'Remote · Wrote a file')

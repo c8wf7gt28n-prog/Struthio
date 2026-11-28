@@ -168,7 +168,7 @@ class InvestigationTab(QWidget):
         self.clear()
         self.page.addWidget(role(QLabel('Investigations'), 'title'))
         self.page.addWidget(role(plain('Keep a question going. Read sources into it, write down what you think is true, say what check would show it, '
-                                       'and continue. Graphite keeps what was read, tried, checked and learned, and what is still open.'), 'lead'))
+                                       'and continue. Kas keeps what was read, tried, checked and learned, and what is still open.'), 'lead'))
         self.page.addWidget(self.status);self.page.addStretch(1)
 
     def render(self):

@@ -237,6 +237,6 @@ def lock(kernel, ident):
     with (folder / ident).open('a+b') as stream:
         os.chmod(folder / ident, 0o600)
         try: fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError: raise ValueError('Another Graphite operation is changing this working copy') from None
+        except BlockingIOError: raise ValueError('Another Kas operation is changing this working copy') from None
         try: yield
         finally: fcntl.flock(stream, fcntl.LOCK_UN)

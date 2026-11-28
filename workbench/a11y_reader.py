@@ -139,9 +139,9 @@ def _button_name(name):
 def why_not_platform(platform=None):
     platform = sys.platform if platform is None else platform
     if platform.startswith('win') or platform == 'cygwin':
-        return 'Graphite reads other programs through AT-SPI, the accessibility of the Linux desktop, and Windows has none'
+        return 'Kas reads other programs through AT-SPI, the accessibility of the Linux desktop, and Windows has none'
     if platform == 'darwin':
-        return 'Graphite reads other programs through AT-SPI, the accessibility of the Linux desktop, and this Mac has none'
+        return 'Kas reads other programs through AT-SPI, the accessibility of the Linux desktop, and this Mac has none'
     return None
 
 
@@ -215,7 +215,7 @@ def connection():
         if not conn.isConnected():
             message = (conn.lastError().message() or 'not connected').strip()[:160]
             QDBusConnection.disconnectFromBus(name)
-            raise Unavailable('the accessibility bus did not let Graphite in (%s)' % message)
+            raise Unavailable('the accessibility bus did not let Kas in (%s)' % message)
         _BUS.update(address=address, name=name, conn=conn)
         return conn
 

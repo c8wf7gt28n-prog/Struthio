@@ -196,7 +196,7 @@ class ComputerTree(QObject):
         if home:
             words = 'Home, your own folder (%s): every folder and file in it, as your account sees them' % str(path)
         elif str(path) == workspace:
-            words = "Graphite's workspace (%s): its Files folder and its records; the records are also in the Desk drawer" % hr.tilde(path)
+            words = "Kas's workspace (%s): its Files folder and its records; the records are also in the Desk drawer" % hr.tilde(path)
         else:
             words = 'Folder · %s' % hr.tilde(path)
         extra = {'glyph': 'graphite'} if str(path) == workspace else {}
@@ -218,7 +218,7 @@ class ComputerTree(QObject):
             if path in skip:continue
             if row['kind'] == 'system':
                 ident = FS + branch + ':' + path;self.paths[ident] = path
-                add(ident, parent, 'system', '%s · system' % row['name'], ident, '%s: %s; Graphite never reads it' % (path, hr.SYSTEM_WORDS))
+                add(ident, parent, 'system', '%s · system' % row['name'], ident, '%s: %s; Kas never reads it' % (path, hr.SYSTEM_WORDS))
                 continue
             if row['kind'] == 'folder' and branch == 'root' and Path(path) == self.home:
                 add(JUMP + path, parent, 'note', '%s · Home' % row['name'], JUMP + path, 'Your home folder: it is Home, at the top of this computer');continue

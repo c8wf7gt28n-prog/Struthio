@@ -130,7 +130,7 @@ def _valid_sha(digest):
 def _manifest_entries(raw):
     value = record_io.strict_json(raw)
     if not isinstance(value, dict) or set(value) != {'schema', 'entries'} or value['schema'] != PROFILE:
-        raise ValueError('The archive has no supported Graphite delivery manifest.')
+        raise ValueError('The archive has no supported Kas delivery manifest.')
     entries = value['entries']
     if not isinstance(entries, list) or not 1 <= len(entries) <= MAX_FILES:
         raise ValueError('The delivery manifest has an invalid file count.')
@@ -163,7 +163,7 @@ def _verify_archive(stream, size):
                 raise ValueError('The ZIP does not have a supported delivery layout.')
             header = members[-1]
             if header.filename != MANIFEST or header.file_size > MAX_MANIFEST:
-                raise ValueError('The ZIP does not end with a bounded Graphite delivery manifest.')
+                raise ValueError('The ZIP does not end with a bounded Kas delivery manifest.')
             offset = 0
             directory_bytes = 0
             for member in members:

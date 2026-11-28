@@ -1,12 +1,12 @@
 # An evening with Kas's mind
 
-Graphite 0.8.6, "Kas's mind, no model". Kasandra reads your words from the desk's own vocabulary, judges findings exactly
+Kas 0.8.6, "Kas's mind, no model". Kas reads your words from the desk's own vocabulary, judges findings exactly
 with the maths, says what would settle what she cannot tell, and asks a model only one small numbered question, or shows
 you the same choices as buttons when no model is loaded. Everything here works with no model.
 
-*Since 1.0:* you speak to her in her ask line, at the foot of her column ("ask Kasandra…", with its send arrow); words
-typed in Line at the foot of the window are offered to her with Ask Kasandra →. Her column has no picture of her in any
-look. The rest of the window is Help ▸ The Living Desktop; what she does beyond these ten things is Help ▸ Kasandra, the
+*Since 1.0:* you speak to her in her ask line, at the foot of her column ("ask Kas…", with its send arrow); words
+typed in Line at the foot of the window are offered to her with Ask Kas →. Her column has no picture of her in any
+look. The rest of the window is Help ▸ The Living Desktop; what she does beyond these ten things is Help ▸ Kas, the
 Ghost in the Shell.
 
 Two invented desks carry the examples. **Rail Demo** (a 12 V rail: bench readings, and limits in Rev A, archived, and

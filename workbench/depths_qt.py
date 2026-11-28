@@ -679,7 +679,7 @@ class Depths(QObject):
             try:disk = path.read_text(encoding='utf-8')
             except (OSError, UnicodeError):disk = None
             if disk is None:
-                head.setText('The file on disk is not text Graphite can set beside this view: Keep yours or Take the one on disk.')
+                head.setText('The file on disk is not text Kas can set beside this view: Keep yours or Take the one on disk.')
             else:
                 rows = dp.compare(tab.toPlainText() if kind_of(tab) == 'text' else '', disk)
                 head.setText('Lines marked − are only in yours (not saved); lines marked + are only on disk now. Nothing is changed by looking.')

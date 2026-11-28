@@ -320,7 +320,7 @@ class MachineRoom(QWidget):
             head = words('%s · %s%s' % (drive['name'], drive['bus'].upper() or 'REMOVABLE', (' · ' + real.size_words(drive['size'])) if drive['size'] else ''), 'card')
             inner.addLayout(row(head, press('Eject safely', lambda checked=False, d=drive: self.eject(d), 'Unmount everything on it, then power it off; '
                                             '"safe to remove" is said only once that is read back', free), stretch_at=0))
-            if not drive['volumes']:inner.addWidget(words('No filesystem on it that Graphite can mount.', 'quiet'))
+            if not drive['volumes']:inner.addWidget(words('No filesystem on it that Kas can mount.', 'quiet'))
             for volume in drive['volumes']:
                 inner.addWidget(words(real.volume_words(volume)))
                 if volume['mounted']:
@@ -328,13 +328,13 @@ class MachineRoom(QWidget):
                                press('Open in Files', lambda checked=False, v=volume: self.open_files(v), 'Show it in a Browse tab', free),
                                press('Unmount', lambda checked=False, v=volume: self.act('Unmounting ' + real.volume_words(v), real.unmount, v['id']), '', free), stretch_at=1)
                 elif volume['encrypted'] and not volume['can_mount']:
-                    line = row(word('locked', 'quiet'), words('encrypted: Graphite 1.0 does not unlock it; the system\'s own tools can.', 'quiet'), stretch_at=1)
+                    line = row(word('locked', 'quiet'), words('encrypted: Kas 1.0 does not unlock it; the system\'s own tools can.', 'quiet'), stretch_at=1)
                 else:
                     line = row(word('not mounted', 'quiet'), press('Mount', lambda checked=False, v=volume: self.act('Mounting ' + real.volume_words(v), real.mount, v['id']), '', free))
                 inner.addLayout(line)
             if self.target == drive['id']:frame.setStyleSheet(frame.styleSheet().replace(bt.LINE, bt.AMBER_EDGE))
             box.addWidget(frame)
-        box.addWidget(words('The fixed disks and the folders Graphite keeps its work in are listed under Storage in the Machine tab.', 'quiet'))
+        box.addWidget(words('The fixed disks and the folders Kas keeps its work in are listed under Storage in the Machine tab.', 'quiet'))
 
     def eject(self, drive):
         def after(result):
@@ -388,7 +388,7 @@ class MachineRoom(QWidget):
         if wired:
             box.addWidget(words('Wired', 'section'))
             for d in wired:box.addLayout(row(words(d['interface']), word('no cable' if d['state_number'] == 20 else d['state'], 'live' if d['state_number'] == 100 else 'quiet'), stretch_at=0))
-        box.addWidget(words('A password you type here goes to NetworkManager, which keeps it with the network. Graphite keeps no copy.', 'quiet'))
+        box.addWidget(words('A password you type here goes to NetworkManager, which keeps it with the network. Kas keeps no copy.', 'quiet'))
 
     def network_row(self, device, net, free):
         frame, inner = card()

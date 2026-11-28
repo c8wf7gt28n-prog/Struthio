@@ -181,20 +181,20 @@ class OfficeBuildingTab(ServiceTab):
     def brain_room(self):
         page = QWidget();box = QVBoxLayout(page)
         self.brain_state = QLabel('Brain: checking…');self.brain_state.setWordWrap(True);box.addWidget(self.brain_state)
-        swap = QLabel('Graphite inspects a dropped model first and switches only when it loads. "Restore previous" goes back.')
+        swap = QLabel('Kas inspects a dropped model first and switches only when it loads. "Restore previous" goes back.')
         swap.setWordWrap(True);box.addWidget(swap)
         row = QHBoxLayout()
         for label, fn in (('Choose model file…', self.pick_model), ('Restore previous', self.restore_brain), ('Stop brain', self.stop_brain), ('Open Brain panel', self.open_brain)):
             button = QPushButton(label);button.clicked.connect(fn);row.addWidget(button)
         box.addLayout(row)
-        ask = QLabel('Ask in plain words. Graphite proposes a line from what worked before; nothing runs until you choose Run proposal.');ask.setWordWrap(True);box.addWidget(ask)
-        self.request = QLineEdit();writing_prompt(self.request, 'For example: show the text of the memo I received');self.request.setAccessibleName('Request for Graphite')
+        ask = QLabel('Ask in plain words. Kas proposes a line from what worked before; nothing runs until you choose Run proposal.');ask.setWordWrap(True);box.addWidget(ask)
+        self.request = QLineEdit();writing_prompt(self.request, 'For example: show the text of the memo I received');self.request.setAccessibleName('Request for Kas')
         self.request.returnPressed.connect(self.ask_plan);box.addWidget(self.request)
         arow = QHBoxLayout()
         plan = QPushButton(named('Ask Stacy to plan'));plan.clicked.connect(self.ask_plan);arow.addWidget(plan)
         self.run_plan_button = QPushButton('Run proposal');self.run_plan_button.setEnabled(False);self.run_plan_button.clicked.connect(self.run_proposal);arow.addWidget(self.run_plan_button)
         box.addLayout(arow)
-        self.plan_view = QPlainTextEdit();self.plan_view.setReadOnly(True);self.plan_view.setAccessibleName('Graphite proposal');box.addWidget(self.plan_view, 1)
+        self.plan_view = QPlainTextEdit();self.plan_view.setReadOnly(True);self.plan_view.setAccessibleName('Kas proposal');box.addWidget(self.plan_view, 1)
         return page
 
     def matrix_room(self):
@@ -428,7 +428,7 @@ class OfficeBuildingTab(ServiceTab):
         if not watched or watched['id'] != job['id'] or job['state'] not in ('Completed', 'Failed', 'Cancelled', 'Interrupted'):return
         setattr(self, name, None)
         if job['state'] != 'Completed':
-            self.status.setText(('Brain change' if name == 'brain_job' else 'Graphite') + ' stopped: ' + job['state'] + (' · ' + job['error'] if job.get('error') else ''))
+            self.status.setText(('Brain change' if name == 'brain_job' else 'Kas') + ' stopped: ' + job['state'] + (' · ' + job['error'] if job.get('error') else ''))
             self.refresh_brain();return
         if name == 'plan_job':self.call('brain.result', {'id': job['id']}, self.show_plan);return
         if watched['step'] == 'add':
@@ -450,14 +450,14 @@ class OfficeBuildingTab(ServiceTab):
     def ask_plan(self):
         text = self.request.text().strip()
         if not text or self.plan_job:return
-        self.proposal = None;self.run_plan_button.setEnabled(False);self.plan_view.setPlainText('Graphite is reading the instruction matrix and planning…')
+        self.proposal = None;self.run_plan_button.setEnabled(False);self.plan_view.setPlainText('Kas is reading the instruction matrix and planning…')
         self.call('brain.ask', {'message': text, 'mode': 'plan', 'request_key': uuid.uuid4().hex}, lambda job:setattr(self, 'plan_job', {'id': job['id']}))
 
     def show_plan(self, value):
         result = value.get('result') or {};self.proposal = result.get('proposal')
         actions = (self.proposal or {}).get('actions') or []
         self.plan_view.setPlainText((result.get('text') or '') + '\n\n' + ('Proposed:\n' + '\n'.join('  ' + a['operation'] + ' ' + json.dumps(a['arguments'], ensure_ascii=False) for a in actions)
-                                                                       if actions else 'No program was proposed. This is recorded so Graphite can learn from it.'))
+                                                                       if actions else 'No program was proposed. This is recorded so Kas can learn from it.'))
         self.run_plan_button.setEnabled(bool(actions));self.refresh_matrix();self.tell_inspector()
 
     def run_proposal(self):
@@ -482,7 +482,7 @@ class OfficeBuildingTab(ServiceTab):
         def status(value):
             c = value['counts']
             self.matrix_state.setText('Worked %d · empty %d · blocked %d · failed %d · waiting to run %d · marked by you %d. '
-                                      'Graphite learns from these as examples; its weights never change.' %
+                                      'Kas learns from these as examples; its weights never change.' %
                                       (c['SUCCESS'], c['EMPTY'], c['BLOCKED'], c['FAILED'], c['PROPOSED'], value['owner_marked']))
         def patterns(value):
             self.pattern_tree.clear()
@@ -508,7 +508,7 @@ class OfficeBuildingTab(ServiceTab):
         title, ok = QInputDialog.getText(self, 'Promote to lesson', 'Lesson title', text='Line: ' + item.text(0)[:60])
         if ok and title.strip():
             self.call('matrix.promote', {'shape': item.data(0, Qt.UserRole), 'title': title.strip()[:120]},
-                      lambda value:self.status.setText('Lesson proposed. Review it in Memory before Graphite relies on it.'))
+                      lambda value:self.status.setText('Lesson proposed. Review it in Memory before Kas relies on it.'))
 
     def export_matrix(self):
         path, _ = QFileDialog.getSaveFileName(self, 'Export training set', str(Path.home() / 'slate-instruction-matrix.jsonl'), 'JSON lines (*.jsonl)')
@@ -521,6 +521,6 @@ class OfficeBuildingTab(ServiceTab):
 
 class SlateRoomTab(OfficeBuildingTab):
     """The Slate room: the replaceable local brain, planning in staC, and the instruction matrix it learns from."""
-    HEADING = 'Graphite'
-    LEAD = 'Drop a GGUF model here to change the brain. Graphite proposes a line; you run it; the matrix remembers what worked.'
+    HEADING = 'Kas'
+    LEAD = 'Drop a GGUF model here to change the brain. Kas proposes a line; you run it; the matrix remembers what worked.'
     PAGES = (('brain_room', 'Brain · ask'), ('matrix_room', 'Instruction matrix'))

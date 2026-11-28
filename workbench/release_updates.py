@@ -366,7 +366,7 @@ def _dispatch(k,op,a,p):
     'meaning':'Authentic to the explicitly trusted publisher; no downloaded program has been executed.'}
   digest=R.digest(preview)
   with k.db() as db:db.execute('INSERT INTO release_previews VALUES(?,?,?,?)',(preview['id'],p.identity,R.canonical(preview),digest))
-  return {**preview,'content_digest':digest,'next':'Close Graphite, then use release_cli install for a backed-up side-by-side installation.'}
+  return {**preview,'content_digest':digest,'next':'Close Kas, then use release_cli install for a backed-up side-by-side installation.'}
  if op=='releases.install':return install(k,a,p)
  if op=='releases.recover':return recover(k,a,p)
  raise ValueError('Unknown release operation')

@@ -327,7 +327,7 @@ class PdfDocumentTab(ServiceTab):
         QApplication.clipboard().setText(json.dumps(pdf.citation(self.source['namespace'],self.source['item'],self.source['source_sha256'],self.page_index,self.canvas.region),ensure_ascii=False))
         self.status.setText('Exact original/page/region citation copied. Printed page labels remain separate.')
     def open_citation(self):
-        text,ok=QInputDialog.getMultiLineText(self,'Open exact citation','Paste a Graphite PDF citation:')
+        text,ok=QInputDialog.getMultiLineText(self,'Open exact citation','Paste a Kas PDF citation:')
         if not ok:return
         try:value=record_io_json(text)
         except ValueError:self.status.setText('This is not a valid citation object.');return

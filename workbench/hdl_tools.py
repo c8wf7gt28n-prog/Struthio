@@ -75,7 +75,7 @@ PROFILES={
 
 def discover(engine,which=None):
     lookup=which or shutil.which;name='iverilog' if engine=='icarus' else 'verilator';path=lookup(name)
-    if not path:return {'state':'NOT_AVAILABLE','reason':'Install '+name+' separately and launch Graphite with it on PATH.','engine':engine}
+    if not path:return {'state':'NOT_AVAILABLE','reason':'Install '+name+' separately and launch Kas with it on PATH.','engine':engine}
     executable=Path(path).resolve();prefix=executable.parent.parent;programs={str(executable):io.sha(executable)}
     data=None
     if engine=='icarus':

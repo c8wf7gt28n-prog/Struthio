@@ -244,8 +244,8 @@ class Wordmark(QLabel):
     pair seen. Still a QLabel named GraphiteWord whose text is Graphite, for callers and checks."""
 
     def __init__(self, parent=None):
-        super().__init__('Graphite', parent);self.setObjectName('GraphiteWord');self.setTextFormat(Qt.PlainText)
-        self.setAlignment(Qt.AlignLeft | Qt.AlignVCenter);self.setAccessibleName('Graphite');self.setProperty('paperFunctionalInk', True)
+        super().__init__('Kas', parent);self.setObjectName('GraphiteWord');self.setTextFormat(Qt.PlainText)
+        self.setAlignment(Qt.AlignLeft | Qt.AlignVCenter);self.setAccessibleName('Kas');self.setProperty('paperFunctionalInk', True)
         self.script = False;self.stroke = 0.0;self._path = None
 
     def set_face(self, script, stroke):
@@ -571,7 +571,7 @@ class Mark(QWidget):
     """The Ledger mark: a pencil on a pale pencil-yellow tile. Drawn, so it stays sharp at any scale."""
 
     def __init__(self, size=28):
-        super().__init__();self.setFixedSize(size, size);self.setAccessibleName('Graphite')
+        super().__init__();self.setFixedSize(size, size);self.setAccessibleName('Kas')
 
     def paintEvent(self, event):
         from PySide6.QtCore import QPointF, QRectF
@@ -614,7 +614,7 @@ class TopBar(QWidget):
         self.path = PathBar(host, self);self.path.setParent(first)
         QShortcut(QKeySequence('Ctrl+L'), host, activated=self.path.edit_location)
         self.menus = QWidget(first);self.menus.setObjectName('CommandRow2')
-        self.brain = QPushButton(first);self.brain.setObjectName('BrainChip');self.brain.setCursor(Qt.PointingHandCursor);self.brain.setAccessibleName('Graphite brain')
+        self.brain = QPushButton(first);self.brain.setObjectName('BrainChip');self.brain.setCursor(Qt.PointingHandCursor);self.brain.setAccessibleName('Kas brain')
         self.brain.clicked.connect(lambda:host.shell2.show_slate_face())
         self.running = QPushButton(first);self.running.setObjectName('RunningChip');self.running.setFlat(True);self.running.setCursor(Qt.PointingHandCursor)
         self.running.clicked.connect(lambda:host.ledger_bridge.navigation()['trail']())
@@ -871,7 +871,7 @@ class TopBar(QWidget):
 
     def switch(self, folder):
         if Path(folder).resolve() == Path(self.host.root).resolve():return
-        if QMessageBox.question(self, 'Switch workspace', 'Open ' + short(folder) + '? Graphite saves this window and starts again there.') != QMessageBox.Yes:return
+        if QMessageBox.question(self, 'Switch workspace', 'Open ' + short(folder) + '? Kas saves this window and starts again there.') != QMessageBox.Yes:return
         relaunch(self.host, folder)
 
     def new_workspace(self):
@@ -892,10 +892,10 @@ class TopBar(QWidget):
         brain = call(self.host, 'brain.status') or {}
         words = {'READY': 'ready', 'MODEL_STOPPED': 'stopped', 'NO_MODEL_SELECTED': 'no brain yet'}.get(brain.get('state'), 'unknown')
         status_words = {'READY': 'ready', 'MODEL_STOPPED': 'stopped', 'NO_MODEL_SELECTED': 'none yet'}.get(brain.get('state'), 'unknown')
-        model = (self.host.shell2.model_name(brain) or 'Graphite') if brain.get('state') == 'READY' else 'Graphite'
+        model = (self.host.shell2.model_name(brain) or 'Kas') if brain.get('state') == 'READY' else 'Kas'
         dot = READY if brain.get('state') == 'READY' else (bt.CUE if brain.get('state') == 'MODEL_STOPPED' else FAINT)
         ready = brain.get('state') == 'READY'
-        self.brain.setText(('●  ' + model) if ready else ('○  Graphite · ' + words))
+        self.brain.setText(('●  ' + model) if ready else ('○  Kas · ' + words))
         self.brain.setStyleSheet('QPushButton#BrainChip {color:%s;}' % (TEXT if ready else QUIET))
         self.brain.setToolTip(named('Stacy\'s brain, the model, runs on this computer · click to talk to her'));self.host._status_brain = status_words
         jobs = call(self.host, 'jobs.list') or []
@@ -1273,7 +1273,7 @@ class OneBox(QLineEdit):
     def commands(self, query):
         needle = query.casefold();found = [];seen = set()
         places = (('Jot it down', 'capture'), ('Go to Today', 'home'), ('Go to the Office', 'office'), (named('Talk to Stacy'), 'slate'), ('Open the Library', 'library:all'),
-                  ('Project Desk', 'project_desk'), ('Changes', 'changes'), ('Continuing work', 'continuing'), ('Exchange & deployment', 'deployment'), ('Investigations', 'investigations'), ('New investigation', 'investigations'), ("Graphite's Agenda", 'agenda'), ('Files', 'files'), ('DELETE', 'trash'), ('Egress', 'files:Egress'),
+                  ('Project Desk', 'project_desk'), ('Changes', 'changes'), ('Continuing work', 'continuing'), ('Exchange & deployment', 'deployment'), ('Investigations', 'investigations'), ('New investigation', 'investigations'), ("Kas's Agenda", 'agenda'), ('Files', 'files'), ('DELETE', 'trash'), ('Egress', 'files:Egress'),
                   ('Night Shift', 'continuing'), ('Work on a copy of a file', 'work_copy'), ('Working copies', 'files:Working copies'),
                   ('Settings', 'settings'), ('All commands', 'commands'), ('Organizer', 'organizer'), ('Memory', 'memory'))
         for label, destination in places:
@@ -2092,7 +2092,7 @@ class SlateFace(QWidget):
         if self.this.property('said') == said:return
         self.this.setProperty('said', said)
         sentence(said, {'more': ('more', lambda: shell.show_context_face() if shell is not None else None)}, self.this)
-        self.this.setToolTip(named('What “this” means to Stacy now: %s, %s. The word opens everything Graphite knows about it.') % (name, how))
+        self.this.setToolTip(named('What “this” means to Stacy now: %s, %s. The word opens everything Kas knows about it.') % (name, how))
 
     def show_agenda(self):
         self.show_this()
@@ -2304,7 +2304,7 @@ class SlateFace(QWidget):
             operation, arguments = line_call(card.step.line)
             from .session_power import sleep_held
             from .home_reach import hers  # 1.0 L6: her card: inside your home by a grant or your Approve, never outside it
-            with sleep_held('Kasandra is writing “%s”' % str(card.title)[:80]), hers(operation, arguments, pressed=not getattr(card, 'hers', False)):  # 1.0 S1: a suspend waits until her write is done
+            with sleep_held('Kas is writing “%s”' % str(card.title)[:80]), hers(operation, arguments, pressed=not getattr(card, 'hers', False)):  # 1.0 S1: a suspend waits until her write is done
                 r = engineering(self.host.root).dispatch(operation, arguments, operator())
         except Exception as exc:  # noqa: BLE001 - a line that cannot be run is said as a refusal, never raised into the window
             r = {'ok': False, 'error': {'message': str(exc)[:300]}}
@@ -2933,7 +2933,7 @@ class SlateFace(QWidget):
         if selected:
             from .explain import explain
             value = call(self.host, 'files.get', {'path': selected})
-            if value:message += '\n(What Graphite knows: ' + explain(value)['text'][:1200] + ')'
+            if value:message += '\n(What Kas knows: ' + explain(value)['text'][:1200] + ')'
         from .engine import engineering
         from .engineering_kernel import operator
         import uuid
@@ -2998,7 +2998,7 @@ class SlateFace(QWidget):
         # AGENT-02 (D19): a documents.edit for the open page applies at once, visibly and undoably; every other action keeps Run/Edit.
         # The request recorded on the page is the owner's words (the job's message before the open-item context).
         message = str(((job.get('request_spec') or {}).get('brain') or {}).get('message') or '')
-        request = message.split('\n\n(About the open item:')[0].split('\n(What Graphite knows:')[0].split('\n(What Ledger knows:')[0].strip();chain = {}
+        request = message.split('\n\n(About the open item:')[0].split('\n(What Kas knows:')[0].split('\n(What Ledger knows:')[0].strip();chain = {}
         plans = result.get('action_plans') or []
         for index, action in enumerate(actions):
             seed_id = plans[index].get('seed_id') if index < len(plans) else None
@@ -3177,7 +3177,7 @@ class SlateFace(QWidget):
 
     def watch(self, program):
         r = call_write(self.host, 'agenda.add', {'title': program[:400], 'program': program, 'watch': True, 'nice': 'background'})
-        self.host.statusBar().showMessage('Watching it: Graphite asks again every 6 hours and tells you only when the answer changes.' if r.get('ok')
+        self.host.statusBar().showMessage('Watching it: Kas asks again every 6 hours and tells you only when the answer changes.' if r.get('ok')
                                           else (r.get('error') or {}).get('message', 'Not watched'), 7000)
 
     def mark(self, program, mark, row):
@@ -3331,7 +3331,7 @@ class TodayPage(QWidget):
         from PySide6.QtWidgets import QGridLayout
         grid = QGridLayout();grid.setHorizontalSpacing(20);grid.setVerticalSpacing(18);self.grid = grid;self.columns = 2
         grid.setColumnStretch(0, 1);grid.setColumnStretch(1, 1)  # two columns share the width evenly, whatever their words ask for
-        self.arrived = Card('Ingress');self.waiting = Card('Waiting for you');self.continue_ = Card('Continue', 'Recently open');self.slate = Card('Graphite')  # Ingress (D28): the owner's word for the folder files come in through
+        self.arrived = Card('Ingress');self.waiting = Card('Waiting for you');self.continue_ = Card('Continue', 'Recently open');self.slate = Card('Kas')  # Ingress (D28): the owner's word for the folder files come in through
         for card, r, c in ((self.arrived, 0, 0), (self.waiting, 0, 1), (self.continue_, 1, 0), (self.slate, 1, 1)):grid.addWidget(card, r, c)
         self.cards = (self.arrived, self.waiting, self.continue_, self.slate)
         # 4.1: cards hold sentences; a card's action is a word in its sentence, and only when there is something to act on.
@@ -3469,7 +3469,7 @@ class TodayPage(QWidget):
         learned = sum(v for k, v in counts.items() if k != 'PROPOSED')
         self.slate.note.setText('learning from %d outcomes' % learned if learned else '')
         if brain.get('state') == 'READY':
-            self.slate.line('Ask about what arrived. Graphite proposes a line; nothing runs until you say so.')
+            self.slate.line('Ask about what arrived. Kas proposes a line; nothing runs until you say so.')
             asks = ('What arrived today?', 'Show the held files', 'Summarize the newest delivery')
             self.slate.say('Try: {a0} · {a1} · {a2}', **{'a%d' % i:(ask, lambda a=ask:self.host.shell2.ask(a)) for i, ask in enumerate(asks)})
         else:
@@ -3483,7 +3483,7 @@ class TodayPage(QWidget):
         cache = self.host._library_cache = library_files(self.host, limit=2000)  # counted fresh: a delivery may have just finished
         self.facts['library'].setText(('%d files cataloged' % len(cache)) if cache is not None else '%d deliveries' % len(deliveries))
         self.facts['privacy'].setText('Cloud calls 0 · originals never changed')
-        brain_words = 'Graphite is ready' if brain.get('state') == 'READY' else 'Graphite has no brain yet'
+        brain_words = 'Kas is ready' if brain.get('state') == 'READY' else 'Kas has no brain yet'
         sentence(escape_text(name + '  ·  %d files in the library  ·  %s  ·  nothing leaves this computer.' % (len(cache or []), brain_words)) + ' {receive} or {back}.',
                  {'receive': ('Receive files', lambda:self.office().pick_files()), 'back': ('go back to work', self.host.resume_workspace)}, self.where)
         self.fit_columns()  # G-B: new rows can change what a card needs; the columns follow now, not at the next resize
@@ -3528,7 +3528,7 @@ class Shell2(QObject):
         # Right pane (HATCH DESK D1b): Conversation · Activity · Context, the desk's tabs (pane_qt), mirroring the left pane's.
         # Conversation is the Graphite face (SlateFace), Activity the Operations panel, Context the Context face; the three
         # buttons keep their old names (slate_button, operations_button, context_button) for callers.
-        self.face = SlateFace(host);host.console_pages.addTab(self.face, 'Graphite')
+        self.face = SlateFace(host);host.console_pages.addTab(self.face, 'Kas')
         holder = host.console_pages.parentWidget();layout = holder.layout() if holder is not None else None
         from .pane_qt import PaneTabs
         self.face_tabs = PaneTabs(('Talk', 'Activity', 'Context'), 'Right pane views', host);self.face_tabs.setObjectName('FaceSwitch')
@@ -3708,7 +3708,7 @@ class Shell2(QObject):
             from .graphite_brand import mark_icon
             gs.setParent(self.top);gs.setFixedSize(54, 54);gs.setIconSize(QSize(44, 44));gs.setIcon(mark_icon(44))
             gs.setProperty('paperIcon', True);gs.setToolButtonStyle(Qt.ToolButtonIconOnly)
-            gs.setToolTip('Graphite');gs.setAccessibleName('Graphite')
+            gs.setToolTip('Kas');gs.setAccessibleName('Kas')
             gs.clicked.connect(lambda checked=False:__import__('workbench.struthio_qt', fromlist=['show']).show(host))  # every good program has an egg
             gs.hide();self.top.mark.hide()
         ts = getattr(host, 'tree_search', None)

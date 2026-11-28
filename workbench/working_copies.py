@@ -118,7 +118,7 @@ def allowed_place(kernel, text):
     if Path(os.path.realpath(path)) != path:raise ValueError('COPIES_SOURCE_LINK: the path goes through a link; open the real file')
     for inside in (files_service.root(kernel, create=False), Path(kernel.dbpath).parent, Path(kernel.root)):
         inside = Path(os.path.realpath(inside))
-        if path == inside or inside in path.parents or path in inside.parents:raise ValueError('COPIES_SOURCE_INSIDE_LEDGER: this is already Graphite\'s, or holds it; use Files and its versions')
+        if path == inside or inside in path.parents or path in inside.parents:raise ValueError('COPIES_SOURCE_INSIDE_LEDGER: this is already Kas\'s, or holds it; use Files and its versions')
     return path
 
 
@@ -182,7 +182,7 @@ def replace_original(kernel, db, journal, target, expected, data, mode, copy=Non
             finally:os.close(fd)
             return h.hexdigest(), info
         now, info = current()
-        if now != expected:raise ValueError('COPIES_ORIGINAL_CHANGED: the original changed outside Graphite since the work began; compare again or save as a new file')
+        if now != expected:raise ValueError('COPIES_ORIGINAL_CHANGED: the original changed outside Kas since the work began; compare again or save as a new file')
         temp = '.%s.ledger-%s.tmp' % (target.name[:120], journal[:12])
         db.execute("INSERT INTO copies_journal VALUES(?,?,?,?,?,?,?,?,'INTENT',?,NULL,NULL)",
                    (journal, copy, proposal, kind, str(target), expected, after, temp, time.time()))
@@ -409,7 +409,7 @@ def dispatch(kernel, op, args, principal):
                 return {**described(kernel, db, the_copy(db, row['id'])), **result}
             data = object_bytes(kernel, proposal['sha'])  # the frozen bytes, verified against their digest
             if op == 'copies.save_new':
-                source = Path(row['source']);name = files_service.clean_name(args.get('name') or (source.stem + ' (from Graphite)' + source.suffix))
+                source = Path(row['source']);name = files_service.clean_name(args.get('name') or (source.stem + ' (from Kas)' + source.suffix))
                 if Path(os.path.realpath(source.parent)) != source.parent:raise ValueError('COPIES_DESTINATION_MOVED: the folder is now reached through a link')
                 folder = os.open(source.parent, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0))
                 try:

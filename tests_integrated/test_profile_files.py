@@ -162,7 +162,7 @@ class Assignment(unittest.TestCase):
         self.assertEqual(choices[0]['summary'],'no model loaded; default taken: Write the findings page')
         page=self.page_of(row);texts=[b['text'] for b in page['blocks']]
         self.assertEqual((page['title'],page['revision'],len(texts)),('Files about pellets',7,7))
-        self.assertEqual(texts[0],'Request: “find files about pellets” · Graphite searched Files for “pellet”')
+        self.assertEqual(texts[0],'Request: “find files about pellets” · Kas searched Files for “pellet”')
         self.assertTrue(texts[1].startswith('pellet_order.md · Files › Coop · ') and 'matched by name' in texts[1] and texts[1].endswith('first line: “# Pellet order for November”'),texts[1])
         self.assertTrue(texts[2].startswith('pellet price.csv · Files · ') and texts[2].endswith('matched by name · Table · columns supplier, kg, price · 1 row'),texts[2])
         self.assertTrue(texts[3].startswith('feed notes.txt · Files · ') and 'matched on line 2: Pellets: 12.5 kg a week.' in texts[3] and 'first line' not in texts[3],texts[3])
@@ -171,7 +171,7 @@ class Assignment(unittest.TestCase):
         self.assertRegex(texts[6],r'^Looked in Files and Ingress on \d{4}-\d{2}-\d{2} · 5 matches · read 2$')
         self.assertFalse(any('roof' in t or 'grit receipt' in t or 'scan.txt' in t or 'hidden' in t for t in texts),texts)
         found=[f['text'] for f in row['found']]
-        self.assertEqual(len(found),4+1+2+1);self.assertEqual(found[-1],'5 files about pellets: 4 in Files, 1 waiting in Ingress; Graphite read the first lines of 2.')
+        self.assertEqual(len(found),4+1+2+1);self.assertEqual(found[-1],'5 files about pellets: 4 in Files, 1 waiting in Ingress; Kas read the first lines of 2.')
         self.assertIn('First line of pellet_order.md: “# Pellet order for November”',found);self.assertIn('pellet price.csv has no lines to read: Table · columns supplier, kg, price · 1 row',found)
         self.assertEqual(row['needs_you'],[])
         self.assertEqual([i['kind'] for i in row['inspect']],['investigation','document']);self.assertEqual(row['inspect'][1]['id'],page['id'])
@@ -237,7 +237,7 @@ class Assignment(unittest.TestCase):
         self.assertEqual(row['state'],'DONE',row);self.assertEqual(row['reason'],'Found 1 file about the hatch doors; the findings page is in Documents')
         finds=[p['arguments']['text'] for p in self.programs(a['investigation']) if p['operation']=='files.find'];self.assertEqual(finds,['hatch door','hatch'])
         texts=[b['text'] for b in self.page_of(row)['blocks']]
-        self.assertEqual(texts[0],'Request: “which documents mention the hatch doors?” · Graphite searched Files for “hatch door”, then “hatch”')
+        self.assertEqual(texts[0],'Request: “which documents mention the hatch doors?” · Kas searched Files for “hatch door”, then “hatch”')
         self.assertTrue(texts[1].startswith('hatch_door_notes.md · Files › Coop') and 'matched “hatch” by name' in texts[1],texts[1])
 
     def test_no_ingress_listing_when_ingress_holds_nothing(self):

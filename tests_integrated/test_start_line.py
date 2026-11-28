@@ -56,7 +56,7 @@ class Host(QMainWindow):
     """A stand-in for Graphite's window: what Start reads of it."""
 
     def __init__(self):
-        super().__init__();self.setWindowTitle('Graphite');self.resize(1366, 728);self._closing = False;self.graphite_bar = None
+        super().__init__();self.setWindowTitle('Kas');self.resize(1366, 728);self._closing = False;self.graphite_bar = None
         self.her_column = SimpleNamespace(shown_state='idle');self.statusBar()
 
 
@@ -91,7 +91,7 @@ class Acceptance(unittest.TestCase):
         self.assertEqual(answer, {'ok': True, 'words': 'Start is open.'})
         self.assertTrue(panel.isVisible());self.assertEqual(panel.mode, 'start')
         self.assertIs(APP.focusWidget(), panel.line, 'the cursor is already in the line')
-        self.assertFalse(host.isVisible(), 'Start rises over whichever app is in front; Graphite is not brought forward')
+        self.assertFalse(host.isVisible(), 'Start rises over whichever app is in front; Kas is not brought forward')
         self.assertEqual(wk.act(host, 'start')['words'], 'Start is closed.');pump();self.assertFalse(panel.isVisible())
 
     def test_start_shows_apps_by_kind_recent_files_and_the_leave_groups_five(self):
@@ -114,10 +114,10 @@ class Acceptance(unittest.TestCase):
         self.assertTrue(found[0].detail.startswith('Recent · ~/Documents'), found[0].detail)
         total = rows_for('12*7');self.assertEqual((total[0].kind, total[0].title, total[0].verb), ('sum', '12 × 7 = 84', 'Calculate'))
         ask = rows_for('what is on the desk today')
-        self.assertEqual((ask[0].kind, ask[0].verb), ('ask', 'Ask Kasandra'), 'a request: Ask Kasandra first')
+        self.assertEqual((ask[0].kind, ask[0].verb), ('ask', 'Ask Kas'), 'a request: Ask Kas first')
         for text in ('tern', 'survey', '12*7', 'what is on the desk today', 'dir', 'control panel', '/apps.list'):
             for row in rows_for(text):self.assertIn(row.verb, lf.VERBS, (text, row))
-            self.assertEqual(rows_for(text)[-1].kind, 'ask', 'Ask Kasandra is always offered: %s' % text)
+            self.assertEqual(rows_for(text)[-1].kind, 'ask', 'Ask Kas is always offered: %s' % text)
 
     def test_enter_does_what_the_chosen_row_says_and_start_leaves(self):
         from workbench import start_qt
@@ -165,10 +165,10 @@ class TheLine(unittest.TestCase):
         op = rows_for('/apps.list')[0];self.assertEqual((op.kind, op.verb, op.target), ('operation', 'Run', '/apps.list'))
         self.assertIn('it reads', op.detail)
         self.assertEqual(rows_for('apps.list')[0].kind, 'operation')
-        self.assertEqual([r.kind for r in rows_for('?tern')], ['ask'], '? is for Kasandra alone')
+        self.assertEqual([r.kind for r in rows_for('?tern')], ['ask'], '? is for Kas alone')
         self.assertEqual(rows_for('$ ls -l')[0].kind, 'terminal')
         self.assertEqual(rows_for('https://example.org')[0].kind, 'address')
-        self.assertEqual(rows_for('tern')[-1].kind, 'ask', 'a name found: Ask Kasandra is the last row, chosen')
+        self.assertEqual(rows_for('tern')[-1].kind, 'ask', 'a name found: Ask Kas is the last row, chosen')
 
     def test_typing_alone_does_nothing(self):
         from workbench import start_qt

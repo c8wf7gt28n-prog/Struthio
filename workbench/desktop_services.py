@@ -50,7 +50,7 @@ def env_for(root):
 
 def tool(name):
     p=shutil.which(name)
-    if not p:raise ValueError(name+' is unavailable. Install the Debian '+('clangd' if name=='clangd' else 'gdb')+' package; Graphite still opens without it.')
+    if not p:raise ValueError(name+' is unavailable. Install the Debian '+('clangd' if name=='clangd' else 'gdb')+' package; Kas still opens without it.')
     return p
 
 def versions(root):

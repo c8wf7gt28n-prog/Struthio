@@ -38,7 +38,7 @@ REFUSED = 'MODEL_SEAL_REFUSED'
 SOCKET_NAME = 'm.sock'
 SOCKET_LIMIT = 107  # bytes in a UNIX socket path (sun_path less its closing zero)
 NOT_SEALED_MARK = 'GRAPHITE_NETWORK_NOT_SEALED'  # what brain_worker writes to the runtime log when the computer refuses
-SEALED_WORDS = 'Sealed: it can only answer. No tools, no network, only the key I made, and only Graphite can reach it.'
+SEALED_WORDS = 'Sealed: it can only answer. No tools, no network, only the key I made, and only Kas can reach it.'
 NOT_SEALED_WORDS = 'Not sealed from the network on this computer; started offline.'
 PROCESSOR_SEALED = 'Use the processor, sealed'  # open question 4's default: the sealed processor one press away
 
@@ -405,7 +405,7 @@ REFUSALS = {
     'environment': 'it was given settings outside my list ({names})',
     'reached_out': 'it reached out to the network',
     'listens': 'it opened a network socket of its own beside its private socket',
-    'network': 'it shares Graphite\'s network although I gave it its own',
+    'network': 'it shares Kas\'s network although I gave it its own',
     'runtime_process': 'I could not see its own process to check it',
     'transport': 'it is not behind its private socket',
 }

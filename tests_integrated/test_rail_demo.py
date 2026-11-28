@@ -443,7 +443,7 @@ class TheRecords(unittest.TestCase):
             page=got['document'];value=page['derivation']['calculation']['outputs'][0]
             self.assertEqual(page['title'],title)
             self.assertEqual((value['state'],value['value']['rational'],value['value']['decimal'],value['value']['unit']),('EXACT',rational,decimal,'W'),key)
-            self.assertEqual(value['value']['decimal'],{'settled_power':rail_demo.SETTLED_POWER,'startup_power':rail_demo.STARTUP_POWER}[key],'what the module says the result is, is what Graphite worked out')
+            self.assertEqual(value['value']['decimal'],{'settled_power':rail_demo.SETTLED_POWER,'startup_power':rail_demo.STARTUP_POWER}[key],'what the module says the result is, is what Kas worked out')
             self.assertEqual([(i['cell'],i['basis']) for i in page['derivation']['inputs']],[(cell,'REVIEWED_PDF_ROW') for cell in cells],key)
             self.assertEqual(got['source_state']['state'],'CURRENT',key)
             trace=json.dumps(self.ws.call('field.trace',{'id':'document:'+made['calculations'][key]}))

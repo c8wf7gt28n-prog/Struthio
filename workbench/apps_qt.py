@@ -45,7 +45,7 @@ from .programs_qt import Caption, Margin, MenuRow, ProgramsList, Rule, caption_f
 
 SEARCH_WORDS = 'Find an app'
 ADD_WORDS = 'Add an app to the list'
-GRAPHITE_HEADING = 'Graphite'
+GRAPHITE_HEADING = 'Kas'
 YOURS_HEADING = 'Yours'
 NOTHING = 'No app or room has those words'
 TERMINAL_CAPTION = 'in a terminal'
@@ -58,7 +58,7 @@ def call(host, op, args=None):
     """A Kernel operation as the owner (operator()): its result, or ValueError with the Kernel's words."""
     from .engineering_kernel import operator
     kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
-    if kernel is None:raise ValueError("Graphite's Kernel is not running.")
+    if kernel is None:raise ValueError("Kas's Kernel is not running.")
     response = kernel.dispatch(op, args or {}, operator())
     if not response.get('ok'):raise ValueError(str((response.get('error') or {}).get('message') or 'Not done'))
     return response['result']
@@ -268,7 +268,7 @@ class AppsPanel(ProgramsList):
     ProgramsList it is, whole: rows_by_key, Explore the workshop, the game, the failed-read row)."""
     def __init__(self, host, anchor, actions, explore_action):
         super().__init__(host, anchor, actions, explore_action)
-        self.setAccessibleDescription('The apps on this computer by kind, then Graphite\'s own rooms; typing finds one')
+        self.setAccessibleDescription('The apps on this computer by kind, then Kas\'s own rooms; typing finds one')
         at = self.box.indexOf(self.caption) + 1
         self.search = SearchBar(self);self.box.insertWidget(at, self.search)
         self.installed = QWidget(self.page);self.installed.setObjectName('AppsInstalled')

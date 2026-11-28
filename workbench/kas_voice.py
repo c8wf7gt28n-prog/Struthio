@@ -37,12 +37,12 @@ WORDS = {
     'undo_failed': 'Not taken back, and nothing changed: {why}',
     'always': 'These always wait for you, wherever my hand is set. They cannot be undone:',
     # names she will not take (refusals: plain, no wit)
-    'name_kept': '“{name}” is a name Graphite keeps for a folder of its own. Pick another: start a Godot project called …',
+    'name_kept': '“{name}” is a name Kas keeps for a folder of its own. Pick another: start a Godot project called …',
     'name_taken': 'Files already has a “{name}”, and I do not write over what is there. Pick another: start a Godot project called …',
     'not_made': 'Nothing made. The folder “{name}” could not be made ({why}).',
     'stopped_at': 'Stopped at the refused step, after {n} of {count}. What I made is in “{name}” in Files. '
                   'Delete that folder if you do not want it; DELETE gives it back.',
-    'name_kept_start': '“{name}” starts with a name Graphite keeps for a folder of its own. Pick another name.',
+    'name_kept_start': '“{name}” starts with a name Kas keeps for a folder of its own. Pick another name.',
     'name_taken_own': 'Files already has a “{name}”. I do not write over it on my own. Give me another name.',
     # the Terminal
     'term_busy': 'The Terminal is busy, so I have not run this. It is in the line, Terminal chosen, for when that ends.',
@@ -56,7 +56,7 @@ WORDS = {
     # her model, and none
     'busy': 'Still on your last question. Stop it in the Brain room, or give me a moment.',
     'records_only': 'No model loaded, so these are not my words. Here is what the records say about “{title}”, and the line that reads them:',
-    'file_only': 'No model loaded. Here is what Graphite itself knows about it.',
+    'file_only': 'No model loaded. Here is what Kas itself knows about it.',
     'choose_model': 'For answers in my own words, choose a model. It runs on this computer.',
     'no_model': 'No model loaded. I still read the records and check the desk. Drop a GGUF model on the Brain room, or choose one.',
     'no_words': 'I read it, but could not put it in words: {why}',
@@ -72,7 +72,7 @@ WORDS = {
     'refused_parameters': '{what} reached the Kernel without a detail it needs, so nothing changed. Press it once more. '
                           'If it is refused again, Log has the Kernel’s own words.',
     'refused_scope': '{what} is outside what this session may do, so nothing changed. Give it with your own press in '
-                     'Graphite. Log has the Kernel’s own words.',
+                     'Kas. Log has the Kernel’s own words.',
     'refused_unknown': 'The Kernel does not know {what}, so nothing changed. Ask me for the step again. Log has the '
                        'Kernel’s own words.',
     'refused_other': '{why} Log has the Kernel’s own words.',

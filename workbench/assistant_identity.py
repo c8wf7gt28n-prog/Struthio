@@ -10,7 +10,7 @@ portraits (branding/stacy/). An event keeps its actor 'STACY' in the record, and
 (tail_words.shown_origin). The files RIGHTS.md and COPYING keep Stacy as a name the owner holds; the program's own
 sentences do not say it.
 """
-NAME = 'Kasandra'
+NAME = 'Kas'      # 1.1 R1: Kasandra as a shown name becomes Kas (the owner, 28 Nov)
 
 
 def named(text):

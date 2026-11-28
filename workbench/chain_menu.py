@@ -312,7 +312,7 @@ def shell_endings(menu, host, program):
         a = menu.addAction(name);a.setToolTip(command);a.triggered.connect(lambda checked=False, c=command:to_shell(host, program, c))
     if shell_lines():menu.addSeparator()
     menu.addAction('type a command…').triggered.connect(lambda checked=False:typed_shell(host, program))
-    a = menu.addAction('keep commands in your Graphite menu: [shell] (Name) {command}');a.setEnabled(False)
+    a = menu.addAction('keep commands in your Kas menu: [shell] (Name) {command}');a.setEnabled(False)
 
 
 def typed_shell(host, program):
@@ -348,7 +348,7 @@ def menu_path():
 
 def keep(host, program, then_word='console', *, stock_unit=None, stock_basis=None):
     title = 'Keep shortage method' if stock_unit is not None else 'Keep this chain'
-    name, ok = QInputDialog.getText(host, title, 'A name for it in your Graphite menu:')
+    name, ok = QInputDialog.getText(host, title, 'A name for it in your Kas menu:')
     if not ok or not name.strip():return
     path = menu_path();path.parent.mkdir(parents=True, exist_ok=True)
     name = name.strip().replace(')', '')
@@ -363,12 +363,12 @@ def keep(host, program, then_word='console', *, stock_unit=None, stock_basis=Non
     host.statusBar().showMessage('Kept in %s. It is plain text: edit it to arrange your menu.' % str(path).replace(str(Path.home()), '~'), 8000)
 
 
-TEMPLATE = """# Your Graphite menu: chains you keep, shown at the top of the chain menu.
+TEMPLATE = """# Your Kas menu: chains you keep, shown at the top of the chain menu.
 # One chain per line; [submenu] (Name) … [end] groups them; [separator] draws a line.
 #   [chain] (Name) {a line} then console|sheet|watch|agenda
 #   [stock] (Name) {"pcs"}   a shortage method for selected rows with this exact unit
 # Methods kept from a worksheet also record their original source revision and column bindings.
-# Graphite reads this file and never runs it: every chain must parse as a line, or it is shown greyed.
+# Kas reads this file and never runs it: every chain must parse as a line, or it is shown greyed.
 #   [shell] (Name) {command}   your own command, offered under then › shell; the answer is a CSV file in $LEDGER_ANSWER
 """
 
@@ -491,7 +491,7 @@ def root_menu(host, parent=None):
         console.addAction(label).triggered.connect(lambda checked=False, m=mode:writing_line(host, m))
     menu.addMenu(console)
     menu.addSeparator()
-    menu.addAction('edit the Graphite menu…').triggered.connect(lambda checked=False:edit_menu_file(host))
+    menu.addAction('edit the Kas menu…').triggered.connect(lambda checked=False:edit_menu_file(host))
     from .chain_icons import dress
     dress(menu);desk_style(menu, host)
     return menu

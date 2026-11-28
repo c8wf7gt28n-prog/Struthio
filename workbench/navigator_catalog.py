@@ -6,9 +6,9 @@ New workspaces must choose a placement; registration does not add a tree root.
 LEGACY_WORKSPACES = (
     ('Inquiries', 'discovery'), ('Algorithm & Theory Atlas', 'algorithms'), ('Tool Atlas', 'atlas'),
     ('Office', 'office'), ('Organizer', 'organizer'), ('Package desk', 'packages'), ('Commands', 'commands'),
-    ('Work trail', 'trail'), ('Recent activity', 'activity'), ('Graphite Brain', 'brain'), ('Graphite intake', 'intake'),
+    ('Work trail', 'trail'), ('Recent activity', 'activity'), ('Kas Brain', 'brain'), ('Kas intake', 'intake'),
     ('Exact references', 'references'), ('Source connections', 'sources'), ('Memory', 'memory'),
-    ('Graphite awareness', 'stacy_awareness'), ('Graphite knowledge', 'stacy_knowledge'),
+    ('Kas awareness', 'stacy_awareness'), ('Kas knowledge', 'stacy_knowledge'),
 )
 SECTION_ROLES = {'ARRIVE': 'ARRIVAL_VIEW', 'FILES': 'LOCATION_SHORTCUT', 'LIBRARY': 'TYPE_FILTER_VIEW',
                  'KEEP': 'SAVED_WORK_VIEW', 'SLATE': 'OPERATIONAL_VIEW', 'PROJECTS': 'PROJECT_WORK_VIEW'}
@@ -19,7 +19,7 @@ def paper_sections(library_kinds):
     """Keep existing captions, order, counters and destination contracts intact."""
     return (
         ('ARRIVE', (('Ingress', 'office', 'folder', 'inbox'), ('Deliveries', 'office', 'evidence', 'deliveries'))),  # D28: Ingress is the owner's word for the folder files come in through
-        ('FILES', (('Files', 'files', 'folder', 'files'), ("Graphite's area", 'files:Slate', 'folder', 'slate_area'),
+        ('FILES', (('Files', 'files', 'folder', 'files'), ("Kas's area", 'files:Slate', 'folder', 'slate_area'),
                    ('Working copies', 'files:Working copies', 'folder', 'working'), ('Egress', 'files:Egress', 'folder', 'exports'))),  # D28: Egress is the folder files leave from
         ('LIBRARY', tuple((label, 'library:' + key, 'page-link', key) for key, label, _ in library_kinds)
                     + (('Everything', 'library:all', 'search', 'all'),)),

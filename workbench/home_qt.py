@@ -32,14 +32,14 @@ class HomeArtwork(QWidget):
     activated=Signal(str)
     def __init__(self,root):
         super().__init__();self.setObjectName('HomeArtwork')
-        self.setAccessibleName('Graphite workshop entrances')
+        self.setAccessibleName('Kas workshop entrances')
         self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Expanding)
         from .static_bird import BirdView
         row=QHBoxLayout(self);row.setContentsMargins(12,8,12,8)
         self.bird=BirdView(root);row.addWidget(self.bird,1)
         grid=QGridLayout();grid.setSpacing(10)
         for i,(key,title) in enumerate([('console','Console'),('rom','References'),
-                ('book','Orange Book'),('ledger','Graphite'),('struthio','STRUTHIO'),('stacy',named('Ask Stacy'))]):
+                ('book','Orange Book'),('ledger','Kas'),('struthio','STRUTHIO'),('stacy',named('Ask Stacy'))]):
             button=QPushButton(title);button.setMinimumHeight(45)
             button.setAccessibleName(title+' workshop entrance')
             button.clicked.connect(lambda checked=False,k=key:self.activated.emit(k))
@@ -123,8 +123,8 @@ class WorkshopHome(QWidget):
         outer.setContentsMargins(22, 12, 22, 10)
         outer.setSpacing(8)
         words = QVBoxLayout();words.setSpacing(2)
-        overline=QLabel('GRAPHITE  ·  ARC-1 R10');overline.setObjectName('homeOverline');words.addWidget(overline)
-        title = QLabel("Graphite's Control Center")
+        overline=QLabel('KAS  ·  ARC-1 R10');overline.setObjectName('homeOverline');words.addWidget(overline)
+        title = QLabel("Kas's Control Center")
         title.setObjectName('homeTitle')
         words.addWidget(title)
         subtitle = QLabel(named('Your engineering headquarters. Choose a workspace, or ask Stacy.'))
@@ -151,7 +151,7 @@ class WorkshopHome(QWidget):
         self.buttons = {}
         go = QPushButton('Continue');go.setObjectName('homeContinue')
         go.setToolTip('Resume your actual open workspace and check its source files')
-        go.setAccessibleName('Continue in Graphite');go.setProperty('arcRole','primary')
+        go.setAccessibleName('Continue in Kas');go.setProperty('arcRole','primary')
         go.clicked.connect(window.resume_workspace);self.buttons['Continue']=go
         grid.addWidget(go, 2, 3, 2, 1)
         self.fact_labels['next'].linkActivated.connect(lambda _link:self.open_next())
@@ -191,7 +191,7 @@ class WorkshopHome(QWidget):
         self.startup = QComboBox()
         self.startup.addItem('Start: on the work', 'last')
         self.startup.addItem('Start: always Home', 'home')
-        self.startup.setAccessibleName('Graphite startup preference')
+        self.startup.setAccessibleName('Kas startup preference')
         self.startup.setToolTip('On the work: the Field first when this workspace has work, and Back there goes to where you left off. Open documents and the saved layout are kept either way.')
         self.startup.currentIndexChanged.connect(self._startup_changed)
         footer.addWidget(self.startup)
@@ -294,7 +294,7 @@ class WorkshopHome(QWidget):
         if self.loader is not None and self.loader.isRunning():self.loader.wait(5000)
 
     def title(self):
-        return "Graphite's Control Center"
+        return "Kas's Control Center"
 
     def info(self):
-        return "Graphite's Control Center · real project state; no estimated progress"
+        return "Kas's Control Center · real project state; no estimated progress"

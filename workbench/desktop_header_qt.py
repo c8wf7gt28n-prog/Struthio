@@ -23,12 +23,12 @@ from PySide6.QtCore import QEvent, QPoint, QSize, Qt, QTimer
 from PySide6.QtWidgets import (QAbstractItemView, QCheckBox, QFrame, QHBoxLayout,
     QLabel, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QSlider, QToolButton, QVBoxLayout, QWidget,QMenu)
 
-MONITORS_NOTE = 'Current Graphite host · CPU / GPU / RAM / TXT / NET'      # 1.0 D1: NET, the fifth   # the old column note's words, now the pulse's tooltip
+MONITORS_NOTE = 'Current Kas host · CPU / GPU / RAM / TXT / NET'      # 1.0 D1: NET, the fifth   # the old column note's words, now the pulse's tooltip
 KILL_WORDS = 'Stop all jobs'                                     # the kill switch: the Master Stop (HATCH DESK D2: the System menu's
                                                                  # second row, under Game, scoped in words to the work Graphite manages)
 TIERS = ('now', 'normal', 'background')                          # agenda.NICE left to right: more urgent → nicer
 TIER_WORDS = {'now': 'Now · urgent', 'normal': 'Normal', 'background': 'Background · waits for idle'}
-NO_REORDER_NOTE = 'Active jobs keep the order they started in: no Graphite operation reorders a running job; their CPU niceness changes on the row.'
+NO_REORDER_NOTE = 'Active jobs keep the order they started in: no Kas operation reorders a running job; their CPU niceness changes on the row.'
 RUNNING_CAPTION = 'as they started'           # the active jobs' order, in the script (NO_REORDER_NOTE says why, in the tooltip)
 QUEUE_CAPTION = 'drag to reorder'                # the queue's order, in the script (HATCH DESK D2)
 SLIDER_CAPTION = 'left more urgent, right nicer'  # the sliders, in the script (the whole explanation is the note's tooltip)
@@ -60,7 +60,7 @@ def tier_words(tier):
 def nice_reason(row):
     """Why a job's niceness cannot be changed from its row, in words, from the job_priority.describe readback."""
     basis = row.get('cpu_priority_basis')
-    if basis == 'UNVERIFIED_PROCESS':return 'The running job process is not verified as owned by Graphite, so its niceness is not changed from here.'
+    if basis == 'UNVERIFIED_PROCESS':return 'The running job process is not verified as owned by Kas, so its niceness is not changed from here.'
     if basis == 'UNSUPPORTED':return 'Per-job niceness needs Linux.'
     if basis == 'UNAVAILABLE':return 'The job process is unavailable: ' + str(row.get('cpu_priority_note') or 'it has exited or changed') + '.'
     if row.get('state') not in ('Queued', 'Running'):return 'This job has finished.'
@@ -200,14 +200,14 @@ class DesktopMonitors(QWidget):
             self.labels[key].setToolTip('Click: ' + DOORS[key] + '.')
             self.values[key].setAccessibleDescription(self.values[key].toolTip())
         self.relight();self.update()      # 1.0 P2: Day's separators follow the words
-        self.setAccessibleDescription('Current Graphite host observation at '+str(sample['sampled_at'])+'; owner-host qualification remains separate.')
+        self.setAccessibleDescription('Current Kas host observation at '+str(sample['sampled_at'])+'; owner-host qualification remains separate.')
 
 
 class SlateSwitch(QToolButton):
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('SlateSwitch')
         self.setCheckable(True);self.setCursor(Qt.PointingHandCursor)
-        self.setAccessibleName('Enable or disable new Graphite AI activity')
+        self.setAccessibleName('Enable or disable new Kas AI activity')
         from .shell2 import TEXT, ERASER, AMBER, LINE
         from . import boss_theme as look      # 0.8.4, Kasandra: switched on is her highlight whole (fill, words and edge); Graphite: its amber, as before
         on = 'background:%s;color:%s;border:1px solid %s;' % (look.AMBER_SOFT, look.AMBER_TEXT, look.AMBER_EDGE) if look.APPEARANCE == 'kasandra' else 'background:%s;' % AMBER
@@ -222,15 +222,15 @@ class SlateSwitch(QToolButton):
             from . import read_beside      # 1.0 F2b: read beside her writes
             enabled = read_beside.first(value, self.host.ledger_bridge.kernel, 'stacy.enabled')
             self.setChecked(enabled);self.setText('AI ON' if enabled else 'AI OFF');self.setEnabled(True)
-            self.setToolTip('Allow new Graphite AI requests. Files, tools and lines remain available when OFF. An already running request may finish. ON does not start or download a model.')
+            self.setToolTip('Allow new Kas AI requests. Files, tools and lines remain available when OFF. An already running request may finish. ON does not start or download a model.')
         except Exception:
-            self.setText('AI —');self.setEnabled(False);self.setToolTip('The Graphite AI setting is unavailable')
+            self.setText('AI —');self.setEnabled(False);self.setToolTip('The Kas AI setting is unavailable')
 
     def change(self, enabled):
         from .engineering_kernel import operator
         reply = self.host.ledger_bridge.kernel.dispatch('ledger.settings.set', {'key':'stacy.enabled', 'value':bool(enabled)}, operator())
         if not reply.get('ok'):
-            self.host.statusBar().showMessage(reply.get('error', {}).get('message', 'Could not change the Graphite AI setting'))
+            self.host.statusBar().showMessage(reply.get('error', {}).get('message', 'Could not change the Kas AI setting'))
         self.refresh()
 
 
@@ -270,7 +270,7 @@ class NicePopup(QFrame):
         # its stop thread, its Ctrl+Shift+F12) and nothing else. The old secondary "■ Stop" did the same thing, so it is gone.
         from .shell2 import ERASER_DEEP, ERASER_MARK
         self.kill = QPushButton(KILL_WORDS);self.kill.setObjectName('KillSwitch');self.kill.setCursor(Qt.PointingHandCursor)
-        self.kill.setAccessibleName('Stop all jobs: the Master Stop for the work Graphite manages')
+        self.kill.setAccessibleName('Stop all jobs: the Master Stop for the work Kas manages')
         self.kill.setMinimumHeight(40);self.kill.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed);self.kill.setFocusPolicy(Qt.StrongFocus)
         self.kill.setStyleSheet('QPushButton#KillSwitch {background:%s;color:%s;border:0;border-left:5px solid %s;border-radius:0;text-align:left;padding:9px 12px;font-weight:600;text-decoration:none;} '
                                 'QPushButton#KillSwitch:hover {background:%s;} QPushButton#KillSwitch:pressed {background:%s;} '
@@ -279,7 +279,7 @@ class NicePopup(QFrame):
         controller = getattr(host, 'master_stop_controller', None)
         if controller is not None and hasattr(controller, 'faces'):controller.faces.append(self.kill_words)  # Stopping… and stuck follow the controller
         self.kill_words(controller)
-        self.title = QLabel('NICE · GRAPHITE WORK');top = QHBoxLayout();top.addWidget(self.title, 1);col.addLayout(top)
+        self.title = QLabel('NICE · KAS WORK');top = QHBoxLayout();top.addWidget(self.title, 1);col.addLayout(top)
         # The quiet-script rule (the owner, 2026-11-06): each heading in print, its caption and the note in the Paper script.
         from .shell2 import QuietWords
         self.running_label = QuietWords(host);self.running_label.explain('running and waiting for admission', lead='OWNED JOBS', sep=' · ')
@@ -303,7 +303,7 @@ class NicePopup(QFrame):
         self.background.clicked.connect(self.priority);col.addWidget(self.background)
         if embedded:self.background.setText('Background CPU for owned work')
         if self.section:  # the System menu's column is narrow at a large text size: the words short, the whole meaning the tooltip
-            self.background.setText('Background CPU');self.background.setToolTip('Background CPU priority for the work Graphite owns: be nice to other programs. New processes start at the background priority; existing ones keep theirs until they exit.')
+            self.background.setText('Background CPU');self.background.setToolTip('Background CPU priority for the work Kas owns: be nice to other programs. New processes start at the background priority; existing ones keep theirs until they exit.')
         row = QHBoxLayout();agenda = QPushButton('Open Agenda');agenda.clicked.connect(self.open_agenda);row.addWidget(agenda)
         trail = QPushButton('Work trail');trail.clicked.connect(self.open_trail);row.addWidget(trail)
         if not embedded and not self.section:  # the old popup's Game word; the System menu's Game row is its own (HATCH DESK D2)
@@ -379,7 +379,7 @@ class NicePopup(QFrame):
         stuck = bool(controller is not None and controller.button.property('stuck')) if controller is not None and hasattr(controller, 'button') else False
         if bool(self.kill.property('stuck')) != stuck:self.kill.setProperty('stuck', stuck);self.kill.style().unpolish(self.kill);self.kill.style().polish(self.kill)
         detail = str(getattr(controller, 'detail', '') or '') if controller is not None else ''
-        self.kill.setToolTip('Stop all jobs Graphite manages: confirm, then every Graphite job, build, console, host tool and the phone link is stopped. '
+        self.kill.setToolTip('Stop all jobs Kas manages: confirm, then every Kas job, build, console, host tool and the phone link is stopped. '
                              'Source files and unsaved editor buffers are kept.' + ('\n\n' + detail if detail else ''))
 
     def open_agenda(self):
@@ -628,8 +628,8 @@ class SystemButton(NiceButton):
     def __init__(self, host):
         super().__init__(host);self.setObjectName('SystemMenu');self.setText('System ▾');self.setToolButtonStyle(Qt.ToolButtonTextOnly)
         self.setAccessibleName(self.NAME);self.setToolTip(self.NAME)
-        self.setAccessibleDescription('Game; Stop all jobs; the process list with its order and niceness; Graphite services On, Off, Restart; '
-                                      'Lock, Suspend, Log out, Restart, Shut down, Return to Debian or Exit Graphite')  # 1.0 S1: the session group's order
+        self.setAccessibleDescription('Game; Stop all jobs; the process list with its order and niceness; Kas services On, Off, Restart; '
+                                      'Lock, Suspend, Log out, Restart, Shut down, Return to Debian or Exit Kas')  # 1.0 S1: the session group's order
         self.setProperty('paperIcon', True);self.setProperty('paperFunctionalInk', True);self.setMinimumHeight(0)
         self.setStyleSheet('QToolButton#SystemMenu {background:transparent;border:0;padding:0;margin:0;}')
         self.setAttribute(Qt.WA_Hover, True)

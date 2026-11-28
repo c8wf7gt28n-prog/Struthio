@@ -26,7 +26,7 @@ def submit(kernel, args, principal):
     paths = args['paths']
     if not 1 <= len(paths) <= 8 or len({p.casefold() for p in paths}) != len(paths): raise ValueError('Select one to eight distinct text files')
     meta, row, root = store.workspace(kernel, args['copy'], principal)
-    if not row['for_slate'] and 'approve' not in principal.scopes: raise ValueError('This copy has not been delegated to Graphite')
+    if not row['for_slate'] and 'approve' not in principal.scopes: raise ValueError('This copy has not been delegated to Kas')
     sources = []
     for path in paths:
         if Path(path).suffix.casefold() in change_sets.OPAQUE_FORMATS: raise ValueError('Model drafting is restricted to supported text formats')

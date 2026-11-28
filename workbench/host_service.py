@@ -188,7 +188,7 @@ class Coordinator:
                 # AGENT-02: both sides of the one kill switch pause the assignments (the desktop's driver pauses its own); under the
                 # dispatch lock no service step is in flight. The service's own shutdown runs this too and says so instead.
                 from . import agent_loop
-                report['assignments_paused'] = agent_loop.pause_all(self.kernel, 'The Graphite service stopped' if self.closing.is_set() else 'Master Stop')
+                report['assignments_paused'] = agent_loop.pause_all(self.kernel, 'The Kas service stopped' if self.closing.is_set() else 'Master Stop')
                 try: self.remote_stop()
                 except ValueError: report['errors'].append('Phone session revocation needs reconciliation')
                 for job in stacy_awareness.live_jobs(self.kernel):

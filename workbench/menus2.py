@@ -139,7 +139,7 @@ def rebuild(host):
         from .version import SHORT
         host.a_receive = make('Receive Files…', lambda:host.ledger_bridge.navigation()['office']().pick_files())
         host.a_files = make('Files', lambda:open_destination(host, 'files'))
-        host.a_agenda = make("Graphite's Agenda", lambda:open_destination(host, 'agenda'))
+        host.a_agenda = make("Kas's Agenda", lambda:open_destination(host, 'agenda'))
         host.a_project_desk = make('Project Desk', lambda:open_destination(host, 'project_desk'))
         host.a_changes = make('Changes', lambda:open_destination(host, 'changes'))
         host.a_continuing = make('Continuing work', lambda:open_destination(host,'continuing'))
@@ -312,6 +312,6 @@ def rebuild(host):
     for b in host.findChildren(QAbstractButton):  # buttons that still carry a picture get the same graphite outline
         if not b.icon().isNull() and not b.property('paperIcon') and b is not getattr(host, 'master_stop_button', None):
             b.setIcon(paper_icon(b.icon()));b.setProperty('paperIcon', True)
-    for key, words in (('home', 'Today'), ('about', 'About Graphite')):  # && shows one &; a single & would mark a key  # today's names ('Inspector' keeps its name: a release check reads it)
+    for key, words in (('home', 'Today'), ('about', 'About Kas')):  # && shows one &; a single & would mark a key  # today's names ('Inspector' keeps its name: a release check reads it)
         if key in actions:actions[key].setText(words)
     host._menus2 = True

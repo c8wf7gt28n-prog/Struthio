@@ -362,7 +362,7 @@ class ShippedRoute(unittest.TestCase):
         child=subprocess.run([sys.executable,'-B','tools/check_release.py'],cwd=ROOT,capture_output=True,text=True,timeout=600)
         result=json.loads(child.stdout)
         self.assertEqual((result['checker'],result['entry'],result['notice']),('tools/check_hatch.py','tools/check_release.py',checker.NOTICE))
-        self.assertEqual(result['release']['name'],'Graphite');self.assertEqual(result['release']['record'],checker.RECORD)
+        self.assertEqual(result['release']['name'],'Kas');self.assertEqual(result['release']['record'],checker.RECORD)
         # runtime and privacy read the shipped payload; while sources are edited (packaging rewrites the manifest and rebuilds the seed)
         # they can read FAILED, so their structure is asserted here and their state by the packaged release.
         self.assertTrue({'state','payload','foundation','capabilities','schema_digest','python_files_parsed','errors'}<=set(result['runtime']))

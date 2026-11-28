@@ -464,17 +464,17 @@ def _same_number(a, b):
 
 class Check:
     """An operation Graphite has no check for: it can be sent, never called done. Resume cannot tell whether it was made."""
-    kind = 'none';effect = 'an effect Graphite cannot check yet';standin_ms = 5000;repeatable = False
-    how = 'Graphite has no check for this effect yet: it can be sent, not verified'
+    kind = 'none';effect = 'an effect Kas cannot check yet';standin_ms = 5000;repeatable = False
+    how = 'Kas has no check for this effect yet: it can be sent, not verified'
     expected = 'what the operation returns'
 
     def prepare(self, kernel, read, arguments):return {}
 
     def find(self, kernel, read, arguments, prepared):
-        raise Unknowable('Graphite cannot tell whether it was done, so it is not done again: it is yours to look at')
+        raise Unknowable('Kas cannot tell whether it was done, so it is not done again: it is yours to look at')
 
     def verify(self, kernel, read, arguments, result, prepared, step):
-        raise NotVerified('sent; Graphite has no check for this effect yet, so it is not called done')
+        raise NotVerified('sent; Kas has no check for this effect yet, so it is not called done')
 
     def still(self, kernel, read, step):
         return ''
@@ -1134,7 +1134,7 @@ def resume(kernel, ident, principal, carry_on=True):
             was = value['state']
             _save(db, value)
             _journal(db, value, None, 'RESUMED', 'You resumed it%s; each step is inspected before anything is repeated.' % (
-                {STOPPED: ' after you stopped it', HELD: ' after the hold', RUNNING: ' after Graphite stopped mid-step'}.get(was, '')))
+                {STOPPED: ' after you stopped it', HELD: ' after the hold', RUNNING: ' after Kas stopped mid-step'}.get(was, '')))
             outputs = _outputs(value)
             for step in value['steps']:
                 finding = findings.get(step['key'])
@@ -1152,7 +1152,7 @@ def resume(kernel, ident, principal, carry_on=True):
                         except ValueError as missing:raise NotVerified('its output is not all there (%s)' % missing) from None
                         step.update(status='done', reason='', observation=detail, output=output, runner=None, finished=time.time())
                         outputs[step['key']] = output
-                        words = 'Step %d done (verified): it was prepared before Graphite stopped, and its effect is there: %s. It is not made again.' % (step['n'], detail.get('words', ''))
+                        words = 'Step %d done (verified): it was prepared before Kas stopped, and its effect is there: %s. It is not made again.' % (step['n'], detail.get('words', ''))
                     except NotVerified as why:
                         entry = 'NOT_VERIFIED';step.update(status='needs review', reason=str(why), runner=None)
                         words = 'Step %d: an effect is there, and its check did not hold: %s.' % (step['n'], why)
@@ -1267,7 +1267,7 @@ def status(kernel, ident, principal):
     words = _state_words(value)
     if words == 'interrupted':
         running = next((s for s in value['steps'] if s['status'] == 'running'), None)
-        line = 'Graphite stopped while step %d was prepared; nothing after it ran. Resume inspects it first.' % running['n'] if running else 'Interrupted.'
+        line = 'Kas stopped while step %d was prepared; nothing after it ran. Resume inspects it first.' % running['n'] if running else 'Interrupted.'
     elif value['state'] == STOPPED:line = _stopped_words(value, entries, [s for s in value['steps'] if s['status'] == 'running'],
                                                          halt=(value.get('stopped') or {}).get('why') == 'halt')      # 1.0 K3
     elif value['state'] == HELD:line = value['reason']

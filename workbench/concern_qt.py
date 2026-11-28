@@ -61,7 +61,7 @@ class ConcernController(QObject):
         self.context_strip = QWidget(); row = QHBoxLayout(self.context_strip)
         row.setContentsMargins(8, 4, 8, 4)
         self.context_label = plain('Working area · ARC Concern', 'metadata')
-        self.context_label.setAccessibleName('Graphite working context')
+        self.context_label.setAccessibleName('Kas working context')
         row.addWidget(self.context_label, 1)
         area = QPushButton('Working area'); area.clicked.connect(lambda: self.open(
             self.current_attention['object_id'] if self.current_attention else 'concern'))
@@ -165,7 +165,7 @@ class ConcernController(QObject):
                    {'ledger_active': 'ledger', 'platform': 'arc1', 'database_rom': 'library',
                     'ai_clip': 'slate', 'orange_book': 'orange_book', 'struthio': 'struthio'}.get(ident, 'other'))
             child.setText(0, {'nav_root': 'Hardware', 'nav_legal': 'Charter & instruments'}.get(kind,
-                {'ledger_active': 'Graphite tools', 'platform': 'Operating system & firmware',
+                {'ledger_active': 'Kas tools', 'platform': 'Operating system & firmware',
                  'database_rom': 'Reference tools', 'ai_clip': 'Conversation & tools',
                  'orange_book': 'Read Orange Book', 'struthio': 'Game workspace'}.get(ident, child.text(0))))
             legacy.setdefault(key, []).append(child)
@@ -505,7 +505,7 @@ class ConcernDossier(QWidget):
             receipt = self.controller.store.backup(filename)
         except (CatalogError, sqlite3.Error, OSError) as exc:
             self.report_error(exc); return
-        self.message.setText('Catalog, notes and recovery drafts backed up. Other Graphite records and original sources need their own backup.')
+        self.message.setText('Catalog, notes and recovery drafts backed up. Other Kas records and original sources need their own backup.')
         self.message.setToolTip(receipt['sha256'])
 
     def mutate(self, action):
@@ -617,7 +617,7 @@ class ConcernDossier(QWidget):
 WORKSPACES = {
     'concern': ('Charter && instruments', lambda h: h.show_genesis()),
     'arc1': ('Open hardware workspace', lambda h: h.show_assembly()),
-    'ledger': ('Open Graphite tools', lambda h: h.show_project_desk()),
+    'ledger': ('Open Kas tools', lambda h: h.show_project_desk()),
     'slate': ('Open conversation', lambda h: h.show_clip_workspace()),
     'stac': ('Open Memory', lambda h: h.ledger_bridge.navigation()['memory']()),
     'orange_book': ('Read Orange Book', lambda h: h.show_orange_book()),

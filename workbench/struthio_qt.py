@@ -54,7 +54,7 @@ def in_browser(host, url):
 
 
 def show(host):
-    if not (GAME / 'index.html').is_file():note(host, 'The STRUTHIO game is not in this copy of Graphite.');return None
+    if not (GAME / 'index.html').is_file():note(host, 'The STRUTHIO game is not in this copy of Kas.');return None
     if getattr(host, '_struthio', None) is None:host._struthio = serve()  # kept while Ledger runs; it serves the game only
     url = host._struthio[1] + DESK  # STRUTHIO ARCADE 1.9.0's desk mode: keyboard only, no title screen, a new run paused at tick zero
     process = getattr(host, '_struthio_process', None)

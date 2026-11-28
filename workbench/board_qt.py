@@ -347,7 +347,7 @@ class BoardView(QWidget):
         desk = read_beside.first(self.make_desk)
         kernel = kernel_of(self.host)
         if desk is None:
-            self.board = bm.Board(note=self.problem or 'Graphite\'s records are not available in this window.')
+            self.board = bm.Board(note=self.problem or 'Kas\'s records are not available in this window.')
         else:
             first = self.page.view.field.selected if getattr(self.page, 'view', None) is not None else ''
             self.board = read_beside.first(bm.build, desk, self.ident, kernel, self.task, first=first)      # 1.0 F2b
@@ -1067,7 +1067,7 @@ def _back(page):
 
 
 def _title(page):
-    try:page.host.setWindowTitle(('Board' if page.mode == 'board' else 'Field') + ' — Graphite')
+    try:page.host.setWindowTitle(('Board' if page.mode == 'board' else 'Field') + ' — Kas')
     except RuntimeError:
         pass
 

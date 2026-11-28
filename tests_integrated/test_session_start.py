@@ -57,7 +57,7 @@ from workbench import boss_theme, presentation_preferences
 from workbench.session import SCHEMA, Session
 
 ROOT = Path(__file__).resolve().parents[1]
-NOT_A_LOOK = (['kasandra'], ['graphite', 'kasandra'], [], {'kasandra': True}, {'key': 'kasandra'}, {}, 7, 1.5, True, None, '', 'Kasandra',
+NOT_A_LOOK = (['kasandra'], ['graphite', 'kasandra'], [], {'kasandra': True}, {'key': 'kasandra'}, {}, 7, 1.5, True, None, '', 'Kas',
               'pencil', 'kasandra ')
 DEEP = 30000      # a value nested this far is past what json reads here (RecursionError, which is not a ValueError), in a file the session still reads (60 KB)
 
@@ -132,7 +132,7 @@ class SavedAppearance(unittest.TestCase):
                 tempfile.TemporaryDirectory() as folder:
             path = saved(folder, 'chalk')
             self.assertEqual(Session(path).state['appearance'], 'chalk', 'a look added to the list is kept by the session with no other change')
-            self.assertEqual(boss_theme.chosen_appearance({}, path), 'graphite', 'and is Graphite until the theme has a palette for it')
+            self.assertEqual(boss_theme.chosen_appearance({}, path), 'graphite', 'and is Kas until the theme has a palette for it')
         code = 'import sys;import workbench.session;print("THEME", "workbench.boss_theme" in sys.modules, "PySide6" in sys.modules)'
         done = subprocess.run([sys.executable, '-B', '-c', code], cwd=str(ROOT), capture_output=True, text=True, timeout=120)
         self.assertEqual((done.returncode, done.stdout.strip()), (0, 'THEME False False'), done.stderr[-2000:])
@@ -285,7 +285,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         with contextlib.redirect_stderr(io.StringIO()) as stderr:tabs.restore({'tabs': saved, 'active': 0, 'deferred': []})
         self.assertEqual((len(tabs.pinned()), tabs.preview().objectName()), (5, 'readiness'))
         self.assertEqual([row['kind'] for row in tabs.deferred], ['ReadinessTab', 'ToolInventoryTab', 'RetiredRoomTab', 'ManualTab', 'GoneRoomTab'])
-        self.assertEqual([e['detail'] for e in told(host)], ['Console Readiness (five pins were already open); Tool Inventory (it is no longer there); Retired room (Graphite cannot '
+        self.assertEqual([e['detail'] for e in told(host)], ['Console Readiness (five pins were already open); Tool Inventory (it is no longer there); Retired room (Kas cannot '
                                                              'reopen this kind of tab); R10 Manual (another tab was already in the Preview); 1 more. Kept in View → Reopen deferred tabs'])
         self.assertEqual(stderr.getvalue(), '', 'none of them failed: nothing for stderr')
 
@@ -298,7 +298,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         tabs.restore(state)      # the third start of a session left with a room restore cannot reopen
         self.assertEqual(tabs.deferred, [unknown], '0.8.3: three rows of it, and four at the next start')
         self.assertEqual(tabs.snapshot()['deferred'], [unknown])
-        self.assertEqual(told(host)[0]['detail'], 'Retired room (Graphite cannot reopen this kind of tab). Kept in View → Reopen deferred tabs')
+        self.assertEqual(told(host)[0]['detail'], 'Retired room (Kas cannot reopen this kind of tab). Kept in View → Reopen deferred tabs')
         many = [{'kind': 'RetiredRoomTab', 'pinned': False, 'device': 'bench-%d' % n} for n in range(27)]
         host = strip_host();host.bridge();tabs = host.tabs
         tabs.restore({'tabs': rows('ReadinessTab'), 'active': 0, 'deferred': many + [many[3]]})
@@ -311,24 +311,24 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         host = strip_host();host.bridge();tabs = host.tabs
         tabs.restore({'tabs': rows('RetiredRoomTab', 'RetiredRoomTab'), 'active': 0, 'deferred': []})
         self.assertEqual(tabs.deferred, rows('RetiredRoomTab'))
-        self.assertEqual([e['detail'] for e in told(host)], ['Retired room (Graphite cannot reopen this kind of tab). Kept in View → Reopen deferred tabs'],
+        self.assertEqual([e['detail'] for e in told(host)], ['Retired room (Kas cannot reopen this kind of tab). Kept in View → Reopen deferred tabs'],
                          'what the list keeps once is said once')
 
     def test_a_row_without_its_title_is_named_as_the_screen_names_its_kind(self):
         """0.8.3 wrote no titles, so this is how the owner's list reads at the first start of 0.8.4: by what the screen calls
         each kind, never by words made from its class name. StacyFoundationTab read 'Stacy foundation', a name that never shows."""
         from workbench.workspace_tabs import name
-        shown = {'StacyFoundationTab': 'Graphite · knowledge', 'AwarenessTab': 'Graphite awareness', 'TrashTab': 'DELETE', 'WorkTab': 'Night Shift',
+        shown = {'StacyFoundationTab': 'Kas · knowledge', 'AwarenessTab': 'Kas awareness', 'TrashTab': 'DELETE', 'WorkTab': 'Night Shift',
                  'HostPanel': 'Service details', 'ComputerTab': 'This computer', 'QTextBrowser': 'Installation Guide', 'View': 'Object Glass', 'PdfDocumentTab': 'A PDF'}
         self.assertEqual({kind: name({'kind': kind, 'pinned': False}) for kind in shown}, shown)
-        self.assertEqual(name({'kind': 'StacyRetiredTab', 'pinned': False}), 'Kasandra retired', 'a kind this Graphite no longer opens: its words, with her name')
+        self.assertEqual(name({'kind': 'StacyRetiredTab', 'pinned': False}), 'Kas retired', 'a kind this Kas no longer opens: its words, with her name')
         self.assertEqual(name({'kind': 'WorkTab', 'pinned': False, 'title': 'Night Shift · Rail Demo'}), 'Night Shift · Rail Demo', 'a title written down is said as it was')
         host = strip_host();host.bridge();tabs = host.tabs
         tabs.restore({'tabs': rows(*['ReadinessTab'] * 5, 'StacyFoundationTab', pinned=('ReadinessTab', 'StacyFoundationTab')), 'active': 0, 'deferred': []})
-        self.assertEqual([e['detail'] for e in told(host)], ['Graphite · knowledge (five pins were already open). Kept in View → Reopen deferred tabs'])
+        self.assertEqual([e['detail'] for e in told(host)], ['Kas · knowledge (five pins were already open). Kept in View → Reopen deferred tabs'])
         offered = []
         with patch('workbench.workspace_tabs.QInputDialog.getItem', side_effect=lambda *a:offered.extend(a[3]) or ('', False)):tabs.reopen_deferred()
-        self.assertEqual(offered, ['1. Graphite · knowledge'])
+        self.assertEqual(offered, ['1. Kas · knowledge'])
 
     def test_a_room_whose_saved_place_is_not_text_waits_and_opens_where_it_would_by_default(self):
         """A damaged session file: the kind the Library showed, or the folder Files was in, as a list, an object or a number.
@@ -433,7 +433,7 @@ class SecondStart(unittest.TestCase):
         w.resize(1366, 768);w.show();self.settle(w);return w
 
     def leave(self, w):
-        self.assertTrue(w.close(), 'Graphite closes the ordinary way, which saves the session');self.settle(w)
+        self.assertTrue(w.close(), 'Kas closes the ordinary way, which saves the session');self.settle(w)
         w.deleteLater();self.app.processEvents()
         return json.loads(w.session.path.read_text(encoding='utf-8'))
 
@@ -474,7 +474,7 @@ class SecondStart(unittest.TestCase):
             surfaces.append(values.get('last_surface'));return set_view_preference(w, **values)
         with patch.object(WorkbenchWindow, 'set_view_preference', kept):third = self.start()
         self.assertEqual(self.strip(third), rooms);self.assertEqual((third.tabs.deferred, third.tabs.waiting), ([], []))
-        self.assertTrue(third._home_active, 'Home was in front when Graphite was left, and is in front again')
+        self.assertTrue(third._home_active, 'Home was in front when Kas was left, and is in front again')
         self.assertIsNot(third.central_stack.currentWidget(), third.workspace_split)
         self.assertEqual(third.view_preferences['last_surface'], 'home')
         self.assertNotIn('workspace', surfaces, 'and it was never left on the way: restoring a room is not the owner opening it')
@@ -531,7 +531,7 @@ class SecondStart(unittest.TestCase):
         self.assertIn('RuntimeError: the manual cannot be made', stderr.getvalue(), 'the trace is still there for whoever reads stderr')
         self.assertEqual(rooms(third), strip);self.assertEqual([row['kind'] for row in third.tabs.deferred], ['ManualTab', 'RetiredRoomTab'])
         new = said()[len(before):]
-        line = 'Not reopened at start · R10 Manual (it failed to open); Retired room (Graphite cannot reopen this kind of tab). Kept in View → Reopen deferred tabs'
+        line = 'Not reopened at start · R10 Manual (it failed to open); Retired room (Kas cannot reopen this kind of tab). Kept in View → Reopen deferred tabs'
         self.assertEqual([readable(e) for e in new], [line], 'said once, in words, where the desk says what happened')
         tail = third.ledger_bridge.tail;tail.refresh(True)
         self.assertTrue(any(tail.list.item(i).text().endswith(line) for i in range(tail.list.count())), 'in the Activity of the window, in this look')

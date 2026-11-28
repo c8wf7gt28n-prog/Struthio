@@ -125,7 +125,7 @@ WORDS = {
     'moved': 'This mark now stands on line {line}.',
     'gone': 'This mark is not on the page as it stands now.',
 }
-NOT_ASKED_WORDS = {'SWITCH_OFF': 'reading pages is switched off', 'AI_OFF': 'Graphite AI is off', 'NO_MODEL': 'no model is loaded',
+NOT_ASKED_WORDS = {'SWITCH_OFF': 'reading pages is switched off', 'AI_OFF': 'Kas AI is off', 'NO_MODEL': 'no model is loaded',
                    'STOPPED': 'you stopped it', 'CEILING_TURNS': 'this request has had its turns',
                    'CEILING_TIME': 'the model would take longer than this request allows',
                    'OVER_CAP': 'the page is longer than a reading allows', 'OVER_CONTEXT': "the page does not fit the model's memory",

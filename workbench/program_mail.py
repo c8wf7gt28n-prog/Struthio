@@ -171,7 +171,7 @@ def _tool(executable):
 
 def _open_native(base, name, digest):
     if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
-        raise ValueError('Open the Graphite desktop session to hand this file to Thunderbird.')
+        raise ValueError('Open the Kas desktop session to hand this file to Thunderbird.')
     executable = shutil.which('thunderbird')
     tool = _tool(executable)
     if executable is None:

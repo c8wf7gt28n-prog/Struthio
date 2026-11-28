@@ -146,7 +146,7 @@ def main(argv=None):
                 os.fchmod(f.fileno(), 0o600); json.dump(result, f, indent=2); f.write('\n')
         if args.json: print(json.dumps(result, indent=2))
         else:
-            print('Graphite ' + result['version'] + ' · ' + result['state'])
+            print('Kas ' + result['version'] + ' · ' + result['state'])
             for name in ('payload', 'foundation', 'kernel_database', 'catalog_database'):
                 print(name.replace('_', ' ') + ': ' + result[name]['state'])
             print('Registered operations: ' + str(result['inventory'].get('operation_count', 'unavailable')))
@@ -159,7 +159,7 @@ def main(argv=None):
         if args.qt_check and result['desktop'].get('state') != 'PASSED': failed = True
         return 2 if failed or result['attention'] else 0
     except (ValueError, OSError, KeyError) as exc:
-        print('Graphite doctor: ' + str(exc), file=sys.stderr); return 1
+        print('Kas doctor: ' + str(exc), file=sys.stderr); return 1
 
 
 if __name__ == '__main__': raise SystemExit(main())

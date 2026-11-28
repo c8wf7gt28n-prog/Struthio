@@ -38,21 +38,21 @@ MAPPED = {'line': 'line', 'slate': 'line', 'stac': 'line', 'kernel': 'line', 'sh
 CONSOLE_PAGE = {'line': 'stac', 'shell': 'shell', 'find': 'find', 'log': 'log'}  # the working area's page for each mode
 JUMPS = {'@': 'stac', '/': 'kernel', '?': 'find', '$': 'shell'}  # a first character typed into an empty line
 # 0.5.3: the hints say what to type and name no key (the owner, 13 November 2026: no key printed anywhere; every key still works).
-HINTS = {'line': 'a line, an operation by name after /, or an address  ·  words for Kasandra are offered to her column',      # 1.0 D1
+HINTS = {'line': 'a line, an operation by name after /, or an address  ·  words for Kas are offered to her column',      # 1.0 D1
          'kernel': 'an operation by name: ' + 'files.list path=Slate  ·  help copies.review  ·  ops agenda',  # the example: an operation's real argument
          'find': 'files and their words, the cabinet, settings, commands and the Timeline',
          'shell': 'a command, in your Files folder',
          'web': 'an address to open, or words to search for, in your own browser',
-         'log': "words in Graphite's events"}
+         'log': "words in Kas's events"}
 PLACEHOLDERS = {'line': 'a line, an operation, an address', 'shell': 'a command for the Terminal',      # 1.0 D2: what each mode takes
                 'find': 'words to look for', 'web': 'an address, or words to search for', 'log': 'words to find in the Log'}
 SENDS = {'line': 'Run this line', 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
 READS = ('stac', 'inspect', 'word')      # what the line can be read as that the arrow runs itself, instead of asking
-TIPS = {'line': named('Line: a Graphite line, an operation by name, or an address. Words for Stacy are offered to her column, never run here.'),
+TIPS = {'line': named('Line: a Kas line, an operation by name, or an address. Words for Stacy are offered to her column, never run here.'),
         'shell': 'Terminal: type to Debian through your configured shell, in your Files folder',
         'find': 'Search: files and their words across the workspace',
-        'web': 'Web: an address is opened, and words are searched for, in this computer’s own browser. Graphite itself fetches nothing.',
-        'log': "Log: follow Graphite's events or this computer's network above the line"}
+        'web': 'Web: an address is opened, and words are searched for, in this computer’s own browser. Kas itself fetches nothing.',
+        'log': "Log: follow Kas's events or this computer's network above the line"}
 CAP_SCALE_MAX = 1.4    # sizes that are not text follow the interface size up to this factor (desk_qt.SCALE_MAX)
 NAV_RANGE = (160, 600) # session.py keeps the same bounds for the saved widths
 SIM_RANGE = (160, 900)

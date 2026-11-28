@@ -263,7 +263,7 @@ def story(kernel, path, principal):
     with opened(kernel) as db:
         for r in db.execute('SELECT * FROM files_origin WHERE path=?', (rel,)):add(r['at'], 'kept in Files from the delivery “%s”' % (r['label'] or r['delivery'][:8]))
         for r in db.execute('SELECT * FROM files_proposals WHERE path=? AND owner=?', (rel, principal.identity)):
-            add(r['at'], 'Graphite proposed a change: ' + (r['why'] or '')[:80]);add(r['decided'], {'APPLIED': 'you applied its change', 'DECLINED': 'you declined its change'}.get(r['state'], ''))
+            add(r['at'], 'Kas proposed a change: ' + (r['why'] or '')[:80]);add(r['decided'], {'APPLIED': 'you applied its change', 'DECLINED': 'you declined its change'}.get(r['state'], ''))
         for r in db.execute('SELECT * FROM files_trash WHERE original=?', (rel,)):add(r['at'], 'deleted (in DELETE)');add(r['restored'], 'restored from DELETE')
         tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if 'copies' in tables:
@@ -425,7 +425,7 @@ def compare(kernel, args, principal):
             row = db.execute('SELECT * FROM files_proposals WHERE id=? AND owner=?', (args['proposal'], principal.identity)).fetchone()
         if row is None or row['path'] != place_of(kernel, path):raise ValueError('FILES_PROPOSAL_NOT_FOUND')  # 1.0 L6
         before_text = path.read_text(encoding='utf-8', errors='replace');after_text = row['text']
-        return {'kind': 'text', 'before': label_b, 'after': 'Graphite\'s proposal: ' + row['why'], **text_diff(before_text, after_text)}
+        return {'kind': 'text', 'before': label_b, 'after': 'Kas\'s proposal: ' + row['why'], **text_diff(before_text, after_text)}
     if args.get('version'):
         other = version_dir(kernel, path) / clean_name(args['version'])  # 1.0 L6
         if not other.is_file():raise ValueError('FILES_VERSION_NOT_FOUND')
@@ -591,7 +591,7 @@ def dispatch(kernel, op, args, principal):
     if op == 'files.rename':
         path = resolve(kernel, args['path']);target = path.with_name(clean_name(args['name']))
         may_change(kernel, path, principal);may_change(kernel, target, principal)
-        if path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: the Slate folder (Graphite’s area) and Egress keep their names')
+        if path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: the Slate folder (Kas’s area) and Egress keep their names')
         if target.exists():raise ValueError('FILES_EXISTS: that name is taken here')
         path.rename(target);carried(kernel, path, target);return entry(kernel, target)
     if op in ('files.copy', 'files.move'):
@@ -601,7 +601,7 @@ def dispatch(kernel, op, args, principal):
         target = free_name(folder, path.name);may_change(kernel, target, principal)
         if op == 'files.move':
             may_change(kernel, path, principal)
-            if path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: the Slate folder (Graphite’s area) and Egress stay where they are')
+            if path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: the Slate folder (Kas’s area) and Egress stay where they are')
             shutil.move(str(path), str(target));carried(kernel, path, target)
         elif path.is_dir():shutil.copytree(path, target, symlinks=True)
         else:shutil.copy2(path, target)
@@ -610,7 +610,7 @@ def dispatch(kernel, op, args, principal):
         path = resolve(kernel, args['path']);may_change(kernel, path, principal)
         if path == root(kernel) or path in (root(kernel) / SLATE, root(kernel) / EXPORTS):raise ValueError('FILES_RESERVED: this folder stays')
         from . import home_trash  # 1.0 L6b: a file of your home goes to your home's Trash (freedesktop), restorable
-        if home_trash.holds_graphite(kernel, path):raise ValueError("FILES_RESERVED: %s is your home or holds Graphite's workspace; it stays" % home_trash.tilde(path)[:200])
+        if home_trash.holds_graphite(kernel, path):raise ValueError("FILES_RESERVED: %s is your home or holds Kas's workspace; it stays" % home_trash.tilde(path)[:200])
         if home_trash.in_home(kernel, path):return trash_home(kernel, path, owner)
         ident = uuid.uuid4().hex;stored = root(kernel) / TRASH / ident
         stored.mkdir(mode=0o700);original = place_of(kernel, path);shutil.move(str(path), str(stored / path.name));carried(kernel, path, stored / path.name)

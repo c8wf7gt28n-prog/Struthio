@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 1.1 PK1: pack the folder repository (tools/build_repo.sh) as the kit the owner receives.
 #   tools/build_kit.sh --repo REPO --out KIT
-# Every file in KIT is smaller than 15,000,000 bytes: the repository goes into GRAPHITE_NNN.zip files; a file larger
+# Every file in KIT is smaller than 15,000,000 bytes: the repository goes into KAS_NNN.zip files; a file larger
 # than one ZIP is cut into pieces (each in its own ZIP) that JOIN.sh puts together again, every piece and every whole
 # file checked by sha256 (PIECES.sha256, SHA256SUMS). Beside them: START_HERE.md, JOIN.sh, install.sh and KIT.sha256.
 set -euo pipefail
@@ -17,7 +17,7 @@ mkdir -p "$kit"
 "$python" "$tree/tools/debian_pkg.py" pack "$repo" "$kit"
 for name in JOIN.sh install.sh; do install -m 755 "$tree/debian/kit/$name" "$kit/$name"; done
 sed "s/@VERSION@/$version/g" "$tree/debian/kit/START_HERE.md" > "$kit/START_HERE.md"
-( cd "$kit" && sha256sum START_HERE.md JOIN.sh install.sh PIECES.sha256 SHA256SUMS GRAPHITE_*.zip > KIT.sha256 )
+( cd "$kit" && sha256sum START_HERE.md JOIN.sh install.sh PIECES.sha256 SHA256SUMS KAS_*.zip > KIT.sha256 )
 "$python" - "$kit" <<'PY'
 import sys, pathlib
 files = [p for p in pathlib.Path(sys.argv[1]).iterdir() if p.is_file()]

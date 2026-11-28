@@ -67,7 +67,7 @@ def check(directory, timeout=15):
     return measured
 
 
-def require(directory, purpose='shared Graphite state'):
+def require(directory, purpose='shared Kas state'):
     """Fail closed unless ``directory`` supports multi-process WAL."""
     try:
         measured = check(directory)

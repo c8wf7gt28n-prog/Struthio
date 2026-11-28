@@ -20,7 +20,7 @@ async function request(path,body){
     if(response.status===503)connection(false,'Remote access disabled or host unavailable');
     const e=new Error(data.error?.message||data.error||('Request failed: '+response.status));e.status=response.status;throw e;
   }
-  connection(true,'Connected · '+(state.session?.host_platform||'Graphite host'));return data;
+  connection(true,'Connected · '+(state.session?.host_platform||'Kas host'));return data;
 }
 async function call(operation,params={}){const r=await request('/api/call',{operation,params});if(!r.ok)throw Error(r.error.message);return r.result;}
 function allowed(op){return Boolean(state.cap?.operations?.[op]);}
@@ -39,7 +39,7 @@ function pendingRead(){try{return JSON.parse(localStorage.getItem('ledger.pendin
 function pendingWrite(p){try{if(p)localStorage.setItem('ledger.pending.1_9',JSON.stringify(p));else localStorage.removeItem('ledger.pending.1_9');}catch{}}
 function pendingView(){const box=$('pending');box.replaceChildren();const p=pendingRead();if(!p)return;
   const same=p.identity===state.session?.identity;
-  const c=card(box,same?'Request awaiting confirmation':'Receipt from a previous pairing',same?'Resume with the same request key to avoid a duplicate job. The receipt survives closing the PWA.':'Ask the owner to locate this request in Graphite before starting it again. A new pairing cannot silently replay another device identity.');
+  const c=card(box,same?'Request awaiting confirmation':'Receipt from a previous pairing',same?'Resume with the same request key to avoid a duplicate job. The receipt survives closing the PWA.':'Ask the owner to locate this request in Kas before starting it again. A new pairing cannot silently replay another device identity.');
   if(same)button(c,'Resume request',()=>p.operation==='clip.prepare'?prepareClip(p.params):p.operation==='clip.submit'?submitClip(p.params):submit(p.tool),p.operation||'jobs.submit');
   button(c,'Dismiss receipt',()=>{if(confirm('Dismiss the local receipt? This does not stop or delete any job on the host.')){pendingWrite(null);pendingView();}});
 }
@@ -76,7 +76,7 @@ async function showEvidence(id){
   details(body,'Standard output',e.stdout||'No output');details(body,'Errors',e.stderr||e.error||'No errors recorded');details(body,'Artifacts',e.artifacts||[]);
   details(body,'Full reproducible record',e);button(body,'Download evidence JSON',()=>download('ledger-evidence-'+e.id+'.json',e));
 }
-async function showJob(id){const j=await call('jobs.get',{id}),body=modal('Graphite · job progress');badge(body,j.state);body.append(node('h3',j.goal||j.tool),node('p',j.tool),node('p',j.id,'mono'),node('p','Step: '+j.current_operation),node('p','Requested by '+j.owner),node('p','Runtime limit: '+j.timeout+' s'));if(j.error)body.append(node('p',j.error,'error'));details(body,'Scope and job record',j);if(j.evidence)button(body,'Read test evidence',()=>showEvidence(j.evidence));
+async function showJob(id){const j=await call('jobs.get',{id}),body=modal('Kas · job progress');badge(body,j.state);body.append(node('h3',j.goal||j.tool),node('p',j.tool),node('p',j.id,'mono'),node('p','Step: '+j.current_operation),node('p','Requested by '+j.owner),node('p','Runtime limit: '+j.timeout+' s'));if(j.error)body.append(node('p',j.error,'error'));details(body,'Scope and job record',j);if(j.evidence)button(body,'Read test evidence',()=>showEvidence(j.evidence));
   button(body,'Refresh this job',()=>showJob(id));
   if(j.owner===state.session.identity||state.session.scopes.includes('approve'))for(const [label,op] of (['Queued','Running'].includes(j.state)?[['Pause','pause'],['Stop','cancel']]:['Paused','Interrupted'].includes(j.state)?[['Resume after checks','resume']]:[]))button(body,label,async()=>{await call('jobs.'+op,{id});await showJob(id);},'jobs.'+op);
   if(j.tool==='clip.external'){await externalTask(body,j);}
@@ -91,7 +91,7 @@ async function externalTask(body,j){
   const status=await call('clip.inspect',{id:j.id});
   body.append(node('p',status.source_current?'Source snapshot is current.':'Source has changed. This recorded task needs a new snapshot.','notice'));
   body.append(node('p','External AI task · no automatic model call. One ARC-OS implementation file, fixed tests, independent source acceptance. Runtime names in proposals are agent declarations.','muted'));
-  button(body,'Read agent handoff',async()=>{const ctx=await call('clip.context',{id:j.id}),v=modal('Graphite · agent handoff');details(v,'Exact source and scope',ctx);button(v,'Download handoff JSON',()=>download('clip-task-'+j.id+'.json',ctx));});
+  button(body,'Read agent handoff',async()=>{const ctx=await call('clip.context',{id:j.id}),v=modal('Kas · agent handoff');details(v,'Exact source and scope',ctx);button(v,'Download handoff JSON',()=>download('clip-task-'+j.id+'.json',ctx));});
   button(body,'Review candidate diff',async()=>{const rows=await call('candidates.list'),c=rows.find(x=>x.id===j.candidate);await reviewCandidate(c);});
   for(const test of status.tests){const row=card(body,test.phase+' · '+test.state);button(row,'Follow '+test.phase+' test',()=>showJob(test.id));}
   if(j.owner!==state.session.identity&&!state.session.scopes.includes('approve'))return;
@@ -162,8 +162,8 @@ async function reviewCandidate(c){
 async function clip(view){
   const [overview,templates]=await Promise.all([call('clip.overview'),call('tasks.templates')]);
   const welcome=card(view,'What shall we build next?','Carry the same jobs, source and evidence from the ThinkPad to your phone.');welcome.classList.add('clip-welcome');const mascot=window.SlateDeck.bird('clip-mascot');welcome.prepend(mascot);
-  welcome.append(node('span','KASANDRA · OWNER-HOSTED','eyebrow'),node('p','Your chosen AI agent proposes. Graphite isolates, tests and records. You review the change.','muted'));
-  const task=card(view,'One bounded AI task','Prepare an ARC-OS source handoff for your authorized Claude, Codex or other external agent. Graphite does not invoke a model automatically.');
+  welcome.append(node('span','KAS · OWNER-HOSTED','eyebrow'),node('p','Your chosen AI agent proposes. Kas isolates, tests and records. You review the change.','muted'));
+  const task=card(view,'One bounded AI task','Prepare an ARC-OS source handoff for your authorized Claude, Codex or other external agent. Kas does not invoke a model automatically.');
   const taskGoal=document.createElement('textarea');writingPrompt(taskGoal, 'Which observable defect should the agent investigate?');taskGoal.setAttribute('aria-label','Bounded task goal');task.append(taskGoal);
   const taskPath=document.createElement('input');taskPath.value='software/arcos/src/host.c';taskPath.setAttribute('aria-label','ARC-OS implementation file');task.append(taskPath);
   button(task,'Prepare isolated AI task',()=>prepareClip({goal:taskGoal.value.trim(),path:taskPath.value.trim()}),'clip.prepare').classList.add('primary');
@@ -173,21 +173,21 @@ async function clip(view){
     button(v,'Plan source reconciliation',()=>showPlan('hardware-coverage','Reconcile current hardware sources'));
     details(v,'All inventory records and check requirements',r);
   });
-  const chooser=document.createElement('select');chooser.setAttribute('aria-label','Graphite task');
+  const chooser=document.createElement('select');chooser.setAttribute('aria-label','Kas task');
   for(const t of templates.templates){const opt=node('option',t.title);opt.value=t.id;chooser.append(opt);}welcome.append(chooser);
-  const goal=document.createElement('textarea');writingPrompt(goal, 'Tell Kasandra the specific problem');goal.setAttribute('aria-label','Task goal');goal.value=state.clipGoal;goal.oninput=()=>state.clipGoal=goal.value;const goalDetails=document.createElement('details');goalDetails.append(node('summary','Add a specific goal (optional)'),goal);welcome.append(goalDetails);
-  const planButton=button(welcome,'Plan with Graphite',()=>showPlan(chooser.value,goal.value));planButton.classList.add('primary');
+  const goal=document.createElement('textarea');writingPrompt(goal, 'Tell Kas the specific problem');goal.setAttribute('aria-label','Task goal');goal.value=state.clipGoal;goal.oninput=()=>state.clipGoal=goal.value;const goalDetails=document.createElement('details');goalDetails.append(node('summary','Add a specific goal (optional)'),goal);welcome.append(goalDetails);
+  const planButton=button(welcome,'Plan with Kas',()=>showPlan(chooser.value,goal.value));planButton.classList.add('primary');
   const follow=card(view,'Continue your work',overview.active_jobs.length+' active or paused jobs · '+overview.pending_candidates.length+' candidates awaiting review');
   for(const j of overview.active_jobs.slice(0,4)){const r=card(follow,j.goal||j.tool,j.current_operation);badge(r,j.state);button(r,'Follow job',()=>showJob(j.id));}
   for(const c of overview.pending_candidates.slice(0,4)){const r=card(follow,c.goal,'Source is unchanged until an authorized operator accepts.');button(r,'Review source diff',()=>reviewCandidate(c));}
   if(!overview.active_jobs.length&&!overview.pending_candidates.length)follow.append(node('p','No pending work. Start with a read-only plan above.','muted'));
   for(const e of overview.recent_results.slice(0,3)){const row=card(view,(e.state==='Completed'?'Check completed: ':'Needs attention: ')+e.tool);badge(row,e.state);button(row,'Open result',()=>showEvidence(e.id));}
-  const map=actions(view);button(map,'Where does this file belong?',()=>showAuthority());button(map,'Agent handoff',async()=>{const h=await call('agent.handoff');const v=modal('Agent handoff');v.append(node('p','Same project and permissions for Graphite, CLI, MCP and this phone.'));details(v,'Current handoff',h);button(v,'Download handoff',()=>download('ledger-agent-handoff.json',h));});
+  const map=actions(view);button(map,'Where does this file belong?',()=>showAuthority());button(map,'Agent handoff',async()=>{const h=await call('agent.handoff');const v=modal('Agent handoff');v.append(node('p','Same project and permissions for Kas, CLI, MCP and this phone.'));details(v,'Current handoff',h);button(v,'Download handoff',()=>download('ledger-agent-handoff.json',h));});
   const advanced=document.createElement('details');advanced.className='card';advanced.append(node('summary','Advanced · local commands and cloud proposal'));view.append(advanced);
   await clipAdvanced(advanced);
 }
 async function showPlan(template,goal){
-  const plan=await call('tasks.plan',{template,goal}),v=modal('Graphite · review the plan');
+  const plan=await call('tasks.plan',{template,goal}),v=modal('Kas · review the plan');
   v.append(node('h3',plan.title),node('p',plan.goal),node('p','Read-only plan. Nothing has run or changed.','notice'),node('p','Baseline limit: '+plan.limits.runtime_seconds+' seconds · no provider calls.'));
   v.append(node('p','Candidate scope: '+(plan.candidate_scope.join(', ')||'Read/review only'),'mono'));
   const steps=node('ol');for(const step of plan.steps)steps.append(node('li',step));const workflow=document.createElement('details');workflow.append(node('summary','Engineering workflow'),steps);v.append(workflow);
@@ -196,7 +196,7 @@ async function showPlan(template,goal){
   for(const path of plan.source_reads)button(v,'Read '+path.split('/').pop(),()=>openSource(path));
   if(template==='hardware-dependency')button(v,'Inspect source-linked hardware findings',inspectProof);
   if(template==='review-candidate')button(v,'Open candidates',async()=>{const rows=await call('candidates.list'),body=modal('Candidates');for(const c of rows){const r=card(body,c.goal,c.state);button(r,'Review source diff',()=>reviewCandidate(c));}if(!rows.length)body.append(node('p','No candidates yet.'));});
-  if(plan.proposed_job){const b=button(v,'Run this baseline check',async()=>{const current=await call('project.inspect');if(current.revision!==plan.source_revision)throw Error('Source changed. Ask Kasandra for a fresh plan.');await submit(plan.proposed_job.params.tool);},'jobs.submit');if(plan.blockers.length){b.dataset.allowed='false';b.disabled=true;}}
+  if(plan.proposed_job){const b=button(v,'Run this baseline check',async()=>{const current=await call('project.inspect');if(current.revision!==plan.source_revision)throw Error('Source changed. Ask Kas for a fresh plan.');await submit(plan.proposed_job.params.tool);},'jobs.submit');if(plan.blockers.length){b.dataset.allowed='false';b.disabled=true;}}
   availability();
 }
 async function openSource(path){const f=await call('files.read',{path}),v=modal(path);v.append(node('p',f.sha256,'mono'),node('pre',f.content));}
@@ -208,8 +208,8 @@ async function showAuthority(prefix='',offset=0){
   if(doc.next_offset!==null)button(v,'Next files',()=>showAuthority(prefix,doc.next_offset));
 }
 async function clipAdvanced(view){
-  const local=card(view,'Graphite · local investigation','These commands read actual Graphite records; they do not call a cloud model.');const a=actions(local);button(a,'Investigate hardware',inspectProof);jobButton(a,'Run STRUTHIO tests','struthio.test');
-  const command=document.createElement('input');writingPrompt(command, '/status · /jobs · /search text · /read path');command.setAttribute('aria-label','Graphite local command');local.append(command);button(local,'Send local command',async()=>{const [name,...args]=command.value.trim().split(/\s+/),arg=args.join(' '),ops={'/status':['project.inspect',{}],'/jobs':['jobs.list',{}],'/search':['files.search',{query:arg}],'/read':['files.read',{path:arg}]};if(!ops[name])throw Error('Use /status, /jobs, /search text or /read path.');const r=await call(...ops[name]),v=modal('Graphite · local result');v.append(node('p','Deterministic local service, no cloud provider used.','muted'),node('pre',JSON.stringify(r,null,2)));});
+  const local=card(view,'Kas · local investigation','These commands read actual Kas records; they do not call a cloud model.');const a=actions(local);button(a,'Investigate hardware',inspectProof);jobButton(a,'Run STRUTHIO tests','struthio.test');
+  const command=document.createElement('input');writingPrompt(command, '/status · /jobs · /search text · /read path');command.setAttribute('aria-label','Kas local command');local.append(command);button(local,'Send local command',async()=>{const [name,...args]=command.value.trim().split(/\s+/),arg=args.join(' '),ops={'/status':['project.inspect',{}],'/jobs':['jobs.list',{}],'/search':['files.search',{query:arg}],'/read':['files.read',{path:arg}]};if(!ops[name])throw Error('Use /status, /jobs, /search text or /read path.');const r=await call(...ops[name]),v=modal('Kas · local result');v.append(node('p','Deterministic local service, no cloud provider used.','muted'),node('pre',JSON.stringify(r,null,2)));});
   const form=card(view,'Bounded cloud investigation','Gemini must be configured on the laptop. One file, one proposal, one provider call, 300 seconds. Laptop scope approval comes first.');
   const goal=document.createElement('textarea');writingPrompt(goal, 'Describe one testable problem');goal.value=state.clipGoal;goal.setAttribute('aria-label','Engineering goal');goal.oninput=()=>state.clipGoal=goal.value;form.append(goal);
   const path=document.createElement('input');path.value=state.clipPath;path.setAttribute('aria-label','Permitted file');path.oninput=()=>state.clipPath=path.value;form.append(path);

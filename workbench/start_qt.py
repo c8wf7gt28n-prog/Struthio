@@ -33,14 +33,14 @@ from . import bar_qt
 from . import design_tokens as tokens
 from . import line_finder as lf
 
-PROMPT = 'Type to find or do: apps, files, settings, sums, commands, or ask Kasandra'
+PROMPT = 'Type to find or do: apps, files, settings, sums, commands, or ask Kas'
 START_TIP = 'Start (the Windows key): apps by kind, recent files and power. Type to find or do anything.'
-LINE_TIP = 'The line (Win+R): it finds and does: apps, files, settings, commands, sums, Ask Kasandra.\nEach row says what Enter will do.'
+LINE_TIP = 'The line (Win+R): it finds and does: apps, files, settings, commands, sums, Ask Kas.\nEach row says what Enter will do.'
 EMPTY_RECENT = 'Nothing opened yet. The files you open appear here.'
 EMPTY_APPS = 'No apps were found in the desktop entries.'
 HINTS = (('firefox', 'an app by its name or what it does'), ('report', 'a file, a folder or something on the desk'),
          ('12 * 7', 'a sum, answered exactly'), ('dir', 'DOS words: run in the Terminal, the Debian word beside'),
-         ('?what is on today', 'a request: Ask Kasandra'))
+         ('?what is on today', 'a request: Ask Kas'))
 REOPEN_MS = 300                      # a press on the slot that just closed Start (the popup's own outside press) does not reopen it
 ROLE = Qt.UserRole + 1
 

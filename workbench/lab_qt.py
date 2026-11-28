@@ -37,7 +37,7 @@ class LabPane(QWidget):
         self.paths.setContextMenuPolicy(Qt.CustomContextMenu);self.paths.customContextMenuRequested.connect(self.context_menu);layout.addWidget(self.paths,1)
         self.detail=QPlainTextEdit();self.detail.setReadOnly(True);self.detail.setAccessibleName('Retained reason details');self.detail.setMaximumHeight(200);layout.addWidget(self.detail)
         from .adaptive_qt import AdaptivePane
-        self.adaptive=AdaptivePane(pane);tabs.addTab(self.adaptive,'Graphite investigation')
+        self.adaptive=AdaptivePane(pane);tabs.addTab(self.adaptive,'Kas investigation')
         self.timer=QTimer(self);self.timer.setInterval(500);self.timer.timeout.connect(self.poll)
 
     def call(self,op,args=None):return self.pane.call(op,args)

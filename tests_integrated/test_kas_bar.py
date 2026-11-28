@@ -56,7 +56,7 @@ class Host(QMainWindow):
     """A stand-in for Graphite's window: a right dock holding the right pane, her column, the head's HALT."""
 
     def __init__(self, root):
-        super().__init__();self.setWindowTitle('Graphite');self.resize(1366, 728);self._closing = False;self.root = root
+        super().__init__();self.setWindowTitle('Kas');self.resize(1366, 728);self._closing = False;self.root = root
         self.setCentralWidget(QLabel('the work'))
         self.sim_dock = QDockWidget('Console Inspector', self);body = QWidget();lay = QVBoxLayout(body)
         lay.addWidget(QLabel('selection inspector'));self.right_pane = QWidget();self.right_pane.setObjectName('PaneBody')

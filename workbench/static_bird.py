@@ -46,7 +46,7 @@ def icon(root):
 class BirdView(QWidget):
     def __init__(self,root,parent=None):
         super().__init__(parent);self.root=root
-        self.setAccessibleName('Slate, the Struthio bird')
+        self.setAccessibleName('Slate, the ostrich')
         self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Expanding)
         self.setMinimumSize(80,80)
     def sizeHint(self):return QSize(250,220)

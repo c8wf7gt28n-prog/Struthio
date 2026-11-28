@@ -1,0 +1,7 @@
+#!/bin/sh
+# 1.1 PK1: the doctor (LEDGER.sh in a folder install): kas-doctor doctor, kas-doctor doctor --json
+# 1.1 R1: the graphite-* names stay one release as symlinks to this file (tools/debian_pkg.py); called by one, say the new name.
+case "${0##*/}" in graphite*) echo "${0##*/} is now kas-doctor; the old name goes in the next release." >&2 ;; esac
+export PYTHONPATH="/usr/lib/graphite${PYTHONPATH:+:$PYTHONPATH}"
+cd /usr/lib/graphite || exit 1
+exec /usr/bin/python3 -m workbench.baseline "$@"

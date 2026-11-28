@@ -88,11 +88,11 @@ class WorkTab(QWidget):
         if self.busy or not self.copies.currentData():return
         def selected(value):
             self.copy=value;self.path.clear();self.path.addItems(sorted(value['files']))
-            self.message.setText('Selected copy: '+value['name']+(' · delegated to Graphite' if value['for_slate'] else ' · enable delegation when importing this copy'))
+            self.message.setText('Selected copy: '+value['name']+(' · delegated to Kas' if value['for_slate'] else ' · enable delegation when importing this copy'))
         self.run('changes.workspace',{'id':self.copies.currentData()},selected)
 
     def prepare_steps(self):
-        if not self.copy or not self.copy['for_slate']:self.message.setText('Select a working copy delegated to Graphite.');return
+        if not self.copy or not self.copy['for_slate']:self.message.setText('Select a working copy delegated to Kas.');return
         copy=self.copy['id'];path=self.path.currentText();kind=self.kind.currentData();steps=[]
         if kind in ('READ','TEXT'):
             steps.append({'key':'Read','operation':'work.read','arguments':{'copy':copy,'path':path},'after':[]})
@@ -168,7 +168,7 @@ class WorkTab(QWidget):
                 lines += [item['key']+' · '+item['operation']+' · '+item['state'].lower()]
                 if item.get('reason'):lines.append('Stopped: '+str(item['reason']))
                 if item.get('observation'):lines.append('Actual observation: '+item['observation'])
-            lines+=['Inspect alternatives, owner questions and findings in Problem sheet → Investigate → Graphite investigation.']
+            lines+=['Inspect alternatives, owner questions and findings in Problem sheet → Investigate → Kas investigation.']
         for step in plan['steps']:
             item=status[step['key']]
             lines+=['','STEP '+step['key']+' · '+item['state'].lower(),step['operation'],

@@ -30,7 +30,7 @@ command -v "$ledger_python" >/dev/null || { echo 'Install Python 3.11-3.13 first
 "$ledger_python" -c 'from pathlib import Path; from workbench.release_integrity import verify; r=verify(Path.cwd()); print("Package:", r["state"]); raise SystemExit(0 if r["state"]=="VERIFIED" else str(r["problems"][:5]))'
 if [[ "$check_only" == 1 ]]; then exec "$ledger_python" -m workbench.doctor; fi
 if [[ "$EUID" == 0 ]]; then
-  echo 'Run the Graphite installer as your ordinary desktop user. Use INSTALL_DEBIAN.sh for sudo prerequisites.' >&2; exit 1
+  echo 'Run the Kas installer as your ordinary desktop user. Use INSTALL_DEBIAN.sh for sudo prerequisites.' >&2; exit 1
 fi
 if [[ -n "$wheelhouse" && ! -d "$wheelhouse" ]]; then echo 'The offline wheel folder does not exist.' >&2; exit 1; fi
 if [[ ! -x .venv/bin/python ]]; then
@@ -68,7 +68,7 @@ if ! .venv/bin/python -m workbench.project_desk_checks >"$ledger_desk_report"; t
 fi
 ledger_context_report=".venv/slate-context-$(date -u +%Y%m%dT%H%M%SZ)-$$.json"
 if ! .venv/bin/python -m workbench.slate_checks >"$ledger_context_report"; then
-  echo "Graphite context needs attention. Read $ledger_context_report" >&2; exit 2
+  echo "Kas context needs attention. Read $ledger_context_report" >&2; exit 2
 fi
 ledger_edit_report=".venv/changes-$(date -u +%Y%m%dT%H%M%SZ)-$$.json"
 if ! .venv/bin/python -m workbench.edit_checks >"$ledger_edit_report"; then

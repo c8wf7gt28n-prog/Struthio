@@ -174,7 +174,7 @@ def processor(proc=PROC, clock=time.time):
         rows.append(item('processor:model', words + (' · ' + ' · '.join(detail) if detail else ''), 'processor',
                          str(base / 'cpuinfo'), clock, fields, 'OBSERVED' if fields['model'] else 'PARTIAL'))
     online = os.cpu_count()
-    rows.append(item('processor:online', ('%d logical processors available to Graphite' % online) if online else 'Logical processor count unavailable',
+    rows.append(item('processor:online', ('%d logical processors available to Kas' % online) if online else 'Logical processor count unavailable',
                      'processor_count', 'os.cpu_count()', clock, dict(online=online), 'OBSERVED' if online else 'UNAVAILABLE'))
     load = read_line(base / 'loadavg')
     parts = load.split() if load else []
@@ -227,7 +227,7 @@ def memory(proc=PROC, sys_root=SYS, clock=time.time):
     ceiling = Path(sys_root) / 'fs/cgroup/memory.max'
     limit = read_line(ceiling)
     if limit and limit.isdigit():
-        rows.append(item('memory:ceiling', 'Memory ceiling %s (this Graphite runs inside a cgroup limit)' % human(int(limit)), 'ceiling', str(ceiling), clock,
+        rows.append(item('memory:ceiling', 'Memory ceiling %s (this Kas runs inside a cgroup limit)' % human(int(limit)), 'ceiling', str(ceiling), clock,
                          dict(limit=int(limit), current=read_int(ceiling.parent / 'memory.current'))))
     return section('memory', clock, rows, None, [source, str(ceiling)], notes, order='fixed')
 
@@ -327,7 +327,7 @@ def storage(proc=PROC, sys_root=SYS, program=None, workspace=None, clock=time.ti
     if table is None:
         notes.append(reason); table = []
     # The two places Ledger lives, named first: where the program is and where the work is.
-    for key, label, path in (('program', 'Graphite program folder', program), ('workspace', 'Workspace', workspace)):
+    for key, label, path in (('program', 'Kas program folder', program), ('workspace', 'Workspace', workspace)):
         if path is None:
             continue
         mount = holder(path, table); free = space(path)
@@ -581,7 +581,7 @@ def observe(section=None, program=None, workspace=None, proc=PROC, sys_root=SYS,
                 sort_rule='Comparable siblings in natural order of their label (digits by value, letters case-folded); descriptive lines keep their stated order.',
                 distinct_from='hardware_nav: the ARC project hardware under Work / Project is design material, not this host.',
                 model_calls=0, network_calls=0, native_invocations=0, subprocesses=0,
-                notice='Observations of the computer Graphite runs on now. Nothing here qualifies the owner host, runs a tool or changes a setting.')
+                notice='Observations of the computer Kas runs on now. Nothing here qualifies the owner host, runs a tool or changes a setting.')
 
 
 def dispatch(kernel, operation, args, principal):

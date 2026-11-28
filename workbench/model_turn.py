@@ -222,7 +222,7 @@ def decide(action, page):
         said = 'set aside: %s' % '; '.join(dropped); notes.append(said); corrections.append(said)
     origin = arguments.get('origin')
     if origin not in (None, ORIGIN):
-        said = 'recorded as Graphite’s model, not %s' % origin; notes.append(said); corrections.append(said)
+        said = 'recorded as Kas’s model, not %s' % origin; notes.append(said); corrections.append(said)
     completed = {'id': ident, 'expected_revision': revision, 'selection': selection, 'change': dict(change), 'origin': ORIGIN}
     return {'apply': True, 'arguments': completed, 'reason': 'it edits the open page at its current revision', 'notes': notes, 'corrections': corrections}
 

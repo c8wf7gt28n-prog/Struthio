@@ -50,16 +50,16 @@ def shortcuts(root=ROOT,home=None,system=None):
         bundle=home/'Applications/Arc Ledger.app';executable=bundle/'Contents/MacOS/ArcLedger'
         script='#!/bin/bash\ncd '+shlex.quote(str(root))+' || exit 1\nexec '+shlex.quote(str(python))+' -m workbench.launch\n'
         write_preserved(executable,script);executable.chmod(0o755)
-        write_preserved(bundle/'Contents/Info.plist',plistlib.dumps(dict(CFBundleName='Graphite',
-            CFBundleDisplayName='Graphite',CFBundleIdentifier='local.arcledger.desktop',
+        write_preserved(bundle/'Contents/Info.plist',plistlib.dumps(dict(CFBundleName='Kas',
+            CFBundleDisplayName='Kas',CFBundleIdentifier='local.arcledger.desktop',
             CFBundleExecutable='ArcLedger',CFBundlePackageType='APPL',CFBundleVersion=GRAPHITE_VERSION,NSHighResolutionCapable=True)))
         result.append(str(bundle))
     else:
         desktop=home/'.local/share/applications/arc-ledger.desktop'
-        text='[Desktop Entry]\nType=Application\nName=Graphite\nComment=The Graphite workspace and its assistant\nExec='+desktop_quote(str(python))+' -m workbench.launch\nPath='+str(root)+'\nIcon='+str(locations.program(root)/'branding/graphite/graphite_icon_256.png')+'\nTerminal=false\nCategories=Development;Engineering;\n'
+        text='[Desktop Entry]\nType=Application\nName=Kas\nComment=The Kas workspace and its assistant\nExec='+desktop_quote(str(python))+' -m workbench.launch\nPath='+str(root)+'\nIcon='+str(locations.program(root)/'branding/graphite/graphite_icon_256.png')+'\nTerminal=false\nCategories=Development;Engineering;\n'
         write_preserved(desktop,text);desktop.chmod(0o755);result.append(str(desktop))
         menu=home/'.fluxbox/arc-ledger-menu'
-        write_preserved(menu,'[begin] (Graphite)\n[exec] (Graphite) {'+shlex.quote(str(python))+' -m workbench.launch}\n[end]\n')
+        write_preserved(menu,'[begin] (Kas)\n[exec] (Kas) {'+shlex.quote(str(python))+' -m workbench.launch}\n[end]\n')
         result.append(str(menu))
     return result
 
@@ -67,7 +67,7 @@ def qt_check(python,root=ROOT,offscreen=False):
     env=dict(os.environ)
     if offscreen:env['QT_QPA_PLATFORM']='offscreen'
     code=('from PySide6.QtWidgets import QApplication,QLabel; from PySide6.QtCore import QTimer; '
-          'a=QApplication([]); w=QLabel("Graphite setup check"); w.show(); '
+          'a=QApplication([]); w=QLabel("Kas setup check"); w.show(); '
           'QTimer.singleShot(300,a.quit); a.exec(); print("LEDGER_QT_CHECK_OK")')
     return run([python,'-c',code],root,timeout=30,env=env)
 
@@ -75,7 +75,7 @@ def install(root=ROOT,offline=False,offscreen=False,add_shortcuts=True):
     problems=compatibility()
     if problems:raise RuntimeError('\n'.join(problems))
     root=Path(root).resolve();envdir=root/'.venv';python=envdir/'bin/python'
-    print('Graphite setup · '+platform.system()+' · '+platform.machine(),flush=True)
+    print('Kas setup · '+platform.system()+' · '+platform.machine(),flush=True)
     print('Project: '+str(root)+'\nPrivate environment: '+str(envdir),flush=True)
     if envdir.exists():
         if not python.is_file():raise RuntimeError('Existing .venv is incomplete. Rename it to .venv-old and rerun setup; keep all project files.')
@@ -104,7 +104,7 @@ def doctor(root=ROOT):
     print(json.dumps(result,indent=2));return result
 
 def main():
-    p=argparse.ArgumentParser(description='Graphite guided Unix setup');p.add_argument('action',choices=['install','doctor','shortcuts'])
+    p=argparse.ArgumentParser(description='Kas guided Unix setup');p.add_argument('action',choices=['install','doctor','shortcuts'])
     p.add_argument('--offline',action='store_true');p.add_argument('--offscreen',action='store_true');p.add_argument('--no-shortcuts',action='store_true');a=p.parse_args()
     try:
         if a.action=='doctor':doctor()

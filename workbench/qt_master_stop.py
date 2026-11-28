@@ -26,7 +26,7 @@ class StopButton(QToolButton):
         self.setIcon(QIcon(str(locations.program(host.root)/'branding/noir/master-stop.svg')))
         self.setIconSize(QSize(32,32));self.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         self.setFixedSize(86,58)
-        self.setAccessibleName('Master stop: stop or kill all Graphite operations')
+        self.setAccessibleName('Master stop: stop or kill all Kas operations')
         self.setText('Advice 0%')
         self.setStyleSheet('QToolButton#MasterStop {background:transparent;border:1px solid transparent;border-radius:7px;padding:1px;color:#f3d0cc;font-size:10pt;} '
             'QToolButton#MasterStop:hover {background:#39262a;border-color:#ef8b80;} '
@@ -117,7 +117,7 @@ class MasterStop(QObject):
     def menu(self,point):
         menu=QMenu(self.button)
         menu.addAction('Explain stop advice…',self.explain)
-        menu.addSeparator();menu.addSection('CPU scheduling · Graphite work')
+        menu.addSeparator();menu.addSection('CPU scheduling · Kas work')
         try:current=operation_priority.policy(self.host.root)
         except (OSError,ValueError):current=None
         for mode,label in (('normal','Normal for new work'),('background','Be nice · background CPU priority')):
@@ -156,7 +156,7 @@ class MasterStop(QObject):
         change(self.kernel,'operations.priority',mode,'desktop-owner')
         if mode=='background':
             results=self.apply_priority();denied=sum(r['state'] in ('denied','refused') for r in results)
-            message='Be nice: background CPU priority selected for Graphite work.'
+            message='Be nice: background CPU priority selected for Kas work.'
             if denied:message+=' '+str(denied)+' priority changes were refused by the OS.'
         else:
             message='Normal priority selected for new work. Existing nice values remain until that work finishes.'
@@ -172,8 +172,8 @@ class MasterStop(QObject):
     def request(self):
         if self.running:
             self.host.statusBar().showMessage('Master stop is still checking remaining operations.');return False
-        box=QMessageBox(self.host);box.setWindowTitle('Stop all Graphite operations?')
-        box.setIcon(QMessageBox.Warning);box.setText('Stop / kill operations for this Graphite project?')
+        box=QMessageBox(self.host);box.setWindowTitle('Stop all Kas operations?')
+        box.setIcon(QMessageBox.Warning);box.setText('Stop / kill operations for this Kas project?')
         box.setInformativeText('Cancel project jobs, stop builds and host processes, close console/debugger sessions, and switch off the phone link. Source files and unsaved editor buffers are preserved. A provider request already sent may finish remotely.')
         stop=box.addButton('Stop all',QMessageBox.DestructiveRole)
         cancel=box.addButton(QMessageBox.Cancel);box.setDefaultButton(cancel);box.exec()
@@ -351,7 +351,7 @@ class MasterStop(QObject):
                 if hasattr(obj,'status'):obj.status.setText('Console closed by master stop')
         from .engineering_kernel import CAPABILITIES
         if getattr(getattr(w,'ledger_bridge',None),'busy',False):
-            report['unverified'].append('Graphite command service is still finishing; subsequent commands are cancelled.')
+            report['unverified'].append('Kas command service is still finishing; subsequent commands are cancelled.')
             report['result']='INCOMPLETE'
         for worker in list(getattr(w,'service_workers',[])):
             if worker.isRunning() and CAPABILITIES.get(getattr(worker,'op',None)) not in (None,'read'):

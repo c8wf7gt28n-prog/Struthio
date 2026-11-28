@@ -52,10 +52,10 @@ TICK_MS = 1000               # the card and the chip follow what waits this ofte
 SETTINGS = 'kas_bar.json'
 DEFAULTS = {'docked': True}
 WORDS = {      # furniture: the chip's menu and the card's controls (her own lines are kas_voice's and waits_qt's)
-    'open': 'Open her panel', 'close': 'Close her panel', 'docked': 'Kas docked in Graphite', 'later': 'Later',
+    'open': 'Open her panel', 'close': 'Close her panel', 'docked': 'Kas docked in the computer\'s window', 'later': 'Later',
     'panel_link': 'Her panel →',
-    'chip_tip': 'Kasandra (Kas): {state}\nPress to open her panel; press again or Esc to close it.',
-    'chip_tip_docked': 'Kasandra (Kas): {state}\nPress to see her column. Over other apps her panel slides in from the right.',
+    'chip_tip': 'Kas: {state}\nPress to open her panel; press again or Esc to close it.',
+    'chip_tip_docked': 'Kas: {state}\nPress to see her column. Over other apps her panel slides in from the right.',
     'card_tip': 'Waits for you. Your press here is the same press as in her panel. This card never takes your keys.',
 }
 
@@ -136,7 +136,7 @@ class KasChip(bar_qt.BarButton):
     """"Kas", her state's shape and word. A press opens or closes her panel; a right-click offers the same and the setting."""
 
     def __init__(self, slot):
-        super().__init__(slot, 'Kasandra');self.slot = slot;self.setText('Kas')
+        super().__init__(slot, 'Kas');self.slot = slot;self.setText('Kas')
         self.clicked.connect(lambda: self.slot.ctl.toggle())
         self.setContextMenuPolicy(Qt.CustomContextMenu);self.customContextMenuRequested.connect(self.offer)
 
@@ -172,7 +172,7 @@ class KasChip(bar_qt.BarButton):
         p.end()
         said = '%s %s' % (shape, word)
         tip = (WORDS['chip_tip_docked'] if self.slot.ctl.docked else WORDS['chip_tip']).format(state=said)
-        if tip != self.toolTip():self.setToolTip(tip);self.setAccessibleName('Kasandra, ' + word)
+        if tip != self.toolTip():self.setToolTip(tip);self.setAccessibleName('Kas, ' + word)
 
     def offer(self, at):
         ctl = self.slot.ctl;menu = QMenu(self)
@@ -233,7 +233,7 @@ class KasSlot(QWidget):
     """The bar's kas slot: her chip, then HALT beside her name."""
 
     def __init__(self, bar):
-        super().__init__(bar);self.bar = bar;self.ctl = controller(bar.host);self.setAccessibleName('Kasandra and HALT')
+        super().__init__(bar);self.bar = bar;self.ctl = controller(bar.host);self.setAccessibleName('Kas and HALT')
         self.chip = KasChip(self);self.halt = HaltOnBar(bar.host, self);self.halt.show()
         self.ctl.slot = self
         QTimer.singleShot(0, self.ctl.adopt_halt)
@@ -285,7 +285,7 @@ class KasPanel(QWidget):
     def __init__(self, ctl):
         super().__init__(None, Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.ctl = ctl;self.opened = False;self.marked = False
-        self.setObjectName('KasPanel');self.setWindowTitle('Graphite · Kasandra');self.setAccessibleName('Her panel')
+        self.setObjectName('KasPanel');self.setWindowTitle('Kas · her panel')      # 1.1 R1;self.setAccessibleName('Her panel')
         self.setAttribute(Qt.WA_X11NetWmWindowTypeUtility, True)
         box = QVBoxLayout(self);box.setContentsMargins(1, 0, 0, 0);box.setSpacing(0)
         self.anim = QPropertyAnimation(self, b'pos', self);self.anim.setEasingCurve(QEasingCurve.OutCubic)
@@ -396,7 +396,7 @@ class WaitCard(QFrame):
         # never managed by the window manager (override-redirect), so no manager can give it the keys; above every app
         super().__init__(None, Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus | Qt.X11BypassWindowManagerHint)
         self.ctl = ctl;self.rows = [];self.signature = None;self.later = None;self.shown_at = 0.0;self.outcome_until = 0.0
-        self.setObjectName('KasWaitCard');self.setWindowTitle('Graphite · Waits for you');self.setAccessibleName('Waits for you, from her chip');self.setToolTip(WORDS['card_tip'])
+        self.setObjectName('KasWaitCard');self.setWindowTitle('Kas · Waits for you');self.setAccessibleName('Waits for you, from her chip');self.setToolTip(WORDS['card_tip'])
         for attr in (Qt.WA_ShowWithoutActivating, Qt.WA_X11DoNotAcceptFocus, Qt.WA_X11NetWmWindowTypeNotification):self.setAttribute(attr, True)
         self.setFocusPolicy(Qt.NoFocus);self.marked = False
         box = QVBoxLayout(self);box.setContentsMargins(12, 10, 12, 10);box.setSpacing(6)

@@ -321,7 +321,7 @@ def advance(kernel, args, principal):
         if not (value['stage'] == 'CATALOGED' and args.get('accept')):return value
     def failed(job, what):
         if job['state'] in ('Cancelled', 'Interrupted'):
-            reason = what + ' stopped when Graphite stopped or restarted. Resume work (Master Stop → Open Work trail / Resume…), then receive this delivery again.'
+            reason = what + ' stopped when Kas stopped or restarted. Resume work (Master Stop → Open Work trail / Resume…), then receive this delivery again.'
         else:reason = what + ' ' + job['state'] + (': ' + job['error'] if job.get('error') else '')
         value.update(stage='FAILED', error=reason);return save(kernel, value)
     if value['stage'] == 'SCANNING':

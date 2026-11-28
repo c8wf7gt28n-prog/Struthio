@@ -129,7 +129,7 @@ def launch(argv, cwd=None, env=None, name=None, log=None, environ=None):
     if not argv or not argv[0] or any('\0' in a for a in argv):
         return dict(ok=False, pid=None, name=name, argv=argv, program=None, reason='There is no program to start.')
     if Path(argv[0]).name in NEVER:
-        return dict(ok=False, pid=None, name=name, argv=argv, program=None, reason='Graphite never starts a program through %s.' % Path(argv[0]).name)
+        return dict(ok=False, pid=None, name=name, argv=argv, program=None, reason='Kas never starts a program through %s.' % Path(argv[0]).name)
     env = program_environment(environ) if env is None else {str(k):str(v) for k, v in env.items()}
     program = _resolve(argv[0], env)
     if program is None:
@@ -225,7 +225,7 @@ def restart_note(environ=None):
     status = (environ.get(LAST_STATUS) or '').strip()
     how = 'it ended unexpectedly' + (' (status %s)' % status if status.isdigit() else '')
     again = 'again' if times == 1 else 'again (%d times in this session)' % times
-    return 'Graphite started %s: %s. The apps you opened from Graphite stayed open.' % (again, how)
+    return 'Kas started %s: %s. The apps you opened from Kas stayed open.' % (again, how)
 
 
 def window_started(window, environ=None):

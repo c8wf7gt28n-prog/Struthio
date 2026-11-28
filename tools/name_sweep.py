@@ -96,7 +96,7 @@ NEVER = {'language': (re.compile(r'\bstac\b', re.I), 'the language is never name
 KEPT = re.compile(r'\b[a-z0-9_]+(?:[.:/_-][a-z0-9_]+)+\b')      # an identity shown as it is stored
 RECORD = re.compile(r'"origin": "STACY"')                        # her actor in an event printed whole, as it is stored
 BRAIN_EVENT = 'name_sweep'      # the walk's own brain event: brain.name_sweep, state CHECKED
-SHOWN_NAME = 'Kasandra'
+SHOWN_NAME = 'Kas'      # 1.1 R1: Kasandra as a shown name is Kas
 
 # The code's words that carry the earlier name and are not a sentence a person reads as her name: (file, the words' start) -> why.
 # An empty start is the whole file (the lineage grows by a release at its head, so its first words change).
@@ -322,7 +322,7 @@ def walk(window, settle, log=None):
     opened = []      # About waits for its Close (QDialog.exec): it is shown instead, read, and closed
     with patch.object(QDialog, 'exec', lambda dialog:(opened.append(dialog), dialog.show(), 0)[2]):
         window.show_about();settle()
-    look('Guide: About Graphite', bool(opened), 'kept back (RIGHTS.md)')
+    look('Guide: About Kas', bool(opened), 'kept back (RIGHTS.md)')      # 1.1 R1
     for dialog in opened:dialog.close();dialog.deleteLater()
     # 1.1 T1: since 1.0 P4 (no picture of her) no plate of hers is offered: the place is the Art plates menu, read, with no row
     # that names her; the plates there are opened and read as before.

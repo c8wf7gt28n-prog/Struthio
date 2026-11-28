@@ -108,14 +108,14 @@ def marker(root):
     if not path.is_file():return None
     value = json.loads(path.read_text(encoding='utf-8'))
     if value.get('schema') != SCHEMA or value.get('kind') not in KINDS:
-        raise ValueError('Unsupported Graphite workspace marker: ' + str(path))
+        raise ValueError('Unsupported Kas workspace marker: ' + str(path))
     return value
 
 
 def ensure_workspace(path, kind='NO_PROJECT', name=None):
     path = Path(path).resolve()
     if any(contains_program(p) for p in (path, *path.parents)) or path.is_relative_to(PACKAGE):
-        raise ValueError('A workspace must be outside the Graphite program folder')
+        raise ValueError('A workspace must be outside the Kas program folder')
     path.mkdir(mode=0o700, parents=True, exist_ok=True)
     if marker(path) is None:
         record = {'schema': SCHEMA, 'kind': kind, 'name': name or path.name}
@@ -164,7 +164,7 @@ def main(argv=None):
         elif args.command == 'office':result = status(office(args.folder))
         else:result = move_state(args.to)
     except (ValueError, OSError) as exc:
-        print('Graphite locations: ' + str(exc), file=sys.stderr); return 1
+        print('Kas locations: ' + str(exc), file=sys.stderr); return 1
     print(json.dumps(result, indent=2)); return 0
 
 

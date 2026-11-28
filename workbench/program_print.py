@@ -37,7 +37,7 @@ PNG_END = b'\0\0\0\0IEND\xaeB`\x82'
 
 def _path(base, name, suffix, must_exist=True):
     if PurePosixPath(name).suffix.lower() != suffix:
-        raise ValueError(f'Choose a {suffix} path inside Graphite Files.')
+        raise ValueError(f'Choose a {suffix} path inside Kas Files.')
     try:
         return record_io.project_path(base, name, must_exist=must_exist)
     except RuntimeError as error:
@@ -59,14 +59,14 @@ def _source(base, name):
 def _inspect(raw, name, identity):
     summary = {'state': 'UNSUPPORTED', 'path': name, 'sha256': identity['sha256'],
                'bytes': identity['bytes'], 'width': None, 'height': None,
-               'tool': {'name': 'Graphite PDF proof', 'available': False}, 'print_ready': False}
+               'tool': {'name': 'Kas PDF proof', 'available': False}, 'print_ready': False}
     try:
         from PySide6.QtCore import QByteArray, QBuffer, QIODevice
         from PySide6.QtGui import QImageReader
         from pypdf import PdfWriter  # noqa: F401  (report the writer's availability with the decoder's)
     except ImportError:
         return None, {**summary, 'state': 'TOOL_UNAVAILABLE',
-                      'reason': 'Print Proof needs Graphite’s Qt PNG decoder and PDF writer.'}
+                      'reason': 'Print Proof needs Kas’s Qt PNG decoder and PDF writer.'}
     summary['tool']['available'] = True
     if len(raw) < 45 or not raw.startswith(PNG_HEADER) or not raw.endswith(PNG_END):
         return None, {**summary, 'reason': 'Choose a complete PNG image.'}
@@ -159,7 +159,7 @@ def _pdf(image, title, paper, digest):
     y = (image_top + image_bottom - draw_height) / 2
     commands = [
         '0.11 0.15 0.13 rg',
-        text('GRAPHITE / PRINT PROOF', margin, height - 43, 10, 'Bold'),
+        text('KAS / PRINT PROOF', margin, height - 43, 10, 'Bold'),
         text(paper.upper(), width - margin - len(paper) * 6, height - 43, 10),
         f'0.72 0.30 0.09 RG 1.1 w {margin} {height - 53} m {width - margin:.2f} {height - 53} l S',
     ]
@@ -177,7 +177,7 @@ def _pdf(image, title, paper, digest):
     contents = DecodedStreamObject()
     contents.set_data('\n'.join(commands).encode('ascii'))
     page.replace_contents(contents.flate_encode())
-    writer.add_metadata({'/Title': title, '/Producer': 'Graphite Print Proof'})
+    writer.add_metadata({'/Title': title, '/Producer': 'Kas Print Proof'})
     output = io.BytesIO()
     writer.write(output)
     return output.getvalue()

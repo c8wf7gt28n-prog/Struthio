@@ -605,9 +605,9 @@ def join(device, access_point, ssid, password=None, bus=None, seconds=JOIN_SECON
                                    object_path(access_point), bus=bus, timeout=ACT_TIMEOUT_MS)[:2]
             del settings
         elif entry['security'] == 'enterprise':
-            return dict(ok=False, verified=False, said='%s needs an organisation\'s sign-in (802.1X). Graphite 1.0 does not set that up: use nmtui in the Terminal.' % ssid)
+            return dict(ok=False, verified=False, said='%s needs an organisation\'s sign-in (802.1X). Kas 1.0 does not set that up: use nmtui in the Terminal.' % ssid)
         else:
-            return dict(ok=False, verified=False, said='%s uses WEP, an old security that is no longer safe. Graphite does not join it.' % ssid)
+            return dict(ok=False, verified=False, said='%s uses WEP, an old security that is no longer safe. Kas does not join it.' % ssid)
     except (Unavailable, Refused) as exc:
         return failure(exc, doing)
     deadline = clock() + seconds;state = None
@@ -622,7 +622,7 @@ def join(device, access_point, ssid, password=None, bus=None, seconds=JOIN_SECON
         except (Unavailable, Refused):
             heard = ''
         if heard == ssid:
-            return dict(ok=True, verified=True, said='Joined %s (read back from NetworkManager). NetworkManager keeps its password, not Graphite.' % ssid)
+            return dict(ok=True, verified=True, said='Joined %s (read back from NetworkManager). NetworkManager keeps its password, not Kas.' % ssid)
         return dict(ok=True, verified=False, said='NetworkManager reports a connection, but not on %s.' % ssid)
     why = _reason(device, bus) if state == 4 else 'it was still connecting after %d seconds' % seconds
     if created and state == 4:
@@ -650,14 +650,14 @@ def disconnect(device, bus=None, sleep=time.sleep):
 
 # ---- Programs: wpctl and xrandr -------------------------------------------------------------------------------------------
 def where(program):
-    if program not in PROGRAMS:raise ValueError('Graphite runs only wpctl or xrandr here: %r' % (program,))
+    if program not in PROGRAMS:raise ValueError('Kas runs only wpctl or xrandr here: %r' % (program,))
     return shutil.which(program)
 
 
 def run(argv, timeout=8):
     """argv[0] is wpctl or xrandr, found on PATH; no shell, no terminal, never sudo. dict(ok, code, out, err)."""
     if not argv or argv[0] not in PROGRAMS or any(part in ('sudo', 'pkexec', 'su', 'doas') for part in argv):
-        raise ValueError('Graphite runs only wpctl or xrandr here: %r' % (argv,))
+        raise ValueError('Kas runs only wpctl or xrandr here: %r' % (argv,))
     path = where(argv[0])
     if path is None:return dict(ok=False, code=None, out='', err='%s is not installed on this computer' % argv[0])
     try:
@@ -820,7 +820,7 @@ def plan(change, outputs, name=None, mode=None):
         return ['--output', name, '--mode', mode]
     if change == 'primary':return ['--output', name, '--primary']
     if change == 'off':
-        if len(active) <= 1 and names[name]['active']:raise ValueError('%s is the only screen on: Graphite never turns the last one off.' % name)
+        if len(active) <= 1 and names[name]['active']:raise ValueError('%s is the only screen on: Kas never turns the last one off.' % name)
         return ['--output', name, '--off']
     if change == 'on':
         if not names[name]['connected']:raise ValueError('%s has nothing connected.' % name)
@@ -843,7 +843,7 @@ def apply_screens(args, expect=None):
     """Run one xrandr change and read the screens back. expect(outputs) -> True when the change shows; done only then."""
     for part in args:
         if not (part.startswith('--') or NAME.match(part) or MODE.match(part) or re.match(r'^\d{1,5}x\d{1,5}$', part)):
-            raise ValueError('Not an xrandr word Graphite uses: %r' % (part,))
+            raise ValueError('Not an xrandr word Kas uses: %r' % (part,))
     done = run(['xrandr', *args])
     if not done['ok']:return dict(ok=False, verified=False, said='The screens did not change: %s' % (done['err'] or 'xrandr failed'))
     now = screens()
@@ -910,4 +910,4 @@ def dispatch(kernel, op, args, principal):
     keys = [args['section']] if args.get('section') else list(SECTIONS)
     sections = snapshot(keys)
     return {'schema': SCHEMA, 'bus': bus_kind(), 'sections': sections,
-            'basis': 'observed now on the computer Graphite runs on, through its own services; reading changed nothing'}
+            'basis': 'observed now on the computer Kas runs on, through its own services; reading changed nothing'}

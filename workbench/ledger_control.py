@@ -529,4 +529,4 @@ def dispatch(kernel, operation, args, principal):
         with kernel.db() as db:result=stored(db,'ledger.ui.'+args['id'],None)
         if not result:raise ValueError('Desktop request not found')
         return result
-    raise ValueError('Unknown Graphite control operation')
+    raise ValueError('Unknown Kas control operation')

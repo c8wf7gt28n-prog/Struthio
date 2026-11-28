@@ -49,7 +49,7 @@ class BrainLinkTab(ServiceTab):
         for index,label in enumerate(('Native component pins and nets','Linked current source files','Related requirements and open issues','Engineering layer meanings')):self.pages.setTabToolTip(index,label)
         splitter=QSplitter(Qt.Vertical);splitter.addWidget(graph_page);splitter.addWidget(self.pages);splitter.setSizes([270,345]);self.outer.addWidget(splitter,1)
         self.action_layout=QGridLayout();self.action_buttons=[];self.action_columns=None
-        for label,name,method in [('Trace to F133','brain-link',self.trace),('Open schematic','schematic',self.open_schematic),('Open source','page-link',self.open_source),('Engineering register','spreadsheet',self.open_register),('Discuss in Graphite','clip',self.discuss)]:
+        for label,name,method in [('Trace to F133','brain-link',self.trace),('Open schematic','schematic',self.open_schematic),('Open source','page-link',self.open_source),('Engineering register','spreadsheet',self.open_register),('Discuss in Kas','clip',self.discuss)]:
             b=QPushButton(icon(host.root,name),label);b.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed);b.clicked.connect(method);self.action_buttons.append(b)
         self.outer.addLayout(self.action_layout);self.arrange_actions()
         self.component.activated.connect(lambda *_:self.inspect())

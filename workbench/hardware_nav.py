@@ -52,7 +52,7 @@ def devices(root=None):
             group('Engineering models', *(b+'closure_p'+str(n) for n in range(1,11)), icon='report'),
             group('Register bindings', 'project/register/bindings.json', 'project/evidence_registry.json', icon='report'),
         )),
-        Device('development', 'Graphite workshop', 'Inspect, propose and review bounded source improvements', 'firmware', 'docs/WORKSHOP.md', (
+        Device('development', 'Kas workshop', 'Inspect, propose and review bounded source improvements', 'firmware', 'docs/WORKSHOP.md', (
             group('Workshop services', 'workbench/clip_workshop.py', 'workbench/engineering_kernel.py', icon='c'),
             group('Current proposal', 'project/review/command_parser', icon='report'),
             group('Checks', 'tools/check_release.py', icon='report'),
@@ -125,14 +125,14 @@ def devices(root=None):
             group('Images & audio', 'examples/struthio_arcade/assets', icon='image'),
             group('Project documentation', 'examples/struthio_arcade/README_WORKBENCH.md', 'examples/struthio_arcade/manifest.webmanifest', icon='spec'),
         )),
-        Device('workbench', 'Graphite · Tools', 'The development environment itself', 'workbench', 'workbench/README.md', (
+        Device('workbench', 'Kas · Tools', 'The development environment itself', 'workbench', 'workbench/README.md', (
             group('Engineering kernel & remote', 'workbench/engineering_kernel.py', 'workbench/engineering_cli.py', 'workbench/engineering_tabs.py', 'workbench/remote_service.py', 'workbench/remote_pwa', icon='firmware'),
             group('Project office & goals', 'project', 'docs/HARDWARE_STATUS.md', icon='ready'),
             group('Application source', 'workbench/qt_app.py', 'workbench/engine.py', 'workbench/hardware_nav.py',
                   'workbench/hardware_overview.py', 'workbench/hardware_browser.py', 'workbench/hardware_review.py', 'workbench/viewer_tabs.py', 'workbench/project_services.py',
                   'workbench/project_tabs.py', 'workbench/editor_recovery.py',
                   'workbench/system_instruments.py', 'workbench/instruments_qt.py', icon='firmware'),
-            group('Agent & Graphite', 'workbench/agent.py', 'workbench/clip.py', 'workbench/activity.py', 'docs/HARDWARE_STATUS.md', icon='firmware'),
+            group('Agent & Kas', 'workbench/agent.py', 'workbench/clip.py', 'workbench/activity.py', 'docs/HARDWARE_STATUS.md', icon='firmware'),
             group('Theme & settings', 'workbench/qt_theme.py', 'workbench/session.py', icon='spec'),
             group('Tests', 'tests', icon='report'),
         )),

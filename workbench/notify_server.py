@@ -42,7 +42,7 @@ LONGEST_SECONDS = 60               # a program's own time is kept between 2 s an
 NOTES_KEPT = 200                   # the newest kept in memory (the Settings page's list); Log keeps them all
 FLOOD_PER_MINUTE = 20              # lines in Log from one program in a minute; the rest are counted
 SUMMARY_MOST, BODY_MOST, APP_MOST, ACTIONS_MOST = 200, 1000, 80, 6
-REASONS = {1: 'expired', 2: 'closed by you', 3: 'closed by the app', 4: 'closed by Graphite'}
+REASONS = {1: 'expired', 2: 'closed by you', 3: 'closed by the app', 4: 'closed by Kas'}
 URGENCY = {0: 'low', 1: 'normal', 2: 'urgent'}
 TAG = re.compile(r'<[^>]{0,200}>')
 CONTROL = re.compile(r'[\x00-\x08\x0b-\x1f\x7f]')
@@ -52,10 +52,10 @@ def wanted(environ=None):
     """(serve, why): whether Graphite should be the session's notification server here."""
     environ = os.environ if environ is None else environ
     said = str(environ.get('GRAPHITE_NOTIFICATIONS', '')).strip().lower()
-    if said in ('0', 'off', 'no'):return False, 'Graphite does not show notifications here: GRAPHITE_NOTIFICATIONS is off.'
+    if said in ('0', 'off', 'no'):return False, 'Kas does not show notifications here: GRAPHITE_NOTIFICATIONS is off.'
     if said in ('1', 'on', 'yes'):return True, ''
     if environ.get('ARC_LEDGER_XSESSION') == '1':return True, ''
-    return False, ('Graphite shows notifications from apps in its own session (Graphite as the desktop). Here it was started '
+    return False, ('Kas shows notifications from apps in its own session (Kas as the desktop). Here it was started '
                    'inside another desktop, which shows them itself.')
 
 
@@ -209,7 +209,7 @@ def _server_class():
         @Slot(QDBusMessage)
         def GetServerInformation(self, message):  # noqa: N802
             message.setDelayedReply(True)
-            reply = message.createReply();reply.setArguments(['Graphite', 'Graphite', version(), SPEC])
+            reply = message.createReply();reply.setArguments(['Kas', 'Kas', version(), SPEC])
             self.service.bus.send(reply)
 
     _CLASSES.append(Server)
@@ -249,7 +249,7 @@ class Service:
         bus = self.bus or QDBusConnection.sessionBus();self.bus = bus
         if not bus.isConnected():
             self.state, self.why = 'no bus', ('There is no session bus here (%s), so programs cannot send notifications to '
-                                              'Graphite.' % (' '.join((bus.lastError().message() or 'not connected').split())));return False
+                                              'Kas.' % (' '.join((bus.lastError().message() or 'not connected').split())));return False
         face = bus.interface()
         held = face.isServiceRegistered(NAME)
         if held.isValid() and held.value():
@@ -257,19 +257,19 @@ class Service:
             self.owner = owner.value() if owner.isValid() else ''
             pid = face.servicePid(NAME)
             pid = pid.value() if pid.isValid() else 0
-            self.state, self.why = 'elsewhere', ('Another program already shows the notifications here (%s%s), so Graphite leaves '
+            self.state, self.why = 'elsewhere', ('Another program already shows the notifications here (%s%s), so Kas leaves '
                                                  'them to it.' % (program_of(pid) or 'bus name ' + self.owner, (', process %d' % pid) if pid else ''))
             return False
         self.server = _server_class()(self)
         if not bus.registerObject(PATH, self.server, QDBusConnection.ExportAllSlots | QDBusConnection.ExportAllSignals):
-            self.state, self.why = 'failed', 'Graphite could not offer its notification object: ' + (bus.lastError().message() or 'refused')
+            self.state, self.why = 'failed', 'Kas could not offer its notification object: ' + (bus.lastError().message() or 'refused')
             self.server = None;return False
         reply = face.registerService(NAME, QDBusConnectionInterface.DontQueueService, QDBusConnectionInterface.DontAllowReplacement)
         if not reply.isValid() or _int(reply.value()) != _int(QDBusConnectionInterface.ServiceRegistered):
             bus.unregisterObject(PATH);self.server = None
-            self.state, self.why = 'elsewhere', 'Another program took the notifications name first, so Graphite leaves them to it.'
+            self.state, self.why = 'elsewhere', 'Another program took the notifications name first, so Kas leaves them to it.'
             return False
-        self.state, self.why = 'serving', 'Graphite shows the notifications apps send in this session, and keeps them in Log.'
+        self.state, self.why = 'serving', 'Kas shows the notifications apps send in this session, and keeps them in Log.'
         return True
 
     def stop(self):
@@ -278,7 +278,7 @@ class Service:
             self.bus.unregisterService(NAME);self.bus.unregisterObject(PATH)
         except RuntimeError:  # the bus went with the application
             pass
-        self.server = None;self.state, self.why = 'off', 'Graphite has closed.'
+        self.server = None;self.state, self.why = 'off', 'Kas has closed.'
 
     # what the program asked
     def notify(self, app, replaces_id, icon, summary, body, actions, hints, expire_timeout):

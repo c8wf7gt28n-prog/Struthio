@@ -37,7 +37,7 @@ def ftp_curl():
         result = subprocess.run([curl, '--disable', '--version'], stdout=subprocess.PIPE,
                                 stderr=subprocess.DEVNULL, text=True, errors='replace', timeout=3, check=True)
     except (OSError, subprocess.SubprocessError):
-        return None, 'Graphite could not check this host’s curl.'
+        return None, 'Kas could not check this host’s curl.'
     protocols = next((line.split()[1:] for line in result.stdout.splitlines() if line.startswith('Protocols:')), ())
     if 'ftp' not in protocols:
         return None, 'This host’s curl has no FTP support.'
@@ -93,7 +93,7 @@ def transfer(curl, url, sink, limit, directory=False):
             while chunk := process.stdout.read1(min(64 * 1024, limit - size + 1)):
                 size += len(chunk)
                 if size > limit:
-                    raise ValueError('FTP transfer exceeded the Graphite size limit.')
+                    raise ValueError('FTP transfer exceeded the Kas size limit.')
                 sink.write(chunk)
                 digest.update(chunk)
             code = process.wait()
@@ -102,7 +102,7 @@ def transfer(curl, url, sink, limit, directory=False):
             if process.poll() is None:
                 process.kill()
     if code == 63:
-        raise ValueError('FTP transfer exceeded the Graphite size limit.')
+        raise ValueError('FTP transfer exceeded the Kas size limit.')
     if code in (28, -9):
         raise ValueError('FTP transfer timed out.')
     if code:

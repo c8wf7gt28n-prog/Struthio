@@ -31,20 +31,20 @@ VIEWS=[
  ('tools','Tool Atlas','Inspect registered operation contracts, prerequisites and tool passports.','Instruments','atlas','tool_atlas_qt.py','ToolAtlasTab',('atlas.',),'capability application calc python kicad ngspice verilog','workspace'),
  ('office','Office & incoming work','Open existing receiving, document and working-copy controls.','Work','office','office_building_qt.py','OfficeBuildingTab',('office.','receiving.'),'calc writer spreadsheet document import incoming','operations'),
  ('files','Files & working copies','Read working material and inspect controlled copies and versions.','Work','files','files_qt.py','FilesTab',('files.','copies.'),'file originals master copies export version compare','workspace'),
- ('documents','Documents','Write and format a page; Graphite edits the same page when you ask.','Work','documents','document_qt.py','DocumentsTab',('documents.',),'write document page letter essay bold italic heading format text','workspace'),
- ('investigations','Investigations & assignments','Follow what Graphite is working on: the question, every recorded step, findings, open conditions; pause, resume, stop.','Work','investigations','investigations_qt.py','InvestigationTab',('investigation.','agent.'),'assignment investigation slate working findings steps evidence resume stop','workspace'),
- ('agenda','Operations agenda','Open Graphite’s existing ordered work and priority controls.','Work','agenda','agenda_qt.py','AgendaTab',('agenda.',),'queue priority schedule nice jobs work','workspace'),
+ ('documents','Documents','Write and format a page; Kas edits the same page when you ask.','Work','documents','document_qt.py','DocumentsTab',('documents.',),'write document page letter essay bold italic heading format text','workspace'),
+ ('investigations','Investigations & assignments','Follow what Kas is working on: the question, every recorded step, findings, open conditions; pause, resume, stop.','Work','investigations','investigations_qt.py','InvestigationTab',('investigation.','agent.'),'assignment investigation slate working findings steps evidence resume stop','workspace'),
+ ('agenda','Operations agenda','Open Kas’s existing ordered work and priority controls.','Work','agenda','agenda_qt.py','AgendaTab',('agenda.',),'queue priority schedule nice jobs work','workspace'),
  ('brain','Local model','Inspect or configure the existing local inference capability.','Configuration','brain','brain_qt.py','BrainTab',('brain.',),'slate model weights gguf offline inference','workspace'),
  ('knowledge','Sources & knowledge','Search the existing source-linked knowledge records.','Knowledge','sources','knowledge_qt.py','KnowledgeTab',('knowledge.',),'sources study library documents facts','workspace'),
  ('references','References','Open the current reference library and its source-reading controls.','Knowledge','references','reference_qt.py','ReferenceTab',('references.',),'datasheet vendor chinese manual original','workspace'),
- ('memory','Graphite memory','Inspect saved directions, tasks, procedures and learning review.','Knowledge','memory','memory_qt.py','MemoryTab',('memory.',),'remember lessons procedure preference learning','workspace'),
- ('settings','Graphite settings','Open the shared settings hierarchy and its highlighted editors.','Configuration','settings','settings_qt.py','SettingsTab',('ledger.settings',),'settings font appearance rules configuration','workspace'),
+ ('memory','Kas memory','Inspect saved directions, tasks, procedures and learning review.','Knowledge','memory','memory_qt.py','MemoryTab',('memory.',),'remember lessons procedure preference learning','workspace'),
+ ('settings','Kas settings','Open the shared settings hierarchy and its highlighted editors.','Configuration','settings','settings_qt.py','SettingsTab',('ledger.settings',),'settings font appearance rules configuration','workspace'),
  ('activity','Activity & receipts','Inspect the existing work trail, jobs and retained outcomes.','Work','trail','work_trail_qt.py','WorkTrailTab',('ledger.activity','ledger.trail.','jobs.'),'jobs receipts history audit progress','workspace'),
  # Programs open Graphite rooms. Native operations are deliberate actions inside those rooms.
  ('mail','Mail','Read saved mail, prepare a local draft, or open the message in Thunderbird.','Programs','program:mail','program_rooms_qt.py','MailRoom',('programs.mail.',),'email eml attachment correspondence reply thunderbird','operations'),
  ('blender','Blender','Inspect a blend file, check its scenes with Blender, or open the full editor.','Programs','program:blender','program_rooms_qt.py','BlenderRoom',('programs.blender.',),'3d mesh scene modeling enclosure','operations'),
  ('godot','Godot','Inspect a project and choose a scene to play or edit in Godot.','Programs','program:godot','program_rooms_qt.py','GodotRoom',('programs.godot.',),'game scene play editor gdscript','operations'),
- ('transfer','Transfer','List an anonymous FTP directory and retrieve a file into Graphite Files.','Programs','program:transfer','program_rooms_qt.py','TransferRoom',('programs.transfer.',),'ftp curl download network file','operations'),
+ ('transfer','Transfer','List an anonymous FTP directory and retrieve a file into Kas Files.','Programs','program:transfer','program_rooms_qt.py','TransferRoom',('programs.transfer.',),'ftp curl download network file','operations'),
  ('cartridge','Cartridge Bay','Inspect a local NES cartridge image and start a detected RetroArch core.','Programs','program:cartridge','program_rooms_qt.py','CartridgeRoom',('programs.cartridge.',),'nintendo nes rom emulation retroarch game','operations'),
  ('inkscape','Inkscape','Inspect a self-contained SVG, render a PNG proof, or open the full editor.','Programs','program:inkscape','program_rooms_qt.py','InkscapeRoom',('programs.inkscape.',),'svg vector panel drawing art png export proof','operations'),
  ('media','Media Bench','Inspect audio and video with FFprobe and save a timed excerpt with FFmpeg.','Programs','program:media','program_rooms_qt.py','MediaRoom',('programs.media.',),'audio video wav ffmpeg ffprobe mp4 trim clip playback','operations'),
@@ -67,9 +67,9 @@ def presentation(ident,kind):
     """What actually opens, in one truthful sentence (the contract's human_route/presentation mode)."""
     if kind=='checks':
         name=NATIVE_NAMES[ident]
-        return "Graphite's %s checks and controls in a Graphite workspace; %s itself is not opened"%(name,name)
-    if kind=='operations':return 'Graphite workspace over a restricted set of application operations; no application window is embedded'
-    return 'Graphite workspace'
+        return "Kas's %s checks and controls in a Kas workspace; %s itself is not opened"%(name,name)
+    if kind=='operations':return 'Kas workspace over a restricted set of application operations; no application window is embedded'
+    return 'Kas workspace'
 # A route that opens more than its own module is available only when every opened module is present.
 REQUIRES={'calculate':('project_desk_qt.py','problem_qt.py','calculator_qt.py'),'laboratory':('project_desk_qt.py','problem_qt.py','lab_qt.py')}
 # Views whose factory shows the existing "project required" explanation in a bare program.
@@ -118,11 +118,11 @@ def suggestions(selected):
     if selected is None:return []
     role=selected['role']
     if role.startswith('memory_'):
-        choices=(('memory','Open the existing memory, profile and review controls.'),('settings','Inspect the shared Graphite settings.'))
+        choices=(('memory','Open the existing memory, profile and review controls.'),('settings','Inspect the shared Kas settings.'))
     elif role=='document':
-        choices=(('documents','Open the page and keep writing; Graphite edits it with you.'),('inquiries','Turn the writing into a testable question.'))
+        choices=(('documents','Open the page and keep writing; Kas edits it with you.'),('inquiries','Turn the writing into a testable question.'))
     elif role in ('idea','project'):
-        choices=(('documents','Write the idea out as a page you and Graphite can edit.'),('inquiries','Turn this saved idea into a testable question.'),('calculate','Give the idea quantities, units and constraints.'),('laboratory','Explore the existing experiment and connected-work controls.'))
+        choices=(('documents','Write the idea out as a page you and Kas can edit.'),('inquiries','Turn this saved idea into a testable question.'),('calculate','Give the idea quantities, units and constraints.'),('laboratory','Explore the existing experiment and connected-work controls.'))
     elif role in ('inquiry','investigation'):
         choices=(('methods','Inspect methods and their stated assumptions.'),('tools','Inspect the tools before choosing a check.'))
     elif role=='working_copy':

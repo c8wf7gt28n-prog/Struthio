@@ -29,11 +29,11 @@ DEFAULTS = (
     ('ideas', 'collection', 'Ideas', 'Rough ideas, kept in your own words.', 'active'),
     ('projects', 'collection', 'Projects', 'Work with a goal, its sources and its results.', 'active'),
     ('library', 'collection', 'Research & references', 'Reference collections and research tools.', 'active'),
-    ('ledger', 'work', 'Graphite', 'This workspace and its supporting services.', 'active'),  # GRAPHITE-01: the id stays 'ledger'
+    ('ledger', 'work', 'Kas', 'This workspace and its supporting services.', 'active'),  # GRAPHITE-01: the id stays 'ledger'
     ('legal', 'office', 'Legal', 'Agreements, rights records and notices.', 'active'),
     ('engineering', 'office', 'Engineering', 'Design, implementation and investigation.', 'active'),
     ('publishing', 'office', 'Publishing', 'Manuscripts, references and editorial work.', 'active'),
-    ('operations', 'office', 'Operations', 'Graphite maintenance, installation and recovery.', 'active'),
+    ('operations', 'office', 'Operations', 'Kas maintenance, installation and recovery.', 'active'),
 )
 DEFAULT_RELATIONS = tuple((row[0], 'part_of', 'concern') for row in DEFAULTS if row[0] != 'concern') + (
     ('ledger', 'maintained_by', 'engineering'), ('ledger', 'maintained_by', 'operations'), ('concern', 'maintained_by', 'legal'),
@@ -41,9 +41,9 @@ DEFAULT_RELATIONS = tuple((row[0], 'part_of', 'concern') for row in DEFAULTS if 
 # GRAPHITE-01 (D32): Graphite is the public name; identities stay. A profile made before the rename keeps its stored seed rows
 # (INSERT OR IGNORE never rewrites them and nothing here migrates them). While such a seed word is untouched it is shown in
 # Graphite words; a title or description the owner chose is always shown as written.
-OLD_SEED_WORDS = {('ledger', 'title'): ('Ledger', 'Graphite'),
+OLD_SEED_WORDS = {('ledger', 'title'): ('Ledger', 'Kas'),
                   ('operations', 'summary'): ('Ledger maintenance, installation and recovery.',
-                                              'Graphite maintenance, installation and recovery.')}
+                                              'Kas maintenance, installation and recovery.')}
 
 
 def shown(ident, value, field='title'):

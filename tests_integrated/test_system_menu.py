@@ -94,7 +94,7 @@ class AvailabilityTests(unittest.TestCase):
                 with self.assertRaises(ValueError,msg=program):power.system(('where',program))
             ran.assert_not_called()
         self.assertEqual(power.PROGRAMS,('loginctl','systemctl'));self.assertEqual(power.SCOPES['restart'],power.SCOPES['shutdown'],'this computer')
-        self.assertEqual((power.SCOPES['logout'],power.SCOPES['leave'],power.SCOPES['restart']),('this login session','this Graphite session','this computer'))
+        self.assertEqual((power.SCOPES['logout'],power.SCOPES['leave'],power.SCOPES['restart']),('this login session','this Kas session','this computer'))
 
     def test_one_function_issues_every_command(self):
         """session_power.system is the only place a session or power command can start; the menus and the cat name none."""
@@ -185,7 +185,7 @@ class RunActionTests(unittest.TestCase):
             result,host,events,told,ended=self.run_with(action,fake)
             self.assertEqual(result['state'],'UNAVAILABLE');self.assertTrue(result['reason'].startswith(power.NO_SESSION))
             self.assertEqual(events,[],'no leave flow, no confirmation, no close, no command');self.assertEqual(host.closed,0)
-            self.assertIn('Graphite stays open',told[0][1]);self.assertEqual(ended,[])
+            self.assertIn('Kas stays open',told[0][1]);self.assertEqual(ended,[])
         self.assertEqual(fake.runs,[])
 
     def test_an_unavailable_action_is_refused_with_the_reason(self):
@@ -197,7 +197,7 @@ class RunActionTests(unittest.TestCase):
         self.assertEqual((result['state'],result['step']),('CANCELLED','leave'));self.assertEqual([e[0] for e in events],['leave'])
         result,host,events,told,ended=self.run_with('shutdown',FakeLogind(),confirm=False)
         self.assertEqual((result['state'],result['step']),('CANCELLED','confirm'));self.assertEqual([e[0] for e in events],['leave','confirm'])
-        self.assertEqual(host.closed,0);self.assertIn('Graphite stays open',host.messages[-1]);self.assertIn('nothing was stopped',host.messages[-1]);self.assertEqual(ended,[])
+        self.assertEqual(host.closed,0);self.assertIn('Kas stays open',host.messages[-1]);self.assertIn('nothing was stopped',host.messages[-1]);self.assertEqual(ended,[])
 
     def test_a_refused_close_issues_nothing_and_graphite_stays_open(self):
         result,host,events,told,ended=self.run_with('restart',FakeLogind(),refuse=True)
@@ -208,7 +208,7 @@ class RunActionTests(unittest.TestCase):
         fake=FakeLogind(missing=('systemctl',))
         result,host,events,told,ended=self.run_with('shutdown',fake)
         self.assertEqual((result['state'],result['closed']),('FAILED',False));self.assertEqual([e[0] for e in events],['leave','confirm'])
-        self.assertEqual(told[0][0],'Shut down cannot start');self.assertIn('systemctl is not installed',told[0][1]);self.assertIn('Graphite stays open; nothing was stopped',told[0][1])
+        self.assertEqual(told[0][0],'Shut down cannot start');self.assertIn('systemctl is not installed',told[0][1]);self.assertIn('Kas stays open; nothing was stopped',told[0][1])
         self.assertEqual(fake.runs,[]);self.assertEqual(host.closed,0)
 
     def test_a_command_refused_after_the_close_says_why(self):
@@ -218,7 +218,7 @@ class RunActionTests(unittest.TestCase):
         result,host,events,told,ended=self.run_with('restart',fake)
         self.assertEqual((result['state'],result['closed']),('FAILED',True));self.assertEqual([e[0] for e in events],['leave','confirm','close','run'])
         self.assertEqual(told[0][0],'Restart did not start');self.assertIn('Interactive authentication required',told[0][1])
-        self.assertIn('Graphite had already closed the ordinary way',told[0][1]);self.assertEqual(ended,[app()])
+        self.assertIn('Kas had already closed the ordinary way',told[0][1]);self.assertEqual(ended,[app()])
 
     def test_availability_is_asked_again_after_the_questions(self):
         """The session or the permission may change while the questions are open: nothing is stopped or issued then."""
@@ -381,18 +381,18 @@ class MenuTests(unittest.TestCase):
         menu,host=self.menu()
         self.assertEqual(self.fake.requests,[],'building the menu asks the system nothing (D2-fix): logind is asked when it opens')
         menu.fill()
-        self.assertEqual(menu.words(),['Game','Stop all jobs','—','processes','—','Graphite services','—','Lock','Suspend','Log out','Restart','Shut down','Exit Graphite'])  # 1.0 S1
+        self.assertEqual(menu.words(),['Game','Stop all jobs','—','processes','—','Kas services','—','Lock','Suspend','Log out','Restart','Shut down','Exit Kas'])  # 1.0 S1
         self.assertIs(menu.items()[0],menu.game,'Game first');self.assertIs(menu.items()[1],menu.kill,'Stop all jobs directly beneath')
-        self.assertEqual(menu.kill.caption,'work Graphite manages');self.assertIn('What Graphite does not manage keeps running',menu.kill.toolTip())
+        self.assertEqual(menu.kill.caption,'work Kas manages');self.assertIn('What Kas does not manage keeps running',menu.kill.toolTip())
         self.assertNotIn('Programs',menu.kill.toolTip(),'0.8.4: on screen it is Apps, and what is not an app is not called Programs')
         self.assertNotIn('Ctrl',menu.kill.toolTip(),'0.8.4: no key is named in a tip')
         rows=menu.session_rows
-        self.assertEqual({k:r.caption for k,r in rows.items()},{'lock':'this screen · unavailable','suspend':'this computer · unavailable','logout':'this login session','leave':'this Graphite session','restart':'this computer','shutdown':'this computer · unavailable'})
+        self.assertEqual({k:r.caption for k,r in rows.items()},{'lock':'this screen · unavailable','suspend':'this computer · unavailable','logout':'this login session','leave':'this Kas session','restart':'this computer','shutdown':'this computer · unavailable'})
         self.assertEqual({k:r.unavailable for k,r in rows.items()},{'lock':power.NO_LOCKER,'suspend':'Suspend is unavailable here: it locks the screen first. '+power.NO_LOCKER,  # 1.0 S1: no locker in the fake
                                                                    'logout':'','leave':'','restart':'','shutdown':'Shut down is unavailable: this computer does not offer it (logind: na).'})
         self.assertTrue(all(r.isEnabled() for r in rows.values()),'an unavailable row stays reachable: it says why')
         self.assertIn('logind: na',rows['shutdown'].toolTip());self.assertIn('Scope: this computer.',rows['restart'].toolTip())
-        self.assertIn('First Graphite asks about your open work',rows['restart'].toolTip());self.assertIn('Nothing is stopped before you confirm',rows['restart'].toolTip())
+        self.assertIn('First Kas asks about your open work',rows['restart'].toolTip());self.assertIn('Nothing is stopped before you confirm',rows['restart'].toolTip())
         self.assertEqual(self.fake.runs,[],'opening and reading start nothing')
         with patch.dict(os.environ,{'ARC_LEDGER_XSESSION':'1'}):dedicated,_=self.menu()
         self.assertEqual(dedicated.session_rows['leave'].word,'Return to Debian');self.assertIn('Debian text login',dedicated.session_rows['leave'].toolTip())
@@ -440,9 +440,9 @@ class MenuTests(unittest.TestCase):
         from PySide6.QtCore import Qt
         from PySide6.QtTest import QTest
         menu,host=self.menu();menu.open_menu(keyboard=True);self.settle();restart=menu.service_actions['Reboot']
-        self.assertEqual((restart.text(),restart.word,restart.accessibleName()),('Restart','Graphite services: Restart','Graphite services: Restart'))
+        self.assertEqual((restart.text(),restart.word,restart.accessibleName()),('Restart','Kas services: Restart','Kas services: Restart'))
         restart.setFocus(Qt.TabFocusReason);self.settle();QTest.keyClick(restart,Qt.Key_F1);self.settle()
-        self.assertTrue(host.messages[-1].startswith('Graphite services: Restart — '),host.messages[-1]);self.assertIn('The computer is not restarted',host.messages[-1])
+        self.assertTrue(host.messages[-1].startswith('Kas services: Restart — '),host.messages[-1]);self.assertIn('The computer is not restarted',host.messages[-1])
         self.assertTrue(menu.descriptor(menu.session_rows['restart']).startswith('Restart · this computer'))
 
     def test_order_and_niceness_are_distinct_controls_in_the_process_list(self):

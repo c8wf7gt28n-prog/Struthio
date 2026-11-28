@@ -99,7 +99,7 @@ def checks(model_path, base, output=None, backend='CPU'):
                 try:return brain_seal.exchange(worker, method, path, body, sent, timeout=60.0, limit=65536)
                 except OSError as exc:return type(exc).__name__, b''
             status, _ = asked('POST', '/v1/chat/completions', canary_key, chat)
-            wall('inherited_key', 401, status, status == 401, 'an LLAMA_API_KEY set in Graphite\'s own environment')
+            wall('inherited_key', 401, status, status == 401, 'an LLAMA_API_KEY set in Kas\'s own environment')
             began = time.monotonic();status, raw = asked('POST', '/v1/chat/completions', key, chat)
             answer = None
             if status == 200:

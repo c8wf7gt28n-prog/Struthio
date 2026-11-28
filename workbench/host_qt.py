@@ -54,10 +54,10 @@ class HostPanel(QWidget):
                 'OBSERVED_RUNNING':'Previous model reload requested; the same model is now observed running.',
                 'REQUEST_FAILED':'Previous model reload was requested but its job did not complete; inspect Local models.'
                 }.get(service.get('model_restore_display',service['model_restore']))
-            self.cycle.setText('GRAPHITE SERVICES · '+service['summary']+'\n'+str(counts['running'])+' running jobs · '+str(counts['queued'])+' queued jobs'+
+            self.cycle.setText('KAS SERVICES · '+service['summary']+'\n'+str(counts['running'])+' running jobs · '+str(counts['queued'])+' queued jobs'+
                 ('\n'+str(stale)+(' running record has' if stale==1 else ' running records have')+' no live worker · use Master Stop or Work trail → recover' if stale else '')+
                 '\n'+service['control_plane']+('\n'+restore if restore else ''))
-        except (ValueError,OSError,sqlite3.Error,KeyError,TypeError) as exc:self.cycle.setText('GRAPHITE SERVICES · status unavailable\n'+str(exc))
+        except (ValueError,OSError,sqlite3.Error,KeyError,TypeError) as exc:self.cycle.setText('KAS SERVICES · status unavailable\n'+str(exc))
         if not getattr(self.kernel, 'is_host_client', False):
             self.status.setText('Embedded development mode. This desktop owns its local Kernel.'); return
         try:
@@ -101,7 +101,7 @@ def install(host):
         host._close_start()
         panel = HostPanel(host); host.tabs.addTab(panel, panel.title()); host.tabs.setCurrentWidget(panel)
     action = QAction('Background service…', host)
-    action.setToolTip('Check background work, reconnect, or stop the shared Graphite service')
+    action.setToolTip('Check background work, reconnect, or stop the shared Kas service')
     action.triggered.connect(show)
     host.a_host_service = action
     # The visible shell uses these existing menus through its compact toolbar;

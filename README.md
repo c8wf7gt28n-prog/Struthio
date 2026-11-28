@@ -1,7 +1,7 @@
-# Graphite 1.1 · Your desktop for Debian
+# Kas 1.1 · Your desktop for Debian
 
-**Graphite 1.1.1** (28 November 2026) adds the system door (software, services, the clock and accounts through
-Debian's own password prompt; [notes](docs/RELEASE_NOTES_1.1.1.md)). **Graphite 1.1** makes Graphite a full desktop for Debian for a Windows-and-DOS hand. It installs as
+**Kas 1.1.1** (28 November 2026) adds the system door (software, services, the clock and accounts through
+Debian's own password prompt; [notes](docs/RELEASE_NOTES_1.1.1.md)). **Kas 1.1** makes Kas a full desktop for Debian for a Windows-and-DOS hand. It installs as
 Debian packages from a folder repository. One bar along the bottom holds Start, the line, your windows, Kas with HALT,
 the tray and the clock. Files is an Explorer, the menus are File, Edit, View, Go, Tools and Help, Windows keys and DOS
 words work, and a Terminal drops from the top. Kas speaks sharp and dry, and runs forty recipes and a classified command
@@ -11,12 +11,12 @@ tool on the whole box, each change shown first and done only on your press. **St
 What follows describes 1.0, on which 1.1 is built; where they differ, 1.1's notes are right.
 
 
-Graphite is a desktop for one minimal Debian computer: it is the session, the whole computer is in it, and its assistant,
-Kasandra (Kas for short), is an agent user of the system who works beside you under your authority. Everything stays on
+Kas is a desktop for one minimal Debian computer: it is the session, the whole computer is in it, and its assistant,
+Kas, is an agent user of the system who works beside you under your authority. Everything stays on
 that computer unless you turn a service on. Before November 6, 2026 the program was called Ledger & Slate; folders,
 scripts, settings keys and internal names keep those earlier names for compatibility.
 
-- **Graphite is the session.** A supervisor keeps it alive; your apps outlive a crash of its window; one bar along the
+- **Kas is the session.** A supervisor keeps it alive; your apps outlive a crash of its window; one bar along the
   bottom of the screen holds Start, the line and every open window, and brings any window forward; Lock, Suspend, Log out, Restart, Shut down and Return to Debian are plain actions that
   close apps politely.
 - **The whole computer.** Files as an Explorer, from Quick access to This computer, Home open as a List (rename, move, copy, delete to the bin, many at
@@ -33,11 +33,11 @@ scripts, settings keys and internal names keep those earlier names for compatibi
 - **Her model.** llama.cpp v1.0.0, sealed; the model check measures your machine and tunes it toward 99 tokens a
   second; an optional quick model takes a kind of question only where it passed its exam.
 - **The look.** Day, the launch look, and Night, its twin, from one set of design tokens with the Inter typeface;
-  Graphite and Kasandra as alternatives. No picture of Kas: her name, her state and her work.
+  Pencil and Indigo as alternatives (the looks once named Graphite and Kasandra). No picture of Kas: her name, her state and her work.
 
 **For 1.0:** [Your first evening with 1.0](docs/ACCEPTANCE_1.0.md) (the install, your paper's §2 test, the model, the
 §18 day, what to send back), [the ThinkPad page](docs/THINKPAD_FIRST_INSTALL.md), and
-[What's new in 1.0](docs/RELEASE_NOTES_1.0.md). In Graphite: Help ▸ The Living Desktop, and Help ▸ Kasandra, the Ghost
+[What's new in 1.0](docs/RELEASE_NOTES_1.0.md). In Kas: Help ▸ The Living Desktop, and Help ▸ Kas, the Ghost
 in the Shell.
 
 **Not tested.** By the owner's rule ("No testing") nothing in 1.0 has been through the test suite, the tiers or the
@@ -55,7 +55,7 @@ python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-1.0" --minim
 python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-1.0" --minimal-session --vulkan --yes
 ```
 
-`INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
+`INSTALL_LS.py` is the Kas installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
 every volume, restores the program into a new folder, installs the Debian prerequisites (with `--yes`, through sudo) and
 the pinned Python dependencies, checks the runtime imports, the payload and the seed, and ends with one line that says
 what actually happened. `--extract-only` verifies and restores without installing anything; `--offline` uses a prepared
@@ -76,11 +76,11 @@ included.
 ## Start
 
 ```
-bash START_MINIMAL_DEBIAN.sh   # from a Debian text login: the dedicated fullscreen session; prints "Graphite ended with status N" when you leave
+bash START_MINIMAL_DEBIAN.sh   # from a Debian text login: the dedicated fullscreen session; prints "Kas ended with status N" when you leave
 bash START_OFFICE.sh           # from an existing desktop: the ordinary window on the Office workspace (~/Concern/Office)
 ```
 
-Leave through the File menu's last group (or the foot of Start) → Return to Debian, or Exit Graphite on an
+Leave through the File menu's last group (or the foot of Start) → Return to Debian, or Exit Kas on an
 existing desktop. The same group's Log out, Restart and Shut down first save or set aside your work as leaving does, ask you
 to confirm, and then ask the system's own logind (never sudo); without a login session they say they are unavailable. On Windows, `START_OFFICE.cmd` starts the same program after Python
 and `requirements-qt.txt` are installed.
@@ -97,7 +97,7 @@ bash LEDGER.sh inventory
 
 ## Complete backups
 
-Close Graphite before taking a backup. This includes ordinary workspace files and working copies; restore always writes
+Close Kas before taking a backup. This includes ordinary workspace files and working copies; restore always writes
 NEW folders and leaves existing work untouched:
 
 ```
@@ -143,9 +143,9 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_1.0_full.zip PARTS "Graphite 1.0"
+python3 tools/package_release_parts.py OUT/Graphite_1.0_full.zip PARTS "Kas 1.0"
 ```
 
-Graphite's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).
+Kas's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).
 Stacy's artwork, the other project art, the names and the game copy are kept back (RIGHTS.md). Licences of bundled fonts,
 runtimes and dependencies are in THIRD_PARTY_NOTICES.md; the pinned dependencies are the requirements-*.txt files.

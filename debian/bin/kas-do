@@ -1,0 +1,5 @@
+#!/bin/sh
+# 1.1 W1/PK1: the keys that work whichever app is in front (tools/graphite-do), for Fluxbox's keys file and for typing.
+# 1.1 R1: the graphite-* names stay one release as symlinks to this file (tools/debian_pkg.py); called by one, say the new name.
+case "${0##*/}" in graphite*) echo "${0##*/} is now kas-do; the old name goes in the next release." >&2 ;; esac
+exec /usr/bin/python3 /usr/lib/graphite/tools/graphite-do "$@"

@@ -1121,7 +1121,7 @@ def network_entries(host, t):
     if t.kind not in ('connection', 'packet'):return []
     from . import log_qt
     entry = t.data;process = known_process(entry)
-    unknown = ('Its program belongs to another user of this computer; Graphite does not read or guess its name.' if entry.get('process') and not process
+    unknown = ('Its program belongs to another user of this computer; Kas does not read or guess its name.' if entry.get('process') and not process
                else 'The process is not known for this %s.' % t.noun)
     if process and re.fullmatch(r'[A-Za-z0-9_.+-]{1,60}', process):t.extra['line'] = 'network.observe | pick connections | where process has ' + process
     return [Entry('ask', named('Ask Stacy about this'), 'state', lambda:log_qt.ask_about(host, entry), icon='inquiries',
@@ -1222,17 +1222,17 @@ def root_entries(host):
     return [Entry('inquiries', 'Inquiries…', 'capability', bridged('show_discovery'), icon='inquiries', enabled=bridged('show_discovery') is not None, reason=missing),
             Entry('algorithms', 'Algorithm & Theory Atlas…', 'capability', bridged('show_algorithms'), icon='methods', enabled=bridged('show_algorithms') is not None, reason=missing),
             Entry('atlas', 'Tool Atlas…', 'capability', bridged('show_atlas'), icon='tools', enabled=bridged('show_atlas') is not None, reason=missing),
-            Entry('chains', 'Your chains', 'command', submenu=lambda:kept_chain_entries(host), icon='chain', tip='The chains kept in your Graphite menu file'),
+            Entry('chains', 'Your chains', 'command', submenu=lambda:kept_chain_entries(host), icon='chain', tip='The chains kept in your Kas menu file'),
             Entry('start', 'Start a chain from', 'command', submenu=lambda:start_entries(host), icon='chain', tip='A file in Files, read link by link'),
             Entry('line', 'Writing line', 'command', submenu=lambda:writing_line_entries(host), icon='line', tip='Assignment, Shell, Search or Log, the working area open'),
-            Entry('menu:edit', 'Edit the Graphite menu…', 'command', lambda:chain_menu.edit_menu_file(host), tip=str(chain_menu.menu_path()).replace(str(Path.home()), '~'))]
+            Entry('menu:edit', 'Edit the Kas menu…', 'command', lambda:chain_menu.edit_menu_file(host), tip=str(chain_menu.menu_path()).replace(str(Path.home()), '~'))]
 
 
 def root_entry(host):
     """A room's empty place with words of its own (Files, a Finder folder, the Library) carries the whole root as one row, where
     Files' old chains › held it; Today and the workspace's empty place are the root itself (empty_entries)."""
     return Entry('root', 'Root menu', 'command', submenu=lambda:root_entries(host), icon='chain',
-                 tip='The menu of an empty place, as on Today: Inquiries, the atlases, your chains, a chain from a file, the writing line, the Graphite menu file')
+                 tip='The menu of an empty place, as on Today: Inquiries, the atlases, your chains, a chain from a file, the writing line, the Kas menu file')
 
 
 def empty_entries(host, t):
@@ -2977,7 +2977,7 @@ FOLDED = (
     ('Files: an empty place › chains', 'Tool Atlas…', 'empty:files', 'more/atlas'), ('Files: an empty place › chains', 'your kept chains', 'empty:files', 'start/chains'),
     ('Files: an empty place › chains', 'start from ›', 'empty:files', 'start/start'), ('Files: an empty place › chains', 'writing line ›', 'empty:files', 'more/line'),
     ('Files: an empty place › chains › writing line', 'Shell', 'empty:files', 'more/line/line:shell'),
-    ('Files: an empty place › chains', 'edit the Graphite menu…', 'empty:files', 'more/menu:edit'),
+    ('Files: an empty place › chains', 'edit the Kas menu…', 'empty:files', 'more/menu:edit'),
     ('Files: a smart folder', 'Rename…', 'smart', 'rename'), ('Files: a smart folder', 'Export…', 'smart', 'export'),
     ('Files: a file', 'the chain from @files: (the file\'s chain menu)', 'file', 'then'),
     ('Finder: an entry', 'Open', 'finder', 'open'), ('Finder: an entry', 'Open in viewer', 'finder', 'open:viewer'), ('Finder: an entry', 'Show in Files', 'finder', 'show:files'),
@@ -2991,7 +2991,7 @@ FOLDED = (
     ('Today (root chain menu)', 'Inquiries…', 'empty:today', 'inquiries'), ('Today', 'Algorithm & Theory Atlas…', 'empty:today', 'more/algorithms'),
     ('Today', 'Tool Atlas…', 'empty:today', 'more/atlas'), ('Today', 'your kept chains', 'empty:today', 'start/chains'), ('Today', 'start from ›', 'empty:today', 'start/start'),
     ('Today', 'console › Log · Lines · Kernel · Find · Shell', 'empty:today', 'more/line'), ('Today', 'writing line ›', 'empty:today', 'more/line'),
-    ('Today › writing line', 'Shell', 'empty:today', 'more/line/line:shell'), ('Today', 'edit the Graphite menu…', 'empty:today', 'more/menu:edit'),
+    ('Today › writing line', 'Shell', 'empty:today', 'more/line/line:shell'), ('Today', 'edit the Kas menu…', 'empty:today', 'more/menu:edit'),
     ('Document page (Qt\'s text menu)', 'Undo', 'passage', 'edit:undo'), ('Document page', 'Redo', 'passage', 'edit:redo'), ('Document page', 'Cut', 'passage', 'edit:cut'),
     ('Document page', 'Copy', 'passage', 'edit:copy'), ('Document page', 'Paste', 'passage', 'edit:paste'), ('Document page', 'Delete', 'passage', 'edit:delete'),
     ('Document page', 'Select All', 'passage', 'edit:all'),

@@ -204,7 +204,7 @@ def create(kernel, args, principal, procedure=None, adaptive=None):
     if len(records.canonical(current).encode())>2097152:raise ValueError('Selected working-copy identities exceed 2 MiB; use a smaller order')
     for ident in args['copies']:
         _, row, _=store.workspace(kernel,ident,principal)
-        if not row['for_slate']: raise ValueError('Delegate each selected working copy to Graphite before preparing continuing work')
+        if not row['for_slate']: raise ValueError('Delegate each selected working copy to Kas before preparing continuing work')
     plan={'schema':'arc.work-order/1','id':uuid.uuid4().hex,'owner':principal.identity,'created':time.time(),
         'assignment':assignment['id'],'assignment_revision':assignment['revision'],'assignment_digest':records.digest(assignment),
         'project':project['id'],'project_digest':records.digest(project),

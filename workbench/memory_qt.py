@@ -14,7 +14,7 @@ from . import locations
 class MemoryTab(ServiceTab):
     def __init__(self,host):
         super().__init__(host);self.job=None;self.last_checkpoint=None;self.current_reference=None;self.pending_binding=None;self.profile_enabled=False;self.task_epoch=0
-        h=QLabel('GRAPHITE · MEMORY');h.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(h)
+        h=QLabel('KAS · MEMORY');h.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(h)
         self.note=QLabel('Teach through explicit feedback. Save and verify a checkpoint before starting a fresh working context.');self.note.setWordWrap(True);self.outer.addWidget(self.note)
         row=QHBoxLayout();self.context_label=QLabel('Interaction context');row.addWidget(self.context_label);self.context_choice=QComboBox();self.context_choice.addItems(CONTEXTS);self.context_choice.setCurrentText('engineering_execution');self.context_choice.currentTextChanged.connect(self.refresh_profile);row.addWidget(self.context_choice,1);self.outer.addLayout(row)
         self.pages=QTabWidget();self.learning_page=QWidget();learn=QVBoxLayout(self.learning_page);learn.setContentsMargins(0,0,0,0)
@@ -22,7 +22,7 @@ class MemoryTab(ServiceTab):
         self.enabled=QCheckBox('Use this private personality reference in local replies');self.enabled.toggled.connect(self.toggle_profile);learn.addWidget(self.enabled)
         buttons=QGridLayout()
         for i,(label,fn) in enumerate([('Import personality JSON',self.import_seed),('Refresh learning',self.refresh_profile),('Export private memory',self.export_memory),('Restore private memory',self.restore_memory),('Erase profile and feedback',self.delete_profile)]):self.add_button(buttons,label,fn,i)
-        learn.addLayout(buttons);form=QFormLayout();self.preference=QLineEdit('technical_depth');form.addRow('Preference ID',self.preference);self.direction=QLineEdit();writing_prompt(self.direction, 'Describe the response you want from Graphite');form.addRow('Owner direction',self.direction)
+        learn.addLayout(buttons);form=QFormLayout();self.preference=QLineEdit('technical_depth');form.addRow('Preference ID',self.preference);self.direction=QLineEdit();writing_prompt(self.direction, 'Describe the response you want from Kas');form.addRow('Owner direction',self.direction)
         self.feedback_value=QDoubleSpinBox();self.feedback_value.setRange(0,1);self.feedback_value.setSingleStep(.25);self.feedback_value.setValue(1);self.feedback_value.setDecimals(2);form.addRow('Agreement (0–1)',self.feedback_value)
         self.feedback_kind=QComboBox();self.feedback_kind.addItems(WEIGHTS);form.addRow('Feedback kind',self.feedback_kind);self.soft=QCheckBox('Soft evidence may decay; direct corrections persist');form.addRow(self.soft);learn.addLayout(form)
         commit=QPushButton('Teach this preference');commit.clicked.connect(self.teach);learn.addWidget(commit)
@@ -37,7 +37,7 @@ class MemoryTab(ServiceTab):
         save_box.addLayout(form);save=QPushButton('Save and verify checkpoint');save.clicked.connect(self.save_checkpoint);save_box.addWidget(save);save_scroll=QScrollArea();save_scroll.setWidgetResizable(True);save_scroll.setWidget(save_page);self.task_pages.addTab(save_scroll,'Checkpoint')
         resume_page=QWidget();resume=QVBoxLayout(resume_page);resume.setContentsMargins(0,0,0,0)
         for label,fn in [('Preview current checkpoint context',self.preview_context),('Start fresh context from checkpoint',self.clear_context),('Relink identical restored sources',self.rebind_sources)]:b=QPushButton(label);b.clicked.connect(fn);resume.addWidget(b)
-        self.question=QLineEdit();writing_prompt(self.question, 'Ask about the saved task and its current sources');resume.addWidget(self.question);ask=QPushButton('Resume with local Graphite');ask.clicked.connect(self.ask);resume.addWidget(ask);cancel=QPushButton('Cancel local reply');cancel.clicked.connect(self.cancel);resume.addWidget(cancel)
+        self.question=QLineEdit();writing_prompt(self.question, 'Ask about the saved task and its current sources');resume.addWidget(self.question);ask=QPushButton('Resume with local Kas');ask.clicked.connect(self.ask);resume.addWidget(ask);cancel=QPushButton('Cancel local reply');cancel.clicked.connect(self.cancel);resume.addWidget(cancel)
         self.answer=QTextBrowser();self.answer.setOpenLinks(False);self.answer.anchorClicked.connect(self.follow_citation);resume.addWidget(self.answer,1);self.task_pages.addTab(resume_page,'Resume / compact')
         lesson_page=QWidget();lessons=QVBoxLayout(lesson_page);lessons.setContentsMargins(0,0,0,0);self.lesson_title=QLineEdit();writing_prompt(self.lesson_title, 'Procedure title');lessons.addWidget(self.lesson_title);self.lesson_body=QPlainTextEdit();writing_prompt(self.lesson_body, 'A proposed lesson is not trusted until you review it.');lessons.addWidget(self.lesson_body,1)
         row=QHBoxLayout()
@@ -66,7 +66,7 @@ class MemoryTab(ServiceTab):
         research=self.pages.currentWidget() in (self.research_page,self.study_page)
         self.details.setVisible(not research);self.context_choice.setVisible(not research);self.context_label.setVisible(not research)
         self.note.setText('One question, selected originals, a reviewed return.' if research else 'Teach through explicit feedback. Save and verify a checkpoint before starting a fresh working context.')
-    def title(self):return 'Graphite · Memory'
+    def title(self):return 'Kas · Memory'
     def info(self):return 'Explicit teaching · verified checkpoints · Kernel-owned lines'
     def add_button(self,grid,label,fn,index):
         b=QPushButton(label);b.setAccessibleName(label);b.clicked.connect(fn);grid.addWidget(b,index//2,index%2)
@@ -167,7 +167,7 @@ class MemoryTab(ServiceTab):
         if self.job or not self.last_checkpoint:return
         args={'message':self.question.text().strip() or 'What is the next useful step for this task?','memory_checkpoint':self.last_checkpoint['id'],'conversation':self.conversation_id.text().strip(),'interaction_context':self.context()}
         self.call('brain.ask',args,self.watch)
-    def watch(self,job):self.job=job['id'];self.answer.setPlainText('Local Graphite is reading the current checkpoint and its available sources.');self.note.setText('Local reply running · '+job['id'][:12])
+    def watch(self,job):self.job=job['id'];self.answer.setPlainText('Local Kas is reading the current checkpoint and its available sources.');self.note.setText('Local reply running · '+job['id'][:12])
     def poll(self):
         if not self.job or self.stopping:return
         r=self.kernel.dispatch('brain.result',{'id':self.job},self.principal)

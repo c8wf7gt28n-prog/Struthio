@@ -40,17 +40,17 @@ GAME_CAPTION = 'STRUTHIO'                       # the game's name, in print (a n
 GAME_TIP = 'STRUTHIO in its offline desk mode, paused at tick zero'
 STOP = 'Stop all jobs'
 STOPPING = 'Stopping…'
-STOP_SCOPE = 'work Graphite manages'            # the scope, in print: read before acting
-STOP_TIP = ('Stop all jobs Graphite manages: confirm, then every Graphite job, build, console, host tool and the phone link is '
-            'stopped. What Graphite does not manage keeps running. Source files and unsaved editor buffers are kept.')      # 0.8.4: no key named, and no "Programs"
-SERVICES = 'Graphite services'
+STOP_SCOPE = 'work Kas manages'            # the scope, in print: read before acting
+STOP_TIP = ('Stop all jobs Kas manages: confirm, then every Kas job, build, console, host tool and the phone link is '
+            'stopped. What Kas does not manage keeps running. Source files and unsaved editor buffers are kept.')      # 0.8.4: no key named, and no "Programs"
+SERVICES = 'Kas services'
 CHOICES = (('On', 'On'), ('Off', 'Off'), ('Reboot', 'Restart'))  # (LedgerLifecycle's key, the word shown)
 CHOICE_TIPS = {'On':'Enable new authorized work; no jobs replayed and no model or phone started.',
                'Off':'Cancel queued jobs, finish running work, then close owned services. Keep the desktop open.',
-               'Reboot':'Restart Graphite services here: cancel queued jobs, let running work finish, then start them again. A prior running model is requested again after the drain. The computer is not restarted.'}
+               'Reboot':'Restart Kas services here: cancel queued jobs, let running work finish, then start them again. A prior running model is requested again after the drain. The computer is not restarted.'}
 BACKGROUND = 'Background CPU'                 # the process list's priority box (its whole words are the tooltip)
 FOOT = 'each keeps your work; leaving asks first'   # the menu's small caption at its foot (the programs list's is at its top; 1.0 S1: Lock and Suspend ask nothing)
-ORDER = ('Game', 'Stop all jobs', 'processes', 'Graphite services', '—', 'Lock', 'Suspend', 'Log out', 'Restart', 'Shut down', 'leave')  # 1.0 S1
+ORDER = ('Game', 'Stop all jobs', 'processes', 'Kas services', '—', 'Lock', 'Suspend', 'Log out', 'Restart', 'Shut down', 'leave')  # 1.0 S1
 
 
 def words_need(m):
@@ -60,7 +60,7 @@ def words_need(m):
     rows = [row_need(m, GAME, GAME_CAPTION), row_need(m, STOP, STOP_SCOPE), row_need(m, FOOT, '', True),
             row_need(m, SERVICES) + choices_need(m), section_need(m)]
     for action in (*power.STAYS, *power.ACTIONS):rows.append(row_need(m, power.WORDS[action], power.SCOPES[action] + unavailable))  # 1.0 S1: Lock, Suspend too
-    for label in ('Return to Debian', 'Exit Graphite'):rows.append(row_need(m, label, power.SCOPES['leave']))
+    for label in ('Return to Debian', 'Exit Kas'):rows.append(row_need(m, label, power.SCOPES['leave']))
     return max(rows)
 
 
@@ -147,7 +147,7 @@ class SystemMenu(DeskMenu):
 
     def __init__(self, host, anchor):
         super().__init__(host, anchor, 'upper-right', 'SystemMenuList')
-        self.setAccessibleName('System menu');self.setAccessibleDescription('Game, Stop all jobs, the process list, Graphite services, and the session: Lock, '
+        self.setAccessibleName('System menu');self.setAccessibleDescription('Game, Stop all jobs, the process list, Kas services, and the session: Lock, '
                                                                           'Suspend, Log out, Restart, Shut down, ' + self.leave_words()['label'])  # 1.0 S1
         from . import session_power as power
         from .desktop_header_qt import NicePopup
@@ -247,10 +247,10 @@ class SystemMenu(DeskMenu):
             enabled = not busy and (key != 'On' or not state.get('admission_enabled') or state.get('work_held'))
             if key == 'Off' and off:enabled = False
             choice.setEnabled(bool(enabled))
-            choice.setToolTip(summary + '\n' + ('Graphite services are already off; choose On to enable new work.' if key == 'Off' and off else CHOICE_TIPS[key]))
+            choice.setToolTip(summary + '\n' + ('Kas services are already off; choose On to enable new work.' if key == 'Off' and off else CHOICE_TIPS[key]))
             choice.update()
         plane = str(state.get('control_plane') or '')
-        self.services.setToolTip(summary + '\n' + (plane + '\n' if plane else '') + 'Opens Service details. On, Off and Restart act on Graphite\'s own services, never on the computer.')
+        self.services.setToolTip(summary + '\n' + (plane + '\n' if plane else '') + 'Opens Service details. On, Off and Restart act on Kas\'s own services, never on the computer.')
         self.services.set_caption('');self.services.describe()
 
     def availability(self):

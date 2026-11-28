@@ -201,7 +201,7 @@ def ask_words(template, params):
     return ASK_WORDS[template].format(**params)
 
 
-PICK_SYSTEM = ('You match a request to numbered goals in Graphite, a desk on this computer. Choose only the goals the request asks '
+PICK_SYSTEM = ('You match a request to numbered goals in Kas, a desk on this computer. Choose only the goals the request asks '
                'for, one for each thing it asks, in the order it asks for them: one to three numbers. Never add a goal it does not ask '
                'for. If it asks for none of them, choose only the last number, "none of these". Answer only as JSON {"pick": [n]} or '
                '{"pick": [n, m]}. Do not explain.')

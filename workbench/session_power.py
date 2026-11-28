@@ -66,12 +66,12 @@ STAYS = ('lock', 'suspend')                      # 1.0 S1: the actions that keep
 GROUP = ('lock', 'suspend', 'logout', 'restart', 'shutdown', 'leave')   # 1.0 S1: the session group, top to bottom
 WORDS = {'lock': 'Lock', 'suspend': 'Suspend', 'logout': 'Log out', 'restart': 'Restart', 'shutdown': 'Shut down'}
 SCOPES = {'lock': 'this screen', 'suspend': 'this computer', 'logout': 'this login session', 'restart': 'this computer',
-          'shutdown': 'this computer', 'leave': 'this Graphite session'}
-EFFECTS = {'lock': 'Locks the screen: Graphite and your apps keep running behind it. Your password unlocks it, typed into the '
-                   'screen locker (the system\'s own), never into Graphite.',
+          'shutdown': 'this computer', 'leave': 'this Kas session'}
+EFFECTS = {'lock': 'Locks the screen: Kas and your apps keep running behind it. Your password unlocks it, typed into the '
+                   'screen locker (the system\'s own), never into Kas.',
            'suspend': 'Locks the screen, then puts this computer to sleep: everything stays open in memory and comes back when it '
                       'wakes. Your password unlocks it.',
-           'logout': 'Ends your login session on this computer: Graphite and every program started in this session close. The computer stays on.',
+           'logout': 'Ends your login session on this computer: Kas and every program started in this session close. The computer stays on.',
            'restart': 'Restarts this computer: every program on it closes, then it starts again.',
            'shutdown': 'Shuts this computer down: every program on it closes and it powers off.'}
 THEN = {'logout': 'your login session ends', 'restart': 'this computer restarts', 'shutdown': 'this computer shuts down'}
@@ -84,7 +84,7 @@ SELF = '/org/freedesktop/login1/session/self'  # logind's name for the caller's 
 PROPERTIES = 'org.freedesktop.DBus.Properties'
 SESSION_ID = re.compile(r'^[A-Za-z0-9_.-]{1,64}$')
 TIMEOUT_MS = 2000
-NO_SESSION = ('No login session: Graphite is not running inside a systemd-logind session on this computer (as in a container, '
+NO_SESSION = ('No login session: Kas is not running inside a systemd-logind session on this computer (as in a container, '
               'or when it was started without a login), so it cannot log out, restart or shut down. Use the system\'s own controls.')
 NOT_LINUX = 'Log out, Restart and Shut down need Linux with systemd-logind; use the system\'s own controls.'
 # 1.0 S1: Lock and Suspend
@@ -93,16 +93,16 @@ LOCK_SECONDS = 5.0                               # how long the locker has to sa
 CAN_SUSPEND = 'CanSuspend'
 NOT_LINUX_STAYS = 'Lock and Suspend need Linux with an X display and systemd-logind; use the system\'s own controls.'
 NO_LOCKER = ('No screen locker is installed on this computer: Lock needs xsecurelock (it is in the 1.0 System set, and Debian '
-             'has it as the package xsecurelock). Without it Graphite cannot lock the screen, so nothing was done.')
+             'has it as the package xsecurelock). Without it Kas cannot lock the screen, so nothing was done.')
 NO_DISPLAY = 'Lock needs this session\'s X display, and there is none here (DISPLAY is not set), so nothing was done.'
-STAYS_BEFORE = {'lock': 'Nothing is closed or stopped: Graphite and your apps keep running behind the lock.',
-                'suspend': 'Graphite stays open and saves its session; the screen is locked first, and the computer is put to sleep '
-                           'only once the lock is confirmed. A file Kasandra is writing is finished before it sleeps.'}
+STAYS_BEFORE = {'lock': 'Nothing is closed or stopped: Kas and your apps keep running behind the lock.',
+                'suspend': 'Kas stays open and saves its session; the screen is locked first, and the computer is put to sleep '
+                           'only once the lock is confirmed. A file Kas is writing is finished before it sleeps.'}
 NO_PROMPT = ('this dedicated session has no permission prompt to answer it (logind: challenge). Return to Debian, then use '
              'systemctl %s at the text login, where the system asks for permission itself')
-LEAVE = 'Save or discard open work, keep or skip a return copy, stop the local model and tracked commands, and close Graphite.'
-BEFORE = ('First Graphite asks about your open work, as when you leave (keep or skip a return copy, save or discard each edited '
-          'file), then asks you to confirm. Nothing is stopped before you confirm; then Graphite closes the ordinary way and asks '
+LEAVE = 'Save or discard open work, keep or skip a return copy, stop the local model and tracked commands, and close Kas.'
+BEFORE = ('First Kas asks about your open work, as when you leave (keep or skip a return copy, save or discard each edited '
+          'file), then asks you to confirm. Nothing is stopped before you confirm; then Kas closes the ordinary way and asks '
           'the system.')
 LOGIND_WORDS = {'na': 'this computer does not offer it (logind: na)', 'no': 'your account may not do it here (logind: no)'}
 
@@ -142,14 +142,14 @@ def _logind(path, interface, method, *args):
 
 def _where(program):
     import shutil
-    if program not in PROGRAMS + LOCKERS:raise ValueError('Graphite looks up only loginctl, systemctl or the screen locker here: %r' % (program,))
+    if program not in PROGRAMS + LOCKERS:raise ValueError('Kas looks up only loginctl, systemctl or the screen locker here: %r' % (program,))
     return shutil.which(program)
 
 
 def _start(argv):
     """1.0 S1: the screen locker, in a session of its own (it outlives a Graphite crash: the screen stays locked)."""
     if not argv or argv[0] not in LOCKERS:
-        raise ValueError('Graphite starts only the screen locker here: %r' % (argv,))
+        raise ValueError('Kas starts only the screen locker here: %r' % (argv,))
     path = _where(argv[0])
     if path is None:return dict(ok=False, pid=None, reason=NO_LOCKER)
     from .session_launch import launch
@@ -181,7 +181,7 @@ def _inhibit(what, who, why, mode):
 def _run(argv):
     import subprocess
     if not argv or argv[0] not in PROGRAMS or any(part in ('sudo', 'pkexec', 'su', 'doas') for part in argv):
-        raise ValueError('Graphite runs only loginctl or systemctl here, never through sudo: %r' % (argv,))
+        raise ValueError('Kas runs only loginctl or systemctl here, never through sudo: %r' % (argv,))
     path = _where(argv[0])
     if path is None:return dict(ok=False, code=None, reason=argv[0] + ' is not installed on this computer')
     try:
@@ -204,8 +204,8 @@ def session_exit(environ=None):
     if dedicated(environ):
         return dict(dedicated=True, label='Return to Debian', scope=SCOPES['leave'],
                     tip=LEAVE + ' This ends the dedicated graphical session and returns to the Debian text login. The computer stays on.')
-    return dict(dedicated=False, label='Exit Graphite', scope=SCOPES['leave'],
-                tip=LEAVE + ' The desktop you started Graphite from stays open. The computer stays on.')
+    return dict(dedicated=False, label='Exit Kas', scope=SCOPES['leave'],
+                tip=LEAVE + ' The desktop you started Kas from stays open. The computer stays on.')
 
 
 def _unavailable(reason, actions=ACTIONS):
@@ -216,7 +216,7 @@ def _lock_state(environ):
     """1.0 S1: Lock's availability: the locker installed, and an X display to lock. A failure to look is 'unavailable'."""
     try:found = system(('where', LOCKERS[0]))
     except Exception as exc:  # noqa: BLE001 - reading availability never fails the menu; it says what went wrong
-        return dict(available=False, reason='Graphite could not look for a screen locker: %s' % (str(exc).strip()[:160] or type(exc).__name__),
+        return dict(available=False, reason='Kas could not look for a screen locker: %s' % (str(exc).strip()[:160] or type(exc).__name__),
                     value=None, session=None, program=None)
     if not found:return dict(available=False, reason=NO_LOCKER, value=None, session=None, program=None)
     if not environ.get('DISPLAY'):return dict(available=False, reason=NO_DISPLAY, value=None, session=None, program=found)
@@ -360,9 +360,9 @@ def confirm(host, action):
     """The confirmation naming the action's scope; Cancel is the default. Nothing has been stopped when it is asked."""
     from PySide6.QtWidgets import QMessageBox
     title = {'logout':'Log out of this login session?', 'restart':'Restart this computer?', 'shutdown':'Shut down this computer?'}[action]
-    text = (EFFECTS[action] + '\n\nGraphite closes first, the ordinary way: the return copy and your open files as you chose, running '
-            'assignments paused (or continued by the Graphite service), the local model and the tracked command stopped, the session '
-            'saved. Then ' + THEN[action] + '.\n\nCancel leaves Graphite open as it is: nothing has been stopped.')
+    text = (EFFECTS[action] + '\n\nKas closes first, the ordinary way: the return copy and your open files as you chose, running '
+            'assignments paused (or continued by the Kas service), the local model and the tracked command stopped, the session '
+            'saved. Then ' + THEN[action] + '.\n\nCancel leaves Kas open as it is: nothing has been stopped.')
     text += _apps_words(action)  # 1.0 S5: the apps still open, asked to close politely after you confirm
     return QMessageBox.question(host, title, text, QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel) == QMessageBox.Yes
 
@@ -391,7 +391,7 @@ def tell(host, title, text):
     there would take room from the panes while it lasts). After Graphite has closed, the dialog stands alone."""
     from PySide6.QtWidgets import QMessageBox
     open_ = host is not None and (not hasattr(host, 'isVisible') or host.isVisible())
-    if open_ and hasattr(host, 'statusBar'):host.statusBar().showMessage(title + ' · Graphite stays open', 10000)
+    if open_ and hasattr(host, 'statusBar'):host.statusBar().showMessage(title + ' · Kas stays open', 10000)
     QMessageBox.warning(host if open_ else None, title, text)
 
 
@@ -413,25 +413,25 @@ def run_action(host, action, platform=None):
     if action not in ACTIONS:raise ValueError('Unknown action: %r' % (action,))
     state = availability(platform, only=(action,))[action]
     if not state['available']:
-        tell(host, WORDS[action] + ' is unavailable', state['reason'] + '\nGraphite stays open.');return dict(state='UNAVAILABLE', reason=state['reason'], closed=False)
+        tell(host, WORDS[action] + ' is unavailable', state['reason'] + '\nKas stays open.');return dict(state='UNAVAILABLE', reason=state['reason'], closed=False)
     left = leave_steps(host)
     if left is None:return dict(state='CANCELLED', step='leave', closed=False)
     if not confirm(host, action):
-        undo_leave(left);_say(host, WORDS[action] + ' cancelled · Graphite stays open; nothing was stopped')
+        undo_leave(left);_say(host, WORDS[action] + ' cancelled · Kas stays open; nothing was stopped')
         return dict(state='CANCELLED', step='confirm', left=left, closed=False)
     if not _apps_closed(host, action):  # 1.0 S5: the apps still open, asked to close politely first (never killed)
-        undo_leave(left);_say(host, WORDS[action] + ' cancelled · Graphite stays open')
+        undo_leave(left);_say(host, WORDS[action] + ' cancelled · Kas stays open')
         return dict(state='CANCELLED', step='apps', left=left, closed=False)
     state = availability(platform, only=(action,))[action]  # again: the session or the permission may have changed while the questions were open
     if not state['available']:
-        undo_leave(left);tell(host, WORDS[action] + ' is unavailable', state['reason'] + '\nGraphite stays open; nothing was stopped.')
+        undo_leave(left);tell(host, WORDS[action] + ' is unavailable', state['reason'] + '\nKas stays open; nothing was stopped.')
         return dict(state='UNAVAILABLE', reason=state['reason'], left=left, closed=False)
     argv = command(action, state)
     try:found = system(('where', argv[0]))
     except (OSError, ValueError, RuntimeError) as exc:found = None;missing = str(exc)
     else:missing = argv[0] + ' is not installed on this computer'
     if not found:
-        undo_leave(left);tell(host, WORDS[action] + ' cannot start', '%s cannot start: %s.\n\nGraphite stays open; nothing was stopped.' % (WORDS[action], missing))
+        undo_leave(left);tell(host, WORDS[action] + ' cannot start', '%s cannot start: %s.\n\nKas stays open; nothing was stopped.' % (WORDS[action], missing))
         return dict(state='FAILED', reason=missing, argv=list(argv), left=left, closed=False)
     from PySide6.QtWidgets import QApplication
     app = QApplication.instance();quit_rule = app.quitOnLastWindowClosed() if app is not None else None
@@ -440,14 +440,14 @@ def run_action(host, action, platform=None):
     try:
         closed = quiet_close(host, left)
         if not closed:
-            undo_leave(left);_say(host, WORDS[action] + ' stopped: Graphite did not close · nothing was issued')
+            undo_leave(left);_say(host, WORDS[action] + ' stopped: Kas did not close · nothing was issued')
             return dict(state='CANCELLED', step='close', left=left, closed=False)
         try:result = system(('run', argv))
         except (OSError, ValueError, RuntimeError) as exc:result = dict(ok=False, code=None, reason=str(exc))
         if not result.get('ok'):
-            tell(host, WORDS[action] + ' did not start', '%s did not start: %s\n\nGraphite had already closed the ordinary way (it must, before '
+            tell(host, WORDS[action] + ' did not start', '%s did not start: %s\n\nKas had already closed the ordinary way (it must, before '
                  'the session or the computer ends): your work was saved or set aside as you chose and its session is saved. Start '
-                 'Graphite again, or use the system\'s own controls.' % (WORDS[action], result.get('reason') or 'no reason given'))
+                 'Kas again, or use the system\'s own controls.' % (WORDS[action], result.get('reason') or 'no reason given'))
             return dict(state='FAILED', reason=result.get('reason'), argv=list(argv), left=left, closed=True)
         return dict(state='STARTED', argv=list(argv), left=left, closed=True)
     finally:
@@ -486,7 +486,7 @@ def lock_screen(platform=None, environ=None, wait=LOCK_SECONDS, nap=time.sleep):
     if held:return dict(state='LOCKED', locked=True, pid=held, reason='The screen is already locked.')
     from .session_launch import session_dir, start_time
     try:folder = session_dir(environ)
-    except OSError as exc:return dict(state='FAILED', locked=False, pid=None, reason='Graphite has no session folder for the lock\'s mark: %s' % exc)
+    except OSError as exc:return dict(state='FAILED', locked=False, pid=None, reason='Kas has no session folder for the lock\'s mark: %s' % exc)
     mark = folder / ('locked-%d-%d' % (os.getpid(), time.monotonic_ns()))
     try:started = system(('start', (LOCKERS[0], '--', 'touch', str(mark))))
     except (OSError, ValueError, RuntimeError) as exc:started = dict(ok=False, reason=str(exc))
@@ -519,7 +519,7 @@ def run_lock(host, platform=None):
     result = lock_screen(platform)
     if result['locked']:_say(host, 'Locked · your password unlocks it');return result
     title = {'UNAVAILABLE':'Lock is unavailable', 'UNCONFIRMED':'Lock is not confirmed'}.get(result['state'], 'Lock did not happen')
-    tell(host, title, result['reason'] + '\nGraphite stays open as it is; nothing else was done.')
+    tell(host, title, result['reason'] + '\nKas stays open as it is; nothing else was done.')
     return result
 
 
@@ -529,24 +529,24 @@ def run_suspend(host, platform=None):
     Returns dict(state=UNAVAILABLE | FAILED | STARTED, locked, step, reason)."""
     state = availability(platform, only=('suspend',))['suspend']
     if not state['available']:
-        tell(host, 'Suspend is unavailable', state['reason'] + '\nGraphite stays open; nothing was done.')
+        tell(host, 'Suspend is unavailable', state['reason'] + '\nKas stays open; nothing was done.')
         return dict(state='UNAVAILABLE', locked=False, step='availability', reason=state['reason'])
     _save_session(host)
     locked = lock_screen(platform)
     if not locked['locked']:
         tell(host, 'Suspend did not start', 'Suspend locks the screen first, and the lock was not confirmed: ' + locked['reason']
-             + '\nSo the computer was not put to sleep; Graphite stays open as it is.')
+             + '\nSo the computer was not put to sleep; Kas stays open as it is.')
         return dict(state='FAILED', locked=False, step='lock', reason=locked['reason'])
     try:system(('logind', *MANAGER, 'Suspend', False))
     except (OSError, ValueError, RuntimeError) as exc:
         reason = str(exc).strip()[:300] or 'no reason given'
-        tell(host, 'Suspend did not start', 'The screen is locked, but logind did not put the computer to sleep: %s\nGraphite stays open as it is.' % reason)
+        tell(host, 'Suspend did not start', 'The screen is locked, but logind did not put the computer to sleep: %s\nKas stays open as it is.' % reason)
         return dict(state='FAILED', locked=True, step='suspend', reason=reason)
     return dict(state='STARTED', locked=True, step='suspend', pid=locked.get('pid'), reason='Locked, then logind was asked to suspend.')
 
 
 @contextlib.contextmanager
-def sleep_held(why, who='Graphite'):
+def sleep_held(why, who='Kas'):
     """While Kasandra writes a file: logind's delay lock on sleep (Inhibit 'sleep', mode 'delay'), so a suspend waits until
     the write is done (logind waits at most its InhibitDelayMaxSec). Yields True when the lock is held; without logind (no
     system bus, another system) it yields False and the write goes on. Released however the write ends."""
@@ -608,7 +608,7 @@ def _guard_class():
 
         def hold(self):
             if self.fd is not None:return
-            try:fd = system(('inhibit', 'sleep', 'Graphite', self.WHY, 'delay'))
+            try:fd = system(('inhibit', 'sleep', 'Kas', self.WHY, 'delay'))
             except Exception:  # noqa: BLE001 - without the delay lock the guard still locks on PrepareForSleep, if logind waits
                 fd = None
             self.fd = fd if isinstance(fd, int) and not isinstance(fd, bool) and fd >= 0 else None

@@ -29,7 +29,7 @@ class DevelopmentTab(QWidget):
         self.output=QPlainTextEdit();self.output.setReadOnly(True);self.output.setMaximumHeight(190);writing_prompt(self.output, 'Actual compiler and test output appears here.');v.addWidget(self.output,1)
         row=QHBoxLayout()
         for text,fn in [('Refresh evidence',self.refresh),('View source diff',self.show_diff),
-                        ('Copy AI brief',self.copy_brief),('Draft in Graphite',self.draft_clip),('Open run report',self.open_report)]:
+                        ('Copy AI brief',self.copy_brief),('Draft in Kas',self.draft_clip),('Open run report',self.open_report)]:
             b=QPushButton(text);b.clicked.connect(fn);row.addWidget(b)
         fold(row,keep=('View source diff',))
         v.addLayout(row)
@@ -67,7 +67,7 @@ class DevelopmentTab(QWidget):
                             _,name,result=line.split();self.results.addTopLevelItem(QTreeWidgetItem([run['variant'],name.replace('_',' '),result,fresh]))
                     self.output.appendPlainText(run['variant']+' / '+check['name']+'\n'+check['stdout']+check['stderr'])
             settings=clip.Settings.load()
-            self.ai_state.setText('AI interface: structured JSONL available · Graphite: '+('key configured (connection not tested)' if settings.ready() else 'not configured; external chat unavailable')+'\nCopy AI brief includes this case, actual results and source hashes. Draft in Graphite does not send until you press Send.')
+            self.ai_state.setText('AI interface: structured JSONL available · Kas: '+('key configured (connection not tested)' if settings.ready() else 'not configured; external chat unavailable')+'\nCopy AI brief includes this case, actual results and source hashes. Draft in Kas does not send until you press Send.')
         except (ValueError,OSError,KeyError) as exc:
             self.state.setText('Development evidence unavailable · '+readable_error(type(exc).__name__+': '+str(exc),self.window.root));self.data=None
     def show_diff(self):
@@ -92,7 +92,7 @@ class DevelopmentTab(QWidget):
             overlay=self.window.clip_overlay
             if overlay.busy:return
             overlay.input.setText(brief);overlay.input.setCursorPosition(0)
-            self.state.setText('Case brief drafted in Graphite. No external request sent.')
+            self.state.setText('Case brief drafted in Kas. No external request sent.')
         except (ValueError,OSError) as exc:self.window.message('Brief unavailable',str(exc),error=True)
     def open_report(self):
         data=development.inspect(self.window.root)

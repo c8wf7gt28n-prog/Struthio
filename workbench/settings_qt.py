@@ -107,7 +107,7 @@ class SettingsTab(QWidget):
         self.detail.setAccessibleName('Setting definition and consumer receipts');self.detail.setMaximumHeight(250);self.detail.hide();box.addWidget(self.detail)
         from .model_settings_qt import ModelPanel
         self.model_panel=ModelPanel(bridge,self.note.setText);self.model_panel.hide();box.addWidget(self.model_panel)
-        box.addWidget(QLabel('CHANGE HISTORY · you and Graphite use the same journal'))
+        box.addWidget(QLabel('CHANGE HISTORY · you and Kas use the same journal'))
         self.history=QTreeWidget();self.history.setObjectName('SettingsHistory');self.history.setRootIsDecorated(False)
         self.history.setHeaderLabels(['When / actor','Before → after','State']);self.history.setAccessibleName('Setting change history')
         self.history.header().setSectionResizeMode(0,QHeaderView.ResizeToContents)
@@ -294,7 +294,7 @@ class SettingsNavigator:
         self.filter.setStyleSheet(PASSAGE_STYLE)
         layout.addWidget(self.filter)
         from .pane_qt import BranchTree
-        self.tree=BranchTree();self.tree.setHeaderHidden(True);self.tree.setAccessibleName('Graphite settings hierarchy')  # D1b: the desk's tree (rows, indent, branch lines)
+        self.tree=BranchTree();self.tree.setHeaderHidden(True);self.tree.setAccessibleName('Kas settings hierarchy')  # D1b: the desk's tree (rows, indent, branch lines)
         layout.addWidget(self.tree,1)
         self.caption=QLabel(str(len(settings_registry.SPECS))+' settings\nOther settings retain their existing controls.');self.caption.setWordWrap(True);layout.addWidget(self.caption)
         self.stack.addWidget(page)
@@ -329,7 +329,7 @@ class SettingsNavigator:
         self.stack.setCurrentIndex(VIEWS.index(name))
         for button,view,description in ((self.cabinet,'cabinet','Show logical filing cabinet'),
                                         (self.machine,'machine','Show this computer: storage, power, network, sound, screens, processor, memory, devices and installed tools'),  # 1.0 S4
-                                        (self.settings,'settings','Show Graphite settings')):
+                                        (self.settings,'settings','Show Kas settings')):
             button.setChecked(view==name);button.setAccessibleDescription('Current view' if view==name else description)
         if self.line:self.line.setVisible(name=='cabinet' and self.host.cabinet_page.using_legacy)
         if persist:self.remember()

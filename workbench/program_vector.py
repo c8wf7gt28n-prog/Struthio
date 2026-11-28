@@ -105,7 +105,7 @@ class SVGTree(ET.TreeBuilder):
 
 def _path(base, name, suffix, must_exist=True):
     if Path(name).suffix.lower() != suffix:
-        raise ValueError(f'Choose a {suffix} path inside Graphite Files.')
+        raise ValueError(f'Choose a {suffix} path inside Kas Files.')
     try:
         return record_io.project_path(base, name, must_exist=must_exist)
     except RuntimeError as error:
@@ -250,7 +250,7 @@ def _render(executable, root, width, height):
                 root.remove(node)
         source.write_bytes(ET.tostring(root, encoding='utf-8', default_namespace=None))
         env = {**os.environ, 'INKSCAPE_PROFILE_DIR': str(temporary / 'profile'), 'XDG_CONFIG_HOME': scratch}
-        command = [executable, f'--app-id-tag=Graphite{uuid4().hex}',
+        command = [executable, f'--app-id-tag=Kas{uuid4().hex}',
                    '--export-area-page', f'--export-width={pixels[0]}',
                    f'--export-height={pixels[1]}', f'--export-filename={output}', str(source)]
         try:
@@ -293,7 +293,7 @@ def _publish(base, name, data):
 
 def _open_native(executable, path, name, digest):
     if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
-        raise ValueError('Open the Graphite desktop session to hand this file to Inkscape.')
+        raise ValueError('Open the Kas desktop session to hand this file to Inkscape.')
     process = subprocess.Popen([executable, str(path)], cwd=path.parent, start_new_session=True,
                                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:

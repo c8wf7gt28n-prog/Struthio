@@ -73,12 +73,12 @@ def why_not(env=None, platform=None):
     env = os.environ if env is None else env
     platform = sys.platform if platform is None else platform
     if platform.startswith('win') or platform == 'cygwin':
-        return NO_LIST + ': Graphite reads the open windows from X11, and Windows has no X11'
+        return NO_LIST + ': Kas reads the open windows from X11, and Windows has no X11'
     if platform == 'darwin':
-        return NO_LIST + ': Graphite reads the open windows from X11, which this Mac does not run'
+        return NO_LIST + ': Kas reads the open windows from X11, which this Mac does not run'
     if not env.get('DISPLAY'):
         if env.get('WAYLAND_DISPLAY'):
-            return NO_LIST + ': this is a Wayland session, and Graphite reads the open windows from X11'
+            return NO_LIST + ': this is a Wayland session, and Kas reads the open windows from X11'
         return NO_LIST + ': there is no X display here (DISPLAY is not set)'
     return None
 
@@ -428,7 +428,7 @@ class XlibBackend:
     def close(self, window, managed, protocols=()):
         if 'WM_DELETE_WINDOW' not in protocols:
             return dict(asked=False, how='', reason='this app cannot be asked to close politely; close it from inside it '
-                                                    '(Graphite never forces a window closed)')
+                                                    '(Kas never forces a window closed)')
         with self.calls():
             if managed:
                 ok = self._message(self.root, window, '_NET_CLOSE_WINDOW', (CurrentTime, SOURCE_PAGER),
@@ -562,7 +562,7 @@ class XpropBackend:
     def close(self, window, managed, protocols=()):
         if 'WM_DELETE_WINDOW' not in protocols:
             return dict(asked=False, how='', reason='this app cannot be asked to close politely; close it from inside it '
-                                                    '(Graphite never forces a window closed)')
+                                                    '(Kas never forces a window closed)')
         if not self.wmctrl:return dict(asked=False, how='', reason='closing a window needs libX11 or wmctrl, and neither is here')
         return self._tool([self.wmctrl, '-i', '-c', hex(window)], 'wmctrl -c')
 

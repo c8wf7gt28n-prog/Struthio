@@ -1,4 +1,4 @@
-# Kasandra's character
+# Kas's character
 
 A starter, not yet yours.
 

@@ -37,11 +37,11 @@ class WorkshopTab(QWidget):
     def __init__(self,host,kernel):
         super().__init__();self.host=host;self.kernel=kernel;self.selected=None;self.busy=False
         layout=QVBoxLayout(self)
-        title=QLabel('GRAPHITE · ENGINEERING WORKSHOP\nInspect current source → investigate → revise an isolated candidate → build and test → independent acceptance.')
+        title=QLabel('KAS · ENGINEERING WORKSHOP\nInspect current source → investigate → revise an isolated candidate → build and test → independent acceptance.')
         title.setWordWrap(True);layout.addWidget(title)
         self.goal=QLineEdit();writing_prompt(self.goal, 'Describe an observable defect or improvement')
         layout.addWidget(self.goal)
-        row=QHBoxLayout();self.profile=QComboBox();self.profile.addItem('ARC-OS C','arcos');self.profile.addItem('Graphite Python','ledger')
+        row=QHBoxLayout();self.profile=QComboBox();self.profile.addItem('ARC-OS C','arcos');self.profile.addItem('Kas Python','ledger')
         self.profile.currentIndexChanged.connect(self.profile_changed);row.addWidget(self.profile)
         self.path=QLineEdit('software/arcos/src/host.c');writing_prompt(self.path, 'One to five exact implementation paths, separated by commas');row.addWidget(self.path,1)
         b=QPushButton('Use editor');b.clicked.connect(self.use_editor);row.addWidget(b);layout.addLayout(row)

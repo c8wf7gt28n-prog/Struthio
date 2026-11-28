@@ -1265,7 +1265,7 @@ class ClipAssistant(QWidget):
         self.setObjectName('ClipAssistant')
         self.FULL = tuple(size)
         self.setCursor(Qt.OpenHandCursor)
-        self.setAccessibleName('Graphite companion')
+        self.setAccessibleName('Kas companion')
         self.setContextMenuPolicy(Qt.DefaultContextMenu)
         self._portrait = QPixmap()  # Retired portraits are historical assets only.
         self.hover = False
@@ -1315,7 +1315,7 @@ class ClipAssistant(QWidget):
                  'approval': (job or {}).get('tool', 'a job') + ' is waiting for your approval',
                  'paused': (job or {}).get('tool', 'a job') + ' is ' + (job or {}).get('state', 'paused').lower(),
                  'done': (job or {}).get('tool', 'a job') + ' completed', 'failed': (job or {}).get('tool', 'a job') + ' failed'}
-        text = 'Graphite · ' + words[self.state]
+        text = 'Kas · ' + words[self.state]
         self.setToolTip(text + '\nClick to talk · drag to move · double-click to ' + ('expand' if self.collapsed else 'collapse') + ' · right-click for options')
         self.setAccessibleDescription(text)
 
@@ -1444,7 +1444,7 @@ class ClipAssistant(QWidget):
     def contextMenuEvent(self, event):
         window = self.parentWidget();menu = QMenu(self)
         menu.addAction(named('Ask Stacy…'), self.clicked.emit)
-        menu.addAction('Graphite workshop', window.show_clip_workspace)
+        menu.addAction('Kas workshop', window.show_clip_workspace)
         menu.addAction('Jobs && evidence', window.show_engineering)
         menu.addSeparator()
         menu.addAction('Reading and layout…', window.show_reading)
@@ -1588,7 +1588,7 @@ class ClipOverlay(QWidget):
         menu.addAction('Get a free key (opens Google AI Studio)', self.open_key_page)
         menu.addAction('Forget my key', self.forget_key)
         menu.addSeparator()
-        menu.addAction('Hide Graphite', self.hide)
+        menu.addAction('Hide Kas', self.hide)
         more.setMenu(menu)
         for w in (self.include, self.input, self.send_btn, more):
             pl.addWidget(w, 1 if w is self.input else 0)
@@ -1773,11 +1773,11 @@ class ClipOverlay(QWidget):
     def refresh(self):
         from . import ledger_control
         local=hasattr(self.window_,'ledger_bridge') and ledger_control.value(self.window_.ledger_bridge.kernel,'stacy.provider')=='local'
-        writing_prompt(self.input, 'Ask local Graphite or type /commands' if local else 'Local commands or a Gemini key' if self.expect_key else
+        writing_prompt(self.input, 'Ask local Kas or type /commands' if local else 'Local commands or a Gemini key' if self.expect_key else
                                       named('Message Stacy · ') + self.settings.describe())
         self.send_btn.setEnabled(not self.busy)
         self.input.setEnabled(not self.busy)
-        self.anchor.setToolTip('Graphite: ' + self.settings.describe())
+        self.anchor.setToolTip('Kas: ' + self.settings.describe())
 
     def _remember_include(self, on):
         bridge=getattr(self.window_,'ledger_bridge',None)
@@ -1798,7 +1798,7 @@ class ClipOverlay(QWidget):
         try:
             self.settings.save()
         except OSError as e:
-            self.note('Could not save Graphite settings: %s' % e)
+            self.note('Could not save Kas settings: %s' % e)
 
     def clear(self):
         self.cancel_pending()
@@ -1819,17 +1819,17 @@ class ClipOverlay(QWidget):
     def greet(self):
         from . import ledger_control
         if ledger_control.value(self.window_.ledger_bridge.kernel,'stacy.provider')=='local':
-            self.note('Graphite uses your local Brain. Open Brain to add or start a model. /commands, /awareness and /pipe work without inference.');return
+            self.note('Kas uses your local Brain. Open Brain to add or start a model. /commands, /awareness and /pipe work without inference.');return
         if self.expect_key:
-            self.note('Local Graphite commands are ready: /commands, /settings, /jobs and /tail. Gemini setup is optional in the ••• menu.')
+            self.note('Local Kas commands are ready: /commands, /settings, /jobs and /tail. Gemini setup is optional in the ••• menu.')
         else:
-            self.note("Hi, I'm Graphite. Use /commands, /settings, /jobs or /tail, or ask about your work. "
-                      "Enable reviewed action proposals in Graphite settings for Gemini command assistance.")
+            self.note("Hi, I'm Kas. Use /commands, /settings, /jobs or /tail, or ask about your work. "
+                      "Enable reviewed action proposals in Kas settings for Gemini command assistance.")
 
     def onboarding(self, reason=None):
         self.expect_key = True
         self.refresh()
-        self.bubble((reason + '\n\n' if reason else "Hi, I'm Graphite. ") +
+        self.bubble((reason + '\n\n' if reason else "Hi, I'm Kas. ") +
                     'I answer with **Google Gemini**, free with any Google account. One-time setup:\n\n'
                     '1. Press **Get a free key** (opens Google AI Studio).\n'
                     '2. Sign in, press **Create API key**, then **Copy**.\n'
@@ -1931,7 +1931,7 @@ class ClipOverlay(QWidget):
             else:
                 self.bubble(text, True)
                 self.pending = text
-                self.onboarding('Local Graphite commands work now. This message needs optional cloud chat setup.')
+                self.onboarding('Local Kas commands work now. This message needs optional cloud chat setup.')
             return
         name, body = self.open_file() if self.include.isChecked() else (None, None)
         if self.include.isChecked() and not name:
@@ -2009,7 +2009,7 @@ class ClipOverlay(QWidget):
         if bridge is not None:
             from .ledger_control import value
             if not value(bridge.kernel,'stacy.enabled'):
-                self.bubble('Graphite AI is OFF. Turn AI ON in the header before starting a new AI request.',False);return
+                self.bubble('Kas AI is OFF. Turn AI ON in the header before starting a new AI request.',False);return
         self._request_epoch+=1
         self.busy = True
         self.busy_changed.emit(True)
@@ -2043,7 +2043,7 @@ class ClipOverlay(QWidget):
 
     def _local_result(self,text):
         if self.isVisible():
-            self.bubble(text[:1100]+ ('\nFull result: Tools → Graphite Commands.' if len(text)>1100 else ''),False)
+            self.bubble(text[:1100]+ ('\nFull result: Tools → Kas Commands.' if len(text)>1100 else ''),False)
 
     def _on_plan(self,epoch,proposal,kind):
         self._requests_inflight.discard(epoch)
@@ -2089,13 +2089,13 @@ class ClipOverlay(QWidget):
             from .stacy_foundation import seed_status
             current=seed_status(bridge.kernel.root)
             if current['state']!='VERIFIED_SOURCE_BINDINGS' or current['seed_id']!=self._proposal_seed_id:
-                self.note('Graphite sources changed. Ask for a fresh plan before running it.');return
+                self.note('Kas sources changed. Ask for a fresh plan before running it.');return
         if (epoch!=self._request_epoch or review_epoch is not None and review_epoch!=self.window_._operation_epoch
                 or not ledger_control.value(bridge.kernel,'stacy.actions')
                 or private_local and ledger_control.value(bridge.kernel,'stacy.provider')!='local'):
             self.note('Proposal expired or command assistance was disabled. Ask again.');return
         if bridge.busy:
-            self.note('Wait for the current Graphite command, then run this proposal.');return
+            self.note('Wait for the current Kas command, then run this proposal.');return
         # Consume the review once; cancellation also invalidates old buttons.
         self._request_epoch+=1
         if private_local:
@@ -2746,7 +2746,7 @@ class WorkbenchWindow(QMainWindow):
         self.a_inventory = A('Engineering &Tool Inventory', self.show_tools, None,
                               'Scan installed tool paths; no tool is run')
         self.a_hardware_proof = A('Hardware Proof Laboratory', self.show_hardware_proof, 'Ctrl+Shift+H', 'Six source-bound proof domains, host checks and missing hardware evidence')
-        self.a_remote_link = A('Connect iPhone…', self.show_remote_link, None, 'Pair the phone with a private Graphite service')
+        self.a_remote_link = A('Connect iPhone…', self.show_remote_link, None, 'Pair the phone with a private Kas service')
         self.a_setup_guide = A('Installation Guide', self.show_setup_guide)
         self.a_hardware_review = A('Hardware Source Audit', self.show_hardware_review, None, 'Recheck PCB, netlist and board plan agreement')
         self.a_nor = A('NOR &Flash Staging', self.show_nor, None,
@@ -2775,7 +2775,7 @@ class WorkbenchWindow(QMainWindow):
         self.a_build_all = A('Build All &Firmware Stages', self.build_all_firmware)
         self.a_tests = A('Run &Tests', lambda: self.start('test'), 'Ctrl+T', 'Run the tests for this target')
         self.a_stop = A('&Stop', self.stop_process, 'Ctrl+Break')
-        self.a_master_stop = A('STOP / KILL all Graphite operations…', self.master_stop_all,
+        self.a_master_stop = A('STOP / KILL all Kas operations…', self.master_stop_all,
                                'Ctrl+Shift+F12', 'Master stop for this project: jobs, builds, consoles, host tools and phone link')
         self.a_master_stop.setIcon(QIcon(str(locations.program(self.root)/'branding/noir/master-stop.svg')))
         self.a_next = A('&Next Problem', lambda: self.step_problem(1), 'F8')
@@ -2794,18 +2794,18 @@ class WorkbenchWindow(QMainWindow):
         self.a_keys = A('&Keyboard Shortcuts', self.show_keys, 'F1')
         self.a_manual = A('Search R10 &Manual…', self.show_manual, 'Ctrl+Alt+F',
                           'Search current R10 design, QA and STRUTHIO documents')
-        self.a_about = A('&About Graphite', self.show_about)
+        self.a_about = A('&About Kas', self.show_about)
         self.a_genesis = A('ARC Concern / &Genesis…', self.show_genesis, 'Ctrl+Alt+G',
                            'Founding charter, verified time evidence and the Concern register')
         self.a_genesis.setIcon(self.nav_icon('source-fact'))
-        self.a_clip = A('Ask &Graphite…', self.open_clip, 'Ctrl+Alt+C', 'Open Graphite for the current work')
-        self.a_ledger_settings = A('Graphite Settings…',lambda:self.ledger_bridge.show_settings(),'Ctrl+,','Edit shared Graphite settings')
+        self.a_clip = A('Ask &Kas…', self.open_clip, 'Ctrl+Alt+C', 'Open Kas for the current work')
+        self.a_ledger_settings = A('Kas Settings…',lambda:self.ledger_bridge.show_settings(),'Ctrl+,','Edit shared Kas settings')
         self.a_discovery = A('Inquiries…',lambda:self.ledger_bridge.show_discovery(),None,'Save questions, method proposals, assumptions and checked predicates')
         self.a_algorithms = A('Algorithm && Theory Atlas…',lambda:self.ledger_bridge.show_algorithms(),None,'Find mathematical methods, assumptions and linked implementations')
         self.a_atlas = A('Tool Atlas…',lambda:self.ledger_bridge.show_atlas(),None,'Search operation contracts and saved tool passports')
-        self.a_ledger_commands = A('Graphite Commands…',lambda:self.ledger_bridge.show_commands(),'Ctrl+Alt+K','Discover and invoke shared commands')
+        self.a_ledger_commands = A('Kas Commands…',lambda:self.ledger_bridge.show_commands(),'Ctrl+Alt+K','Discover and invoke shared commands')
         self.a_ledger_activity = A('Recent Activity',lambda:self.ledger_bridge.show_activity(),None,'Expand the live activity tail')
-        self.a_stacy_knowledge = A('Graphite Knowledge…',lambda:self.ledger_bridge.show_stacy_knowledge(),None,'Inspect the Graphite seed, source bindings and selected-view explanations')
+        self.a_stacy_knowledge = A('Kas Knowledge…',lambda:self.ledger_bridge.show_stacy_knowledge(),None,'Inspect the Kas seed, source bindings and selected-view explanations')
         self.a_hdl_waveforms = A('HDL · Simulation / Waveforms',lambda:self.ledger_bridge.show_hdl(),None,'Bound native HDL simulation, diagnostics, exact digital cursor values and Surfer captures')
         self.a_fpga_implementation = A('nextpnr + Trellis · FPGA Implementation',lambda:self.ledger_bridge.show_implementation(),None,'Bound routing, internal clock timing and offline held bitstream candidates')
         self.a_yosys_synthesis = A('Yosys · FPGA Synthesis',lambda:self.ledger_bridge.show_yosys(),None,'Native synthesis for current R10 ECP5 memory-enabled profiles')
@@ -3364,7 +3364,7 @@ class WorkbenchWindow(QMainWindow):
         if self.clip_overlay is None or not self.clip_overlay.isVisible():
             self.open_clip()
         if self.clip_overlay is None or self.clip_overlay.busy:
-            self.statusBar().showMessage('Graphite is processing a previous request', 4000)
+            self.statusBar().showMessage('Kas is processing a previous request', 4000)
             return
         self.clip_overlay.input.setText(message)
         self.clip_overlay.send()
@@ -3473,7 +3473,7 @@ class WorkbenchWindow(QMainWindow):
             if receipt_path:receipt_path.unlink(missing_ok=True)
         except (OSError, ValueError, sqlite3.Error) as e:
             pending=locals().get('receipt_path')
-            detail=str(e)+('\nThe file may have reached disk. Graphite awareness shows the pending save; use journal recovery to reconcile it.' if pending and pending.exists() else '')
+            detail=str(e)+('\nThe file may have reached disk. Kas awareness shows the pending save; use journal recovery to reconcile it.' if pending and pending.exists() else '')
             self.message('Save needs attention', detail, error=True)
             return False
         ed.disk_sha256 = file_hash(ed.path)
@@ -3571,7 +3571,7 @@ class WorkbenchWindow(QMainWindow):
         self.clip.hide()  # Stacy hosts Home in the artwork; her companion returns in workspaces
         if hasattr(self.home_page,'refresh'):self.home_page.refresh()
         self.set_view_preference(last_surface='home')
-        self.setWindowTitle('Home — Graphite')
+        self.setWindowTitle('Home — Kas')
         from .arc_desktop import refresh
         refresh(self)
         return self.home_page
@@ -3844,14 +3844,14 @@ class WorkbenchWindow(QMainWindow):
             text = '%s · %s%s      Ln %d, Col %d' % (
                 engine.language_for(w.path), where, ' · read-only evidence' if w.isReadOnly() else '', line, col)
             lang = engine.language_for(w.path).split(' ')[0]
-            self.setWindowTitle('%s%s — Graphite' % ('● ' if w.document().isModified() else '', w.path.name))
+            self.setWindowTitle('%s%s — Kas' % ('● ' if w.document().isModified() else '', w.path.name))
         elif w is not None and hasattr(w, 'info'):
             text = w.info()
             lang = '—'
-            self.setWindowTitle('%s — Graphite' % w.title())
+            self.setWindowTitle('%s — Kas' % w.title())
         else:
             text, lang = '', '—'
-            self.setWindowTitle('Graphite')
+            self.setWindowTitle('Kas')
         self.doc_info.setText(text)
         from .rooms import status_text
         self.context_label.setText(status_text(self, w, short, lang))
@@ -3859,11 +3859,11 @@ class WorkbenchWindow(QMainWindow):
             path=engine.rel(w.path,self.root) if isinstance(w,CodeEditor) else w.title() if hasattr(w,'title') else ''
             self.context_path.setText(path);self.context_path.setToolTip(path)
             for button in self.source_actions:button.setVisible(isinstance(w,CodeEditor))
-        if self._home_active:self.setWindowTitle('Home — Graphite')
+        if self._home_active:self.setWindowTitle('Home — Kas')
         from .arc_desktop import refresh
         refresh(self)
         if self._field_active:
-            self.setWindowTitle(('Board' if getattr(self.field_page, 'mode', '') == 'board' else 'Field') + ' — Graphite')  # 1.0 L2: the board or the whole desk
+            self.setWindowTitle(('Board' if getattr(self.field_page, 'mode', '') == 'board' else 'Field') + ' — Kas')  # 1.0 L2: the board or the whole desk
             self.context_bar.hide();self.doc_info.hide();self.workspace_status.hide()
 
     # ---------------------------------------------------------------- navigator
@@ -3903,7 +3903,7 @@ class WorkbenchWindow(QMainWindow):
         if workspace_file.is_file():
             from .record_io import load
             for area in load(area_base,'project/workspaces.json')['areas']:
-                titles={'struthio':'STRUTHIO','platform':'ARC-OS / Firmware','console_hardware':'Console hardware','orange_book':'Orange Book','ai_clip':'AI API / Graphite'}
+                titles={'struthio':'STRUTHIO','platform':'ARC-OS / Firmware','console_hardware':'Console hardware','orange_book':'Orange Book','ai_clip':'AI API / Kas'}
                 node=QTreeWidgetItem([titles.get(area['id'],area['title'])]);node.setData(0,Qt.UserRole+2,'nav_workspace')
                 node.setData(0,Qt.UserRole+3,'workspace:'+area['id']);node.setData(0,Qt.UserRole+4,area['id'])
                 node.setToolTip(0,area['purpose']);node.setIcon(0,self.nav_icon('database-rom' if area['id']=='database_rom' else area['icon']))
@@ -5131,7 +5131,7 @@ class WorkbenchWindow(QMainWindow):
     def _refresh_activity(self):
         from .tail_words import shown_origin
         events=activity.recent(self.root)
-        self.agent_view.setPlainText('Recorded Graphite commands and job transitions. Live tail: Recent Activity.\n\n'+
+        self.agent_view.setPlainText('Recorded Kas commands and job transitions. Live tail: Recent Activity.\n\n'+
             '\n'.join(time.strftime('%H:%M:%S',time.localtime(e['at']))+'  '+shown_origin(e['origin'])+'  '+e['operation']+'  '+e['state'] for e in events))
         for i in range(self.tabs.count()):
             tab=self.tabs.widget(i)
@@ -5285,7 +5285,7 @@ class WorkbenchWindow(QMainWindow):
     def show_about(self):
         from .editorial_art import about_dialog
         about_dialog(self,
-                     'Graphite %s (Qt %s).\n\nFree software under the GNU General Public License, version 2 only (COPYING), with no '
+                     'Kas %s (Qt %s).\n\nFree software under the GNU General Public License, version 2 only (COPYING), with no '
                      'warranty. The artwork, the names and the game are kept back (RIGHTS.md).\n\n'
                      'Host tools only: builds, tests and the game simulator run on this '
                      'PC. No ARC-1 board exists yet; nothing is flashed or deployed, and firmware stage images are '
@@ -5328,8 +5328,8 @@ class WorkbenchWindow(QMainWindow):
             # AGENT-02: with the Ledger service running (ledger_bridge.kernel.is_host_client) and the owner's setting
             # agent.continue_when_closed on, running assignments are handed to the service (agent.release) and continue there;
             # otherwise they pause as in AGENT-01 and Today offers to resume them next time
-            if driver.close_words()=='release':driver.release_all('Graphite closed · the Graphite service continues')
-            else:driver.pause_all('Graphite closed')
+            if driver.close_words()=='release':driver.release_all('Kas closed · the Kas service continues')
+            else:driver.pause_all('Kas closed')
         self._closing = True
         if getattr(getattr(getattr(self,'type_bar',None),'hatch',None),'lifecycle',None) is not None:self.type_bar.hatch.lifecycle.shutdown()
         if hasattr(self,'ledger_bridge') and not getattr(self.ledger_bridge.kernel,'is_host_client',False):

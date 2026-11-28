@@ -128,8 +128,8 @@ QFrame#SlateTheirs { background: %(CARD)s; border: 1px solid %(LINE)s; border-ra
 QFrame#StacCard { background: %(TEAL_SOFT)s; border: 1px solid %(LINE)s; border-radius: 10px; }
 /* Writable passages (companion line 65/69, DESKTOP-01 V-02): the New Idea sheet, the Slate composer and the New Project title are
    yellow passages like the cabinet's writing, not bordered boxes. Focus is a bottom rule; the selection is eraser pink because
-   AMBER_SOFT equals AMBER and would be invisible on the passage. 0.8.3: the passage's ground is CUE, Graphite's amber and
-   Kasandra's blue as before: a place to write is not a highlight. */
+   AMBER_SOFT equals AMBER and would be invisible on the passage. 0.8.3: the passage's ground is CUE, Kas's amber and
+   Kas's blue as before: a place to write is not a highlight. */
 QLineEdit#SlateInput, QPlainTextEdit#SlateInput, QPlainTextEdit#Capture, QLineEdit#ProjectTitle { background: %(CUE)s; color: %(TEXT)s; border: 0; border-radius: 0;
     padding: 10px 14px; selection-background-color: %(ERASER_DEEP)s; selection-color: %(TEXT)s; }
 QLineEdit#SlateInput:focus, QPlainTextEdit#SlateInput:focus, QPlainTextEdit#Capture:focus, QLineEdit#ProjectTitle:focus { border: 0; border-bottom: 2px solid %(TEXT)s;

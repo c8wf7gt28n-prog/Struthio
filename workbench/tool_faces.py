@@ -190,16 +190,16 @@ FOR_MENU = {
     'Work on a Copy of a File': 'copy', 'Save': 'save', 'Save All': 'save', 'Close': 'close', 'Recover Unsaved Work': 'undo',
     'Undo': 'undo', 'Redo': 'redo', 'Cut': 'cut', 'Copy': 'copy', 'Paste': 'paste', 'Select All': 'select', 'Find': 'find',
     'Find Next': 'next', 'Replace': 'recalc', 'Go to Line': 'source',
-    'Explore capabilities': 'rooms', 'Inquiries': 'asked', 'System Check': 'found', 'STOP / KILL all Graphite operations': 'stop',
+    'Explore capabilities': 'rooms', 'Inquiries': 'asked', 'System Check': 'found', 'STOP / KILL all Kas operations': 'stop',
     'Engineering': 'chip', 'Today': 'home', 'Field': 'field', 'Files': 'folder', 'Library': 'stack', 'Changes': 'delta',
-    'Continuing work': 'running', 'Graphite\'s Agenda': 'agenda', 'Console': 'prompt', 'Cabinet': 'folder',
+    'Continuing work': 'running', 'Kas\'s Agenda': 'agenda', 'Console': 'prompt', 'Cabinet': 'folder',
     'Refresh Machine View': 'recalc', 'Full Screen': 'full', 'Reading and Layout': 'sliders', 'Larger prose': 'larger',
     'Smaller prose': 'smaller', 'Word Wrap': 'lines', 'Split Editor / Close Split': 'split', 'Pin / Unpin workspace': 'pin',
-    'Reset Window Layout': 'undo', 'Graphite Commands': 'prompt', 'Run an operation': 'running', 'Chain Menu': 'chain',
+    'Reset Window Layout': 'undo', 'Kas Commands': 'prompt', 'Run an operation': 'running', 'Chain Menu': 'chain',
     'Constructed chain': 'chain', 'Writing Line': 'cell', 'Command Palette': 'prompt', 'Favorite commands': 'star',
-    'Graphite Settings': 'sliders', 'Desk artwork': 'picture', 'Buttons': 'rooms', 'Inspector': 'info', 'This Computer': 'chip',
+    'Kas Settings': 'sliders', 'Desk artwork': 'picture', 'Buttons': 'rooms', 'Inspector': 'info', 'This Computer': 'chip',
     'Pills and Paired Computers': 'port', 'Getting Started': 'book', 'Keyboard Shortcuts': 'key', 'Installation Guide': 'receive',
-    'The Orange Book': 'book', 'About Graphite': 'info', 'Assistant': 'asked', 'Terminal': 'prompt', 'Search': 'find', 'Log': 'lines',
+    'The Orange Book': 'book', 'About Kas': 'info', 'Assistant': 'asked', 'Terminal': 'prompt', 'Search': 'find', 'Log': 'lines',
 }
 _icons = {}
 
@@ -318,7 +318,7 @@ def menu(host):
     """Work ▸ Rules ▸ Buttons: Words or Icons."""
     choices = QMenu('Buttons', host);group = QActionGroup(choices);group.setExclusive(True);lines = {}
     for key, word, tip in ((MODES[0], 'Words', 'Each button is its words on a dark plate'),
-                           (MODES[1], 'Icons', 'Each button is one of Graphite’s drawn glyphs; a button particular to a page keeps its words beside it')):
+                           (MODES[1], 'Icons', 'Each button is one of Kas’s drawn glyphs; a button particular to a page keeps its words beside it')):
         line = choices.addAction(word);line.setCheckable(True);line.setToolTip(tip);group.addAction(line);lines[key] = line
         line.triggered.connect(lambda checked=False, key=key:choose(host, key))
     choices.setToolTipsVisible(True)

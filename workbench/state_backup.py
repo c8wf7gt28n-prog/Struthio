@@ -60,16 +60,16 @@ def closed_ledger(state):
     try:
         try: fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:
-            raise StateBusy('Graphite\'s background service is running. Quit Graphite, then run: '
+            raise StateBusy('Kas\'s background service is running. Quit Kas, then run: '
                             'python3 -m workbench.host_cli stop') from None
         for lease in (Path(state) / 'desktops').glob('*.json'):
             try: os.kill(json.loads(lease.read_text())['pid'], 0)
             except ProcessLookupError: continue
             except (OSError, ValueError, KeyError): pass
-            raise StateBusy('A Graphite desktop window is open. Close it first.')
+            raise StateBusy('A Kas desktop window is open. Close it first.')
         agenda_fd=os.open(Path(state)/'agenda-run.lock',os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
         try:fcntl.flock(agenda_fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        except OSError:raise StateBusy('A continuing Agenda step is running. Stop work and close Graphite first.') from None
+        except OSError:raise StateBusy('A continuing Agenda step is running. Stop work and close Kas first.') from None
         database=Path(state)/'engineering.sqlite3'
         if database.is_file():
             conn=sqlite3.connect(database.resolve().as_uri()+'?mode=ro',uri=True)
@@ -151,7 +151,7 @@ def create(root, out=None, include_models=False):
 
 def load(backup):
     record = json.loads((Path(backup) / 'BACKUP.json').read_text())
-    if record.get('schema') != SCHEMA: raise ValueError('Not a Graphite state backup')
+    if record.get('schema') != SCHEMA: raise ValueError('Not a Kas state backup')
     for row in record['files']:
         pure = PurePosixPath(row['path'])
         if row['area'] not in SKIP or pure.is_absolute() or '..' in pure.parts: raise ValueError('Invalid backup entry')
@@ -204,7 +204,7 @@ def main(argv=None):
         result = (create(args.root, args.out, args.include_models) if args.command == 'create' else
                   verify(args.backup) if args.command == 'verify' else restore(args.backup, args.root))
     except (StateBusy, ValueError, OSError, sqlite3.Error) as exc:
-        print('Graphite state backup: ' + str(exc), file=sys.stderr); return 1
+        print('Kas state backup: ' + str(exc), file=sys.stderr); return 1
     print(json.dumps(result, indent=2)); return 0
 
 

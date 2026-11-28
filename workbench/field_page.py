@@ -120,7 +120,7 @@ class FieldPage(QWidget):
         self.view.texture = self.view.art_mode != 'clean'
         kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
         if kernel is None:
-            self.problem = self.view.problem = 'Graphite\'s records are not available in this window'
+            self.problem = self.view.problem = 'Kas\'s records are not available in this window'
             self.view.set_field(Field())
             host.statusBar().showMessage('Field · ' + self.problem, 9000);return
         from .engineering_kernel import operator
@@ -190,7 +190,7 @@ def show_field(host, reading=None):
     from . import board_qt
     board_qt.as_field(page)          # 1.0 L2: the Field by name is the whole desk (the board is brought by board_qt.show_board)
     page.refresh(reading=reading)
-    host.setWindowTitle('Field — Graphite')
+    host.setWindowTitle('Field — Kas')
     page.view.setFocus(Qt.OtherFocusReason)
     return page
 
@@ -559,7 +559,7 @@ def full_window(host, obj):
     from .field_do import NATIVE
     key = (obj.target or {}).get('key') if isinstance(obj.target, dict) else None
     if key not in NATIVE:
-        host.statusBar().showMessage('Field · %s is a room of Graphite’s own: click it to open it' % obj.title, 7000);return None
+        host.statusBar().showMessage('Field · %s is a room of Kas’s own: click it to open it' % obj.title, 7000);return None
     steps = do(host, obj)
     opens = [n for n, step in enumerate(steps) if step.kind == 'write' and step.words.startswith('Open ')]
     if len(opens) == 1:return take(host, obj, opens[0])

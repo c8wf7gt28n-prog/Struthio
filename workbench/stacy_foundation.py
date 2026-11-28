@@ -199,7 +199,7 @@ CARRIED_NOTES = (
 )
 SEED_INPUTS = tuple(sorted(set(SEED_FILES) | set(CARRIED_NOTES)))
 OWNER_INTENT = (
-    'Graphite studies itself first: its purpose, windows, commands, settings and evidence. '
+    'Kas studies itself first: its purpose, windows, commands, settings and evidence. '
     'It explains selected program data and uses registered capabilities through the shared Kernel. '
     'Custom reference libraries augment independently replaceable model weights. '
     'Durable awareness, quarantine admission into a clean V1 project, context checkpoints, '
@@ -542,7 +542,7 @@ def build_seed(root, export=None):
         records.append({'id': ident, 'kind': kind, 'title': title, 'text': text,
                         'sources': [s for s in sources if s['path'] in paths],
                         'review_state': 'SOURCE_BOUND_CANDIDATE', 'evidence_class': 'SOURCE_PRESENT'})
-    record('owner:ledger-first', 'owner_intent', 'Graphite purpose and initial scope', OWNER_INTENT,  # GRAPHITE-01: the id stays
+    record('owner:ledger-first', 'owner_intent', 'Kas purpose and initial scope', OWNER_INTENT,  # GRAPHITE-01: the id stays
            ['docs/STACY_FOUNDATION.md'])
     for name in SEED_INPUTS:
         full_note = carried(name)
@@ -583,7 +583,7 @@ def build_seed(root, export=None):
         manifest = {'schema': SCHEMA, 'seed_id': seed_id, 'records': len(records), 'inputs': inputs,
                     'files': {name: sha((temp / name).read_bytes()) for name in ('catalog.json', 'index.sqlite')},
                     'builder': 'workbench.stacy_foundation', 'qualification': 'SOURCE_BINDINGS_ONLY',
-                    'rights': 'Graphite seed. Project code and documents are GPL-2.0-only (COPYING); artwork, names and third-party parts keep their own terms (RIGHTS.md, THIRD_PARTY_NOTICES.md).'}
+                    'rights': 'Kas seed. Project code and documents are GPL-2.0-only (COPYING); artwork, names and third-party parts keep their own terms (RIGHTS.md, THIRD_PARTY_NOTICES.md).'}
         (temp / 'manifest.json').write_bytes(canonical(manifest))
         target = _seed_paths(root)
         if target.is_symlink(): raise ValueError('Linked seed output')

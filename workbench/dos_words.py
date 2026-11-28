@@ -591,7 +591,7 @@ def to_bin(console, files):
     """del: the files into the bin through the Kernel's batch (files.batch, act delete: your own press), one Undo for all."""
     from html import escape
     kernel = getattr(getattr(console.host, 'ledger_bridge', None), 'kernel', None)
-    if kernel is None:console.say(escape('Graphite\'s Kernel is not open, so nothing went to the bin.'));return None
+    if kernel is None:console.say(escape('Kas\'s Kernel is not open, so nothing went to the bin.'));return None
     from .engineering_kernel import operator
     answer = kernel.dispatch('files.batch', {'act': 'delete', 'paths': [str(f) for f in files][:1000]}, operator())
     if not answer.get('ok'):

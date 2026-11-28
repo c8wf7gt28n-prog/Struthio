@@ -75,7 +75,7 @@ REFUSALS = {'DIMENSION_MISMATCH': 'quantities of different kinds are added or co
             'EXACT_ARITHMETIC_SIZE_BOUND': 'a number here is too long to work with exactly',
             'DENOMINATOR_MAY_BE_ZERO': 'a denominator may be zero over these ranges'}
 REWORDS = ((re.compile(r'Zero denominator\b.*'), 'a denominator is zero'), (re.compile(r'Negative power of zero\b.*'), 'zero is raised to a negative power'),
-           (re.compile(r'UNKNOWN_OR_AMBIGUOUS_UNIT: (.+)'), r'\1 is not a unit Graphite knows'))
+           (re.compile(r'UNKNOWN_OR_AMBIGUOUS_UNIT: (.+)'), r'\1 is not a unit Kas knows'))
 INTERNAL = re.compile(r'\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b|\bn\d+\b|incompatible quantities|fragment|\bZ3\b|SymPy|\bnodes?\b')
 
 
@@ -496,7 +496,7 @@ def receipt(record):
                                              else 'Open: a denominator may be zero over the ranges.')
     lines += ['Assumption: ' + a for a in record.get('assumptions') or ()]
     lines.append(FRESHNESS.get(record.get('freshness'), ''))
-    lines.append('Worked out by Graphite in exact fractions; no model was asked. Nothing was measured here.')
+    lines.append('Worked out by Kas in exact fractions; no model was asked. Nothing was measured here.')
     return [line for line in lines if line]
 
 

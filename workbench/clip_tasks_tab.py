@@ -14,7 +14,7 @@ class ExternalClipTasks(QWidget):
         self.host, self.kernel, self.selected = host, kernel, None
         self.actor = Principal('desktop-clip', frozenset({'read', 'candidate', 'execute'}))
         layout = QVBoxLayout(self)
-        label = QLabel('GRAPHITE · DELEGATED AI TASK\nInspect → reproduce → propose → authorize exact test → review. Your chosen external agent supplies the reasoning; Graphite records and checks its work. No provider is called automatically.')
+        label = QLabel('KAS · DELEGATED AI TASK\nInspect → reproduce → propose → authorize exact test → review. Your chosen external agent supplies the reasoning; Kas records and checks its work. No provider is called automatically.')
         label.setWordWrap(True)
         layout.addWidget(label)
         self.goal = QLineEdit()

@@ -267,7 +267,7 @@ def command(plan):
     only (-s SNAP), never promiscuous (-p), bounded by packets (-c) and, for dumpcap, by seconds (-a duration); tcpdump's seconds
     are kept by run(). The filter goes last, as one word, built only from canonical values by network_watch.bpf."""
     tool = plan.get('tool'); path = str(plan.get('path') or '')
-    if tool not in watch.TOOLS or os.path.basename(path) != tool or not os.path.isabs(path): raise CaptureError('Not a capture tool Graphite runs: ' + path[:120])
+    if tool not in watch.TOOLS or os.path.basename(path) != tool or not os.path.isabs(path): raise CaptureError('Not a capture tool Kas runs: ' + path[:120])
     interface = str(plan.get('interface') or 'any'); seconds = int(plan['seconds']); packets = int(plan['packets'])
     expression = str(plan.get('bpf') or '')
     if not watch.BPF_SAFE.fullmatch(expression): raise CaptureError('The capture filter could not be written safely')
@@ -317,7 +317,7 @@ def selection_words(text):
 
 
 def proposal_words(text, interface, seconds, packets):
-    return ('Graphite proposes capturing packet headers%s%s on %s for %d seconds (at most %s packets). Only you can start it: Log, '
+    return ('Kas proposes capturing packet headers%s%s on %s for %d seconds (at most %s packets). Only you can start it: Log, '
             'Network, %sthen Capture… in the head row.' % (' with the filter “%s”' % text if text else '', selection_words(text),
                                                                       'every interface' if interface == 'any' else interface,
                                                                       seconds, '{:,}'.format(packets), ('type the filter “%s”, ' % text) if text else ''))

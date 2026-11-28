@@ -77,7 +77,7 @@ if [[ "$network_capture" == 1 ]]; then
   echo '  as the administrator, dpkg-reconfigure wireshark-common, and answer Yes: non-superusers may capture packets'
   echo "  as the administrator, usermod -aG wireshark $login"
   echo '  log out and in again, so the session carries the wireshark group'
-  echo 'This installer does not run them, and Graphite never runs them and never changes the system’s permissions.'
+  echo 'This installer does not run them, and Kas never runs them and never changes the system’s permissions.'
 fi
 # network-capture steps: end
 ledger_rc=0

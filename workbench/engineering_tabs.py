@@ -50,7 +50,7 @@ class EngineeringTab(QWidget):
         body=QWidget();outer=QVBoxLayout(body);scroll.setWidget(body)
         shell.addWidget(scroll)
         heading=QLabel(
-                "GRAPHITE ENGINEERING · persistent jobs / isolated candidates / operator approval"
+                "KAS ENGINEERING · persistent jobs / isolated candidates / operator approval"
             )
         heading.setWordWrap(True)
         outer.addWidget(heading)
@@ -78,7 +78,7 @@ class EngineeringTab(QWidget):
         outer.addWidget(self.pages, 1)
         from .workshop_tabs import WorkshopTab
         self.workshop = WorkshopTab(host, self.kernel)
-        self.pages.addTab(self.workshop, 'Graphite · Workshop')
+        self.pages.addTab(self.workshop, 'Kas · Workshop')
         from .clip_tasks_tab import ExternalClipTasks
         self.external_clip = ExternalClipTasks(host, self.kernel)
         self.pages.addTab(self.external_clip, "External handoff")
@@ -107,7 +107,7 @@ class EngineeringTab(QWidget):
         self.pages.addTab(evidence_page, "Evidence / comparison")
         self.clip_page = QWidget()
         form = QVBoxLayout(self.clip_page)
-        form.addWidget(QLabel("GRAPHITE · bounded autonomous engineering"))
+        form.addWidget(QLabel("KAS · bounded autonomous engineering"))
         self.clip_goal = QLineEdit()
         writing_prompt(self.clip_goal, "Define one testable engineering goal")
         form.addWidget(self.clip_goal)
@@ -147,7 +147,7 @@ class EngineeringTab(QWidget):
         self.pages.addTab(self.clip_page, "Legacy loop")
         guide = QWidget()
         guide_layout = QVBoxLayout(guide)
-        guide_layout.addWidget(QLabel("GRAPHITE · read-only planning; no provider call or execution until requested"))
+        guide_layout.addWidget(QLabel("KAS · read-only planning; no provider call or execution until requested"))
         self.guide_template = QComboBox()
         for template in self.kernel.dispatch("tasks.templates", {}, self.principal)["result"]["templates"]:
             self.guide_template.addItem(template["title"], template["id"])
@@ -161,7 +161,7 @@ class EngineeringTab(QWidget):
         self.guide_result = QPlainTextEdit()
         self.guide_result.setReadOnly(True)
         guide_layout.addWidget(self.guide_result)
-        self.pages.addTab(guide, "Graphite planning")
+        self.pages.addTab(guide, "Kas planning")
         review = QGridLayout()
         for name, fn in [
             ("Save candidate", self.save),
@@ -171,7 +171,7 @@ class EngineeringTab(QWidget):
             ("Accept", lambda: self.change_state("accept")),
             ("Reject", lambda: self.change_state("reject")),
             ("Roll back", lambda: self.change_state("rollback")),
-            ("Stage Graphite update", lambda: self.change_state("stage")),
+            ("Stage Kas update", lambda: self.change_state("stage")),
             ("Compare tests", self.compare_tests),
         ]:
             b = QPushButton(name)

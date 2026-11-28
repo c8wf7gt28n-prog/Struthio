@@ -68,12 +68,12 @@ def result_words(chosen, total, note='', at=None):
     """The result paragraph: the total, who checked it and when, and the exact inputs it came from."""
     n = len(chosen)
     listed = ', '.join(q['text'] for q in chosen[:40]) + (' and %d more' % (n - 40) if n > 40 else '')
-    return 'Total of the %d quantit%s on this page: %s · checked by Graphite %s · from: %s%s' % (
+    return 'Total of the %d quantit%s on this page: %s · checked by Kas %s · from: %s%s' % (
         n, 'y' if n == 1 else 'ies', total['text'], when(at), listed, (' · ' + note) if note else '')
 
 
 def problem_words(reason, at=None):
-    return 'The quantities on this page cannot be added as they stand: %s · checked by Graphite %s' % (reason, when(at))
+    return 'The quantities on this page cannot be added as they stand: %s · checked by Kas %s' % (reason, when(at))
 
 
 def mismatch_question(error):

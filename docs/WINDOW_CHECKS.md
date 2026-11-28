@@ -1,6 +1,6 @@
 # The window checks
 
-A window check is a script `tools/check_<name>_ui.py`. It builds the real Graphite window without a screen (Qt's offscreen
+A window check is a script `tools/check_<name>_ui.py`. It builds the real Kas window without a screen (Qt's offscreen
 platform), on a new profile and a new workspace of its own, walks one area as the owner would with the mouse and the
 keyboard, and asserts what the window then shows. Each one holds the calls that would start work: no job is submitted, no
 worker or model is started, no provider is asked. Each writes its captures and a JSON report under the folder the gate gives it;
@@ -8,12 +8,12 @@ the folder it makes for its own profile and workspace is under a temporary folde
 
 They are run by the release check: `python3 tools/check_release.py --ui` runs every script in `UI_CHECKS`
 (`tools/check_hatch.py`), one after the other, each in its own process. The look is the one in force; set
-`GRAPHITE_APPEARANCE=kasandra` to run them in the Kasandra look. Every script passes in both looks.
+`GRAPHITE_APPEARANCE=kasandra` to run them in the Indigo look. Every script passes in both looks.
 
 The release check runs one look, because one pass of all twenty-two takes about six minutes on the four-core build machine
-(371.4 s in Graphite's look and 373.8 s in the Kasandra look, the scripts' times added up, on 19 November 2026), and both
+(371.4 s in the Pencil look and 373.8 s in the Indigo look, the scripts' times added up, on 19 November 2026), and both
 looks would double that. So whoever cuts a release runs `--ui` twice before cutting it: once as it is, once with
-`GRAPHITE_APPEARANCE=kasandra`. The Kasandra pass is not optional: it is where 0.8.4 found two of its three faults (below).
+`GRAPHITE_APPEARANCE=kasandra`. The Kas pass is not optional: it is where 0.8.4 found two of its three faults (below).
 The release tier does both: `python3 tools/run_tiers.py 2` runs every check in `UI_CHECKS` in each look, two at a time,
 with the suite and the scene (docs/CHECKS.md).
 
@@ -42,7 +42,7 @@ on demand now.
 | `check_cabinet_ui` | the logical cabinet, its rooms and drafts; the written passages in the prose face |
 | `check_cabinet_actions_ui` | a record's actions and the model they are built from |
 | `check_context_menu_ui` | the right-click menu on every surface, and Then on a table |
-| `check_continue_ui` | work that continues while Graphite is closed |
+| `check_continue_ui` | work that continues while Kas is closed |
 | `check_document_ui` | the shared document route |
 | `check_explore_ui` | Explore, the menus' identity and kept drafts |
 | `check_files_about_ui` | the second assignment: files about something |
@@ -101,7 +101,7 @@ text" (appearance.cursive), was retired; the check now edits the writing marker 
 
 ## Faults found while doing this
 
-Until 0.8.4 the window checks were run in Graphite's look only. Run in the Kasandra look, `check_finder_ui` stopped twice,
+Until 0.8.4 the window checks were run in the Pencil look only. Run in the Indigo look, `check_finder_ui` stopped twice,
 both times on a word that the look's wider typewriter letters cut, and both were faults of the program, fixed in it
 (`tests_integrated/test_whole_words.py`):
 
@@ -112,7 +112,7 @@ both times on a word that the look's wider typewriter letters cut, and both were
 
 The review of this work found a third, older than 0.8.4. The retired frame check had gone up to 28 pt; its step, moved into
 `check_finder_ui`, at first stopped at 20 pt, because at 28 pt it failed. On a fresh window at 1920 by 1200, 28 pt and back to
-14 left both panes 415 px wide where a fresh window has 326 (479 where it has 354 in the Kasandra look). A pane counts every
+14 left both panes 415 px wide where a fresh window has 326 (479 where it has 354 in the Indigo look). A pane counts every
 face's least width, shown or not, and Qt measures a layout again only when its widget shows, so a face out of sight kept
 the width 28 pt had given it. A pane now measures its faces out of sight again at each new size (`pane_qt.remeasure`), and
 step 14 goes through 28 pt again (`tests_integrated/test_pane_width.py`).

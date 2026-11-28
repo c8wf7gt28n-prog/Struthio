@@ -84,14 +84,14 @@ class Program:
 PROGRAMS = (
     Program('firefox', 'Firefox', ('.html', '.htm', '.xhtml', '.mhtml'), ('firefox', 'navigator', 'firefox-esr'),
             ('firefox', 'org.mozilla.firefox'), '',
-            'a page from Files, given to Firefox as a file; Graphite fetches nothing for it'),
+            'a page from Files, given to Firefox as a file; Kas fetches nothing for it'),
     Program('gimp', 'GIMP', ('.xcf', '.ora'), ('gimp',), ('gimp', 'org.gimp.gimp'), '',
-            'an image with layers; Graphite does not read inside it, it records its revisions'),
+            'an image with layers; Kas does not read inside it, it records its revisions'),
     Program('kicad', 'KiCad', ('.kicad_pro', '.kicad_sch', '.kicad_pcb'), ('kicad', 'pcbnew', 'eeschema'),
             ('kicad', 'org.kicad'), '',
             'a KiCad project: its schematic and board are watched together; a BOM or a netlist is read by the KiCad checks room'),
     Program('blender', 'Blender', ('.blend',), ('blender',), ('blender', 'org.blender'), 'programs.blender.open',
-            'a Blender scene; Graphite does not read inside it, and opens it with its scripts not run'),
+            'a Blender scene; Kas does not read inside it, and opens it with its scripts not run'),
     Program('godot', 'Godot', ('project.godot', '.tscn', '.scn'), ('godot',), ('godot', 'org.godotengine'), 'programs.godot.open',
             'a Godot project: its project.godot and its scenes are watched; the editor opens on the project folder'),
 )
@@ -277,7 +277,7 @@ def open_file(kernel, args, principal):
     if home_reach.in_her_work(principal):
         never = home_reach.her_change(kernel, target)
         if never:raise ValueError('APPFILE_OUTSIDE_HOME: ' + never)
-    if target.stat().st_size > BIGGEST:raise ValueError('APPFILE_TOO_LARGE: %s is larger than Graphite reads whole to see its revisions' % target.name)
+    if target.stat().st_size > BIGGEST:raise ValueError('APPFILE_TOO_LARGE: %s is larger than Kas reads whole to see its revisions' % target.name)
     route, app, program, name, reason = choose(target, str(args.get('app') or ''), bool(args.get('chosen')))
     if not route:raise ValueError('APPFILE_NO_PROGRAM: ' + reason)
     base = files_service.root(kernel).resolve()

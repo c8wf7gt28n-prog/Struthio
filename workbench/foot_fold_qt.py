@@ -21,26 +21,26 @@ from .quick_settings_qt import QuickTray      # 1.1 B5
 
 # Old place -> new place (the owner reads this table; the release notes carry it). K0's head_menus.MOVED is its model.
 FOOT_MOVED = (
-    ('Line: a Graphite line, an operation after /, an address, words for Kasandra (the foot\'s line, Alt+1)',
-     "The bar's line (a press on it, Win+R, Win+S, Alt+1): every row says what Enter does; a Graphite line is Run on the line "
-     'page, an operation is Run on the operations page, an address is Opened, Ask Kasandra is always its last row'),
+    ('Line: a Kas line, an operation after /, an address, words for Kas (the foot\'s line, Alt+1)',
+     "The bar's line (a press on it, Win+R, Win+S, Alt+1): every row says what Enter does; a Kas line is Run on the line "
+     'page, an operation is Run on the operations page, an address is Opened, Ask Kas is always its last row'),
     ('Search: names and words across the workspace (Alt+4, Ctrl+K, a leading ?)',
      "The bar's line (Alt+4, Ctrl+K): apps, files, settings, the desk and commands by name; its row 'Search inside files for …' "
      'finds their words too (the results in the working area, as before)'),
     ('Web: an address opened, or words searched for, in your own browser',
-     "The bar's line: an address is its Open row; words have 'Search the web for …' (in your own browser; Graphite fetches nothing)"),
+     "The bar's line: an address is its Open row; words have 'Search the web for …' (in your own browser; Kas fetches nothing)"),
     ('Terminal: your shell in your Files folder, with DOS words (Alt+5, Ctrl+Alt+`)',
-     'The drop-down Terminal, from the top of the screen over any app: Win+` or Ctrl+Alt+T (and Alt+5, Ctrl+Alt+` in Graphite); '
+     'The drop-down Terminal, from the top of the screen over any app: Win+` or Ctrl+Alt+T (and Alt+5, Ctrl+Alt+` in Kas); '
      "the line's Terminal and DOS rows run there"),
     ('Log: Events and Network, filtered from the line (Alt+6)',
      'View ▸ Log (Alt+6): the working area\'s Log, with its own Filter line (Enter filters; Ctrl+Enter captures, in Network)'),
     ('The meters CPU, GPU, RAM, TXT and NET at the foot\'s right, each a door to its card',
      'The bar\'s Quick Settings (1.1 B5): every meter in its tip; a press opens its panel, the five its fourth section, each the same door'),
-    ('The arrow at the line\'s end, Ctrl+Enter and Ask Kasandra →', "Enter on the bar's line (its first row), or a press on any row"),
+    ('The arrow at the line\'s end, Ctrl+Enter and Ask Kas →', "Enter on the bar's line (its first row), or a press on any row"),
     ('Expand and Collapse (the room above the line)', 'View ▸ Console ▸ One Line, Half, Tall (as before), and Ctrl+`'),
     ('Short messages ("Saved as…") at the line', 'The working area\'s message line, as before (the foot only repeated them)'),
     ('The context word at the line\'s right end (the selected record, else the workspace)',
-     "The centre bar's path (it names the same place), and Graphite's window title on the bar"),
+     "The centre bar's path (it names the same place), and the computer's window title on the bar"),
 )
 KEEP_ENV = 'GRAPHITE_FOOT'
 WAIT_MS, WAIT_TRIES = 200, 60          # how long the fold waits for the bar to stand, at most (12 s)
@@ -115,7 +115,7 @@ def more_rows(host):
                       'Open', lambda w=words: search_inside(host, w), icon='command', tip="1.0's Search (Ctrl+K)")]
         if not lf.is_address(words):
             out.append(lf.Row('command', 'Search the web for “%s”' % lf.short(words, 40),
-                              "In this computer's own browser; Graphite itself fetches nothing", 'Open',
+                              "In this computer's own browser; Kas itself fetches nothing", 'Open',
                               lambda w=words: search_web(host, w), icon='address', tip="1.0's Web"))
         return out
     rows.b4_host = host
@@ -331,7 +331,7 @@ def key_verb(host, verb):
         except Exception as exc:  # noqa: BLE001
             return {'ok': False, 'words': 'Her panel did not open: %s' % (str(exc)[:120] or type(exc).__name__)}
         if ctl.panel_open():return {'ok': True, 'words': 'Her panel is open.'}
-        if done == 'docked':return {'ok': True, 'words': 'Her column is in front, in Graphite.'}
+        if done == 'docked':return {'ok': True, 'words': 'Her column is in front, in Kas.'}
         return {'ok': True, 'words': 'Her panel is closed.'}
     if verb == 'halt':
         from .kas_voice import say as her

@@ -167,7 +167,7 @@ def watching():
     opener = Q.QDesktopServices.openUrl
 
     def open_url(url, _opener=opener):
-        seen.append('opened outside Graphite: ' + url.toString()[:200]);return _opener(url)
+        seen.append('opened outside Kas: ' + url.toString()[:200]);return _opener(url)
     backs.append(_swap(Q.QDesktopServices, 'openUrl', open_url, static=True))
     for name in ('start', 'startDetached'):
         started = getattr(Q.QProcess, name)
@@ -1071,7 +1071,7 @@ def menu_open(c):
     if menu is None or menu is before:
         own = Q.QApplication.activePopupWidget()
         if isinstance(own, Q.QMenu):      # the keyboard is in a place with a menu of its own (a text field): that one opened
-            own.hide();raise Refusal('NOT_HERE', 'The keyboard is on a place that keeps its own menu, such as a text field; nothing of Graphite\'s opened.')
+            own.hide();raise Refusal('NOT_HERE', 'The keyboard is on a place that keeps its own menu, such as a text field; nothing of Kas\'s opened.')
         raise Refusal('FAILED', REFUSALS['FAILED'] % 'no menu opened there')
     said = menu_said(host)
     return 'The menu for “%s” is open.' % said['target'], {k: said[k] for k in ('target', 'first', 'words', 'then_line')}
@@ -1361,7 +1361,7 @@ def hand_write(c):
     from .context_menu import dispatch
     from .stacy_start import reserved
     path, text = c.args['path'], c.args['text'];c.by = 'direct'
-    if reserved(path):raise Refusal('NOT_HERE', '“%s” begins with a name Graphite keeps for a folder of its own.' % path)
+    if reserved(path):raise Refusal('NOT_HERE', '“%s” begins with a name Kas keeps for a folder of its own.' % path)
     # Her own rule for a file asked of her (shell2.made_asked): she never writes over what is there by herself, and an
     # overwrite has no exact Undo. So a path that is taken is put up to wait for the owner's Approve, whatever her dial says.
     taken = bool(dispatch(c.host, 'files.get', {'path': path}).get('ok'))

@@ -39,15 +39,15 @@ SPECS = [
           'code_pt':'Code text (pt)', 'prose_pt':'Prose text (pt)', 'line_height':'Document line spacing'}[k], a, b)
           for k, a, b in reading_profile.RANGES]],
     spec('reading.reduce_motion', 'Reduce motion', 'Appearance', False, 'boolean', 'Use quiet/static optional presentation.'),
-    spec('stacy.reactions', 'Graphite reactions', 'Slate', True, 'boolean', 'Optional idle and job reactions; does not start tools.'),
-    spec('stacy.enabled', 'Allow new Graphite AI activity', 'Slate', True, 'boolean', 'OFF blocks new model activation, qualification and inference. Running requests may finish; ordinary Graphite tools stay available.'),
-    spec('stacy.provider', 'Graphite chat provider', 'Slate', 'local', 'string', 'Select the provider for the next request. This does not load a local model or configure a Gemini credential.', choices=['local','gemini']),
-    spec('stacy.actions', 'Enable Graphite action proposals', 'Slate', False, 'boolean', 'Gemini may propose registered commands for review. This grants no source acceptance authority.'),
+    spec('stacy.reactions', 'Kas reactions', 'Slate', True, 'boolean', 'Optional idle and job reactions; does not start tools.'),
+    spec('stacy.enabled', 'Allow new Kas AI activity', 'Slate', True, 'boolean', 'OFF blocks new model activation, qualification and inference. Running requests may finish; ordinary Kas tools stay available.'),
+    spec('stacy.provider', 'Kas chat provider', 'Slate', 'local', 'string', 'Select the provider for the next request. This does not load a local model or configure a Gemini credential.', choices=['local','gemini']),
+    spec('stacy.actions', 'Enable Kas action proposals', 'Slate', False, 'boolean', 'Gemini may propose registered commands for review. This grants no source acceptance authority.'),
     spec('stacy.share_activity', 'Share activity context', 'Slate', False, 'boolean', 'Include redacted activity, settings and workspace metadata in the next Gemini request. Source sharing remains separate.'),
     spec('workspace.startup', 'Startup', 'Workspace', 'last', 'string', 'Choose the policy consumed at the next desktop launch.', choices=['last','home']),
     spec('workspace.mode', 'Workspace arrangement', 'Workspace', 'engineering', 'string', 'Focus or engineering arrangement.', choices=['engineering','focus']),
-    spec('operations.priority', 'Work CPU priority', 'Operations', 'normal', 'string', 'Background lowers Graphite work priority. Normal applies to new work; existing lower priorities remain until those processes exit.', choices=['normal','background']),
-    spec('operations.services_enabled', 'Graphite services admission', 'Operations', True, 'boolean', 'The menu holds new work here while running jobs drain gracefully. Use the menu’s Graphite services for a complete service cycle.'),
+    spec('operations.priority', 'Work CPU priority', 'Operations', 'normal', 'string', 'Background lowers Kas work priority. Normal applies to new work; existing lower priorities remain until those processes exit.', choices=['normal','background']),
+    spec('operations.services_enabled', 'Kas services admission', 'Operations', True, 'boolean', 'The menu holds new work here while running jobs drain gracefully. Use the menu’s Kas services for a complete service cycle.'),
 ]
 SPECS += [
     spec('cabinet.sort','Cabinet sibling order','Workspace','natural','string',
@@ -188,10 +188,10 @@ SPECS += [spec(WRITING_MARKER_KEY,'Writing marker','Appearance',True,'boolean',
 # The consumers are the desktop's close (agent_qt.continue_setting, read through ledger.settings.effective) and the service's
 # 5 s tick (agent_loop.continue_when_closed reads the same Kernel settings row); single-key Set only.
 CONTINUE_KEY='agent.continue_when_closed'
-SPECS += [spec(CONTINUE_KEY,'Continue assignments while Graphite is closed','Slate',True,'boolean',
-    'With the Graphite service running, an assignment keeps going there when you close the window, one step at a time, and Today tells you what it did. Off, closing the window pauses it and Today offers to resume it. Opening Graphite again takes the work back to this window.',
+SPECS += [spec(CONTINUE_KEY,'Continue assignments while Kas is closed','Slate',True,'boolean',
+    'With the Kas service running, an assignment keeps going there when you close the window, one step at a time, and Today tells you what it did. Off, closing the window pauses it and Today offers to resume it. Opening Kas again takes the work back to this window.',
     root='Slate',group='Assignments',scope='Project private',scope_id='project_private',supported_scopes=['project_private'],
-    store='Kernel settings: ledger.'+CONTINUE_KEY,application='next_use',effect='The next time Graphite closes; the Graphite service reads it on every tick',
+    store='Kernel settings: ledger.'+CONTINUE_KEY,application='next_use',effect='The next time Kas closes; the Kas service reads it on every tick',
     requires_owner=True)]
 BY_KEY = {row['key']:row for row in SPECS}
 SESSION_KEYS = SESSION_BATCH_KEYS | frozenset(FAVORITE_KEYS) | frozenset({VIEW_MODES_KEY,WRITING_MARKER_KEY})

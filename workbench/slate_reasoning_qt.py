@@ -27,7 +27,7 @@ class ReasoningPane(ServiceTab):
         self.notice.setTextFormat(Qt.TextFormat.PlainText)
         self.notice.setText('Prepare evidence from this assignment and any extra sources.')
         box.addWidget(self.notice)
-        self.question = QPlainTextEdit(); writing_prompt(self.question, 'What would you like Graphite to help with?'); self.question.setAccessibleName('Question for Graphite'); self.question.setFixedHeight(54); box.addWidget(self.question)
+        self.question = QPlainTextEdit(); writing_prompt(self.question, 'What would you like Kas to help with?'); self.question.setAccessibleName('Question for Kas'); self.question.setFixedHeight(54); box.addWidget(self.question)
         form = QFormLayout(); box.addLayout(form)
         self.addresses = QPlainTextEdit(); self.addresses.setFixedHeight(75); writing_prompt(self.addresses, 'Source addresses or namespace:ID, one per line'); form.addRow('Extra sources', self.addresses)
         self.budget = QSpinBox(); self.budget.setRange(512, 32000); self.budget.setValue(6000); self.budget.setSingleStep(512); form.addRow('Context characters', self.budget)
@@ -74,7 +74,7 @@ class ReasoningPane(ServiceTab):
         self.calculate.toggled.connect(self.calc_details.setChecked)
 
         row = QHBoxLayout(); collect = button('Prepare evidence', 'quiet'); collect.clicked.connect(self.assemble); row.addWidget(collect)
-        ask = button('Ask local Graphite', 'primary'); ask.clicked.connect(self.ask); row.addWidget(ask)
+        ask = button('Ask local Kas', 'primary'); ask.clicked.connect(self.ask); row.addWidget(ask)
         stop = button('Stop this reply', 'quiet'); stop.clicked.connect(self.stop); row.addWidget(stop); box.addLayout(row)
         self.sources = QPlainTextEdit(); self.sources.setReadOnly(True); self.sources.setAccessibleName('Prepared evidence and source gaps'); self.sources.setMinimumHeight(120); box.addWidget(self.sources, 2)
         row = QHBoxLayout()
@@ -86,7 +86,7 @@ class ReasoningPane(ServiceTab):
         read = button('Read passage', 'quiet'); read.clicked.connect(self.read_passage); row.addWidget(read)
         focus = button('Focus next turn', 'quiet'); focus.clicked.connect(self.focus_passage); row.addWidget(focus)
         box.addLayout(row)
-        self.reply = QPlainTextEdit(); self.reply.setReadOnly(True); self.reply.setAccessibleName('Graphite answer or draft'); box.addWidget(self.reply, 1)
+        self.reply = QPlainTextEdit(); self.reply.setReadOnly(True); self.reply.setAccessibleName('Kas answer or draft'); box.addWidget(self.reply, 1)
         writing_prompt(self.reply, 'A local model reply will appear here.')
         inspect = button('Inspect context and result', 'quiet'); inspect.clicked.connect(self.inspect); box.addWidget(inspect)
         row = QHBoxLayout(); use = button('Use this interpretation', 'quiet'); use.clicked.connect(self.use_interpretation); row.addWidget(use)
@@ -261,7 +261,7 @@ class ReasoningPane(ServiceTab):
             args['follow_up'] = True
         result = self.call('slate.ask', args)
         if result is None: return
-        self.job = result['id']; self.reply.clear(); self.notice.setText('Local Graphite is reading. Incoming text is a draft until checks finish.'); self.timer.start()
+        self.job = result['id']; self.reply.clear(); self.notice.setText('Local Kas is reading. Incoming text is a draft until checks finish.'); self.timer.start()
 
     def poll(self):
         if not self.job: self.timer.stop(); return
@@ -306,7 +306,7 @@ class ReasoningPane(ServiceTab):
         result = self.call('projects.link', {'id': project['id'], 'expected_revision': project['revision'],
             'role': 'ALTERNATIVE', 'address': 'job:' + self.record['job_id']})
         if result is None: return False
-        self.desk.open_project(project['id']); self.notice.setText('Graphite’s draft reply is linked as an alternative, with its model job and source context.'); return True
+        self.desk.open_project(project['id']); self.notice.setText('Kas’s draft reply is linked as an alternative, with its model job and source context.'); return True
 
     def use_interpretation(self):
         candidate = (self.record or {}).get('candidate', {})
@@ -315,10 +315,10 @@ class ReasoningPane(ServiceTab):
         if not self.keep_reply(): return
         self.desk.interpretation.setPlainText(candidate['interpretation']); self.desk.questions.setPlainText('\n'.join(candidate.get('questions', [])))
         self.desk.tabs.setCurrentIndex(1)
-        self.desk.message.setText('Graphite’s interpretation is in the editor. Save the assignment to keep a new revision; the original request is retained.')
+        self.desk.message.setText('Kas’s interpretation is in the editor. Save the assignment to keep a new revision; the original request is retained.')
 
     def inspect(self):
         if not self.context: return
-        dialog = QDialog(self); dialog.setWindowTitle('Graphite sources and result'); dialog.resize(850, 650)
+        dialog = QDialog(self); dialog.setWindowTitle('Kas sources and result'); dialog.resize(850, 650)
         box = QVBoxLayout(dialog); text = QPlainTextEdit(); text.setReadOnly(True)
         text.setPlainText(json.dumps({'context': self.context, 'result': self.record}, indent=2, ensure_ascii=False)); box.addWidget(text); dialog.exec()

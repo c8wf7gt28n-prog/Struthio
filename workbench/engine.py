@@ -421,7 +421,7 @@ def simulation_plan(operation, project, root=ROOT, frames=RUN_FRAMES, scenario=N
 def ledger_plan(action, root=ROOT):
     """Fixed host import services shared by the human and agent interfaces."""
     if action not in ('inspect','parity','reference'):
-        raise ValueError('Unknown Graphite action')
+        raise ValueError('Unknown Kas action')
     from .hardware_import import descriptor
     descriptor(root)
     return Plan(action,'ledger',[],None,

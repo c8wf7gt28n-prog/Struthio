@@ -37,7 +37,7 @@ REASONS = (ADDRESSED, ROLE, FENCE, TOKENS, INVISIBLE, MIXED, SECRET, CONTINUES)
 AIMED = (ADDRESSED, ROLE, FENCE, TOKENS)            # words aimed at Kas: the lines speak to whoever reads them
 REASON_WORDS = {   # each completes "this line ..."
     ADDRESSED: 'is written to an assistant',
-    ROLE: 'claims to speak for you or for Graphite',
+    ROLE: 'claims to speak for you or for Kas',
     FENCE: 'imitates the marks that fence a page',
     TOKENS: "imitates a model's own control marks",
     INVISIBLE: 'has characters you cannot see',

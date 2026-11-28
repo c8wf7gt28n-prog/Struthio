@@ -20,7 +20,7 @@ from .service_lifecycle_qt import LedgerLifecycle
 from .session_power import LEAVE, session_exit  # noqa: F401 (the leave words, for older callers)
 
 CHOICES = 'Apps and capabilities, A to Z · Explore the workshop'
-SERVICES_MENU = 'Graphite services'  # the services' place is the System menu now; the word is kept for callers
+SERVICES_MENU = 'Kas services'  # the services' place is the System menu now; the word is kept for callers
 ORDER = ('programs A to Z', '—', 'Explore the workshop')  # the list's order, for readers and checks (programs_qt.order())
 
 

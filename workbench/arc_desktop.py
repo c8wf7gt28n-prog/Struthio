@@ -163,7 +163,7 @@ class ArcInspector(QWidget):
                     rows.append('<tr><td colspan="2" style="padding:0 0 6px 0;line-height:135%">'+words+'</td></tr>')
             parts.append('<table cellspacing="0" width="100%">'+''.join(rows)+'</table>')
         elif type(tab).__name__=='MemoryTab':
-            self.heading.setText('Graphite · learning & continuity')
+            self.heading.setText('Kas · learning & continuity')
             section('Personality','Private seed '+('enabled' if getattr(tab,'profile_enabled',False) else 'disabled or not imported'))
             section('Learning','Explicit owner feedback only.<br>Corrections supersede older evidence in their scope.<br>Preferences never grant tool permission.')
             cp=getattr(tab,'last_checkpoint',None)
@@ -172,7 +172,7 @@ class ArcInspector(QWidget):
             section('Lines','Current caller permissions.<br>Read observations use the existing journal.')
             section('Qualification','A memory or source citation is not a board test.')
         elif type(tab).__name__=='ReferenceTab':
-            self.heading.setText('Graphite · exact references')
+            self.heading.setText('Kas · exact references')
             section('Reference library',esc(getattr(tab,'current_sources',0))+' current originals<br>Generation '+esc(getattr(tab,'generation',0)))
             citation=getattr(tab,'citation',None)
             if citation:
@@ -184,7 +184,7 @@ class ArcInspector(QWidget):
             section('Missing originals',esc(missing)+' unavailable sources.<br>Cached excerpts are withheld.' if missing else 'No unavailable sources in the current index.')
             section('Local packet','Selected sources only. No automatic cloud disclosure.')
         elif type(tab).__name__=='IntakeTab':
-            self.heading.setText('Graphite · reference intake')
+            self.heading.setText('Kas · reference intake')
             section('V1 catalog',esc(getattr(tab,'catalog_count',0))+' available references<br>Generation '+esc(getattr(tab,'generation',0)))
             section('Current job','Running' if getattr(tab,'job',None) else 'No intake job running')
             selected=getattr(tab,'detail_data',None)
@@ -199,7 +199,7 @@ class ArcInspector(QWidget):
         elif type(tab).__name__=='BrainTab':
             from . import local_brain
             state=local_brain.status(host.ledger_bridge.kernel)
-            self.heading.setText('Graphite · local brain')
+            self.heading.setText('Kas · local brain')
             section('State',esc(state['state']).replace('_',' '))
             section('Execution','Local CPU worker · cloud calls 0')
             worker=local_brain.get(host.ledger_bridge.kernel,'worker',{})
@@ -213,7 +213,7 @@ class ArcInspector(QWidget):
             section('Qualification','Model measurements do not verify<br>engineering answers.<br>Owner host and GPU qualification<br>remain separate.')
         elif activity == 'home':
             self.heading.setText('Your workshop')
-            section('Graphite', 'One desk. Many ways to explore.')      # 1.0 D2: the old workshop name
+            section('Kas', 'One desk. Many ways to explore.')      # 1.0 D2: the old workshop name
             section('Pick up a thread', '<a href="issues">Review the command-parser finding</a><br>Isolated candidate · review pending')
             recent = host.session.state.get('recent', [])[:4]
             if recent:
@@ -250,7 +250,7 @@ class ArcInspector(QWidget):
                 section('Recorded VCD',esc(len(trace['signals']))+' signals<br>'+esc(trace['events'])+' recorded changes<br>'+esc(trace['tick_fs'])+' fs per tick')
                 section('Exact cursor',esc(getattr(tab.plot,'cursor',0))+' ticks<br>X / Z retained')
             if report.get('simulation',{}).get('sample_count'):section('Shared pump check',esc(report['simulation']['sample_count'])+' expected words checked')
-            if report.get('capture'):section('Native Surfer','Actual saved-state / image capture.<br>Graphite cursor controls are separate.')
+            if report.get('capture'):section('Native Surfer','Actual saved-state / image capture.<br>Kas cursor controls are separate.')
             section('Source binding',esc(report.get('source_currentness','UNASSESSED')))
             section('Model limits','Digital RTL / protocol models, not board timing.<br>Physical programming HOLD.')
         elif type(tab).__name__=='ImplementationTab':
@@ -308,7 +308,7 @@ class ArcInspector(QWidget):
             section('Your notes', 'Annotations stay separate from originals and accepted facts. Save explicitly; recovery drafts remain separate.')
         elif service_active:
             self.heading.setText('Shared work')
-            section('Graphite', 'One shared service coordinates authorized jobs and model ownership.')
+            section('Kas', 'One shared service coordinates authorized jobs and model ownership.')
             section('Window closed', 'The background service keeps running. Saved work and job results retain their identities.')
             section('Owner controls', 'Master Stop holds new work and switches off phone access. Resume is explicit.')
         elif type(tab).__name__=='CandidateReviewTab':
@@ -438,7 +438,7 @@ def install(host):
     host.navigator_logo=NavigatorLogo(host.root)
     column.addWidget(host.navigator_logo)
     host.concern.attach_controls(column)
-    mast.setAccessibleName('Graphite project explorer')
+    mast.setAccessibleName('Kas project explorer')
     # Search lives with the tree: typing filters it; Enter searches everything.
     search_row = QHBoxLayout();search_row.setSpacing(6)
     host.tree_search = QLineEdit()
@@ -512,7 +512,7 @@ def install(host):
     host.diagnostics_splitter.setSizes([900,190])
     host.doc_info.hide()
     from .project_context import detached
-    host.arc_state = QLabel('Graphite  ·  Program only  ·  Project not attached' if detached(host.root) else 'ARC-1 R10  ·  Local project  ·  Hardware disconnected')
+    host.arc_state = QLabel('Kas  ·  Program only  ·  Project not attached' if detached(host.root) else 'ARC-1 R10  ·  Local project  ·  Hardware disconnected')
     host.statusBar().addWidget(host.arc_state,1)
     host.nav_dock.setMinimumWidth(270)  # navigator labels fit without ellipses
     host.resizeDocks([host.nav_dock,host.sim_dock],[275,310],Qt.Horizontal)
@@ -525,7 +525,7 @@ def install(host):
     host.installEventFilter(host.arc_controller)
     host.toolbar.installEventFilter(host.arc_controller)  # the ribbon narrows when the navigator widens
     host.arc_controller.resize()
-    host.setWindowTitle('Graphite')  # 1.0 X3: the dock, the window list and the leave dialog name the window by this (it said "The Silicon Federation workshop")
+    host.setWindowTitle('Kas')  # 1.0 X3: the dock, the window list and the leave dialog name the window by this (it said "The Silicon Federation workshop")
     # The dock retitle renames its toggle action; refresh the icon-only favourites' accessible names.
     host._refresh_favorite_buttons()
 
@@ -615,8 +615,8 @@ def organize_navigator(host):
             parent.takeChild(parent.indexOfChild(item))
         top.insertChild(pos,item)
         item.setText(0,names[ident])
-    labels = {'database_rom':'Reference library','ledger_active':'Graphite','platform':'OS & firmware',
-              'ai_clip':'Graphite workshop','orange_book':'Orange Book','console_hardware':'Hardware studies',
+    labels = {'database_rom':'Reference library','ledger_active':'Kas','platform':'OS & firmware',
+              'ai_clip':'Kas workshop','orange_book':'Orange Book','console_hardware':'Hardware studies',
               'struthio':'Games / STRUTHIO'}
     areas = {}
     for ident, item in host._workspace_areas.items():
@@ -631,7 +631,7 @@ def organize_navigator(host):
     concern = QTreeWidgetItem(['ARC Concern'])
     concern.setData(0,Qt.UserRole+2,'nav_concern')
     concern.setIcon(0,icon(host.root,'source-fact'))
-    concern.setToolTip(0,"ARC · Adaptive RISC-V Concern\nOpen Graphite's Control Center")
+    concern.setToolTip(0,"ARC · Adaptive RISC-V Concern\nOpen Kas's Control Center")
     host.nav.insertTopLevelItem(0, concern)
     concern.addChild(top)
     if 'console_hardware' in areas:top.addChild(areas.pop('console_hardware'))

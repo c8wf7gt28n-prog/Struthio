@@ -172,13 +172,13 @@ def _tools():
              verify="the file on disk has the digest of the new text (the new revision's digest is on disk)", writes_files=True),
         Tool(5, 'files.rename', 'Rename a file or a folder in Files; it keeps its identity.', 'files', 'change', ('files.rename',),
              arguments=(path, Arg('name', 'its new name')),
-             preconditions=('it is there', 'the new name is free in its folder', "it is not Graphite's own area or Egress"),
+             preconditions=('it is there', 'the new name is free in its folder', "it is not Kas's own area or Egress"),
              effects='the same file under a new name; its object id goes with it', undone='Rename it back',
              grant='rename files in the folder', target='path',
              verify='the new name holds the same content (digest) and the old name is gone', writes_files=True),
         Tool(6, 'files.move', 'Move a file or a folder into another folder of Files; it keeps its identity.', 'files', 'change',
              ('files.move',), arguments=(path, Arg('to', 'the folder it goes into')),
-             preconditions=('it is there', 'the folder is there', 'it does not go into itself', "it is not Graphite's own area or Egress"),
+             preconditions=('it is there', 'the folder is there', 'it does not go into itself', "it is not Kas's own area or Egress"),
              effects='the same file in another folder (a taken name gets a number); its object id goes with it',
              undone='Move it back', grant='move files out of the folder and into the other', target='path',
              verify='the same content (digest) is in the folder and gone from where it was', writes_files=True),
@@ -199,16 +199,16 @@ def _tools():
              preconditions=('the sheet is at the revision the plan read, when one is given',), effects='a value set in a cell',
              undone="her hand's Undo puts the value back", grant='set values on the sheet', target='id',
              verify='the sheet, read again, holds the value in that cell'),
-        Tool(10, 'desk.navigate', "Move what Graphite's window shows: open, select, zoom, read back (a desk act).", 'desk', 'navigate',
+        Tool(10, 'desk.navigate', "Move what the computer's window shows: open, select, zoom, read back (a desk act).", 'desk', 'navigate',
              callable='workbench.desk_doers:run', arguments=(Arg('act', 'which act (one of the members)', READ_FROM),
                                                             Arg('arguments', 'its arguments', READ_FROM)),
-             preconditions=("Graphite's window is open, in her hand's turn", 'the act is hers to do at the dial (desk_acts.desk_hers)'),
+             preconditions=("The computer's window is open, in her hand's turn", 'the act is hers to do at the dial (desk_acts.desk_hers)'),
              effects='what the window shows', undone='go back, or put the window back as it was', grant='move your window (the dial)',
              verify='read back what the window shows (read.desk)'),
         Tool(11, 'desk.change', "A change through her hand on the window: write, rename or delete a file, set a cell, take a step.",
              'desk', 'change', ('files.write', 'files.rename', 'files.trash', 'field.set'), callable='workbench.desk_doers:run',
              arguments=(Arg('act', 'which act (one of the members)'), Arg('arguments', 'its arguments')),
-             preconditions=("Graphite's window is open, in her hand's turn", 'the act is hers to do at the dial (desk_acts.desk_hers)'),
+             preconditions=("The computer's window is open, in her hand's turn", 'the act is hers to do at the dial (desk_acts.desk_hers)'),
              effects="the act's Kernel operation's effect", undone="her hand's Undo, where the act has one",
              grant="the grant of the act's own operation", target='path',
              verify="the check of the act's own operation (as the file and sheet tools)"),
@@ -230,7 +230,7 @@ def _tools():
              'windows', 'change', ('windows.close',), callable='workbench.windows_x11:Watcher.close',
              arguments=(Arg('window', 'the window, as the last look named it'),),
              preconditions=('this computer has a window list', 'the window is open now', 'its program takes a polite close'),
-             effects='the window closes (its program may ask first)', undone='Graphite cannot undo it: open the program again',
+             effects='the window closes (its program may ask first)', undone='Kas cannot undo it: open the program again',
              grant='close program windows (the records mark it for your approval)', target='window',
              verify='a fresh look no longer lists it'),
         Tool(16, 'apps.open', 'Open one of the Apps, with files when it takes them.', 'apps', 'change', ('apps.open',),
@@ -331,13 +331,13 @@ def available(tool):
         check = tool.filled.get('available')
         if check is None:
             if tool.filled and (tool.operations or tool.callable):return True, ''
-            return False, 'not built yet: slice %s is not in this Graphite' % tool.slice
+            return False, 'not built yet: slice %s is not in this Kas' % tool.slice
         try:return check()
         except Exception as exc:  # noqa: BLE001 - a slot that cannot say is not available, with the reason
             return False, 'it could not tell (%s)' % str(exc)[:160]
     if tool.family == 'desk':
         host = _DESK[0]() if _DESK else None
-        if host is None:return False, "Graphite's window is not open in this process: a desk act is done on the window, in her hand's turn"
+        if host is None:return False, "The computer's window is not open in this process: a desk act is done on the window, in her hand's turn"
         return True, ''
     if tool.family == 'windows':
         try:
@@ -517,7 +517,7 @@ def _pre_files(kernel, tool, a, origins):
     elif tool.key in ('files.rename', 'files.move'):
         if not path.exists():unmet.append('%s is not there' % rel)
         elif path in (files_service.root(kernel) / files_service.SLATE, files_service.root(kernel) / files_service.EXPORTS):
-            unmet.append("Graphite's own area and Egress stay where they are, as they are")
+            unmet.append("Kas's own area and Egress stay where they are, as they are")
         if tool.key == 'files.rename':
             try:target = path.with_name(files_service.clean_name(a.get('name') or ''))
             except ValueError:unmet.append('the new name cannot be used')
@@ -549,7 +549,7 @@ def _pre_windows(kernel, tool, a, origins):
     watcher.refresh();row = watcher.row(wid)
     if row is None:return ['the window %s is not open now' % a.get('window')]
     if tool.key == 'windows.close' and 'WM_DELETE_WINDOW' not in (row.get('protocols') or ()):
-        return ['%s does not take a polite close, and Graphite never forces one' % (row.get('program') or 'its program')]
+        return ['%s does not take a polite close, and Kas never forces one' % (row.get('program') or 'its program')]
     return []
 
 
@@ -605,7 +605,7 @@ def holding(operation, why):
         from .session_power import sleep_held
     except Exception:  # noqa: BLE001 - without S1's inhibitor the write is not held up for it
         yield False;return
-    with sleep_held('Kasandra is writing: %s' % str(why)[:80]) as held:
+    with sleep_held('Kas is writing: %s' % str(why)[:80]) as held:
         yield held
 
 
@@ -784,7 +784,7 @@ def _read_inside(window):
     """K7's reader, when it is here: what the dialog says inside. Without it, why the meaning stays an inference."""
     if ACCESSIBILITY is None:
         return {'read': False, 'words': 'This is an inference from the title: its text and buttons were not read (no accessibility '
-                                        'reader in this Graphite yet).'}
+                                        'reader in this Kas yet).'}
     try:inside = ACCESSIBILITY(window) or {}
     except Exception as exc:  # noqa: BLE001
         inside = {'available': False, 'reason': str(exc)[:160]}
@@ -899,7 +899,7 @@ class AppOpen(_asg.Check):
         return {'app': arguments['id'], 'name': app.name, 'seq': seq, 'at': time.time()}
 
     def find(self, kernel, read, arguments, prepared):
-        raise _asg.Unknowable('Graphite cannot tell whether the App was opened before it stopped: look at your windows')
+        raise _asg.Unknowable('Kas cannot tell whether the App was opened before it stopped: look at your windows')
 
     def verify(self, kernel, read, arguments, result, prepared, step):
         result = result or {}

@@ -52,7 +52,7 @@ class UniversalViewerTab(QWidget):
         self.receive_button = QPushButton('Receive into Office');self.receive_button.setToolTip('Receive this file into the Office: revive, catalog and read it.')
         self.receive_button.clicked.connect(self.receive);top.addWidget(self.receive_button)
         self.save_button = QPushButton('Save a copy…');self.save_button.clicked.connect(self.save_copy);top.addWidget(self.save_button)
-        self.native_button = QPushButton('Open in Graphite');self.native_button.clicked.connect(self.open_native);top.addWidget(self.native_button)
+        self.native_button = QPushButton('Open in Kas');self.native_button.clicked.connect(self.open_native);top.addWidget(self.native_button)
         from .apps_qt import open_with_file      # 1.0 S2: Open with, the apps on this computer that open this kind of file
         self.open_with_button = QPushButton('Open with…');self.open_with_button.setToolTip('Open this file in an app on this computer')
         self.open_with_button.clicked.connect(lambda checked=False:open_with_file(self.host, self.root_path));top.addWidget(self.open_with_button)

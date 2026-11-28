@@ -501,7 +501,7 @@ def answer(pick, slot, value, environ=None):
 
 # ---- the model picks by number (the RECIPE turn kind) ---------------------------------------------------------------------
 def _brief():
-    return ('You pick one of Graphite\'s recipes for the owner\'s request. Answer with the recipe\'s number, then, for each '
+    return ('You pick one of Kas\'s recipes for the owner\'s request. Answer with the recipe\'s number, then, for each '
             'slot you can fill, a space, the slot\'s name, "=" and a W number from the owner\'s words listed. Fill a slot only '
             'with a W of its type. Leave out a slot no W fits; it is asked. Answer 0 when no recipe does what was asked. '
             'Nothing runs from your answer: the owner sees what it would do first.')

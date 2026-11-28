@@ -132,7 +132,7 @@ class JoinedPane(QWidget):
 
     def run_chain(self):
         receipt=self.schedules.currentData()
-        if not receipt:self.status.setText('Keep an actual current schedule result in Graphite investigation first.');return
+        if not receipt:self.status.setText('Keep an actual current schedule result in Kas investigation first.');return
         plan=self.call('joined.prepare',{'receipt':receipt['id'],'copy':self.pane.current['sources'][0]['copy']})
         if plan:self.track(self.call('joined.run',{'action':plan['id'],'expected_digest':plan['binding_digest']}),'joined.result')
 

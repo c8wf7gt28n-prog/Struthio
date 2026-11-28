@@ -76,7 +76,7 @@ def navigate(host, address):
                     host._close_start();host.tabs.setCurrentIndex(index)
                     return host.tabs.widget(index)
             raise ValueError('That working view is no longer open. Choose it in Apps.')
-        raise ValueError('That Graphite address is not supported.')
+        raise ValueError('That Kas address is not supported.')
     if text.startswith('file:'):
         parsed = urlsplit(text)
         if parsed.netloc not in ('', 'localhost'):

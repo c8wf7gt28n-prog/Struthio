@@ -635,7 +635,7 @@ class HerHand(QObject):
         kernel = getattr(getattr(self.host, 'ledger_bridge', None), 'kernel', None)
         if kernel is not None:hand_door._KERNEL['kernel'] = kernel      # HALT's hold is read through it: nothing is put back while HALT holds
         try:hand_door.DOOR.begin('desk', t.text, snapshot=self._door_snap or {'kind': 'desk'}, restore=self._door_restore, carry=self.carry_on,
-                                 program="Graphite's window", title=t.text)
+                                 program="The computer's window", title=t.text)
         except hand_door.Paused:
             pass
 

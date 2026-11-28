@@ -179,13 +179,13 @@ class ProgramRoom(ServiceTab):
 
     def choose_file(self):
         base = files_service.root(self.kernel).resolve()
-        selected, _ = QFileDialog.getOpenFileName(self, 'Choose from Graphite Files', str(base), self.file_filter)
+        selected, _ = QFileDialog.getOpenFileName(self, 'Choose from Kas Files', str(base), self.file_filter)
         if selected:
             try:
                 relative = Path(selected).resolve().relative_to(base).as_posix()
                 files_service.resolve(self.kernel, relative)
             except (ValueError, OSError):
-                self.status.setText('Choose a file inside Graphite Files.')
+                self.status.setText('Choose a file inside Kas Files.')
                 return
             self.source.setText(relative)
 
@@ -622,7 +622,7 @@ class InkscapeRoom(ExportRoom):
 
 class MediaRoom(ExportRoom):
     name, key = 'Media Bench', 'media'
-    instruction = 'Inspect a recording or video. Save a new clip, then play it in Graphite’s viewer.'
+    instruction = 'Inspect a recording or video. Save a new clip, then play it in Kas’s viewer.'
     source_hint, file_filter = 'Media path in Files', 'Audio and video (*.wav *.flac *.mp3 *.mp4 *.m4a)'
     output_label = 'Save clip'
     output_tag = '.clip'

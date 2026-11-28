@@ -229,14 +229,14 @@ def _blender_check(executable, path):
 
 def _start(command, directory):
     if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
-        raise ValueError("Open the Graphite desktop session to hand this file to a native window.")
+        raise ValueError("Open the Kas desktop session to hand this file to a native window.")
     process = subprocess.Popen(
         command, cwd=directory, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL, start_new_session=True,
     )
     time.sleep(0.15)
     if process.poll() is not None:
-        raise ValueError("The native program exited before Graphite could hand off the session.")
+        raise ValueError("The native program exited before Kas could hand off the session.")
     threading.Thread(target=process.wait, daemon=True).start()
     return process.pid
 

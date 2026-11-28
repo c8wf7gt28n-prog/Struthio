@@ -370,7 +370,7 @@ def limits(args):
 
 def input_files(kernel,args,principal):
     meta,row,root=store.workspace(kernel,args['copy'],principal)
-    if not row['for_slate'] and 'approve' not in principal.scopes:raise ValueError('This copy has not been delegated for Graphite work')
+    if not row['for_slate'] and 'approve' not in principal.scopes:raise ValueError('This copy has not been delegated for Kas work')
     if len(set(args['paths']))!=len(args['paths']):raise ValueError('Repeated worker input')
     files={};manifest=[]
     for i,path in enumerate(args['paths']):

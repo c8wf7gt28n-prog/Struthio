@@ -43,7 +43,7 @@ class OperationsPanel(QWidget):
         box=QVBoxLayout(self);box.setContentsMargins(0,0,0,0)
         scroll=self.scroll=QScrollArea();scroll.setWidgetResizable(True);scroll.setFrameShape(QScrollArea.NoFrame);box.addWidget(scroll)
         page=QWidget();col=QVBoxLayout(page);col.setContentsMargins(10,10,10,10);col.setSpacing(10);scroll.setWidget(page);self.col=col
-        self.services=words();self.services.setAccessibleName('Graphite service cycle status');col.addWidget(self.services)
+        self.services=words();self.services.setAccessibleName('Kas service cycle status');col.addWidget(self.services)
         self.services.setToolTip('The one service sentence (service_lifecycle.SUMMARIES); the queue rows and the menu use the same words.')
         col.addWidget(action('Service details',lambda:host.a_host_service.trigger()),0,Qt.AlignLeft)
         self.slate=words();col.addWidget(self.slate)
@@ -54,7 +54,7 @@ class OperationsPanel(QWidget):
         # queue's order, Background CPU, Open Agenda, Work trail and the sliders' explanation) is the System menu's list now,
         # opened by the symbol at the upper right (D2 rebuilds that menu). Activity says what runs and waits in one printed
         # line, where its order, niceness and Stop are in the script, and Work list opens the System menu's list.
-        self.jobs=QuietWords(host);self.jobs.setAccessibleName('Graphite work: running and queued');col.addWidget(self.jobs)
+        self.jobs=QuietWords(host);self.jobs.setAccessibleName('Kas work: running and queued');col.addWidget(self.jobs)
         row=QHBoxLayout();self.work_list=action('Work list',self.open_work_list);row.addWidget(self.work_list);row.addStretch();col.addLayout(row)
         self.work_list.setToolTip('The System menu\'s list: Stop everything, what runs and waits, each row\'s niceness and the queue\'s order')
         # Kept for callers, out of the face: the queue's explanation and the embedded list (still fed the same snapshot).
@@ -97,17 +97,17 @@ class OperationsPanel(QWidget):
             if ident:args['context']=ident
             response=self.host.ledger_bridge.kernel.dispatch('ledger.operations',args,operator())
             if not response['ok']:
-                self.services.setText('GRAPHITE SERVICES · status unavailable')
+                self.services.setText('KAS SERVICES · status unavailable')
                 self.note.setText(response['error']['message']);self.work.queue.setEnabled(False);return
             self.model=response['result'];slate=self.model['slate'];selection=self.model['selection']
             services=self.model['services'];counts=services['counts']
-            self.services.setText('GRAPHITE SERVICES · '+services['summary']+
+            self.services.setText('KAS SERVICES · '+services['summary']+
                 ('\n'+str(counts['running'])+' running · '+str(counts['queued'])+' queued' if services['phase']=='DRAINING' else ''))
             self.services.setToolTip(services['control_plane'])
             phase={'READY':'Local model ready','MODEL_STOPPED':'Local model stopped','NO_MODEL_SELECTED':'No local model selected'}.get(slate['local_state'],'Local state unavailable')
             # V-05: the held state is said once, on the Services line; the Slate line keeps only Slate's own admission switch.
             gates=['New AI activity off'] if not slate['new_ai_enabled'] else []
-            self.slate.setText('GRAPHITE · '+phase+('\n'+' · '.join(gates) if gates else ''))
+            self.slate.setText('KAS · '+phase+('\n'+' · '.join(gates) if gates else ''))
             if selection:self.selection.setText('CABINET SELECTION\n'+selection['label']+'\n'+selection['role'].replace('_',' '))
             else:self.selection.explain('Select saved work in the cabinet to carry its identity here.')
             self.work.render_data(self.model['agenda'])

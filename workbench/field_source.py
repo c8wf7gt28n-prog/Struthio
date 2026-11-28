@@ -318,7 +318,7 @@ class Reader:
                 except Exception:  # noqa: BLE001
                     SAID = {}
                 goal = SAID.get(tool) or SAID.get(tool.rsplit('.', 1)[0]) or (words(tool.replace('.', ' ')).capitalize() if tool else 'A job')
-            self.add(FieldObject('job:' + row['id'], 'job', goal, 'work Graphite holds',
+            self.add(FieldObject('job:' + row['id'], 'job', goal, 'work Kas holds',
                                  word, tuple(facts), '', {'kind': 'job', 'id': row['id']}, stac='jobs | where id=%s | select tool,state,goal' % row['id']))
 
     # ---- 0.8.6 W, Kas's mind: three kinds of card, domain-neutral -------------------------------------------------------------

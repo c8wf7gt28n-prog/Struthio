@@ -184,7 +184,7 @@ def for_good(host, paths, ask=None):
     else:agreed = bool(ask(question))
     if not agreed:return say(host, 'Nothing was deleted.')
     kernel = kernel_of(host)
-    if kernel is None:return say(host, 'Graphite\'s Kernel is not open; nothing was deleted.')
+    if kernel is None:return say(host, 'Kas\'s Kernel is not open; nothing was deleted.')
     from .engineering_kernel import operator
     gone, left = [], []
     for p in paths:
@@ -254,7 +254,7 @@ def bring(host):
 def act(host, verb):
     """What one of graphite-do's words does in the window: {ok, words}."""
     if verb not in VERBS:return {'ok': False, 'words': 'graphite-do knows: %s' % ', '.join(VERBS)}
-    if verb == 'ping':return {'ok': True, 'words': 'Graphite is here.'}
+    if verb == 'ping':return {'ok': True, 'words': 'Kas is here.'}
     if verb == 'screenshot':
         made = screenshot(host)
         return {'ok': bool(made), 'words': ('Saved %s' % made) if made else 'No picture was saved.', 'path': made}
@@ -265,7 +265,7 @@ def act(host, verb):
         from .foot_fold_qt import key_verb  # 1.1 B4
         return key_verb(host, verb)  # 1.1 B4
     bring(host)
-    if verb == 'show':return {'ok': True, 'words': 'Graphite is in front.'}
+    if verb == 'show':return {'ok': True, 'words': 'Kas is in front.'}
     if verb == 'apps':
         top = getattr(getattr(host, 'shell2', None), 'top', None)
         if top is None or getattr(top, 'programs', None) is None:return {'ok': False, 'words': 'Apps is not on this window.'}
@@ -295,7 +295,7 @@ class Door(QObject):
         self.server = QLocalServer(self);self.server.setSocketOptions(QLocalServer.UserAccessOption)
         try:
             if self.path.exists():
-                if _alive(self.path):self.why = 'another Graphite answers there';self.listening = False;return
+                if _alive(self.path):self.why = 'another Kas answers there';self.listening = False;return
                 self.path.unlink()
         except OSError:
             pass

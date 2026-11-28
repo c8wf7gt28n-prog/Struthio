@@ -1,12 +1,12 @@
 # The Living Desktop
 
-*Graphite 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
+*Kas 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
 the ThinkPad yet. Where this page says what you see, it says what was built and seen working on the build machine, with
 no screen and with stand-ins for the USB drive, the sound, the Wi-Fi and the battery. The first real proof is your first
 evening (Help ▸ Your First Evening with 1.0).*
 
-Graphite is the whole desktop: the session, your files, your apps, the machine, and Kasandra (Kas), on one screen. With
-no model loaded, everything on this page works. Her own page is Help ▸ Kasandra, the Ghost in the Shell.
+Kas is the whole desktop: the session, your files, your apps, the machine, and Kas, on one screen. With
+no model loaded, everything on this page works. Her own page is Help ▸ Kas, the Ghost in the Shell.
 
 ## The screen at a glance
 
@@ -16,32 +16,32 @@ no model loaded, everything on this page works. Her own page is Help ▸ Kasandr
   profile from 1.0).
 - **The centre**, the thing, what it is connected to, and working on it: the Explorer (List, Icons, Board), the working
   view, tabs and the split.
-- **The right**, who works with you: Kasandra's column.
+- **The right**, who works with you: Kas's column.
 - **The foot**, the computer's own line and its vital signs: Line · Terminal · Search · Web · Log, the writing line, and
   the meters CPU GPU RAM TXT NET.
 - **The bar**, in the dedicated session: one bar along the bottom of the screen, above every app: Start, the line,
-  Graphite and the windows of your apps, Kas, the tray and the clock.
+  Kas and the windows of your apps, Kas, the tray and the clock.
 
 Nothing lives in two places. Kas is spoken to in her column; the foot is the computer's line.
 
 ## The session
 
-- **Graphite is the session.** Fluxbox runs hidden underneath for the whole session and you should never need it. If
-  Graphite's window ends unexpectedly, the session starts it again after a short wait (2 seconds, then 4, then 8, at most
+- **Kas is the session.** Fluxbox runs hidden underneath for the whole session and you should never need it. If
+  The computer's window ends unexpectedly, the session starts it again after a short wait (2 seconds, then 4, then 8, at most
   30), up to three times in a row; after that it returns to the text console with a plain message. Your apps stay open
   meanwhile, because each app starts in a session of its own.
 - **The bar.** One bar along the bottom of the screen, above every app. **Start** (or the Windows key) holds your apps by
   kind, your recent files and the session group; type at once and **the line** finds and does apps, files, settings,
-  commands, DOS words and sums, or asks Kasandra. The Graphite entry always brings Graphite back; each open app window
+  commands, DOS words and sums, or asks Kas. The Kas entry always brings Kas back; each open app window
   stands there with its title, the active one marked. The tray holds the network, sound and power, and the clock shows
   the month on a press. One press brings a window forward; a
   right-click minimises it or asks it to close (the app may ask to save; nothing is forced). Where there is no window list,
   the strip stays away and says so.
 - **The session group**, at the foot of the File menu and of Start: Lock, Suspend, Log out, Restart, Shut down, Return to Debian. Lock
-  starts the system's screen locker; your password is typed into it, never into Graphite. Suspend always locks first, then
+  starts the system's screen locker; your password is typed into it, never into Kas. Suspend always locks first, then
   puts the computer to sleep, and waits until a file Kas is writing is finished. Before Log out, Restart, Shut down or
-  Return to Debian, Graphite names the apps still open and asks each to close politely; it never kills one.
-- **Notifications** from your apps appear quietly at the foot of Kasandra's column (they never take your keyboard) and are
+  Return to Debian, Kas names the apps still open and asks each to close politely; it never kills one.
+- **Notifications** from your apps appear quietly at the foot of Kas's column (they never take your keyboard) and are
   kept in Log.
 - **The system's own permission prompts** (a password asked for by the system) appear inside the session and are answered
   there.
@@ -49,22 +49,22 @@ Nothing lives in two places. Kas is spoken to in her column; the foot is the com
 ## Apps ⊕
 
 - **Apps** (at the head's right; Start on the bar shows the same apps) lists what is installed on this computer, from the apps' own desktop entries, by kind, with their
-  own icons and a search line. Graphite's own rooms stand under their own heading. **⊕** beside it puts any app, or a
+  own icons and a search line. Kas's own rooms stand under their own heading. **⊕** beside it puts any app, or a
   command of your own, on your list.
-- Every app starts in a session of its own, never through a shell, so it stays open if Graphite starts again.
+- Every app starts in a session of its own, never through a shell, so it stays open if Kas starts again.
 - **Open with** (a file's right-click, or the viewer's Open with…) lists the apps that take that kind of file, the default
   first. *Always open PDF files with this* (and the same for any kind) sets the default in your own settings, and it is read
   back before it is said to be done.
-- Large apps (Firefox, GIMP, KiCad, Blender, Godot) are not shipped with Graphite: it finds whatever you install.
+- Large apps (Firefox, GIMP, KiCad, Blender, Godot) are not shipped with Kas: it finds whatever you install.
 
 ## Files: the whole computer
 
 - The Files tab reads **Quick access** first (Home, Desktop, Documents, Downloads, Pictures, Music), then the **Desk**,
   then **This computer**: System (C:) is /, and each drive (USB sticks, cards and discs) has its letter and its free space.
-  Graphite starts with **Home** chosen, as a List in the centre. Every other folder your account can read is one press
+  Kas starts with **Home** chosen, as a List in the centre. Every other folder your account can read is one press
   away. The system's own pseudo-folders (/proc, /sys, /dev, /run) are shown but never read. Names that start with a dot
   appear when you turn on **Show hidden** in the tab's header.
-- Graphite's own workspace is a folder in Home like any other, marked with Graphite's sign. Its records stand in the
+- Kas's own workspace is a folder in Home like any other, marked with Kas's sign. Its records stand in the
   **Desk** drawer: the concern, its sources, sheets, calculations, findings and questions.
 - In Home you can open a file in its app (its saves are recorded as revisions), rename it, move it (also by dragging it
   onto a folder), make a new folder beside it, and delete it, each with Undo.
@@ -72,7 +72,7 @@ Nothing lives in two places. Kas is spoken to in her column; the foot is the com
   system's own bin, shared with your other apps: a file deleted from your home goes there with where it was and when, the
   bin lists it under *From your home*, and restore puts it back, never
   over another file.
-- A file renamed or moved, by Graphite or by another app, stays the same object: its new name shows in the tree, on the
+- A file renamed or moved, by Kas or by another app, stays the same object: its new name shows in the tree, on the
   board and in the address.
 
 ## The Machine and Settings
@@ -84,14 +84,14 @@ this computer" and why.
 - **Storage:** USB drives and cards: mount, open in Files, unmount, eject safely. "safe to remove" is said only once the
   drive has really been released.
 - **Power:** the battery and the mains.
-- **Network:** on or off, the Wi-Fi networks, join and disconnect. A Wi-Fi password is typed into Graphite's page once and
-  handed to the system's network service, which keeps it; Graphite never stores it.
+- **Network:** on or off, the Wi-Fi networks, join and disconnect. A Wi-Fi password is typed into Kas's page once and
+  handed to the system's network service, which keeps it; Kas never stores it.
 - **Sound:** volume, mute, the output.
 - **Screens:** which screens, their modes, the primary one, mirror or extend. A change goes back by itself after 15
   seconds unless you press Keep.
 
 **Settings ▸ This computer** reaches the same things as settings: default apps, sound, screens, network, power, the
-session and notifications, beside Graphite's own settings.
+session and notifications, beside Kas's own settings.
 
 ## The centre: the Explorer and the bulletin board
 
@@ -125,7 +125,7 @@ session and notifications, beside Graphite's own settings.
   Return, Full program, Split, Close.
 - Save writes. Use Save and Return to save, close the view and come back to the same board at the same zoom; what
   depended on your change is marked for a recheck. Closing with unsaved changes asks: Save, Don't save or Cancel.
-- If another app saves a file you have open, Graphite notices at once: an untouched view reloads and says so; an edited one
+- If another app saves a file you have open, Kas notices at once: an untouched view reloads and says so; an edited one
   offers Compare, Keep yours, or Take the one on disk.
 - **Full program** opens the file in its default app. When that app saves, the new revision is recorded (checked on disk)
   and the board marks what rested on the earlier revision for a recheck.
@@ -136,15 +136,15 @@ session and notifications, beside Graphite's own settings.
 - What you open stays open as a named working tab, and an object is never opened twice.
 - **Split** (on the centre bar, on a tab's right-click, as a tile's Open beside, or by dragging a tab or a tile onto the
   empty half) shows two views side by side, stacked on a narrow screen. The pane you click in is the one in focus: it
-  drives the tree's highlight and Kasandra's "this". The other keeps its place and says quietly "Beside · another object".
+  drives the tree's highlight and Kas's "this". The other keeps its place and says quietly "Beside · another object".
   **One pane** brings them together and keeps every tab.
 
 ## The foot: the computer's line
 
-- The chooser reads **Line · Terminal · Search · Web · Log**. **Line** is the default: a Graphite line (`this | count`,
+- The chooser reads **Line · Terminal · Search · Web · Log**. **Line** is the default: a Kas line (`this | count`,
   where "this" is what is in focus), an operation by name (`/files.list`), or an address (it opens in this computer's
   browser). Words that read
-  as a request to Kasandra are not run: the line offers **Ask Kasandra →**, which moves them into her ask line and sends
+  as a request to Kas are not run: the line offers **Ask Kas →**, which moves them into her ask line and sends
   them there.
 - **Terminal** is your account's own shell. **Search** finds files and their words across the workspace, the records,
   settings, commands and the timeline. **Web** opens addresses in this computer's browser. **Log** shows the events and the
@@ -154,17 +154,17 @@ session and notifications, beside Graphite's own settings.
 
 ## HALT
 
-Upper left: the green triangle and the word **HALT**. One press holds all of Kasandra's managed work at once (her tasks,
+Upper left: the green triangle and the word **HALT**. One press holds all of Kas's managed work at once (her tasks,
 her hand, her model's answers, her sandboxes, her fetch) and says in her column what it stopped. It never stops the
-desktop, your apps or Graphite's own jobs. While held it reads **RESUME**, the triangle turned to ▶; RESUME lifts the hold
+desktop, your apps or Kas's own jobs. While held it reads **RESUME**, the triangle turned to ▶; RESUME lifts the hold
 and restarts nothing by itself.
 
 ## Looks
 
 **Day** is the launch look: light and calm, green for what is live, blue for the wires, the rings and what is selected.
-**Night** is Day's dark twin. **Graphite** and **Kasandra** stay as characterful alternatives in the same layout.
+**Night** is Day's dark twin. **Kas** and **Kas** stay as characterful alternatives in the same layout.
 Choose in View ▸ Appearance. In every look each state keeps its word and its shape, so no colour has to be told
-apart. No picture of Kasandra appears in any look.
+apart. No picture of Kas appears in any look.
 
 ## What 1.0 does not do, said plainly
 

@@ -186,7 +186,7 @@ class Column(unittest.TestCase):
         with patch.object(agent_qt,'summaries',return_value=[{'id':ID,'state':'PAUSED','request':'add up the numbers on this page','paused_reason':'Ledger closed'},
                                                              {'id':OTHER,'state':'WAITING','request':'count the values here'},{'id':'d'*32,'state':'DONE','request':'done'}]):
             rows=agent_qt.today_rows(host)
-        self.assertEqual([(t,w) for t,w,_ in rows],[('Graphite paused: add up the numbers on this page (Ledger closed)','resume'),('Graphite needs you: count the values here','assignment')])  # a reason stored before the rename reads as written
+        self.assertEqual([(t,w) for t,w,_ in rows],[('Kas paused: add up the numbers on this page (Ledger closed)','resume'),('Kas needs you: count the values here','assignment')])  # a reason stored before the rename reads as written
 
     def test_assignment_route_from_the_typing_strip(self):
         from workbench import agent_qt

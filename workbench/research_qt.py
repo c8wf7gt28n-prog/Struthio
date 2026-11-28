@@ -33,10 +33,10 @@ class ResearchTab(ServiceTab):
         self.return_data=QPlainTextEdit();self.return_data.setReadOnly(True);self.return_data.setMinimumHeight(220);self.return_data.setAccessibleName('Returned evidence, interpretations and proposals');box.addWidget(self.return_data,1)
         row=QHBoxLayout();box.addLayout(row)
         for label,value in [('Approve for read evaluation','approved_for_evaluation'),('Keep inconclusive','inconclusive'),('Reject return','rejected')]:b=QPushButton(label);b.clicked.connect(lambda checked=False,v=value:self.review(v));row.addWidget(b)
-        row=QHBoxLayout();box.addLayout(row);self.proposals=QComboBox();row.addWidget(self.proposals,1);b=QPushButton('Evaluate selected read through Graphite');b.clicked.connect(self.evaluate);row.addWidget(b)
+        row=QHBoxLayout();box.addLayout(row);self.proposals=QComboBox();row.addWidget(self.proposals,1);b=QPushButton('Evaluate selected read through Kas');b.clicked.connect(self.evaluate);row.addWidget(b)
         row=QHBoxLayout();box.addLayout(row);self.citations=QComboBox();row.addWidget(self.citations,1);b=QPushButton('Resolve current original citation');b.clicked.connect(self.resolve);row.addWidget(b)
         self.add_page(history,'3 · Return');self.outer.addWidget(self.status)
-        short={'Reload exchanges':'Reload','Import returned ZIP':'Import ZIP','Approve for read evaluation':'Approve reads','Keep inconclusive':'Inconclusive','Reject return':'Reject','Evaluate selected read through Graphite':'Evaluate read','Resolve current original citation':'Open original','Save sharing and usage policy':'Save policy','Use source addresses attached in Tasks / memory':'Use attached references','Create reviewable request':'Create preview','Export reviewed request ZIP':'Export ZIP','Send reviewed request to Gemini':'Ask Gemini'}
+        short={'Reload exchanges':'Reload','Import returned ZIP':'Import ZIP','Approve for read evaluation':'Approve reads','Keep inconclusive':'Inconclusive','Reject return':'Reject','Evaluate selected read through Kas':'Evaluate read','Resolve current original citation':'Open original','Save sharing and usage policy':'Save policy','Use source addresses attached in Tasks / memory':'Use attached references','Create reviewable request':'Create preview','Export reviewed request ZIP':'Export ZIP','Send reviewed request to Gemini':'Ask Gemini'}
         for b in self.findChildren(QPushButton):
             if b.text() in short:original=b.text();b.setText(short[original]);b.setAccessibleName(original);b.setToolTip(original)
         for combo in self.findChildren(QComboBox):combo.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed);combo.setMinimumWidth(70)
@@ -117,7 +117,7 @@ class ResearchTab(ServiceTab):
         reason,ok=QInputDialog.getText(self,'Record return disposition','Reason for this review:')
         if ok and reason.strip():self.call('research.review',{'id':self.return_value['id'],'disposition':disposition,'reason':reason},lambda v:(self.show_data(v),self.reload()))
     def evaluate(self):
-        if self.return_value and self.proposals.currentData() is not None:self.call('research.evaluate',{'id':self.return_value['id'],'index':self.proposals.currentData()},lambda v:(self.show_data(v),self.status.setText('Graphite read evaluated. This receipt is not physical or engineering acceptance.')))
+        if self.return_value and self.proposals.currentData() is not None:self.call('research.evaluate',{'id':self.return_value['id'],'index':self.proposals.currentData()},lambda v:(self.show_data(v),self.status.setText('Kas read evaluated. This receipt is not physical or engineering acceptance.')))
     def resolve(self):
         b=self.citations.currentData()
         if b:self.call('references.resolve',{k:b[k] for k in ('namespace','id','item')},self.show_data)

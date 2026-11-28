@@ -89,7 +89,7 @@ def who(row):
     """The program that holds a socket, as observe named it; a closing socket has none, and one whose program this account
     cannot see (another namespace, a kernel socket) is said to be so, never guessed."""
     closing = row.get('state') in ('TIME_WAIT', 'CLOSE', 'FIN_WAIT1', 'FIN_WAIT2', 'CLOSING', 'LAST_ACK')
-    name = row.get('process') or ('no program (closing)' if closing else 'a program Graphite cannot see')
+    name = row.get('process') or ('no program (closing)' if closing else 'a program Kas cannot see')
     return name + (' (pid %s)' % row['pid'] if row.get('pid') else '')
 
 
@@ -189,7 +189,7 @@ class NetworkTalk(base.Profile):
         for row in (context.get('busiest') or [])[:CONVERSATIONS]:
             lines.append('Captured: %s %s · %s, %s%s' % (row['proto'], row['far'], plural(row['packets'], 'packet'), size(row['bytes']),
                                                        (' · ' + ', '.join(row['processes'])) if row['processes'] else ''))
-        lines.append('Graphite read the system’s own tables (/proc and /sys) and the capture’s headers only; nothing was sent anywhere.')
+        lines.append('Kas read the system’s own tables (/proc and /sys) and the capture’s headers only; nothing was sent anywhere.')
         return lines
 
     def capture_line(self, context, capture):
@@ -198,7 +198,7 @@ class NetworkTalk(base.Profile):
             said = capture.get('filter') or (capture.get('last') or {}).get('filter')
             return 'Capture: %s from the latest capture%s.' % (plural(count, 'packet header'), (' (filter: %s)' % said) if said else '')
         if capture.get('state') == 'UNAVAILABLE': return 'Capture: not available on this computer. ' + str(capture.get('reason') or '')
-        if context.get('proposed'): return 'Capture: Graphite proposed one; none was taken.'
+        if context.get('proposed'): return 'Capture: Kas proposed one; none was taken.'
         return named('Capture: none was taken. Ask Stacy to capture, or start one yourself in Log, Network.')
 
     # -- reading the results --------------------------------------------------------------------------------------------------
@@ -246,11 +246,11 @@ class NetworkTalk(base.Profile):
         key = step['key']; words = str(error)
         if key == 'capture':
             if OWNER_WORDS in words:
-                said = words.split('nothing was captured.', 1)[-1].strip() or 'Graphite proposes a packet capture; only you can start it.'
+                said = words.split('nothing was captured.', 1)[-1].strip() or 'Kas proposes a packet capture; only you can start it.'
                 return {'context_updates': {'proposed': True},
-                        'waiting': said + ' Then Resume: Graphite reads the capture and writes the page (Resume without a capture writes it without one).',
+                        'waiting': said + ' Then Resume: Kas reads the capture and writes the page (Resume without a capture writes it without one).',
                         'steps': [base.step('packets_again', PURPOSES['packets_again'], 'network.capture.read', {}), self.write_step()]}
-            return {'waiting': 'The capture Graphite proposed was refused: %s. Resume writes the page without one.' % words, 'steps': [self.write_step()]}
+            return {'waiting': 'The capture Kas proposed was refused: %s. Resume writes the page without one.' % words, 'steps': [self.write_step()]}
         if key in ('packets', 'packets_again'):
             return {'waiting': 'The capture could not be read (%s). Resume writes the page without it.' % words, 'steps': [self.write_step()]}
         if key == 'observe':

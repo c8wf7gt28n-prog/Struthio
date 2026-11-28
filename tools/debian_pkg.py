@@ -37,7 +37,16 @@ PROGRAM = 'usr/lib/graphite'
 # Payload files that another binary package installs into the same program folder (dpkg cares only about which
 # package owns which file). The manifest still lists them; workbench.release_integrity reads PACKAGE_PARTS.json and
 # treats a part whose package is not installed as "not installed", never as damage.
-PARTS = {'graphite-llama-runtime': ('runtimes/llama.cpp/b12359/llama-b12359-bin-ubuntu-x64.tar.gz',
+# 1.1 R1: the packages are kas-* (never a bare "kas": Debian 13 has an unrelated package of that name); the graphite*
+# names are transitional packages (TRANSITIONAL) and the old commands symlinks (OLD_COMMANDS), one release each.
+MAIN = 'kas-computer'
+PACKAGES = ('kas-computer', 'kas-llama-runtime', 'kas-session', 'kas-desktop')
+TRANSITIONAL = {'graphite': 'kas-computer', 'graphite-llama-runtime': 'kas-llama-runtime', 'graphite-session': 'kas-session',
+                'graphite-desktop': 'kas-desktop'}
+COMMANDS = {'kas-computer': ('kas-computer', 'kas-doctor'), 'kas-session': ('kas-session', 'kas-startx', 'kas-do')}
+OLD_COMMANDS = {'graphite': 'kas-computer', 'graphite-doctor': 'kas-doctor', 'graphite-session': 'kas-session',
+                'graphite-startx': 'kas-startx', 'graphite-do': 'kas-do'}
+PARTS = {'kas-llama-runtime': ('runtimes/llama.cpp/b12359/llama-b12359-bin-ubuntu-x64.tar.gz',
                                     'runtimes/llama.cpp/b12359/llama-b12359-bin-ubuntu-vulkan-x64.tar.gz')}
 PARTS_FILE = 'PACKAGE_PARTS.json'
 
@@ -115,10 +124,10 @@ def payload(root=ROOT):
 def split_payload(names):
     """{package: [payload names]} for the program folder; every name goes to exactly one package."""
     owned = {name: package for package, files in PARTS.items() for name in files}
-    out = {'graphite': []}
+    out = {MAIN: []}
     for package in PARTS: out[package] = []
     for name in names:
-        out[owned.get(name, 'graphite')].append(name)
+        out[owned.get(name, MAIN)].append(name)
     return out
 
 
@@ -128,9 +137,9 @@ def _copy(src, dst, mode):
 
 
 def _changelog(version, package):
-    text = ('graphite (%s) trixie; urgency=medium\n\n  * Graphite %s, built by tools/build_deb.sh.\n\n'
-            ' -- Graphite packaging <packaging@graphite.invalid>  %s\n') % (
-        version, version, email.utils.formatdate(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())), usegmt=False))
+    text = ('kas-computer (%s) trixie; urgency=medium\n\n  * Kas %s (%s), built by tools/build_deb.sh.\n\n'
+            ' -- Kas packaging <packaging@kas-computer.invalid>  %s\n') % (
+        version, version, package, email.utils.formatdate(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())), usegmt=False))
     buffer = io.BytesIO()
     with gzip.GzipFile(fileobj=buffer, mode='wb', compresslevel=9, mtime=0, filename='') as stream:
         stream.write(text.encode())
@@ -151,27 +160,32 @@ def stage(package, folder, root=ROOT, version=None):
     if package in parts:
         for name in parts[package]:
             program_file(name); count += 1
-    if package == 'graphite':
+    def commands(names):
+        for name in names:
+            _copy(root / 'debian/bin' / name, folder / 'usr/bin' / name, 0o755)
+        for old, new in OLD_COMMANDS.items():      # 1.1 R1: the old name, one release, a symlink that says the new one
+            if new in names:os.symlink(new, folder / 'usr/bin' / old)
+    if package == MAIN:
         (folder / PROGRAM / PARTS_FILE).write_text(json.dumps(
             {'schema': 'graphite.package-parts/1', 'version': version,
              'parts': {p: list(files) for p, files in PARTS.items()},
              'meaning': 'Files of the program folder that another package installs. A part whose files are all '
                         'absent is not installed; a part with some files absent is damaged.'}, indent=1) + '\n')
-        for name in ('graphite', 'graphite-doctor'):
-            _copy(root / 'debian/bin' / name, folder / 'usr/bin' / name, 0o755)
+        commands(COMMANDS[MAIN])
         _copy(root / 'debian/graphite.desktop', folder / 'usr/share/applications/graphite.desktop', 0o644)
         _copy(root / 'branding/graphite/graphite_icon_256.png', folder / 'usr/share/icons/hicolor/256x256/apps/graphite.png', 0o644)
         for script in ('postinst', 'prerm'):
             _copy(root / ('debian/graphite.' + script), folder / 'DEBIAN' / script, 0o755)
         count += 5
-    elif package == 'graphite-session':
-        for name in ('graphite-session', 'graphite-startx', 'graphite-do'):      # 1.1 W1: graphite-do
-            _copy(root / 'debian/bin' / name, folder / 'usr/bin' / name, 0o755)
+    elif package == 'kas-session':
+        commands(COMMANDS['kas-session'])      # 1.1 W1: kas-do (graphite-do)
         _copy(root / 'debian/graphite-xsession.desktop', folder / 'usr/share/xsessions/graphite.desktop', 0o644)
         count += 3
-    elif package == 'graphite-desktop':
+    elif package == 'kas-desktop':
         _copy(root / 'debian/50-graphite.conf', folder / 'usr/share/lightdm/lightdm.conf.d/50-graphite.conf', 0o644)
         count += 1
+    elif package in TRANSITIONAL:
+        pass      # 1.1 R1: a transitional package holds its copyright and changelog only
     elif package not in parts:
         raise KeyError(package)
     doc = folder / 'usr/share/doc' / package
@@ -229,7 +243,7 @@ def index(folder, label='Graphite kit', date=None):
     stamp = date or email.utils.formatdate(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())), usegmt=True)
     lines = ['Origin: Graphite', 'Label: ' + label, 'Suite: graphite', 'Codename: graphite', 'Date: ' + stamp,
              'Architectures: ' + ' '.join(a for a in arches if a != 'all'), 'Components: ',
-             'Description: Graphite and the Debian 13 packages it needs, as a folder repository']
+             'Description: Kas and the Debian 13 packages it needs, as a folder repository']
     for field, kind in (('MD5Sum', 'md5'), ('SHA256', 'sha256')):
         lines.append(field + ':')
         for name in ('Packages', 'Packages.xz'):
@@ -246,7 +260,7 @@ def pack(repo, kit, limit=LIMIT, piece=PIECE, fill=ZIP_FILL):
     repo, kit = Path(repo), Path(kit)
     if not (piece < limit - 4096 and fill < limit - 65536): raise ValueError('piece and fill must leave room for ZIP headers')
     kit.mkdir(parents=True, exist_ok=True)
-    for old in kit.glob('GRAPHITE_*.zip'): old.unlink()
+    for old in [*kit.glob('KAS_*.zip'), *kit.glob('GRAPHITE_*.zip')]: old.unlink()
     files = sorted(p for p in repo.rglob('*') if p.is_file())
     sums, pieces, groups, small, size = [], [], [], [], 0
     for path in files:
@@ -269,7 +283,7 @@ def pack(repo, kit, limit=LIMIT, piece=PIECE, fill=ZIP_FILL):
     if small: groups.append(small)
     made = []
     for number, group in enumerate(groups, 1):
-        target = kit / ('GRAPHITE_%03d.zip' % number)
+        target = kit / ('KAS_%03d.zip' % number)      # 1.1 R1: the kit's ZIPs say Kas
         with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_STORED) as archive:
             for name, item in group:
                 info = zipfile.ZipInfo('repo/' + name, date_time=(2026, 1, 1, 0, 0, 0)); info.external_attr = 0o644 << 16
@@ -290,7 +304,7 @@ def join(kit, out=None):
     """Unpack the ZIPs of KIT into KIT/repo, check every piece, join them, check every file. Returns problems."""
     kit = Path(kit); out = Path(out) if out else kit
     problems = []
-    for archive in sorted(kit.glob('GRAPHITE_*.zip')):
+    for archive in sorted(kit.glob('KAS_*.zip')):
         with zipfile.ZipFile(archive) as z: z.extractall(out)
     repo = out / 'repo'
     whole = {}

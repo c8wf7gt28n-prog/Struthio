@@ -44,7 +44,7 @@ def recipe(operation):
 def discover(which=None):
     path=(which or shutil.which)('kibot')
     if not path:return {'state':'NOT_AVAILABLE','executable':None,'qualified':False,
-                        'reason':'Install KiBot with KiCad Python bindings on PATH. Graphite opens without it.'}
+                        'reason':'Install KiBot with KiCad Python bindings on PATH. Kas opens without it.'}
     resolved=Path(path).resolve()
     return {'state':'DETECTED','executable':str(Path(path).absolute()),'resolved_executable':str(resolved),
             'sha256':io.sha(resolved),'qualified':False,

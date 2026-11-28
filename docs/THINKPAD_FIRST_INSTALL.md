@@ -1,8 +1,8 @@
-# Graphite on the ThinkPad
+# Kas on the ThinkPad
 
-Graphite 1.0 targets a fresh Graphite installation on an existing Debian 13 x86-64 system, where it is the whole desktop
+Kas 1.0 targets a fresh Kas installation on an existing Debian 13 x86-64 system, where it is the whole desktop
 (the dedicated session from a text login). The first launch opens in Day with no model loaded: Home on the board, and
-Kasandra's column saying what she can do without one. Use the ordinary Debian account for the application and its
+Kas's column saying what she can do without one. Use the ordinary Debian account for the application and its
 workspace.
 
 **Built, not tested.** Nothing in 1.0 has run on this ThinkPad yet. The acceptance evening, `docs/ACCEPTANCE_1.0.md`
@@ -34,7 +34,7 @@ On the ThinkPad as 0.8.x left it, the preview should end with `3 upgraded, 133 n
 bash INSTALL_GRAPHITE.sh --system
 ```
 
-**Log out and log in again** before you start Graphite: your login session, the sound services and the system's permission prompts start at login. Then, from your ordinary Debian account and the same USB directory, install the app and its pinned local Python wheels into a new folder, and start it from a text login:
+**Log out and log in again** before you start Kas: your login session, the sound services and the system's permission prompts start at login. Then, from your ordinary Debian account and the same USB directory, install the app and its pinned local Python wheels into a new folder, and start it from a text login:
 
 ```bash
 bash INSTALL_GRAPHITE.sh
@@ -45,18 +45,18 @@ Use a new target folder for every install; your 0.8.x folders and your workspace
 
 ## If the screen stops answering
 
-The dedicated session keeps a console route. If Graphite's window ends by itself, the session starts it again after 2, 4 and 8 seconds (at most 30), at most three times in a row, and then returns to the text console with a plain message; your apps stay open while it tries. If the screen itself stops answering:
+The dedicated session keeps a console route. If the computer's window ends by itself, the session starts it again after 2, 4 and 8 seconds (at most 30), at most three times in a row, and then returns to the text console with a plain message; your apps stay open while it tries. If the screen itself stops answering:
 
 - **Ctrl+Alt+F2** gives a second text console. Log in there with your ordinary account.
-- `pkill --oldest --signal KILL --full workbench.launch` ends Graphite's window; the session starts it again.
-- `pkill --signal TERM -x Xorg` ends the whole graphical session (unsaved work in open apps is lost); the first console then prints how Graphite ended.
+- `pkill --oldest --signal KILL --full workbench.launch` ends the computer's window; the session starts it again.
+- `pkill --signal TERM -x Xorg` ends the whole graphical session (unsaved work in open apps is lost); the first console then prints how Kas ended.
 - **Ctrl+Alt+F1** (the number of the console you started the session from) goes back to the session's screen.
 
-The session's own record is in `~/.local/state/ledger-slate/`: `session.log` (each start and end), `last-session.json` (the last status and how many times Graphite was started again) and `launch-error.log` when a start failed. `docs/MINIMAL_DEBIAN_INSTALL_01.md` describes the dedicated session in full.
+The session's own record is in `~/.local/state/ledger-slate/`: `session.log` (each start and end), `last-session.json` (the last status and how many times Kas was started again) and `launch-error.log` when a start failed. `docs/MINIMAL_DEBIAN_INSTALL_01.md` describes the dedicated session in full.
 
 ## First-run workshop
 
-The `examples/thinkpad_first_run` folder in the installation contains a fictional datasheet and stock workbook. Copy both into your work folder before editing. Open the stock workbook in Graphite, select Bracket A and Shade, and preview a shortage. The selected rows total 62 pcs.
+The `examples/thinkpad_first_run` folder in the installation contains a fictional datasheet and stock workbook. Copy both into your work folder before editing. Open the stock workbook in Kas, select Bracket A and Shade, and preview a shortage. The selected rows total 62 pcs.
 
 In **References**, admit `Workshop_datasheet.pdf` and choose **Read technical PDF**. Select the table, choose **Review table**, and save the two rows as a reviewed sheet. Choose **Calculate and write report…**, use `voltage=B2` and `current=B3` as the inputs, enter `voltage * current`, and request `W`. The initial result is 3.00 W.
 
@@ -64,7 +64,7 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
 
 ## First work in the desk
 
-Since 1.0 the centre's home is the board: select the workshop's sheet in Files or in the Desk drawer and it stands in the middle with its source, report and findings around it; a double-click opens it, and Save and Return to the board brings you back. Kasandra is spoken to in her ask line at the foot of her column; the line at the window's foot is the computer's (Line, Terminal, Search, Web, Log). Help ▸ The Living Desktop is the tour. The Field below is the whole desk as sheets (the board's Whole desk, or Go ▸ Field).
+Since 1.0 the centre's home is the board: select the workshop's sheet in Files or in the Desk drawer and it stands in the middle with its source, report and findings around it; a double-click opens it, and Save and Return to the board brings you back. Kas is spoken to in her ask line at the foot of her column; the line at the window's foot is the computer's (Line, Terminal, Search, Web, Log). Help ▸ The Living Desktop is the tour. The Field below is the whole desk as sheets (the board's Whole desk, or Go ▸ Field).
 
 - Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the line that reads the selected sheet in Line at the foot and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
 
@@ -74,21 +74,21 @@ Since 1.0 the centre's home is the board: select the workshop's sheet in Files o
 - In a stock sheet with Part, Required, Available, and Unit columns, select reviewed rows and use **Method Press** to retain or replay a shortage method. The method requires the reviewed unit on the new rows.
 - When a local GGUF is available, open the **Brain room** (the GPU meter's card at the foot) to add the model and qualify its effective backend.
 - In the Field press **P** for every program and room as a shelf; **Enter** opens one.
-- In the Field press **X** on a sheet and Kasandra doubts it: what does not hold, what she cannot tell, what holds.
+- In the Field press **X** on a sheet and Kas doubts it: what does not hold, what she cannot tell, what holds.
 - In the Field press **T** on a sheet to trace it back to its source, and with a calculation selected ask "what if B3 were 320?". In Line at the foot `this` is the selected sheet: `this | count`, then **Enter**.
 - In the Field press **D** on a sheet for what can be done about it, and **C** to check the whole desk. A digit chooses a step; a step that changes something waits for **G**, your go.
 
 ## The first model
 
-On 13 November 2026 the owner named the model Kasandra is to run: **Qwen3.6-35B-A3B at Q4_K_M, as a GGUF file**. Read from
+On 13 November 2026 the owner named the model Kas is to run: **Qwen3.6-35B-A3B at Q4_K_M, as a GGUF file**. Read from
 search results that day, not from the publisher's page and not tried on this machine: the Q4_K_M file is about 21 to
 22 GB depending on who made it (one maker's "UD-Q4_K_M" is 22.1 GB, another's Q4_K_M 20.75 GB), and one comparison says
 it wants about 24 GB of memory at a 16k context. It is a mixture of experts: all 35B are held in memory, about 3B work
 on each token, so it should answer faster than a 27B of the same size on this processor. Whether the bundled runtime
-(llama.cpp v1.0.0, build b12359, since Graphite 1.0) reads the file is not known: the Brain room shows it on the ThinkPad.
+(llama.cpp v1.0.0, build b12359, since Kas 1.0) reads the file is not known: the Brain room shows it on the ThinkPad.
 The memory recorded for the ThinkPad (about 61 GiB) is room for it.
 
-### The first evening with the model (Graphite 1.0)
+### The first evening with the model (Kas 1.0)
 
 - **The machine.** A ThinkPad E16 Gen 2 AMD (machine type 21M5): Ryzen 7 7735HS, Radeon 680M integrated graphics (RDNA2,
   12 compute units; its memory is the system memory) and DDR5-4800 in two slots. Writing is bound by the memory's speed:
@@ -99,7 +99,7 @@ The memory recorded for the ThinkPad (about 61 GiB) is room for it.
 - **The model with its MTP head.** Multi-token prediction needs the model file that carries its own MTP head:
   `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` from `unsloth/Qwen3.6-35B-A3B-MTP-GGUF`, 22,663,387,424 bytes, sha256
   `0b21525e972670ed59e1812e170b27c26355381f0656ecc4e25617ece7dac58b` (read from the publisher's file list on 26 November
-  2026; not downloaded or tried here). The same name without "MTP" (22,134,528,992 bytes) has no head. Graphite never
+  2026; not downloaded or tried here). The same name without "MTP" (22,134,528,992 bytes) has no head. Kas never
   loads a second, separate head file.
 - **The model check.** Run it once on mains (Brain room, or `./MODEL_CHECK.sh --model <file>`). Its new tuning stage tries
   flash attention, the KV cache's type, reading batches, threads, full or partial offload and, with the MTP file, the
@@ -120,26 +120,26 @@ existed. On that day it did not: the publisher's page held no Qwen 4 weights, an
 placeholders. Read on that day from the publisher's and the runtime's own pages, not tried on this machine:
 
 - To rehearse until then, the same publisher's Qwen3.8-27B at Q4_K_M (about 17 GB, Apache 2.0). The bundled runtime
-  (llama.cpp b11669 then; v1.0.0, b12359, since Graphite 1.0) is newer than the builds that file was made with.
+  (llama.cpp b11669 then; v1.0.0, b12359, since Kas 1.0) is newer than the builds that file was made with.
 - A Qwen 4 file will probably need a newer runtime than the bundled one: check the build its publisher names against
   b12359 (llama.cpp v1.0.0) before the first try.
 - Expect a few tokens a second from a 27B on this processor, with or without the Radeon. If loading on the Radeon fails
   with a device-lost or out-of-memory message, that is a known open fault on this graphics chip; the processor path works.
-- Start small. A 2B and a 4B file of the same family answered in Graphite in 5 to 25 seconds on a slower processor than
-  this one (`docs/MODEL_TRIAL_03.md`). Kasandra reads the records herself and asks the model only for the words, so a small
+- Start small. A 2B and a 4B file of the same family answered in Kas in 5 to 25 seconds on a slower processor than
+  this one (`docs/MODEL_TRIAL_03.md`). Kas reads the records herself and asks the model only for the words, so a small
   model is useful from the first day.
 - Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in Line at the foot. **Enter** runs the local read. Prefix it with `explain` to preview the plan.
 
 ## Background job admission
 
-Graphite checks current RAM headroom and the owner's foreground turn before applying a four-second forecast to new background jobs. The forecast uses a two-second half-life and can defer a job for up to eight seconds on its own. A job still needs enough current headroom after that wait. A forecast hold appears in the work list and Work trail.
+Kas checks current RAM headroom and the owner's foreground turn before applying a four-second forecast to new background jobs. The forecast uses a two-second half-life and can defer a job for up to eight seconds on its own. A job still needs enough current headroom after that wait. A forecast hold appears in the work list and Work trail.
 
 ## Desk artwork
 
-Since 1.0 no picture of Kasandra appears anywhere, in any look (the owner, 26 November 2026: "No kas avatar anymore"): her column opens with the equalizer, her name, her model and her state word. The look itself is chosen in **View → Appearance**: Day (the launch look), Night, Graphite or Kasandra. **View → Desk artwork** keeps the workshop's art plates (**Art plates**), the glow, and the Illustrated, ASCII and Clean modes.
+Since 1.0 no picture of Kas appears anywhere, in any look (the owner, 26 November 2026: "No kas avatar anymore"): her column opens with the equalizer, her name, her model and her state word. The look itself is chosen in **View → Appearance**: Day (the launch look), Night, Pencil or Indigo. **View → Desk artwork** keeps the workshop's art plates (**Art plates**), the glow, and the Illustrated, ASCII and Clean modes.
 
 ## Fast-forward screensaver
 
-Open **View → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The workshop scene shows, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Graphite controls.
+Open **View → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The workshop scene shows, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Kas controls.
 
-Automatic start is off by default. The same menu offers five, fifteen, and thirty minutes of idle time while Graphite is active. Move the pointer, click, or press a key to return to the same desk. **Reduce optional motion** shows a still frame. For a password-protected lock, use the system's lock screen.
+Automatic start is off by default. The same menu offers five, fifteen, and thirty minutes of idle time while Kas is active. Move the pointer, click, or press a key to return to the same desk. **Reduce optional motion** shows a still frame. For a password-protected lock, use the system's lock screen.

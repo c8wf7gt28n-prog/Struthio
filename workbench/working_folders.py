@@ -199,7 +199,7 @@ def create_file(db, journal, root, rel, data, mode, copy, proposal):
 def delete_file(db, journal, root, rel, expected, copy, proposal):
     from .working_copies import sha_of
     target = root / rel
-    if target.is_symlink() or not target.is_file() or sha_of(target) != expected:raise ValueError('COPIES_ORIGINAL_CHANGED: ' + rel + ' changed outside Graphite')
+    if target.is_symlink() or not target.is_file() or sha_of(target) != expected:raise ValueError('COPIES_ORIGINAL_CHANGED: ' + rel + ' changed outside Kas')
     db.execute("INSERT INTO copies_journal VALUES(?,?,?,?,?,?,?,?,'INTENT',?,NULL,NULL)", (journal, copy, proposal, 'delete', str(target), expected, '', '', time.time()))
     db.commit()
     from .working_copies import checkpoint
@@ -235,7 +235,7 @@ def run_ops(kernel, db, row, ops, proposal_id, kind='update'):
         if holds(target, op['after']):continue  # done before (resume)
         if not holds(target, op['before']):changed.append(op['path'])
         else:todo.append(op)
-    if changed:raise ValueError('COPIES_ORIGINAL_CHANGED: changed outside Graphite since the work began: ' + ', '.join(changed[:8]))
+    if changed:raise ValueError('COPIES_ORIGINAL_CHANGED: changed outside Kas since the work began: ' + ', '.join(changed[:8]))
     done = 0
     for op in todo:
         journal = uuid.uuid4().hex
@@ -264,7 +264,7 @@ def apply(kernel, db, row, proposal):
     finished = {o['path']: o['after'] for o in ops}
     now = now_digests(source, base_files);was = {k: v['sha'] for k, v in base_files.items()}
     moved = [rel for rel in sorted(set(now) | set(was)) if now.get(rel) != was.get(rel) and not (rel in finished and (now.get(rel) or '') == finished[rel])]
-    if moved:raise ValueError('COPIES_ORIGINAL_CHANGED: changed outside Graphite since the work began: ' + ', '.join(moved[:8]))  # the approval binds the whole folder
+    if moved:raise ValueError('COPIES_ORIGINAL_CHANGED: changed outside Kas since the work began: ' + ', '.join(moved[:8]))  # the approval binds the whole folder
     done, resumed = run_ops(kernel, db, row, ops, proposal['id'])
     base = load(kernel, row['base'])
     new = keep_manifest(kernel, {**base, 'files': after_files(kernel, base['files'], ops, Path(row['source']))})
@@ -294,7 +294,7 @@ def save_new(kernel, row, proposal, name):
     for op in manifest['ops']:
         if op['op'] == 'delete':files.pop(op['path'], None)
         else:files[op['path']] = op['after']
-    source = Path(row['source']);target = source.parent / files_service.clean_name(name or source.name + ' (from Graphite)')
+    source = Path(row['source']);target = source.parent / files_service.clean_name(name or source.name + ' (from Kas)')
     try:target.mkdir(mode=0o755)
     except FileExistsError:raise ValueError('COPIES_NAME_TAKEN: a folder with that name is already there; nothing was overwritten') from None
     for rel, sha in sorted(files.items()):

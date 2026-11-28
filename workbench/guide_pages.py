@@ -16,7 +16,7 @@ from pathlib import Path
 PAGES = (
     ('@living_desktop', 'The Living Desktop', 'docs/GUIDE_LIVING_DESKTOP.md',
      'The whole desktop on one screen: the session, Apps, Files from This computer, the Machine, the board, the foot, HALT'),
-    ('@kas_ghost', 'Kasandra, the Ghost in the Shell', 'docs/GUIDE_KASANDRA.md',
+    ('@kas_ghost', 'Kas, the Ghost in the Shell', 'docs/GUIDE_KASANDRA.md',
      'Her column, how she does a task, grants and HALT, her hand in your apps, the network, her model'),
     ('@first_evening', 'Your First Evening with 1.0', 'docs/ACCEPTANCE_1.0.md',
      "The acceptance evening on the ThinkPad: the install, your paper's test, her model, the day on Rail Demo, what to send back"),

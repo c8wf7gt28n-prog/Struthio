@@ -130,7 +130,7 @@ def record(kernel, args, principal):
     from . import activity
     ident, rel, target = _place(kernel, args)
     st = target.stat()
-    if st.st_size > BIGGEST:raise ValueError('REVISIONS_TOO_LARGE: %s is larger than Graphite reads whole to record a revision' % target.name)
+    if st.st_size > BIGGEST:raise ValueError('REVISIONS_TOO_LARGE: %s is larger than Kas reads whole to record a revision' % target.name)
     digest, size = sha256_of(target)
     if digest != args['expected_sha256']:
         raise ValueError('REVISIONS_NOT_ON_DISK: the bytes of %s on disk are not the revision named (it changed again, or was not saved); nothing is recorded'

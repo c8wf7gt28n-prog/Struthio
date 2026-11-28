@@ -33,10 +33,10 @@ class RemoteLink(QObject):
         except (OSError, ValueError):
             config = {}
         self.dialog = QDialog(host)
-        self.dialog.setWindowTitle("Connect phone · Owner-hosted Graphite")
+        self.dialog.setWindowTitle("Connect phone · Owner-hosted Kas")
         self.dialog.resize(680, 720)
         layout = QVBoxLayout(self.dialog)
-        title = QLabel("Your Graphite, on your phone")
+        title = QLabel("Your Kas, on your phone")
         title.setStyleSheet("font-size:20px;font-weight:bold")
         layout.addWidget(title)
         info = QLabel("Serve from this computer with your own HTTPS certificate. For access away from home, use a reachable owner endpoint or an owner-operated VPN. Keep the ThinkPad awake. No hosted relay or external login is required.")

@@ -111,7 +111,7 @@ class Tokens(unittest.TestCase):
             self.assertNotIn('rgba', rule);self.assertNotIn('transparent', rule.split('{')[1])
         self.assertTrue(out['qss'].endswith(sheet.strip() + '\n') or sheet.strip() in out['qss'], 'the window\'s sheet carries them')
         graphite = in_appearance('graphite', 'import json;from workbench import boss_theme as b;print(json.dumps(dict(h=b.HIGHLIGHTS, m=b.MENU_BAR_CSS)))')
-        self.assertEqual(graphite, dict(h='', m=''), 'Graphite\'s sheets gain nothing')
+        self.assertEqual(graphite, dict(h='', m=''), 'Kas\'s sheets gain nothing')
 
     def test_yellow_is_light_added_never_mixed_over_her_cyan(self):
         yellow, cyan, blue, indigo = '#e2a72e', '#83eaff', '#1d3d63', '#171b3c'
@@ -122,8 +122,8 @@ class Tokens(unittest.TestCase):
         for share in (0.3, 0.5):self.assertTrue(25 <= hue(mix(yellow, indigo, share)) <= 45, 'over her indigo it stays warm')
         code = ('import json;from PySide6.QtGui import QImage, QPainter;from workbench import boss_theme as b;i=QImage(4,4,QImage.Format_ARGB32);'
                 'p=QPainter(i);b.lays_light(p);m=p.compositionMode();p.end();print(json.dumps(dict(mode=m.name)))')
-        self.assertEqual(in_appearance('kasandra', code)['mode'], 'CompositionMode_Screen', 'light added, in Kasandra')
-        self.assertEqual(in_appearance('graphite', code)['mode'], 'CompositionMode_SourceOver', 'Graphite: as it always was')
+        self.assertEqual(in_appearance('kasandra', code)['mode'], 'CompositionMode_Screen', 'light added, in Kas')
+        self.assertEqual(in_appearance('graphite', code)['mode'], 'CompositionMode_SourceOver', 'Kas: as it always was')
 
 
 PAINT = r'''
@@ -151,8 +151,8 @@ class Painted(unittest.TestCase):
         self.assertEqual(k['bar'], ['#ffd27a', '#ffd27a', '#e2a72e', '#e2a72e'], 'a 2 px edge, then the bar, opaque')
         self.assertEqual(k['glyph'], ['#171b3c'], 'its glyph in the bar\'s dark ink, unlit')
         g = in_appearance('graphite', PAINT)
-        self.assertEqual(g['bar'], ['#4b2a14'] * 4, 'Graphite: its amber wash, no edge')
-        self.assertNotIn('#171b3c', g['glyph']);self.assertTrue(g['glyph'], 'Graphite: its lit glyph as before')
+        self.assertEqual(g['bar'], ['#4b2a14'] * 4, 'Kas: its amber wash, no edge')
+        self.assertNotIn('#171b3c', g['glyph']);self.assertTrue(g['glyph'], 'Kas: its lit glyph as before')
 
 
 class NeonLogo(unittest.TestCase):
@@ -249,7 +249,7 @@ class NeonLogo(unittest.TestCase):
         self.assertLess(abs(hue(colours[-1.0]) - 191), 15, 'cyan to the left');self.assertTrue(290 <= hue(colours[1.0]) <= 330, 'magenta to the right')
 
 
-MARK = 'KASANDRA HIGHLIGHT '
+MARK = 'KAS HIGHLIGHT '
 
 # One child for the small things of 0.8.4, in the look chosen for it: what each draws or says there.
 PROBE = r'''
@@ -395,11 +395,11 @@ class Leftovers(unittest.TestCase):
             seen = k[where];self.assertGreaterEqual(seen['n'], least, (where, 'the light is there'))
             self.assertEqual(seen['green'], 0, where);self.assertGreaterEqual(seen['warm'] / seen['n'], 0.9, (where, seen))
         g = self.window('graphite')
-        for where in ('line', 'field'):self.assertGreater(g[where]['n'], 1000, 'Graphite: its amber light is where it was')
+        for where in ('line', 'field'):self.assertGreater(g[where]['n'], 1000, 'Kas: its amber light is where it was')
 
     def test_a_selected_row_is_her_highlight_in_the_lists_with_a_sheet_of_their_own(self):
         k, g = self.window('kasandra'), self.window('graphite')
-        self.assertEqual(k['log_row'], ['#e2a72e', '#5a3f0c'], 'the Log, drawn: her edge, then her fill');self.assertEqual(g['log_row'][1], '#202520', 'Graphite: its raised row')
+        self.assertEqual(k['log_row'], ['#e2a72e', '#5a3f0c'], 'the Log, drawn: her edge, then her fill');self.assertEqual(g['log_row'][1], '#202520', 'Kas: its raised row')
         hers = 'background:#5a3f0c;color:#ffd27a;'
         was = {'LogView': 'background:#202520;color:#f4e8ce;', 'NicePopup': 'background:#493225;color:#f4e8ce;', 'LogicalCabinet': 'background:#493225;color:#eee9dd;',
                'ExploreWorkspace': 'background:#f3e3e2;', 'SlateSwitch': 'background:#4b2a14;'}
@@ -423,25 +423,25 @@ class Leftovers(unittest.TestCase):
         k, g = self.probe('kasandra'), self.probe('graphite')
         for name, (rest, on_bar, chosen) in k['chain'].items():
             self.assertEqual((on_bar, chosen), (['#171b3c'], ['#171b3c']), name);self.assertNotIn('#171b3c', rest, name);self.assertTrue(rest, name)
-        for name, (rest, on_bar, chosen) in g['chain'].items():self.assertNotIn('#171b3c', on_bar + chosen, 'Graphite: as it drew them')
+        for name, (rest, on_bar, chosen) in g['chain'].items():self.assertNotIn('#171b3c', on_bar + chosen, 'Kas: as it drew them')
 
     def test_the_pdf_evidence_mark_is_an_opaque_edge_with_nothing_seen_through(self):
         k, g = self.probe('kasandra'), self.probe('graphite')
         self.assertEqual((k['pdf']['inside'], k['pdf']['edge'], k['pdf']['outside']), ('#2aa8ff', '#e2a72e', '#2aa8ff'), 'the page as it is inside the mark, and her edge whole')
-        self.assertNotEqual(g['pdf']['inside'], '#2aa8ff', 'Graphite: its amber wash inside the mark, as before');self.assertEqual(g['pdf']['edge'], '#ff9a36')
+        self.assertNotEqual(g['pdf']['inside'], '#2aa8ff', 'Kas: its amber wash inside the mark, as before');self.assertEqual(g['pdf']['edge'], '#ff9a36')
 
     def test_the_sheets_run_button_holds_the_keyboard_in_her_yellow(self):
         k, g = self.probe('kasandra'), self.probe('graphite')
         self.assertEqual(k['run'], {'hover': 'background: #b9f4ff;', 'focus': 'background: #ffd27a; border-color: #e2a72e;'}, 'the pointer in her cyan, the keyboard in her yellow')
-        self.assertEqual(g['run'], {'hover': 'background: #ffba72;', 'focus': 'background: #ffba72; border-color: #ff9a36;'});self.assertEqual(g['run_rest'], ['#ff9a36'], 'Graphite: the edge it had')
+        self.assertEqual(g['run'], {'hover': 'background: #ffba72;', 'focus': 'background: #ffba72; border-color: #ff9a36;'});self.assertEqual(g['run_rest'], ['#ff9a36'], 'Kas: the edge it had')
 
     def test_the_old_colours_that_became_her_yellow_are_each_decided(self):
         k, g = self.probe('kasandra'), self.probe('graphite')
         self.assertEqual(k['legacy'], {'#d4b56a': '#e2a72e', '#f2a369': '#ffd27a', '#f8edc9': '#1d3d63', '#4b2a14': '#1d3d63', '#ff9a36': '#83eaff', '#ffba72': '#b9f4ff'})
         self.assertEqual(k['to_yellow'], ['#d4b56a', '#f2a369'], 'the chosen one\'s marks, and no other: an old colour that is to be her yellow is decided in boss_theme')
         self.assertEqual(k['relit'], 'QFrame {background:#1d3d63; border-left:3px solid #e2a72e; color:#e3e3ff;}')
-        self.assertEqual(g['relit'], 'QFrame {background:#4b2a14; border-left:3px solid #ff9a36; color:#f4e8ce;}', 'Graphite: what it always made of them')
-        self.assertEqual(g['legacy']['#4b2a14'], None, 'Graphite maps none of its own colours')
+        self.assertEqual(g['relit'], 'QFrame {background:#4b2a14; border-left:3px solid #ff9a36; color:#f4e8ce;}', 'Kas: what it always made of them')
+        self.assertEqual(g['legacy']['#4b2a14'], None, 'Kas maps none of its own colours')
 
     def test_her_light_is_a_warm_tone_at_every_strength(self):
         tones = self.probe('kasandra')['warm'];self.assertEqual((tones[0], tones[-1]), ('#261c0e', '#e2a72e'))

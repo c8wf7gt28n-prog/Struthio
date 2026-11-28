@@ -163,7 +163,7 @@ class Lifecycle(Fixture):
         context=state['context'];self.assertEqual((context['total']['text'],context['found'],context['left_out'],context['document_revision']),('16 kg',3,0,2))
         self.assertEqual(profile_numbers.PROFILE.describe(state),'Finished: The 3 quantities on this page total 16 kg.')
         saved=self.call('documents.get',{'id':doc['id']})['document'];self.assertEqual(saved['revision'],2);self.assertEqual(len(saved['blocks']),5)
-        result=saved['blocks'][4];self.assertEqual(result['id'],context['result_block']);self.assertTrue(result['text'].startswith('Total of the 3 quantities on this page: 16 kg · checked by Graphite '),result['text'])
+        result=saved['blocks'][4];self.assertEqual(result['id'],context['result_block']);self.assertTrue(result['text'].startswith('Total of the 3 quantities on this page: 16 kg · checked by Kas '),result['text'])
         self.assertTrue(result['text'].endswith('· from: 12.5 kg, 3 kg, 0.5 kg'));self.assertEqual(saved['last_change']['actor'],'SLATE');self.assertEqual(saved['last_change']['request'],'add up the numbers on this page')
         card=self.call('conditions.get',{'id':context['conditions'][0]});self.assertEqual(card['document_revision_now'],2);card=card['condition']
         self.assertEqual((card['state'],card['reason'],card['expression'],card['document'],card['document_revision'],card['result_block'],card['assignment'],card['origin'],card['schema'],card['kind']),
@@ -189,7 +189,7 @@ class Lifecycle(Fixture):
         self.assertEqual((card['state'],card['reason'],card['document_revision'],card['rechecks'],card['result']['text']),('CURRENT','',5,1,'17 kg'))
         self.assertEqual([i['text'] for i in card['inputs']],['12.5 kg','4 kg','0.5 kg']);self.assertEqual(rechecked['words'],'Rechecked: the 3 quantities on this page total 17 kg; the result paragraph was rewritten.')
         page=rechecked['document'];self.assertEqual((page['revision'],len(page['blocks']),page['blocks'][4]['id']),(5,6,result_block))
-        self.assertTrue(page['blocks'][4]['text'].startswith('Total of the 3 quantities on this page: 17 kg · checked by Graphite '));self.assertTrue(page['blocks'][4]['text'].endswith('from: 12.5 kg, 4 kg, 0.5 kg'))
+        self.assertTrue(page['blocks'][4]['text'].startswith('Total of the 3 quantities on this page: 17 kg · checked by Kas '));self.assertTrue(page['blocks'][4]['text'].endswith('from: 12.5 kg, 4 kg, 0.5 kg'))
         self.assertEqual(page['last_change']['actor'],'SLATE');self.assertEqual([b['text'] for b in page['blocks'][:4]],[b['text'] for b in edited['document']['blocks'][:4]])   # only the result paragraph was rewritten
         bold=self.call('documents.edit',{'id':doc['id'],'expected_revision':5,'selection':{'block':3,'start':0,'end':2,'text':'No'},'change':{'bold':True}});self.assertEqual(bold['conditions_stale'],[])
         self.assertEqual(self.call('conditions.get',{'id':card_id})['condition']['state'],'CURRENT')
@@ -204,7 +204,7 @@ class Lifecycle(Fixture):
         self.assertEqual(edited['conditions_stale'],[card_id])
         rechecked=self.call('conditions.recheck',{'id':card_id});card=rechecked['condition']
         self.assertEqual((card['state'],card['document_revision']),('STALE',4));self.assertIn('12.5 kg (kg) and 3 A (A)',card['reason'])
-        self.assertTrue(rechecked['document']['blocks'][4]['text'].startswith('The quantities on this page cannot be added as they stand: 12.5 kg (kg) and 3 A (A) cannot be added · checked by Graphite '))
+        self.assertTrue(rechecked['document']['blocks'][4]['text'].startswith('The quantities on this page cannot be added as they stand: 12.5 kg (kg) and 3 A (A) cannot be added · checked by Kas '))
         self.assertIn('cannot be added as they stand',rechecked['words']);self.assertEqual(card['result']['text'],'16 kg')
         fixed=self.call('documents.edit',{'id':doc['id'],'expected_revision':4,'selection':{'block':1,'start':5,'end':8,'text':'3 A'},'change':{'replace':'3 kg'},'origin':'HUMAN'})
         self.assertEqual(fixed['conditions_stale'],[card_id])
@@ -216,7 +216,7 @@ class Lifecycle(Fixture):
         page=self.call('documents.get',{'id':doc['id']})['document'];without=page['blocks'][:4]
         saved=self.call('documents.save',{'id':doc['id'],'expected_revision':2,'blocks':without});self.assertEqual(saved['conditions_stale'],[card_id])
         card=self.call('conditions.get',{'id':card_id})['condition'];self.assertEqual((card['state'],card['reason']),('BROKEN','The result paragraph is no longer on the page.'))
-        rechecked=self.call('conditions.recheck',{'id':card_id});self.assertEqual(rechecked['condition']['state'],'BROKEN');self.assertIn('ask Kasandra for the total again',rechecked['words'])
+        rechecked=self.call('conditions.recheck',{'id':card_id});self.assertEqual(rechecked['condition']['state'],'BROKEN');self.assertIn('ask Kas for the total again',rechecked['words'])
         self.assertEqual(self.call('documents.get',{'id':doc['id']})['document']['revision'],3)     # a broken card never writes the page
         undone=self.call('documents.save',{'id':doc['id'],'expected_revision':3,'blocks':page['blocks']});self.assertEqual(undone['conditions_stale'],[])
         self.assertEqual(self.call('conditions.get',{'id':card_id})['condition']['state'],'CURRENT')   # the paragraph came back with its id: current again
@@ -247,7 +247,7 @@ class Lifecycle(Fixture):
         state={'id':'a'*32,'request':'add up the numbers on this page','state':'RUNNING','reason':'','cursor':0,'context':context,'plan':plan,'budget':{}}
         out=profile.interpret(plan[0],self.call('documents.get',{'id':doc['id']}),state,self.kernel,self.bounded);context.update(out['context_updates'])
         self.call('documents.save',{'id':doc['id'],'expected_revision':1,'blocks':[{'text':'Rewritten 1 kg.'}]});state['cursor']=1
-        with self.assertRaisesRegex(ValueError,'changed while Graphite was working'):profile.local(plan[1],state,self.kernel,self.bounded)
+        with self.assertRaisesRegex(ValueError,'changed while Kas was working'):profile.local(plan[1],state,self.kernel,self.bounded)
         out=profile.failed(plan[1],profile_numbers.PAGE_MOVED+' (revision 1 is now 2)',state,self.kernel,self.bounded)   # the loop replaces what follows a failed step: the whole procedure again
         self.assertEqual((out['waiting'],[s['key'] for s in out['steps']]),(profile_numbers.PAGE_MOVED,['read','extract','sum','write','card']))
         out=profile.failed(plan[3],'REVISION_CHANGED: the document moved on; reopen before editing',state,self.kernel,self.bounded)

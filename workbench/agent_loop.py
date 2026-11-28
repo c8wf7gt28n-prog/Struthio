@@ -667,7 +667,7 @@ def shorten(text, limit):
 
 def choice_prompt(situation, options):
     """The situation and the numbered options, one per line, under MODEL_PROMPT_LIMIT characters (built for the smallest models)."""
-    head = 'Graphite is working on: ' + shorten(situation, 160) + '\nWhich step comes next?\n'
+    head = 'Kas is working on: ' + shorten(situation, 160) + '\nWhich step comes next?\n'
     lines = '\n'.join('%d. %s' % (n, shorten(o['purpose'], 90)) for n, o in enumerate(options, 1))
     return (head + lines)[:MODEL_PROMPT_LIMIT - 1]
 
@@ -1198,8 +1198,8 @@ def release(kernel, args, principal):
     granted = narrowed(state.get('authority'), authority_of(principal))
     with opened(kernel) as db: db.execute('UPDATE agent_assignments SET authority=? WHERE id=?', (json.dumps(granted, sort_keys=True), state['id']))
     state['authority'] = granted
-    words = ('Released: the Graphite service continues it while no desktop steps it' if continue_when_closed(kernel) else
-             'Released, but Continue assignments while Graphite is closed is off: nothing steps it until a desktop does')
+    words = ('Released: the Kas service continues it while no desktop steps it' if continue_when_closed(kernel) else
+             'Released, but Continue assignments while Kas is closed is off: nothing steps it until a desktop does')
     return {'assignment': report(kernel, state)['assignment'], 'next': words}
 
 
@@ -1320,7 +1320,7 @@ def pump(kernel, limit=8, guard=None, stop=None):
 
 def service_trouble(kernel, state, exc):
     """An unexpected exception while the service stepped an assignment: WAITING with the words, never an exception."""
-    words = ('The Graphite service could not step it: ' + words_of(exc))[:600]
+    words = ('The Kas service could not step it: ' + words_of(exc))[:600]
     try:
         with opened(kernel) as db:
             ensure(db); fresh = load(db, state['id'], state['owner'])

@@ -74,7 +74,7 @@ def bind_sources(kernel, sources, principal):
         if key in seen: raise ValueError('Duplicate problem source')
         seen.add(key)
         _, row, _ = edit_storage.workspace(kernel, source['copy'], principal)
-        if not row['for_slate']: raise ValueError('Delegate this working copy to Graphite before binding it to a problem')
+        if not row['for_slate']: raise ValueError('Delegate this working copy to Kas before binding it to a problem')
         actual = source_read(kernel, source, principal)
         result.append({**source, 'sha256': actual['sha256'], 'bytes': actual['bytes'],
                        'operation': 'work.read'})
@@ -142,7 +142,7 @@ def run(kernel, ident, principal):
     if action['profile'] != PROFILE or action['operation'] != operation_binding() or action['effects'] != ['read']:
         raise ValueError('ACTION_CONTRACT_CHANGED: prepare another action')
     _, row, _ = edit_storage.workspace(kernel, action['source']['copy'], principal)
-    if not row['for_slate']: raise ValueError('This working copy is no longer delegated to Graphite')
+    if not row['for_slate']: raise ValueError('This working copy is no longer delegated to Kas')
     started = time.time()
     # Registered read, with existing path/owner/scope checks and an exact UTF-8
     # snapshot. A changed input is refused, never silently rebound.

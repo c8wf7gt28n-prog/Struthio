@@ -235,7 +235,7 @@ class Rehearsal(QMainWindow):
         self.resize(1024, 720);self.manual_clicks = 0
         art = SpriteSet(root);body = QWidget();self.setCentralWidget(body);box = QVBoxLayout(body)
         title = QLabel('staC  /  THE ARC FAIRY');title.setStyleSheet('font-size:24px;font-weight:700;color:#ffb15c;');box.addWidget(title)
-        note = QLabel('Presentation rehearsal · host CPU readout · no Graphite jobs, journal access or model inference');note.setWordWrap(True);box.addWidget(note)
+        note = QLabel('Presentation rehearsal · host CPU readout · no Kas jobs, journal access or model inference');note.setWordWrap(True);box.addWidget(note)
         self.cpu_label=QLabel(cpu_caption(_CPU.snapshot()));self.cpu_label.setWordWrap(True);box.addWidget(self.cpu_label)
         self.cpu_clock=QTimer(self);self.cpu_clock.setInterval(1000);self.cpu_clock.timeout.connect(lambda:self.cpu_label.setText(cpu_caption(_CPU.snapshot())));self.cpu_clock.start()
         self.canvas = QuietCanvas(art);box.addWidget(self.canvas, 1)
@@ -289,7 +289,7 @@ class Rehearsal(QMainWindow):
     def offer_spark(self):
         self.roam.setChecked(False);self.choice.setCurrentText('celebrate')
         self.choose('celebrate')
-        self.receipt.setText('One little spark, offered. A visual celebration; no Graphite job or reward score was created.')
+        self.receipt.setText('One little spark, offered. A visual celebration; no Kas job or reward score was created.')
 
 
 def main():

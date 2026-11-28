@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# 1.1 PK1: build Graphite's four Debian packages from this tree with dpkg-deb (no debhelper needed).
+# 1.1 PK1: build Kas's Debian packages from this tree with dpkg-deb (no debhelper needed). 1.1 R1: the four kas-*
+# packages and the four transitional graphite* ones (debian/control).
 #   tools/build_deb.sh [--out DIR] [--work DIR]
 # Gives graphite_<v>_all.deb (the program in /usr/lib/graphite, /usr/bin/graphite, the desktop entry and icon),
 # graphite-llama-runtime_<v>_amd64.deb (the bundled llama.cpp archives), graphite-session_<v>_all.deb (the X session
@@ -22,7 +23,7 @@ python="${PYTHON:-python3}"
 version="$("$python" "$tree/tools/debian_pkg.py" version)"
 [[ -n "$work" ]] || work="$(mktemp -d)"
 mkdir -p "$out" "$work"
-for package in graphite graphite-llama-runtime graphite-session graphite-desktop; do
+for package in kas-computer kas-llama-runtime kas-session kas-desktop graphite graphite-llama-runtime graphite-session graphite-desktop; do
   stage="$work/$package"
   "$python" - "$tree" "$package" "$stage" <<'PY'
 import sys; sys.path.insert(0, sys.argv[1] + '/tools')

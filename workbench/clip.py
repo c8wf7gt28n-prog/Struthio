@@ -37,15 +37,15 @@ NOT_CHAT = ('image', 'tts', 'live', 'audio', 'transcribe', 'embedding', 'compute
 MAX_FILE_CHARS = 24000
 MAX_HISTORY = 40
 SYSTEM_PROMPT = (
-    'You are Graphite, the assistant inside the Graphite workspace, the development environment for the ARC-1 '
+    'You are Kas, the assistant inside the Kas workspace, the development environment for the ARC-1 '
     'Adaptive RISC-V Console (F133 and D213 processors, two FPGAs). STRUTHIO Arcade 1.8 is the '
     'authoritative JavaScript behavior reference. Its working portable C11 port is in software/struthio, '
     'with host gameplay, deterministic saves and tick-by-tick parity scenarios. The C hello_arc1 example uses a host '
     'simulator. Answer briefly and concretely; use fenced code blocks for code. No ARC-1 board '
     'has been qualified; never claim that something ran on hardware when it was only a browser '
-    'preview or host simulation. Graphite has a Development Lab for source-bound baseline versus '
+    'preview or host simulation. Kas has a Development Lab for source-bound baseline versus '
     'candidate host checks. A passing candidate is not promoted hardware; respect stale evidence '
-    'markers and independent review. The imported C bootstrap is an immutable snapshot. Graphite bounded '
+    'markers and independent review. The imported C bootstrap is an immutable snapshot. Kas bounded '
     'jobs propose isolated candidates; only the kernel grants scope and the operator accepts source. '
     'Native graphics are diagnostic and audio rendering remains unfinished.')
 
@@ -121,19 +121,19 @@ def looks_like_key(text):
 
 def _settings_document(path):
     try:
-        if path.stat().st_size>65536:raise OSError('Graphite settings exceed the supported size')
+        if path.stat().st_size>65536:raise OSError('Kas settings exceed the supported size')
         value=json.loads(path.read_text(encoding='utf-8'))
     except FileNotFoundError:return {'schema':SCHEMA}
-    except (ValueError,TypeError):raise OSError('Graphite settings are invalid; preserve the file and inspect it')
-    if not isinstance(value,dict) or value.get('schema')!=SCHEMA:raise OSError('Unsupported Graphite settings schema')
+    except (ValueError,TypeError):raise OSError('Kas settings are invalid; preserve the file and inspect it')
+    if not isinstance(value,dict) or value.get('schema')!=SCHEMA:raise OSError('Unsupported Kas settings schema')
     return value
 
 
 def _preferences(document):
     model=document.get('model','');include=document.get('include_file',False)
     if not isinstance(model,str) or len(model)>200 or any(ord(c)<32 for c in model):
-        raise OSError('Graphite model preference must be text without control characters, at most 200 characters')
-    if type(include) is not bool:raise OSError('Graphite source-sharing preference must be true or false')
+        raise OSError('Kas model preference must be text without control characters, at most 200 characters')
+    if type(include) is not bool:raise OSError('Kas source-sharing preference must be true or false')
     return {'model':model,'include_file':include}
 
 
@@ -217,7 +217,7 @@ class Settings:
             for key in wanted:
                 if self._loaded is not None and wanted[key]==self._loaded[key]:wanted[key]=latest[key]
                 elif self._loaded is not None and latest[key] not in (self._loaded[key],wanted[key]):
-                    raise OSError('Graphite preferences changed while this editor was open; reload before saving')
+                    raise OSError('Kas preferences changed while this editor was open; reload before saving')
             changed=any(wanted[key]!=latest[key] for key in wanted)
             if wanted['key']!=latest['key'] or 'key' not in data:data['key']=seal_key(wanted['key'])
             data.update(model=wanted['model'],include_file=wanted['include_file'])
@@ -297,7 +297,7 @@ def _request(url, key, payload=None, timeout=60, opener=urllib.request.urlopen):
         raise ClipError("Can't reach Google (%s). Check the internet connection." % getattr(e, 'reason', e),
                         'network')
     except ValueError:
-        raise ClipError('Google sent a reply Graphite could not read.', 'other')
+        raise ClipError('Google sent a reply Kas could not read.', 'other')
 
 
 # --------------------------------------------------------------------------- models

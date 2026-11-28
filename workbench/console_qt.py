@@ -212,7 +212,7 @@ class Console(QWidget):
         words = QHBoxLayout();words.setSpacing(0);self.chips = {}
         for key, label, prefix, _ in MODES:
             chip = button(label + ('  ' + prefix if prefix else ''), 'filter');chip.setCheckable(True);chip.clicked.connect(lambda checked=False, k=key:self.set_mode(k, focus=True))
-            chip.setToolTip({'log': 'The Timeline: what Graphite did, in words', 'stac': 'Lines that read', 'kernel': 'Kernel operations by name',
+            chip.setToolTip({'log': 'The Timeline: what Kas did, in words', 'stac': 'Lines that read', 'kernel': 'Kernel operations by name',
                              'find': 'Find anything', 'shell': 'Your own shell commands'}[key])
             self.chips[key] = chip;words.addWidget(chip)
         self.sign = QLabel();self.sign.setFont(mono_font(15));self.sign.setStyleSheet('color:%s;padding-left:6px' % QUIET);words.addWidget(self.sign)

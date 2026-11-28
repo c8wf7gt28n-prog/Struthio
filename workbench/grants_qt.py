@@ -158,7 +158,7 @@ class GrantsTab(QWidget):
         keep = {k: (w.currentIndex() if isinstance(w, QComboBox) else w.text()) for k, w in self.form.items()}
         page = QWidget();box = QVBoxLayout(page);box.setContentsMargins(48, 32, 48, 24);box.setSpacing(16)
         box.addWidget(role(QLabel('Grants'), 'title'))
-        lead = role(QLabel('What Kasandra may change without asking you again: each grant names what she may do, where, and for '
+        lead = role(QLabel('What Kas may change without asking you again: each grant names what she may do, where, and for '
                            'how long. Only your press gives one, in these words; she can never give or widen one. Reading needs '
                            'no grant; what always asks still asks; a change only the model chose is never done; Undo stays as it was.'), 'lead')
         lead.setWordWrap(True);lead.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);box.addWidget(lead)

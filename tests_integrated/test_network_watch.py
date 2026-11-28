@@ -453,7 +453,7 @@ class CaptureBytes(unittest.TestCase):
         doc=' '.join(NETWORK_DOC.read_text().split());debian=' '.join(DEBIAN_DOC.read_text().split())
         self.assertNotIn('payload contents are cut off',doc);self.assertNotIn("captures only this computer's own traffic",doc)
         self.assertIn('%d bytes for TCP over IPv4 on Ethernet (%d - 14 - 20 - 20), %d for UDP (%d - 14 - 20 - 8)'%(nc.SNAP-54,nc.SNAP,nc.SNAP-42,nc.SNAP),doc)
-        self.assertNotIn('packet headers only, at most 128 bytes of each packet reach Graphite',debian)
+        self.assertNotIn('packet headers only, at most 128 bytes of each packet reach Kas',debian)
 
     def test_malformed_input_is_refused_with_words_and_short_input_waits(self):
         for stream in (b'GARBAGE!',b'\x0a\x0d\x0d\x0a'+b'\x1c\0\0\0'+b'\x00\x00\x00\x00'+b'\0'*16,   # no byte-order mark
@@ -484,7 +484,7 @@ class Availability(unittest.TestCase):
     def test_every_reason_is_plain_words_with_the_debian_steps_and_no_sudo(self):
         none=self.probe(())
         self.assertEqual((none['state'],none['tool']),('UNAVAILABLE',None))
-        for words in ('wireshark-common','answer Yes','usermod -aG wireshark owner','log out and in again','Graphite only explains'):self.assertIn(words,none['reason'])
+        for words in ('wireshark-common','answer Yes','usermod -aG wireshark owner','log out and in again','Kas only explains'):self.assertIn(words,none['reason'])
         late=self.probe(('dumpcap',),access=lambda p,m:False,group='wireshark:x:131:owner\n')
         self.assertEqual(late['enable'],[nw.RELOG]);self.assertIn('started before you joined it',late['reason'])
         outside=self.probe(('dumpcap',),access=lambda p,m:False)

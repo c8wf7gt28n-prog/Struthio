@@ -34,9 +34,9 @@ NEVER = 'outside your home: never'
 SYSTEM_FOLDERS = ('/proc', '/sys', '/dev', '/run')
 DRIVES_UNDER_RUN = ('/run/media',)          # where some systems mount removable drives: a drive, not a system folder
 SYSTEM_WORDS = 'a system folder: shown, never read'
-OWN_WORDS = "Graphite's own records and program change only through the desk, never as files: never"
+OWN_WORDS = "Kas's own records and program change only through the desk, never as files: never"
 FILES, OWN, HOME, SYSTEM, OUTSIDE = 'files', 'own', 'home', 'system', 'outside'
-AREA_WORDS = {FILES: 'in Files', OWN: "Graphite's own", HOME: 'in your home', SYSTEM: 'a system folder', OUTSIDE: 'outside your home'}
+AREA_WORDS = {FILES: 'in Files', OWN: "Kas's own", HOME: 'in your home', SYSTEM: 'a system folder', OUTSIDE: 'outside your home'}
 MOST_ROWS = 400                             # rows one folder lists in the tree, at most (the rest are counted)
 # what a change lands on: the arguments that name a place it writes (files.copy reads its 'path' and writes into 'to')
 WRITES = {'files.copy': ('to',)}

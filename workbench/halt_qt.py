@@ -18,8 +18,8 @@ from PySide6.QtWidgets import QToolButton
 from . import boss_theme as t
 
 POLL_MS = 2000
-NAMES = {False: ('HALT', "HALT: stop all of Kasandra's work now. The desktop and your apps keep running."),
-         True: ('RESUME', "RESUME: lift the hold on Kasandra's work. Nothing stopped is restarted by this.")}
+NAMES = {False: ('HALT', "HALT: stop all of Kas's work now. The desktop and your apps keep running."),
+         True: ('RESUME', "RESUME: lift the hold on Kas's work. Nothing stopped is restarted by this.")}
 
 
 class HaltButton(QToolButton):

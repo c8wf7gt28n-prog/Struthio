@@ -199,7 +199,7 @@ def snapshot(kernel,principal,limit=300):
     remembered=memory_cabinet.snapshot(kernel,principal,limit)
     partial=partial or remembered['partial'];notices.extend(remembered['notices'])
     memory_root=add('memory:root','catalog:ledger' if 'catalog:ledger' in by_id else root['id'],
-        'drawer','Graphite memory','slate_memory',description='Existing private directions, task memory and procedures. Stored memory is not engineering proof.')
+        'drawer','Kas memory','slate_memory',description='Existing private directions, task memory and procedures. Stored memory is not engineering proof.')
     if memory_root is not None:
         groups={'feedback':('directions','Directions'),'task':('tasks','Task memory'),'lesson':('procedures','Procedures')}
         for key,label in groups.values():add('memory:'+key,memory_root['id'],'folder_view',label,'slate_memory')

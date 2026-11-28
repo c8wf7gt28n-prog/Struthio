@@ -1,5 +1,0 @@
-#!/bin/sh
-# 1.1 PK1: the doctor (LEDGER.sh in a folder install): graphite-doctor doctor, graphite-doctor doctor --json
-export PYTHONPATH="/usr/lib/graphite${PYTHONPATH:+:$PYTHONPATH}"
-cd /usr/lib/graphite || exit 1
-exec /usr/bin/python3 -m workbench.baseline "$@"

@@ -12,7 +12,7 @@ from . import locations
 class KnowledgeTab(ServiceTab):
     def __init__(self,host):
         super().__init__(host);self.pending=None;self.connection=None;self.epoch=0;self.source_count=0
-        title=QLabel('GRAPHITE · SOURCE CONNECTIONS');title.setStyleSheet('font-size:18px;font-weight:bold');self.outer.addWidget(title)
+        title=QLabel('KAS · SOURCE CONNECTIONS');title.setStyleSheet('font-size:18px;font-weight:bold');self.outer.addWidget(title)
         self.summary=QLabel('Connect ROM originals and identify a V1 reference snapshot.');self.summary.setWordWrap(True);self.outer.addWidget(self.summary)
         row=QHBoxLayout();self.connections=QComboBox();self.connections.setAccessibleName('Private source connection');self.connections.currentIndexChanged.connect(self.select_connection);row.addWidget(self.connections,1)
         refresh=QPushButton('Refresh');refresh.clicked.connect(self.refresh);row.addWidget(refresh);self.outer.addLayout(row);self.source_controls=[self.summary,self.connections,refresh]
@@ -52,7 +52,7 @@ class KnowledgeTab(ServiceTab):
         mapped=self.pages.currentWidget() in (self.map_page,self.packet_page,self.investigation_page)
         for widget in self.source_controls:widget.setVisible(not mapped)
         self.technical_toggle.setVisible(not mapped);self.technical.setVisible(not mapped and self.technical_toggle.isChecked())
-    def title(self):return 'Graphite · Source connections'
+    def title(self):return 'Kas · Source connections'
     def info(self):return 'Original sources · %d private connection(s) · design acceptance remains separate'%self.source_count
     def toggle_details(self,value):self.technical.setVisible(value)
     def refresh(self):self.call('knowledge.status',{},self.loaded)

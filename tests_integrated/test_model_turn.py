@@ -42,7 +42,7 @@ class Decide(unittest.TestCase):
         self.assertTrue(any('not HUMAN' in n for n in verdict['notes']),verdict['notes'])
         # both corrections are said aloud (words() puts them in Slate's sentence and on the card)
         self.assertEqual(verdict['corrections'],['the model named paragraph 5, words 4–15, which do not hold “quick brown”; your selection in paragraph 1 is used',
-                                                 'recorded as Graphite’s model, not HUMAN'])
+                                                 'recorded as Kas’s model, not HUMAN'])
 
     def test_a_place_that_holds_the_quoted_words_is_kept_over_the_owners_selection(self):
         # “make the fox in the first paragraph bold” with the second paragraph's “fox” selected: the model's place holds
@@ -268,7 +268,7 @@ class Page(unittest.TestCase):
             live={'id':ident,'expected_revision':2,'selection':{'block':4,'start':4,'end':15,'text':'quick brown'},'change':{'bold':True},'origin':'HUMAN'}
             said=tab.apply_model_edit(live,'make the fox words bold','bd5b55329ac2cfbd86bef1915ddf599c5f6a1cca484c156e00f54094308b0dae')
             self.assertEqual(said,'Changed on the page: made “quick brown” bold · revision 3 · Undo takes it back · proposed by the model bd5b5532'
-                                  ' · the model named paragraph 5, words 4–15, which do not hold “quick brown”; your selection in paragraph 1 is used; recorded as Graphite’s model, not HUMAN')
+                                  ' · the model named paragraph 5, words 4–15, which do not hold “quick brown”; your selection in paragraph 1 is used; recorded as Kas’s model, not HUMAN')
             stored=kernel.dispatch('documents.get',{'id':ident},operator())['result']
             self.assertEqual(stored['document']['blocks'][0]['marks'],[{'start':4,'end':15,'bold':True}])
             self.assertEqual(stored['document']['last_change']['actor'],M.ORIGIN);self.assertTrue(stored['document']['last_change']['request'].startswith('make the fox words bold'))

@@ -138,7 +138,7 @@ class DropTerminal(QWidget):
         self.at_end = True;self.opened = False;self.marked = False;self.before = 0;self.graphite_before = False;self.gave = None
         self.history = [];self.at = None;self.dos_env = {};self._dos_inner = False;self.welcomed = False
         self.px = max(12, cq.mono_font(14).pixelSize())
-        self.setObjectName('DropTerminal');self.setWindowTitle('Graphite · Terminal');self.setAccessibleName('The Terminal')
+        self.setObjectName('DropTerminal');self.setWindowTitle('Kas · Terminal');self.setAccessibleName('The Terminal')
         self.setAttribute(Qt.WA_X11NetWmWindowTypeUtility, True)
         box = QVBoxLayout(self);box.setContentsMargins(0, 0, 0, 2);box.setSpacing(0)
         head = QWidget(self);head.setObjectName('DropTerminalHead');head.setFixedHeight(HEAD_PX);self.head = head

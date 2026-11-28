@@ -6,7 +6,7 @@ window.SlateDeck=(()=>{
   function el(tag,text='',className=''){const n=document.createElement(tag);n.textContent=text;n.className=className;return n;}
   function clear(all=false){epoch++;current=null;clearTimeout(saveTimer);if(imageURL)URL.revokeObjectURL(imageURL);imageURL=null;document.getElementById('deck-reader')?.replaceChildren();if(all)document.querySelectorAll('.deck-catalog').forEach(n=>n.replaceChildren());}
   function bird(className='slate-symbol'){
-    const c=el('canvas','Graphite',className);c.width=530;c.height=468;c.setAttribute('role','img');c.setAttribute('aria-label','Graphite, the Struthio bird');
+    const c=el('canvas','Kas',className);c.width=530;c.height=468;c.setAttribute('role','img');c.setAttribute('aria-label','Kas, the ostrich');
     const img=new Image();img.onload=()=>{const ctx=c.getContext('2d');ctx.save();ctx.translate(c.width,0);ctx.scale(-1,1);ctx.drawImage(img,98,146,265,234,0,0,c.width,c.height);ctx.restore();};img.src='/slate-sheet.png';return c;
   }
   async function render(parent,api){

@@ -28,10 +28,10 @@ def poster_panel(root):
 
 def about_dialog(host,text):
     from PySide6.QtWidgets import QDialog,QDialogButtonBox,QTabWidget,QVBoxLayout,QLabel,QWidget
-    dialog=QDialog(host);dialog.setWindowTitle('About Graphite · ARC Concern');dialog.resize(620,800)
+    dialog=QDialog(host);dialog.setWindowTitle('About Kas · ARC Concern');dialog.resize(620,800)
     layout=QVBoxLayout(dialog);tabs=QTabWidget();layout.addWidget(tabs,1)
     tabs.addTab(poster_panel(host.root),'ARC Concern')
     info=QWidget();body=QVBoxLayout(info);label=QLabel(text);label.setWordWrap(True);body.addWidget(label);body.addStretch()
-    tabs.addTab(info,'About Graphite')
+    tabs.addTab(info,'About Kas')
     buttons=QDialogButtonBox(QDialogButtonBox.Close);buttons.rejected.connect(dialog.reject);layout.addWidget(buttons)
     return dialog

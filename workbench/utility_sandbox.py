@@ -799,7 +799,7 @@ def desk_draft(objective, inputs):
 
 
 # ====================================================================================================== the model's draft (UTILITY)
-UTILITY_BRIEF = '''You write one small Python 3 utility for Graphite's sealed sandbox.
+UTILITY_BRIEF = '''You write one small Python 3 utility for Kas's sealed sandbox.
 Rules:
 - Standard library only. It has no network, cannot start other programs and sees no folder but its own: anything else is stopped.
 - Its input files are copies in the folder in/ (named below); it may only read them.
@@ -975,7 +975,7 @@ def draft(kernel, principal, objective, paths, source=None, by=None, request=Non
             request = request if request is not None else turns.request_for(kernel, principal)
             answer = turns.ask(kind, {'objective': objective, 'inputs': [{'name': i['name'], 'head': i['head']} for i in inputs]}, request)
             if not answer.by_model:
-                why = {'NO_MODEL': 'no model is running', 'AI_OFF': 'Graphite AI is off', 'SWITCH_OFF': 'her talk switch is off',
+                why = {'NO_MODEL': 'no model is running', 'AI_OFF': 'Kas AI is off', 'SWITCH_OFF': 'her talk switch is off',
                        'REFUSED': "the model's draft was not a utility that can run", 'LATE': 'the model did not answer in time',
                        'STOPPED': 'you stopped it'}.get(answer.outcome if answer.outcome != 'NOT_SENT' else answer.why,
                                                        'the model gave no draft (%s)' % (answer.why or answer.outcome))

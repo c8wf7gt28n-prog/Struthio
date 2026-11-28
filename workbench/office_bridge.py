@@ -78,8 +78,9 @@ from . import assignments as _asg
 
 SCHEMA = 'graphite.office-bridge/1'
 HELPER = Path(__file__).with_name('office_uno_helper.py')
-PROGRAM = 'LibreOffice (Kasandra)'          # how her saves are named among a file's revisions (L4)
-HER_NAME = ('Kasandra', '(Graphite)')       # the name her LibreOffice writes into a document's lock file
+PROGRAM = 'LibreOffice (Kas)'          # how her saves are named among a file's revisions (L4)
+HER_NAME = ('Kas', '(computer)')       # the name her LibreOffice writes into a document's lock file
+HER_NAME_EARLIER = ('Kasandra', '(Graphite)')      # 1.1 R1: a lock written before the rename is still hers
 NOT_HERE = "LibreOffice's interface is not available here"
 EDITS = ('.odt', '.ods')
 READS = ('.odt', '.ods', '.fodt', '.fods', '.docx', '.doc', '.rtf', '.xlsx', '.xls')
@@ -186,7 +187,7 @@ def _probe():
         return _unavailable("no Python here can import LibreOffice's uno module (python3-uno is not installed; on Debian it is "
                             "the package python3-uno)", soffice=office['executable'], version=office.get('version', ''), tried=tried)
     if not HELPER.is_file():
-        return _unavailable("the bridge's helper (office_uno_helper.py) is missing from this Graphite")
+        return _unavailable("the bridge's helper (office_uno_helper.py) is missing from this Kas")
     return {'available': True, 'reason': '', 'soffice': office['executable'], 'version': office.get('version', ''), 'python': python,
             'python_version': version, 'words': "LibreOffice's interface is here: %s, through %s (Python %s)." % (
                 office.get('version', 'LibreOffice'), python, version)}
@@ -364,10 +365,10 @@ def read_odf(path):
             mimetype = archive.read('mimetype').decode('utf-8', 'replace').strip() if 'mimetype' in names else ''
             info = archive.getinfo('content.xml')
             if info.file_size > CONTENT_LIMIT:
-                raise ValueError('ODF_TOO_LARGE: %s is larger than Graphite reads directly' % path.name)
+                raise ValueError('ODF_TOO_LARGE: %s is larger than Kas reads directly' % path.name)
             content = archive.read(info)
     except (zipfile.BadZipFile, KeyError, OSError) as exc:
-        raise ValueError('ODF_UNREADABLE: %s is not an OpenDocument file Graphite can read (%s)' % (path.name, str(exc)[:120])) from None
+        raise ValueError('ODF_UNREADABLE: %s is not an OpenDocument file Kas can read (%s)' % (path.name, str(exc)[:120])) from None
     try:
         root = ET.fromstring(content)
     except ET.ParseError as exc:
@@ -456,7 +457,7 @@ def _package(mimetype, content):
     """An OpenDocument package, the same bytes every time (no clock in it)."""
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
     styles = xml + '<office:document-styles %s office:version="1.3"><office:styles/></office:document-styles>' % _NS
-    meta = xml + ('<office:document-meta %s office:version="1.3"><office:meta><meta:generator>Graphite (an invented example)'
+    meta = xml + ('<office:document-meta %s office:version="1.3"><office:meta><meta:generator>Kas (an invented example)'
                   '</meta:generator></office:meta></office:document-meta>' % _NS)
     manifest = xml + ('<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.3">'
                       '<manifest:file-entry manifest:full-path="/" manifest:version="1.3" manifest:media-type="%s"/>'
@@ -665,7 +666,7 @@ def lock_of(path):
         text = lock.read_text(encoding='utf-8', errors='replace')[:4000]
     except OSError:
         text = ''
-    return {'path': lock, 'text': text, 'hers': ('office-bridge' in text and ' '.join(HER_NAME) in text)}
+    return {'path': lock, 'text': text, 'hers': ('office-bridge' in text and any(' '.join(n) in text for n in (HER_NAME, HER_NAME_EARLIER)))}
 
 
 def owner_has_it_open(path):
@@ -898,7 +899,7 @@ def read_document(kernel, args, principal):
             out.update(via=_via(office.product), interface={'available': True, 'product': office.product})
     else:
         if path.suffix.lower() not in DIRECT:
-            raise Unavailable('%s, and %s is not an OpenDocument file Graphite reads by itself' % (info['words'].rstrip('.'), path.name))
+            raise Unavailable('%s, and %s is not an OpenDocument file Kas reads by itself' % (info['words'].rstrip('.'), path.name))
         document = read_odf(path)
         if document['kind'] == 'text':
             out.update(kind='text', blocks=document['blocks'], paragraphs=[b['text'] for b in document['blocks'] if b['kind'] == 'paragraph'])
@@ -1012,7 +1013,7 @@ def _save(kernel, office, doc, path):
     from .session_power import sleep_held
     _held(kernel)
     kept = files_service.keep_version(kernel, path)
-    with sleep_held('Kasandra is saving “%s” through LibreOffice' % path.name[:80]):
+    with sleep_held('Kas is saving “%s” through LibreOffice' % path.name[:80]):
         office.call('store', {'doc': doc}, timeout=SAVE_SECONDS)
     office.call('close', {'doc': doc})
     return kept

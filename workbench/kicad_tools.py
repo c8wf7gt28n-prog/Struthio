@@ -44,7 +44,7 @@ def discover(which=None):
                     candidates.extend(Path(os.environ[prefix])/'KiCad'/v/'bin/kicad-cli.exe' for v in ('10.0','9.0'))
         elif sys.platform=='darwin':candidates=[Path('/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli')]
         path=next((str(p) for p in candidates if p.is_file()),None)
-    if not path:return {'state':'NOT_AVAILABLE','executable':None,'qualified':False,'reason':'Install KiCad 9 or newer with kicad-cli. Graphite still opens without it.'}
+    if not path:return {'state':'NOT_AVAILABLE','executable':None,'qualified':False,'reason':'Install KiCad 9 or newer with kicad-cli. Kas still opens without it.'}
     p=Path(path).resolve()
     candidates=[p,p.parent/'_pcbnew.kiface',p.parent.parent/'lib/kicad/_pcbnew.kiface',
                 p.parent.parent/'shared/bin/kicad-cli',p.parent.parent/'shared/bin/_pcbnew.kiface']

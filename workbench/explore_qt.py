@@ -74,9 +74,9 @@ def capability_text(entry,opened,brain=None):
 def slate_line(entry):
     """The registered family operations with their scopes, from the catalogue; a bounded list, never a count claim."""
     rows=entry.get('slate_operations') or []
-    if not rows:return 'Graphite can: no registered operation for this family'
+    if not rows:return 'Kas can: no registered operation for this family'
     more=int(entry.get('operations',len(rows)))-len(rows)
-    return 'Graphite can: '+', '.join('%s (%s)'%(r['operation'],r['scope']) for r in rows)+(' and %d more'%more if more>0 else '')
+    return 'Kas can: '+', '.join('%s (%s)'%(r['operation'],r['scope']) for r in rows)+(' and %d more'%more if more>0 else '')
 
 
 def needs_line(entry):
@@ -85,7 +85,7 @@ def needs_line(entry):
     if status=='Needs setup':return 'Needs: '+', '.join(entry.get('setup_needed') or ['setup'])
     if status=='Detected · checks remain':return 'Prerequisites present (unmeasured)'
     if status=='Not assessed':return 'Prerequisites: no native profile to check'
-    return 'Prerequisites: none beyond Graphite'
+    return 'Prerequisites: none beyond Kas'
 
 
 def context_line(context):
@@ -97,7 +97,7 @@ def capability_tip(entry,brain=None,context=None):
     """The descriptor (INTEGRATION_CONTRACTS capability_presentation): what opens, what Slate can do, what is missing,
     the owner's job rows, the unassessed qualification, the current work context, and that opening runs nothing."""
     lines=[entry['description']]
-    if entry['view_available']:lines.append('Opens: '+str(entry.get('presentation') or 'Graphite workspace'))
+    if entry['view_available']:lines.append('Opens: '+str(entry.get('presentation') or 'Kas workspace'))
     else:lines.append('View unavailable: '+', '.join(entry.get('missing_modules') or [entry['source']['path']]))
     lines.append(slate_line(entry));lines.append(needs_line(entry))
     counts=[(entry.get(key,0),word) for key,word in COUNTERS]
@@ -174,9 +174,9 @@ class DescriptorKeys(QObject):
 GROUP_NOTES={'Work':'Projects and ideas, questions, the Office, Files, the Operations agenda and the activity trail',
     'Reason':'Calculate and compare, the Laboratory and the methods atlas',
     'Instruments':'The Tool Atlas of registered operation contracts and tool passports',
-    'Programs':'Graphite’s checks, profiles and output controls for the installed native tools; their own editors do not open here',
-    'Knowledge':'Sources and knowledge, References and Graphite memory',
-    'Configuration':'The local model and the shared Graphite settings'}
+    'Programs':'Kas’s checks, profiles and output controls for the installed native tools; their own editors do not open here',
+    'Knowledge':'Sources and knowledge, References and Kas memory',
+    'Configuration':'The local model and the shared Kas settings'}
 
 
 def group_menus(parent,prefix):
@@ -344,7 +344,7 @@ class ExploreTab(QWidget):
         if item is None:return
         entry=item.data(0,Qt.UserRole);self.name.setText(entry['title']);self.description.setText(entry.get('description',''))
         if entry['kind']=='INSTRUMENT':
-            self.readiness.setText(entry['view_state']+'\nOpens: '+str(entry.get('presentation') or 'Graphite workspace')+'\n'+needs_line(entry)+' · '+entry['tool_status']+'\n'+str(entry['running_jobs'])+' running · '+str(entry['queued_jobs'])+' queued for this owner')
+            self.readiness.setText(entry['view_state']+'\nOpens: '+str(entry.get('presentation') or 'Kas workspace')+'\n'+needs_line(entry)+' · '+entry['tool_status']+'\n'+str(entry['running_jobs'])+' running · '+str(entry['queued_jobs'])+' queued for this owner')
             self.open_button.setText('Open workspace');self.open_button.setEnabled(entry['view_available'])
         else:
             self.readiness.setText(entry.get('status','')+'\nQualification: not assessed on this host.')
@@ -404,7 +404,7 @@ class ExploreButton(LauncherKeys,QToolButton):
         if ident:args['context']=ident
         response=self.host.ledger_bridge.kernel.dispatch('ledger.explore',args,operator())
         a=self.popup.addAction('Explore the workshop…',lambda:show(self.host,ident))
-        a.setToolTip('Opens: the Explore workspace, a Graphite workspace that searches every workspace, method and registered operation. '+NO_EXECUTION)
+        a.setToolTip('Opens: the Explore workspace, a Kas workspace that searches every workspace, method and registered operation. '+NO_EXECUTION)
         if not response['ok']:
             a=self.popup.addAction('Capability view unavailable');a.setEnabled(False);a.setToolTip(str(response['error']['message']))
         else:

@@ -200,12 +200,12 @@ class Reach:
         if place == self.home:return '', 'your home folder itself'
         if place == self.files:return '', "the workspace's Files folder itself"
         if where == hr.FILES:
-            if any(hr.within(place, k) for k in self.kept):return '', 'kept by Graphite (DELETE and the versions)'
+            if any(hr.within(place, k) for k in self.kept):return '', 'kept by Kas (DELETE and the versions)'
             if place in self.stay:return '', 'the Slate folder and Egress stay where they are'
         text = os.path.normpath(str(place))
         if text == self.trash or text.startswith(self.trash + '/') or self.trash.startswith(text.rstrip('/') + '/'):
             return '', "DELETE's own folder, or it holds it"
-        if folder and any(hr.within(mine, place) for mine in [self.files] + self.own):return '', "it holds Graphite's workspace"
+        if folder and any(hr.within(mine, place) for mine in [self.files] + self.own):return '', "it holds Kas's workspace"
         return where, ''
 
 
@@ -405,7 +405,7 @@ def _put_in_delete(kernel, path, principal, rows, pairs, reach=None):
         if not where:raise ValueError('FILES_RESERVED: %s; it stays' % why)
         home = where == hr.HOME
     else:
-        if home_trash.holds_graphite(kernel, path):raise ValueError("FILES_RESERVED: it is your home or holds Graphite's workspace; it stays")
+        if home_trash.holds_graphite(kernel, path):raise ValueError("FILES_RESERVED: it is your home or holds Kas's workspace; it stays")
         home = home_trash.in_home(kernel, path)
     if home:
         _may(kernel, path, principal)

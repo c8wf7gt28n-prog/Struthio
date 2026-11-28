@@ -20,7 +20,7 @@ from .settings_qt import SettingsTab
 class CommandsTab(QWidget):
     def __init__(self,bridge):
         super().__init__();self.bridge=bridge
-        box=QVBoxLayout(self);box.addWidget(QLabel('GRAPHITE COMMANDS · shared Kernel / CLI / Graphite'))
+        box=QVBoxLayout(self);box.addWidget(QLabel('KAS COMMANDS · shared Kernel / CLI / Kas'))
         self.search=QLineEdit();writing_prompt(self.search, 'Filter commands, workspaces or actions');box.addWidget(self.search)
         self.table=QTreeWidget();self.table.setRootIsDecorated(False);self.table.setHeaderLabels(['Command / action','Connection','Scope'])
         self.table.header().setSectionResizeMode(0,QHeaderView.Stretch);self.table.setColumnWidth(1,230);box.addWidget(self.table,1)
@@ -30,7 +30,7 @@ class CommandsTab(QWidget):
         self.search.textChanged.connect(self.refresh);self.table.itemSelectionChanged.connect(self.selected)
         self.bridge.command_finished.connect(self.finished);self.refresh()
 
-    def title(self):return 'Graphite commands'
+    def title(self):return 'Kas commands'
 
     def refresh(self,*_):
         self.table.clear()
@@ -62,7 +62,7 @@ class ActivityTail(QWidget):
         self.trail=QPushButton('Organizer');self.trail.clicked.connect(bridge.show_organizer);row.addWidget(self.trail)
         self.expand=QPushButton('Expand');self.expand.setCheckable(True);row.addWidget(self.expand);box.addLayout(row)
         self.search=QLineEdit();writing_prompt(self.search, 'Search retained activity');self.search.hide();box.addWidget(self.search)
-        self.list=QListWidget();self.list.setObjectName('LedgerActivityTail');self.list.setAccessibleName('Live Graphite activity tail')
+        self.list=QListWidget();self.list.setObjectName('LedgerActivityTail');self.list.setAccessibleName('Live Kas activity tail')
         self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.list.setStyleSheet('QListWidget#LedgerActivityTail {background:#121820;border:1px solid #34404b;} QListWidget#LedgerActivityTail::item {padding:1px 5px;}')
         box.addWidget(self.list);self.resize_lines()
@@ -121,7 +121,7 @@ class ActivityTail(QWidget):
         if self.follow.isChecked():self.list.scrollToBottom()
         else:bar.setValue(old)
         self.resize_lines()
-        self.heading.setText('Timeline · Graphite '+{'CURRENT':'is up to date','BEHIND':'is catching up','INCOMPLETE':'has a gap in the record'}.get(awareness['state'],awareness['state'].lower())+
+        self.heading.setText('Timeline · Kas '+{'CURRENT':'is up to date','BEHIND':'is catching up','INCOMPLETE':'has a gap in the record'}.get(awareness['state'],awareness['state'].lower())+
                              ('' if awareness['cursor']==awareness['head'] else ' · %d of %d read'%(awareness['cursor'],awareness['head'])))
         self.heading.setToolTip(awareness['journal'].get('reason',awareness['journal']['coverage']))
 
@@ -473,7 +473,7 @@ class LedgerBridge(QObject):
         read_beside.off_thread(self.kernel,write,'control-publish',self._said_back)
 
     def _said_back(self,result,error):      # 1.0 F2b: a write made on a worker says its failure as the tick did
-        if error is not None and not self.host._closing:self.host.statusBar().showMessage('Graphite control: '+activity.redact(error),5000)
+        if error is not None and not self.host._closing:self.host.statusBar().showMessage('Kas control: '+activity.redact(error),5000)
 
     def tick(self):
         if self.host._closing:return
@@ -504,7 +504,7 @@ class LedgerBridge(QObject):
             for index in range(self.host.tabs.count()):
                 tab=self.host.tabs.widget(index)
                 if type(tab).__name__=='AwarenessTab':tab.refresh()
-        except (ValueError,OSError,RuntimeError) as exc:self.host.statusBar().showMessage('Graphite control: '+activity.redact(exc),5000)
+        except (ValueError,OSError,RuntimeError) as exc:self.host.statusBar().showMessage('Kas control: '+activity.redact(exc),5000)
 
     def handle_text(self,text):
         try:actions=stacy_control.parse(text,self.kernel)
@@ -514,7 +514,7 @@ class LedgerBridge(QObject):
 
     def run(self,actions,provider=False,private_local=False,when_done=None):
         if self.busy:
-            self.command_finished.emit('A Graphite command is already being processed.');return
+            self.command_finished.emit('A Kas command is already being processed.');return
         if actions==[stacy_control.call('__master_stop__')]:self.host.master_stop_all();return
         scopes={'read','execute','approve'} if private_local else {'read','execute'}
         principal=Principal('desktop-owner',frozenset(scopes)) if provider else operator()

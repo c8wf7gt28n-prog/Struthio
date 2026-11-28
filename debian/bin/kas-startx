@@ -1,0 +1,5 @@
+#!/bin/sh
+# 1.1 PK1: start the Kas session from the text console (tty1), exactly as START_MINIMAL_DEBIAN.sh did.
+# 1.1 R1: the graphite-* names stay one release as symlinks to this file (tools/debian_pkg.py); called by one, say the new name.
+case "${0##*/}" in graphite*) echo "${0##*/} is now kas-startx; the old name goes in the next release." >&2 ;; esac
+exec /bin/bash /usr/lib/graphite/START_MINIMAL_DEBIAN.sh "$@"

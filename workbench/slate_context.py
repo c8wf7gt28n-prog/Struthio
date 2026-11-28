@@ -66,7 +66,7 @@ def load(db, owner, kind, ident):
     from .engineering_kernel import identifier
     identifier(ident)
     row = db.execute('SELECT payload,digest FROM slate_records WHERE id=? AND owner=? AND kind=?', (ident, owner, kind)).fetchone()
-    if not row: raise ValueError('Graphite record unavailable to this caller')
+    if not row: raise ValueError('Kas record unavailable to this caller')
     value = json.loads(row[0])
     if desk.digest(value) != row[1]: raise ValueError('SLATE_RECORD_DAMAGED')
     return value
@@ -83,7 +83,7 @@ def rank(passages, question):
     if not terms: return [], 'QUERY_HAS_NO_SEARCH_TERMS'
     with closing(sqlite3.connect(':memory:')) as db, db:
         try: db.execute('CREATE VIRTUAL TABLE excerpts USING fts5(title,text,tokenize="unicode61")')
-        except sqlite3.OperationalError as exc: raise ValueError('SQLite FTS5 is required for Graphite ranked retrieval') from exc
+        except sqlite3.OperationalError as exc: raise ValueError('SQLite FTS5 is required for Kas ranked retrieval') from exc
         db.executemany('INSERT INTO excerpts(rowid,title,text) VALUES(?,?,?)',
                        [(i + 1, p['title'], p['text']) for i, p in enumerate(passages)])
         query = ' OR '.join('"' + term.replace('"', '""') + '"' for term in terms)

@@ -34,8 +34,8 @@ ACTIVE = ('READY', 'RUNNING')
 STATE_WORDS = {'READY': 'ready', 'RUNNING': 'running', 'PAUSED': 'paused', 'WAITING': 'needs you', 'DONE': 'done', 'STOPPED': 'stopped', 'FAILED': 'could not finish'}
 WORKING_ANSWER = 'Working on it: %s. Watch the Work lines above; Stop is there.'
 CONTINUE_KEY = 'agent.continue_when_closed'       # AGENT-02: the owner's setting (settings_registry)
-RELEASED_WORDS = 'Graphite closed · the Graphite service continues'
-IN_SERVICE = 'in the Graphite service · '          # the doing-now prefix while the service holds the lease
+RELEASED_WORDS = 'Kas closed · the Kas service continues'
+IN_SERVICE = 'in the Kas service · '          # the doing-now prefix while the service holds the lease
 ADOPT_MS = 1500                                   # a reopened window takes running work back this long after it opens
 ADOPT_AGAIN = 3                                   # times adopt looks again when a desktop lease it skipped runs out
 LEASE_MS = 20000                                  # agent_loop.LEASE_SECONDS, when a row does not say when its lease ends
@@ -147,7 +147,7 @@ class AgentDriver(QObject):
             r = release_one(self.host, ident)
             if r.get('ok'): released.append(ident); self.states[ident] = 'RUNNING'; continue
             self.last_error[ident] = (r.get('error') or {}).get('message', 'not handed over')
-            p = pause_one(self.host, ident, 'Graphite closed')
+            p = pause_one(self.host, ident, 'Kas closed')
             if p.get('ok'): self.states[ident] = 'PAUSED'
         self.handed = {'reason': str(reason), 'ids': released}
         self.active = []; self.timer.stop(); self.refresh(); return released
@@ -290,7 +290,7 @@ def closed_words(row):
     steps = int(row.get('service_steps') or 0)
     if steps <= 0 or time.time() - float(row.get('updated') or 0) > CLOSED_WINDOW: return None
     request = row.get('request') or row.get('working_on') or 'an assignment'; state = row.get('state') or ''
-    words = 'While Graphite was closed, it took %d step%s on “%s” · now %s' % (steps, '' if steps == 1 else 's', str(request)[:80],
+    words = 'While Kas was closed, it took %d step%s on “%s” · now %s' % (steps, '' if steps == 1 else 's', str(request)[:80],
                                                                                STATE_WORDS.get(state, state.lower()))
     reason = (row.get('paused_reason') or row.get('reason') or '') if state == 'PAUSED' else ''
     return words + (' (' + str(reason)[:120] + ')' if reason else '')
@@ -310,9 +310,9 @@ def today_rows(host):
             continue
         if row.get('state') == 'PAUSED':
             reason = row.get('paused_reason') or row.get('reason') or ''
-            out.append(('Graphite paused: ' + str(request)[:80] + (' (' + str(reason) + ')' if reason else ''), 'resume', lambda *_, i=row['id']: resume_from_today(host, i)))
+            out.append(('Kas paused: ' + str(request)[:80] + (' (' + str(reason) + ')' if reason else ''), 'resume', lambda *_, i=row['id']: resume_from_today(host, i)))
         elif row.get('state') == 'WAITING':
-            out.append(('Graphite needs you: ' + str(request)[:80], 'assignment', lambda *_, i=row['id']: inspect_assignment(host, i)))
+            out.append(('Kas needs you: ' + str(request)[:80], 'assignment', lambda *_, i=row['id']: inspect_assignment(host, i)))
     return out
 
 

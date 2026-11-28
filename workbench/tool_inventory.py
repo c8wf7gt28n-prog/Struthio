@@ -33,7 +33,7 @@ def inspect(which=None,root=None):
             adapters.append({'id':engine+'.hdl','state':discover_hdl(engine,lookup)['state'],'qualification':None,
                              'notice':'Fixed native HDL profiles, retained diagnostics/traces and per-job capability cases. Digital models only; physical timing unqualified.'})
         adapters.append({'id':'surfer.vcd','state':discover_surfer(lookup)['state'],'qualification':None,
-                         'notice':'Verified native Surfer saved-state/capture of a bound digital trace; separate Graphite cursor/zoom inspector. Optional Linux capture runtime.'})
+                         'notice':'Verified native Surfer saved-state/capture of a bound digital trace; separate Kas cursor/zoom inspector. Optional Linux capture runtime.'})
         from .pnr_tools import discover as discover_pnr
         implementation=discover_pnr(lookup)
         for family in ('nextpnr','trellis'):

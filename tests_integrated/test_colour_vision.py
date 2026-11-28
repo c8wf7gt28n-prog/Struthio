@@ -86,13 +86,13 @@ class EveryLook(unittest.TestCase):
         close = lambda look: {row['pair']: row for row in colour_vision.table(look) if row['least'] < colour_vision.THRESHOLD}
         g, k = close('graphite'), close('kasandra')
         self.assertEqual(len(g), 32);self.assertEqual(len(k), 15)
-        self.assertEqual(sum(row['seen']['full'] == 0.0 for row in g.values()), 16, 'Graphite: fifteen pairs of its one amber (the cue too), and its quiet ink')
+        self.assertEqual(sum(row['seen']['full'] == 0.0 for row in g.values()), 16, 'Kas: fifteen pairs of its one amber (the cue too), and its quiet ink')
         hers = boss_theme.PALETTES['kasandra'];self.assertGreater(colour_vision.difference(hers['READY'], hers['TEXT']), 20)
         ready = k[('ready', 'words')];self.assertLess(ready['seen']['weak red 1.0'], 2.0);self.assertEqual(ready['sight'], 'weak red 1.0')
         self.assertEqual(k[('ready', 'cue')]['least'], 0.0, 'her cue is her old cyan, the colour of what is ready')
         self.assertEqual(k[('ready', 'recheck')]['colours'], (hers['VIOLET_PALE'], hers['RECHECK']), 'the pointer\'s halo is the nearer of her two')
         self.assertNotIn(('chosen', 'ready'), k, 'her yellow and her cyan stay apart in every sight');self.assertIn(('chosen', 'ready'), g)
-        self.assertNotIn(('chosen', 'waits'), k, 'and so do her yellow and her pink, which Graphite gives one amber');self.assertEqual(g[('chosen', 'waits')]['least'], 0.0)
+        self.assertNotIn(('chosen', 'waits'), k, 'and so do her yellow and her pink, which Kas gives one amber');self.assertEqual(g[('chosen', 'waits')]['least'], 0.0)
 
     def test_a_palette_that_moves_two_meanings_together_or_a_meaning_with_no_sign_fails(self):
         hers = dict(boss_theme.PALETTES['kasandra']);self.assertEqual(colour_vision.unreviewed('kasandra', hers), [])

@@ -193,7 +193,7 @@ class PureRules(unittest.TestCase):
         for text in ('rm -rf x\r','a\nb','a\tb','\x01','\x7f','a b','‮evil','zero​width'):
             with self.assertRaises(Refusal) as caught:check('type.put',{'text':text})
             self.assertEqual((caught.exception.code,caught.exception.words),('BAD_ARGUMENTS',desk_acts.REFUSALS['UNSEEN']%'text'),repr(text))
-        for text in ('“07”','Ω ≥ 3 · 電流',"Graphite's Agenda",'a b'):self.assertEqual(check('type.put',{'text':text})['text'],text)
+        for text in ('“07”','Ω ≥ 3 · 電流',"Kas's Agenda",'a b'):self.assertEqual(check('type.put',{'text':text})['text'],text)
         with self.assertRaises(Refusal) as caught:check('sheet.whatif',{'cell':'B3','value':'please'})
         self.assertEqual(caught.exception.words,'value is a number.')
         self.assertEqual(desk_acts.ACTS['type.send'].schema['properties']['by']['enum'],['arrow','keys'],'no key name as an argument value')
@@ -520,7 +520,7 @@ class LiveActs(unittest.TestCase):
         with patch.object(QProcess,'start',side_effect=lambda *a,**k:started.append(a[1:])),patch.object(type(face),'ask',lambda f,text,about=None:asked.append(text)):
             for who in ('terminal','her','search'):
                 act('type.to',{'who':who})
-                for text in ('“07” Ω ≥ 3 · 電流',"Graphite's Agenda"):
+                for text in ('“07” Ω ≥ 3 · 電流',"Kas's Agenda"):
                     out=act('type.put',{'text':text,'by':'keys'})
                     self.assertTrue(out['ok'],(who,out['words']));self.assertEqual((box.text(),out['result']['text']),(text,text))
                     self.assertEqual(out['presses'],len(text))
@@ -630,7 +630,7 @@ class LiveActs(unittest.TestCase):
                 act('menu.close')
             act('go.files',{'folder':'','view':'list'});act('menu.open',{'on':'here'})
             out=act('menu.choose',{'path':'more/menu:edit'});self.assertEqual(out['error']['code'],'NOT_ALLOWED_ROW',out['words']);act('menu.close')
-            self.assertEqual(chain_menu.menu_path().exists(),menu_file,'the Graphite menu file is not written')
+            self.assertEqual(chain_menu.menu_path().exists(),menu_file,'the Kas menu file is not written')
             self.assertIn('menu test.csv',act('read.desk',{'part':'files'})['result']['names'])
             act('menu.open',{'on':'file','name':'menu test.csv'})
             out=act('menu.choose',{'path':'more/copy:path'});self.assertTrue(out['ok'],out['words']);act('menu.close')

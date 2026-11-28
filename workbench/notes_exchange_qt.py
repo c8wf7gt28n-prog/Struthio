@@ -22,7 +22,7 @@ GAP={'ACTIVE_MARKUP_OR_URI_RETAINED_AS_TEXT':'Active-looking markup stays litera
  'SAVED_NOTE_PRESERVED':'Saved note retained',
  'EDITED_WORKING_TEXT_EXPORTED_AS_UTF8_LF':'Edited notes use UTF-8 with LF line endings.',
  'UPSTREAM_DELETION_DID_NOT_DELETE_SAVED_NOTE':'Notes missing upstream were retained.',
- 'LEDGER_PATH_ALIASES_REQUIRE_SIDECAR_OTHER_APPS_MAY_NOT_RESOLVE':'Rename aliases are in the Graphite sidecar; other apps may need updated links.',
+ 'LEDGER_PATH_ALIASES_REQUIRE_SIDECAR_OTHER_APPS_MAY_NOT_RESOLVE':'Rename aliases are in the Kas sidecar; other apps may need updated links.',
  'UNRESOLVED_INCOMING_EXCLUDED_CURRENT_NOTE_EXPORTED':'Held incoming versions are excluded; current saved notes are exported.',
  'CATALOG_TITLE_RETAINED_IN_SIDECAR_BODY_NOT_REWRITTEN':'Catalog titles are in the sidecar; note text is unchanged.',
  'REMOVED_ATTACHMENTS_RETAINED_FOR_SAVED_NOTES':'Missing upstream attachments were retained for saved notes.'}
@@ -70,7 +70,7 @@ class ExchangeDialog(QDialog):
         self.folder.textChanged.connect(self.invalidate);self.profile.currentIndexChanged.connect(self.invalidate);self.collections.currentIndexChanged.connect(self.invalidate);self.saved.currentIndexChanged.connect(self.reload_saved)
         self.refresh_collections()
         if host.concern.store is None or host.concern.store.path.resolve()!=notes_exchange.path().resolve():
-            self.prepare.setEnabled(False);self.status.setText('This window and the background service use different concern profiles. Reopen Graphite with one profile before exchanging notes.')
+            self.prepare.setEnabled(False);self.status.setText('This window and the background service use different concern profiles. Reopen Kas with one profile before exchanging notes.')
         self.buttons()
     def call(self,op,args=None):
         reply=self.kernel.dispatch('notes.exchange.'+op,args or {},self.principal)
@@ -117,7 +117,7 @@ class ExchangeDialog(QDialog):
         if not self.plan or item is None:return
         value=self.call('plan_note',{'plan':self.plan['id'],'expected_digest':self.plan['digest'],'key':item.data(0,Qt.UserRole)})
         if value:
-            self.preview.setPlainText((value['incoming_body'] if value['incoming_body'] is not None else 'Upstream deletion: the saved Graphite note will remain.')+'\n\nMetadata and gaps\n'+json.dumps(value['metadata'],indent=2,ensure_ascii=False)+'\n'+json.dumps(value['entry'],indent=2,ensure_ascii=False))
+            self.preview.setPlainText((value['incoming_body'] if value['incoming_body'] is not None else 'Upstream deletion: the saved Kas note will remain.')+'\n\nMetadata and gaps\n'+json.dumps(value['metadata'],indent=2,ensure_ascii=False)+'\n'+json.dumps(value['entry'],indent=2,ensure_ascii=False))
     def commit_plan(self):
         if not self.plan or not self.ack.isChecked():return
         value=self.call('commit',{'plan':self.plan['id'],'expected_digest':self.plan['digest']})

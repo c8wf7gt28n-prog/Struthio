@@ -51,16 +51,16 @@ def wanted(environ=None, platform=None):
     """(stand, why not): whether the dock should stand here."""
     environ = os.environ if environ is None else environ
     said = str(environ.get(ENV, '')).strip().lower()
-    if said in ('0', 'off', 'no'):return False, 'The app strip stays in Graphite\'s window: GRAPHITE_DOCK is off.'
+    if said in ('0', 'off', 'no'):return False, 'The app strip stays in the computer\'s window: GRAPHITE_DOCK is off.'
     if said not in ('1', 'on', 'yes') and environ.get('ARC_LEDGER_XSESSION') != '1':
-        return False, ('The app strip stays in Graphite\'s window: Graphite was started inside another desktop, whose own '
+        return False, ('The app strip stays in the computer\'s window: Kas was started inside another desktop, whose own '
                        'panel keeps the apps reachable.')
     platform = platform if platform is not None else (QGuiApplication.platformName() if QGuiApplication.instance() else '')
     if platform != 'xcb':
-        return False, ('The app strip stays in Graphite\'s window: Graphite\'s window is not on an X display here (it is drawn %s).'
+        return False, ('The app strip stays in the computer\'s window: the computer\'s window is not on an X display here (it is drawn %s).'
                        % ('offscreen' if platform == 'offscreen' else 'by ' + (platform or 'no window system')))
     reason = wx.why_not(environ)
-    if reason:return False, 'The app strip stays in Graphite\'s window: ' + reason + '.'
+    if reason:return False, 'The app strip stays in the computer\'s window: ' + reason + '.'
     return True, ''
 
 
@@ -160,9 +160,9 @@ class GraphiteEntry(QAbstractButton):
 
     def __init__(self, dock):
         super().__init__(dock);self.dock = dock;self.active = False
-        self.setText('Graphite');self.setCursor(Qt.PointingHandCursor);self.setFocusPolicy(Qt.NoFocus);self.setAttribute(Qt.WA_Hover)
-        self.setAccessibleName('Graphite: bring Graphite\'s window forward')
-        self.setToolTip('Graphite\nPress to bring Graphite\'s window forward.')
+        self.setText('Computer');self.setCursor(Qt.PointingHandCursor);self.setFocusPolicy(Qt.NoFocus);self.setAttribute(Qt.WA_Hover)
+        self.setAccessibleName('Computer: bring the computer\'s window forward')      # 1.1 R1
+        self.setToolTip('Computer\nPress to bring the computer\'s window forward.')
 
     def her_state(self):
         """1.0 D1: what her state says when it needs you (the one table: ◆ NEEDS YOUR WORD, ‖ held, ▮▮ stopped by you), else
@@ -176,7 +176,7 @@ class GraphiteEntry(QAbstractButton):
         fm = QFontMetrics(self.font())
         key = self.her_state()      # 1.0 D1
         from . import state_words as sw
-        return h + fm.horizontalAdvance('▸ Graphite') + 24 + ((h // 2 + 6 + fm.horizontalAdvance(sw.word(key)) + 8) if key else 0)
+        return h + fm.horizontalAdvance('▸ Computer') + 24 + ((h // 2 + 6 + fm.horizontalAdvance(sw.word(key)) + 8) if key else 0)
 
     def sizeHint(self):
         return QSize(self.natural(30), 30)
@@ -193,15 +193,15 @@ class GraphiteEntry(QAbstractButton):
         px = max(14, h - 12)
         mark_icon(px).paint(p, QRect(x, (h - px) // 2, px, px));x += px + 6
         p.setPen(QColor(bt.TEXT if self.active or self.underMouse() else bt.QUIET))
-        p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, 'Graphite')
+        p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, 'Computer')
         key = self.her_state()      # 1.0 D1: her state when it needs you, its shape and its word (state_words)
         if key:
             from PySide6.QtCore import QRectF
             from . import state_words as sw
-            x += fm.horizontalAdvance('Graphite') + 10;side = max(10, h // 2 - 2)
+            x += fm.horizontalAdvance('Computer') + 10;side = max(10, h // 2 - 2)
             sw.paint(p, QRectF(x, (h - side) / 2.0, side, side), key, sw.colour_of(key));x += side + 5
             p.setPen(QColor(sw.colour_of(key)));p.drawText(QRect(x, 0, max(0, w - x), h - 2), Qt.AlignLeft | Qt.AlignVCenter, sw.word(key))
-            self.setToolTip('Graphite: %s\nPress to bring Graphite\'s window forward.' % sw.said(key))
+            self.setToolTip('Computer: %s\nPress to bring the computer\'s window forward.' % sw.said(key))
         if self.active:p.fillRect(0, h - 2, w, 2, QColor(bt.FOCUS))
         p.fillRect(w - 1, round(h * 0.22), 1, round(h * 0.56), QColor(bt.LINE_MID))
         p.end()
@@ -213,7 +213,7 @@ class Dock(QWidget):
     def __init__(self, host):
         super().__init__(None, Qt.Window | Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus | Qt.WindowStaysOnTopHint)
         self.host = host;self.marks = {};self.last = None;self.standing = False;self.why = ''
-        self.setObjectName('GraphiteDock');self.setWindowTitle('Graphite · app windows');self.setAccessibleName('Open windows and Graphite')
+        self.setObjectName('GraphiteDock');self.setWindowTitle('Kas · app windows');self.setAccessibleName('Open windows and Computer')
         self.setAttribute(Qt.WA_X11NetWmWindowTypeDock, True);self.setAttribute(Qt.WA_ShowWithoutActivating, True)
         self.setAttribute(Qt.WA_X11DoNotAcceptFocus, True);self.setFocusPolicy(Qt.NoFocus)
         self.entry = GraphiteEntry(self);self.entry.clicked.connect(self.bring_graphite)
@@ -352,10 +352,10 @@ def install(host):
                 strip = getattr(host, 'window_strip', None)
                 if strip is not None:strip.relayout()
             else:
-                state['why'] = 'The app strip stays in Graphite\'s window: the dock could not be made (%s).' % (dock.why or 'no reason given')
+                state['why'] = 'The app strip stays in the computer\'s window: the dock could not be made (%s).' % (dock.why or 'no reason given')
                 dock.hide();dock.deleteLater()
         except Exception as exc:  # noqa: BLE001 - a dock that cannot stand leaves the strip where S3 put it
-            state['why'] = 'The app strip stays in Graphite\'s window: %s.' % (str(exc)[:160] or type(exc).__name__)
+            state['why'] = 'The app strip stays in the computer\'s window: %s.' % (str(exc)[:160] or type(exc).__name__)
             host.system_dock = None
 
     def gone(*_):

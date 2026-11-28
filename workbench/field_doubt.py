@@ -204,7 +204,7 @@ def _sheet(kernel, principal, obj, field):
     cells = ((got.get('document') or {}).get('sheets') or [{}])[0].get('cells') or {}
     out += _counted_twice(ident, cells)
     if str(got.get('formula_values') or '') and any((held or {}).get('formula') for held in cells.values()) and any(d.about == 'counted twice' for d in out):
-        out.append(Doubt('note', 'counted twice', 'the numbers of the formula cells are the ones the file kept; Graphite has not worked the formulas again', stands))
+        out.append(Doubt('note', 'counted twice', 'the numbers of the formula cells are the ones the file kept; Kas has not worked the formulas again', stands))
     if not rows:
         return out + [Doubt('note', 'cells as reviewed', 'this sheet was not reviewed from a page, so there is nothing to compare its cells with')]
     out += _said_otherwise(kernel, principal, obj, field, rows, cells)

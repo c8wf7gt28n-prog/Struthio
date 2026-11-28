@@ -247,7 +247,7 @@ class Rules(unittest.TestCase):
         from workbench.glyph_set import GLYPHS,KIND
         self.assertTrue({'trash','pause','filter','sort','count','group','watch','trace'}<=set(GLYPHS))
         for key in cm.glyph_keys():self.assertTrue(key in GLYPHS or key in KIND,key)
-        self.assertFalse(any(hasattr(cm,n) for n in ('EXTRA','_extra_paths','paint_icon')),'one set of glyphs: Graphite\'s own')
+        self.assertFalse(any(hasattr(cm,n) for n in ('EXTRA','_extra_paths','paint_icon')),'one set of glyphs: Kas\'s own')
 
     def test_four_usual_then_more_and_nothing_grey_at_rest(self):
         for kind,usual in cm.REST.items():self.assertGreaterEqual(len(usual),1,kind)
@@ -335,7 +335,7 @@ class Window(unittest.TestCase):
         keys=menu.keys()
         for key in ('mark:bold','mark:italic','mark:underline','style','notes','inspect','ask','search','edit:undo','edit:copy','edit:all','doc:export'):self.assertIn(key,keys)
         self.assertEqual(menu.first_keys(),['mark:bold','mark:italic','notes','ask','then','more'],'four usual rows, Then, More')
-        self.assertEqual(menu.words()[:4],['Bold','Italic','Move to notes','Ask Kasandra about this'])
+        self.assertEqual(menu.words()[:4],['Bold','Italic','Move to notes','Ask Kas about this'])
         self.assertFalse(menu.entry('mark:clear').enabled,'nothing to clear on plain words')
         self.assertIsNone(menu.row('mark:clear'),'a row that cannot act is not at rest')
         self.assertTrue(menu.isVisible());self.assertEqual(menu.accessibleName(),'Right-click menu: “pencil”')
@@ -658,7 +658,7 @@ class Window(unittest.TestCase):
             got=menu.entry('extract').submenu();self.assertEqual([(e.key,e.enabled) for e in got],[('extract:refused',False)])
             self.assertIn('seed/source binding is not current',got[0].reason)
             cm.perform(self.w,menu.target,menu.entry('run'));settle(60);last=self.w._context_last
-            self.assertFalse(last['ok']);self.assertIn('Not run: Graphite seed/source binding is not current',last['words'])
+            self.assertFalse(last['ok']);self.assertIn('Not run: Kas seed/source binding is not current',last['words'])
             o=cm.perform(self.w,t,{e.key:e for e in cm.job_entries(self.w,t)}['job:output']);self.assertFalse(o['ok'],o)
 
     def test_a_real_connection_read_by_network_observe(self):
@@ -808,7 +808,7 @@ class Window(unittest.TestCase):
 
     def test_no_row_prints_a_key_or_unavailable_and_every_row_wears_a_drawn_glyph(self):
         from workbench import tool_faces
-        with patch.object(cm.programs_qt,'paint_icon',side_effect=AssertionError('not Graphite glyphs')):
+        with patch.object(cm.programs_qt,'paint_icon',side_effect=AssertionError('not Kas glyphs')):
             for kind,menu in self.menus():
                 for screen in menu.screens():
                     screen.grab()

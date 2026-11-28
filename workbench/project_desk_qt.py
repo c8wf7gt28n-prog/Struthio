@@ -100,10 +100,10 @@ class ProjectDeskTab(QWidget):
 
     def build_ideas(self):
         tab = QWidget(); box = QVBoxLayout(tab)
-        text = QLabel('Original words stay with the idea. A suggestion can be labelled as Graphite’s.'); text.setWordWrap(True); box.addWidget(text)
+        text = QLabel('Original words stay with the idea. A suggestion can be labelled as Kas’s.'); text.setWordWrap(True); box.addWidget(text)
         self.idea_text = editor('An idea in your own words', 120); box.addWidget(self.idea_text)
         row = QHBoxLayout(); self.idea_origin = QComboBox(); self.idea_origin.setAccessibleName('Whose idea')  # V-21: a named choice box
-        for label, value in [('My idea', 'HUMAN'), ('Graphite suggestion', 'SLATE'), ('Imported idea', 'IMPORTED')]: self.idea_origin.addItem(label, value)
+        for label, value in [('My idea', 'HUMAN'), ('Kas suggestion', 'SLATE'), ('Imported idea', 'IMPORTED')]: self.idea_origin.addItem(label, value)
         row.addWidget(self.idea_origin); capture = button('Keep idea', 'primary'); capture.clicked.connect(self.capture_idea); row.addWidget(capture); box.addLayout(row)
         self.ideas = QListWidget(); self.ideas.setAccessibleName('Recent ideas'); box.addWidget(self.ideas, 1)
         promote = button('Give selected idea a new project', 'quiet'); promote.clicked.connect(self.promote_idea); box.addWidget(promote)
@@ -113,7 +113,7 @@ class ProjectDeskTab(QWidget):
         self.ideas.clear(); records = self.ask('ideas.list')
         for idea in (records or {}).get('records', []):
             if idea.get('project') and (not self.project or idea['project'] != self.project['id']): continue
-            item = QListWidgetItem(idea['text'][:220] + ('\nGraphite suggestion' if idea['origin'] == 'SLATE' else ''))
+            item = QListWidgetItem(idea['text'][:220] + ('\nKas suggestion' if idea['origin'] == 'SLATE' else ''))
             item.setData(Qt.UserRole, idea); self.ideas.addItem(item)
 
     def capture_idea(self):

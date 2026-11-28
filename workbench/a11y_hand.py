@@ -401,7 +401,7 @@ class Touch:
             self.reason = 'libX11 is not installed here';return False
         dpy = x.XOpenDisplay(display.encode())
         if not dpy:
-            self.reason = 'the X display %s did not let Graphite in' % display;return False
+            self.reason = 'the X display %s did not let Kas in' % display;return False
         opcode, event, error = ctypes.c_int(), ctypes.c_int(), ctypes.c_int()
         xi = _lib('Xi', 'libXi.so.6')
         if xi is not None and x.XQueryExtension(dpy, b'XInputExtension', ctypes.byref(opcode), ctypes.byref(event), ctypes.byref(error)):
@@ -522,7 +522,7 @@ class Keys:
         self.x = _x11();self.t = _lib('Xtst', 'libXtst.so.6')
         if self.x is None or self.t is None:self.reason = 'libXtst (the X server\'s test extension) is not installed here';return False
         self.dpy = self.x.XOpenDisplay(display.encode())
-        if not self.dpy:self.reason = 'the X display did not let Graphite in';return False
+        if not self.dpy:self.reason = 'the X display did not let Kas in';return False
         t = self.t
         t.XTestQueryExtension.argtypes = [ctypes.c_void_p] + [ctypes.POINTER(ctypes.c_int)] * 4
         t.XTestFakeMotionEvent.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_ulong]
@@ -857,7 +857,7 @@ def _record_revision(kernel, rel, after, before, program):
     from .engineering_kernel import operator
     try:
         return depths.record(kernel, {'path': rel, 'expected_sha256': after, 'previous_sha256': before or '', 'how': 'full program',
-                                      'program': ('%s (Kasandra\'s hand)' % program)[:120]}, operator())
+                                      'program': ('%s (Kas\'s hand)' % program)[:120]}, operator())
     except Exception as exc:  # noqa: BLE001 - the save is on disk either way: it is said, not hidden
         return {'recorded': False, 'revision': None, 'why': str(exc)[:200]}
 
@@ -1598,7 +1598,7 @@ def _join():
                        effects={'read': 'nothing: a read', 'change': 'what the program does with the press: shown in its window, verified on disk'}[undo],
                        undone={'program.open': 'close the window: it is your program from then on', 'program.read': 'nothing to undo',
                                'program.type': "the program's own Undo, until it is saved", 'program.save': 'the version kept before; Revert is yours to press',
-                               'program.answer': 'the program decides; Graphite cannot undo it'}[key],
+                               'program.answer': 'the program decides; Kas cannot undo it'}[key],
                        grant={'read': '', 'change': 'work in a program on the file'}[undo] if key != 'program.answer' else 'your press, by its own name',
                        target='path', verify=_check.how, writes_files=key in ('program.save', 'program.answer'), slice='K9',
                        filled={'available': hand_available, 'at': _now_ms()})

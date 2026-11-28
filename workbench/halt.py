@@ -28,18 +28,18 @@ from __future__ import annotations
 
 WORDS = {      # 1.1 KV: in her voice; plain about what stopped, sure only of what the records say
     'stopped': 'HALT. I stopped %s. All my work holds until you press RESUME. Each journal says what was done and what was '
-               'only prepared. Your desktop, Apps and Graphite’s jobs run on.',
+               'only prepared. Your desktop, Apps and Kas’s jobs run on.',
     'nothing': 'HALT. Nothing of mine was running. All my work holds until you press RESUME. Your desktop, Apps and '
-               'Graphite’s jobs run on.',
+               'Kas’s jobs run on.',
     'held': ' Also held: %s.',
     'hand': ' My hand stopped before its next press.',
     'turns': ' My model was cut off mid-answer.',
     'nothing_turns': 'HALT. My model was cut off mid-answer; nothing else of mine was running. All my work holds until you '
-                     'press RESUME. Your desktop, Apps and Graphite’s jobs run on.',      # 1.0 F3 (X4 S11): never "nothing" and "closed" at once
+                     'press RESUME. Your desktop, Apps and Kas’s jobs run on.',      # 1.0 F3 (X4 S11): never "nothing" and "closed" at once
     'not_held': 'HALT did not hold: %s. If anything of mine still runs, use Stop all on the meters.',
     'released': 'RESUME. The hold is lifted. Nothing I stopped has restarted. Each stopped assignment waits for its own Resume '
                 'in “Waits for you”, which checks every step first.',      # 1.0 D2 (X3): say that her work waits for that press
-    'released_jobs': ' Graphite’s jobs are still held by Stop all. Lift that on its own card.',
+    'released_jobs': ' Kas’s jobs are still held by Stop all. Lift that on its own card.',
     'not_released': 'The hold stays: %s.',
 }
 from . import mind_words      # 1.1 KV: HALT's and RESUME's words join her voice sweep

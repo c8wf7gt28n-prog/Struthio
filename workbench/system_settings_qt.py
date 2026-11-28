@@ -161,17 +161,17 @@ class SystemSettingsRoom(QWidget):
         except Exception as exc:  # noqa: BLE001 - the page says what went wrong; the window goes on
             states = {key: dict(available=False, reason='Could not read: %s' % exc) for key in session_power.GROUP}
         notes = getattr(self.host, 'notifications', None)
-        dock = self.host.dock_status() if callable(getattr(self.host, 'dock_status', None)) else dict(standing=False, why='The app strip stays in Graphite\'s window.')
+        dock = self.host.dock_status() if callable(getattr(self.host, 'dock_status', None)) else dict(standing=False, why='The app strip stays in the computer\'s window.')
         return dict(dedicated=session_power.dedicated(), restarts=os.environ.get('ARC_LEDGER_SESSION_RESTARTS', ''),
                     states={k: dict(available=v['available'], reason=v['reason'], label=v.get('label')) for k, v in states.items()},
                     agent=polkit_agent.agent(), dock=dict(standing=dock.get('standing'), why=dock.get('why', '')),
-                    notes=notes.status() if notes is not None else dict(state='off', why='Graphite\'s notifications are not installed in this window.'),
-                    short='Graphite is this session' if session_power.dedicated() else 'inside another desktop', read_at=time.time())
+                    notes=notes.status() if notes is not None else dict(state='off', why='Kas\'s notifications are not installed in this window.'),
+                    short='Kas is this session' if session_power.dedicated() else 'inside another desktop', read_at=time.time())
 
     def read_notifications(self):
         from .notify_qt import toasts_on
         notes = getattr(self.host, 'notifications', None)
-        status = notes.status() if notes is not None else dict(state='off', why='Graphite\'s notifications are not installed in this window.')
+        status = notes.status() if notes is not None else dict(state='off', why='Kas\'s notifications are not installed in this window.')
         recent = notes.notes.recent(12) if notes is not None else []
         return dict(status=status, toasts=toasts_on(self.host),
                     recent=[dict(id=n['id'], app=n['app'], summary=n['summary'], at=n['at'], closed=n['closed'], urgency=n['urgency'],
@@ -243,10 +243,10 @@ class SystemSettingsRoom(QWidget):
         from . import session_power as power
         data = self.data
         if data['dedicated']:
-            lead = ('Graphite is this session: Fluxbox stays hidden, and if Graphite\'s window ends unexpectedly the session starts '
+            lead = ('Kas is this session: Fluxbox stays hidden, and if the computer\'s window ends unexpectedly the session starts '
                     'it again while your apps stay open%s.' % ((' (started again %s time%s so far)' % (data['restarts'], '' if data['restarts'] == '1' else 's')) if data['restarts'] not in ('', '0') else ''))
         else:
-            lead = 'Graphite runs inside another desktop here: these act on that desktop\'s session.'
+            lead = 'Kas runs inside another desktop here: these act on that desktop\'s session.'
         box.addWidget(words(lead + ' Read at %s.' % clock(data['read_at']), 'quiet'))
         frame, inner = card();inner.addWidget(words('Leave and power', 'card'))
         grid = QGridLayout();grid.setHorizontalSpacing(14);grid.setVerticalSpacing(8)
@@ -261,15 +261,15 @@ class SystemSettingsRoom(QWidget):
         agent = data['agent']
         frame, inner = card()
         inner.addLayout(row(words('Permission prompts', 'card'), word('answered' if agent['running'] else 'none here', 'live' if agent['running'] else 'stop'), stretch_at=0))
-        inner.addWidget(words(agent['words'] + ' When an app or Graphite asks the system for something that needs your permission, '
-                              'the system\'s own prompt asks for your password: you type it there, never into Graphite.'))
+        inner.addWidget(words(agent['words'] + ' When an app or Kas asks the system for something that needs your permission, '
+                              'the system\'s own prompt asks for your password: you type it there, never into Kas.'))
         box.addWidget(frame)
         dock = data['dock']
         frame, inner = card()
         inner.addLayout(row(words('The app strip', 'card'), word('a dock' if dock['standing'] else 'in the window', 'live' if dock['standing'] else 'quiet'), stretch_at=0))
-        inner.addWidget(words('The app windows and Graphite stand in a slim dock across the top of the screen, above every app; '
-                              'apps are placed below it, and its first entry always brings Graphite back.' if dock['standing'] else
-                              (dock['why'] or 'The app strip stays in Graphite\'s window.')))
+        inner.addWidget(words('The app windows and Kas stand in a slim dock across the top of the screen, above every app; '
+                              'apps are placed below it, and its first entry always brings Kas back.' if dock['standing'] else
+                              (dock['why'] or 'The app strip stays in the computer\'s window.')))
         box.addWidget(frame)
         notes = data['notes']
         frame, inner = card()
@@ -280,7 +280,7 @@ class SystemSettingsRoom(QWidget):
         box.addWidget(frame)
         frame, inner = card();inner.addWidget(words('The console route', 'card'))
         inner.addWidget(words('Return to Debian ends this session at the text login; the computer stays on. From the text login, '
-                              'START_MINIMAL_DEBIAN.sh in Graphite\'s folder starts this session again.'))
+                              'START_MINIMAL_DEBIAN.sh in Kas\'s folder starts this session again.'))
         box.addWidget(frame)
 
     def session_act(self, key):
@@ -296,10 +296,10 @@ class SystemSettingsRoom(QWidget):
         data = self.data;status = data['status']
         frame, inner = card()
         serving = status['state'] == 'serving'
-        inner.addLayout(row(words('Graphite as the notification server', 'card'), word('serving' if serving else 'not serving', 'live' if serving else 'quiet'), stretch_at=0))
+        inner.addLayout(row(words('Kas as the notification server', 'card'), word('serving' if serving else 'not serving', 'live' if serving else 'quiet'), stretch_at=0))
         inner.addWidget(words(status['why']))
         if serving:
-            inner.addWidget(words('Apps send their notifications to Graphite on the session bus (org.freedesktop.Notifications). '
+            inner.addWidget(words('Apps send their notifications to Kas on the session bus (org.freedesktop.Notifications). '
                                   'What they say is shown as plain words, never acted on, and kept in Log (Events).', 'quiet'))
         box.addWidget(frame)
         frame, inner = card();inner.addWidget(words('How they are shown', 'card'))

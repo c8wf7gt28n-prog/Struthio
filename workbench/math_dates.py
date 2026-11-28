@@ -103,7 +103,7 @@ def day_of(text):
     except ValueError:typed.refuse('DOMAIN_ERROR', '%s is not a day on the calendar' % text)
 
 
-def _beyond():typed.refuse('DOMAIN_ERROR', 'the date falls outside the calendar Graphite reads, the years 1 to 9999')
+def _beyond():typed.refuse('DOMAIN_ERROR', 'the date falls outside the calendar Kas reads, the years 1 to 9999')
 
 
 def step_days(day, n):
@@ -653,7 +653,7 @@ def show(value, unit, toward=None, bare=False):
     value = Fraction(value)
     if unit == 'date':
         whole = math.ceil(value) if toward == 'up' else math.floor(value)
-        if not 1 <= whole <= date.max.toordinal():return 'day number %s, outside the calendar Graphite reads' % value
+        if not 1 <= whole <= date.max.toordinal():return 'day number %s, outside the calendar Kas reads' % value
         said = words_of(date.fromordinal(whole))
         return said if value == whole else '%s (partway through it: exact day number %s)' % (said, value)
     if unit == 'days':

@@ -18,7 +18,7 @@ class ReferenceTab(ServiceTab):
     def __init__(self,host):
         super().__init__(host);self.job=None;self.citation=None;self.packet=None;self.generation=0;self.current_sources=0;self.offset=0;self.total=0;self.list_epoch=0;self.mode='browse'
         self.project_collection=None
-        heading=QLabel('GRAPHITE · EXACT REFERENCES');heading.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(heading)
+        heading=QLabel('KAS · EXACT REFERENCES');heading.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(heading)
         self.note=QLabel('Search admitted originals, inspect their exact locations, and collect the evidence for a question. Source admission and engineering qualification remain separate.');self.note.setWordWrap(True);self.outer.addWidget(self.note)
         row=QHBoxLayout();self.namespaces=QComboBox();self.namespaces.setAccessibleName('Reference library');self.namespaces.currentIndexChanged.connect(self.changed_namespace);row.addWidget(self.namespaces,1)
         intake=QPushButton('Review intake');intake.clicked.connect(host.ledger_bridge.show_intake);row.addWidget(intake);connections=QPushButton('Source connections');connections.clicked.connect(host.ledger_bridge.show_sources);row.addWidget(connections);self.outer.addLayout(row)
@@ -41,7 +41,7 @@ class ReferenceTab(ServiceTab):
         ask=QPushButton('Ask the source records');ask.clicked.connect(self.question_records);abox.addWidget(ask);self.atlas_view=QTextBrowser();self.atlas_view.setOpenLinks(False);abox.addWidget(self.atlas_view,1);self.pages.addTab(atlas,'Evidence / impact')
         packets=QWidget();pbox=QVBoxLayout(packets);pbox.setContentsMargins(0,0,0,0);self.question=QLineEdit();writing_prompt(self.question, 'Question for the selected references');pbox.addWidget(self.question)
         compile_button=QPushButton('Compile selected references');compile_button.clicked.connect(self.compile);pbox.addWidget(compile_button)
-        ask=QPushButton('Ask local Graphite with this packet');ask.clicked.connect(self.ask);pbox.addWidget(ask);self.answer=QTextBrowser();self.answer.setOpenLinks(False);self.answer.anchorClicked.connect(self.follow_citation);pbox.addWidget(self.answer,1)
+        ask=QPushButton('Ask local Kas with this packet');ask.clicked.connect(self.ask);pbox.addWidget(ask);self.answer=QTextBrowser();self.answer.setOpenLinks(False);self.answer.anchorClicked.connect(self.follow_citation);pbox.addWidget(self.answer,1)
         export=QPushButton('Export reference volume');export.clicked.connect(self.export);pbox.addWidget(export);verify=QPushButton('Verify a reference volume');verify.clicked.connect(self.verify);pbox.addWidget(verify);self.pages.addTab(packets,'Packets / volume')
         # 0.8.7 W7 (the window wiring): Ask the Library here: the places at once, the desk's own cut quote lit, the wires into it, the footer
         library=QWidget();lbox=QVBoxLayout(library);lbox.setContentsMargins(0,0,0,0);lrow=QHBoxLayout();self.library_found=None;self.library_asking=0
@@ -71,7 +71,7 @@ class ReferenceTab(ServiceTab):
                 for widget in (self.query,self.sources,self.namespaces,self.hits,self.excerpt,self.proof,self.atlas_view,self.answer,self.question,self.subject,self.property_field,self.variant,self.conditions):
                     font=widget.font();font.setFamilies([font.family(),families[0]]);widget.setFont(font)
         self.timer=QTimer(self);self.timer.setInterval(800);self.timer.timeout.connect(self.poll);self.timer.start();QTimer.singleShot(0,self.load_namespaces)
-    def title(self):return 'Graphite · References'
+    def title(self):return 'Kas · References'
     def info(self):return 'Exact references · %d current sources · reference generation %d · source records only'%(self.current_sources,self.generation)
     def ns(self):return self.namespaces.currentData()
     def clear_location(self):
