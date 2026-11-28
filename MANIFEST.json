@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "1.1~pre3",
+  "version": "1.1",
   "package_profile": "runtime",
-  "note": "Graphite 1.1~pre3, preview 3 of 1.1: her forty recipes (each shows what it would do, waits for the owner's press, is verified and has Undo), one line instead of two, a drop-down Terminal, Command...; minimal tests, by the owner's rule. Still in it: preview 2 (the bar, the Explorer, the six menus, Kas on the bar, her voice), preview 1 (Debian packages, a Windows hand's keys, DOS words) and 1.0. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1_pre3.md.",
+  "note": "Graphite 1.1: your desktop for Debian. One bar above every app, the Explorer, File/Edit/View/Go/Tools/Help, Windows keys and DOS words, a drop-down Terminal; Kas on the bar with HALT, her voice, her forty recipes and her command tool, each change shown first and done only on your press; installs as Debian packages. Minimal tests, by the owner's rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -70,8 +70,8 @@
       "sha256": "86ebd78b0610520f9d6c0dccd0a729a586623aded0435fec7faa4a1afe14bbb0"
     },
     "README.md": {
-      "bytes": 9582,
-      "sha256": "41792e0df7487af7be60a43fd3c5153c785e87a9ea5f82aeabc7db070c906933"
+      "bytes": 10338,
+      "sha256": "bb74e92742de8587f2d9442ff08b4da5b2b6aa1ecbe32fa83f4bb7de82b322b5"
     },
     "RECORD_OF_DIRECTIONS.md": {
       "bytes": 39804,
@@ -1314,8 +1314,8 @@
       "sha256": "2737b8806f988b188d7d921efabca5b8f021db7e7f2d070d525b22452ecafa67"
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
-      "bytes": 339724,
-      "sha256": "823d00d9ef82176eeb924a881feba6fd9939fe4c936874d35479ba10f62ffe1b"
+      "bytes": 339719,
+      "sha256": "77227d876c91ddd1041111b5a157ecb9bc57e73d7afb2e707b072bfad0a82e3c"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -1752,6 +1752,10 @@
     "docs/RELEASE_NOTES_1.0.md": {
       "bytes": 16872,
       "sha256": "d4e2a02b0ab9fcafe2f1a3d0a51db4bc22357c39b714591b2b6879f99786aa69"
+    },
+    "docs/RELEASE_NOTES_1.1.md": {
+      "bytes": 10978,
+      "sha256": "53ac8be5f5cc0f3b68406644c872ef2751078feca7d129c0973081daae62e5c7"
     },
     "docs/RELEASE_NOTES_1.1_pre1.md": {
       "bytes": 7034,
@@ -2286,16 +2290,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 2126300,
-      "sha256": "a90821a4668c92fce4a35dd6005bc0fe24129124b60fd88795f2f8997183e561"
+      "bytes": 2127066,
+      "sha256": "ad1bea88ab4a266022ad0df7ef188439aace27a88510dae86786d43d622ccee2"
     },
     "project/stacy_seed/current/index.sqlite": {
-      "bytes": 4800512,
-      "sha256": "3a0a00686e3cb7cf08cc0be7db5b41aa2bd9c36c92b70dd288a2a91a0f6e8843"
+      "bytes": 4804608,
+      "sha256": "313017acee259d29a51ad42bcd8e8e78fb1f7b812b27e54a8e0f1baa110d563f"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "d2010ec44e5906af689e375713cb1f6e9d53cba1b66519383fb79c989be759c6"
+      "sha256": "f8adaa6e0c84342fd34b7bb65642a2a5232853c7f73a7de161bffb48da417a1c"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3586,8 +3590,8 @@
       "sha256": "35cd691305f0deabb97c11e44937bb494cdc117af0aca08ca72e8b694f5c982c"
     },
     "tools/package_graphite.py": {
-      "bytes": 11063,
-      "sha256": "b4c74de7529c6b38d57dd0a85bb9931d0b1b9a700d0676b3af9f8eaba9552b57"
+      "bytes": 11012,
+      "sha256": "9c97f8b18dcbc81450737e9bf56c43fe9b571694781ee5939669a9e5c580c519"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -4030,8 +4034,8 @@
       "sha256": "949ab50108ac6e8805874c6153802ddedcf53409b6352e2700b9d939f5b7d951"
     },
     "workbench/command_forms.py": {
-      "bytes": 40721,
-      "sha256": "f96834ebad1295bac6618f00d2ad97dddfdc7bd2e418519be4f91630165d738c"
+      "bytes": 40800,
+      "sha256": "4928c5c9f61405384f6283560ff474a5976ea5af05214200eb5195d8d90f2d84"
     },
     "workbench/command_rows.py": {
       "bytes": 4528,
@@ -6410,8 +6414,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 21010,
-      "sha256": "bc7351c5c5b78428a67d56fc77585b63c4d26351e2462adc18a62950b8510aed"
+      "bytes": 21675,
+      "sha256": "f5c64793eeb5a777b030a1f9df12703187ad1d18c020dcc0ba73ab7772257c34"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -6586,5 +6590,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "1.1~pre3"
+  "graphite_release": "1.1"
 }

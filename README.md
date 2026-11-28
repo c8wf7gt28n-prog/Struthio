@@ -1,4 +1,14 @@
-# Graphite 1.0 · The Living Desktop and the Ghost in the Shell (built, not tested)
+# Graphite 1.1 · Your desktop for Debian
+
+**Graphite 1.1** (28 November 2026) makes Graphite a full desktop for Debian for a Windows-and-DOS hand. It installs as
+Debian packages from a folder repository. One bar along the bottom holds Start, the line, your windows, Kas with HALT,
+the tray and the clock. Files is an Explorer, the menus are File, Edit, View, Go, Tools and Help, Windows keys and DOS
+words work, and a Terminal drops from the top. Kas speaks sharp and dry, and runs forty recipes and a classified command
+tool on the whole box, each change shown first and done only on your press. **Start here:** [What's new in
+1.1](docs/RELEASE_NOTES_1.1.md) (installing, what was and was not tested, your evening) and the kit's `START_HERE.md`.
+
+What follows describes 1.0, on which 1.1 is built; where they differ, 1.1's notes are right.
+
 
 Graphite is a desktop for one minimal Debian computer: it is the session, the whole computer is in it, and its assistant,
 Kasandra (Kas for short), is an agent user of the system who works beside you under your authority. Everything stays on
@@ -24,7 +34,7 @@ scripts, settings keys and internal names keep those earlier names for compatibi
 - **The look.** Day, the launch look, and Night, its twin, from one set of design tokens with the Inter typeface;
   Graphite and Kasandra as alternatives. No picture of Kas: her name, her state and her work.
 
-**Start here:** [Your first evening with 1.0](docs/ACCEPTANCE_1.0.md) (the install, your paper's §2 test, the model, the
+**For 1.0:** [Your first evening with 1.0](docs/ACCEPTANCE_1.0.md) (the install, your paper's §2 test, the model, the
 §18 day, what to send back), [the ThinkPad page](docs/THINKPAD_FIRST_INSTALL.md), and
 [What's new in 1.0](docs/RELEASE_NOTES_1.0.md). In Graphite: Help ▸ The Living Desktop, and Help ▸ Kasandra, the Ghost
 in the Shell.

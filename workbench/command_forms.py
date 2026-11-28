@@ -42,7 +42,7 @@ NEEDS = {'proc': ('/proc',), 'sys': ('/sys', '/run/udev'), 'journal': ('/var/log
 
 # Why a form or an option is refused, in plain words (her talk says "Refused, and nothing ran: " first).
 WHY = {
-    'root': 'it needs root, the administrator. That is the system door, which comes in the next slice of this preview.',
+    'root': 'it needs root, the administrator, and I make no system changes in 1.1. Run it yourself with sudo at a text console (Ctrl+Alt+F2), where the system asks for your password.',
     'destroy': 'it removes for good, with no way back. I do not run it here.',
     'never_ends': 'it never ends by itself, so it would hold the run. Give it an end (a count) or use your Terminal.',
     'session': 'it opens a session on another computer, and what runs there I cannot classify. It is yours, in your Terminal.',
@@ -54,7 +54,7 @@ WHY = {
     'overwrites': 'it can write over a file of the same name. With -n it leaves what is there, and Undo can take it back.',
     'hard_link': 'a hard link cannot be told from the file. Here a link is ln -s.',
     'recursive_mode': 'chmod -R changes every file under the folder. Name the files instead.',
-    'special_bits': 'setuid, setgid and the sticky bit are the system door’s, not a change of your files.',
+    'special_bits': 'setuid, setgid and the sticky bit need root, the administrator; they are not a change of your files.',
     'no_extract': 'unzip without -l unpacks, and writes files. Ask for the recipe Unzip: it shows what it makes, with Undo.',
     'perl_code': 'rename takes Perl code. Here only a plain s/old/new/ of letters, digits, spaces, dots and dashes is read.',
     'network_names': 'that option asks a server on the network, and this form only reads this computer.',

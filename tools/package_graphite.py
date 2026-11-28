@@ -39,7 +39,7 @@ NOT_SHIPPED = ('tools/planted_bugs/', 'tools/i05_kit/', 'debian/')  # 1.1 PK1: d
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
 # Fields of earlier checkpoints' manifests that no reader uses any more (the release check reads graphite_release).
 RETIRED_FIELDS = ('hatch_checkpoint', 'integrated_pass', 'delivery_stage')
-NOTE = ('Graphite 1.1~pre3, preview 3 of 1.1: her forty recipes (each shows what it would do, waits for the owner\'s press, is verified and has Undo), one line instead of two, a drop-down Terminal, Command...; minimal tests, by the owner\'s rule. Still in it: preview 2 (the bar, the Explorer, the six menus, Kas on the bar, her voice), preview 1 (Debian packages, a Windows hand\'s keys, DOS words) and 1.0. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1_pre3.md.')
+NOTE = ('Graphite 1.1: your desktop for Debian. One bar above every app, the Explorer, File/Edit/View/Go/Tools/Help, Windows keys and DOS words, a drop-down Terminal; Kas on the bar with HALT, her voice, her forty recipes and her command tool, each change shown first and done only on your press; installs as Debian packages. Minimal tests, by the owner\'s rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.md.')
 
 
 
