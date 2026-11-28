@@ -229,6 +229,10 @@ they are content. The bar, Start, flyouts, the Explorer, the menus, her panel an
 terminal all follow. Day and Kasandra are unchanged. *Acceptance:* frames of Night Amber and Night Green (the window,
 the bar with Start open, the terminal); every text brightness at least 4.5:1 on the ground; the Night tests on the new
 truth.
+The owner then: "Screen burns and all the fun". So N1 adds CRT effects under View ▸ Appearance ▸ CRT effects (Off,
+Subtle as Night's default, or Full): a faint static burn-in ghost on empty grounds, phosphor afterglow on change, a
+warm-up line, faint scanlines and a vignette, a blinking block cursor, and a faint bloom. Legibility is never the
+price (4.5:1 kept), and Reduce motion stops whatever moves.
 
 **C0 · A real terminal.** The drop-down Terminal (B4) and 1.0's Terminal are not terminal devices: vim, top, less
 and sudo's password prompt do not work in them. Give the drop-down a real terminal (a pseudo-terminal running the
