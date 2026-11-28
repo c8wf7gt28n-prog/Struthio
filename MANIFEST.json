@@ -3218,8 +3218,8 @@
       "sha256": "fdbd99c2b9c3615d34535c79ab62a0407a39b77fc1259ed7e12adc26e419870e"
     },
     "tests_integrated/test_night_phosphor.py": {
-      "bytes": 17527,
-      "sha256": "dc7c84c533a96886f7cf7bc4edf576c5e0fbfbf211f7d8adf841c463aa5432b9"
+      "bytes": 17569,
+      "sha256": "abb6de6b968fdb900ac579f3654b72d89952d959439e4c8a262c87952c016bd5"
     },
     "tests_integrated/test_one_line_b4.py": {
       "bytes": 15184,
@@ -4174,8 +4174,8 @@
       "sha256": "b4f3bbc79a8c915d25e701bda25e9f7d48e92fe948848f8802b2827f85ca4ea2"
     },
     "workbench/crt_qt.py": {
-      "bytes": 20046,
-      "sha256": "0988ee340f7bdbcba36a1675977d32f9bb19f07d91c7a60b14bff41a4bb77c7d"
+      "bytes": 24786,
+      "sha256": "b0f97109821bd4e376f65272694fac958cbaf951428ef779de4a7f7011450772"
     },
     "workbench/dashboard.py": {
       "bytes": 3118,

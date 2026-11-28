@@ -32,7 +32,7 @@ AFTERGLOW_MS = 160
 WARM_MS = 400
 BLINK_MS = 530
 VIGNETTE_MAX = 16            # out of 255 at the very corner (6 %), Full only
-BURN = dict(off=0, subtle=8, full=13)            # the ghost: share of the phosphor out of 255 (3 %, 5 %)
+BURN = dict(off=0, subtle=12, full=20)           # the ghost: share of the phosphor out of 255 (5 %, 8 %); the owner, 28 Nov: "more screen burns ... some burnt gray"
 SCAN = dict(off=0, subtle=5, full=8)             # the scanlines: black out of 255 (2 %, 3 %)
 MOVING = ('afterglow', 'warm_up', 'blink')
 # 1.1 N1duo: the centre's burn is the public name, one constant (the owner, 28 Nov 2026: "it's kas. All of it."); with no
@@ -40,6 +40,15 @@ MOVING = ('afterglow', 'warm_up', 'blink')
 BURN_NAME = 'kas'
 OLD_LISTING = (' Volume in drive C is DESK', ' Directory of C:\\DESK', '', 'LETTERS      <DIR>', 'ACCOUNTS     <DIR>',
                'NOTES    TXT     1,204', 'PLAN     TXT       880', '        4 File(s)')
+# the owner, after Kas 1.1.4: "We need more screen burns, and can probably add some burnt gray". The machine's own past,
+# burnt in where it sat for years: 1.0's dock along the top, the old foot's five names along the bottom, an old boxed
+# menu, a VCR that blinked 12:00 for a decade, a function-key strip, a tape's LOAD; in her tube, lines of an old session.
+OLD_MENU = ('+-------- MAIN MENU --------+', '|  1. FILES                 |', '|  2. MAIL                  |', '|  3. LEDGER                |',
+            '|  4. GAMES                 |', '|                           |', '|  SELECT > _               |', '+---------------------------+')
+OLD_KEYS = 'F1 HELP   F2 SAVE   F3 LOAD   F5 RUN   F10 QUIT'
+OLD_FOOT = 'Line   Terminal   Search   Web   Log'
+OLD_LOAD = ('LOAD "*",8,1', 'SEARCHING FOR *', 'LOADING', 'READY.')
+OLD_SESSION = ('> HELLO', 'HI. WHAT ARE WE ON?', '> CHECK THE DESK', 'ALL CHECKS RUN.', '0 WAITING.', '> _')      # short: her panel is 380 px
 KAS_TUBE_DELAY = 260         # ms: her amber tube warms up a beat after the green one
 CELL = (8, 16)               # Full, Night: Duo: a terminal's character cells, a faint grey grid on the empty ground
 
@@ -117,7 +126,7 @@ class Screen(QWidget):
         ghost.setRgb(*(min(255, (a * p + (255 - a) * g + 127) // 255) for p, g in
                        zip(self.phosphor.getRgb()[:3], self.ground.getRgb()[:3])))
         p = QPainter(pix);p.setRenderHint(QPainter.Antialiasing);p.setPen(ghost);p.setBrush(Qt.NoBrush)
-        mono = QFont(tokens.FONT['mono'])
+        mono = QFont(tokens.FONT['mono']);mono.setStyleHint(QFont.TypeWriter);mono.setFixedPitch(True)      # a fixed-pitch fallback keeps the old menu's box square
         if self.ghost == 'bar':      # an old bar's layout: a START plate, four window plates, a clock
             unit = max(8, h // 4);p.setBrush(ghost);p.setPen(Qt.NoPen)
             p.drawRect(QRectF(unit, unit, unit * 5, h - 2 * unit))
@@ -127,6 +136,8 @@ class Screen(QWidget):
             mono.setPixelSize(max(13, h // 48));p.setFont(mono)
             p.drawText(QRectF(w * 0.06, h * 0.05, w * 0.9, h * 0.04), Qt.AlignLeft | Qt.AlignVCenter, 'KAS READY.')
             p.drawText(QRectF(w * 0.06, h * 0.88, w * 0.9, h * 0.04), Qt.AlignLeft | Qt.AlignVCenter, 'KAS> _')
+            step = mono.pixelSize() * 1.5      # after Kas 1.1.4: lines of an old session, burnt in under her prompt's place
+            for n, row in enumerate(OLD_SESSION):p.drawText(QRectF(w * 0.06, h * 0.62 + n * step, w * 0.9, step), Qt.AlignLeft | Qt.AlignVCenter, row)
         else:      # READY. at the top left, the Graphite mark large in the middle, a prompt under it
             mono.setPixelSize(max(14, h // 40));p.setFont(mono)
             p.drawText(QRectF(w * 0.03, h * 0.08, w * 0.5, h * 0.05), Qt.AlignLeft | Qt.AlignVCenter, 'READY.')
@@ -135,6 +146,7 @@ class Screen(QWidget):
             old = QFont(mono);old.setPixelSize(max(12, h // 64));p.setFont(old);step = old.pixelSize() * 1.35      # 1.1 N1duo: the old listing
             for n, row in enumerate(OLD_LISTING):p.drawText(QRectF(w * 0.02, h * 0.56 + n * step, w * 0.4, step), Qt.AlignLeft | Qt.AlignVCenter, row)
             p.setFont(mono);p.drawText(QRectF(w * 0.03, h * 0.84, w * 0.6, h * 0.05), Qt.AlignLeft | Qt.AlignVCenter, 'C:\\> _')
+            self.more_burns(p, ghost, mono, w, h)      # after Kas 1.1.4: more burns, more burnt grey
         if self.fx['vignette'] and tokens.is_duo(tokens.colours('night')) and self.ghost != 'bar':      # 1.1 N1duo: Full: the cells
             cell = QColor(self.ground);cell.setRgb(*((a * 5 + b * 3) // 8 for a, b in zip(ghost.getRgb()[:3], self.ground.getRgb()[:3])))
             p.setPen(cell)
@@ -142,6 +154,45 @@ class Screen(QWidget):
             for y in range(0, h, CELL[1]):p.drawLine(0, y, w, y)
         p.end();self._burnt = pix
         return pix
+
+    def more_burns(self, p, ghost, mono, w, h):
+        """After Kas 1.1.4 (the owner: "more screen burns ... some burnt gray"): the machine's past, where it sat. 1.0's dock
+        as a grey strip along the top and the old foot's five names along the bottom (burnt deeper: they sat there longest),
+        an old boxed menu right of centre, a VCR's 12:00 in seven segments at the top right, a function-key strip, a tape's
+        LOAD at the top left under READY. All of it grey, static, under everything (drawn with Lighten)."""
+        deep = QColor(ghost);deep.setRgb(*(min(255, c + (c - g) // 2) for c, g in zip(ghost.getRgb()[:3], self.ground.getRgb()[:3])))
+        p.save();p.setPen(Qt.NoPen);p.setBrush(deep)
+        p.drawRect(QRectF(0, 0, w, max(6, h * 0.012)))      # 1.0's dock at the top, a band burnt for months
+        p.drawRect(QRectF(0, h - max(10, h * 0.028), w, max(10, h * 0.028)))      # the old foot at the bottom
+        p.setPen(deep);small = QFont(mono);small.setPixelSize(max(11, h // 72));p.setFont(small)
+        p.drawText(QRectF(w * 0.015, h - max(10, h * 0.028) - small.pixelSize() * 1.6, w * 0.5, small.pixelSize() * 1.5),
+                   Qt.AlignLeft | Qt.AlignVCenter, OLD_FOOT)
+        p.setPen(ghost)
+        menu = QFont(mono);menu.setPixelSize(max(12, h // 60));p.setFont(menu);step = menu.pixelSize() * 1.35
+        for n, row in enumerate(OLD_MENU):p.drawText(QRectF(w * 0.58, h * 0.14 + n * step, w * 0.4, step), Qt.AlignLeft | Qt.AlignVCenter, row)
+        p.drawText(QRectF(w * 0.30, h * 0.90, w * 0.68, step), Qt.AlignLeft | Qt.AlignVCenter, OLD_KEYS)
+        for n, row in enumerate(OLD_LOAD):p.drawText(QRectF(w * 0.03, h * 0.14 + n * step, w * 0.4, step), Qt.AlignLeft | Qt.AlignVCenter, row)
+        self.seven_segment(p, ghost, '12:00', QRectF(w * 0.80, h * 0.04, w * 0.17, h * 0.07))      # the VCR that blinked for a decade
+        p.restore()
+
+    @staticmethod
+    def seven_segment(p, colour, text, box):
+        """Digits as seven bars each (and a colon), the shape an LED clock burnt into a screen."""
+        SEG = {'0': 'abcdef', '1': 'bc', '2': 'abdeg', '3': 'abcdg', '4': 'bcfg', '5': 'acdfg', '6': 'acdefg', '7': 'abc',
+               '8': 'abcdefg', '9': 'abcdfg'}
+        cw = box.width() / (len(text) - 0.5);t = max(2.0, box.height() * 0.11);hh = box.height()
+        p.save();p.setPen(Qt.NoPen);p.setBrush(colour);x = box.left()
+        for ch in text:
+            if ch == ':':
+                p.drawRect(QRectF(x + cw * 0.15, box.top() + hh * 0.3, t, t));p.drawRect(QRectF(x + cw * 0.15, box.top() + hh * 0.65, t, t))
+                x += cw * 0.5;continue
+            dw = cw * 0.72;top, mid, bot = box.top(), box.top() + hh / 2 - t / 2, box.bottom() - t
+            bars = {'a': QRectF(x + t, top, dw - 2 * t, t), 'g': QRectF(x + t, mid, dw - 2 * t, t), 'd': QRectF(x + t, bot, dw - 2 * t, t),
+                    'f': QRectF(x, top + t, t, hh / 2 - 1.5 * t), 'b': QRectF(x + dw - t, top + t, t, hh / 2 - 1.5 * t),
+                    'e': QRectF(x, mid + t, t, hh / 2 - 1.5 * t), 'c': QRectF(x + dw - t, mid + t, t, hh / 2 - 1.5 * t)}
+            for s in SEG.get(ch, ''):p.drawRect(bars[s])
+            x += cw
+        p.restore()
 
     def vignette(self):
         if self._vignette is not None or not self.fx['vignette']:return self._vignette

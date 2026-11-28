@@ -137,7 +137,7 @@ class CrtEffects(unittest.TestCase):
         full, subtle = crt_qt.effects('full'), crt_qt.effects('subtle')
         self.assertTrue(full['vignette'] and full['bloom']);self.assertFalse(subtle['vignette'] or subtle['bloom'])
         self.assertTrue(120 <= full['afterglow'] <= 200);self.assertTrue(full['warm_up'] <= 450)
-        for level in ('subtle', 'full'):self.assertTrue(8 <= crt_qt.BURN[level] <= 16, '3 to 6 % of the phosphor')
+        for level in ('subtle', 'full'):self.assertTrue(8 <= crt_qt.BURN[level] <= 24, '3 to 9 % of the phosphor (the owner, after 1.1.4: more burnt grey)')
 
     def test_the_effects_never_cost_legibility(self):
         from workbench import crt_qt
