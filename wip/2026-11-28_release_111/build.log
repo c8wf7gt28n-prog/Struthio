@@ -1,0 +1,23 @@
+== debs 07:36
+graphite: 1654 files staged
+built /dev/shm/r111/debs/graphite_1.1.1_all.deb (82196468 bytes)
+graphite-llama-runtime: 2 files staged
+built /dev/shm/r111/debs/graphite-llama-runtime_1.1.1_amd64.deb (57991008 bytes)
+graphite-session: 3 files staged
+built /dev/shm/r111/debs/graphite-session_1.1.1_all.deb (2456 bytes)
+graphite-desktop: 1 files staged
+built /dev/shm/r111/debs/graphite-desktop_1.1.1_all.deb (2076 bytes)
+== repo 07:37
+[build_repo] fetching debootstrap from the signed trixie index
+[build_repo] debootstrap --variant=minbase trixie into /dev/shm/r111/work/chroot
+[build_repo] installing the System set's 456 packages
+[build_repo] downloading the closure against the chroot (System set installed, today's versions)
+[build_repo] downloading the closure against the System set status (its exact versions)
+[build_repo] repository: /dev/shm/r111/repo (425 packages)
+[build_repo] chroot removed
+== kit 07:40
+{"zips": 33, "pieces": 17, "files": 429, "largest_zip": 14490638, "bytes": 394745028}
+kit: 39 files, 394803072 bytes, the largest 14490638 bytes (all under 15,000,000)
+425
+== done 07:40
+rc=0
