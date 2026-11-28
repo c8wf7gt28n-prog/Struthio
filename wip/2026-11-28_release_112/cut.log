@@ -1,0 +1,22 @@
+commit f3e5740ed2827a567e09d521a6de156817f1917d, Debian version 1.1.2
+graphite: 1658 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r112/debs/graphite_1.1.2_all.deb (82208116 bytes)
+graphite-llama-runtime: 2 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r112/debs/graphite-llama-runtime_1.1.2_amd64.deb (57989804 bytes)
+graphite-session: 3 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r112/debs/graphite-session_1.1.2_all.deb (2464 bytes)
+graphite-desktop: 1 files staged
+built /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/r112/debs/graphite-desktop_1.1.2_all.deb (2080 bytes)
+earlier kit joined and checked
+replacing graphite_1.1.1_all.deb
+replacing graphite-llama-runtime_1.1.1_amd64.deb
+replacing graphite-session_1.1.1_all.deb
+replacing graphite-desktop_1.1.1_all.deb
+repository: 425 packages
+{"zips": 33, "pieces": 17, "files": 429, "largest_zip": 14490638, "bytes": 394755719}
+kit: 39 files, 394813763 bytes, the largest 14490638 bytes (all under 15,000,000)
+2289 PIECES.sha256
+43868 SHA256SUMS
+3882 START_HERE.md
+3499 install.sh
+kit files: 39
