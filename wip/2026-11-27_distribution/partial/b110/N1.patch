@@ -174,6 +174,35 @@ index 0000000..8b7de2a
 +
 +if __name__ == '__main__':
 +    unittest.main()
+diff --git a/tools/colour_vision.py b/tools/colour_vision.py
+index 57ddb90..8488b1c 100644
+--- a/tools/colour_vision.py
++++ b/tools/colour_vision.py
+@@ -198,7 +198,23 @@ _HONEY_GREEN = (('ready', 'hers'), ('cue', 'hers'), ('hers', 'line'), ('hers', '
+ _SHARED = _GREEN + _RED_GREEN + _AMBER_GREEN + _HONEY_GREEN + (('fails', 'stopped'), ('quiet', 'held'), ('waits', 'hers'), ('chosen', 'recheck'),
+                                                                ('waits', 'fails'), ('waits', 'stopped'))
+ REVIEWED['day'] = {pair: _told(pair) for pair in _SHARED + (('fails', 'hers'), ('stopped', 'hers'))}
+-REVIEWED['night'] = {pair: _told(pair) for pair in _SHARED}
++# 1.1 N1: Night is a phosphor monitor: one hue for every meaning, its brightness the only step (design_tokens: the words, the
++# states and the edges at full; what is held, the quiet and a recheck a step under). So every pair at one brightness is close
++# in every sight (and to the CIEDE2000 measure Amber's two steps are close as well): each is told by its word or its shape,
++# which every look draws (SIGNS), and what is chosen is also inverse video, a block of the phosphor with its words in the ground.
++_BRIGHT = ('chosen', 'cue', 'fails', 'hers', 'line', 'ready', 'stopped', 'waits', 'wire', 'words');_DIM = ('held', 'quiet', 'recheck')
++NIGHT_CLOSE = {'amber': tuple(combinations(_BRIGHT + _DIM, 2)), 'green': tuple(combinations(_BRIGHT, 2)) + tuple(combinations(_DIM, 2))}
++
++
++def _night_reviewed():
++    from workbench import boss_theme, design_tokens      # the phosphor in force: Night's palette is made in it
++    del boss_theme
++    said = dict(SAID, words='plain words have no rule, no button and no mark')
++    return {pair: 'one phosphor for every meaning in this look, brightness its only step: ' + '; '.join(said[m] for m in pair)
++            for pair in NIGHT_CLOSE[design_tokens.phosphor()]}
++
++
++REVIEWED['night'] = _night_reviewed()      # 1.1 N1 (1.1 T1's Night, Day's dark twin, was _SHARED)
+ 
+ 
+ def rgb(colour):
 diff --git a/workbench/bar_qt.py b/workbench/bar_qt.py
 index 6671433..333b618 100644
 --- a/workbench/bar_qt.py
@@ -386,7 +415,7 @@ index f0e351f..fb5e452 100644
  # The roles, by meaning (0.8.0). In Graphite they are the colours they always were; in Kasandra they part:
 diff --git a/workbench/crt_qt.py b/workbench/crt_qt.py
 new file mode 100644
-index 0000000..ff13e04
+index 0000000..08637a6
 --- /dev/null
 +++ b/workbench/crt_qt.py
 @@ -0,0 +1,300 @@
@@ -401,7 +430,7 @@ index 0000000..ff13e04
 +  afterglow    a line edit's glyphs and its cursor fade out over AFTERGLOW_MS when they change or move (persistence),
 +               laid with Lighten, so only where nothing is now lit. It moves, so Reduce motion stills it.
 +  warm-up      once, when the window first shows in Night: a horizontal line opens into the screen over WARM_MS. It moves.
-+  scanlines    very faint horizontal lines, 2 % (Subtle) or 4 % (Full) of black every third pixel row, and in Full a soft
++  scanlines    very faint horizontal lines, 2 % (Subtle) or 3 % (Full) of black every third pixel row, and in Full a soft
 +               corner vignette of at most VIGNETTE_MAX (6 %) at the very corner. Measured: the faintest words (tertiary)
 +               stay 4.5:1 or more under both (tests_integrated/test_night_phosphor.py).
 +  cursor       a block cursor in the line edits and the bar's line (inverse video: the block of the phosphor, the glyph
@@ -425,7 +454,7 @@ index 0000000..ff13e04
 +BLINK_MS = 530
 +VIGNETTE_MAX = 16            # out of 255 at the very corner (6 %), Full only
 +BURN = dict(off=0, subtle=8, full=13)            # the ghost: share of the phosphor out of 255 (3 %, 5 %)
-+SCAN = dict(off=0, subtle=5, full=10)            # the scanlines: black out of 255 (2 %, 4 %)
++SCAN = dict(off=0, subtle=5, full=8)             # the scanlines: black out of 255 (2 %, 3 %)
 +MOVING = ('afterglow', 'warm_up', 'blink')
 +
 +
@@ -691,10 +720,10 @@ index 0000000..ff13e04
 +    host.crt_fx = fx
 +    return fx
 diff --git a/workbench/design_tokens.py b/workbench/design_tokens.py
-index fa89bc6..f7af853 100644
+index fa89bc6..4334985 100644
 --- a/workbench/design_tokens.py
 +++ b/workbench/design_tokens.py
-@@ -37,19 +37,70 @@ COLOUR = {
+@@ -37,19 +37,71 @@ COLOUR = {
          recheck='#6a4bb5', violet_text='#5a3fa0',
          shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 96),
      ),
@@ -717,8 +746,9 @@ index fa89bc6..f7af853 100644
 +# is the brightness of that one phosphor, never another hue. The steps are shares (out of 255) of the phosphor laid over
 +# the ground. The plan's "about 70 % and 45 %" measured 2.9:1 for 45 % amber on the ground, under 4.5:1, so the steps are
 +# the lowest shares that keep 4.5:1 on every ground a word is laid on (the builder's measure, NIGHT_PAIRS):
-+#   Amber #ffb000: words 255 (10.8:1 on the ground), secondary 215 (7.8:1), tertiary 190 (6.3:1); 4.7:1 or more on the
-+#                  heaviest tint.   Green #33ff66: 255 (14.8:1), 200 (9.1:1), 175 (7.1:1); 5.0:1 or more on the heaviest tint.
++#   Amber #ffb000: words 255 (10.8:1 on the ground), secondary 220 (8.1:1), tertiary 200 (6.9:1); 5.2:1 or more on the
++#                  heaviest tint.   Green #33ff66: 255 (14.8:1), 205 (9.6:1), 180 (7.5:1); 5.3:1 or more on the heaviest tint.
++#   (A step a little above the lowest that passes, so the CRT effects' scanline and vignette, crt_qt, never take a word under.)
 +# What is selected, the pressed button, the active window on the bar, HALT and anything destructive are inverse video: a
 +# block of the phosphor with words in the ground. State colours become the phosphor; every state keeps its word and shape.
 +PHOSPHORS = ('amber', 'green')
@@ -735,7 +765,7 @@ index fa89bc6..f7af853 100644
 +    full, second, third, off = PHOSPHOR_INK[name];g = NIGHT_GROUND;r, gg, b = rgb(full)
 +    lay = lambda share: over(full, g, share)
 +    return dict(
-+        window=g, surface=lay(12), sidebar=lay(8), raised=lay(22), pressed=lay(48), terminal='#080806',
++        window=g, surface=lay(12), sidebar=lay(8), raised=lay(22), pressed=lay(40), terminal='#080806',
 +        hairline=(r, gg, b, 46), stroke=(r, gg, b, 80), stroke_strong=(r, gg, b, 150),
 +        text=full, secondary=lay(second), tertiary=lay(third), disabled=lay(off),
 +        accent=full, accent_text=full, accent_fill=full, on_accent=g,
@@ -776,7 +806,7 @@ index fa89bc6..f7af853 100644
  # How much of a colour is laid over a ground for each tint, as a share of 255 (whole numbers: no floating point).
  TINT = dict(selection=31, live=26, waiting=26, danger=22, recheck=26, hover=13, ring_accent=23, ring_live=28, yours=15)
  # selection 12 %, live/waiting/recheck 10 %, danger 9 %, hover 5 %, rings: accent 9 %, live 11 % (section 9), your words 6 %
-@@ -138,14 +189,17 @@ def rgba(colour, alpha=None):
+@@ -138,14 +190,17 @@ def rgba(colour, alpha=None):
      return 'rgba(%d, %d, %d, %d)' % (r, g, b, a if alpha is None else alpha)
  
  
@@ -796,7 +826,7 @@ index fa89bc6..f7af853 100644
      surface, window, sidebar = c['surface'], c['window'], c['sidebar']
      made = dict(
          hairline_a=c['hairline'], stroke_a=c['stroke'], stroke_strong_a=c['stroke_strong'],
-@@ -161,6 +215,10 @@ def colours(look):
+@@ -161,6 +216,10 @@ def colours(look):
          focus_ring=rgba(c['accent'], CONTROL['focus_alpha']),
      )
      c.update(made, shadow_a=c['shadow'], scrim_a=c['scrim'])
@@ -807,18 +837,18 @@ index fa89bc6..f7af853 100644
      return c
  
  
-@@ -180,6 +238,10 @@ TEXT_PAIRS = (
+@@ -180,6 +239,10 @@ TEXT_PAIRS = (
         ('on_danger', 'danger', 'danger fill'), ('text', 'terminal', 'terminal'), ('secondary', 'terminal', 'terminal')]
  )
  DISABLED_PAIRS = [('disabled', g, 'inactive control') for g in _GROUNDS]
 +# 1.1 N1: the phosphor Night's pairs: TEXT_PAIRS, and the ground's words on each inverse block (a selected row, a pressed or
 +# checked control in the style sheet, the active window on the bar, HALT). Measured by tests_integrated/test_night_phosphor.py
-+# for both phosphors. The bar's own buttons, pressed, lay a tint (pressed, 19 % of the phosphor) under their phosphor words.
++# for both phosphors. The bar's own buttons, pressed, lay a tint (pressed, 16 % of the phosphor) under their phosphor words.
 +NIGHT_PAIRS = TEXT_PAIRS + [('on_accent', g, 'inverse video') for g in ('accent_fill', 'active_plate', 'danger', 'live', 'waiting')]
  
  
  # ------------------------------------------------------------------------------- the roles boss_theme draws with
-@@ -198,7 +260,7 @@ def palette(look):
+@@ -198,7 +261,7 @@ def palette(look):
          OWNER=c['waiting'], ON_OWNER=c['on_waiting'], RECHECK=c['recheck'],
          BAND=band, ERASED=c['text'], ERASED_QUIET=c['secondary'], BAND_MARK=c['accent'], BAND_PENCIL=c['live'],
          DESK_LIGHT=c['surface'] if not night else '#ffffff', VEIL=c['window'],
@@ -827,7 +857,7 @@ index fa89bc6..f7af853 100644
          HONEY=c['waiting_text'], VIOLET=c['secondary'], VIOLET_DEEP=c['stroke'], VIOLET_PALE=c['text'], VIOLET_SOFT=c['yours'],
          ROYAL=c['live'], ROYAL_SOFT=c['live_tint'], ROYAL_INK=c['live_text'], ROYAL_TEXT=c['live_text'],
          RED=c['danger'], ON_RED=c['on_danger'],
-@@ -241,7 +303,7 @@ def sheet(look):
+@@ -241,7 +304,7 @@ def sheet(look):
      c = colours(look);night = look_of(look) == 'night'
      v = dict(c)
      v.update(R=RADIUS['control'], RM=RADIUS['menu'], RT=RADIUS['tile'], H=CONTROL['button'], F=CONTROL['field'], ROW=CONTROL['row'],
@@ -836,7 +866,7 @@ index fa89bc6..f7af853 100644
               sel_words=c['on_accent'] if night else c['accent_text'], scroll=CONTROL['scroll'],
               thumb=rgba(c['text'], 64), thumb_hover=rgba(c['text'], 110),
               focus=rgba(c['accent'], CONTROL['focus_alpha']))
-@@ -335,5 +397,21 @@ QLineEdit#SlateInput:focus, QPlainTextEdit#SlateInput:focus, QPlainTextEdit#Capt
+@@ -335,5 +398,21 @@ QLineEdit#SlateInput:focus, QPlainTextEdit#SlateInput:focus, QPlainTextEdit#Capt
  QFrame#BossChainTray {background:%(sidebar)s; border-top:1px solid %(hairline)s;}
  QTabWidget#ConsolePages::pane {background:%(window)s; border:0;}
  QFrame#GraphiteToast {border-radius:%(RT)dpx;}
@@ -874,6 +904,28 @@ index 0c3720d..23b864f 100644
          side = self.side(h);x = self.pad();cy = h / 2.0
          path = QPainterPath()
          if self.held:      # ▶: go on
+diff --git a/workbench/kas_panel_qt.py b/workbench/kas_panel_qt.py
+index 26403bb..7b504e3 100644
+--- a/workbench/kas_panel_qt.py
++++ b/workbench/kas_panel_qt.py
+@@ -211,6 +211,8 @@ class HaltOnBar(halt_qt.HaltButton):
+         c = bar_qt.ink();marks = tokens.marks(bar_qt.look());p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
+         w, h = self.width(), self.height();r = QRectF(2.5, 6.5, w - 5, h - 13)
+         fill = c['pressed'] if self.isDown() else (c['hover_side'] if self.underMouse() else c['sidebar'])
++        inverse = bar_qt.inverse(c)      # 1.1 N1: Night: HALT is inverse video, a block of the phosphor with its sign and word in the ground
++        if inverse:fill = c['secondary'] if self.isDown() else c['accent_fill'];marks = dict(marks, HALT=c['on_accent'], HALT_HELD=c['on_accent'])
+         p.setPen(QPen(QColor(c['stroke_strong'] if self.underMouse() else c['stroke']), 1));p.setBrush(QColor(fill))
+         p.drawRoundedRect(r, tokens.RADIUS['control'], tokens.RADIUS['control'])
+         side = round(h * 0.34);x = self.pad(h);cy = h / 2.0;path = QPainterPath()
+@@ -219,7 +221,7 @@ class HaltOnBar(halt_qt.HaltButton):
+         else:              # ▲: the stop sign, the live green (never red: it stops her, not the computer)
+             path.moveTo(QPointF(x + side / 2, cy - side * 0.48));path.lineTo(QPointF(x + side, cy + side * 0.42));path.lineTo(QPointF(x, cy + side * 0.42))
+         path.closeSubpath();p.setPen(Qt.NoPen);p.setBrush(QColor(marks['HALT_HELD'] if self.held else marks['HALT']));p.drawPath(path)
+-        font = self.bar_font(h);p.setFont(font);p.setPen(QColor(c['text']))
++        font = self.bar_font(h);p.setFont(font);p.setPen(QColor(c['on_accent'] if inverse else c['text']))      # 1.1 N1
+         tx = x + side + 6;p.drawText(QRectF(tx, 0, w - tx - 4, h), Qt.AlignLeft | Qt.AlignVCenter, self.text())
+         if self.held:      # held: a short mark under the word (the shape, not only the colour)
+             fm = QFontMetricsF(font);p.fillRect(QRectF(tx, cy + fm.ascent() / 2 + 3, fm.horizontalAdvance(self.text()), 2), QColor(marks['HALT_HELD']))
 diff --git a/workbench/launch_look.py b/workbench/launch_look.py
 index 7f2135b..c17f05b 100644
 --- a/workbench/launch_look.py
@@ -969,6 +1021,20 @@ index 0000000..6cf0b08
 +    """True when GRAPHITE_APPEARANCE names Night in a phosphor (night-amber, night-green)."""
 +    environ = os.environ if environ is None else environ
 +    return str(environ.get('GRAPHITE_APPEARANCE', '')).strip().lower() in ASKED_LOOKS
+diff --git a/workbench/pane_qt.py b/workbench/pane_qt.py
+index eb07305..135126a 100644
+--- a/workbench/pane_qt.py
++++ b/workbench/pane_qt.py
+@@ -51,6 +51,9 @@ from .boss_theme import LAUNCH as _LAUNCH
+ if _LAUNCH:      # 1.0 P4: Day and Night: the selected row an inset rounded fill at accent 12 %, its words in the accent (style only)
+     from .design_tokens import RADIUS as _RADIUS
+     ROW, SELECTED = ('padding:0 4px;border:0;border-radius:%dpx;' % _RADIUS['row'], 'background:%s;color:%s;border:0;border-radius:%dpx;' % (AMBER_SOFT, AMBER_TEXT, _RADIUS['row']))
++from .boss_theme import PHOSPHOR as _PHOSPHOR, BAR as _BAR, ON_BAR as _ON_BAR      # 1.1 N1
++if _PHOSPHOR:      # 1.1 N1: Night: the selected row is inverse video (a block of the phosphor, its words in the ground)
++    SELECTED = 'background:%s;color:%s;border:0;border-radius:%dpx;' % (_BAR, _ON_BAR, _RADIUS['row'])
+ TREE_STYLE = ('QTreeWidget {border:0;background:transparent;color:%s;show-decoration-selected:0;} QTreeWidget::item {%s} '
+               'QTreeWidget::item:selected {%s} QTreeWidget::branch, QTreeWidget::branch:selected {background:transparent;border:0;image:none;}'
+               % (TEXT, ROW, SELECTED))
 diff --git a/workbench/real_terminal_qt.py b/workbench/real_terminal_qt.py
 index ff2d111..57e0b31 100644
 --- a/workbench/real_terminal_qt.py
