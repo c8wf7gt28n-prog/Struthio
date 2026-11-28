@@ -40,7 +40,7 @@ ROW_SECONDS = 10       # the Machine tab's five rows re-read this often while th
 PAGE_SECONDS = 3       # a page in front re-reads this often; it is redrawn only when what it reads changed
 KEEP_SECONDS = 15      # a change to the screens goes back by itself unless kept
 CACHE_SECONDS = 2      # the rows and a page opened together share one reading
-SYSTEM_MENU = 'Lock, Suspend, Log out, Restart and Shut down are in the System menu, the symbol at the right of the head.'
+SYSTEM_MENU = 'Lock, Suspend, Log out, Restart and Shut down are on Start (the Windows key) and at the foot of the File menu.'
 
 
 def clock(stamp):

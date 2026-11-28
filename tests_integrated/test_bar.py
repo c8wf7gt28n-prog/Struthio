@@ -1,8 +1,8 @@
 """1.1 B1, the bar (PLAN_1.1.md, B1): one bar along the bottom of the screen, above every app, in its own X window.
 
 Acceptance first: the bar's height at both screen sizes and its strut at the bottom; the windows slot lists Graphite and two
-app windows, marks the active one and a press brings one forward; the tray's three flyouts open above it with the Machine
-page's own actions; register_slot fills a slot without editing bar_qt. Then the slots' order, the tray's words, the clock's
+app windows, marks the active one and a press brings one forward; the tray's Quick Settings (1.1 B5) opens above it with the
+Machine page's own actions; register_slot fills a slot without editing bar_qt. Then the slots' order, the tray's words, the clock's
 month, the toasts above the bar, the head's strip giving way, and why it does not stand where it should not.
 
 Under Xvfb with the stand-in window manager the whole of it is the builder's smoke (it needs an X server, a window manager
@@ -92,19 +92,19 @@ class TheBar(unittest.TestCase):
         self.assertTrue(slot.graphite.active)
         self.assertIn('Graphite (active)', slot.words());self.assertEqual([r['program'] for r in strip.programs], ['XTerm', 'XTerm'])
 
-    def test_the_trays_three_flyouts_open_above_it_with_the_machine_pages_own_actions(self):
-        tray = self.bar.slot('tray')
+    def test_the_trays_quick_settings_opens_the_three_sections_above_it_with_the_machine_pages_own_actions(self):
+        tray = self.bar.slot('tray')      # 1.1 B5: one Quick Settings button, one panel with the three sections (was three flyouts)
         for key in self.b.TRAY:tray.landed(key, self.read[key])
         self.assertEqual([tray.items[k].word for k in self.b.TRAY], ['Online', '55 %', '76 %'])
-        for key, wants in (('network', 'Turn Wi-Fi off'), ('sound', None), ('power', None)):
-            fly = self.bar.open_flyout(key, tray.items[key]);pump()
-            self.assertTrue(fly.isVisible(), key);self.assertEqual(fly.room.key, key);self.assertEqual(self.bar.open_key, key)
+        for key in self.b.TRAY:
+            fly = self.bar.open_flyout(key, tray.button);pump()
+            self.assertTrue(fly.isVisible(), key);self.assertEqual(sorted(fly.rooms), sorted(self.b.TRAY));self.assertEqual(self.bar.open_key, 'quick')
             self.assertLessEqual(fly.geometry().bottom(), self.bar.geometry().top(), key)      # above the bar
             presses = [b.text() for b in fly.findChildren(QPushButton)]
             self.assertIn(self.b.MORE_WORDS, presses)
-            if wants:self.assertIn(wants, presses);self.assertIn('Disconnect', presses)
-            if key == 'sound':self.assertEqual(fly.findChildren(QSlider)[0].value(), 55)
-            if key == 'power':self.assertTrue(any('76 %' in w.text() for w in fly.findChildren(__import__('PySide6.QtWidgets', fromlist=['QLabel']).QLabel)))
+            self.assertIn('Turn Wi-Fi off', presses);self.assertIn('Disconnect', presses)
+            self.assertEqual(fly.findChildren(QSlider)[0].value(), 55)
+            self.assertTrue(any('76 %' in w.text() for w in fly.findChildren(__import__('PySide6.QtWidgets', fromlist=['QLabel']).QLabel)))
             fly.close();pump()
             self.assertIsNone(self.bar.open_key)
 
@@ -149,9 +149,9 @@ class TheBar(unittest.TestCase):
         gone = self.b.tray_words('power', dict(available=False, why='Not available on this computer: UPower is not running'))
         self.assertEqual(gone[0], 'Unknown');self.assertIn('UPower is not running', gone[1])
         self.assertEqual(self.b.tray_words('sound', None)[0], '…')
-        for key in self.b.TRAY:      # a fixed width: the longest word of each fits, so nothing shifts
-            item = self.bar.slot('tray').items[key];w = item.natural(40)
-            item.show_reading(dict(available=False, why='x'));self.assertEqual(item.natural(40), w)
+        button = self.bar.slot('tray').button;w = button.natural(40)      # 1.1 B5: one button, a fixed width: nothing shifts
+        for key in self.b.TRAY:
+            self.bar.slot('tray').items[key].show_reading(dict(available=False, why='x'));self.assertEqual(button.natural(40), w)
 
     def test_the_clock_says_the_time_over_the_date_and_its_month_rises_above_the_bar(self):
         from workbench.dock_clock_qt import words

@@ -205,17 +205,17 @@ class OneLine(unittest.TestCase):
         line.setText('');line.returnPressed.emit()
 
     def test_the_meters_are_one_tray_item_whose_rows_are_the_doors(self):
-        w = self.w;item = self.ff.meters_item(w);self.assertIsNotNone(item)
+        w = self.w;item = self.ff.meters_item(w);self.assertIsNotNone(item)      # 1.1 B5: the Quick Settings button
         read = self.ff.readings(w);self.assertEqual(tuple(read), self.ff.METER_KEYS)
-        self.assertIn('CPU', item.toolTip() or self.ff.meters_words(read))
-        fly = item.open_meters();self.settle(40)
-        self.assertEqual(list(fly.rows), list(self.ff.METER_KEYS))
+        item.show_words();self.assertIn('Meters: CPU', item.toolTip())
+        fly = item.tray.open_panel();self.settle(40)
+        rows = fly.sections['meters'].rows;self.assertEqual(list(rows), list(self.ff.METER_KEYS))
         with patch('workbench.meter_cards.open_card', return_value=None) as card:
-            fly.rows['RAM'].click();self.settle(40)
+            rows['RAM'].click();self.settle(40)
         card.assert_called_once_with(w, item, 'RAM')
         with patch('workbench.meter_cards.open_card', return_value=None) as card:
             w.shell2.top.pulse.open_card('CPU')
-        card.assert_called_once_with(w, item, 'CPU')      # Ctrl+Alt+Del's card (graphite-do tasks) opens above the tray item
+        card.assert_called_once_with(w, item, 'CPU')      # Ctrl+Alt+Del's card (graphite-do tasks) opens above Quick Settings
 
 
 class QRectStandIn:

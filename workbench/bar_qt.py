@@ -16,7 +16,8 @@ Named slots, left to right (SLOTS):
   kas      a placeholder (B3 fills it): her name and her state, its shape and its word
   tray     network, sound and power, each a glyph and a word in a fixed width so nothing shifts; a press opens a small
            flyout above it with the Machine page's own actions (machine_room_qt's page, made compact; machine_real reads
-           and changes, on the owner's press only, each change said DONE only when read back)
+           and changes, on the owner's press only, each change said DONE only when read back). 1.1 B5: the three are one
+           Quick Settings button (quick_settings_qt), one press opening one panel with every section
   clock    the time over the date; a press shows the month (W1's clock, moved here from the dock)
 
 register_slot(name, widget_factory) lets a later slice fill a slot without editing this file: widget_factory(bar) returns
@@ -679,7 +680,12 @@ class BarClock(Clock):
         p.drawText(QRect(0, half + 1, w, half - 3), Qt.AlignHCenter | Qt.AlignTop, day);p.end()
 
 
-DEFAULTS = dict(start=StartButton, line=LineField, windows=WindowsSlot, kas=KasChip, tray=Tray, clock=BarClock)
+def quick_tray(bar):      # 1.1 B5: the tray is one Quick Settings button (quick_settings_qt); Tray stays for what builds on it
+    from .quick_settings_qt import QuickTray
+    return QuickTray(bar)
+
+
+DEFAULTS = dict(start=StartButton, line=LineField, windows=WindowsSlot, kas=KasChip, tray=quick_tray, clock=BarClock)
 
 
 # ---- the bar --------------------------------------------------------------------------------------------------------------------
@@ -851,6 +857,8 @@ class Bar(QWidget):
 
     def open_flyout(self, key, anchor=None):
         """The flyout above the tray item `key` (network, sound or power); a second press on an open one closes it."""
+        tray = self.slots.get('tray')      # 1.1 B5: Quick Settings: one panel with every section, `key`'s in sight
+        if callable(getattr(tray, 'open_panel', None)):return tray.open_panel(key)
         old = self.flyouts.get(key)
         try:
             if old is not None and old.isVisible():old.close();return None
@@ -913,6 +921,7 @@ def install(host):
                 state['left_full_screen'] = leave_full_screen(host)
                 strip = getattr(host, 'window_strip', None)
                 if strip is not None:strip.relayout()
+                from .quick_settings_qt import bar_stood; bar_stood(host)      # 1.1 B5: the head again: Apps leaves it, the menus go left
             else:
                 state['why'] = 'The bar does not stand: it could not be made a dock (%s).' % (bar.why or 'no reason given')
                 bar.hide();bar.deleteLater()

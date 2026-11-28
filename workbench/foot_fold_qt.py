@@ -13,11 +13,11 @@ from __future__ import annotations
 
 import os
 
-from PySide6.QtCore import QEvent, QObject, QRect, QRectF, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QFontMetrics, QPainter
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout
+from PySide6.QtCore import QEvent, QObject, Qt, QTimer
+from PySide6.QtWidgets import QLabel, QLineEdit
 
 from . import bar_qt
+from .quick_settings_qt import QuickTray      # 1.1 B5
 
 # Old place -> new place (the owner reads this table; the release notes carry it). K0's head_menus.MOVED is its model.
 FOOT_MOVED = (
@@ -35,7 +35,7 @@ FOOT_MOVED = (
     ('Log: Events and Network, filtered from the line (Alt+6)',
      'View ▸ Log (Alt+6): the working area\'s Log, with its own Filter line (Enter filters; Ctrl+Enter captures, in Network)'),
     ('The meters CPU, GPU, RAM, TXT and NET at the foot\'s right, each a door to its card',
-     'The bar\'s tray: one item, Meters (its bars, and CPU in words on the tall bar); a press opens the five, each the same door'),
+     'The bar\'s Quick Settings (1.1 B5): every meter in its tip; a press opens its panel, the five its fourth section, each the same door'),
     ('The arrow at the line\'s end, Ctrl+Enter and Ask Kasandra →', "Enter on the bar's line (its first row), or a press on any row"),
     ('Expand and Collapse (the room above the line)', 'View ▸ Console ▸ One Line, Half, Tall (as before), and Ctrl+`'),
     ('Short messages ("Saved as…") at the line', 'The working area\'s message line, as before (the foot only repeated them)'),
@@ -182,7 +182,7 @@ def open_log(host, toggle=True):
     return True
 
 
-# ---- the meters: one item in the bar's tray ---------------------------------------------------------------------------------------
+# ---- the meters: the Quick Settings' fourth section -------------------------------------------------------------------------------------
 METER_KEYS = ('CPU', 'GPU', 'RAM', 'TXT', 'NET')
 
 
@@ -209,65 +209,8 @@ def meters_words(read):
     return ', '.join('%s %s' % (key, read.get(key, ('—', None))[0]) for key in METER_KEYS)
 
 
-class MetersItem(bar_qt.BarButton):
-    """The meters in the bar's tray: three bars (CPU, GPU and RAM: their heights are their shares, an empty box when there is
-    no reading), and CPU in words on the tall bar; a press opens the five, each the door its meter was."""
-
-    def __init__(self, tray):
-        super().__init__(tray, 'Meters');self.tray = tray;self.read = {};self.flyout = None
-        self.clicked.connect(self.open_meters)
-        self.timer = QTimer(self);self.timer.setInterval(2000);self.timer.timeout.connect(self.refresh);self.timer.start()
-        QTimer.singleShot(0, self.refresh)
-
-    def word(self):
-        return 'CPU %s' % self.read.get('CPU', ('—', None))[0]
-
-    def natural(self, h):
-        glyph = round(h * 0.42) + 2 * round(h * 0.25)
-        if h <= bar_qt.SHORT:return glyph
-        return glyph + 6 + QFontMetrics(bar_qt.bar_font(h)).horizontalAdvance('CPU 100 %')
-
-    def refresh(self):
-        try:host = self.tray.bar.host
-        except RuntimeError:
-            return
-        if getattr(host, '_closing', False):self.timer.stop();return
-        self.read = readings(host);words = meters_words(self.read)
-        self.setToolTip('Meters: %s\nA press opens the five; each opens its card.' % words);self.setAccessibleName('Meters: ' + words)
-        self.update()
-
-    def paintEvent(self, event):
-        c = bar_qt.ink();p = QPainter(self);w, h = self.width(), self.height()
-        try:opened = self.flyout is not None and self.flyout.isVisible()
-        except RuntimeError:opened = False
-        self.ground(p, c, opened)
-        side = round(h * 0.42);x0 = round(h * 0.25);top = (h - side) / 2.0;bw = max(3, round(side / 4.0));gap = max(2, round((side - 3 * bw) / 2.0))
-        p.setRenderHint(QPainter.Antialiasing)
-        for i, key in enumerate(('CPU', 'GPU', 'RAM')):
-            share = self.read.get(key, ('—', None))[1];x = x0 + i * (bw + gap)
-            box = QRectF(x + 0.5, top + 0.5, bw - 1, side - 1)
-            p.setPen(QColor(c['tertiary']));p.setBrush(Qt.NoBrush);p.drawRect(box)
-            if share is not None:
-                fill = max(1.0, (side - 2) * max(0.0, min(1.0, float(share))))
-                p.fillRect(QRectF(x + 1, top + side - 1 - fill, bw - 2, fill), QColor(c['text']))
-        if h > bar_qt.SHORT:
-            x = x0 + side + 6;p.setFont(bar_qt.bar_font(h));p.setPen(QColor(c['text'] if self.underMouse() else c['secondary']))
-            p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, self.word())
-        p.end()
-
-    def open_meters(self):
-        try:
-            if self.flyout is not None and self.flyout.isVisible():self.flyout.close();return None
-        except RuntimeError:
-            self.flyout = None
-        bar = self.tray.bar
-        for fly in list(getattr(bar, 'flyouts', {}).values()):
-            try:fly.close()
-            except RuntimeError:pass
-        self.flyout = MetersFlyout(self);self.flyout.setAttribute(Qt.WA_DeleteOnClose, True)
-        self.flyout.destroyed.connect(lambda *_: setattr(self, 'flyout', None))
-        self.update()
-        return self.flyout.open_above()
+# 1.1 B5: B4's MetersItem and MetersFlyout became the Quick Settings panel's fourth section (quick_settings_qt.MetersSection,
+# its rows these doors); the one button shows network, sound and power, the meters in its tip.
 
 
 class DoorWords(QLabel):
@@ -281,62 +224,13 @@ class DoorWords(QLabel):
         super().mouseReleaseEvent(event)
 
 
-class MetersFlyout(QFrame):
-    """The five meters above their tray item, each a row in words with the door it was (meter_cards)."""
-
-    def __init__(self, item):
-        super().__init__(None, Qt.Popup | Qt.FramelessWindowHint)
-        from .meter_cards import DOORS
-        self.item = item;host = item.tray.bar.host;self.host = host;c = bar_qt.ink()
-        self.setObjectName('GraphiteMetersFlyout');self.setAccessibleName('Meters, from the bar')
-        self.setStyleSheet('QFrame#GraphiteMetersFlyout {background:%s; border:1px solid %s;} QLabel {color:%s; background:transparent;}'
-                           ' QLabel[role="quiet"] {color:%s;} QPushButton {color:%s; background:transparent; border:0; text-align:left; padding:6px 8px;}'
-                           ' QPushButton:hover {background:%s;}' % (c['surface'], c['stroke'], c['text'], c['secondary'], c['text'], c['hover_side']))
-        box = QVBoxLayout(self);box.setContentsMargins(14, 12, 14, 12);box.setSpacing(6)
-        head = QLabel('Meters · this computer, now', self);f = head.font();f.setBold(True);head.setFont(f);box.addWidget(head)
-        grid = QGridLayout();grid.setHorizontalSpacing(12);grid.setVerticalSpacing(2);box.addLayout(grid)
-        self.rows = {};read = readings(host)
-        for r, key in enumerate(METER_KEYS):
-            words = read[key][0]
-            b = QPushButton('%s   %s' % (key, words), self);b.setCursor(Qt.PointingHandCursor);b.setMinimumWidth(130)
-            b.setAccessibleName('%s %s: %s' % (key, words, DOORS[key]));b.clicked.connect(lambda checked=False, key=key: self.door(key))
-            door = DoorWords(DOORS[key], lambda key=key: self.door(key), self);door.setProperty('role', 'quiet');door.setWordWrap(True)
-            door.setCursor(Qt.PointingHandCursor);door.setToolTip('Opens: ' + DOORS[key])
-            grid.addWidget(b, r, 0);grid.addWidget(door, r, 1);self.rows[key] = b
-        note = QLabel('Each opens what its meter is about, as the foot\'s meters did.', self);note.setProperty('role', 'quiet');box.addWidget(note)
-
-    def door(self, key):
-        """A meter's card, above the tray item (meter_cards.open_card: the same card as 1.0's meter opened)."""
-        item = self.item;host = self.host
-        self.close()
-        from .meter_cards import open_card
-        return open_card(host, item, key)
-
-    def open_above(self):
-        item = self.item;bar = item.tray.bar
-        self.setFixedWidth(500 if bar.height() >= bar_qt.TALL else 460);self.adjustSize()
-        screen = (bar.screen() or item.screen()).geometry()
-        right = item.mapToGlobal(item.rect().topRight()).x() + 1
-        x = max(screen.left(), min(right, screen.right() + 1) - self.width())
-        top = bar.mapToGlobal(bar.rect().topLeft()).y()
-        self.move(x, top - self.height() - 6);self.show();self.raise_()
-        return self
-
-
-class MetersTray(bar_qt.Tray):
-    """B1's tray (network, sound, power) with the meters first: their one home once the foot has folded."""
+class MetersTray(QuickTray):
+    """The bar's Quick Settings with the meters as its fourth section: their one home once the foot has folded (1.1 B5)."""
+    with_meters = True
 
     def __init__(self, bar):
-        super().__init__(bar);self.meters = MetersItem(self)
-        self.setAccessibleName('The tray: meters, network, sound and power')
-
-    def bar_width(self, h):
-        return self.meters.natural(h) + super().bar_width(h)
-
-    def resizeEvent(self, event):
-        h = self.height();w = self.meters.natural(h);self.meters.setGeometry(0, 0, w, h);x = w
-        for key in bar_qt.TRAY:
-            w = self.items[key].natural(h);self.items[key].setGeometry(x, 0, w, h);x += w
+        super().__init__(bar);self.meters = self.button      # the meters' cards open above the Quick Settings button
+        self.setAccessibleName('The tray: Quick Settings (network, sound, power and the meters)');self.button.show_words()
 
 
 def meters_item(host):

@@ -792,13 +792,15 @@ class TopBar(QWidget):
                 if not widget.icon().isNull():width += widget.iconSize().width() + (round(8 * min(d.scale, 1.4)) if widget.text() else 0)
                 width = max(width, widget.sizeHint().width())      # 1.1 T1: the word Apps (Day, Night) gets the room its style asks
             x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
+            from .quick_settings_qt import head_free; free = head_free(self)      # 1.1 B5: the bar stands: Apps and its plus leave the head (Start)
+            if free:x = d.width - o      # 1.1 B5
             from .network_qt import place_head as place_net; x = place_net(self, x, h, gap, d)      # 1.0 K8: the network's word, left of Apps
             # The familiar menus from the middle column's left edge. In a window too narrow for all of them the rightmost
             # fold into ⋯, which lists every menu.
             words = self.menu_words();air = round(22 * min(d.scale, 1.4))
             widths = [word.fontMetrics().horizontalAdvance(word.text()) + air for word in words]
             fold = self.more_menus.fontMetrics().horizontalAdvance('⋯') + round(26 * min(d.scale, 1.4));kept = 0
-            left = d.left + edge(d.scale)
+            left = o if free else d.left + edge(d.scale)      # 1.1 B5: with the bar, the menus from the head's left edge, as a Windows app's
             for keep in range(len(words), -1, -1):
                 if left + sum(widths[:keep]) + (fold if keep < len(words) else 0) + gap <= x or keep == 0:
                     kept = keep;break
@@ -820,6 +822,7 @@ class TopBar(QWidget):
             if not getattr(self.equalizer, 'in_column', False):      # 1.0 P1: once it is in her column the upper left stays empty (HALT's place, K3)
                 self.equalizer.setGeometry(o, (h - tall) // 2, wide, tall)
                 self.equalizer.setVisible(wide >= 48)
+            if free:from .quick_settings_qt import place_equalizer; place_equalizer(self, d, left, x, gap)      # 1.1 B5: after the menus
             from .halt_qt import place_head as place_halt; place_halt(self, d)      # 1.0 P2: HALT upper left
             self.folded_menus = self.headings()
             self.plan = None

@@ -374,7 +374,14 @@ class StartPanel(QFrame):
         left = QVBoxLayout();right = QVBoxLayout()
         for column, title, view in ((left, 'Apps', self.apps), (right, 'Recent', self.recent)):
             head = QLabel(title, self.home);head.setFont(font(tokens.TYPE['subhead'][0], QFont.DemiBold))
-            head.setStyleSheet('color:%s; padding-left:12px;' % c['text']);column.addWidget(head);column.addWidget(view, 1)
+            head.setStyleSheet('color:%s; padding-left:12px;' % c['text'])
+            if view is self.apps:      # 1.1 B5: Apps' plus left the head; "Add an app to the list" is here, beside Start's Apps
+                from .apps_qt import PlusButton
+                line = QHBoxLayout();line.setSpacing(4);line.addWidget(head);line.addStretch(1)
+                self.add_app = PlusButton(self.host, self.home);self.add_app.setFixedSize(28, 28);self.add_app.clicked.connect(self.close)
+                line.addWidget(self.add_app);column.addLayout(line)
+            else:column.addWidget(head)
+            column.addWidget(view, 1)
         lay.addLayout(left, 58);rule = QFrame(self.home);rule.setFixedWidth(1);rule.setStyleSheet('background:%s;' % c['hairline']);lay.addWidget(rule)
         lay.addLayout(right, 42)
         self.fill_home()
