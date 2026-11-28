@@ -82,6 +82,10 @@ rules holding you back".
   resumed) and B5 (a quieter bar; agent a7e3d385b9ace247f) run lean for **1.1.2**. When both land: merge, rebuild the
   repository (C0 adds xterm as a Depends: tools/build_repo.sh as in `$S/work/r111/build.sh`), version 1.1.2, short notes,
   cut, release check, send the whole kit. If the limit stops them, their saves are in `$S/work/b110/` and partial/b110/.
+- **KAS 1.1.5 RELEASED (09:29 UTC): more screen burns and more burnt grey** (the owner: "We need more screen burns, and
+  can probably add some burnt gray"; done by the coordinator in crt_qt.py, d7b844b: burn 5 %/8 %, 1.0's dock, the old
+  foot, a boxed menu, a VCR 12:00, F-keys, a tape's LOAD, her old session). Cut from 7bf7622; release check PASSED
+  (1,664 files); 18 files sent; record `wip/2026-11-28_release_115/`; base kit `$S/work/r115/kit/`.
 - **KAS 1.1.4 RELEASED (09:21 UTC): Kas, only Kas (R1, d32c590) and Night Duo (ea4d2cf).** Cut from 491f2fa; release
   check PASSED (1,663 files); the whole kit (39 files, KAS_NNN.zip) sent with `docs/RELEASE_NOTES_1.1.4.md` and the
   bar's frame; record `wip/2026-11-28_release_114/`; base kit `$S/work/r114/kit/` (cut_pre.sh now replaces kas-* and
