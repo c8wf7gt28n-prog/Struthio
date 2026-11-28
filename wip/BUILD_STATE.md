@@ -82,6 +82,14 @@ rules holding you back".
   resumed) and B5 (a quieter bar; agent a7e3d385b9ace247f) run lean for **1.1.2**. When both land: merge, rebuild the
   repository (C0 adds xterm as a Depends: tools/build_repo.sh as in `$S/work/r111/build.sh`), version 1.1.2, short notes,
   cut, release check, send the whole kit. If the limit stops them, their saves are in `$S/work/b110/` and partial/b110/.
+- **GRAPHITE 1.1.3 RELEASED (08:38 UTC): Night as a phosphor monitor (N1, 456c188, with CRT effects) and a quieter bar
+  (B5, 55d41fb).** Cut from 657f68a; 101 tests of the 1.1.x parts pass; release check PASSED (1,660 files); 17 files
+  sent with `docs/RELEASE_NOTES_1.1.3.md`; record `wip/2026-11-28_release_113/`; base kit `$S/work/r113/kit/`.
+  The owner asked whether the tray could go to an "upper right bar": answered (a screen-wide top bar costs every app
+  about 24 px of height; Quick Settings already freed the bottom bar); if the owner says "top bar", build it first next
+  week. **Next week, in order:** the owner's ThinkPad results first; KS4 (grounding, teach me); a top bar only if asked;
+  N1's leftovers (Night frames at 1366, afterglow beyond line edits, bloom beyond menus); wiring KS2's root refusals to
+  system_door.offer; then C1-C3 and Z1-Z4. The wake-up stays disabled until the owner says continue.
 - **GRAPHITE 1.1.2 RELEASED (08:04 UTC): a real terminal** (C0 merged 8809174; cut from f3e5740, release check PASSED
   after a test's /home path was changed; 17 files sent; record `wip/2026-11-28_release_112/`; base kit
   `$S/work/r112/kit/`; no repository rebuild: xterm and libglib2.0-bin were already in it).
