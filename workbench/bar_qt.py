@@ -45,6 +45,7 @@ from PySide6.QtWidgets import QAbstractButton, QApplication, QFrame, QPushButton
 from . import boss_theme as bt
 from . import design_tokens as tokens
 from . import system_dock_qt as sd
+from . import night_hero as hero      # 1.1 HX: the clock's seven-segment digits in Night
 from . import windows_x11 as wx
 from .dock_clock_qt import Clock, words as clock_words
 from .windows_strip_qt import Entry, WindowStrip, hub
@@ -674,7 +675,7 @@ class BarClock(Clock):
 
     def natural(self, h):
         clock, day, whole = clock_words()
-        return max(QFontMetrics(bar_font(h, QFont.DemiBold)).horizontalAdvance(clock),
+        return max(QFontMetrics(bar_font(h, QFont.DemiBold)).horizontalAdvance(clock), hero.clock_width(h) if hero.night() else 0,      # 1.1 HX
                    QFontMetrics(bar_font(h, None, tokens.TYPE['footnote'][0])).horizontalAdvance(day)) + 2 * round(h * 0.4)
 
     def bar_width(self, h):
@@ -686,8 +687,10 @@ class BarClock(Clock):
         if self.isDown():plate(p, r, c['pressed'])
         elif self.underMouse():plate(p, r, c['hover_side'])
         clock, day, whole = clock_words();half = h // 2
-        p.setFont(bar_font(h, QFont.DemiBold));p.setPen(QColor(c['text']))
-        p.drawText(QRect(0, 2, w, half - 1), Qt.AlignHCenter | Qt.AlignBottom, clock)
+        if hero.night():self.segments = hero.paint_clock(p, QRectF(0, 2, w, half - 1), c, clock)      # 1.1 HX: seven bars a digit
+        else:
+            p.setFont(bar_font(h, QFont.DemiBold));p.setPen(QColor(c['text']))
+            p.drawText(QRect(0, 2, w, half - 1), Qt.AlignHCenter | Qt.AlignBottom, clock)
         p.setFont(bar_font(h, None, tokens.TYPE['footnote'][0]));p.setPen(QColor(c['secondary']))
         p.drawText(QRect(0, half + 1, w, half - 3), Qt.AlignHCenter | Qt.AlignTop, day);p.end()
 

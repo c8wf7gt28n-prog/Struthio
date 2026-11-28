@@ -204,6 +204,7 @@ REVIEWED['day'] = {pair: _told(pair) for pair in _SHARED + (('fails', 'hers'), (
 # which every look draws (SIGNS), and what is chosen is also inverse video, a block of the phosphor with its words in the ground.
 _BRIGHT = ('chosen', 'cue', 'fails', 'hers', 'line', 'ready', 'stopped', 'waits', 'wire', 'words');_DIM = ('held', 'quiet', 'recheck')
 NIGHT_CLOSE = {'amber': tuple(combinations(_BRIGHT + _DIM, 2)), 'green': tuple(combinations(_BRIGHT, 2)) + tuple(combinations(_DIM, 2))}
+NIGHT_CLOSE['paper'] = NIGHT_CLOSE['amber']      # 1.1 HX: Night: Paper, one white phosphor: every pair is told by its word or shape
 # 1.1 N1duo: Night: Duo has two phosphors, green for the computer (ready, cue, line, wire, words; held, quiet and recheck a
 # step under) and amber for Kas and the owner's word (chosen, waits, fails, stopped, hers). Weak red or green sight sees the
 # two as one, so every pair is close but a bright green and a dim one; each is told by its word or its shape (SIGNS).

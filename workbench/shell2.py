@@ -2151,7 +2151,10 @@ class SlateFace(QWidget):
             if w is not None:w.show()
         if getattr(self, 'fold', None) is not None:self.fold.hide()
 
-    def say(self, text):return self.add(Bubble(text))
+    def say(self, text):
+        bubble = self.add(Bubble(text))
+        from .night_hero import type_out      # 1.1 HX: in Night with CRT effects on, her new line types out (a card stays whole)
+        type_out(self, bubble);return bubble
 
     def mine(self, text, code=False):
         bubble = Bubble(text, mine=True, code=code)

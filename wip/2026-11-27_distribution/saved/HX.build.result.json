@@ -1,0 +1,29 @@
+{
+  "item": "HX",
+  "status": "done",
+  "summary": "Night's hero extras, all four built: (1) the bar clock in Night draws HH:MM as seven-segment bars (crt_qt.Screen.seven_segment) in her phosphor over faint unlit 88:88, the date small under it in the mono face; Day, Pencil and Indigo unchanged. (2) Her new lines in her panel type out behind a block cursor at 600 characters a second (never over 0.8 s), with the characters lit in the last AFTERGLOW_MS glowing behind it. A click shows the line whole. It is instant under Reduce motion, with CRT effects Off and outside Night. A card (a line with a button) is always shown whole. The line's height is reserved and the thread follows the cursor. (3) Peak marks: in Night the equalizer's peak dots hold the highest value for 2.5 s, then fall 0.25 of the scale a second; the peak is the tokens' 'peak' (amber in Duo); the Night word meters get a slim green bar with an amber peak tick. (4) Night: Paper, a fourth phosphor (#c9d1d3, steps 220/195/125) under View > Appearance; every text pair is 4.5:1 or more.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/HX.patch",
+  "files_changed": ["workbench/night_hero.py (new)", "workbench/bar_qt.py", "workbench/shell2.py", "workbench/equalizer_qt.py", "workbench/neon_meters.py", "workbench/design_tokens.py", "workbench/night_phosphor.py", "workbench/boss_qt.py", "tools/colour_vision.py", "tests_integrated/test_night_phosphor.py"],
+  "tests": {
+    "added": ["HeroExtras.test_the_clock_draws_seven_segment_digits_in_night_and_day_keeps_its_clock", "HeroExtras.test_her_words_type_out_behind_a_block_cursor_and_a_click_shows_them_whole", "HeroExtras.test_typing_is_instant_under_reduce_motion_with_crt_off_and_outside_night", "HeroExtras.test_a_card_that_waits_for_the_owners_press_appears_whole", "HeroExtras.test_the_peak_mark_holds_the_last_few_seconds_then_falls_slowly", "HeroExtras.test_in_duo_the_bars_are_green_and_the_peak_mark_amber", "HeroExtras.test_night_paper_is_a_fourth_choice_one_white_phosphor_every_text_4_5_to_1"],
+    "ran": "tests_integrated/test_night_phosphor.py (on a throwaway copy, offscreen)",
+    "output_tail": "Ran 22 tests in 2.012s\n\nOK"
+  },
+  "existing_tests_changed": ["tests_integrated/test_night_phosphor.py Duo.test_duo_is_the_default_night_and_amber_and_green_stay_choices: np_.PHOSPHORS now has a fourth entry ('paper', 'Night: Paper'), which item 4 asks for"],
+  "decisions": [
+    "Clock colour is the tokens' kas_text: amber in Duo and Amber; Green's and Paper's clocks are their own phosphor, so the single phosphors stay one hue. The plan names amber for every Night; this keeps N1's one-hue rule.",
+    "Unlit 88:88 bars under the clock at 26/255 of the phosphor, like an LED clock.",
+    "Type-out runs in every Night phosphor when crt_fx has afterglow (Night, CRT effects not Off, no Reduce motion). The cursor is in kas_text. The afterglow is three fading bands of the phosphor behind the cursor over AFTERGLOW_MS.",
+    "A card is a bubble with a button, or with more than its words, checked at say() and on every tick, because buttons are added after say() returns.",
+    "Peak hold 2.5 s, fall 0.25 of the scale a second. Applied in every Night, so Day's equalizer is unchanged. The colour is the tokens' 'peak', so amber shows only in Duo.",
+    "Night's foot meters are words only, so their peak mark is a 2 px bar of the reading (green, or amber with the existing hot mark) with a 2x6 px amber tick under the words. They repaint on each reading, so the fall steps once a reading.",
+    "Paper's shares 220/195/125 (secondary/tertiary/disabled), measured by the NIGHT_PAIRS test; colour_vision NIGHT_CLOSE['paper'] is the same as Amber's (one hue: every pair is told by word or shape)."
+  ],
+  "findings_for_the_coordinator": [
+    "In Night: Duo her conversation bubbles (shell2.Bubble, SlateTheirs) draw her words in green #33ff66, not amber. Measured in the frame: palette foreground #33ff66, no stylesheet. N1duo says Kas's words are amber. This predates HX; HX's cursor is amber and the words keep the bubble's colour.",
+    "The bar stands only in an X session. The frame was composed from the offscreen window plus a Bar built directly, at 1920x1200."
+  ],
+  "not_done": ["No 1366x768 frame (the slice asked for the one 1920x1200 frame).", "No tier or full-suite run (by the rules).", "Nothing ran on the owner's ThinkPad."],
+  "release_note": "Night gets its hero touches. The bar's clock is an LED desk clock in seven-segment digits. Kas's new lines type out behind her block cursor, and a click shows a line at once; under Reduce motion or with CRT effects Off they appear whole, as do her cards. The activity bars and meters keep an amber peak mark that holds for a moment and then falls. A fourth Night, Night: Paper, is a white-phosphor terminal in paper-white grey.",
+  "frames": ["/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/HX/frames/night_duo_1920x1200.png", "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/HX/frames/her_panel_x2.png"]
+}

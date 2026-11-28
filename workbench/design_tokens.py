@@ -50,15 +50,16 @@ COLOUR = {
 #   (A step a little above the lowest that passes, so the CRT effects' scanline and vignette, crt_qt, never take a word under.)
 # What is selected, the pressed button, the active window on the bar, HALT and anything destructive are inverse video: a
 # block of the phosphor with words in the ground. State colours become the phosphor; every state keeps its word and shape.
-PHOSPHORS = ('duo', 'amber', 'green')      # 1.1 N1duo: Duo first, the default
-MONO_PHOSPHORS = ('amber', 'green')        # 1.1 N1duo: the two one-hue monitors N1 built, kept as choices
+PHOSPHORS = ('duo', 'amber', 'green', 'paper')      # 1.1 N1duo: Duo first, the default; 1.1 HX: Paper, a white phosphor
+MONO_PHOSPHORS = ('amber', 'green', 'paper')        # 1.1 N1duo: the two one-hue monitors N1 built, kept as choices; 1.1 HX: Paper
 PHOSPHOR_DEFAULT = 'duo'      # 1.1 N1duo (N1: amber)
 PHOSPHOR = [PHOSPHOR_DEFAULT]      # the phosphor in force: boss_theme sets it once, at its import, as it chooses the look
 IN_FORCE = ['day']                 # the look in force (boss_theme sets it too): face() reads it
-PHOSPHOR_WORDS = {'duo': 'Duo', 'amber': 'Amber', 'green': 'Green'}      # 1.1 N1duo: Duo
+PHOSPHOR_WORDS = {'duo': 'Duo', 'amber': 'Amber', 'green': 'Green', 'paper': 'Paper'}      # 1.1 N1duo: Duo; 1.1 HX: Paper
 NIGHT_GROUND = '#0a0a08'
 # phosphor: (full, secondary share, tertiary share, disabled share)
-PHOSPHOR_INK = {'amber': ('#ffb000', 220, 200, 130), 'green': ('#33ff66', 205, 180, 115)}
+# 1.1 HX: Paper, an old white-phosphor terminal: Duo's paper-white grey (DUO_INK['paper']) alone, its steps measured as above.
+PHOSPHOR_INK = {'amber': ('#ffb000', 220, 200, 130), 'green': ('#33ff66', 205, 180, 115), 'paper': ('#c9d1d3', 220, 195, 125)}
 
 
 def _phosphor_colours(name):

@@ -18,11 +18,11 @@ import json
 import os
 
 PHOSPHOR_KEY, CRT_KEY = 'phosphor', 'crt'
-PHOSPHORS = (('duo', 'Night: Duo'), ('amber', 'Night: Amber'), ('green', 'Night: Green'))      # 1.1 N1duo: Duo, green and amber with grey
+PHOSPHORS = (('duo', 'Night: Duo'), ('amber', 'Night: Amber'), ('green', 'Night: Green'), ('paper', 'Night: Paper'))      # 1.1 N1duo: Duo, green and amber with grey; 1.1 HX: Paper
 PHOSPHOR_DEFAULT = 'duo'      # 1.1 N1duo: the default Night (N1: amber); a phosphor the owner chose and saved is kept
 CRT_LEVELS = (('off', 'Off'), ('subtle', 'Subtle'), ('full', 'Full'))
 CRT_DEFAULT = 'subtle'
-ASKED_LOOKS = {'night-duo': 'duo', 'night-amber': 'amber', 'night-green': 'green'}      # 1.1 N1duo: night-duo      # GRAPHITE_APPEARANCE words that name a phosphor
+ASKED_LOOKS = {'night-duo': 'duo', 'night-amber': 'amber', 'night-green': 'green', 'night-paper': 'paper'}      # 1.1 N1duo: night-duo; 1.1 HX: night-paper      # GRAPHITE_APPEARANCE words that name a phosphor
 
 
 def phosphor_value(value):

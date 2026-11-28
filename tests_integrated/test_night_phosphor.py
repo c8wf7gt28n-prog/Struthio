@@ -175,7 +175,7 @@ class Duo(unittest.TestCase):
 
     def test_duo_is_the_default_night_and_amber_and_green_stay_choices(self):
         self.assertEqual((dt.PHOSPHOR_DEFAULT, np_.PHOSPHOR_DEFAULT), ('duo', 'duo'))
-        self.assertEqual(np_.PHOSPHORS, (('duo', 'Night: Duo'), ('amber', 'Night: Amber'), ('green', 'Night: Green')))
+        self.assertEqual(np_.PHOSPHORS, (('duo', 'Night: Duo'), ('amber', 'Night: Amber'), ('green', 'Night: Green'), ('paper', 'Night: Paper')))      # 1.1 HX: Paper, a fourth
         with tempfile.TemporaryDirectory() as home:
             self.assertEqual(np_.chosen_phosphor({}, os.path.join(home, 'none.json')), 'duo')
         self.assertEqual(np_.chosen_phosphor({'GRAPHITE_APPEARANCE': 'night-duo'}, '/nonexistent'), 'duo')
@@ -236,6 +236,119 @@ class Duo(unittest.TestCase):
         self.assertEqual((tube.line.name(), tube.ground.name()), (self.AMBER, c['kas_ground']), 'her tube: amber, its ground a shade warmer')
         self.assertIsNotNone(tube.burnt());self.assertTrue(crt_qt.KAS_TUBE_DELAY > 0)
         window.deleteLater();app.processEvents()
+
+
+class HeroExtras(unittest.TestCase):
+    """1.1 HX, the acceptance: the clock draws seven-segment digits in Night; her words type out, but at once under Reduce
+    motion, CRT effects Off, a click or a card; the peak mark holds and falls slowly; Night: Paper's every text 4.5:1."""
+    AMBER, GREEN, PAPER = dt.DUO_INK['kas'], dt.DUO_INK['computer'], dt.DUO_INK['paper']
+
+    @classmethod
+    def setUpClass(cls):
+        from PySide6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+        from workbench import boss_theme
+        cls.bt = boss_theme;cls.was = getattr(boss_theme, 'PHOSPHOR', '')
+
+    def tearDown(self):
+        self.bt.PHOSPHOR = self.was
+
+    def lit(self, image, colour):
+        from PySide6.QtGui import QColor
+        want = QColor(colour).rgb() & 0xffffff
+        return sum(1 for y in range(image.height()) for x in range(image.width()) if image.pixel(x, y) & 0xffffff == want)
+
+    def test_the_clock_draws_seven_segment_digits_in_night_and_day_keeps_its_clock(self):
+        from PySide6.QtCore import QRectF
+        from PySide6.QtGui import QColor, QImage, QPainter
+        from PySide6.QtWidgets import QWidget
+        from workbench import bar_qt, night_hero
+        c = dt.colours('night-duo');image = QImage(120, 30, QImage.Format_RGB32);image.fill(QColor(c['window']))
+        p = QPainter(image);box = night_hero.paint_clock(p, QRectF(0, 0, 120, 30), c, '14:05');p.end()
+        self.assertGreater(self.lit(image, self.AMBER), 60, 'the digits are amber bars');self.assertGreater(box.height(), 10)
+        unlit = dt.over(c['kas_text'], c['window'], night_hero.UNLIT);self.assertGreater(self.lit(image, unlit), 4, 'the unlit bars of 88:88')
+        bar = QWidget();bar.resize(200, 44)
+        self.bt.PHOSPHOR = 'duo';clock = bar_qt.BarClock(bar);clock.resize(clock.natural(44), 44);clock.grab()
+        self.assertIsNotNone(getattr(clock, 'segments', None), 'Night: seven segments');self.assertGreaterEqual(clock.natural(44), night_hero.clock_width(44))
+        self.assertIn(':', clock.accessibleName(), 'the time is said in words')
+        self.bt.PHOSPHOR = '';day = bar_qt.BarClock(bar);day.resize(80, 44);day.grab()
+        self.assertIsNone(getattr(day, 'segments', None), 'Day keeps its clock')
+        bar.deleteLater();self.app.processEvents()
+
+    def bubble(self, words='All checks run. Nothing waits for you.'):
+        from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout
+        b = QFrame();b.box = QVBoxLayout(b);b.text = QLabel(words);b.box.addWidget(b.text);b.mine = b.code = False;b.resize(300, 80)
+        return b
+
+    def face(self, fx):
+        return type('Face', (), {'host': type('Host', (), {'crt_fx': fx})(), 'fold_earlier': lambda s: None})()
+
+    def test_her_words_type_out_behind_a_block_cursor_and_a_click_shows_them_whole(self):
+        from PySide6.QtCore import QEvent, QPointF, Qt
+        from PySide6.QtGui import QMouseEvent
+        from workbench import crt_qt, night_hero
+        self.assertEqual(night_hero.TYPE_CPS, 600);self.assertAlmostEqual(night_hero.type_ms(60), 100.0)
+        self.assertEqual(night_hero.type_ms(5000), 800.0, 'never longer than 0.8 s');self.assertEqual(night_hero.shown_at(5000, 800), 5000)
+        self.assertEqual(night_hero.shown_at(600, 500), 375);self.assertEqual(night_hero.shown_at(600, 0), 0)
+        self.bt.PHOSPHOR = 'duo';b = self.bubble();full = b.text.text()
+        typing = night_hero.type_out(self.face(crt_qt.effects('subtle')), b)
+        self.assertIsNotNone(typing);self.assertNotEqual(b.text.text(), full);self.assertIn(self.AMBER, b.text.text(), 'the amber block')
+        typing.show(10, 50.0);self.assertIn(full[:10], b.text.text());self.assertIn('background', b.text.text(), 'the afterglow behind it')
+        press = QMouseEvent(QEvent.MouseButtonPress, QPointF(5, 5), QPointF(5, 5), Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+        self.app.sendEvent(b.text, press)
+        self.assertTrue(typing.done);self.assertEqual(b.text.text(), full);self.assertNotEqual(b.text.textFormat(), Qt.RichText)
+
+    def test_typing_is_instant_under_reduce_motion_with_crt_off_and_outside_night(self):
+        from workbench import crt_qt, night_hero
+        self.bt.PHOSPHOR = 'duo'
+        for fx in (crt_qt.effects('subtle', reduce_motion=True), crt_qt.effects('full', reduce_motion=True), crt_qt.effects('off')):
+            b = self.bubble();full = b.text.text()
+            self.assertIsNone(night_hero.type_out(self.face(fx), b), fx);self.assertEqual(b.text.text(), full)
+        self.bt.PHOSPHOR = ''
+        self.assertFalse(night_hero.typing_on(self.face(crt_qt.effects('subtle')).host), 'Day, Pencil, Indigo: at once')
+
+    def test_a_card_that_waits_for_the_owners_press_appears_whole(self):
+        from PySide6.QtWidgets import QPushButton
+        from workbench import crt_qt, night_hero
+        self.bt.PHOSPHOR = 'duo';b = self.bubble('Shall I move the two notes? Waits for you.');full = b.text.text()
+        b.box.addWidget(QPushButton('Move them'))
+        self.assertIsNone(night_hero.type_out(self.face(crt_qt.effects('full')), b));self.assertEqual(b.text.text(), full)
+        late = self.bubble('A card whose buttons come after its words.');full = late.text.text()
+        typing = night_hero.type_out(self.face(crt_qt.effects('full')), late);late.box.addWidget(QPushButton('Run'))
+        typing.tick();self.assertTrue(typing.done);self.assertEqual(late.text.text(), full, 'a card is shown whole at once')
+
+    def test_the_peak_mark_holds_the_last_few_seconds_then_falls_slowly(self):
+        from workbench import night_hero as h
+        mark = h.Peak();self.assertFalse(mark.feed(0.9, now=100.0))
+        self.assertTrue(mark.feed(0.2, now=101.0));self.assertEqual(mark.value, 0.9)
+        self.assertTrue(mark.feed(0.2, now=100.0 + h.PEAK_HOLD_S - 0.01));self.assertEqual(mark.value, 0.9, 'held')
+        mark.feed(0.2, now=100.0 + h.PEAK_HOLD_S + 1.0);self.assertAlmostEqual(mark.value, 0.9 - h.PEAK_FALL, places=6)
+        self.assertLessEqual(h.PEAK_FALL, 0.34, 'slowly');self.assertTrue(2.0 <= h.PEAK_HOLD_S <= 5.0, 'the last few seconds')
+        mark.feed(0.2, now=200.0);self.assertEqual(mark.value, 0.2, 'never under the value now')
+        self.assertFalse(mark.feed(0.95, now=200.1));self.assertEqual(mark.value, 0.95, 'a new high is taken at once')
+
+    def test_in_duo_the_bars_are_green_and_the_peak_mark_amber(self):
+        from PySide6.QtGui import QColor, QImage, QPainter
+        from workbench import night_hero
+        c = dt.colours('night-duo');marks = dt.marks('night-duo')
+        self.assertEqual((c['peak'], marks['EQ_MID'], marks['EQ_HIGH']), (self.AMBER, self.GREEN, self.GREEN))
+        self.assertEqual(dt.colours('night-green')['peak'], dt.colours('night-green')['text'], 'one hue in a single phosphor')
+        q = dict(rest=QColor(c['raised']), mid=QColor(self.GREEN), hot=QColor(self.AMBER), peak=QColor(self.AMBER))
+        image = QImage(100, 12, QImage.Format_RGB32);image.fill(QColor(c['window']));meter = type('M', (), {})()
+        p = QPainter(image);night_hero.paint_meter_peak(p, meter, q, 0.7, 0, 100, 5);held = night_hero.paint_meter_peak(p, meter, q, 0.3, 0, 100, 5);p.end()
+        self.assertEqual(held, 0.7, 'the mark holds the higher reading');self.assertGreater(self.lit(image, self.GREEN), 40)
+        self.assertGreater(self.lit(image, self.AMBER), 6, 'the amber mark')
+
+    def test_night_paper_is_a_fourth_choice_one_white_phosphor_every_text_4_5_to_1(self):
+        from workbench import boss_qt
+        self.assertIn(('paper', 'Night: Paper'), np_.PHOSPHORS);self.assertIn('night-paper', boss_qt.APPEARANCE_WORDS)
+        self.assertEqual(np_.chosen_phosphor({'GRAPHITE_APPEARANCE': 'night-paper'}, '/nonexistent'), 'paper')
+        self.assertEqual(dt.phosphor('night-paper'), 'paper');self.assertEqual(dt.look_of('night-paper'), 'night')
+        c = dt.colours('night-paper');self.assertEqual((c['text'], c['accent'], c['peak'], c['kas_text']), (self.PAPER,) * 4)
+        for ink, ground, where in dt.NIGHT_PAIRS:
+            self.assertGreaterEqual(ratio(c[ink], c[ground]), 4.5, (ink, ground, where))
+        steps = [luminance(c[k]) for k in ('text', 'secondary', 'tertiary', 'disabled')];self.assertEqual(steps, sorted(steps, reverse=True))
+        self.assertGreater(steps[0], steps[1] * 1.15, 'brightness steps a reader can see')
 
 
 if __name__ == '__main__':

@@ -45,6 +45,7 @@ from PySide6.QtWidgets import QFrame, QLabel, QSizePolicy, QVBoxLayout, QWidget
 
 from . import boss_theme as t
 from .neon_meters import NEAR, faint, glow_level, mix, palette, ramp
+from . import night_hero as hero      # 1.1 HX: Night's peak marks
 
 MOST = 16            # processor tubes drawn (0.8.6: one a thread up to 16); a computer with more shows them in equal groups
 ROWS = 7             # the old lamps in a bar (0.5.3 to 0.8.5), kept for callers
@@ -363,7 +364,11 @@ class Equalizer(QWidget):
             if abs(gap) > 0.015:
                 self.shown[i] += gap * GLIDE;settled = False
             else:self.shown[i] = goal
-            if self.shown[i] >= self.peak[i]:self.peak[i] = self.shown[i]
+            if hero.night():      # 1.1 HX: in Night the peak mark holds the last few seconds' highest, then falls slowly
+                mark = hero.peaks_for(self, len(self.target))[i]
+                if mark.feed(self.shown[i]):settled = False
+                self.peak[i] = mark.value
+            elif self.shown[i] >= self.peak[i]:self.peak[i] = self.shown[i]
             elif self.peak[i] - self.shown[i] > 0.015:
                 self.peak[i] = max(self.shown[i], self.peak[i] - SINK);settled = False      # the peak's dot sinks
             else:self.peak[i] = self.shown[i]

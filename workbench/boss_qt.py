@@ -396,7 +396,8 @@ APPEARANCE_WORDS = {'graphite': 'Pencil: pencil, paper and amber, as it has alwa
                     'night': 'Night: a phosphor monitor, one colour on black',      # 1.0 P4; 1.1 N1
                     'night-duo': 'Night: Duo: green for the computer, amber for Kas and your word, grey for the past; a block says what is selected',      # 1.1 N1duo
                     'night-amber': 'Night: Amber: an amber phosphor monitor; brightness says what matters, a block says what is selected',      # 1.1 N1
-                    'night-green': 'Night: Green: a green phosphor monitor; brightness says what matters, a block says what is selected'}      # 1.1 N1
+                    'night-green': 'Night: Green: a green phosphor monitor; brightness says what matters, a block says what is selected',      # 1.1 N1
+                    'night-paper': 'Night: Paper: a white phosphor terminal in paper-white grey; brightness says what matters, a block says what is selected'}      # 1.1 HX
 
 
 def looks_menu(host, parent=None):

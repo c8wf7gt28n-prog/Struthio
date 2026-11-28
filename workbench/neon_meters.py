@@ -61,6 +61,9 @@ def palette():
             m = t.DAY_MARKS;low = QColor(m['EQ_LOW'])
             _palette[look].update(low=low, mid=QColor(m['EQ_MID']), high=QColor(m['EQ_HIGH']), hot=QColor(m['EQ_HOT']), trace=QColor(m['EQ_MID']),
                                   peak=QColor(t.TEXT), dim=QColor(t.FAINT), label=QColor(t.QUIET), rest=mix(ground, low, 0.28), grid=QColor(t.LINE))
+        if getattr(t, 'PHOSPHOR', ''):      # 1.1 HX: Night's peak mark is the tokens' (amber in Duo, the phosphor elsewhere)
+            from . import design_tokens
+            _palette[look]['peak'] = QColor(design_tokens.colours('night')['peak'])
     return _palette[look]
 
 
@@ -146,6 +149,9 @@ class RingMeter(QLabel):
         base = (self.height() + fm.ascent() - fm.descent()) / 2.0
         p.setPen(c['label'] if v is not None else c['dim']);p.drawText(QPointF(x, base), key);x += fm.horizontalAdvance(key)
         p.setPen(c['hot'] if hot else (c['text'] if v is not None else c['dim']));p.drawText(QPointF(x, base), shown + mark)
+        if getattr(t, 'PHOSPHOR', ''):      # 1.1 HX: in Night a slim bar of the reading and its peak mark under the words
+            from .night_hero import paint_meter_peak
+            left, right = self.words_span();paint_meter_peak(p, self, c, v, left, right, base + fm.descent() + 2)
 
     def value(self):
         """The reading as a share 0 to 1, or None when there is none."""
