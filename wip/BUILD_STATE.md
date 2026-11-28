@@ -76,7 +76,7 @@ rules holding you back".
     briefs by `bash wip/build_tools/make_brief_11.sh KEY` (header `BRIEF_HEADER_1.1.md` + the slice from PLAN_1.1.md),
     outputs in `$S/work/b110/KEY.{patch,progress.md,build.result.json}`; merge with
     `bash wip/build_tools/merge_one.sh $S/work/b110 wip/2026-11-27_distribution/saved KEY AGENTID > log 2>&1; rc=$?`.
-  * **Saving:** `bash wip/build_tools/save_dist.sh loop` every 5 minutes (it now carries the builders' patches, notes
+  * **Saving:** run the loop from a COPY so an edit of the script never breaks the running loop (it did at 04:00 on 28 Nov): `cp wip/build_tools/save_dist.sh $S/work/save_dist_running.sh; bash $S/work/save_dist_running.sh loop` every 5 minutes (it now carries the builders' patches, notes
     and results into `partial/b110/`); restart the loop whenever it ends; commit and push at every milestone.
 - **THE BUDGET:** weekly limit 78 % used at 02:30 UTC 28 Nov (resets Wednesday 2 Dec). The owner then switched this
   session to Opus, turned Ultracode off and said **"Go as far as you can"** (28 Nov). So: no hold. Build preview after
