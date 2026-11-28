@@ -154,6 +154,12 @@ rules holding you back".
     line) pass on a copy. Frames sent. KS1's open items for later: a RECIPES heading in the line, RECIPE primed at
     Ready, her talk area at 1366 is about 90 px. **KS2 launched 04:14** (agent a88c9be1a1b3a34f3: the command tool,
     its brief carries the full scope). Running: T2, B4, KS2.
+  * **B4 merged (3a3a5b8, 04:29):** no foot once the bar stands (GRAPHITE_FOOT=1 keeps it); the drop-down Terminal
+    (Win+`, Ctrl+Alt+T); Command... in Files' right-click (Ctrl+.); Win+K and Pause from any app; 50 tests OK.
+    Frames sent. **Open, important for a full Linux box:** the drop-down Terminal (like 1.0's) is not a real terminal
+    device, so vim, top and sudo's password prompt do not work in it: a real PTY terminal is a slice for preview 4
+    (C-series). Also open: Command... on Start's tiles, the board's tiles and the tree; docs. Running: T2, KS2.
+    Next: KS3 (the system door) in the free slot.
   * **Preview 2 building (done):** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
