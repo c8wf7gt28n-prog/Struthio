@@ -3568,6 +3568,8 @@ class Shell2(QObject):
             install_windows_keys(host)  # 1.1 W1
         except ImportError:  # 1.1 W1
             pass
+        from .explorer_qt import install as install_explorer  # 1.1 E1
+        install_explorer(host)  # 1.1 E1: the Files tree and the centre as an Explorer: Quick access, List, Icons, Board, the address
         from .launch_look import install as install_launch_look
         install_launch_look(host)  # 1.0 P4: 1.0's one move to Day on a profile from before, said in one line, once
         try:  # 1.0 F3: every keyboard stop says a name; Tab walks into a scrolled page's presses

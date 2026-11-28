@@ -78,9 +78,9 @@ def case_delete(p):
     from PySide6.QtGui import QFont
     from workbench import pane_qt, trash_can_qt
     can = p.w.trash_can;font = can.word_font
-    expected = pane_qt.trash_size(1.0, math.ceil(can.extent(font, 'DELETE')[2]), math.ceil(can.extent(can.count_font, '999')[2]),
+    expected = pane_qt.trash_size(1.0, math.ceil(can.extent(font, can.word)[2]), math.ceil(can.extent(can.count_font, '999')[2]),  # 1.1 E1: the profile's word
                                   trash_can_qt.can_ink(can.can), can.count_gap)
-    return dict(word=trash_can_qt.WORD, name=can.accessibleName(), tip=can.toolTip(), spacing=font.letterSpacing(),
+    return dict(word=can.word, name=can.accessibleName(), tip=can.toolTip(), spacing=font.letterSpacing(),
                 absolute=font.letterSpacingType() == QFont.AbsoluteSpacing, family=font.family(), size=[can.width(), can.height()],
                 expected=list(expected), rect=p.rect(can))
 

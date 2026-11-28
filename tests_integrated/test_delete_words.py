@@ -4,6 +4,9 @@ The words hold together: DELETE is the place (capitals, a name, no article: "in 
 restore brings it back, and Erase takes words out of a page or records away for good, so Delete and Erase never mean each
 other. The operations underneath keep their names (files.trash, the .trash folder). The can says DELETE, spaced a little,
 and its box is exactly what it draws; searching for "trash" still finds it.
+
+1.1 E1: "Recycle Bin" is the bin's word on a new profile (these probes start one); a profile that has used 1.0 keeps DELETE
+(test_explorer covers both and Rules ▸ The bin's name).
 """
 import ast
 import os
@@ -30,18 +33,19 @@ def strings(path):
 
 
 class TheCan(unittest.TestCase):
-    TIP = 'DELETE · what you delete waits here, and restore puts it back where it was · drop files here to delete them'
+    WORD = 'Recycle Bin'      # 1.1 E1: a new profile's word for the bin
+    TIP = 'Recycle Bin · what you delete waits here, and restore puts it back where it was · drop files here to delete them'
 
     def check(self, out, spacing):
-        self.assertEqual(out['word'], 'DELETE');self.assertEqual(out['name'], 'DELETE');self.assertEqual(out['tip'], self.TIP)
+        self.assertEqual(out['word'], self.WORD);self.assertEqual(out['name'], self.WORD);self.assertEqual(out['tip'], self.TIP)
         self.assertAlmostEqual(out['spacing'], spacing, delta=0.01);self.assertTrue(out['absolute'])      # Qt keeps it in 1/64 px
         self.assertEqual(out['size'], out['expected'], 'its box is exactly what it draws')
 
-    def test_the_can_says_DELETE_in_kasandra(self):
+    def test_the_can_says_the_bins_word_in_kasandra(self):
         out = probe('kasandra', 1920, 1200, 'delete')
-        self.check(out, 1.0);self.assertEqual(out['size'], [120, 29]);self.assertEqual(out['rect'], [181, 1094, 120, 29])      # 1.1 T1: the pane is 317 px since 1.0 P1 (was 354)
+        self.check(out, 1.0);self.assertEqual(out['size'], [162, 29]);self.assertEqual(out['rect'], [139, 1094, 162, 29])      # 1.1 E1: Recycle Bin is wider than DELETE (right edge 301, as T1 measured in the 317 px pane)
 
-    def test_the_can_says_DELETE_in_graphite(self):
+    def test_the_can_says_the_bins_word_in_graphite(self):
         self.check(probe('graphite', 1366, 768, 'delete'), 0.8)
 
 

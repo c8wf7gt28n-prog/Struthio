@@ -70,7 +70,7 @@ MOST = 4000                           # entries one reading of Files lists, at m
 DEEPEST = 12                          # folders deep, at most
 KEPT_NAMES = 8                        # earlier paths kept for each object
 HISTORY = 100                         # entries Back can reach
-DEPTHS = ('board', 'work', 'split')
+DEPTHS = ('board', 'work', 'split', 'explorer')  # 1.1 E1: a folder in the Explorer is a place in the history too
 WAYS = ('tree', 'board', 'search', 'breadcrumb', 'open', 'tab', 'start', 'her')     # how the owner reached a place
 
 REL = {'type': 'string', 'maxLength': 1000}

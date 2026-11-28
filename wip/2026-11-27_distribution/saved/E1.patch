@@ -1,0 +1,1543 @@
+diff --git a/tests_integrated/kasandra_window_probe.py b/tests_integrated/kasandra_window_probe.py
+index f859fc2..607c7cd 100644
+--- a/tests_integrated/kasandra_window_probe.py
++++ b/tests_integrated/kasandra_window_probe.py
+@@ -78,9 +78,9 @@ def case_delete(p):
+     from PySide6.QtGui import QFont
+     from workbench import pane_qt, trash_can_qt
+     can = p.w.trash_can;font = can.word_font
+-    expected = pane_qt.trash_size(1.0, math.ceil(can.extent(font, 'DELETE')[2]), math.ceil(can.extent(can.count_font, '999')[2]),
++    expected = pane_qt.trash_size(1.0, math.ceil(can.extent(font, can.word)[2]), math.ceil(can.extent(can.count_font, '999')[2]),  # 1.1 E1: the profile's word
+                                   trash_can_qt.can_ink(can.can), can.count_gap)
+-    return dict(word=trash_can_qt.WORD, name=can.accessibleName(), tip=can.toolTip(), spacing=font.letterSpacing(),
++    return dict(word=can.word, name=can.accessibleName(), tip=can.toolTip(), spacing=font.letterSpacing(),
+                 absolute=font.letterSpacingType() == QFont.AbsoluteSpacing, family=font.family(), size=[can.width(), can.height()],
+                 expected=list(expected), rect=p.rect(can))
+ 
+diff --git a/tests_integrated/test_delete_words.py b/tests_integrated/test_delete_words.py
+index cb6a633..23ed2ad 100644
+--- a/tests_integrated/test_delete_words.py
++++ b/tests_integrated/test_delete_words.py
+@@ -4,6 +4,9 @@ The words hold together: DELETE is the place (capitals, a name, no article: "in
+ restore brings it back, and Erase takes words out of a page or records away for good, so Delete and Erase never mean each
+ other. The operations underneath keep their names (files.trash, the .trash folder). The can says DELETE, spaced a little,
+ and its box is exactly what it draws; searching for "trash" still finds it.
++
++1.1 E1: "Recycle Bin" is the bin's word on a new profile (these probes start one); a profile that has used 1.0 keeps DELETE
++(test_explorer covers both and Rules ▸ The bin's name).
+ """
+ import ast
+ import os
+@@ -30,18 +33,19 @@ def strings(path):
+ 
+ 
+ class TheCan(unittest.TestCase):
+-    TIP = 'DELETE · what you delete waits here, and restore puts it back where it was · drop files here to delete them'
++    WORD = 'Recycle Bin'      # 1.1 E1: a new profile's word for the bin
++    TIP = 'Recycle Bin · what you delete waits here, and restore puts it back where it was · drop files here to delete them'
+ 
+     def check(self, out, spacing):
+-        self.assertEqual(out['word'], 'DELETE');self.assertEqual(out['name'], 'DELETE');self.assertEqual(out['tip'], self.TIP)
++        self.assertEqual(out['word'], self.WORD);self.assertEqual(out['name'], self.WORD);self.assertEqual(out['tip'], self.TIP)
+         self.assertAlmostEqual(out['spacing'], spacing, delta=0.01);self.assertTrue(out['absolute'])      # Qt keeps it in 1/64 px
+         self.assertEqual(out['size'], out['expected'], 'its box is exactly what it draws')
+ 
+-    def test_the_can_says_DELETE_in_kasandra(self):
++    def test_the_can_says_the_bins_word_in_kasandra(self):
+         out = probe('kasandra', 1920, 1200, 'delete')
+-        self.check(out, 1.0);self.assertEqual(out['size'], [120, 29]);self.assertEqual(out['rect'], [218, 1094, 120, 29])
++        self.check(out, 1.0);self.assertEqual(out['size'], [162, 29]);self.assertEqual(out['rect'], [139, 1094, 162, 29])      # 1.1 E1: Recycle Bin is wider than DELETE
+ 
+-    def test_the_can_says_DELETE_in_graphite(self):
++    def test_the_can_says_the_bins_word_in_graphite(self):
+         self.check(probe('graphite', 1366, 768, 'delete'), 0.8)
+ 
+ 
+diff --git a/tests_integrated/test_explorer.py b/tests_integrated/test_explorer.py
+new file mode 100644
+index 0000000..eeba325
+--- /dev/null
++++ b/tests_integrated/test_explorer.py
+@@ -0,0 +1,262 @@
++"""1.1 E1, the Explorer (PLAN_1.1.md, E1; proposal_familiar.md section 4).
++
++Acceptance first, on the Everyday Home (invented: everyday_demo): the window opens on Quick access; Downloads in List view
++sorts by size and by date; a picture folder in Icons view shows thumbnails; Board view of a sheet shows 1.0's board; a
++typed path opens. Then Back and Forward through folders, the tree's folders and files, W1's keys over the list, the bin's
++name, and the rules without a window (the tree's order, the address, the views, sorting, thumbnails).
++
++Run alone:  python3 -B -m unittest -v tests_integrated.test_explorer
++"""
++import os, random, tempfile, time, unittest
++from pathlib import Path
++from unittest.mock import patch
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++
++QUICK = ['Home', 'Desktop', 'Documents', 'Downloads', 'Pictures', 'Music']
++
++
++class Window(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.temp = tempfile.TemporaryDirectory(prefix='e1-everyday-');base = Path(cls.temp.name)
++        from workbench import everyday_demo
++        everyday_demo.build(base);cls.home = base / 'home'
++        cls.env = patch.dict(os.environ, {'HOME': str(cls.home), 'XDG_CONFIG_HOME': str(cls.home / '.config'),
++                                          'XDG_CACHE_HOME': str(base / 'cache'), 'XDG_DATA_HOME': str(cls.home / '.local/share')})
++        cls.env.start()
++        from tests_integrated.test_desk_acts import build_window
++        cls.store = {};build_window(cls.store, 'e1-window-');cls.w = cls.store['w'];cls.ex = cls.w.explorer
++        cls.settle(400)
++
++    @classmethod
++    def tearDownClass(cls):
++        from tests_integrated.test_desk_acts import close_window
++        try:close_window(cls.store)
++        finally:
++            cls.env.stop();cls.temp.cleanup()
++
++    @classmethod
++    def settle(cls, ms=120):
++        from tests_integrated.test_desk_acts import settle
++        settle(cls.store, ms)
++
++    def wait(self, check, seconds=30):
++        deadline = time.monotonic() + seconds
++        while time.monotonic() < deadline:
++            if check():return True
++            self.settle(60)
++        return check()
++
++    def row(self, label, parent=None):
++        page = self.w.cabinet_page
++        for ident, item in page.items.items():
++            if item.text(0) == label and (parent is None or (item.parent() is not None and item.parent().text(0) == parent)):return ident, item
++        return None, None
++
++    # ---- acceptance --------------------------------------------------------------------------------------------------------
++    def test_a_the_everyday_home_opens_on_quick_access(self):
++        tree = self.w.cabinet_page.tree
++        tops = [tree.topLevelItem(i).text(0) for i in range(tree.topLevelItemCount())]
++        self.assertEqual(tops[0], 'Quick access');self.assertLess(tops.index('Desk'), tops.index('This computer'))
++        quick = tree.topLevelItem(0)
++        self.assertEqual([quick.child(i).text(0) for i in range(quick.childCount())], QUICK)
++        self.assertTrue(quick.isExpanded())
++        current = tree.currentItem()
++        self.assertEqual((current.text(0), current.parent().text(0)), ('Home', 'Quick access'), 'it lands on Quick access')
++        computer = tree.topLevelItem(tops.index('This computer'))
++        self.assertEqual(computer.child(0).text(0), 'System (C:)');self.assertFalse(computer.child(0).isExpanded(), 'the root is one press down')
++        self.assertEqual(self.w.trash_can.word, 'Recycle Bin', 'the bin, after them, on a new profile')
++
++    def test_a_the_centre_is_home_in_list_never_blank(self):
++        if self.ex.folder != str(self.home):self.ex.show(str(self.home), via='start');self.settle()
++        s = self.ex.status()
++        self.assertTrue(s['front']);self.assertEqual(s['view'], 'list');self.assertEqual(s['address'], '~')
++        self.assertEqual(s['rows'], ['Concern', 'Desktop', 'Documents', 'Downloads', 'Music', 'Pictures'])
++        self.assertEqual([self.ex.page.list.headerItem().text(c) for c in range(5)], ['Name', 'Modified', 'Type', 'Size', 'Links'])
++        self.assertTrue(s['address_shown']);self.assertEqual(s['switch'], ['list'])
++
++    def test_b_downloads_in_list_view_sorts_by_size_and_by_date(self):
++        down = self.home / 'Downloads';files = sorted(p for p in down.iterdir() if p.is_file())
++        stamps = list(range(len(files)));random.Random(7).shuffle(stamps)
++        for p, n in zip(files, stamps):os.utime(p, (1764000000 + n * 3600, 1764000000 + n * 3600))
++        self.assertTrue(self.ex.show(str(down), via='tree', view='list'));self.settle()
++        from workbench import explorer as ex
++        self.ex.sort_by(3);self.settle()      # Size: the largest first
++        by_size = sorted(files, key=lambda p: (p.stat().st_size, ex.natural(p.name)), reverse=True)
++        self.assertEqual(self.ex.status()['rows'], [p.name for p in by_size]);self.assertEqual(self.ex.status()['sort'], ['Size', 'down'])
++        self.ex.sort_by(3);self.settle()      # again: the smallest first
++        self.assertEqual(self.ex.status()['rows'], [p.name for p in reversed(by_size)])
++        self.ex.sort_by(1);self.settle()      # Modified: the newest first
++        newest = sorted(files, key=lambda p: p.stat().st_mtime, reverse=True)
++        self.assertEqual(self.ex.status()['rows'], [p.name for p in newest]);self.assertEqual(self.ex.status()['sort'], ['Modified', 'down'])
++        self.ex.sort_by(0);self.settle()
++        self.assertEqual(self.ex.status()['sort'], ['Name', 'up'])
++
++    def test_c_a_picture_folder_in_icons_view_shows_thumbnails(self):
++        pictures = self.home / 'Pictures'
++        self.assertTrue(self.ex.show(str(pictures), via='tree'));self.settle()
++        self.assertEqual(self.ex.status()['view'], 'icons', 'a folder of pictures opens in Icons the first time')
++        self.assertTrue(self.wait(lambda: self.ex.status()['thumbnails'] == 12), self.ex.status())
++        kept = list((Path(os.environ['XDG_CACHE_HOME']) / 'graphite' / 'thumbs').glob('*.png'))
++        self.assertGreaterEqual(len(kept), 12, 'kept in ~/.cache/graphite/thumbs')
++        self.ex.set_view('list');self.settle()
++        self.ex.show(str(self.home), via='tree');self.ex.show(str(pictures), via='tree');self.settle()
++        self.assertEqual(self.ex.status()['view'], 'list', 'each place remembers its view')
++        self.ex.set_view('icons');self.settle()
++
++    def test_d_board_view_of_a_sheet_shows_1_0s_board(self):
++        living = self.w.living_nav
++        sheets = [n for n in living.nodes.values() if n.get('provider') == 'living_nav' and n.get('role') == 'sheet']
++        self.assertTrue(sheets, 'the bench seed puts sheets on the Desk')
++        sheet = sheets[0];self.ex.show(str(self.home), via='tree');self.settle()
++        living.go_node(sheet['id'], via='tree');self.settle(300)      # a press on the sheet in the Desk
++        page = self.w.field_page
++        self.assertTrue(self.w._field_active);self.assertEqual(page.mode, 'board')
++        self.assertEqual(page.board.focus_obj().id, sheet['canonical_id'], "1.0's board, the sheet in its middle")
++        self.assertFalse(self.ex.in_front());self.assertTrue(self.ex.switch.isVisibleTo(self.w.one_bar.bar));self.assertEqual(self.ex.status()['switch'], ['board'])
++        self.ex.set_view('list');self.settle(200)      # List on the board: the folder again
++        self.assertTrue(self.ex.in_front());self.assertFalse(self.w._field_active)
++
++    def test_d_board_view_of_a_file_from_the_list(self):
++        docs = self.home / 'Documents';budget = docs / 'Household budget 2026.ods'
++        self.assertTrue(self.ex.show(str(docs), via='tree', chosen=[str(budget)], view='list'));self.settle()
++        self.assertEqual(self.ex.status()['chosen'], [budget.name])
++        self.ex.set_view('board');self.settle(300)
++        page = self.w.field_page
++        self.assertEqual(page.mode, 'board');self.assertEqual(Path(page.board.focus_obj().title).name, budget.name)
++        self.ex.set_view('list');self.settle(200)
++        self.assertEqual(self.ex.status()['folder'], str(docs));self.assertEqual(self.ex.status()['chosen'], [budget.name])
++
++    def test_e_a_typed_path_opens(self):
++        self.ex.show(str(self.home), via='tree');self.settle()
++        for typed, folder in (('~/Documents', self.home / 'Documents'), ('/etc', Path('/etc')), ('C:\\', Path('/')), ('Music', None)):
++            self.ex.address.setText(typed);self.ex.go_typed(typed);self.settle()
++            self.assertEqual(self.ex.status()['folder'], str(folder) if folder else '/', typed)
++            if typed == '/etc':self.ex.show(str(self.home), via='tree');self.settle()
++        self.ex.go_typed('~/Downloads/recipe-lentil-soup.txt');self.settle()
++        self.assertEqual(self.ex.status()['folder'], str(self.home / 'Downloads'));self.assertEqual(self.ex.status()['chosen'], ['recipe-lentil-soup.txt'])
++        self.assertFalse(self.ex.go_typed('~/No such folder'));self.assertEqual(self.ex.status()['folder'], str(self.home / 'Downloads'))
++
++    # ---- around it -----------------------------------------------------------------------------------------------------------
++    def test_f_back_and_forward_walk_the_folders(self):
++        self.ex.show(str(self.home / 'Documents'), via='tree');self.settle();self.ex.show(str(self.home / 'Music'), via='open');self.settle()
++        self.w.living_nav.back();self.settle()
++        self.assertEqual(self.ex.status()['folder'], str(self.home / 'Documents'))
++        self.w.living_nav.forward();self.settle()
++        self.assertEqual(self.ex.status()['folder'], str(self.home / 'Music'))
++        self.ex.do('up');self.settle()
++        self.assertEqual(self.ex.status()['folder'], str(self.home));self.assertEqual(self.ex.status()['chosen'], ['Music'])
++
++    def test_g_the_tree_opens_folders_and_files_in_the_explorer(self):
++        computer = self.w.living_nav.computer
++        ident, _ = self.row('Downloads', 'Quick access')
++        computer.go(ident, 'tree');self.settle()
++        self.assertEqual(self.ex.status()['folder'], str(self.home / 'Downloads'));self.assertTrue(self.ex.in_front())
++        letter = str(self.home / 'Documents' / 'Letter to the landlord.odt')
++        from workbench.home_files_qt import branch_id
++        computer.listed |= {computer.home_id, branch_id(self.home / 'Documents')};self.w.cabinet_page.refresh(force=True);self.settle()
++        self.assertIn(branch_id(letter), self.w.living_nav.nodes, 'the letter is a row of Home in the tree')
++        computer.go(branch_id(letter), 'tree');self.settle()      # a file chosen in the tree: its folder, with it chosen
++        self.assertEqual(self.ex.status()['folder'], str(self.home / 'Documents'));self.assertEqual(self.ex.status()['chosen'], [Path(letter).name])
++
++    def test_h_w1s_keys_copy_paste_and_one_undo_over_the_list(self):
++        from PySide6.QtCore import Qt
++        from PySide6.QtTest import QTest
++        down = self.home / 'Downloads';desk = self.home / 'Desktop'
++        two = [down / 'recipe-lentil-soup.txt', down / 'budget-template.ods']
++        self.ex.show(str(down), via='tree', chosen=[str(p) for p in two], view='list');self.settle()
++        self.assertEqual(sorted(self.ex.status()['chosen']), sorted(p.name for p in two))
++        view = self.ex.page.list;view.setFocus();QTest.keyClick(view, Qt.Key_C, Qt.ControlModifier);self.settle()
++        self.ex.show(str(desk), via='tree', view='list');self.settle()
++        QTest.keyClick(self.ex.page.list, Qt.Key_V, Qt.ControlModifier)
++        self.assertTrue(self.wait(lambda: all((desk / p.name).exists() for p in two)), 'pasted as one batch')
++        self.assertTrue(self.wait(lambda: set(p.name for p in two) <= set(self.ex.status()['rows'])), 'the folder is read again by itself')
++        QTest.keyClick(self.ex.page.list, Qt.Key_Z, Qt.ControlModifier)
++        self.assertTrue(self.wait(lambda: not any((desk / p.name).exists() for p in two)), 'one Undo takes the whole paste back')
++        self.assertTrue(all(p.exists() for p in two), 'the originals stay')
++
++    def test_i_the_bins_name_new_profile_and_1_0_profile(self):
++        from workbench.session import Session
++        from workbench import explorer_qt
++        base = Path(tempfile.mkdtemp(prefix='e1-profile-', dir=self.temp.name))
++        self.assertEqual(Session(base / 'new.json').state['bin_word'], 'Recycle Bin')
++        old = Session(base / 'old.json');old.state.pop('bin_word', None);old.save()
++        self.assertEqual(Session(base / 'old.json').state['bin_word'], 'DELETE', 'a profile that has used 1.0 keeps DELETE')
++        explorer_qt.set_bin_word(self.w, 'DELETE');self.assertEqual((self.w.trash_can.word, self.w.trash_can.accessibleName()), ('DELETE', 'DELETE'))
++        explorer_qt.set_bin_word(self.w, 'Recycle Bin');self.assertEqual(self.w.trash_can.word, 'Recycle Bin')
++        self.assertEqual(self.w.session.state['bin_word'], 'Recycle Bin')
++
++
++class Rules(unittest.TestCase):
++    def test_the_tree_in_the_explorers_order(self):
++        from workbench import explorer as ex
++        fs = ex.FS;home = '/h'
++        n = lambda i, p, role='folder', label=None: ex.node(i, p, role, label or i.rsplit('/', 1)[-1], 'path:' + i)
++        rows = [n(ex.COMPUTER, None, 'drawer', 'This computer /'), n(fs + 'home:/h', ex.COMPUTER, label='Home'), n(fs + 'home:/h/Documents', fs + 'home:/h'),
++                n(ex.DRIVES, ex.COMPUTER, 'drawer', 'Drives'), n('living:drive:1', ex.DRIVES, 'drive', 'STICK · mounted'), n(fs + 'drive:/media/me/STICK', 'living:drive:1', label='STICK'),
++                n(fs + 'root:/etc', ex.COMPUTER), n('cabinet:concern', None, 'drawer', 'Concern'), n(ex.DESK, 'cabinet:concern', 'drawer', 'Desk'),
++                n('living:desk:sheets', ex.DESK, 'folder_view', 'Sheets')]
++        out, paths = ex.arrange(rows, fs + 'home:/h', [('Home', Path(home)), ('Documents', Path('/h/Documents'))], lambda p: 'path:' + str(p),
++                                {'C': '/', 'D': '/media/me/STICK'}, lambda p: '1 GB free of 2 GB')
++        tops = [r['label'] for r in out if r['parent'] is None]
++        self.assertEqual(tops, ['Quick access', 'Desk', 'This computer', 'Concern'])
++        under = lambda parent: [r['label'] for r in out if r['parent'] == parent]
++        self.assertEqual(under(ex.QUICK_ID), ['Home', 'Documents']);self.assertEqual(under(ex.COMPUTER), ['System (C:)', 'STICK (D:) · 1 GB free of 2 GB'])
++        self.assertEqual(under(ex.SYSTEM_ID), ['etc']);self.assertNotIn(ex.DRIVES, [r['id'] for r in out])
++        ids = [r['id'] for r in out]
++        for r in out:
++            if r['parent']:self.assertLess(ids.index(r['parent']), ids.index(r['id']), 'a row comes after its parent')
++        self.assertEqual(paths[ex.SYSTEM_ID], '/');self.assertEqual(paths[fs + 'quick:/h/Documents'], '/h/Documents')
++
++    def test_the_address_takes_home_root_relative_and_dos_paths(self):
++        from workbench import explorer as ex
++        with tempfile.TemporaryDirectory() as t:
++            home = Path(t);(home / 'Documents' / 'Letters').mkdir(parents=True);(home / 'a.txt').write_text('x')
++            places = {'C': '/', 'D': str(home / 'Documents')}
++            self.assertEqual(ex.address('~/Documents', str(home), home), str(home / 'Documents'))
++            self.assertEqual(ex.address('~', '/', home), str(home))
++            self.assertEqual(ex.address('Letters', str(home / 'Documents'), home), str(home / 'Documents' / 'Letters'))
++            self.assertEqual(ex.address('..', str(home / 'Documents'), home), str(home))
++            self.assertEqual(ex.address('D:\\Letters', str(home), home, places), str(home / 'Documents' / 'Letters'))
++            self.assertEqual(ex.address('C:\\', str(home), home, places), '/')
++            self.assertEqual(ex.address('"%s"' % (home / 'a.txt'), '/', home), str(home / 'a.txt'))
++            self.assertEqual(ex.address('~/nothing here', str(home), home), '')
++            self.assertEqual(ex.address('Q:\\x', str(home), home, places), '')
++
++    def test_views_sorting_and_words(self):
++        from workbench import explorer as ex
++        pics = [{'name': 'a.jpg', 'kind': 'file'}, {'name': 'b.png', 'kind': 'file'}, {'name': 'n.txt', 'kind': 'file'}]
++        self.assertEqual(ex.view_for('/x', pics, saved={}), 'icons');self.assertEqual(ex.view_for('/x', pics[2:], saved={}), 'list')
++        self.assertEqual(ex.view_for('/x', pics, saved={'/x': 'board'}), 'board')
++        rows = [{'name': 'b', 'kind': 'folder'}, {'name': 'file10', 'kind': 'file', 'bytes': 5}, {'name': 'file9', 'kind': 'file', 'bytes': 50}, {'name': 'a', 'kind': 'folder'}]
++        self.assertEqual([r['name'] for r in ex.ordered(rows, 0)], ['a', 'b', 'file9', 'file10'])
++        self.assertEqual([r['name'] for r in ex.ordered(rows, 3, True)], ['b', 'a', 'file9', 'file10'], 'folders stay first')
++        self.assertEqual(ex.bytes_words(1536), '1.5 KB');self.assertEqual(ex.bytes_words(3 << 30), '3.0 GB')
++        self.assertEqual(ex.in_words('letter.odt is in DELETE (from ~).', 'Recycle Bin'), 'letter.odt is in the Recycle Bin (from ~).')
++        self.assertEqual(ex.in_words('letter.odt is in DELETE.', 'DELETE'), 'letter.odt is in DELETE.')
++        with tempfile.TemporaryDirectory() as t:
++            env = {'XDG_CONFIG_HOME': t}
++            ex.remember_view('/x', 'icons', env);self.assertEqual(ex.read(env)['views'], {'/x': 'icons'})
++
++    def test_quick_access_follows_user_dirs(self):
++        from workbench import explorer as ex
++        with tempfile.TemporaryDirectory() as t:
++            home = Path(t)
++            for name in ('Desktop', 'Dokumente', 'Downloads', 'Music'):(home / name).mkdir()
++            text = 'XDG_DOCUMENTS_DIR="$HOME/Dokumente"\nXDG_PICTURES_DIR="$HOME/Bilder"\n'
++            self.assertEqual([label for label, _ in ex.quick_places(home, text)], ['Home', 'Desktop', 'Dokumente', 'Downloads', 'Music'])
++
++    def test_a_thumbnail_is_small_and_kept(self):
++        from PySide6.QtGui import QColor, QImage
++        from workbench import explorer_qt
++        with tempfile.TemporaryDirectory() as t:
++            picture = Path(t) / 'big.png';image = QImage(800, 400, QImage.Format_RGB32);image.fill(QColor('#3a7'));image.save(str(picture))
++            got = explorer_qt.thumbnail(str(picture), 96, Path(t) / 'thumbs')
++            self.assertEqual((got.width(), got.height()), (96, 48))
++            self.assertEqual(len(list((Path(t) / 'thumbs').glob('*.png'))), 1)
++            again = explorer_qt.thumbnail(str(picture), 96, Path(t) / 'thumbs');self.assertEqual(again.size(), got.size())
++            (Path(t) / 'not.png').write_text('not a picture');self.assertIsNone(explorer_qt.thumbnail(str(Path(t) / 'not.png'), 96, Path(t) / 'thumbs'))
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/workbench/explorer.py b/workbench/explorer.py
+new file mode 100644
+index 0000000..c5b5122
+--- /dev/null
++++ b/workbench/explorer.py
+@@ -0,0 +1,291 @@
++"""The Explorer's words and rules, without Qt (Graphite 1.1 E1). explorer_qt.py is the window's part.
++
++PLAN_1.1.md, E1: the Files tree and the centre become an Explorer, with the bulletin board as its third view.
++
++    the navigation pane   arrange(): the tree's rows in the Explorer's order: Quick access first (Home, Desktop, Documents,
++                          Downloads, Pictures, Music: those that are there, the system's own names from user-dirs.dirs), then
++                          the Desk (the drawers of records), then This computer (System (C:) is /, one press down; each
++                          removable drive with its letter and free space), then the cabinet as it was. The bin is the can at
++                          the pane's foot, after them.
++    the views             List (Name, Modified, Type, Size, Links), Icons (thumbnails for pictures), Board (1.0's board of the
++                          selected thing). Each folder remembers its view (explorer.json); a folder mostly of pictures opens
++                          in Icons the first time, every other in List.
++    the address           address(): a typed path: ~/x, /x, a path from the folder in front, or a DOS one (C:\\x, D:\\).
++    the bin's word        "Recycle Bin" on a profile that starts with 1.1; a profile that has used 1.0 keeps DELETE
++                          (session.Session marks which); Rules ▸ The bin's name changes it.
++
++Nothing here writes anything but the Explorer's own small settings file ($XDG_CONFIG_HOME/graphite/explorer.json).
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import os
++import re
++import shutil
++from pathlib import Path
++
++QUICK = ('Desktop', 'Documents', 'Downloads', 'Pictures', 'Music')
++XDG_KEYS = {'Desktop': 'XDG_DESKTOP_DIR', 'Documents': 'XDG_DOCUMENTS_DIR', 'Downloads': 'XDG_DOWNLOAD_DIR',
++            'Pictures': 'XDG_PICTURES_DIR', 'Music': 'XDG_MUSIC_DIR'}
++VIEWS = ('list', 'icons', 'board')
++VIEW_WORDS = {'list': 'List', 'icons': 'Icons', 'board': 'Board'}
++BIN_WORDS = ('Recycle Bin', 'DELETE')
++NEW_BIN = 'Recycle Bin'          # a profile that starts with 1.1
++OLD_BIN = 'DELETE'               # a profile that has used 1.0 (the owner's word of 14 November 2026)
++PICTURES = frozenset(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.tif', '.tiff', '.ppm', '.pgm', '.ico'))
++COLUMNS = ('Name', 'Modified', 'Type', 'Size', 'Links')
++FIRST_ORDER = {0: 'up', 1: 'down', 2: 'up', 3: 'down', 4: 'down'}   # a first press on Modified, Size, Links: newest, largest, most first
++MOST_VIEWS = 400                 # the folders whose view is remembered
++QUICK_ID = 'living:quick'
++FS = 'living:fs:'                # computer_tree_qt.FS
++COMPUTER = 'living:computer'     # computer_tree_qt.COMPUTER
++DRIVES = 'living:drives'
++DESK = 'living:desk'             # living_nav_qt.DESK
++SYSTEM_ID = FS + 'root:/'
++
++
++# ---- Quick access --------------------------------------------------------------------------------------------------------------
++def user_dirs(home, text=None):
++    """{name: path} from the system's own user-dirs.dirs (xdg-user-dirs), where a folder has another name; else home/name."""
++    home = Path(home);out = {name: home / name for name in QUICK}
++    if text is None:
++        base = os.environ.get('XDG_CONFIG_HOME') or str(home / '.config')
++        try:text = (Path(base) / 'user-dirs.dirs').read_text(encoding='utf-8', errors='replace')
++        except OSError:
++            text = ''
++    keys = {v: k for k, v in XDG_KEYS.items()}
++    for line in text.splitlines():
++        m = re.match(r'\s*(XDG_[A-Z]+_DIR)\s*=\s*"([^"]*)"', line)
++        if not m or m.group(1) not in keys:continue
++        value = m.group(2).replace('$HOME', str(home))
++        if value.startswith('/') and Path(value) != home:out[keys[m.group(1)]] = Path(value)
++    return out
++
++
++def quick_places(home, text=None):
++    """[(label, path)]: Home, then each of Desktop, Documents, Downloads, Pictures, Music that is a folder."""
++    home = Path(home);out = [('Home', home)]
++    for name, path in user_dirs(home, text).items():
++        if path.is_dir():out.append((path.name if path.name != name and path.parent == home else name, path))
++    return out
++
++
++# ---- sizes and space -------------------------------------------------------------------------------------------------------------
++def bytes_words(size):
++    """1.2 GB, 340 KB, 12 bytes: short, as a column says it."""
++    size = int(size or 0)
++    for unit, step in (('TB', 1 << 40), ('GB', 1 << 30), ('MB', 1 << 20), ('KB', 1 << 10)):
++        if size >= step:
++            value = size / step
++            return ('%.1f %s' % (value, unit)) if value < 100 else ('%d %s' % (round(value), unit))
++    return '%d bytes' % size if size != 1 else '1 byte'
++
++
++def space(path):
++    """(free, total) bytes of the drive that holds path, or None."""
++    try:
++        usage = shutil.disk_usage(str(path))
++        return usage.free, usage.total
++    except OSError:
++        return None
++
++
++def space_words(path):
++    got = space(path)
++    return ('%s free of %s' % (bytes_words(got[0]), bytes_words(got[1]))) if got else 'space not read'
++
++
++def letters(mounts=None):
++    """{'C': '/', 'D': the first mounted drive, ...}: dos_words' letters, the same in the Terminal and here."""
++    from .dos_words import drives
++    return drives(mounts)
++
++
++def letter_of(path, places):
++    from .dos_words import drive_of
++    return drive_of(str(path), places)
++
++
++# ---- the tree in the Explorer's order ----------------------------------------------------------------------------------------
++def node(ident, parent, role, label, canonical, description='', **extra):
++    return dict(id=ident, parent=parent, role=role, label=label, target={'kind': 'living', 'id': canonical}, scope='owner_private',
++                provider='living_nav', canonical_id=canonical, owning=False, description=description, **extra)
++
++
++def subtree(nodes, top):
++    """The ids of top and everything under it."""
++    kids = {}
++    for n in nodes:kids.setdefault(n['parent'], []).append(n['id'])
++    out, todo = [], [top]
++    while todo:
++        ident = todo.pop(0)
++        if ident in out:continue
++        out.append(ident);todo.extend(kids.get(ident, ()))
++    return out
++
++
++def arrange(nodes, home_id, quick, canonical, places=None, spaces=None):
++    """The rows in the Explorer's order (a new list; the given rows are copied, never changed):
++
++    Quick access (the Home row and its folders moved here; then a row for each other quick place), the Desk (lifted to the
++    top), This computer (System (C:) is the folder /, holding what was under This computer; then each removable drive with
++    its letter and free space; the Drives drawer and its notes go), then everything else as it was.
++    quick: [(label, path)] (Home first); canonical(path) -> the row's object id; places: {letter: path}; spaces(path) -> words.
++    Returns (rows, {row id: path} for the rows made here)."""
++    places = places or {'C': '/'};spaces = spaces or space_words
++    rows = [dict(n) for n in nodes];by_id = {n['id']: n for n in rows};paths = {}
++    if COMPUTER not in by_id:return rows, paths
++    out = [node(QUICK_ID, None, 'drawer', 'Quick access', QUICK_ID, 'Quick access: Home and the folders you use most')]
++    taken = set()
++    if home_id in by_id:
++        by_id[home_id]['parent'] = QUICK_ID
++        moved = subtree(rows, home_id);out += [by_id[i] for i in moved];taken.update(moved)
++    for label, path in quick[1:]:
++        ident = FS + 'quick:' + str(path);paths[ident] = str(path)
++        out.append(node(ident, QUICK_ID, 'folder', label, canonical(path), 'Quick access · %s' % path))
++    if DESK in by_id:
++        by_id[DESK]['parent'] = None
++        moved = subtree(rows, DESK);out += [by_id[i] for i in moved];taken.update(moved)
++    computer = by_id[COMPUTER];computer['label'] = 'This computer';taken.add(COMPUTER)
++    computer['description'] = 'This computer: System (C:) is its top folder /, then each drive with its letter'
++    out.append(computer)
++    system = node(SYSTEM_ID, COMPUTER, 'folder', 'System (C:)', canonical('/'), 'System (C:): the top folder / · %s' % spaces('/'))
++    paths[SYSTEM_ID] = '/';out.append(system)
++    drives = [n for n in rows if n['parent'] == DRIVES and n.get('role') == 'drive']
++    skip = set(subtree(rows, DRIVES)) if DRIVES in by_id else set()
++    for n in rows:
++        if n['parent'] == COMPUTER and n['id'] not in skip and n['id'] not in taken:
++            n['parent'] = SYSTEM_ID
++    for ident in [i for i in subtree(rows, COMPUTER) if i not in skip and i != COMPUTER and i not in taken]:
++        out.append(by_id[ident]);taken.add(ident)
++    for d in drives:
++        d['parent'] = COMPUTER
++        mounted = [n for n in rows if n['parent'] == d['id'] and n['id'].startswith(FS + 'drive:')]
++        name = d['label'].split(' · ')[0]
++        if mounted:
++            where = mounted[0]['id'][len(FS + 'drive:'):]
++            d['label'] = '%s (%s:) · %s' % (name, letter_of(where, places), spaces(where))
++        else:
++            d['label'] = '%s · not mounted' % name
++        for ident in subtree(rows, d['id']):
++            out.append(by_id[ident]);taken.add(ident)
++    taken.update(skip);taken.update(o['id'] for o in out)
++    out += [n for n in rows if n['id'] not in taken]
++    return out, paths
++
++
++# ---- the views a folder remembers ----------------------------------------------------------------------------------------------
++def settings_file(environ=None):
++    environ = os.environ if environ is None else environ
++    base = environ.get('XDG_CONFIG_HOME') or os.path.join(environ.get('HOME') or str(Path.home()), '.config')
++    return Path(base) / 'graphite' / 'explorer.json'
++
++
++def read(environ=None):
++    try:
++        got = json.loads(settings_file(environ).read_text(encoding='utf-8'))
++        views = got.get('views') if isinstance(got, dict) else None
++        return {'views': {str(k): v for k, v in (views or {}).items() if v in VIEWS}}
++    except (OSError, ValueError, AttributeError):
++        return {'views': {}}
++
++
++def write(data, environ=None):
++    path = settings_file(environ)
++    try:
++        path.parent.mkdir(parents=True, exist_ok=True)
++        temp = path.with_suffix('.tmp');temp.write_text(json.dumps(data, indent=1), encoding='utf-8');os.replace(temp, path)
++    except OSError:
++        pass
++    return data
++
++
++def pictures_mostly(entries):
++    files = [e for e in entries if e.get('kind') != 'folder']
++    if len(files) < 2:return False
++    return sum(1 for e in files if is_picture(e.get('name', ''))) * 2 > len(files)
++
++
++def view_for(path, entries=(), saved=None):
++    """The view a folder opens in: the one it was left in, else Icons for a folder mostly of pictures, else List."""
++    saved = read()['views'] if saved is None else saved
++    got = saved.get(str(path))
++    if got in VIEWS:return got
++    return 'icons' if pictures_mostly(entries) else 'list'
++
++
++def remember_view(path, view, environ=None):
++    if view not in VIEWS:return None
++    data = read(environ);views = data['views'];views.pop(str(path), None);views[str(path)] = view
++    while len(views) > MOST_VIEWS:views.pop(next(iter(views)))
++    return write(data, environ)
++
++
++# ---- a typed path ----------------------------------------------------------------------------------------------------------------
++def address(text, here, home, places=None):
++    """The folder or file a typed address names, as a whole path; '' when it names nothing that is there.
++    ~ and ~/x are Home's, /x is the computer's, x is the folder in front's, and C:\\x, D:\\ and \\x are DOS's."""
++    text = str(text or '').strip().strip('"')
++    if not text:return ''
++    if text.lower().startswith('file://'):text = text[7:]
++    if re.match(r'^[A-Za-z]:', text) or '\\' in text:
++        from .dos_words import to_path
++        try:text = to_path(text, str(here or home), places or letters())
++        except LookupError:
++            return ''
++    if text == '~' or text.startswith('~/'):text = str(home) + text[1:]
++    path = Path(text) if text.startswith('/') else Path(here or home) / text
++    path = Path(os.path.normpath(str(path)))
++    return str(path) if path.exists() else ''
++
++
++def is_picture(name):
++    return Path(str(name)).suffix.lower() in PICTURES
++
++
++# ---- sorting -----------------------------------------------------------------------------------------------------------------
++def natural(name):
++    return [int(t) if t.isdigit() else t.casefold() for t in re.split(r'(\d+)', str(name))]
++
++
++def sort_key(entry, column, type_words=lambda e: ''):
++    """What a column sorts by: names naturally, dates and sizes by value, types by their words, links by their count."""
++    name = natural(entry.get('name', ''))
++    if column == 1:return (float(entry.get('modified') or 0.0), name)
++    if column == 2:return (type_words(entry).casefold(), name)
++    if column == 3:return (int(entry.get('bytes') if entry.get('bytes') is not None else -1), name)
++    if column == 4:return (int(entry.get('links') or 0), name)
++    return (name,)
++
++
++def ordered(entries, column, descending=False, type_words=lambda e: ''):
++    """Folders first in either direction (as Windows keeps them), then the column's order."""
++    folders = sorted((e for e in entries if e.get('kind') == 'folder'), key=lambda e: sort_key(e, column, type_words), reverse=descending)
++    files = sorted((e for e in entries if e.get('kind') != 'folder'), key=lambda e: sort_key(e, column, type_words), reverse=descending)
++    return folders + files
++
++
++# ---- thumbnails' cache ---------------------------------------------------------------------------------------------------------
++def thumbs_dir(environ=None):
++    environ = os.environ if environ is None else environ
++    base = environ.get('XDG_CACHE_HOME') or os.path.join(environ.get('HOME') or str(Path.home()), '.cache')
++    return Path(base) / 'graphite' / 'thumbs'
++
++
++def thumb_name(path, size, mtime_ns, px):
++    return hashlib.sha1(('%s|%d|%d|%d' % (path, int(size), int(mtime_ns), int(px))).encode('utf-8', 'surrogateescape')).hexdigest() + '.png'
++
++
++# ---- the bin's word ----------------------------------------------------------------------------------------------------------
++def bin_word(state):
++    """The bin's name for this profile: what the session says (session.Session marks a new profile Recycle Bin and one that
++    has used 1.0 DELETE); DELETE when nothing says."""
++    word = (state or {}).get('bin_word') if isinstance(state, dict) else None
++    return word if word in BIN_WORDS else OLD_BIN
++
++
++def in_words(words, word):
++    """A line written with DELETE as the bin's name, said with this profile's name for it."""
++    if word == OLD_BIN or not words:return words
++    return re.sub(r'\bDELETE\b', 'the ' + word if word == NEW_BIN else word, str(words)).replace('the the ', 'the ')
+diff --git a/workbench/explorer_qt.py b/workbench/explorer_qt.py
+new file mode 100644
+index 0000000..ab477c2
+--- /dev/null
++++ b/workbench/explorer_qt.py
+@@ -0,0 +1,808 @@
++"""The Explorer in the window (Graphite 1.1 E1): the Files tree and the centre as an Explorer, the board as its third view.
++
++PLAN_1.1.md, E1; proposal_familiar.md section 4. explorer.py holds the words and rules; here is the window:
++
++    the navigation pane   the Files tree in the Explorer's order (explorer.arrange): Quick access first, then the Desk, then
++                          This computer (System (C:) one press down, the drives with letters and free space); the bin is the
++                          can at the pane's foot, named "Recycle Bin" on a new profile and DELETE on one that used 1.0.
++                          A folder chosen in the tree opens in the centre in the view it was left in (List the first time,
++                          Icons for a folder mostly of pictures); a file chosen there opens its folder with it chosen. The
++                          Desk's records open on the board, as in 1.0.
++    the centre            ExplorerPage, a page of the centre's stack like the Field: List (Name, Modified, Type, Size, Links;
++                          a press on a column sorts by it, again turns it round; Ctrl and Shift choose many), Icons (a
++                          thumbnail for each picture, read with Qt's QImageReader at a small size on the floor's worker and
++                          kept in ~/.cache/graphite/thumbs: the window never waits for one), and a line at the foot (how
++                          many, how many chosen, the drive's free space).
++    the centre bar        the one bar (centre_one_qt) gains the address field (in place of the breadcrumb while the Explorer
++                          is in front; a typed path opens, ~ and DOS's C:\\ too) and List · Icons · Board, also shown on the
++                          board, so List brings the board's thing back in its folder. Board puts the chosen thing (or the
++                          folder) in the middle of 1.0's board, unchanged. Back and Forward walk the folders too.
++    keys and right-click  W1's: Ctrl+C, Ctrl+X, Ctrl+V (W1's file clipboard, shared with the tree), F2, Delete, Shift+Delete,
++                          Enter, Alt+Enter (W1's Properties), F5, Backspace (Back), Ctrl+A, Ctrl+Z; and Alt+Up (the folder
++                          above), Ctrl+L (the address), Ctrl+B (Board). Each change is the owner's own press through the
++                          Kernel (home_files_qt, bulk_files_qt: one line, one Undo; many files, one batch with one Undo).
++
++Nothing here changes a file by itself; reading a folder goes through the Kernel (ledger.browse), as the Finder's does.
++"""
++from __future__ import annotations
++
++import os
++import time
++from pathlib import Path
++
++from PySide6.QtCore import QEvent, QFileSystemWatcher, QItemSelectionModel, QObject, QSize, Qt, QTimer
++from PySide6.QtGui import QAction, QActionGroup, QColor, QIcon, QImage, QImageReader, QKeySequence, QPixmap
++from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
++                               QListView, QListWidget, QListWidgetItem, QMenu, QSizePolicy, QStackedWidget, QToolButton,
++                               QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
++
++from . import boss_theme as bt
++from . import explorer as ex
++
++ENTRY = Qt.UserRole + 41
++LIMIT = 2000                 # rows read from a folder (ledger.browse's most)
++THUMB_PX = 96                # a thumbnail's longest side at 14 pt
++THUMBS_AT_ONCE = 6           # pictures read in one job on the floor's worker
++PATH = 'path:'               # computer_tree_qt.PATH
++
++
++def kernel_of(host):
++    return getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
++
++
++def bin_word(host):
++    return ex.bin_word(getattr(getattr(host, 'session', None), 'state', None))
++
++
++def say(host, words, ms=7000):
++    try:host.statusBar().showMessage(ex.in_words(words, bin_word(host)), ms)
++    except (AttributeError, RuntimeError):
++        pass
++
++
++def scale_of(host):
++    return float((getattr(host, 'reading_profile', None) or {}).get('ui_pt', 14.0)) / 14.0
++
++
++def tilde(path):
++    from . import home_reach as hr
++    return hr.tilde(path)
++
++
++# ---- thumbnails, on the floor's worker --------------------------------------------------------------------------------------
++def thumbnail(path, px, cache=None):
++    """A picture's thumbnail as a QImage (never a QPixmap: this runs off the window's thread), read from the cache when it
++    is there, else read small with QImageReader and kept. None when the file is not a picture Qt can read."""
++    try:st = os.stat(path)
++    except OSError:
++        return None
++    cache = Path(cache or ex.thumbs_dir());kept = cache / ex.thumb_name(path, st.st_size, st.st_mtime_ns, px)
++    if kept.is_file():
++        image = QImage(str(kept))
++        if not image.isNull():return image
++    reader = QImageReader(str(path));reader.setAutoTransform(True)
++    size = reader.size()
++    if size.isValid() and (size.width() > px or size.height() > px):reader.setScaledSize(size.scaled(px, px, Qt.KeepAspectRatio))
++    image = reader.read()
++    if image.isNull():return None
++    try:
++        cache.mkdir(parents=True, exist_ok=True)
++        temp = kept.with_suffix('.writing.png')
++        if image.save(str(temp), 'PNG'):os.replace(temp, kept)
++    except OSError:
++        pass
++    return image
++
++
++# ---- the page in the centre -----------------------------------------------------------------------------------------------------
++class ExplorerPage(QWidget):
++    """The folder in front, in List or Icons, with a line at its foot."""
++
++    def __init__(self, explorer):
++        super().__init__()
++        self.explorer = explorer;self.host = explorer.host
++        self.setObjectName('GraphiteExplorer');self.setAccessibleName('Explorer: the folder in front')
++        box = QVBoxLayout(self);box.setContentsMargins(0, 0, 0, 0);box.setSpacing(0)
++        self.stack = QStackedWidget(self);box.addWidget(self.stack, 1)
++        self.list = QTreeWidget(self);self.list.setObjectName('ExplorerList');self.list.setAccessibleName('The folder as a list')
++        self.list.setColumnCount(len(ex.COLUMNS));self.list.setHeaderLabels(list(ex.COLUMNS));self.list.setRootIsDecorated(False)
++        self.list.setUniformRowHeights(True);self.list.setSelectionMode(QAbstractItemView.ExtendedSelection);self.list.setAllColumnsShowFocus(True)
++        self.list.setContextMenuPolicy(Qt.CustomContextMenu);self.list.setSortingEnabled(False)
++        head = self.list.header();head.setSectionsClickable(True);head.setSortIndicatorShown(True);head.setStretchLastSection(False)
++        head.setSectionResizeMode(0, QHeaderView.Stretch)
++        for column in range(1, len(ex.COLUMNS)):head.setSectionResizeMode(column, QHeaderView.ResizeToContents)      # the name has the rest
++        self.list.setTextElideMode(Qt.ElideMiddle)      # a long name keeps its end: its kind's letters
++        head.sectionClicked.connect(explorer.sort_by)
++        self.icons = QListWidget(self);self.icons.setObjectName('ExplorerIcons');self.icons.setAccessibleName('The folder as icons')
++        self.icons.setViewMode(QListView.IconMode);self.icons.setResizeMode(QListView.Adjust);self.icons.setMovement(QListView.Static)
++        self.icons.setWrapping(True);self.icons.setWordWrap(True);self.icons.setUniformItemSizes(True)
++        self.icons.setSelectionMode(QAbstractItemView.ExtendedSelection);self.icons.setContextMenuPolicy(Qt.CustomContextMenu)
++        self.empty = QLabel(self);self.empty.setObjectName('ExplorerEmpty');self.empty.setAlignment(Qt.AlignCenter);self.empty.setWordWrap(True)
++        for w in (self.list, self.icons, self.empty):self.stack.addWidget(w)
++        self.foot = QLabel(self);self.foot.setObjectName('ExplorerFoot');self.foot.setAccessibleName('What is in the folder')
++        box.addWidget(self.foot)
++        for view in (self.list, self.icons):
++            view.customContextMenuRequested.connect(lambda point, v=view: explorer.menu_at(v, point))
++            view.itemSelectionChanged.connect(explorer.chosen_changed)
++        self.list.itemActivated.connect(lambda item, column=0: explorer.activate(item.data(0, ENTRY)))
++        self.icons.itemActivated.connect(lambda item: explorer.activate(item.data(ENTRY)))
++        self.restyle()
++
++    def restyle(self):
++        s = scale_of(self.host);px = max(12, round(14 * s));thumb = round(THUMB_PX * s)
++        self.icons.setIconSize(QSize(thumb, thumb));self.icons.setGridSize(QSize(thumb + round(40 * s), thumb + round(48 * s)))
++        self.list.setIconSize(QSize(round(18 * s), round(18 * s)))
++        self.list.header().setMinimumSectionSize(round(48 * s))
++        self.setStyleSheet(
++            'QWidget#GraphiteExplorer {background:%(card)s;} '
++            'QTreeWidget#ExplorerList, QListWidget#ExplorerIcons {font-family:"%(face)s";font-size:%(px)dpx;color:%(text)s;background:%(card)s;border:none;} '
++            'QListWidget#ExplorerIcons {padding:10px 4px 0 10px;} '
++            'QLabel#ExplorerEmpty {font-family:"%(face)s";font-size:%(px)dpx;color:%(quiet)s;background:%(card)s;} '
++            'QLabel#ExplorerFoot {font-family:"%(face)s";font-size:%(small)dpx;color:%(quiet)s;background:%(card)s;border-top:1px solid %(line)s;padding:3px 10px;}'
++            % dict(card=bt.CARD, face=bt.FACE, px=px, small=max(11, round(12.5 * s)), text=bt.TEXT, quiet=bt.QUIET, line=bt.LINE))
++
++    def view_widget(self):
++        return self.icons if self.stack.currentWidget() is self.icons else self.list
++
++
++# ---- the bar's parts: the address and List · Icons · Board ---------------------------------------------------------------------
++class Switch(QWidget):
++    """List · Icons · Board: three presses, one of them down (its word underlined as well as coloured)."""
++
++    def __init__(self, explorer):
++        super().__init__()
++        self.setObjectName('ExplorerViews');self.setAccessibleName('How the folder is shown: List, Icons or Board')
++        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
++        row = QHBoxLayout(self);row.setContentsMargins(0, 0, 0, 0);row.setSpacing(0)
++        self.group = QButtonGroup(self);self.group.setExclusive(True);self.buttons = {}
++        tips = {'list': 'List: name, modified, type, size and links; a press on a column sorts by it',
++                'icons': 'Icons: a thumbnail for each picture', 'board': 'Board: the chosen thing in the middle, what is linked to it around it (Ctrl+B)'}
++        for view in ex.VIEWS:
++            b = QToolButton(self);b.setObjectName('ExplorerView' + ex.VIEW_WORDS[view]);b.setText(ex.VIEW_WORDS[view]);b.setCheckable(True)
++            b.setAccessibleName(ex.VIEW_WORDS[view]);b.setToolTip(tips[view]);b.setCursor(Qt.PointingHandCursor);b.setFocusPolicy(Qt.TabFocus)
++            b.clicked.connect(lambda checked=False, v=view: explorer.set_view(v))
++            self.group.addButton(b);self.buttons[view] = b;row.addWidget(b)
++        self.restyle()
++
++    def restyle(self, scale=1.0):
++        px = max(12, round(14 * scale))
++        self.setStyleSheet(
++            'QToolButton {font-family:"%(face)s";font-size:%(px)dpx;color:%(quiet)s;background:transparent;border:1px solid %(line)s;padding:2px 8px;} '
++            'QToolButton:checked {color:%(text)s;background:%(raised)s;border:1px solid %(strong)s;text-decoration:underline;font-weight:600;}'
++            % dict(face=bt.FACE, px=px, quiet=bt.QUIET, line=bt.LINE, text=bt.TEXT, raised=bt.RAISED, strong=bt.LINE_STRONG))
++
++    def show_view(self, view):
++        b = self.buttons.get(view)
++        if b is not None and not b.isChecked():b.setChecked(True)
++
++
++class Address(QLineEdit):
++    def __init__(self, explorer):
++        super().__init__()
++        self.explorer = explorer;self.setObjectName('ExplorerAddress');self.setAccessibleName('Address: the folder in front; type a path and press Enter')
++        self.setPlaceholderText('a folder or a file: ~/Documents, /etc, C:\\');self.setClearButtonEnabled(False)
++        self.setToolTip('Type a path and press Enter: ~ is Home, / the top of the computer, C:\\ and D:\\ its drives')
++        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed);self.returnPressed.connect(lambda: explorer.go_typed(self.text()))
++
++    def keyPressEvent(self, event):
++        if event.key() == Qt.Key_Escape:
++            self.explorer.sync_bar(force=True);self.explorer.page.view_widget().setFocus();event.accept();return
++        super().keyPressEvent(event)
++
++    def restyle(self, scale=1.0):
++        self.setMinimumWidth(round(160 * scale))
++        self.setStyleSheet('QLineEdit#ExplorerAddress {font-family:"%s";font-size:%dpx;color:%s;background:%s;border:1px solid %s;padding:2px 6px;}'
++                           % (bt.FACE, max(12, round(14 * scale)), bt.TEXT, bt.CARD, bt.LINE_STRONG))
++
++
++# ---- the keys over the views ------------------------------------------------------------------------------------------------------
++KEYS = {
++    (Qt.Key_C, Qt.ControlModifier): 'copy', (Qt.Key_X, Qt.ControlModifier): 'cut', (Qt.Key_V, Qt.ControlModifier): 'paste',
++    (Qt.Key_F2, Qt.NoModifier): 'rename', (Qt.Key_Delete, Qt.NoModifier): 'delete', (Qt.Key_Delete, Qt.ShiftModifier): 'for_good',
++    (Qt.Key_Return, Qt.NoModifier): 'open', (Qt.Key_Enter, Qt.KeypadModifier): 'open', (Qt.Key_Return, Qt.AltModifier): 'properties',
++    (Qt.Key_Enter, Qt.AltModifier | Qt.KeypadModifier): 'properties', (Qt.Key_F5, Qt.NoModifier): 'read_again',
++    (Qt.Key_Backspace, Qt.NoModifier): 'back', (Qt.Key_A, Qt.ControlModifier): 'all', (Qt.Key_Z, Qt.ControlModifier): 'undo',
++    (Qt.Key_Up, Qt.AltModifier): 'up', (Qt.Key_L, Qt.ControlModifier): 'address', (Qt.Key_D, Qt.AltModifier): 'address',
++    (Qt.Key_B, Qt.ControlModifier): 'board',
++}
++
++
++class Keys(QObject):
++    def __init__(self, explorer, views):
++        super().__init__(explorer.page)
++        self.explorer = explorer
++        for v in views:v.installEventFilter(self)
++
++    def eventFilter(self, obj, event):
++        kind = event.type()
++        if kind not in (QEvent.ShortcutOverride, QEvent.KeyPress):return False
++        try:what = KEYS.get((event.key(), event.modifiers()))
++        except RuntimeError:
++            return False
++        if what is None:return False
++        if kind == QEvent.ShortcutOverride:event.accept();return True
++        try:self.explorer.do(what)
++        except ValueError as exc:
++            say(self.explorer.host, 'Not done: %s' % str(exc).split(': ', 1)[-1])
++        return True
++
++
++# ---- the Explorer -------------------------------------------------------------------------------------------------------------
++class Explorer(QObject):
++    def __init__(self, host):
++        super().__init__(host)
++        self.host = host;self.living = host.living_nav;self.folder = '';self.listing = {};self.entries = [];self.view = 'list'
++        self.sort = (0, False);self.generation = 0;self.waiting = [];self.thumbs = {};self.left_count = 0;self.chosen_after = []
++        self.page = ExplorerPage(self);host.central_stack.addWidget(self.page)
++        self.keys = Keys(self, (self.page.list, self.page.icons))
++        self.watcher = QFileSystemWatcher(self);self.watcher.directoryChanged.connect(lambda *_: self.again.start())
++        self.again = QTimer(self);self.again.setSingleShot(True);self.again.setInterval(250);self.again.timeout.connect(self.reload)
++        self.address = Address(self);self.switch = Switch(self);self.place_on_bar()
++        self.hook()
++
++    # ---- where it stands ------------------------------------------------------------------------------------------------------
++    def in_front(self):
++        try:return self.host.central_stack.currentWidget() is self.page
++        except RuntimeError:
++            return False
++
++    def computer(self):
++        return getattr(self.living, 'computer', None)
++
++    def home(self):
++        computer = self.computer()
++        return str(computer.home) if computer is not None else str(Path.home())
++
++    def place_on_bar(self):
++        one = getattr(self.host, 'one_bar', None)
++        crumbs = getattr(one, 'crumbs', None)
++        if one is None or crumbs is None:
++            self.address.hide();self.switch.hide();return
++        row = one.row;at = row.indexOf(crumbs.words)
++        self.address.setParent(one.bar);self.switch.setParent(one.bar)
++        row.insertWidget(at + 1, self.address, 1);row.insertSpacing(at + 2, 8);row.insertWidget(at + 3, self.switch, 0)
++        self.address.hide();self.switch.hide();self.restyle()
++
++    def restyle(self):
++        s = scale_of(self.host);self.address.restyle(s);self.switch.restyle(s);self.page.restyle()
++
++    # ---- hooks into the tree, the history, the bar and the window --------------------------------------------------------------
++    def hook(self):
++        host = self.host;living = self.living;explorer = self
++        tree_model = living.tree_model
++
++        def arranged(model, _original=tree_model):
++            return explorer.arranged(_original(model))
++        living.tree_model = arranged
++        computer = self.computer()
++        if computer is not None:
++            go = computer.go
++
++            def computer_go(node_id, via='tree', _go=go):
++                done = explorer.tree_go(node_id, via)
++                return True if done else _go(node_id, via)
++            computer.go = computer_go
++            QTimer.singleShot(0, lambda: explorer.wait_land(80))
++        restore = living.restore
++
++        def restored(entry, _restore=restore):
++            if getattr(entry, 'depth', '') == 'explorer':return explorer.restore(entry)
++            return _restore(entry)
++        living.restore = restored
++        one = getattr(host, 'one_bar', None)
++        if one is not None:
++            sync = one.sync
++
++            def one_sync(_sync=sync):
++                _sync();explorer.sync_bar()
++            one.sync = one_sync
++        close_start = host._close_start
++
++        def close(_close=close_start):
++            _close();explorer.leave()
++        host._close_start = close
++        self.left_count = host.tabs.count()
++        host.tabs.currentChanged.connect(self.tab_changed)
++        host.central_stack.currentChanged.connect(lambda *_: self.sync_bar())
++        note = getattr(getattr(host, 'home_files', None), 'note', None)
++        if note is not None and hasattr(note, 'tell'):
++            tell = note.tell
++
++            def told(words, *args, _tell=tell, **kwargs):
++                return _tell(ex.in_words(words, bin_word(host)), *args, **kwargs)
++            note.tell = told
++        switch = getattr(computer, 'switch', None)
++        if switch is not None:switch.toggled.connect(lambda *_: self.reload() if self.in_front() else None)
++
++    def arranged(self, model):
++        """The tree's rows in the Explorer's order (explorer.arrange), and living_nav's indexes made again for them."""
++        computer = self.computer()
++        if computer is None or not isinstance(model, dict):return model
++        try:
++            from .cabinet import digest
++            rows, paths = ex.arrange(model.get('nodes') or [], computer.home_id, ex.quick_places(computer.home), computer.canonical, ex.letters())
++        except Exception as exc:  # noqa: BLE001 - the tree stands as 1.0 drew it
++            say(self.host, 'The Explorer could not arrange the tree: %s' % str(exc)[:160]);return model
++        computer.paths.update(paths)
++        model = dict(model, nodes=rows)
++        model['signature'] = digest([model.get('signature'), [(n['id'], n['label'], n['parent']) for n in rows if n['id'] in paths or n['id'] == ex.COMPUTER]])
++        living = self.living;living.nodes = {n['id']: n for n in rows};living.by_canonical = {}
++        for n in rows:
++            known = living.by_canonical.get(n['canonical_id'])
++            if known is None or (n['provider'] == 'living_nav' and living.nodes[known]['provider'] != 'living_nav') or (n.get('owning') and not living.nodes[known].get('owning')):
++                living.by_canonical[n['canonical_id']] = n['id']
++        return model
++
++    def tree_go(self, node_id, via):
++        """A folder of the tree opens in the centre in its view; a file opens its folder with it chosen. A folder or file left
++        on Board goes to the board as in 1.0 (False: the tree's own way)."""
++        from .home_files_qt import path_of_row
++        node = self.living.nodes.get(node_id) or {}
++        role = node.get('role');path = path_of_row(node_id)
++        if role not in ('file', 'folder') or not path:return False
++        folder = path if role == 'folder' else str(Path(path).parent)
++        if not os.path.isdir(folder):return False
++        if ex.view_for(folder) == 'board':return False
++        return self.show(folder, via=via, chosen=[path] if role == 'file' else ())
++
++    def wait_land(self, tries):
++        computer = self.computer()
++        if computer is None or getattr(self.host, '_closing', False):return
++        if getattr(computer, 'landed', False):return self.landed()
++        if tries > 0:QTimer.singleShot(50, lambda: self.wait_land(tries - 1))
++        return None
++
++    def landed(self):
++        """The start: Quick access open, Home chosen on it (its folders closed, so the six places read at once), and Home in the
++        centre when nothing else is there: never a blank centre."""
++        computer = self.computer();page = getattr(self.host, 'cabinet_page', None)
++        if computer is None or page is None:return
++        item = page.items.get(computer.home_id)
++        if item is not None and item.isExpanded():item.setExpanded(False)
++        QTimer.singleShot(0, self.first_folder)
++
++    def first_folder(self):
++        host = self.host
++        if getattr(host, '_closing', False) or getattr(host, '_initializing', False):return
++        if host.tabs.count() or getattr(host, '_field_active', False) or getattr(host, '_home_active', False):return
++        if host.central_stack.currentWidget() is not getattr(host, 'workspace_split', None):return
++        self.show(self.home(), via='start')
++
++    def tab_changed(self, index):
++        """A tab that comes forward (one opened, or chosen) is what the owner asked to see; a tab closing leaves the folder."""
++        count = self.host.tabs.count();closed = count < self.left_count;self.left_count = count
++        if index >= 0 and not closed:self.leave()
++
++    def leave(self):
++        host = self.host
++        if getattr(host, '_initializing', False) or not self.in_front():return
++        host.central_stack.setCurrentWidget(host.workspace_split)
++
++    def bring(self):
++        host = self.host
++        if getattr(host, '_field_active', False):
++            from . import field_page
++            field_page.leave_field(host)
++        if getattr(host, '_home_active', False):host._close_start()
++        if not self.in_front():host.central_stack.setCurrentWidget(self.page)
++        host.setWindowTitle('%s — Graphite' % (Path(self.folder).name or self.folder))
++
++    # ---- reading and showing a folder ----------------------------------------------------------------------------------------
++    def read(self, path):
++        kernel = kernel_of(self.host)
++        if kernel is None:return None, 'Graphite\'s Kernel is not open yet'
++        from .engineering_kernel import operator
++        computer = self.computer();hidden = bool(getattr(computer, 'hidden', False))
++        try:answer = kernel.dispatch('ledger.browse', {'path': str(path), 'all': hidden, 'limit': LIMIT}, operator())
++        except Exception as exc:  # noqa: BLE001 - words, never a traceback
++            return None, str(exc)[:200]
++        if not answer.get('ok'):return None, str((answer.get('error') or {}).get('message') or 'not read')
++        return answer['result'], ''
++
++    def show(self, path, via='tree', chosen=(), view=None, record=True):
++        """The folder in the centre, in its view (or `view`), the `chosen` paths chosen. False when it cannot be read."""
++        path = os.path.normpath(str(path))
++        listing, why = self.read(path)
++        if listing is None:
++            say(self.host, '%s cannot be shown: %s' % (tilde(path), why));return False
++        view = view or ex.view_for(path, listing.get('entries') or ())
++        if view == 'board':
++            self.folder = path;self.listing = listing
++            return self.to_board(list(chosen)[0] if chosen else path, via)
++        self.folder = path;self.listing = listing;self.view = view;self.chosen_after = [os.path.normpath(str(c)) for c in chosen]
++        self.entries = self.with_links([dict(e, path=os.path.join(path, e['name'])) for e in listing.get('entries') or ()])
++        watched = self.watcher.directories()
++        if watched:self.watcher.removePaths(watched)
++        if os.path.isdir(path):self.watcher.addPath(path)
++        self.bring();self.fill()
++        if record:self.record(path, via)
++        self.sync_bar(force=True)
++        return True
++
++    def reload(self):
++        if not self.folder:return
++        keep = self.chosen_paths()
++        if not os.path.isdir(self.folder):
++            parent = str(Path(self.folder).parent)
++            say(self.host, '%s is not there any more; its folder is shown.' % tilde(self.folder))
++            return self.show(parent, via='tree', record=False)
++        listing, why = self.read(self.folder)
++        if listing is None:return say(self.host, '%s cannot be read again: %s' % (tilde(self.folder), why))
++        self.listing = listing;self.chosen_after = keep
++        self.entries = self.with_links([dict(e, path=os.path.join(self.folder, e['name'])) for e in listing.get('entries') or ()])
++        self.fill()
++        return True
++
++    def with_links(self, entries):
++        """Each row's recorded links on the board's reading of the desk (a count only where there are some)."""
++        board = getattr(getattr(self.host, 'field_page', None), 'board', None)
++        desk = getattr(board, 'desk', None);known = getattr(self.living, 'files_by_abs', None) or {}
++        if desk is None:return entries
++        for e in entries:
++            ident = known.get(e['path'])
++            if ident:
++                try:e['links'] = len(desk.recorded(ident))
++                except Exception:  # noqa: BLE001 - no count rather than a wrong one
++                    pass
++        return entries
++
++    def record(self, path, via):
++        """A place in the window's history (Back and Forward), and the tree kept to it where it already shows its row."""
++        living = self.living;computer = self.computer()
++        ident = PATH + path;node = ''
++        if computer is not None:
++            from .home_files_qt import branch_id
++            for candidate in (ex.FS + 'quick:' + path, branch_id(path), ex.SYSTEM_ID if path == '/' else ''):
++                if candidate and candidate in living.nodes:node = candidate;break
++        try:living.go(ident, 'tree', 'explorer', title=Path(path).name or path, node=node)      # the tree is kept below, without reading it again
++        except ValueError:      # a history that does not know the Explorer's depth
++            return
++        page = getattr(self.host, 'cabinet_page', None)
++        if via not in ('tree',) and page is not None and node in getattr(page, 'items', {}):
++            living.with_applying(lambda: page.select(node, reveal=True))
++
++    def restore(self, entry):
++        focus = str(getattr(entry, 'focus', '') or '')
++        path = focus[len(PATH):] if focus.startswith(PATH) else ''
++        if path and os.path.isdir(path):self.show(path, via='breadcrumb', view=None, record=False)
++
++    def type_words(self, entry):
++        from .finder_qt import kind_word
++        return kind_word(entry)
++
++    def fill(self):
++        page = self.page;column, descending = self.sort
++        rows = ex.ordered(self.entries, column, descending, self.type_words)
++        self.generation += 1;self.waiting = []
++        from .finder_qt import glyph, glyph_kind, when
++        s = scale_of(self.host);small = round(18 * s);thumb = round(THUMB_PX * s)
++        head = page.list.header();head.setSortIndicator(column, Qt.DescendingOrder if descending else Qt.AscendingOrder)
++        for view in (page.list, page.icons):view.blockSignals(True)
++        page.list.clear();page.icons.clear();chosen = set(self.chosen_after);first = None
++        for e in rows:
++            folder = e.get('kind') == 'folder'
++            links = int(e.get('links') or 0)
++            item = QTreeWidgetItem([e['name'], when(e['modified']) if e.get('modified') else '', self.type_words(e),
++                                    '' if folder else (ex.bytes_words(e['bytes']) if e.get('bytes') is not None else '—'),
++                                    ('%d ─' % links) if links else ''])
++            item.setData(0, ENTRY, e);item.setIcon(0, QIcon(glyph(glyph_kind(e), small)));item.setToolTip(0, tilde(e['path']))
++            if links:item.setToolTip(4, '%d recorded link%s: Board shows %s' % (links, '' if links == 1 else 's', 'them' if links > 1 else 'it'))
++            for c in (1, 3, 4):item.setTextAlignment(c, Qt.AlignRight | Qt.AlignVCenter)
++            for c in (1, 2, 3, 4):item.setForeground(c, QColor(bt.QUIET))
++            if not e.get('readable', True):item.setForeground(0, QColor(bt.QUIET));item.setToolTip(0, item.toolTip(0) + ' · cannot be read')
++            page.list.addTopLevelItem(item)
++            icon = QListWidgetItem(e['name']);icon.setData(ENTRY, e);icon.setToolTip('%s · %s' % (e['name'], self.type_words(e)))
++            if not folder and ex.is_picture(e['name']):
++                kept = self.thumbs.get(e['path'])
++                icon.setIcon(QIcon(kept) if kept is not None else QIcon(glyph('image', thumb)))
++                if kept is None:self.waiting.append(e['path'])
++            else:icon.setIcon(QIcon(glyph(glyph_kind(e), thumb)))
++            page.icons.addItem(icon)
++            if e['path'] in chosen:
++                item.setSelected(True);icon.setSelected(True)
++                if first is None:first = (item, icon)
++        if first is not None:
++            page.list.setCurrentItem(first[0], 0, QItemSelectionModel.NoUpdate);page.icons.setCurrentItem(first[1], QItemSelectionModel.NoUpdate)
++            page.list.scrollToItem(first[0]);page.icons.scrollToItem(first[1])
++        for view in (page.list, page.icons):view.blockSignals(False)
++        if not rows:
++            page.empty.setText('This folder is empty.' if not self.listing.get('count') else 'Nothing here is shown.')
++            page.stack.setCurrentWidget(page.empty)
++        else:page.stack.setCurrentWidget(page.icons if self.view == 'icons' else page.list)
++        self.chosen_after = []
++        self.say_foot()
++        if self.view == 'icons' and self.waiting:self.next_thumbs(self.generation)
++
++    def next_thumbs(self, generation):
++        if generation != self.generation or not self.waiting:return
++        batch, self.waiting = self.waiting[:THUMBS_AT_ONCE], self.waiting[THUMBS_AT_ONCE:]
++        px = round(THUMB_PX * scale_of(self.host));cache = ex.thumbs_dir()
++        from . import floor
++
++        def work(batch=tuple(batch), px=px, cache=cache):
++            return [(p, thumbnail(p, px, cache)) for p in batch]
++
++        def done(result, error, generation=generation):
++            if generation != self.generation:return
++            for path, image in result or ():
++                if image is None:continue
++                pixmap = QPixmap.fromImage(image);self.thumbs[path] = pixmap
++                for i in range(self.page.icons.count()):
++                    item = self.page.icons.item(i)
++                    if (item.data(ENTRY) or {}).get('path') == path:item.setIcon(QIcon(pixmap));break
++            if len(self.thumbs) > 3000:self.thumbs.clear()
++            self.next_thumbs(generation)
++        floor.submit(work, done, key=('explorer-thumbs', id(self)))
++
++    def say_foot(self):
++        listing = self.listing or {};count = int(listing.get('count') or len(self.entries));chosen = len(self.chosen_paths())
++        words = ['%d thing%s' % (count, '' if count == 1 else 's')]
++        if listing.get('truncated') and count > len(self.entries):words.append('the first %d listed' % len(self.entries))
++        if chosen:words.append('%d chosen' % chosen)
++        if listing.get('free_bytes') is not None and listing.get('total_bytes'):
++            letter = ex.letter_of(self.folder, ex.letters())
++            words.append('%s free of %s on %s' % (ex.bytes_words(listing['free_bytes']), ex.bytes_words(listing['total_bytes']),
++                                                    'System (C:)' if letter == 'C' else 'the drive %s:' % letter))
++        self.page.foot.setText(' · '.join(words))
++
++    # ---- choosing and doing ---------------------------------------------------------------------------------------------------
++    def chosen_paths(self):
++        view = self.page.view_widget()
++        try:items = view.selectedItems()
++        except RuntimeError:
++            return []
++        get = (lambda i: i.data(0, ENTRY)) if view is self.page.list else (lambda i: i.data(ENTRY))
++        rows = [get(i) or {} for i in items]
++        order = {e['path']: n for n, e in enumerate(ex.ordered(self.entries, *self.sort, self.type_words))}
++        return [r['path'] for r in sorted(rows, key=lambda r: order.get(r.get('path'), 0)) if r.get('path')]
++
++    def current_path(self):
++        view = self.page.view_widget();item = view.currentItem()
++        if item is None:return ''
++        e = item.data(0, ENTRY) if view is self.page.list else item.data(ENTRY)
++        return (e or {}).get('path', '') if item.isSelected() else ''
++
++    def chosen_changed(self):
++        self.say_foot()
++
++    def activate(self, entry):
++        """Enter or a double press: a folder opens here, a file in its app (A1's door)."""
++        entry = entry or {}
++        path = entry.get('path')
++        if not path:return None
++        if entry.get('kind') == 'folder' or os.path.isdir(path):return self.show(path, via='open')
++        from . import home_files_qt as hq
++        return hq.open_in(self.host, path)
++
++    def clipboard(self):
++        keys = getattr(self.host, 'windows_keys', None)
++        if keys is not None and getattr(keys, 'clipboard', None) is not None:return keys.clipboard
++        if getattr(self, '_clipboard', None) is None:
++            from .windows_hand import FileClipboard
++            self._clipboard = FileClipboard()
++        return self._clipboard
++
++    def do(self, what):
++        host = self.host;paths = self.chosen_paths()
++        from . import bulk_files_qt as bq
++        from . import home_files_qt as hq
++        if what in ('copy', 'cut'):
++            if not paths:return say(host, 'Choose a file or folder first.')
++            return say(host, self.clipboard().hold(paths, 'copy' if what == 'copy' else 'move'))
++        if what == 'paste':
++            clip = self.clipboard()
++            if not clip.paths:return say(host, 'Nothing is held to paste: copy or cut a file first.')
++            args = clip.batch_args(self.folder)
++            return bq.batch(host, args['act'], args['paths'], to=args['to'], said=clip.pasted)
++        if what == 'rename':
++            path = self.current_path() or (paths[0] if paths else '')
++            return hq.rename(host, path) if path else say(host, 'Choose a file or folder to rename.')
++        if what == 'delete':
++            if not paths:return None
++            return hq.delete(host, paths[0]) if len(paths) == 1 else bq.batch(host, 'delete', paths)
++        if what == 'for_good':
++            from .windows_keys_qt import for_good
++            return for_good(host, paths)
++        if what == 'open':
++            view = self.page.view_widget();item = view.currentItem()
++            if item is None:return None
++            return self.activate(item.data(0, ENTRY) if view is self.page.list else item.data(ENTRY))
++        if what == 'properties':
++            from .windows_keys_qt import show_properties
++            return show_properties(host, self.current_path() or (paths[0] if paths else self.folder))
++        if what == 'read_again':self.reload();return say(host, 'Read again.')
++        if what == 'back':return self.living.back()
++        if what == 'up':
++            parent = str(Path(self.folder).parent)
++            return self.show(parent, via='breadcrumb', chosen=[self.folder]) if parent != self.folder else None
++        if what == 'all':self.page.view_widget().selectAll();return None
++        if what == 'undo':
++            note = getattr(getattr(host, 'home_files', None), 'note', None)
++            if note is not None and getattr(note, 'undo', None) is not None:return note.undo_now()
++            return say(host, 'Nothing to take back here.')
++        if what == 'address':self.address.setFocus(Qt.ShortcutFocusReason);self.address.selectAll();return None
++        if what == 'board':return self.set_view('board')
++        return None
++
++    def menu_at(self, view, point):
++        """The right-click: what the keys do, in words (each with its key when keys are shown)."""
++        from .windows_hand import keyed
++        item = view.itemAt(point);menu = QMenu(view);menu.setObjectName('ExplorerMenu')
++        if item is not None and not item.isSelected():
++            view.clearSelection();item.setSelected(True);view.setCurrentItem(item)
++        paths = self.chosen_paths() if item is not None else []
++
++        def add(words, key, what, enabled=True):
++            a = menu.addAction(keyed(words, key));a.setEnabled(enabled);a.triggered.connect(lambda checked=False, w=what: self.do(w));return a
++        if paths:
++            add('Open', 'Enter', 'open');add('Board', 'Ctrl+B', 'board');menu.addSeparator()
++            add('Cut', 'Ctrl+X', 'cut');add('Copy', 'Ctrl+C', 'copy');add('Paste', 'Ctrl+V', 'paste', bool(self.clipboard().paths))
++            menu.addSeparator();add('Rename', 'F2', 'rename', len(paths) == 1);add('Delete', 'Delete', 'delete')
++            add('Delete for good…', 'Shift+Delete', 'for_good');menu.addSeparator()
++            copy_path = menu.addAction('Copy the path');copy_path.triggered.connect(lambda: QApplication.clipboard().setText('\n'.join(paths)))
++            add('Properties', 'Alt+Enter', 'properties', len(paths) == 1)
++        else:
++            add('Paste', 'Ctrl+V', 'paste', bool(self.clipboard().paths))
++            made = menu.addAction('New folder…')
++            from . import home_files_qt as hq
++            made.triggered.connect(lambda: hq.new_folder(self.host, Path(self.folder)))
++            menu.addSeparator();views = menu.addMenu('View')
++            for v in ex.VIEWS:
++                a = views.addAction(ex.VIEW_WORDS[v]);a.setCheckable(True);a.setChecked(v == self.view)
++                a.triggered.connect(lambda checked=False, v=v: self.set_view(v))
++            add('Read again', 'F5', 'read_again');add('Properties', 'Alt+Enter', 'properties')
++        menu.exec(view.viewport().mapToGlobal(point))
++        return menu
++
++    # ---- the views --------------------------------------------------------------------------------------------------------------
++    def set_view(self, view):
++        """List, Icons or Board. From the board, List and Icons bring back the folder of what is in its middle."""
++        if view not in ex.VIEWS:return False
++        if not self.in_front():
++            folder, chosen = self.folder_of_focus()
++            if view == 'board':self.sync_bar(force=True);return True
++            ex.remember_view(folder, view)
++            return self.show(folder, via='board', chosen=[chosen] if chosen else (), view=view)
++        if view == 'board':
++            target = self.current_path() or (self.chosen_paths() or [self.folder])[0]
++            ex.remember_view(self.folder, 'board')
++            return self.to_board(target, 'tree')
++        ex.remember_view(self.folder, view);self.view = view
++        page = self.page
++        if page.stack.currentWidget() is not page.empty:
++            keep = self.chosen_paths();self.chosen_after = keep
++            page.stack.setCurrentWidget(page.icons if view == 'icons' else page.list)
++            other = page.icons if view == 'icons' else page.list
++            for i in range(other.topLevelItemCount() if other is page.list else other.count()):
++                item = other.topLevelItem(i) if other is page.list else other.item(i)
++                e = item.data(0, ENTRY) if other is page.list else item.data(ENTRY)
++                item.setSelected((e or {}).get('path') in keep)
++        if view == 'icons' and not self.waiting:
++            self.waiting = [e['path'] for e in self.entries if e.get('kind') != 'folder' and ex.is_picture(e['name']) and e['path'] not in self.thumbs]
++        if view == 'icons' and self.waiting:self.next_thumbs(self.generation)
++        self.sync_bar(force=True);self.say_foot()
++        return True
++
++    def folder_of_focus(self):
++        """(the folder to show, the thing to choose in it) for what is in the board's middle; the last folder for a record."""
++        living = self.living;focus = getattr(living.nav, 'focus', None) or ''
++        entry = (getattr(living, 'files_by_id', None) or {}).get(focus);computer = self.computer()
++        path = computer.whole(entry) if entry is not None and computer is not None else ''
++        if not path and focus.startswith(PATH):path = focus[len(PATH):]
++        if path and os.path.isdir(path):return path, ''
++        if path and os.path.isdir(os.path.dirname(path)):return os.path.dirname(path), path
++        return (self.folder or self.home()), ''
++
++    def ident_of(self, path):
++        """The object id the board knows a file or folder by (made now, objects.get, when it has none)."""
++        living = self.living
++        known = (getattr(living, 'files_by_abs', None) or {}).get(str(path))
++        if known:return known
++        found = living.call('objects.get', {'path': str(path)})
++        if found is None:
++            say(self.host, '%s could not be put on the board: %s' % (tilde(path), living.problem or 'not read'));return ''
++        computer = self.computer()
++        if computer is not None:computer.hold(found)
++        return found['id']
++
++    def to_board(self, path, via='tree'):
++        """1.0's board, unchanged, with this file or folder in its middle."""
++        ident = self.ident_of(path)
++        if not ident:return False
++        self.living.go(ident, via if via in ('tree', 'board', 'search', 'breadcrumb', 'open', 'tab', 'start') else 'tree', 'board', title=Path(path).name or str(path))
++        self.sync_bar(force=True)
++        return True
++
++    def go_typed(self, text):
++        path = ex.address(text, self.folder, self.home(), ex.letters())
++        if not path:
++            say(self.host, 'No folder or file is at %s.' % (str(text).strip() or 'that address'));self.address.selectAll();return False
++        if os.path.isdir(path):done = self.show(path, via='open', view=None if ex.view_for(path) != 'board' else 'list')
++        else:done = self.show(os.path.dirname(path), via='open', chosen=[path], view=None if ex.view_for(os.path.dirname(path)) != 'board' else 'list')
++        if done:self.page.view_widget().setFocus(Qt.OtherFocusReason)
++        return done
++
++    def sync_bar(self, force=False):
++        """The bar's parts for what is in front: the address in place of the breadcrumb while the Explorer is; List · Icons ·
++        Board there and on the board."""
++        one = getattr(self.host, 'one_bar', None);crumbs = getattr(one, 'crumbs', None)
++        if one is None or crumbs is None:return
++        try:
++            from .centre_one_qt import depth
++            front = self.in_front();where = depth(self.host)
++            if crumbs.words.isVisibleTo(one.bar) == front:crumbs.words.setVisible(not front)
++            if self.address.isVisibleTo(one.bar) != front:self.address.setVisible(front)
++            on = front or where in ('board', 'map')
++            if self.switch.isVisibleTo(one.bar) != on:self.switch.setVisible(on)
++            self.switch.show_view(self.view if front else 'board')
++            if on and not front:      # on the board's narrow bar: the breadcrumb gives way first, then Icons (List brings the folder back)
++                s = scale_of(self.host);least = round(120 * s)
++                if crumbs.words.minimumWidth() > least:crumbs.words.setMinimumWidth(least)
++                narrow = one.bar.width() < round(760 * s)
++                if self.switch.buttons['icons'].isVisibleTo(self.switch) == narrow:self.switch.buttons['icons'].setVisible(not narrow)
++            elif front and not self.switch.buttons['icons'].isVisibleTo(self.switch):self.switch.buttons['icons'].setVisible(True)
++            if front and (force or not self.address.hasFocus()):
++                words = tilde(self.folder) if self.folder else ''
++                if self.address.text() != words:self.address.setText(words)
++        except RuntimeError:      # the window is closing
++            pass
++
++    def status(self):
++        """What the Explorer shows, for tests and checks."""
++        page = self.page;view = page.view_widget()
++        listed = [page.list.topLevelItem(i).text(0) for i in range(page.list.topLevelItemCount())]
++        icons = [page.icons.item(i) for i in range(page.icons.count())]
++        return {'front': self.in_front(), 'folder': self.folder, 'view': self.view, 'sort': [ex.COLUMNS[self.sort[0]], 'down' if self.sort[1] else 'up'],
++                'rows': listed, 'chosen': [Path(p).name for p in self.chosen_paths()], 'foot': page.foot.text(),
++                'address': self.address.text(), 'address_shown': self.address.isVisibleTo(self.address.parentWidget()) if self.address.parentWidget() else False,
++                'switch': [v for v, b in self.switch.buttons.items() if b.isChecked()],
++                'thumbnails': sum(1 for i in icons if (i.data(ENTRY) or {}).get('path') in self.thumbs),
++                'pictures': sum(1 for i in icons if ex.is_picture(i.text())), 'showing': 'empty' if page.stack.currentWidget() is page.empty else ('icons' if view is page.icons else 'list')}
++
++    def sort_by(self, column):
++        """A press on a column sorts by it; a second press turns it round. A first press on Modified, Size or Links puts the newest,
++        largest or most linked first."""
++        current, descending = self.sort
++        if column == current:descending = not descending
++        else:descending = ex.FIRST_ORDER.get(column) == 'down'
++        self.sort = (column, descending);self.chosen_after = self.chosen_paths();self.fill()
++
++
++# ---- Rules: the bin's name -------------------------------------------------------------------------------------------------------
++def set_bin_word(host, word):
++    if word not in ex.BIN_WORDS:return None
++    session = getattr(host, 'session', None)
++    if session is not None:
++        session.state['bin_word'] = word
++        try:session.save()
++        except Exception:  # noqa: BLE001 - kept for this run at least
++            pass
++    can = getattr(host, 'trash_can', None)
++    if can is not None and hasattr(can, 'name_it'):can.name_it(word)
++    say(host, 'The bin is called %s.' % word)
++    return word
++
++
++def rules_lines(host, menu):
++    """Rules ▸ The bin's name: Recycle Bin or DELETE."""
++    words = QMenu("The bin's name", menu);group = QActionGroup(words);group.setExclusive(True)
++    for word in ex.BIN_WORDS:
++        row = words.addAction(word);row.setCheckable(True);row.setChecked(bin_word(host) == word);group.addAction(row)
++        row.triggered.connect(lambda checked=False, word=word: set_bin_word(host, word))
++    menu.addMenu(words)
++    return words
++
++
++# ---- install ------------------------------------------------------------------------------------------------------------------
++def install(host):
++    """shell2 calls this once the tree, the history and the one bar stand (after W1's keys)."""
++    if getattr(host, 'explorer', None) is not None:return host.explorer
++    if getattr(host, 'living_nav', None) is None or getattr(host, 'central_stack', None) is None:
++        host.explorer = None;return None
++    host.explorer = Explorer(host)
++    page = getattr(host, 'cabinet_page', None)
++    if page is not None:
++        try:page.refresh(force=True)
++        except RuntimeError:
++            pass
++    return host.explorer
+diff --git a/workbench/living_nav.py b/workbench/living_nav.py
+index f1e95d9..742faa1 100644
+--- a/workbench/living_nav.py
++++ b/workbench/living_nav.py
+@@ -70,7 +70,7 @@ MOST = 4000                           # entries one reading of Files lists, at m
+ DEEPEST = 12                          # folders deep, at most
+ KEPT_NAMES = 8                        # earlier paths kept for each object
+ HISTORY = 100                         # entries Back can reach
+-DEPTHS = ('board', 'work', 'split')
++DEPTHS = ('board', 'work', 'split', 'explorer')  # 1.1 E1: a folder in the Explorer is a place in the history too
+ WAYS = ('tree', 'board', 'search', 'breadcrumb', 'open', 'tab', 'start', 'her')     # how the owner reached a place
+ 
+ REL = {'type': 'string', 'maxLength': 1000}
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index a7149cd..ddbe341 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -247,7 +247,9 @@ def rebuild(host):
+             from .shell2 import hand_menu
+             menu.addMenu(appearance_menu(host));menu.addMenu(buttons_menu(host));menu.addMenu(hand_menu(host))
+             from .windows_keys_qt import rules_lines  # 1.1 W1
+-            rules_lines(host, menu);return  # 1.1 W1: Show keys, and DOS words in the Terminal      # the desk's art, its buttons (words or glyphs), and how far Stacy acts by herself
++            rules_lines(host, menu)  # 1.1 W1
++            from .explorer_qt import rules_lines as bin_lines  # 1.1 E1
++            bin_lines(host, menu);return  # 1.1 E1: the bin's name (Recycle Bin or DELETE); 1.1 W1: Show keys, and DOS words in the Terminal      # the desk's art, its buttons (words or glyphs), and how far Stacy acts by herself
+         if key == '@targets' and hasattr(host, 'target_menu'):menu.addMenu(host.target_menu);return
+         if key == '@appearance':      # 1.0 P4: Arrange ▸ Appearance, where 1.0's one line about the move to Day sends you
+             from .boss_qt import looks_menu
+diff --git a/workbench/session.py b/workbench/session.py
+index c270496..7b2833c 100644
+--- a/workbench/session.py
++++ b/workbench/session.py
+@@ -101,6 +101,7 @@ class Session:
+             from .presentation_preferences import APPEARANCE_DEFAULT, LAUNCH_MARK, LAUNCH_MARKED
+             self.state['appearance'] = APPEARANCE_DEFAULT
+             self.state[LAUNCH_MARK] = LAUNCH_MARKED      # 1.0 P4: a fresh profile starts in Day: there is no move to make
++            self.state['bin_word'] = 'Recycle Bin'      # 1.1 E1: a profile that starts with 1.1 calls the bin Recycle Bin
+             return
+         except (OSError, ValueError, TypeError, RecursionError):      # RecursionError: a value nested past reading (0.8.4)
+             return
+@@ -109,6 +110,7 @@ class Session:
+         if saved_appearance(data.get('appearance')):self.state['appearance'] = data['appearance']     # the whole window's look (presentation_preferences.APPEARANCES): this computer's, not a project's
+         from .presentation_preferences import LAUNCH_MARK, LAUNCH_MARKED      # 1.0 P4: 1.0's move to Day is made once per profile
+         if data.get(LAUNCH_MARK) == LAUNCH_MARKED:self.state[LAUNCH_MARK] = LAUNCH_MARKED
++        self.state['bin_word'] = data['bin_word'] if data.get('bin_word') in ('Recycle Bin', 'DELETE') else 'DELETE'      # 1.1 E1: a profile that has used 1.0 keeps DELETE
+         # Documents belong to one project; a different project starts clean.
+         if self.project and data.get('project') not in (None, self.project):
+             return
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 18bf598..b0e90cf 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -3567,6 +3567,8 @@ class Shell2(QObject):
+             install_windows_keys(host)  # 1.1 W1
+         except ImportError:  # 1.1 W1
+             pass
++        from .explorer_qt import install as install_explorer  # 1.1 E1
++        install_explorer(host)  # 1.1 E1: the Files tree and the centre as an Explorer: Quick access, List, Icons, Board, the address
+         from .launch_look import install as install_launch_look
+         install_launch_look(host)  # 1.0 P4: 1.0's one move to Day on a profile from before, said in one line, once
+         try:  # 1.0 F3: every keyboard stop says a name; Tab walks into a scrolled page's presses
+diff --git a/workbench/trash_can_qt.py b/workbench/trash_can_qt.py
+index 04000b8..1579d8f 100644
+--- a/workbench/trash_can_qt.py
++++ b/workbench/trash_can_qt.py
+@@ -53,8 +53,9 @@ class TrashCan(QWidget):
+     def __init__(self, host):
+         super().__init__();self.host = host;self.count = 0;self.hover = False;self.setObjectName('TrashCan')
+         self.setCursor(Qt.PointingHandCursor);self.setAcceptDrops(True);self.setMouseTracking(True)
++        from .explorer import bin_word;self.word = bin_word(getattr(getattr(host, 'session', None), 'state', None))  # 1.1 E1: Recycle Bin on a new profile, DELETE on one that used 1.0
+         self.setFocusPolicy(Qt.StrongFocus);self._fit = None;self.fit(1.0)
+-        self.setAccessibleName(WORD);self.setToolTip('DELETE · what you delete waits here, and restore puts it back where it was · drop files here to delete them')
++        self.setAccessibleName(self.word);self.setToolTip('%s · what you delete waits here, and restore puts it back where it was · drop files here to delete them' % self.word)  # 1.1 E1
+ 
+     def fit(self, scale):
+         """HATCH DESK D1b: a larger Trash (the owner's brief), sized with the interface: a 30 px can and the word at the
+@@ -70,11 +71,22 @@ class TrashCan(QWidget):
+         from . import boss_theme as _bt
+         self.word_font.setLetterSpacing(QFont.AbsoluteSpacing, (1.0 if _bt.APPEARANCE == 'kasandra' else 0.8) * float(scale))
+         self.count_font = QFont(SANS);self.count_font.setPixelSize(max(10, round(13 * float(scale))))
+-        self.word_ink = QRectF(*self.extent(self.word_font, WORD));self.ink = can_ink(self.can)  # the word's ink as drawn (desk_qt.ink_extent)
++        self.word_ink = QRectF(*self.extent(self.word_font, self.word));self.ink = can_ink(self.can)  # the word's ink as drawn (desk_qt.ink_extent)
+         self.word_width = self.word_ink.width();room = self.extent(self.count_font, '999')[2]
+         self.setFixedSize(*trash_size(scale, math.ceil(self.word_width), math.ceil(room), self.ink, self.count_gap))
+         self.update();return self.size()
+ 
++    def name_it(self, word):
++        """1.1 E1: the bin's name changed in Rules: the can says it now, its box fitted to it again."""
++        self.word = word;self.setAccessibleName(word)
++        self.setToolTip('%s · what you delete waits here, and restore puts it back where it was · drop files here to delete them' % word)
++        scale = self._fit or 1.0;self._fit = None;self.fit(scale)
++        try:
++            from .desk_qt import apply;apply(self.host)
++        except Exception:  # noqa: BLE001 - placed again at the next layout
++            pass
++        self.update()
++
+     @staticmethod
+     def extent(font, text):
+         """(left, top, width, height) of text's ink as drawn from a whole-pixel origin (desk_qt.ink_extent)."""
+@@ -126,7 +138,7 @@ class TrashCan(QWidget):
+             glow = QColor(red);glow.setAlphaF(min(0.35, 0.12 + 0.1 * _bt.glow()))
+             for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):draw_can(p, QRectF(can.x() + dx, can.y() + dy, self.can, self.can), full=self.count > 0, line=glow.name(QColor.HexArgb))
+         draw_can(p, QRectF(can.x(), can.y(), self.can, self.can), full=self.count > 0, line=ERASER_MARK if self._dropping else red)
+-        p.setFont(self.word_font);p.setPen(QColor(red or TEXT));p.drawText(word, WORD)
++        p.setFont(self.word_font);p.setPen(QColor(red or TEXT));p.drawText(word, self.word)
+         if count is not None:p.setFont(self.count_font);p.setPen(QColor(QUIET));p.drawText(count, str(self.count))
+ 
+     _dropping = False

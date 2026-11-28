@@ -53,8 +53,9 @@ class TrashCan(QWidget):
     def __init__(self, host):
         super().__init__();self.host = host;self.count = 0;self.hover = False;self.setObjectName('TrashCan')
         self.setCursor(Qt.PointingHandCursor);self.setAcceptDrops(True);self.setMouseTracking(True)
+        from .explorer import bin_word;self.word = bin_word(getattr(getattr(host, 'session', None), 'state', None))  # 1.1 E1: Recycle Bin on a new profile, DELETE on one that used 1.0
         self.setFocusPolicy(Qt.StrongFocus);self._fit = None;self.fit(1.0)
-        self.setAccessibleName(WORD);self.setToolTip('DELETE · what you delete waits here, and restore puts it back where it was · drop files here to delete them')
+        self.setAccessibleName(self.word);self.setToolTip('%s · what you delete waits here, and restore puts it back where it was · drop files here to delete them' % self.word)  # 1.1 E1
 
     def fit(self, scale):
         """HATCH DESK D1b: a larger Trash (the owner's brief), sized with the interface: a 30 px can and the word at the
@@ -70,10 +71,21 @@ class TrashCan(QWidget):
         from . import boss_theme as _bt
         self.word_font.setLetterSpacing(QFont.AbsoluteSpacing, (1.0 if _bt.APPEARANCE == 'kasandra' else 0.8) * float(scale))
         self.count_font = QFont(SANS);self.count_font.setPixelSize(max(10, round(13 * float(scale))))
-        self.word_ink = QRectF(*self.extent(self.word_font, WORD));self.ink = can_ink(self.can)  # the word's ink as drawn (desk_qt.ink_extent)
+        self.word_ink = QRectF(*self.extent(self.word_font, self.word));self.ink = can_ink(self.can)  # the word's ink as drawn (desk_qt.ink_extent)
         self.word_width = self.word_ink.width();room = self.extent(self.count_font, '999')[2]
         self.setFixedSize(*trash_size(scale, math.ceil(self.word_width), math.ceil(room), self.ink, self.count_gap))
         self.update();return self.size()
+
+    def name_it(self, word):
+        """1.1 E1: the bin's name changed in Rules: the can says it now, its box fitted to it again."""
+        self.word = word;self.setAccessibleName(word)
+        self.setToolTip('%s · what you delete waits here, and restore puts it back where it was · drop files here to delete them' % word)
+        scale = self._fit or 1.0;self._fit = None;self.fit(scale)
+        try:
+            from .desk_qt import apply;apply(self.host)
+        except Exception:  # noqa: BLE001 - placed again at the next layout
+            pass
+        self.update()
 
     @staticmethod
     def extent(font, text):
@@ -126,7 +138,7 @@ class TrashCan(QWidget):
             glow = QColor(red);glow.setAlphaF(min(0.35, 0.12 + 0.1 * _bt.glow()))
             for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):draw_can(p, QRectF(can.x() + dx, can.y() + dy, self.can, self.can), full=self.count > 0, line=glow.name(QColor.HexArgb))
         draw_can(p, QRectF(can.x(), can.y(), self.can, self.can), full=self.count > 0, line=ERASER_MARK if self._dropping else red)
-        p.setFont(self.word_font);p.setPen(QColor(red or TEXT));p.drawText(word, WORD)
+        p.setFont(self.word_font);p.setPen(QColor(red or TEXT));p.drawText(word, self.word)
         if count is not None:p.setFont(self.count_font);p.setPen(QColor(QUIET));p.drawText(count, str(self.count))
 
     _dropping = False

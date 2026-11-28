@@ -101,6 +101,7 @@ class Session:
             from .presentation_preferences import APPEARANCE_DEFAULT, LAUNCH_MARK, LAUNCH_MARKED
             self.state['appearance'] = APPEARANCE_DEFAULT
             self.state[LAUNCH_MARK] = LAUNCH_MARKED      # 1.0 P4: a fresh profile starts in Day: there is no move to make
+            self.state['bin_word'] = 'Recycle Bin'      # 1.1 E1: a profile that starts with 1.1 calls the bin Recycle Bin
             return
         except (OSError, ValueError, TypeError, RecursionError):      # RecursionError: a value nested past reading (0.8.4)
             return
@@ -109,6 +110,7 @@ class Session:
         if saved_appearance(data.get('appearance')):self.state['appearance'] = data['appearance']     # the whole window's look (presentation_preferences.APPEARANCES): this computer's, not a project's
         from .presentation_preferences import LAUNCH_MARK, LAUNCH_MARKED      # 1.0 P4: 1.0's move to Day is made once per profile
         if data.get(LAUNCH_MARK) == LAUNCH_MARKED:self.state[LAUNCH_MARK] = LAUNCH_MARKED
+        self.state['bin_word'] = data['bin_word'] if data.get('bin_word') in ('Recycle Bin', 'DELETE') else 'DELETE'      # 1.1 E1: a profile that has used 1.0 keeps DELETE
         # Documents belong to one project; a different project starts clean.
         if self.project and data.get('project') not in (None, self.project):
             return
