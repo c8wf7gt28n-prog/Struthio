@@ -1,9 +1,9 @@
 diff --git a/tests_integrated/test_command_tool.py b/tests_integrated/test_command_tool.py
 new file mode 100644
-index 0000000..ee6079d
+index 0000000..f8bea6a
 --- /dev/null
 +++ b/tests_integrated/test_command_tool.py
-@@ -0,0 +1,349 @@
+@@ -0,0 +1,356 @@
 +"""1.1 KS2, the command tool (PLAN_1.1.md, KS2; the coordinator's note of 28 Nov).
 +
 +Acceptance first: a read runs sealed and its output is data (a line written to an assistant is marked, never a request);
@@ -189,21 +189,26 @@ index 0000000..ee6079d
 +        docs = self.home / 'Documents'
 +        with tarfile.open(self.home / 'charts.tar', 'w') as t:t.add(docs / 'Survey', arcname='Survey charts')
 +        before = self.snapshot()
-+        for line, there in (('touch ~/Documents/log.txt', 'Documents/log.txt'), ('cp -n ~/Documents/tide.txt ~/Old', 'Old/tide.txt'),
-+                            ('cp -rn ~/Documents/Survey ~/Survey copy', None), ('cp -rn ~/Documents/Survey "~/Survey copy"', 'Survey copy/gulls.csv'),
++        for line, there in (('touch ~/Documents/log.txt', 'Documents/log.txt'), ('touch ~/Documents/tide.txt', 'Documents/tide.txt'),
++                            ('cp -n ~/Documents/tide.txt ~/Old', 'Old/tide.txt'), ('cp -rn ~/Documents/Survey "~/Survey copy"', 'Survey copy/gulls.csv'),
++                            ('cp --update=none -r ~/Documents/Survey ~/Old', 'Old/Survey/gulls.csv'),
 +                            ('mv -n "~/Documents/Harbour draft.odt" ~/Old', 'Old/Harbour draft.odt'), ('ln -s ~/Documents ~/Docs', 'Docs'),
-+                            ('chmod 600 ~/Documents/tide.txt', None), ('tar czf ~/survey.tgz -C ~ Documents/Survey', None),
++                            ('chmod 600 ~/Documents/tide.txt', 'Documents/tide.txt'), ('chmod go-r,u+x ~/Documents/tide.txt', 'Documents/tide.txt'),
 +                            ('tar czf ~/survey.tgz Documents/Survey', 'survey.tgz'), ('tar xf ~/charts.tar -C ~/Old', 'Old/Survey charts/gulls.csv'),
-+                            ('rename.ul draft rev "~/Old/draft 1.txt"', 'Old/rev 1.txt')):
++                            ('rename.ul draft rev "~/Old/draft 1.txt"', 'Old/rev 1.txt'), ('mkdir ~/Old/Rev', 'Old/Rev')):
 +            with self.subTest(line=line):
-+                v = self.ct.from_line(line)
-+                if there is None and not v['ok']:continue      # a form the table does not take (cp to two names, tar -C on create): refused
 +                planned, ran = self.press(line)
-+                if there:self.assertTrue(os.path.lexists(self.home / there), line)
-+                if line.startswith('chmod'):self.assertEqual(os.stat(docs / 'tide.txt').st_mode & 0o777, 0o600)
++                self.assertTrue(os.path.lexists(self.home / there), line)
++                if line.startswith('chmod 600'):self.assertEqual(os.stat(docs / 'tide.txt').st_mode & 0o777, 0o600)
 +                back = self.call('command.undo', {'run': ran['run']})['result'];self.assertTrue(back['verified'], (line, back))
 +                self.assertEqual(self.snapshot(), before, line)
-+        self.assertFalse(self.ct.from_line('cp -rn ~/Documents/Survey ~/Survey copy')['ok'], 'three operands to cp without a folder: refused')
++        for line in ('cp -rn ~/Documents/Survey ~/Survey copy', 'cp -n ~/Documents/tide.txt ~/Documents', 'mkdir ~/Documents', 'mv -n ~/Old ~/Old/inner',
++                     'chmod 644 ~/Docs-none', 'touch /etc/graphite-test', 'rm -r ~', 'mkdir ~/.local/share/Trash/x'):      # a plan that refuses: nothing is offered
++            with self.subTest(refused=line):
++                v = self.ct.from_line(line)
++                self.assertFalse(v['ok'] and self.call('command.plan', {'argv': v['argv']})['ok'], line)
++        self.assertEqual(self.snapshot(), before)
++        self.assertFalse(self.ct.from_line('cp --update=all -r ~/Documents ~/Old')['ok'], '--update=all writes over: refused')
 +
 +    def test_rm_goes_to_the_bin_and_undo_brings_it_back(self):
 +        before = self.snapshot()
@@ -314,10 +319,10 @@ index 0000000..ee6079d
 +        said = self.face.said[-1];self.assertEqual(said[1], 'This will make the folder ~/Projects.')
 +        self.assertIn('The command: mkdir %s' % (self.home / 'Projects'), self.shown(said[2]));self.assertIn('waits for your press', self.shown(said[2]))
 +        self.assertEqual(self.snapshot(), before)
-+        steps = self.cq.next_steps(self.host);self.assertEqual([s['words'] for s in steps], ['Run · mkdir %s' % (self.home / 'Projects')][:1] if len(str(self.home)) < 40 else [steps[0]['words']])
++        steps = self.cq.next_steps(self.host);self.assertEqual([s['words'] for s in steps], ['Run · Make the folder ~/Projects'])
 +        self.assertTrue(self.cq.take(self.host, steps[0]))
 +        done = self.face.said[-1];self.assertTrue(done[1].startswith('✓ Done and verified: a folder is there'), done[1])
-+        self.assertEqual([s['verb'] for s in self.cq.next_steps(self.host)], ['Undo'])
++        self.assertEqual([s['words'] for s in self.cq.next_steps(self.host)], ['Undo · Make the folder ~/Projects'])
 +        self.press(done[2], 'Undo');self.assertTrue(self.face.said[-1][1].startswith('Undone: '), self.face.said[-1][1])
 +        self.assertEqual(self.snapshot(), before)
 +        self.assertTrue(self.cq.asked(self.face, 'run: ls ~/Documents | grep tide'))
@@ -327,6 +332,8 @@ index 0000000..ee6079d
 +        self.assertTrue(self.cq.asked(self.face, 'what is using my disk', dictionary=True))
 +        self.assertTrue(self.face.said[-1][1].startswith('My dictionary reads that as this command. It only reads'), self.face.said[-1][1])
 +        self.assertFalse(self.cq.asked(self.face, 'what is on the desk today', dictionary=True))
++        with patch.object(self.cq, '_model_request', lambda host: object()):
++            self.assertFalse(self.cq.asked(self.face, 'what is listening', dictionary=True), 'with a model, the words keep their 1.0 route')
 +        self.assertFalse(self.cq.asked(self.face, 'run the numbers again'), '"run …" without the colon keeps its 1.0 route (the Terminal)')
 +        with patch.object(self.cq, '_model_request', lambda host: None):
 +            self.assertTrue(self.cq.asked(self.face, 'command: rotate the photos'))
@@ -355,10 +362,10 @@ index 0000000..ee6079d
 +    unittest.main()
 diff --git a/workbench/command_forms.py b/workbench/command_forms.py
 new file mode 100644
-index 0000000..7956cb8
+index 0000000..733533d
 --- /dev/null
 +++ b/workbench/command_forms.py
-@@ -0,0 +1,367 @@
+@@ -0,0 +1,368 @@
 +"""The command tool's table (Graphite 1.1 KS2): every program she knows and its argument forms, each classed read, change,
 +destroy, root or network (several may apply). Data only; command_tool.py is the code that reads it.
 +
@@ -390,7 +397,7 @@ index 0000000..7956cb8
 +  P a path it reads · W a path it makes (must not be there) · Q where a copy, move or link lands (a folder that is there, or
 +  a new name) · D a folder it writes into · T words · N a whole number · I an interval (0.2 to 60) · C a list (columns,
 +  fields) · H a host · U a web address (http or https) · M a mode for chmod · K a name (a package, a program, a unit)
-+  · X exactly '-' (standard output)
++  · X exactly '-' (standard output) · O cp's --update that never writes over (none, none-fail)
 +"""
 +
 +R, C, D, ROOT, NET = 'read', 'change', 'destroy', 'root', 'network'
@@ -600,6 +607,7 @@ index 0000000..7956cb8
 +                                                         '-C': 'root', '--clear': 'root', '--read-clear': 'root', '-n': 'root', '-D': 'root', '-E': 'root'},
 +                ops='', needs=('proc',), says='read the kernel’s messages')],
 +    'sysctl': [F(classes=(R,), opts='-a -n -N -b -e -q --all --values --names --binary --ignore --quiet', ops='T*', check='sysctl', needs=('proc',),
++                 refused={'-w': 'root', '--write': 'root', '-p': 'root', '--load': 'root', '--system': 'root'},
 +                 says='read the kernel’s settings'),
 +               F(classes=(ROOT,), refuse='root')],
 +    # ---- reads that reach the network: each waits for your press, and NET says it while it runs ------------------------------
@@ -634,7 +642,7 @@ index 0000000..7956cb8
 +    # ---- changes: each shows "This will … / The command: …", waits for your press, is verified on the disk, and has Undo ---------
 +    'mkdir': [F(classes=(C,), opts='-p -v --parents --verbose -m=M --mode=M', ops='W+', plan='mkdir', says='make the folder {W}')],
 +    'touch': [F(classes=(C,), opts='-c --no-create', ops='W+', plan='touch', says='make the empty file {W}')],
-+    'cp': [F(classes=(C,), opts='-n --no-clobber -r -R --recursive -a --archive -p -v --verbose -T --no-target-directory -L -P -d --update=T',
++    'cp': [F(classes=(C,), opts='-n --no-clobber -r -R --recursive -a --archive -p -v --verbose -T --no-target-directory -L -P -d --update=O',
 +             must=(('-n', '--no-clobber', '--update'),), must_why='overwrites', ops='P+ Q', plan='cp', says='copy {P} to {Q}',
 +             refused={'-f': 'overwrites', '--force': 'overwrites', '-b': 'overwrites', '--backup': 'overwrites', '--remove-destination': 'overwrites',
 +                      '-l': 'hard_link', '--link': 'hard_link', '-s': 'overwrites', '--symbolic-link': 'overwrites', '-i': 'ask_tty',
@@ -951,10 +959,10 @@ index 0000000..8d249d1
 +    child(sys.argv[1])
 diff --git a/workbench/command_tool.py b/workbench/command_tool.py
 new file mode 100644
-index 0000000..92752f1
+index 0000000..fa59d39
 --- /dev/null
 +++ b/workbench/command_tool.py
-@@ -0,0 +1,1302 @@
+@@ -0,0 +1,1303 @@
 +"""The command tool (Graphite 1.1 KS2): any command as an argv, never a shell string, through a classifier.
 +
 +PLAN_1.1.md, KS2: "Any command as argv, never a shell string, through a classifier that knows which forms only read,
@@ -1141,6 +1149,7 @@ index 0000000..92752f1
 +    if kind == 'M':return _mode_ok(value)
 +    if kind == 'K':return bool(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.+_@:\\-]{0,127}', value))
 +    if kind == 'X':return value == '-'
++    if kind == 'O':return value in ('none', 'none-fail')      # cp --update: only the forms that never write over
 +    return 0 < len(value) <= 1000      # T, P, W, Q, D
 +
 +
@@ -1317,7 +1326,7 @@ index 0000000..92752f1
 +
 +
 +def _verdict(out, name, form, got, by):
-+    classes = list(form['classes'])
++    classes = list(got.get('classes') or form['classes'])      # rsync to a host is a network read
 +    reads, writes, host, texts, names, modes, lands = [], [], '', [], [], [], []
 +    for kind, w in got['operands']:
 +        if kind == 'P':reads.append(_place(w))
@@ -1352,7 +1361,7 @@ index 0000000..92752f1
 +            'N': ', '.join(names) or 'the services', 'M': ', '.join(modes), 'A': texts[0] if texts else '', 'B': texts[1] if len(texts) > 1 else ''}
 +    says = re.sub(r'\{(\w)\}', lambda m: fill.get(m.group(1), ''), form.get('says', 'run it'))
 +    out.update(ok=True, kind=kind, classes=classes, says=says, reads=[str(p) for p in reads], writes=[str(p) for p in writes],
-+               lands=[str(p) for p in lands], host=host, sockets=form.get('sockets', 'none'), plan=form.get('plan'), seconds=form.get('seconds', 30),
++               lands=[str(p) for p in lands], host=host, sockets='network' if 'network' in classes else form.get('sockets', 'none'), plan=form.get('plan'), seconds=form.get('seconds', 30),
 +               needs=list(form.get('needs') or ()), opts=[list(o) for o in got['opts']], operands=[list(o) for o in got['operands']],
 +               texts=texts, names=names, modes=modes, form=name)
 +    return out
@@ -1771,7 +1780,7 @@ index 0000000..92752f1
 +                if st['dir'] and not _has(v, '-r', '-R', '--recursive', '-a', '--archive'):
 +                    raise Refused('COMMAND_A_FOLDER: %s is a folder; cp copies a folder with -r' % hr.tilde(s))
 +                count, size = _tally(s)
-+                items.append({'what': 'copy', 'from': str(s), 'to': str(land), 'count': count, 'size': size, **st})
++                items.append({**st, 'what': 'copy', 'from': str(s), 'to': str(land), 'count': count, 'size': size})
 +                lines.append('%s → %s (%s)' % (hr.tilde(s), hr.tilde(land), bx.count_words(count, 'file') + ', ' + bx.size_words(size) if st['dir'] else bx.size_words(st['size'])))
 +            else:
 +                reach.check(s)
@@ -2234,7 +2243,7 @@ index 0000000..92752f1
 +def _kind():
 +    from . import turns
 +    return turns.register(turns.TurnKind(name='COMMAND', version=1, switch='choosing', brief=_brief, stable=_stable, last=_last,
-+                                         grammar=_grammar, caps=turns.Caps(new_tokens=1600, answer_tokens=320, deadline_ms=25000),
++                                         grammar=_grammar, caps=turns.Caps(new_tokens=1600, answer_tokens=320, deadline_ms=20000),
 +                                         parse=lambda said, i: parse_model(said), check=lambda obj, i: check_model(obj, i), fallback=_fallback, paper=''))
 +
 +
@@ -2259,10 +2268,10 @@ index 0000000..92752f1
 +    return (desk['argv'] if desk else None), refused, 'dictionary'
 diff --git a/workbench/command_tool_qt.py b/workbench/command_tool_qt.py
 new file mode 100644
-index 0000000..876f0a3
+index 0000000..98ffe4b
 --- /dev/null
 +++ b/workbench/command_tool_qt.py
-@@ -0,0 +1,268 @@
+@@ -0,0 +1,270 @@
 +"""The command tool in her talk, NEXT STEPS and the bar's line (Graphite 1.1 KS2). The classifier and the runs are command_tool's.
 +
 +Where it shows (the coordinator's note): "her talk and NEXT STEPS; the bar's line (line_finder.py: a row "Run: df -h, only
@@ -2336,6 +2345,7 @@ index 0000000..876f0a3
 +    except Exception:  # noqa: BLE001 - a broken dictionary never stands in the way of the rest of her chain
 +        return False
 +    if got is None:return False
++    if _model_request(face.host) is not None:return False      # with a model, the words keep their 1.0 route ("command: …" asks it for an argv)
 +    face.thing = None;face.mine(text)
 +    show(face, ct.classify(got['argv'], 'dictionary'), kv.say('cmd_dictionary') + ' ')
 +    return True
@@ -2419,7 +2429,8 @@ index 0000000..876f0a3
 +    from .shell2 import sentence
 +    host = face.host
 +    bubble = face.say(lead + kv.say('cmd_will', says=v['says']))
-+    _add(bubble, _lines_label(face, [kv.say('cmd_line', line=v['line'])] + list(p['lines'])))
++    _add(bubble, _lines_label(face, [kv.say('cmd_line', line=v['line'])]))      # the exact line that runs
++    if p['lines']:_add(bubble, _lines_label(face, list(p['lines'])))             # and exactly what it touches
 +    if v['kind'] == 'network':note = kv.say('cmd_waits_network', host=v['host'])
 +    elif v['kind'] == 'bin':note = kv.say('cmd_bin_note') + ' ' + p['undo']
 +    else:note = kv.say('cmd_waits') + ' ' + (p['undo'] if p['can_undo'] else kv.say('recipe_cannot'))
@@ -2462,7 +2473,7 @@ index 0000000..876f0a3
 +    else:said = '◆ ' + kv.say('not_verified', checked=r['checked'] or 'nothing')
 +    bubble = face.say(said)
 +    if r.get('can_undo'):
-+        _state(host)['done'] = {'run': r['run'], 'line': r['line'], 'face': face}
++        _state(host)['done'] = {'run': r['run'], 'line': r['says'][:1].upper() + r['says'][1:], 'face': face}
 +        _add(bubble, sentence('{undo}', {'undo': (kv.say('recipe_undo_word'), lambda: undo(face, r['run']))}))
 +    _column_soon(host)
 +    return bubble
@@ -2485,7 +2496,7 @@ index 0000000..876f0a3
 +    state = STATE.get(id(host)) or {};out = []
 +    o = state.get('offer')
 +    if o:
-+        line = _short(o['v']['line'])
++        line = _short(o['v']['says'][:1].upper() + o['v']['says'][1:])      # what it will do; the exact line is in Talk
 +        out.append({'words': 'Run · %s' % line, 'verb': 'Run', 'object': line, 'kind': 'command', 'act': 'run', 'title': line,
 +                    'tip': 'What it will do is in Talk, with the exact line. Your press runs that, and only that.'})
 +    d = state.get('done')
@@ -2644,7 +2655,7 @@ index 635ae4a..cc8eb3a 100644
  NUMBERS = {'stopped_at': {'n': 'the steps that went (godot start results)', 'count': 'the start plan\'s steps (godot start plan)'},
             'desk_none': {'count': 'the desk\'s things (desk read)'},
 diff --git a/workbench/line_finder.py b/workbench/line_finder.py
-index ae1f916..817254e 100644
+index ae1f916..bc738c5 100644
 --- a/workbench/line_finder.py
 +++ b/workbench/line_finder.py
 @@ -91,6 +91,7 @@ class Row:
@@ -2659,7 +2670,7 @@ index ae1f916..817254e 100644
          return []
  
  
-+def command_rows(text, sources):
++def tool_rows(text, sources):
 +    """1.1 KS2 (the command tool): a row for "run: …" (or a line that starts with a program she knows and has an option):
 +    "Run: df -h, only reads"; Enter shows it in her talk, where a read runs sealed and anything else waits for your press."""
 +    try:
@@ -2677,7 +2688,7 @@ index ae1f916..817254e 100644
      if not first:first += line_rows(words, reading)
      first += dos_rows(words)
      first += recipe_rows(words, sources)      # 1.1 KS1 (recipes): "Recipe: Free space in Home", Enter shows what it would do
-+    first += command_rows(words, sources)      # 1.1 KS2 (the command tool): "Run: df -h, only reads"
++    first += tool_rows(words, sources)      # 1.1 KS2 (the command tool): "Run: df -h, only reads"
      if lead == '/':
          place = Path(os.path.expanduser(words))
          if not first and place.exists():first.append(file_row(str(place), 'A place on this computer', 'folder' if place.is_dir() else 'file'))
