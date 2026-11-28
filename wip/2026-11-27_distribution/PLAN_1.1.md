@@ -219,6 +219,17 @@ job: one place). If the owner says "move it", the tray goes to the head's upper 
 three app windows fit on the bar with Kas, HALT and the clock; one press opens network, sound, battery and the meters;
 nothing the tray or the meters did is lost.
 
+**N1 · Night is a phosphor monitor.** The owner, 28 Nov: "Remember night mode is to look like old computers that only
+had orange and black / green and black monitors....but updated to 2026 but still old school modern". Night becomes a
+monochrome phosphor look on a near-black ground, in two phosphors, **Amber** (the default) and **Green**, chosen under
+View ▸ Appearance. Hierarchy comes from the brightness of the one phosphor, never from another hue. A selected row is
+inverse video. The chrome uses a fixed-width face. Crisp 2026 rendering, with at most a faint phosphor bloom on text
+and no blur or scanlines over words. Every state keeps its word and shape. Pictures stay in their own colours, since
+they are content. The bar, Start, flyouts, the Explorer, the menus, her panel and cards, the board and the drop-down
+terminal all follow. Day and Kasandra are unchanged. *Acceptance:* frames of Night Amber and Night Green (the window,
+the bar with Start open, the terminal); every text brightness at least 4.5:1 on the ground; the Night tests on the new
+truth.
+
 **C0 · A real terminal.** The drop-down Terminal (B4) and 1.0's Terminal are not terminal devices: vim, top, less
 and sudo's password prompt do not work in them. Give the drop-down a real terminal (a pseudo-terminal running the
 owner's shell) that keeps what B4 built: it drops from the top edge on Win+` and Ctrl+Alt+T, over any app, and leaves

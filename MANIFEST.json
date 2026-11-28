@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "package_profile": "runtime",
-  "note": "Graphite 1.1.1: the system door (software, services, the clock, the computer's name, accounts) through Debian's own polkit prompt, each change shown first and done only on your press. Still in it: Graphite 1.1, your desktop for Debian. Minimal tests, by the owner's rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.1.md and docs/RELEASE_NOTES_1.1.md.",
+  "note": "Graphite 1.1.2: a real terminal in the drop-down (xterm embedded; vim, top and sudo work; DOS words kept). Still in it: 1.1.1's system door and Graphite 1.1, your desktop for Debian. Minimal tests, by the owner's rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.2.md, 1.1.1 and 1.1.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -1315,7 +1315,7 @@
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
       "bytes": 341386,
-      "sha256": "077d074a409c9ecd7eb9f7f274c16f2698c393765905c4fb86330ba99f070e71"
+      "sha256": "5517aef2b5f9f99da8246dd84c34307e38622471742a6007bb8a805059a26584"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -1756,6 +1756,10 @@
     "docs/RELEASE_NOTES_1.1.1.md": {
       "bytes": 3250,
       "sha256": "67ca8ba74f610941f7620164673c68ffdd0fe2ba5032f4f17b9c5c0527a454cb"
+    },
+    "docs/RELEASE_NOTES_1.1.2.md": {
+      "bytes": 1914,
+      "sha256": "47a2993309fffa1f59d30f0520514f1d2f57fff43b052f2504442c634a1366a8"
     },
     "docs/RELEASE_NOTES_1.1.md": {
       "bytes": 11084,
@@ -3602,8 +3606,8 @@
       "sha256": "35cd691305f0deabb97c11e44937bb494cdc117af0aca08ca72e8b694f5c982c"
     },
     "tools/package_graphite.py": {
-      "bytes": 10965,
-      "sha256": "0cf61a7fea99801ff0408d5f6b6544a7da373e1fd3cb6da9a10a44a790129b61"
+      "bytes": 10896,
+      "sha256": "86b400f60b83ca2c66ba5339b71b5a998c7125c00263177fc9e3a2e340f18185"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -6446,8 +6450,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 22084,
-      "sha256": "212174308cfa62806b7c6a745e627ef082541a3b08a40944034bd3ef318d0d3a"
+      "bytes": 22317,
+      "sha256": "9e51cb6cb1934da0b65801f73251f8268c329091e784f429afde6cc2a0f9c480"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -6622,5 +6626,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "1.1.1"
+  "graphite_release": "1.1.2"
 }

@@ -39,7 +39,7 @@ NOT_SHIPPED = ('tools/planted_bugs/', 'tools/i05_kit/', 'debian/')  # 1.1 PK1: d
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
 # Fields of earlier checkpoints' manifests that no reader uses any more (the release check reads graphite_release).
 RETIRED_FIELDS = ('hatch_checkpoint', 'integrated_pass', 'delivery_stage')
-NOTE = ('Graphite 1.1.1: the system door (software, services, the clock, the computer\'s name, accounts) through Debian\'s own polkit prompt, each change shown first and done only on your press. Still in it: Graphite 1.1, your desktop for Debian. Minimal tests, by the owner\'s rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.1.md and docs/RELEASE_NOTES_1.1.md.')
+NOTE = ('Graphite 1.1.2: a real terminal in the drop-down (xterm embedded; vim, top and sudo work; DOS words kept). Still in it: 1.1.1\'s system door and Graphite 1.1, your desktop for Debian. Minimal tests, by the owner\'s rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.2.md, 1.1.1 and 1.1.')
 
 
 
