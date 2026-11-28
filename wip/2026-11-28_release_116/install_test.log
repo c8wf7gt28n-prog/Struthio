@@ -1,0 +1,45 @@
+== join the 1.1.6 kit 09:34
+joined: ok
+graphite-desktop_1.1.6_all.deb
+graphite-llama-runtime_1.1.6_all.deb
+graphite-session_1.1.6_all.deb
+graphite_1.1.6_all.deb
+kas-computer_1.1.6_all.deb
+kas-desktop_1.1.6_all.deb
+kas-llama-runtime_1.1.6_amd64.deb
+kas-session_1.1.6_all.deb
+== chroot with the 1.0 System set 09:34
+[build_repo] debootstrap --variant=minbase trixie into /dev/shm/it/work/chroot
+[build_repo] installing the System set's 456 packages
+[build_repo] downloading the closure against the chroot (System set installed, today's versions)
+[build_repo] downloading the closure against the System set status (its exact versions)
+[build_repo] repository: /dev/shm/it/repo2 (429 packages)
+== install kas from the kit's repository, as install.sh does 09:38
+Setting up lxpolkit (0.5.6-2) ...
+Setting up packagekit-tools (1.3.1-1+deb13u1) ...
+Setting up kas-session (1.1.6) ...
+Processing triggers for libc-bin (2.41-12+deb13u5) ...
+== what is installed 09:38
+kas-computer 1.1.6
+kas-llama-runtime 1.1.6
+kas-session 1.1.6
+kas-startx: /usr/bin/kas-startx
+kas-session: /usr/bin/kas-session
+kas-do: /usr/bin/kas-do
+kas-doctor: /usr/bin/kas-doctor
+kas-computer: /usr/bin/kas-computer
+graphite-startx: /usr/bin/graphite-startx
+== kas-computer --version
+Kas 1.1.6
+== graphite-startx (the old name) says
+graphite-startx is now kas-startx; the old name goes in the next release.
+Start Kas as your ordinary user, not root.
+== kas-doctor doctor
+catalog database: NOT_CREATED
+Registered operations: 962
+Ranked local search: AVAILABLE
+PySide6: ACCEPTED (6.8.2.1; expected 6.8.3 or PySide6 6.8.2 or a later 6.8 (Debian 13: 6.8.2.1))
+cryptography: ACCEPTED (43.0.0; expected 50.0.2 or cryptography 43 or later (Debian 13: 43.0.0))
+No model or physical hardware was qualified. Use --json for measurements and details.
+== done 09:38
+rc=0

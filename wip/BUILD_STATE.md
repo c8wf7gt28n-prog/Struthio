@@ -85,7 +85,10 @@ rules holding you back".
 - **09:35 UTC: the owner: "We got 7% left".** Running: HX (Night's hero extras: amber seven-segment clock, her lines
   typed out, peak marks, Night: Paper; agent afe7c484ad2b4c517; brief `$S/work/briefs/110_HX.md`) for Kas 1.1.7, and the
   coordinator's clean-install test of the 1.1.6 kit in a Debian 13 chroot with the 1.0 System set
-  (`$S/work/itest/run.sh`, log `run.log`). When HX lands: merge, 1.1.7, cut_pre.sh, send; report the install test.
+  (now `wip/build_tools/install_test.sh`): **PASSED at 09:38** (kas-computer and kas-session installed from the kit's
+  own repository on the 1.0 System set; every kas-* command present; kas-computer --version says Kas 1.1.6;
+  graphite-startx names kas-startx; kas-doctor accepts Debian's PySide6). Log in `wip/2026-11-28_release_116/`.
+  When HX lands: merge, 1.1.7, cut_pre.sh, send.
 - **KAS 1.1.6 RELEASED (09:32 UTC): paper-white grey joins amber and green** (the owner: "And possibly greys in
   addition to orange and green if it fits the theme"; design_tokens.DUO_INK['paper'] #c9d1d3 as Duo's secondary: the
   machine's labels). Cut from 99a297f; release check PASSED (1,665 files); 18 files sent with a swatch of the four
