@@ -78,6 +78,14 @@ rules holding you back".
     `bash wip/build_tools/merge_one.sh $S/work/b110 wip/2026-11-27_distribution/saved KEY AGENTID > log 2>&1; rc=$?`.
   * **Saving:** run the loop from a COPY so an edit of the script never breaks the running loop (it did at 04:00 on 28 Nov): `cp wip/build_tools/save_dist.sh $S/work/save_dist_running.sh; bash $S/work/save_dist_running.sh loop` every 5 minutes (it now carries the builders' patches, notes
     and results into `partial/b110/`); restart the loop whenever it ends; commit and push at every milestone.
+- **GRAPHITE 1.1 RELEASED (07:28 UTC, 28 Nov).** Cut from 21608af (release check PASSED, 1,645 files verified); the
+  whole kit (45 files) sent with `docs/RELEASE_NOTES_1.1.md`; record `wip/2026-11-28_release_110/`; the talk updated to
+  1.1 and sent. Fixed on the way: KS2's root refusal now true for 1.1; a quick Ctrl+Z after a paste (cc24ebf); the
+  manifest after a notes edit (rebuild the seed AFTER the last docs edit, always). 164 tests of the new parts pass.
+  **Next: 1.1.1** = resume KS3 (ae5e42fdc7d044a11), C0 (a814611a3d1e991ed), KS4 (a6c1e37671ac7b5a4) by SendMessage;
+  then B5 (a quieter bar); wire KS2's root refusals to KS3's system_door.offer and restore its words; **rebuild the
+  repository with tools/build_repo.sh** (KS3: polkit, an agent, PackageKit; C0: xterm or pyte); cut with cut_pre.sh
+  (base `$S/work/rel11/kit/`) or build_kit.sh for the rebuilt repository; send.
 - **THE OWNER, 28 NOV ~07:16: "You have complete freedom. Just do a full release before I'm cut off for the week".**
   So, now: **cut Graphite 1.1 from what is merged** (previews 1-3 and KS2), version '1.1', full release notes, the
   whole kit (45 files) and the finished talk sent. KS3 (agent ae5e42fdc7d044a11), C0 (a814611a3d1e991ed) and KS4
