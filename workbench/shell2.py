@@ -3560,6 +3560,8 @@ class Shell2(QObject):
             install_notifications(host)  # 1.0 S5
             from .start_qt import install as install_start  # 1.1 B2: Start and the line fill the bar's two slots
             install_start(host)  # 1.1 B2
+            from .kas_panel_qt import install as install_kas_bar  # 1.1 B3: her chip and HALT fill the bar's kas slot; her panel; her cards
+            install_kas_bar(host)  # 1.1 B3
             from .bar_qt import install as install_bar  # 1.1 B1: the bar at the bottom of the screen replaces 1.0's dock at the top
             install_bar(host)  # 1.1 B1
         except ImportError:  # 1.0 S5

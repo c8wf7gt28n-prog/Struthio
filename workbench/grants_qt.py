@@ -138,7 +138,9 @@ class GrantsTab(QWidget):
     def act(self, op, args, then=None):
         from .shell2 import call_write
         r = call_write(self.host, op, args)
-        if not r.get('ok'):self.note(str((r.get('error') or {}).get('message', 'Not done')).split(': ', 1)[-1])
+        if not r.get('ok'):      # 1.1 B3: a refusal in plain words, never the operation's name; the Kernel's own text in Log
+            from .her_column_qt import refused, say as column_say
+            self.note(column_say('press_refused', why=refused(self.host, op, (r.get('error') or {}).get('message', 'Not done'))))
         else:
             said = (r.get('result') or {}).get('said') or []
             if said:self.note(' '.join(said)[:300])

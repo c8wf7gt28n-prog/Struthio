@@ -287,7 +287,20 @@ def press(host, operation, arguments):
     if isinstance(answer, dict) and answer.get('ok'):return answer.get('result'), ''
     error = (answer or {}).get('error') if isinstance(answer, dict) else answer
     message = error.get('message') if isinstance(error, dict) else str(error)
-    return None, str(message or 'refused').split(': ', 1)[-1][:240]
+    return None, refused(host, operation, message)      # 1.1 B3: in plain words; the Kernel's own text kept in Log
+
+
+def refused(host, operation, message):
+    """1.1 B3: a refusal from the Kernel as she says it (kas_voice.refusal: plain words, what to do, never the operation's
+    name); the Kernel's own text is kept in Log (the activity journal, Log's Events)."""
+    raw = str(message or 'refused')
+    try:
+        from . import activity
+        activity.record(host.root, 'DESKTOP', str(operation or 'unknown'), 'REFUSED', raw)
+    except Exception:  # noqa: BLE001 - Log that cannot be written never hides the refusal
+        pass
+    from .kas_voice import refusal
+    return refusal(raw, operation)[:400]
 
 
 # ---------------------------------------------------------------------------------------------------------- the stage
@@ -1566,7 +1579,8 @@ class HerColumn(QObject):
             answer = result.get('answer') or {}
             view = answer.get('result') if answer.get('ok') else None
             line = (view or {}).get('line') if isinstance(view, dict) else None
-            self.say_words(say('carry_ended', title=title, line=plain(line)) if line else say('press_refused', why=str((answer.get('error') or {}).get('message', ''))[:200]))
+            self.say_words(say('carry_ended', title=title, line=plain(line)) if line else say('press_refused', why=refused(
+                self.host, call['operation'], (answer.get('error') or {}).get('message', ''))))      # 1.1 B3: in plain words, kept in Log
             from . import floor;floor.column_soon(self)      # 1.0 F2: read again off the window's thread
         from . import floor;QTimer.singleShot(400, check);floor.column_soon(self)      # 1.0 F2
 

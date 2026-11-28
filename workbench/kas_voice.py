@@ -67,11 +67,63 @@ WORDS = {
     'failed': 'That failed: {why}',
     # the guard: nothing proven, said as plainly as a proof
     'not_verified': NOT_VERIFIED,
+    # 1.1 B3: a refusal from the Kernel as a plain clause (it follows "Refused: " or stands alone): what it was, that nothing
+    # changed where the Kernel refused at its door, and what to do; never an operation's name (Log keeps the raw text)
+    'refused_parameters': '{what} reached the Kernel without a detail it needs, so nothing changed. Press it once more. '
+                          'If it is refused again, Log has the Kernel’s own words.',
+    'refused_scope': '{what} is outside what this session may do, so nothing changed. Give it with your own press in '
+                     'Graphite. Log has the Kernel’s own words.',
+    'refused_unknown': 'The Kernel does not know {what}, so nothing changed. Ask me for the step again. Log has the '
+                       'Kernel’s own words.',
+    'refused_other': '{why} Log has the Kernel’s own words.',
+    # 1.1 B3: on the bar (her panel, her card, the Pause key)
+    'panel_away': 'I am in my panel at the right edge of the screen. Press my name on the bar to bring me back.',
+    'card_more': 'And {count} more in my panel.',
+    'pause_held': 'HALT already holds my work. RESUME is a press on the bar, never a key.',
 }
 NUMBERS = {'stopped_at': {'n': 'the steps that went (godot start results)', 'count': 'the start plan\'s steps (godot start plan)'},
            'desk_none': {'count': 'the desk\'s things (desk read)'},
-           'desk_waits': {'count': 'the desk\'s things (desk read)', 'n': 'the things that wait (desk read)'}}
+           'desk_waits': {'count': 'the desk\'s things (desk read)', 'n': 'the things that wait (desk read)'},
+           'card_more': {'count': 'the rows that wait and are not on the card (assignment.list)'}}
 mind_words.register('kas_voice', WORDS, kind='sentence', numbers=NUMBERS)
+
+# 1.1 B3: what a refused press was, in plain words (the Kernel's operation names never reach the owner)
+OPERATION_WORDS = {'grant.give': 'the grant', 'grant.give.set': 'the grants', 'grant.revoke': 'the revoke',
+                   'grant.words': 'the grant’s words', 'assignment.plan': 'the authorisation', 'assignment.step': 'the step',
+                   'assignment.resume': 'the resume', 'assignment.stop': 'the stop', 'assignment.start': 'the assignment',
+                   'halt.press': 'HALT', 'halt.release': 'RESUME', 'program.answer': 'your answer'}
+_NAMESPACES = ('grant', 'assignment', 'halt', 'program', 'files', 'desk', 'field', 'ledger', 'investigation', 'brain', 'agenda',
+               'jobs', 'work', 'network', 'kasandra', 'godot', 'windows', 'apps', 'sheet', 'card', 'session', 'machine', 'plan',
+               'objective', 'home', 'go', 'notes', 'office', 'mind', 'hand', 'evidence', 'register')
+_OPERATION = None
+
+
+def plain_operation(name):
+    """An operation's name as the owner reads it: 'the grant' for grant.give; 'that press' for one with no plain name."""
+    return OPERATION_WORDS.get(str(name or ''), 'that press')
+
+
+def refusal(raw, operation=''):
+    """A refusal from the Kernel (its error message, raw) as she says it: a plain clause that reads after "Refused: " or
+    alone, with what to do, and never an operation's name. The raw text is the caller's to keep in Log."""
+    import re
+    global _OPERATION
+    if _OPERATION is None:
+        _OPERATION = re.compile(r'\b(?:%s)\.[a-z_]+(?:\.[a-z_]+)*\b' % '|'.join(_NAMESPACES))
+    text = ' '.join(str(raw or '').split())
+    named = _OPERATION.search(text)
+    what = plain_operation(operation or (named.group(0) if named else ''))
+    if text.startswith('Unknown or missing parameters') or text.startswith('Parameters must be an object'):
+        return say('refused_parameters', what=what[:1].upper() + what[1:])
+    if text.startswith('Operation is outside the authorized'):
+        return say('refused_scope', what=what[:1].upper() + what[1:])
+    if text == 'Unknown operation' or text.startswith('Unknown operation'):
+        return say('refused_unknown', what=what)
+    text = re.sub(r'^[A-Z][A-Z0-9_]{2,}: ', '', text)      # the record's code ("GRANT_SCOPE: ...") is Log's, not hers
+    text = _OPERATION.sub(lambda m: plain_operation(m.group(0)) if m.group(0) in OPERATION_WORDS else 'that operation', text)
+    text = (text[:1].upper() + text[1:]) if text else 'The Kernel gave no reason'
+    if text[-1:] not in '.?':text += '.'
+    return say('refused_other', why=text)
 
 
 def say(key, **slots):

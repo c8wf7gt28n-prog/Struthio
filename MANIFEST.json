@@ -1757,6 +1757,10 @@
       "bytes": 7034,
       "sha256": "2e1d20259fb9156dfc5e7679a8380377eec6bac390b4ca5e6b925d8700b74940"
     },
+    "docs/RELEASE_NOTES_1.1_pre2.md": {
+      "bytes": 7933,
+      "sha256": "7afa2ef0696c9aef7a6b83d234fa4d83031585ba7144e6adeab04fed78af9de9"
+    },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
       "sha256": "03a8d7e31fd4b7cca05b9c16a9f7aab641b727c73bc4ffd82ad0e3d7337ff1c4"
@@ -2279,7 +2283,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 2094522,
-      "sha256": "6f47610277cec571532e4c482c86c011e2a9b6069d49b587d7f78823d2f0129c"
+      "sha256": "a433fb4a709be6878b0ec00ce66e4a428b193b035e09cf7993b9e5db9b786b52"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4734976,
@@ -2287,7 +2291,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "854e33ed337f5be663621c7351be519091866238c11a9937dd96c76aa81a17dc"
+      "sha256": "32dd974eaa5356668185d7a498cb9e12a4a52c95adcd502c0d5d5c904ee27763"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3112,6 +3116,10 @@
     "tests_integrated/test_joined_work.py": {
       "bytes": 11447,
       "sha256": "198ca4b99946963f247ff8d52d0b11af671cbe7f796307cfb3de1cfb6eb939e5"
+    },
+    "tests_integrated/test_kas_bar.py": {
+      "bytes": 17854,
+      "sha256": "2dafd00a6bfb6463cf17ae4d294976ba506a2dc4d7fec0fe41cc6801d6114a2e"
     },
     "tests_integrated/test_kas_voice.py": {
       "bytes": 8193,
@@ -4406,8 +4414,8 @@
       "sha256": "e47a1563c3befff1aa35abd8490a332d9a7966c337ebbd39935b86ebaf82ad79"
     },
     "workbench/floor.py": {
-      "bytes": 27505,
-      "sha256": "5d798fa045e2eb240c1da48fe6f34f1ca0a12afe831332d6f775fec773e8c557"
+      "bytes": 27635,
+      "sha256": "c3832c3e067397dfa2fc3562689beffe1efeee13f0a7ae955ec8e2f826b92b42"
     },
     "workbench/foot_line.py": {
       "bytes": 7413,
@@ -4438,8 +4446,8 @@
       "sha256": "1450c4d0ec892b7ed304eed616012d762ffdabc1ce1fc42b877ab36adaa2197d"
     },
     "workbench/grants_qt.py": {
-      "bytes": 16330,
-      "sha256": "86a75053b68012a99b5a2954de7483d7ad957cb08da07c1dc1b0e4fc0c44db76"
+      "bytes": 16540,
+      "sha256": "ec98a46c5e5a53c86e9183f09681ddbe157772f7d8374fb3bfe3585acd26704f"
     },
     "workbench/graphite_brand.py": {
       "bytes": 32124,
@@ -4458,8 +4466,8 @@
       "sha256": "f842a6c76394156f6e3882ead0152fe6aabdf878eccfad6bac1267de1e4f99c3"
     },
     "workbench/halt_qt.py": {
-      "bytes": 7892,
-      "sha256": "7d3fc9e9aa152e77ebf7b4b005879bc3a51d2a860f2c7ffc8fe834c7faaa453c"
+      "bytes": 8019,
+      "sha256": "7f696411a6956606ea10342965f82673b1cf1ada9fcb47ae45abca78c4357951"
     },
     "workbench/hand_door.py": {
       "bytes": 36887,
@@ -4538,8 +4546,8 @@
       "sha256": "4aa7dc81d054e14e4c9ea1156645e3d89d6c2cee286017a69c20d5c9dfae2928"
     },
     "workbench/her_column_qt.py": {
-      "bytes": 110659,
-      "sha256": "962423d9bb5e62ceb0f4b80697ee80f007217ca055857162a991568d9d60b380"
+      "bytes": 111395,
+      "sha256": "a93058d1a3316cee9f7d447fe0b3f80374c0c79e743b45674e5c1c413ffc7dc4"
     },
     "workbench/her_hand_qt.py": {
       "bytes": 83586,
@@ -4709,9 +4717,13 @@
       "bytes": 59128,
       "sha256": "c6d398db2f141ee74552874e06e0f8ce19ddd184801f5814797fb6639e64cbd0"
     },
+    "workbench/kas_panel_qt.py": {
+      "bytes": 41357,
+      "sha256": "72ef9d73dd93e4013b56636950ca3c2e16296a640863e21a9914a3d7c48cf4b4"
+    },
     "workbench/kas_voice.py": {
-      "bytes": 5764,
-      "sha256": "87eac145f646436cb0c3f3cee648c1e1a57f8eed080e3cccda9699a6169753ac"
+      "bytes": 9631,
+      "sha256": "ae97ed0124193c21abcdc4107010c8a539db01a21b0947bc935e4f935a862586"
     },
     "workbench/kasandra/character_starter.md": {
       "bytes": 1929,
@@ -5822,8 +5834,8 @@
       "sha256": "a67fadddb6c54b97e59033695cbe5e08ebe94f40c1476e77eb88655abc3baa29"
     },
     "workbench/shell2.py": {
-      "bytes": 282055,
-      "sha256": "90a80d7a03c15644fc917b6d431d02e10335dcbbcd1306340d7c3fbc3005179e"
+      "bytes": 282239,
+      "sha256": "938407c32c8f5d57df615b9894d746fa73315bd29538c4a5cc7eb9a733d95381"
     },
     "workbench/simulation_tools.py": {
       "bytes": 7877,

@@ -1,0 +1,1179 @@
+diff --git a/tests_integrated/test_kas_bar.py b/tests_integrated/test_kas_bar.py
+new file mode 100644
+index 0000000..8921093
+--- /dev/null
++++ b/tests_integrated/test_kas_bar.py
+@@ -0,0 +1,252 @@
++"""1.1 B3, Kas on the bar (PLAN_1.1.md, B3): her chip with her state's word and shape, HALT beside her name, her panel
++sliding from the right edge over any app, permission cards rising from her chip; her rules do not move.
++
++Acceptance first: the chip's states; HALT on the bar is halt.press and nothing else, and the head's HALT goes; her panel is
++the right column itself, 380 px at the right edge above the bar, closed by Esc; docked in Graphite or not; a card rises
++from her chip with the same one press, never takes the keys and is deaf for its first half second; a Kernel refusal
++reaches the owner in plain words and its raw text is kept in Log. Then the setting's file, the Pause key, the voice sweep.
++
++Offscreen, with a stand-in window (the whole of it under Xvfb is the builder's smoke). Invented content only.
++
++Run alone:  python3 -B -m unittest -v tests_integrated.test_kas_bar
++"""
++import json, os, tempfile, time, unittest
++from types import SimpleNamespace
++from unittest.mock import patch
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++
++from PySide6.QtCore import Qt  # noqa: E402
++from PySide6.QtTest import QTest  # noqa: E402
++from PySide6.QtWidgets import QApplication, QDockWidget, QLabel, QMainWindow, QPushButton, QVBoxLayout, QWidget  # noqa: E402
++
++APP = QApplication.instance() or QApplication([])
++
++
++def pump(n=6, ms=0):
++    for _ in range(n):
++        APP.processEvents()
++        if ms:QTest.qWait(ms)
++
++
++GRANT = {'words': 'Grant this for this assignment', 'operation': 'grant.give', 'yours': True,
++         'grant_words': 'move files inside “Downloads” in Files, for this assignment only',
++         'arguments': {'operation': 'files.move', 'scope': 'assignment', 'assignment': 'a' * 32, 'expected_digest': 'd' * 64, 'step': 's2'},
++         'then': {'operation': 'assignment.step', 'arguments': {'id': 'a' * 32, 'until': 'end'}}}
++AUTHORISE = {'words': 'Authorise step 3', 'operation': 'assignment.plan', 'arguments': {'id': 'b' * 32, 'authorise': ['s3'], 'expected_digest': 'e' * 64}}
++
++
++class Column:
++    """A stand-in for her column: what the chip and the card read of it, and the presses they make through it."""
++
++    def __init__(self, host):
++        self.host = host;self.shown_state = 'idle';self.rows = [];self.waits = None;self.ask_line = None;self.steps = [];self.seen_held = False
++        self.face = QWidget();self.said = []
++
++    def compact(self):return False
++
++    def take_step(self, step):
++        self.steps.append(step);self.say_words('%s: done.' % step['call']['words'])
++
++    def show_journal(self, ident):self.steps.append({'journal': ident})
++
++    def say_words(self, words):self.said.append(words)
++
++
++class Host(QMainWindow):
++    """A stand-in for Graphite's window: a right dock holding the right pane, her column, the head's HALT."""
++
++    def __init__(self, root):
++        super().__init__();self.setWindowTitle('Graphite');self.resize(1366, 728);self._closing = False;self.root = root
++        self.setCentralWidget(QLabel('the work'))
++        self.sim_dock = QDockWidget('Console Inspector', self);body = QWidget();lay = QVBoxLayout(body)
++        lay.addWidget(QLabel('selection inspector'));self.right_pane = QWidget();self.right_pane.setObjectName('PaneBody')
++        QVBoxLayout(self.right_pane).addWidget(QLabel('her column: WAITS FOR YOU, ACTIVE WORK, NEXT STEPS'))
++        lay.addWidget(self.right_pane, 1);self.sim_dock.setWidget(body);self.addDockWidget(Qt.RightDockWidgetArea, self.sim_dock)
++        self.her_column = Column(self);self.shown = []
++        top = QWidget(self);self.shell2 = SimpleNamespace(top=top, show_slate_face=lambda: self.shown.append('slate'))
++
++
++class KasOnTheBar(unittest.TestCase):
++
++    def setUp(self):
++        self.home = tempfile.mkdtemp(prefix='kasbar-');self.env = patch.dict(os.environ, {'XDG_CONFIG_HOME': os.path.join(self.home, 'config')})
++        self.env.start()
++        self.patches = [patch('workbench.halt.held', return_value=False), patch('workbench.floor.gather', return_value=False),
++                        patch('workbench.floor.column_soon', return_value=None), patch('workbench.windows_strip_qt.hub')]
++        for p in self.patches:p.start()
++        from workbench import bar_qt, halt_qt, kas_panel_qt
++        self.b, self.k, self.hq = bar_qt, kas_panel_qt, halt_qt
++        self.host = Host(self.home);self.host.show()
++        self.head_halt = halt_qt.HaltButton(self.host, self.host.shell2.top);self.host.shell2.top.halt = self.head_halt
++        self.ctl = kas_panel_qt.install(self.host)
++        self.bar = bar_qt.Bar(self.host);self.bar.setFixedSize(1366, 40);self.bar.move(0, 728);self.bar.show()
++        self.bar.standing = True;self.host.graphite_bar = self.bar;self.bar.arrange();pump()
++        self.slot = self.bar.slot('kas')
++
++    def tearDown(self):
++        self.ctl.timer.stop()
++        for w in (self.ctl.panel, self.ctl.card):
++            if w is not None:w.hide();w.deleteLater()
++        for name in self.b.SLOTS:self.b._FACTORIES.pop(name, None)
++        self.bar.hide();self.bar.deleteLater();self.host._closing = True;self.host.hide();self.host.deleteLater()
++        from PySide6.QtCore import QEvent
++        APP.sendPostedEvents(None, QEvent.DeferredDelete);pump(3)      # no window of ours is left standing for the next test file
++        for p in self.patches:p.stop()
++        self.env.stop()
++
++    # ---- acceptance ---------------------------------------------------------------------------------------------------------
++    def test_her_chip_says_her_state_in_a_word_and_a_shape(self):
++        self.assertIsInstance(self.slot, self.k.KasSlot)
++        column = self.host.her_column;said = {}
++        for state in ('idle', 'working', 'awaiting_approval', 'blocked', 'held', 'completed'):
++            column.shown_state = state;said[state] = self.k.chip_state(column)[1:]
++        self.assertEqual(said['idle'], ('QUIET', '○'));self.assertEqual(said['working'], ('WORKING', '●'))
++        self.assertEqual(said['awaiting_approval'], ('NEEDS YOUR WORD', '◆'));self.assertEqual(said['blocked'], ('STOPPED', '▮▮'))
++        self.assertEqual(said['held'], ('HELD', '‖'));self.assertEqual(said['completed'], ('DONE', '✓'))
++        column.shown_state = 'awaiting_approval'
++        self.assertEqual(self.k.chip_state(column, waiting=2)[1], 'NEEDS YOUR WORD [2]')
++        column.shown_state = 'idle';quiet = self.slot.chip.natural(40);column.shown_state = 'awaiting_approval';self.slot.refresh();pump()
++        self.assertGreater(self.slot.chip.natural(40), quiet);self.assertEqual(self.slot.width(), self.slot.bar_width(40))
++        self.assertIn('NEEDS YOUR WORD', self.slot.chip.toolTip())
++
++    def test_halt_stands_beside_her_name_and_its_press_is_halts_and_nothing_else(self):
++        halt = self.slot.halt;pump()
++        self.assertIsInstance(halt, self.hq.HaltButton);self.assertEqual(halt.focusPolicy(), Qt.NoFocus)
++        self.assertEqual(halt.x(), self.slot.chip.width() + 2);self.assertEqual(halt.text(), 'HALT')
++        width = halt.need(40)
++        with patch('workbench.halt.press') as press, patch('workbench.halt.release') as release:
++            halt.click();pump()
++            press.assert_called_once();self.assertIs(press.call_args[0][0], self.host);release.assert_not_called()
++            self.assertEqual(halt.text(), 'RESUME');self.assertEqual(halt.need(40), width)      # nothing on the bar moves
++            halt.busy = False;halt.click();pump()
++            release.assert_called_once();self.assertEqual(press.call_count, 1)      # RESUME lifts the hold; it restarts nothing itself
++
++    def test_the_heads_halt_goes_once_halt_stands_on_the_bar(self):
++        self.assertTrue(self.ctl.adopt_halt());pump()
++        top = self.host.shell2.top
++        self.assertIs(top.halt, self.slot.halt);self.assertTrue(self.ctl.status()['halt_on_bar'])
++        before = self.slot.halt.geometry()
++        self.hq.place_head(top, SimpleNamespace(scale=1.0, band=40, inset=8, pane=300))      # the head's placement leaves it on the bar
++        self.assertEqual(self.slot.halt.geometry(), before);self.assertIs(self.slot.halt.parentWidget(), self.slot)
++
++    def test_her_panel_is_her_column_380_px_at_the_right_edge_above_the_bar_and_esc_closes_it(self):
++        pane = self.host.right_pane;holder = pane.parentWidget();index = holder.layout().indexOf(pane)
++        with patch.object(self.k, 'reduce_motion', return_value=True), patch.object(self.k.KasBar, 'graphite_in_front', return_value=False):
++            rect = self.ctl.toggle();pump()
++            panel = self.ctl.panel
++            self.assertTrue(self.ctl.panel_open());self.assertIs(pane.parentWidget(), panel)      # the very same widgets
++            screen = self.host.screen().geometry()
++            self.assertEqual(panel.width(), 380);self.assertEqual(panel.x() + panel.width(), screen.x() + screen.width())
++            self.assertEqual(panel.y(), screen.y());self.assertEqual(panel.y() + panel.height(), self.bar.y())      # top of the screen to the bar
++            self.assertTrue(panel.windowFlags() & Qt.WindowStaysOnTopHint);self.assertEqual(rect.width(), 380)
++            self.assertIn('panel', self.ctl.away.text())      # Graphite's right side says where she is
++            self.assertEqual(panel.esc.key().toString(), 'Esc')
++            panel.esc.activated.emit();pump()
++            self.assertFalse(self.ctl.panel_open());self.assertFalse(panel.isVisible())
++            self.assertIs(pane.parentWidget(), holder);self.assertEqual(holder.layout().indexOf(pane), index)      # back in its place
++            self.assertFalse(self.ctl.away.isVisible())
++
++    def test_docked_in_graphite_a_press_with_graphite_in_front_shows_her_column_where_it_stands(self):
++        self.assertTrue(self.k.read_settings()['docked'])      # on by default
++        with patch.object(self.k.KasBar, 'graphite_in_front', return_value=True):
++            self.assertEqual(self.ctl.toggle(), 'docked');pump()
++        self.assertEqual(self.host.shown, ['slate']);self.assertFalse(self.ctl.panel_open())
++        self.assertIsNot(self.host.right_pane.parentWidget(), self.ctl.panel)
++
++    def test_not_docked_her_column_lives_in_her_panel_and_graphites_right_side_is_the_works(self):
++        self.ctl.set_docked(False);pump()
++        self.assertFalse(json.loads(self.k.settings_file().read_text())['docked'])
++        self.assertIs(self.host.right_pane.parentWidget(), self.ctl.panel);self.assertTrue(self.host.sim_dock.isHidden())
++        self.host.sim_dock.show();pump(4)      # a caller that shows the right dock (show_slate_face) does not bring it back
++        self.assertTrue(self.host.sim_dock.isHidden())
++        with patch.object(self.k, 'reduce_motion', return_value=True), patch.object(self.k.KasBar, 'graphite_in_front', return_value=True):
++            self.ctl.toggle();pump()
++            self.assertTrue(self.ctl.panel_open())      # over Graphite too
++            self.ctl.toggle();pump()
++            self.assertIs(self.host.right_pane.parentWidget(), self.ctl.panel)      # closed, it stays in her panel
++        self.ctl.set_docked(True);pump()
++        self.assertIsNot(self.host.right_pane.parentWidget(), self.ctl.panel);self.assertFalse(self.host.sim_dock.isHidden())
++
++    def test_a_permission_card_rises_from_her_chip_with_the_same_one_press_and_never_takes_the_keys(self):
++        column = self.host.her_column;column.shown_state = 'awaiting_approval'
++        column.rows = [dict(id='a' * 32, title='Tidy Downloads', state_words='needs your grant', line='Step 2 needs your grant', actions=[GRANT]),
++                       dict(id='b' * 32, title='Sort the photos', state_words='waiting for your word', line='Step 3 waits for your word', actions=[AUTHORISE])]
++        with patch.object(self.k.KasBar, 'graphite_in_front', return_value=False), patch.object(self.k, 'reduce_motion', return_value=True):
++            self.ctl.tick();pump()
++            card = self.ctl.card
++            self.assertTrue(card.isVisible());self.assertLess(card.geometry().bottom(), self.bar.y())      # above the bar
++            right = self.slot.mapToGlobal(self.slot.rect().topRight()).x() + 1;screen = self.bar.screen().geometry()
++            self.assertEqual(card.x() + card.width(), min(right, screen.x() + screen.width() - 8))      # risen from her chip, inside the screen
++            self.assertTrue(card.windowFlags() & Qt.WindowDoesNotAcceptFocus);self.assertTrue(card.testAttribute(Qt.WA_ShowWithoutActivating))
++            self.assertTrue(all(b.focusPolicy() == Qt.NoFocus for b in card.findChildren(QPushButton)))
++            self.assertEqual(card.head.text(), 'WAITS FOR YOU [2]')
++            first = card.rows[0]
++            self.assertEqual(first.press.text(), 'Grant this for this assignment')
++            self.assertIn('move files inside “Downloads” in Files, for this assignment only', first.words.text())      # the grant, whole
++            self.assertEqual(card.rows[1].press.text(), 'Authorise step 3')
++            first.pressed();pump()
++            self.assertEqual(column.steps, [])      # deaf for its first half second
++            QTest.qWait(self.k.DEAF_MS + 60);pump()
++            first.press.click();pump()
++            self.assertEqual(len(column.steps), 1);self.assertIs(column.steps[0]['call'], GRANT)      # the same press as in her panel
++            self.assertIn('done', card.said.text());self.assertTrue(card.said.isVisible())
++
++    def test_no_card_while_her_column_is_in_sight_and_later_puts_it_off_until_what_waits_changes(self):
++        column = self.host.her_column
++        column.rows = [dict(id='b' * 32, title='Sort the photos', state_words='waiting for your word', line='Step 3', actions=[AUTHORISE])]
++        with patch.object(self.k.KasBar, 'graphite_in_front', return_value=True):
++            self.ctl.tick();pump()
++            self.assertTrue(self.ctl.card is None or not self.ctl.card.isVisible())      # docked, Graphite in front: she is in sight
++        with patch.object(self.k.KasBar, 'graphite_in_front', return_value=False), patch.object(self.k, 'reduce_motion', return_value=True):
++            self.ctl.tick();pump();self.assertTrue(self.ctl.card.isVisible())
++            self.ctl.card.put_off();self.ctl.tick();pump();self.assertFalse(self.ctl.card.isVisible())
++            column.rows = column.rows + [dict(id='c' * 32, title='Rename the scans', state_words='waiting for your word', line='Step 1', actions=[AUTHORISE])]
++            self.ctl.tick();pump();self.assertTrue(self.ctl.card.isVisible())      # something new waits
++            self.ctl.open_panel();pump();self.assertFalse(self.ctl.card.isVisible())      # her panel open: the card goes
++
++    def test_a_kernel_refusal_reaches_the_owner_in_plain_words_and_its_raw_text_is_kept_in_log(self):
++        from workbench import activity, her_column_qt, kas_voice
++        raw = 'Unknown or missing parameters for grant.give'
++        words = kas_voice.refusal(raw, 'grant.give')
++        self.assertNotIn('grant.give', words);self.assertTrue(words.startswith('The grant'))
++        self.assertIn('nothing changed', words);self.assertIn('Press it once more', words);self.assertIn('Log', words)
++
++        class Kernel:
++            def dispatch(self, operation, args, owner):return {'ok': False, 'error': {'code': 'KernelError', 'message': raw}}
++        with patch.object(her_column_qt, '_kernel', return_value=(Kernel(), None)):
++            done, why = her_column_qt.press(self.host, 'grant.give', {'operation': 'files.move'})
++        self.assertIsNone(done);self.assertEqual(why, words)
++        kept = activity.recent(self.home, 20)      # Log's Events: the Kernel's own words, with the operation's name
++        self.assertTrue(any(e.get('detail') == raw and e.get('state') == 'REFUSED' and e.get('operation') == 'grant.give' for e in kept), kept)
++
++    # ---- the rest ----------------------------------------------------------------------------------------------------------
++    def test_a_refusal_loses_its_code_and_every_operation_name(self):
++        from workbench import kas_voice
++        words = kas_voice.refusal('GRANT_OPERATION: files.write is not a registered operation here')
++        self.assertNotIn('GRANT_OPERATION', words);self.assertNotIn('files.write', words);self.assertIn('Log', words)
++        scope = kas_voice.refusal('Operation is outside the authorized mode/scope', 'assignment.plan')
++        self.assertTrue(scope.startswith('The authorisation is outside'));self.assertNotIn('assignment.plan', scope)
++        self.assertNotIn('halt.press', kas_voice.refusal('Unknown operation', 'halt.press'))
++
++    def test_the_pause_key_presses_halt_and_never_resume(self):
++        halt = self.slot.halt
++        with patch('workbench.halt.press') as press, patch('workbench.halt.release') as release:
++            self.assertTrue(self.ctl.pause_key());pump();press.assert_called_once()
++            halt.busy = False;self.assertTrue(halt.held)
++            self.assertFalse(self.ctl.pause_key());pump();release.assert_not_called();self.assertEqual(press.call_count, 1)
++        self.assertEqual(self.ctl.pause.key().toString(), 'Pause');self.assertEqual(self.ctl.pause.context(), Qt.ApplicationShortcut)
++
++    def test_the_setting_is_a_readable_file_on_by_default(self):
++        self.assertEqual(self.k.read_settings(), {'docked': True})
++        self.k.settings_file().parent.mkdir(parents=True, exist_ok=True);self.k.settings_file().write_text('not json')
++        self.assertEqual(self.k.read_settings(), {'docked': True})      # a broken file gives the default
++        self.assertEqual(self.k.write_settings(docked=False), {'docked': False});self.assertEqual(self.k.read_settings(), {'docked': False})
++
++    def test_her_new_lines_pass_her_voice_sweep(self):
++        from workbench import mind_words
++        problems = [p for p in mind_words.check() if p[0] in ('kas_voice', 'her_column_qt')]
++        self.assertEqual(problems, [])
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/workbench/floor.py b/workbench/floor.py
+index 7d331da..2d61b6b 100644
+--- a/workbench/floor.py
++++ b/workbench/floor.py
+@@ -344,7 +344,7 @@ def column_tick(column):
+     """Her column's timer: its reading gathered off the window's thread, then drawn (refresh) from it."""
+     if not _column_ok(column):return
+     face = getattr(column, 'face', None)
+-    if face is not None and not face.isVisible():return
++    if face is not None and not face.isVisible() and not getattr(column, 'reads_unseen', False):return      # 1.1 B3: her chip on the bar reads her work while her column is out of sight
+     if busy(('her-column', id(column))):return      # a reading is on its way (a press's, perhaps): this tick is that one
+     from .her_column_qt import DESK_EVERY
+     desk = (column.ticks + 1) % DESK_EVERY == 1
+diff --git a/workbench/grants_qt.py b/workbench/grants_qt.py
+index ed6b5f4..ea86ee8 100644
+--- a/workbench/grants_qt.py
++++ b/workbench/grants_qt.py
+@@ -138,7 +138,9 @@ class GrantsTab(QWidget):
+     def act(self, op, args, then=None):
+         from .shell2 import call_write
+         r = call_write(self.host, op, args)
+-        if not r.get('ok'):self.note(str((r.get('error') or {}).get('message', 'Not done')).split(': ', 1)[-1])
++        if not r.get('ok'):      # 1.1 B3: a refusal in plain words, never the operation's name; the Kernel's own text in Log
++            from .her_column_qt import refused, say as column_say
++            self.note(column_say('press_refused', why=refused(self.host, op, (r.get('error') or {}).get('message', 'Not done'))))
+         else:
+             said = (r.get('result') or {}).get('said') or []
+             if said:self.note(' '.join(said)[:300])
+diff --git a/workbench/halt_qt.py b/workbench/halt_qt.py
+index 4202e32..d807c16 100644
+--- a/workbench/halt_qt.py
++++ b/workbench/halt_qt.py
+@@ -132,6 +132,7 @@ def place_head(top, d):
+     menus start at the middle column's edge)."""
+     button = getattr(top, 'halt', None)
+     if button is None:return
++    if getattr(button, 'on_bar', False):return      # 1.1 B3: HALT stands on the bar beside her name; the head's HALT has gone
+     button.scale = min(d.scale, 1.4);h = d.band;o = d.inset
+     tall = max(24, h - 2 * round(6 * min(d.scale, 1.4)));room = max(0, d.pane - 2 * o)
+     wide = min(room, button.need(tall))
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index 7984277..cdda5d5 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -287,7 +287,20 @@ def press(host, operation, arguments):
+     if isinstance(answer, dict) and answer.get('ok'):return answer.get('result'), ''
+     error = (answer or {}).get('error') if isinstance(answer, dict) else answer
+     message = error.get('message') if isinstance(error, dict) else str(error)
+-    return None, str(message or 'refused').split(': ', 1)[-1][:240]
++    return None, refused(host, operation, message)      # 1.1 B3: in plain words; the Kernel's own text kept in Log
++
++
++def refused(host, operation, message):
++    """1.1 B3: a refusal from the Kernel as she says it (kas_voice.refusal: plain words, what to do, never the operation's
++    name); the Kernel's own text is kept in Log (the activity journal, Log's Events)."""
++    raw = str(message or 'refused')
++    try:
++        from . import activity
++        activity.record(host.root, 'DESKTOP', str(operation or 'unknown'), 'REFUSED', raw)
++    except Exception:  # noqa: BLE001 - Log that cannot be written never hides the refusal
++        pass
++    from .kas_voice import refusal
++    return refusal(raw, operation)[:400]
+ 
+ 
+ # ---------------------------------------------------------------------------------------------------------- the stage
+@@ -1566,7 +1579,8 @@ class HerColumn(QObject):
+             answer = result.get('answer') or {}
+             view = answer.get('result') if answer.get('ok') else None
+             line = (view or {}).get('line') if isinstance(view, dict) else None
+-            self.say_words(say('carry_ended', title=title, line=plain(line)) if line else say('press_refused', why=str((answer.get('error') or {}).get('message', ''))[:200]))
++            self.say_words(say('carry_ended', title=title, line=plain(line)) if line else say('press_refused', why=refused(
++                self.host, call['operation'], (answer.get('error') or {}).get('message', ''))))      # 1.1 B3: in plain words, kept in Log
+             from . import floor;floor.column_soon(self)      # 1.0 F2: read again off the window's thread
+         from . import floor;QTimer.singleShot(400, check);floor.column_soon(self)      # 1.0 F2
+ 
+diff --git a/workbench/kas_panel_qt.py b/workbench/kas_panel_qt.py
+new file mode 100644
+index 0000000..26403bb
+--- /dev/null
++++ b/workbench/kas_panel_qt.py
+@@ -0,0 +1,756 @@
++"""Graphite 1.1 B3 · Kas on the bar: her chip, HALT beside her name, her panel from the right edge, her cards from her chip.
++
++PLAN_1.1.md, B3; the design direction's sections 2, 3 and 6 ("Familiar", section 9). Only her furniture moves here. Her
++rules do not: every press below is the same call it was in 1.0 (halt.press and halt.release, waits_qt's presses through
++HerColumn.take_step, the Kernel's checks at dispatch), and nothing here writes a record by being shown.
++
++  her chip       the bar's kas slot (bar_qt.register_slot): "Kas", then her state's shape and word in her column's own
++                 language (her_column_qt.STATES): ○ QUIET, ● WORKING, ◆ NEEDS YOUR WORD (with how many when more than one
++                 waits), ✓ DONE, ▮▮ STOPPED, ‖ HELD. A press opens her panel, or closes it; a right-click offers the same and
++                 the setting "Kas docked in Graphite".
++  HALT           beside her name, in the same spot at every size: the triangle and the word; held, ▶ RESUME. It is 1.0's
++                 button (halt_qt.HaltButton) drawn for the bar, so a press is halt.press(host) and nothing else: it stops all
++                 of her work and nothing else, and RESUME restarts nothing by itself. Once it stands on the bar the head's
++                 HALT goes (one place for each thing). The Pause key in Graphite presses HALT (never RESUME: that is a press).
++  her panel      1.0's right column, the very same widgets (host.right_pane, with "Waits for you" at its top, never covered),
++                 in a window of its own at the screen's right edge, 380 px wide, from the top of the screen to the bar, above
++                 the apps and below the bar's flyouts. It slides in (220 ms; at once under Reduce motion) when her chip is
++                 pressed and goes on Esc or another press of the chip. "Kas docked in Graphite" (on by default, in
++                 ~/.config/graphite/kas_bar.json): inside Graphite's window her column stays docked at the right as in 1.0,
++                 and a press of her chip while Graphite is in front shows her there; over other apps the panel slides. Off,
++                 her column lives in the panel only and Graphite's window gives its room to the work.
++  her cards      when something waits for the owner (waits_qt.items: Authorise step n, a grant in plain words, a review, a
++                 Resume, her question) and her column is not in sight, a card rises from her chip above the bar with the same
++                 rows and the same one press. It never takes the keys from the app in front (it accepts no focus), and it is
++                 deaf for its first half second, so a click meant for the app behind it is not taken as a yes.
++
++Everything here stands only where the bar stands (bar_qt.install: the dedicated session, or GRAPHITE_BAR=1, on X); without
++the bar, Graphite is as 1.0 was: her column docked, HALT in the head.
++"""
++from __future__ import annotations
++
++import json
++import os
++import time
++from pathlib import Path
++
++from PySide6.QtCore import QEasingCurve, QEvent, QObject, QPoint, QPointF, QPropertyAnimation, QRect, QRectF, QSize, Qt, QTimer
++from PySide6.QtGui import QColor, QFont, QFontMetrics, QFontMetricsF, QGuiApplication, QKeySequence, QPainter, QPainterPath, QPen, QShortcut
++from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSizePolicy, QVBoxLayout, QWidget)
++
++from . import bar_qt
++from . import design_tokens as tokens
++from . import halt_qt
++
++PANEL_WIDTH = 380            # her panel, at the screen's right edge
++SLIDE_MS = tokens.MOTION['panel']      # 220 ms: the panel slides from its edge
++RISE_MS = 160                # a card rises 8 px from her chip
++RISE_PX = 8
++DEAF_MS = 500                # a card hears no press for its first half second
++CARD_MOST = 3                # rows on a card; the rest are counted (they stand in her panel too)
++TICK_MS = 1000               # the card and the chip follow what waits this often (a read of her column's rows, no Kernel)
++SETTINGS = 'kas_bar.json'
++DEFAULTS = {'docked': True}
++WORDS = {      # furniture: the chip's menu and the card's controls (her own lines are kas_voice's and waits_qt's)
++    'open': 'Open her panel', 'close': 'Close her panel', 'docked': 'Kas docked in Graphite', 'later': 'Later',
++    'panel_link': 'Her panel →',
++    'chip_tip': 'Kasandra (Kas): {state}\nPress to open her panel; press again or Esc to close it.',
++    'chip_tip_docked': 'Kasandra (Kas): {state}\nPress to see her column. Over other apps her panel slides in from the right.',
++    'card_tip': 'Waits for you. Your press here is the same press as in her panel. This card never takes your keys.',
++}
++
++
++# ---- the setting ----------------------------------------------------------------------------------------------------------------
++def settings_file(environ=None):
++    environ = os.environ if environ is None else environ
++    base = environ.get('XDG_CONFIG_HOME') or os.path.join(environ.get('HOME') or str(Path.home()), '.config')
++    return Path(base) / 'graphite' / SETTINGS
++
++
++def read_settings(environ=None):
++    """{'docked': bool}: a readable file of the owner's; a missing or broken one gives the defaults."""
++    out = dict(DEFAULTS)
++    try:
++        got = json.loads(settings_file(environ).read_text(encoding='utf-8'))
++        if isinstance(got.get('docked'), bool):out['docked'] = got['docked']
++    except (OSError, ValueError, AttributeError):
++        pass
++    return out
++
++
++def write_settings(environ=None, **changes):
++    now = read_settings(environ)
++    if isinstance(changes.get('docked'), bool):now['docked'] = changes['docked']
++    path = settings_file(environ)
++    try:
++        path.parent.mkdir(parents=True, exist_ok=True)
++        temp = path.with_suffix('.tmp');temp.write_text(json.dumps(now, indent=1) + '\n', encoding='utf-8');os.replace(temp, path)
++    except OSError:
++        pass
++    return now
++
++
++def reduce_motion(host):
++    try:
++        from .document_qt import profile_of
++        return bool(profile_of(host).get('reduce_motion'))
++    except Exception:  # noqa: BLE001 - motion is a grace, never a reason to fail
++        return False
++
++
++# ---- her state, as the chip says it ---------------------------------------------------------------------------------------------
++def chip_state(column, waiting=0):
++    """(state, word, shape) for her chip from her column's shown state (her_column_qt.STATES: the same words and shapes as her
++    column's head); waiting: how many things wait for the owner, said after the word when more than one does."""
++    from .her_column_qt import STATES
++    state = str(getattr(column, 'shown_state', '') or 'idle') if column is not None else 'idle'
++    if state not in STATES:state = 'working' if state not in ('', 'viewing') else 'idle'
++    word, shape, _ = STATES[state]
++    if state == 'awaiting_approval' and waiting > 1:word = '%s [%d]' % (word, waiting)
++    return state, word, shape
++
++
++def shape_colour(state, c):
++    """The third cue only: the shape's colour in the bar's tokens."""
++    return {'working': c['live'], 'awaiting_approval': c['waiting'], 'completed': c['live'], 'blocked': c['danger'],
++            'held': c['danger']}.get(state, c['secondary'])
++
++
++def paint_shape(p, rect, state, colour):
++    """Her state's shape, drawn: a ring (QUIET), a dot (WORKING), the table's diamond, check, pause or held marks."""
++    from . import state_words as sw
++    p.save();p.setRenderHint(QPainter.Antialiasing)
++    if state == 'idle':
++        p.setPen(QPen(QColor(colour), 1.5));p.setBrush(Qt.NoBrush);p.drawEllipse(rect.adjusted(1, 1, -1, -1))
++    elif state == 'working':
++        p.setPen(Qt.NoPen);p.setBrush(QColor(colour));p.drawEllipse(rect.adjusted(1, 1, -1, -1))
++    else:
++        key = {'awaiting_approval': 'needs_word', 'completed': 'done', 'blocked': 'stopped', 'held': 'held'}.get(state, 'needs_word')
++        sw.paint(p, rect, key, colour)
++    p.restore()
++
++
++# ---- the chip and HALT ----------------------------------------------------------------------------------------------------------
++class KasChip(bar_qt.BarButton):
++    """"Kas", her state's shape and word. A press opens or closes her panel; a right-click offers the same and the setting."""
++
++    def __init__(self, slot):
++        super().__init__(slot, 'Kasandra');self.slot = slot;self.setText('Kas')
++        self.clicked.connect(lambda: self.slot.ctl.toggle())
++        self.setContextMenuPolicy(Qt.CustomContextMenu);self.customContextMenuRequested.connect(self.offer)
++
++    def state(self):
++        ctl = self.slot.ctl
++        return chip_state(ctl.column(), len(ctl.waiting()))
++
++    @staticmethod
++    def metrics(h):
++        """(pad, gap, side, the word's font): tighter on the short bar (1366x768), so the open windows keep their room."""
++        tall = h >= bar_qt.TALL
++        return (round(h * 0.3) if tall else 8), (8 if tall else 6), round(h * (0.32 if tall else 0.3)), \
++            bar_qt.bar_font(h, None, None if tall else tokens.TYPE['footnote'][0])
++
++    def natural(self, h):
++        state, word, shape = self.state();pad, gap, side, font = self.metrics(h)
++        return 2 * pad + QFontMetrics(bar_qt.bar_font(h, QFont.DemiBold)).horizontalAdvance('Kas') + gap + side + 5 + \
++            QFontMetrics(font).horizontalAdvance(word)
++
++    def paintEvent(self, event):
++        c = bar_qt.ink();p = QPainter(self);w, h = self.width(), self.height()
++        state, word, shape = self.state();pad, gap, side, word_font = self.metrics(h)
++        r = self.ground(p, c, active=self.slot.ctl.panel_open())
++        if state == 'awaiting_approval':      # what waits: a tint of its colour under the chip, with the shape and the word
++            bar_qt.plate(p, r, tokens.over(c['waiting'], c['sidebar'], tokens.TINT['waiting']))
++        x = pad;font = bar_qt.bar_font(h, QFont.DemiBold);p.setFont(font);p.setPen(QColor(c['text']))
++        p.drawText(QRect(x, 0, w, h), Qt.AlignLeft | Qt.AlignVCenter, 'Kas')
++        x += QFontMetrics(font).horizontalAdvance('Kas') + gap
++        paint_shape(p, QRectF(x, (h - side) / 2.0, side, side), state, shape_colour(state, c))
++        x += side + 5;p.setFont(word_font);p.setPen(QColor(c['text'] if state == 'awaiting_approval' else c['secondary']))
++        p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, word)
++        if self.slot.ctl.panel_open():p.fillRect(QRectF(6, h - 5, w - 12, 2), QColor(c['accent']))      # open: the accent rule, as an active window's
++        p.end()
++        said = '%s %s' % (shape, word)
++        tip = (WORDS['chip_tip_docked'] if self.slot.ctl.docked else WORDS['chip_tip']).format(state=said)
++        if tip != self.toolTip():self.setToolTip(tip);self.setAccessibleName('Kasandra, ' + word)
++
++    def offer(self, at):
++        ctl = self.slot.ctl;menu = QMenu(self)
++        menu.addAction(WORDS['close'] if ctl.panel_open() else WORDS['open'], ctl.toggle)
++        docked = menu.addAction(WORDS['docked']);docked.setCheckable(True);docked.setChecked(ctl.docked)
++        docked.toggled.connect(ctl.set_docked)
++        ctl.last_menu = menu
++        menu.popup(self.mapToGlobal(at))
++        return menu
++
++
++class HaltOnBar(halt_qt.HaltButton):
++    """1.0's HALT (halt_qt.HaltButton: its press, its reading of the hold every two seconds), drawn for the bar: the triangle and
++    the word in an outlined plate, as wide as the longer of HALT and RESUME so nothing on the bar moves. Never takes the focus."""
++    on_bar = True      # halt_qt.place_head: never placed in the head
++
++    def __init__(self, host, parent):
++        super().__init__(host, parent);self.setFocusPolicy(Qt.NoFocus);self.setObjectName('BarHalt')
++
++    def bar_font(self, h):
++        tall = h >= bar_qt.TALL
++        f = bar_qt.bar_font(h, QFont.DemiBold, None if tall else tokens.TYPE['footnote'][0])
++        f.setLetterSpacing(QFont.AbsoluteSpacing, 1.0 if tall else 0.6);return f
++
++    @staticmethod
++    def pad(h=None):
++        return 10 if (h or 0) >= bar_qt.TALL else 8
++
++    def need(self, height):
++        fm = QFontMetricsF(self.bar_font(height));side = round(height * 0.34)
++        return round(self.pad(height) + side + 6 + max(fm.horizontalAdvance(w) for w in ('HALT', 'RESUME')) + self.pad(height))
++
++    def sizeHint(self):
++        return QSize(self.need(bar_qt.SHORT), bar_qt.SHORT)
++
++    def paintEvent(self, event):
++        c = bar_qt.ink();marks = tokens.marks(bar_qt.look());p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
++        w, h = self.width(), self.height();r = QRectF(2.5, 6.5, w - 5, h - 13)
++        fill = c['pressed'] if self.isDown() else (c['hover_side'] if self.underMouse() else c['sidebar'])
++        p.setPen(QPen(QColor(c['stroke_strong'] if self.underMouse() else c['stroke']), 1));p.setBrush(QColor(fill))
++        p.drawRoundedRect(r, tokens.RADIUS['control'], tokens.RADIUS['control'])
++        side = round(h * 0.34);x = self.pad(h);cy = h / 2.0;path = QPainterPath()
++        if self.held:      # ▶: go on, in the colour of what waits for the owner
++            path.moveTo(QPointF(x, cy - side / 2));path.lineTo(QPointF(x + side * 0.9, cy));path.lineTo(QPointF(x, cy + side / 2))
++        else:              # ▲: the stop sign, the live green (never red: it stops her, not the computer)
++            path.moveTo(QPointF(x + side / 2, cy - side * 0.48));path.lineTo(QPointF(x + side, cy + side * 0.42));path.lineTo(QPointF(x, cy + side * 0.42))
++        path.closeSubpath();p.setPen(Qt.NoPen);p.setBrush(QColor(marks['HALT_HELD'] if self.held else marks['HALT']));p.drawPath(path)
++        font = self.bar_font(h);p.setFont(font);p.setPen(QColor(c['text']))
++        tx = x + side + 6;p.drawText(QRectF(tx, 0, w - tx - 4, h), Qt.AlignLeft | Qt.AlignVCenter, self.text())
++        if self.held:      # held: a short mark under the word (the shape, not only the colour)
++            fm = QFontMetricsF(font);p.fillRect(QRectF(tx, cy + fm.ascent() / 2 + 3, fm.horizontalAdvance(self.text()), 2), QColor(marks['HALT_HELD']))
++        p.end()
++
++
++class KasSlot(QWidget):
++    """The bar's kas slot: her chip, then HALT beside her name."""
++
++    def __init__(self, bar):
++        super().__init__(bar);self.bar = bar;self.ctl = controller(bar.host);self.setAccessibleName('Kasandra and HALT')
++        self.chip = KasChip(self);self.halt = HaltOnBar(bar.host, self);self.halt.show()
++        self.ctl.slot = self
++        QTimer.singleShot(0, self.ctl.adopt_halt)
++
++    def bar_width(self, h):
++        return self.chip.natural(h) + 2 + self.halt.need(h)
++
++    def resizeEvent(self, event):
++        self.lay()
++
++    def lay(self):
++        h = self.height();cw = self.chip.natural(h)
++        self.chip.setGeometry(0, 0, cw, h);self.halt.setGeometry(cw + 2, 0, self.halt.need(h), h)
++
++    def refresh(self):
++        """Her state changed: the chip's width follows its word (the bar lays its slots out again)."""
++        try:
++            if self.width() != self.bar_width(self.height() or bar_qt.SHORT):self.bar.arrange()
++            else:self.lay()
++            self.chip.update()
++        except RuntimeError:
++            pass
++
++
++# ---- her panel ------------------------------------------------------------------------------------------------------------------
++def mark_everywhere(window):
++    """Her panel and her cards stand on every desktop, as the bar does (_NET_WM_DESKTOP all). False where X does not answer."""
++    if QGuiApplication.platformName() != 'xcb':return False
++    try:
++        from . import system_dock_qt as sd
++        from . import windows_x11 as wx
++        xb = wx.XlibBackend()
++    except Exception:  # noqa: BLE001 - not on X
++        return False
++    try:
++        sd._declare(xb.x)
++        with xb.calls():sd._put(xb, int(window), '_NET_WM_DESKTOP', wx.XA_CARDINAL, [sd.ALL_DESKTOPS])
++        return True
++    except Exception:  # noqa: BLE001
++        return False
++    finally:
++        xb.close_display()
++
++
++class KasPanel(QWidget):
++    """Her panel: a window of its own at the screen's right edge, holding her column while it is open (or always, when she is
++    not docked in Graphite). Esc closes it."""
++
++    def __init__(self, ctl):
++        super().__init__(None, Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
++        self.ctl = ctl;self.opened = False;self.marked = False
++        self.setObjectName('KasPanel');self.setWindowTitle('Graphite · Kasandra');self.setAccessibleName('Her panel')
++        self.setAttribute(Qt.WA_X11NetWmWindowTypeUtility, True)
++        box = QVBoxLayout(self);box.setContentsMargins(1, 0, 0, 0);box.setSpacing(0)
++        self.anim = QPropertyAnimation(self, b'pos', self);self.anim.setEasingCurve(QEasingCurve.OutCubic)
++        self.anim.finished.connect(self.slid)
++        self.esc = QShortcut(QKeySequence(Qt.Key_Escape), self);self.esc.activated.connect(lambda: self.ctl.close_panel())
++
++    def hold(self, pane):
++        """Her column comes in: the window's own look (its style sheet, palette and type) comes with it."""
++        host = self.ctl.host
++        sheet = host.styleSheet()
++        if self.styleSheet() != sheet:self.setStyleSheet(sheet)
++        self.setPalette(host.palette());self.setFont(host.font())
++        pane.setParent(self);self.layout().addWidget(pane, 1);pane.show()
++
++    def band(self):
++        """(open rect, closed x): 380 px at the right edge of the screen, from its top to the bar."""
++        host = self.ctl.host;bar = getattr(host, 'graphite_bar', None)
++        screen = (host.screen() if host is not None else None) or QGuiApplication.primaryScreen()
++        g = screen.geometry()
++        bottom = bar.y() if bar is not None and bar.isVisible() else g.y() + g.height()
++        rect = QRect(g.x() + g.width() - PANEL_WIDTH, g.y(), PANEL_WIDTH, max(200, bottom - g.y()))
++        return rect, g.x() + g.width()
++
++    def slide_in(self):
++        rect, off = self.band();self.opened = True;self.anim.stop()
++        self.setFixedSize(rect.size())
++        if not self.marked:self.marked = mark_everywhere(self.winId())
++        if reduce_motion(self.ctl.host):
++            self.move(rect.topLeft());self.show();self.raise_()
++        else:
++            self.move(off, rect.y());self.show();self.raise_()
++            self.anim.setDuration(SLIDE_MS);self.anim.setStartValue(QPoint(off, rect.y()));self.anim.setEndValue(rect.topLeft());self.anim.start()
++        self.activateWindow()
++        return rect
++
++    def slide_out(self):
++        rect, off = self.band();self.opened = False;self.anim.stop()
++        if reduce_motion(self.ctl.host) or not self.isVisible():
++            self.hide();self.ctl.panel_gone();return
++        self.anim.setDuration(SLIDE_MS);self.anim.setStartValue(self.pos());self.anim.setEndValue(QPoint(off, rect.y()));self.anim.start()
++
++    def slid(self):
++        if not self.opened:
++            self.hide();self.ctl.panel_gone()
++
++    def place_now(self):
++        """The screen or the bar moved: the open panel follows its edge."""
++        if self.opened and self.anim.state() != QPropertyAnimation.Running:
++            rect, _ = self.band();self.setFixedSize(rect.size());self.move(rect.topLeft())
++
++    def paintEvent(self, event):
++        c = bar_qt.ink();p = QPainter(self);p.fillRect(self.rect(), QColor(c['surface']))
++        p.fillRect(0, 0, 1, self.height(), QColor(c['stroke']));p.end()
++
++
++# ---- her card -------------------------------------------------------------------------------------------------------------------
++class CardRow(QFrame):
++    """One thing that waits, on the card: its shape and word, what it is about, its words (a grant's whole), its one press."""
++
++    def __init__(self, card):
++        super().__init__(card);self.card = card;self.fn = None;self.item = None
++        self.setObjectName('KasCardRow')
++        box = QVBoxLayout(self);box.setContentsMargins(10, 6, 8, 6);box.setSpacing(3)
++        top = QHBoxLayout();top.setSpacing(6)
++        from . import state_words as sw
++        self.mark = sw.Mark('needs_word', None, 13);top.addWidget(self.mark, 0, Qt.AlignVCenter)
++        self.word = QLabel();self.title = QLabel();self.title.setTextFormat(Qt.PlainText)
++        top.addWidget(self.word);top.addWidget(self.title, 1);box.addLayout(top)
++        self.words = QLabel();self.words.setWordWrap(True);self.words.setTextFormat(Qt.PlainText);box.addWidget(self.words)
++        low = QHBoxLayout();low.setSpacing(0)
++        self.press = QPushButton();self.press.setObjectName('KasCardPress');self.press.setFocusPolicy(Qt.NoFocus)
++        self.press.setCursor(Qt.PointingHandCursor);self.press.clicked.connect(self.pressed)
++        low.addWidget(self.press, 0, Qt.AlignLeft);low.addStretch(1);box.addLayout(low)
++
++    def show_item(self, item):
++        from . import state_words as sw
++        key, title, words, press, fn, tip = item;c = bar_qt.ink()
++        self.item = item;self.fn = fn
++        self.mark.set(key, c['waiting']);self.word.setText(sw.word(key).upper() if key == 'held' else sw.word(key))
++        self.word.setStyleSheet('color:%s;font-family:"%s";font-size:11px;font-weight:600;letter-spacing:1px;' % (c['waiting_text'], tokens.FONT['mono']))
++        self.title.setText(title);self.title.setVisible(bool(title))
++        self.title.setStyleSheet('color:%s;font-size:12px;' % c['secondary'])
++        fm = QFontMetrics(self.title.font());self.title.setText(fm.elidedText(title, Qt.ElideRight, 200));self.title.setToolTip(title)
++        self.words.setText(words);self.words.setVisible(bool(words));self.words.setStyleSheet('color:%s;font-size:13px;' % c['text'])
++        self.press.setText(press);self.press.setToolTip(tip)
++        self.setAccessibleName('%s: %s. %s' % (sw.word(key), title, words))
++
++    def pressed(self):
++        if self.fn is None or not self.card.awake():return      # deaf for its first half second
++        self.card.carry(self.fn, self.press.text())
++
++
++class WaitCard(QFrame):
++    """What waits for the owner, risen from her chip above the bar: never takes the keys, deaf for its first half second."""
++
++    def __init__(self, ctl):
++        # never managed by the window manager (override-redirect), so no manager can give it the keys; above every app
++        super().__init__(None, Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus | Qt.X11BypassWindowManagerHint)
++        self.ctl = ctl;self.rows = [];self.signature = None;self.later = None;self.shown_at = 0.0;self.outcome_until = 0.0
++        self.setObjectName('KasWaitCard');self.setWindowTitle('Graphite · Waits for you');self.setAccessibleName('Waits for you, from her chip');self.setToolTip(WORDS['card_tip'])
++        for attr in (Qt.WA_ShowWithoutActivating, Qt.WA_X11DoNotAcceptFocus, Qt.WA_X11NetWmWindowTypeNotification):self.setAttribute(attr, True)
++        self.setFocusPolicy(Qt.NoFocus);self.marked = False
++        box = QVBoxLayout(self);box.setContentsMargins(12, 10, 12, 10);box.setSpacing(6)
++        head = QHBoxLayout();head.setSpacing(6)
++        from . import state_words as sw
++        self.mark = sw.Mark('needs_word', None, 14);head.addWidget(self.mark, 0, Qt.AlignVCenter)
++        self.head = QLabel();head.addWidget(self.head, 1);box.addLayout(head)
++        self.list = QVBoxLayout();self.list.setSpacing(6);box.addLayout(self.list)
++        self.more = QLabel();self.more.hide();box.addWidget(self.more)
++        self.said = QLabel();self.said.setWordWrap(True);self.said.setTextFormat(Qt.PlainText);self.said.hide();box.addWidget(self.said)
++        foot = QHBoxLayout();foot.setSpacing(8)
++        self.panel_link = QPushButton(WORDS['panel_link']);self.later_button = QPushButton(WORDS['later'])
++        for b in (self.panel_link, self.later_button):b.setFocusPolicy(Qt.NoFocus);b.setFlat(True);b.setCursor(Qt.PointingHandCursor)
++        self.panel_link.clicked.connect(self.open_panel);self.later_button.clicked.connect(self.put_off)
++        foot.addWidget(self.panel_link);foot.addStretch(1);foot.addWidget(self.later_button);box.addLayout(foot)
++        self.anim = QPropertyAnimation(self, b'pos', self);self.anim.setEasingCurve(QEasingCurve.OutCubic)
++        self.wake = QTimer(self);self.wake.setSingleShot(True);self.wake.timeout.connect(self.woken)
++        self.restyle()
++
++    def restyle(self):
++        c = bar_qt.ink()
++        self.setStyleSheet(
++            'QFrame#KasWaitCard {background:%s; border:1px solid %s; border-radius:%dpx;}'
++            ' QFrame#KasCardRow {background:%s; border:1px solid %s; border-left:3px solid %s; border-radius:6px;}'
++            ' QLabel {background:transparent; border:0;}'
++            ' QPushButton#KasCardPress {background:%s; color:%s; border:0; border-radius:6px; padding:5px 12px; font-weight:600;}'
++            ' QPushButton#KasCardPress:hover {background:%s;}'
++            ' QPushButton#KasCardPress:disabled {background:%s; color:%s;}'
++            ' QPushButton[flat="true"] {color:%s; background:transparent; border:0; padding:2px 4px;}'
++            ' QPushButton[flat="true"]:hover {text-decoration:underline;}' % (
++                c['surface'], c['stroke_strong'], tokens.RADIUS['toast'], c['surface'], c['stroke'], c['waiting'],
++                c['accent_fill'], c['on_accent'], c['accent'], c['raised'], c['disabled'], c['accent_text']))
++        self.head.setStyleSheet('color:%s;font-family:"%s";font-size:12px;font-weight:600;letter-spacing:1px;' % (c['waiting_text'], tokens.FONT['mono']))
++        self.more.setStyleSheet('color:%s;font-size:12px;' % c['secondary']);self.said.setStyleSheet('color:%s;font-size:13px;' % c['text'])
++        self.mark.set('needs_word', c['waiting'])
++
++    # -- hearing
++    def awake(self):
++        return time.monotonic() - self.shown_at >= DEAF_MS / 1000.0
++
++    def woken(self):
++        for row in self.rows:row.press.setEnabled(True)
++
++    # -- what it shows
++    def show_items(self, found):
++        from .waits_qt import WORDS as WAITS
++        from .kas_voice import say as her
++        self.restyle();self.said.hide()
++        while len(self.rows) < min(len(found), CARD_MOST):
++            row = CardRow(self);self.rows.append(row);self.list.addWidget(row)
++        for i, row in enumerate(self.rows):
++            if i < min(len(found), CARD_MOST):row.show_item(found[i]);row.show()
++            else:row.hide()
++        hidden = max(0, len(found) - CARD_MOST)
++        self.more.setText(her('card_more', count=hidden) if hidden else '');self.more.setVisible(bool(hidden))
++        self.head.setText(WAITS['head_count'].format(count=len(found)) if len(found) > 1 else WAITS['head'])
++        self.later_button.show()
++
++    def width_for(self):
++        bar = getattr(self.ctl.host, 'graphite_bar', None)
++        return 380 if bar is not None and bar.height() >= bar_qt.TALL else 340
++
++    def rise(self):
++        """Above her chip, its right edge on the chip's right edge (inside the screen), 6 px over the bar; it rises 8 px."""
++        bar = getattr(self.ctl.host, 'graphite_bar', None);slot = self.ctl.slot
++        self.setFixedWidth(self.width_for());self.adjustSize()
++        layout = self.layout();self.setFixedHeight(layout.totalHeightForWidth(self.width()) if layout.hasHeightForWidth() else layout.sizeHint().height())
++        screen = (bar.screen() if bar is not None else None) or QGuiApplication.primaryScreen();g = screen.geometry()
++        if bar is not None and slot is not None:
++            right = slot.mapToGlobal(QPoint(slot.width(), 0)).x();top = bar.mapToGlobal(QPoint(0, 0)).y()
++        else:
++            right = g.x() + g.width() - 8;top = g.y() + g.height()
++        x = max(g.x() + 8, min(right, g.x() + g.width() - 8) - self.width());y = top - self.height() - 6
++        was = self.isVisible()
++        if not self.marked:self.marked = mark_everywhere(self.winId())
++        if was:
++            self.anim.stop();self.move(x, y);return QRect(x, y, self.width(), self.height())
++        self.shown_at = time.monotonic()
++        for row in self.rows:row.press.setEnabled(False)
++        self.wake.start(DEAF_MS)
++        if reduce_motion(self.ctl.host):
++            self.move(x, y);self.show()
++        else:
++            self.move(x, y + RISE_PX);self.show()
++            self.anim.setDuration(RISE_MS);self.anim.setStartValue(QPoint(x, y + RISE_PX));self.anim.setEndValue(QPoint(x, y));self.anim.start()
++        self.raise_()
++        return QRect(x, y, self.width(), self.height())
++
++    # -- the presses
++    def carry(self, fn, words):
++        """The row's own press (waits_qt's: HerColumn.take_step or show_journal), then what she said about it, here, for a few
++        seconds (her column is not in sight)."""
++        column = self.ctl.column();said = []
++        original = getattr(column, 'say_words', None)
++        if column is not None and original is not None:
++            column.say_words = lambda w, original=original: (said.append(w), original(w))
++        try:
++            fn()
++        finally:
++            if column is not None and original is not None:
++                try:del column.say_words
++                except AttributeError:pass
++        try:
++            from . import floor
++            if column is not None:floor.column_soon(column)      # read again off the window's thread, as the band's press does
++        except Exception:  # noqa: BLE001
++            pass
++        self.signature = None
++        if said:
++            from .her_column_qt import plain
++            for row in self.rows:row.hide()
++            self.more.hide();self.later_button.hide();self.said.setText(plain(said[-1]));self.said.show()
++            self.outcome_until = time.monotonic() + 5.0;self.rise()
++        else:
++            self.hide()
++        return said
++
++    def open_panel(self):
++        self.hide();self.ctl.open_panel()
++
++    def put_off(self):
++        """Later: the card goes until what waits changes (it still waits in her panel, and her chip still says so)."""
++        self.later = self.signature;self.hide()
++
++
++# ---- the controller -------------------------------------------------------------------------------------------------------------
++def signature(found):
++    return tuple((k, t, w, p) for k, t, w, p, _, _ in found)
++
++
++class KasBar(QObject):
++    """host.kas_bar: her chip's slot, her panel, her card and the setting, for one window."""
++
++    def __init__(self, host):
++        super().__init__(host);self.host = host;self.slot = None;self.panel = None;self.card = None;self.away = None
++        self.home = None;self.last_menu = None;self.docked = read_settings()['docked'];self.halt_adopted = False
++        self.timer = QTimer(self);self.timer.setInterval(TICK_MS);self.timer.timeout.connect(self.tick)
++        self.pause = QShortcut(QKeySequence(Qt.Key_Pause), host);self.pause.setContext(Qt.ApplicationShortcut)
++        self.pause.activated.connect(self.pause_key)
++        app = QGuiApplication.instance()
++        if app is not None:app.focusWindowChanged.connect(self.focus_moved)
++        dock = getattr(host, 'sim_dock', None)
++        if dock is not None:dock.installEventFilter(self)
++
++    # -- reading
++    def column(self):
++        return getattr(self.host, 'her_column', None)
++
++    def waiting(self):
++        """What waits for the owner now (waits_qt.items: a read of her column's rows, nothing written)."""
++        column = self.column()
++        if column is None:return []
++        band = getattr(column, 'waits', None)
++        if band is not None and getattr(band, 'shown', None) is not None and band.isVisible():return list(band.shown)
++        try:
++            from .waits_qt import items
++            return items(column)
++        except Exception:  # noqa: BLE001 - the chip is whole without it
++            return []
++
++    def standing(self):
++        bar = getattr(self.host, 'graphite_bar', None)
++        return bar is not None and self.slot is not None and bar.slot('kas') is self.slot
++
++    def panel_open(self):
++        return self.panel is not None and self.panel.opened
++
++    def pane_home(self):
++        pane = getattr(self.host, 'right_pane', None)
++        return pane is not None and self.home is not None and pane.parentWidget() is self.home[0]
++
++    def graphite_in_front(self):
++        host = self.host
++        try:return host.isActiveWindow() and not host.isMinimized() and host.isVisible()
++        except RuntimeError:return False
++
++    def in_sight(self):
++        """Her column is in sight: her panel is open, or she is docked in Graphite and Graphite's window is the one in front."""
++        if self.panel_open():return True
++        pane = getattr(self.host, 'right_pane', None)
++        shown = pane is None or pane.isVisible()      # the owner may have put Graphite's right side away
++        return self.docked and self.graphite_in_front() and (self.home is None or self.pane_home()) and shown
++
++    # -- the bar's slot stands
++    def stood(self):
++        """The bar stands with her chip: she reads her work while her column is out of sight (her chip says it above every
++        app); she is put where the setting says; the card follows what waits."""
++        column = self.column()
++        if column is not None:column.reads_unseen = True      # floor.column_tick (1.1 B3)
++        if not self.docked:self.undock()
++        self.timer.start();self.tick()
++
++    def adopt_halt(self):
++        """HALT on the bar: once the bar stands with it, the head's HALT goes (one place for each thing); halt.py's own refresh
++        after a press then reads the bar's button (shell2.top.halt). True when it was moved."""
++        if self.slot is None:return False
++        bar = getattr(self.host, 'graphite_bar', None)
++        if bar is None or not getattr(bar, 'standing', False) or bar.slot('kas') is not self.slot:
++            tries = getattr(self, '_halt_tries', 0)
++            if tries < 40 and not getattr(self.host, '_closing', False):
++                self._halt_tries = tries + 1;QTimer.singleShot(150, self.adopt_halt)
++            return False
++        top = getattr(getattr(self.host, 'shell2', None), 'top', None)
++        if top is not None:
++            old = getattr(top, 'halt', None)
++            if old is not None and old is not self.slot.halt:
++                try:old.timer.stop();old.hide();old.setParent(None);old.deleteLater()
++                except (RuntimeError, AttributeError):pass
++            top.halt = self.slot.halt
++        self.halt_adopted = True
++        if not self.timer.isActive():self.stood()
++        return True
++
++    # -- the presses
++    def toggle(self):
++        """Her chip's press: her panel goes when it is open; docked and with Graphite in front, her column is shown where it
++        stands; else her panel slides in."""
++        if self.panel_open():return self.close_panel()
++        if self.docked and self.graphite_in_front() and (self.home is None or self.pane_home()):return self.show_column()
++        return self.open_panel()
++
++    def show_column(self):
++        try:
++            self.host.shell2.show_slate_face()
++            edit = getattr(getattr(self.column(), 'ask_line', None), 'edit', None)
++            if edit is not None:edit.setFocus()
++        except Exception:  # noqa: BLE001
++            pass
++        return 'docked'
++
++    def ensure_panel(self):
++        if self.panel is None:self.panel = KasPanel(self)
++        return self.panel
++
++    def take_pane(self):
++        """Her column (the right pane) comes out of Graphite's window into her panel; a line of words keeps its place."""
++        pane = getattr(self.host, 'right_pane', None);panel = self.ensure_panel()
++        if pane is None:return False
++        if pane.parentWidget() is panel:return True
++        holder = pane.parentWidget();lay = holder.layout() if holder is not None else None
++        if lay is None:return False
++        index = lay.indexOf(pane);self.home = (holder, index)
++        lay.removeWidget(pane)
++        if self.away is None:
++            from .kas_voice import say as her
++            self.away = QLabel(her('panel_away'));self.away.setWordWrap(True);self.away.setAlignment(Qt.AlignCenter)
++            self.away.setObjectName('KasAway');self.away.setContentsMargins(16, 16, 16, 16)
++        lay.insertWidget(max(0, index), self.away, 1);self.away.show()
++        panel.hold(pane)
++        return True
++
++    def give_pane(self):
++        """Her column goes back to its place in Graphite's window."""
++        pane = getattr(self.host, 'right_pane', None)
++        if pane is None or self.home is None:return False
++        holder, index = self.home
++        if pane.parentWidget() is holder:return True
++        lay = holder.layout()
++        if self.away is not None:
++            lay.removeWidget(self.away);self.away.hide()
++        if self.panel is not None:self.panel.layout().removeWidget(pane)
++        pane.setParent(holder);lay.insertWidget(max(0, index), pane, 1);pane.show()
++        try:
++            from . import desk_qt
++            QTimer.singleShot(0, lambda: desk_qt.apply(self.host))
++        except Exception:  # noqa: BLE001
++            pass
++        return True
++
++    def open_panel(self):
++        if not self.take_pane():return None
++        if self.card is not None:self.card.hide()
++        rect = self.panel.slide_in()
++        edit = getattr(getattr(self.column(), 'ask_line', None), 'edit', None)
++        if edit is not None:QTimer.singleShot(0, edit.setFocus)
++        self.repaint_chip()
++        return rect
++
++    def close_panel(self):
++        if self.panel is None or not self.panel.opened:return False
++        self.panel.slide_out();self.repaint_chip()
++        return True
++
++    def panel_gone(self):
++        """The panel has slid out: docked, her column goes home."""
++        if self.docked:self.give_pane()
++        self.repaint_chip();self.tick()
++
++    def set_docked(self, on):
++        """"Kas docked in Graphite": on, her column stands at the right of Graphite's window as in 1.0 (her panel slides over
++        other apps); off, it lives in her panel only. Kept in ~/.config/graphite/kas_bar.json."""
++        self.docked = bool(on);write_settings(docked=self.docked)
++        if self.docked:
++            if not self.panel_open():self.give_pane()
++            dock = getattr(self.host, 'sim_dock', None)
++            if dock is not None:dock.show()
++        else:
++            self.undock()
++        self.repaint_chip();self.tick()
++        return self.docked
++
++    def undock(self):
++        self.take_pane()
++        dock = getattr(self.host, 'sim_dock', None)
++        if dock is not None:dock.hide()
++
++    def pause_key(self):
++        """The Pause key in Graphite presses HALT; it never presses RESUME (RESUME is a press, never a key)."""
++        button = self.slot.halt if self.slot is not None else getattr(getattr(getattr(self.host, 'shell2', None), 'top', None), 'halt', None)
++        if button is None:return None
++        if button.held:
++            from .kas_voice import say as her
++            try:self.host.statusBar().showMessage(her('pause_held'), 6000)
++            except (AttributeError, RuntimeError):pass
++            return False
++        button.act();return True
++
++    # -- following
++    def repaint_chip(self):
++        if self.slot is not None:
++            try:self.slot.refresh()
++            except RuntimeError:self.slot = None
++
++    def tick(self):
++        """Every second while the bar stands: the chip's word, and the card (what waits, when her column is out of sight)."""
++        if getattr(self.host, '_closing', False):self.timer.stop();return
++        self.repaint_chip()
++        found = self.waiting() if self.slot is not None else []
++        card = self.card
++        if card is not None and time.monotonic() < card.outcome_until and card.isVisible():return      # her answer to a card's press, for a moment
++        if not found or self.in_sight():
++            if card is not None:card.hide();card.later = None if not found else card.later
++            return
++        sign = signature(found)
++        if card is None:card = self.card = WaitCard(self)
++        if card.later is not None and card.later == sign:return      # put off until what waits changes
++        if sign != card.signature or not card.isVisible():
++            card.signature = sign;card.show_items(found);card.rise()
++
++    def focus_moved(self, window):
++        """Docked: when Graphite's own window comes in front, her open panel goes, and her column is back in its place there."""
++        try:
++            if window is not None and self.docked and self.panel_open() and window is self.host.windowHandle():self.close_panel()
++        except RuntimeError:
++            pass
++
++    def eventFilter(self, obj, event):
++        if event.type() == QEvent.Show and obj is getattr(self.host, 'sim_dock', None) and not self.docked and self.standing():
++            QTimer.singleShot(0, obj.hide)      # not docked: the right of Graphite's window is the work's (her panel holds her column)
++        return False
++
++    def status(self):
++        return dict(standing=self.standing(), docked=self.docked, panel_open=self.panel_open(), pane_home=self.pane_home() if self.home else True,
++                    card=bool(self.card is not None and self.card.isVisible()), halt_on_bar=self.halt_adopted,
++                    chip=chip_state(self.column(), len(self.waiting()))[1])
++
++
++def controller(host):
++    """host.kas_bar, made once."""
++    ctl = getattr(host, 'kas_bar', None)
++    if ctl is None:
++        ctl = KasBar(host);host.kas_bar = ctl
++    return ctl
++
++
++def install(host):
++    """shell2, before the bar: her chip and HALT fill the bar's kas slot wherever the bar stands (bar_qt.register_slot). Without
++    the bar nothing here is made, and her column and HALT stay where 1.0 put them."""
++    controller(host)
++    bar_qt.register_slot('kas', KasSlot)
++    return host.kas_bar
+diff --git a/workbench/kas_voice.py b/workbench/kas_voice.py
+index 73f5d8b..9ce5da1 100644
+--- a/workbench/kas_voice.py
++++ b/workbench/kas_voice.py
+@@ -67,12 +67,64 @@ WORDS = {
+     'failed': 'That failed: {why}',
+     # the guard: nothing proven, said as plainly as a proof
+     'not_verified': NOT_VERIFIED,
++    # 1.1 B3: a refusal from the Kernel as a plain clause (it follows "Refused: " or stands alone): what it was, that nothing
++    # changed where the Kernel refused at its door, and what to do; never an operation's name (Log keeps the raw text)
++    'refused_parameters': '{what} reached the Kernel without a detail it needs, so nothing changed. Press it once more. '
++                          'If it is refused again, Log has the Kernel’s own words.',
++    'refused_scope': '{what} is outside what this session may do, so nothing changed. Give it with your own press in '
++                     'Graphite. Log has the Kernel’s own words.',
++    'refused_unknown': 'The Kernel does not know {what}, so nothing changed. Ask me for the step again. Log has the '
++                       'Kernel’s own words.',
++    'refused_other': '{why} Log has the Kernel’s own words.',
++    # 1.1 B3: on the bar (her panel, her card, the Pause key)
++    'panel_away': 'I am in my panel at the right edge of the screen. Press my name on the bar to bring me back.',
++    'card_more': 'And {count} more in my panel.',
++    'pause_held': 'HALT already holds my work. RESUME is a press on the bar, never a key.',
+ }
+ NUMBERS = {'stopped_at': {'n': 'the steps that went (godot start results)', 'count': 'the start plan\'s steps (godot start plan)'},
+            'desk_none': {'count': 'the desk\'s things (desk read)'},
+-           'desk_waits': {'count': 'the desk\'s things (desk read)', 'n': 'the things that wait (desk read)'}}
++           'desk_waits': {'count': 'the desk\'s things (desk read)', 'n': 'the things that wait (desk read)'},
++           'card_more': {'count': 'the rows that wait and are not on the card (assignment.list)'}}
+ mind_words.register('kas_voice', WORDS, kind='sentence', numbers=NUMBERS)
+ 
++# 1.1 B3: what a refused press was, in plain words (the Kernel's operation names never reach the owner)
++OPERATION_WORDS = {'grant.give': 'the grant', 'grant.give.set': 'the grants', 'grant.revoke': 'the revoke',
++                   'grant.words': 'the grant’s words', 'assignment.plan': 'the authorisation', 'assignment.step': 'the step',
++                   'assignment.resume': 'the resume', 'assignment.stop': 'the stop', 'assignment.start': 'the assignment',
++                   'halt.press': 'HALT', 'halt.release': 'RESUME', 'program.answer': 'your answer'}
++_NAMESPACES = ('grant', 'assignment', 'halt', 'program', 'files', 'desk', 'field', 'ledger', 'investigation', 'brain', 'agenda',
++               'jobs', 'work', 'network', 'kasandra', 'godot', 'windows', 'apps', 'sheet', 'card', 'session', 'machine', 'plan',
++               'objective', 'home', 'go', 'notes', 'office', 'mind', 'hand', 'evidence', 'register')
++_OPERATION = None
++
++
++def plain_operation(name):
++    """An operation's name as the owner reads it: 'the grant' for grant.give; 'that press' for one with no plain name."""
++    return OPERATION_WORDS.get(str(name or ''), 'that press')
++
++
++def refusal(raw, operation=''):
++    """A refusal from the Kernel (its error message, raw) as she says it: a plain clause that reads after "Refused: " or
++    alone, with what to do, and never an operation's name. The raw text is the caller's to keep in Log."""
++    import re
++    global _OPERATION
++    if _OPERATION is None:
++        _OPERATION = re.compile(r'\b(?:%s)\.[a-z_]+(?:\.[a-z_]+)*\b' % '|'.join(_NAMESPACES))
++    text = ' '.join(str(raw or '').split())
++    named = _OPERATION.search(text)
++    what = plain_operation(operation or (named.group(0) if named else ''))
++    if text.startswith('Unknown or missing parameters') or text.startswith('Parameters must be an object'):
++        return say('refused_parameters', what=what[:1].upper() + what[1:])
++    if text.startswith('Operation is outside the authorized'):
++        return say('refused_scope', what=what[:1].upper() + what[1:])
++    if text == 'Unknown operation' or text.startswith('Unknown operation'):
++        return say('refused_unknown', what=what)
++    text = re.sub(r'^[A-Z][A-Z0-9_]{2,}: ', '', text)      # the record's code ("GRANT_SCOPE: ...") is Log's, not hers
++    text = _OPERATION.sub(lambda m: plain_operation(m.group(0)) if m.group(0) in OPERATION_WORDS else 'that operation', text)
++    text = (text[:1].upper() + text[1:]) if text else 'The Kernel gave no reason'
++    if text[-1:] not in '.?':text += '.'
++    return say('refused_other', why=text)
++
+ 
+ def say(key, **slots):
+     """One of her lines with its slots filled."""
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 654ffa5..2e06b8e 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -3555,6 +3555,8 @@ class Shell2(QObject):
+         try:  # 1.0 S5: Graphite as the session's notification server (toasts at her column's foot, kept in Log), and the app strip as a dock
+             from .notify_qt import install as install_notifications
+             install_notifications(host)  # 1.0 S5
++            from .kas_panel_qt import install as install_kas_bar  # 1.1 B3: her chip and HALT fill the bar's kas slot; her panel; her cards
++            install_kas_bar(host)  # 1.1 B3
+             from .bar_qt import install as install_bar  # 1.1 B1: the bar at the bottom of the screen replaces 1.0's dock at the top
+             install_bar(host)  # 1.1 B1
+         except ImportError:  # 1.0 S5

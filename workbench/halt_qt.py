@@ -132,6 +132,7 @@ def place_head(top, d):
     menus start at the middle column's edge)."""
     button = getattr(top, 'halt', None)
     if button is None:return
+    if getattr(button, 'on_bar', False):return      # 1.1 B3: HALT stands on the bar beside her name; the head's HALT has gone
     button.scale = min(d.scale, 1.4);h = d.band;o = d.inset
     tall = max(24, h - 2 * round(6 * min(d.scale, 1.4)));room = max(0, d.pane - 2 * o)
     wide = min(room, button.need(tall))

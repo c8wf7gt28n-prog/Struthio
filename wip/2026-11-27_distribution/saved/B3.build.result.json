@@ -1,0 +1,51 @@
+{
+ "item": "B3",
+ "status": "done",
+ "summary": "Kas on the bar. New workbench/kas_panel_qt.py fills the bar's kas slot (bar_qt.register_slot): her chip says her state in her column's own words and shapes (○ QUIET, ● WORKING, ◆ NEEDS YOUR WORD [n], ✓ DONE, ▮▮ STOPPED, ‖ HELD), and HALT stands beside her name: 1.0's halt_qt.HaltButton drawn for the bar (halt.press / halt.release unchanged, never takes focus, HALT and RESUME one width). Once it stands, the head's HALT is removed (shell2.top.halt is the bar's). Her panel: the very same right column (host.right_pane, Waits for you at its top) moved into its own window, 380 px at the screen's right edge from the top to the bar, above apps, below the flyouts; it slides in 220 ms (at once under Reduce motion) from her chip and closes on Esc or the chip. Setting 'Kas docked in Graphite' (on by default, ~/.config/graphite/kas_bar.json, the chip's right-click): docked, a chip press with Graphite in front shows her column where it stands, over other apps the panel slides; off, her column lives in the panel only. Cards: when something waits (waits_qt.items) and her column is not in sight, a card rises 8 px from her chip with the same rows and the same one press; override-redirect, no input, deaf for 500 ms. Kernel refusals reach the owner in plain words (kas_voice.refusal) and the raw text is kept in Log (activity journal). Pause in Graphite presses HALT, never RESUME.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/B3.patch",
+ "files_changed": [
+  "workbench/kas_panel_qt.py (new: chip, HALT on the bar, her panel, her card, the setting, the controller host.kas_bar)",
+  "tests_integrated/test_kas_bar.py (new, 13 tests)",
+  "workbench/kas_voice.py (refusal(), plain_operation(), refused_* lines, panel_away, card_more, pause_held)",
+  "workbench/her_column_qt.py (1.1 B3: press() and carry's refusal in plain words through refused(), raw text kept in Log)",
+  "workbench/grants_qt.py (1.1 B3: the Grants tab's refusal in plain words, raw text in Log)",
+  "workbench/halt_qt.py (1.1 B3: place_head leaves a HALT that stands on the bar)",
+  "workbench/floor.py (1.1 B3: column_tick reads her work while her column is out of sight when column.reads_unseen)",
+  "workbench/shell2.py (1.1 B3: kas_panel_qt.install(host) just before the bar's install)"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_kas_bar.py: 13 tests (chip states; HALT on the bar is halt.press and nothing else; the head HALT goes; panel 380 px at the right edge above the bar, Esc closes, column back in place; docked shows the column in Graphite; not docked keeps it in the panel and the right dock hidden; card rises from the chip, same press, no focus, deaf 500 ms; no card while in sight, Later until what waits changes; refusal plain + raw in Log; codes and operation names stripped; Pause presses HALT never RESUME; setting file; voice sweep)",
+  "ran": "tests_integrated.test_kas_bar, tests_integrated.test_bar, tests_integrated.test_kas_voice (one process): 38 OK. tests_integrated.test_kasandra_column: 1 failure (test_her_words_have_the_room, 285 != 322) that also fails on the starting tree with my files put back (checked). X smoke under Xvfb + stand-in manager, 2 xterms, Rail Demo: day 1366x768 and 1920x1200, night 1920x1200, kasandra 1366x768, all status 0, no tracebacks.",
+  "output_tail": "Ran 38 tests in 1.518s\n\nOK"
+ },
+ "existing_tests_changed": [],
+ "decisions": [
+  "Her panel holds the very same widgets (host.right_pane reparented out of the right dock and back), so every reading and press is 1.0's; while it is out, Graphite's right dock shows her line 'I am in my panel at the right edge of the screen...'. Its window takes the host's style sheet, palette and font, so each look carries over (Kasandra frame checked).",
+  "Docked (default): a chip press with Graphite's window active shows her column in place (show_slate_face, ask line focused); with another app in front the panel slides; Graphite coming to the front closes the panel and her column goes home. Not docked: the right dock stays hidden (a later show of it is undone) and the panel slides over Graphite too.",
+  "The panel takes the keys when pressed open (the owner asked for it; Esc needs them). It is a frameless Tool window (utility type, unlisted, on all desktops, stays on top). It does not reserve a strut (the design's 'pinned from 1600 px' is not in the brief).",
+  "Cards are override-redirect (Qt.X11BypassWindowManagerHint) with no input in WM_HINTS: no window manager can give them the keys. They show when something waits and her column is not in sight (panel closed, and not docked-with-Graphite-in-front). After a press the card shows her answer for 5 s. 'Later' hides it until what waits changes; 'Her panel →' opens the panel.",
+  "There was no HALT key in 1.0 (the head button took Tab focus); the bar never takes focus, so the Pause key in any Graphite window presses HALT. It never presses RESUME (says so in the status line).",
+  "Chip words are her column's STATES (QUIET, WORKING, NEEDS YOUR WORD, DONE, STOPPED, HELD); with more than one waiting, 'NEEDS YOUR WORD [n]'. On the 40 px bar the word is 12 px and paddings tighter, so the windows keep room at 1366.",
+  "Refusals: kas_voice.refusal() turns the Kernel's own refusals (missing parameters, out of scope, unknown operation) into a plain clause with what to do and 'nothing changed' (true: the Kernel refuses those before dispatch); other refusals lose their CODE: prefix and any operation name; 'nothing changed' is not claimed for them. The raw text goes to the activity journal (Log's Events) as DESKTOP/<operation>/REFUSED.",
+  "Her column reads her work while out of sight once her chip stands (column.reads_unseen, floor.column_tick), so the chip and cards follow."
+ ],
+ "findings_for_the_coordinator": [
+  "The head's HALT is removed when the bar's HALT stands (shell2.top.halt is the bar's button; halt_qt.place_head skips it). Without the bar (GRAPHITE_BAR=0, not X) the head's HALT stays as in 1.0. K0 may reclaim the empty upper-left slot.",
+  "Not done for lack of a clean place: Win+K (her panel) and Pause/Win+Esc (HALT) from any app need a 'kas' and a 'halt' verb in windows_keys_qt.VERBS/act and tools/graphite-do (VERBS and the Fluxbox key lines). B2 edits the same lines; add them at merge (act must not bring Graphite forward for 'halt'; 'halt' only presses HALT, never RESUME).",
+  "halt.py's 'not_held' words still show the Kernel's raw text (e.g. 'HALT_IS_YOURS: ...'); halt.py is off limits here, so kas_voice.refusal could be applied there by whoever may touch it.",
+  "The stand-in window manager focuses every mapped window; the card's 'never takes the keys' is shown by its X marks (override-redirect, WM_HINTS input False) and the xterm staying active in the smoke; only Fluxbox can confirm the panel and the card above real apps.",
+  "On Rail Demo her state reads NEEDS YOUR WORD from the desk (an Approve) while waits_qt has no rows, so no card rises there; the card frames use two invented rows (their presses not made). The chip-state frames are staged through her column's state(); HALT and RESUME were real presses.",
+  "test_kasandra_column.test_her_words_have_the_room fails on the starting tree too (KV reported two such failures; one remains).",
+  "At 1366 the windows slot folds the second xterm into '... 1 more' while her chip reads NEEDS YOUR WORD (B1's not-done icon-only buttons).",
+  "No Kernel operation added; registry unchanged."
+ ],
+ "not_done": [
+  "Win+K and Pause/Win+Esc from any app (see findings: graphite-do verbs collide with B2's edits).",
+  "The design's pinned panel from 1600 px with its own strut, the pulsing line along the chip while she works, 'WORKING n of m', and her frame on the window she works in.",
+  "A Settings page for 'Kas docked in Graphite' (it is on her chip's right-click and in ~/.config/graphite/kas_bar.json; the head's menus are K0's).",
+  "Docs (GUIDE pages) not updated.",
+  "Nothing ran on the owner's ThinkPad."
+ ],
+ "frames": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/B3/frames/ (18 PNGs: <size>_<look>_{chip_states,panel_over_xterm,card_from_chip,halt_pressed[,panel_with_waits]}.png for day 1366x768 and 1920x1200, night 1920x1200, kasandra 1366x768)",
+ "release_note": "Kas on the bar: her name with her state's word and shape, and HALT right beside it, above every app. Press her name and her panel slides in from the right edge over whatever is in front; Esc or another press puts it away. When something waits for your word and her panel is closed, a card rises from her name with the same one press; it never takes your keys. 'Kas docked in Graphite' (right-click her name) keeps her column in Graphite's window as before. HALT moved from the head to the bar; Pause in Graphite presses it. A refusal now reads in plain words, the full text is kept in Log."
+}

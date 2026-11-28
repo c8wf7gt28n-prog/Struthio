@@ -344,7 +344,7 @@ def column_tick(column):
     """Her column's timer: its reading gathered off the window's thread, then drawn (refresh) from it."""
     if not _column_ok(column):return
     face = getattr(column, 'face', None)
-    if face is not None and not face.isVisible():return
+    if face is not None and not face.isVisible() and not getattr(column, 'reads_unseen', False):return      # 1.1 B3: her chip on the bar reads her work while her column is out of sight
     if busy(('her-column', id(column))):return      # a reading is on its way (a press's, perhaps): this tick is that one
     from .her_column_qt import DESK_EVERY
     desk = (column.ticks + 1) % DESK_EVERY == 1
