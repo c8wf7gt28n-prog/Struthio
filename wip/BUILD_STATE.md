@@ -100,8 +100,11 @@ rules holding you back".
     in T1's line). **The cut: `bash wip/build_tools/cut_pre.sh COMMIT $S/work/pre1`** (joins PK1's kit, replaces
     Graphite's four packages with ones built from COMMIT, re-indexes, packs; no chroot, no network). Then send
     `$S/work/pre1/kit/*` and SHA256SUMS.kit, and log it in `wip/2026-11-28_preview_1/`.
-  * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4) and E1 (Explorer; agent aa4ef2c59a1f3ccb3). Then KV,
-    B2, B3, K0. The brief maker now finds slices that start mid-paragraph (4dc4563).
+  * **PREVIEW 1 SENT (28 Nov ~04:00 UTC):** T1 merged (81469e6); version 1.1~pre1; cut from 436f770 with
+    `cut_pre.sh` (release check PASSED; 45 kit files, the largest 14.4 MB); sent with the notes. Record:
+    `wip/2026-11-28_preview_1/`. The kit stays in `$S/work/pre1/kit/` as the base of the next cuts (cut_pre's default).
+  * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
+    agent a7bb451de53b60995, launched 28 Nov ~03:45). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
 ## Before: Graphite 1.0 is released, untested (27 Nov 2026)
 
