@@ -3,6 +3,9 @@
 PLAN_1.1.md, W1 (d). The dock (system_dock_qt.Dock) stands in the dedicated session across the top of the screen; its right
 end now says the time and the date ("14:05 · Sat 28 Nov"), read again at each new minute. A press opens a small page with the
 month (a calendar, today marked by the calendar's own frame and in words under it); a press elsewhere or Esc closes it.
+
+1.1 B1: the clock stands in the bar's clock slot (bar_qt.BarClock: the time over the date), and the month rises above a
+clock that sits low on its screen.
 """
 from __future__ import annotations
 
@@ -39,6 +42,9 @@ class Month(QFrame):
         self.today.setText('Today is ' + words(now)[2])
         self.adjustSize()
         at = self.anchor.mapToGlobal(self.anchor.rect().bottomRight())
+        top = self.anchor.mapToGlobal(self.anchor.rect().topRight())  # 1.1 B1: the clock on the bar at the bottom: the month rises above it
+        screen = self.anchor.screen().geometry() if self.anchor.screen() is not None else None  # 1.1 B1
+        if screen is not None and top.y() > screen.center().y():self.move(max(screen.left(), top.x() + 1 - self.width()), top.y() - self.height() - 6);self.show();return self  # 1.1 B1
         self.move(at.x() - self.width(), at.y() + 2);self.show()
         return self
 

@@ -1,5 +1,8 @@
 """Graphite 1.0 S5 · The strip as a dock: the open app windows and a "Graphite" entry in a slim window of their own.
 
+1.1 B1: the bar at the bottom of the screen (bar_qt) replaces this dock; the window installs the bar, not the dock. The X
+helpers here (wanted, the marks written and read back, remap) are the bar's too.
+
 S3's strip lives inside Graphite's window, so an app in front of Graphite hides it. In the dedicated session the strip
 therefore also stands in a slim window of its own across the top of the screen, of the dock type with a strut:
 

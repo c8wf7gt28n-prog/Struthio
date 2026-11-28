@@ -268,7 +268,14 @@ class Shelf(QObject):
             screen = (self.host.screen() or QApplication.primaryScreen()).availableGeometry()
             y = screen.top() + 16
             dock = getattr(self.host, 'system_dock', None)
-            if dock is not None:
+            if dock is not None and getattr(dock, 'at_bottom', False):  # 1.1 B1: the bar at the bottom: they rise above its clock, the newest lowest
+                try:y = dock.geometry().top() - 12
+                except RuntimeError:y = screen.bottom() - 16
+                for toast in reversed(floating):  # 1.1 B1
+                    h = toast.fit(width);y -= h;toast.move(screen.right() - width - 16, y);y -= GAP  # 1.1 B1
+                    toast.show();toast.raise_()  # 1.1 B1
+                floating = []  # 1.1 B1
+            elif dock is not None:
                 try:y = max(y, dock.geometry().bottom() + 12)
                 except RuntimeError:pass
             for toast in floating:

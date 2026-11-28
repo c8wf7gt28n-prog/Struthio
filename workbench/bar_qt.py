@@ -1,0 +1,931 @@
+"""Graphite 1.1 B1 · The bar: one bar along the bottom of the screen, above every app, in an X window of its own.
+
+PLAN_1.1.md, B1; the design proposal "Familiar", sections 2 and 5. The bar replaces 1.0's dock at the top (system_dock_qt,
+whose X helpers it reuses): a window of the dock type on every desktop, its band reserved at the bottom of the screen with
+_NET_WM_STRUT_PARTIAL (and _NET_WM_STRUT, for managers that read only that), so the window manager places and maximises the
+apps above it. 44 px tall on a screen as large as 1920x1200, 40 px on a smaller one such as 1366x768.
+
+Named slots, left to right (SLOTS):
+
+  start    a Start button (B2 fills it; until then a press brings Graphite forward and opens its Apps)
+  line     a placeholder field (B2 fills it)
+  windows  Graphite first, then the open app windows (S3's strip, moved here from the dock): running is an underline, the
+           active one a filled plate, its title in the stronger ink and "active" in its tip; a minimised one in brackets.
+           One press brings a window forward (the window manager is asked, as a task list asks); a right-click minimises
+           it or asks it to close (the app may ask to save first; nothing is forced)
+  kas      a placeholder (B3 fills it): her name and her state, its shape and its word
+  tray     network, sound and power, each a glyph and a word in a fixed width so nothing shifts; a press opens a small
+           flyout above it with the Machine page's own actions (machine_room_qt's page, made compact; machine_real reads
+           and changes, on the owner's press only, each change said DONE only when read back)
+  clock    the time over the date; a press shows the month (W1's clock, moved here from the dock)
+
+register_slot(name, widget_factory) lets a later slice fill a slot without editing this file: widget_factory(bar) returns
+the slot's widget; its width is widget.bar_width(height) when it has one, else its sizeHint's; the windows slot takes what
+is left. A factory that fails leaves the slot's own default in place and status() says why.
+
+Its colours and type are the design tokens' (design_tokens), Day's or Night's as the look in force. Inside Graphite's window
+nothing moves (the head and the foot stay until K0); while the bar is in sight the head's own strip of windows gives way to
+it, as it gave way to the dock. In the dedicated session Graphite's window opens maximised above the bar instead of full
+screen (F11 still gives full screen, which covers the bar as a full-screen window covers any taskbar).
+
+When it stands: in the dedicated session (ARC_LEDGER_XSESSION=1), or wherever GRAPHITE_BAR=1 (or 1.0's GRAPHITE_DOCK=1);
+never with GRAPHITE_BAR=0 (or GRAPHITE_DOCK=0); only when Graphite's window is on X (the xcb platform) and libX11 answers.
+"""
+from __future__ import annotations
+
+import os
+import time
+import weakref
+
+from PySide6.QtCore import QEvent, QPointF, QRect, QRectF, QSize, Qt, QTimer
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QGuiApplication, QPainter, QPainterPath, QPen
+from PySide6.QtWidgets import QAbstractButton, QApplication, QFrame, QPushButton, QVBoxLayout, QWidget
+
+from . import boss_theme as bt
+from . import design_tokens as tokens
+from . import system_dock_qt as sd
+from . import windows_x11 as wx
+from .dock_clock_qt import Clock, words as clock_words
+from .windows_strip_qt import Entry, WindowStrip, hub
+
+SLOTS = ('start', 'line', 'windows', 'kas', 'tray', 'clock')
+STRETCH = 'windows'                   # the slot that takes the room the others leave
+ENV, OLD_ENV = 'GRAPHITE_BAR', 'GRAPHITE_DOCK'
+TALL, SHORT = 44, 40                  # the bar's height: on a screen of 1600x900 or more, and on a smaller one
+TRAY = ('network', 'sound', 'power')
+TRAY_SECONDS = 10                     # the tray's words are read again this often (off the window's thread)
+MORE_WORDS = 'More on the Machine page →'
+WORDS = {'network': ('Online', 'Local only', 'Connecting', 'Offline', 'Off', 'Unknown'),
+         'sound': ('100 %', 'Muted', 'No output', 'Unknown'),
+         'power': ('100 %', 'Mains', 'No battery', 'Unknown')}
+_FACTORIES = {}
+_BARS = weakref.WeakSet()
+
+
+# ---- the slots ------------------------------------------------------------------------------------------------------------------
+def register_slot(name, widget_factory):
+    """Fill the bar's slot `name` with widget_factory(bar) (a QWidget), in every bar standing now and every bar made later;
+    None gives the slot its own default back. Returns the name."""
+    if name not in SLOTS:
+        raise ValueError('the bar has no slot %r; its slots are %s' % (name, ', '.join(SLOTS)))
+    if widget_factory is not None and not callable(widget_factory):
+        raise TypeError('a slot is filled by a callable that takes the bar and returns a widget')
+    if widget_factory is None:_FACTORIES.pop(name, None)
+    else:_FACTORIES[name] = widget_factory
+    for bar in list(_BARS):
+        try:bar.fill(name);bar.arrange()
+        except RuntimeError:continue      # a bar whose window has gone
+    return name
+
+
+def factory_for(name):
+    """The factory that fills `name` now: the registered one, else the bar's own."""
+    return _FACTORIES.get(name) or DEFAULTS[name]
+
+
+# ---- sizes and inks -------------------------------------------------------------------------------------------------------------
+def height_for(width, height):
+    """The bar's height in logical pixels for a screen this large: 44 at 1920x1200, 40 at 1366x768."""
+    return TALL if width >= 1600 and height >= 900 else SHORT
+
+
+def text_px(h):
+    """The bar's letters: the tokens' body size, a pixel larger on the tall bar."""
+    return tokens.TYPE['body'][0] + (1 if h >= TALL else 0)
+
+
+_INKS = {}
+
+
+def look():
+    """'day' or 'night': the look in force (a look from before 1.0 is drawn as the one its ground is nearer)."""
+    if getattr(bt, 'LAUNCH', False):return tokens.look_of(bt.APPEARANCE)
+    return 'night' if QColor(bt.GROUND).lightness() < 128 else 'day'
+
+
+def ink():
+    """The design tokens' colours for the look in force."""
+    key = look()
+    if key not in _INKS:_INKS[key] = tokens.colours(key)
+    return _INKS[key]
+
+
+def bar_font(h, weight=None, px=None):
+    font = QFont(tokens.FONT['ui']);font.setPixelSize(px or text_px(h))
+    if weight is not None:font.setWeight(weight)
+    return font
+
+
+def plate(p, rect, fill, radius=None):
+    p.save();p.setRenderHint(QPainter.Antialiasing);p.setPen(Qt.NoPen);p.setBrush(QColor(fill))
+    r = tokens.RADIUS['control'] if radius is None else radius
+    p.drawRoundedRect(QRectF(rect), r, r);p.restore()
+
+
+# ---- the X marks: a dock at the bottom ------------------------------------------------------------------------------------------
+def strut_values(x, y, width, height, root_height):
+    """(_NET_WM_STRUT, _NET_WM_STRUT_PARTIAL) for a band across the bottom of a screen: x, y, width, height of the band and the
+    root window's height, all in the root's pixels (a bottom strut is counted up from the root's bottom edge)."""
+    bottom = max(0, int(root_height) - int(y))
+    return [0, 0, 0, bottom], [0, 0, 0, bottom, 0, 0, 0, 0, 0, 0, x, x + width - 1]
+
+
+def read_bar(window, xb=None, display=None):
+    """What the bar's X window says it is, read from the X server; ok when it is a dock with a bottom strut."""
+    marks = sd.read_marks(window, xb, display)
+    partial = marks.get('partial') or []
+    ok = sd.DOCK_TYPE in (marks.get('types') or ()) and len(partial) == 12 and partial[3] > 0 and partial[2] == 0
+    marks.update(ok=ok, why='' if ok else (marks.get('why') if marks.get('why') and marks.get('why') != 'the X server does not show the dock\'s marks'
+                                           else 'the X server does not show the bar\'s marks'))
+    return marks
+
+
+def mark_bar(window, rect, root_height, display=None):
+    """Write the bar's type (dock), its desktop (all) and its bottom strut on X window `window` for `rect` (x, y, w, h in the
+    root's pixels), through Graphite's own X connection; read them back."""
+    try:
+        xb = wx.XlibBackend(display)
+    except wx.Unavailable as exc:
+        return dict(ok=False, why=str(exc), type=None, strut=None, partial=None)
+    try:
+        sd._declare(xb.x)
+        strut, partial = strut_values(*rect, root_height)
+        with xb.calls():
+            sd._put(xb, window, '_NET_WM_WINDOW_TYPE', wx.XA_ATOM, [xb.atom(sd.DOCK_TYPE)])
+            sd._put(xb, window, '_NET_WM_DESKTOP', wx.XA_CARDINAL, [sd.ALL_DESKTOPS])
+            sd._put(xb, window, '_NET_WM_STRUT', wx.XA_CARDINAL, strut)
+            sd._put(xb, window, '_NET_WM_STRUT_PARTIAL', wx.XA_CARDINAL, partial)
+        return read_bar(window, xb)
+    finally:
+        xb.close_display()
+
+
+def wanted(environ=None, platform=None):
+    """(stand, why not): whether the bar should stand here."""
+    environ = dict(os.environ if environ is None else environ)
+    said = str(environ.get(ENV, environ.get(OLD_ENV, ''))).strip().lower()
+    environ[OLD_ENV] = said
+    stand, why = sd.wanted(environ, platform)
+    if not stand:
+        why = why.replace('The app strip stays in Graphite\'s window', 'The bar does not stand: the open windows stay in Graphite\'s head')
+        why = why.replace('GRAPHITE_DOCK is off', '%s is off' % (ENV if ENV in environ else OLD_ENV))
+    return stand, why
+
+
+# ---- a press on the bar ---------------------------------------------------------------------------------------------------------
+class BarButton(QAbstractButton):
+    """A press on the bar, drawn here: a plate under the pointer, a deeper one while pressed; never takes the focus."""
+
+    def __init__(self, parent, name=''):
+        super().__init__(parent)
+        self.setCursor(Qt.PointingHandCursor);self.setFocusPolicy(Qt.NoFocus);self.setAttribute(Qt.WA_Hover)
+        if name:self.setAccessibleName(name)
+
+    def bar_width(self, h):
+        return self.natural(h)
+
+    def natural(self, h):
+        return QFontMetrics(bar_font(h)).horizontalAdvance(self.text()) + 2 * round(h * 0.3)
+
+    def sizeHint(self):
+        return QSize(self.natural(SHORT), SHORT)
+
+    def ground(self, p, c, active=False):
+        r = QRectF(2, 4, self.width() - 4, self.height() - 8)
+        if active:plate(p, r, c['selection_side'])
+        if self.isDown():plate(p, r, c['pressed'])
+        elif self.underMouse():plate(p, r, c['raised'] if active else c['hover_side'])
+        return r
+
+
+class StartButton(BarButton):
+    """Start (B2 fills the slot): Graphite's mark and the word; until B2, a press brings Graphite forward and opens its Apps."""
+
+    def __init__(self, bar):
+        super().__init__(bar, 'Start');self.bar = bar;self.setText('Start')
+        self.setToolTip('Start\nFor now a press brings Graphite forward and opens its Apps.')
+        self.clicked.connect(self.start)
+
+    def natural(self, h):
+        return round(h * 0.45) + 8 + QFontMetrics(bar_font(h, QFont.DemiBold)).horizontalAdvance('Start') + 2 * round(h * 0.3)
+
+    def start(self):
+        self.bar.bring_graphite()
+        try:
+            from .windows_keys_qt import act
+            return act(self.bar.host, 'apps')
+        except Exception as exc:  # noqa: BLE001 - Start without Apps still brought Graphite forward
+            return {'ok': False, 'words': str(exc)[:120]}
+
+    def paintEvent(self, event):
+        from .graphite_brand import mark_icon
+        c = ink();p = QPainter(self);h = self.height();self.ground(p, c)
+        px = round(h * 0.45);x = round(h * 0.3)
+        mark_icon(px).paint(p, QRect(x, (h - px) // 2, px, px));x += px + 8
+        p.setFont(bar_font(h, QFont.DemiBold));p.setPen(QColor(c['text']))
+        p.drawText(QRect(x, 0, self.width() - x, h), Qt.AlignLeft | Qt.AlignVCenter, 'Start');p.end()
+
+
+class LineField(BarButton):
+    """The line (B2 fills the slot): a field's shape and its quiet words."""
+    WORDS = 'Search or command'
+
+    def __init__(self, bar):
+        super().__init__(bar, 'The line: search or command (arrives in the next slice)');self.bar = bar;self.setText(self.WORDS)
+        self.setToolTip('The line: it will find and do (apps, files, settings, commands, sums, Ask Kasandra).\nIt arrives with Start; nothing is done here yet.')
+
+    def natural(self, h):
+        return 280 if h >= TALL else 220
+
+    def paintEvent(self, event):
+        c = ink();p = QPainter(self);p.setRenderHint(QPainter.Antialiasing);h = self.height();w = self.width()
+        r = QRectF(4, 6, w - 8, h - 12)
+        p.setPen(QPen(QColor(c['stroke']), 1));p.setBrush(QColor(c['surface']));p.drawRoundedRect(r, r.height() / 2, r.height() / 2)
+        side = (h - 12) * 0.42;cx = r.left() + r.height() / 2 + 2;cy = h / 2.0      # a lens: a ring and its handle
+        p.setPen(QPen(QColor(c['secondary']), 1.5));p.setBrush(Qt.NoBrush)
+        p.drawEllipse(QPointF(cx - 1, cy - 1), side / 2.2, side / 2.2);p.drawLine(QPointF(cx + side * 0.3, cy + side * 0.3), QPointF(cx + side * 0.6, cy + side * 0.6))
+        p.setFont(bar_font(h));p.setPen(QColor(c['tertiary']))
+        x = int(cx + side);p.drawText(QRect(x, 0, int(r.right()) - x - 8, h), Qt.AlignLeft | Qt.AlignVCenter,
+                                      QFontMetrics(bar_font(h)).elidedText(self.WORDS, Qt.ElideRight, int(r.right()) - x - 8))
+        p.end()
+
+
+# ---- the windows ----------------------------------------------------------------------------------------------------------------
+def entry_face(p, w, h, c, active, minimised, hover, down):
+    """One window's button: a plate when active (the shape that says so), an underline when running, its title."""
+    r = QRectF(2, 4, w - 4, h - 8)
+    if active:plate(p, r, c['selection_side'])
+    if down:plate(p, r, c['pressed'])
+    elif hover:plate(p, r, c['raised'] if active else c['hover_side'])
+    if not active:      # running: the short rule under it
+        p.fillRect(QRectF(w * 0.3, h - 5, w * 0.4, 2), QColor(c['tertiary'] if minimised else c['secondary']))
+    else:
+        p.fillRect(QRectF(6, h - 5, w - 12, 2), QColor(c['accent']))
+
+
+class GraphiteButton(BarButton):
+    """Graphite, first among the windows: its mark and its name; a plate while Graphite's window is the active one; a ◆ when
+    Kas waits for the owner's word (the shape and, in the tip, the words)."""
+
+    def __init__(self, slot):
+        super().__init__(slot, 'Graphite: bring Graphite\'s window forward');self.slot = slot;self.active = False;self.setText('Graphite')
+        self.setToolTip('Graphite\nPress to bring Graphite\'s window forward.')
+
+    def her_state(self):
+        from . import state_words as sw
+        column = getattr(self.slot.bar.host, 'her_column', None)
+        key = sw.of_her(getattr(column, 'shown_state', '')) if column is not None else ''
+        return key if key in ('needs_word', 'held', 'stopped') else None
+
+    def natural(self, h):
+        fm = QFontMetrics(bar_font(h, QFont.DemiBold))
+        return round(h * 0.25) * 2 + round(h * 0.45) + 8 + fm.horizontalAdvance('Graphite') + (round(h * 0.4) + 6 if self.her_state() else 0)
+
+    def paintEvent(self, event):
+        from .graphite_brand import mark_icon
+        from . import state_words as sw
+        c = ink();p = QPainter(self);w, h = self.width(), self.height()
+        entry_face(p, w, h, c, self.active, False, self.underMouse(), self.isDown())
+        px = round(h * 0.45);x = round(h * 0.25)
+        mark_icon(px).paint(p, QRect(x, (h - px) // 2, px, px));x += px + 8
+        font = bar_font(h, QFont.DemiBold if self.active else QFont.Medium);p.setFont(font)
+        p.setPen(QColor(c['text'] if self.active or self.underMouse() else c['secondary']))
+        p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, 'Graphite')
+        key = self.her_state()
+        words = 'Graphite%s\nPress to bring Graphite\'s window forward.' % (' (active)' if self.active else '')
+        if key:
+            x += QFontMetrics(font).horizontalAdvance('Graphite') + 6;side = round(h * 0.32)
+            sw.paint(p, QRectF(x, (h - side) / 2.0, side, side), key, sw.colour_of(key))
+            words = 'Graphite: %s\nPress to bring Graphite\'s window forward.' % sw.said(key)
+        if words != self.toolTip():self.setToolTip(words)
+        p.end()
+
+
+class BarEntry(Entry):
+    """S3's entry for one app window, drawn as the bar draws a window: the app's icon (or its letter on a tile), the title."""
+
+    def mark_width(self, fm):
+        return 0
+
+    def ink_font(self):
+        bar = getattr(self.strip, 'bar', None)
+        h = (bar.height() if bar is not None else 0) or SHORT
+        return bar_font(h, QFont.DemiBold if self.active else QFont.Normal)
+
+    def paintEvent(self, event):
+        c = ink();p = QPainter(self);w, h = self.width(), self.height()
+        entry_face(p, w, h, c, self.active, self.minimised, self.underMouse(), self.isDown())
+        x = self.pad;lead = ''
+        font = self.ink_font();fm = QFontMetrics(font)
+        if self.icon_ is not None:
+            self.icon_.paint(p, QRect(x, (h - self.icon_px) // 2, self.icon_px, self.icon_px))
+        else:      # no icon: the program's letter on a tile
+            letter = (self.tag or self.text() or '?')[:1].upper();box = QRectF(x, (h - self.icon_px) / 2.0, self.icon_px, self.icon_px)
+            p.setRenderHint(QPainter.Antialiasing);p.setPen(QPen(QColor(c['stroke_strong']), 1));p.setBrush(Qt.NoBrush)
+            p.drawRoundedRect(box.adjusted(0.5, 0.5, -0.5, -0.5), 3, 3)
+            p.setFont(bar_font(h, QFont.DemiBold, max(tokens.LEAST_PX, self.icon_px - 5)));p.setPen(QColor(c['secondary']))
+            p.drawText(box, Qt.AlignCenter, letter);lead = '[%s] ' % letter
+        x += self.icon_px + self.pad
+        p.setFont(font);room = max(8, w - x - self.pad)
+        frame = fm.horizontalAdvance(self.dressed(''))
+        drawn = self.dressed(fm.elidedText(self.text(), Qt.ElideRight, max(4, room - frame)))
+        self.shown = lead + drawn
+        tone = c['text'] if self.active or self.underMouse() else (c['tertiary'] if self.minimised else c['secondary'])
+        p.setPen(QColor(tone));p.drawText(QRect(x, 0, room, h - 2), Qt.AlignLeft | Qt.AlignVCenter, drawn)
+        p.end()
+
+    def natural(self):
+        fm = QFontMetrics(self.ink_font())
+        return 2 * self.pad + self.icon_px + self.pad + fm.horizontalAdvance(self.dressed(self.text())) + 2
+
+
+class BarStrip(WindowStrip):
+    """S3's strip, standing in the bar's windows slot: laid out by the bar, its entries drawn as the bar's."""
+    in_dock = True      # windows_strip_qt: the strip in the head gives way to this one while it is in sight
+
+    def __init__(self, host, bar, parent):
+        self.bar = bar
+        super().__init__(host, parent)
+
+    def relayout(self):
+        QTimer.singleShot(0, self.bar.arrange)
+
+    def show_snapshot(self, snap):
+        super().show_snapshot(snap)
+        if snap is not None:self.bar.follow(snap)
+
+    def entry(self, key):
+        b = self.buttons.get(key)
+        if b is None:
+            b = BarEntry(self)
+            b.clicked.connect(lambda checked=False, b=b: self.pressed(b))
+            b.setContextMenuPolicy(Qt.CustomContextMenu)
+            b.customContextMenuRequested.connect(lambda pos, b=b: self.menu_for(b, pos))
+            self.buttons[key] = b
+        return b
+
+    def paintEvent(self, event):
+        if getattr(self, 'rule_x', None) is None:return
+        p = QPainter(self);p.fillRect(self.rule_x, round(self.height() * 0.25), 1, round(self.height() * 0.5), QColor(ink()['stroke']));p.end()
+
+
+class WindowsSlot(QWidget):
+    """Graphite, then the open app windows."""
+
+    def __init__(self, bar):
+        super().__init__(bar);self.bar = bar;self.setAccessibleName('Open windows and Graphite')
+        self.graphite = GraphiteButton(self);self.graphite.clicked.connect(bar.bring_graphite)
+        self.box = QWidget(self);self.strip = BarStrip(bar.host, bar, self.box)
+
+    def bar_width(self, h):
+        return self.graphite.natural(h)
+
+    def resizeEvent(self, event):
+        self.lay()
+
+    def lay(self):
+        from .desk_qt import Desk, edge
+        h = self.height();gw = self.graphite.natural(h);self.graphite.setGeometry(0, 0, gw, h)
+        x0 = gw + 4;w = max(0, self.width() - x0);self.box.setGeometry(x0, 0, w, h)
+        s = 1.1 if h >= TALL else 1.0
+        d = Desk(width=w, pane=0, workspace=w, band=h, inset=0, gap=0, symbol=0, scale=s, left=-edge(s), right=w, line=0)
+        self.strip.place(d, 0, h if self.strip.wanted else 0)
+
+    def words(self):
+        """The slot in words: whether Graphite's window is active, and the strip's own words."""
+        return 'Graphite%s; %s' % (' (active)' if self.graphite.active else '', self.strip.words())
+
+
+# ---- Kas (B3 fills the slot) ----------------------------------------------------------------------------------------------------
+class KasChip(BarButton):
+    """Her name and her state: its shape and its word (the state words' table); a press brings Graphite, and her column, forward."""
+
+    def __init__(self, bar):
+        super().__init__(bar, 'Kasandra');self.bar = bar;self.setText('Kas')
+
+    def state(self):
+        """(key of the state words' table or '', the word): QUIET or WORKING where her own word stands."""
+        from . import state_words as sw
+        column = getattr(self.bar.host, 'her_column', None)
+        shown = str(getattr(column, 'shown_state', '') or '')
+        key = sw.of_her(shown)
+        if key:return key, sw.word(key)
+        return '', 'QUIET' if shown in ('', 'idle', 'viewing') else 'WORKING'
+
+    def natural(self, h):
+        key, word = self.state()
+        return 2 * round(h * 0.3) + QFontMetrics(bar_font(h, QFont.DemiBold)).horizontalAdvance('Kas') + 8 + round(h * 0.3) + 5 + \
+            QFontMetrics(bar_font(h)).horizontalAdvance(word)
+
+    def paintEvent(self, event):
+        from . import state_words as sw
+        c = ink();p = QPainter(self);w, h = self.width(), self.height();self.ground(p, c)
+        x = round(h * 0.3);p.setFont(bar_font(h, QFont.DemiBold));p.setPen(QColor(c['text']))
+        p.drawText(QRect(x, 0, w, h), Qt.AlignLeft | Qt.AlignVCenter, 'Kas')
+        x += QFontMetrics(bar_font(h, QFont.DemiBold)).horizontalAdvance('Kas') + 8;side = round(h * 0.3)
+        key, word = self.state();p.setRenderHint(QPainter.Antialiasing)
+        if key:sw.paint(p, QRectF(x, (h - side) / 2.0, side, side), key, sw.colour_of(key))
+        else:      # her own word: a ring while quiet, a filled dot while working
+            p.setPen(QPen(QColor(c['secondary']), 1.5));p.setBrush(QColor(c['live']) if word == 'WORKING' else Qt.NoBrush)
+            p.drawEllipse(QRectF(x + 1, (h - side) / 2.0 + 1, side - 2, side - 2))
+        x += side + 5;p.setFont(bar_font(h));p.setPen(QColor(c['secondary']))
+        p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, word)
+        tip = 'Kasandra (Kas): %s\nPress to bring Graphite forward, where her column is.' % (sw.said(key) if key else word.lower())
+        if tip != self.toolTip():self.setToolTip(tip);self.setAccessibleName('Kasandra, ' + word)
+        p.end()
+
+
+# ---- the tray -------------------------------------------------------------------------------------------------------------------
+def tray_words(key, data):
+    """(word, tip, glyph) for a tray item from machine_real's reading of its section (None: not read yet). glyph is what the
+    painter draws: ('network', state), ('sound', level or None, muted), ('power', percent or None, charging, kind)."""
+    title = {'network': 'Network', 'sound': 'Sound', 'power': 'Power'}[key]
+    glyph = {'network': ('network', 'unknown'), 'sound': ('sound', None, False), 'power': ('power', None, False, 'unknown')}[key]
+    if data is None:
+        return '…', '%s: being read' % title, glyph
+    if not data.get('available'):
+        why = data.get('why') or data.get('short') or 'not available'
+        return 'Unknown', '%s: %s\nPress for the Machine page\'s %s.' % (title, why, title.lower()), glyph
+    if key == 'network':
+        n = int(data.get('state_number') or 0)
+        if not data.get('enabled', True):state, word = 'off', 'Off'
+        elif n >= 70:state, word = 'online', 'Online'
+        elif n >= 50:state, word = 'local', 'Local only'
+        elif n >= 40:state, word = 'connecting', 'Connecting'
+        else:state, word = 'offline', 'Offline'
+        return word, 'Network: %s\nPress for Wi-Fi, networking and the connection.' % (data.get('short') or word.lower()), ('network', state)
+    if key == 'sound':
+        if not data.get('sinks'):return 'No output', 'Sound: no output is connected', ('sound', None, False)
+        level = data.get('percent');muted = bool(data.get('muted'))
+        word = 'Muted' if muted else ('%d %%' % level if level is not None else 'Unknown')
+        name = (data.get('current') or {}).get('name') or 'the output in use'
+        return word, 'Sound: %s on %s\nPress for the volume, mute and the outputs.' % (data.get('short') or word, name), ('sound', level, muted)
+    batteries = data.get('batteries') or []
+    if batteries:
+        b = batteries[0];charging = b.get('state') in ('charging', 'full', 'waiting to charge')
+        word = '%d %%' % b['percent'] if b.get('percent') is not None else 'Unknown'
+        from .machine_real import battery_words
+        return word, 'Power: battery %s\nPress for the battery and the mains.' % battery_words(b), ('power', b.get('percent'), charging, 'battery')
+    mains = any(m.get('online') for m in data.get('mains') or [])
+    word = 'Mains' if mains else 'No battery'
+    return word, 'Power: %s\nPress for the battery and the mains.' % (data.get('short') or word.lower()), ('power', None, mains, 'mains' if mains else 'none')
+
+
+def paint_glyph(p, glyph, x, cy, side, colour, quiet):
+    """The tray's shapes: signal bars (network), a speaker (sound), a battery or a plug (power); each state its own shape."""
+    p.save();p.setRenderHint(QPainter.Antialiasing)
+    ink_, faint = QColor(colour), QColor(quiet);pen = QPen(ink_, max(1.3, side * 0.09));pen.setJoinStyle(Qt.RoundJoin)
+    kind = glyph[0]
+    if kind == 'network':
+        state = glyph[1];filled = {'online': 4, 'local': 2, 'connecting': 1}.get(state, 0)
+        bw = side / 5.5
+        for i in range(4):
+            bh = side * (0.3 + 0.22 * i);r = QRectF(x + i * bw * 1.45, cy + side / 2 - bh, bw, bh)
+            if state == 'unknown':
+                dotted = QPen(faint, max(1.2, side * 0.07));dotted.setStyle(Qt.DotLine);p.setPen(dotted);p.setBrush(Qt.NoBrush)
+            else:
+                p.setPen(QPen(ink_ if i < filled else faint, max(1.0, side * 0.06)));p.setBrush(ink_ if i < filled else Qt.NoBrush)
+            p.drawRect(r)
+        if state in ('offline', 'off'):
+            p.setPen(QPen(ink_, max(1.4, side * 0.1)));p.drawLine(QPointF(x, cy + side * 0.45), QPointF(x + side * 0.95, cy - side * 0.45))
+    elif kind == 'sound':
+        level, muted = glyph[1], glyph[2]
+        body = QPainterPath();top, h = cy - side * 0.18, side * 0.36
+        body.moveTo(x, top);body.lineTo(x + side * 0.22, top);body.lineTo(x + side * 0.48, cy - side * 0.42)
+        body.lineTo(x + side * 0.48, cy + side * 0.42);body.lineTo(x + side * 0.22, top + h);body.lineTo(x, top + h);body.closeSubpath()
+        if level is None and not muted:
+            dotted = QPen(faint, max(1.2, side * 0.07));dotted.setStyle(Qt.DotLine);p.setPen(dotted);p.setBrush(Qt.NoBrush);p.drawPath(body)
+        else:
+            p.setPen(pen);p.setBrush(ink_);p.drawPath(body)
+            if muted:
+                cx = x + side * 0.78;d = side * 0.16
+                p.drawLine(QPointF(cx - d, cy - d), QPointF(cx + d, cy + d));p.drawLine(QPointF(cx - d, cy + d), QPointF(cx + d, cy - d))
+            else:
+                p.setBrush(Qt.NoBrush);arcs = 0 if not level else (1 if level < 34 else (2 if level < 67 else 3))
+                for i in range(arcs):
+                    r = side * (0.2 + 0.16 * i);p.drawArc(QRectF(x + side * 0.5 - r, cy - r, 2 * r, 2 * r), -45 * 16, 90 * 16)
+    else:
+        percent, charging, what = glyph[1], glyph[2], glyph[3]
+        if what == 'mains':      # a plug: two prongs and its body
+            p.setPen(pen);p.setBrush(Qt.NoBrush)
+            p.drawLine(QPointF(x + side * 0.35, cy - side * 0.45), QPointF(x + side * 0.35, cy - side * 0.15))
+            p.drawLine(QPointF(x + side * 0.65, cy - side * 0.45), QPointF(x + side * 0.65, cy - side * 0.15))
+            p.drawRoundedRect(QRectF(x + side * 0.2, cy - side * 0.15, side * 0.6, side * 0.35), 2, 2)
+            p.drawLine(QPointF(x + side * 0.5, cy + side * 0.2), QPointF(x + side * 0.5, cy + side * 0.45))
+        else:
+            body = QRectF(x, cy - side * 0.28, side * 0.86, side * 0.56);tip = QRectF(body.right(), cy - side * 0.13, side * 0.1, side * 0.26)
+            if what in ('unknown', 'none'):
+                dotted = QPen(faint, max(1.2, side * 0.07));dotted.setStyle(Qt.DotLine);p.setPen(dotted)
+            else:p.setPen(pen)
+            p.setBrush(Qt.NoBrush);p.drawRoundedRect(body, 2, 2);p.fillRect(tip, ink_ if what == 'battery' else faint)
+            if percent is not None:
+                inner = body.adjusted(2.5, 2.5, -2.5, -2.5);inner.setWidth(max(1.0, inner.width() * max(0, min(100, int(percent))) / 100))
+                p.fillRect(inner, ink_)
+            if charging:      # a bolt over it
+                bolt = QPainterPath();bx = body.center().x();by = body.center().y();u = side * 0.2
+                bolt.moveTo(bx + u * 0.3, by - u * 1.3);bolt.lineTo(bx - u * 0.6, by + u * 0.15);bolt.lineTo(bx, by + u * 0.15)
+                bolt.lineTo(bx - u * 0.3, by + u * 1.3);bolt.lineTo(bx + u * 0.6, by - u * 0.15);bolt.lineTo(bx, by - u * 0.15);bolt.closeSubpath()
+                p.setPen(QPen(QColor(quiet), 1));p.setBrush(QColor(colour));p.drawPath(bolt)
+    p.restore()
+
+
+class TrayItem(BarButton):
+    """One of the tray's three: its glyph and its word, in a width that fits its longest word (nothing shifts)."""
+
+    def __init__(self, tray, key):
+        super().__init__(tray, {'network': 'Network', 'sound': 'Sound', 'power': 'Power'}[key]);self.tray = tray;self.key = key
+        self.data = None;self.word, tip, self.glyph = tray_words(key, None);self.setText(self.word);self.setToolTip(tip)
+        self.clicked.connect(lambda: tray.bar.open_flyout(self.key, self))
+
+    def natural(self, h):
+        fm = QFontMetrics(bar_font(h))
+        return 2 * round(h * 0.25) + round(h * 0.42) + 6 + max(fm.horizontalAdvance(w) for w in WORDS[self.key] + (self.word,))
+
+    def show_reading(self, data):
+        self.data = data;self.word, tip, self.glyph = tray_words(self.key, data)
+        title = {'network': 'Network', 'sound': 'Sound', 'power': 'Power'}[self.key]
+        self.setText(self.word);self.setToolTip(tip);self.setAccessibleName('%s: %s' % (title, self.word));self.update()
+
+    def paintEvent(self, event):
+        c = ink();p = QPainter(self);w, h = self.width(), self.height();self.ground(p, c, self.tray.bar.open_key == self.key)
+        side = round(h * 0.42);x = round(h * 0.25)
+        paint_glyph(p, self.glyph, x, h / 2.0, side, c['text'], c['tertiary']);x += side + 6
+        p.setFont(bar_font(h));p.setPen(QColor(c['text'] if self.underMouse() else c['secondary']))
+        p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, self.word);p.end()
+
+
+class Tray(QWidget):
+    """Network, sound and power, read from machine_real every few seconds off the window's thread; the reading is the one the
+    Machine page keeps (host._machine_real), so the flyout opens on it."""
+
+    def __init__(self, bar):
+        super().__init__(bar);self.bar = bar;self.setAccessibleName('The tray: network, sound and power')
+        self.items = {key: TrayItem(self, key) for key in TRAY}
+        self.timer = QTimer(self);self.timer.setInterval(TRAY_SECONDS * 1000);self.timer.timeout.connect(self.read);self.timer.start()
+        QTimer.singleShot(0, self.read)
+
+    def bar_width(self, h):
+        return sum(item.natural(h) for item in self.items.values())
+
+    def resizeEvent(self, event):
+        x = 0;h = self.height()
+        for key in TRAY:
+            w = self.items[key].natural(h);self.items[key].setGeometry(x, 0, w, h);x += w
+
+    def read(self):
+        host = self.bar.host
+        if getattr(host, '_closing', False):return
+        from . import floor
+        from . import machine_real as real
+        for key in TRAY:
+            floor.read_later(('graphite-bar', id(host), key), lambda key=key: real.read(key), landed=lambda data, key=key: self.landed(key, data))
+
+    def landed(self, key, data):
+        try:
+            host = self.bar.host
+            if getattr(host, '_closing', False):return
+            store = getattr(host, '_machine_real', None)
+            if store is None:
+                store = {};setattr(host, '_machine_real', store)
+            held = store.get(key)
+            if held is None or held.get('sampled_at', 0) <= data.get('sampled_at', 0):store[key] = data
+            self.items[key].show_reading(store[key])
+        except RuntimeError:      # the bar has gone
+            pass
+
+
+class Flyout(QFrame):
+    """A small page above a tray item: the Machine page's own section (machine_room_qt.MachineRoom, compact), and the way to
+    the whole page."""
+
+    def __init__(self, bar, key):
+        super().__init__(None, Qt.Popup | Qt.FramelessWindowHint)
+        from .machine_room_qt import MachineRoom
+        from . import machine_real as real
+
+        class FlyRoom(MachineRoom):
+            def draw(self):
+                self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)      # the page wraps to the flyout's width
+                super().draw()
+                page = self.scroll.widget()
+                if page is not None and page.layout() is not None:
+                    page.layout().setContentsMargins(16, 12, 16, 8);page.layout().setSpacing(10)
+
+        self.bar = bar;self.key = key
+        c = ink();self.setObjectName('GraphiteBarFlyout');self.setAccessibleName('%s, from the bar' % real.TITLES[key])
+        self.setStyleSheet('QFrame#GraphiteBarFlyout {background:%s; border:1px solid %s;}' % (c['surface'], c['stroke']))
+        box = QVBoxLayout(self);box.setContentsMargins(1, 1, 1, 8);box.setSpacing(4)
+        self.room = FlyRoom(bar.host, key);box.addWidget(self.room, 1)
+        self.more = QPushButton(MORE_WORDS, self);self.more.setFlat(True);self.more.setCursor(Qt.PointingHandCursor)
+        self.more.setStyleSheet('QPushButton {color:%s; background:transparent; border:0; padding:4px 16px; text-align:left;}'
+                                ' QPushButton:hover {text-decoration:underline;}' % c['accent_text'])
+        self.more.clicked.connect(self.whole_page);box.addWidget(self.more)
+
+    def whole_page(self):
+        self.close();return self.bar.open_machine(self.key)
+
+    def open_above(self, anchor):
+        h = self.bar.height();width = 460 if h >= TALL else 440
+        screen = (self.bar.screen() or QGuiApplication.primaryScreen()).geometry()
+        page = self.room.scroll.widget()
+        need = 200
+        if page is not None and page.layout() is not None:
+            lay = page.layout()
+            need = lay.heightForWidth(width - 4) if lay.hasHeightForWidth() else lay.sizeHint().height()
+        tall = min(max(160, need + 6), round(screen.height() * 0.6))
+        self.room.setFixedHeight(tall);self.setFixedWidth(width);self.adjustSize()
+        right = anchor.mapToGlobal(anchor.rect().topRight()).x() + 1
+        x = max(screen.left(), min(right, screen.right() + 1) - self.width())
+        top = self.bar.mapToGlobal(self.bar.rect().topLeft()).y()
+        self.move(x, top - self.height() - 6);self.show();self.raise_()
+        return self
+
+    def hideEvent(self, event):
+        if self.bar.open_key == self.key:
+            self.bar.open_key = None
+            try:self.bar.update_tray()
+            except RuntimeError:pass
+        super().hideEvent(event)
+
+
+# ---- the clock (W1's, moved here) -----------------------------------------------------------------------------------------------
+class BarClock(Clock):
+    """W1's clock (dock_clock_qt), drawn as the bar's: the time over the date; a press shows the month above it."""
+
+    def __init__(self, bar):
+        super().__init__(bar);self.bar = bar
+
+    def natural(self, h):
+        clock, day, whole = clock_words()
+        return max(QFontMetrics(bar_font(h, QFont.DemiBold)).horizontalAdvance(clock),
+                   QFontMetrics(bar_font(h, None, tokens.TYPE['footnote'][0])).horizontalAdvance(day)) + 2 * round(h * 0.4)
+
+    def bar_width(self, h):
+        return self.natural(h)
+
+    def paintEvent(self, event):
+        c = ink();p = QPainter(self);w, h = self.width(), self.height()
+        r = QRectF(2, 4, w - 4, h - 8)
+        if self.isDown():plate(p, r, c['pressed'])
+        elif self.underMouse():plate(p, r, c['hover_side'])
+        clock, day, whole = clock_words();half = h // 2
+        p.setFont(bar_font(h, QFont.DemiBold));p.setPen(QColor(c['text']))
+        p.drawText(QRect(0, 2, w, half - 1), Qt.AlignHCenter | Qt.AlignBottom, clock)
+        p.setFont(bar_font(h, None, tokens.TYPE['footnote'][0]));p.setPen(QColor(c['secondary']))
+        p.drawText(QRect(0, half + 1, w, half - 3), Qt.AlignHCenter | Qt.AlignTop, day);p.end()
+
+
+DEFAULTS = dict(start=StartButton, line=LineField, windows=WindowsSlot, kas=KasChip, tray=Tray, clock=BarClock)
+
+
+# ---- the bar --------------------------------------------------------------------------------------------------------------------
+class Bar(QWidget):
+    """The window of the dock type across the bottom of the screen, its slots left to right."""
+    at_bottom = True      # notify_qt: the floating toasts rise above it
+
+    def __init__(self, host):
+        super().__init__(None, Qt.Window | Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus | Qt.WindowStaysOnTopHint)
+        self.host = host;self.marks = {};self.last = None;self.standing = False;self.why = '';self.open_key = None
+        self.slots = {};self.slot_errors = {};self.flyouts = {}
+        self.setObjectName('GraphiteBar');self.setWindowTitle('Graphite · the bar');self.setAccessibleName('The bar')
+        self.setAttribute(Qt.WA_X11NetWmWindowTypeDock, True);self.setAttribute(Qt.WA_ShowWithoutActivating, True)
+        self.setAttribute(Qt.WA_X11DoNotAcceptFocus, True);self.setFocusPolicy(Qt.NoFocus)
+        for name in SLOTS:self.fill(name)
+        _BARS.add(self)
+        try:host.installEventFilter(self)
+        except (RuntimeError, TypeError):pass
+
+    # -- the slots
+    def fill(self, name):
+        """Make the slot's widget from its factory (the registered one, else the bar's own); a factory that fails leaves the
+        bar's own in its place, and status() says why."""
+        made = None
+        factory = factory_for(name)
+        try:
+            made = factory(self)
+            if not isinstance(made, QWidget):raise TypeError('the factory for %r gave %s, not a widget' % (name, type(made).__name__))
+            self.slot_errors.pop(name, None)
+        except Exception as exc:  # noqa: BLE001 - a slice's slot that cannot be made leaves the bar whole
+            if made is not None and isinstance(made, QWidget):made.deleteLater()
+            self.slot_errors[name] = '%s: %s' % (type(exc).__name__, str(exc)[:160])
+            made = DEFAULTS[name](self) if factory is not DEFAULTS[name] else QWidget(self)
+        made.setParent(self);made.setProperty('barSlot', name);made.show()
+        old = self.slots.get(name);self.slots[name] = made
+        if old is not None and old is not made:
+            try:old.hide();old.deleteLater()
+            except RuntimeError:pass
+        return made
+
+    def slot(self, name):
+        return self.slots.get(name)
+
+    def slot_width(self, name, h):
+        w = self.slots.get(name)
+        if w is None:return 0
+        try:
+            if callable(getattr(w, 'bar_width', None)):return max(0, int(w.bar_width(h)))
+            return max(0, w.sizeHint().width())
+        except RuntimeError:
+            return 0
+
+    # -- the layout
+    def arrange(self):
+        """Start, the line and the windows from the left; Kas, the tray and the clock from the right; the windows take the rest."""
+        if getattr(self.host, '_closing', False):return
+        h = self.height() or SHORT
+        if self.font().pixelSize() != text_px(h):self.setFont(bar_font(h))
+        gap = 4;x = gap
+        for name in SLOTS[:SLOTS.index(STRETCH)]:
+            w = self.slot_width(name, h);self.slots[name].setGeometry(x, 0, w, h);x += w + gap
+        right = self.width()
+        for name in reversed(SLOTS[SLOTS.index(STRETCH) + 1:]):
+            w = self.slot_width(name, h);right -= w;self.slots[name].setGeometry(right, 0, w, h);right -= gap
+        stretch = self.slots[STRETCH];stretch.setGeometry(x, 0, max(0, right - x - gap), h)
+        lay = getattr(stretch, 'lay', None)
+        if callable(lay):
+            try:lay()
+            except RuntimeError:pass
+        for w in self.slots.values():w.update()
+        self.update()
+
+    def update_tray(self):
+        tray = self.slots.get('tray')
+        for item in getattr(tray, 'items', {}).values():item.update()
+
+    def resizeEvent(self, event):
+        self.arrange()
+
+    def paintEvent(self, event):
+        c = ink();p = QPainter(self)
+        p.fillRect(self.rect(), QColor(c['sidebar']));p.fillRect(0, 0, self.width(), 1, QColor(c['stroke']))
+        p.end()
+
+    # -- standing
+    def band(self):
+        """(the screen's rect in logical pixels, the bar's height, the device pixel ratio, the root's height in its pixels)."""
+        screen = self.host.screen() or QGuiApplication.primaryScreen()
+        g = screen.geometry();dpr = screen.devicePixelRatio()
+        root = screen.virtualGeometry()
+        return g, height_for(g.width(), g.height()), dpr, round((root.y() + root.height()) * dpr)
+
+    def place(self):
+        g, h, dpr, root_h = self.band();y = g.y() + g.height() - h
+        self.setFixedSize(g.width(), h);self.setGeometry(g.x(), y, g.width(), h)
+        return (round(g.x() * dpr), round(y * dpr), round(g.width() * dpr), round(h * dpr)), root_h
+
+    def stand(self):
+        """Mark the bar's X window, show it, read its marks back. True when it stands as a dock with its strut at the bottom."""
+        rect, root_h = self.place()
+        window = int(self.winId())
+        self.marks = mark_bar(window, rect, root_h)
+        self.show();self.move(self.x(), self.y())
+        QApplication.processEvents()
+        self.marks = read_bar(window)
+        if self.marks.get('ok'):
+            self.standing, self.why = True, ''
+        elif self.marks.get('type') != sd.DOCK_TYPE and not str(self.marks.get('why', '')).startswith(wx.NO_LIST):
+            mark_bar(window, rect, root_h);sd.remap(window);QApplication.processEvents()      # Qt wrote another type at the map: say it again
+            self.marks = read_bar(window);self.standing = bool(self.marks.get('ok'))
+            self.why = '' if self.standing else self.marks.get('why', 'the bar could not be marked')
+        else:
+            self.standing, self.why = False, self.marks.get('why', 'the bar could not be marked')
+        self.arrange()
+        screen = self.host.screen() or QGuiApplication.primaryScreen()
+        try:screen.geometryChanged.connect(lambda *_: QTimer.singleShot(0, self.again))
+        except (RuntimeError, AttributeError):pass
+        return self.standing
+
+    def again(self):
+        """The screen changed: the band and the strut follow it."""
+        if not self.isVisible():return
+        rect, root_h = self.place()
+        self.marks = mark_bar(int(self.winId()), rect, root_h)
+        self.arrange()
+
+    def carries_strip(self):
+        """Whether the bar is the one in sight while Graphite's window is in front: it stands, and Graphite's window is not
+        full screen (a full-screen window covers the bar)."""
+        try:return self.standing and self.isVisible() and not self.host.isFullScreen()
+        except RuntimeError:return False
+
+    def status(self):
+        windows = self.slots.get('windows')
+        return dict(standing=self.standing, why=self.why, type=self.marks.get('type'), strut=self.marks.get('strut'),
+                    partial=self.marks.get('partial'), desktop=self.marks.get('desktop'), carries=self.carries_strip(),
+                    geometry=(self.x(), self.y(), self.width(), self.height()), at='bottom',
+                    slots={name: type(w).__name__ for name, w in self.slots.items()}, slot_errors=dict(self.slot_errors),
+                    windows=windows.words() if callable(getattr(windows, 'words', None)) else '')
+
+    # -- following the windows
+    def follow(self, snap):
+        """Each reading of the windows: whether Graphite's window is the active one; the bar stays above the one that came forward."""
+        try:own = int(self.host.winId())
+        except RuntimeError:return
+        windows = self.slots.get('windows');button = getattr(windows, 'graphite', None)
+        active = bool(snap.get('available')) and int(snap.get('active') or 0) == own
+        if button is not None and active != button.active:button.active = active;button.update()
+        if snap.get('active') != getattr(self, '_seen_active', None):
+            self._seen_active = snap.get('active')
+            if self.isVisible():self.raise_()
+
+    # -- the presses
+    def bring_graphite(self):
+        """Bring Graphite's window forward: Qt raises and activates it, and the window manager is asked as a task list asks
+        (_NET_ACTIVE_WINDOW); verified when Graphite's window is the active one."""
+        host = self.host
+        try:
+            if host.isMinimized():host.setWindowState(host.windowState() & ~Qt.WindowMinimized)
+            host.show();host.raise_();host.activateWindow()
+            window = int(host.winId())
+        except RuntimeError:
+            return None
+        watcher = hub().watcher
+        answer = watcher.activate(window, wait=0.5) if watcher.available else dict(asked=True, verified=False, how='Qt only', reason=watcher.reason)
+        self.last = dict(answer, at=time.time())
+        hub().settle.start()
+        return self.last
+
+    def open_flyout(self, key, anchor=None):
+        """The flyout above the tray item `key` (network, sound or power); a second press on an open one closes it."""
+        old = self.flyouts.get(key)
+        try:
+            if old is not None and old.isVisible():old.close();return None
+        except RuntimeError:
+            pass
+        for other in list(self.flyouts.values()):
+            try:other.close()
+            except RuntimeError:pass
+        if anchor is None:anchor = getattr(self.slots.get('tray'), 'items', {}).get(key) or self
+        fly = Flyout(self, key);fly.setAttribute(Qt.WA_DeleteOnClose, True)
+        fly.destroyed.connect(lambda *_, key=key: self.flyouts.pop(key, None) if self.flyouts.get(key) is fly else None)
+        self.flyouts[key] = fly;self.open_key = key;self.update_tray()
+        return fly.open_above(anchor)
+
+    def open_machine(self, key):
+        """The whole Machine page of `key`, in Graphite's window, brought forward."""
+        self.bring_graphite()
+        from . import machine_room_qt
+        return machine_room_qt.show(self.host, key)
+
+    def eventFilter(self, obj, event):
+        if obj is self.host and event.type() == QEvent.WindowStateChange:
+            strip = getattr(self.host, 'window_strip', None)
+            if strip is not None:strip.relayout()      # full screen or not: the head's own strip gives way to the bar, or not
+        return False
+
+
+# ---- in the window --------------------------------------------------------------------------------------------------------------
+def leave_full_screen(host, environ=None):
+    """The dedicated session asked for full screen (ARC_LEDGER_FULLSCREEN=1): with the bar standing, Graphite's window is
+    maximised above it instead (F11 still gives full screen). True when it was changed."""
+    environ = os.environ if environ is None else environ
+    try:
+        if environ.get('ARC_LEDGER_FULLSCREEN') != '1' or not host.isFullScreen():return False
+        host._was_maximized = True;host.showMaximized()
+        action = getattr(host, 'a_fullscreen', None)
+        if action is not None:action.setChecked(False)
+        return True
+    except RuntimeError:
+        return False
+
+
+def install(host):
+    """The bar, when it should stand here (after the window is shown). host.system_dock and host.graphite_bar are the Bar or
+    None (the dock's callers, her column, the strip in the head, the toasts, the System page, read it as the dock), and
+    host.dock_status() says whether it stands and why not."""
+    host.system_dock = None;host.graphite_bar = None
+    stand, why = wanted()
+    state = dict(standing=False, why=why)
+    host.dock_status = lambda: host.graphite_bar.status() if host.graphite_bar is not None else dict(state)
+    if not stand:return None
+    made = []
+
+    def begin():
+        if getattr(host, '_closing', False):return
+        try:
+            bar = Bar(host);made.append(bar)
+            if bar.stand():
+                host.system_dock = bar;host.graphite_bar = bar
+                state['left_full_screen'] = leave_full_screen(host)
+                strip = getattr(host, 'window_strip', None)
+                if strip is not None:strip.relayout()
+            else:
+                state['why'] = 'The bar does not stand: it could not be made a dock (%s).' % (bar.why or 'no reason given')
+                bar.hide();bar.deleteLater()
+        except Exception as exc:  # noqa: BLE001 - a bar that cannot stand leaves the strip in Graphite's head
+            state['why'] = 'The bar does not stand: %s.' % (str(exc)[:160] or type(exc).__name__)
+            host.system_dock = None;host.graphite_bar = None
+
+    def gone(*_):
+        while made:
+            bar = made.pop()
+            try:
+                for fly in list(bar.flyouts.values()):fly.close()
+                bar.hide();bar.deleteLater()
+            except RuntimeError:
+                pass
+    QTimer.singleShot(0, begin)
+    app = QApplication.instance()
+    if app is not None:app.aboutToQuit.connect(gone)
+    host.destroyed.connect(gone)
+    return True
