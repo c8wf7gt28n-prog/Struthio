@@ -82,6 +82,11 @@ rules holding you back".
   resumed) and B5 (a quieter bar; agent a7e3d385b9ace247f) run lean for **1.1.2**. When both land: merge, rebuild the
   repository (C0 adds xterm as a Depends: tools/build_repo.sh as in `$S/work/r111/build.sh`), version 1.1.2, short notes,
   cut, release check, send the whole kit. If the limit stops them, their saves are in `$S/work/b110/` and partial/b110/.
+- **KAS 1.1.6 RELEASED (09:32 UTC): paper-white grey joins amber and green** (the owner: "And possibly greys in
+  addition to orange and green if it fits the theme"; design_tokens.DUO_INK['paper'] #c9d1d3 as Duo's secondary: the
+  machine's labels). Cut from 99a297f; release check PASSED (1,665 files); 18 files sent with a swatch of the four
+  inks; record `wip/2026-11-28_release_116/`; base kit `$S/work/r116/kit/`. Next for the look: a single-phosphor
+  Night: Paper choice, and the hero extras (seven-segment clock, her typed lines, peak marks).
 - **KAS 1.1.5 RELEASED (09:29 UTC): more screen burns and more burnt grey** (the owner: "We need more screen burns, and
   can probably add some burnt gray"; done by the coordinator in crt_qt.py, d7b844b: burn 5 %/8 %, 1.0's dock, the old
   foot, a boxed menu, a VCR 12:00, F-keys, a tape's LOAD, her old session). Cut from 7bf7622; release check PASSED
