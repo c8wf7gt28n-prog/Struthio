@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "1.1~pre1",
+  "version": "1.1~pre2",
   "package_profile": "runtime",
-  "note": "Graphite 1.1~pre1, preview 1 of 1.1: installs like Debian software (four packages in a folder repository, a LightDM login optional), a Windows hand's keys and DOS words, the test tiers running again; minimal tests, by the owner's rule. Still in it: 1.0, the Living Desktop and the Ghost in the Shell. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1_pre1.md.",
+  "note": "Graphite 1.1~pre2, preview 2 of 1.1: one bar along the bottom above every app (Start, the line, the windows, Kas with HALT, the tray, the clock), Files as an Explorer, File/Edit/View/Go/Tools/Help with keys shown, the details pane, her voice; minimal tests, by the owner's rule. Still in it: preview 1 (Debian packages, a Windows hand's keys, DOS words) and 1.0. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1_pre2.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -1315,7 +1315,7 @@
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
       "bytes": 330926,
-      "sha256": "9518fadb455a84f1ff05424775d789c83a3e5c80fd61cc60fe34f8d2eae7a3c7"
+      "sha256": "46df5322170642640d3af4a987da4f93e9dbcddefe9a61a8c4ad188868ecf872"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -1758,8 +1758,8 @@
       "sha256": "2e1d20259fb9156dfc5e7679a8380377eec6bac390b4ca5e6b925d8700b74940"
     },
     "docs/RELEASE_NOTES_1.1_pre2.md": {
-      "bytes": 7933,
-      "sha256": "7afa2ef0696c9aef7a6b83d234fa4d83031585ba7144e6adeab04fed78af9de9"
+      "bytes": 9155,
+      "sha256": "a48f78bc0d3d763dbd1098dca8fee2557b1fbc0dcd1f57138bebbdaf27c993db"
     },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
@@ -3566,8 +3566,8 @@
       "sha256": "35cd691305f0deabb97c11e44937bb494cdc117af0aca08ca72e8b694f5c982c"
     },
     "tools/package_graphite.py": {
-      "bytes": 10966,
-      "sha256": "fd7b58a9f78384a1ed449d1f18e6dc4f44b227bc6668dbfd6f7f06acdfb68e1c"
+      "bytes": 11028,
+      "sha256": "2cc40dafd7a1accbbe6859b1cefc0d7f0eaaa37498c528927dc668215c4fe763"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -6190,8 +6190,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 19656,
-      "sha256": "530f6044a977b77994c3ce78be667f4944912c5b792c1a2a899eff13922bc270"
+      "bytes": 20355,
+      "sha256": "b3188369309d740b29211831f3d7f687eed301b1d9516f46f6901887a8ee3dbb"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -6366,5 +6366,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "1.1~pre1"
+  "graphite_release": "1.1~pre2"
 }

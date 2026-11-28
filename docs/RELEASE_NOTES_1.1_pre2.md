@@ -15,9 +15,17 @@ software; preview 2 changes what you see and where your hands go. Install it ove
   words (with the Debian command beside them) and Windows words such as "control panel". A sum gets its exact answer
   (12*7 gives 84), and "Ask Kasandra" is always offered. Every row says what Enter will do. Win+R and Win+S open it too.
 - **The open windows:** Graphite first, then each app. One press brings any of them forward.
-- **Kas:** her name, her state word and its shape, and HALT beside her name. KAS_ON_BAR
-- **The tray:** network, sound and battery, each a glyph and a word. Each opens its own panel above the bar, with
-  "More on the Machine page".
+- **Kas:** her name, her state word and its shape (QUIET, WORKING, NEEDS YOUR WORD, STOPPED, HELD, DONE), and **HALT
+  beside her name**. HALT is 1.0's HALT, moved: it stops all of her work and nothing else, and RESUME restarts nothing by
+  itself. The head's HALT is gone. Pause in Graphite's window still presses HALT; from other apps it does not yet.
+  - Press her chip and **her panel** slides in from the right edge, over any app. It is 380 px wide and holds her whole
+    column, with Waits for you first. Esc or the chip closes it.
+  - Inside Graphite's window she stays docked at the right, as before. Her chip's right-click has "Kas docked in
+    Graphite".
+  - When something waits for you and her panel is closed, **a card rises from her chip** with the same one press:
+    Authorise step 3, or Grant this for this assignment. It never takes your keys.
+- **The tray:** network, sound and battery, each a glyph and a word (at 1366x768, the glyph alone; the word is in its
+  tip). Each opens its own panel above the bar, with "More on the Machine page".
 - **The clock:** press it for the month.
 
 Graphite now opens maximised above the bar rather than full screen, so the bar is always there. App windows are placed
@@ -64,16 +72,16 @@ preview, its facts, and its connections: the board's neighbours as rows. It is o
 never says "trust me" or "obviously". "Not verified. Here is what I checked." is a fixed line, and she says "Done,
 verified" only where the records prove it. Refusals, losses and permissions are said plainly, with no jokes. Her answer
 to "Does the 12 V rail meet its limits?" goes finding by finding, then says "Not proven sufficient." The Guide's
-Kasandra page has a new section, "Her voice". REFUSALS_LINE
-
-TIERS_SECTION
+Kasandra page has a new section, "Her voice". When the desk refuses something, she now tells you in plain words what
+to do; the desk's own words go to Log.
 
 ## What was tested, and what was not
 
 You allowed minimal tests:
 
 - Each piece has its own test file: test_bar (13), test_explorer (16), test_kas_voice (12), test_start_line (12) and
-  test_frame_k0 (13). BAR_TESTS
+  test_frame_k0 (13). Kas on the bar has 13 more.
+  Together with the bar's own, those 51 tests pass on the merged tree.
 - At each merge the seed was rebuilt and the window opened offscreen in all four looks.
 - The bar and Start were run on a virtual X screen with real key presses, under a stand-in window manager.
 
@@ -83,6 +91,8 @@ ones. Kas's new voice has not been tried with a real model, and nothing has run 
 
 ## What preview 2 does not do yet
 
+- **The test suites were not run again on the whole of preview 2.** Preview 1 left them at 23 failing in the Graphite
+  look. Bringing them up to date with everything above is being built now (T2) and comes in preview 3.
 - **On the bar:**
   - Window buttons show titles at both sizes; icon-only buttons at 1366 are not done.
   - There are no drives or notifications in the tray, and no Pin.

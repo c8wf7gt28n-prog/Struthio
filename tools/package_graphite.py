@@ -39,7 +39,7 @@ NOT_SHIPPED = ('tools/planted_bugs/', 'tools/i05_kit/', 'debian/')  # 1.1 PK1: d
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
 # Fields of earlier checkpoints' manifests that no reader uses any more (the release check reads graphite_release).
 RETIRED_FIELDS = ('hatch_checkpoint', 'integrated_pass', 'delivery_stage')
-NOTE = ('Graphite 1.1~pre1, preview 1 of 1.1: installs like Debian software (four packages in a folder repository, a LightDM login optional), a Windows hand\'s keys and DOS words, the test tiers running again; minimal tests, by the owner\'s rule. Still in it: 1.0, the Living Desktop and the Ghost in the Shell. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1_pre1.md.')
+NOTE = ('Graphite 1.1~pre2, preview 2 of 1.1: one bar along the bottom above every app (Start, the line, the windows, Kas with HALT, the tray, the clock), Files as an Explorer, File/Edit/View/Go/Tools/Help with keys shown, the details pane, her voice; minimal tests, by the owner\'s rule. Still in it: preview 1 (Debian packages, a Windows hand\'s keys, DOS words) and 1.0. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1_pre2.md.')
 
 
 
