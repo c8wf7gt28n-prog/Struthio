@@ -233,6 +233,10 @@ The owner then: "Screen burns and all the fun". So N1 adds CRT effects under Vie
 Subtle as Night's default, or Full): a faint static burn-in ghost on empty grounds, phosphor afterglow on change, a
 warm-up line, faint scanlines and a vignette, a blinking block cursor, and a faint bloom. Legibility is never the
 price (4.5:1 kept), and Reduce motion stops whatever moves.
+The owner then: "But both the orange and green working together with grey (like screen burns)". So **Night: Duo** becomes
+the default. Green is the computer: files, text, the terminal and the system. Amber is Kas and the owner's word: her
+chip and panel, Waits for you, HALT, the selection and the presses. Grey is the past: burn-in, disabled things and
+tertiary text. Amber-only and Green-only remain as choices.
 
 **C0 · A real terminal.** The drop-down Terminal (B4) and 1.0's Terminal are not terminal devices: vim, top, less
 and sudo's password prompt do not work in them. Give the drop-down a real terminal (a pseudo-terminal running the
