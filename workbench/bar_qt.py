@@ -538,6 +538,8 @@ class TrayItem(BarButton):
         self.clicked.connect(lambda: tray.bar.open_flyout(self.key, self))
 
     def natural(self, h):
+        if h <= SHORT:      # 1.1: on the short bar (1366x768) the glyph alone, as Windows' tray; the word stays in the tip and the name
+            return 2 * round(h * 0.25) + round(h * 0.42)
         fm = QFontMetrics(bar_font(h))
         return 2 * round(h * 0.25) + round(h * 0.42) + 6 + max(fm.horizontalAdvance(w) for w in WORDS[self.key] + (self.word,))
 
@@ -550,8 +552,10 @@ class TrayItem(BarButton):
         c = ink();p = QPainter(self);w, h = self.width(), self.height();self.ground(p, c, self.tray.bar.open_key == self.key)
         side = round(h * 0.42);x = round(h * 0.25)
         paint_glyph(p, self.glyph, x, h / 2.0, side, c['text'], c['tertiary']);x += side + 6
-        p.setFont(bar_font(h));p.setPen(QColor(c['text'] if self.underMouse() else c['secondary']))
-        p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, self.word);p.end()
+        if h > SHORT:      # 1.1: the word beside the glyph on the tall bar only (see natural)
+            p.setFont(bar_font(h));p.setPen(QColor(c['text'] if self.underMouse() else c['secondary']))
+            p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, self.word)
+        p.end()
 
 
 class Tray(QWidget):

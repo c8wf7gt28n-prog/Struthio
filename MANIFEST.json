@@ -3786,8 +3786,8 @@
       "sha256": "cf2bd2c1188dd32c02dad0e60835d6349d4a8012c4a05b930ab1daabbdf87404"
     },
     "workbench/bar_qt.py": {
-      "bytes": 50311,
-      "sha256": "a60a1a0cd0cf354a30143aeceb7fb4f6e82eebcda0c2622d546e0e469d6a2720"
+      "bytes": 50616,
+      "sha256": "316c5f7cb114688672b4f404f970cdc684d434c3781a2603717a0d24dd36c6f0"
     },
     "workbench/baseline.py": {
       "bytes": 7828,
