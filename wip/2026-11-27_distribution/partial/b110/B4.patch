@@ -265,10 +265,10 @@ index 3b60f9f..441a8ba 100755
      ('Mod1 Tab', ':NextWindow {static groups} (workspace=[current])', 'Alt+Tab goes to the next window'),
 diff --git a/workbench/command_card_qt.py b/workbench/command_card_qt.py
 new file mode 100644
-index 0000000..4ee8dbc
+index 0000000..86c3b35
 --- /dev/null
 +++ b/workbench/command_card_qt.py
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,134 @@
 +"""Graphite 1.1 B4 · Command…: the exact line a file or a folder is, or runs, with Copy and "Put it in the line".
 +
 +The design direction's section 1 (Power's graft: "anything visible answers Command… with the exact line it is or runs") and its
@@ -329,7 +329,7 @@ index 0000000..4ee8dbc
 +    if not argvs:return '', 'Open gives %s no command line.' % app.name
 +    argv = argvs[0]
 +    if getattr(app, 'terminal', False):argv = apps_catalog.terminal_argv(argv) or argv
-+    return (shlex.join(argv), 'What Open runs: %s (%s), the app for it here. Put in the line, Enter runs it in the Terminal.'
++    return (shlex.join(argv), '%s (%s), the app for it here. Put in the line, Enter runs it in the Terminal.'
 +            % (app.name, getattr(app, 'id', '') or 'its desktop entry'))
 +
 +
@@ -359,12 +359,16 @@ index 0000000..4ee8dbc
 +        head = QLabel(shown_path(path), self);head.setObjectName('CommandCardPath');head.setTextInteractionFlags(Qt.TextSelectableByMouse)
 +        f = head.font();f.setBold(True);head.setFont(f);box.addWidget(head)
 +        from .shell2 import mono_font
-+        self.copies = {};self.puts = {}
++        from .boss_theme import MONO
++        from .bar_qt import ink
++        c = ink();self.copies = {};self.puts = {}
 +        for n, row in enumerate(self.lines):
 +            title = QLabel(row['title'].upper(), self);title.setObjectName('CommandCardTitle')
 +            t = title.font();t.setPixelSize(max(11, t.pixelSize() - 1) if t.pixelSize() > 0 else 11);t.setLetterSpacing(QFont.AbsoluteSpacing, 0.8);title.setFont(t)
 +            box.addSpacing(6 if n else 2);box.addWidget(title)
 +            line = QLabel(row['line'] or '(no line)', self);line.setObjectName('CommandCardLine');line.setFont(mono_font(14))
++            line.setStyleSheet("QLabel#CommandCardLine {font-family:'%s'; font-size:14px; color:%s; background:%s; border:1px solid %s;"
++                               " border-radius:4px; padding:6px 8px;}" % (MONO, c['text'], c['sidebar'], c['stroke']))      # a line reads as code
 +            line.setTextFormat(Qt.PlainText);line.setWordWrap(True);line.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
 +            line.setAccessibleName('%s: %s' % (row['title'], row['line'] or 'none'));box.addWidget(line)
 +            words = QLabel(row['words'], self);words.setWordWrap(True);words.setObjectName('CommandCardWords');box.addWidget(words)
@@ -838,10 +842,10 @@ index ab477c2..b4f648b 100644
  
 diff --git a/workbench/foot_fold_qt.py b/workbench/foot_fold_qt.py
 new file mode 100644
-index 0000000..e2ee035
+index 0000000..137af90
 --- /dev/null
 +++ b/workbench/foot_fold_qt.py
-@@ -0,0 +1,461 @@
+@@ -0,0 +1,473 @@
 +"""Graphite 1.1 B4 · One line: the window's foot folds away, and each thing it did has one place.
 +
 +PLAN_1.1.md, B4. 1.0's foot (typebar_qt: the band of Line, Terminal, Search, Web and Log, its writing line, and the five meters
@@ -1114,6 +1118,17 @@ index 0000000..e2ee035
 +        return self.flyout.open_above()
 +
 +
++class DoorWords(QLabel):
++    """What a meter's door opens, in words; a press on them opens it too (the row is one door)."""
++
++    def __init__(self, words, fn, parent):
++        super().__init__(words, parent);self.fn = fn
++
++    def mouseReleaseEvent(self, event):
++        if event.button() == Qt.LeftButton and self.rect().contains(event.position().toPoint()):self.fn();return
++        super().mouseReleaseEvent(event)
++
++
 +class MetersFlyout(QFrame):
 +    """The five meters above their tray item, each a row in words with the door it was (meter_cards)."""
 +
@@ -1133,7 +1148,8 @@ index 0000000..e2ee035
 +            words = read[key][0]
 +            b = QPushButton('%s   %s' % (key, words), self);b.setCursor(Qt.PointingHandCursor);b.setMinimumWidth(130)
 +            b.setAccessibleName('%s %s: %s' % (key, words, DOORS[key]));b.clicked.connect(lambda checked=False, key=key: self.door(key))
-+            door = QLabel(DOORS[key] + ' →', self);door.setProperty('role', 'quiet');door.setWordWrap(True)
++            door = DoorWords(DOORS[key], lambda key=key: self.door(key), self);door.setProperty('role', 'quiet');door.setWordWrap(True)
++            door.setCursor(Qt.PointingHandCursor);door.setToolTip('Opens: ' + DOORS[key])
 +            grid.addWidget(b, r, 0);grid.addWidget(door, r, 1);self.rows[key] = b
 +        note = QLabel('Each opens what its meter is about, as the foot\'s meters did.', self);note.setProperty('role', 'quiet');box.addWidget(note)
 +

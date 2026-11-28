@@ -1,0 +1,190 @@
+{
+ "item": "B4",
+ "status": "done",
+ "summary": "One line, a drop-down Terminal and Command…. Once the bar stands, Graphite's window has no foot: foot_fold_qt folds 1.0's typebar dock away and leads its doors to one new place each (FOOT_MOVED, old -> new): Line, Search and Web are the bar's line (B2's rows plus 'Search inside files for …' and 'Search the web for …'); the Terminal is drop_terminal_qt, its own X window dropping 200 ms from the top edge (full width, 40 %), 1.0's Terminal code with DOS words, Esc clears the line, the same key puts it away and the app that had the keys gets them back; Log is View ▸ Log (Alt+6) with its own Filter line; the five meters are one tray item whose rows open the same cards. Command… (Ctrl+.) above Properties in the Explorer's right-click (List rows, Icons tiles, the folder itself) shows what Open runs and the Graphite line it is, with Copy and Put it in the line (command_card_qt). graphite-do terminal (Win+`, Ctrl+Alt+T), kas (Win+K) and halt (Pause) work from any app without bringing Graphite forward. Without the bar the foot stays as in 1.0.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/B4.patch",
+ "files_changed": [
+  "workbench/foot_fold_qt.py (new: FOOT_MOVED, fold, the Log Filter line, MetersTray/MetersItem/MetersFlyout, the line rows, key_verb)",
+  "workbench/drop_terminal_qt.py (new: the drop-down Terminal)",
+  "workbench/command_card_qt.py (new: Command…)",
+  "tests_integrated/test_one_line_b4.py (new, 11 tests)",
+  "workbench/shell2.py (1.1 B4: foot_fold_qt.install after the bar; to_console sends the shell page to the drop-down once folded)",
+  "workbench/start_qt.py (1.1 B4: do(): Terminal and DOS rows, and the Terminal place, drop the Terminal without bringing Graphite forward, once folded)",
+  "workbench/line_finder.py (1.1 B4: MORE / more_rows hook, empty unless the foot folded)",
+  "workbench/windows_keys_qt.py (1.1 B4: VERBS terminal, kas, halt; act hands them to foot_fold_qt.key_verb; docstring)",
+  "tools/graphite-do (1.1 B4: VERBS; keys Mod4 grave and Control Mod1 t -> terminal, Mod4 k -> kas, Pause -> halt; docstring)",
+  "workbench/explorer_qt.py (1.1 B4: Command… above Properties in both right-clicks; Ctrl+. in KEYS; do(\"command\"))",
+  "workbench/head_menus.py (1.1 B4: View gets \"@log\" = the a_talk[\"log\"] action, Alt+6; MOVED gains one row)",
+  "workbench/menus2.py (1.1 B4: Tools ▸ Commands ▸ Writing Line lists Line, Terminal, Search; Log is View's)"
+ ],
+ "tests": {
+  "added": [
+   "tests_integrated/test_one_line_b4.py (11: a no foot once the bar stands; b everything reachable, one place each; c the Terminal drops, runs, DOS words, Esc kept, same key and exit put it away, 200 ms slide; d Command… on a file, its exact line, Copy, Put it in the line, above Properties; e Win+K and Pause from an app; band; graphite-do words and keys; foot stays without the bar / GRAPHITE_FOOT=1; the line rows; the Log filter; the meters item and its doors)"
+  ],
+  "ran": [
+   "tests_integrated.test_one_line_b4",
+   "tests_integrated.test_windows_hand",
+   "tests_integrated.test_start_line",
+   "tests_integrated.test_frame_k0 (all on the throwaway copy, offscreen, one run: 50 tests OK)"
+  ],
+  "output_tail": "hbours) ... ok\ntest_i_the_chrome_at_1920x1200_is_about_116 (tests_integrated.test_frame_k0.Window.test_i_the_chrome_at_1920x1200_is_about_116) ... ok\ntest_j_under_reduce_motion_the_pane_appears_at_once (tests_integrated.test_frame_k0.Window.test_j_under_reduce_motion_the_pane_appears_at_once) ... ok\n\n----------------------------------------------------------------------\nRan 50 tests in 33.176s\n\nOK"
+ },
+ "existing_tests_changed": [],
+ "foot_moved_old_to_new": [
+  [
+   "Line: a Graphite line, an operation after /, an address, words for Kasandra (the foot's line, Alt+1)",
+   "The bar's line (a press on it, Win+R, Win+S, Alt+1): every row says what Enter does; a Graphite line is Run on the line page, an operation is Run on the operations page, an address is Opened, Ask Kasandra is always its last row"
+  ],
+  [
+   "Search: names and words across the workspace (Alt+4, Ctrl+K, a leading ?)",
+   "The bar's line (Alt+4, Ctrl+K): apps, files, settings, the desk and commands by name; its row 'Search inside files for …' finds their words too (the results in the working area, as before)"
+  ],
+  [
+   "Web: an address opened, or words searched for, in your own browser",
+   "The bar's line: an address is its Open row; words have 'Search the web for …' (in your own browser; Graphite fetches nothing)"
+  ],
+  [
+   "Terminal: your shell in your Files folder, with DOS words (Alt+5, Ctrl+Alt+`)",
+   "The drop-down Terminal, from the top of the screen over any app: Win+` or Ctrl+Alt+T (and Alt+5, Ctrl+Alt+` in Graphite); the line's Terminal and DOS rows run there"
+  ],
+  [
+   "Log: Events and Network, filtered from the line (Alt+6)",
+   "View ▸ Log (Alt+6): the working area's Log, with its own Filter line (Enter filters; Ctrl+Enter captures, in Network)"
+  ],
+  [
+   "The meters CPU, GPU, RAM, TXT and NET at the foot's right, each a door to its card",
+   "The bar's tray: one item, Meters (its bars, and CPU in words on the tall bar); a press opens the five, each the same door"
+  ],
+  [
+   "The arrow at the line's end, Ctrl+Enter and Ask Kasandra →",
+   "Enter on the bar's line (its first row), or a press on any row"
+  ],
+  [
+   "Expand and Collapse (the room above the line)",
+   "View ▸ Console ▸ One Line, Half, Tall (as before), and Ctrl+`"
+  ],
+  [
+   "Short messages (\"Saved as…\") at the line",
+   "The working area's message line, as before (the foot only repeated them)"
+  ],
+  [
+   "The context word at the line's right end (the selected record, else the workspace)",
+   "The centre bar's path (it names the same place), and Graphite's window title on the bar"
+  ],
+  [
+   "Tools ▸ Commands ▸ Writing Line ▸ Log (Alt+6)",
+   "View ▸ Log (Alt+6), in both the folded and the 1.0 foot"
+  ]
+ ],
+ "decisions": [
+  "The foot folds only once the bar stands (the dedicated session, or GRAPHITE_BAR=1 on X): without the bar its jobs have no other home, so 1.0's foot stays (and every tier test offscreen sees 1.0's foot). GRAPHITE_FOOT=1 keeps it even with the bar.",
+  "1.0's objects stay for their callers (host.type_bar, host.console, the meters); their doors are rerouted on the instances (set_target, search, run_operation; console.open and focus_box; pulse.open_card) instead of editing typebar_qt: Alt+1/Alt+4/Ctrl+K/Alt+3 open the bar's line, Alt+5 and Ctrl+Alt+` drop the Terminal, Alt+6 opens the Log.",
+  "Line, Search, Web: the bar's line (B2). Added through line_finder.MORE only when folded: 'Search inside files for …' (1.0's Search page, results in the working area) and 'Search the web for …' (own browser; none for an address, which keeps B2's Open row).",
+  "Terminal: 1.0's Terminal, the same code (console_qt.Console's shell methods borrowed): the configured shell per line, stdin closed, cd kept, output as text, DOS words first. Its own frameless Tool window, stays on top, on every desktop (B3's mark_everywhere); 40 % of the screen (at least 160 px), full width; 200 ms OutCubic slide, at once under Reduce motion. Esc clears the line (cmd's Esc), never closes; the same key, 'Put away' or exit closes; Ctrl+C stops what runs; Up/Down history; Tab completes a name; Ctrl+L clears. The window that was active (_NET_ACTIVE_WINDOW) gets the keys back. The key toggles: when it is down, the key puts it away.",
+  "Log: one menu home, View ▸ Log (the same QAction as the foot's Log word, Alt+6), moved out of Tools ▸ Commands ▸ Writing Line in both cases; folded, it opens the working area's Log with its own Filter line (Enter filters; Ctrl+Enter starts a capture in Network, log_qt's own confirm; Esc folds the Log away); a second Alt+6 folds it.",
+  "Meters: one item in the bar's tray (MetersTray registered for B1's 'tray' slot): three drawn bars (CPU, GPU, RAM; an empty box when no reading) and 'CPU n %' on the tall bar, the glyph alone at 1366 as B1's tray; its tip and name say all five; a press opens the five rows, each opening the same meter_cards card above the tray item (the words of each row open it too). Ctrl+Alt+Del (graphite-do tasks) and her act that opens a meter's card anchor there. Her column's equalizer (cores, KRN, RAM, SSD, NET, GPU) is her own activity display, beside the foot's meters already in 1.0; it is left as it is.",
+  "Status messages ('Saved as…') already showed in the working area's message row (console.hint, not in the foot's dock), so they stay there.",
+  "Command…: in the Explorer's right-click above Properties (a List row, an Icons tile, and the folder itself on the empty space) and Ctrl+.; a card (QDialog) shows 'What Open runs' (app_files.choose + apps_catalog.command: the very code Open runs; a bridge family names /appfile.open; none says why) and 'What it is' (@files:…); a folder: @files:… and cd. Each with Copy and Put it in the line (the bar's line with its rows; without the bar, the foot's line). Nothing runs from the card.",
+  "graphite-do: terminal (Mod4 grave, Control Mod1 t), kas (Mod4 k), halt (Pause); none brings Graphite forward; kas is her controller's toggle (B3); halt is her controller's pause_key (never RESUME; held says so in her words).",
+  "No Kernel operation added; registry unchanged."
+ ],
+ "findings_for_the_coordinator": [
+  "T2: no truth the tiers test changes offscreen (the foot folds only where the bar stands). Under the dedicated session the foot's dock is hidden; a check that measures host.type_dock there would see it folded. K0's chrome tokens still count a foot (48/44 px) that is not drawn once folded.",
+  "The Terminal is not a pty (1.0's Terminal is not either): interactive programs (vim, top, sudo's password prompt, ssh) do not work there, and a GUI app started from it keeps it busy until it exits. A pty terminal is a slice of its own.",
+  "HALT does not stop the owner's own Terminal commands (they are not her work); Ctrl+C and Stop do. Whether 1.0's Master Stop ended the console's process was not checked; it does not reach the drop-down's.",
+  "Only real Fluxbox can confirm Win+` (Mod4 grave) and Pause being grabbed; with Fluxbox, Ctrl+Alt+T inside Graphite also goes through graphite-do (same effect).",
+  "The smoke drove the keys through the real tools/graphite-do and the window's door (GRAPHITE_DO_SOCKET short path), not through Fluxbox; the stand-in manager focuses what is mapped.",
+  "Frames' 'What Open runs' uses an invented desktop entry (Notes Pad, notespad, written in the smoke's throwaway home): this machine has no text app.",
+  "K0's head_menus.MOVED gained one row (Writing Line ▸ Log -> View ▸ Log); K0's test still holds.",
+  "Command… is not yet on Start's tiles (no right-click there; B2), the Files tree of the left pane, or board tiles."
+ ],
+ "not_done": [
+  "A pty shell (interactive programs) for the Terminal.",
+  "The command card's Keep as a word, Pin, Key… and Schedule… (the design's Power graft; B4 names Copy and Put it in the line only).",
+  "Command… on Start's tiles, the left pane's Files tree and the board's tiles.",
+  "Docs and the Guide not updated for the foot's moves (T2's sweep).",
+  "Nothing ran on the owner's ThinkPad; no real Fluxbox."
+ ],
+ "smoke": {
+  "day_1366x768": {
+   "folded": true,
+   "foot_dock_visible": false,
+   "tray": "MetersTray",
+   "terminal_geometry": [
+    0,
+    0,
+    1366,
+    307
+   ],
+   "front_while_down": "Graphite · Terminal",
+   "front_after_away": "notes - xterm",
+   "esc_kept_it_open": true,
+   "win_k": "Her panel is open.",
+   "pause": "RESUME",
+   "front_after_pause": "notes - xterm",
+   "rightclick_last_rows": [
+    "Command… (Ctrl+.)",
+    "Properties (Alt+Enter)"
+   ],
+   "frames": [
+    "1366x768_day_nofoot.png",
+    "1366x768_day_terminal_over_xterm.png",
+    "1366x768_day_meters_in_tray.png",
+    "1366x768_day_rightclick_command.png",
+    "1366x768_day_command_card.png"
+   ]
+  },
+  "day_1920x1200": {
+   "folded": true,
+   "foot_dock_visible": false,
+   "tray": "MetersTray",
+   "terminal_geometry": [
+    0,
+    0,
+    1920,
+    480
+   ],
+   "front_while_down": "Graphite · Terminal",
+   "front_after_away": "notes - xterm",
+   "esc_kept_it_open": true,
+   "win_k": "Her panel is open.",
+   "pause": "RESUME",
+   "front_after_pause": "notes - xterm",
+   "rightclick_last_rows": [
+    "Command… (Ctrl+.)",
+    "Properties (Alt+Enter)"
+   ],
+   "frames": [
+    "1920x1200_day_nofoot.png",
+    "1920x1200_day_terminal_over_xterm.png",
+    "1920x1200_day_meters_in_tray.png",
+    "1920x1200_day_rightclick_command.png",
+    "1920x1200_day_command_card.png"
+   ]
+  },
+  "night_1920x1200": {
+   "folded": true,
+   "foot_dock_visible": false,
+   "tray": "MetersTray",
+   "terminal_geometry": [
+    0,
+    0,
+    1920,
+    480
+   ],
+   "front_while_down": "Graphite · Terminal",
+   "front_after_away": "notes - xterm",
+   "esc_kept_it_open": true,
+   "win_k": null,
+   "pause": null,
+   "front_after_pause": null,
+   "rightclick_last_rows": [],
+   "frames": [
+    "1920x1200_night_nofoot.png",
+    "1920x1200_night_terminal_over_xterm.png"
+   ]
+  }
+ },
+ "frames_dir": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/B4/frames",
+ "release_note": "One line. With the bar standing, Graphite's window has no foot any more: Line, Search and Web are the bar's line (it also offers Search inside files and Search the web); the Terminal drops from the top of the screen over any app on Win+` or Ctrl+Alt+T, DOS words included (Esc clears the line; the same key, or exit, puts it away and gives the keys back); the Log is under View (Alt+6) with its own filter; the meters are one item in the tray. Right-click a file or folder in Files: Command… (Ctrl+.) shows the exact line it is or runs, with Copy and Put it in the line. Win+K opens Kasandra's panel and Pause presses HALT from any app."
+}
