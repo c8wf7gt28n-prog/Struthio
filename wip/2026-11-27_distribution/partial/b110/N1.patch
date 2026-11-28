@@ -1,0 +1,1036 @@
+diff --git a/tests_integrated/test_night_phosphor.py b/tests_integrated/test_night_phosphor.py
+new file mode 100644
+index 0000000..8b7de2a
+--- /dev/null
++++ b/tests_integrated/test_night_phosphor.py
+@@ -0,0 +1,170 @@
++"""1.1 N1: Night is a phosphor monitor (Amber, Green), with CRT effects (Off, Subtle, Full).
++
++The acceptance first: every text brightness of both phosphors is 4.5:1 or more on the ground it is laid on, and the setting
++switches. Then the rest of the slice's truth: one hue, inverse video, the fixed-width chrome, the xterm's colours, and each
++CRT effect off under Off and each moving one off under Reduce motion. Day is unchanged.
++"""
++import json
++import os
++import subprocess
++import sys
++import tempfile
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT))
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++
++from workbench import design_tokens as dt  # noqa: E402
++from workbench import night_phosphor as np_  # noqa: E402
++
++
++def _lin(v):
++    v /= 255.0;return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
++
++
++def luminance(colour):
++    r, g, b = dt.rgb(colour);return 0.2126 * _lin(r) + 0.7152 * _lin(g) + 0.0722 * _lin(b)
++
++
++def ratio(a, b):
++    x, y = sorted((luminance(a), luminance(b)));return (y + 0.05) / (x + 0.05)
++
++
++def darker(colour, alpha):
++    return dt.over((0, 0, 0, alpha), colour)
++
++
++class Acceptance(unittest.TestCase):
++    def test_every_text_brightness_of_both_phosphors_is_at_least_4_5_to_1_on_its_ground(self):
++        for tone in dt.PHOSPHORS:
++            c = dt.colours('night-' + tone)
++            for ink, ground, where in dt.NIGHT_PAIRS:
++                with self.subTest(phosphor=tone, ink=ink, ground=ground):
++                    self.assertGreaterEqual(ratio(c[ink], c[ground]), 4.5, '%s %s on %s (%s)' % (tone, ink, ground, where))
++            for ink in ('text', 'secondary', 'tertiary'):self.assertGreaterEqual(ratio(c[ink], c['window']), 6.0, (tone, ink))
++
++    def test_the_setting_switches_between_amber_and_green(self):
++        from workbench import boss_qt
++
++        class Host:
++            def __init__(self):
++                self.session = type('S', (), {'state': {'appearance': 'day'}, 'save': lambda s: None})()
++                self.said = []
++                self.statusBar = lambda: type('B', (), {'showMessage': lambda b, words, ms=0: self.said.append(words)})()
++        host = Host()
++        self.assertTrue(boss_qt.choose_appearance(host, 'night', ask=False, phosphor='green'))
++        self.assertEqual((host.session.state['appearance'], host.session.state['phosphor']), ('night', 'green'))
++        self.assertIn('Night: Green', host.said[-1])
++        self.assertTrue(boss_qt.choose_appearance(host, 'night', ask=False, phosphor='amber'))
++        self.assertEqual(host.session.state['phosphor'], 'amber');self.assertEqual(boss_qt.chosen_phosphor(host), 'amber')
++        self.assertFalse(boss_qt.choose_appearance(host, 'night', ask=False, phosphor='violet'), 'no third phosphor')
++        self.assertTrue(boss_qt.choose_crt(host, 'full'));self.assertEqual(boss_qt.chosen_crt(host), 'full')
++        self.assertFalse(boss_qt.choose_crt(host, 'max'))
++
++    def test_the_look_in_force_follows_the_phosphor_asked_for(self):
++        code = ('from workbench import boss_theme as t, design_tokens as d;'
++                'print(t.APPEARANCE, t.PHOSPHOR, t.TEXT, t.GROUND, t.FACE, d.face(), t.CRT)')
++        for env, said in (({'GRAPHITE_APPEARANCE': 'night-green'}, 'night green #33ff66 #0a0a08 IBM Plex Mono IBM Plex Mono subtle'),
++                          ({'GRAPHITE_APPEARANCE': 'night', 'GRAPHITE_CRT': 'off'}, 'night amber #ffb000 #0a0a08 IBM Plex Mono IBM Plex Mono off'),
++                          ({'GRAPHITE_APPEARANCE': 'day', 'GRAPHITE_PHOSPHOR': 'green'}, 'day  #1d1d1f #f5f5f7 Inter Inter subtle')):
++            with tempfile.TemporaryDirectory() as home:
++                run = dict(os.environ, HOME=home, XDG_CONFIG_HOME=home, **env);run.pop('ARC1_WORKBENCH_CONFIG_HOME', None)
++                run.pop('GRAPHITE_PHOSPHOR', None) if 'GRAPHITE_PHOSPHOR' not in env else None
++                out = subprocess.run([sys.executable, '-B', '-c', code], cwd=str(ROOT), env=run, capture_output=True, text=True, timeout=120)
++                self.assertEqual(out.stdout.strip(), said, out.stderr[-800:])
++
++
++class OnePhosphor(unittest.TestCase):
++    def test_hierarchy_is_the_brightness_of_one_hue(self):
++        for tone in dt.PHOSPHORS:
++            c = dt.colours('night-' + tone);full = dt.PHOSPHOR_INK[tone][0]
++            self.assertEqual(c['window'], dt.NIGHT_GROUND);self.assertEqual(c['text'], full)
++            steps = [luminance(c[k]) for k in ('text', 'secondary', 'tertiary', 'disabled')]
++            self.assertEqual(steps, sorted(steps, reverse=True), tone)
++            for k in ('accent', 'live', 'waiting', 'danger', 'accent_fill'):self.assertEqual(c[k], full, (tone, k))      # no other hue
++            for k in ('secondary', 'tertiary', 'disabled', 'surface', 'raised', 'recheck'):
++                share = next(a for a in range(256) if dt.over(full, dt.NIGHT_GROUND, a) == c[k])      # the phosphor over the ground
++                self.assertLess(share, 256, (tone, k))
++
++    def test_selected_row_pressed_button_active_window_and_halt_are_inverse_video(self):
++        for tone in dt.PHOSPHORS:
++            c = dt.colours('night-' + tone)
++            self.assertEqual((c['active_plate'], c['on_active']), (c['text'], dt.NIGHT_GROUND))
++            self.assertEqual(dt.marks('night-' + tone)['HALT'], c['text'])
++        sheet = dt.sheet('night')
++        self.assertIn('QTreeView::item:selected, QListView::item:selected {background:%s; color:%s;}' % (dt.colours('night')['accent_fill'], dt.NIGHT_GROUND), sheet)
++        self.assertIn('QMenu::item:selected {background:%s; color:%s;' % (dt.colours('night')['accent_fill'], dt.NIGHT_GROUND), sheet)
++        self.assertNotIn('QPushButton:pressed, QPushButton:checked', dt.sheet('day'), 'Day is unchanged')
++
++    def test_the_chrome_is_fixed_width_in_night_and_day_is_unchanged(self):
++        self.assertEqual(dt.face('night'), 'IBM Plex Mono');self.assertEqual(dt.face('night-green'), 'IBM Plex Mono');self.assertEqual(dt.face('day'), 'Inter')
++        self.assertEqual(dt.palette('night-amber')['FACE'], 'IBM Plex Mono');self.assertEqual(dt.palette('day')['FACE'], 'Inter')
++        self.assertIn('QWidget {font-family:"IBM Plex Mono";}', dt.sheet('night'))
++        day = dt.colours('day')
++        self.assertEqual((day['window'], day['text'], day['accent'], day['live'], day['active_plate']), ('#f5f5f7', '#1d1d1f', '#0a66d8', '#18773f', day['selection_side']))
++
++    def test_the_drop_down_terminal_follows_the_phosphor(self):
++        from workbench import real_terminal_qt
++        for tone in dt.PHOSPHORS:
++            look = 'night-' + tone;sixteen = real_terminal_qt.phosphor_colours(look);ground = dt.colours(look)['terminal']
++            self.assertEqual(len(sixteen), 16)
++            for n, colour in enumerate(sixteen[1:], 1):self.assertGreaterEqual(ratio(colour, ground), 4.5, (tone, n))
++
++    def test_the_choice_is_read_from_the_session_and_a_damaged_one_is_amber_and_subtle(self):
++        with tempfile.TemporaryDirectory() as home:
++            path = os.path.join(home, 'session.json');env = {}
++            self.assertEqual((np_.chosen_phosphor(env, path), np_.chosen_crt(env, path)), ('amber', 'subtle'), 'no file: the defaults')
++            for saved, said in (({'phosphor': 'green', 'crt': 'full'}, ('green', 'full')), ({'phosphor': ['green'], 'crt': 7}, ('amber', 'subtle'))):
++                Path(path).write_text(json.dumps(saved), encoding='utf-8')
++                self.assertEqual((np_.chosen_phosphor(env, path), np_.chosen_crt(env, path)), said)
++            self.assertEqual(np_.chosen_phosphor({'GRAPHITE_PHOSPHOR': 'amber'}, path), 'amber', 'the environment wins')
++
++
++class CrtEffects(unittest.TestCase):
++    def test_each_effect_is_off_under_off_and_each_moving_one_under_reduce_motion(self):
++        from workbench import crt_qt
++        off = crt_qt.effects('off')
++        self.assertFalse(any(off.values()), off)
++        self.assertFalse(any(crt_qt.effects('full', night=False).values()), 'nothing outside Night')
++        for level in ('subtle', 'full'):
++            on, still = crt_qt.effects(level), crt_qt.effects(level, reduce_motion=True)
++            for name in crt_qt.MOVING:self.assertTrue(on[name], (level, name));self.assertFalse(still[name], (level, name, 'Reduce motion'))
++            for name in ('burn_in', 'scanlines', 'block_cursor'):self.assertTrue(still[name], (level, name, 'still: it does not move'))
++        full, subtle = crt_qt.effects('full'), crt_qt.effects('subtle')
++        self.assertTrue(full['vignette'] and full['bloom']);self.assertFalse(subtle['vignette'] or subtle['bloom'])
++        self.assertTrue(120 <= full['afterglow'] <= 200);self.assertTrue(full['warm_up'] <= 450)
++        for level in ('subtle', 'full'):self.assertTrue(8 <= crt_qt.BURN[level] <= 16, '3 to 6 % of the phosphor')
++
++    def test_the_effects_never_cost_legibility(self):
++        from workbench import crt_qt
++        full = crt_qt.effects('full')
++        for tone in dt.PHOSPHORS:
++            c = dt.colours('night-' + tone)
++            for ink, ground, _ in dt.NIGHT_PAIRS:      # under the scanline and the vignette's very corner, both laid at once
++                shade = full['scanlines'] + full['vignette']
++                self.assertGreaterEqual(ratio(darker(c[ink], shade), darker(c[ground], shade)), 4.5, (tone, ink, ground))
++            ghost = dt.over(c['text'], c['window'], crt_qt.BURN['full'])      # the burn-in lifts only what is darker than it
++            for ink in ('text', 'secondary', 'tertiary'):self.assertGreaterEqual(ratio(c[ink], ghost), 4.5, (tone, ink))
++
++    def test_the_screen_and_the_line_switch_off(self):
++        from PySide6.QtWidgets import QApplication, QLineEdit, QWidget
++        from workbench import crt_qt
++        app = QApplication.instance() or QApplication([])
++        window = QWidget();window.resize(400, 300)
++        screen = crt_qt.Screen(window, 'window', crt_qt.effects('off'));self.assertFalse(screen.isVisibleTo(window))
++        self.assertFalse(screen.warm_up(), 'no warm-up under Off')
++        screen.set_effects(crt_qt.effects('full', reduce_motion=True));self.assertTrue(screen.isVisibleTo(window))
++        self.assertFalse(screen.warm_up(), 'no warm-up under Reduce motion')
++        self.assertIsNotNone(screen.burnt());self.assertIsNotNone(screen.vignette())
++        screen.set_effects(crt_qt.effects('full'));self.assertTrue(screen.warm_up())
++        edit = QLineEdit(window);still = crt_qt.Persistence(edit, crt_qt.effects('subtle', reduce_motion=True))
++        self.assertFalse(still.blink.isActive(), 'a steady cursor under Reduce motion')
++        edit.setText('READY.');self.assertIsNone(still.ghost, 'no afterglow under Reduce motion')
++        moving = crt_qt.Persistence(QLineEdit(window), crt_qt.effects('subtle'));self.assertTrue(moving.blink.isActive())
++        window.deleteLater();app.processEvents()
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/workbench/bar_qt.py b/workbench/bar_qt.py
+index 6671433..333b618 100644
+--- a/workbench/bar_qt.py
++++ b/workbench/bar_qt.py
+@@ -111,7 +111,7 @@ def ink():
+ 
+ 
+ def bar_font(h, weight=None, px=None):
+-    font = QFont(tokens.FONT['ui']);font.setPixelSize(px or text_px(h))
++    font = QFont(tokens.face());font.setPixelSize(px or text_px(h))      # 1.1 N1: fixed-width in Night
+     if weight is not None:font.setWeight(weight)
+     return font
+ 
+@@ -251,12 +251,22 @@ class LineField(BarButton):
+ 
+ 
+ # ---- the windows ----------------------------------------------------------------------------------------------------------------
++def inverse(c):
++    """1.1 N1: whether the look draws what is active as inverse video (Night: the words in the ground on the phosphor)."""
++    return c['on_active'] != c['text']
++
++
++def words_ink(c, active, down, otherwise):
++    """1.1 N1: the words on a window's button: the ground's on its inverse plate (the active window in Night), else `otherwise`."""
++    return c['on_active'] if inverse(c) and active else otherwise
++
++
+ def entry_face(p, w, h, c, active, minimised, hover, down):
+     """One window's button: a plate when active (the shape that says so), an underline when running, its title."""
+     r = QRectF(2, 4, w - 4, h - 8)
+-    if active:plate(p, r, c['selection_side'])
+-    if down:plate(p, r, c['pressed'])
+-    elif hover:plate(p, r, c['raised'] if active else c['hover_side'])
++    if active:plate(p, r, c['active_plate'])      # 1.1 N1: inverse video in Night (the selection's tint in Day)
++    if down and not (active and inverse(c)):plate(p, r, c['pressed'])      # 1.1 N1: an active entry stays inverse
++    elif hover and not (active and inverse(c)):plate(p, r, c['raised'] if active else c['hover_side'])      # 1.1 N1
+     if not active:      # running: the short rule under it
+         p.fillRect(QRectF(w * 0.3, h - 5, w * 0.4, 2), QColor(c['tertiary'] if minimised else c['secondary']))
+     else:
+@@ -289,7 +299,7 @@ class GraphiteButton(BarButton):
+         px = round(h * 0.45);x = round(h * 0.25)
+         mark_icon(px).paint(p, QRect(x, (h - px) // 2, px, px));x += px + 8
+         font = bar_font(h, QFont.DemiBold if self.active else QFont.Medium);p.setFont(font)
+-        p.setPen(QColor(c['text'] if self.active or self.underMouse() else c['secondary']))
++        p.setPen(QColor(words_ink(c, self.active, self.isDown(), c['text'] if self.active or self.underMouse() else c['secondary'])))      # 1.1 N1
+         p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, 'Graphite')
+         key = self.her_state()
+         words = 'Graphite%s\nPress to bring Graphite\'s window forward.' % (' (active)' if self.active else '')
+@@ -331,6 +341,7 @@ class BarEntry(Entry):
+         drawn = self.dressed(fm.elidedText(self.text(), Qt.ElideRight, max(4, room - frame)))
+         self.shown = lead + drawn
+         tone = c['text'] if self.active or self.underMouse() else (c['tertiary'] if self.minimised else c['secondary'])
++        tone = words_ink(c, self.active, self.isDown(), tone)      # 1.1 N1
+         p.setPen(QColor(tone));p.drawText(QRect(x, 0, room, h - 2), Qt.AlignLeft | Qt.AlignVCenter, drawn)
+         p.end()
+ 
+diff --git a/workbench/boss_qt.py b/workbench/boss_qt.py
+index 4079845..5a32866 100644
+--- a/workbench/boss_qt.py
++++ b/workbench/boss_qt.py
+@@ -393,21 +393,71 @@ def appearance_menu(host):
+ APPEARANCE_WORDS = {'graphite': 'Graphite: pencil, paper and amber, as it has always been',
+                     'kasandra': 'Kasandra: indigo and a typewriter face for headings',      # 1.0 P4 no avatar: her art no longer follows the work
+                     'day': 'Day: the launch look, light and calm; green for what is live, blue for the board\'s wires and what is selected',      # 1.0 P2, P4
+-                    'night': 'Night: Day\'s dark twin, from the same design tokens'}      # 1.0 P4
++                    'night': 'Night: a phosphor monitor, one colour on black',      # 1.0 P4; 1.1 N1
++                    'night-amber': 'Night: Amber: an amber phosphor monitor; brightness says what matters, a block says what is selected',      # 1.1 N1
++                    'night-green': 'Night: Green: a green phosphor monitor; brightness says what matters, a block says what is selected'}      # 1.1 N1
+ 
+ 
+ def looks_menu(host, parent=None):
+     """1.0 P4: the Appearance menu (Arrange ▸ Appearance, and Rules ▸ Desk artwork ▸ Appearance): the whole window's look,
+-    kept for the next start."""
++    kept for the next start. 1.1 N1: Night is offered in its two phosphors (Night: Amber, Night: Green), and CRT effects
++    (Off, Subtle, Full) follow them."""
++    from . import night_phosphor as np_      # 1.1 N1
+     looks = QMenu('Appearance', parent or host);kinds = QActionGroup(looks);kinds.setExclusive(True);looked = {}
+     for key, word in t.APPEARANCES:      # the whole window: Day, Night, Graphite or Kasandra
+-        line = looks.addAction(word);line.setCheckable(True);kinds.addAction(line);looked[key] = line
+-        line.setToolTip(APPEARANCE_WORDS[key]);line.setStatusTip(APPEARANCE_WORDS[key])
+-        line.triggered.connect(lambda checked=False, key=key:choose_appearance(host, key))
+-    looks.aboutToShow.connect(lambda:looked.get(chosen_look(host), looked['graphite']).setChecked(True))
++        for tone, said in (np_.PHOSPHORS if key == 'night' else ((None, word),)):      # 1.1 N1
++            slot = 'night-' + tone if tone else key
++            line = looks.addAction(said);line.setCheckable(True);kinds.addAction(line);looked[slot] = line
++            line.setToolTip(APPEARANCE_WORDS[slot]);line.setStatusTip(APPEARANCE_WORDS[slot])
++            line.triggered.connect(lambda checked=False, key=key, tone=tone:choose_appearance(host, key, phosphor=tone))
++    looks.addSeparator()      # 1.1 N1: CRT effects, for Night
++    crt = QMenu('CRT effects', looks);levels = QActionGroup(crt);levels.setExclusive(True);levelled = {}
++    for key, word in np_.CRT_LEVELS:
++        line = crt.addAction(word);line.setCheckable(True);levels.addAction(line);levelled[key] = line
++        line.setStatusTip('CRT effects in Night: %s (used from the next start; Reduce motion stills what moves)' % word)
++        line.triggered.connect(lambda checked=False, key=key:choose_crt(host, key))
++    looks.addMenu(crt)
++
++    def sync():
++        look = chosen_look(host)
++        if look == 'night':look = 'night-' + chosen_phosphor(host)
++        looked.get(look, looked['graphite']).setChecked(True)
++        levelled[chosen_crt(host)].setChecked(True)
++    looks.aboutToShow.connect(sync)
+     return looks
+ 
+ 
++def chosen_phosphor(host):
++    """1.1 N1: the phosphor the session keeps for Night ('amber' or 'green')."""
++    from . import night_phosphor as np_
++    try:return np_.phosphor_value(host.session.state.get(np_.PHOSPHOR_KEY)) or t._tokens.phosphor()
++    except Exception:  # noqa: BLE001 - a host without a session: the one in force
++        return t._tokens.phosphor()
++
++
++def chosen_crt(host):
++    """1.1 N1: the CRT effects the session keeps ('off', 'subtle' or 'full')."""
++    from . import night_phosphor as np_
++    try:return np_.crt_value(host.session.state.get(np_.CRT_KEY)) or t.CRT
++    except Exception:  # noqa: BLE001
++        return t.CRT
++
++
++def choose_crt(host, key):
++    """1.1 N1: keep the CRT effects for the next start (the effects are made when the window is)."""
++    from . import night_phosphor as np_
++    if not np_.crt_value(key):return False
++    host.session.state[np_.CRT_KEY] = key;host.session.save()
++    word = dict(np_.CRT_LEVELS)[key]
++    try:
++        from . import crt_qt
++        crt_qt.set_level(host, key)      # the screen's effects at once; the lines' from the next start
++    except Exception:  # noqa: BLE001 - the effects are a grace: the choice is kept whatever they do
++        pass
++    host.statusBar().showMessage('CRT effects: %s, in Night.' % word, 7000)
++    return True
++
++
+ def chosen_look(host):
+     """The appearance the session keeps for the next start (what is in force now is boss_theme.APPEARANCE)."""
+     try:value = host.session.state.get('appearance', t.APPEARANCE)
+@@ -416,20 +466,26 @@ def chosen_look(host):
+     return value if value in dict(t.APPEARANCES) else 'graphite'
+ 
+ 
+-def choose_appearance(host, key, ask=True):
++def choose_appearance(host, key, ask=True, phosphor=None):
+     """Keep the appearance for the next start, and offer to start again now. The colours are read once, when Graphite
+-    starts (every page is built in them), so a change cannot be put in force in a running window."""
++    starts (every page is built in them), so a change cannot be put in force in a running window. 1.1 N1: Night with its
++    phosphor ('amber' or 'green'; the one kept when None)."""
+     if key not in dict(t.APPEARANCES):return False
+-    host.session.state['appearance'] = key;host.session.save()
+-    word = dict(t.APPEARANCES)[key]
+-    if key == t.APPEARANCE:
++    from . import night_phosphor as np_      # 1.1 N1
++    tone = np_.phosphor_value(phosphor) if key == 'night' else None      # 1.1 N1
++    if phosphor is not None and key == 'night' and not tone:return False
++    host.session.state['appearance'] = key
++    if tone:host.session.state[np_.PHOSPHOR_KEY] = tone      # 1.1 N1
++    host.session.save()
++    word = dict(np_.PHOSPHORS)[tone] if tone else dict(t.APPEARANCES)[key]      # 1.1 N1: "Night: Amber"
++    if key == t.APPEARANCE and (not tone or tone == t.PHOSPHOR):      # 1.1 N1: the same phosphor too
+         host.statusBar().showMessage(word + ' is the appearance in use.', 5000);return True
+     if ask:
+         from PySide6.QtWidgets import QMessageBox
+         if QMessageBox.question(host, 'Appearance', word + ' is used from the next start. Start Graphite again now? '
+                                 'It saves this window first.') == QMessageBox.Yes:
+             from .shell2 import relaunch
+-            relaunch(host, host.root, drop=('GRAPHITE_APPEARANCE',));return True
++            relaunch(host, host.root, drop=('GRAPHITE_APPEARANCE', 'GRAPHITE_PHOSPHOR'));return True      # 1.1 N1: the phosphor too
+     host.statusBar().showMessage(word + ' is used from the next start.', 7000)
+     return True
+ 
+diff --git a/workbench/boss_theme.py b/workbench/boss_theme.py
+index f0e351f..fb5e452 100644
+--- a/workbench/boss_theme.py
++++ b/workbench/boss_theme.py
+@@ -38,6 +38,9 @@ import re
+ # choice, reads the same list without importing the theme. Each of them has a palette here.
+ from .presentation_preferences import APPEARANCES, APPEARANCE_DEFAULT, APPEARANCE_EARLIER, appearance as saved_appearance
+ from . import design_tokens as _tokens      # 1.0 P4: Day and Night are made from the design tokens
++from . import night_phosphor as _phosphor      # 1.1 N1: Night's phosphor (Amber, Green) and its CRT effects, chosen once here
++_tokens.set_phosphor(_phosphor.chosen_phosphor())      # 1.1 N1: before Night's palette is made
++CRT = _phosphor.chosen_crt()      # 1.1 N1: off, subtle or full (crt_qt draws them in Night only)
+ APPEARANCE_KEY = 'appearance'
+ PALETTES = {
+     'graphite': dict(
+@@ -143,6 +146,7 @@ def chosen_appearance(environ=None, path=None):
+     environ = os.environ if environ is None else environ
+     wanted = str(environ.get('GRAPHITE_APPEARANCE', '')).strip().lower()
+     if wanted in PALETTES:return wanted
++    if _phosphor.asked_night(environ):return 'night'      # 1.1 N1: night-amber, night-green
+     try:
+         if path is None:
+             override = environ.get('ARC1_WORKBENCH_CONFIG_HOME')
+@@ -168,6 +172,7 @@ def launch_move_due(environ=None, path=None):
+     that cannot be read is left as 0.8.4 left it (Graphite)."""
+     environ = os.environ if environ is None else environ
+     if str(environ.get('GRAPHITE_APPEARANCE', '')).strip().lower() in PALETTES:return False
++    if _phosphor.asked_night(environ):return False      # 1.1 N1
+     try:
+         if path is None:
+             override = environ.get('ARC1_WORKBENCH_CONFIG_HOME')
+@@ -184,6 +189,8 @@ APPEARANCE = chosen_appearance()
+ MOVED_TO_DAY = launch_move_due()      # 1.0 P4: 1.0's first start on a profile from before moves it to Day, once
+ if MOVED_TO_DAY:APPEARANCE = 'day'
+ LAUNCH = APPEARANCE in _tokens.LOOKS      # 1.0 P4: Day or Night, the launch look, drawn from the design tokens
++_tokens.IN_FORCE[0] = APPEARANCE      # 1.1 N1: design_tokens.face() reads the look in force
++PHOSPHOR = _tokens.phosphor() if APPEARANCE == 'night' else ''      # 1.1 N1: 'amber' or 'green' in Night, '' in any other look
+ DAY_MARKS = _tokens.marks(APPEARANCE if LAUNCH else 'day')      # 1.0 P4: the launch look's marks (Night's own in Night)
+ globals().update(PALETTES[APPEARANCE])
+ # The roles, by meaning (0.8.0). In Graphite they are the colours they always were; in Kasandra they part:
+diff --git a/workbench/crt_qt.py b/workbench/crt_qt.py
+new file mode 100644
+index 0000000..ff13e04
+--- /dev/null
++++ b/workbench/crt_qt.py
+@@ -0,0 +1,300 @@
++"""Graphite 1.1 N1 · the phosphor Night's CRT effects: "Screen burns and all the fun" (the owner, 28 Nov 2026).
++
++One setting, View ▸ Appearance ▸ CRT effects: Off, Subtle (the default) or Full (night_phosphor keeps it). Only in Night.
++None of it costs a word its legibility, and Reduce motion stills everything that moves:
++
++  burn-in      a static ghost of old screens (a READY. prompt, the Graphite mark, an old bar's layout) burnt into the
++               ground of the window and of the bar, 3 % (Subtle) or 5 % (Full) of the phosphor. It is laid with the
++               Lighten mode, so it only lifts what is darker than it: it lies under every word and picture, never on them.
++  afterglow    a line edit's glyphs and its cursor fade out over AFTERGLOW_MS when they change or move (persistence),
++               laid with Lighten, so only where nothing is now lit. It moves, so Reduce motion stills it.
++  warm-up      once, when the window first shows in Night: a horizontal line opens into the screen over WARM_MS. It moves.
++  scanlines    very faint horizontal lines, 2 % (Subtle) or 4 % (Full) of black every third pixel row, and in Full a soft
++               corner vignette of at most VIGNETTE_MAX (6 %) at the very corner. Measured: the faintest words (tertiary)
++               stay 4.5:1 or more under both (tests_integrated/test_night_phosphor.py).
++  cursor       a block cursor in the line edits and the bar's line (inverse video: the block of the phosphor, the glyph
++               under it in the ground), blinking every BLINK_MS; steady under Reduce motion. In Full a faint bloom (a
++               soft phosphor halo, no blur over the words themselves) on the head's menu words, the brightest text.
++
++The drop-down xterm is a window of its own (xterm): only its colours follow the phosphor (real_terminal_qt).
++Nothing here reads or changes anything outside the window's own painting.
++"""
++from __future__ import annotations
++
++from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRect, QRectF, Qt, QTimer, QVariantAnimation
++from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPixmap, QRadialGradient, QRegion
++from PySide6.QtWidgets import QApplication, QGraphicsDropShadowEffect, QLineEdit, QWidget
++
++from . import boss_theme as bt
++from . import design_tokens as tokens
++
++AFTERGLOW_MS = 160
++WARM_MS = 400
++BLINK_MS = 530
++VIGNETTE_MAX = 16            # out of 255 at the very corner (6 %), Full only
++BURN = dict(off=0, subtle=8, full=13)            # the ghost: share of the phosphor out of 255 (3 %, 5 %)
++SCAN = dict(off=0, subtle=5, full=10)            # the scanlines: black out of 255 (2 %, 4 %)
++MOVING = ('afterglow', 'warm_up', 'blink')
++
++
++def effects(level, reduce_motion=False, night=True):
++    """What is drawn, for a level ('off', 'subtle', 'full'), Reduce motion and whether Night is in force: a dict of each
++    effect's strength (0 or False when it is off). The one place the switches are decided."""
++    level = level if level in BURN else 'subtle'
++    on = bool(night) and level != 'off';full = on and level == 'full'
++    moves = on and not reduce_motion
++    return dict(burn_in=BURN[level] if on else 0, scanlines=SCAN[level] if on else 0, vignette=VIGNETTE_MAX if full else 0,
++                afterglow=AFTERGLOW_MS if moves else 0, warm_up=WARM_MS if moves else 0, block_cursor=on,
++                blink=BLINK_MS if moves else 0, bloom=full)
++
++
++def reduce_motion(host):
++    try:
++        from .document_qt import profile_of
++        return bool(profile_of(host).get('reduce_motion'))
++    except Exception:  # noqa: BLE001 - motion is a grace, never a reason to fail
++        return False
++
++
++def level_of(host):
++    try:
++        from .night_phosphor import CRT_KEY, crt_value
++        return crt_value(host.session.state.get(CRT_KEY)) or bt.CRT
++    except Exception:  # noqa: BLE001
++        return bt.CRT
++
++
++def now(host):
++    return effects(level_of(host), reduce_motion(host), bool(getattr(bt, 'PHOSPHOR', '')))
++
++
++# ---- the screen: burn-in, scanlines, vignette, warm-up --------------------------------------------------------------------------
++class Screen(QWidget):
++    """A sheet over a window that takes no press and no focus: the ghost (Lighten), the scanlines, the vignette, the warm-up."""
++
++    def __init__(self, window, ghost='window', fx=None):
++        super().__init__(window);self.window_ = window;self.ghost = ghost;self.fx = dict(fx or effects('off'))
++        self.setObjectName('CrtScreen');self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
++        self.setAttribute(Qt.WA_NoSystemBackground, True);self.setAttribute(Qt.WA_TranslucentBackground, True)
++        self.setFocusPolicy(Qt.NoFocus);self._burnt = None;self._vignette = None;self.warmth = 1.0;self.warming = None
++        c = tokens.colours('night');self.phosphor = QColor(c['text']);self.ground = QColor(c['window'])
++        window.installEventFilter(self);self.setGeometry(window.rect());self.raise_()
++        self.setVisible(self.drawn())
++
++    def drawn(self):
++        f = self.fx;return bool(f['burn_in'] or f['scanlines'] or f['vignette'] or self.warming is not None)
++
++    def set_effects(self, fx):
++        self.fx = dict(fx);self._burnt = self._vignette = None;self.setVisible(self.drawn());self.update()
++
++    def eventFilter(self, watched, event):
++        if watched is self.window_ and event.type() == QEvent.Resize:
++            self.setGeometry(self.window_.rect());self._burnt = self._vignette = None;self.raise_()
++        elif watched is self.window_ and event.type() == QEvent.ChildAdded:
++            QTimer.singleShot(0, self._top)
++        return False
++
++    def _top(self):
++        try:
++            if self.isVisible():self.raise_()
++        except RuntimeError:
++            pass
++
++    # the ghost, made once per size
++    def burnt(self):
++        if self._burnt is not None or not self.fx['burn_in']:return self._burnt
++        w, h = max(1, self.width()), max(1, self.height());pix = QPixmap(w, h);pix.fill(Qt.black)
++        ghost = QColor(self.ground);a = self.fx['burn_in']
++        ghost.setRgb(*(min(255, (a * p + (255 - a) * g + 127) // 255) for p, g in
++                       zip(self.phosphor.getRgb()[:3], self.ground.getRgb()[:3])))
++        p = QPainter(pix);p.setRenderHint(QPainter.Antialiasing);p.setPen(ghost);p.setBrush(Qt.NoBrush)
++        mono = QFont(tokens.FONT['mono'])
++        if self.ghost == 'bar':      # an old bar's layout: a START plate, four window plates, a clock
++            unit = max(8, h // 4);p.setBrush(ghost);p.setPen(Qt.NoPen)
++            p.drawRect(QRectF(unit, unit, unit * 5, h - 2 * unit))
++            for n in range(4):p.drawRect(QRectF(unit * (8 + n * 13), unit * 1.4, unit * 11, h - 2.8 * unit))
++            p.drawRect(QRectF(w - unit * 9, unit, unit * 7, h - 2 * unit))
++        else:      # READY. at the top left, the Graphite mark large in the middle, a prompt under it
++            mono.setPixelSize(max(14, h // 40));p.setFont(mono)
++            p.drawText(QRectF(w * 0.03, h * 0.08, w * 0.5, h * 0.05), Qt.AlignLeft | Qt.AlignVCenter, 'READY.')
++            big = QFont(mono);big.setPixelSize(max(28, h // 9));big.setBold(True);p.setFont(big)
++            p.drawText(QRectF(0, h * 0.36, w, h * 0.2), Qt.AlignCenter, 'GRAPHITE')
++            p.setFont(mono);p.drawText(QRectF(w * 0.03, h * 0.84, w * 0.6, h * 0.05), Qt.AlignLeft | Qt.AlignVCenter, 'C:\\> _')
++        p.end();self._burnt = pix
++        return pix
++
++    def vignette(self):
++        if self._vignette is not None or not self.fx['vignette']:return self._vignette
++        w, h = max(1, self.width()), max(1, self.height());pix = QPixmap(w, h);pix.fill(Qt.transparent)
++        p = QPainter(pix);g = QRadialGradient(QPointF(w / 2, h / 2), (w * w + h * h) ** 0.5 / 2)
++        g.setColorAt(0.0, QColor(0, 0, 0, 0));g.setColorAt(0.72, QColor(0, 0, 0, 0));g.setColorAt(1.0, QColor(0, 0, 0, self.fx['vignette']))
++        p.fillRect(pix.rect(), QBrush(g));p.end();self._vignette = pix
++        return pix
++
++    def paintEvent(self, event):
++        p = QPainter(self);area = event.rect()
++        burnt = self.burnt()
++        if burnt is not None:
++            p.setCompositionMode(QPainter.CompositionMode_Lighten);p.drawPixmap(area, burnt, area)
++            p.setCompositionMode(QPainter.CompositionMode_SourceOver)
++        if self.fx['scanlines']:
++            tile = QPixmap(4, 3);tile.fill(Qt.transparent);t = QPainter(tile);t.fillRect(0, 2, 4, 1, QColor(0, 0, 0, self.fx['scanlines']));t.end()
++            p.fillRect(area, QBrush(tile))
++        vignette = self.vignette()
++        if vignette is not None:p.drawPixmap(area, vignette, area)
++        if self.warming is not None:      # the warm-up: dark, with a line that opens from the middle
++            h = self.height();open_ = self.warmth * h;top = (h - open_) / 2
++            p.fillRect(QRectF(0, 0, self.width(), top), Qt.black);p.fillRect(QRectF(0, top + open_, self.width(), h), Qt.black)
++            line = QColor(self.phosphor);line.setAlpha(round(255 * (1.0 - self.warmth)))
++            p.fillRect(QRectF(0, top - 1, self.width(), 2), line);p.fillRect(QRectF(0, top + open_ - 1, self.width(), 2), line)
++        p.end()
++
++    def warm_up(self):
++        """Once: the line opens into the screen over the effect's warm-up time. Nothing when it is off (Off, Reduce motion)."""
++        ms = self.fx['warm_up']
++        if not ms:return False
++        self.warming = QVariantAnimation(self);self.warming.setStartValue(0.0);self.warming.setEndValue(1.0);self.warming.setDuration(ms)
++        self.warming.valueChanged.connect(self._warm);self.warming.finished.connect(self._warm_done)
++        self.warmth = 0.0;self.setVisible(True);self.raise_();self.warming.start()
++        return True
++
++    def _warm(self, value):
++        self.warmth = float(value);self.update()
++
++    def _warm_done(self):
++        self.warming = None;self.warmth = 1.0;self.setVisible(self.drawn());self.update()
++
++
++# ---- the line: block cursor, afterglow --------------------------------------------------------------------------------------------
++class Persistence(QWidget):
++    """Over one line edit: its block cursor (inverse video: Difference with the phosphor) blinking, and the afterglow of what
++    was there before a change or a move (the line as it was, laid with Lighten and fading)."""
++
++    def __init__(self, edit, fx):
++        super().__init__(edit);self.edit = edit;self.fx = dict(fx);self.setObjectName('CrtPersistence')
++        self.setAttribute(Qt.WA_TransparentForMouseEvents, True);self.setFocusPolicy(Qt.NoFocus)
++        self.phosphor = QColor(tokens.colours('night')['text']);self.lit = True;self.ghost = None;self.fade = 0.0
++        self.old_cursor = None;self.before = None
++        self.blink = QTimer(self);self.blink.timeout.connect(self._blink)
++        if self.fx['blink']:self.blink.start(self.fx['blink'])
++        self.glow = QVariantAnimation(self);self.glow.setStartValue(1.0);self.glow.setEndValue(0.0)
++        self.glow.setDuration(max(1, self.fx['afterglow']));self.glow.valueChanged.connect(self._fade)
++        edit.textChanged.connect(self._changed);edit.cursorPositionChanged.connect(self._moved)
++        edit.installEventFilter(self);self.setGeometry(edit.rect());self.raise_();self.show();self._keep()
++
++    def eventFilter(self, watched, event):
++        if event.type() == QEvent.Resize:self.setGeometry(self.edit.rect());QTimer.singleShot(0, self._keep)
++        elif event.type() in (QEvent.FocusIn, QEvent.FocusOut):self.lit = True;self.update()
++        return False
++
++    def cursor_rect(self):
++        r = self.edit.inputMethodQuery(Qt.ImCursorRectangle)
++        r = r.toRect() if hasattr(r, 'toRect') else QRect(r)
++        cell = max(6, self.edit.fontMetrics().horizontalAdvance('M'))
++        return QRect(r.left(), r.top(), cell, max(r.height(), 8))
++
++    def _keep(self):
++        """The line as it is now (without this sheet), for the afterglow of the next change."""
++        if not self.fx['afterglow']:return
++        try:
++            pix = QPixmap(self.edit.size());pix.fill(Qt.transparent)
++            self.edit.render(pix, QPoint(), QRegion(), QWidget.RenderFlag.DrawWindowBackground);self.before = pix
++        except RuntimeError:
++            pass
++
++    def _changed(self, *_):
++        if self.fx['afterglow'] and self.before is not None:
++            self.ghost = self.before;self.glow.stop();self.glow.start()
++        QTimer.singleShot(0, self._keep)
++
++    def _moved(self, old, new):
++        if self.fx['afterglow'] and self.edit.hasFocus():
++            self.old_cursor = self.cursor_rect().translated(-(new - old) * max(6, self.edit.fontMetrics().horizontalAdvance('M')), 0)
++            if self.ghost is None:self.glow.stop();self.glow.start()
++        self.lit = True;self.update()
++
++    def _fade(self, value):
++        self.fade = float(value)
++        if self.fade <= 0.0:self.ghost = None;self.old_cursor = None
++        self.update()
++
++    def _blink(self):
++        if self.edit.hasFocus():self.lit = not self.lit;self.update()
++
++    def paintEvent(self, event):
++        p = QPainter(self)
++        if self.ghost is not None and self.fade > 0.0:      # what was there, glowing out where nothing is lit now
++            p.setCompositionMode(QPainter.CompositionMode_Lighten);p.setOpacity(0.55 * self.fade);p.drawPixmap(0, 0, self.ghost)
++            p.setOpacity(1.0)
++        if self.old_cursor is not None and self.fade > 0.0:
++            p.setCompositionMode(QPainter.CompositionMode_Lighten);c = QColor(self.phosphor);c.setAlpha(round(110 * self.fade))
++            p.fillRect(self.old_cursor, c)
++        if self.edit.hasFocus() and self.lit and self.fx['block_cursor']:      # the block: inverse video over the glyph under it
++            p.setCompositionMode(QPainter.CompositionMode_Difference);p.fillRect(self.cursor_rect(), self.phosphor)
++        p.end()
++
++
++# ---- the window: where it all is put ----------------------------------------------------------------------------------------------
++class _Lines(QObject):
++    """Gives each line edit that takes the focus its Persistence, once."""
++
++    def __init__(self, host, fx):
++        super().__init__(host);self.host = host;self.fx = fx
++
++    def eventFilter(self, watched, event):
++        if event.type() == QEvent.FocusIn and isinstance(watched, QLineEdit) and self.fx['block_cursor']:
++            if watched.findChild(Persistence, options=Qt.FindDirectChildrenOnly) is None:Persistence(watched, self.fx)
++        return False
++
++
++def install(host):
++    """Called once the window is built (launch_look.install): in Night only, the screen over the window, the bar's when it
++    stands, the lines' cursor and afterglow, the bloom, and the warm-up once. Returns the effects in force."""
++    host.crt_screen = None;host.crt_bar_screen = None;host.crt_fx = fx = now(host)
++    if not getattr(bt, 'PHOSPHOR', ''):return fx
++    if any(fx[k] for k in ('burn_in', 'scanlines', 'vignette', 'warm_up')):
++        host.crt_screen = Screen(host, 'window', fx)
++        QTimer.singleShot(0, host.crt_screen.warm_up)
++    if fx['block_cursor']:
++        host.crt_lines = _Lines(host, fx);app = QApplication.instance()
++        if app is not None:app.installEventFilter(host.crt_lines)
++    for wait in (0, 1500, 4000):QTimer.singleShot(wait, lambda: attach_bar(host))
++    if fx['bloom']:QTimer.singleShot(0, lambda: bloom(host))
++    return fx
++
++
++def attach_bar(host):
++    bar = getattr(host, 'graphite_bar', None);fx = getattr(host, 'crt_fx', None)
++    if bar is None or not fx or getattr(host, 'crt_bar_screen', None) is not None:return None
++    if not (fx['burn_in'] or fx['scanlines']):return None
++    try:
++        quiet = dict(fx, vignette=0, warm_up=0);host.crt_bar_screen = Screen(bar, 'bar', quiet)
++    except RuntimeError:
++        return None
++    return host.crt_bar_screen
++
++
++def bloom(host):
++    """Full: a faint phosphor halo on the head's menu words (no blur on the words: a halo laid under them)."""
++    words = list(getattr(host, 'bar_menus', []) or [])
++    for widget in words:
++        try:
++            halo = QGraphicsDropShadowEffect(widget);halo.setOffset(0, 0);halo.setBlurRadius(10)
++            c = QColor(tokens.colours('night')['text']);c.setAlpha(90);halo.setColor(c);widget.setGraphicsEffect(halo)
++        except RuntimeError:
++            pass
++    return len(words)
++
++
++def set_level(host, level):
++    """The menu's choice, put in force at once where it can be (the screen and the bar's); the rest from the next start."""
++    fx = effects(level, reduce_motion(host), bool(getattr(bt, 'PHOSPHOR', '')))
++    for screen in (getattr(host, 'crt_screen', None), getattr(host, 'crt_bar_screen', None)):
++        if screen is not None:
++            try:screen.set_effects(dict(fx, warm_up=0))
++            except RuntimeError:
++                pass
++    if getattr(host, 'crt_screen', None) is None and getattr(bt, 'PHOSPHOR', '') and (fx['burn_in'] or fx['scanlines']):
++        host.crt_screen = Screen(host, 'window', dict(fx, warm_up=0))
++    host.crt_fx = fx
++    return fx
+diff --git a/workbench/design_tokens.py b/workbench/design_tokens.py
+index fa89bc6..f7af853 100644
+--- a/workbench/design_tokens.py
++++ b/workbench/design_tokens.py
+@@ -37,19 +37,70 @@ COLOUR = {
+         recheck='#6a4bb5', violet_text='#5a3fa0',
+         shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 96),
+     ),
+-    'night': dict(
+-        window='#161618', surface='#1f1f22', sidebar='#1b1b1e', raised='#2a2a2e', pressed='#333338', terminal='#121214',
+-        hairline=(255, 255, 255, 20), stroke=(255, 255, 255, 36), stroke_strong=(255, 255, 255, 92),
+-        text='#f2f2f5', secondary='#a8a8af', tertiary='#a0a0a7', disabled='#6a6a70',
+-        accent='#4c93ff', accent_text='#7fb2ff', accent_fill='#2563c9', on_accent='#ffffff',
+-        live='#34c26a', live_text='#5fd68a', on_live='#0b0b0d',
+-        waiting='#f0a63a', waiting_text='#f5b95e', on_waiting='#0b0b0d',
+-        danger='#ff6b60', danger_text='#ff8a80', on_danger='#0b0b0d',
+-        recheck='#b49cff', violet_text='#c4b2ff',
+-        shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 140),
+-    ),
+ }
+ 
++# ------------------------------------------------------------------- 1.1 N1: Night is a phosphor monitor (Amber, Green)
++# The owner, 28 Nov 2026: night mode is "to look like old computers that only had orange and black / green and black
++# monitors....but updated to 2026 but still old school modern". Night is one phosphor on a warm near-black ground; hierarchy
++# is the brightness of that one phosphor, never another hue. The steps are shares (out of 255) of the phosphor laid over
++# the ground. The plan's "about 70 % and 45 %" measured 2.9:1 for 45 % amber on the ground, under 4.5:1, so the steps are
++# the lowest shares that keep 4.5:1 on every ground a word is laid on (the builder's measure, NIGHT_PAIRS):
++#   Amber #ffb000: words 255 (10.8:1 on the ground), secondary 215 (7.8:1), tertiary 190 (6.3:1); 4.7:1 or more on the
++#                  heaviest tint.   Green #33ff66: 255 (14.8:1), 200 (9.1:1), 175 (7.1:1); 5.0:1 or more on the heaviest tint.
++# What is selected, the pressed button, the active window on the bar, HALT and anything destructive are inverse video: a
++# block of the phosphor with words in the ground. State colours become the phosphor; every state keeps its word and shape.
++PHOSPHORS = ('amber', 'green')
++PHOSPHOR_DEFAULT = 'amber'
++PHOSPHOR = [PHOSPHOR_DEFAULT]      # the phosphor in force: boss_theme sets it once, at its import, as it chooses the look
++IN_FORCE = ['day']                 # the look in force (boss_theme sets it too): face() reads it
++PHOSPHOR_WORDS = {'amber': 'Amber', 'green': 'Green'}
++NIGHT_GROUND = '#0a0a08'
++# phosphor: (full, secondary share, tertiary share, disabled share)
++PHOSPHOR_INK = {'amber': ('#ffb000', 220, 200, 130), 'green': ('#33ff66', 205, 180, 115)}
++
++
++def _phosphor_colours(name):
++    full, second, third, off = PHOSPHOR_INK[name];g = NIGHT_GROUND;r, gg, b = rgb(full)
++    lay = lambda share: over(full, g, share)
++    return dict(
++        window=g, surface=lay(12), sidebar=lay(8), raised=lay(22), pressed=lay(48), terminal='#080806',
++        hairline=(r, gg, b, 46), stroke=(r, gg, b, 80), stroke_strong=(r, gg, b, 150),
++        text=full, secondary=lay(second), tertiary=lay(third), disabled=lay(off),
++        accent=full, accent_text=full, accent_fill=full, on_accent=g,
++        live=full, live_text=full, on_live=g,
++        waiting=full, waiting_text=full, on_waiting=g,
++        danger=full, danger_text=full, on_danger=g,
++        recheck=lay(second), violet_text=lay(second),
++        shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 160),
++    )
++
++
++def phosphor(look=None):
++    """'amber' or 'green': the one a look name asks for ('night-green', 'night-amber'), else the one in force."""
++    look = str(look or '')
++    for name in PHOSPHORS:
++        if look == 'night-' + name:return name
++    return PHOSPHOR[0] if PHOSPHOR[0] in PHOSPHORS else PHOSPHOR_DEFAULT
++
++
++def set_phosphor(name):
++    PHOSPHOR[0] = name if name in PHOSPHORS else PHOSPHOR_DEFAULT
++    return PHOSPHOR[0]
++
++
++def is_phosphor(look=None):
++    """Whether a look (the one in force when None) is the phosphor Night."""
++    return look_of(IN_FORCE[0] if look is None else look) == 'night'
++
++
++def face(look=None, role='ui'):
++    """The chrome's face for a look (the one in force when None): Night's chrome is fixed-width (IBM Plex Mono)."""
++    return FONT['mono'] if is_phosphor(look) else FONT[role]
++
++
++def _key(look):
++    return 'night-' + phosphor(look) if look_of(look) == 'night' else 'day'
++
+ # How much of a colour is laid over a ground for each tint, as a share of 255 (whole numbers: no floating point).
+ TINT = dict(selection=31, live=26, waiting=26, danger=22, recheck=26, hover=13, ring_accent=23, ring_live=28, yours=15)
+ # selection 12 %, live/waiting/recheck 10 %, danger 9 %, hover 5 %, rings: accent 9 %, live 11 % (section 9), your words 6 %
+@@ -138,14 +189,17 @@ def rgba(colour, alpha=None):
+     return 'rgba(%d, %d, %d, %d)' % (r, g, b, a if alpha is None else alpha)
+ 
+ 
++COLOUR.update(('night-' + _name, _phosphor_colours(_name)) for _name in PHOSPHORS)      # 1.1 N1
++
++
+ def look_of(look):
+-    return 'night' if look == 'night' else 'day'
++    return 'night' if str(look) in ('night', 'night-amber', 'night-green') else 'day'      # 1.1 N1: a phosphor's name is Night
+ 
+ 
+ def colours(look):
+     """Every colour of a look, the given ones and the ones made from them (tints, opaque hairlines), all '#rrggbb' except
+     the ones with alpha (hairline_a, stroke_a, shadow, scrim)."""
+-    c = dict(COLOUR[look_of(look)])
++    c = dict(COLOUR[_key(look)])      # 1.1 N1: Night in its phosphor
+     surface, window, sidebar = c['surface'], c['window'], c['sidebar']
+     made = dict(
+         hairline_a=c['hairline'], stroke_a=c['stroke'], stroke_strong_a=c['stroke_strong'],
+@@ -161,6 +215,10 @@ def colours(look):
+         focus_ring=rgba(c['accent'], CONTROL['focus_alpha']),
+     )
+     c.update(made, shadow_a=c['shadow'], scrim_a=c['scrim'])
++    # 1.1 N1: the active window on the bar, the selected row and the pressed button: a plate and its words. Inverse video
++    # (a block of the phosphor, the words in the ground) in Night; the selection's tint and the plain words in Day.
++    night = look_of(look) == 'night'
++    c.update(active_plate=c['accent_fill'] if night else c['selection_side'], on_active=c['on_accent'] if night else c['text'])
+     return c
+ 
+ 
+@@ -180,6 +238,10 @@ TEXT_PAIRS = (
+        ('on_danger', 'danger', 'danger fill'), ('text', 'terminal', 'terminal'), ('secondary', 'terminal', 'terminal')]
+ )
+ DISABLED_PAIRS = [('disabled', g, 'inactive control') for g in _GROUNDS]
++# 1.1 N1: the phosphor Night's pairs: TEXT_PAIRS, and the ground's words on each inverse block (a selected row, a pressed or
++# checked control in the style sheet, the active window on the bar, HALT). Measured by tests_integrated/test_night_phosphor.py
++# for both phosphors. The bar's own buttons, pressed, lay a tint (pressed, 19 % of the phosphor) under their phosphor words.
++NIGHT_PAIRS = TEXT_PAIRS + [('on_accent', g, 'inverse video') for g in ('accent_fill', 'active_plate', 'danger', 'live', 'waiting')]
+ 
+ 
+ # ------------------------------------------------------------------------------- the roles boss_theme draws with
+@@ -198,7 +260,7 @@ def palette(look):
+         OWNER=c['waiting'], ON_OWNER=c['on_waiting'], RECHECK=c['recheck'],
+         BAND=band, ERASED=c['text'], ERASED_QUIET=c['secondary'], BAND_MARK=c['accent'], BAND_PENCIL=c['live'],
+         DESK_LIGHT=c['surface'] if not night else '#ffffff', VEIL=c['window'],
+-        DISPLAY=FONT['ui'], FACE=FONT['ui'], MONO=FONT['mono'],
++        DISPLAY=face(look), FACE=face(look), MONO=FONT['mono'],      # 1.1 N1: Night's chrome is fixed-width
+         HONEY=c['waiting_text'], VIOLET=c['secondary'], VIOLET_DEEP=c['stroke'], VIOLET_PALE=c['text'], VIOLET_SOFT=c['yours'],
+         ROYAL=c['live'], ROYAL_SOFT=c['live_tint'], ROYAL_INK=c['live_text'], ROYAL_TEXT=c['live_text'],
+         RED=c['danger'], ON_RED=c['on_danger'],
+@@ -241,7 +303,7 @@ def sheet(look):
+     c = colours(look);night = look_of(look) == 'night'
+     v = dict(c)
+     v.update(R=RADIUS['control'], RM=RADIUS['menu'], RT=RADIUS['tile'], H=CONTROL['button'], F=CONTROL['field'], ROW=CONTROL['row'],
+-             FONT=FONT['ui'], MONO=FONT['mono'], body=TYPE['body'][0], foot=TYPE['footnote'][0], cap=TYPE['caption'][0],
++             FONT=face(look), MONO=FONT['mono'], body=TYPE['body'][0], foot=TYPE['footnote'][0], cap=TYPE['caption'][0],      # 1.1 N1: face
+              sel_words=c['on_accent'] if night else c['accent_text'], scroll=CONTROL['scroll'],
+              thumb=rgba(c['text'], 64), thumb_hover=rgba(c['text'], 110),
+              focus=rgba(c['accent'], CONTROL['focus_alpha']))
+@@ -335,5 +397,21 @@ QLineEdit#SlateInput:focus, QPlainTextEdit#SlateInput:focus, QPlainTextEdit#Capt
+ QFrame#BossChainTray {background:%(sidebar)s; border-top:1px solid %(hairline)s;}
+ QTabWidget#ConsolePages::pane {background:%(window)s; border:0;}
+ QFrame#GraphiteToast {border-radius:%(RT)dpx;}
+-''' % v
++''' % v + (PHOSPHOR_SHEET % v if night else '')      # 1.1 N1
++
++
++# 1.1 N1: the phosphor Night's last word: inverse video for the selected row, the pressed and the checked button and the
++# menu's row; the chrome in the fixed-width face, long prose (a page, her answers) in Inter.
++PHOSPHOR_SHEET = '''
++QWidget {font-family:"%(MONO)s";}
++QTextBrowser, QTextEdit {font-family:"Inter";}
++QPushButton:pressed, QPushButton:checked, QToolButton:pressed, QToolButton:checked,
++QPushButton[arcButton="tool"]:pressed, QToolButton[arcButton="tool"]:pressed,
++QPushButton[arcButton="tool"]:checked, QToolButton[arcButton="tool"]:checked {background:%(accent_fill)s; color:%(on_accent)s; border:1px solid %(accent_fill)s;}
++QTreeView::item:selected, QListView::item:selected {background:%(accent_fill)s; color:%(on_accent)s;}
++QTreeView, QTreeWidget, QListView, QListWidget, QTableView, QTableWidget {selection-background-color:%(accent_fill)s; selection-color:%(on_accent)s;}
++QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateTimeEdit, QPlainTextEdit, QTextEdit, QTextBrowser {selection-background-color:%(accent_fill)s; selection-color:%(on_accent)s;}
++QToolButton#MoreMenus:pressed, QToolButton#HeadMenu:pressed {background:%(accent_fill)s; color:%(on_accent)s;}
++QProgressBar::chunk {background:%(accent)s;}
++'''
+ 
+diff --git a/workbench/halt_qt.py b/workbench/halt_qt.py
+index 0c3720d..23b864f 100644
+--- a/workbench/halt_qt.py
++++ b/workbench/halt_qt.py
+@@ -106,6 +106,10 @@ class HaltButton(QToolButton):
+         elif self.hasFocus() or self.isDown():
+             p.fillRect(self.rect(), QColor(t.AMBER_SOFT));p.fillRect(0, h - edge, w, edge, QColor(t.AMBER_EDGE))
+         shape, ink = self.colours()
++        if getattr(t, 'PHOSPHOR', ''):      # 1.1 N1: Night: HALT is inverse video, a block of the phosphor with its sign and word in the ground
++            block = QRectF(1, 3, w - 2, h - 6);p.setPen(Qt.NoPen);p.setBrush(QColor(t.TEXT));p.drawRoundedRect(block, 3, 3)
++            if self.underMouse() or self.hasFocus() or self.isDown():p.fillRect(QRectF(4, h - 3 - edge * 2, w - 8, edge), QColor(t.GROUND))
++            shape = ink = t.GROUND
+         side = self.side(h);x = self.pad();cy = h / 2.0
+         path = QPainterPath()
+         if self.held:      # ▶: go on
+diff --git a/workbench/launch_look.py b/workbench/launch_look.py
+index 7f2135b..c17f05b 100644
+--- a/workbench/launch_look.py
++++ b/workbench/launch_look.py
+@@ -32,6 +32,11 @@ def install(host):
+     """Called once the window is built (shell2's install): the move, a moment after the window shows."""
+     host.launch_card = None;host.launch_said = ''
+     QTimer.singleShot(0, lambda: first_start(host))
++    try:      # 1.1 N1: the phosphor Night's CRT effects (crt_qt); nothing in any other look
++        from . import crt_qt
++        crt_qt.install(host)
++    except Exception:  # noqa: BLE001 - the effects are a grace, never a reason for the window not to stand
++        pass
+     return host
+ 
+ 
+diff --git a/workbench/night_phosphor.py b/workbench/night_phosphor.py
+new file mode 100644
+index 0000000..6cf0b08
+--- /dev/null
++++ b/workbench/night_phosphor.py
+@@ -0,0 +1,73 @@
++"""Graphite 1.1 N1 · Night is a phosphor monitor: the two choices it keeps, the phosphor and the CRT effects.
++
++The owner, 28 Nov 2026: night mode is "to look like old computers that only had orange and black / green and black
++monitors....but updated to 2026 but still old school modern", and then "Screen burns and all the fun". So Night is one
++phosphor on a near-black ground, Amber (the default) or Green, chosen under View ▸ Appearance as "Night: Amber" or
++"Night: Green"; and the CRT effects (burn-in, afterglow, warm-up, scanlines and a vignette, a block cursor and a faint bloom,
++crt_qt) are one setting under View ▸ Appearance ▸ CRT effects: Off, Subtle (the default) or Full. They never cost legibility,
++and Reduce motion turns off what moves.
++
++Both are the window's own presentation preferences, kept in Graphite's session file beside 'appearance' (keys 'phosphor'
++and 'crt'), read once at the start like the look (boss_theme imports this before any window). In the environment,
++GRAPHITE_PHOSPHOR (amber, green) and GRAPHITE_CRT (off, subtle, full) win, as GRAPHITE_APPEARANCE does for the look; and
++GRAPHITE_APPEARANCE=night-green (or night-amber) asks for Night in that phosphor. No Qt here: the session reads the lists.
++"""
++from __future__ import annotations
++
++import json
++import os
++
++PHOSPHOR_KEY, CRT_KEY = 'phosphor', 'crt'
++PHOSPHORS = (('amber', 'Night: Amber'), ('green', 'Night: Green'))
++PHOSPHOR_DEFAULT = 'amber'
++CRT_LEVELS = (('off', 'Off'), ('subtle', 'Subtle'), ('full', 'Full'))
++CRT_DEFAULT = 'subtle'
++ASKED_LOOKS = {'night-amber': 'amber', 'night-green': 'green'}      # GRAPHITE_APPEARANCE words that name a phosphor
++
++
++def phosphor_value(value):
++    return value if isinstance(value, str) and value in dict(PHOSPHORS) else None
++
++
++def crt_value(value):
++    return value if isinstance(value, str) and value in dict(CRT_LEVELS) else None
++
++
++def session_path(environ=None):
++    environ = os.environ if environ is None else environ
++    override = environ.get('ARC1_WORKBENCH_CONFIG_HOME')
++    base = override if override else os.path.join(environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'arc1-workbench')
++    return os.path.join(base, 'session-r10.json')
++
++
++def _saved(key, environ=None, path=None):
++    try:
++        with open(path or session_path(environ), encoding='utf-8') as stream:
++            data = json.load(stream)
++        return data.get(key) if isinstance(data, dict) else None
++    except (OSError, ValueError, AttributeError, RecursionError):
++        return None
++
++
++def chosen_phosphor(environ=None, path=None):
++    """'amber' or 'green': GRAPHITE_PHOSPHOR, else a phosphor named in GRAPHITE_APPEARANCE, else the session's, else Amber."""
++    environ = os.environ if environ is None else environ
++    wanted = str(environ.get('GRAPHITE_PHOSPHOR', '')).strip().lower()
++    if phosphor_value(wanted):return wanted
++    asked = ASKED_LOOKS.get(str(environ.get('GRAPHITE_APPEARANCE', '')).strip().lower())
++    if asked:return asked
++    return phosphor_value(_saved(PHOSPHOR_KEY, environ, path)) or PHOSPHOR_DEFAULT
++
++
++def chosen_crt(environ=None, path=None):
++    """'off', 'subtle' or 'full': GRAPHITE_CRT, else the session's, else Subtle."""
++    environ = os.environ if environ is None else environ
++    wanted = str(environ.get('GRAPHITE_CRT', '')).strip().lower()
++    if crt_value(wanted):return wanted
++    return crt_value(_saved(CRT_KEY, environ, path)) or CRT_DEFAULT
++
++
++def asked_night(environ=None):
++    """True when GRAPHITE_APPEARANCE names Night in a phosphor (night-amber, night-green)."""
++    environ = os.environ if environ is None else environ
++    return str(environ.get('GRAPHITE_APPEARANCE', '')).strip().lower() in ASKED_LOOKS
+diff --git a/workbench/real_terminal_qt.py b/workbench/real_terminal_qt.py
+index ff2d111..57e0b31 100644
+--- a/workbench/real_terminal_qt.py
++++ b/workbench/real_terminal_qt.py
+@@ -84,9 +84,20 @@ def look():
+     ground, words = cq.TERMINAL_GROUND, cq.AMBER_TEXT
+     light = QColor(ground).lightness() >= 128
+     px = max(12, cq.mono_font(14).pixelSize())
++    from . import boss_theme as _bt      # 1.1 N1: Night's xterm is the phosphor monitor: sixteen shades of the one phosphor
++    if getattr(_bt, 'PHOSPHOR', ''):return ground, words, phosphor_colours(), round(px * 0.75 * 2) / 2
+     return ground, words, LIGHT if light else DARK, round(px * 0.75 * 2) / 2
+ 
+ 
++def phosphor_colours(look='night'):
++    """1.1 N1: xterm's sixteen colours in the phosphor Night: black, then the phosphor at its secondary brightness for the
++    eight dim colours and at full for the eight bright ones (one hue; ls and prompts keep their brightness, never a hue).
++    Every one but black is 4.5:1 or more on the terminal's ground (design_tokens' measure)."""
++    from . import design_tokens as tokens
++    c = tokens.colours(look)
++    return tuple([c['raised']] + [c['secondary']] * 6 + [c['text']] + [c['tertiary']] + [c['text']] * 7)
++
++
+ def argv(window, shell, rc_path, size=(100, 24), extra=()):
+     """xterm's command line: embedded in `window`, the look's colours and face, then the shell (bash with Graphite's rc)."""
+     ground, words, colours, points = look()
+diff --git a/workbench/session.py b/workbench/session.py
+index 16fd848..5e02d7f 100644
+--- a/workbench/session.py
++++ b/workbench/session.py
+@@ -108,6 +108,9 @@ class Session:
+         if not isinstance(data, dict) or data.get('schema') != SCHEMA:
+             return
+         if saved_appearance(data.get('appearance')):self.state['appearance'] = data['appearance']     # the whole window's look (presentation_preferences.APPEARANCES): this computer's, not a project's
++        from .night_phosphor import CRT_KEY, PHOSPHOR_KEY, crt_value, phosphor_value      # 1.1 N1: Night's phosphor and CRT effects
++        if phosphor_value(data.get(PHOSPHOR_KEY)):self.state[PHOSPHOR_KEY] = data[PHOSPHOR_KEY]      # 1.1 N1
++        if crt_value(data.get(CRT_KEY)):self.state[CRT_KEY] = data[CRT_KEY]      # 1.1 N1
+         from .presentation_preferences import LAUNCH_MARK, LAUNCH_MARKED      # 1.0 P4: 1.0's move to Day is made once per profile
+         if data.get(LAUNCH_MARK) == LAUNCH_MARKED:self.state[LAUNCH_MARK] = LAUNCH_MARKED
+         self.state['bin_word'] = data['bin_word'] if data.get('bin_word') in ('Recycle Bin', 'DELETE') else 'DELETE'      # 1.1 E1: a profile that has used 1.0 keeps DELETE
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 8f219e6..735daab 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -692,7 +692,7 @@ class TopBar(QWidget):
+         if bt.DISPLAY != MONO:      # Kasandra: the menus across the head in her typewriter face, a little larger to read as well
+             font = QFont(bt.DISPLAY);font.setPixelSize(max(15, round(18 * scale)))
+         from . import design_tokens as _tokens      # 1.1 K0: the 32 px head's words: Inter in Day and Night, each look's own face
+-        if bt.LAUNCH:font = QFont(_tokens.FONT['ui'])      # 1.1 K0
++        if bt.LAUNCH:font = QFont(_tokens.face())      # 1.1 K0; 1.1 N1: fixed-width in Night
+         font.setPixelSize(_tokens.head_px(bt.APPEARANCE, scale))      # 1.1 K0
+         for widget in [self.path, self.more_menus, self.programs, self.nice] + list(getattr(self, 'bar_menus', [])):
+             widget.setFont(font)
+diff --git a/workbench/start_qt.py b/workbench/start_qt.py
+index 62e35f4..7d64ad6 100644
+--- a/workbench/start_qt.py
++++ b/workbench/start_qt.py
+@@ -58,7 +58,7 @@ def panel_size(mode, screen=None):
+ 
+ 
+ def font(px, weight=None, caps=False):
+-    f = QFont(tokens.FONT['ui']);f.setPixelSize(px)
++    f = QFont(tokens.face());f.setPixelSize(px)      # 1.1 N1: fixed-width in Night
+     if weight is not None:f.setWeight(weight)
+     if caps:f.setCapitalization(QFont.AllUppercase);f.setLetterSpacing(QFont.AbsoluteSpacing, 0.4)
+     return f
