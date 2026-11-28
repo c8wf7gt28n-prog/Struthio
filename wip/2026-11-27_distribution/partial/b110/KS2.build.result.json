@@ -1,0 +1,73 @@
+{
+ "item": "KS2",
+ "status": "built",
+ "summary": "The command tool: any command as an argv, never a shell string, through a classifier (workbench/command_forms.py, a table of about 150 programs and their argument forms, each classed read, change, destroy, root or network). A typed line (\"run: df -h\", in her line or the bar's) is read as a shell would quote it and refused, with the exact line, for any shell syntax (pipe, ;, &&, $( ), backticks, redirection, unquoted globs, braces, variables). Reads run at once, sealed (Landlock: only system folders and the named paths readable, only a scratch folder writable; seccomp: no internet socket; checked before the program starts) and their output is data through the doorway (a line written to an assistant is marked). Network reads (ping -c, dig, host, curl -s, wget -O -) wait for the press, refuse offline and show \"Kas: host\" on NET. Changes (mkdir, touch, cp -n, mv -n, ln -s, chmod, tar c/x, rename) show \"This will … / The command: …\", wait for the press (digest of the plan), run sealed with only their target folders writable, are verified on disk and have Undo; rm/rmdir go to the bin; root forms are refused as the system door. Her dictionary (no model) maps plain words to forms; with a model, \"command: …\" asks the COMMAND turn for an argv that must pass the classifier.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2.patch",
+ "files_changed": [
+  "workbench/command_forms.py (new: the table, WHY words, her dictionary, packages)",
+  "workbench/command_seal.py (new: the seal launcher, standard library only)",
+  "workbench/command_tool.py (new: tokens, classify, checks, sealed run, output as data, plan/run/verify/undo, Kernel ops, COMMAND turn)",
+  "workbench/command_tool_qt.py (new: her talk, NEXT STEPS, the bar line rows)",
+  "tests_integrated/test_command_tool.py (new)",
+  "workbench/engineering_kernel.py (1.1 KS2: import, scopes, dispatch)",
+  "workbench/engineering_cli.py (1.1 KS2: FIELDS)",
+  "workbench/shell2.py (1.1 KS2: two hooks in SlateFace.ask: \"run:\"/\"command:\" first; her dictionary after the recipes)",
+  "workbench/her_column_qt.py (1.1 KS2: NEXT STEPS Run/Undo; take_step)",
+  "workbench/line_finder.py (1.1 KS2: tool_rows, enter_words for a command row)",
+  "workbench/kas_voice.py (1.1 KS2: her command lines)"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_command_tool.py: 13 tests (acceptance first; the classifier on 236 lines)",
+  "ran": [
+   "tests_integrated.test_command_tool",
+   "tests_integrated.test_kas_voice",
+   "tests_integrated.test_start_line",
+   "tests_integrated.test_recipes",
+   "tests_integrated.test_kas_bar"
+  ],
+  "output_tail": [
+   "test_command_tool: Ran 13 tests in 5.886s OK",
+   "classifier: 236 lines, away 9, bin 4, change 16, destroy 7, network 10, no 31, read 108, root 30, shell 21",
+   "touched (kas_voice, start_line, recipes, kas_bar): Ran 52 tests in 16.413s OK"
+  ]
+ },
+ "existing_tests_changed": [],
+ "decisions": [
+  "The table is data (command_forms.py, a Python literal, so packaging needs nothing new); command_tool.py is the code. Options are exact (no abbreviated long options); short options may be bundled (ls -lah, tar xzf).",
+  "Owner lines use the colon form \"run: …\" in her line and the bar's line; \"run …\" and \"$ …\" keep their 1.0 route to the owner's Terminal (not classified). The bar's line also offers a row when the words start with a known program and carry an option (\"df -h\").",
+  "~ and ~/… are expanded by the tool itself (no shell), the same for a typed line and a model argv; ~user is refused. Talk shows the exact argv that runs (home expanded); NEXT STEPS and the line row show the plain words.",
+  "The seal is new (command_seal.py): Landlock (read roots: system folders, the named paths, and per-form places such as /proc, /sys, journal, apt lists) + seccomp (sockets none, local AF_UNIX/NETLINK for systemctl/ss/ip, or network) + rlimits, self-checked (a folder outside must not list, an internet socket must fail); with no Landlock nothing runs. confine.py and the utility sandbox could not be reused as is (confine reads only /proc/self and always refuses TCP; the utility seal forbids exec).",
+  "Network reads always wait for the press, even when typed by the owner (nothing leaves without asking), are refused in her work, refuse offline, and set network_governed's fetch marker so NET says \"Kas: host\". Their output goes through the doorway but is kept in the run record, not in web quarantine.",
+  "Refused here, in plain words: saving fetches (curl -o, wget without -O -), sending data (curl -d/-F/-u), ssh/scp/nc/telnet, rsync that copies (rsync -n is a read), tar/cp/mv forms that write over (-f, --overwrite, cp/mv without -n), hard links, chmod -R and special bits, perl rename beyond a literal s/old/new/, unzip extraction (the KS1 recipe does it).",
+  "rm and rmdir are offered \"to the bin\": the program never runs; home_trash.put does it and Undo restores. Reach as KS1 (box_ops.Reach): changes only in your home, never Files, Graphite's records or DELETE's folder; mv across drives refused (cp -n instead).",
+  "HALT holds every command run (reads too: the tool is her work) and stops one in flight (halt_gate.register_stop \"commands\"). A change, a bin or a network read is never her own step (home_reach.in_her_work); reads run on their own.",
+  "Her dictionary acts only with no model loaded (the brief); with a model the words keep their 1.0 route (e.g. network_watch's profile), and \"command: …\" asks the COMMAND turn (JSON argv, grammar-bounded, 20 s), whose answer must pass the classifier; a model argv never reads private places (~/.ssh, ~/.gnupg, keyrings, browser data).",
+  "A read is \"verified\" when it ran inside the seal and ended 0 (or 1 for grep, diff, cmp, pgrep, systemctl, which, comm); a change when its effect is read back on disk (folder there, sizes, inode, mode, archive member count)."
+ ],
+ "findings_for_the_coordinator": [
+  "Regenerate the registry/seed at merge: 7 new operations command.classify, .read, .plan, .runs, .output (read), command.run (execute), command.undo (approve).",
+  "line_finder already had a command_rows(found) for Graphite commands; the KS2 row function is named tool_rows to avoid the clash. B4 also touched the line; the hooks are small and marked 1.1 KS2 for git apply -3.",
+  "At 1366x768 her column shows the end of a change's offer (the press and Undo words) and NEXT STEPS \"Run · Make the folder …\"; \"This will …\" scrolls above (the column layout is K0/B3's).",
+  "Here coreutils warns that cp -n is non-portable (use --update=none); both are taken. In this container ip, ss, ping, dig, sensors, lsusb, lspci are missing: a run says which Debian package has it.",
+  "Dictionary checked against 10,315 short strings in the tests: only one-word words (route, processes, top, partitions) and network_watch's profile phrases match, and in those tests they are menu words, dictionary keys and the agent loop's profile routing, not words sent to her ask chain."
+ ],
+ "not_done": [
+  "Nothing ran on the owner's ThinkPad; no real model was loaded (the COMMAND turn's parse/check/grammar are tested, not a live answer).",
+  "Network reads were not run against a real network here (tested with the run stubbed: press, offline refusal, NET marker).",
+  "No change forms that reach the network (wget/curl saving, rsync copying, scp) and no standing grant for commands.",
+  "systemctl/journalctl reads under the seal were not exercised on a systemd machine (no bus in this container).",
+  "The test tiers were not run (the coordinator runs them)."
+ ],
+ "release_note": "Kasandra runs commands for you. Type \"run: df -h\" in her line or the bar's line, or ask in plain words (\"what is using my disk\"). A command that only reads runs at once in a seal (no network, nothing of yours writable) and its output is shown as data. A command that changes something shows \"This will … / The command: …\" and waits for your press; afterwards it is checked on the disk and has Undo. rm goes to the Recycle Bin. Pipes and other shell tricks, sudo and anything she does not know are refused in plain words.",
+ "frames": [
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2/frames/1920x1200_day_read_output.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2/frames/1920x1200_day_change_waiting.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2/frames/1920x1200_day_shell_refused.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2/frames/1920x1200_kasandra_read_output.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2/frames/1920x1200_kasandra_change_waiting.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2/frames/1920x1200_kasandra_shell_refused.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2/frames/1366x768_day_read_output.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2/frames/1366x768_day_change_waiting.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS2/frames/1366x768_day_shell_refused.png"
+ ]
+}
