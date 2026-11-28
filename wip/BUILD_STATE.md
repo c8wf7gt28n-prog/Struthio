@@ -78,11 +78,17 @@ rules holding you back".
     `bash wip/build_tools/merge_one.sh $S/work/b110 wip/2026-11-27_distribution/saved KEY AGENTID > log 2>&1; rc=$?`.
   * **Saving:** run the loop from a COPY so an edit of the script never breaks the running loop (it did at 04:00 on 28 Nov): `cp wip/build_tools/save_dist.sh $S/work/save_dist_running.sh; bash $S/work/save_dist_running.sh loop` every 5 minutes (it now carries the builders' patches, notes
     and results into `partial/b110/`); restart the loop whenever it ends; commit and push at every milestone.
-- **1.1.1 BEING CUT (07:36 UTC):** KS3 merged (a94a1fe; three conflicts with KS2's lines kept both; 92 tests OK on a
-  copy); version 1.1.1 (6d0fcc4, notes `docs/RELEASE_NOTES_1.1.1.md`). The repository is being rebuilt for packagekit and
-  accountsservice: `$S/work/r111/build.sh` (build_deb, build_repo in a chroot on /dev/shm, build_kit into
-  `$S/work/r111/kit`), log `$S/work/r111/build.log`. Then: release check on `$S/work/r111/src`, privacy scan, send the
-  whole kit with the notes, record in `wip/2026-11-28_release_111/`. If the container is replaced, run those steps again.
+- **GRAPHITE 1.1.1 RELEASED (07:41 UTC, 28 Nov): the system door.** KS3 merged (a94a1fe); version 1.1.1 (6d0fcc4);
+  the repository rebuilt with tools/build_repo.sh (425 packages, with packagekit, accountsservice, lxpolkit, polkitd);
+  release check PASSED (1,650 files); the whole new kit (39 files) sent with `docs/RELEASE_NOTES_1.1.1.md`; record
+  `wip/2026-11-28_release_111/` (CLOSURE.txt, build log). The base kit for the next cut is `$S/work/r111/kit/`.
+  **The 3-hourly wake-up was DISABLED at 07:41** so it would not spend the owner's last ~10 % of the week while they test;
+  re-enable it (update_trigger trig_017RpY8VWubnaTQN5DVGpS6g enabled=true) when the owner says to continue.
+  **Next week, in order:** C0 (a real terminal; its design in partial/b110/C0.progress.md: xterm -into the drop-down,
+  a Graphite bash rc for DOS words; xterm is then a Depends: rebuild the repository), KS4 (grounding and teach me; its
+  plan in partial/b110/KS4.progress.md), B5 (a quieter bar; PLAN_1.1 §5), wiring KS2's root refusals to
+  system_door.offer, then C1-C3 and Z1-Z4 for the distribution candidate. Listen first to the owner's results from the
+  ThinkPad (1.1.1's first real test: "install cowsay", then Undo).
 - **GRAPHITE 1.1 RELEASED (07:28 UTC, 28 Nov).** Cut from 21608af (release check PASSED, 1,645 files verified); the
   whole kit (45 files) sent with `docs/RELEASE_NOTES_1.1.md`; record `wip/2026-11-28_release_110/`; the talk updated to
   1.1 and sent. Fixed on the way: KS2's root refusal now true for 1.1; a quick Ctrl+Z after a paste (cc24ebf); the
