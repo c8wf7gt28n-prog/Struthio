@@ -1,8 +1,8 @@
 # Graphite 1.1, a twenty-minute talk
 
-*28 November 2026, written mid-build. It covers what is merged so far: preview 1, preview 2 and the first piece of
-preview 3. The parts still being built are said as such. Everything here was built and seen working on the build
-machine, offscreen or on a virtual screen, with invented files. None of it has run on your ThinkPad yet.*
+*28 November 2026, for Graphite 1.1 as released that morning, before your weekly cut-off. Everything here was built
+and seen working on the build machine, offscreen or on a virtual screen, with invented files. None of it has run on
+your ThinkPad yet.*
 
 ---
 
@@ -180,7 +180,7 @@ from what the records hold.
 
 ## 14:30 · Her recipes: the whole box, safely
 
-This is where Kas starts to reach the whole computer, and it's preview 3.
+This is where Kas starts to reach the whole computer, and it came in preview 3.
 
 She now has **forty recipes**, for the everyday things a Windows person asks of a Linux box:
 
@@ -213,28 +213,34 @@ never write: that's the 1.0 rule carried into the box.
 
 And Kas never runs a change as her own step. No standing grant runs a recipe change. You press, every time.
 
-## 16:30 · What's being built right now
+## 16:30 · Her command tool, and what comes in 1.1.1
 
-Four more pieces are building as I write this.
+The last piece in 1.1 is **her command tool**. Type `run: df -h` in her line or the bar's line. Any command is taken as
+a program and its words, never a shell string. About 150 programs are known, and each form is classed: it reads,
+changes, destroys, needs root, or reaches the network.
 
-- **The command tool.** Any command as plain arguments, never a shell string. A classifier knows each form: reads,
-  changes, destroys, needs root, or reaches the network. Reads run sealed, and their output is treated as data, never
-  as instructions. A change shows "This will … / The command: …" and waits for your press. Anything she can't classify,
-  or anything written in shell syntax, is refused in plain words, with the exact line shown, and never run.
-- **One line, and a drop-down Terminal.** The window's old foot line and the bar's line do the same job now, so the foot
-  folds away. Line, Search and Web go into the bar's line. A real Terminal drops from the top of the screen on Win+`
-  over any app, speaks DOS, and leaves when you're done. "Command…" on the right-click of any file shows the exact line
-  behind it. Win+K opens her panel and Pause presses HALT, from any app.
-- **The test suites, up to date.** 1.0 was built with no tests, by your rule. 1.1 made them run again. They found
-  eleven real faults, all fixed, and are being brought in line with everything 1.1 changed.
-- **Then the last two pieces of Kas's reach.** First, the system door: installing software, services, users and the
-  clock, through Debian's own permission prompt, with you present, one fixed action per prompt, never under a standing
-  grant. Second, grounding: an index of the machine's own manual pages, so every option she proposes really exists on
-  your machine, quoted from its page, and so she can teach you the Debian word for every Windows one.
+- **Reads run at once inside a seal:** no network, only the named paths readable, nothing of yours writable. The output
+  is shown as data, never taken as instructions.
+- **A change waits.** "This will make the folder Rev 2. The command: mkdir …" Then your press, a check on the disk
+  afterwards, and Undo. `rm` goes to the Recycle Bin.
+- **Anything she can't classify is refused.** Pipes, `;`, `&&`, redirection, unknown programs and flags are refused in
+  plain words, with the exact line shown: "A pipe: I run one program with its words, never a shell."
+- **Root is refused too.** In 1.1 she makes no system changes, and she says so.
 
-After those comes preview 4. It brings software and updates, printers and Bluetooth, date and time, users and power,
-and a Task Manager. Then the 1.1 candidate: a live image to boot from, a security review of every door Kas has, the
-licences, and the old rooms cleared out.
+Four pieces were building when your week's limit came near. I paused them so 1.1 could ship whole, and their work is
+saved. They come in **1.1.1**:
+
+- **The system door:** software, services, the clock and users, through Debian's own password prompt, with you present,
+  one fixed action per prompt.
+- **A real terminal in the drop-down.** Today vim, top and sudo's password prompt don't work in it; use the text console
+  (Ctrl+Alt+F2) for those.
+- **Grounding:** an index of your machine's manual pages, so every option she proposes is checked and quoted, and
+  "teach me" answers from the page.
+- **A quieter bar,** from your idea about the tray: network, sound and battery as one Quick Settings button, so your
+  window buttons get the room.
+
+After that come printers, Bluetooth and date and time, a Task Manager, a live image, a security review of every door Kas
+has, and the licences.
 
 ## 18:00 · Your reversals, and what's honest
 
@@ -248,9 +254,9 @@ strike: say "strike N" and it goes back.
 5. Quick access first, the root one press down.
 6. "Recycle Bin" on new installs, while your profile keeps DELETE.
 7. File, Edit, View, Go, Tools and Help as the menu names.
-8. Kas making system changes through the system's own prompt, with you there. That one arrives in preview 3's next
-   piece.
+8. Kas making system changes through the system's own prompt, with you there. That one arrives in 1.1.1.
 9. Graphite maximised above the bar, not full screen.
+10. No foot in the window: the bar's line, the drop-down Terminal, Log under View, the meters in the tray.
 
 What did not move: no picture of Kas; Apps, never Programs; Day as the launch look; every state a word and a shape; her
 authority rules.
@@ -261,24 +267,24 @@ offscreen, and the bar and Start ran on a virtual screen under a stand-in window
 - **Not tried under real Fluxbox:** whether apps really stay clear of the bar, and Start's key timing.
 - **Not tried at all:** the login screen.
 - **Not tried with a real model:** her new voice and her recipes.
-- **Not run in full yet:** the test suites on preview 2 as a whole. Preview 2 was cut without waiting for them, so you
-  could try it today.
+- **The test suites:** the quick tier is at zero failing in Day and Graphite; the full tier has two named failures
+  left. The release check passed on the exact commit the kit was cut from.
 
 ## 19:00 · Your evening
 
-Preview 1 and preview 2 are in your hands. Install preview 2 over preview 1: put the seventeen new files into the
-preview 1 folder, run `JOIN.sh`, then `install.sh` as root. Then try the twenty-minute test at the end of the release
-notes:
+Graphite 1.1 is in your hands as one complete kit. Copy every file into one folder, run `JOIN.sh`, then `install.sh` as
+root. Then:
 
 1. Open LibreOffice from Start with the Windows key. Is its window above the bar?
-2. Type `calc`, `12*7`, `dir` and `control panel` in the bar's line.
-3. Press the clock, the battery and the sound.
-4. Open Downloads in the Explorer and sort by size. Try Icons in Pictures, and Alt+P.
-5. Ask Kas about Rail Demo, then press HALT on the bar, and RESUME.
+2. Type `calc`, `12*7`, `dir`, `control panel` and `free space` in the bar's line.
+3. Open Downloads in the Explorer, sort by size, try Icons in Pictures, and press Alt+P.
+4. Press Win+` for the Terminal, type `dir`, and press Win+` again.
+5. Ask Kas to sort your downloads by kind. Press Run, then Undo. Then ask her `run: df -h`.
+6. From LibreOffice, press Win+K, then Pause. RESUME is on the bar.
 
 Whatever differs from the page is a result. Send it, with a photo if it's on the screen.
 
-That's Graphite 1.1 so far: a computer your Windows hands already know, opening onto a whole Linux box, with Kas at your
+That's Graphite 1.1: a computer your Windows hands already know, opening onto a whole Linux box, with Kas at your
 side who can now reach most of it. She shows you exactly what she'd do and waits for your press. She checks before she
 says it's done.
 
