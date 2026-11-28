@@ -1,0 +1,885 @@
+diff --git a/debian/control b/debian/control
+index cd8114b..9a2591d 100644
+--- a/debian/control
++++ b/debian/control
+@@ -43,7 +43,7 @@ Section: x11
+ Depends: graphite (= @VERSION@), xserver-xorg, xinit, fluxbox, x11-xserver-utils, xauth,
+  dbus-user-session | dbus-x11, libpam-systemd, network-manager, wpasupplicant, wireless-regdb, libgl1-mesa-dri,
+  udisks2, eject, upower, pipewire, pipewire-pulse, wireplumber, alsa-ucm-conf, alsa-topology-conf, xsecurelock,
+- lxpolkit, polkitd, x11-utils, at-spi2-core, python3-pyatspi, librsvg2-common, xterm
++ lxpolkit, polkitd, x11-utils, at-spi2-core, python3-pyatspi, librsvg2-common, xterm, libglib2.0-bin
+ Recommends: xdg-user-dirs
+ Description: Graphite as the whole session
+  The X session entry a display manager shows as "Graphite"
+diff --git a/tests_integrated/test_real_terminal.py b/tests_integrated/test_real_terminal.py
+new file mode 100644
+index 0000000..21aaa56
+--- /dev/null
++++ b/tests_integrated/test_real_terminal.py
+@@ -0,0 +1,254 @@
++"""Graphite 1.1.2 C0: a real terminal in the drop-down (xterm -into, the owner's shell, DOS words through Graphite's bash rc).
++
++The acceptance first: under Xvfb with xterm, the drop-down shows a real terminal; a program reads a key from it; top runs and
++q quits; vim opens, edits and saves a file; dir prints its Debian line and runs; Win+` puts it away and gives the keys back.
++Then the rc on its own (in a pseudo-terminal, no X) and the pure pieces. The X part starts its own Xvfb and runs the driver
++below in a child process (the xcb platform; the tiers' own process is offscreen); without Xvfb, xterm or Qt's xcb platform
++it says which is missing.
++"""
++import json
++import os
++import pty
++import select
++import shutil
++import subprocess
++import sys
++import tempfile
++import time
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parent.parent
++if str(ROOT) not in sys.path:sys.path.insert(0, str(ROOT))
++
++from workbench import real_terminal_rc as rc  # noqa: E402
++
++ARROW = '→'
++
++
++# ---- the X driver (a child process: python test_real_terminal.py --x-driver OUT) -----------------------------------------------
++def driver(out):
++    import ctypes
++    out = Path(out);home = Path.home();files = home / 'Files';files.mkdir(parents=True, exist_ok=True)
++    (files / 'notes.txt').write_text('invented notes\n');(files / 'probe.sh').write_text('read -n1 k; echo "got:$k" > got.txt\n')
++    (home / '.bashrc').write_text("PS1='owner$ '\n")
++    log = out / 'xterm.log';report = {}
++    from PySide6.QtCore import QTimer  # noqa: F401
++    from PySide6.QtTest import QTest
++    from PySide6.QtWidgets import QApplication, QWidget
++    app = QApplication([])
++    from workbench import drop_terminal_qt as dt, real_terminal_qt as rt
++    plain = rt.argv
++    rt.argv = lambda *a, **k: plain(*a, extra=('-l', '-lf', str(log)))
++    host = QWidget();host.setWindowTitle('An app');host.resize(900, 700);host.show();host.activateWindow()
++
++    def pump(ms=50, n=4):
++        for _ in range(n):app.processEvents();QTest.qWait(ms)
++
++    def until(test, seconds=10.0):
++        end = time.monotonic() + seconds
++        while time.monotonic() < end:
++            pump(50, 1)
++            if test():return True
++        return False
++    pump(60, 6)
++    term = dt.terminal(host)
++    term.cwd = files
++    real = term.real;report['real'] = real is not None
++    if real is None:
++        report['why'] = rt.why_not();(out / 'report.json').write_text(json.dumps(report));return 0
++    term.drop()
++    report['prompt'] = until(lambda: real.client and real.shell_pid() and rt.at_prompt(real.shell_pid()) and log.exists() and 'owner$' in log.read_text(errors='replace'))
++    pump(60, 6)
++    x = real.xconn()
++    report['client_in_drop'] = real.client in x.children(int(real.winId()))
++    report['focus_is_xterm'] = x.focused() == real.client
++    report['geometry'] = dict(drop=term.geometry().getRect(), area=[real.width(), real.height()])
++    kc2ks = x.x.XKeycodeToKeysym;kc2ks.argtypes = [ctypes.c_void_p, ctypes.c_ubyte, ctypes.c_int];kc2ks.restype = ctypes.c_ulong
++    names = {' ': 'space', ';': 'semicolon', ':': 'colon', '"': 'quotedbl', '>': 'greater', '$': 'dollar', '-': 'minus',
++             '.': 'period', '/': 'slash', '_': 'underscore', '\n': 'Return', '\x1b': 'Escape'}
++
++    def typed(text):
++        for ch in text:
++            name = names.get(ch, ch);ks = x.x.XStringToKeysym(name.encode());kc = x.x.XKeysymToKeycode(x.dpy, ks)
++            x.tap(name, ('Shift_L',) if int(kc2ks(x.dpy, kc, 0)) != int(ks) else ())
++            pump(10, 1)
++
++    def screen():
++        return log.read_text(errors='replace') if log.exists() else ''
++    typed('bash probe.sh\n');pump(60, 8);typed('q')
++    report['key_read'] = until(lambda: (files / 'got.txt').exists() and (files / 'got.txt').read_text().strip() == 'got:q')
++    typed('tty\n');report['tty'] = until(lambda: '/dev/pts/' in screen())
++    typed('dir\n');report['dir'] = until(lambda: ('dir %s ls -l' % ARROW) in screen() and 'notes.txt' in screen())
++    typed('top\n');report['top_runs'] = until(lambda: 'load average' in screen() and not rt.at_prompt(real.shell_pid()))
++    typed('q');report['top_quits'] = until(lambda: rt.at_prompt(real.shell_pid()))
++    typed('vim -u NONE memo.txt\n');pump(80, 12)
++    report['vim_runs'] = not rt.at_prompt(real.shell_pid())
++    typed('ihello from vim\x1b');pump(60, 4);typed(':wq\n')
++    report['vim_saved'] = until(lambda: (files / 'memo.txt').exists() and (files / 'memo.txt').read_text() == 'hello from vim\n')
++    until(lambda: rt.at_prompt(real.shell_pid()), 5);pump(60, 6)
++    report['bar_said'] = term.run('echo handed by the bar')
++    report['bar_ran'] = until(lambda: screen().count('handed by the bar') >= 2)
++    host_x = int(host.winId())
++    x.tap('grave', ('Super_L',))
++    report['hide_key'] = until(lambda: not term.opened and not term.isVisible(), 5)
++    pump(60, 6)
++    report['focus_back'] = x.focused() in (host_x, 0) and x.focused() != real.client
++    report['focus_window'] = [x.focused(), host_x]
++    report['still_running'] = real.running()
++    term.drop();until(lambda: x.focused() == real.client, 5)
++    typed('exit\n');report['exit_puts_away'] = until(lambda: not term.opened and not real.running(), 8)
++    (out / 'report.json').write_text(json.dumps(report, default=str))
++    return 0
++
++
++# ---- the X tests ----------------------------------------------------------------------------------------------------------------
++class RealTerminalOnX(unittest.TestCase):
++    """One driver run under a fresh Xvfb; each test reads one fact of its report."""
++    report = None
++
++    @classmethod
++    def setUpClass(cls):
++        missing = [t for t in ('Xvfb', 'xterm', 'bash', 'vim', 'top') if not shutil.which(t)]
++        if missing:raise unittest.SkipTest('missing here: %s' % ', '.join(missing))
++        cls.area = Path(tempfile.mkdtemp(prefix='c0-x-'))
++        n = 140 + os.getpid() % 50
++        cls.xvfb = subprocess.Popen(['Xvfb', ':%d' % n, '-screen', '0', '1366x768x24', '-nolisten', 'tcp'],
++                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
++        for _ in range(100):
++            if Path('/tmp/.X11-unix/X%d' % n).exists():break
++            time.sleep(0.1)
++        home = cls.area / 'home';home.mkdir()
++        env = dict(os.environ, DISPLAY=':%d' % n, QT_QPA_PLATFORM='xcb', HOME=str(home), XDG_RUNTIME_DIR=str(cls.area / 'run'),
++                   XDG_CONFIG_HOME=str(home / '.config'), XDG_CACHE_HOME=str(home / '.cache'))
++        (cls.area / 'run').mkdir()
++        p = subprocess.run([sys.executable, '-B', __file__, '--x-driver', str(cls.area)], cwd=str(ROOT), env=env,
++                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=240)
++        cls.output = p.stdout[-3000:]
++        path = cls.area / 'report.json'
++        cls.report = json.loads(path.read_text()) if path.exists() else None
++        if cls.report is None and 'xcb' in cls.output and 'plugin' in cls.output:
++            cls.tearDownClass();raise unittest.SkipTest("Qt's xcb platform cannot start here")
++
++    @classmethod
++    def tearDownClass(cls):
++        if getattr(cls, 'xvfb', None) is not None:cls.xvfb.terminate();cls.xvfb.wait(5)
++        shutil.rmtree(getattr(cls, 'area', ''), ignore_errors=True)
++
++    def fact(self, key):
++        self.assertIsNotNone(self.report, 'the driver wrote no report:\n' + self.output)
++        return self.report.get(key)
++
++    def test_a_the_drop_down_is_a_real_terminal(self):
++        self.assertTrue(self.fact('real'), self.report)
++        self.assertTrue(self.fact('prompt'), 'the shell reached its prompt in the embedded xterm')
++        self.assertTrue(self.fact('client_in_drop'), 'xterm is inside the drop-down')
++        self.assertTrue(self.fact('focus_is_xterm'), 'xterm has the keys while it is down')
++        self.assertTrue(self.fact('tty'), 'tty names a pseudo-terminal')
++
++    def test_b_a_program_reads_a_key_and_its_output_appears(self):
++        self.assertTrue(self.fact('key_read'))
++
++    def test_c_top_runs_and_q_quits(self):
++        self.assertTrue(self.fact('top_runs'));self.assertTrue(self.fact('top_quits'))
++
++    def test_d_vim_opens_edits_and_saves(self):
++        self.assertTrue(self.fact('vim_runs'));self.assertTrue(self.fact('vim_saved'))
++
++    def test_e_dir_prints_the_debian_line_and_runs(self):
++        self.assertTrue(self.fact('dir'))
++
++    def test_f_win_backtick_hides_it_and_gives_the_keys_back(self):
++        self.assertTrue(self.fact('hide_key'));self.assertTrue(self.fact('focus_back'), self.report.get('focus_window'))
++        self.assertTrue(self.fact('still_running'), 'put away, the shell keeps running')
++
++    def test_g_a_bar_row_is_typed_into_the_shell_and_exit_puts_it_away(self):
++        self.assertTrue(str(self.fact('bar_said')).startswith('In the Terminal'));self.assertTrue(self.fact('bar_ran'))
++        self.assertTrue(self.fact('exit_puts_away'))
++
++
++# ---- the rc in a pseudo-terminal (no X) --------------------------------------------------------------------------------------------
++class TheRc(unittest.TestCase):
++    def test_h_bash_with_the_rc_shows_dir_as_debian_keeps_the_owners_rc(self):
++        if not shutil.which('bash'):self.skipTest('no bash here')
++        home = Path(tempfile.mkdtemp(prefix='c0-rc-'));files = home / 'Files';files.mkdir()
++        (files / 'notes.txt').write_text('x\n');(home / '.bashrc').write_text("PS1='owner$ '\nalias ll='ls -1'\n")
++        before = (home / '.bashrc').read_text()
++        path = rc.write_rc(home / 'own', python=sys.executable)
++        pid, fd = pty.fork()
++        if pid == 0:
++            os.chdir(files)
++            os.execvpe('bash', ['bash', '--rcfile', str(path), '-i'], dict(HOME=str(home), TERM='xterm', PATH=os.environ.get('PATH', '/usr/bin:/bin')))
++
++        def read(seconds):
++            data, end = b'', time.time() + seconds
++            while time.time() < end:
++                if select.select([fd], [], [], 0.1)[0]:
++                    try:data += os.read(fd, 65536)
++                    except OSError:break
++            return data.decode('utf-8', 'replace')
++        try:
++            read(2)
++            os.write(fd, b'dir\r');shown = read(2.5)
++            os.write(fd, b'll\r');own = read(1.5)
++            os.write(fd, b'echo plain words\r');plain = read(1.5)
++            os.write(fd, b'history\r');up = read(1.5)
++            os.write(fd, b'\x15exit\r');read(1)
++        finally:
++            os.close(fd);os.waitpid(pid, 0)
++        self.assertIn('dir %s ls -l' % ARROW, shown);self.assertIn('owner$ ls -l', shown);self.assertIn('notes.txt', shown)
++        self.assertIn('notes.txt', own, "the owner's alias works");self.assertNotIn(ARROW, plain);self.assertIn('plain words', plain)
++        self.assertRegex(up, r'\d+\s+ls -l\s', 'the history (what Up brings back) holds the Debian command')
++        self.assertEqual((home / '.bashrc').read_text(), before, "the owner's rc is untouched")
++
++
++# ---- the pure pieces -------------------------------------------------------------------------------------------------------------
++class Pieces(unittest.TestCase):
++    PLACES = {'C': '/', 'D': '/media/stick'}
++
++    def ask(self, line, mode='on', cwd='/home/someone/Files'):
++        return rc.answer(line, cwd, mode=mode, places=self.PLACES, which=lambda name: '/usr/bin/' + name)
++
++    def test_i_dos_lines_become_their_debian_command_others_stay(self):
++        said = self.ask('dir /s');self.assertTrue(said['dos']);self.assertEqual(said['shown'][0], 'dir /s %s ls -lR' % ARROW)
++        self.assertEqual(said['run'], 'ls -lR')
++        self.assertEqual(self.ask('D:')['run'], "cd -- /media/stick");self.assertEqual(self.ask('cls')['run'], 'clear')
++        for line in ('ls -la', 'echo hello', 'vim notes.txt', 'top', 'sudo apt update'):
++            self.assertFalse(self.ask(line)['dos'], line)
++        self.assertEqual(self.ask('format c:')['run'], '');self.assertIn('never run', ' '.join(self.ask('format c:')['shown']))
++
++    def test_j_show_me_only_and_off(self):
++        said = self.ask('dir', mode='show');self.assertEqual(said['run'], '');self.assertIn(rc.SHOWN_ONLY, said['shown'])
++        self.assertFalse(self.ask('dir', mode='off')['dos'])
++
++    def test_k_del_goes_to_the_bin_and_everything_asks_first(self):
++        folder = Path(tempfile.mkdtemp(prefix='c0-del-'));(folder / 'a.tmp').write_text('a');(folder / 'b.tmp').write_text('b')
++        said = self.ask('del a.tmp', cwd=str(folder));self.assertEqual(said['run'], 'gio trash -- a.tmp')
++        said = self.ask('del *.*', cwd=str(folder));self.assertTrue(said['run'].startswith('__graphite_sure 2 '))
++        self.assertIn('gio trash -- a.tmp b.tmp', said['run']);self.assertNotIn('rm ', said['run'])
++        self.assertEqual(self.ask('del none.tmp', cwd=str(folder))['run'], '')
++
++    def test_l_the_rc_reads_the_owners_bashrc_first_and_binds_enter(self):
++        text = rc.rc_text(python='/usr/bin/python3', script='/opt/graphite/workbench/real_terminal_rc.py')
++        self.assertLess(text.index('. "$HOME/.bashrc"'), text.index('bind -m'))
++        for mode in ('emacs', 'vi-insert'):self.assertIn('for __graphite_map in emacs vi-insert', text)
++        self.assertIn('"\\C-m": "\\C-x\\C-g\\C-d\\C-x\\C-g\\C-a"', text);self.assertIn('"\\e[24;8~"', text)
++        self.assertNotIn('>> "$HOME', text);self.assertNotIn('> "$HOME', text)
++
++    def test_m_xterm_follows_the_look_and_runs_bash_with_the_rc(self):
++        from PySide6.QtWidgets import QApplication
++        self.app = QApplication.instance() or QApplication([])
++        from workbench import real_terminal_qt as rt
++        line = rt.argv(1234, '/bin/bash', '/run/g/graphite-terminal.bashrc')
++        ground, words, _, _ = rt.look()
++        self.assertEqual(line[:3], ['xterm', '-into', '1234']);self.assertEqual(line[line.index('-bg') + 1], ground)
++        self.assertEqual(line[line.index('-fg') + 1], words);self.assertTrue(line[line.index('-fa') + 1].startswith('IBM Plex Mono'))
++        self.assertEqual(line[-4:], ['/bin/bash', '--rcfile', '/run/g/graphite-terminal.bashrc', '-i'])
++        self.assertEqual(rt.argv(1, '/usr/bin/zsh', '/x')[-2:], ['-e', '/usr/bin/zsh'])
++        self.assertEqual(rt.why_not(platform='offscreen'), 'not on X');self.assertEqual(rt.why_not(platform='xcb', which=lambda n: None), 'xterm is not installed')
++
++
++if __name__ == '__main__':
++    if sys.argv[1:2] == ['--x-driver']:
++        sys.exit(driver(sys.argv[2]))
++    unittest.main()
+diff --git a/workbench/drop_terminal_qt.py b/workbench/drop_terminal_qt.py
+index b533c59..5293644 100644
+--- a/workbench/drop_terminal_qt.py
++++ b/workbench/drop_terminal_qt.py
+@@ -172,6 +172,8 @@ class DropTerminal(QWidget):
+         for key in IN_WINDOW_KEYS + ('Meta+`',):
+             QShortcut(QKeySequence(key), self, activated=self.leave)
+         self.restyle();self.read_words()
++        from . import real_terminal_qt  # 1.1 C0: on X with xterm, the body is a real terminal (the owner's shell)
++        self.real = real_terminal_qt.attach(self)  # 1.1 C0: None keeps the line Terminal above
+ 
+     # -- look
+     def restyle(self):
+@@ -214,6 +216,7 @@ class DropTerminal(QWidget):
+             pass
+         self.sign.setText(self.sign_text() if self.cwd is not None or self.place.text() else '$')
+         busy = self.process is not None
++        if getattr(self, 'real', None) is not None:self.place.setText(self.real.words or 'your shell')  # 1.1 C0
+         self.running.setText(('running: %s' % (getattr(self, 'shell_text', '') or '')[:60]) if busy else '')
+         self.stop.setVisible(busy)
+ 
+@@ -233,6 +236,7 @@ class DropTerminal(QWidget):
+         if text.startswith('$'):text = text[1:].strip()
+         if drop and not self.opened:self.drop()
+         if not text:return None
++        if getattr(self, 'real', None) is not None:return self.real.send(text)  # 1.1 C0: typed into the real terminal's shell
+         if text not in self.history[-1:]:self.remember(text)
+         self.run_shell(text);self.read_words()
+         return text
+@@ -284,7 +288,9 @@ class DropTerminal(QWidget):
+     def drop(self):
+         """Down from the top edge, the keys in its line; the window that had the keys is remembered to give them back."""
+         if self.opened and self.isVisible():
+-            self.raise_();self.activateWindow();self.prompt.setFocus();return self.geometry()
++            self.raise_();self.activateWindow();self.prompt.setFocus()
++            if getattr(self, 'real', None) is not None:self.real.dropped()  # 1.1 C0
++            return self.geometry()
+         own = {int(self.winId())} if self.isVisible() else set()
+         before = active_window()
+         try:host_id = int(self.host.winId())
+@@ -308,12 +314,14 @@ class DropTerminal(QWidget):
+             self.anim.setDuration(SLIDE_MS);self.anim.setStartValue(c.topLeft());self.anim.setEndValue(o.topLeft());self.anim.start()
+         self.activateWindow();self.prompt.setFocus()
+         QTimer.singleShot(0, self.prompt.setFocus)
++        if getattr(self, 'real', None) is not None:self.real.dropped()  # 1.1 C0: the shell, the hide keys, the keyboard to xterm
+         return o
+ 
+     def leave(self):
+         """Back up; the keys go back to the app (or Graphite) that had them. What runs keeps running."""
+         if not self.opened:return False
+         o, c = self.rects();self.opened = False;self.anim.stop()
++        if getattr(self, 'real', None) is not None:self.real.left()  # 1.1 C0: the hide keys let go
+         if reduce_motion(self.host) or not self.isVisible():
+             self.hide();self.slid();return True
+         self.anim.setDuration(SLIDE_MS);self.anim.setStartValue(self.pos());self.anim.setEndValue(c.topLeft());self.anim.start()
+@@ -350,7 +358,8 @@ class DropTerminal(QWidget):
+ 
+     def status(self):
+         return dict(open=self.opened, visible=self.isVisible(), geometry=self.geometry().getRect(), before=self.before,
+-                    gave=self.gave, running=self.process is not None, cwd=str(self.cwd or ''), history=len(self.history))
++                    gave=self.gave, running=self.process is not None, cwd=str(self.cwd or ''), history=len(self.history),
++                    real=self.real.status() if getattr(self, 'real', None) is not None else None)  # 1.1 C0
+ 
+ 
+ # ---- in the window ----------------------------------------------------------------------------------------------------------------
+diff --git a/workbench/real_terminal_qt.py b/workbench/real_terminal_qt.py
+new file mode 100644
+index 0000000..ff2d111
+--- /dev/null
++++ b/workbench/real_terminal_qt.py
+@@ -0,0 +1,371 @@
++"""Graphite 1.1.2 C0 · A real terminal in the drop-down: xterm, embedded in it (-into), running the owner's own shell.
++
++PLAN_1.1.md, C0. B4's drop-down Terminal ran each line as a command with no terminal device, so vim, top, less and sudo's
++password prompt could not work there. On X (the Graphite session is X) with xterm installed (graphite-session depends on
++it), the drop-down's body is now an xterm reparented into it: a real pseudo-terminal, the owner's configured shell (the
++account's login shell), started in the Files folder. Everything else is B4's: the keys, the slide, the header, the window
++that had the keys getting them back. Off X, or without xterm, the drop-down stays B4's line Terminal.
++
++  DOS words  when the shell is bash, it starts as `bash --rcfile <Graphite's rc> -i` (real_terminal_rc): the owner's own
++             ~/.bashrc first, untouched, then Enter shows "dir → ls -l" and runs the Debian command. Another shell runs as is.
++  the look   xterm's own options: the look's terminal ground and words (-bg, -fg, -cr), sixteen colours that read on that
++             ground, IBM Plex Mono (Graphite's own copy given to fontconfig for this xterm only) at the Terminal's size.
++  the keys   while it is down, xterm has the keyboard (X input focus on it). Win+`, Ctrl+Alt+T and Ctrl+Alt+` are grabbed on
++             the drop-down's own window, so they reach Graphite even inside vim, and put it away (Fluxbox's grab of the
++             first two, through graphite-do, does the same from the root). Put away, the shell and what runs keep running;
++             exit in the shell ends xterm and puts the drop-down away; the next drop starts a new shell.
++  the bar    a Terminal or DOS row of the bar's line (the owner's own press) is handed to the shell when it waits at its
++             prompt: the line is queued in Graphite's own folder and one key (Ctrl+Alt+Shift+F12, bound by the rc) takes it
++             in as if typed. While a program runs there, the line is not typed and the header says why.
++
++Kasandra's hand never types here: nothing in her code reaches this terminal, and 1.0's in-window Terminal (the one her hand
++reads) is unchanged.
++"""
++from __future__ import annotations
++
++import ctypes
++import os
++import shutil
++from ctypes import POINTER, byref, c_int, c_uint, c_ulong, c_void_p
++from pathlib import Path
++
++from PySide6.QtCore import QEvent, QObject, QProcess, QProcessEnvironment, QSocketNotifier, QTimer, Qt
++from PySide6.QtGui import QColor, QGuiApplication, QPalette
++from PySide6.QtWidgets import QApplication, QWidget
++
++from . import real_terminal_rc as rc
++
++FACE = 'IBM Plex Mono,DejaVu Sans Mono,monospace'
++QUEUE_KEY = 'F12'                     # with Ctrl+Alt+Shift: xterm sends ESC [24;8~, which the rc binds to "take the queued line"
++SHIFT, LOCK, CONTROL, MOD1, MOD2, MOD4 = 1, 2, 4, 8, 16, 64
++LOCKS = (0, LOCK, MOD2, LOCK | MOD2)  # Caps Lock and Num Lock on or off
++HIDE_KEYS = (('grave', MOD4), ('t', CONTROL | MOD1), ('grave', CONTROL | MOD1))
++KeyPress = 2
++GrabModeAsync = 1
++LIGHT = ('#1d1d1f', '#b02020', '#146a37', '#8f4f00', '#0857b8', '#5a3fa0', '#0b6e78', '#5a5a60',
++         '#626268', '#c62828', '#18773f', '#9a5400', '#0a66d8', '#6a4bb5', '#0e7c86', '#1d1d1f')
++DARK = ('#2a2a2e', '#ff6b60', '#34c26a', '#f0a63a', '#4c93ff', '#b49cff', '#4fc8d8', '#d0d0d6',
++        '#6a6a70', '#ff8a80', '#5fd68a', '#f5b95e', '#7fb2ff', '#c4b2ff', '#83eaff', '#f2f2f5')
++
++
++def why_not(platform=None, which=shutil.which, environ=None):
++    """'' when the drop-down can be a real terminal here, else why not (the line Terminal stays)."""
++    environ = os.environ if environ is None else environ
++    if str(environ.get('GRAPHITE_REAL_TERMINAL', '')).strip() == '0':return 'GRAPHITE_REAL_TERMINAL=0'
++    if (platform or QGuiApplication.platformName()) != 'xcb':return 'not on X'
++    if not which('xterm'):return 'xterm is not installed'
++    return ''
++
++
++def folder(environ=None):
++    """Graphite's own folder for this terminal (its rc, its fonts list, the bar's queued line): never the owner's files."""
++    environ = os.environ if environ is None else environ
++    base = environ.get('XDG_RUNTIME_DIR') or os.path.join(environ.get('XDG_CACHE_HOME') or os.path.join(os.path.expanduser('~'), '.cache'))
++    path = Path(base) / 'graphite-terminal';path.mkdir(parents=True, exist_ok=True)
++    try:os.chmod(path, 0o700)
++    except OSError:pass
++    return path
++
++
++def fonts_conf(where, root=rc.ROOT):
++    """A fontconfig file for this xterm only: the system's own, plus Graphite's IBM Plex Mono. None when Graphite has no copy."""
++    plex = Path(root) / 'branding' / 'fonts' / 'plex'
++    if not plex.is_dir():return None
++    path = Path(where) / 'fonts.conf'
++    path.write_text('<?xml version="1.0"?>\n<!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">\n<fontconfig>\n'
++                    '  <include ignore_missing="yes">/etc/fonts/fonts.conf</include>\n  <dir>%s</dir>\n</fontconfig>\n' % plex,
++                    encoding='utf-8')
++    return path
++
++
++def look():
++    """(ground, words, sixteen colours, size in points) for the look in force."""
++    from . import console_qt as cq
++    ground, words = cq.TERMINAL_GROUND, cq.AMBER_TEXT
++    light = QColor(ground).lightness() >= 128
++    px = max(12, cq.mono_font(14).pixelSize())
++    return ground, words, LIGHT if light else DARK, round(px * 0.75 * 2) / 2
++
++
++def argv(window, shell, rc_path, size=(100, 24), extra=()):
++    """xterm's command line: embedded in `window`, the look's colours and face, then the shell (bash with Graphite's rc)."""
++    ground, words, colours, points = look()
++    res = ['XTerm*metaSendsEscape: true', 'XTerm*termName: xterm-256color', 'XTerm*selectToClipboard: true',
++           'XTerm*allowTitleOps: false', 'XTerm*borderWidth: 0', 'XTerm*cursorBlink: false',
++           'XTerm*VT100.translations: #override Shift Ctrl <Key>C: copy-selection(CLIPBOARD)\\n'
++           'Shift Ctrl <Key>V: insert-selection(CLIPBOARD)']
++    res += ['XTerm*color%d: %s' % (n, c) for n, c in enumerate(colours)]
++    out = ['xterm', '-into', str(int(window)), '-geometry', '%dx%d' % size, '-fa', FACE, '-fs', ('%g' % points),
++           '-bg', ground, '-fg', words, '-cr', words, '-b', '8', '+sb', '-sl', '5000', '-title', 'Graphite · Terminal', '-u8']
++    for r in res:out += ['-xrm', r]
++    out += list(extra)
++    if os.path.basename(shell) == 'bash':return out + ['-e', shell, '--rcfile', str(rc_path), '-i']
++    return out + ['-e', shell]
++
++
++# ---- X: our own connection (focus, size, the hide keys, the bar's one key) ----------------------------------------------------
++class XKeyEvent(ctypes.Structure):
++    _fields_ = [('type', c_int), ('serial', c_ulong), ('send_event', c_int), ('display', c_void_p), ('window', c_ulong),
++                ('root', c_ulong), ('subwindow', c_ulong), ('time', c_ulong), ('x', c_int), ('y', c_int), ('x_root', c_int),
++                ('y_root', c_int), ('state', c_uint), ('keycode', c_uint), ('same_screen', c_int)]
++
++
++class X:
++    """windows_x11's libX11 connection, with what an embedded terminal needs."""
++
++    def __init__(self):
++        from . import windows_x11 as wx
++        self.wx = wx;self.b = wx.XlibBackend();x = self.b.x
++        for fn, args, res in (('XMoveResizeWindow', [c_void_p, c_ulong, c_int, c_int, c_uint, c_uint], c_int),
++                              ('XGrabKey', [c_void_p, c_int, c_uint, c_ulong, c_int, c_int, c_int], c_int),
++                              ('XUngrabKey', [c_void_p, c_int, c_uint, c_ulong], c_int),
++                              ('XStringToKeysym', [ctypes.c_char_p], c_ulong), ('XKeysymToKeycode', [c_void_p, c_ulong], ctypes.c_ubyte)):
++            f = getattr(x, fn);f.argtypes = args;f.restype = res
++        self.x = x;self.dpy = self.b.dpy;self.tst = None
++
++    def code(self, name):
++        return int(self.x.XKeysymToKeycode(self.dpy, self.x.XStringToKeysym(name.encode())))
++
++    def children(self, window):
++        with self.b.calls():return self.b.children(window)[0]
++
++    def fit(self, window, w, h):
++        with self.b.calls():self.x.XMoveResizeWindow(self.dpy, int(window), 0, 0, max(1, int(w)), max(1, int(h)))
++
++    def focus(self, window):
++        with self.b.calls():self.x.XSetInputFocus(self.dpy, int(window), self.wx.RevertToParent, self.wx.CurrentTime)
++        return not self.wx._ERRORS
++
++    def focused(self):
++        win, revert = c_ulong(), c_int()
++        with self.b.calls():self.x.XGetInputFocus(self.dpy, byref(win), byref(revert))
++        return int(win.value)
++
++    def grab(self, window, keys=HIDE_KEYS):
++        done = []
++        with self.b.calls():
++            for name, mods in keys:
++                code = self.code(name)
++                if not code:continue
++                for lock in LOCKS:
++                    self.x.XGrabKey(self.dpy, code, mods | lock, int(window), 0, GrabModeAsync, GrabModeAsync);done.append((code, mods | lock))
++        return done
++
++    def ungrab(self, window, grabbed):
++        with self.b.calls():
++            for code, mods in grabbed:self.x.XUngrabKey(self.dpy, code, mods, int(window))
++
++    def presses(self):
++        """The key presses waiting on this connection: [(keycode, modifiers without the locks)]."""
++        out = [];ev = self.wx.XEvent()      # windows_x11's event (XNextEvent is declared with it there)
++        with self.wx._XLOCK:
++            while self.x.XPending(self.dpy):
++                self.x.XNextEvent(self.dpy, byref(ev))
++                if ev.type == KeyPress:
++                    key = ctypes.cast(byref(ev), POINTER(XKeyEvent)).contents
++                    out.append((int(key.keycode), int(key.state) & ~(LOCK | MOD2)))
++        return out
++
++    def tap(self, name, mods=()):
++        """One key through XTest (the bar's one key into the terminal that has the focus)."""
++        if self.tst is None:
++            self.tst = ctypes.CDLL('libXtst.so.6')
++            self.tst.XTestFakeKeyEvent.argtypes = [c_void_p, c_uint, c_int, c_ulong];self.tst.XTestFakeKeyEvent.restype = c_int
++        codes = [self.code(m) for m in mods] + [self.code(name)]
++        with self.b.calls():
++            for c in codes:self.tst.XTestFakeKeyEvent(self.dpy, c, 1, 0)
++            for c in reversed(codes):self.tst.XTestFakeKeyEvent(self.dpy, c, 0, 0)
++        return all(codes)
++
++    def close(self):
++        self.b.close_display()
++
++
++# ---- the shell's state, from /proc ---------------------------------------------------------------------------------------------
++def _stat(pid):
++    try:text = Path('/proc/%d/stat' % pid).read_text()
++    except OSError:return None
++    rest = text[text.rfind(')') + 2:].split()
++    return dict(state=rest[0], ppid=int(rest[1]), pgrp=int(rest[2]), tpgid=int(rest[5]))
++
++
++def shell_of(xterm_pid):
++    """The shell xterm runs (its child), or 0."""
++    try:kids = Path('/proc/%d/task/%d/children' % (xterm_pid, xterm_pid)).read_text().split()
++    except OSError:
++        kids = [p for p in os.listdir('/proc') if p.isdigit() and (_stat(int(p)) or {}).get('ppid') == xterm_pid]
++    return int(kids[0]) if kids else 0
++
++
++def at_prompt(shell_pid):
++    """Whether the shell waits at its prompt: the terminal's foreground is the shell itself, no program of it."""
++    s = _stat(shell_pid) if shell_pid else None
++    return bool(s) and s['tpgid'] == s['pgrp']
++
++
++# ---- the area in the drop-down ---------------------------------------------------------------------------------------------------
++class RealTerminal(QWidget):
++    """The drop-down's body: a native window xterm is reparented into (see the module note)."""
++
++    def __init__(self, term):
++        super().__init__(term)
++        self.term = term;self.process = None;self.client = 0;self.x = None;self.notifier = None;self.grabbed = [];self.grab_on = 0
++        self.home = folder();self.queue = self.home / 'queued-line';self.words = '';self.extra = ()
++        self.setObjectName('DropTerminalReal');self.setAccessibleName('The Terminal: your shell')
++        self.setAttribute(Qt.WA_NativeWindow, True);self.setAttribute(Qt.WA_DontCreateNativeAncestors, True)
++        self.setFocusPolicy(Qt.StrongFocus);self.setAutoFillBackground(True)
++        ground = look()[0];pal = self.palette();pal.setColor(QPalette.Window, QColor(ground));self.setPalette(pal)
++        self.wait = QTimer(self);self.wait.setInterval(40);self.wait.timeout.connect(self.find_client);self.tries = 0
++        # the hide keys are read on a timer as well: an XSync of our own calls can take an event off the socket into Xlib's queue
++        self.keys = QTimer(self);self.keys.setInterval(80);self.keys.timeout.connect(self.read_keys)
++
++    # -- X
++    def xconn(self):
++        if self.x is None:
++            self.x = X()
++            self.notifier = QSocketNotifier(self.x.b.fileno(), QSocketNotifier.Read, self)
++            self.notifier.activated.connect(self.read_keys)
++        return self.x
++
++    def read_keys(self, *_):
++        if self.x is None:return
++        hide = {(self.x.code(n), m) for n, m in HIDE_KEYS}
++        if any(p in hide for p in self.x.presses()):QTimer.singleShot(0, self.term.leave)
++
++    # -- the shell
++    def running(self):
++        return self.process is not None and self.process.state() != QProcess.NotRunning
++
++    def start(self):
++        if self.running():return True
++        from .typebar_qt import configured_shell
++        shell = configured_shell()
++        path = rc.write_rc(self.home)
++        try:self.queue.write_text('', encoding='utf-8')
++        except OSError:pass
++        env = QProcessEnvironment.systemEnvironment()
++        conf = fonts_conf(self.home)
++        if conf is not None:env.insert('FONTCONFIG_FILE', str(conf));env.insert('GRAPHITE_TERMINAL_FONTS', str(conf))
++        env.insert('GRAPHITE_TERMINAL_QUEUE', str(self.queue))
++        for name in ('TERM', 'COLUMNS', 'LINES'):env.remove(name)
++        self.window().winId();wid = int(self.winId())
++        p = self.process = QProcess(self);p.setProcessEnvironment(env)
++        try:p.setWorkingDirectory(str(self.term.working_dir()))
++        except Exception:  # noqa: BLE001 - the Files folder unknown: the home folder
++            p.setWorkingDirectory(str(Path.home()))
++        p.finished.connect(self.ended)
++        line = argv(wid, shell, path, extra=self.extra)
++        p.start(line[0], line[1:])
++        self.shell = os.path.basename(shell);self.client = 0;self.tries = 0;self.wait.start()
++        self.words = 'your shell: %s%s' % (self.shell, '' if self.shell == 'bash' else ' (DOS words need bash)')
++        return True
++
++    def find_client(self):
++        self.tries += 1
++        if self.tries > 150 or not self.running():self.wait.stop();return
++        kids = self.xconn().children(int(self.winId()))
++        if not kids:return
++        self.wait.stop();self.client = int(kids[0]);self.fit()
++        if self.term.opened:QTimer.singleShot(30, self.focus)
++
++    def ended(self, *_):
++        self.client = 0;self.process = None;self.wait.stop()
++        if self.term.opened:self.term.leave()
++
++    def stop(self):
++        if self.running():self.process.terminate();self.process.waitForFinished(1500)
++
++    def pid(self):
++        return int(self.process.processId()) if self.running() else 0
++
++    def shell_pid(self):
++        return shell_of(self.pid()) if self.pid() else 0
++
++    # -- size and keys
++    def fit(self):
++        if self.client:
++            r = self.devicePixelRatioF();self.xconn().fit(self.client, self.width() * r, self.height() * r)
++
++    def resizeEvent(self, event):
++        super().resizeEvent(event);self.fit()
++
++    def focus(self):
++        """The keyboard to xterm (while the drop-down is down)."""
++        if self.client and self.term.opened and self.term.isVisible():return self.xconn().focus(self.client)
++        return False
++
++    def focusInEvent(self, event):
++        super().focusInEvent(event);QTimer.singleShot(0, self.focus)
++
++    def dropped(self):
++        """drop(): the shell started if it is not running, the hide keys grabbed, the keyboard to xterm."""
++        self.start()
++        try:self.term.read_words()
++        except Exception:  # noqa: BLE001 - the header's words wait for the next drop
++            pass
++        try:
++            top = int(self.term.winId())
++            if not self.grabbed or self.grab_on != top:self.grabbed = self.xconn().grab(top);self.grab_on = top
++        except Exception:  # noqa: BLE001 - Fluxbox's keys still put it away
++            self.grabbed = []
++        if self.grabbed:self.keys.start()
++        for ms in (0, 60, 250):QTimer.singleShot(ms, self.focus)
++
++    def left(self):
++        """leave(): the hide keys let go (the app that gets the keys back has all of them); the shell keeps running."""
++        self.keys.stop()
++        if self.grabbed and self.x is not None:
++            try:self.x.ungrab(self.grab_on, self.grabbed)
++            except Exception:  # noqa: BLE001
++                pass
++        self.grabbed = []
++
++    # -- the bar's line (the owner's own press)
++    def send(self, text, waited=0):
++        """Hand one line to the shell, as if typed, when it waits at its prompt; words saying what happened."""
++        text = ' '.join(str(text or '').splitlines()).strip()
++        if not text:return 'Nothing to run.'
++        if not self.running():self.start()
++        shell = self.shell_pid()
++        if not (self.client and shell and at_prompt(shell)):
++            if waited < 50 and self.running() and not (self.client and shell):      # just started: wait for its prompt
++                QTimer.singleShot(100, lambda: self.send(text, waited + 1));return 'In the Terminal: %s' % text
++            self.term.running.setText('busy: the line was not typed');return 'The Terminal is busy (a program runs there): the line was not typed.'
++        if waited:
++            QTimer.singleShot(400, lambda: self._type(text));return 'In the Terminal: %s' % text
++        self._type(text)
++        return 'In the Terminal: %s' % text
++
++    def _type(self, text):
++        self.queue.write_text(text, encoding='utf-8')
++        try:os.chmod(self.queue, 0o600)
++        except OSError:pass
++        self.focus();self.xconn().tap(QUEUE_KEY, ('Control_L', 'Alt_L', 'Shift_L'))
++
++    def status(self):
++        return dict(real=True, running=self.running(), client=self.client, shell=self.shell_pid(), grabbed=len(self.grabbed))
++
++
++class _Activated(QObject):
++    """The drop-down activated again (a click on it): the keyboard back to xterm."""
++
++    def __init__(self, real):
++        super().__init__(real);self.real = real
++
++    def eventFilter(self, obj, event):
++        if event.type() == QEvent.WindowActivate:QTimer.singleShot(0, self.real.focus)
++        return False
++
++
++def attach(term):
++    """DropTerminal.__init__: the real terminal as its body where it can be (see why_not); None leaves B4's line Terminal."""
++    if why_not():return None
++    real = RealTerminal(term)
++    box = term.layout()
++    row = term.prompt.parentWidget()
++    term.output.hide();row.hide()
++    box.insertWidget(box.indexOf(term.output), real, 1)
++    term.installEventFilter(_Activated(real))
++    app = QApplication.instance()
++    if app is not None:app.aboutToQuit.connect(real.stop)
++    return real
+diff --git a/workbench/real_terminal_rc.py b/workbench/real_terminal_rc.py
+new file mode 100644
+index 0000000..7802fa9
+--- /dev/null
++++ b/workbench/real_terminal_rc.py
+@@ -0,0 +1,164 @@
++"""Graphite 1.1.1 C0 · DOS words in the real Terminal: the bash rc the drop-down's terminal starts with, and the line it asks.
++
++PLAN_1.1.md, C0. The drop-down Terminal is a real terminal (xterm, see real_terminal_qt) running the owner's own shell. When
++that shell is bash, Graphite starts it as `bash --rcfile <this rc> -i`, and the rc:
++
++  1. reads the owner's own ~/.bashrc first, exactly as any terminal of theirs does (bash reads /etc/bash.bashrc itself).
++     Nothing of the owner's is written, moved or edited: the rc is Graphite's own file, made for this terminal only;
++  2. binds Enter (and Ctrl+J), in emacs and vi-insert alike, to: ask `answer` below about the line just typed, then accept it.
++     A line that is not DOS words (W1's dos_words.translate says None) is left exactly as typed and runs as bash runs it.
++     A DOS line is shown as W1 shows it, "dir /s → ls -lR" (above what it prints), and the shell's own line becomes the
++     Debian command, which is what runs and what Up brings back: the owner learns it by using it;
++  3. binds Ctrl+Alt+Shift+F12 (xterm sends ESC [24;8~) to take in the line the bar's line queued (real_terminal_qt.send, the
++     owner's own press on a Terminal or DOS row) as if typed, then Enter as above.
++
++Only the first word is looked at in bash (a DOS word, a word both have, or a drive letter); only then is the translator asked.
++A translator that fails leaves the line as typed. The setting (Tools ▸ DOS words) is read at every line: 'on' runs the Debian
++command, 'show' (show me only) shows it and runs nothing, 'off' leaves every line to bash.
++
++What is never run stays as W1 decided: del and erase put files in the bin (`gio trash`, the freedesktop.org bin Files shows,
++never rm; `del *.*` asks first), format, chkdsk, fdisk and diskpart are explained and not run. Nothing here runs by itself:
++every line runs because the owner typed it and pressed Enter in their own terminal; Kasandra's hand never types here.
++"""
++from __future__ import annotations
++
++import os
++import shlex
++import shutil
++import sys
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parent.parent
++SHOWN_ONLY = 'Shown only: DOS words are set to "show me only", so nothing was run.'
++NOTHING_THERE = 'Nothing there by that name, so nothing went to the bin (del takes files; rd /s takes a folder).'
++NO_GIO = ('gio (libglib2.0-bin) is not installed, so nothing went to the bin; Files puts things there too (Delete).')
++DIM, PLAIN = '\033[2m', '\033[0m'
++
++
++def first_words():
++    """The first words bash asks about: W1's DOS-only words and the words both have (a drive letter is matched apart)."""
++    from workbench import dos_words as dw
++    return sorted(dw.DOS_ONLY | dw.BOTH)
++
++
++def _rel(path, cwd):
++    try:
++        rel = os.path.relpath(path, str(cwd))
++    except ValueError:
++        return str(path)
++    return str(path) if rel.startswith('..') else rel
++
++
++def answer(line, cwd, mode=None, places=None, which=shutil.which):
++    """What the Terminal does with one line the owner pressed Enter on: {'dos': False} when it is not DOS words (bash runs it as
++    typed), else {'dos': True, 'shown': [lines to print above], 'run': the line bash runs instead ('' runs nothing)}."""
++    from workbench import dos_words as dw
++    if mode is None:
++        try:
++            from workbench import windows_hand
++            mode = windows_hand.dos_words()
++        except Exception:  # noqa: BLE001 - the setting unreadable: DOS words stay on, as their default
++            mode = 'on'
++    if mode == 'off':return {'dos': False}
++    said = dw.translate(line, cwd=str(cwd), places=places, which=which)
++    if said is None:return {'dos': False}
++    shown = [said.shown()]
++    if said.words and said.kind != 'help':shown.append(said.words)
++    if mode == 'show':return {'dos': True, 'shown': shown + [SHOWN_ONLY], 'run': ''}
++    kind = said.kind
++    if kind == 'run':run = said.run
++    elif kind == 'cd':run = 'cd -- %s' % shlex.quote(said.target)
++    elif kind == 'cls':run = 'clear'
++    elif kind == 'exit':run = 'exit'
++    elif kind == 'env':run = said.command
++    elif kind == 'help':shown += said.words.splitlines();run = ''
++    elif kind == 'trash':
++        files = dw.expand(said, cwd)
++        if not files:shown.append(NOTHING_THERE);run = ''
++        elif not which('gio'):shown.append(NO_GIO);run = ''
++        else:
++            run = 'gio trash -- ' + ' '.join(shlex.quote(_rel(f, cwd)) for f in files)
++            if said.ask:run = '__graphite_sure %d %s && %s' % (len(files), shlex.quote(str(cwd)), run)
++    else:run = ''           # explain: words only
++    return {'dos': True, 'shown': shown, 'run': run}
++
++
++def rc_text(python=None, script=None):
++    """The rc (see the module note): the owner's ~/.bashrc, then the Enter binding. `python` and `script` are what bash runs
++    to ask about a DOS line (this interpreter and this file, by default)."""
++    python = python or sys.executable or 'python3'
++    script = script or str(Path(__file__).resolve())
++    words = '|'.join(first_words())
++    return r'''# Graphite's Terminal (1.1.1 C0): made by Graphite for its drop-down Terminal only. Your own files are not changed.
++# Your ~/.bashrc first, as any terminal of yours reads it; then DOS words (dir, copy, del...), which show the Debian command
++# they run and leave it in the line's history. Tools > DOS words: off leaves every line to bash as typed.
++if [ -f "$HOME/.bashrc" ]; then . "$HOME/.bashrc"; fi
++export GRAPHITE_TERMINAL=1
++if [ -n "$GRAPHITE_TERMINAL_FONTS" ] && [ "$FONTCONFIG_FILE" = "$GRAPHITE_TERMINAL_FONTS" ]; then unset FONTCONFIG_FILE; fi
++unset GRAPHITE_TERMINAL_FONTS
++__graphite_dos_enter() {
++  local l w out
++  l=${READLINE_LINE#"${READLINE_LINE%%%%[![:space:]]*}"}
++  w=${l%%%%[[:space:]]*}; w=${w%%%%[/\\.]*}; w=${w,,}
++  case "$w" in
++    %(words)s) ;;
++    [a-z]:) ;;
++    *) return 0 ;;
++  esac
++  out=$(%(python)s -I -B %(script)s "$READLINE_LINE" "$PWD") || return 0
++  READLINE_LINE=$out; READLINE_POINT=${#out}
++}
++__graphite_queued() {
++  local f=$GRAPHITE_TERMINAL_QUEUE
++  [ -n "$f" ] && [ -s "$f" ] || return 0
++  READLINE_LINE=$(<"$f"); : > "$f"; READLINE_POINT=${#READLINE_LINE}
++}
++__graphite_sure() {
++  local a
++  read -r -p "$1 in $2. Put them all in the bin? (y/N) " a
++  case "$a" in [yY]*) return 0 ;; esac
++  echo 'Nothing was done.'; return 1
++}
++if [[ $- == *i* ]]; then
++  for __graphite_map in emacs vi-insert; do
++    bind -m "$__graphite_map" -x '"\C-x\C-g\C-d": __graphite_dos_enter'
++    bind -m "$__graphite_map" '"\C-x\C-g\C-a": accept-line'
++    bind -m "$__graphite_map" '"\C-m": "\C-x\C-g\C-d\C-x\C-g\C-a"'
++    bind -m "$__graphite_map" '"\C-j": "\C-x\C-g\C-d\C-x\C-g\C-a"'
++    bind -m "$__graphite_map" -x '"\C-x\C-g\C-q": __graphite_queued'
++    bind -m "$__graphite_map" '"\e[24;8~": "\C-x\C-g\C-q\C-x\C-g\C-d\C-x\C-g\C-a"'
++  done
++  unset __graphite_map
++fi
++''' % dict(words=words, python=shlex.quote(python), script=shlex.quote(script))
++
++
++def write_rc(folder, python=None, script=None):
++    """The rc written into `folder` (Graphite's own, 0700) as graphite-terminal.bashrc; its path."""
++    folder = Path(folder);folder.mkdir(parents=True, exist_ok=True)
++    try:os.chmod(folder, 0o700)
++    except OSError:pass
++    path = folder / 'graphite-terminal.bashrc'
++    path.write_text(rc_text(python, script), encoding='utf-8')
++    return path
++
++
++def main(argv=None):
++    """bash's question (the rc's Enter): argv = [the line, the folder]. A DOS line: the shown lines go to the terminal (stderr,
++    over the typed line) and the line to run to stdout, exit 0. Not DOS, or anything wrong: exit 1, and bash runs it as typed."""
++    argv = sys.argv[1:] if argv is None else argv
++    if len(argv) < 2:return 1
++    try:
++        said = answer(argv[0], argv[1])
++    except Exception:  # noqa: BLE001 - the translator never eats the owner's line
++        return 1
++    if not said.get('dos'):return 1
++    err = sys.stderr
++    err.write('\r\033[K' + '\n'.join(DIM + s + PLAIN for s in said['shown']) + '\n');err.flush()
++    sys.stdout.write(said['run']);sys.stdout.flush()
++    return 0
++
++
++if __name__ == '__main__':
++    sys.path.insert(0, str(ROOT))
++    sys.exit(main())

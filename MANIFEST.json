@@ -3253,6 +3253,10 @@
       "bytes": 6918,
       "sha256": "ce5243c981328922df4ea7b1c3a907e76607e0f596782b3c9bfdb87dfdff26fa"
     },
+    "tests_integrated/test_real_terminal.py": {
+      "bytes": 14370,
+      "sha256": "5f82f6ec18aae3762bd2ab6e8d5a97d3d480c661d9d7819e3ef49f0769e749b7"
+    },
     "tests_integrated/test_reasoning_graph.py": {
       "bytes": 4031,
       "sha256": "4a3a2562132a3cfc39ecb916b29c6c99178480be0eb91e5769ecf9d53fb2a637"
@@ -4286,8 +4290,8 @@
       "sha256": "d14c5968681b0346a504aa8a7c39be4c4164b2ff75a39f90bf83246b849e9dd4"
     },
     "workbench/drop_terminal_qt.py": {
-      "bytes": 21334,
-      "sha256": "aa6bf8f916366fada12690e176c72b92da1e659b4b2d10e5feb3018e902a6b95"
+      "bytes": 22220,
+      "sha256": "cd7589acc7e9061c58d318f58f128b84b3d2e4720c95c8d33cc780cc8fc9a178"
     },
     "workbench/edit_checks.py": {
       "bytes": 10361,
@@ -5652,6 +5656,14 @@
     "workbench/reading_profile.py": {
       "bytes": 1596,
       "sha256": "d64df60d629bdb07e3f66d86b61ce4d4f18eef3223b44333eefd390ecfb504f1"
+    },
+    "workbench/real_terminal_qt.py": {
+      "bytes": 19010,
+      "sha256": "efed0cfad5f227ee36a0c112b6ba07ce77dd2b3e8ae21e8a6bbaab0916d70816"
+    },
+    "workbench/real_terminal_rc.py": {
+      "bytes": 8105,
+      "sha256": "bd9e59c4a89b9802731330c5c53bd2ded00ee715110684405e96c33d765c56ed"
     },
     "workbench/reason_graph.py": {
       "bytes": 6680,

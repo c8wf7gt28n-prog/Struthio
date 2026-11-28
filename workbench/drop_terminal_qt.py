@@ -172,6 +172,8 @@ class DropTerminal(QWidget):
         for key in IN_WINDOW_KEYS + ('Meta+`',):
             QShortcut(QKeySequence(key), self, activated=self.leave)
         self.restyle();self.read_words()
+        from . import real_terminal_qt  # 1.1 C0: on X with xterm, the body is a real terminal (the owner's shell)
+        self.real = real_terminal_qt.attach(self)  # 1.1 C0: None keeps the line Terminal above
 
     # -- look
     def restyle(self):
@@ -214,6 +216,7 @@ class DropTerminal(QWidget):
             pass
         self.sign.setText(self.sign_text() if self.cwd is not None or self.place.text() else '$')
         busy = self.process is not None
+        if getattr(self, 'real', None) is not None:self.place.setText(self.real.words or 'your shell')  # 1.1 C0
         self.running.setText(('running: %s' % (getattr(self, 'shell_text', '') or '')[:60]) if busy else '')
         self.stop.setVisible(busy)
 
@@ -233,6 +236,7 @@ class DropTerminal(QWidget):
         if text.startswith('$'):text = text[1:].strip()
         if drop and not self.opened:self.drop()
         if not text:return None
+        if getattr(self, 'real', None) is not None:return self.real.send(text)  # 1.1 C0: typed into the real terminal's shell
         if text not in self.history[-1:]:self.remember(text)
         self.run_shell(text);self.read_words()
         return text
@@ -284,7 +288,9 @@ class DropTerminal(QWidget):
     def drop(self):
         """Down from the top edge, the keys in its line; the window that had the keys is remembered to give them back."""
         if self.opened and self.isVisible():
-            self.raise_();self.activateWindow();self.prompt.setFocus();return self.geometry()
+            self.raise_();self.activateWindow();self.prompt.setFocus()
+            if getattr(self, 'real', None) is not None:self.real.dropped()  # 1.1 C0
+            return self.geometry()
         own = {int(self.winId())} if self.isVisible() else set()
         before = active_window()
         try:host_id = int(self.host.winId())
@@ -308,12 +314,14 @@ class DropTerminal(QWidget):
             self.anim.setDuration(SLIDE_MS);self.anim.setStartValue(c.topLeft());self.anim.setEndValue(o.topLeft());self.anim.start()
         self.activateWindow();self.prompt.setFocus()
         QTimer.singleShot(0, self.prompt.setFocus)
+        if getattr(self, 'real', None) is not None:self.real.dropped()  # 1.1 C0: the shell, the hide keys, the keyboard to xterm
         return o
 
     def leave(self):
         """Back up; the keys go back to the app (or Graphite) that had them. What runs keeps running."""
         if not self.opened:return False
         o, c = self.rects();self.opened = False;self.anim.stop()
+        if getattr(self, 'real', None) is not None:self.real.left()  # 1.1 C0: the hide keys let go
         if reduce_motion(self.host) or not self.isVisible():
             self.hide();self.slid();return True
         self.anim.setDuration(SLIDE_MS);self.anim.setStartValue(self.pos());self.anim.setEndValue(c.topLeft());self.anim.start()
@@ -350,7 +358,8 @@ class DropTerminal(QWidget):
 
     def status(self):
         return dict(open=self.opened, visible=self.isVisible(), geometry=self.geometry().getRect(), before=self.before,
-                    gave=self.gave, running=self.process is not None, cwd=str(self.cwd or ''), history=len(self.history))
+                    gave=self.gave, running=self.process is not None, cwd=str(self.cwd or ''), history=len(self.history),
+                    real=self.real.status() if getattr(self, 'real', None) is not None else None)  # 1.1 C0
 
 
 # ---- in the window ----------------------------------------------------------------------------------------------------------------
