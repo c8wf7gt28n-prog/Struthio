@@ -81,7 +81,9 @@ rules holding you back".
 - **OWED TO THE OWNER WHEN THE BUILD FINISHES (28 Nov 04:20):** "Can you give me a twenty minute talk about the program
   after you finish". Write it as `wip/<date>_TALK_graphite_1.1.md`, in the form of `wip/2026-11-27_TALK_graphite_1.0.md`
   (read aloud in about twenty minutes, times in the margin, honest about what was and was not tested), commit, push and
-  send it. If a limit stops the build before 1.1, write it on what is merged and say so.
+  send it. If a limit stops the build before 1.1, write it on what is merged and say so. The owner then said "Or sooner
+  if you can": the mid-build talk was written and sent at 04:25 (`wip/2026-11-28_TALK_graphite_1.1.md`, previews 1, 2
+  and KS1); revise it into the finished one when 1.1 is done.
 - **THE BUDGET:** weekly limit 78 % used at 02:30 UTC 28 Nov (resets Wednesday 2 Dec). The owner then switched this
   session to Opus, turned Ultracode off and said **"Go as far as you can"** (28 Nov). So: no hold. Build preview after
   preview until the limit stops the build; **cut and send each preview the moment its slices are merged**, and when a
