@@ -1,0 +1,54 @@
+{
+ "item": "B5",
+ "status": "done",
+ "summary": "A quieter bar: network, sound and power are one Quick Settings button (three glyphs, every word in its tip and accessible name, fixed width 87 px at 1366). One press opens one panel above it with Network, Sound and Power (the Machine page's own sections, compact, each with 'More on the Machine page') and, once the foot has folded, the meters as a fourth section (B4's rows and doors). B4's separate Meters item is gone (its cards open above Quick Settings). While the bar stands, Graphite's head drops Apps and its plus (Start does that job; 'Add an app to the list' now sits beside Start's Apps heading) and the menus start at the head's left edge. At 1366x768 on the everyday Home three app windows fit beside Start, the line, Kas, HALT, Quick Settings and the clock, none folded.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/B5.patch",
+ "files_changed": [
+  "workbench/quick_settings_qt.py (new)",
+  "workbench/bar_qt.py",
+  "workbench/foot_fold_qt.py",
+  "workbench/shell2.py",
+  "workbench/start_qt.py",
+  "tests_integrated/test_quiet_bar.py (new)",
+  "tests_integrated/test_bar.py",
+  "tests_integrated/test_one_line_b4.py"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_quiet_bar.py (9 tests: acceptance first)",
+  "ran": [
+   "test_quiet_bar",
+   "test_bar",
+   "test_one_line_b4",
+   "test_start_line",
+   "test_kas_bar"
+  ],
+  "output_tail": "test_quiet_bar: Ran 9 tests OK; test_bar: Ran 13 OK; test_one_line_b4: Ran 11 OK; test_start_line: Ran 12 OK; test_kas_bar: Ran 13 OK (offscreen, throwaway copy)"
+ },
+ "existing_tests_changed": [
+  "test_bar.test_the_trays_three_flyouts_open_above_it... -> test_the_trays_quick_settings_opens_the_three_sections...: open_flyout(key) now opens the one panel with all three sections (open_key \"quick\")",
+  "test_bar.test_the_trays_words_and_shapes_for_each_state: the fixed width is the one button's, not each item's",
+  "test_one_line_b4.test_the_meters_are_one_tray_item_whose_rows_are_the_doors: the meters are the panel's fourth section; meters_item is the Quick Settings button"
+ ],
+ "decisions": [
+  "The head change applies only while the bar stands (without the bar Start is not there, and K0's head with Apps stays). Apps and its plus are hidden, not deleted (callers keep the objects); the equalizer, when not in her column, stands after the menus.",
+  "\"Add an app to the list\" (the head's plus) moved beside Start's Apps heading so nothing is lost.",
+  "The meters section shows only when the foot has folded (foot_fold_qt.MetersTray); while GRAPHITE_FOOT=1 keeps the foot, the meters stay there (one place).",
+  "bar.open_flyout(key) kept for callers: it opens the one panel with key's section scrolled into sight. bar_qt.Tray/TrayItem/Flyout kept unused for anything built on them; B4's MetersItem and MetersFlyout removed.",
+  "Glyphs only on both bar heights (no words on the tall bar), as Windows 11.",
+  "Frames rendered offscreen with a sized screen (the xcb plugin needs libxcb-cursor0, not installed here)."
+ ],
+ "findings_for_the_coordinator": [
+  "machine_room_qt Power page still says \"Lock, Suspend, Log out, Restart and Shut down are in the System menu, the symbol at the right of the head\" - stale since Start carries power (not B5's file).",
+  "head_menus.py docstring line 9 says \"HALT and Apps stay in the head itself\" - no longer true while the bar stands.",
+  "The panel at 1366x768 is taller than the room above the bar; it scrolls (outer scroll area)."
+ ],
+ "not_done": [
+  "The \"move it\" alternative (tray in the head's upper left) was not built: the owner has not said so.",
+  "Nothing ran on the owner's ThinkPad or under a real X window manager."
+ ],
+ "release_note": "The bar is quieter: network, sound and battery are one Quick Settings button; one press opens all three and the meters. Apps left Graphite's head (Start does that job; Add an app is beside Start's Apps) and the menus start at the left edge, as in a Windows app.",
+ "frames": [
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/B5/frames/b5_1366x768_bar.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/B5/frames/b5_1920x1200_open.png"
+ ]
+}
