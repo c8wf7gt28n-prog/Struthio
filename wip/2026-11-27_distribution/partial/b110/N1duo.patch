@@ -1,5 +1,5 @@
 diff --git a/tests_integrated/test_night_phosphor.py b/tests_integrated/test_night_phosphor.py
-index 6ac4bee..b987b70 100644
+index 6ac4bee..70b8946 100644
 --- a/tests_integrated/test_night_phosphor.py
 +++ b/tests_integrated/test_night_phosphor.py
 @@ -1,4 +1,5 @@
@@ -61,7 +61,7 @@ index 6ac4bee..b987b70 100644
              for ink in ('text', 'secondary', 'tertiary'):self.assertGreaterEqual(ratio(c[ink], ghost), 4.5, (tone, ink))
  
      def test_the_screen_and_the_line_switch_off(self):
-@@ -166,5 +168,65 @@ class CrtEffects(unittest.TestCase):
+@@ -166,5 +168,75 @@ class CrtEffects(unittest.TestCase):
          window.deleteLater();app.processEvents()
  
  
@@ -90,6 +90,16 @@ index 6ac4bee..b987b70 100644
 +        for ink in ('kas_text', 'kas_quiet'):
 +            for ground in ('window', 'sidebar', 'kas_ground', 'waiting_tint'):self.assertGreaterEqual(ratio(c[ink], c[ground]), 4.5, (ink, ground))
 +        self.assertGreaterEqual(ratio(c['on_accent'], c['accent_fill']), 4.5, 'HALT and the selected row: inverse video in amber')
++        from workbench import night_duo      # her column, through her tube: its words amber, the grey of the past its own
++        theme = type('Theme', (), dict(PHOSPHOR='duo', TEXT=self.GREEN, FAINT=self.GREY, LAUNCH=True))
++        tube = night_duo.her_theme(theme);self.assertEqual((tube.TEXT, tube.READY, tube.FAINT, tube.LAUNCH), (self.AMBER, self.AMBER, self.GREY, True))
++        day_theme = type('Theme', (), dict(PHOSPHOR=''));self.assertIs(night_duo.her_theme(day_theme), day_theme)
++        from PySide6.QtWidgets import QApplication, QLabel, QWidget
++        app = QApplication.instance() or QApplication([])
++        panel = QWidget();words = QLabel('ACTIVE WORK', panel);words.setStyleSheet('font-size:12px;color:%s;' % self.GREEN);words.setProperty('herInk', words.styleSheet())
++        self.assertEqual(night_duo.amber_words(panel, dt.colours('day')), 0, 'nothing outside Duo')
++        self.assertEqual(night_duo.amber_words(panel, c), 1);self.assertIn(self.AMBER, words.styleSheet());self.assertIn(self.AMBER, words.property('herInk'))
++        panel.deleteLater();app.processEvents()
 +        day = dt.colours('day');self.assertEqual((day['kas_text'], day['halt']), (day['text'], day['live']), 'Day is unchanged')
 +        self.assertEqual(kas_panel_qt.shape_colour('working', day), day['live'])
 +
@@ -169,7 +179,7 @@ index 5a32866..d704af7 100644
                      'night-green': 'Night: Green: a green phosphor monitor; brightness says what matters, a block says what is selected'}      # 1.1 N1
  
 diff --git a/workbench/crt_qt.py b/workbench/crt_qt.py
-index 82e73e4..a7b4d1d 100644
+index 82e73e4..34cc246 100644
 --- a/workbench/crt_qt.py
 +++ b/workbench/crt_qt.py
 @@ -35,6 +35,13 @@ VIGNETTE_MAX = 16            # out of 255 at the very corner (6 %), Full only
@@ -215,7 +225,7 @@ index 82e73e4..a7b4d1d 100644
 +            for n, row in enumerate(OLD_LISTING):p.drawText(QRectF(w * 0.02, h * 0.56 + n * step, w * 0.4, step), Qt.AlignLeft | Qt.AlignVCenter, row)
              p.setFont(mono);p.drawText(QRectF(w * 0.03, h * 0.84, w * 0.6, h * 0.05), Qt.AlignLeft | Qt.AlignVCenter, 'C:\\> _')
 +        if self.fx['vignette'] and tokens.is_duo(tokens.colours('night')) and self.ghost != 'bar':      # 1.1 N1duo: Full: the cells
-+            cell = QColor(self.ground);cell.setRgb(*((a * 3 + b * 5) // 8 for a, b in zip(ghost.getRgb()[:3], self.ground.getRgb()[:3])))
++            cell = QColor(self.ground);cell.setRgb(*((a * 5 + b * 3) // 8 for a, b in zip(ghost.getRgb()[:3], self.ground.getRgb()[:3])))
 +            p.setPen(cell)
 +            for x in range(0, w, CELL[0] * 4):p.drawLine(x, 0, x, h)
 +            for y in range(0, h, CELL[1]):p.drawLine(0, y, w, y)
@@ -399,8 +409,22 @@ index 23b864f..54f60be 100644
              if self.underMouse() or self.hasFocus() or self.isDown():p.fillRect(QRectF(4, h - 3 - edge * 2, w - 8, edge), QColor(t.GROUND))
              shape = ink = t.GROUND
          side = self.side(h);x = self.pad();cy = h / 2.0
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index 3b78d0c..d6f40ea 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -61,6 +61,9 @@ from . import boss_theme as bt
+ from . import mind_words
+ from .assistant_identity import named
+ from .equalizer_qt import GROUPS, Equalizer
++from .night_duo import her_theme as _her_theme      # 1.1 N1duo
++
++bt = _her_theme(bt)      # 1.1 N1duo: in Night: Duo her column is an amber tube (night_duo); in any other look, boss_theme itself
+ 
+ # Her words here: fixed templates (mind_words.check: no exclamation mark, no sentence over 30 words, no digit in the fixed
+ # words, every number through a slot that names its record). 1.1 KV: in her voice (kas_voice): short, dry, sure only of
 diff --git a/workbench/kas_panel_qt.py b/workbench/kas_panel_qt.py
-index 7b504e3..9c61309 100644
+index 7b504e3..12cc6ca 100644
 --- a/workbench/kas_panel_qt.py
 +++ b/workbench/kas_panel_qt.py
 @@ -112,6 +112,7 @@ def chip_state(column, waiting=0):
@@ -434,7 +458,7 @@ index 7b504e3..9c61309 100644
          p.setPen(QPen(QColor(c['stroke_strong'] if self.underMouse() else c['stroke']), 1));p.setBrush(QColor(fill))
          p.drawRoundedRect(r, tokens.RADIUS['control'], tokens.RADIUS['control'])
          side = round(h * 0.34);x = self.pad(h);cy = h / 2.0;path = QPainterPath()
-@@ -295,8 +296,14 @@ class KasPanel(QWidget):
+@@ -295,9 +296,16 @@ class KasPanel(QWidget):
          """Her column comes in: the window's own look (its style sheet, palette and type) comes with it."""
          host = self.ctl.host
          sheet = host.styleSheet()
@@ -447,9 +471,19 @@ index 7b504e3..9c61309 100644
 +        except Exception:  # noqa: BLE001 - an effect, never a reason her column does not come in
 +            pass
          pane.setParent(self);self.layout().addWidget(pane, 1);pane.show()
++        from .night_duo import amber_words;amber_words(self)      # 1.1 N1duo: her tube's words, amber
  
      def band(self):
-@@ -336,8 +343,11 @@ class KasPanel(QWidget):
+         """(open rect, closed x): 380 px at the right edge of the screen, from its top to the bar."""
+@@ -310,6 +318,7 @@ class KasPanel(QWidget):
+ 
+     def slide_in(self):
+         rect, off = self.band();self.opened = True;self.anim.stop()
++        from .night_duo import amber_words;amber_words(self)      # 1.1 N1duo: what came since, amber too
+         self.setFixedSize(rect.size())
+         if not self.marked:self.marked = mark_everywhere(self.winId())
+         if reduce_motion(self.ctl.host):
+@@ -336,8 +345,11 @@ class KasPanel(QWidget):
              rect, _ = self.band();self.setFixedSize(rect.size());self.move(rect.topLeft())
  
      def paintEvent(self, event):
@@ -463,7 +497,7 @@ index 7b504e3..9c61309 100644
  
  
  # ---- her card -------------------------------------------------------------------------------------------------------------------
-@@ -366,9 +376,9 @@ class CardRow(QFrame):
+@@ -366,9 +378,9 @@ class CardRow(QFrame):
          self.mark.set(key, c['waiting']);self.word.setText(sw.word(key).upper() if key == 'held' else sw.word(key))
          self.word.setStyleSheet('color:%s;font-family:"%s";font-size:11px;font-weight:600;letter-spacing:1px;' % (c['waiting_text'], tokens.FONT['mono']))
          self.title.setText(title);self.title.setVisible(bool(title))
@@ -475,7 +509,7 @@ index 7b504e3..9c61309 100644
          self.press.setText(press);self.press.setToolTip(tip)
          self.setAccessibleName('%s: %s. %s' % (sw.word(key), title, words))
  
-@@ -418,7 +428,7 @@ class WaitCard(QFrame):
+@@ -418,7 +430,7 @@ class WaitCard(QFrame):
                  c['surface'], c['stroke_strong'], tokens.RADIUS['toast'], c['surface'], c['stroke'], c['waiting'],
                  c['accent_fill'], c['on_accent'], c['accent'], c['raised'], c['disabled'], c['accent_text']))
          self.head.setStyleSheet('color:%s;font-family:"%s";font-size:12px;font-weight:600;letter-spacing:1px;' % (c['waiting_text'], tokens.FONT['mono']))
@@ -484,6 +518,76 @@ index 7b504e3..9c61309 100644
          self.mark.set('needs_word', c['waiting'])
  
      # -- hearing
+diff --git a/workbench/night_duo.py b/workbench/night_duo.py
+new file mode 100644
+index 0000000..36be42e
+--- /dev/null
++++ b/workbench/night_duo.py
+@@ -0,0 +1,64 @@
++"""Graphite 1.1 N1duo · Night: Duo, her tube: her column seen through amber.
++
++The owner, 28 Nov 2026: "both the orange and green working together with grey (like screen burns)". In Night: Duo green is
++the computer and amber is Kas and the owner's word (design_tokens._duo_colours). Her column draws itself from boss_theme's
++roles (TEXT, QUIET, READY, ...), which are the computer's green in Duo. Here her column is handed a view of boss_theme in
++which the roles of words and of her state are amber, so her panel reads as a second, amber tube beside the green one. The
++grey of the past (FAINT, the lines) and every other role are boss_theme's own, read at the moment they are asked for. In any
++other look her column gets boss_theme itself. Sections built from boss_theme directly are put in amber when her column
++comes into her panel (amber_words).
++"""
++from __future__ import annotations
++
++from . import design_tokens as tokens
++
++# role -> the token it is in her tube (Night: Duo only)
++HER_ROLES = dict(TEXT='kas_text', QUIET='kas_quiet', READY='kas_text', TEAL='kas_text', TEAL_EDGE='kas_text', TEAL_TEXT='kas_text',
++                 TEAL_SOFT='waiting_tint', CUE='waiting_tint', CUE_EDGE='kas_text', CUE_TEXT='kas_text', ROYAL='kas_text',
++                 ROYAL_INK='kas_text', ROYAL_TEXT='kas_text', ROYAL_SOFT='waiting_tint', PANEL='kas_ground', VIOLET='kas_quiet',
++                 VIOLET_PALE='kas_text', ERASED='kas_text', ERASED_QUIET='kas_quiet')
++
++
++class HerTube:
++    """boss_theme as her column sees it in Night: Duo: the roles in HER_ROLES amber, every other name boss_theme's own."""
++
++    def __init__(self, theme, colours):
++        self.__dict__['_theme'] = theme
++        self.__dict__['_over'] = {role: colours[key] for role, key in HER_ROLES.items()}
++
++    def __getattr__(self, name):
++        over = self.__dict__['_over']
++        return over[name] if name in over else getattr(self.__dict__['_theme'], name)
++
++    def __setattr__(self, name, value):
++        setattr(self.__dict__['_theme'], name, value)
++
++
++def her_theme(theme):
++    """Her column's boss_theme: HerTube in Night: Duo, else the theme itself."""
++    if not getattr(theme, 'PHOSPHOR', ''):return theme
++    c = tokens.colours('night')
++    return HerTube(theme, c) if tokens.is_duo(c) else theme
++
++
++def amber_words(panel, c=None):
++    """Night: Duo: what her panel holds that was styled in the computer's green (a section built from boss_theme itself) is
++    put in her amber: each style sheet's green words become her words, its green tint her tint. Called when her column comes
++    into the panel and each time the panel opens. Returns how many widgets changed; nothing outside Duo."""
++    c = c or tokens.colours('night')
++    if not tokens.is_duo(c):return 0
++    from PySide6.QtWidgets import QWidget
++    swaps = ((c['text'], c['kas_text']), (c['secondary'], c['kas_quiet']), (c['live_tint'], c['waiting_tint']))
++    changed = 0
++    for widget in [panel] + panel.findChildren(QWidget):
++        sheet = widget.styleSheet()
++        if not sheet:continue
++        new = sheet
++        for green, amber in swaps:new = new.replace(green, amber).replace(green.upper(), amber)
++        if new != sheet and widget is not panel:
++            widget.setStyleSheet(new);changed += 1
++            ink = widget.property('herInk')
++            if ink:
++                for green, amber in swaps:ink = str(ink).replace(green, amber).replace(green.upper(), amber)
++                widget.setProperty('herInk', ink)
++    return changed
 diff --git a/workbench/night_phosphor.py b/workbench/night_phosphor.py
 index 6cf0b08..a21fe15 100644
 --- a/workbench/night_phosphor.py
