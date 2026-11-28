@@ -133,7 +133,17 @@ rules holding you back".
   * **Open, seen in the frames (for Z4 or earlier):** the window's foot (Line, Terminal, Search, Web, Log) and the
     bar's line now do the same job: one place for each thing says the foot folds into the bar's line, with the
     Terminal as the drop-down one (the Calm graft). Kernel refusals reached her column raw (B3 fixes it in her voice).
-  * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
+  * **B3 merged (24407ff); then the tray at 1366 shows glyphs alone (72c672a)** so two app windows fit beside Kas and
+    HALT (test_bar's windows test failed after B3; 51 tests of the bar, Start, Kas on the bar and the frame pass).
+  * **PREVIEW 2 SENT (03:48 UTC):** version 1.1~pre2 (c983e58), cut by cut_pre.sh from it (release check PASSED;
+    45 kit files, the largest 14.4 MB). **Decision taken for the owner: cut without waiting for T2** (tests only; the
+    owner's "release what you can"); the notes say the tiers were not re-run. Only the 17 files that differ from
+    preview 1 were sent, with how to drop them into the preview 1 folder (JOIN.sh checks every file). Record:
+    `wip/2026-11-28_preview_2/`. The kit stays in `$S/work/pre2/kit/` as the base of the next cut.
+  * **Preview 3 building:** KS1 (recipes; agent a0533732a4c03c9fd) and T2 (the tiers; agent ad78ac2c39a175988).
+    Next: KS2 (the command tool), KS3 (the system door), KS4 (grounding and "teach me"); the foot folded into the bar's
+    line with a drop-down Terminal; "Command..." (K0's (d)); Win+K and Pause from other apps (B3's not_done).
+  * **Preview 2 building (done):** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
 ## Before: Graphite 1.0 is released, untested (27 Nov 2026)
