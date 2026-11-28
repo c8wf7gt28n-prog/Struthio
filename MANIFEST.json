@@ -2307,7 +2307,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 2132870,
-      "sha256": "33801e5696b0cb23c84c8afa561c7a3ff88b74258c689481c39aa9a83ea0b32c"
+      "sha256": "3f73b2d1ec982079afe9d8d6ecd69fa5f4ff7179553bb57ec12ed028e3d93451"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4820992,
@@ -2315,7 +2315,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47192,
-      "sha256": "395642c73d652205bfdc1586d3dcc987af45143befd6d8e76a2827f2af4c5c9f"
+      "sha256": "04341e257b9f354f5f252f03fde432629431cbe376ca9c9a31b728ca71d77156"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3890,8 +3890,8 @@
       "sha256": "f833cd2aad036f74551de4597139caf93318fbe0b304d797ada3ae347b20c97c"
     },
     "workbench/boss_qt.py": {
-      "bytes": 31703,
-      "sha256": "b8e25a81c1747ca6ef9933b87d2b2cea8054a132249d9f51ac654f9831f7f818"
+      "bytes": 31698,
+      "sha256": "f65c236189cf073cf3637268bdb3ae89c0d60d1c19a029c2ef632136045901f1"
     },
     "workbench/boss_theme.py": {
       "bytes": 30361,

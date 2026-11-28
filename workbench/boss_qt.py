@@ -394,7 +394,7 @@ APPEARANCE_WORDS = {'graphite': 'Pencil: pencil, paper and amber, as it has alwa
                     'kasandra': 'Indigo: indigo and a typewriter face for headings',      # 1.1 R1: once named Kasandra      # 1.0 P4 no avatar: her art no longer follows the work
                     'day': 'Day: the launch look, light and calm; green for what is live, blue for the board\'s wires and what is selected',      # 1.0 P2, P4
                     'night': 'Night: a phosphor monitor, one colour on black',      # 1.0 P4; 1.1 N1
-                    'night-duo': 'Night: Duo: green for the computer, amber for Kasandra and your word, grey for the past; a block says what is selected',      # 1.1 N1duo
+                    'night-duo': 'Night: Duo: green for the computer, amber for Kas and your word, grey for the past; a block says what is selected',      # 1.1 N1duo
                     'night-amber': 'Night: Amber: an amber phosphor monitor; brightness says what matters, a block says what is selected',      # 1.1 N1
                     'night-green': 'Night: Green: a green phosphor monitor; brightness says what matters, a block says what is selected'}      # 1.1 N1
 
