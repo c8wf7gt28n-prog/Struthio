@@ -327,7 +327,8 @@ class Walk:
 
     def __init__(self, folder, hidden=True, folders=False, bin=False):
         self.folder = Path(folder);self.hidden = hidden;self.folders = folders;self.cut = False;self.read = 0
-        self.skip = None if bin else hr.real(Path(os.environ.get('XDG_DATA_HOME') or hr.home() / '.local/share') / 'Trash')
+        from . import home_trash      # the bin's folder, as 1.0 finds it (XDG_DATA_HOME, else ~/.local/share)
+        self.skip = None if bin else hr.real(home_trash.trash_dir())
 
     def __iter__(self):
         deadline = time.monotonic() + WALK_SECONDS;stack = [self.folder]
