@@ -121,6 +121,10 @@ rules holding you back".
     new character card; 2 pane-width failures in test_kasandra_column predate KV (T2). **B3 launched 03:17** (agent
     af210bf9ff6a6d0f3: her chip, HALT on the bar, her panel over any app, permission cards from her chip, and the
     Kernel's raw refusals put in her plain words). Running: B2, K0, B3. Next: T2, then cut preview 2.
+  * **B2 merged (d304bdd, 03:30):** Start (Windows key, on release) and the line (line_finder.py); frames sent.
+    **KS1 launched 03:31** (agent a0533732a4c03c9fd; recipes, preview 3's first slice, in the free slot while K0 and B3
+    finish; its brief carries a full scope). Running: K0, B3, KS1. Next: when K0 and B3 are merged, T2 (the tiers
+    with every new truth), then cut preview 2; KS2 to KS4 after.
   * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
