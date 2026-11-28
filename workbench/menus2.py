@@ -147,7 +147,7 @@ def rebuild(host):
         from .assistant_identity import named      # 1.0 D2: the row that shows her column says her name, not "Graphite"
         host.a_slate_panel = make(named('Stacy'), lambda:host.shell2.show_slate_face())
         host.a_getting_started = make('Getting Started', lambda:host.open_in_viewer(program / 'GETTING_STARTED.md'))
-        release_notes = program / 'docs' / ('RELEASE_NOTES_%s.md' % SHORT)
+        release_notes = program / 'docs' / ('RELEASE_NOTES_%s.md' % SHORT.replace('~', '_'))   # 1.1~pre1 -> RELEASE_NOTES_1.1_pre1.md
         if not release_notes.is_file(): release_notes = program / 'docs' / 'STAGE6.md'
         host.a_whats_new = make("What's New in %s" % SHORT, lambda:host.open_in_viewer(release_notes))
         # 0.8.6 W: the Guide page "An evening with Kas's mind", and its two invented desks, each built in a fresh folder of its own

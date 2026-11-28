@@ -39,7 +39,7 @@ NOT_SHIPPED = ('tools/planted_bugs/', 'tools/i05_kit/', 'debian/')  # 1.1 PK1: d
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
 # Fields of earlier checkpoints' manifests that no reader uses any more (the release check reads graphite_release).
 RETIRED_FIELDS = ('hatch_checkpoint', 'integrated_pass', 'delivery_stage')
-NOTE = ('Graphite 1.0: the Living Desktop and the Ghost in the Shell. Graphite is the session; the whole computer is in it (Files, Apps, the Machine, Settings); the bulletin board in the centre; Kasandra an agent user of the system, under your grants, every step verified, HALT stopping all of her work and nothing else; her model on llama.cpp v1.0.0 with the tuning sweep; Day and Night, the launch look. Built and not tested, by the owner\'s rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/ACCEPTANCE_1.0.md and docs/THINKPAD_FIRST_INSTALL.md.')
+NOTE = ('Graphite 1.1~pre1, preview 1 of 1.1: installs like Debian software (four packages in a folder repository, a LightDM login optional), a Windows hand\'s keys and DOS words, the test tiers running again; minimal tests, by the owner\'s rule. Still in it: 1.0, the Living Desktop and the Ghost in the Shell. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1_pre1.md.')
 
 
 

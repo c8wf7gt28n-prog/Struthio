@@ -9048,7 +9048,7 @@
    "scope": "read"
   }
  },
- "release": "Graphite 1.0",
+ "release": "Graphite 1.1~pre1",
  "schema": "graphite.registry-record/1",
  "schema_digest": "96900b6d0dd401f62e9d2ccfffa1f16be334f13af54a79d792807848688a1399",
  "settings": {

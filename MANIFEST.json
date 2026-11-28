@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "1.0",
+  "version": "1.1~pre1",
   "package_profile": "runtime",
-  "note": "Graphite 1.0: the Living Desktop and the Ghost in the Shell. Graphite is the session; the whole computer is in it (Files, Apps, the Machine, Settings); the bulletin board in the centre; Kasandra an agent user of the system, under your grants, every step verified, HALT stopping all of her work and nothing else; her model on llama.cpp v1.0.0 with the tuning sweep; Day and Night, the launch look. Built and not tested, by the owner's rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/ACCEPTANCE_1.0.md and docs/THINKPAD_FIRST_INSTALL.md.",
+  "note": "Graphite 1.1~pre1, preview 1 of 1.1: installs like Debian software (four packages in a folder repository, a LightDM login optional), a Windows hand's keys and DOS words, the test tiers running again; minimal tests, by the owner's rule. Still in it: 1.0, the Living Desktop and the Ghost in the Shell. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1_pre1.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -1314,8 +1314,8 @@
       "sha256": "2737b8806f988b188d7d921efabca5b8f021db7e7f2d070d525b22452ecafa67"
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
-      "bytes": 330921,
-      "sha256": "bf111af2907bef7a058f3b8ff2c3cb99b2ddaa7bf71181a30ad3d95c9025357a"
+      "bytes": 330926,
+      "sha256": "01fc6bce094ab7bcdcf5fa855517f3c1ea0c7c4b8d82d2ec4e71795b8d0f3bc9"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -2279,7 +2279,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 2094534,
-      "sha256": "9fdda1ead945fcdf7edd5a1898520b3a15d8ff469826fd0f1950ed1e9689affb"
+      "sha256": "a2c26fa630267529ccde62034a23218e5fb1045e83a0ba617ab57a468f10ea5a"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4734976,
@@ -2287,7 +2287,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "28aed84c72f7f2b6351e5146e12b622762e7d01348071abeea3e70c9f51c87cc"
+      "sha256": "8d6c3f3e3523aceef7bf5c53e0dbf9c75016e027a1f24482f527b221866d9ce8"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3538,8 +3538,8 @@
       "sha256": "35cd691305f0deabb97c11e44937bb494cdc117af0aca08ca72e8b694f5c982c"
     },
     "tools/package_graphite.py": {
-      "bytes": 11131,
-      "sha256": "503c2787be49111c678076e0ab64f2a1e808ab30347105eef17d629d38398211"
+      "bytes": 10966,
+      "sha256": "fd7b58a9f78384a1ed449d1f18e6dc4f44b227bc6668dbfd6f7f06acdfb68e1c"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -4890,8 +4890,8 @@
       "sha256": "c4d36d645d196c69911f6310b049eae942b6d166ebbfcf5789af4c87a12be0b2"
     },
     "workbench/menus2.py": {
-      "bytes": 26520,
-      "sha256": "c87394374c57c6a6bdd0a5ce008698d08601b942764565c08cd04abffd85c9f0"
+      "bytes": 26580,
+      "sha256": "56810b278b84f3a369d2e7640b47e278c94b2a4a5b4822de5ae30e24b8eb4824"
     },
     "workbench/meter_cards.py": {
       "bytes": 9149,
@@ -6126,8 +6126,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 19005,
-      "sha256": "1202450b5f44aa460a8fa7eb72a3522561c8025934709fd17161f5f425c4c852"
+      "bytes": 19656,
+      "sha256": "530f6044a977b77994c3ce78be667f4944912c5b792c1a2a899eff13922bc270"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -6302,5 +6302,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "1.0"
+  "graphite_release": "1.1~pre1"
 }
