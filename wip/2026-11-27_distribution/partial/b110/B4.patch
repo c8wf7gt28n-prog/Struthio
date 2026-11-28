@@ -1,0 +1,1456 @@
+diff --git a/tests_integrated/test_one_line_b4.py b/tests_integrated/test_one_line_b4.py
+new file mode 100644
+index 0000000..92b88f9
+--- /dev/null
++++ b/tests_integrated/test_one_line_b4.py
+@@ -0,0 +1,223 @@
++"""1.1 B4, one line, a drop-down Terminal and Command… (PLAN_1.1.md, B4).
++
++Acceptance first: once the bar stands there is no foot in Graphite's window and everything it did is reachable, each in one
++place (FOOT_MOVED); the Terminal drops from the top edge (the top 40 %, full width), runs a line and DOS words, keeps Esc for
++the shell and goes back up on the same key; Command… on a file shows its line (above Properties in the right-click), with
++Copy and Put it in the line; Win+K and Pause from an app open her panel and press HALT without bringing Graphite forward.
++Then: the band, graphite-do's words and keys, the foot staying without the bar, the line's rows, the Log's filter, the
++meters in the tray.
++
++Offscreen on the Everyday Home (invented: everyday_demo), with the bar made and marked standing by hand (under Xvfb it stands
++for real: the builder's smoke). Run alone:  python3 -B -m unittest -v tests_integrated.test_one_line_b4
++"""
++import importlib.machinery, importlib.util, os, subprocess, sys, tempfile, time, unittest
++from pathlib import Path
++from types import SimpleNamespace
++from unittest.mock import patch
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++
++ROOT = Path(__file__).resolve().parents[1]
++
++
++class OneLine(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.temp = tempfile.TemporaryDirectory(prefix='b4-everyday-');base = Path(cls.temp.name)
++        from workbench import everyday_demo
++        everyday_demo.build(base);cls.home = base / 'home'
++        cls.env = patch.dict(os.environ, {'HOME': str(cls.home), 'XDG_CONFIG_HOME': str(cls.home / '.config'), 'GRAPHITE_BAR': '1',
++                                          'XDG_CACHE_HOME': str(base / 'cache'), 'XDG_DATA_HOME': str(cls.home / '.local/share')})
++        cls.env.start()
++        cls.hub = patch('workbench.windows_strip_qt.hub');cls.hub.start()
++        from tests_integrated.test_desk_acts import build_window
++        cls.store = {};build_window(cls.store, 'b4-window-');cls.w = w = cls.store['w']
++        cls.settle(300)
++        from workbench import bar_qt, foot_fold_qt as ff
++        cls.ff = ff;cls.bq = bar_qt
++        cls.before = dict(dock=w.type_dock.isVisible(), folded=ff.folded(w), refused=ff.fold(w))      # no bar yet: the foot stays
++        bar = cls.bar = bar_qt.Bar(w);bar.standing = True;bar.setGeometry(0, 1160, 1920, 40);bar.show()
++        w.graphite_bar = bar;w.system_dock = bar;cls.settle(200)
++        cls.folded_now = ff.fold(w);cls.settle(300)
++
++    @classmethod
++    def tearDownClass(cls):
++        from tests_integrated.test_desk_acts import close_window
++        from workbench import line_finder
++        try:
++            term = getattr(cls.w, 'drop_terminal', None)
++            if term is not None:term.stop_shell();term.hide()
++            cls.bar.hide();cls.bar.deleteLater();cls.w.graphite_bar = None
++            cls.bq.register_slot('tray', None);line_finder.MORE[:] = []
++            close_window(cls.store)
++        finally:
++            cls.hub.stop();cls.env.stop();cls.temp.cleanup()
++
++    @classmethod
++    def settle(cls, ms=120):
++        from tests_integrated.test_desk_acts import settle
++        settle(cls.store, ms)
++
++    def wait(self, check, seconds=15):
++        deadline = time.monotonic() + seconds
++        while time.monotonic() < deadline:
++            if check():return True
++            self.settle(50)
++        return check()
++
++    # ---- acceptance --------------------------------------------------------------------------------------------------------------
++    def test_a_no_foot_in_the_window_once_the_bar_stands(self):
++        w = self.w
++        self.assertTrue(self.before['dock'] and not self.before['folded'] and not self.before['refused'], 'before the bar: 1.0\'s foot')
++        self.assertTrue(self.folded_now and w.foot_folded)
++        self.assertFalse(w.type_dock.isVisible(), 'no foot')
++        w.type_dock.show();self.settle(120)
++        self.assertFalse(w.type_dock.isVisible(), 'a reset that shows the foot again is undone')
++        olds = ' '.join(old for old, _ in self.ff.FOOT_MOVED)
++        for job in ('Line', 'Search', 'Web', 'Terminal', 'Log', 'meters', 'Ask Kasandra', 'messages'):
++            self.assertIn(job, olds, 'the table says where %s went' % job)
++
++    def test_b_everything_the_foot_did_is_reachable_each_in_one_place(self):
++        w = self.w
++        with patch('workbench.foot_fold_qt.put_in_line', return_value=True) as put:
++            w.a_talk['line'].trigger();w.a_talk['find'].trigger();w.shell2.search();w.a_run_operation.trigger()
++        self.assertEqual([c.args[1] for c in put.call_args_list], ['', '', '', '/'], "Line, Search, Ctrl+K and an operation open the bar's line")
++        w.a_talk['shell'].trigger();self.settle(80)
++        term = w.drop_terminal;self.assertTrue(term.opened, 'Alt+5 drops the Terminal');term.leave();self.settle(300)
++        w.a_talk['log'].trigger();self.settle(80)
++        self.assertEqual((w.console.mode, w.console.size_level > 0), ('log', True), 'Alt+6 opens the Log in the working area')
++        self.assertIsNotNone(getattr(w.log_view, 'b4_line', None), 'the Log has its own Filter line')
++        from workbench.head_menus import rows
++        menus = {word.text(): rows(word.menu()) for word in w.shell2.top.menu_words()}
++        self.assertEqual([words for d, words, _ in menus['View'] if words == 'Log'], ['Log'], 'Log is a row of View')
++        writing = [words for d, words, _ in menus['Tools'] if d >= 2 and words in ('Line', 'Terminal', 'Search', 'Log')]
++        self.assertNotIn('Log', writing, 'one home: View')
++        tray = self.bar.slot('tray');self.assertIsInstance(tray, self.ff.MetersTray, 'the meters are in the tray')
++        self.assertIsNotNone(w.type_bar.monitors, 'the foot\'s meters object stays for its callers, out of sight')
++        self.assertFalse(w.type_bar.monitors.isVisible(), 'the meters are in one place: the tray')
++
++    def test_c_the_terminal_drops_runs_dos_words_keeps_esc_and_goes_back_up(self):
++        from PySide6.QtCore import Qt
++        from PySide6.QtTest import QTest
++        from workbench import drop_terminal_qt as dt
++        w = self.w;term = dt.terminal(w)
++        with patch('workbench.drop_terminal_qt.reduce_motion', return_value=True):
++            answer = dt.toggle(w);self.settle(60)
++            self.assertTrue(answer['ok'] and term.opened and term.isVisible())
++            g = term.geometry();screen = term.screen_rect()
++            self.assertEqual((g.x(), g.y(), g.width()), (screen.x(), screen.y(), screen.width()), 'the top edge, the whole width')
++            self.assertEqual(g.height(), max(dt.LEAST, round(screen.height() * dt.SHARE)), '40 % of the screen')
++            term.run('echo hello-from-the-drop');self.assertTrue(self.wait(lambda: term.process is None and 'hello-from-the-drop' in term.output.toPlainText()))
++            term.run('dir');self.assertTrue(self.wait(lambda: term.process is None))
++            self.assertIn('ls', term.output.toPlainText(), 'DOS words: the Debian command is shown')
++            term.prompt.setText('half typed');QTest.keyClick(term.prompt, Qt.Key_Escape);self.settle(30)
++            self.assertEqual(term.prompt.text(), '');self.assertTrue(term.opened, 'Esc is the shell\'s: it never closes the Terminal')
++            dt.toggle(w);self.settle(60);self.assertFalse(term.opened or term.isVisible(), 'the same key puts it away')
++            dt.toggle(w);self.settle(30);term.run('exit');self.settle(60)
++            self.assertFalse(term.opened, 'exit puts it away too')
++        dt.toggle(w);self.settle(40)
++        self.assertEqual(term.anim.duration(), dt.SLIDE_MS, 'it slides, 200 ms, when motion is not reduced')
++        self.assertTrue(self.wait(lambda: term.pos().y() == term.screen_rect().y()))
++        dt.toggle(w);self.assertTrue(self.wait(lambda: not term.isVisible()))
++
++    def test_d_command_on_a_file_shows_its_line_above_properties(self):
++        from workbench import command_card_qt as cc
++        w = self.w;docs = self.home / 'Documents';docs.mkdir(exist_ok=True)
++        note = docs / 'shopping list.txt';note.write_text('eggs\nflour\n', encoding='utf-8')
++        app = SimpleNamespace(exec='notespad --new-window %f', kind='desktop', name='Notes Pad', icon='', path='', terminal=False, id='notespad.desktop')
++        with patch('workbench.app_files.choose', return_value=('app', app, None, 'Notes Pad', '')):
++            lines = cc.lines_for(note)
++            card = cc.show(w, note)
++        self.assertEqual(lines[0]['title'], 'What Open runs')
++        self.assertEqual(lines[0]['line'], "notespad --new-window '%s'" % note, 'the exact command Open starts, the file in it')
++        self.assertEqual(lines[1]['line'], '@files:"~/Documents/shopping list.txt"', 'the Graphite line it is')
++        card.copy(lines[0]['line']);from PySide6.QtWidgets import QApplication
++        self.assertEqual(QApplication.clipboard().text(), lines[0]['line'], 'Copy')
++        with patch('workbench.foot_fold_qt.put_in_line', return_value=True) as put:
++            card.put(lines[0]['line'])
++        put.assert_called_once_with(w, lines[0]['line']);self.assertFalse(card.isVisible(), 'Put it in the line: the card goes')
++        folder = cc.lines_for(docs);self.assertEqual([r['line'] for r in folder], ['@files:~/Documents', "cd %s" % docs])
++        ex = w.explorer;ex.show(str(docs));self.settle(200)
++        view = ex.page.view_widget()
++        item = next(view.topLevelItem(i) for i in range(view.topLevelItemCount()) if view.topLevelItem(i).text(0).startswith('shopping'))
++        point = view.visualItemRect(item).center()
++        with patch('workbench.explorer_qt.QMenu.exec', return_value=None):
++            menu = ex.menu_at(view, point)
++        words = [a.text().split('\t')[0] for a in menu.actions() if not a.isSeparator()]
++        self.assertEqual(words[-2:], ['Command…', 'Properties'], 'Command… above Properties')
++
++    def test_e_win_k_and_pause_from_an_app(self):
++        from workbench import windows_keys_qt as wk
++        w = self.w;ctl = w.kas_bar
++        with patch.object(wk, 'bring') as bring, patch.object(ctl, 'toggle', return_value=QRectStandIn()) as toggle, \
++                patch.object(ctl, 'panel_open', return_value=True), patch.object(ctl, 'pause_key', return_value=True) as pause:
++            kas = wk.act(w, 'kas');halt = wk.act(w, 'halt');drop = wk.act(w, 'terminal')
++        self.assertEqual((kas['words'], halt['words']), ('Her panel is open.', 'HALT is pressed: all of her work stops.'))
++        toggle.assert_called_once_with();pause.assert_called_once_with()
++        self.assertFalse(bring.called, 'Graphite is not brought forward')
++        self.assertTrue(drop['ok']);w.drop_terminal.leave();self.settle(300)
++        with patch.object(ctl, 'pause_key', return_value=False):
++            self.assertIn('RESUME is a press', wk.act(w, 'halt')['words'], 'Pause never presses RESUME')
++
++    # ---- the parts ---------------------------------------------------------------------------------------------------------------
++    def test_band_is_the_top_forty_percent(self):
++        from workbench.drop_terminal_qt import band
++        self.assertEqual(band(0, 0, 1920, 1200), ((0, 0, 1920, 480), (0, -480, 1920, 480)))
++        self.assertEqual(band(0, 0, 1366, 768)[0], (0, 0, 1366, 307))
++        self.assertEqual(band(0, 0, 800, 300)[0][3], 160, 'never shorter than a few lines')
++
++    def test_graphite_do_knows_terminal_kas_and_halt_and_their_keys(self):
++        from workbench import windows_keys_qt as wk
++        tool = ROOT / 'tools' / 'graphite-do'
++        loader = importlib.machinery.SourceFileLoader('graphite_do_b4', str(tool));spec = importlib.util.spec_from_loader(loader.name, loader)
++        mod = importlib.util.module_from_spec(spec);loader.exec_module(mod)
++        self.assertEqual(tuple(mod.VERBS), tuple(wk.VERBS), 'the tool and the door know the same words')
++        with tempfile.TemporaryDirectory() as temp:
++            out = subprocess.run([sys.executable, '-B', str(tool), '--write-keys', temp], capture_output=True, text=True, timeout=30)
++            self.assertEqual(out.returncode, 0, out.stderr);keys = (Path(temp) / 'keys').read_text()
++        for line in ('Mod4 grave :Exec "%s" terminal', 'Control Mod1 t :Exec "%s" terminal', 'Mod4 k :Exec "%s" kas', 'Pause :Exec "%s" halt'):
++            self.assertIn(line % tool + '\n', keys)
++
++    def test_without_the_bar_the_foot_stays_and_graphite_foot_keeps_it(self):
++        self.assertTrue(self.ff.wanted({}));self.assertFalse(self.ff.wanted({'GRAPHITE_FOOT': '1'}))
++        host = SimpleNamespace(type_dock=object(), graphite_bar=None)
++        self.assertFalse(self.ff.fold(host), 'no bar: nothing folds')
++
++    def test_the_line_offers_search_inside_files_and_the_web(self):
++        from workbench import line_finder as lf
++        rows = lf.more_rows('march invoices')
++        self.assertEqual([r.title for r in rows], ['Search inside files for “march invoices”', 'Search the web for “march invoices”'])
++        self.assertTrue(all(r.verb == 'Open' and callable(r.target) for r in rows), 'each says what Enter does')
++        self.assertEqual([r.title for r in lf.more_rows('www.example.org')], ['Search inside files for “www.example.org”'], 'an address is its own Open row')
++        with patch('workbench.foot_fold_qt.search_web', return_value=True) as web:rows[1].target()
++        web.assert_called_once_with(self.w, 'march invoices')
++        saved = list(lf.MORE);lf.MORE[:] = []
++        try:self.assertEqual(lf.more_rows('march invoices'), [], 'no rows of the fold where the foot stands')
++        finally:lf.MORE[:] = saved
++
++    def test_the_log_filters_from_its_own_line(self):
++        w = self.w;line = self.ff.log_line(w);view = w.log_view
++        if view.stream != 'events':view.choose('events', remember=False, read=False)
++        line.setText('saved');line.returnPressed.emit();self.settle(60)
++        self.assertEqual(view.filters['events'], 'saved')
++        line.setText('');line.returnPressed.emit()
++
++    def test_the_meters_are_one_tray_item_whose_rows_are_the_doors(self):
++        w = self.w;item = self.ff.meters_item(w);self.assertIsNotNone(item)
++        read = self.ff.readings(w);self.assertEqual(tuple(read), self.ff.METER_KEYS)
++        self.assertIn('CPU', item.toolTip() or self.ff.meters_words(read))
++        fly = item.open_meters();self.settle(40)
++        self.assertEqual(list(fly.rows), list(self.ff.METER_KEYS))
++        with patch('workbench.meter_cards.open_card', return_value=None) as card:
++            fly.rows['RAM'].click();self.settle(40)
++        card.assert_called_once_with(w, item, 'RAM')
++        with patch('workbench.meter_cards.open_card', return_value=None) as card:
++            w.shell2.top.pulse.open_card('CPU')
++        card.assert_called_once_with(w, item, 'CPU')      # Ctrl+Alt+Del's card (graphite-do tasks) opens above the tray item
++
++
++class QRectStandIn:
++    """What her controller's toggle answers when her panel slides in (a rect)."""
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tools/graphite-do b/tools/graphite-do
+index 3b60f9f..441a8ba 100755
+--- a/tools/graphite-do
++++ b/tools/graphite-do
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env python3
+ """graphite-do (Graphite 1.1 W1): the keys that work whichever app is in front, said to the running Graphite window.
+ 
+-  graphite-do WORD            WORD is one of: apps files show lock tasks screenshot ping start line. The running window does it
++  graphite-do WORD            WORD is one of: apps files show lock tasks screenshot ping start line terminal kas halt. The running window does it
+                               (workbench/windows_keys_qt.Door) and answers in one line; the exit status is 0 when done.
+   graphite-do --write-keys D  writes Fluxbox's files for the session into the folder D: D/keys (the keys) and D/init
+                               (Fluxbox's settings, naming that keys file); prints D/init, for fluxbox -rc. LS_XSESSION.sh
+@@ -15,7 +15,7 @@ import os
+ import socket
+ import sys
+ 
+-VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping', 'start', 'line')  # 1.1 B2: start, line
++VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping', 'start', 'line', 'terminal', 'kas', 'halt')  # 1.1 B2: start, line; 1.1 B4: terminal, kas, halt
+ # Fluxbox's key lines (its own syntax): the key, then what it does. Mod4 is the Windows key, Mod1 is Alt.
+ KEYS = (
+     ('Super_L', 'start', 'the Windows key opens Start'),  # 1.1 B2: Start, not Apps
+@@ -27,6 +27,10 @@ KEYS = (
+     ('Mod4 l', 'lock', 'Win+L locks the screen'),
+     ('Control Mod1 Delete', 'tasks', "Ctrl+Alt+Del opens Graphite's page of what runs"),
+     ('Print', 'screenshot', 'PrintScreen saves a picture of the screen into ~/Pictures/Screenshots'),
++    ('Mod4 grave', 'terminal', 'Win+` drops the Terminal from the top of the screen; again puts it away'),  # 1.1 B4
++    ('Control Mod1 t', 'terminal', 'Ctrl+Alt+T does the same'),  # 1.1 B4
++    ('Mod4 k', 'kas', "Win+K opens Kasandra's panel"),  # 1.1 B4
++    ('Pause', 'halt', 'Pause presses HALT: all of her work stops (RESUME is a press, never a key)'),  # 1.1 B4
+ )
+ FLUXBOX_OWN = (
+     ('Mod1 Tab', ':NextWindow {static groups} (workspace=[current])', 'Alt+Tab goes to the next window'),
+diff --git a/workbench/command_card_qt.py b/workbench/command_card_qt.py
+new file mode 100644
+index 0000000..6aea928
+--- /dev/null
++++ b/workbench/command_card_qt.py
+@@ -0,0 +1,129 @@
++"""Graphite 1.1 B4 · Command…: the exact line a file or a folder is, or runs, with Copy and "Put it in the line".
++
++The design direction's section 1 (Power's graft: "anything visible answers Command… with the exact line it is or runs") and its
++right-click rule ("Properties last and Command… above it"). On a file or a folder in Files (a row of List, a tile of Icons, or
++the folder itself on the empty space) the right-click's Command… (Ctrl+.) shows:
++
++  What Open runs     a file: the Debian command its Open starts, word for word as the app's desktop entry gives it with this
++                     file put in (app_files.choose and apps_catalog.command: the very code Open runs); a file whose family
++                     opens through Graphite's own bridge names the Kernel operation instead; a file no app here opens says so
++  What it is         the Graphite line that reads it (@files:…): Enter on it in the bar's line reads it on the line page
++  In the Terminal    a folder: cd to it
++
++Each line has Copy and Put it in the line (the bar's line, with its rows: Enter there does what its first row says). Nothing
++runs from the card itself.
++"""
++from __future__ import annotations
++
++import os
++import shlex
++from pathlib import Path
++
++from PySide6.QtCore import Qt
++from PySide6.QtGui import QFont
++from PySide6.QtWidgets import QApplication, QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
++
++
++def shown_path(path):
++    """A path as the owner reads it: ~/… inside the home."""
++    text = str(path);home = str(Path.home())
++    return '~' + text[len(home):] if text == home or text.startswith(home + os.sep) else text
++
++
++def graphite_line(path):
++    """The Graphite line that reads a file or folder: @files:<path> (a path with spaces or a | in quotes)."""
++    shown = shown_path(path)
++    return '@files:' + ('"%s"' % shown if any(ch in shown for ch in ' |"') else shown)
++
++
++def open_line(path):
++    """(line, words) for what Open runs on a file: the app's own command line with the file in it, as Open starts it."""
++    from . import app_files, apps_catalog
++    target = Path(path).resolve()
++    try:route, app, program, name, reason = app_files.choose(target)
++    except Exception as exc:  # noqa: BLE001 - the card says why, never guesses
++        return '', 'What Open runs could not be read here: %s.' % (str(exc)[:120] or type(exc).__name__)
++    if route == 'bridge':
++        bridge = getattr(program, 'bridge', '') or 'its bridge'
++        return ('/appfile.open path=%s' % shlex.quote(str(target)),
++                'Open goes through Graphite\'s own %s bridge (%s), not a command line: this is the Kernel\'s operation that does it.' % (name, bridge))
++    if route != 'app' or app is None:
++        return '', 'Open asks you to choose an app (Open with): %s.' % (reason or 'no app here says it opens this')
++    try:
++        if getattr(app, 'kind', '') == 'pin':argvs = apps_catalog.command([(a, False) for a in app.argv], [str(target)], (), app.name, app.icon, '')
++        else:argvs = apps_catalog.command(app.exec, [str(target)], (), app.name, app.icon, app.path)
++    except ValueError as exc:
++        return '', '%s\'s command line cannot be read: %s.' % (app.name, exc)
++    if not argvs:return '', 'Open gives %s no command line.' % app.name
++    argv = argvs[0]
++    if getattr(app, 'terminal', False):argv = apps_catalog.terminal_argv(argv) or argv
++    return (shlex.join(argv), 'What Open runs: %s (%s), the app for it here. Put in the line, Enter runs it in the Terminal.'
++            % (app.name, getattr(app, 'id', '') or 'its desktop entry'))
++
++
++def lines_for(path):
++    """[{title, line, words}] for a file or a folder: the exact lines it is or runs (see the module note)."""
++    path = Path(path);out = []
++    if path.is_dir():
++        out.append(dict(title='What it is', line=graphite_line(path),
++                        words='As a Graphite line: Enter on it in the bar\'s line lists this folder on the line page.'))
++        out.append(dict(title='In the Terminal', line='cd %s' % shlex.quote(str(path)), words='Goes there in the Terminal (DOS\'s cd too).'))
++        return out
++    line, words = open_line(path)
++    out.append(dict(title='What Open runs', line=line, words=words))
++    out.append(dict(title='What it is', line=graphite_line(path),
++                    words='As a Graphite line: Enter on it in the bar\'s line reads it on the line page.'))
++    return out
++
++
++class CommandCard(QDialog):
++    """The card: each line in mono, selectable, with what it does in words, Copy and Put it in the line."""
++
++    def __init__(self, host, path):
++        super().__init__(host);self.host = host;self.path = str(path);self.lines = lines_for(path);self.done_words = ''
++        self.setWindowTitle('Command · %s' % (Path(path).name or str(path)));self.setObjectName('GraphiteCommandCard')
++        self.setAccessibleName('Command: the exact line it is or runs')
++        box = QVBoxLayout(self);box.setContentsMargins(18, 16, 18, 12);box.setSpacing(6)
++        head = QLabel(shown_path(path), self);head.setObjectName('CommandCardPath');head.setTextInteractionFlags(Qt.TextSelectableByMouse)
++        f = head.font();f.setBold(True);head.setFont(f);box.addWidget(head)
++        from .shell2 import mono_font
++        self.copies = {};self.puts = {}
++        for n, row in enumerate(self.lines):
++            title = QLabel(row['title'].upper(), self);title.setObjectName('CommandCardTitle')
++            t = title.font();t.setPixelSize(max(11, t.pixelSize() - 1) if t.pixelSize() > 0 else 11);t.setLetterSpacing(QFont.AbsoluteSpacing, 0.8);title.setFont(t)
++            box.addSpacing(6 if n else 2);box.addWidget(title)
++            line = QLabel(row['line'] or '(no line)', self);line.setObjectName('CommandCardLine');line.setFont(mono_font(14))
++            line.setTextFormat(Qt.PlainText);line.setWordWrap(True);line.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
++            line.setAccessibleName('%s: %s' % (row['title'], row['line'] or 'none'));box.addWidget(line)
++            words = QLabel(row['words'], self);words.setWordWrap(True);words.setObjectName('CommandCardWords');box.addWidget(words)
++            presses = QHBoxLayout();presses.setSpacing(8)
++            copy = QPushButton('Copy', self);copy.clicked.connect(lambda checked=False, text=row['line']: self.copy(text))
++            put = QPushButton('Put it in the line', self);put.clicked.connect(lambda checked=False, text=row['line']: self.put(text))
++            for b in (copy, put):
++                b.setEnabled(bool(row['line']));b.setAutoDefault(False);presses.addWidget(b)
++            presses.addStretch(1);box.addLayout(presses);self.copies[row['title']] = copy;self.puts[row['title']] = put
++        note = QLabel('Nothing runs from here: a line runs only when you press Enter on it in the line.', self)
++        note.setObjectName('CommandCardNote');note.setWordWrap(True);box.addSpacing(6);box.addWidget(note)
++        buttons = QDialogButtonBox(QDialogButtonBox.Close, self);buttons.rejected.connect(self.reject);box.addWidget(buttons)
++        self.setMinimumWidth(560);self.adjustSize()
++
++    def copy(self, text):
++        QApplication.clipboard().setText(text);self.done_words = 'Copied: %s' % text
++        try:self.host.statusBar().showMessage(self.done_words, 6000)
++        except (AttributeError, RuntimeError):pass
++        return text
++
++    def put(self, text):
++        from .foot_fold_qt import put_in_line
++        self.accept();self.done_words = 'In the line: %s' % text
++        return put_in_line(self.host, text)
++
++
++def show(host, path):
++    """The right-click's Command… on `path` (a file or folder). The card, shown; None when the path is not there."""
++    if not path or not os.path.exists(str(path)):
++        try:host.statusBar().showMessage('Command…: choose a file or folder first.', 6000)
++        except (AttributeError, RuntimeError):pass
++        return None
++    card = CommandCard(host, path);card.show();card.raise_();host._command_card = card
++    return card
+diff --git a/workbench/drop_terminal_qt.py b/workbench/drop_terminal_qt.py
+new file mode 100644
+index 0000000..5d2eb19
+--- /dev/null
++++ b/workbench/drop_terminal_qt.py
+@@ -0,0 +1,390 @@
++"""Graphite 1.1 B4 · The drop-down Terminal: a real shell that drops from the top edge of the screen on one key, over any app.
++
++PLAN_1.1.md, B4; the design direction's section 1 (Calm's graft: "a real terminal drops from the top edge on one key; whatever is
++summoned leaves when done"). It is 1.0's Terminal (console_qt.Console's Shell page: the configured shell in your Files folder,
++each line run as that shell runs it, its output as plain text, cd kept, Ctrl+C stops what runs, each command noted in the
++Timeline) with W1's DOS words (dos_words: dir, cls, copy, del…, the Debian command shown above what it prints), in a window of
++its own:
++
++  where      the top of the screen, its whole width, 40 % of its height; on every desktop, above the apps and below the bar's
++             flyouts (they are pop-ups). It slides down in 200 ms (at once under Reduce motion) and back up the same way.
++  keys       Win+` and Ctrl+Alt+T from any app (graphite-do terminal, in Fluxbox's keys), Ctrl+Alt+T and Ctrl+Alt+` in Graphite;
++             the same key puts it away, and so does exit. Esc never does: a shell needs Esc (here it clears the line, as cmd's).
++  focus      it takes the keys while it is down; when it goes up the app that had them gets them back (_NET_ACTIVE_WINDOW, the
++             window manager asked as a task list asks).
++
++Nothing here acts for Kasandra or by itself: every line runs because the owner typed it and pressed Enter. HALT stops her work
++and nothing else, so it does not stop what the owner runs here (Ctrl+C does, and Stop in the header).
++"""
++from __future__ import annotations
++
++import os
++
++from PySide6.QtCore import QEasingCurve, QPropertyAnimation, QRect, Qt, QTimer
++from PySide6.QtGui import QColor, QGuiApplication, QKeySequence, QPainter, QShortcut
++from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTextBrowser, QTextEdit, QVBoxLayout, QWidget
++
++from . import console_qt as cq
++
++SLIDE_MS = 200                        # the slide down and up; none under Reduce motion
++SHARE = 0.40                          # of the screen's height
++LEAST = 160                           # the shortest it is on a small screen
++HEAD_PX = 30                          # its header: the word Terminal, the folder, DOS words, the way to put it away
++KEYS_WORDS = 'Win+` or Ctrl+Alt+T'
++IN_WINDOW_KEYS = ('Ctrl+Alt+T', 'Ctrl+Alt+`')      # in Graphite's window (Fluxbox takes Win+` and Ctrl+Alt+T before any app)
++HISTORY_MOST = 200
++WELCOME = ('Terminal · your configured shell, in your Files folder. DOS words work too (dir, cls, copy, del, ipconfig…): the '
++           'Debian command is shown above what it prints. Esc clears the line; %s or exit puts this away.' % KEYS_WORDS)
++
++
++def band(x, y, width, height, share=SHARE):
++    """(open, closed) as (x, y, w, h) for a screen at (x, y, width, height): the top `share` of it, and the same rect just
++    above the screen's top edge (where it slides from)."""
++    h = max(LEAST, round(height * share))
++    return (x, y, width, h), (x, y - h, width, h)
++
++
++def reduce_motion(host):
++    try:
++        from .kas_panel_qt import reduce_motion as rm
++        return rm(host)
++    except Exception:  # noqa: BLE001 - motion is a grace
++        return False
++
++
++# ---- the X window that had the keys ----------------------------------------------------------------------------------------------
++def active_window():
++    """The X window the window manager says is active now (_NET_ACTIVE_WINDOW), or 0 where X does not answer."""
++    if QGuiApplication.platformName() != 'xcb':return 0
++    try:
++        from . import windows_x11 as wx
++        xb = wx.XlibBackend()
++    except Exception:  # noqa: BLE001 - not on X
++        return 0
++    try:
++        with xb.calls():
++            value = xb.prop(xb.root, '_NET_ACTIVE_WINDOW', wx.XA_WINDOW)
++        return int(value[0]) if value else 0
++    except Exception:  # noqa: BLE001
++        return 0
++    finally:
++        xb.close_display()
++
++
++def give_back(window):
++    """The keys back to `window` (the window manager asked through _NET_ACTIVE_WINDOW). The backend's answer, or {} off X."""
++    if not window or QGuiApplication.platformName() != 'xcb':return {}
++    try:
++        from . import windows_x11 as wx
++        xb = wx.XlibBackend()
++    except Exception:  # noqa: BLE001
++        return {}
++    try:
++        with xb.calls():
++            managed = bool(xb.manager())
++        return xb.activate(int(window), managed) or {}
++    except Exception as exc:  # noqa: BLE001
++        return {'asked': False, 'reason': str(exc)[:120]}
++    finally:
++        xb.close_display()
++
++
++# ---- the line -------------------------------------------------------------------------------------------------------------------
++class Prompt(QLineEdit):
++    """The Terminal's line: Enter runs it; Up and Down walk what was typed; Ctrl+C stops what runs (when nothing is chosen); Esc
++    clears the line (never closes: a shell needs Esc); Ctrl+L clears the screen; Tab completes a name in the folder."""
++
++    def __init__(self, term):
++        super().__init__(term);self.term = term;self.setObjectName('DropTerminalLine');self.setFrame(False)
++        self.setAccessibleName('Terminal: type a command, Enter runs it');self.setFont(cq.mono_font(15))
++
++    def keyPressEvent(self, event):
++        t = self.term;key = event.key();mods = event.modifiers()
++        if key in (Qt.Key_Up, Qt.Key_Down):t.walk(-1 if key == Qt.Key_Up else 1);return
++        if key == Qt.Key_Escape:self.clear();t.at = None;return
++        if key == Qt.Key_Tab:t.complete();return
++        if mods & Qt.ControlModifier and key == Qt.Key_C and t.process is not None and not self.hasSelectedText():t.stop_shell();return
++        if mods & Qt.ControlModifier and key == Qt.Key_L:t.clear_screen();return
++        super().keyPressEvent(event)
++
++    def focusNextPrevChild(self, forward):
++        return False      # Tab completes here; it never leaves the line
++
++
++class DropTerminal(QWidget):
++    """The Terminal in a window of its own at the top of the screen (see the module note)."""
++    # 1.0's Terminal, the very same code (console_qt.Console's Shell page): the line run as the configured shell runs it, cd,
++    # the output as plain text, Stop, the Timeline's note, DOS words first (dos_words.in_terminal).
++    say = cq.Console.say
++    refused = cq.Console.refused
++    link = cq.Console.link
++    follow = cq.Console.follow
++    font_css = cq.Console.font_css
++    run_shell = cq.Console.run_shell
++    shell_output = cq.Console.shell_output
++    shell_error = cq.Console.shell_error
++    stop_shell = cq.Console.stop_shell
++    working_dir = cq.Console.working_dir
++    short = cq.Console.short
++    sign_text = cq.Console.sign_text
++    moved = cq.Console.moved
++    keep_end = cq.Console.keep_end
++    to_end = cq.Console.to_end
++
++    def __init__(self, host):
++        super().__init__(None, Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
++        self.host = host;self.mode = 'shell';self.process = None;self.links = {};self.blocks = 0;self.cwd = None
++        self.at_end = True;self.opened = False;self.marked = False;self.before = 0;self.graphite_before = False;self.gave = None
++        self.history = [];self.at = None;self.dos_env = {};self._dos_inner = False;self.welcomed = False
++        self.px = max(12, cq.mono_font(14).pixelSize())
++        self.setObjectName('DropTerminal');self.setWindowTitle('Graphite · Terminal');self.setAccessibleName('The Terminal')
++        self.setAttribute(Qt.WA_X11NetWmWindowTypeUtility, True)
++        box = QVBoxLayout(self);box.setContentsMargins(0, 0, 0, 2);box.setSpacing(0)
++        head = QWidget(self);head.setObjectName('DropTerminalHead');head.setFixedHeight(HEAD_PX);self.head = head
++        row = QHBoxLayout(head);row.setContentsMargins(14, 0, 8, 0);row.setSpacing(12)
++        self.title = QLabel('Terminal', head);self.title.setObjectName('DropTerminalTitle')
++        self.place = QLabel('', head);self.place.setObjectName('DropTerminalPlace')
++        self.dos = QLabel('', head);self.dos.setObjectName('DropTerminalDos')
++        self.running = QLabel('', head);self.running.setObjectName('DropTerminalRunning')
++        self.stop = QPushButton('Stop', head);self.stop.setObjectName('DropTerminalStop');self.stop.setFocusPolicy(Qt.NoFocus)
++        self.stop.setToolTip('Stop what runs (Ctrl+C)');self.stop.clicked.connect(self.stop_shell);self.stop.hide()
++        self.away = QPushButton('Put away · %s' % KEYS_WORDS, head);self.away.setObjectName('DropTerminalAway')
++        self.away.setFocusPolicy(Qt.NoFocus);self.away.setCursor(Qt.PointingHandCursor)
++        self.away.setToolTip('The Terminal goes back up; what you were in gets the keys again. What runs keeps running.')
++        self.away.clicked.connect(self.leave)
++        for w in (self.title, self.place):row.addWidget(w)
++        row.addStretch(1)
++        for w in (self.running, self.stop, self.dos, self.away):row.addWidget(w)
++        box.addWidget(head)
++        self.output = QTextBrowser(self);self.output.setObjectName('DropTerminalOutput');self.output.setOpenLinks(False)
++        self.output.anchorClicked.connect(self.follow);self.output.setAccessibleName('Terminal output')
++        self.output.setLineWrapMode(QTextEdit.NoWrap);self.output.setFont(cq.mono_font(14));self.output.document().setDefaultFont(cq.mono_font(14))
++        self.output.setProperty('arcReadingPreview', True);self.output.setFocusPolicy(Qt.ClickFocus)
++        self.output.document().setDefaultStyleSheet('a {color:%s; text-decoration: underline;}' % cq.AMBER_TEXT)
++        scroll = self.output.verticalScrollBar();scroll.actionTriggered.connect(self.moved);scroll.rangeChanged.connect(self.keep_end)
++        box.addWidget(self.output, 1)
++        line = QWidget(self);line.setObjectName('DropTerminalLineRow');lay = QHBoxLayout(line);lay.setContentsMargins(10, 4, 10, 6);lay.setSpacing(8)
++        self.sign = QLabel('', line);self.sign.setObjectName('DropTerminalSign');self.sign.setFont(cq.mono_font(15))
++        self.prompt = Prompt(self);self.prompt.returnPressed.connect(self.enter)
++        lay.addWidget(self.sign);lay.addWidget(self.prompt, 1);box.addWidget(line)
++        self.anim = QPropertyAnimation(self, b'pos', self);self.anim.setEasingCurve(QEasingCurve.OutCubic);self.anim.finished.connect(self.slid)
++        for key in IN_WINDOW_KEYS + ('Meta+`',):
++            QShortcut(QKeySequence(key), self, activated=self.leave)
++        self.restyle();self.read_words()
++
++    # -- look
++    def restyle(self):
++        from . import bar_qt
++        c = bar_qt.ink()
++        ground, text = cq.TERMINAL_GROUND, cq.AMBER_TEXT
++        self.setStyleSheet(
++            'QWidget#DropTerminal {background:%(ground)s;} '
++            'QWidget#DropTerminalHead {background:%(head)s;} '
++            'QLabel#DropTerminalTitle {color:%(ink)s; font-weight:600;} '
++            'QLabel#DropTerminalPlace, QLabel#DropTerminalDos, QLabel#DropTerminalRunning {color:%(quiet)s;} '
++            'QPushButton#DropTerminalAway, QPushButton#DropTerminalStop {color:%(ink)s; background:transparent; border:1px solid %(stroke)s;'
++            ' border-radius:4px; padding:2px 10px;} '
++            'QPushButton#DropTerminalAway:hover, QPushButton#DropTerminalStop:hover {background:%(hover)s;} '
++            'QTextBrowser#DropTerminalOutput {background:%(ground)s; color:%(text)s; border:0; padding:6px 12px;} '
++            'QWidget#DropTerminalLineRow {background:%(ground)s;} '
++            'QLabel#DropTerminalSign {color:%(text)s;} '
++            'QLineEdit#DropTerminalLine {background:%(ground)s; color:%(text)s; border:0; border-bottom:1px solid %(rule)s; padding:3px 2px;}'
++            % dict(ground=ground, text=text, head=c['sidebar'], ink=c['text'], quiet=c['secondary'], stroke=c['stroke'],
++                   hover=c['hover_side'], rule=cq.LINE))
++
++    def paintEvent(self, event):
++        from . import bar_qt
++        c = bar_qt.ink();p = QPainter(self)
++        p.fillRect(self.rect(), QColor(cq.TERMINAL_GROUND))
++        p.fillRect(0, self.height() - 2, self.width(), 2, QColor(c['stroke']))      # its lower edge: a rule, never a glow
++        p.end()
++
++    def read_words(self):
++        """The header's words: the folder, the DOS words' setting, and what runs."""
++        try:
++            from . import windows_hand
++            mode = windows_hand.dos_words()
++        except Exception:  # noqa: BLE001
++            mode = 'on'
++        self.dos.setText({'on': 'DOS words: on', 'show': 'DOS words: shown only', 'off': 'DOS words: off'}.get(mode, 'DOS words: ' + str(mode)))
++        self.dos.setToolTip('Tools ▸ DOS words: on (dir, copy… run as their Debian command, shown first), show me only, or off')
++        try:self.place.setText(self.short(self.working_dir()))
++        except Exception:  # noqa: BLE001 - the folder is read again at the next command
++            pass
++        self.sign.setText(self.sign_text() if self.cwd is not None or self.place.text() else '$')
++        busy = self.process is not None
++        self.running.setText(('running: %s' % (getattr(self, 'shell_text', '') or '')[:60]) if busy else '')
++        self.stop.setVisible(busy)
++
++    # -- the shell (1.0's, borrowed above)
++    def shell_done(self, code, status):
++        cq.Console.shell_done(self, code, status);self.read_words()
++
++    def enter(self):
++        text = self.prompt.text().strip()
++        if not text:return None
++        self.prompt.clear();self.remember(text)
++        return self.run(text, drop=False)
++
++    def run(self, text, drop=True):
++        """Run one line as the owner typed it (the bar's line hands its Terminal rows here). Drops the Terminal first."""
++        text = str(text or '').strip()
++        if text.startswith('$'):text = text[1:].strip()
++        if drop and not self.opened:self.drop()
++        if not text:return None
++        if text not in self.history[-1:]:self.remember(text)
++        self.run_shell(text);self.read_words()
++        return text
++
++    def remember(self, text):
++        if not self.history or self.history[-1] != text:self.history.append(text)
++        del self.history[:-HISTORY_MOST];self.at = None
++
++    def walk(self, step):
++        if not self.history:return
++        self.at = (len(self.history) if self.at is None else self.at) + step
++        self.at = max(0, min(len(self.history), self.at))
++        self.prompt.setText(self.history[self.at] if self.at < len(self.history) else '')
++
++    def complete(self):
++        """Tab: the last word completed from the names in its folder when one name fits (two or more: they are listed)."""
++        text = self.prompt.text();head, _, word = text.rpartition(' ')
++        folder, _, stem = word.rpartition('/')
++        base = os.path.expanduser(folder) if folder else str(self.working_dir())
++        if folder and not os.path.isabs(base):base = os.path.join(str(self.working_dir()), base)
++        try:names = sorted(n for n in os.listdir(base) if n.startswith(stem) and (stem.startswith('.') or not n.startswith('.')))
++        except OSError:
++            return []
++        if len(names) == 1:
++            name = names[0] + ('/' if os.path.isdir(os.path.join(base, names[0])) else '')
++            self.prompt.setText(((head + ' ') if head else '') + ((folder + '/') if folder else '') + name)
++        elif len(names) > 1:
++            self.say(cq.escape('  '.join(names[:60])))
++        return names
++
++    def clear_screen(self):
++        self.output.clear();self.blocks = 0
++
++    def set_size(self, level):
++        """DOS words' exit (and the console's own size words): 0 puts the Terminal away."""
++        if not level:self.leave()
++
++    # -- down and up
++    def screen_rect(self):
++        screen = None
++        try:screen = self.host.screen()
++        except (RuntimeError, AttributeError):pass
++        return (screen or QGuiApplication.primaryScreen()).geometry()
++
++    def rects(self):
++        g = self.screen_rect();o, c = band(g.x(), g.y(), g.width(), g.height())
++        return QRect(*o), QRect(*c)
++
++    def drop(self):
++        """Down from the top edge, the keys in its line; the window that had the keys is remembered to give them back."""
++        if self.opened and self.isVisible():
++            self.raise_();self.activateWindow();self.prompt.setFocus();return self.geometry()
++        own = {int(self.winId())} if self.isVisible() else set()
++        before = active_window()
++        try:host_id = int(self.host.winId())
++        except (RuntimeError, AttributeError):host_id = 0
++        self.before = before if before and before not in own else 0
++        self.graphite_before = bool(before and before == host_id) or (not before and self._graphite_active())
++        o, c = self.rects();self.opened = True;self.anim.stop();self.setFixedSize(o.size())
++        if not self.welcomed:
++            self.welcomed = True;self.say('<span style="opacity:0.85;">%s</span>' % cq.escape(WELCOME))
++        self.read_words()
++        if not self.marked:
++            try:
++                from .kas_panel_qt import mark_everywhere
++                self.marked = mark_everywhere(self.winId())
++            except Exception:  # noqa: BLE001 - on one desktop, then
++                self.marked = False
++        if reduce_motion(self.host):
++            self.move(o.topLeft());self.show();self.raise_()
++        else:
++            self.move(c.topLeft());self.show();self.raise_()
++            self.anim.setDuration(SLIDE_MS);self.anim.setStartValue(c.topLeft());self.anim.setEndValue(o.topLeft());self.anim.start()
++        self.activateWindow();self.prompt.setFocus()
++        QTimer.singleShot(0, self.prompt.setFocus)
++        return o
++
++    def leave(self):
++        """Back up; the keys go back to the app (or Graphite) that had them. What runs keeps running."""
++        if not self.opened:return False
++        o, c = self.rects();self.opened = False;self.anim.stop()
++        if reduce_motion(self.host) or not self.isVisible():
++            self.hide();self.slid();return True
++        self.anim.setDuration(SLIDE_MS);self.anim.setStartValue(self.pos());self.anim.setEndValue(c.topLeft());self.anim.start()
++        return True
++
++    def slid(self):
++        if self.opened:return
++        self.hide()
++        if self.before:
++            self.gave = dict(window=self.before, **(give_back(self.before) or {}))
++            try:
++                if self.before == int(self.host.winId()):self.host.activateWindow()
++            except (RuntimeError, AttributeError):pass
++        elif self.graphite_before:
++            try:self.host.activateWindow();self.gave = dict(window='graphite', asked=True)
++            except RuntimeError:pass
++        else:
++            self.gave = dict(window=0, asked=False)
++
++    def toggle(self):
++        """The key: down when it is up, up when it is down."""
++        if self.opened:
++            self.leave();return {'ok': True, 'words': 'The Terminal is put away.'}
++        self.drop();return {'ok': True, 'words': 'The Terminal is down: type a command.'}
++
++    def _graphite_active(self):
++        try:return bool(self.host.isActiveWindow())
++        except RuntimeError:return False
++
++    def place_now(self):
++        """The screen changed: the open Terminal follows the top edge."""
++        if self.opened and self.anim.state() != QPropertyAnimation.Running:
++            o, _ = self.rects();self.setFixedSize(o.size());self.move(o.topLeft())
++
++    def status(self):
++        return dict(open=self.opened, visible=self.isVisible(), geometry=self.geometry().getRect(), before=self.before,
++                    gave=self.gave, running=self.process is not None, cwd=str(self.cwd or ''), history=len(self.history))
++
++
++# ---- in the window ----------------------------------------------------------------------------------------------------------------
++def terminal(host, make=True):
++    """host.drop_terminal, made once (on first use: nothing is drawn until it is wanted)."""
++    term = getattr(host, 'drop_terminal', None)
++    if term is None and make:
++        term = host.drop_terminal = DropTerminal(host)
++        app = QApplication.instance()
++        if app is not None:app.aboutToQuit.connect(lambda term=term: term.stop_shell())
++        try:
++            screen = host.screen() or QGuiApplication.primaryScreen()
++            screen.geometryChanged.connect(lambda *_: QTimer.singleShot(0, term.place_now))
++        except (RuntimeError, AttributeError):
++            pass
++    return term
++
++
++def toggle(host):
++    """graphite-do terminal (Win+` and Ctrl+Alt+T from any app), and Ctrl+Alt+T in Graphite: down, or back up."""
++    try:return terminal(host).toggle()
++    except Exception as exc:  # noqa: BLE001 - the key answers in words
++        return {'ok': False, 'words': 'The Terminal could not drop: %s' % (str(exc)[:160] or type(exc).__name__)}
++
++
++def run(host, text):
++    """A line for the Terminal (the bar's line's Terminal and DOS rows): the Terminal drops and runs it."""
++    return terminal(host).run(text)
++
++
++def install(host):
++    """shell2, once the window stands: the in-window keys (Ctrl+Alt+T always; Ctrl+Alt+` once the foot has folded, see
++    foot_fold_qt). The window itself is made on first use."""
++    if getattr(host, '_drop_terminal_keys', None) is not None:return host._drop_terminal_keys
++    keys = [QShortcut(QKeySequence('Ctrl+Alt+T'), host, activated=lambda: toggle(host))]
++    host._drop_terminal_keys = keys
++    host.drop_terminal = getattr(host, 'drop_terminal', None)
++    return keys
+diff --git a/workbench/explorer_qt.py b/workbench/explorer_qt.py
+index ab477c2..b4f648b 100644
+--- a/workbench/explorer_qt.py
++++ b/workbench/explorer_qt.py
+@@ -204,6 +204,7 @@ KEYS = {
+     (Qt.Key_Backspace, Qt.NoModifier): 'back', (Qt.Key_A, Qt.ControlModifier): 'all', (Qt.Key_Z, Qt.ControlModifier): 'undo',
+     (Qt.Key_Up, Qt.AltModifier): 'up', (Qt.Key_L, Qt.ControlModifier): 'address', (Qt.Key_D, Qt.AltModifier): 'address',
+     (Qt.Key_B, Qt.ControlModifier): 'board',
++    (Qt.Key_Period, Qt.ControlModifier): 'command',  # 1.1 B4: Command… (the exact line it is or runs)
+ }
+ 
+ 
+@@ -610,6 +611,9 @@ class Explorer(QObject):
+         if what == 'properties':
+             from .windows_keys_qt import show_properties
+             return show_properties(host, self.current_path() or (paths[0] if paths else self.folder))
++        if what == 'command':  # 1.1 B4: Command…, the exact line it is or runs (command_card_qt)
++            from .command_card_qt import show as show_command  # 1.1 B4
++            return show_command(host, self.current_path() or (paths[0] if paths else self.folder))  # 1.1 B4
+         if what == 'read_again':self.reload();return say(host, 'Read again.')
+         if what == 'back':return self.living.back()
+         if what == 'up':
+@@ -640,6 +644,7 @@ class Explorer(QObject):
+             menu.addSeparator();add('Rename', 'F2', 'rename', len(paths) == 1);add('Delete', 'Delete', 'delete')
+             add('Delete for good…', 'Shift+Delete', 'for_good');menu.addSeparator()
+             copy_path = menu.addAction('Copy the path');copy_path.triggered.connect(lambda: QApplication.clipboard().setText('\n'.join(paths)))
++            add('Command…', 'Ctrl+.', 'command', len(paths) == 1)  # 1.1 B4: above Properties, the line it is or runs
+             add('Properties', 'Alt+Enter', 'properties', len(paths) == 1)
+         else:
+             add('Paste', 'Ctrl+V', 'paste', bool(self.clipboard().paths))
+@@ -650,7 +655,8 @@ class Explorer(QObject):
+             for v in ex.VIEWS:
+                 a = views.addAction(ex.VIEW_WORDS[v]);a.setCheckable(True);a.setChecked(v == self.view)
+                 a.triggered.connect(lambda checked=False, v=v: self.set_view(v))
+-            add('Read again', 'F5', 'read_again');add('Properties', 'Alt+Enter', 'properties')
++            add('Read again', 'F5', 'read_again');add('Command…', 'Ctrl+.', 'command')  # 1.1 B4: the folder's own line
++            add('Properties', 'Alt+Enter', 'properties')
+         menu.exec(view.viewport().mapToGlobal(point))
+         return menu
+ 
+diff --git a/workbench/foot_fold_qt.py b/workbench/foot_fold_qt.py
+new file mode 100644
+index 0000000..e2ee035
+--- /dev/null
++++ b/workbench/foot_fold_qt.py
+@@ -0,0 +1,461 @@
++"""Graphite 1.1 B4 · One line: the window's foot folds away, and each thing it did has one place.
++
++PLAN_1.1.md, B4. 1.0's foot (typebar_qt: the band of Line, Terminal, Search, Web and Log, its writing line, and the five meters
++beside it) and the bar's line did one job twice. Once the bar stands (bar_qt: the dedicated session, or GRAPHITE_BAR=1 on X),
++the foot is folded away and FOOT_MOVED says where each of its jobs went; nothing it did is lost. Without the bar (another
++desktop, no X, GRAPHITE_BAR=0) the foot stays exactly as 1.0 had it: there its jobs have no other home. GRAPHITE_FOOT=1 keeps
++it even with the bar.
++
++The foot's object (host.type_bar) stays for its callers; its doors lead to the new places: Alt+1 and Alt+4 (Line, Search),
++Alt+3 (an operation) and Ctrl+K open the bar's line; Alt+5 and Ctrl+Alt+` drop the Terminal; Alt+6 opens the Log.
++"""
++from __future__ import annotations
++
++import os
++
++from PySide6.QtCore import QEvent, QObject, QRect, QRectF, QSize, Qt, QTimer
++from PySide6.QtGui import QColor, QFontMetrics, QPainter
++from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout
++
++from . import bar_qt
++
++# Old place -> new place (the owner reads this table; the release notes carry it). K0's head_menus.MOVED is its model.
++FOOT_MOVED = (
++    ('Line: a Graphite line, an operation after /, an address, words for Kasandra (the foot\'s line, Alt+1)',
++     "The bar's line (a press on it, Win+R, Win+S, Alt+1): every row says what Enter does; a Graphite line is Run on the line "
++     'page, an operation is Run on the operations page, an address is Opened, Ask Kasandra is always its last row'),
++    ('Search: names and words across the workspace (Alt+4, Ctrl+K, a leading ?)',
++     "The bar's line (Alt+4, Ctrl+K): apps, files, settings, the desk and commands by name; its row 'Search inside files for …' "
++     'finds their words too (the results in the working area, as before)'),
++    ('Web: an address opened, or words searched for, in your own browser',
++     "The bar's line: an address is its Open row; words have 'Search the web for …' (in your own browser; Graphite fetches nothing)"),
++    ('Terminal: your shell in your Files folder, with DOS words (Alt+5, Ctrl+Alt+`)',
++     'The drop-down Terminal, from the top of the screen over any app: Win+` or Ctrl+Alt+T (and Alt+5, Ctrl+Alt+` in Graphite); '
++     "the line's Terminal and DOS rows run there"),
++    ('Log: Events and Network, filtered from the line (Alt+6)',
++     'View ▸ Log (Alt+6): the working area\'s Log, with its own Filter line (Enter filters; Ctrl+Enter captures, in Network)'),
++    ('The meters CPU, GPU, RAM, TXT and NET at the foot\'s right, each a door to its card',
++     'The bar\'s tray: one item, Meters (its bars, and CPU in words on the tall bar); a press opens the five, each the same door'),
++    ('The arrow at the line\'s end, Ctrl+Enter and Ask Kasandra →', "Enter on the bar's line (its first row), or a press on any row"),
++    ('Expand and Collapse (the room above the line)', 'View ▸ Console ▸ One Line, Half, Tall (as before), and Ctrl+`'),
++    ('Short messages ("Saved as…") at the line', 'The working area\'s message line, as before (the foot only repeated them)'),
++    ('The context word at the line\'s right end (the selected record, else the workspace)',
++     "The centre bar's path (it names the same place), and Graphite's window title on the bar"),
++)
++KEEP_ENV = 'GRAPHITE_FOOT'
++WAIT_MS, WAIT_TRIES = 200, 60          # how long the fold waits for the bar to stand, at most (12 s)
++
++
++def wanted(environ=None):
++    environ = os.environ if environ is None else environ
++    return environ.get(KEEP_ENV, '') != '1'
++
++
++def bar_standing(host):
++    bar = getattr(host, 'graphite_bar', None)
++    try:return bool(bar is not None and getattr(bar, 'standing', False) and bar.isVisible())
++    except RuntimeError:return False
++
++
++def folded(host):
++    return bool(getattr(host, 'foot_folded', False))
++
++
++# ---- the bar's line takes Line, Search and Web --------------------------------------------------------------------------------------
++def put_in_line(host, text='', tries=6):
++    """The bar's line, open, holding `text` (its rows shown). Without the bar: the foot's own line, in Line. True when placed."""
++    text = str(text or '')
++    if not bar_standing(host):
++        box = getattr(getattr(getattr(host, 'shell2', None), 'top', None), 'box', None)
++        bar = getattr(host, 'type_bar', None)
++        if bar is not None:
++            try:type(bar).set_target(bar, 'line', focus=False)
++            except Exception:  # noqa: BLE001
++                pass
++        if box is None:return False
++        box.setText(text);box.setFocus();box.end(False);return True
++    from .start_qt import open_start, is_open
++    if not is_open(host, 'line'):open_start(host, 'line')
++    panel = getattr(host, 'start_panel', None)
++    try:ready = panel is not None and panel.isVisible() and panel.mode == 'line'
++    except RuntimeError:ready = False
++    if not ready:
++        if tries > 0:QTimer.singleShot(250, lambda: put_in_line(host, text, tries - 1))
++        return False
++    panel.line.setText(text);panel.line.end(False);panel.line.setFocus();panel.find()
++    return True
++
++
++def search_inside(host, words):
++    """'Search inside files for …': 1.0's Search page (names and words across Files, the cabinet, settings, commands and the
++    Timeline), its results in the working area."""
++    from .shell2 import to_console
++    return to_console(host, 'find', words)
++
++
++def search_web(host, words):
++    """'Search the web for …': in this computer's own browser (the foot's Web, typebar_qt.TypeBar.open_web)."""
++    bar = getattr(host, 'type_bar', None)
++    if bar is not None:return bar.open_web(words)
++    from urllib.parse import quote_plus
++    from PySide6.QtCore import QUrl
++    from PySide6.QtGui import QDesktopServices
++    from .typebar_qt import WEB_SEARCH
++    return QDesktopServices.openUrl(QUrl(WEB_SEARCH + quote_plus(words)))
++
++
++def more_rows(host):
++    """line_finder.MORE's maker for this window: the two rows the foot's Search and Web gave that the line had not."""
++    def rows(words):
++        from . import line_finder as lf
++        words = lf.clean(words)
++        if len(words) < 2 or words[:1] in '=?$>/@':return []
++        out = [lf.Row('command', 'Search inside files for “%s”' % lf.short(words, 40),
++                      'Names and words across Files, the cabinet, settings, commands and the Timeline: the results in the working area',
++                      'Open', lambda w=words: search_inside(host, w), icon='command', tip="1.0's Search (Ctrl+K)")]
++        if not lf.is_address(words):
++            out.append(lf.Row('command', 'Search the web for “%s”' % lf.short(words, 40),
++                              "In this computer's own browser; Graphite itself fetches nothing", 'Open',
++                              lambda w=words: search_web(host, w), icon='address', tip="1.0's Web"))
++        return out
++    rows.b4_host = host
++    return rows
++
++
++# ---- the Log under View -----------------------------------------------------------------------------------------------------------
++class LogLine(QLineEdit):
++    """The Log's own Filter line (the foot's line in Log mode was its filter): Enter filters the stream; Ctrl+Enter in Network
++    starts a capture with it (log_qt's own, confirmed first); Esc folds the Log away."""
++
++    def __init__(self, host, view):
++        super().__init__(view);self.host = host;self.view = view;self.setObjectName('LogFilterLine')
++        self.setPlaceholderText('Filter the Log: words (Events), or host, port, protocol (Network)')
++        self.setAccessibleName('Filter the Log');self.setClearButtonEnabled(True);self.setMinimumWidth(220)
++        self.returnPressed.connect(self.apply)
++
++    def apply(self):
++        errors = self.view.apply_filter(self.text())
++        if errors:
++            try:self.host.statusBar().showMessage('Filter: ' + '; '.join(errors), 6000)
++            except (AttributeError, RuntimeError):pass
++        return errors
++
++    def keyPressEvent(self, event):
++        if event.key() in (Qt.Key_Return, Qt.Key_Enter) and event.modifiers() & Qt.ControlModifier and self.view.stream == 'network':
++            self.view.start_capture(self.text());return
++        if event.key() == Qt.Key_Escape:
++            console = getattr(self.host, 'console', None)
++            if console is not None:console.set_size(0)
++            self.clearFocus();return
++        super().keyPressEvent(event)
++
++
++def log_line(host):
++    """The Log's Filter line, put once into the Log view's head (beside its two stream tabs)."""
++    view = getattr(host, 'log_view', None)
++    if view is None:return None
++    made = getattr(view, 'b4_line', None)
++    if made is not None:return made
++    head = view.layout().itemAt(0).layout() if view.layout() is not None and view.layout().count() else None
++    if head is None:return None
++    made = view.b4_line = LogLine(host, view)
++    at = head.indexOf(view.filter_words)
++    head.insertWidget(at if at >= 0 else head.count(), made, 2)
++    return made
++
++
++def open_log(host, toggle=True):
++    """View ▸ Log (Alt+6): the Log in the working area, its Filter line ready; a second press folds it away."""
++    console = getattr(host, 'console', None)
++    if console is None:return False
++    try:
++        shown = console.mode == 'log' and console.size_level > 0 and host.isActiveWindow()
++    except RuntimeError:
++        shown = False
++    if toggle and shown:console.set_size(0);return False
++    from .start_qt import bring_forward
++    bring_forward(host)
++    if console.mode != 'log':console.set_mode('log')
++    if console.size_level == 0:console.set_size(1)
++    line = log_line(host)
++    if line is not None:QTimer.singleShot(0, line.setFocus)
++    return True
++
++
++# ---- the meters: one item in the bar's tray ---------------------------------------------------------------------------------------
++METER_KEYS = ('CPU', 'GPU', 'RAM', 'TXT', 'NET')
++
++
++def pulse_of(host):
++    return getattr(getattr(getattr(host, 'shell2', None), 'top', None), 'pulse', None)
++
++
++def readings(host):
++    """{key: (words, share or None)} as the five meters read now (desktop_header_qt.DesktopMonitors keeps reading them)."""
++    pulse = pulse_of(host);out = {}
++    for key in METER_KEYS:
++        value = (getattr(pulse, 'values', None) or {}).get(key)
++        if value is None:out[key] = ('—', None);continue
++        try:
++            words = value.text() or '—';share = value.value() if key != 'NET' else None
++        except (RuntimeError, AttributeError, TypeError):
++            words, share = '—', None
++        out[key] = (words.replace('%', ' %') if words.endswith('%') and not words.endswith(' %') else words, share)
++    return out
++
++
++def meters_words(read):
++    """The item's tip and name: every meter in words."""
++    return ', '.join('%s %s' % (key, read.get(key, ('—', None))[0]) for key in METER_KEYS)
++
++
++class MetersItem(bar_qt.BarButton):
++    """The meters in the bar's tray: three bars (CPU, GPU and RAM: their heights are their shares, an empty box when there is
++    no reading), and CPU in words on the tall bar; a press opens the five, each the door its meter was."""
++
++    def __init__(self, tray):
++        super().__init__(tray, 'Meters');self.tray = tray;self.read = {};self.flyout = None
++        self.clicked.connect(self.open_meters)
++        self.timer = QTimer(self);self.timer.setInterval(2000);self.timer.timeout.connect(self.refresh);self.timer.start()
++        QTimer.singleShot(0, self.refresh)
++
++    def word(self):
++        return 'CPU %s' % self.read.get('CPU', ('—', None))[0]
++
++    def natural(self, h):
++        glyph = round(h * 0.42) + 2 * round(h * 0.25)
++        if h <= bar_qt.SHORT:return glyph
++        return glyph + 6 + QFontMetrics(bar_qt.bar_font(h)).horizontalAdvance('CPU 100 %')
++
++    def refresh(self):
++        try:host = self.tray.bar.host
++        except RuntimeError:
++            return
++        if getattr(host, '_closing', False):self.timer.stop();return
++        self.read = readings(host);words = meters_words(self.read)
++        self.setToolTip('Meters: %s\nA press opens the five; each opens its card.' % words);self.setAccessibleName('Meters: ' + words)
++        self.update()
++
++    def paintEvent(self, event):
++        c = bar_qt.ink();p = QPainter(self);w, h = self.width(), self.height()
++        try:opened = self.flyout is not None and self.flyout.isVisible()
++        except RuntimeError:opened = False
++        self.ground(p, c, opened)
++        side = round(h * 0.42);x0 = round(h * 0.25);top = (h - side) / 2.0;bw = max(3, round(side / 4.0));gap = max(2, round((side - 3 * bw) / 2.0))
++        p.setRenderHint(QPainter.Antialiasing)
++        for i, key in enumerate(('CPU', 'GPU', 'RAM')):
++            share = self.read.get(key, ('—', None))[1];x = x0 + i * (bw + gap)
++            box = QRectF(x + 0.5, top + 0.5, bw - 1, side - 1)
++            p.setPen(QColor(c['tertiary']));p.setBrush(Qt.NoBrush);p.drawRect(box)
++            if share is not None:
++                fill = max(1.0, (side - 2) * max(0.0, min(1.0, float(share))))
++                p.fillRect(QRectF(x + 1, top + side - 1 - fill, bw - 2, fill), QColor(c['text']))
++        if h > bar_qt.SHORT:
++            x = x0 + side + 6;p.setFont(bar_qt.bar_font(h));p.setPen(QColor(c['text'] if self.underMouse() else c['secondary']))
++            p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, self.word())
++        p.end()
++
++    def open_meters(self):
++        try:
++            if self.flyout is not None and self.flyout.isVisible():self.flyout.close();return None
++        except RuntimeError:
++            self.flyout = None
++        bar = self.tray.bar
++        for fly in list(getattr(bar, 'flyouts', {}).values()):
++            try:fly.close()
++            except RuntimeError:pass
++        self.flyout = MetersFlyout(self);self.flyout.setAttribute(Qt.WA_DeleteOnClose, True)
++        self.flyout.destroyed.connect(lambda *_: setattr(self, 'flyout', None))
++        self.update()
++        return self.flyout.open_above()
++
++
++class MetersFlyout(QFrame):
++    """The five meters above their tray item, each a row in words with the door it was (meter_cards)."""
++
++    def __init__(self, item):
++        super().__init__(None, Qt.Popup | Qt.FramelessWindowHint)
++        from .meter_cards import DOORS
++        self.item = item;host = item.tray.bar.host;self.host = host;c = bar_qt.ink()
++        self.setObjectName('GraphiteMetersFlyout');self.setAccessibleName('Meters, from the bar')
++        self.setStyleSheet('QFrame#GraphiteMetersFlyout {background:%s; border:1px solid %s;} QLabel {color:%s; background:transparent;}'
++                           ' QLabel[role="quiet"] {color:%s;} QPushButton {color:%s; background:transparent; border:0; text-align:left; padding:6px 8px;}'
++                           ' QPushButton:hover {background:%s;}' % (c['surface'], c['stroke'], c['text'], c['secondary'], c['text'], c['hover_side']))
++        box = QVBoxLayout(self);box.setContentsMargins(14, 12, 14, 12);box.setSpacing(6)
++        head = QLabel('Meters · this computer, now', self);f = head.font();f.setBold(True);head.setFont(f);box.addWidget(head)
++        grid = QGridLayout();grid.setHorizontalSpacing(12);grid.setVerticalSpacing(2);box.addLayout(grid)
++        self.rows = {};read = readings(host)
++        for r, key in enumerate(METER_KEYS):
++            words = read[key][0]
++            b = QPushButton('%s   %s' % (key, words), self);b.setCursor(Qt.PointingHandCursor);b.setMinimumWidth(130)
++            b.setAccessibleName('%s %s: %s' % (key, words, DOORS[key]));b.clicked.connect(lambda checked=False, key=key: self.door(key))
++            door = QLabel(DOORS[key] + ' →', self);door.setProperty('role', 'quiet');door.setWordWrap(True)
++            grid.addWidget(b, r, 0);grid.addWidget(door, r, 1);self.rows[key] = b
++        note = QLabel('Each opens what its meter is about, as the foot\'s meters did.', self);note.setProperty('role', 'quiet');box.addWidget(note)
++
++    def door(self, key):
++        """A meter's card, above the tray item (meter_cards.open_card: the same card as 1.0's meter opened)."""
++        item = self.item;host = self.host
++        self.close()
++        from .meter_cards import open_card
++        return open_card(host, item, key)
++
++    def open_above(self):
++        item = self.item;bar = item.tray.bar
++        self.setFixedWidth(500 if bar.height() >= bar_qt.TALL else 460);self.adjustSize()
++        screen = (bar.screen() or item.screen()).geometry()
++        right = item.mapToGlobal(item.rect().topRight()).x() + 1
++        x = max(screen.left(), min(right, screen.right() + 1) - self.width())
++        top = bar.mapToGlobal(bar.rect().topLeft()).y()
++        self.move(x, top - self.height() - 6);self.show();self.raise_()
++        return self
++
++
++class MetersTray(bar_qt.Tray):
++    """B1's tray (network, sound, power) with the meters first: their one home once the foot has folded."""
++
++    def __init__(self, bar):
++        super().__init__(bar);self.meters = MetersItem(self)
++        self.setAccessibleName('The tray: meters, network, sound and power')
++
++    def bar_width(self, h):
++        return self.meters.natural(h) + super().bar_width(h)
++
++    def resizeEvent(self, event):
++        h = self.height();w = self.meters.natural(h);self.meters.setGeometry(0, 0, w, h);x = w
++        for key in bar_qt.TRAY:
++            w = self.items[key].natural(h);self.items[key].setGeometry(x, 0, w, h);x += w
++
++
++def meters_item(host):
++    tray = getattr(getattr(host, 'graphite_bar', None), 'slot', lambda name: None)('tray')
++    return getattr(tray, 'meters', None)
++
++
++# ---- the fold -------------------------------------------------------------------------------------------------------------------
++class KeepFolded(QObject):
++    """Whatever shows the foot again (a layout reset, a restored state) is undone: the fold is the window's state now."""
++
++    def eventFilter(self, obj, event):
++        if event.type() == QEvent.Show and folded(getattr(self, 'host', None)):QTimer.singleShot(0, obj.hide)
++        return False
++
++
++def reroute(host):
++    """The foot's doors lead to the new places (the objects stay for their callers)."""
++    bar = getattr(host, 'type_bar', None);console = getattr(host, 'console', None)
++    if bar is not None:
++        original = type(bar).set_target
++
++        def set_target(key, focus=True, bar=bar):
++            if not focus or not folded(host):return original(bar, key, focus)
++            from .typebar_qt import MAPPED
++            mode = MAPPED.get(key, 'line')
++            if mode == 'shell':
++                from .drop_terminal_qt import toggle
++                return toggle(host)
++            if mode == 'log':return open_log(host, toggle=False)
++            return put_in_line(host, '/' if key == 'kernel' else '')
++        bar.set_target = set_target
++        bar.search = lambda: put_in_line(host, '')
++        bar.run_operation = lambda: put_in_line(host, '/')
++    if console is not None:
++        opened = type(console).open
++
++        def open_(mode=None, focus=True, console=console):
++            if folded(host) and (mode or console.mode) == 'shell':
++                from .drop_terminal_qt import terminal
++                return terminal(host).drop()
++            return opened(console, mode, focus)
++        console.open = open_
++        focused = type(console).focus_box
++
++        def focus_box(console=console):
++            if not folded(host):return focused(console)
++            if console.mode == 'log':
++                line = log_line(host)
++                if line is not None:line.setFocus()
++            return None      # no foot: the line is the bar's, and running a line never opens it by itself
++        console.focus_box = focus_box
++    pulse = pulse_of(host)
++    if pulse is not None:
++        def open_card(key, pulse=pulse):
++            from .meter_cards import open_card as card
++            item = meters_item(host)
++            try:anchor = item if item is not None and item.isVisible() else pulse.values[key]
++            except RuntimeError:anchor = pulse.values[key]
++            return card(host, anchor, key)
++        pulse.open_card = open_card
++
++
++def fold(host):
++    """The foot folds away (once the bar stands): the Terminal drops, the Log is under View, the meters are in the tray, Search
++    and Web are the line's. True when folded now or before."""
++    if folded(host):return True
++    dock = getattr(host, 'type_dock', None)
++    if dock is None or not wanted() or not bar_standing(host):return False
++    host.foot_folded = True
++    keeper = getattr(host, '_foot_keeper', None)
++    if keeper is None:
++        keeper = host._foot_keeper = KeepFolded(host);keeper.host = host;dock.installEventFilter(keeper)
++    dock.hide()
++    reroute(host)
++    from . import line_finder as lf
++    lf.MORE[:] = [fn for fn in lf.MORE if getattr(fn, 'b4_host', None) is not host] + [more_rows(host)]
++    bar_qt.register_slot('tray', MetersTray)
++    log_line(host)
++    try:
++        from . import desk_qt
++        QTimer.singleShot(0, lambda: desk_qt.apply(host))
++    except Exception:  # noqa: BLE001
++        pass
++    return True
++
++
++def key_verb(host, verb):
++    """graphite-do's terminal, kas and halt (Win+` / Ctrl+Alt+T, Win+K, Pause) from any app: {ok, words}. None of them brings
++    Graphite's window forward; halt only presses HALT, never RESUME."""
++    if verb == 'terminal':
++        from .drop_terminal_qt import toggle
++        return toggle(host)
++    ctl = getattr(host, 'kas_bar', None)
++    if verb == 'kas':
++        if ctl is None:return {'ok': False, 'words': 'Her panel is not on this window.'}
++        try:done = ctl.toggle()
++        except Exception as exc:  # noqa: BLE001
++            return {'ok': False, 'words': 'Her panel did not open: %s' % (str(exc)[:120] or type(exc).__name__)}
++        if ctl.panel_open():return {'ok': True, 'words': 'Her panel is open.'}
++        if done == 'docked':return {'ok': True, 'words': 'Her column is in front, in Graphite.'}
++        return {'ok': True, 'words': 'Her panel is closed.'}
++    if verb == 'halt':
++        from .kas_voice import say as her
++        if ctl is not None:pressed = ctl.pause_key()
++        else:
++            button = getattr(getattr(getattr(host, 'shell2', None), 'top', None), 'halt', None)
++            if button is None:pressed = None
++            elif button.held:pressed = False
++            else:button.act();pressed = True
++        if pressed is None:return {'ok': False, 'words': 'HALT is not on this window.'}
++        if pressed is False:return {'ok': True, 'words': her('pause_held')}
++        return {'ok': True, 'words': 'HALT is pressed: all of her work stops.'}
++    return {'ok': False, 'words': 'not known'}
++
++
++def install(host):
++    """shell2, after the bar's install: the Terminal's keys, then the fold once the bar stands (it stands a moment after the
++    window shows). Without the bar the foot stays."""
++    from . import drop_terminal_qt
++    drop_terminal_qt.install(host)
++    host.foot_folded = getattr(host, 'foot_folded', False)
++    host.fold_foot = lambda: fold(host)
++    host.foot_moved = FOOT_MOVED
++    if not wanted() or not bar_qt.wanted()[0]:return False
++    tries = {'n': 0}
++
++    def look():
++        if getattr(host, '_closing', False) or folded(host):return
++        if fold(host):return      # Ctrl+Alt+` is 1.0's console key: console.open('shell'), which drops the Terminal now (reroute)
++        tries['n'] += 1
++        if tries['n'] < WAIT_TRIES:QTimer.singleShot(WAIT_MS, look)
++    QTimer.singleShot(0, look)
++    return True
+diff --git a/workbench/head_menus.py b/workbench/head_menus.py
+index 8ce59f4..b6fad14 100644
+--- a/workbench/head_menus.py
++++ b/workbench/head_menus.py
+@@ -17,7 +17,7 @@ HEAD = ('File', 'Edit', 'View', 'Go', 'Tools', 'Help')
+ VIEW = ['@details', '@views', None, 'inspector', '@slate_panel', None,
+         'fullscreen', 'reading', '@appearance', '@artwork', '@buttons', 'prose_more', 'prose_less', None,
+         'wrap', 'split_editor', 'pin', 'reopen', None,
+-        '@console_sizes', '@cabinet', '@machine_refresh', None,
++        '@log', '@console_sizes', '@cabinet', '@machine_refresh', None,      # 1.1 B4: Log, the foot's Log mode, has its home in View
+         '@show_keys', 'reset']
+ GO = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda']
+ TOOLS = ['@explore', 'discovery', 'algorithms', 'atlas', '@work_copy', '@utility', 'doctor', '@computer', '@pills', None,
+@@ -26,7 +26,8 @@ TOOLS = ['@explore', 'discovery', 'algorithms', 'atlas', '@work_copy', '@utility
+          'ledger_settings', '@dos_words', '@bin_name', None,
+          '@engineering', '@service']
+ COMMANDS = ['ledger_commands', '@run_operation', '@chain', '@chain_desk', '@type_to', 'palette']
+-KEYS = frozenset(('@details', '@views', '@artwork', '@buttons', '@show_keys', '@commands', '@hand', '@dos_words', '@bin_name'))
++KEYS = frozenset(('@details', '@views', '@artwork', '@buttons', '@show_keys', '@commands', '@hand', '@dos_words', '@bin_name',
++                  '@log'))      # 1.1 B4: '@log'
+ 
+ # Old place -> new place (the owner reads this table; the release notes carry it).
+ MOVED = (
+@@ -48,6 +49,7 @@ MOVED = (
+     ('Properties: This Computer…, Pills and Paired Computers…', 'Tools'),
+     ('Guide (every row: Getting Started … About Graphite)', 'Help'),
+     ('new: Details pane (Alt+P), List, Icons, Board', 'View'),
++    ('Commands: Writing Line ▸ Log (Alt+6)', 'View ▸ Log'),      # 1.1 B4
+ )
+ 
+ 
+@@ -136,6 +138,9 @@ def add(host, menu, key, placed, groups):
+         sub = _holder(host)['dos_words']
+     elif key == '@bin_name':
+         sub = _holder(host)['bin_name']
++    elif key == '@log':      # 1.1 B4: View ▸ Log (Alt+6), the same action as the foot's Log word; the Log in the working area once the foot folds
++        a = (getattr(host, 'a_talk', None) or {}).get('log')
++        if a is not None:menu.addAction(a);placed.add(a)
+     elif key == '@commands':
+         sub = groups.get('Commands')
+         if sub is not None:sub.setTitle('Commands')
+diff --git a/workbench/line_finder.py b/workbench/line_finder.py
+index 0f18211..24703b9 100644
+--- a/workbench/line_finder.py
++++ b/workbench/line_finder.py
+@@ -470,12 +470,25 @@ def rows(text, sources=None):
+     found += command_rows(sources.commands(words))
+     found = windows_rows(words) + in_sections(found)      # a Windows word's own place first, then the sections
+     last = [] if any(r.kind in ('dos', 'terminal') for r in first) else terminal_rows(words, sources.which)
++    last += more_rows(words)  # 1.1 B4: rows a window adds (the folded foot's Search inside files and Search the web)
+     ask = ask_row(words)
+     if reads_as_hers(words, reading) and not first:return [ask] + found + last
+     out = first + found + last + [ask]
+     return out
+ 
+ 
++MORE = []  # 1.1 B4: callables (words) -> [Row]: rows a window adds after the found ones (foot_fold_qt, once the foot folds)
++
++
++def more_rows(words):  # 1.1 B4
++    out = []
++    for fn in list(MORE):
++        try:out += list(fn(words) or [])
++        except Exception:  # noqa: BLE001 - 1.1 B4: a window's own rows never cost the line its rows
++            continue
++    return out
++
++
+ def in_sections(found):
+     """The rows found by name, in the design's order: Apps, Settings, Files, the desk, Commands (each section's own order kept)."""
+     order = {s: i for i, s in enumerate(SECTIONS)}
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index 4a69a75..12d0c73 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -224,7 +224,7 @@ def rebuild(host):
+         if key == '@recent' and hasattr(host, 'recent_menu'):menu.addMenu(host.recent_menu);return
+         if key in ('@type_to', '@console_sizes'):  # the bar's own words, as checkable choices
+             sub = QMenu('Writing Line' if key == '@type_to' else 'Console', host)  # D3: the line's four modes
+-            for a in ([host.a_talk[k] for k in ('slate', 'shell', 'find', 'log')] if key == '@type_to' else host.a_sizes.values()):sub.addAction(a);placed.add(a)
++            for a in ([host.a_talk[k] for k in ('slate', 'shell', 'find')] if key == '@type_to' else host.a_sizes.values()):sub.addAction(a);placed.add(a)      # 1.1 B4: Log is View's (head_menus '@log')
+             sub.aboutToShow.connect(host._menus_sync);menu.addMenu(sub);return
+         if key == '@leave':
+             from . import session_power as power
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index dfad385..e23c245 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -1322,6 +1322,9 @@ def to_console(host, page, text):
+     """Hand a typed line from the box to the console page it belongs to, and run it there. Only the page's own lead character
+     is dropped (D3: in Shell a path such as /usr/bin/env or a pattern such as ?.txt is the shell's)."""
+     console = getattr(host, 'console', None)
++    if page == 'shell' and getattr(host, 'foot_folded', False):  # 1.1 B4: the Terminal is the drop-down once the foot has folded
++        from .drop_terminal_qt import run as run_in_terminal  # 1.1 B4
++        return run_in_terminal(host, text)  # 1.1 B4
+     if console is None:return host.shell2.run_stac(text) if page == 'stac' else None
+     if console.mode != page:console.set_mode(page)  # changing page would forget an approval waiting for its second Enter
+     console.open(focus=False)
+@@ -3564,6 +3567,8 @@ class Shell2(QObject):
+             install_kas_bar(host)  # 1.1 B3
+             from .bar_qt import install as install_bar  # 1.1 B1: the bar at the bottom of the screen replaces 1.0's dock at the top
+             install_bar(host)  # 1.1 B1
++            from .foot_fold_qt import install as install_one_line  # 1.1 B4: the drop-down Terminal's keys; the foot folds once the bar stands
++            install_one_line(host)  # 1.1 B4
+         except ImportError:  # 1.0 S5
+             pass
+         from .app_files_qt import install as install_app_files
+diff --git a/workbench/start_qt.py b/workbench/start_qt.py
+index 541970c..62e35f4 100644
+--- a/workbench/start_qt.py
++++ b/workbench/start_qt.py
+@@ -629,6 +629,10 @@ def do(host, row, panel=None):
+             return {'done': bool(QDesktopServices.openUrl(QUrl(url))), 'words': 'Opened in your browser.'}
+         if kind == 'file':
+             return open_file(host, target, row.extra.get('how', 'file'))
++        if getattr(host, 'foot_folded', False) and (kind in ('dos', 'terminal') or (kind == 'place' and target[0] == 'terminal')):  # 1.1 B4
++            from .drop_terminal_qt import run as run_in_terminal, terminal  # 1.1 B4: the Terminal drops over the app in front
++            if kind == 'place':terminal(host).drop();return {'done': True, 'words': 'The Terminal.'}  # 1.1 B4
++            run_in_terminal(host, target);return {'done': True, 'words': 'In the Terminal: %s' % target}  # 1.1 B4
+         bring_forward(host)
+         if kind == 'setting':
+             host.ledger_bridge.show_settings(key=target);return {'done': True, 'words': 'Settings · %s' % row.title}
+diff --git a/workbench/windows_keys_qt.py b/workbench/windows_keys_qt.py
+index 7869712..6216eca 100644
+--- a/workbench/windows_keys_qt.py
++++ b/workbench/windows_keys_qt.py
+@@ -9,7 +9,8 @@ PLAN_1.1.md, W1 (a) to (c). windows_hand holds the settings, the file clipboard
+                    folders again; Backspace goes back; Ctrl+A chooses every row; Ctrl+Z takes the last change back.
+   Properties       a small page: name, kind, size, dates, where it is, who may read and change it, what opens it. Esc closes.
+   from any app     graphite-do (tools/graphite-do) speaks to the running window over a local socket of this user's
+-                   ($XDG_RUNTIME_DIR/graphite-do.sock): apps, files, show, lock, tasks, screenshot, start, line. Fluxbox's
++                   ($XDG_RUNTIME_DIR/graphite-do.sock): apps, files, show, lock, tasks, screenshot, start, line (1.1 B4:
++                   terminal on Win+` and Ctrl+Alt+T, kas on Win+K, halt on Pause, none bringing Graphite forward). Fluxbox's
+                    keys file, written by the session (LS_XSESSION.sh, graphite-do --write-keys), puts them on the Windows key
+                    (Start, 1.1 B2), Win+R and Win+S (the line), Win+E, Win+D, Win+L, Ctrl+Alt+Del and PrintScreen; Alt+Tab
+                    and Alt+F4 are Fluxbox's own NextWindow and Close.
+@@ -31,7 +32,8 @@ from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLabel, QM
+ 
+ from . import windows_hand as wh
+ 
+-VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping', 'start', 'line')  # 1.1 B2: start (the Windows key), line (Win+R)
++VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping', 'start', 'line',  # 1.1 B2: start (the Windows key), line (Win+R)
++         'terminal', 'kas', 'halt')  # 1.1 B4: the drop-down Terminal (Win+`, Ctrl+Alt+T), her panel (Win+K), HALT (Pause)
+ SOCKET_NAME = 'graphite-do.sock'
+ 
+ 
+@@ -259,6 +261,9 @@ def act(host, verb):
+     if verb in ('start', 'line'):  # 1.1 B2: Start rises above the bar, over whichever app is in front (start_qt)
+         from .start_qt import open_start
+         return open_start(host, verb)
++    if verb in ('terminal', 'kas', 'halt'):  # 1.1 B4: over whichever app is in front; Graphite is not brought forward
++        from .foot_fold_qt import key_verb  # 1.1 B4
++        return key_verb(host, verb)  # 1.1 B4
+     bring(host)
+     if verb == 'show':return {'ok': True, 'words': 'Graphite is in front.'}
+     if verb == 'apps':

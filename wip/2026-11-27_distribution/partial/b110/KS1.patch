@@ -1,9 +1,9 @@
 diff --git a/tests_integrated/test_recipes.py b/tests_integrated/test_recipes.py
 new file mode 100644
-index 0000000..646a9e8
+index 0000000..f09a3e6
 --- /dev/null
 +++ b/tests_integrated/test_recipes.py
-@@ -0,0 +1,356 @@
+@@ -0,0 +1,362 @@
 +"""1.1 KS1, her recipes (PLAN_1.1.md, KS1; the coordinator's note of 28 Nov).
 +
 +Acceptance first: every recipe loads, dry-runs on an invented Home, and its verifier passes after a run in a throwaway HOME;
@@ -181,10 +181,13 @@ index 0000000..646a9e8
 +class Rules(Home):
 +    def test_a_dry_run_lists_exactly_what_would_change(self):
 +        dry = self.dry(self.picked('sort downloads by kind'));step = dry['steps'][0]
-+        self.assertEqual(step['lines'], ['Map tiles.iso → Archives/Map tiles.iso', 'notes 2.txt → Documents/notes 2.txt', 'notes.txt → Documents/notes.txt',
-+                                         'Report FINAL.odt → Documents/Report FINAL.odt', 'Setup.deb → Installers/Setup.deb', 'Song.mp3 → Music/Song.mp3',
-+                                         'Survey photos.zip → Archives/Survey photos.zip', 'Tide tables.pdf → Documents/Tide tables.pdf'])
-+        self.assertIn('new folders: Archives, Documents, Installers, Music', step['words'])
++        self.assertEqual(step['lines'], ['Map tiles.iso → Archives', 'notes 2.txt → Documents', 'notes.txt → Documents', 'Report FINAL.odt → Documents',
++                                         'Setup.deb → Installers', 'Song.mp3 → Music', 'Survey photos.zip → Archives', 'Tide tables.pdf → Documents'])
++        self.assertEqual(step['words'], 'Move 8 files in ~/Downloads into folders by kind: Archives 2, Documents 4, Installers 1, Music 1 (each folder made new).')
++        (self.home / 'Downloads' / 'Music').mkdir();(self.home / 'Downloads' / 'Music' / 'Song.mp3').write_bytes(b'older')
++        again = self.dry(self.picked('sort downloads by kind'))['steps'][0]
++        self.assertIn('Song.mp3 → Music/Song 2.mp3', again['lines'], 'a name taken there: a free name, nothing written over')
++        self.assertTrue(again['words'].endswith('(new: Archives, Documents, Installers).'), again['words'])
 +        self.assertEqual(dry['undo'], self.bx.UNDO['box.files.sort']);self.assertEqual(dry['scope'], 'execute')
 +
 +    def test_the_press_runs_only_what_was_shown(self):
@@ -317,7 +320,10 @@ index 0000000..646a9e8
 +    def test_her_talk_shows_the_dry_run_then_done_and_verified_with_undo_and_next_steps_follow(self):
 +        before = snapshot(self.home)
 +        self.assertTrue(self.rbq.asked(self.face, 'sort downloads by kind'))
-+        said = self.face.said[-1];self.assertTrue(said[1].startswith('Recipe “Sort Downloads by kind”. This is exactly what it would do; nothing has changed yet.'), said[1])
++        said = self.face.said[-1];self.assertEqual(said[1], 'Recipe “Sort Downloads by kind”. This is exactly what it would do; nothing has changed yet.')
++        from PySide6.QtWidgets import QLabel
++        shown = ' '.join(l.text() for l in said[2].findChildren(QLabel))
++        self.assertIn('Map tiles.iso → Archives', shown);self.assertIn('Undo puts every file back where it was', shown)
 +        self.assertIn('Run it (your press)', self.links(said[2]));self.assertEqual(snapshot(self.home), before)
 +        steps = self.rbq.next_steps(self.host);self.assertEqual([s['words'] for s in steps], ['Run · Sort Downloads by kind'])
 +        self.assertTrue(self.rbq.take(self.host, steps[0]))
@@ -362,10 +368,10 @@ index 0000000..646a9e8
 +    unittest.main()
 diff --git a/workbench/box_ops.py b/workbench/box_ops.py
 new file mode 100644
-index 0000000..a230059
+index 0000000..cfcbccc
 --- /dev/null
 +++ b/workbench/box_ops.py
-@@ -0,0 +1,1514 @@
+@@ -0,0 +1,1515 @@
 +"""The box's narrow operations (Graphite 1.1 KS1): what her recipes do on the computer, each a registered Kernel operation.
 +
 +PLAN_1.1.md, KS1: "A library of verified, parameterised recipes (preconditions, steps through registered tools, a dry run, a
@@ -1608,11 +1614,12 @@ index 0000000..a230059
 +    kinds = {}
 +    for i in items:kinds[i['kind']] = kinds.get(i['kind'], 0) + 1
 +    made = [k for k in kinds if not (folder / k).is_dir()]
++    made = sorted(made)
++    new = (' (each folder made new)' if made and len(made) == len(kinds) else ' (new: %s)' % ', '.join(made) if made else '')
 +    return {'items': items, 'left': left, 'count': len(items), 'bytes': sum(i['size'] for i in items), 'folder': str(folder), 'make': made,
-+            'lines': ['%s → %s' % (i['name'], i['to_name']) for i in items],
-+            'words': 'Move %s in %s into folders by kind (%s)%s.' % (count_words(len(items), 'file'), hr.tilde(folder),
-+                                                                   ', '.join('%s %d' % kv for kv in sorted(kinds.items())),
-+                                                                   '; new folders: %s' % ', '.join(made) if made else '')}
++            'lines': ['%s → %s' % (i['name'], i['to_name'] if Path(i['to']).name != i['name'] else i['kind']) for i in items],
++            'words': 'Move %s in %s into folders by kind: %s%s.' % (count_words(len(items), 'file'), hr.tilde(folder),
++                                                                  ', '.join('%s %d' % kv for kv in sorted(kinds.items())), new)}
 +
 +
 +def act_sort(kernel, plan, args, change):
@@ -2049,10 +2056,10 @@ index 0f18211..ae1f916 100644
          if not first and place.exists():first.append(file_row(str(place), 'A place on this computer', 'folder' if place.is_dir() else 'file'))
 diff --git a/workbench/recipe_book.py b/workbench/recipe_book.py
 new file mode 100644
-index 0000000..1ca00f7
+index 0000000..9e9842c
 --- /dev/null
 +++ b/workbench/recipe_book.py
-@@ -0,0 +1,831 @@
+@@ -0,0 +1,841 @@
 +"""Her recipes (Graphite 1.1 KS1): verified, parameterised recipes for the everyday things a Windows hand asks of a Linux box.
 +
 +PLAN_1.1.md, KS1: "A library of verified, parameterised recipes (preconditions, steps through registered tools, a dry run, a
@@ -2127,8 +2134,8 @@ index 0000000..1ca00f7
 +FORMAT_WORDS = {'png': 'png', 'pngs': 'png', 'jpg': 'jpg', 'jpgs': 'jpg', 'jpeg': 'jpg', 'jpegs': 'jpg', 'webp': 'webp', 'webps': 'webp',
 +                'gif': 'gif', 'gifs': 'gif', 'tiff': 'tiff', 'tif': 'tiff', 'bmp': 'bmp'}
 +STOP = frozenset(('a', 'an', 'the', 'my', 'me', 'all', 'please', 'can', 'you', 'i', 'to', 'of', 'is', 'are', 'it', 'them', 'for',
-+                  'and', 'what', 'which', 'show', 'find', 'some', 'any', 'this', 'that', 'these', 'those', 'on', 'from', 'with', 'kas',
-+                  'kasandra', 'do', 'does', 'how', 'into', 'by', 'be', 'there', 'want', 'like', 'would', 'could', 'need'))
++                  'and', 'what', 'which', 'show', 'some', 'any', 'this', 'that', 'these', 'those', 'on', 'from', 'with', 'kas',
++                  'kasandra', 'do', 'does', 'into', 'by', 'be', 's', 'whats', 'there', 'want', 'like', 'would', 'could', 'need'))
 +LIST_WORDS = re.compile(r'^\s*(?:show\s+(?:me\s+)?(?:your\s+|the\s+|my\s+)?recipes|(?:your\s+|the\s+|my\s+|list\s+(?:the\s+|your\s+)?)?recipes'
 +                        r'|what\s+recipes\s+(?:do\s+you\s+have|are\s+there)|which\s+recipes(?:\s+do\s+you\s+have)?)\s*[?.]?\s*$', re.I)
 +RUNS_MOST = 200
@@ -2434,37 +2441,47 @@ index 0000000..1ca00f7
 +
 +
 +def tokens(text):
-+    return [_stem(w) for w in re.findall(r"[A-Za-z0-9']+", str(text or '').lower())]
++    return [_stem(w) for w in re.findall(r"[A-Za-z0-9]+", str(text or '').lower().replace("'s ", ' ').replace("’s ", ' '))]
++
++
++def _span(have, want):
++    """The fewest of the owner's words that hold `want` in its order (None when they do not)."""
++    best = None
++    for i, t in enumerate(have):
++        if t != want[0]:continue
++        at = i
++        for w in want[1:]:
++            try:at = have.index(w, at + 1)
++            except ValueError:
++                at = None;break
++        if at is not None and (best is None or at - i + 1 < best):best = at - i + 1
++    return best
 +
 +
 +def score(recipe, text):
-+    """(how many words of its best phrase the owner's words hold, the phrase), 0 when none is held whole."""
-+    best = (0, '')
-+    bare = re.sub(r'[“"][^”"]*[”"]|\S+\.[A-Za-z0-9]{2,5}\b|[~/]\S*|\d\S*', ' ', str(text or ''))      # names, paths and numbers are not request words
++    """(points, the phrase, its span): the recipe's best phrase whose words the owner's words hold in its order and close
++    together (at most two words between); a phrase of one word only alone, in a short request ("battery", "any updates").
++    Names, paths and numbers are not request words. 0 when no phrase is held."""
++    best = (0, '', 99)
++    bare = re.sub(r'[“"][^”"]*[”"]|\S+\.[A-Za-z0-9]{2,5}\b|[~/]\S*|\d\S*', ' ', str(text or ''))
 +    have = tokens(bare);plain = [t for t in have if t not in STOP]
 +    for phrase in recipe.words:
-+        want = [t for t in tokens(phrase) if t not in STOP] or tokens(phrase)
-+        if len(want) == 1 and len(plain) > 3:continue      # one word calls a recipe only in a short request ("battery", "any updates")
-+        if want and all(t in have for t in want):
-+            # in the owner's order: each word found after the one before
-+            at = -1;order = True
-+            for t in want:
-+                try:at = have.index(t, at + 1)
-+                except ValueError:
-+                    order = False;break
-+            s = len(want) * 2 + (1 if order else 0)
-+            if s > best[0]:best = (s, phrase)
++        raw = tokens(phrase);want = [t for t in raw if t not in STOP]
++        if not want:continue
++        if len(want) == 1 and (len(raw) != 1 or len(plain) > 2):continue
++        span = _span(have, want)
++        if span is None or span > len(want) + 2:continue
++        points = len(want) * 2
++        if (points, -span) > (best[0], -best[2]):best = (points, phrase, span)
 +    return best
 +
 +
 +def pick_words(text, environ=None, today=None):
 +    """Her dictionary's pick for the owner's words: the recipe and every slot it could fill, or None."""
 +    recipes, _ = library(environ)
-+    ranked = sorted(((score(r, text), r) for r in recipes), key=lambda sr: (-sr[0][0], sr[1].n))
++    ranked = sorted(((score(r, text), r) for r in recipes), key=lambda sr: (-sr[0][0], sr[0][2], sr[1].n))
 +    if not ranked or ranked[0][0][0] == 0:return None
-+    (points, phrase), recipe = ranked[0]
-+    if len(ranked) > 1 and ranked[1][0][0] == points and ranked[1][1].reads != recipe.reads:
-+        pass      # a tie between a read and a change: the first in the book (reads are listed first where they compete)
++    (points, phrase, _), recipe = ranked[0]      # the most words of a phrase, then the closest together, then the first in the book
 +    return fill(recipe, text, by='dictionary', phrase=phrase, today=today)
 +
 +
@@ -2877,7 +2894,7 @@ index 0000000..1ca00f7
 +    """For the line on the bar: her dictionary's pick when the words call a recipe clearly (two words of its phrase, or a
 +    one-word phrase that is all the line holds), else None. Fast: the library is read once and kept."""
 +    words = ' '.join(str(text or '').split())
-+    if len(words) < 3 or words[:1] in '=?$>/@':return None
++    if len(words) < 3 or words[:1] in '=?$>/@' or re.search(r'(?:^|\s)--?[A-Za-z]', words):return None      # a command line is the Terminal's
 +    got = pick_words(words, environ)
 +    if got is None:return None
 +    recipe = find_recipe(got['recipe'], environ)
@@ -2886,10 +2903,10 @@ index 0000000..1ca00f7
 +    return got
 diff --git a/workbench/recipe_book_qt.py b/workbench/recipe_book_qt.py
 new file mode 100644
-index 0000000..8367abf
+index 0000000..9b53681
 --- /dev/null
 +++ b/workbench/recipe_book_qt.py
-@@ -0,0 +1,351 @@
+@@ -0,0 +1,352 @@
 +"""Her recipes in her talk, her column and the line (Graphite 1.1 KS1). The recipes themselves are recipe_book's.
 +
 +Where they show (the coordinator's note): "the line on the bar (B2's line_finder.py: a row "Recipe: Free space in Home, Enter
@@ -3088,13 +3105,14 @@ index 0000000..8367abf
 +        lines += step.get('lines') or []
 +        left += ['%s: %s' % (l['name'], l['why']) for l in step.get('left') or []]
 +    words = ' '.join(s['words'] for s in dry['steps'] if s.get('words'))
-+    said = lead + kv.say('recipe_dry', title=dry['title']) + ' ' + _words(host, words)
++    summary = _words(host, words)
 +    defaults = [k for k, v in got['slots'].items() if v.get('basis') == 'recipe_default']
-+    if defaults:said += ' ' + kv.say('recipe_defaults', which=', '.join('%s %s' % (k, rb.shown(rb.find_recipe(got['recipe']).slots[k]['type'], got['values'][k])) for k in defaults))
-+    bubble = face.say(said)
-+    _add(bubble, _lines_label(face, lines))
++    if defaults:summary += ' ' + kv.say('recipe_defaults', which=', '.join('%s %s' % (k, rb.shown(rb.find_recipe(got['recipe']).slots[k]['type'], got['values'][k])) for k in defaults))
++    summary += ' ' + _words(host, dry['undo'] if dry['can_undo'] else kv.say('recipe_cannot'))      # what Undo does, before the press
++    bubble = face.say(lead + kv.say('recipe_dry', title=dry['title']))
++    _add(bubble, _lines_label(face, lines))      # exactly what it does, file by file
 +    if left:_add(bubble, _plain(kv.say('recipe_left', left='; '.join(left[:4]) + (' …' if len(left) > 4 else ''))))
-+    _add(bubble, _plain(_words(host, dry['undo'] if dry['can_undo'] else kv.say('recipe_cannot'))))
++    _add(bubble, _plain(summary))                 # then in a sentence, with Undo's words, and the press last (in view in a short column)
 +    state = _state(host);state['offer'] = {'got': got, 'dry': dry, 'face': face}
 +    state.pop('done', None)
 +
@@ -3377,7 +3395,7 @@ index 0000000..3b0d228
 +}
 diff --git a/workbench/recipes/04-changed-since.json b/workbench/recipes/04-changed-since.json
 new file mode 100644
-index 0000000..66859e1
+index 0000000..e336a35
 --- /dev/null
 +++ b/workbench/recipes/04-changed-since.json
 @@ -0,0 +1,44 @@
@@ -3387,14 +3405,14 @@ index 0000000..66859e1
 + "name": "What changed",
 + "title": "What changed in {folder} since {since}",
 + "words": [
-+  "what changed",
 +  "changed since",
 +  "modified since",
 +  "recently changed",
 +  "files changed",
 +  "what did i change",
 +  "edited since",
-+  "what have i changed"
++  "what have i changed",
++  "changed lately"
 + ],
 + "slots": {
 +  "folder": {
@@ -3473,7 +3491,7 @@ index 0000000..a60c68e
 +}
 diff --git a/workbench/recipes/06-find-by-name.json b/workbench/recipes/06-find-by-name.json
 new file mode 100644
-index 0000000..a84c3cc
+index 0000000..91701be
 --- /dev/null
 +++ b/workbench/recipes/06-find-by-name.json
 @@ -0,0 +1,42 @@
@@ -3483,13 +3501,13 @@ index 0000000..a84c3cc
 + "name": "Find a file by its name",
 + "title": "Find files named “{words}” in {folder}",
 + "words": [
-+  "file called",
-+  "file named",
-+  "files called",
-+  "files named",
++  "find the file called",
++  "find files called",
++  "find the file named",
++  "find files named",
 +  "where is the file",
-+  "look for the file",
-+  "search for file"
++  "look for the file called",
++  "find files with the name"
 + ],
 + "slots": {
 +  "folder": {
@@ -3521,7 +3539,7 @@ index 0000000..a84c3cc
 +}
 diff --git a/workbench/recipes/07-find-by-words.json b/workbench/recipes/07-find-by-words.json
 new file mode 100644
-index 0000000..7325f23
+index 0000000..f5f55a0
 --- /dev/null
 +++ b/workbench/recipes/07-find-by-words.json
 @@ -0,0 +1,44 @@
@@ -3531,15 +3549,15 @@ index 0000000..7325f23
 + "name": "Find a file by its words",
 + "title": "Find files holding “{words}” in {folder}",
 + "words": [
-+  "file containing",
-+  "files containing",
-+  "file that mentions",
++  "find files containing",
++  "find the file containing",
 +  "files that mention",
-+  "find text",
-+  "with the words",
++  "file that mentions",
 +  "search inside files",
 +  "which file says",
-+  "file that says"
++  "file that says",
++  "files with the words",
++  "search for text in files"
 + ],
 + "slots": {
 +  "folder": {
@@ -3799,10 +3817,10 @@ index 0000000..2aaaf53
 +}
 diff --git a/workbench/recipes/14-updates.json b/workbench/recipes/14-updates.json
 new file mode 100644
-index 0000000..269a508
+index 0000000..4d65934
 --- /dev/null
 +++ b/workbench/recipes/14-updates.json
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,25 @@
 +{
 + "recipe": "graphite.recipe/1",
 + "id": "updates",
@@ -3811,7 +3829,6 @@ index 0000000..269a508
 + "words": [
 +  "up to date",
 +  "updates",
-+  "any updates",
 +  "need updating",
 +  "upgrades",
 +  "security updates",
@@ -3958,10 +3975,10 @@ index 0000000..5427dc3
 +}
 diff --git a/workbench/recipes/19-network.json b/workbench/recipes/19-network.json
 new file mode 100644
-index 0000000..67a2d27
+index 0000000..c0da8aa
 --- /dev/null
 +++ b/workbench/recipes/19-network.json
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,23 @@
 +{
 + "recipe": "graphite.recipe/1",
 + "id": "network",
@@ -3969,11 +3986,9 @@ index 0000000..67a2d27
 + "title": "My network address",
 + "words": [
 +  "ip address",
-+  "my address",
 +  "network address",
 +  "am i connected",
-+  "network connection",
-+  "my ip"
++  "my ip address"
 + ],
 + "slots": {},
 + "pre": [],
@@ -3989,10 +4004,10 @@ index 0000000..67a2d27
 +}
 diff --git a/workbench/recipes/20-failed-services.json b/workbench/recipes/20-failed-services.json
 new file mode 100644
-index 0000000..b17573a
+index 0000000..c91c2e0
 --- /dev/null
 +++ b/workbench/recipes/20-failed-services.json
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,23 @@
 +{
 + "recipe": "graphite.recipe/1",
 + "id": "failed-services",
@@ -4000,7 +4015,6 @@ index 0000000..b17573a
 + "title": "What failed to start",
 + "words": [
 +  "failed services",
-+  "what failed",
 +  "failed to start",
 +  "errors at start",
 +  "broken services"
@@ -4019,10 +4033,10 @@ index 0000000..b17573a
 +}
 diff --git a/workbench/recipes/21-bin-contents.json b/workbench/recipes/21-bin-contents.json
 new file mode 100644
-index 0000000..e5f3807
+index 0000000..89f96ab
 --- /dev/null
 +++ b/workbench/recipes/21-bin-contents.json
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,23 @@
 +{
 + "recipe": "graphite.recipe/1",
 + "id": "bin-contents",
@@ -4030,7 +4044,6 @@ index 0000000..e5f3807
 + "title": "What is in DELETE",
 + "words": [
 +  "what is in the bin",
-+  "in the trash",
 +  "recycle bin",
 +  "bin contents",
 +  "trash contents",
@@ -4049,10 +4062,10 @@ index 0000000..e5f3807
 +}
 diff --git a/workbench/recipes/22-pdf-pages.json b/workbench/recipes/22-pdf-pages.json
 new file mode 100644
-index 0000000..9e9eebd
+index 0000000..d6cde5b
 --- /dev/null
 +++ b/workbench/recipes/22-pdf-pages.json
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,36 @@
 +{
 + "recipe": "graphite.recipe/1",
 + "id": "pdf-pages",
@@ -4060,8 +4073,7 @@ index 0000000..9e9eebd
 + "title": "How many pages {file} has",
 + "words": [
 +  "how many pages",
-+  "page count",
-+  "number of pages"
++  "page count"
 + ],
 + "slots": {
 +  "folder": {
@@ -4169,7 +4181,7 @@ index 0000000..0cb42d9
 +}
 diff --git a/workbench/recipes/25-convert-pictures.json b/workbench/recipes/25-convert-pictures.json
 new file mode 100644
-index 0000000..279d335
+index 0000000..2a84f1c
 --- /dev/null
 +++ b/workbench/recipes/25-convert-pictures.json
 @@ -0,0 +1,43 @@
@@ -4183,7 +4195,7 @@ index 0000000..279d335
 +  "convert images",
 +  "convert photos",
 +  "change format",
-+  "convert to"
++  "convert"
 + ],
 + "slots": {
 +  "folder": {
@@ -4650,10 +4662,10 @@ index 0000000..49ab6d1
 +}
 diff --git a/workbench/recipes/35-rename-many.json b/workbench/recipes/35-rename-many.json
 new file mode 100644
-index 0000000..dab8da9
+index 0000000..1a3f25d
 --- /dev/null
 +++ b/workbench/recipes/35-rename-many.json
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,49 @@
 +{
 + "recipe": "graphite.recipe/1",
 + "id": "rename-many",
@@ -4662,12 +4674,10 @@ index 0000000..dab8da9
 + "words": [
 +  "rename files",
 +  "rename many",
-+  "rename all",
 +  "batch rename",
 +  "replace in names",
 +  "change names",
-+  "change the names",
-+  "rename them"
++  "change the names"
 + ],
 + "slots": {
 +  "folder": {
@@ -4758,10 +4768,10 @@ index 0000000..d27039f
 +}
 diff --git a/workbench/recipes/37-remove-from-names.json b/workbench/recipes/37-remove-from-names.json
 new file mode 100644
-index 0000000..f5fb411
+index 0000000..898e063
 --- /dev/null
 +++ b/workbench/recipes/37-remove-from-names.json
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,42 @@
 +{
 + "recipe": "graphite.recipe/1",
 + "id": "remove-from-names",
@@ -4769,7 +4779,6 @@ index 0000000..f5fb411
 + "title": "Remove “{find}” from the names in {folder}",
 + "words": [
 +  "remove from names",
-+  "from the names",
 +  "out of the names",
 +  "strip from names",
 +  "from file names"
