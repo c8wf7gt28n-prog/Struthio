@@ -265,10 +265,10 @@ index 3b60f9f..441a8ba 100755
      ('Mod1 Tab', ':NextWindow {static groups} (workspace=[current])', 'Alt+Tab goes to the next window'),
 diff --git a/workbench/command_card_qt.py b/workbench/command_card_qt.py
 new file mode 100644
-index 0000000..6aea928
+index 0000000..4ee8dbc
 --- /dev/null
 +++ b/workbench/command_card_qt.py
-@@ -0,0 +1,129 @@
+@@ -0,0 +1,130 @@
 +"""Graphite 1.1 B4 · Command…: the exact line a file or a folder is, or runs, with Copy and "Put it in the line".
 +
 +The design direction's section 1 (Power's graft: "anything visible answers Command… with the exact line it is or runs") and its
@@ -319,7 +319,8 @@ index 0000000..6aea928
 +        return ('/appfile.open path=%s' % shlex.quote(str(target)),
 +                'Open goes through Graphite\'s own %s bridge (%s), not a command line: this is the Kernel\'s operation that does it.' % (name, bridge))
 +    if route != 'app' or app is None:
-+        return '', 'Open asks you to choose an app (Open with): %s.' % (reason or 'no app here says it opens this')
++        why = str(reason or 'no app here says it opens this').split(':')[0].strip()
++        return '', 'Open asks you to choose an app (Open with): %s.' % why
 +    try:
 +        if getattr(app, 'kind', '') == 'pin':argvs = apps_catalog.command([(a, False) for a in app.argv], [str(target)], (), app.name, app.icon, '')
 +        else:argvs = apps_catalog.command(app.exec, [str(target)], (), app.name, app.icon, app.path)
@@ -400,10 +401,10 @@ index 0000000..6aea928
 +    return card
 diff --git a/workbench/drop_terminal_qt.py b/workbench/drop_terminal_qt.py
 new file mode 100644
-index 0000000..5d2eb19
+index 0000000..b533c59
 --- /dev/null
 +++ b/workbench/drop_terminal_qt.py
-@@ -0,0 +1,390 @@
+@@ -0,0 +1,391 @@
 +"""Graphite 1.1 B4 · The drop-down Terminal: a real shell that drops from the top edge of the screen on one key, over any app.
 +
 +PLAN_1.1.md, B4; the design direction's section 1 (Calm's graft: "a real terminal drops from the top edge on one key; whatever is
@@ -439,8 +440,9 @@ index 0000000..5d2eb19
 +KEYS_WORDS = 'Win+` or Ctrl+Alt+T'
 +IN_WINDOW_KEYS = ('Ctrl+Alt+T', 'Ctrl+Alt+`')      # in Graphite's window (Fluxbox takes Win+` and Ctrl+Alt+T before any app)
 +HISTORY_MOST = 200
-+WELCOME = ('Terminal · your configured shell, in your Files folder. DOS words work too (dir, cls, copy, del, ipconfig…): the '
-+           'Debian command is shown above what it prints. Esc clears the line; %s or exit puts this away.' % KEYS_WORDS)
++WELCOME = ('Terminal · your configured shell, in your Files folder.',
++           'DOS words work too (dir, cls, copy, del, ipconfig…): the Debian command is shown above what it prints.',
++           'Esc clears the line; %s, or exit, puts this away.' % KEYS_WORDS)
 +
 +
 +def band(x, y, width, height, share=SHARE):
@@ -698,7 +700,7 @@ index 0000000..5d2eb19
 +        self.graphite_before = bool(before and before == host_id) or (not before and self._graphite_active())
 +        o, c = self.rects();self.opened = True;self.anim.stop();self.setFixedSize(o.size())
 +        if not self.welcomed:
-+            self.welcomed = True;self.say('<span style="opacity:0.85;">%s</span>' % cq.escape(WELCOME))
++            self.welcomed = True;self.say('<span style="opacity:0.85;">%s</span>' % '<br>'.join(cq.escape(line) for line in WELCOME))
 +        self.read_words()
 +        if not self.marked:
 +            try:
