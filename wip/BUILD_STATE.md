@@ -83,7 +83,7 @@ rules holding you back".
   repository (C0 adds xterm as a Depends: tools/build_repo.sh as in `$S/work/r111/build.sh`), version 1.1.2, short notes,
   cut, release check, send the whole kit. If the limit stops them, their saves are in `$S/work/b110/` and partial/b110/.
 - **The owner, after 1.1.3: "But both the orange and green working together with grey (like screen burns)".** N1's
-  builder (agent ade8117f2400fc7e8) resumed for Night: Duo (green the computer, amber Kas and your word, grey the past
+  builder could not be resumed (its worktree was cleaned), so a new builder (agent a1084a528dc49fde4) builds Night: Duo (green the computer, amber Kas and your word, grey the past
   and the burn-in), the new default; saves N1duo.patch. When it lands: merge (merge_one.sh with KEY N1duo), version
   1.1.4, short notes, cut_pre.sh, release check, send. If the limit stops it first: next week.
 - **GRAPHITE 1.1.3 RELEASED (08:38 UTC): Night as a phosphor monitor (N1, 456c188, with CRT effects) and a quieter bar
