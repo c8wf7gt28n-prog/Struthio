@@ -110,6 +110,12 @@ rules holding you back".
     to strike, for the pre2 notes: Graphite opens maximised above the bar, not full screen. Its not_done: icon-only
     window buttons at 1366, the drives and notifications tray slots, Pin. **B2 launched 03:04** (agent
     a05778e29f715262d) into B1's Start and line slots.
+  * **E1 merged (36501bb, 03:10):** the Explorer; one real conflict in test_delete_words resolved by hand (E1's
+    numbers: the Recycle Bin is wider). Frames sent. E1's notes for the coordinator: the centre now opens on the
+    Explorer and the tree's first row is Quick access, so tier tests that assume otherwise need the new truth (T2).
+    **K0 launched 03:11** (agent af4ff2b1d5e893a73; its brief carries a full scope: the head's six menus with an old ->
+    new table, the details pane, tokens 1.1, "Command..." if time). Running: KV, B2, K0. Next: B3 after KV; then T2
+    (the rest of the tiers, with B1/E1/K0's new truths); then cut preview 2.
   * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
