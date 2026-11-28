@@ -159,7 +159,10 @@ rules holding you back".
     Frames sent. **Open, important for a full Linux box:** the drop-down Terminal (like 1.0's) is not a real terminal
     device, so vim, top and sudo's password prompt do not work in it: a real PTY terminal is a slice for preview 4
     (C-series). Also open: Command... on Start's tiles, the board's tiles and the tree; docs. Running: T2, KS2.
-    Next: KS3 (the system door) in the free slot.
+    **KS3 launched 04:30** (agent ae5e42fdc7d044a11: the system door through PackageKit, systemd, timedated, hostnamed
+    and accountsservice, asking through polkit; a polkit agent in the session). **Its new packages (none of polkit or
+    PackageKit is in the 1.0 System set) mean the kit's repository must be rebuilt with tools/build_repo.sh before
+    preview 3 is cut** (chroot, deb.debian.org; disk under 80 %). Running: T2, KS2, KS3.
   * **Preview 2 building (done):** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
