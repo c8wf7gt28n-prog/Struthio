@@ -58,7 +58,7 @@ def panel_size(mode, screen=None):
 
 
 def font(px, weight=None, caps=False):
-    f = QFont(tokens.FONT['ui']);f.setPixelSize(px)
+    f = QFont(tokens.face());f.setPixelSize(px)      # 1.1 N1: fixed-width in Night
     if weight is not None:f.setWeight(weight)
     if caps:f.setCapitalization(QFont.AllUppercase);f.setLetterSpacing(QFont.AbsoluteSpacing, 0.4)
     return f

@@ -51,6 +51,9 @@ from .boss_theme import LAUNCH as _LAUNCH
 if _LAUNCH:      # 1.0 P4: Day and Night: the selected row an inset rounded fill at accent 12 %, its words in the accent (style only)
     from .design_tokens import RADIUS as _RADIUS
     ROW, SELECTED = ('padding:0 4px;border:0;border-radius:%dpx;' % _RADIUS['row'], 'background:%s;color:%s;border:0;border-radius:%dpx;' % (AMBER_SOFT, AMBER_TEXT, _RADIUS['row']))
+from .boss_theme import PHOSPHOR as _PHOSPHOR, BAR as _BAR, ON_BAR as _ON_BAR      # 1.1 N1
+if _PHOSPHOR:      # 1.1 N1: Night: the selected row is inverse video (a block of the phosphor, its words in the ground)
+    SELECTED = 'background:%s;color:%s;border:0;border-radius:%dpx;' % (_BAR, _ON_BAR, _RADIUS['row'])
 TREE_STYLE = ('QTreeWidget {border:0;background:transparent;color:%s;show-decoration-selected:0;} QTreeWidget::item {%s} '
               'QTreeWidget::item:selected {%s} QTreeWidget::branch, QTreeWidget::branch:selected {background:transparent;border:0;image:none;}'
               % (TEXT, ROW, SELECTED))

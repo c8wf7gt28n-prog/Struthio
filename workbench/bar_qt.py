@@ -112,7 +112,7 @@ def ink():
 
 
 def bar_font(h, weight=None, px=None):
-    font = QFont(tokens.FONT['ui']);font.setPixelSize(px or text_px(h))
+    font = QFont(tokens.face());font.setPixelSize(px or text_px(h))      # 1.1 N1: fixed-width in Night
     if weight is not None:font.setWeight(weight)
     return font
 
@@ -252,12 +252,22 @@ class LineField(BarButton):
 
 
 # ---- the windows ----------------------------------------------------------------------------------------------------------------
+def inverse(c):
+    """1.1 N1: whether the look draws what is active as inverse video (Night: the words in the ground on the phosphor)."""
+    return c['on_active'] != c['text']
+
+
+def words_ink(c, active, down, otherwise):
+    """1.1 N1: the words on a window's button: the ground's on its inverse plate (the active window in Night), else `otherwise`."""
+    return c['on_active'] if inverse(c) and active else otherwise
+
+
 def entry_face(p, w, h, c, active, minimised, hover, down):
     """One window's button: a plate when active (the shape that says so), an underline when running, its title."""
     r = QRectF(2, 4, w - 4, h - 8)
-    if active:plate(p, r, c['selection_side'])
-    if down:plate(p, r, c['pressed'])
-    elif hover:plate(p, r, c['raised'] if active else c['hover_side'])
+    if active:plate(p, r, c['active_plate'])      # 1.1 N1: inverse video in Night (the selection's tint in Day)
+    if down and not (active and inverse(c)):plate(p, r, c['pressed'])      # 1.1 N1: an active entry stays inverse
+    elif hover and not (active and inverse(c)):plate(p, r, c['raised'] if active else c['hover_side'])      # 1.1 N1
     if not active:      # running: the short rule under it
         p.fillRect(QRectF(w * 0.3, h - 5, w * 0.4, 2), QColor(c['tertiary'] if minimised else c['secondary']))
     else:
@@ -290,7 +300,7 @@ class GraphiteButton(BarButton):
         px = round(h * 0.45);x = round(h * 0.25)
         mark_icon(px).paint(p, QRect(x, (h - px) // 2, px, px));x += px + 8
         font = bar_font(h, QFont.DemiBold if self.active else QFont.Medium);p.setFont(font)
-        p.setPen(QColor(c['text'] if self.active or self.underMouse() else c['secondary']))
+        p.setPen(QColor(words_ink(c, self.active, self.isDown(), c['text'] if self.active or self.underMouse() else c['secondary'])))      # 1.1 N1
         p.drawText(QRect(x, 0, w - x, h - 2), Qt.AlignLeft | Qt.AlignVCenter, 'Graphite')
         key = self.her_state()
         words = 'Graphite%s\nPress to bring Graphite\'s window forward.' % (' (active)' if self.active else '')
@@ -332,6 +342,7 @@ class BarEntry(Entry):
         drawn = self.dressed(fm.elidedText(self.text(), Qt.ElideRight, max(4, room - frame)))
         self.shown = lead + drawn
         tone = c['text'] if self.active or self.underMouse() else (c['tertiary'] if self.minimised else c['secondary'])
+        tone = words_ink(c, self.active, self.isDown(), tone)      # 1.1 N1
         p.setPen(QColor(tone));p.drawText(QRect(x, 0, room, h - 2), Qt.AlignLeft | Qt.AlignVCenter, drawn)
         p.end()
 

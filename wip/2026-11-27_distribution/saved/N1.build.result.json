@@ -1,0 +1,44 @@
+{
+  "item": "N1",
+  "status": "done",
+  "summary": "Night is now a monochrome phosphor monitor in Amber (#ffb000, the default) or Green (#33ff66) on a #0a0a08 ground. The design tokens were changed rather than individual widgets. Hierarchy comes only from the phosphor's brightness. Inverse video is used for the selected row (style sheet and Explorer tree), pressed and checked controls, menu rows, the active window on the bar, and HALT, both 1.0's button and the bar's. The chrome uses IBM Plex Mono, while QTextBrowser and QTextEdit prose stays in Inter. The xterm uses sixteen shades of the phosphor. View > Appearance offers Night: Amber, Night: Green and CRT effects (Off / Subtle, the default / Full). The CRT effects in crt_qt.py are: burn-in (READY., GRAPHITE, C:\\> _ and an old bar layout, laid with Lighten under the words); afterglow on line edits and the cursor (160 ms); a 400 ms warm-up line; scanlines (2 % / 3 %); a 6 % corner vignette in Full only; a blinking inverse block cursor; and a faint bloom on the head menu words in Full. Reduce motion stops the afterglow, the warm-up and the blink. Day and Kasandra are unchanged.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/N1.patch",
+  "files_changed": ["workbench/design_tokens.py", "workbench/night_phosphor.py (new)", "workbench/crt_qt.py (new)", "workbench/boss_theme.py", "workbench/boss_qt.py", "workbench/session.py", "workbench/launch_look.py", "workbench/bar_qt.py", "workbench/kas_panel_qt.py", "workbench/halt_qt.py", "workbench/pane_qt.py", "workbench/real_terminal_qt.py", "workbench/start_qt.py", "workbench/shell2.py", "tools/colour_vision.py", "tests_integrated/test_night_phosphor.py (new)"],
+  "tests": {
+    "added": "tests_integrated/test_night_phosphor.py (11 tests: both phosphors' every text pair >= 4.5:1; the setting switches; the look follows night-green / GRAPHITE_PHOSPHOR / GRAPHITE_CRT in a subprocess; one hue; inverse video; mono chrome and Day unchanged; xterm colours >= 4.5:1; session read and damaged values; each CRT effect off under Off and each moving one off under Reduce motion; scanline+vignette+burn-in keep 4.5:1; the Qt Screen and Persistence switch off)",
+    "ran": "test_night_phosphor, test_colour_vision, test_faces_find_light, test_frame_k0, under GRAPHITE_APPEARANCE=night-amber, night-green and day, on a throwaway copy",
+    "output_tail": "night-green: Ran 65 tests OK; night-amber: Ran 65 tests OK; day: Ran 65 tests OK"
+  },
+  "existing_tests_changed": [],
+  "decisions": [
+    "The phosphor is a separate session key ('phosphor': amber|green) and the look stays 'night', so the tiers, desk_acts and the tests keep one Night. A saved Night opens in Amber. GRAPHITE_APPEARANCE=night-green|night-amber and GRAPHITE_PHOSPHOR / GRAPHITE_CRT choose from the environment. 'crt' is a second session key (off|subtle|full).",
+    "The plan's 45 % brightness fails WCAG: 45 % amber measures 2.9:1 on the ground. The steps used are amber 100/86/78 % (10.8, 8.1 and 6.9:1 on the ground) and green 100/80/71 % (14.8, 9.6 and 7.5:1). Every pair is 5.2:1 or more, including on the heaviest tint.",
+    "On the bar's own buttons, pressed is a 16 % tint under phosphor words, not inverse video, so their custom-painted words stay readable. Inverse video is used for the window entries, HALT and every style-sheet control.",
+    "Painted 'chosen' fills (palette AMBER) stay a tint with phosphor words. Only rows, menus and controls are inverse video.",
+    "Pages (DESK_LIGHT white) and app icons keep their own colours because they are content.",
+    "The burn-in lies 3 % or 5 % of the phosphor above a panel's ground and uses Lighten, so it never covers a word.",
+    "The vignette is capped at 6 % and the Full scanlines at 3 %, so the faintest words stay at or above 4.5:1. Both values were measured in the tests.",
+    "Under Reduce motion, the burn-in, scanlines, vignette and block cursor stay, because they do not move. The cursor stops blinking.",
+    "The CRT level changes the screen's effects at once. The cursor and afterglow change at the next start."
+  ],
+  "findings_for_the_coordinator": [
+    "tools/colour_vision.REVIEWED['night'] depends on the phosphor in force: every pair for Amber (78) and same-brightness pairs for Green (48). Each pair is told apart by its SIGNS. test_colour_vision itself was not edited.",
+    "xvfb-run hangs inside the unshare wrapper (the USR1 readiness signal never arrives). The Qt xcb plugin also cannot load here because libxcb-cursor0 is missing. The terminal frame was therefore taken offscreen, where the drop-down shows its built-in fallback console in the phosphor rather than xterm. The xterm colours are covered by a test only.",
+    "B5 overlap in bar_qt is small: entry_face, words_ink/inverse and the face used by bar_font."
+  ],
+  "not_done": [
+    "No 1366x768 frames; only the 5 frames at 1920x1200 were taken.",
+    "The afterglow covers line edits and their cursor only, not all text in the window.",
+    "Bloom covers the head's menu words only.",
+    "Scanlines are not restricted to empty areas; they use their faintest setting instead.",
+    "Nothing ran on the owner's ThinkPad."
+  ],
+  "frames": [
+    "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/N1/frames/n1_1920x1200_night-amber_subtle_window.png",
+    "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/N1/frames/n1_1920x1200_night-amber_subtle_start.png",
+    "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/N1/frames/n1_1920x1200_night-green_subtle_window.png",
+    "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/N1/frames/n1_1920x1200_night-green_subtle_terminal.png",
+    "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/N1/frames/n1_1920x1200_night-green_full_window.png"
+  ],
+  "release_note": "Night is now a phosphor monitor: amber or green on black, like the old monitors but crisp. Brightness shows what matters, and what is selected becomes a solid block. Choose Night: Amber or Night: Green under View > Appearance. CRT effects (Off, Subtle, Full) add a faint burn-in, a warm-up, scanlines and a block cursor. Reduce motion stops what moves."
+}

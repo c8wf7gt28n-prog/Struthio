@@ -37,18 +37,70 @@ COLOUR = {
         recheck='#6a4bb5', violet_text='#5a3fa0',
         shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 96),
     ),
-    'night': dict(
-        window='#161618', surface='#1f1f22', sidebar='#1b1b1e', raised='#2a2a2e', pressed='#333338', terminal='#121214',
-        hairline=(255, 255, 255, 20), stroke=(255, 255, 255, 36), stroke_strong=(255, 255, 255, 92),
-        text='#f2f2f5', secondary='#a8a8af', tertiary='#a0a0a7', disabled='#6a6a70',
-        accent='#4c93ff', accent_text='#7fb2ff', accent_fill='#2563c9', on_accent='#ffffff',
-        live='#34c26a', live_text='#5fd68a', on_live='#0b0b0d',
-        waiting='#f0a63a', waiting_text='#f5b95e', on_waiting='#0b0b0d',
-        danger='#ff6b60', danger_text='#ff8a80', on_danger='#0b0b0d',
-        recheck='#b49cff', violet_text='#c4b2ff',
-        shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 140),
-    ),
 }
+
+# ------------------------------------------------------------------- 1.1 N1: Night is a phosphor monitor (Amber, Green)
+# The owner, 28 Nov 2026: night mode is "to look like old computers that only had orange and black / green and black
+# monitors....but updated to 2026 but still old school modern". Night is one phosphor on a warm near-black ground; hierarchy
+# is the brightness of that one phosphor, never another hue. The steps are shares (out of 255) of the phosphor laid over
+# the ground. The plan's "about 70 % and 45 %" measured 2.9:1 for 45 % amber on the ground, under 4.5:1, so the steps are
+# the lowest shares that keep 4.5:1 on every ground a word is laid on (the builder's measure, NIGHT_PAIRS):
+#   Amber #ffb000: words 255 (10.8:1 on the ground), secondary 220 (8.1:1), tertiary 200 (6.9:1); 5.2:1 or more on the
+#                  heaviest tint.   Green #33ff66: 255 (14.8:1), 205 (9.6:1), 180 (7.5:1); 5.3:1 or more on the heaviest tint.
+#   (A step a little above the lowest that passes, so the CRT effects' scanline and vignette, crt_qt, never take a word under.)
+# What is selected, the pressed button, the active window on the bar, HALT and anything destructive are inverse video: a
+# block of the phosphor with words in the ground. State colours become the phosphor; every state keeps its word and shape.
+PHOSPHORS = ('amber', 'green')
+PHOSPHOR_DEFAULT = 'amber'
+PHOSPHOR = [PHOSPHOR_DEFAULT]      # the phosphor in force: boss_theme sets it once, at its import, as it chooses the look
+IN_FORCE = ['day']                 # the look in force (boss_theme sets it too): face() reads it
+PHOSPHOR_WORDS = {'amber': 'Amber', 'green': 'Green'}
+NIGHT_GROUND = '#0a0a08'
+# phosphor: (full, secondary share, tertiary share, disabled share)
+PHOSPHOR_INK = {'amber': ('#ffb000', 220, 200, 130), 'green': ('#33ff66', 205, 180, 115)}
+
+
+def _phosphor_colours(name):
+    full, second, third, off = PHOSPHOR_INK[name];g = NIGHT_GROUND;r, gg, b = rgb(full)
+    lay = lambda share: over(full, g, share)
+    return dict(
+        window=g, surface=lay(12), sidebar=lay(8), raised=lay(22), pressed=lay(40), terminal='#080806',
+        hairline=(r, gg, b, 46), stroke=(r, gg, b, 80), stroke_strong=(r, gg, b, 150),
+        text=full, secondary=lay(second), tertiary=lay(third), disabled=lay(off),
+        accent=full, accent_text=full, accent_fill=full, on_accent=g,
+        live=full, live_text=full, on_live=g,
+        waiting=full, waiting_text=full, on_waiting=g,
+        danger=full, danger_text=full, on_danger=g,
+        recheck=lay(second), violet_text=lay(second),
+        shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 160),
+    )
+
+
+def phosphor(look=None):
+    """'amber' or 'green': the one a look name asks for ('night-green', 'night-amber'), else the one in force."""
+    look = str(look or '')
+    for name in PHOSPHORS:
+        if look == 'night-' + name:return name
+    return PHOSPHOR[0] if PHOSPHOR[0] in PHOSPHORS else PHOSPHOR_DEFAULT
+
+
+def set_phosphor(name):
+    PHOSPHOR[0] = name if name in PHOSPHORS else PHOSPHOR_DEFAULT
+    return PHOSPHOR[0]
+
+
+def is_phosphor(look=None):
+    """Whether a look (the one in force when None) is the phosphor Night."""
+    return look_of(IN_FORCE[0] if look is None else look) == 'night'
+
+
+def face(look=None, role='ui'):
+    """The chrome's face for a look (the one in force when None): Night's chrome is fixed-width (IBM Plex Mono)."""
+    return FONT['mono'] if is_phosphor(look) else FONT[role]
+
+
+def _key(look):
+    return 'night-' + phosphor(look) if look_of(look) == 'night' else 'day'
 
 # How much of a colour is laid over a ground for each tint, as a share of 255 (whole numbers: no floating point).
 TINT = dict(selection=31, live=26, waiting=26, danger=22, recheck=26, hover=13, ring_accent=23, ring_live=28, yours=15)
@@ -138,14 +190,17 @@ def rgba(colour, alpha=None):
     return 'rgba(%d, %d, %d, %d)' % (r, g, b, a if alpha is None else alpha)
 
 
+COLOUR.update(('night-' + _name, _phosphor_colours(_name)) for _name in PHOSPHORS)      # 1.1 N1
+
+
 def look_of(look):
-    return 'night' if look == 'night' else 'day'
+    return 'night' if str(look) in ('night', 'night-amber', 'night-green') else 'day'      # 1.1 N1: a phosphor's name is Night
 
 
 def colours(look):
     """Every colour of a look, the given ones and the ones made from them (tints, opaque hairlines), all '#rrggbb' except
     the ones with alpha (hairline_a, stroke_a, shadow, scrim)."""
-    c = dict(COLOUR[look_of(look)])
+    c = dict(COLOUR[_key(look)])      # 1.1 N1: Night in its phosphor
     surface, window, sidebar = c['surface'], c['window'], c['sidebar']
     made = dict(
         hairline_a=c['hairline'], stroke_a=c['stroke'], stroke_strong_a=c['stroke_strong'],
@@ -161,6 +216,10 @@ def colours(look):
         focus_ring=rgba(c['accent'], CONTROL['focus_alpha']),
     )
     c.update(made, shadow_a=c['shadow'], scrim_a=c['scrim'])
+    # 1.1 N1: the active window on the bar, the selected row and the pressed button: a plate and its words. Inverse video
+    # (a block of the phosphor, the words in the ground) in Night; the selection's tint and the plain words in Day.
+    night = look_of(look) == 'night'
+    c.update(active_plate=c['accent_fill'] if night else c['selection_side'], on_active=c['on_accent'] if night else c['text'])
     return c
 
 
@@ -180,6 +239,10 @@ TEXT_PAIRS = (
        ('on_danger', 'danger', 'danger fill'), ('text', 'terminal', 'terminal'), ('secondary', 'terminal', 'terminal')]
 )
 DISABLED_PAIRS = [('disabled', g, 'inactive control') for g in _GROUNDS]
+# 1.1 N1: the phosphor Night's pairs: TEXT_PAIRS, and the ground's words on each inverse block (a selected row, a pressed or
+# checked control in the style sheet, the active window on the bar, HALT). Measured by tests_integrated/test_night_phosphor.py
+# for both phosphors. The bar's own buttons, pressed, lay a tint (pressed, 16 % of the phosphor) under their phosphor words.
+NIGHT_PAIRS = TEXT_PAIRS + [('on_accent', g, 'inverse video') for g in ('accent_fill', 'active_plate', 'danger', 'live', 'waiting')]
 
 
 # ------------------------------------------------------------------------------- the roles boss_theme draws with
@@ -198,7 +261,7 @@ def palette(look):
         OWNER=c['waiting'], ON_OWNER=c['on_waiting'], RECHECK=c['recheck'],
         BAND=band, ERASED=c['text'], ERASED_QUIET=c['secondary'], BAND_MARK=c['accent'], BAND_PENCIL=c['live'],
         DESK_LIGHT=c['surface'] if not night else '#ffffff', VEIL=c['window'],
-        DISPLAY=FONT['ui'], FACE=FONT['ui'], MONO=FONT['mono'],
+        DISPLAY=face(look), FACE=face(look), MONO=FONT['mono'],      # 1.1 N1: Night's chrome is fixed-width
         HONEY=c['waiting_text'], VIOLET=c['secondary'], VIOLET_DEEP=c['stroke'], VIOLET_PALE=c['text'], VIOLET_SOFT=c['yours'],
         ROYAL=c['live'], ROYAL_SOFT=c['live_tint'], ROYAL_INK=c['live_text'], ROYAL_TEXT=c['live_text'],
         RED=c['danger'], ON_RED=c['on_danger'],
@@ -241,7 +304,7 @@ def sheet(look):
     c = colours(look);night = look_of(look) == 'night'
     v = dict(c)
     v.update(R=RADIUS['control'], RM=RADIUS['menu'], RT=RADIUS['tile'], H=CONTROL['button'], F=CONTROL['field'], ROW=CONTROL['row'],
-             FONT=FONT['ui'], MONO=FONT['mono'], body=TYPE['body'][0], foot=TYPE['footnote'][0], cap=TYPE['caption'][0],
+             FONT=face(look), MONO=FONT['mono'], body=TYPE['body'][0], foot=TYPE['footnote'][0], cap=TYPE['caption'][0],      # 1.1 N1: face
              sel_words=c['on_accent'] if night else c['accent_text'], scroll=CONTROL['scroll'],
              thumb=rgba(c['text'], 64), thumb_hover=rgba(c['text'], 110),
              focus=rgba(c['accent'], CONTROL['focus_alpha']))
@@ -335,5 +398,21 @@ QLineEdit#SlateInput:focus, QPlainTextEdit#SlateInput:focus, QPlainTextEdit#Capt
 QFrame#BossChainTray {background:%(sidebar)s; border-top:1px solid %(hairline)s;}
 QTabWidget#ConsolePages::pane {background:%(window)s; border:0;}
 QFrame#GraphiteToast {border-radius:%(RT)dpx;}
-''' % v
+''' % v + (PHOSPHOR_SHEET % v if night else '')      # 1.1 N1
+
+
+# 1.1 N1: the phosphor Night's last word: inverse video for the selected row, the pressed and the checked button and the
+# menu's row; the chrome in the fixed-width face, long prose (a page, her answers) in Inter.
+PHOSPHOR_SHEET = '''
+QWidget {font-family:"%(MONO)s";}
+QTextBrowser, QTextEdit {font-family:"Inter";}
+QPushButton:pressed, QPushButton:checked, QToolButton:pressed, QToolButton:checked,
+QPushButton[arcButton="tool"]:pressed, QToolButton[arcButton="tool"]:pressed,
+QPushButton[arcButton="tool"]:checked, QToolButton[arcButton="tool"]:checked {background:%(accent_fill)s; color:%(on_accent)s; border:1px solid %(accent_fill)s;}
+QTreeView::item:selected, QListView::item:selected {background:%(accent_fill)s; color:%(on_accent)s;}
+QTreeView, QTreeWidget, QListView, QListWidget, QTableView, QTableWidget {selection-background-color:%(accent_fill)s; selection-color:%(on_accent)s;}
+QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateTimeEdit, QPlainTextEdit, QTextEdit, QTextBrowser {selection-background-color:%(accent_fill)s; selection-color:%(on_accent)s;}
+QToolButton#MoreMenus:pressed, QToolButton#HeadMenu:pressed {background:%(accent_fill)s; color:%(on_accent)s;}
+QProgressBar::chunk {background:%(accent)s;}
+'''
 

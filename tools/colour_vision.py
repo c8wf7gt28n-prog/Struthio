@@ -198,7 +198,23 @@ _HONEY_GREEN = (('ready', 'hers'), ('cue', 'hers'), ('hers', 'line'), ('hers', '
 _SHARED = _GREEN + _RED_GREEN + _AMBER_GREEN + _HONEY_GREEN + (('fails', 'stopped'), ('quiet', 'held'), ('waits', 'hers'), ('chosen', 'recheck'),
                                                                ('waits', 'fails'), ('waits', 'stopped'))
 REVIEWED['day'] = {pair: _told(pair) for pair in _SHARED + (('fails', 'hers'), ('stopped', 'hers'))}
-REVIEWED['night'] = {pair: _told(pair) for pair in _SHARED}
+# 1.1 N1: Night is a phosphor monitor: one hue for every meaning, its brightness the only step (design_tokens: the words, the
+# states and the edges at full; what is held, the quiet and a recheck a step under). So every pair at one brightness is close
+# in every sight (and to the CIEDE2000 measure Amber's two steps are close as well): each is told by its word or its shape,
+# which every look draws (SIGNS), and what is chosen is also inverse video, a block of the phosphor with its words in the ground.
+_BRIGHT = ('chosen', 'cue', 'fails', 'hers', 'line', 'ready', 'stopped', 'waits', 'wire', 'words');_DIM = ('held', 'quiet', 'recheck')
+NIGHT_CLOSE = {'amber': tuple(combinations(_BRIGHT + _DIM, 2)), 'green': tuple(combinations(_BRIGHT, 2)) + tuple(combinations(_DIM, 2))}
+
+
+def _night_reviewed():
+    from workbench import boss_theme, design_tokens      # the phosphor in force: Night's palette is made in it
+    del boss_theme
+    said = dict(SAID, words='plain words have no rule, no button and no mark')
+    return {pair: 'one phosphor for every meaning in this look, brightness its only step: ' + '; '.join(said[m] for m in pair)
+            for pair in NIGHT_CLOSE[design_tokens.phosphor()]}
+
+
+REVIEWED['night'] = _night_reviewed()      # 1.1 N1 (1.1 T1's Night, Day's dark twin, was _SHARED)
 
 
 def rgb(colour):

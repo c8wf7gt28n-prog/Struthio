@@ -38,6 +38,9 @@ import re
 # choice, reads the same list without importing the theme. Each of them has a palette here.
 from .presentation_preferences import APPEARANCES, APPEARANCE_DEFAULT, APPEARANCE_EARLIER, appearance as saved_appearance
 from . import design_tokens as _tokens      # 1.0 P4: Day and Night are made from the design tokens
+from . import night_phosphor as _phosphor      # 1.1 N1: Night's phosphor (Amber, Green) and its CRT effects, chosen once here
+_tokens.set_phosphor(_phosphor.chosen_phosphor())      # 1.1 N1: before Night's palette is made
+CRT = _phosphor.chosen_crt()      # 1.1 N1: off, subtle or full (crt_qt draws them in Night only)
 APPEARANCE_KEY = 'appearance'
 PALETTES = {
     'graphite': dict(
@@ -143,6 +146,7 @@ def chosen_appearance(environ=None, path=None):
     environ = os.environ if environ is None else environ
     wanted = str(environ.get('GRAPHITE_APPEARANCE', '')).strip().lower()
     if wanted in PALETTES:return wanted
+    if _phosphor.asked_night(environ):return 'night'      # 1.1 N1: night-amber, night-green
     try:
         if path is None:
             override = environ.get('ARC1_WORKBENCH_CONFIG_HOME')
@@ -168,6 +172,7 @@ def launch_move_due(environ=None, path=None):
     that cannot be read is left as 0.8.4 left it (Graphite)."""
     environ = os.environ if environ is None else environ
     if str(environ.get('GRAPHITE_APPEARANCE', '')).strip().lower() in PALETTES:return False
+    if _phosphor.asked_night(environ):return False      # 1.1 N1
     try:
         if path is None:
             override = environ.get('ARC1_WORKBENCH_CONFIG_HOME')
@@ -184,6 +189,8 @@ APPEARANCE = chosen_appearance()
 MOVED_TO_DAY = launch_move_due()      # 1.0 P4: 1.0's first start on a profile from before moves it to Day, once
 if MOVED_TO_DAY:APPEARANCE = 'day'
 LAUNCH = APPEARANCE in _tokens.LOOKS      # 1.0 P4: Day or Night, the launch look, drawn from the design tokens
+_tokens.IN_FORCE[0] = APPEARANCE      # 1.1 N1: design_tokens.face() reads the look in force
+PHOSPHOR = _tokens.phosphor() if APPEARANCE == 'night' else ''      # 1.1 N1: 'amber' or 'green' in Night, '' in any other look
 DAY_MARKS = _tokens.marks(APPEARANCE if LAUNCH else 'day')      # 1.0 P4: the launch look's marks (Night's own in Night)
 globals().update(PALETTES[APPEARANCE])
 # The roles, by meaning (0.8.0). In Graphite they are the colours they always were; in Kasandra they part:

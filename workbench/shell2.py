@@ -692,7 +692,7 @@ class TopBar(QWidget):
         if bt.DISPLAY != MONO:      # Kasandra: the menus across the head in her typewriter face, a little larger to read as well
             font = QFont(bt.DISPLAY);font.setPixelSize(max(15, round(18 * scale)))
         from . import design_tokens as _tokens      # 1.1 K0: the 32 px head's words: Inter in Day and Night, each look's own face
-        if bt.LAUNCH:font = QFont(_tokens.FONT['ui'])      # 1.1 K0
+        if bt.LAUNCH:font = QFont(_tokens.face())      # 1.1 K0; 1.1 N1: fixed-width in Night
         font.setPixelSize(_tokens.head_px(bt.APPEARANCE, scale))      # 1.1 K0
         for widget in [self.path, self.more_menus, self.programs, self.nice] + list(getattr(self, 'bar_menus', [])):
             widget.setFont(font)

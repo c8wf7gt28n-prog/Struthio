@@ -108,6 +108,9 @@ class Session:
         if not isinstance(data, dict) or data.get('schema') != SCHEMA:
             return
         if saved_appearance(data.get('appearance')):self.state['appearance'] = data['appearance']     # the whole window's look (presentation_preferences.APPEARANCES): this computer's, not a project's
+        from .night_phosphor import CRT_KEY, PHOSPHOR_KEY, crt_value, phosphor_value      # 1.1 N1: Night's phosphor and CRT effects
+        if phosphor_value(data.get(PHOSPHOR_KEY)):self.state[PHOSPHOR_KEY] = data[PHOSPHOR_KEY]      # 1.1 N1
+        if crt_value(data.get(CRT_KEY)):self.state[CRT_KEY] = data[CRT_KEY]      # 1.1 N1
         from .presentation_preferences import LAUNCH_MARK, LAUNCH_MARKED      # 1.0 P4: 1.0's move to Day is made once per profile
         if data.get(LAUNCH_MARK) == LAUNCH_MARKED:self.state[LAUNCH_MARK] = LAUNCH_MARKED
         self.state['bin_word'] = data['bin_word'] if data.get('bin_word') in ('Recycle Bin', 'DELETE') else 'DELETE'      # 1.1 E1: a profile that has used 1.0 keeps DELETE

@@ -393,19 +393,69 @@ def appearance_menu(host):
 APPEARANCE_WORDS = {'graphite': 'Graphite: pencil, paper and amber, as it has always been',
                     'kasandra': 'Kasandra: indigo and a typewriter face for headings',      # 1.0 P4 no avatar: her art no longer follows the work
                     'day': 'Day: the launch look, light and calm; green for what is live, blue for the board\'s wires and what is selected',      # 1.0 P2, P4
-                    'night': 'Night: Day\'s dark twin, from the same design tokens'}      # 1.0 P4
+                    'night': 'Night: a phosphor monitor, one colour on black',      # 1.0 P4; 1.1 N1
+                    'night-amber': 'Night: Amber: an amber phosphor monitor; brightness says what matters, a block says what is selected',      # 1.1 N1
+                    'night-green': 'Night: Green: a green phosphor monitor; brightness says what matters, a block says what is selected'}      # 1.1 N1
 
 
 def looks_menu(host, parent=None):
     """1.0 P4: the Appearance menu (Arrange ▸ Appearance, and Rules ▸ Desk artwork ▸ Appearance): the whole window's look,
-    kept for the next start."""
+    kept for the next start. 1.1 N1: Night is offered in its two phosphors (Night: Amber, Night: Green), and CRT effects
+    (Off, Subtle, Full) follow them."""
+    from . import night_phosphor as np_      # 1.1 N1
     looks = QMenu('Appearance', parent or host);kinds = QActionGroup(looks);kinds.setExclusive(True);looked = {}
     for key, word in t.APPEARANCES:      # the whole window: Day, Night, Graphite or Kasandra
-        line = looks.addAction(word);line.setCheckable(True);kinds.addAction(line);looked[key] = line
-        line.setToolTip(APPEARANCE_WORDS[key]);line.setStatusTip(APPEARANCE_WORDS[key])
-        line.triggered.connect(lambda checked=False, key=key:choose_appearance(host, key))
-    looks.aboutToShow.connect(lambda:looked.get(chosen_look(host), looked['graphite']).setChecked(True))
+        for tone, said in (np_.PHOSPHORS if key == 'night' else ((None, word),)):      # 1.1 N1
+            slot = 'night-' + tone if tone else key
+            line = looks.addAction(said);line.setCheckable(True);kinds.addAction(line);looked[slot] = line
+            line.setToolTip(APPEARANCE_WORDS[slot]);line.setStatusTip(APPEARANCE_WORDS[slot])
+            line.triggered.connect(lambda checked=False, key=key, tone=tone:choose_appearance(host, key, phosphor=tone))
+    looks.addSeparator()      # 1.1 N1: CRT effects, for Night
+    crt = QMenu('CRT effects', looks);levels = QActionGroup(crt);levels.setExclusive(True);levelled = {}
+    for key, word in np_.CRT_LEVELS:
+        line = crt.addAction(word);line.setCheckable(True);levels.addAction(line);levelled[key] = line
+        line.setStatusTip('CRT effects in Night: %s (used from the next start; Reduce motion stills what moves)' % word)
+        line.triggered.connect(lambda checked=False, key=key:choose_crt(host, key))
+    looks.addMenu(crt)
+
+    def sync():
+        look = chosen_look(host)
+        if look == 'night':look = 'night-' + chosen_phosphor(host)
+        looked.get(look, looked['graphite']).setChecked(True)
+        levelled[chosen_crt(host)].setChecked(True)
+    looks.aboutToShow.connect(sync)
     return looks
+
+
+def chosen_phosphor(host):
+    """1.1 N1: the phosphor the session keeps for Night ('amber' or 'green')."""
+    from . import night_phosphor as np_
+    try:return np_.phosphor_value(host.session.state.get(np_.PHOSPHOR_KEY)) or t._tokens.phosphor()
+    except Exception:  # noqa: BLE001 - a host without a session: the one in force
+        return t._tokens.phosphor()
+
+
+def chosen_crt(host):
+    """1.1 N1: the CRT effects the session keeps ('off', 'subtle' or 'full')."""
+    from . import night_phosphor as np_
+    try:return np_.crt_value(host.session.state.get(np_.CRT_KEY)) or t.CRT
+    except Exception:  # noqa: BLE001
+        return t.CRT
+
+
+def choose_crt(host, key):
+    """1.1 N1: keep the CRT effects for the next start (the effects are made when the window is)."""
+    from . import night_phosphor as np_
+    if not np_.crt_value(key):return False
+    host.session.state[np_.CRT_KEY] = key;host.session.save()
+    word = dict(np_.CRT_LEVELS)[key]
+    try:
+        from . import crt_qt
+        crt_qt.set_level(host, key)      # the screen's effects at once; the lines' from the next start
+    except Exception:  # noqa: BLE001 - the effects are a grace: the choice is kept whatever they do
+        pass
+    host.statusBar().showMessage('CRT effects: %s, in Night.' % word, 7000)
+    return True
 
 
 def chosen_look(host):
@@ -416,20 +466,26 @@ def chosen_look(host):
     return value if value in dict(t.APPEARANCES) else 'graphite'
 
 
-def choose_appearance(host, key, ask=True):
+def choose_appearance(host, key, ask=True, phosphor=None):
     """Keep the appearance for the next start, and offer to start again now. The colours are read once, when Graphite
-    starts (every page is built in them), so a change cannot be put in force in a running window."""
+    starts (every page is built in them), so a change cannot be put in force in a running window. 1.1 N1: Night with its
+    phosphor ('amber' or 'green'; the one kept when None)."""
     if key not in dict(t.APPEARANCES):return False
-    host.session.state['appearance'] = key;host.session.save()
-    word = dict(t.APPEARANCES)[key]
-    if key == t.APPEARANCE:
+    from . import night_phosphor as np_      # 1.1 N1
+    tone = np_.phosphor_value(phosphor) if key == 'night' else None      # 1.1 N1
+    if phosphor is not None and key == 'night' and not tone:return False
+    host.session.state['appearance'] = key
+    if tone:host.session.state[np_.PHOSPHOR_KEY] = tone      # 1.1 N1
+    host.session.save()
+    word = dict(np_.PHOSPHORS)[tone] if tone else dict(t.APPEARANCES)[key]      # 1.1 N1: "Night: Amber"
+    if key == t.APPEARANCE and (not tone or tone == t.PHOSPHOR):      # 1.1 N1: the same phosphor too
         host.statusBar().showMessage(word + ' is the appearance in use.', 5000);return True
     if ask:
         from PySide6.QtWidgets import QMessageBox
         if QMessageBox.question(host, 'Appearance', word + ' is used from the next start. Start Graphite again now? '
                                 'It saves this window first.') == QMessageBox.Yes:
             from .shell2 import relaunch
-            relaunch(host, host.root, drop=('GRAPHITE_APPEARANCE',));return True
+            relaunch(host, host.root, drop=('GRAPHITE_APPEARANCE', 'GRAPHITE_PHOSPHOR'));return True      # 1.1 N1: the phosphor too
     host.statusBar().showMessage(word + ' is used from the next start.', 7000)
     return True
 

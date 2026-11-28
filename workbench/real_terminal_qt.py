@@ -84,7 +84,18 @@ def look():
     ground, words = cq.TERMINAL_GROUND, cq.AMBER_TEXT
     light = QColor(ground).lightness() >= 128
     px = max(12, cq.mono_font(14).pixelSize())
+    from . import boss_theme as _bt      # 1.1 N1: Night's xterm is the phosphor monitor: sixteen shades of the one phosphor
+    if getattr(_bt, 'PHOSPHOR', ''):return ground, words, phosphor_colours(), round(px * 0.75 * 2) / 2
     return ground, words, LIGHT if light else DARK, round(px * 0.75 * 2) / 2
+
+
+def phosphor_colours(look='night'):
+    """1.1 N1: xterm's sixteen colours in the phosphor Night: black, then the phosphor at its secondary brightness for the
+    eight dim colours and at full for the eight bright ones (one hue; ls and prompts keep their brightness, never a hue).
+    Every one but black is 4.5:1 or more on the terminal's ground (design_tokens' measure)."""
+    from . import design_tokens as tokens
+    c = tokens.colours(look)
+    return tuple([c['raised']] + [c['secondary']] * 6 + [c['text']] + [c['tertiary']] + [c['text']] * 7)
 
 
 def argv(window, shell, rc_path, size=(100, 24), extra=()):

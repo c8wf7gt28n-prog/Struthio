@@ -106,6 +106,10 @@ class HaltButton(QToolButton):
         elif self.hasFocus() or self.isDown():
             p.fillRect(self.rect(), QColor(t.AMBER_SOFT));p.fillRect(0, h - edge, w, edge, QColor(t.AMBER_EDGE))
         shape, ink = self.colours()
+        if getattr(t, 'PHOSPHOR', ''):      # 1.1 N1: Night: HALT is inverse video, a block of the phosphor with its sign and word in the ground
+            block = QRectF(1, 3, w - 2, h - 6);p.setPen(Qt.NoPen);p.setBrush(QColor(t.TEXT));p.drawRoundedRect(block, 3, 3)
+            if self.underMouse() or self.hasFocus() or self.isDown():p.fillRect(QRectF(4, h - 3 - edge * 2, w - 8, edge), QColor(t.GROUND))
+            shape = ink = t.GROUND
         side = self.side(h);x = self.pad();cy = h / 2.0
         path = QPainterPath()
         if self.held:      # ▶: go on

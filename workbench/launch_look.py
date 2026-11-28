@@ -32,6 +32,11 @@ def install(host):
     """Called once the window is built (shell2's install): the move, a moment after the window shows."""
     host.launch_card = None;host.launch_said = ''
     QTimer.singleShot(0, lambda: first_start(host))
+    try:      # 1.1 N1: the phosphor Night's CRT effects (crt_qt); nothing in any other look
+        from . import crt_qt
+        crt_qt.install(host)
+    except Exception:  # noqa: BLE001 - the effects are a grace, never a reason for the window not to stand
+        pass
     return host
 
 

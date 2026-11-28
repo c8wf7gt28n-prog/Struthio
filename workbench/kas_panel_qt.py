@@ -211,6 +211,8 @@ class HaltOnBar(halt_qt.HaltButton):
         c = bar_qt.ink();marks = tokens.marks(bar_qt.look());p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)
         w, h = self.width(), self.height();r = QRectF(2.5, 6.5, w - 5, h - 13)
         fill = c['pressed'] if self.isDown() else (c['hover_side'] if self.underMouse() else c['sidebar'])
+        inverse = bar_qt.inverse(c)      # 1.1 N1: Night: HALT is inverse video, a block of the phosphor with its sign and word in the ground
+        if inverse:fill = c['secondary'] if self.isDown() else c['accent_fill'];marks = dict(marks, HALT=c['on_accent'], HALT_HELD=c['on_accent'])
         p.setPen(QPen(QColor(c['stroke_strong'] if self.underMouse() else c['stroke']), 1));p.setBrush(QColor(fill))
         p.drawRoundedRect(r, tokens.RADIUS['control'], tokens.RADIUS['control'])
         side = round(h * 0.34);x = self.pad(h);cy = h / 2.0;path = QPainterPath()
@@ -219,7 +221,7 @@ class HaltOnBar(halt_qt.HaltButton):
         else:              # ▲: the stop sign, the live green (never red: it stops her, not the computer)
             path.moveTo(QPointF(x + side / 2, cy - side * 0.48));path.lineTo(QPointF(x + side, cy + side * 0.42));path.lineTo(QPointF(x, cy + side * 0.42))
         path.closeSubpath();p.setPen(Qt.NoPen);p.setBrush(QColor(marks['HALT_HELD'] if self.held else marks['HALT']));p.drawPath(path)
-        font = self.bar_font(h);p.setFont(font);p.setPen(QColor(c['text']))
+        font = self.bar_font(h);p.setFont(font);p.setPen(QColor(c['on_accent'] if inverse else c['text']))      # 1.1 N1
         tx = x + side + 6;p.drawText(QRectF(tx, 0, w - tx - 4, h), Qt.AlignLeft | Qt.AlignVCenter, self.text())
         if self.held:      # held: a short mark under the word (the shape, not only the colour)
             fm = QFontMetricsF(font);p.fillRect(QRectF(tx, cy + fm.ascent() / 2 + 3, fm.horizontalAdvance(self.text()), 2), QColor(marks['HALT_HELD']))
