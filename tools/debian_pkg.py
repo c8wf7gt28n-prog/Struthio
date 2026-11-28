@@ -304,7 +304,7 @@ def join(kit, out=None):
     """Unpack the ZIPs of KIT into KIT/repo, check every piece, join them, check every file. Returns problems."""
     kit = Path(kit); out = Path(out) if out else kit
     problems = []
-    for archive in sorted(kit.glob('KAS_*.zip')):
+    for archive in sorted([*kit.glob('KAS_*.zip'), *kit.glob('GRAPHITE_*.zip')]):      # 1.1 R1: a kit cut before the rename has GRAPHITE_ ZIPs
         with zipfile.ZipFile(archive) as z: z.extractall(out)
     repo = out / 'repo'
     whole = {}
