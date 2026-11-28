@@ -1,6 +1,6 @@
 diff --git a/tests_integrated/test_night_phosphor.py b/tests_integrated/test_night_phosphor.py
 new file mode 100644
-index 0000000..8b7de2a
+index 0000000..6ac4bee
 --- /dev/null
 +++ b/tests_integrated/test_night_phosphor.py
 @@ -0,0 +1,170 @@
@@ -151,7 +151,7 @@ index 0000000..8b7de2a
 +            for ink, ground, _ in dt.NIGHT_PAIRS:      # under the scanline and the vignette's very corner, both laid at once
 +                shade = full['scanlines'] + full['vignette']
 +                self.assertGreaterEqual(ratio(darker(c[ink], shade), darker(c[ground], shade)), 4.5, (tone, ink, ground))
-+            ghost = dt.over(c['text'], c['window'], crt_qt.BURN['full'])      # the burn-in lifts only what is darker than it
++            ghost = dt.over(c['text'], c['surface'], crt_qt.BURN['full'])      # the burn-in lifts only what is darker than it
 +            for ink in ('text', 'secondary', 'tertiary'):self.assertGreaterEqual(ratio(c[ink], ghost), 4.5, (tone, ink))
 +
 +    def test_the_screen_and_the_line_switch_off(self):
@@ -415,17 +415,17 @@ index f0e351f..fb5e452 100644
  # The roles, by meaning (0.8.0). In Graphite they are the colours they always were; in Kasandra they part:
 diff --git a/workbench/crt_qt.py b/workbench/crt_qt.py
 new file mode 100644
-index 0000000..08637a6
+index 0000000..82e73e4
 --- /dev/null
 +++ b/workbench/crt_qt.py
-@@ -0,0 +1,300 @@
+@@ -0,0 +1,301 @@
 +"""Graphite 1.1 N1 · the phosphor Night's CRT effects: "Screen burns and all the fun" (the owner, 28 Nov 2026).
 +
 +One setting, View ▸ Appearance ▸ CRT effects: Off, Subtle (the default) or Full (night_phosphor keeps it). Only in Night.
 +None of it costs a word its legibility, and Reduce motion stills everything that moves:
 +
 +  burn-in      a static ghost of old screens (a READY. prompt, the Graphite mark, an old bar's layout) burnt into the
-+               ground of the window and of the bar, 3 % (Subtle) or 5 % (Full) of the phosphor. It is laid with the
++               ground of the window and of the bar, 3 % (Subtle) or 5 % (Full) of the phosphor over a panel's ground. It is laid with the
 +               Lighten mode, so it only lifts what is darker than it: it lies under every word and picture, never on them.
 +  afterglow    a line edit's glyphs and its cursor fade out over AFTERGLOW_MS when they change or move (persistence),
 +               laid with Lighten, so only where nothing is now lit. It moves, so Reduce motion stills it.
@@ -498,7 +498,7 @@ index 0000000..08637a6
 +        self.setObjectName('CrtScreen');self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 +        self.setAttribute(Qt.WA_NoSystemBackground, True);self.setAttribute(Qt.WA_TranslucentBackground, True)
 +        self.setFocusPolicy(Qt.NoFocus);self._burnt = None;self._vignette = None;self.warmth = 1.0;self.warming = None
-+        c = tokens.colours('night');self.phosphor = QColor(c['text']);self.ground = QColor(c['window'])
++        c = tokens.colours('night');self.phosphor = QColor(c['text']);self.ground = QColor(c['surface'])      # the ghost lies over a panel's ground
 +        window.installEventFilter(self);self.setGeometry(window.rect());self.raise_()
 +        self.setVisible(self.drawn())
 +
@@ -697,7 +697,8 @@ index 0000000..08637a6
 +
 +def bloom(host):
 +    """Full: a faint phosphor halo on the head's menu words (no blur on the words: a halo laid under them)."""
-+    words = list(getattr(host, 'bar_menus', []) or [])
++    top = getattr(getattr(host, 'shell2', None), 'top', None)
++    words = list(getattr(top, 'bar_menus', []) or []) + list(getattr(host, 'bar_menus', []) or [])
 +    for widget in words:
 +        try:
 +            halo = QGraphicsDropShadowEffect(widget);halo.setOffset(0, 0);halo.setBlurRadius(10)
