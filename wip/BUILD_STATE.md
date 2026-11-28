@@ -78,6 +78,12 @@ rules holding you back".
     `bash wip/build_tools/merge_one.sh $S/work/b110 wip/2026-11-27_distribution/saved KEY AGENTID > log 2>&1; rc=$?`.
   * **Saving:** run the loop from a COPY so an edit of the script never breaks the running loop (it did at 04:00 on 28 Nov): `cp wip/build_tools/save_dist.sh $S/work/save_dist_running.sh; bash $S/work/save_dist_running.sh loop` every 5 minutes (it now carries the builders' patches, notes
     and results into `partial/b110/`); restart the loop whenever it ends; commit and push at every milestone.
+- **THE OWNER, 28 NOV ~07:16: "You have complete freedom. Just do a full release before I'm cut off for the week".**
+  So, now: **cut Graphite 1.1 from what is merged** (previews 1-3 and KS2), version '1.1', full release notes, the
+  whole kit (45 files) and the finished talk sent. KS3 (agent ae5e42fdc7d044a11), C0 (a814611a3d1e991ed) and KS4
+  (a6c1e37671ac7b5a4) were PAUSED at 07:16 to keep the weekly budget for the release; their saved patches are in
+  `$S/work/b110/` and `partial/b110/`. After 1.1 is sent, if budget remains: resume them (SendMessage), merge, and
+  cut 1.1.1 (with the repository rebuild KS3 and C0 need), then B5.
 - **OWED TO THE OWNER WHEN THE BUILD FINISHES (28 Nov 04:20):** "Can you give me a twenty minute talk about the program
   after you finish". Write it as `wip/<date>_TALK_graphite_1.1.md`, in the form of `wip/2026-11-27_TALK_graphite_1.0.md`
   (read aloud in about twenty minutes, times in the margin, honest about what was and was not tested), commit, push and
