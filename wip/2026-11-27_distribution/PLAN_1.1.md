@@ -140,14 +140,36 @@ plain register; frames of her column in Day at both sizes. Runs after T1 is merg
 
 ### Preview 2 — one bar (outline; briefs are written when pre1 is cut)
 
-**B1 · The bar.** One bar at the bottom of the screen above every app (replacing the dock and the foot): Start, the
-line, the open windows, Kas's chip with HALT, the tray (network, volume, battery), the clock. Named slots; later slices
-fill them. **B2 · Start and the line.** The Windows key opens Start (apps by kind, recent, power); the line finds and
+**B1 · The bar.** One bar along the bottom of the screen, above every app, in its own X window like 1.0's dock
+(`workbench/system_dock_qt.py`, `windows_strip_qt.py`, `windows_x11.py`): 44 px tall at 1920x1200, 40 at 1366x768,
+reserving its space (a `_NET_WM_STRUT_PARTIAL` at the bottom, so Fluxbox and apps keep clear of it; the 1.0 dock at the
+top goes). Named slots, left to right: **start** (a Start button; B2 fills it), **line** (a placeholder field; B2 fills
+it), **windows** (the open app windows and Graphite, the active one marked, one press brings it forward, a right-click
+minimises or asks it to close: 1.0's dock behaviour moved here), **kas** (a placeholder; B3 fills it), **tray**
+(network, volume, battery as glyph plus word, each opening a small flyout above it with the Machine page's own actions:
+`machine_real.py` and `net_meter.py` are read, never edited), **clock** (time and date; a press shows a month; W1 may have
+added a clock to the dock: move it here). New `workbench/bar_qt.py` with `register_slot(name, widget_factory)` so later
+slices fill slots without editing it; tokens from `design_tokens.py`. Inside Graphite's window nothing moves yet (the
+foot and the head stay until K0). The design: `$S/work/dist/design/proposal_familiar.md` sections 2 and 5 (also in
+`wip/2026-11-27_distribution/partial/design/`). *Acceptance:* under Xvfb with the stand-in window manager
+(`wip/2026-11-26_b100_saved/S3.xworld.py`), the bar stands at the bottom with its strut set, lists two xterms and
+Graphite, brings one forward, and the tray's three flyouts open; frames in Day and Night at both sizes; a test of
+`register_slot`. **B2 · Start and the line.** The Windows key opens Start (apps by kind, recent, power); the line finds and
 does everything (apps, files, settings, commands, sums, "Ask Kasandra"), and every row says what Enter will do.
 **B3 · Kas on the bar.** Her chip (state word and shape), her panel sliding from the right edge over any app, permission
-cards rising from her chip, HALT beside her name; her rules do not move. **E1 · Explorer.** Quick access first, the
-root one press down; a details view with columns and sort; List, Icons and Board as three views of one place;
-Properties; drives with letters and free space; "Recycle Bin" as the bin's word on new installs. **K0 · The frame.**
+cards rising from her chip, HALT beside her name; her rules do not move. **E1 · Explorer.** The Files tree and the centre become an Explorer, with the
+bulletin board as its third view. The navigation pane: **Quick access** first (Home, Desktop, Documents, Downloads,
+Pictures, Music), then **the Desk** (the drawers of records), then **This computer** (the root one press down, drives
+with letters and free space), then the bin. A folder opens in the centre in one of three views, switched on the
+centre bar: **List** (a details view: Name, Modified, Type, Size, Links, sortable by a press on the column, with
+multi-select as L6c built it), **Icons** (thumbnails for pictures), **Board** (1.0's bulletin board of the selected
+thing). An address field in the centre bar takes a typed path. "Recycle Bin" is the bin's word on new profiles; a
+profile that has used 1.0 keeps DELETE (a setting changes it). Builds on `computer_tree_qt.py`, `home_files_qt.py`,
+`files_qt.py`, `bulk_files_qt.py`, `trash_can_qt.py`, `centre_one_qt.py`; new `explorer_qt.py`; W1's Properties page
+and file clipboard are used, not rebuilt. Not `board_qt.py`'s drawing. The design:
+`proposal_familiar.md` section 4. *Acceptance:* the everyday Home opens on Quick access; Downloads in List view sorts by
+size and date; a picture folder in Icons view shows thumbnails; Board view of a sheet shows 1.0's board; a typed path
+opens; frames in Day at both sizes. **K0 · The frame.**
 The head's menus as File, Edit, View, Go, Tools, Help over the same actions; the details pane; tokens 1.1.
 
 ### Preview 3 — Kas reaches the box (outline)

@@ -78,13 +78,11 @@ rules holding you back".
     `bash wip/build_tools/merge_one.sh $S/work/b110 wip/2026-11-27_distribution/saved KEY AGENTID > log 2>&1; rc=$?`.
   * **Saving:** `bash wip/build_tools/save_dist.sh loop` every 5 minutes (it now carries the builders' patches, notes
     and results into `partial/b110/`); restart the loop whenever it ends; commit and push at every milestone.
-- **THE BUDGET (the owner's usage screen, 28 Nov about 02:30 UTC):** weekly limit, all models: **78 % used, resets
-  Wednesday** (2 Dec, late evening UTC); "at this pace you'll run out tomorrow morning". The 5-hour session: 27 % used.
-  So, decided by the coordinator and told to the owner: **finish preview 1 with what is already running (T1, W1), cut
-  it and send it; KV (her voice) only if the budget still allows, else it opens preview 2. Then STOP building and hold
-  the rest of the week's allowance for fixing what the owner's test of preview 1 finds, until the owner says go or the
-  Wednesday reset.** Keep the coordinator's own turns few and short (its context is large): no status chatter; the
-  wake-up now fires every 3 hours, not hourly.
+- **THE BUDGET:** weekly limit 78 % used at 02:30 UTC 28 Nov (resets Wednesday 2 Dec). The owner then switched this
+  session to Opus, turned Ultracode off and said **"Go as far as you can"** (28 Nov). So: no hold. Build preview after
+  preview until the limit stops the build; **cut and send each preview the moment its slices are merged**, and when a
+  limit stops the build, cut and send whatever is merged. Keep the coordinator's own turns few and short. The wake-up
+  fires every 3 hours.
 - **What the 27 Nov panels left** (the limit cut all three at about 22:45; not re-run): the packaging audit, whole
   (`partial/packaging/NOTES.md`: a trial .deb installed with apt in a Debian 13 chroot and Graphite ran on Debian's own
   PySide6); three design proposals (`partial/design/`); a tier run (`partial/tests/`, `$S/work/dist/tests/`: tier 0,
