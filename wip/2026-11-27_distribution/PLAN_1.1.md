@@ -209,6 +209,16 @@ quoting the page.
 
 ### Preview 4 and the candidate (outline)
 
+**B5 · A quieter bar.** The owner, 28 Nov: "We could move the tray to the upper left free space to free up space
+on the bottom bar. Unless you have better plans". The builder's answer: the head's upper left is inside Graphite's
+window and hides behind any app in front, so the machine's state stays on the bar, made small: network, sound and
+battery become one Quick Settings button (three glyphs, words in the tip, as Windows 11), one press opening one panel
+with all three sections and the meters (CPU, GPU, RAM, TXT, NET) as a fourth; the window buttons get the room. In
+Graphite's head, the menus start at the left edge (as a Windows app's), and Apps ⊕ leaves the head (Start does that
+job: one place). If the owner says "move it", the tray goes to the head's upper left instead. *Acceptance:* at 1366
+three app windows fit on the bar with Kas, HALT and the clock; one press opens network, sound, battery and the meters;
+nothing the tray or the meters did is lost.
+
 **C0 · A real terminal.** The drop-down Terminal (B4) and 1.0's Terminal are not terminal devices: vim, top, less
 and sudo's password prompt do not work in them. Give the drop-down a real terminal (a pseudo-terminal running the
 owner's shell) that keeps what B4 built: it drops from the top edge on Win+` and Ctrl+Alt+T, over any app, and leaves

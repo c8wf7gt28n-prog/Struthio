@@ -177,6 +177,9 @@ rules holding you back".
     in PLAN_1.1 §5). **KS2 merged (11ce3c9, 07:10):** the command tool (command_forms/tool/seal); 69 tests pass on a
     copy; frames sent. **KS4 launched 07:11** (grounding and "teach me"). Running: KS3, C0, KS4. Then wire KS2's root
     refusals to KS3's system_door.offer, rebuild the repository, cut preview 4.
+  * **The owner, 28 Nov ~07:20: "We could move the tray to the upper left free space to free up space on the bottom
+    bar. Unless you have better plans".** Answered with a better plan (the head hides behind apps): B5, a quieter bar
+    (PLAN_1.1 §5), launched in the next free slot, in preview 4. If the owner says "move it", do their version.
   * **Preview 2 building (done):** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
