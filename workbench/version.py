@@ -9,9 +9,10 @@ are unchanged.
   python3 -m workbench.version
 """
 NAME = 'Kas'      # 1.1 R1: the public name (the owner, 28 Nov: "kas only kas"); identifiers keep graphite
-VERSION = '1.1.5'
-SHORT = '1.1.5'
-LINEAGE = ('1.1.5: more screen burns and more burnt grey (1.0\'s dock, the old foot, a boxed menu, a VCR\'s 12:00, a function-key strip, a tape\'s LOAD, her old session).',
+VERSION = '1.1.6'
+SHORT = '1.1.6'
+LINEAGE = ('1.1.6: paper-white grey joins amber and green in Night Duo (the machine\'s labels: columns, dates, sizes, captions).',
+           '1.1.5: more screen burns and more burnt grey (1.0\'s dock, the old foot, a boxed menu, a VCR\'s 12:00, a function-key strip, a tape\'s LOAD, her old session).',
            '1.1.4: Kas, only Kas (the owner: "No more graphite"): every visible name is Kas, "computer" where the desktop is meant apart from her; packages and commands kas-*; and Night Duo, the new default Night: green the computer, amber Kas and the owner\'s word, grey the burn, her panel a second amber tube.',
            '1.1.3: Night as a phosphor monitor (Amber or Green on near-black, brightness the only hierarchy, inverse video, IBM Plex Mono for the chrome) with CRT effects (burn-in, afterglow, a warm-up line, scanlines, a vignette, a block cursor; Off, Subtle, Full); a quieter bar (one Quick Settings button with the meters; the menus at the left edge).',
            '1.1.2: a real terminal: the drop-down Terminal is xterm embedded, running the owner\'s shell (vim, top, less and sudo\'s prompt work), DOS words kept through a Graphite rc that reads ~/.bashrc first and never edits it.',

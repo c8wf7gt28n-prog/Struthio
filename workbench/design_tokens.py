@@ -87,16 +87,16 @@ def _phosphor_colours(name):
 # is a second tube with a ground a shade warmer (kas_ground, amber 6 %). Measured by tests_integrated/test_night_phosphor.py:
 #   green words 14.8:1 on the ground, secondary 9.6:1; amber 10.8:1, her quiet 8.1:1; grey tertiary 7.6:1; 5 : 1 or more
 #   on every tint and under Full's scanline and vignette.
-DUO_INK = dict(computer='#33ff66', kas='#ffb000', past='#a3a39b')
+DUO_INK = dict(computer='#33ff66', kas='#ffb000', past='#a3a39b', paper='#c9d1d3')      # paper: the white-phosphor monitors' cool grey-white (the owner, after 1.1.5: "possibly greys in addition to orange and green")
 
 
 def _duo_colours():
-    g, green, amber, grey = NIGHT_GROUND, DUO_INK['computer'], DUO_INK['kas'], DUO_INK['past']
+    g, green, amber, grey, paper = NIGHT_GROUND, DUO_INK['computer'], DUO_INK['kas'], DUO_INK['past'], DUO_INK['paper']
     lay = lambda colour, share: over(colour, g, share);r, gg, b = rgb(grey)
     return dict(
         window=g, surface=lay(grey, 12), sidebar=lay(grey, 8), raised=lay(grey, 22), pressed=lay(amber, 40), terminal='#080806',
         hairline=(r, gg, b, 46), stroke=(r, gg, b, 80), stroke_strong=(r, gg, b, 150),
-        text=green, secondary=lay(green, 205), tertiary=grey, disabled=lay(grey, 150),
+        text=green, secondary=paper, tertiary=grey, disabled=lay(grey, 150),      # Kas 1.1.6: the machine's own labels in paper-white grey
         accent=amber, accent_text=amber, accent_fill=amber, on_accent=g,
         live=green, live_text=green, on_live=g,
         waiting=amber, waiting_text=amber, on_waiting=g,

@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "package_profile": "runtime",
-  "note": "Kas 1.1.5: more screen burns and more burnt grey in Night. Still in it: Kas, only Kas, and Night Duo (1.1.4), the phosphor Night and the quieter bar (1.1.3), the real terminal (1.1.2), the system door (1.1.1) and Kas 1.1. Minimal tests, by the owner's rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.5.md.",
+  "note": "Kas 1.1.6: paper-white grey joins amber and green in Night Duo. Still in it: more screen burns (1.1.5), Kas, only Kas, and Night Duo (1.1.4), the phosphor Night and the quieter bar (1.1.3), the real terminal (1.1.2), the system door (1.1.1) and Kas 1.1. Minimal tests, by the owner's rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.6.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -1315,7 +1315,7 @@
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
       "bytes": 341381,
-      "sha256": "1d6d7d855a0acbdafbf17c9223cc61a23f89aa2987208f3a1b2ad52297be5954"
+      "sha256": "cb8905ed8857e4c60338bbd05b5b7094caf8532a527be68180a7c27e745defc4"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -1772,6 +1772,10 @@
     "docs/RELEASE_NOTES_1.1.5.md": {
       "bytes": 1477,
       "sha256": "a4cdecb24fad8ae7df49e9854dd2ff24c537f12327c63302737e962c593ca69c"
+    },
+    "docs/RELEASE_NOTES_1.1.6.md": {
+      "bytes": 1239,
+      "sha256": "b5723b86ba4623fefbfc7e979a3cf765ca9c123898fe98b4776700fedb178bb3"
     },
     "docs/RELEASE_NOTES_1.1.md": {
       "bytes": 11084,
@@ -3630,8 +3634,8 @@
       "sha256": "3a16f4fdf0371ad32bf94c170415b2ba87fafd17ab9523c0a63282c3b0677130"
     },
     "tools/package_graphite.py": {
-      "bytes": 10919,
-      "sha256": "afd328b5b17d3f061c6e3ff9568d231a7c2ba30f16d77250bf44fdc07af2ab64"
+      "bytes": 10951,
+      "sha256": "e1dfb0d0d00750063b9d2eed84313967a533b8f2805f9793b83e8d5667c8e0ec"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -4234,8 +4238,8 @@
       "sha256": "b4e4d102ba9cd32d05547ee6231ede2c3efd8631cab99e17f53083f80a631f25"
     },
     "workbench/design_tokens.py": {
-      "bytes": 33044,
-      "sha256": "6fe6ee19c45ecb2da2e55cdc635ed16de4e2b62c430cc7b27d698196707b2d16"
+      "bytes": 33273,
+      "sha256": "a82edc6498ed02ecaa05806db31d8640cd9cf1bb2039de4dcfb7bc45874175fb"
     },
     "workbench/desk_acts.py": {
       "bytes": 31595,
@@ -6490,8 +6494,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 23250,
-      "sha256": "1dc67587c1d61fc17ea7cae0f82b97bd4076275cfe3ad8a2d5b62dc08f1e7f67"
+      "bytes": 23381,
+      "sha256": "5855bcedf763bc9b373176443a0ac182bea1209acefc991a205dc3ecba09c3f6"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -6666,5 +6670,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "1.1.5"
+  "graphite_release": "1.1.6"
 }
