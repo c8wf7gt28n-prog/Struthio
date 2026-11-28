@@ -163,6 +163,16 @@ rules holding you back".
     and accountsservice, asking through polkit; a polkit agent in the session). **Its new packages (none of polkit or
     PackageKit is in the 1.0 System set) mean the kit's repository must be rebuilt with tools/build_repo.sh before
     preview 3 is cut** (chroot, deb.debian.org; disk under 80 %). Running: T2, KS2, KS3.
+  * **28 Nov 05:xx to 07:00: the 5-hour limit** stopped KS2 and KS3 mid-build (their work saved); the worker restarted
+    several times. At 07:01 both were resumed by SendMessage and the save loop restarted. **T2 merged (ee72331)**; then
+    KS1's box_ops.py used the old bin word as a path (230c1db: home_trash.trash_dir()); 97 tests of the new parts pass.
+  * **PREVIEW 3 SENT (07:08 UTC):** 1.1~pre3 (c452f51): KS1, B4, T2. **Decision taken for the owner:** KS2 and KS3,
+    stopped by the limit, and KS4 move to preview 4, with the repository rebuild KS3's packages need (the owner's
+    "release what you can"). Release check PASSED; 17 files sent. Record `wip/2026-11-28_preview_3/`; base kit
+    `$S/work/pre3/kit/`. New reversal 10: no foot.
+  * **PREVIEW 4 (next):** KS2 (the command tool; agent a88c9be1a1b3a34f3, resumed), KS3 (the system door; agent
+    ae5e42fdc7d044a11, resumed), then KS4 (grounding), a real PTY terminal, wiring KS2's root refusals to KS3's
+    offers, C1-C3. **Before cutting it: rebuild the repository with tools/build_repo.sh** (KS3 adds packages).
   * **Preview 2 building (done):** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 

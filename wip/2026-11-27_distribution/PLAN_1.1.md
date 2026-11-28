@@ -67,6 +67,9 @@ printers, the Radeon and the 35B.
 | **pre4** | The Control Panel | C1, C2, C3 | software and updates, printers, Bluetooth, time, users, power; the Task Manager |
 | **1.1** | The candidate | Z1, Z2, Z3, Z4 | the live image, the security and licence reviews, old rooms cleared, the walk and the docs |
 
+*28 Nov 07:20: as built so far: pre1 = PK1, W1, T1; pre2 = B1, E1, KV, B2, K0, B3; pre3 = KS1, B4, T2 (KS2 and KS3 were
+stopped by a usage limit and moved); pre4 = KS2, KS3, KS4, a real terminal, C1-C3; 1.1 = Z1-Z4.*
+
 ## 5. The slices
 
 ### Preview 1 — installs like Debian software
