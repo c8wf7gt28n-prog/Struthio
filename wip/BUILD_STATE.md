@@ -174,7 +174,9 @@ rules holding you back".
     ae5e42fdc7d044a11, resumed), then KS4 (grounding), a real PTY terminal, wiring KS2's root refusals to KS3's
     offers, C1-C3. **Before cutting it: rebuild the repository with tools/build_repo.sh** (KS3 and C0 add packages).
     **C0 launched 07:08** (agent a814611a3d1e991ed: a real terminal in the drop-down, xterm -into preferred; a new slice
-    in PLAN_1.1 §5). Running: KS2, KS3, C0.
+    in PLAN_1.1 §5). **KS2 merged (11ce3c9, 07:10):** the command tool (command_forms/tool/seal); 69 tests pass on a
+    copy; frames sent. **KS4 launched 07:11** (grounding and "teach me"). Running: KS3, C0, KS4. Then wire KS2's root
+    refusals to KS3's system_door.offer, rebuild the repository, cut preview 4.
   * **Preview 2 building (done):** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
