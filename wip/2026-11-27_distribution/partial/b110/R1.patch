@@ -77,8 +77,43 @@ index eccb543..de70f11 100644
  a time. Exit 0 means every section passed: integrity, not readiness or acceptance. It starts no job, model, worker,
  provider request or native tool. The model check (the Brain room, or `MODEL_CHECK.sh`) and the acceptance evening on the
  owner's own display are separate.
+diff --git a/INSTALL_DEBIAN.sh b/INSTALL_DEBIAN.sh
+index e0757da..23fcc7e 100644
+--- a/INSTALL_DEBIAN.sh
++++ b/INSTALL_DEBIAN.sh
+@@ -77,7 +77,7 @@ if [[ "$network_capture" == 1 ]]; then
+   echo '  as the administrator, dpkg-reconfigure wireshark-common, and answer Yes: non-superusers may capture packets'
+   echo "  as the administrator, usermod -aG wireshark $login"
+   echo '  log out and in again, so the session carries the wireshark group'
+-  echo 'This installer does not run them, and Graphite never runs them and never changes the system’s permissions.'
++  echo 'This installer does not run them, and Kas never runs them and never changes the system’s permissions.'
+ fi
+ # network-capture steps: end
+ ledger_rc=0
+diff --git a/INSTALL_LEDGER.sh b/INSTALL_LEDGER.sh
+index 44525ee..533caa6 100644
+--- a/INSTALL_LEDGER.sh
++++ b/INSTALL_LEDGER.sh
+@@ -30,7 +30,7 @@ command -v "$ledger_python" >/dev/null || { echo 'Install Python 3.11-3.13 first
+ "$ledger_python" -c 'from pathlib import Path; from workbench.release_integrity import verify; r=verify(Path.cwd()); print("Package:", r["state"]); raise SystemExit(0 if r["state"]=="VERIFIED" else str(r["problems"][:5]))'
+ if [[ "$check_only" == 1 ]]; then exec "$ledger_python" -m workbench.doctor; fi
+ if [[ "$EUID" == 0 ]]; then
+-  echo 'Run the Graphite installer as your ordinary desktop user. Use INSTALL_DEBIAN.sh for sudo prerequisites.' >&2; exit 1
++  echo 'Run the Kas installer as your ordinary desktop user. Use INSTALL_DEBIAN.sh for sudo prerequisites.' >&2; exit 1
+ fi
+ if [[ -n "$wheelhouse" && ! -d "$wheelhouse" ]]; then echo 'The offline wheel folder does not exist.' >&2; exit 1; fi
+ if [[ ! -x .venv/bin/python ]]; then
+@@ -68,7 +68,7 @@ if ! .venv/bin/python -m workbench.project_desk_checks >"$ledger_desk_report"; t
+ fi
+ ledger_context_report=".venv/slate-context-$(date -u +%Y%m%dT%H%M%SZ)-$$.json"
+ if ! .venv/bin/python -m workbench.slate_checks >"$ledger_context_report"; then
+-  echo "Graphite context needs attention. Read $ledger_context_report" >&2; exit 2
++  echo "Kas context needs attention. Read $ledger_context_report" >&2; exit 2
+ fi
+ ledger_edit_report=".venv/changes-$(date -u +%Y%m%dT%H%M%SZ)-$$.json"
+ if ! .venv/bin/python -m workbench.edit_checks >"$ledger_edit_report"; then
 diff --git a/LS_XSESSION.sh b/LS_XSESSION.sh
-index def3ba1..c11d3d9 100755
+index def3ba1..cfb23e9 100755
 --- a/LS_XSESSION.sh
 +++ b/LS_XSESSION.sh
 @@ -75,7 +75,7 @@ ledger_fluxbox_rc=''  # 1.1 W1: Fluxbox's files for this session (the keys that
@@ -90,6 +125,74 @@ index def3ba1..c11d3d9 100755
    ledger_fluxbox_rc="$(python3 -B "$writer" --write-keys "$ledger_session_dir/fluxbox" 2>/dev/null)" || { ledger_fluxbox_rc=''; return 1; }
    ledger_log_line "the keys from any app: $ledger_session_dir/fluxbox/keys"
  }
+@@ -112,7 +112,7 @@ ledger_session_cleanup() {
+   fi
+   if [[ -n "$ledger_session_dir" ]]; then rm -f -- "$ledger_session_dir/next-start" 2>/dev/null || true; fi
+ }
+-ledger_signal() { # the session is being ended from outside (logind, the X server going, a signal): Graphite is asked to end
++ledger_signal() { # the session is being ended from outside (logind, the X server going, a signal): Kas is asked to end
+   ledger_ending="$1"
+   if [[ -n "$ledger_pause_pid" ]]; then kill "$ledger_pause_pid" 2>/dev/null || true; fi
+   if [[ -n "$ledger_graphite_pid" ]]; then kill -TERM "$ledger_graphite_pid" 2>/dev/null || true; fi
+@@ -121,14 +121,14 @@ trap ledger_session_cleanup EXIT
+ trap 'ledger_signal 130' INT
+ trap 'ledger_signal 143' TERM
+ trap 'ledger_signal 129' HUP
+-ledger_end_by_signal() { # Graphite had five seconds to end after the signal; then the session ends with the signal's status
++ledger_end_by_signal() { # Kas had five seconds to end after the signal; then the session ends with the signal's status
+   local waited=0
+   while [[ -n "$ledger_graphite_pid" ]] && kill -0 "$ledger_graphite_pid" 2>/dev/null && (( waited < 50 )); do sleep 0.1; waited=$(( waited + 1 )); done
+   ledger_log_line "the session was ended from outside (status $ledger_ending)"
+   ledger_session_record "$ledger_ending" "$ledger_restarts"
+   exit "$ledger_ending"
+ }
+-ledger_wait_graphite() { # waits for Graphite, starting Fluxbox again if it ends meanwhile; returns Graphite's status
++ledger_wait_graphite() { # waits for Kas, starting Fluxbox again if it ends meanwhile; returns Kas's status
+   local ended status
+   while :; do
+     if [[ -n "$ledger_ending" ]]; then return 0; fi
+@@ -151,7 +151,7 @@ ledger_wait_graphite() { # waits for Graphite, starting Fluxbox again if it ends
+   done
+ }
+ ledger_handed=()
+-ledger_read_hand_over() { # the hand-over request (NUL-separated +NAME=value and -NAME entries), only Graphite's own settings
++ledger_read_hand_over() { # the hand-over request (NUL-separated +NAME=value and -NAME entries), only Kas's own settings
+   local file="$ledger_session_dir/next-start" entry name
+   local -a sets=() unsets=()
+   [[ -n "$ledger_session_dir" && -f "$file" ]] || return 1
+@@ -182,27 +182,27 @@ while :; do
+   ledger_started=$SECONDS
+   env "${ledger_handed[@]}" bash "$ledger_program/START_OFFICE.sh" &
+   ledger_graphite_pid=$!
+-  ledger_log_line "Graphite started (process $ledger_graphite_pid)"
++  ledger_log_line "Kas started (process $ledger_graphite_pid)"
+   ledger_wait_graphite; ledger_status=$?
+   if [[ -n "$ledger_ending" ]]; then ledger_end_by_signal; fi
+   ledger_ran=$(( SECONDS - ledger_started ))
+-  ledger_log_line "Graphite ended with status $ledger_status after $ledger_ran s"
++  ledger_log_line "Kas ended with status $ledger_status after $ledger_ran s"
+   if ledger_read_hand_over && (( ledger_status == 0 )); then
+-    ledger_failures=0; ledger_log_line "Graphite asked to be started again with other settings"; continue
++    ledger_failures=0; ledger_log_line "Kas asked to be started again with other settings"; continue
+   fi
+   if (( ledger_status == 0 )); then break; fi
+   if (( ledger_ran >= ledger_stable )); then ledger_failures=0; fi
+   ledger_failures=$(( ledger_failures + 1 ))
+   if (( ledger_failures > ledger_limit )); then
+     ledger_details="$(ledger_error_log)" || ledger_details=''
+-    ledger_message="Graphite ended unexpectedly ${ledger_failures} times in a row (last status ${ledger_status}), so the session ended here at the text console instead of starting it again. Apps that were open closed with the session.${ledger_details:+ Details: ${ledger_details}.} To start again: bash ${ledger_program}/START_MINIMAL_DEBIAN.sh. To look for the cause first: bash ${ledger_program}/START_OFFICE.sh --doctor"
++    ledger_message="Kas ended unexpectedly ${ledger_failures} times in a row (last status ${ledger_status}), so the session ended here at the text console instead of starting it again. Apps that were open closed with the session.${ledger_details:+ Details: ${ledger_details}.} To start again: bash ${ledger_program}/START_MINIMAL_DEBIAN.sh. To look for the cause first: bash ${ledger_program}/START_OFFICE.sh --doctor"
+     ledger_log_line "giving up: $ledger_message"
+     echo "$ledger_message" >&2
+     break
+   fi
+   ledger_pause=$(( ledger_backoff << (ledger_failures - 1) )); if (( ledger_pause > 30 )); then ledger_pause=30; fi
+   ledger_restarts=$(( ledger_restarts + 1 ))
+-  ledger_log_line "starting Graphite again in $ledger_pause s ($ledger_failures of $ledger_limit in a row)"
++  ledger_log_line "starting Kas again in $ledger_pause s ($ledger_failures of $ledger_limit in a row)"
+   sleep "$ledger_pause" & ledger_pause_pid=$!
+   wait "$ledger_pause_pid" 2>/dev/null; ledger_pause_pid=''
+   if [[ -n "$ledger_ending" ]]; then ledger_end_by_signal; fi
 diff --git a/README.md b/README.md
 index 2312601..1aa3adc 100644
 --- a/README.md
@@ -179,6 +282,39 @@ index 2312601..1aa3adc 100644
 +Kas's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).
  Stacy's artwork, the other project art, the names and the game copy are kept back (RIGHTS.md). Licences of bundled fonts,
  runtimes and dependencies are in THIRD_PARTY_NOTICES.md; the pinned dependencies are the requirements-*.txt files.
+diff --git a/START_MINIMAL_DEBIAN.sh b/START_MINIMAL_DEBIAN.sh
+index 1f85a1b..8f33873 100755
+--- a/START_MINIMAL_DEBIAN.sh
++++ b/START_MINIMAL_DEBIAN.sh
+@@ -7,7 +7,7 @@
+ # LS_XSESSION.sh recorded (xinit itself returns 0 whatever Graphite did) and exits with it.
+ set -euo pipefail
+ ledger_program="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+-if [[ "${EUID}" == 0 ]]; then echo 'Start Graphite as your ordinary user, not root.' >&2; exit 1; fi
++if [[ "${EUID}" == 0 ]]; then echo 'Start Kas as your ordinary user, not root.' >&2; exit 1; fi
+ if [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then
+   export ARC_LEDGER_FULLSCREEN=1
+   exec bash "$ledger_program/START_OFFICE.sh" "$@"
+@@ -35,16 +35,16 @@ data=json.load(open(sys.argv[1]));status=data["status"]
+ assert type(status) is int and 0<=status<=255
+ log=data.get("log");print(status,("details: "+log) if isinstance(log,str) and log else "")
+ again=data.get("restarts");message=data.get("message")
+-if type(again) is int and again>0:print("Graphite was started again %d time%s during the session (each start and end is in session.log beside last-session.json)."%(again,"" if again==1 else "s"))
++if type(again) is int and again>0:print("Kas was started again %d time%s during the session (each start and end is in session.log beside last-session.json)."%(again,"" if again==1 else "s"))
+ if isinstance(message,str) and message:print(message)' "$ledger_record" 2>/dev/null)" || ledger_line=''
+ fi
+ if [[ -n "$ledger_line" ]]; then
+   ledger_first="${ledger_line%%$'\n'*}"; ledger_more=''
+   if [[ "$ledger_line" == *$'\n'* ]]; then ledger_more="${ledger_line#*$'\n'}"; fi
+   ledger_status="${ledger_first%% *}"; ledger_details="${ledger_first#* }"
+-  echo "Graphite ended with status ${ledger_status}${ledger_details:+ · $ledger_details}"
++  echo "Kas ended with status ${ledger_status}${ledger_details:+ · $ledger_details}"
+   if [[ -n "$ledger_more" ]]; then echo "$ledger_more"; fi
+   exit "$ledger_status"
+ fi
+-echo "Graphite session ended; status not recorded (startx returned $ledger_rc)." >&2
++echo "Kas session ended; status not recorded (startx returned $ledger_rc)." >&2
+ exit $(( ledger_rc == 0 ? 1 : ledger_rc ))
 diff --git a/branding/boss/night-signal.svg b/branding/boss/night-signal.svg
 index ac18284..36407e2 100644
 --- a/branding/boss/night-signal.svg
@@ -932,7 +1068,7 @@ index 6120a34..9d984f8 100644
    the name sweep 5 s and the release check's sections 4 s. Two at a time, the run takes half of that.
  
 diff --git a/docs/DAILY_GUIDE.md b/docs/DAILY_GUIDE.md
-index 8ff2fc5..bbf9a87 100644
+index 8ff2fc5..556140e 100644
 --- a/docs/DAILY_GUIDE.md
 +++ b/docs/DAILY_GUIDE.md
 @@ -1,34 +1,34 @@
@@ -993,7 +1129,7 @@ index 8ff2fc5..bbf9a87 100644
  The pointer is the desk's green, and whatever it is over answers in green; amber is what is selected and what waits for you.
  Above whatever is open in the centre there is one row of controls: **‹ Field**, Find, **−** **+**, Undo, Redo, Save; one that
  the open view cannot serve is dimmed and says why, and Save is lit only when there is something to save. In the Field **Z** shows the
-@@ -51,15 +51,15 @@ An action is a button, a dark plate with a quiet edge; a word that only goes som
+@@ -51,45 +51,45 @@ An action is a button, a dark plate with a quiet edge; a word that only goes som
  **More ▾ → Show the page in its own light** shows it as the file has it, and the choice is kept.
  **Find** (Ctrl+F) opens one line above the work and searches whatever is open: writing, the cells of a sheet, a list, the lines of a finding, the words of a PDF page; Enter goes to the next place, Shift+Enter to the one before, Esc closes it.
  With the whole desk in the window (**Z**), each sheet is the glyph of its kind, its name and the mark of its state, all large enough to read; the Field opens as you last saw it.
@@ -1008,7 +1144,7 @@ index 8ff2fc5..bbf9a87 100644
 +**Kas's hand.** Under her face, beneath what she speaks with (in the Indigo look, on her masthead, after it), two words say how far she acts by herself; click them (or **Tools ▸ Kas's hand**) to change it. **Ask first**: every change waits for your Approve. **Do and show**: a change you ask her for is made at once; she says what she did, and its card has **Undo**, which puts back exactly what it took and is refused if the thing was changed again since. **Free hand**: she also makes the changes the records mark for approval, and after a change she checks the desk and brings back to current what stood on it. On every place, what cannot be undone asks first (sending to another computer, removing what cannot be brought back, emptying the Recycle Bin, ending the session, a Terminal command that is not a plain read). **What she did…** in the same menu is her trail. Say "make a folder called Bracket", "write a file called Bracket/plan.txt saying cut the stock first", "start a page called Bench plan" or "make a note called Rail idea that says try a ferrite" and the thing is where your own would be; a folder or file she made has an Undo that deletes it (the Recycle Bin gives it back), and she never writes over a file that is there. Say "run df -h" and she runs a command that only reads; any other command she puts in the line for you.
 +**A start in Godot.** Say "start a Godot project called Lander" (or "get me started in Godot"). Kas makes the folder `Lander` in Files with `project.godot`, `main.tscn`, `main.gd` and `START_HERE.md` (the first five minutes in Godot), written for the Godot on this computer: Godot 3, which Debian installs as the package `godot3`, or Godot 4. She says what the Godot room reads it as; "Open it in Godot" waits for your Approve (with a free hand she opens it); the words on her card read the first steps, read the script, or open the Godot room, which inspects the project, opens it in Godot or plays a scene. Undo moves the folder to the Recycle Bin.
 +The line at the bottom is the one place you type. Five names stand at its left (**Kas · Terminal · Search · Web · Log**) and the lit one gets the words. Web opens an address, or searches for words, in this computer's own browser (Kas fetches nothing); with Kas or Search lit, a line that is only an address (https://…, www.…, localhost) is opened there too, and anything else stays with whom it was typed to: typing never changes the name that is lit. The arrow at the end says what it will do; when the line reads as a line it turns green and runs it.
-+**Two appearances (0.8.0).** **View ▸ Appearance** chooses **Pencil** (pencil, paper and amber) or **Indigo** (indigo; burnt yellow for what is selected or has the keyboard, the row you are on in a menu a solid burnt-yellow bar; cyan for what is ready and under the pointer; raspberry for what waits for your Approve, lavender with a dashed edge for a recheck). Apps at the head's right is the owner's Struthio in both looks (0.8.6; her neon kp logo was Apps in Kas before). The choice is this computer's and is used from the next start; choosing it offers to start again now. The assistant is Kas in both. In Kas headings are in a typewriter face, and her pictures follow the work: the quiet bench at rest, her hand by Enter while a change waits for you, notes while she answers or a job runs, the pencil down after an Approve, a loose cable after a refusal. The Office shows her office with the kasandra protocol wordmark. Clean shows no pictures in either.
++**Two appearances (0.8.0).** **View ▸ Appearance** chooses **Pencil** (pencil, paper and amber) or **Indigo** (indigo; burnt yellow for what is selected or has the keyboard, the row you are on in a menu a solid burnt-yellow bar; cyan for what is ready and under the pointer; raspberry for what waits for your Approve, lavender with a dashed edge for a recheck). Apps at the head's right is the owner's ostrich in both looks (0.8.6; her neon kp logo was Apps in Kas before). The choice is this computer's and is used from the next start; choosing it offers to start again now. The assistant is Kas in both. In Kas headings are in a typewriter face, and her pictures follow the work: the quiet bench at rest, her hand by Enter while a change waits for you, notes while she answers or a job runs, the pencil down after an Approve, a loose cable after a refusal. The Office shows her office with the kasandra protocol wordmark. Clean shows no pictures in either.
  
  **View ▸ Desk artwork ▸ Glow** sets how strongly the desk glows: Soft, Bright or Neon (what it opens with). Since 1.1 a menu prints each row's key beside its words (**View ▸ Show keys** turns them off; the keys work either way); the **?** key in the Field lists them. In the left tree the traces from the root to the row you are on are lit.
 -Every tool is one of Graphite's own glyphs with no box (a tool particular to a page keeps its words beside its glyph; a glyph alone says its name in its tip); **View ▸ Buttons ▸ Words** brings back worded plates.
@@ -1016,11 +1152,12 @@ index 8ff2fc5..bbf9a87 100644
  `docs/RELEASE_NOTES_0.8.3.md`, `docs/RELEASE_NOTES_0.8.2.md`, `docs/RELEASE_NOTES_0.8.1.md`, `docs/RELEASE_NOTES_0.8.0.md`, `docs/RELEASE_NOTES_0.7.0.md`, `docs/RELEASE_NOTES_0.6.1.md`, `docs/RELEASE_NOTES_0.6.0.md`, `docs/RELEASE_NOTES_0.5.3.md`, `docs/RELEASE_NOTES_0.5.2.md`, `docs/RELEASE_NOTES_0.5.1.md`, `docs/RELEASE_NOTES_0.5.0.md`, `docs/RELEASE_NOTES_0.4.9.md`, `docs/RELEASE_NOTES_0.4.8.md`, `docs/RELEASE_NOTES_0.4.7.md`, `docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
  
  ## The desk
-@@ -67,29 +67,29 @@ Every tool is one of Graphite's own glyphs with no box (a tool particular to a p
+ 
  The window is one symmetrical desk: two graphite bands, the head at the top and the writing line at the bottom, with warm paper between them, a pane at each side and your work in the centre. Both panes are one width (drag either edge and both follow; Settings → Workspace → Left column width sets both), and the desk is mirrored about the window's centre to the pixel. Lettering on the bands is pale, as if erased from the shading; words you can act on are eraser pink; the choice in use has a short yellow mark under it. Words you may skip (a caption, a note, an explanation) are in the script, and what you act on or read first stays in print. The desk's measures are in docs/GRAPHITE_DESK.md, and its "Where things went" says where each older control went.
  
- 1. **The head.** Over the left column, the equalizer: this computer at work in six groups (processor, kernel, memory, disks, network, graphics); click it for what each reads now, and which tubes are near their limit, in words. File · Edit · View · Go · Tools · Help start at the middle column's left edge. At the right, Apps: the owner's Struthio. (There is no System menu since 0.7.0: see The four meters, and leaving, below.)
+-1. **The head.** Over the left column, the equalizer: this computer at work in six groups (processor, kernel, memory, disks, network, graphics); click it for what each reads now, and which tubes are near their limit, in words. File · Edit · View · Go · Tools · Help start at the middle column's left edge. At the right, Apps: the owner's Struthio. (There is no System menu since 0.7.0: see The four meters, and leaving, below.)
 -2. **The left pane.** Three tabs, Machine · Cabinet · Settings, each a tree with connecting branch lines, and the Recycle Bin (DELETE on a profile from 1.0), larger, at the lower right (the bin keeps what you delete; restore puts it back). Machine is this computer (processor, memory, storage, connections, devices, installed tools); every row's tooltip says where and when its reading was taken, and the Machine row's carries the one-line machine summary. Cabinet is your work by project: ideas, documents, assignments, questions, working copies. Settings is the shared registry Graphite reads too, under Workspace and Assistant. Nothing else sits in the pane: Import and Export are in File, the cabinet's views and Refresh are under View and on the tree's right-click, and Search finds records and settings by their words.
++1. **The head.** Over the left column, the equalizer: this computer at work in six groups (processor, kernel, memory, disks, network, graphics); click it for what each reads now, and which tubes are near their limit, in words. File · Edit · View · Go · Tools · Help start at the middle column's left edge. At the right, Apps: the owner's ostrich. (There is no System menu since 0.7.0: see The four meters, and leaving, below.)
 +2. **The left pane.** Three tabs, Machine · Cabinet · Settings, each a tree with connecting branch lines, and the Recycle Bin (DELETE on a profile from 1.0), larger, at the lower right (the bin keeps what you delete; restore puts it back). Machine is this computer (processor, memory, storage, connections, devices, installed tools); every row's tooltip says where and when its reading was taken, and the Machine row's carries the one-line machine summary. Cabinet is your work by project: ideas, documents, assignments, questions, working copies. Settings is the shared registry Kas reads too, under Workspace and Assistant. Nothing else sits in the pane: Import and Export are in File, the cabinet's views and Refresh are under View and on the tree's right-click, and Search finds records and settings by their words.
  3. **The centre.** The real work. Documents, source files, calculations and workspaces open here. One Preview tab reuses itself; up to five pins stay; workspaces opened from a menu are rooms beside your Preview and never replace it. With nothing open the centre is the Finder (below).
 -4. **The right pane.** Kasandra. Her face, what she speaks with, and two words for her hand (how far she acts by herself; click them to change it). **This:** what is open or selected, with **more** for everything about it (Context). **Now:** what runs and what waits for you, with **activity** for the whole list. Then the conversation. While Context or Activity is up, a title at the top of the pane is the way back to her.
@@ -1799,6 +1936,166 @@ index 5fc0655..e9d58d0 100644
              for kind,menu in self.menus():
                  for screen in menu.screens():
                      screen.grab()
+diff --git a/tests_integrated/test_debian_packages.py b/tests_integrated/test_debian_packages.py
+index 8c62a85..19c43c9 100644
+--- a/tests_integrated/test_debian_packages.py
++++ b/tests_integrated/test_debian_packages.py
+@@ -1,4 +1,4 @@
+-"""1.1 PK1: Graphite as Debian packages: debian/, tools/debian_pkg.py and the kit's scripts, the doctor's accepted
++"""1.1 PK1: Kas as Debian packages (1.1 R1: kas-*, the graphite* names transitional): debian/, tools/debian_pkg.py and the kit's scripts, the doctor's accepted
+ versions and the payload check of a program split over packages. The chroot install itself is run by
+ tools/build_repo.sh and recorded in the slice's result; these are the fast checks of the same pieces."""
+ import json, os, shutil, subprocess, tempfile, unittest
+@@ -21,7 +21,7 @@ def fake_tree(base):
+     (base / 'workbench').mkdir(); (base / 'workbench/version.py').write_text("VERSION = '1.1-pre1'\n")
+     (base / 'branding/graphite').mkdir(parents=True); shutil.copy(ROOT / 'branding/graphite/graphite_icon_256.png', base / 'branding/graphite/')
+     files = {'LS_XSESSION.sh': b'#!/bin/bash\n', 'workbench/a.py': b'x = 1\n',
+-             'runtimes/llama.cpp/b12359/runtime.json': b'{}', **{name: b'archive' for name in pkg.PARTS['graphite-llama-runtime']}}
++             'runtimes/llama.cpp/b12359/runtime.json': b'{}', **{name: b'archive' for name in pkg.PARTS['kas-llama-runtime']}}
+     for name, data in files.items():
+         (base / name).parent.mkdir(parents=True, exist_ok=True); (base / name).write_bytes(data)
+     (base / 'MANIFEST.json').write_text(json.dumps({'version': '1.1', 'files': {
+@@ -39,14 +39,15 @@ class Version(unittest.TestCase):
+ 
+ 
+ class Control(unittest.TestCase):
+-    def test_four_binary_packages_and_their_architectures(self):
++    def test_four_kas_packages_four_transitional_and_their_architectures(self):      # 1.1 R1: kas-* and transitional graphite*
+         stanzas = pkg.parse_control((ROOT / 'debian/control').read_text())
+-        self.assertEqual(stanzas[0]['Source'], 'graphite')
++        self.assertEqual(stanzas[0]['Source'], 'kas-computer')
+         self.assertEqual({s['Package']: s['Architecture'] for s in stanzas[1:]},
+-                         {'graphite': 'all', 'graphite-llama-runtime': 'amd64', 'graphite-session': 'all', 'graphite-desktop': 'all'})
++                         {'kas-computer': 'all', 'kas-llama-runtime': 'amd64', 'kas-session': 'all', 'kas-desktop': 'all',
++                          'graphite': 'all', 'graphite-llama-runtime': 'all', 'graphite-session': 'all', 'graphite-desktop': 'all'})
+ 
+     def test_graphite_depends_on_debians_own_python_and_pyside6(self):
+-        text = pkg.binary_control('graphite', '1.0', 100)
++        text = pkg.binary_control('kas-computer', '1.0', 100)
+         depends = next(l for l in text.splitlines() if l.startswith('Depends:'))
+         for need in ('python3 (>= 3.11)', 'python3-pyside6.qtcore (>= 6.8.2)', 'python3-pyside6.qttest', 'procps',
+                      'python3-cryptography (>= 43)'):
+@@ -54,18 +55,18 @@ class Control(unittest.TestCase):
+         self.assertNotIn('\n ', text.split('Description:')[0], 'relations are folded onto one line')
+ 
+     def test_session_and_desktop_are_tied_to_the_same_version_and_firmware_is_only_recommended(self):
+-        session = pkg.binary_control('graphite-session', '1.1~pre1', 10)
+-        self.assertIn('graphite (= 1.1~pre1)', session); self.assertIn('fluxbox', session); self.assertIn('xinit', session)
+-        desktop = dict(line.split(': ', 1) for line in pkg.binary_control('graphite-desktop', '1.1~pre1', 10).splitlines() if ': ' in line and not line.startswith(' '))
+-        self.assertIn('graphite-session (= 1.1~pre1)', desktop['Depends'])
++        session = pkg.binary_control('kas-session', '1.1~pre1', 10)
++        self.assertIn('kas-computer (= 1.1~pre1)', session); self.assertIn('fluxbox', session); self.assertIn('xinit', session)
++        desktop = dict(line.split(': ', 1) for line in pkg.binary_control('kas-desktop', '1.1~pre1', 10).splitlines() if ': ' in line and not line.startswith(' '))
++        self.assertIn('kas-session (= 1.1~pre1)', desktop['Depends'])
+         self.assertNotIn('lightdm', desktop['Depends']); self.assertNotIn('firmware', desktop['Depends'])
+         self.assertIn('lightdm-gtk-greeter', desktop['Recommends']); self.assertIn('firmware-amd-graphics', desktop['Recommends'])
+ 
+     def test_login_entries(self):
+         xsession = (ROOT / 'debian/graphite-xsession.desktop').read_text()
+-        self.assertIn('Exec=graphite-session\n', xsession); self.assertIn('Type=Application', xsession)  # lintian: desktop-entry-unknown-type for XSession
++        self.assertIn('Exec=kas-session\n', xsession); self.assertIn('Type=Application', xsession)  # lintian: desktop-entry-unknown-type for XSession
+         self.assertIn('user-session=graphite', (ROOT / 'debian/50-graphite.conf').read_text())
+-        self.assertIn('Exec=graphite\n', (ROOT / 'debian/graphite.desktop').read_text())
++        self.assertIn('Exec=kas-computer\n', (ROOT / 'debian/graphite.desktop').read_text())
+ 
+ 
+ class Staging(unittest.TestCase):
+@@ -73,29 +74,31 @@ class Staging(unittest.TestCase):
+         names = pkg.payload(ROOT)
+         parts = pkg.split_payload(names)
+         self.assertEqual(sorted(n for files in parts.values() for n in files), sorted(names))
+-        self.assertEqual(sorted(parts['graphite-llama-runtime']), sorted(pkg.PARTS['graphite-llama-runtime']))
+-        self.assertIn('runtimes/llama.cpp/b12359/runtime.json', parts['graphite'])  # a seed input stays with the program
+-        self.assertIn('LS_XSESSION.sh', parts['graphite'])
++        self.assertEqual(sorted(parts['kas-llama-runtime']), sorted(pkg.PARTS['kas-llama-runtime']))
++        self.assertIn('runtimes/llama.cpp/b12359/runtime.json', parts['kas-computer'])  # a seed input stays with the program
++        self.assertIn('LS_XSESSION.sh', parts['kas-computer'])
+ 
+     def test_stage_each_package_on_a_small_tree(self):
+         with tempfile.TemporaryDirectory() as tmp:
+             tree = fake_tree(Path(tmp) / 'tree')
+-            pkg.stage('graphite', Path(tmp) / 'g', root=tree)
++            pkg.stage('kas-computer', Path(tmp) / 'g', root=tree)
+             g = Path(tmp) / 'g'
+             self.assertTrue((g / 'usr/lib/graphite/workbench/a.py').is_file())
+-            self.assertFalse((g / 'usr/lib/graphite' / pkg.PARTS['graphite-llama-runtime'][0]).exists())
++            self.assertFalse((g / 'usr/lib/graphite' / pkg.PARTS['kas-llama-runtime'][0]).exists())
+             self.assertEqual(oct((g / 'usr/lib/graphite/LS_XSESSION.sh').stat().st_mode & 0o777), '0o755')
+-            self.assertTrue(os.access(g / 'usr/bin/graphite', os.X_OK))
++            self.assertTrue(os.access(g / 'usr/bin/kas-computer', os.X_OK))
++            self.assertEqual(os.readlink(g / 'usr/bin/graphite'), 'kas-computer')      # 1.1 R1: the old name, a symlink
+             self.assertTrue((g / 'usr/share/applications/graphite.desktop').is_file())
+             parts = json.loads((g / 'usr/lib/graphite/PACKAGE_PARTS.json').read_text())
+-            self.assertEqual(parts['parts']['graphite-llama-runtime'], list(pkg.PARTS['graphite-llama-runtime']))
++            self.assertEqual(parts['parts']['kas-llama-runtime'], list(pkg.PARTS['kas-llama-runtime']))
+             self.assertIn('Version: 1.1~pre1\n', (g / 'DEBIAN/control').read_text())
+-            pkg.stage('graphite-llama-runtime', Path(tmp) / 'r', root=tree)
++            pkg.stage('kas-llama-runtime', Path(tmp) / 'r', root=tree)
+             self.assertIn('Architecture: amd64', (Path(tmp) / 'r/DEBIAN/control').read_text())
+-            pkg.stage('graphite-session', Path(tmp) / 's', root=tree)
++            pkg.stage('kas-session', Path(tmp) / 's', root=tree)
+             self.assertTrue((Path(tmp) / 's/usr/share/xsessions/graphite.desktop').is_file())
+-            self.assertTrue(os.access(Path(tmp) / 's/usr/bin/graphite-startx', os.X_OK))
+-            pkg.stage('graphite-desktop', Path(tmp) / 'd', root=tree)
++            self.assertTrue(os.access(Path(tmp) / 's/usr/bin/kas-startx', os.X_OK))
++            self.assertEqual(os.readlink(Path(tmp) / 's/usr/bin/graphite-startx'), 'kas-startx')
++            pkg.stage('kas-desktop', Path(tmp) / 'd', root=tree)
+             self.assertTrue((Path(tmp) / 'd/usr/share/lightdm/lightdm.conf.d/50-graphite.conf').is_file())
+ 
+ 
+@@ -104,13 +107,13 @@ class Repository(unittest.TestCase):
+     def test_index_writes_packages_and_release_with_matching_hashes(self):
+         with tempfile.TemporaryDirectory() as tmp:
+             tree = fake_tree(Path(tmp) / 'tree'); repo = Path(tmp) / 'repo'; repo.mkdir()
+-            pkg.stage('graphite-session', Path(tmp) / 's', root=tree)
+-            subprocess.run(['dpkg-deb', '--root-owner-group', '--build', str(Path(tmp) / 's'), str(repo / 'graphite-session_1.1~pre1_all.deb')],
++            pkg.stage('kas-session', Path(tmp) / 's', root=tree)
++            subprocess.run(['dpkg-deb', '--root-owner-group', '--build', str(Path(tmp) / 's'), str(repo / 'kas-session_1.1~pre1_all.deb')],
+                            check=True, capture_output=True)
+             self.assertEqual(pkg.index(repo), 1)
+             packages = (repo / 'Packages').read_text()
+-            self.assertIn('Package: graphite-session\n', packages); self.assertIn('Filename: ./graphite-session_1.1~pre1_all.deb', packages)
+-            self.assertIn('SHA256: ' + pkg.digest(repo / 'graphite-session_1.1~pre1_all.deb', 'sha256'), packages)
++            self.assertIn('Package: kas-session\n', packages); self.assertIn('Filename: ./kas-session_1.1~pre1_all.deb', packages)
++            self.assertIn('SHA256: ' + pkg.digest(repo / 'kas-session_1.1~pre1_all.deb', 'sha256'), packages)
+             release = (repo / 'Release').read_text()
+             self.assertIn(' %s %d Packages\n' % (pkg.digest(repo / 'Packages', 'sha256'), (repo / 'Packages').stat().st_size), release)
+ 
+@@ -153,13 +156,13 @@ class Kit(unittest.TestCase):
+ 
+     def test_scripts_parse_and_install_refuses_an_ordinary_user(self):
+         for script in ('tools/build_deb.sh', 'tools/build_repo.sh', 'tools/build_kit.sh', 'debian/kit/JOIN.sh',
+-                       'debian/kit/install.sh', 'debian/bin/graphite', 'debian/bin/graphite-session', 'debian/bin/graphite-startx'):
++                       'debian/kit/install.sh', 'debian/bin/kas-computer', 'debian/bin/kas-session', 'debian/bin/kas-startx'):
+             self.assertEqual(subprocess.run(['bash', '-n', str(ROOT / script)]).returncode, 0, script)
+         if os.geteuid() != 0:
+             run = subprocess.run(['bash', str(ROOT / 'debian/kit/install.sh'), '--check'], capture_output=True, text=True)
+             self.assertEqual(run.returncode, 1); self.assertIn('as root', run.stderr)
+         page = (ROOT / 'debian/kit/START_HERE.md').read_text()
+-        for words in ('graphite-startx', 'systemctl disable lightdm', 'apt remove graphite-desktop lightdm lightdm-gtk-greeter',
++        for words in ('kas-startx', 'systemctl disable lightdm', 'apt remove kas-desktop lightdm lightdm-gtk-greeter',
+                       '~/Applications/Graphite-1.0', 'Ctrl+Alt+F2'):
+             self.assertIn(words, page)
+ 
+@@ -183,15 +186,15 @@ class Payload(unittest.TestCase):
+     def test_a_part_not_installed_is_not_damage_but_half_a_part_is(self):
+         with tempfile.TemporaryDirectory() as tmp:
+             tree = fake_tree(Path(tmp) / 'tree')
+-            part = pkg.PARTS['graphite-llama-runtime']
++            part = pkg.PARTS['kas-llama-runtime']
+             self.assertEqual(verify(tree)['state'], 'VERIFIED')
+             (tree / part[0]).unlink()
+             self.assertEqual(verify(tree)['problems'], [part[0] + ': missing'])  # a folder install: no parts file
+-            (tree / pkg.PARTS_FILE).write_text(json.dumps({'parts': {'graphite-llama-runtime': list(part)}}))
++            (tree / pkg.PARTS_FILE).write_text(json.dumps({'parts': {'kas-llama-runtime': list(part)}}))
+             self.assertEqual(verify(tree)['state'], 'DAMAGED')  # half a part
+             (tree / part[1]).unlink()
+             result = verify(tree)
+-            self.assertEqual((result['state'], result['parts_not_installed']), ('VERIFIED', ['graphite-llama-runtime']))
++            self.assertEqual((result['state'], result['parts_not_installed']), ('VERIFIED', ['kas-llama-runtime']))
+             (tree / 'workbench/a.py').unlink()
+             self.assertEqual(verify(tree)['problems'], ['workbench/a.py: missing'])
+ 
 diff --git a/tests_integrated/test_desk_acts.py b/tests_integrated/test_desk_acts.py
 index d992259..4381f2c 100644
 --- a/tests_integrated/test_desk_acts.py
@@ -2270,10 +2567,10 @@ index c2b2d79..13573b5 100644
              self.assertEqual(stored['document']['last_change']['actor'],M.ORIGIN);self.assertTrue(stored['document']['last_change']['request'].startswith('make the fox words bold'))
 diff --git a/tests_integrated/test_name_kas.py b/tests_integrated/test_name_kas.py
 new file mode 100644
-index 0000000..8d6232e
+index 0000000..c34ff04
 --- /dev/null
 +++ b/tests_integrated/test_name_kas.py
-@@ -0,0 +1,132 @@
+@@ -0,0 +1,195 @@
 +"""1.1 R1 · Kas, only Kas (the owner, 28 Nov 2026: "No more graphite. I hate that public name" and "No more anything it's
 +kas. All of it. kas only kas. The other thing if there must be something else is computer").
 +
@@ -2402,6 +2699,69 @@ index 0000000..8d6232e
 +            self.assertTrue((ROOT / module).exists(), module)
 +        self.assertIn("'GRAPHITE_BAR'", (ROOT / 'workbench/bar_qt.py').read_text(encoding='utf-8'))
 +        self.assertIn('GRAPHITE_APPEARANCE', (ROOT / 'workbench/boss_theme.py').read_text(encoding='utf-8'))
++
++
++GUIDES = ('README.md', 'GETTING_STARTED.md', 'docs/WORKSHOP.md', 'docs/GUIDE_LIVING_DESKTOP.md', 'docs/GUIDE_KASANDRA.md',
++          'docs/KAS_MIND_EVENING.md', 'docs/ACCEPTANCE_1.0.md', 'docs/DAILY_GUIDE.md', 'docs/THINKPAD_FIRST_INSTALL.md',
++          'debian/kit/START_HERE.md', 'debian/kit/install.sh', 'debian/kit/JOIN.sh')
++RENAME_SAID = re.compile(r'once named|formerly|were called')      # a line that says the rename names the old name on purpose
++FOLDERS_KEPT = re.compile(r'Graphite demos')                       # a workspace folder's name, as it is on disk
++
++
++def guide_names(text):
++    return [(n, w) for line in text.splitlines() if not RENAME_SAID.search(line)
++            for n, w in shown_names(FOLDERS_KEPT.sub('', line))]
++
++
++class ThePackagesAndCommands(unittest.TestCase):
++    def setUp(self):
++        from tools import debian_pkg
++        self.pkg = debian_pkg
++        self.stanzas = {s['Package']: s for s in debian_pkg.parse_control((ROOT / 'debian/control').read_text())[1:]}
++
++    def test_acceptance_four_kas_packages_never_a_bare_kas_each_moving_its_graphite_name(self):
++        self.assertNotIn('kas', self.stanzas, 'Debian 13 has an unrelated package "kas" with a higher version')
++        for new, old in (('kas-computer', 'graphite'), ('kas-llama-runtime', 'graphite-llama-runtime'),
++                         ('kas-session', 'graphite-session'), ('kas-desktop', 'graphite-desktop')):
++            with self.subTest(new):
++                s = self.stanzas[new]
++                self.assertEqual(self.pkg.relation(s['Provides']), '%s (= @VERSION@)' % old)
++                self.assertEqual(self.pkg.relation(s['Replaces']), '%s (<< @VERSION@)' % old)
++                self.assertEqual(self.pkg.relation(s['Breaks']), '%s (<< @VERSION@)' % old)
++                t = self.stanzas[old]      # transitional: no files, depends on the new name, so `apt upgrade` moves across
++                self.assertEqual((t['Section'], t['Architecture'], self.pkg.relation(t['Depends'])), ('oldlibs', 'all', '%s (= @VERSION@)' % new))
++                self.assertIn('transitional', t['Description'])
++        self.assertEqual(self.pkg.PACKAGES, ('kas-computer', 'kas-llama-runtime', 'kas-session', 'kas-desktop'))
++
++    def test_acceptance_the_commands_are_kas_and_the_old_names_say_the_new_one(self):
++        self.assertEqual(sorted(p.name for p in (ROOT / 'debian/bin').iterdir()), ['kas-computer', 'kas-do', 'kas-doctor', 'kas-session', 'kas-startx'])
++        self.assertEqual(self.pkg.OLD_COMMANDS, {'graphite': 'kas-computer', 'graphite-doctor': 'kas-doctor', 'graphite-session': 'kas-session',
++                                                 'graphite-startx': 'kas-startx', 'graphite-do': 'kas-do'})
++        import subprocess
++        for old, new in self.pkg.OLD_COMMANDS.items():
++            with self.subTest(old):
++                # only the script's notice line is run (sh -c LINE NAME sets $0): the script itself would start the program
++                line = next(l for l in (ROOT / 'debian/bin' / new).read_text().splitlines() if l.startswith('case "${0##*/}"'))
++                said = subprocess.run(['sh', '-c', line, '/usr/bin/' + old], capture_output=True, text=True, timeout=30).stderr
++                self.assertIn('%s is now %s' % (old, new), said)
++                said = subprocess.run(['sh', '-c', line, '/usr/bin/' + new], capture_output=True, text=True, timeout=30).stderr
++                self.assertEqual(said, '', 'the new name says nothing of the old one')
++
++    def test_the_session_entries_say_kas_and_keep_their_files(self):
++        xsession = (ROOT / 'debian/graphite-xsession.desktop').read_text()
++        self.assertIn('Name=Kas\n', xsession);self.assertIn('Exec=kas-session\n', xsession)
++        self.assertIn('user-session=graphite', (ROOT / 'debian/50-graphite.conf').read_text(), 'a saved login choice still finds the session')
++        app = (ROOT / 'debian/graphite.desktop').read_text()
++        self.assertIn('Name=Kas\n', app);self.assertIn('Exec=kas-computer\n', app)
++
++    def test_acceptance_the_kit_and_the_guides_say_kas(self):
++        for name in GUIDES:
++            with self.subTest(name):
++                self.assertEqual(guide_names((ROOT / name).read_text(encoding='utf-8')), [])
++        install = (ROOT / 'debian/kit/install.sh').read_text()
++        self.assertIn("packages='kas-computer kas-session'", install);self.assertIn("packages='kas-desktop'", install)
++        self.assertIn('for z in KAS_*.zip', (ROOT / 'debian/kit/JOIN.sh').read_text())
++        self.assertIn('kas-startx', (ROOT / 'debian/kit/START_HERE.md').read_text())
 +
 +
 +if __name__ == '__main__':
@@ -2961,7 +3321,7 @@ index c93ebd7..ed2839d 100644
          self.assertEqual(words.height(), 16.0)
  
 diff --git a/tests_integrated/test_windows_hand.py b/tests_integrated/test_windows_hand.py
-index 2f244d4..af7ab75 100644
+index 2f244d4..0f2681c 100644
 --- a/tests_integrated/test_windows_hand.py
 +++ b/tests_integrated/test_windows_hand.py
 @@ -206,15 +206,15 @@ class KeysFromAnyApp(unittest.TestCase):
@@ -2973,7 +3333,8 @@ index 2f244d4..af7ab75 100644
 +            self.assertEqual(answers['ping'], (0, 'Kas is here.'))
 +            self.assertEqual(answers['show'], (0, 'Kas is in front.'))
              self.assertEqual(answers['screenshot'][0], 0);self.assertIn('Screenshots', answers['screenshot'][1])
-             self.assertEqual(answers['nonsense'][0], 1);self.assertIn('graphite-do knows', answers['nonsense'][1])
+-            self.assertEqual(answers['nonsense'][0], 1);self.assertIn('graphite-do knows', answers['nonsense'][1])
++            self.assertEqual(answers['nonsense'][0], 1);self.assertIn('kas-do knows', answers['nonsense'][1])      # 1.1 R1: the command says its new name
              self.assertEqual(door.heard, ['ping', 'show', 'screenshot'], 'an unknown word never reaches the window')
              door.close();self.assertFalse(sock.exists());host.deleteLater()
          out = subprocess.run([sys.executable, '-B', str(ROOT / 'tools' / 'graphite-do'), 'ping'], env=dict(os.environ, GRAPHITE_DO_SOCKET='/nonexistent/x.sock'),
@@ -3148,6 +3509,18 @@ index 334ffa5..96da083 100644
  { echo "Graphite kit repository: $count packages, $(du -sm "$out" | cut -f1) MB"; echo
    echo "== against the chroot with the System set installed (today's versions):"; grep -E '^(Inst|[0-9]+ upgraded)' "$root/root/plan-chroot.txt" || true; echo
    echo "== against the System set status (its exact versions):"; grep -E '^(Inst|[0-9]+ upgraded)' "$root/root/plan-status.txt" || true
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index dd4cbbe..69af9be 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -42,6 +42,7 @@ FOCUSED_MODULES=(
+  'test_install_media','test_startup_scripts','test_session_start',
+  'test_debian_packages',  # 1.1 PK1: the Debian packages and the kit
+  'test_kas_voice',  # 1.1 KV: her voice, the sweep and her lines
++ 'test_name_kas',  # 1.1 R1: Kas, only Kas: the word sweep, the packages and the commands
+  # the desk, the frame, paper, machine, documents and the Graphite words; the right-click menu (HATCH DESK D4)
+  'test_desk','test_frame','test_paper','test_machine','test_documents','test_graphite','test_writing_line','test_context_menu',
+  # 0.4.9 and 0.5: the drawn glyphs, a tool's face (words or a glyph), Find in what is open, a page in the desk's light
 diff --git a/tools/debian_pkg.py b/tools/debian_pkg.py
 index 7680963..b805b0a 100644
 --- a/tools/debian_pkg.py
@@ -3273,9 +3646,33 @@ index 7680963..b805b0a 100644
      repo = out / 'repo'
      whole = {}
 diff --git a/tools/graphite-do b/tools/graphite-do
-index 441a8ba..cc34018 100755
+index 441a8ba..064224b 100755
 --- a/tools/graphite-do
 +++ b/tools/graphite-do
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""graphite-do (Graphite 1.1 W1): the keys that work whichever app is in front, said to the running Graphite window.
++"""graphite-do (Kas 1.1 W1): the keys that work whichever app is in front, said to the running Kas window.
+ 
+   graphite-do WORD            WORD is one of: apps files show lock tasks screenshot ping start line terminal kas halt. The running window does it
+                               (workbench/windows_keys_qt.Door) and answers in one line; the exit status is 0 when done.
+@@ -23,13 +23,13 @@ KEYS = (
+     ('Mod4 r', 'line', 'Win+R opens the line, to run or find anything'),  # 1.1 B2
+     ('Mod4 s', 'line', 'Win+S opens the line too'),  # 1.1 B2
+     ('Mod4 e', 'files', 'Win+E opens Files'),
+-    ('Mod4 d', 'show', 'Win+D shows Graphite'),
++    ('Mod4 d', 'show', "Win+D shows the computer's window"),
+     ('Mod4 l', 'lock', 'Win+L locks the screen'),
+-    ('Control Mod1 Delete', 'tasks', "Ctrl+Alt+Del opens Graphite's page of what runs"),
++    ('Control Mod1 Delete', 'tasks', "Ctrl+Alt+Del opens Kas's page of what runs"),
+     ('Print', 'screenshot', 'PrintScreen saves a picture of the screen into ~/Pictures/Screenshots'),
+     ('Mod4 grave', 'terminal', 'Win+` drops the Terminal from the top of the screen; again puts it away'),  # 1.1 B4
+     ('Control Mod1 t', 'terminal', 'Ctrl+Alt+T does the same'),  # 1.1 B4
+-    ('Mod4 k', 'kas', "Win+K opens Kasandra's panel"),  # 1.1 B4
++    ('Mod4 k', 'kas', "Win+K opens Kas's panel"),  # 1.1 B4
+     ('Pause', 'halt', 'Pause presses HALT: all of her work stops (RESUME is a press, never a key)'),  # 1.1 B4
+ )
+ FLUXBOX_OWN = (
 @@ -49,7 +49,7 @@ def socket_path(environ=None):
  
  def ask(verb, path=None, timeout=10.0):
@@ -3285,6 +3682,30 @@ index 441a8ba..cc34018 100755
      path = path or socket_path()
      s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM);s.settimeout(timeout)
      try:
+@@ -61,12 +61,12 @@ def ask(verb, path=None, timeout=10.0):
+             if not chunk:break
+             data += chunk
+     except OSError as exc:
+-        return {'ok': False, 'words': 'Graphite is not running here (%s).' % (exc.strerror or exc)}
++        return {'ok': False, 'words': 'Kas is not running here (%s).' % (exc.strerror or exc)}
+     finally:
+         s.close()
+     try:return json.loads(data.decode('utf-8', 'replace') or '{}')
+     except ValueError:
+-        return {'ok': False, 'words': 'Graphite gave no answer.'}
++        return {'ok': False, 'words': 'Kas gave no answer.'}
+ 
+ 
+ def quoted(text):
+@@ -75,7 +75,7 @@ def quoted(text):
+ 
+ def keys_text(command):
+     """Fluxbox's keys file: each key, what it does, and why, in Fluxbox's own syntax."""
+-    lines = ['# Graphite 1.1: the keys that work whichever app is in front. Written by the session (LS_XSESSION.sh);',
++    lines = ['# Kas 1.1: the keys that work whichever app is in front. Written by the session (LS_XSESSION.sh);',
+              '# a new session writes it again, so a change here lasts one session.']
+     for key, verb, why in KEYS:
+         lines.append('# %s' % why);lines.append('%s :Exec %s %s' % (key, quoted(command), verb))
 @@ -106,7 +106,7 @@ def main(argv=None):
      if len(argv) == 2 and argv[0] == '--write-keys':
          print(write_keys(argv[1]));return 0
@@ -3295,7 +3716,7 @@ index 441a8ba..cc34018 100755
      print(answer.get('words') or ('done' if answer.get('ok') else 'not done'))
      return 0 if answer.get('ok') else 1
 diff --git a/tools/name_sweep.py b/tools/name_sweep.py
-index d2d6952..6ec1a48 100644
+index d2d6952..554b4b6 100644
 --- a/tools/name_sweep.py
 +++ b/tools/name_sweep.py
 @@ -96,7 +96,7 @@ NEVER = {'language': (re.compile(r'\bstac\b', re.I), 'the language is never name
@@ -3307,6 +3728,15 @@ index d2d6952..6ec1a48 100644
  
  # The code's words that carry the earlier name and are not a sentence a person reads as her name: (file, the words' start) -> why.
  # An empty start is the whole file (the lineage grows by a release at its head, so its first words change).
+@@ -322,7 +322,7 @@ def walk(window, settle, log=None):
+     opened = []      # About waits for its Close (QDialog.exec): it is shown instead, read, and closed
+     with patch.object(QDialog, 'exec', lambda dialog:(opened.append(dialog), dialog.show(), 0)[2]):
+         window.show_about();settle()
+-    look('Guide: About Graphite', bool(opened), 'kept back (RIGHTS.md)')
++    look('Guide: About Kas', bool(opened), 'kept back (RIGHTS.md)')      # 1.1 R1
+     for dialog in opened:dialog.close();dialog.deleteLater()
+     # 1.1 T1: since 1.0 P4 (no picture of her) no plate of hers is offered: the place is the Art plates menu, read, with no row
+     # that names her; the plates there are opened and read as before.
 diff --git a/workbench/a11y_hand.py b/workbench/a11y_hand.py
 index 2a5fc6e..6d71916 100644
 --- a/workbench/a11y_hand.py
