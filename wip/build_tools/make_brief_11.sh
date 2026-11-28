@@ -8,7 +8,7 @@ sed "s/<KEY>/$K/g" $D/BRIEF_HEADER_1.1.md > $OUT
 python3 -I - "$D/PLAN_1.1.md" "$K" >> $OUT <<'PY'
 import sys,re
 text=open(sys.argv[1],encoding='utf-8').read(); key=sys.argv[2]
-m=re.search(r'^\*\*'+re.escape(key)+r' ·.*?(?=^\*\*[A-Z]+[0-9]* ·|^###|^## |\Z)', text, re.S|re.M)
+m=re.search(r'\*\*'+re.escape(key)+r' ·.*?(?=\*\*[A-Z]+[0-9]* ·|^###|^## |\Z)', text, re.S|re.M)   # slices may start mid-paragraph
 if not m: sys.exit('no slice '+key)
 print(m.group(0).strip())
 PY

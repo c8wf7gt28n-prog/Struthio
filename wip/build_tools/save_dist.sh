@@ -39,7 +39,7 @@ one() {
   for try in 1 2 3; do
     git commit -q -m "Saved: partial outputs of the 1.1 panels ($(date -u +%H:%M) UTC)
 
-Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01SSUMdyhHQH2idKFXpgDCV8" -- "wip/2026-11-27_distribution/partial" && break; sleep 5
   done
   for try in 1 2 3 4; do git push -q -u origin claude/epic-galileo-c7k11y && break; sleep $((try*4)); done
