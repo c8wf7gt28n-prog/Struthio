@@ -338,10 +338,10 @@ index b533c59..5293644 100644
  # ---- in the window ----------------------------------------------------------------------------------------------------------------
 diff --git a/workbench/real_terminal_qt.py b/workbench/real_terminal_qt.py
 new file mode 100644
-index 0000000..33cbc05
+index 0000000..ff2d111
 --- /dev/null
 +++ b/workbench/real_terminal_qt.py
-@@ -0,0 +1,368 @@
+@@ -0,0 +1,371 @@
 +"""Graphite 1.1.2 C0 · A real terminal in the drop-down: xterm, embedded in it (-into), running the owner's own shell.
 +
 +PLAN_1.1.md, C0. B4's drop-down Terminal ran each line as a command with no terminal device, so vim, top, less and sudo's
@@ -644,6 +644,9 @@ index 0000000..33cbc05
 +    def dropped(self):
 +        """drop(): the shell started if it is not running, the hide keys grabbed, the keyboard to xterm."""
 +        self.start()
++        try:self.term.read_words()
++        except Exception:  # noqa: BLE001 - the header's words wait for the next drop
++            pass
 +        try:
 +            top = int(self.term.winId())
 +            if not self.grabbed or self.grab_on != top:self.grabbed = self.xconn().grab(top);self.grab_on = top

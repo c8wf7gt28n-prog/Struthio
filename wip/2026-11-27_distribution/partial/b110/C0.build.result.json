@@ -1,0 +1,50 @@
+{
+ "item": "C0",
+ "status": "done",
+ "summary": "The drop-down Terminal is a real terminal on X: xterm embedded with -into, running the owner's configured shell in the Files folder. Under Xvfb it was tested with a key read, tty, top and q, a vim edit saved, and dir with its Debian line. B4's behaviour is kept: the keys, the slide, Put away, and the keys going back. Win+`, Ctrl+Alt+T and Ctrl+Alt+` are grabbed on the drop-down's own window, so they work inside vim. Exit puts it away. For bash, DOS words come from a Graphite rc that reads ~/.bashrc first (the owner's files are untouched) and then binds Enter. The rc shows W1's 'dir → ls -l' in place of the typed line, and the Debian command runs and stays in history. Off X, or without xterm, B4's line Terminal stays.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/C0.patch",
+ "files_changed": [
+  "workbench/real_terminal_rc.py (new: the rc text, answer() over W1 dos_words.translate, the CLI bash asks)",
+  "workbench/real_terminal_qt.py (new: RealTerminal: xterm -into, look, fit, focus, hide-key grab, the bar line handed in, /proc prompt check)",
+  "workbench/drop_terminal_qt.py (1.1 C0: attach in __init__; drop/leave/run/read_words/status hooks; 7 small marked lines)",
+  "debian/control (graphite-session Depends: + libglib2.0-bin for gio trash; xterm was already there since PK1)",
+  "tests_integrated/test_real_terminal.py (new, 13 tests)"
+ ],
+ "tests": {
+  "added": [
+   "tests_integrated/test_real_terminal.py: 7 under its own Xvfb, driven by real XTest keys (real terminal, key read, top+q, vim saves, dir Debian line, Win+` hides and the keys go back, a bar row is typed in and exit puts it away); 1 for bash with the rc in a pty (dir shown, the alias and PS1 from ~/.bashrc kept, the Debian command in history, ~/.bashrc unchanged); 5 pure"
+  ],
+  "ran": [
+   "tests_integrated.test_real_terminal",
+   "tests_integrated.test_one_line_b4 (touched file)"
+  ],
+  "output_tail": "----------------------------------------------------------------------\nRan 24 tests in 27.340s\n\nOK"
+ },
+ "existing_tests_changed": [],
+ "decisions": [
+  "Design (a): xterm -into. It is far less code than a pty and VT emulator, it is a proven terminal, and xterm is already in graphite-session's Depends (PK1). No pyte.",
+  "DOS words: bash's Enter is bound (bind -x macro, emacs and vi-insert) to ask the translator about the raw line. Only lines whose first word is a DOS word or drive letter reach Python. The translator is W1's translate, so backslashes and drive letters arrive intact. Shown: 'dir → ls -l' (dim) replaces the typed line; the shell line then shows and runs the Debian command, and Up brings that back. A shell other than bash runs as is, with the header saying 'DOS words need bash'.",
+  "del and erase run 'gio trash' (the freedesktop bin, never rm), and *.* asks y/N first. The 1.0 line Terminal used the Kernel's files.batch with an Undo link; the real shell cannot reach the Kernel. libglib2.0-bin was added for gio.",
+  "The bar's Terminal and DOS rows (the owner's press) are queued in Graphite's own folder (XDG_RUNTIME_DIR/graphite-terminal, 0700) and taken in with one XTest key (Ctrl+Alt+Shift+F12, bound by the rc), but only while the shell is at its prompt (checked through /proc tpgid). While a program runs there, the line is not typed and the header says the Terminal is busy.",
+  "The hide keys are XGrabKey'd on the drop-down's toplevel while it is down, so they reach Graphite even inside vim. They are also polled on an 80 ms timer, because Xlib can queue events off the socket.",
+  "The look: -bg TERMINAL_GROUND, -fg the cue words (as B4), sixteen colours for a light or dark ground. IBM Plex Mono comes from Graphite's branding/fonts/plex through a FONTCONFIG_FILE for xterm only; the rc unsets it for the shell. Ctrl+Shift+C and V copy and paste.",
+  "Worktree: the original worktree was removed while I was paused. I worked in a scratch clone of 29778a8 and nothing in /home/user/Struthio was touched. The patch applies to 29778a8 and, with -3, to 994da40."
+ ],
+ "findings_for_the_coordinator": [
+  "Nothing ran on the owner's ThinkPad or under real Fluxbox. The tests used Xvfb with no window manager, and the frames were taken without a window manager or the bar.",
+  "sudo's password prompt was not shown: the container runs as root, so sudo never asks. tty in the drop-down names /dev/pts/N (tested), so the prompt should work, but that is unverified.",
+  "The look is read when xterm starts. After a look change, the open shell keeps its colours until it exits and the next drop starts a new one.",
+  "The X tests need Xvfb, xterm, vim, top and Qt's xcb platform. In this container that means LD_LIBRARY_PATH to b100/S3/xcblibs; without it the class skips and names the missing piece. The tier wrapper must pass that variable for the X tests to run.",
+  "1.0's in-window Terminal and Kas's paths are unchanged. Only DropTerminal.run, which is reached from the owner's bar rows, types into the real shell."
+ ],
+ "not_done": [
+  "Frames at 1366x768 and in Night: the coordinator asked for 2 frames, 1920x1200 Day only.",
+  "Live re-colouring on a look change.",
+  "HALT does not stop what runs in the owner's own shell (as B4): it is not Kasandra's work."
+ ],
+ "frames": [
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/C0/frames/1920x1200_day_real_terminal_top.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/C0/frames/1920x1200_day_real_terminal_dir.png"
+ ],
+ "release_note": "A real Terminal. The Terminal that drops from the top of the screen (Win+` or Ctrl+Alt+T) is now a real terminal running your own shell, so vim, top, less, ssh and sudo's password prompt work in it. Your own ~/.bashrc is read and never changed. DOS words still work: type dir and it shows 'dir → ls -l', then runs ls -l (Up brings back the Debian command). del puts files in the bin. The same key, or exit, puts it away, and the app you were in gets the keys back. Ctrl+Shift+C and Ctrl+Shift+V copy and paste."
+}
