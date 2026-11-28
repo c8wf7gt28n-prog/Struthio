@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """graphite-do (Graphite 1.1 W1): the keys that work whichever app is in front, said to the running Graphite window.
 
-  graphite-do WORD            WORD is one of: apps files show lock tasks screenshot ping. The running window does it
+  graphite-do WORD            WORD is one of: apps files show lock tasks screenshot ping start line. The running window does it
                               (workbench/windows_keys_qt.Door) and answers in one line; the exit status is 0 when done.
   graphite-do --write-keys D  writes Fluxbox's files for the session into the folder D: D/keys (the keys) and D/init
                               (Fluxbox's settings, naming that keys file); prints D/init, for fluxbox -rc. LS_XSESSION.sh
@@ -15,11 +15,13 @@ import os
 import socket
 import sys
 
-VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping')
+VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping', 'start', 'line')  # 1.1 B2: start, line
 # Fluxbox's key lines (its own syntax): the key, then what it does. Mod4 is the Windows key, Mod1 is Alt.
 KEYS = (
-    ('Super_L', 'apps', 'the Windows key opens Apps'),
-    ('Super_R', 'apps', 'the right Windows key too'),
+    ('Super_L', 'start', 'the Windows key opens Start'),  # 1.1 B2: Start, not Apps
+    ('Super_R', 'start', 'the right Windows key too'),
+    ('Mod4 r', 'line', 'Win+R opens the line, to run or find anything'),  # 1.1 B2
+    ('Mod4 s', 'line', 'Win+S opens the line too'),  # 1.1 B2
     ('Mod4 e', 'files', 'Win+E opens Files'),
     ('Mod4 d', 'show', 'Win+D shows Graphite'),
     ('Mod4 l', 'lock', 'Win+L locks the screen'),

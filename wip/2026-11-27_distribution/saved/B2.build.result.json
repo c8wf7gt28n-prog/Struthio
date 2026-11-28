@@ -1,0 +1,50 @@
+{
+ "item": "B2",
+ "status": "done",
+ "summary": "Start and the line, filling B1's two slots through bar_qt.register_slot (bar_qt not edited). New workbench/line_finder.py (no Qt): the rows a typed line offers, each with a verb that is what Enter does (Open, Run, Calculate, Ask Kasandra, Explain, Edit): a sum through the one maths core (math_model, exact; 10/3 -> '3.333 (exact 10/3)'), an address, DOS words (dos_words, the Debian command beside), apps from their desktop entries (apps_catalog via apps_qt.listing), Windows words (control panel, cmd, notepad, explorer, task manager, regedit) with the Windows word beside, settings (console_qt.setting_rows), files (recent: Graphite's and recently-used.xbel; home: search_reach.home_names), the desk (search_reach.records), commands (OneBox.commands), Kernel operations by name, a program for the Terminal, and Ask Kasandra (always offered; first only for a request). New workbench/start_qt.py: Start rises above the Start slot (apps by kind, Pinned first; recent files; Lock, Suspend, Log out, Restart, Shut down through session_power's own run_lock/run_suspend/run_action), the cursor in the line, typing turns it into rows, Esc or the Windows key closes it, Win+E/D/L still work inside it; the line slot raises the rows above it. The Windows key: graphite-do 'start' (Super_L/Super_R), 'line' (Win+R, Win+S).",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/B2.patch",
+ "files_changed": [
+  "workbench/line_finder.py (new)",
+  "workbench/start_qt.py (new)",
+  "tests_integrated/test_start_line.py (new)",
+  "workbench/shell2.py (2 lines, 1.1 B2: start_qt.install before the bar)",
+  "workbench/windows_keys_qt.py (VERBS start, line; act opens Start; docstring; 1.1 B2)",
+  "tools/graphite-do (VERBS start, line; Super_L/Super_R -> start, Mod4 r / Mod4 s -> line; 1.1 B2)",
+  "tests_integrated/test_windows_hand.py (one line: Super_L binds start)"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_start_line.py (12 tests, acceptance first)",
+  "ran": "tests_integrated.test_start_line + tests_integrated.test_windows_hand (touched), offscreen on the throwaway copy",
+  "output_tail": "Ran 26 tests in 1.817s\n\nOK"
+ },
+ "smoke": "Under Xvfb with S3's stand-in manager, S4's stand-ins, Rail Demo, invented apps (9 desktop entries) and recent files; Day 1366x768, Day 1920x1200, Night 1366x768, 0 tracebacks: another X client holds the keyboard (as Fluxbox does while the Windows key is down), graphite-do start answers through the door, Start rises once the keyboard is let go, above the bar, left edge at the Start slot; 'tern' typed with real X key presses (XTEST) reaches the line; Esc closes; a real click on the bar's line slot raises the rows above it; rows for an app (Tern Browser, Open), a file (harbour-survey-report.ods, Open), a sum (12 x 7 = 84, Calculate) and Ask Kasandra; Enter on the sum puts 84 in the line and on the clipboard; Enter on the app: 'Tern Browser started in a session of its own.' Frames: b110/B2/frames/<WxH>_<look>_{start,line_app,line_file,line_sum,line_ask,line_sheet}.png (18).",
+ "existing_tests_changed": [
+  "tests_integrated/test_windows_hand.py KeysFromAnyApp.test_the_fluxbox_keys_file_names_each_key_and_graphite_do: 'Super_L :Exec ... apps' became '... start', because the Windows key now opens Start (the brief's B2 change)."
+ ],
+ "decisions": [
+  "Start and the line are one panel (start_qt.StartPanel, a Qt popup that holds the keyboard): the bar's window takes no focus, so the line on the bar is a press that raises the panel above the line slot with its own field; Start is the same panel in 'start' mode above the Start slot.",
+  "The Windows key: Fluxbox runs graphite-do on the key's press and holds the keyboard until it is let go; a Qt popup whose grab fails closes at once (found in the smoke). Start therefore waits (at most 2 s, probing with XGrabKeyboard) until the keyboard is free, then rises: it rises on the key's release, as Windows' Start does. graphite-do answers 'Start rises once the Windows key is let go.'",
+  "Ask Kasandra is always the last row and is first (Enter's row) only when the words read as a request (a '?' lead or ending, a question word first, K4's objective reading, or four words or more that 1.0's reading gives her) and nothing else matched first; Familiar said Kas is never Enter's default, 1.0's foot made her the default for her words: every row names its verb, so Enter is never a surprise.",
+  "Enter on a sum puts the exact answer in the line and copies it (the panel stays, so the sum goes on); a sum the core refuses after '=' says why with the verb Edit. Displayed with x for *.",
+  "Start's empty line chooses nothing: Enter does nothing until Down or Tab chooses (Tab walks Apps, Recent, Power; Left/Right in Power).",
+  "Start's own lists show the verb on the chosen or hovered row only (the line under them says 'Enter: Open X'); the line's rows show it on every row.",
+  "Power shows the five the coordinator named (the leave group without Return to Debian, which stays in the System menu); availability is read off the window's thread on each opening; one not offered is drawn quiet with a slash, the caption says 'slashed: not here', its tip and a press say why.",
+  "Things that live in Graphite's window (settings, the desk, commands, the Terminal, her column, power's questions) bring Graphite forward first; apps, files in their apps and addresses do not.",
+  "Windows words handled in line_finder (WINDOWS table) rather than a new synonyms.py; 'control panel' opens Graphite's Settings until C1.",
+  "Win+R and Win+S bind to the line (graphite-do 'line'), per Familiar's keys table.",
+  "No Kernel operation added; registry unchanged."
+ ],
+ "findings_for_the_coordinator": [
+  "Only real Fluxbox can confirm the Windows key timing (press vs release) and that Start then holds the keyboard; the smoke simulated the held key with another client's XGrabKeyboard.",
+  "The 1.0 'Apps' button at the top right of Graphite's window still opens 1.0's Apps panel (K0's head work); graphite-do 'apps' still exists.",
+  "Xvfb smoke needs LD_LIBRARY_PATH=b100/S3/xcblibs and a short XDG_RUNTIME_DIR: the door's socket path under the scratchpad is too long for AF_UNIX.",
+  "Opening a folder found by the line uses search_reach.open_home (1.0's board focus); E1 may want it to open in the Explorer instead."
+ ],
+ "not_done": [
+  "Pin/unpin from Start, 'All apps' as a separate A-Z page, and apps' own icons from icon themes beyond apps_catalog's icon_file (invented apps show a letter tile).",
+  "Rise/fade motion (8 px, 160 ms): Start appears at once, as the bar's flyouts do.",
+  "Command... (the Power graft: 'keep as a word, pin, bind a key') on rows.",
+  "Nothing ran on the owner's ThinkPad."
+ ],
+ "release_note": "Start: press the Windows key or Start on the bar. Your apps by kind, your recent files, and Lock, Suspend, Log out, Restart and Shut down. Type straight away: the line finds and does apps, files, settings, commands, DOS words and sums (12*7 gives 84, exactly), or asks Kasandra. Every row says what Enter will do. Win+R opens the line; Esc closes."
+}

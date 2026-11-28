@@ -3555,6 +3555,8 @@ class Shell2(QObject):
         try:  # 1.0 S5: Graphite as the session's notification server (toasts at her column's foot, kept in Log), and the app strip as a dock
             from .notify_qt import install as install_notifications
             install_notifications(host)  # 1.0 S5
+            from .start_qt import install as install_start  # 1.1 B2: Start and the line fill the bar's two slots
+            install_start(host)  # 1.1 B2
             from .bar_qt import install as install_bar  # 1.1 B1: the bar at the bottom of the screen replaces 1.0's dock at the top
             install_bar(host)  # 1.1 B1
         except ImportError:  # 1.0 S5

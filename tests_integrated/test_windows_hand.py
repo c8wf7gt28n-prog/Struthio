@@ -183,7 +183,7 @@ class KeysFromAnyApp(unittest.TestCase):
             self.assertEqual(init, Path(temp) / 'fluxbox' / 'init')
             self.assertIn('session.keyFile:\t%s/fluxbox/keys' % temp, init.read_text())
             keys = (Path(temp) / 'fluxbox' / 'keys').read_text()
-        for line in ('Super_L :Exec "%s" apps' % tool, 'Mod4 e :Exec "%s" files' % tool, 'Mod4 d :Exec "%s" show' % tool, 'Mod4 l :Exec "%s" lock' % tool,
+        for line in ('Super_L :Exec "%s" start' % tool, 'Mod4 e :Exec "%s" files' % tool,  # 1.1 B2: the Windows key opens Start 'Mod4 d :Exec "%s" show' % tool, 'Mod4 l :Exec "%s" lock' % tool,
                      'Control Mod1 Delete :Exec "%s" tasks' % tool, 'Print :Exec "%s" screenshot' % tool, 'Mod1 F4 :Close'):
             self.assertIn(line + '\n', keys)
         self.assertRegex(keys, r'\nMod1 Tab :NextWindow')

@@ -9,9 +9,10 @@ PLAN_1.1.md, W1 (a) to (c). windows_hand holds the settings, the file clipboard 
                    folders again; Backspace goes back; Ctrl+A chooses every row; Ctrl+Z takes the last change back.
   Properties       a small page: name, kind, size, dates, where it is, who may read and change it, what opens it. Esc closes.
   from any app     graphite-do (tools/graphite-do) speaks to the running window over a local socket of this user's
-                   ($XDG_RUNTIME_DIR/graphite-do.sock): apps, files, show, lock, tasks, screenshot. Fluxbox's keys file,
-                   written by the session (LS_XSESSION.sh, graphite-do --write-keys), puts them on the Windows key, Win+E,
-                   Win+D, Win+L, Ctrl+Alt+Del and PrintScreen; Alt+Tab and Alt+F4 are Fluxbox's own NextWindow and Close.
+                   ($XDG_RUNTIME_DIR/graphite-do.sock): apps, files, show, lock, tasks, screenshot, start, line. Fluxbox's
+                   keys file, written by the session (LS_XSESSION.sh, graphite-do --write-keys), puts them on the Windows key
+                   (Start, 1.1 B2), Win+R and Win+S (the line), Win+E, Win+D, Win+L, Ctrl+Alt+Del and PrintScreen; Alt+Tab
+                   and Alt+F4 are Fluxbox's own NextWindow and Close.
   Show keys        Rules ▸ Show keys: menus and tips print their keys (the default in 1.1), or none (as 0.5.2 to 1.0).
   DOS words        Rules ▸ DOS words: on, show me only, off (dos_words).
 
@@ -30,7 +31,7 @@ from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLabel, QM
 
 from . import windows_hand as wh
 
-VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping')
+VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping', 'start', 'line')  # 1.1 B2: start (the Windows key), line (Win+R)
 SOCKET_NAME = 'graphite-do.sock'
 
 
@@ -255,6 +256,9 @@ def act(host, verb):
     if verb == 'screenshot':
         made = screenshot(host)
         return {'ok': bool(made), 'words': ('Saved %s' % made) if made else 'No picture was saved.', 'path': made}
+    if verb in ('start', 'line'):  # 1.1 B2: Start rises above the bar, over whichever app is in front (start_qt)
+        from .start_qt import open_start
+        return open_start(host, verb)
     bring(host)
     if verb == 'show':return {'ok': True, 'words': 'Graphite is in front.'}
     if verb == 'apps':
