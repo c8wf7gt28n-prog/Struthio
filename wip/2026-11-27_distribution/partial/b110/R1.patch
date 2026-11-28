@@ -77,6 +77,19 @@ index eccb543..de70f11 100644
  a time. Exit 0 means every section passed: integrity, not readiness or acceptance. It starts no job, model, worker,
  provider request or native tool. The model check (the Brain room, or `MODEL_CHECK.sh`) and the acceptance evening on the
  owner's own display are separate.
+diff --git a/LS_XSESSION.sh b/LS_XSESSION.sh
+index def3ba1..c11d3d9 100755
+--- a/LS_XSESSION.sh
++++ b/LS_XSESSION.sh
+@@ -75,7 +75,7 @@ ledger_fluxbox_rc=''  # 1.1 W1: Fluxbox's files for this session (the keys that
+ ledger_write_keys() {  # 1.1 W1: graphite-do writes keys and init into the session folder; Fluxbox reads them with -rc
+   local writer="$ledger_program/tools/graphite-do"
+   if [[ -z "$ledger_session_dir" ]]; then return 1; fi
+-  if ! [[ -f "$writer" ]]; then writer="$(command -v graphite-do 2>/dev/null)" || return 1; fi
++  if ! [[ -f "$writer" ]]; then writer="$(command -v kas-do 2>/dev/null || command -v graphite-do 2>/dev/null)" || return 1; fi      # 1.1 R1
+   ledger_fluxbox_rc="$(python3 -B "$writer" --write-keys "$ledger_session_dir/fluxbox" 2>/dev/null)" || { ledger_fluxbox_rc=''; return 1; }
+   ledger_log_line "the keys from any app: $ledger_session_dir/fluxbox/keys"
+ }
 diff --git a/README.md b/README.md
 index 2312601..1aa3adc 100644
 --- a/README.md
@@ -178,6 +191,504 @@ index ac18284..36407e2 100644
 + <text x="4" y="24" fill="#dd854b" font-family="monospace" font-size="12" letter-spacing="3">KAS  //  BOSS</text>
   <text x="4" y="47" fill="#b0bcb9" font-family="monospace" font-size="10">LOCAL WORK. LASTING METHODS.</text>
  </svg>
+diff --git a/debian/50-graphite.conf b/debian/50-graphite.conf
+index 9a13c85..636bf26 100644
+--- a/debian/50-graphite.conf
++++ b/debian/50-graphite.conf
+@@ -1,4 +1,5 @@
+-# 1.1 PK1: installed by graphite-desktop. LightDM starts the Graphite session after the login screen.
+-# To go back to the text console: systemctl disable lightdm (as root), then reboot; graphite-startx still works there.
++# 1.1 PK1: installed by kas-desktop. LightDM starts the Kas session after the login screen (1.1 R1: the session's file
++# keeps its name, graphite.desktop, so a saved choice still finds it).
++# To go back to the text console: systemctl disable lightdm (as root), then reboot; kas-startx still works there.
+ [Seat:*]
+ user-session=graphite
+diff --git a/debian/bin/graphite b/debian/bin/graphite
+deleted file mode 100755
+index 5c1afd9..0000000
+--- a/debian/bin/graphite
++++ /dev/null
+@@ -1,7 +0,0 @@
+-#!/bin/sh
+-# 1.1 PK1: Graphite's window from the packaged program (what START_OFFICE.sh does in a folder install).
+-# Options pass through: graphite --version, graphite --check, graphite --doctor.
+-export ARC_LEDGER_EDITION=office ARC_LEDGER_OPEN="${ARC_LEDGER_OPEN:-office}"
+-export PYTHONPATH="/usr/lib/graphite${PYTHONPATH:+:$PYTHONPATH}"
+-cd /usr/lib/graphite || exit 1
+-exec /usr/bin/python3 -m workbench.launch "$@"
+diff --git a/debian/bin/graphite-do b/debian/bin/graphite-do
+deleted file mode 100755
+index 44ee955..0000000
+--- a/debian/bin/graphite-do
++++ /dev/null
+@@ -1,3 +0,0 @@
+-#!/bin/sh
+-# 1.1 W1/PK1: the keys that work whichever app is in front (tools/graphite-do), for Fluxbox's keys file and for typing.
+-exec /usr/bin/python3 /usr/lib/graphite/tools/graphite-do "$@"
+diff --git a/debian/bin/graphite-doctor b/debian/bin/graphite-doctor
+deleted file mode 100755
+index 9e810fd..0000000
+--- a/debian/bin/graphite-doctor
++++ /dev/null
+@@ -1,5 +0,0 @@
+-#!/bin/sh
+-# 1.1 PK1: the doctor (LEDGER.sh in a folder install): graphite-doctor doctor, graphite-doctor doctor --json
+-export PYTHONPATH="/usr/lib/graphite${PYTHONPATH:+:$PYTHONPATH}"
+-cd /usr/lib/graphite || exit 1
+-exec /usr/bin/python3 -m workbench.baseline "$@"
+diff --git a/debian/bin/graphite-session b/debian/bin/graphite-session
+deleted file mode 100755
+index 817b97f..0000000
+--- a/debian/bin/graphite-session
++++ /dev/null
+@@ -1,4 +0,0 @@
+-#!/bin/sh
+-# 1.1 PK1: the Graphite session for a display manager (graphite.desktop in /usr/share/xsessions) or for startx:
+-# the session supervisor (LS_XSESSION.sh) of the packaged program, with Fluxbox.
+-exec /bin/bash /usr/lib/graphite/LS_XSESSION.sh "$@"
+diff --git a/debian/bin/graphite-startx b/debian/bin/graphite-startx
+deleted file mode 100755
+index 9f49115..0000000
+--- a/debian/bin/graphite-startx
++++ /dev/null
+@@ -1,3 +0,0 @@
+-#!/bin/sh
+-# 1.1 PK1: start the Graphite session from the text console (tty1), exactly as START_MINIMAL_DEBIAN.sh did.
+-exec /bin/bash /usr/lib/graphite/START_MINIMAL_DEBIAN.sh "$@"
+diff --git a/debian/bin/kas-computer b/debian/bin/kas-computer
+new file mode 100755
+index 0000000..c877cf8
+--- /dev/null
++++ b/debian/bin/kas-computer
+@@ -0,0 +1,9 @@
++#!/bin/sh
++# 1.1 PK1: the computer's window (Kas) from the packaged program (what START_OFFICE.sh does in a folder install).
++# Options pass through: kas-computer --version, kas-computer --check, kas-computer --doctor.
++# 1.1 R1: the graphite-* names stay one release as symlinks to this file (tools/debian_pkg.py); called by one, say the new name.
++case "${0##*/}" in graphite*) echo "${0##*/} is now kas-computer; the old name goes in the next release." >&2 ;; esac
++export ARC_LEDGER_EDITION=office ARC_LEDGER_OPEN="${ARC_LEDGER_OPEN:-office}"
++export PYTHONPATH="/usr/lib/graphite${PYTHONPATH:+:$PYTHONPATH}"
++cd /usr/lib/graphite || exit 1
++exec /usr/bin/python3 -m workbench.launch "$@"
+diff --git a/debian/bin/kas-do b/debian/bin/kas-do
+new file mode 100755
+index 0000000..f93cd33
+--- /dev/null
++++ b/debian/bin/kas-do
+@@ -0,0 +1,5 @@
++#!/bin/sh
++# 1.1 W1/PK1: the keys that work whichever app is in front (tools/graphite-do), for Fluxbox's keys file and for typing.
++# 1.1 R1: the graphite-* names stay one release as symlinks to this file (tools/debian_pkg.py); called by one, say the new name.
++case "${0##*/}" in graphite*) echo "${0##*/} is now kas-do; the old name goes in the next release." >&2 ;; esac
++exec /usr/bin/python3 /usr/lib/graphite/tools/graphite-do "$@"
+diff --git a/debian/bin/kas-doctor b/debian/bin/kas-doctor
+new file mode 100755
+index 0000000..4972cf3
+--- /dev/null
++++ b/debian/bin/kas-doctor
+@@ -0,0 +1,7 @@
++#!/bin/sh
++# 1.1 PK1: the doctor (LEDGER.sh in a folder install): kas-doctor doctor, kas-doctor doctor --json
++# 1.1 R1: the graphite-* names stay one release as symlinks to this file (tools/debian_pkg.py); called by one, say the new name.
++case "${0##*/}" in graphite*) echo "${0##*/} is now kas-doctor; the old name goes in the next release." >&2 ;; esac
++export PYTHONPATH="/usr/lib/graphite${PYTHONPATH:+:$PYTHONPATH}"
++cd /usr/lib/graphite || exit 1
++exec /usr/bin/python3 -m workbench.baseline "$@"
+diff --git a/debian/bin/kas-session b/debian/bin/kas-session
+new file mode 100755
+index 0000000..58a5a51
+--- /dev/null
++++ b/debian/bin/kas-session
+@@ -0,0 +1,6 @@
++#!/bin/sh
++# 1.1 PK1: the Kas session for a display manager (graphite.desktop in /usr/share/xsessions) or for startx:
++# the session supervisor (LS_XSESSION.sh) of the packaged program, with Fluxbox.
++# 1.1 R1: the graphite-* names stay one release as symlinks to this file (tools/debian_pkg.py); called by one, say the new name.
++case "${0##*/}" in graphite*) echo "${0##*/} is now kas-session; the old name goes in the next release." >&2 ;; esac
++exec /bin/bash /usr/lib/graphite/LS_XSESSION.sh "$@"
+diff --git a/debian/bin/kas-startx b/debian/bin/kas-startx
+new file mode 100755
+index 0000000..c8293c1
+--- /dev/null
++++ b/debian/bin/kas-startx
+@@ -0,0 +1,5 @@
++#!/bin/sh
++# 1.1 PK1: start the Kas session from the text console (tty1), exactly as START_MINIMAL_DEBIAN.sh did.
++# 1.1 R1: the graphite-* names stay one release as symlinks to this file (tools/debian_pkg.py); called by one, say the new name.
++case "${0##*/}" in graphite*) echo "${0##*/} is now kas-startx; the old name goes in the next release." >&2 ;; esac
++exec /bin/bash /usr/lib/graphite/START_MINIMAL_DEBIAN.sh "$@"
+diff --git a/debian/control b/debian/control
+index 36fcb4c..7ed05f8 100644
+--- a/debian/control
++++ b/debian/control
+@@ -1,67 +1,119 @@
+-# 1.1 PK1: the Debian packages of Graphite. tools/build_deb.sh reads this file (one stanza per binary package) and
++# 1.1 PK1: the Debian packages of Kas (1.1 R1: renamed from graphite*, the owner, 28 Nov: "kas only kas"). tools/build_deb.sh reads this file (one stanza per binary package) and
+ # fills @VERSION@ from workbench/version.py. Depends were checked against Debian 13 (trixie); see
+ # wip/2026-11-27_distribution/partial/packaging/NOTES.md section 5.1.
+-Source: graphite
++Source: kas-computer
+ Section: x11
+ Priority: optional
+-Maintainer: Graphite packaging <packaging@graphite.invalid>
++Maintainer: Kas packaging <packaging@kas-computer.invalid>
+ Rules-Requires-Root: no
+ Standards-Version: 4.7.2
++# 1.1 R1: never a bare "kas": Debian 13 has an unrelated package of that name with a higher version. Each kas-* package
++# Provides, Replaces and Breaks its graphite* name, and the graphite* packages below are transitional (they depend on
++# kas-*), so `apt upgrade` from the 1.1.3 graphite* packages moves across. Internal paths keep graphite
++# (/usr/lib/graphite, /usr/share/xsessions/graphite.desktop, user-session=graphite).
+ 
+-Package: graphite
++Package: kas-computer
+ Architecture: all
+ Section: x11
+ Depends: python3 (>= 3.11), python3 (<< 3.14), python3-pyside6.qtcore (>= 6.8.2), python3-pyside6.qtgui,
+  python3-pyside6.qtwidgets, python3-pyside6.qtsvg, python3-pyside6.qtdbus, python3-pyside6.qttest,
+  python3-pyside6.qtpdf, python3-pyside6.qtpdfwidgets, python3-cryptography (>= 43), python3-pypdf (>= 5.4),
+  poppler-utils, procps, libgl1, libegl1, libxkbcommon-x11-0, libxcb-cursor0, fonts-dejavu-core, xdg-utils
+-Recommends: graphite-session, graphite-llama-runtime, python3-pyside6.qtmultimedia,
++Provides: graphite (= @VERSION@)
++Replaces: graphite (<< @VERSION@)
++Breaks: graphite (<< @VERSION@)
++Recommends: kas-session, kas-llama-runtime, python3-pyside6.qtmultimedia,
+  python3-pyside6.qtmultimediawidgets, python3-docx, at-spi2-core
+-Suggests: graphite-desktop, python3-sympy, python3-z3, python3-pyside6.qtwebenginewidgets, bubblewrap,
++Suggests: kas-desktop, python3-sympy, python3-z3, python3-pyside6.qtwebenginewidgets, bubblewrap,
+  libreoffice-calc, libreoffice-writer, python3-uno
+-Description: local-first desktop workspace with an assistant (Kasandra)
+- Graphite is a desktop for one Debian computer: files, apps, the machine and
+- its settings in one window, with Kasandra (Kas), an assistant that proposes
+- and waits for the owner's press before anything changes.
++Description: local-first desktop for Debian with an assistant, Kas
++ Kas is a desktop for one Debian computer: files, apps, the machine and its
++ settings in one window, with Kas, an assistant that proposes and waits for
++ the owner's press before anything changes. The window is kas-computer.
+  .
+  The program lives in /usr/lib/graphite; the workspace and settings stay in
+  the user's home and are never touched by installing or removing it.
+ 
+-Package: graphite-llama-runtime
++Package: kas-llama-runtime
+ Architecture: amd64
+ Section: misc
+-Depends: graphite (= @VERSION@), libgomp1, libssl3t64, libstdc++6, zlib1g, libzstd1, libvulkan1
++Depends: kas-computer (= @VERSION@), libgomp1, libssl3t64, libstdc++6, zlib1g, libzstd1, libvulkan1
++Provides: graphite-llama-runtime (= @VERSION@)
++Replaces: graphite-llama-runtime (<< @VERSION@)
++Breaks: graphite-llama-runtime (<< @VERSION@)
+ Recommends: mesa-vulkan-drivers
+-Description: bundled llama.cpp runtime for Graphite's assistant
+- The prebuilt llama.cpp b12359 archives (CPU and Vulkan builds) that Graphite
++Description: bundled llama.cpp runtime for Kas
++ The prebuilt llama.cpp b12359 archives (CPU and Vulkan builds) that Kas
+  unpacks into the user's profile when a local model is chosen. Kept apart so
+- that the graphite package stays small. No model is included.
++ that the kas-computer package stays small. No model is included.
+ 
+-Package: graphite-session
++Package: kas-session
+ Architecture: all
+ Section: x11
+-Depends: graphite (= @VERSION@), xserver-xorg, xinit, fluxbox, x11-xserver-utils, xauth,
++Depends: kas-computer (= @VERSION@), xserver-xorg, xinit, fluxbox, x11-xserver-utils, xauth,
+  dbus-user-session | dbus-x11, libpam-systemd, network-manager, wpasupplicant, wireless-regdb, libgl1-mesa-dri,
+  udisks2, eject, upower, pipewire, pipewire-pulse, wireplumber, alsa-ucm-conf, alsa-topology-conf, xsecurelock,
+  lxpolkit, polkitd, x11-utils, at-spi2-core, python3-pyatspi, librsvg2-common, xterm, libglib2.0-bin
++Provides: graphite-session (= @VERSION@)
++Replaces: graphite-session (<< @VERSION@)
++Breaks: graphite-session (<< @VERSION@)
+ Recommends: xdg-user-dirs, packagekit, accountsservice
+-Description: Graphite as the whole session
+- The X session entry a display manager shows as "Graphite"
+- (/usr/share/xsessions/graphite.desktop, running graphite-session, the
+- session supervisor with Fluxbox), and graphite-startx, which starts the same
++Description: Kas as the whole session
++ The X session entry a display manager shows as "Kas"
++ (/usr/share/xsessions/graphite.desktop, running kas-session, the
++ session supervisor with Fluxbox), and kas-startx, which starts the same
+  session from the text console as before. Depends on the system services the
+  desktop uses: drives, sound, Wi-Fi, the battery, Lock and permission prompts.
+ 
+-Package: graphite-desktop
++Package: kas-desktop
+ Architecture: all
+ Section: metapackages
+-Depends: graphite (= @VERSION@), graphite-session (= @VERSION@)
++Depends: kas-computer (= @VERSION@), kas-session (= @VERSION@)
++Provides: graphite-desktop (= @VERSION@)
++Replaces: graphite-desktop (<< @VERSION@)
++Breaks: graphite-desktop (<< @VERSION@)
+ Recommends: lightdm, lightdm-gtk-greeter, firmware-linux-free, firmware-amd-graphics, firmware-iwlwifi,
+  firmware-realtek, amd64-microcode, intel-microcode
+ Suggests: firefox-esr, cups, system-config-printer, bluez, fonts-liberation, hunspell-en-us, 7zip
+-Description: Graphite with a graphical login (metapackage)
+- Installs Graphite and its session and recommends LightDM with its GTK
+- greeter, configured (user-session=graphite) to start the Graphite session
++Description: Kas with a graphical login (metapackage)
++ Installs Kas and its session and recommends LightDM with its GTK
++ greeter, configured (user-session=graphite) to start the Kas session
+  after the login screen. Firmware and microcode are only recommended.
+  Removing lightdm returns the computer to the text console, where
+- graphite-startx still starts Graphite.
++ kas-startx still starts Kas.
++
++# 1.1 R1: transitional, one release: the old name moves to kas-computer on `apt upgrade`; it may then be removed.
++Package: graphite
++Architecture: all
++Section: oldlibs
++Depends: kas-computer (= @VERSION@)
++Description: transitional package: graphite is now kas-computer
++ This package moves the desktop (Kas, formerly named Graphite) to its new name,
++ kas-computer. It holds no files and can be removed safely.
++
++# 1.1 R1: transitional, one release: the old name moves to kas-llama-runtime on `apt upgrade`; it may then be removed.
++Package: graphite-llama-runtime
++Architecture: all
++Section: oldlibs
++Depends: kas-llama-runtime (= @VERSION@)
++Description: transitional package: graphite-llama-runtime is now kas-llama-runtime
++ This package moves the bundled llama.cpp runtime (Kas, formerly named Graphite) to its new name,
++ kas-llama-runtime. It holds no files and can be removed safely.
++
++# 1.1 R1: transitional, one release: the old name moves to kas-session on `apt upgrade`; it may then be removed.
++Package: graphite-session
++Architecture: all
++Section: oldlibs
++Depends: kas-session (= @VERSION@)
++Description: transitional package: graphite-session is now kas-session
++ This package moves the whole session (Kas, formerly named Graphite) to its new name,
++ kas-session. It holds no files and can be removed safely.
++
++# 1.1 R1: transitional, one release: the old name moves to kas-desktop on `apt upgrade`; it may then be removed.
++Package: graphite-desktop
++Architecture: all
++Section: oldlibs
++Depends: kas-desktop (= @VERSION@)
++Description: transitional package: graphite-desktop is now kas-desktop
++ This package moves the graphical login (Kas, formerly named Graphite) to its new name,
++ kas-desktop. It holds no files and can be removed safely.
+diff --git a/debian/copyright b/debian/copyright
+index 6c7eb27..741b962 100644
+--- a/debian/copyright
++++ b/debian/copyright
+@@ -1,5 +1,5 @@
+ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+-Upstream-Name: Graphite
++Upstream-Name: Kas (formerly Graphite)
+ Comment: 1.1 PK1. The full rights statement is /usr/lib/graphite/RIGHTS.md, the
+  licences of the bundled fonts, artwork and runtimes are in
+  /usr/lib/graphite/THIRD_PARTY_NOTICES.md and beside each runtime.
+diff --git a/debian/graphite-xsession.desktop b/debian/graphite-xsession.desktop
+index b0e5f29..674cee2 100644
+--- a/debian/graphite-xsession.desktop
++++ b/debian/graphite-xsession.desktop
+@@ -1,7 +1,7 @@
+ [Desktop Entry]
+ Type=Application
+-Name=Graphite
+-Comment=Graphite is the whole desktop
+-Exec=graphite-session
+-TryExec=graphite-session
++Name=Kas
++Comment=Kas is the whole desktop
++Exec=kas-session
++TryExec=kas-session
+ DesktopNames=Graphite
+diff --git a/debian/graphite.desktop b/debian/graphite.desktop
+index dd343ba..426e536 100644
+--- a/debian/graphite.desktop
++++ b/debian/graphite.desktop
+@@ -1,10 +1,10 @@
+ [Desktop Entry]
+ Type=Application
+-Name=Graphite
++Name=Kas
+ GenericName=Desktop workspace
+-Comment=Files, apps and the computer in one window, with Kasandra
+-Exec=graphite
++Comment=Files, apps and the computer in one window, with Kas
++Exec=kas-computer
+ Icon=graphite
+ Terminal=false
+ Categories=Office;Utility;
+-Keywords=desktop;workspace;assistant;Kasandra;
++Keywords=desktop;workspace;assistant;Kas;computer;
+diff --git a/debian/kit/JOIN.sh b/debian/kit/JOIN.sh
+index ae61ea9..43a9acc 100644
+--- a/debian/kit/JOIN.sh
++++ b/debian/kit/JOIN.sh
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env bash
+-# 1.1 PK1: put the kit's repository together: check the kit's files (KIT.sha256), unpack every GRAPHITE_NNN.zip into
++# 1.1 PK1: put the kit's repository together: check the kit's files (KIT.sha256), unpack every KAS_NNN.zip into
+ # ./repo, check every piece by sha256, join the pieces of each large file, check the joined file, then check every file
+ # of the repository (SHA256SUMS). Needs only bash, coreutils and python3 (for the ZIPs; unzip is not needed).
+ #   bash JOIN.sh          (in the kit's folder, as your ordinary user)
+@@ -9,7 +9,7 @@ if [[ -f KIT.sha256 ]]; then
+   sha256sum --quiet -c KIT.sha256 || { echo 'A kit file does not match KIT.sha256: copy the kit again.' >&2; exit 1; }
+ fi
+ rm -rf repo
+-for z in GRAPHITE_*.zip; do python3 -m zipfile -e "$z" . ; done
++for z in KAS_*.zip; do python3 -m zipfile -e "$z" . ; done
+ while read -r sum name whole; do
+   [[ -n "$sum" ]] || continue
+   if [[ "$whole" == WHOLE ]]; then
+diff --git a/debian/kit/START_HERE.md b/debian/kit/START_HERE.md
+index e0be398..e484fb5 100644
+--- a/debian/kit/START_HERE.md
++++ b/debian/kit/START_HERE.md
+@@ -1,77 +1,84 @@
+-# Graphite @VERSION@: install it as Debian software
++# Kas @VERSION@: install it as Debian software
+ 
+-This kit installs Graphite with `apt`, from a folder on your USB stick. It is made for a Debian 13 computer that
+-already has the Graphite 1.0 System set (the packages the 1.0 kit installed). Nothing here needs the network.
++This kit installs Kas with `apt`, from a folder on your USB stick. It is made for a Debian 13 computer that
++already has the Kas 1.0 System set (the packages the 1.0 kit installed). Nothing here needs the network.
+ 
+ It goes in **two stages**. Stage 1 changes nothing about how the computer starts: you still log in on the text console
+-and start Graphite with one command. Stage 2, the graphical login screen, is optional and separate, because a login
++and start Kas with one command. Stage 2, the graphical login screen, is optional and separate, because a login
+ screen changes how the computer boots. Do stage 2 only after stage 1 works.
+ 
+-## Your Graphite 1.0 stays
++## Your Kas 1.0 stays
+ 
+-If you have `~/Applications/Graphite-1.0`, leave it. The new Graphite opens the same workspace (`~/Concern/Office`) and
++If you have `~/Applications/Graphite-1.0`, leave it. The new Kas opens the same workspace (`~/Concern/Office`) and
+ the same settings; nothing is moved or copied. To go back at any time, start the old one as before:
+ `bash ~/Applications/Graphite-1.0/START_MINIMAL_DEBIAN.sh`. To take the new one away, see "Going back" below.
+ 
+ ## 0. Put the kit together (as your ordinary user)
+ 
+-Copy every file of the kit into one folder on the stick or in your home, for example `~/GraphiteKit`. Then:
++Copy every file of the kit into one folder on the stick or in your home, for example `~/KasKit`. Then:
+ 
+-    cd ~/GraphiteKit
++    cd ~/KasKit
+     bash JOIN.sh
+ 
+ It checks every file by sha256, unpacks the ZIPs into `repo/` and joins the large files from their pieces. It ends
+ with `JOINED AND CHECKED`. If it says a file does not match, copy that file again and run it again.
+ 
+-## 1. Stage 1: Graphite and its session (the text console way, as before)
++## 1. Stage 1: Kas and its session (the text console way, as before)
+ 
+ Become root and look first (this changes nothing):
+ 
+     su -
+-    bash /home/YOU/GraphiteKit/install.sh --check
++    bash /home/YOU/KasKit/install.sh --check
+ 
+ Then install:
+ 
+-    bash /home/YOU/GraphiteKit/install.sh
++    bash /home/YOU/KasKit/install.sh
+ 
+ It copies the repository to `/var/lib/graphite-kit/repo`, adds it as an apt source and runs
+-`apt-get install graphite graphite-session`. Type `exit` to leave root. Log out and in again on the text console (the
+-session services need a fresh login), then start Graphite exactly as before, with one command:
++`apt-get install kas-computer kas-session`. Type `exit` to leave root. Log out and in again on the text console (the
++session services need a fresh login), then start Kas exactly as before, with one command:
+ 
+-    graphite-startx
++    kas-startx
+ 
+-Check it from a terminal at any time: `graphite --version`, `graphite-doctor doctor`.
++Check it from a terminal at any time: `kas-computer --version`, `kas-doctor doctor`.
++
++**Already installed from an earlier 1.1 kit?** The packages were called `graphite`, `graphite-session`,
++`graphite-llama-runtime` and `graphite-desktop`; they are now `kas-computer`, `kas-session`, `kas-llama-runtime` and
++`kas-desktop`. The same `install.sh` (or `apt upgrade` once the kit's source is in place) moves you across: each old
++package becomes a small transitional one that pulls in its new name, and may be removed afterwards
++(`apt remove graphite graphite-session graphite-llama-runtime graphite-desktop`). The old commands (`graphite-startx`,
++`graphite-do` and the others) still work for one release and say their new name.
+ 
+ ## 2. Stage 2, optional: the graphical login screen
+ 
+ Only when stage 1 works. As root:
+ 
+-    bash /home/YOU/GraphiteKit/install.sh --desktop
++    bash /home/YOU/KasKit/install.sh --desktop
+ 
+-This installs `graphite-desktop`: LightDM's login screen, set to start the Graphite session. At the next boot you log
++This installs `kas-desktop`: LightDM's login screen, set to start the Kas session. At the next boot you log
+ in on the login screen instead of the text console.
+ 
+ **To undo it**, two commands, as root:
+ 
+     systemctl disable lightdm
+-    apt remove graphite-desktop lightdm lightdm-gtk-greeter
++    apt remove kas-desktop lightdm lightdm-gtk-greeter
+ 
+ **If the login screen does not come up** after a reboot: press Ctrl+Alt+F2 for a text console, log in as root, type
+-`systemctl disable --now lightdm`, then log in as your user and type `graphite-startx`. Graphite starts as in stage 1.
++`systemctl disable --now lightdm`, then log in as your user and type `kas-startx`. Kas starts as in stage 1.
+ 
+ ## Going back
+ 
+-- Remove the new Graphite (as root): `apt remove graphite graphite-session graphite-llama-runtime graphite-desktop`.
++- Remove the new Kas (as root): `apt remove kas-computer kas-session kas-llama-runtime kas-desktop`.
+   Your workspace in `~/Concern`, your settings in `~/.config/arc1-workbench` and `~/.local/state/ledger-slate` stay.
+   Your old `~/Applications/Graphite-1.0` keeps working.
+ - Remove the kit's apt source and its copy (as root): `bash install.sh --forget`.
+ 
+ ## What this preview is and is not
+ 
+-- The packages are not signed with a Graphite release key yet; the release key is the owner's to make and keep. The
++- The packages are not signed with a Kas release key yet; the release key is the owner's to make and keep. The
+   kit's apt source is marked trusted and every file is checked by sha256 (`SHA256SUMS`, `PIECES.sha256`,
+   `KIT.sha256`), and apt checks every package against the repository's index.
+-- Tried in the build container: the packages build; from these ZIPs alone (joined and checked), `apt install graphite
+-  graphite-session` succeeds in a fresh Debian 13 chroot that has the 1.0 System set's packages; `graphite --check`
+-  passes as an ordinary user with nothing written under `/usr`; `apt remove graphite` leaves the workspace.
++- Tried in the build container: the packages build; from these ZIPs alone (joined and checked), `apt install kas-computer
++  kas-session` succeeds in a fresh Debian 13 chroot that has the 1.0 System set's packages; `kas-computer --check`
++  passes as an ordinary user with nothing written under `/usr`; `apt remove kas-computer` leaves the workspace.
+ - Not tried there, and only your computer can show it: the login screen itself, the session under it, Wi-Fi and sound.
+diff --git a/debian/kit/install.sh b/debian/kit/install.sh
+index 21d8acd..191c3f0 100644
+--- a/debian/kit/install.sh
++++ b/debian/kit/install.sh
+@@ -1,8 +1,8 @@
+ #!/usr/bin/env bash
+-# 1.1 PK1: install Graphite from the kit's folder repository with apt. Run as root (su -), after bash JOIN.sh:
++# 1.1 PK1: install Kas from the kit's folder repository with apt. Run as root (su -), after bash JOIN.sh:
+ #   bash install.sh --check      show what apt would do; changes nothing
+-#   bash install.sh              stage 1: graphite and graphite-session (start with graphite-startx, as before)
+-#   bash install.sh --desktop    stage 2, optional: graphite-desktop, the graphical login (LightDM)
++#   bash install.sh              stage 1: kas-computer and kas-session (start with kas-startx, as before)
++#   bash install.sh --desktop    stage 2, optional: kas-desktop, the graphical login (LightDM)
+ #   bash install.sh --forget     remove the kit's apt source and its copy (installed packages stay)
+ # The repository is copied to /var/lib/graphite-kit/repo and added as an apt source. A preview kit is not signed: the
+ # source is marked trusted and every file is checked by sha256 (SHA256SUMS here, and apt checks each package against
+@@ -35,18 +35,18 @@ else
+   echo "deb [trusted=yes] file:$place ./" > "$list"
+ fi
+ apt-get update -o Dir::Etc::sourcelist="$list" -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0
+-packages='graphite graphite-session'
+-[[ "$mode" == --desktop ]] && packages='graphite-desktop'
++packages='kas-computer kas-session'
++[[ "$mode" == --desktop ]] && packages='kas-desktop'
+ if [[ "$mode" == --check ]]; then
+   apt-get install -s $packages | grep -E '^(Inst|Conf|Remv|[0-9]+ upgraded|E:)' || true
+   echo 'Nothing was changed (--check).'; exit 0
+ fi
+ apt-get install -y $packages
+ if [[ "$mode" == --desktop ]]; then
+-  echo 'Installed graphite-desktop. At the next boot the login screen offers the Graphite session.'
+-  echo 'To go back to the text console:  systemctl disable lightdm   (then reboot; graphite-startx still works there)'
+-  echo 'To remove the login screen:      apt remove graphite-desktop lightdm lightdm-gtk-greeter'
++  echo 'Installed kas-desktop. At the next boot the login screen offers the Kas session.'
++  echo 'To go back to the text console:  systemctl disable lightdm   (then reboot; kas-startx still works there)'
++  echo 'To remove the login screen:      apt remove kas-desktop lightdm lightdm-gtk-greeter'
+ else
+-  echo 'Installed graphite and graphite-session. Log out of root, log in as your user on the text console and type:'
+-  echo '  graphite-startx'
++  echo 'Installed kas-computer and kas-session. Log out of root, log in as your user on the text console and type:'
++  echo '  kas-startx'
+ fi
 diff --git a/docs/ACCEPTANCE_1.0.md b/docs/ACCEPTANCE_1.0.md
 index db351f6..c1cf721 100644
 --- a/docs/ACCEPTANCE_1.0.md
@@ -1179,19 +1690,6 @@ index 57dcd65..9ec6b43 100644
  
      def test_the_trays_quick_settings_opens_the_three_sections_above_it_with_the_machine_pages_own_actions(self):
          tray = self.bar.slot('tray')      # 1.1 B5: one Quick Settings button, one panel with the three sections (was three flyouts)
-diff --git a/tests_integrated/test_campaign.py b/tests_integrated/test_campaign.py
-index dc5f4f1..02cc513 100644
---- a/tests_integrated/test_campaign.py
-+++ b/tests_integrated/test_campaign.py
-@@ -163,7 +163,7 @@ class CampaignTests(unittest.TestCase):
- 
-     def test_r17_label_comes_from_graphites_record_and_llvmpipe_does_not_pass(self):
-         label = {c['check']: c for c in self.results['R17']['checks']}['offload_label']
--        self.assertTrue(label['observed'].startswith('SIMULATED: 41 layers per Graphite'), label)
-+        self.assertTrue(label['observed'].startswith('SIMULATED: 41 layers per Kas'), label)
-         t03 = self.results['T03']
-         self.assertNotEqual(t03['outcome'], 'Pass', t03.get('reason'))
-         label = {c['check']: c for c in t03['checks']}['offload_label']
 diff --git a/tests_integrated/test_colour_vision.py b/tests_integrated/test_colour_vision.py
 index 2228134..2b0d596 100644
 --- a/tests_integrated/test_colour_vision.py
@@ -2574,6 +3072,228 @@ index 1101f23..b9c323e 100644
              words=self.box.results('show me the files')
              self.assertNotIn(('section','A LINE · THE ARROW RUNS IT',None),words);self.assertEqual(words[1][0],'ask','words for her: the offer first')
              self.host.type_target='find';self.host.type_bar.target='find'
+diff --git a/tools/build_deb.sh b/tools/build_deb.sh
+index fe83a92..682316b 100644
+--- a/tools/build_deb.sh
++++ b/tools/build_deb.sh
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env bash
+-# 1.1 PK1: build Graphite's four Debian packages from this tree with dpkg-deb (no debhelper needed).
++# 1.1 PK1: build Kas's Debian packages from this tree with dpkg-deb (no debhelper needed). 1.1 R1: the four kas-*
++# packages and the four transitional graphite* ones (debian/control).
+ #   tools/build_deb.sh [--out DIR] [--work DIR]
+ # Gives graphite_<v>_all.deb (the program in /usr/lib/graphite, /usr/bin/graphite, the desktop entry and icon),
+ # graphite-llama-runtime_<v>_amd64.deb (the bundled llama.cpp archives), graphite-session_<v>_all.deb (the X session
+@@ -22,7 +23,7 @@ python="${PYTHON:-python3}"
+ version="$("$python" "$tree/tools/debian_pkg.py" version)"
+ [[ -n "$work" ]] || work="$(mktemp -d)"
+ mkdir -p "$out" "$work"
+-for package in graphite graphite-llama-runtime graphite-session graphite-desktop; do
++for package in kas-computer kas-llama-runtime kas-session kas-desktop graphite graphite-llama-runtime graphite-session graphite-desktop; do
+   stage="$work/$package"
+   "$python" - "$tree" "$package" "$stage" <<'PY'
+ import sys; sys.path.insert(0, sys.argv[1] + '/tools')
+diff --git a/tools/build_kit.sh b/tools/build_kit.sh
+index d4eb6b2..0f9063a 100644
+--- a/tools/build_kit.sh
++++ b/tools/build_kit.sh
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env bash
+ # 1.1 PK1: pack the folder repository (tools/build_repo.sh) as the kit the owner receives.
+ #   tools/build_kit.sh --repo REPO --out KIT
+-# Every file in KIT is smaller than 15,000,000 bytes: the repository goes into GRAPHITE_NNN.zip files; a file larger
++# Every file in KIT is smaller than 15,000,000 bytes: the repository goes into KAS_NNN.zip files; a file larger
+ # than one ZIP is cut into pieces (each in its own ZIP) that JOIN.sh puts together again, every piece and every whole
+ # file checked by sha256 (PIECES.sha256, SHA256SUMS). Beside them: START_HERE.md, JOIN.sh, install.sh and KIT.sha256.
+ set -euo pipefail
+@@ -17,7 +17,7 @@ mkdir -p "$kit"
+ "$python" "$tree/tools/debian_pkg.py" pack "$repo" "$kit"
+ for name in JOIN.sh install.sh; do install -m 755 "$tree/debian/kit/$name" "$kit/$name"; done
+ sed "s/@VERSION@/$version/g" "$tree/debian/kit/START_HERE.md" > "$kit/START_HERE.md"
+-( cd "$kit" && sha256sum START_HERE.md JOIN.sh install.sh PIECES.sha256 SHA256SUMS GRAPHITE_*.zip > KIT.sha256 )
++( cd "$kit" && sha256sum START_HERE.md JOIN.sh install.sh PIECES.sha256 SHA256SUMS KAS_*.zip > KIT.sha256 )
+ "$python" - "$kit" <<'PY'
+ import sys, pathlib
+ files = [p for p in pathlib.Path(sys.argv[1]).iterdir() if p.is_file()]
+diff --git a/tools/build_repo.sh b/tools/build_repo.sh
+index 334ffa5..96da083 100644
+--- a/tools/build_repo.sh
++++ b/tools/build_repo.sh
+@@ -13,8 +13,8 @@
+ #   --keep-chroot      leave the chroot (with the System set installed) in WORK/chroot for an install test
+ # What it does: debootstrap --variant=minbase trixie (the debootstrap and keyring files are fetched from the mirror and
+ # checked against its signed index when debootstrap is not installed); installs the packages the System set's status
+-# lists; then downloads, with Recommends, what `apt-get install graphite graphite-session graphite-llama-runtime
+-# graphite-desktop` needs twice: against that chroot, and against the System set's status (its exact versions). The
++# lists; then downloads, with Recommends, what `apt-get install kas-computer kas-session kas-llama-runtime
++# kas-desktop` needs twice: against that chroot, and against the System set's status (its exact versions). The
+ # repository is flat (Packages, Packages.xz, Release) and CLOSURE.txt says what came in and why.
+ set -euo pipefail
+ tree="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+@@ -102,7 +102,7 @@ inroot apt-get clean
+ "$python" "$helper" index "$debs" --label 'Graphite packages' >/dev/null
+ echo 'deb [trusted=yes] file:/graphite-debs ./' > "$root/etc/apt/sources.list.d/graphite-debs.list"
+ inroot apt-get update -q >>"$log" 2>&1
+-wanted='graphite graphite-session graphite-llama-runtime graphite-desktop'
++wanted='kas-computer kas-session kas-llama-runtime kas-desktop'      # 1.1 R1: the kas-* packages (the transitional graphite* ones are copied with the rest of debs)
+ say 'downloading the closure against the chroot (System set installed, today'"'"'s versions)'
+ mkdir -p "$root/var/cache/graphite-a/partial" "$root/var/cache/graphite-b/partial"
+ inroot sh -c "apt-get install -s -o APT::Install-Recommends=true $wanted > /root/plan-chroot.txt && apt-get install -y -q --download-only -o APT::Install-Recommends=true -o Dir::Cache::archives=/var/cache/graphite-a $wanted" >>"$log" 2>&1
+@@ -113,7 +113,7 @@ inroot sh -c "apt-get install -s -o Dir::State::status=/root/system-set.status -
+ find "$out" -maxdepth 1 -name '*.deb' -delete
+ cp -n "$debs"/*.deb "$out"/
+ for cache in graphite-a graphite-b; do find "$root/var/cache/$cache" -maxdepth 1 -name '*.deb' -exec cp -n {} "$out"/ \; ; done
+-count="$("$python" "$helper" index "$out" --label 'Graphite kit')"
++count="$("$python" "$helper" index "$out" --label 'Graphite kit')"      # 1.1 R1: the Label (and Origin, Suite, Codename) stay: apt refuses a source whose Release values change
+ { echo "Graphite kit repository: $count packages, $(du -sm "$out" | cut -f1) MB"; echo
+   echo "== against the chroot with the System set installed (today's versions):"; grep -E '^(Inst|[0-9]+ upgraded)' "$root/root/plan-chroot.txt" || true; echo
+   echo "== against the System set status (its exact versions):"; grep -E '^(Inst|[0-9]+ upgraded)' "$root/root/plan-status.txt" || true
+diff --git a/tools/debian_pkg.py b/tools/debian_pkg.py
+index 7680963..b805b0a 100644
+--- a/tools/debian_pkg.py
++++ b/tools/debian_pkg.py
+@@ -37,7 +37,16 @@ PROGRAM = 'usr/lib/graphite'
+ # Payload files that another binary package installs into the same program folder (dpkg cares only about which
+ # package owns which file). The manifest still lists them; workbench.release_integrity reads PACKAGE_PARTS.json and
+ # treats a part whose package is not installed as "not installed", never as damage.
+-PARTS = {'graphite-llama-runtime': ('runtimes/llama.cpp/b12359/llama-b12359-bin-ubuntu-x64.tar.gz',
++# 1.1 R1: the packages are kas-* (never a bare "kas": Debian 13 has an unrelated package of that name); the graphite*
++# names are transitional packages (TRANSITIONAL) and the old commands symlinks (OLD_COMMANDS), one release each.
++MAIN = 'kas-computer'
++PACKAGES = ('kas-computer', 'kas-llama-runtime', 'kas-session', 'kas-desktop')
++TRANSITIONAL = {'graphite': 'kas-computer', 'graphite-llama-runtime': 'kas-llama-runtime', 'graphite-session': 'kas-session',
++                'graphite-desktop': 'kas-desktop'}
++COMMANDS = {'kas-computer': ('kas-computer', 'kas-doctor'), 'kas-session': ('kas-session', 'kas-startx', 'kas-do')}
++OLD_COMMANDS = {'graphite': 'kas-computer', 'graphite-doctor': 'kas-doctor', 'graphite-session': 'kas-session',
++                'graphite-startx': 'kas-startx', 'graphite-do': 'kas-do'}
++PARTS = {'kas-llama-runtime': ('runtimes/llama.cpp/b12359/llama-b12359-bin-ubuntu-x64.tar.gz',
+                                     'runtimes/llama.cpp/b12359/llama-b12359-bin-ubuntu-vulkan-x64.tar.gz')}
+ PARTS_FILE = 'PACKAGE_PARTS.json'
+ 
+@@ -115,10 +124,10 @@ def payload(root=ROOT):
+ def split_payload(names):
+     """{package: [payload names]} for the program folder; every name goes to exactly one package."""
+     owned = {name: package for package, files in PARTS.items() for name in files}
+-    out = {'graphite': []}
++    out = {MAIN: []}
+     for package in PARTS: out[package] = []
+     for name in names:
+-        out[owned.get(name, 'graphite')].append(name)
++        out[owned.get(name, MAIN)].append(name)
+     return out
+ 
+ 
+@@ -128,9 +137,9 @@ def _copy(src, dst, mode):
+ 
+ 
+ def _changelog(version, package):
+-    text = ('graphite (%s) trixie; urgency=medium\n\n  * Graphite %s, built by tools/build_deb.sh.\n\n'
+-            ' -- Graphite packaging <packaging@graphite.invalid>  %s\n') % (
+-        version, version, email.utils.formatdate(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())), usegmt=False))
++    text = ('kas-computer (%s) trixie; urgency=medium\n\n  * Kas %s (%s), built by tools/build_deb.sh.\n\n'
++            ' -- Kas packaging <packaging@kas-computer.invalid>  %s\n') % (
++        version, version, package, email.utils.formatdate(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())), usegmt=False))
+     buffer = io.BytesIO()
+     with gzip.GzipFile(fileobj=buffer, mode='wb', compresslevel=9, mtime=0, filename='') as stream:
+         stream.write(text.encode())
+@@ -151,27 +160,32 @@ def stage(package, folder, root=ROOT, version=None):
+     if package in parts:
+         for name in parts[package]:
+             program_file(name); count += 1
+-    if package == 'graphite':
++    def commands(names):
++        for name in names:
++            _copy(root / 'debian/bin' / name, folder / 'usr/bin' / name, 0o755)
++        for old, new in OLD_COMMANDS.items():      # 1.1 R1: the old name, one release, a symlink that says the new one
++            if new in names:os.symlink(new, folder / 'usr/bin' / old)
++    if package == MAIN:
+         (folder / PROGRAM / PARTS_FILE).write_text(json.dumps(
+             {'schema': 'graphite.package-parts/1', 'version': version,
+              'parts': {p: list(files) for p, files in PARTS.items()},
+              'meaning': 'Files of the program folder that another package installs. A part whose files are all '
+                         'absent is not installed; a part with some files absent is damaged.'}, indent=1) + '\n')
+-        for name in ('graphite', 'graphite-doctor'):
+-            _copy(root / 'debian/bin' / name, folder / 'usr/bin' / name, 0o755)
++        commands(COMMANDS[MAIN])
+         _copy(root / 'debian/graphite.desktop', folder / 'usr/share/applications/graphite.desktop', 0o644)
+         _copy(root / 'branding/graphite/graphite_icon_256.png', folder / 'usr/share/icons/hicolor/256x256/apps/graphite.png', 0o644)
+         for script in ('postinst', 'prerm'):
+             _copy(root / ('debian/graphite.' + script), folder / 'DEBIAN' / script, 0o755)
+         count += 5
+-    elif package == 'graphite-session':
+-        for name in ('graphite-session', 'graphite-startx', 'graphite-do'):      # 1.1 W1: graphite-do
+-            _copy(root / 'debian/bin' / name, folder / 'usr/bin' / name, 0o755)
++    elif package == 'kas-session':
++        commands(COMMANDS['kas-session'])      # 1.1 W1: kas-do (graphite-do)
+         _copy(root / 'debian/graphite-xsession.desktop', folder / 'usr/share/xsessions/graphite.desktop', 0o644)
+         count += 3
+-    elif package == 'graphite-desktop':
++    elif package == 'kas-desktop':
+         _copy(root / 'debian/50-graphite.conf', folder / 'usr/share/lightdm/lightdm.conf.d/50-graphite.conf', 0o644)
+         count += 1
++    elif package in TRANSITIONAL:
++        pass      # 1.1 R1: a transitional package holds its copyright and changelog only
+     elif package not in parts:
+         raise KeyError(package)
+     doc = folder / 'usr/share/doc' / package
+@@ -229,7 +243,7 @@ def index(folder, label='Graphite kit', date=None):
+     stamp = date or email.utils.formatdate(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())), usegmt=True)
+     lines = ['Origin: Graphite', 'Label: ' + label, 'Suite: graphite', 'Codename: graphite', 'Date: ' + stamp,
+              'Architectures: ' + ' '.join(a for a in arches if a != 'all'), 'Components: ',
+-             'Description: Graphite and the Debian 13 packages it needs, as a folder repository']
++             'Description: Kas and the Debian 13 packages it needs, as a folder repository']
+     for field, kind in (('MD5Sum', 'md5'), ('SHA256', 'sha256')):
+         lines.append(field + ':')
+         for name in ('Packages', 'Packages.xz'):
+@@ -246,7 +260,7 @@ def pack(repo, kit, limit=LIMIT, piece=PIECE, fill=ZIP_FILL):
+     repo, kit = Path(repo), Path(kit)
+     if not (piece < limit - 4096 and fill < limit - 65536): raise ValueError('piece and fill must leave room for ZIP headers')
+     kit.mkdir(parents=True, exist_ok=True)
+-    for old in kit.glob('GRAPHITE_*.zip'): old.unlink()
++    for old in [*kit.glob('KAS_*.zip'), *kit.glob('GRAPHITE_*.zip')]: old.unlink()
+     files = sorted(p for p in repo.rglob('*') if p.is_file())
+     sums, pieces, groups, small, size = [], [], [], [], 0
+     for path in files:
+@@ -269,7 +283,7 @@ def pack(repo, kit, limit=LIMIT, piece=PIECE, fill=ZIP_FILL):
+     if small: groups.append(small)
+     made = []
+     for number, group in enumerate(groups, 1):
+-        target = kit / ('GRAPHITE_%03d.zip' % number)
++        target = kit / ('KAS_%03d.zip' % number)      # 1.1 R1: the kit's ZIPs say Kas
+         with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_STORED) as archive:
+             for name, item in group:
+                 info = zipfile.ZipInfo('repo/' + name, date_time=(2026, 1, 1, 0, 0, 0)); info.external_attr = 0o644 << 16
+@@ -290,7 +304,7 @@ def join(kit, out=None):
+     """Unpack the ZIPs of KIT into KIT/repo, check every piece, join them, check every file. Returns problems."""
+     kit = Path(kit); out = Path(out) if out else kit
+     problems = []
+-    for archive in sorted(kit.glob('GRAPHITE_*.zip')):
++    for archive in sorted(kit.glob('KAS_*.zip')):
+         with zipfile.ZipFile(archive) as z: z.extractall(out)
+     repo = out / 'repo'
+     whole = {}
+diff --git a/tools/graphite-do b/tools/graphite-do
+index 441a8ba..cc34018 100755
+--- a/tools/graphite-do
++++ b/tools/graphite-do
+@@ -49,7 +49,7 @@ def socket_path(environ=None):
+ 
+ def ask(verb, path=None, timeout=10.0):
+     """Say one word to the window: its answer {ok, words}."""
+-    if verb not in VERBS:return {'ok': False, 'words': 'graphite-do knows: ' + ', '.join(VERBS)}
++    if verb not in VERBS:return {'ok': False, 'words': 'kas-do knows: ' + ', '.join(VERBS)}
+     path = path or socket_path()
+     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM);s.settimeout(timeout)
+     try:
+@@ -106,7 +106,7 @@ def main(argv=None):
+     if len(argv) == 2 and argv[0] == '--write-keys':
+         print(write_keys(argv[1]));return 0
+     if len(argv) != 1 or argv[0] in ('-h', '--help'):
+-        print('graphite-do WORD   (WORD: %s)\ngraphite-do --write-keys FOLDER' % ' '.join(VERBS));return 0 if argv[:1] in (['-h'], ['--help']) else 2
++        print('kas-do WORD   (WORD: %s)\nkas-do --write-keys FOLDER' % ' '.join(VERBS));return 0 if argv[:1] in (['-h'], ['--help']) else 2
+     answer = ask(argv[0].lower())
+     print(answer.get('words') or ('done' if answer.get('ok') else 'not done'))
+     return 0 if answer.get('ok') else 1
 diff --git a/tools/name_sweep.py b/tools/name_sweep.py
 index d2d6952..6ec1a48 100644
 --- a/tools/name_sweep.py
@@ -9743,6 +10463,20 @@ index 7141ecd..1864b71 100644
              host.system_dock = None
  
      def gone(*_):
+diff --git a/workbench/system_door.py b/workbench/system_door.py
+index 6c8b872..8b7b5d2 100644
+--- a/workbench/system_door.py
++++ b/workbench/system_door.py
+@@ -90,7 +90,8 @@ REAL = re.compile(r'^[^\x00-\x1f:,=\\]{1,64}$')
+ # packages it never removes (the session and the door); the services say no to most of these themselves, the door first.
+ KEPT_UNITS = re.compile(r'^(dbus|dbus-broker|polkit|systemd-[a-z-]+|display-manager|lightdm|gdm3?|sddm|getty@.*|user@.*|'
+                         r'user-runtime-dir@.*|packagekit|accounts-daemon|graphite.*)\.(service|socket)$')
+-KEPT_PACKAGES = frozenset(('graphite', 'graphite-session', 'graphite-desktop', 'packagekit', 'polkitd', 'lxpolkit', 'dbus', 'dbus-daemon',
++KEPT_PACKAGES = frozenset(('kas-computer', 'kas-session', 'kas-desktop', 'kas-llama-runtime',      # 1.1 R1: the kas-* packages
++                           'graphite', 'graphite-session', 'graphite-desktop', 'packagekit', 'polkitd', 'lxpolkit', 'dbus', 'dbus-daemon',
+                            'dbus-bin', 'systemd', 'systemd-sysv', 'apt', 'dpkg', 'libc6', 'sudo', 'fluxbox', 'xserver-xorg', 'xserver-xorg-core',
+                            'python3', 'base-files', 'init', 'login', 'passwd', 'accountsservice', 'network-manager'))
+ RESERVED_LOGINS = frozenset(('root', 'admin', 'administrator', 'daemon', 'bin', 'sys', 'sync', 'games', 'man', 'lp', 'mail', 'news', 'uucp',
 diff --git a/workbench/system_menu_qt.py b/workbench/system_menu_qt.py
 index 8692d7d..4ed30cd 100644
 --- a/workbench/system_menu_qt.py
