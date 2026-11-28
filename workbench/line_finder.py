@@ -91,6 +91,7 @@ class Row:
         if self.kind == 'sum':return 'Enter: Calculate · puts %s in the line and copies it' % self.extra.get('answer', '')
         if self.kind == 'ask':return 'Enter: Ask Kasandra · in her column; she proposes, you decide'
         if self.extra.get('recipe'):return self.detail.replace('Enter ', 'Enter: ', 1)      # 1.1 KS1: a recipe's row shows what it would do
+        if self.extra.get('command'):return self.detail.replace('Enter ', 'Enter: ', 1)      # 1.1 KS2: a command's row says what Enter does
         return 'Enter: %s %s' % (self.verb, name)
 
 
@@ -329,6 +330,17 @@ def recipe_rows(text, sources):
         return []
 
 
+def tool_rows(text, sources):
+    """1.1 KS2 (the command tool): a row for "run: …" (or a line that starts with a program she knows and has an option):
+    "Run: df -h, only reads"; Enter shows it in her talk, where a read runs sealed and anything else waits for your press."""
+    try:
+        from .command_tool_qt import line_rows
+        return [Row('command', title, detail, verb, do, section='COMMANDS', icon='command', extra=dict(command=True))
+                for title, detail, verb, do in line_rows(text, getattr(sources, 'host', None))]
+    except Exception:  # noqa: BLE001 - no command read: no row
+        return []
+
+
 def ask_row(text):
     return Row('ask', '%s: %s' % (ASK, short(clean(text).lstrip('?').strip(), 44)), 'Your words go to her column; she proposes, you decide',
                ASK, clean(text).lstrip('?').strip(), icon='ask')
@@ -471,6 +483,7 @@ def rows(text, sources=None):
     if not first:first += line_rows(words, reading)
     first += dos_rows(words)
     first += recipe_rows(words, sources)      # 1.1 KS1 (recipes): "Recipe: Free space in Home", Enter shows what it would do
+    first += tool_rows(words, sources)      # 1.1 KS2 (the command tool): "Run: df -h, only reads"
     if lead == '/':
         place = Path(os.path.expanduser(words))
         if not first and place.exists():first.append(file_row(str(place), 'A place on this computer', 'folder' if place.is_dir() else 'file'))

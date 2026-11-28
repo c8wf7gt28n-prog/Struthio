@@ -139,6 +139,7 @@ def schemas():
     from .bulk_files import FIELDS as BULK_FILES_FIELDS  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
     from .box_ops import FIELDS as BOX_FIELDS  # 1.1 KS1 (recipes): box.files.find, box.space, box.memory, box.processor, box.system, box.pdf.*, box.zip.*, box.bin.*, box.pictures.make, box.folder.copy, box.files.rename, .sort, .bin
     from .recipe_book import FIELDS as RECIPE_FIELDS  # 1.1 KS1 (recipes): recipes.list, .pick, .dry_run, .look, .run, .undo, .runs
+    from .command_tool import FIELDS as COMMAND_FIELDS  # 1.1 KS2 (the command tool): command.classify, .read, .plan, .run, .undo, .runs, .output
     from .stac_words import FIELDS as WORD_FIELDS
     from .agent_operations import FIELDS
     from .hardware_proof import FIELDS as PROOF_FIELDS
@@ -278,6 +279,7 @@ def schemas():
         **WINDOWS_HAND_FIELDS,  # 1.1 W1 (a Windows hand's keys): files.delete_for_good
         **BULK_FILES_FIELDS,  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
         **BOX_FIELDS, **RECIPE_FIELDS,  # 1.1 KS1 (recipes): the box's narrow operations and her recipes
+        **COMMAND_FIELDS,  # 1.1 KS2 (the command tool): any command through the classifier
         **WORD_FIELDS,
         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
         **NATIVE_FIELDS,

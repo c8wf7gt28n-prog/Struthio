@@ -155,6 +155,13 @@
    "clip.propose": "workbench/clip_external.py#dispatch",
    "clip.submit": "workbench/engineering_kernel.py#Kernel._dispatch",
    "clip.test": "workbench/clip_external.py#dispatch",
+   "command.classify": "workbench/command_tool.py#dispatch",
+   "command.output": "workbench/command_tool.py#dispatch",
+   "command.plan": "workbench/command_tool.py#dispatch",
+   "command.read": "workbench/command_tool.py#dispatch",
+   "command.run": "workbench/command_tool.py#dispatch",
+   "command.runs": "workbench/command_tool.py#dispatch",
+   "command.undo": "workbench/command_tool.py#dispatch",
    "conditions.get": "workbench/conditions.py#dispatch",
    "conditions.list": "workbench/conditions.py#dispatch",
    "conditions.recheck": "workbench/conditions.py#dispatch",
@@ -1167,9 +1174,9 @@
   }
  },
  "counts": {
-  "adapters": 949,
+  "adapters": 956,
   "job_tools": 113,
-  "operations": 949,
+  "operations": 956,
   "settings": 53
  },
  "formulas": {
@@ -2862,6 +2869,61 @@
     "phase": "6ef1e71b2b08ebaf"
    },
    "scope": "execute"
+  },
+  "command.classify": {
+   "arguments": "9fba9d9588d3671cfa2fcdcd9105e2058e2fa5061ebdebef0b744b7f6fa0b829",
+   "properties": {
+    "argv": "7e959ab319523304",
+    "by": "06076587bcfd9faf",
+    "line": "76f40fe54111097c"
+   },
+   "scope": "read"
+  },
+  "command.output": {
+   "arguments": "109af9aa8795ca6baf81d8210613947c72863d1695603be732fad7f0a2556e20",
+   "properties": {
+    "run": "d76a3cd568c70cee"
+   },
+   "scope": "read"
+  },
+  "command.plan": {
+   "arguments": "fd0f41c25259faeac3cc1140a2a96194999e35f86308a2e8de196c9e98b12704",
+   "properties": {
+    "argv": "7e959ab319523304",
+    "by": "06076587bcfd9faf"
+   },
+   "scope": "read"
+  },
+  "command.read": {
+   "arguments": "fd0f41c25259faeac3cc1140a2a96194999e35f86308a2e8de196c9e98b12704",
+   "properties": {
+    "argv": "7e959ab319523304",
+    "by": "06076587bcfd9faf"
+   },
+   "scope": "read"
+  },
+  "command.run": {
+   "arguments": "cdcd3256ca390017ca91248ecf9c6b30ca51531ee194b7bbba020c353f009779",
+   "properties": {
+    "argv": "7e959ab319523304",
+    "by": "06076587bcfd9faf",
+    "expect": "f4618f4ae4b25223"
+   },
+   "scope": "execute"
+  },
+  "command.runs": {
+   "arguments": "9e116a3055949f427e2f7a4d46ba4fe89a30cec0c4745a5bfdec2243f07a0f17",
+   "properties": {
+    "limit": "e238f277e0a04179"
+   },
+   "scope": "read"
+  },
+  "command.undo": {
+   "arguments": "109af9aa8795ca6baf81d8210613947c72863d1695603be732fad7f0a2556e20",
+   "properties": {
+    "run": "d76a3cd568c70cee"
+   },
+   "scope": "approve"
   },
   "conditions.get": {
    "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
@@ -9273,7 +9335,7 @@
  },
  "release": "Graphite 1.1~pre3",
  "schema": "graphite.registry-record/1",
- "schema_digest": "a3456588889ee4b2c56096c78c0c7d5810f060ea750dc12b50e8692c928e9ee6",
+ "schema_digest": "b9720d44024d79b6789bb355abf521a3283a1b2736ab4a9c8c2a714a216c3a40",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

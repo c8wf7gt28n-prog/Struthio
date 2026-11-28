@@ -2849,6 +2849,8 @@ class SlateFace(QWidget):
         except Exception:  # noqa: BLE001 - noting the request never stands in the way of answering it
             pass
         chosen = isinstance(self.thing, dict) and bool(self.thing.get('explicit')) and bool(self.thing.get('title')) and self.thing['title'] in text  # 1.0 F3: a card chosen by its own press (TRACE, DOUBT) is that card, never "which of these?"
+        from .command_tool_qt import asked as command_asked      # 1.1 KS2 (the command tool): "run: df -h" is classified; a read runs sealed, a change waits for your press
+        if not chosen and command_asked(self, text):return
         if not chosen and self.own_word(text):return
         from .library_qt import asked as library_asked      # 0.8.7 W7: a question of the Library, answered by Ask the Library
         if not chosen and library_asked(self, text):return
@@ -2866,6 +2868,7 @@ class SlateFace(QWidget):
         if not chosen and review_asked(self, text):return
         from .recipe_book_qt import asked as recipe_asked      # 1.1 KS1 (recipes): a recipe's words: a read runs; a change shows its dry run and waits for your press
         if not chosen and recipe_asked(self, text):return
+        if not chosen and command_asked(self, text, dictionary=True):return      # 1.1 KS2 (the command tool): her dictionary's plain words for a known command
         if not chosen and self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
         if not chosen and self.plan_asked(text):return
         thing = None if chosen else self.what_if(text)      # 1.0 F3
