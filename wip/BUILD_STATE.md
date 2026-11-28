@@ -78,6 +78,10 @@ rules holding you back".
     `bash wip/build_tools/merge_one.sh $S/work/b110 wip/2026-11-27_distribution/saved KEY AGENTID > log 2>&1; rc=$?`.
   * **Saving:** run the loop from a COPY so an edit of the script never breaks the running loop (it did at 04:00 on 28 Nov): `cp wip/build_tools/save_dist.sh $S/work/save_dist_running.sh; bash $S/work/save_dist_running.sh loop` every 5 minutes (it now carries the builders' patches, notes
     and results into `partial/b110/`); restart the loop whenever it ends; commit and push at every milestone.
+- **OWED TO THE OWNER WHEN THE BUILD FINISHES (28 Nov 04:20):** "Can you give me a twenty minute talk about the program
+  after you finish". Write it as `wip/<date>_TALK_graphite_1.1.md`, in the form of `wip/2026-11-27_TALK_graphite_1.0.md`
+  (read aloud in about twenty minutes, times in the margin, honest about what was and was not tested), commit, push and
+  send it. If a limit stops the build before 1.1, write it on what is merged and say so.
 - **THE BUDGET:** weekly limit 78 % used at 02:30 UTC 28 Nov (resets Wednesday 2 Dec). The owner then switched this
   session to Opus, turned Ultracode off and said **"Go as far as you can"** (28 Nov). So: no hold. Build preview after
   preview until the limit stops the build; **cut and send each preview the moment its slices are merged**, and when a
