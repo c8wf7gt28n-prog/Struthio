@@ -172,6 +172,15 @@ size and date; a picture folder in Icons view shows thumbnails; Board view of a 
 opens; frames in Day at both sizes. **K0 · The frame.**
 The head's menus as File, Edit, View, Go, Tools, Help over the same actions; the details pane; tokens 1.1.
 
+**T2 · The tiers green again, and the words to match.** Everything merged since T1 changed truths the tiers test:
+the bar (B1), the Explorer opening on Quick access with Recycle Bin (E1), her voice (KV), Start on the Windows key
+(B2), the six menus, a 32 px head and 115 px of chrome (K0). Run tier 0 and tier 2 on a copy of the tree in Day (the
+launch look) and Graphite, then Night and Kasandra as time allows; fix real program faults; move tests to the new
+truths and list each move; finish T1's open list (T1.build.result.json not_done). Sweep the docs and the Guide for
+the old menu names (head_menus.MOVED gives old -> new), the dock, "Apps upper right" and DELETE where a new profile now
+says Recycle Bin. *Acceptance:* tier 0 and tier 2 at 0 failing in Day and Graphite, or every remaining failure named
+with its cause; no doc names a menu that no longer exists.
+
 ### Preview 3 — Kas reaches the box (outline)
 
 **KS1 · Recipes.** A library of verified, parameterised recipes (preconditions, steps through registered tools, a dry

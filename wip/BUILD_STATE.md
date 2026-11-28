@@ -125,6 +125,14 @@ rules holding you back".
     **KS1 launched 03:31** (agent a0533732a4c03c9fd; recipes, preview 3's first slice, in the free slot while K0 and B3
     finish; its brief carries a full scope). Running: K0, B3, KS1. Next: when K0 and B3 are merged, T2 (the tiers
     with every new truth), then cut preview 2; KS2 to KS4 after.
+  * **K0 merged (7380519, 03:33):** File/Edit/View/Go/Tools/Help (old -> new in head_menus.MOVED and K0's result,
+    `menu_moves_old_to_new`, for the pre2 notes), the details pane (Alt+P), chrome 115 px. Frames sent. Not done:
+    "Command..." (d). **T2 launched 03:34** (agent ad78ac2c39a175988; a new slice in PLAN_1.1 §5: the tiers green again
+    with every new truth, T1's open list, the docs' menu words). Running: B3, KS1, T2. Cut preview 2 when B3 and T2
+    are merged (or T2's saved part, if a limit stops it).
+  * **Open, seen in the frames (for Z4 or earlier):** the window's foot (Line, Terminal, Search, Web, Log) and the
+    bar's line now do the same job: one place for each thing says the foot folds into the bar's line, with the
+    Terminal as the drop-down one (the Calm graft). Kernel refusals reached her column raw (B3 fixes it in her voice).
   * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
