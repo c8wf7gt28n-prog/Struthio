@@ -1,0 +1,40 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "recent-downloads",
+ "name": "Recent downloads",
+ "title": "What came into {folder} since {since}",
+ "words": [
+  "recent downloads",
+  "latest downloads",
+  "what did i download",
+  "new downloads",
+  "downloaded lately"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~/Downloads"
+  },
+  "since": {
+   "type": "since",
+   "default": "last week"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.find",
+   "args": {
+    "folder": "{folder}",
+    "how": "changed",
+    "since": "{since}"
+   }
+  }
+ ],
+ "help": "The newest files of Downloads."
+}

@@ -1,0 +1,42 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "find-by-name",
+ "name": "Find a file by its name",
+ "title": "Find files named “{words}” in {folder}",
+ "words": [
+  "find the file called",
+  "find files called",
+  "find the file named",
+  "find files named",
+  "where is the file",
+  "look for the file called",
+  "find files with the name"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~"
+  },
+  "words": {
+   "type": "words",
+   "ask": "What is in its name?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.find",
+   "args": {
+    "folder": "{folder}",
+    "how": "name",
+    "words": "{words}"
+   }
+  }
+ ],
+ "help": "Files whose names hold the words, or match a pattern such as *.pdf."
+}

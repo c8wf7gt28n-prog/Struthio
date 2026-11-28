@@ -1,0 +1,36 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "find-duplicates",
+ "name": "Find duplicate files",
+ "title": "Find duplicate files in {folder}",
+ "words": [
+  "duplicate files",
+  "duplicates",
+  "same file twice",
+  "copies of files",
+  "identical files",
+  "double files"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.find",
+   "args": {
+    "folder": "{folder}",
+    "how": "duplicates"
+   }
+  }
+ ],
+ "help": "Files with the same bytes, found by size and then by their check sums; nothing is removed."
+}

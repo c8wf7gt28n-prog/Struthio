@@ -1,0 +1,44 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "find-by-words",
+ "name": "Find a file by its words",
+ "title": "Find files holding “{words}” in {folder}",
+ "words": [
+  "find files containing",
+  "find the file containing",
+  "files that mention",
+  "file that mentions",
+  "search inside files",
+  "which file says",
+  "file that says",
+  "files with the words",
+  "search for text in files"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~"
+  },
+  "words": {
+   "type": "words",
+   "ask": "Which words does it hold?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.find",
+   "args": {
+    "folder": "{folder}",
+    "how": "words",
+    "words": "{words}"
+   }
+  }
+ ],
+ "help": "Text files holding every one of the words."
+}

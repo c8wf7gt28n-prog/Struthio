@@ -1,0 +1,24 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "empty-bin",
+ "name": "Empty DELETE",
+ "title": "Empty DELETE",
+ "words": [
+  "empty the bin",
+  "empty trash",
+  "empty recycle bin",
+  "empty delete",
+  "clear the bin",
+  "clear trash",
+  "empty bin"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.bin.empty",
+   "args": {}
+  }
+ ],
+ "help": "Everything in DELETE gone for good. It cannot be undone, so it asks twice."
+}

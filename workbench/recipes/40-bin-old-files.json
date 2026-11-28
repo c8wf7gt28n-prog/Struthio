@@ -1,0 +1,42 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "bin-old-files",
+ "name": "Put old files in DELETE",
+ "title": "Put the files in {folder} older than {days} in DELETE",
+ "words": [
+  "delete old downloads",
+  "clean out downloads",
+  "remove old files",
+  "bin old files",
+  "clear old downloads",
+  "delete old files"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~/Downloads"
+  },
+  "days": {
+   "type": "days",
+   "default": "90",
+   "ask": "Older than how long?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.bin",
+   "args": {
+    "folder": "{folder}",
+    "how": "old",
+    "days": "{days}"
+   }
+  }
+ ],
+ "help": "The files not changed for a number of days into DELETE, which gives them back."
+}

@@ -1,0 +1,45 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "rename-lower",
+ "name": "Names to lower case",
+ "title": "Rename the files in {folder} to lower case",
+ "words": [
+  "lower case",
+  "lowercase",
+  "small letters",
+  "rename lower",
+  "files to lower case",
+  "names to lower case"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?"
+  },
+  "case": {
+   "type": "case",
+   "default": "lower",
+   "fixed": true
+  },
+  "kinds": {
+   "type": "kinds",
+   "optional": true
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.rename",
+   "args": {
+    "folder": "{folder}",
+    "case": "{case}",
+    "kinds": "{kinds}"
+   }
+  }
+ ],
+ "help": "Every name in small letters; a name already taken is left as it is."
+}

@@ -1,0 +1,41 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "zip-contents",
+ "name": "Inside a zip",
+ "title": "What is inside {file}",
+ "words": [
+  "what is in the zip",
+  "inside the zip",
+  "zip contents",
+  "look inside archive",
+  "list zip",
+  "inside the archive",
+  "in the zip"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "optional": true
+  },
+  "file": {
+   "type": "file",
+   "ask": "Which zip archive?"
+  }
+ },
+ "pre": [
+  {
+   "file": "file",
+   "suffix": ".zip"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.zip.list",
+   "args": {
+    "path": "{file}"
+   }
+  }
+ ],
+ "help": "The files inside a zip archive, without unpacking it."
+}

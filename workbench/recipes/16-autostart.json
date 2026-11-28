@@ -1,0 +1,26 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "autostart",
+ "name": "What starts with the session",
+ "title": "Which apps start with the session",
+ "words": [
+  "start with the session",
+  "startup apps",
+  "start up apps",
+  "autostart",
+  "apps that start",
+  "start at login",
+  "startup programs"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.system",
+   "args": {
+    "what": "autostart"
+   }
+  }
+ ],
+ "help": "The apps that start when you log in, yours and the system's, on or off."
+}

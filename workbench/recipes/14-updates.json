@@ -1,0 +1,25 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "updates",
+ "name": "Is the system up to date",
+ "title": "Is the system up to date",
+ "words": [
+  "up to date",
+  "updates",
+  "need updating",
+  "upgrades",
+  "security updates",
+  "update check"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.system",
+   "args": {
+    "what": "updates"
+   }
+  }
+ ],
+ "help": "The packages with a newer version in the lists on this computer. Reading only: updating is the system's own door."
+}

@@ -1,0 +1,39 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "free-space",
+ "name": "Free space",
+ "title": "Free space in {folder}: what takes it",
+ "words": [
+  "free space",
+  "disk space",
+  "space left",
+  "what takes space",
+  "taking up space",
+  "running out of space",
+  "disk full",
+  "how full",
+  "storage space",
+  "what uses space"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.space",
+   "args": {
+    "folder": "{folder}"
+   }
+  }
+ ],
+ "help": "How full the disk is, and the biggest parts of the folder, one level down."
+}

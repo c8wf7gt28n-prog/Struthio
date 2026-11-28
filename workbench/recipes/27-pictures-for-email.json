@@ -1,0 +1,45 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "pictures-for-email",
+ "name": "Pictures for email",
+ "title": "Make the pictures in {folder} small enough to send",
+ "words": [
+  "pictures for email",
+  "photos for email",
+  "email size",
+  "small enough to send",
+  "to send by email"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder holds the pictures?"
+  },
+  "size": {
+   "type": "picture",
+   "default": "1600",
+   "fixed": true
+  },
+  "kinds": {
+   "type": "kinds",
+   "optional": true
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.pictures.make",
+   "args": {
+    "folder": "{folder}",
+    "kinds": "{kinds}",
+    "format": "jpg",
+    "size": "{size}"
+   }
+  }
+ ],
+ "help": "A JPG copy of each picture, 1600 pixels at most; the originals stay."
+}

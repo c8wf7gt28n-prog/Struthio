@@ -1,0 +1,41 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "unzip",
+ "name": "Unzip",
+ "title": "Unzip {file}",
+ "words": [
+  "unzip",
+  "extract zip",
+  "unpack",
+  "open zip",
+  "extract archive",
+  "decompress",
+  "extract the zip"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "optional": true
+  },
+  "file": {
+   "type": "file",
+   "ask": "Which zip archive?"
+  }
+ },
+ "pre": [
+  {
+   "file": "file",
+   "suffix": ".zip"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.zip.extract",
+   "args": {
+    "path": "{file}"
+   }
+  }
+ ],
+ "help": "A new folder beside the archive with what it holds; nothing is written over."
+}

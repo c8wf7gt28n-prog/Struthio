@@ -1,0 +1,27 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "about",
+ "name": "About this computer",
+ "title": "About this computer",
+ "words": [
+  "about this computer",
+  "system info",
+  "debian version",
+  "computer specs",
+  "specs",
+  "what hardware",
+  "system information",
+  "which debian"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.system",
+   "args": {
+    "what": "about"
+   }
+  }
+ ],
+ "help": "The system, the kernel, the processor, the memory and how long it has run."
+}

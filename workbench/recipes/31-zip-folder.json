@@ -1,0 +1,36 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "zip-folder",
+ "name": "Zip a folder",
+ "title": "Zip {folder}",
+ "words": [
+  "zip",
+  "zip folder",
+  "compress folder",
+  "make a zip",
+  "archive folder",
+  "zip up",
+  "pack folder",
+  "compress"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.zip.make",
+   "args": {
+    "folder": "{folder}"
+   }
+  }
+ ],
+ "help": "A new zip archive of the folder, beside it; the folder stays."
+}

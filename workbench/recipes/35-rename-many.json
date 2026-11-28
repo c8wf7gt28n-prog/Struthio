@@ -1,0 +1,49 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "rename-many",
+ "name": "Rename many",
+ "title": "Rename the files in {folder}: “{find}” to “{replace}”",
+ "words": [
+  "rename files",
+  "rename many",
+  "batch rename",
+  "replace in names",
+  "change names",
+  "change the names"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?"
+  },
+  "find": {
+   "type": "find",
+   "ask": "Which words in the names?"
+  },
+  "replace": {
+   "type": "replace",
+   "ask": "What instead?"
+  },
+  "kinds": {
+   "type": "kinds",
+   "optional": true
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.rename",
+   "args": {
+    "folder": "{folder}",
+    "find": "{find}",
+    "replace": "{replace}",
+    "kinds": "{kinds}"
+   }
+  }
+ ],
+ "help": "Every name holding the words gets the new words instead; nothing is written over."
+}

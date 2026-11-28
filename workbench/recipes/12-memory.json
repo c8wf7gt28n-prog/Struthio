@@ -1,0 +1,24 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "memory",
+ "name": "What uses memory",
+ "title": "What uses memory",
+ "words": [
+  "memory",
+  "ram",
+  "what uses memory",
+  "using memory",
+  "memory hog",
+  "out of memory",
+  "memory usage"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.memory",
+   "args": {}
+  }
+ ],
+ "help": "Memory in use and the apps that use the most, from the system itself."
+}

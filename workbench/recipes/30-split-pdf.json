@@ -1,0 +1,41 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "split-pdf",
+ "name": "Split a PDF",
+ "title": "Split {file} into pages",
+ "words": [
+  "split pdf",
+  "split a pdf",
+  "separate pages",
+  "one pdf per page",
+  "break up pdf",
+  "extract pages",
+  "split the pdf"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "optional": true
+  },
+  "file": {
+   "type": "file",
+   "ask": "Which PDF?"
+  }
+ },
+ "pre": [
+  {
+   "file": "file",
+   "suffix": ".pdf"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.pdf.split",
+   "args": {
+    "path": "{file}"
+   }
+  }
+ ],
+ "help": "A new folder with one PDF for each page; the PDF stays."
+}

@@ -1528,6 +1528,11 @@ class HerColumn(QObject):
             action = next(a for a in row.get('actions') or () if a.get('words') == 'Resume');title = plain(row.get('title') or '')
             out.append({'words': 'Resume · %s' % title, 'verb': 'Resume', 'object': title, 'kind': 'assignment', 'call': action, 'title': title,
                         'tip': 'You stopped “%s”. Resume inspects every step first and never repeats one that is done.' % title})
+        try:      # 1.1 KS1 (recipes): a recipe's dry run waits for Run, or its run has an Undo (recipe_book_qt.next_steps)
+            from .recipe_book_qt import next_steps as recipe_steps
+            out[0:0] = recipe_steps(self.host)
+        except Exception:  # noqa: BLE001
+            pass
         out.append({'words': 'Check the desk', 'verb': 'Check the desk', 'object': 'every check, run now', 'kind': 'desk', 'command': 'check', 'title': '',
                     'tip': 'Every check the desk has, run now; what waits is said in Talk with the step that would settle it.'})
         mine = [id(s) for s in out if s['kind'] == 'assignment'][:4]      # 1.0 X1: an assignment's own press (Carry on, Resume)
@@ -1540,6 +1545,8 @@ class HerColumn(QObject):
         return out
 
     def take_step(self, step):
+        if step['kind'] == 'recipe':      # 1.1 KS1 (recipes): Run or Undo, the same press as the word in Talk
+            from .recipe_book_qt import take as recipe_take;recipe_take(self.host, step);return
         if step['kind'] == 'notice':      # 1.0 X1: Update: the plan asked for in the desk's words; offered, nothing changed
             self.ask(step['objective']);return
         if step['kind'] == 'assignment':

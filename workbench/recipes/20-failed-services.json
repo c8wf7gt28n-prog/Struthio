@@ -1,0 +1,23 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "failed-services",
+ "name": "What failed to start",
+ "title": "What failed to start",
+ "words": [
+  "failed services",
+  "failed to start",
+  "errors at start",
+  "broken services"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.system",
+   "args": {
+    "what": "failed"
+   }
+  }
+ ],
+ "help": "The system's services that failed since the computer started."
+}

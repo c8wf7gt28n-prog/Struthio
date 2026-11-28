@@ -1314,8 +1314,8 @@
       "sha256": "2737b8806f988b188d7d921efabca5b8f021db7e7f2d070d525b22452ecafa67"
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
-      "bytes": 330926,
-      "sha256": "46df5322170642640d3af4a987da4f93e9dbcddefe9a61a8c4ad188868ecf872"
+      "bytes": 337836,
+      "sha256": "e205ceab4f75de37dff8ba70f56444f049433890c532258381b57d62e57625a4"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -2282,16 +2282,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 2094522,
-      "sha256": "a433fb4a709be6878b0ec00ce66e4a428b193b035e09cf7993b9e5db9b786b52"
+      "bytes": 2119080,
+      "sha256": "2068a12c1d5dd034ba1b918cac1a6902fcc16c0d97a7edce155c3f89da0541a3"
     },
     "project/stacy_seed/current/index.sqlite": {
-      "bytes": 4734976,
-      "sha256": "3bd98ae90100c5050f7221351868c31a3a9650bbef180afc099fba09d52f1026"
+      "bytes": 4788224,
+      "sha256": "15ba4993c5a2e28ed3c531ee58f67724921bc858ffb2ec1494e07c8df9318c9f"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47197,
-      "sha256": "32dd974eaa5356668185d7a498cb9e12a4a52c95adcd502c0d5d5c904ee27763"
+      "sha256": "eb26045f4ee0bb4bda1123d5b6c0be407cc8fe6a72d4358a676c04dcbc1f2634"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3237,6 +3237,10 @@
       "bytes": 4031,
       "sha256": "4a3a2562132a3cfc39ecb916b29c6c99178480be0eb91e5769ecf9d53fb2a637"
     },
+    "tests_integrated/test_recipes.py": {
+      "bytes": 27475,
+      "sha256": "56718ddadb9a722994a106a7e05f34e23601998708447cb380a774f9d297ee9d"
+    },
     "tests_integrated/test_record_paths.py": {
       "bytes": 2705,
       "sha256": "efe4797c572557c0c6f0677ce5f5cda25c89e6bc716940e1b24e9f165381a69a"
@@ -3837,6 +3841,10 @@
       "bytes": 29661,
       "sha256": "9c29a0c5555c2c46e0067de2cea6e38e413cc0e8b178a5872bf1aee524a93b1a"
     },
+    "workbench/box_ops.py": {
+      "bytes": 90351,
+      "sha256": "2fb35bd00c53a2785d188f56b61a6d1085e83105a22cb4a9c4fe2190767bd913"
+    },
     "workbench/brain_briefs.py": {
       "bytes": 22581,
       "sha256": "830a98de3a202fc34d35f29c752af778c52bda32843b6190d3f5e14136a31028"
@@ -4262,12 +4270,12 @@
       "sha256": "cd7dd3cd7eed3423b527732828346bdf2ae1cba805a2ad2820691d8f8c3b993a"
     },
     "workbench/engineering_cli.py": {
-      "bytes": 31045,
-      "sha256": "179473ccca0f88adca8e1a8a1bcf186ae5c2bdaee3988af5f2c91963351e4f38"
+      "bytes": 31515,
+      "sha256": "5c36652d7234b87985a0cb9868e86e08597028b796566d40aa41d56cda114f36"
     },
     "workbench/engineering_kernel.py": {
-      "bytes": 117562,
-      "sha256": "6864df083b5ec377407b4e8e6fd2059d4afc24080e503633022b55d40a84307a"
+      "bytes": 118222,
+      "sha256": "50a4dcc05c6270e8cd84cc21a6c5add69f7b881b4d852d51705bcb871c1249b8"
     },
     "workbench/engineering_map.py": {
       "bytes": 15833,
@@ -4546,8 +4554,8 @@
       "sha256": "4aa7dc81d054e14e4c9ea1156645e3d89d6c2cee286017a69c20d5c9dfae2928"
     },
     "workbench/her_column_qt.py": {
-      "bytes": 111395,
-      "sha256": "a93058d1a3316cee9f7d447fe0b3f80374c0c79e743b45674e5c1c413ffc7dc4"
+      "bytes": 111899,
+      "sha256": "527c78bf21435caed5918ab5519f66700d057188f8030abd1e59a8657c8940da"
     },
     "workbench/her_hand_qt.py": {
       "bytes": 83586,
@@ -4722,8 +4730,8 @@
       "sha256": "72ef9d73dd93e4013b56636950ca3c2e16296a640863e21a9914a3d7c48cf4b4"
     },
     "workbench/kas_voice.py": {
-      "bytes": 9631,
-      "sha256": "ae97ed0124193c21abcdc4107010c8a539db01a21b0947bc935e4f935a862586"
+      "bytes": 12084,
+      "sha256": "81d03da1bf3f0bfeab9853029a65c2be412fa1ce46b1e3d3faf745f3a71ffe41"
     },
     "workbench/kasandra/character_starter.md": {
       "bytes": 1929,
@@ -4814,8 +4822,8 @@
       "sha256": "956f7c47312dd5144e6b145ab4b8924de4b13e5e2ac936e46f9c7be346724d0d"
     },
     "workbench/line_finder.py": {
-      "bytes": 26735,
-      "sha256": "10e8a753c63125c943a0751a2c14567670d8c0a95df4362ca1a116ea47395aa7"
+      "bytes": 27644,
+      "sha256": "3ab25192f996c656cb3b80b6c463c7946ad7df7c087ab16fb7bafab79e684697"
     },
     "workbench/line_steps.py": {
       "bytes": 14308,
@@ -5609,6 +5617,174 @@
       "bytes": 32201,
       "sha256": "54acda78a144d52125f497a32049bfa1c4acb76870faec91a2d4b57a30dae2e2"
     },
+    "workbench/recipe_book.py": {
+      "bytes": 52761,
+      "sha256": "2a1920f8a453f75dc92ae5548c032511ec396b53c0458d47e06de438bd312750"
+    },
+    "workbench/recipe_book_qt.py": {
+      "bytes": 17065,
+      "sha256": "ff999842aed347ab4f3ffbd34d87990568c5ad814dd54d7bc79c5a538cc30937"
+    },
+    "workbench/recipes/01-find-big-files.json": {
+      "bytes": 678,
+      "sha256": "48f211143b5fecae9527674937c5680fc7639e23f381db7130477479fff017f6"
+    },
+    "workbench/recipes/02-free-space.json": {
+      "bytes": 651,
+      "sha256": "39035eed9bd14e4bce3b452f5541d24617f4707aeb96d1ad778d733b219884f7"
+    },
+    "workbench/recipes/03-find-duplicates.json": {
+      "bytes": 639,
+      "sha256": "c7f1aec333fb25eb5ad6a89604929e84f4c0c16ba9e73f9d1b73174cb364de38"
+    },
+    "workbench/recipes/04-changed-since.json": {
+      "bytes": 747,
+      "sha256": "7712a6765442c2c2e79a4f776c5b9c018be7bdb3dff1c378061f19911af2751b"
+    },
+    "workbench/recipes/05-recent-downloads.json": {
+      "bytes": 669,
+      "sha256": "5870537104f1fdb8d6972b0f3adb0ce4cf832b76579af7ecccb62c88b466c3d8"
+    },
+    "workbench/recipes/06-find-by-name.json": {
+      "bytes": 776,
+      "sha256": "43d99f9f3ee7d23d41661a5e26f565448879cd7d0e199332819527fdb085c819"
+    },
+    "workbench/recipes/07-find-by-words.json": {
+      "bytes": 809,
+      "sha256": "f9b14d92242e1bf2fec9e895ffe1ca229c1df165b5ff75c9086e3ff0709c4dc4"
+    },
+    "workbench/recipes/08-old-files.json": {
+      "bytes": 703,
+      "sha256": "e604bbbd3182c10338251958c3d3c40c6b10ad50e21163ae4b71291fc65ec460"
+    },
+    "workbench/recipes/09-empty-folders.json": {
+      "bytes": 511,
+      "sha256": "68948fb9268ced1fca7bb89343b3b4c8b1277720dd50029f76fd44ba2d82f2ae"
+    },
+    "workbench/recipes/10-file-kinds.json": {
+      "bytes": 615,
+      "sha256": "1687dddef4c971957fcf61d1082623dd5fe70fd40f27abe6a9cc529a9ce9eac2"
+    },
+    "workbench/recipes/11-folder-size.json": {
+      "bytes": 519,
+      "sha256": "d304cda1818e8809a374b8b3bb1384b8170224e233ec05badf0608122dcd7a6c"
+    },
+    "workbench/recipes/12-memory.json": {
+      "bytes": 409,
+      "sha256": "0756c65e1e0f62dc560ad46d2305cc148774405ce1414a167308dcede66017dc"
+    },
+    "workbench/recipes/13-processor.json": {
+      "bytes": 441,
+      "sha256": "44ebdc75d44b641a4090d30275046a02ec5ecc52851be682c9973eb9ee5eead7"
+    },
+    "workbench/recipes/14-updates.json": {
+      "bytes": 484,
+      "sha256": "00b28e531a12f1f12826d0dec1bace36608a3f036913e3172ef5a2b172027188"
+    },
+    "workbench/recipes/15-disk-health.json": {
+      "bytes": 437,
+      "sha256": "43dc72841faeddfa1a8a39f96a19236af45891dc9ec95f74b124e5e95a2b6110"
+    },
+    "workbench/recipes/16-autostart.json": {
+      "bytes": 500,
+      "sha256": "4baf52524a1919bb41d333715f1720b340cce019e256c5880f76debd771fe753"
+    },
+    "workbench/recipes/17-about.json": {
+      "bytes": 483,
+      "sha256": "85b788c4936c58a6accc32b820177c79c9648e0ee8d78c0e7ff5728c8e963e2d"
+    },
+    "workbench/recipes/18-battery.json": {
+      "bytes": 370,
+      "sha256": "6bf67b8f510bb62007d3416859f359c61a6c966c5177dbed732e7f8bc70e2fdd"
+    },
+    "workbench/recipes/19-network.json": {
+      "bytes": 380,
+      "sha256": "7f4843ad6c27374aced0de359b844750611a2e2d26ae74697f7e80f75e7a6592"
+    },
+    "workbench/recipes/20-failed-services.json": {
+      "bytes": 413,
+      "sha256": "06979f3760de126d1cb80214fb349fb01112fc807c737913596fd5ed3d25e4be"
+    },
+    "workbench/recipes/21-bin-contents.json": {
+      "bytes": 407,
+      "sha256": "928d58145aba5158f8c689eb2c96a44d783cedfe2f0d4b80598ec5461f50fa35"
+    },
+    "workbench/recipes/22-pdf-pages.json": {
+      "bytes": 528,
+      "sha256": "423d97227560627e86ca2c67af57fdaf49aadb1d405dd529e90c2be13dc6bf75"
+    },
+    "workbench/recipes/23-zip-contents.json": {
+      "bytes": 658,
+      "sha256": "47d598519319f5df8a28fe15bed9a56e9cb4936a545f6c5e988741991d378392"
+    },
+    "workbench/recipes/24-empty-bin.json": {
+      "bytes": 426,
+      "sha256": "a1d4a5cb15c5c61c928d4f1c0cc6d339dc9b555a4c85a512ec2ac513ea369a2b"
+    },
+    "workbench/recipes/25-convert-pictures.json": {
+      "bytes": 755,
+      "sha256": "9d598c3b938d8278c6496eb37f3ade4a572e9f15a7525e97801485fa99eff935"
+    },
+    "workbench/recipes/26-resize-pictures.json": {
+      "bytes": 854,
+      "sha256": "928a4f674b2be306e0ed529df13ab6218f018b0190506f8a9f988b1ee589bd9f"
+    },
+    "workbench/recipes/27-pictures-for-email.json": {
+      "bytes": 809,
+      "sha256": "eeac6c9e78f530bf8fb6e82c9f4bc1a87c8346d584f3d4b4cf259f62c3df225a"
+    },
+    "workbench/recipes/28-thumbnails.json": {
+      "bytes": 743,
+      "sha256": "fb710946cce0745083245d5d46e93b67d036c88b1ba3640d82b3a640d8f1a16b"
+    },
+    "workbench/recipes/29-merge-pdfs.json": {
+      "bytes": 665,
+      "sha256": "0c3a3b99ecf29b3c9224676285ee483ce58c6c145ed0df2ceb31ba7de4067eaf"
+    },
+    "workbench/recipes/30-split-pdf.json": {
+      "bytes": 640,
+      "sha256": "fdb6d399f8839bc88a74f68336e5798e553c0ea49e26a1720f7d9bd4ebfdbb0b"
+    },
+    "workbench/recipes/31-zip-folder.json": {
+      "bytes": 538,
+      "sha256": "aa70f162da6325c0b5de7c49a78c684c20dbc565b1f96107911765f474959bc1"
+    },
+    "workbench/recipes/32-unzip.json": {
+      "bytes": 632,
+      "sha256": "61eabb16d5a8250199717aa57a5aaa3a80f59661d2745d622123913672b50ae0"
+    },
+    "workbench/recipes/33-backup-folder.json": {
+      "bytes": 686,
+      "sha256": "6cddf5fd4be426f7af1f469a3e6dcba9c2a0d3675f80332d2d08729b9a99c9dd"
+    },
+    "workbench/recipes/34-copy-folder.json": {
+      "bytes": 646,
+      "sha256": "f092790adaf86b7d760612191537ac21392012b8aa526b88fb60d4b8389302b4"
+    },
+    "workbench/recipes/35-rename-many.json": {
+      "bytes": 875,
+      "sha256": "1951c990fb98c65fdba69da3d4bf8f54c8c00cea2f47fa1b4301eb0f9f7d9e95"
+    },
+    "workbench/recipes/36-rename-lower.json": {
+      "bytes": 760,
+      "sha256": "90b030034f371fbdd42c5718fdfbf4633d59aab731f0239be02095f2688f4c69"
+    },
+    "workbench/recipes/37-remove-from-names.json": {
+      "bytes": 711,
+      "sha256": "6f73fbbe4a371cc85e64a0eeb344057a77121fd1612b200bf569d7c87e2d31ce"
+    },
+    "workbench/recipes/38-sort-by-kind.json": {
+      "bytes": 643,
+      "sha256": "9ab9906b91ce491a8fb6011fb62a9de2baaa0da3a7845d16ebca3e9f95688713"
+    },
+    "workbench/recipes/39-bin-duplicates.json": {
+      "bytes": 633,
+      "sha256": "43abf63e717eb4062c0ca975599327ccbeaa56458caa015c4f0718b88f751e88"
+    },
+    "workbench/recipes/40-bin-old-files.json": {
+      "bytes": 783,
+      "sha256": "0b804bd9719e7bad4d8e7a986faa4b81642a62da1eb666869e5e87fc6ea3b108"
+    },
     "workbench/record_access.py": {
       "bytes": 2532,
       "sha256": "bd1ea986b96c2b810226688257a3859ce7e54ea8a86c048b6817c9887b6548bc"
@@ -5834,8 +6010,8 @@
       "sha256": "a67fadddb6c54b97e59033695cbe5e08ebe94f40c1476e77eb88655abc3baa29"
     },
     "workbench/shell2.py": {
-      "bytes": 282239,
-      "sha256": "938407c32c8f5d57df615b9894d746fa73315bd29538c4a5cc7eb9a733d95381"
+      "bytes": 282464,
+      "sha256": "886eb43ad5fa552658fe518184b9e8b8a9662f26d1c9f84341b04fd03f918cff"
     },
     "workbench/simulation_tools.py": {
       "bytes": 7877,

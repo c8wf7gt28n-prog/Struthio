@@ -1,0 +1,42 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "old-files",
+ "name": "Old files",
+ "title": "Files in {folder} not changed for {days}",
+ "words": [
+  "old files",
+  "files older than",
+  "not touched",
+  "stale files",
+  "old downloads",
+  "not opened"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~/Downloads"
+  },
+  "days": {
+   "type": "days",
+   "default": "90",
+   "ask": "Older than how long?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.find",
+   "args": {
+    "folder": "{folder}",
+    "how": "old",
+    "days": "{days}"
+   }
+  }
+ ],
+ "help": "Files last changed before a number of days ago, oldest first."
+}

@@ -2861,6 +2861,8 @@ class SlateFace(QWidget):
         if not chosen and self.run_asked(text):return
         from .desk_review import asked as review_asked      # 1.0 X1: "review this assembly … sufficient?": the desk's findings say it
         if not chosen and review_asked(self, text):return
+        from .recipe_book_qt import asked as recipe_asked      # 1.1 KS1 (recipes): a recipe's words: a read runs; a change shows its dry run and waits for your press
+        if not chosen and recipe_asked(self, text):return
         if not chosen and self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
         if not chosen and self.plan_asked(text):return
         thing = None if chosen else self.what_if(text)      # 1.0 F3

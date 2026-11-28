@@ -1,0 +1,33 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "empty-folders",
+ "name": "Empty folders",
+ "title": "Empty folders in {folder}",
+ "words": [
+  "empty folders",
+  "empty directories",
+  "folders with nothing"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.find",
+   "args": {
+    "folder": "{folder}",
+    "how": "empty"
+   }
+  }
+ ],
+ "help": "Folders that hold nothing at all."
+}

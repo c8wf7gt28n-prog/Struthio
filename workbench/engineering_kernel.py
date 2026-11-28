@@ -102,6 +102,7 @@ from . import everyday_desk  # noqa: F401  1.0 X3 (everyday sessions): the desk'
 from . import home_pages, home_plan  # 1.0 K10 (her reach in Home, finished): file.pages (read: a document's pages as data, through the doorway); grant.give.set (approve: one press, a grant per operation); registry tools 24 to 27 (recorded additions)
 from . import windows_hand  # 1.1 W1 (a Windows hand's keys): files.delete_for_good (approve: Shift+Delete asked first; your press only, never her work)
 from . import bulk_files  # 1.0 L6c (bulk files): files.batch_plan, files.batches (read); files.batch (execute: many files moved, copied or deleted in one press); files.batch_undo (approve: the whole batch put back as one) (recorded additions)
+from . import box_ops, recipe_book  # 1.1 KS1 (recipes): box.* (the box's narrow operations: reads, and changes on your press with a dry run, a verifier and an Undo); recipes.* (the library, the dry run, the run on your press, its Undo)
 
 PROGRAM_HANDLERS = {
     op: service
@@ -311,6 +312,7 @@ CAPABILITIES = {
     **home_plan.SCOPES,  # 1.0 K10 (her reach in Home, finished): several grants in one press are your press (approve), each its own record
     **windows_hand.SCOPES,  # 1.1 W1 (a Windows hand's keys): deleting for good is approve, your press after the window asked
     **bulk_files.SCOPES,  # 1.0 L6c (bulk files): the plan and the list are reads; a batch is execute, your press; its Undo is approve
+    **box_ops.SCOPES, **recipe_book.SCOPES,  # 1.1 KS1 (recipes): reads run on their own; a change is execute (your press, after its dry run); emptying DELETE and a recipe's Undo are approve
     **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
@@ -782,6 +784,8 @@ class Kernel:
         if op in home_plan.FIELDS:return home_plan.dispatch(self,op,a,p)   # 1.0 K10 (her reach in Home, finished): a folder's grants in one press, the Kernel still checking each step's own operation
         if op in windows_hand.FIELDS:return windows_hand.dispatch(self,op,a,p)   # 1.1 W1 (a Windows hand's keys): Shift+Delete, removed without the bin, your press only
         if op in bulk_files.FIELDS:return bulk_files.dispatch(self,op,a,p)   # 1.0 L6c (bulk files): one press for many files, recorded as one change with every file's before and after, one Undo
+        if op in box_ops.FIELDS:return box_ops.dispatch(self,op,a,p)   # 1.1 KS1 (recipes): the box's narrow operations
+        if op in recipe_book.FIELDS:return recipe_book.dispatch(self,op,a,p)   # 1.1 KS1 (recipes): her recipes
         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:

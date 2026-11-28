@@ -1,0 +1,41 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "copy-folder",
+ "name": "Copy a folder",
+ "title": "Copy {folder} into {to}",
+ "words": [
+  "copy folder",
+  "copy a folder",
+  "copy the folder",
+  "duplicate folder",
+  "make a copy of"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?"
+  },
+  "to": {
+   "type": "folder",
+   "ask": "Into which folder?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  },
+  {
+   "folder": "to"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.folder.copy",
+   "args": {
+    "folder": "{folder}",
+    "to": "{to}"
+   }
+  }
+ ],
+ "help": "A dated copy of the folder in another folder, every file read back."
+}

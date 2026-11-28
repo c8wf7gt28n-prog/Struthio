@@ -38,7 +38,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 ASK = 'Ask Kasandra'
-VERBS = ('Open', 'Run', 'Calculate', ASK, 'Explain', 'Edit')
+VERBS = ('Open', 'Run', 'Calculate', ASK, 'Explain', 'Edit', 'Show')      # 1.1 KS1: Show (a recipe: what it would do, nothing changes)
 SECTIONS = ('APPS', 'SETTINGS', 'FILES', 'DESK', 'COMMANDS')
 MOST = dict(APPS=6, SETTINGS=4, FILES=6, DESK=4, COMMANDS=5)
 QUESTION = re.compile(r"^(what|whats|what's|how|why|when|who|where|which|can|could|should|would|will|is|are|was|were|do|does|did|"
@@ -90,6 +90,7 @@ class Row:
         name = self.title if len(self.title) <= 40 else self.title[:38] + '…'
         if self.kind == 'sum':return 'Enter: Calculate · puts %s in the line and copies it' % self.extra.get('answer', '')
         if self.kind == 'ask':return 'Enter: Ask Kasandra · in her column; she proposes, you decide'
+        if self.extra.get('recipe'):return self.detail.replace('Enter ', 'Enter: ', 1)      # 1.1 KS1: a recipe's row shows what it would do
         return 'Enter: %s %s' % (self.verb, name)
 
 
@@ -317,6 +318,17 @@ def command_rows(found, most=MOST['COMMANDS']):
     return rows
 
 
+def recipe_rows(text, sources):
+    """1.1 KS1 (recipes): a row for the recipe her dictionary reads in the words (recipe_book_qt.line_rows); Enter shows its
+    answer or its dry run in her talk, and nothing changes."""
+    try:
+        from .recipe_book_qt import line_rows
+        return [Row('command', title, detail, 'Show', do, section='COMMANDS', icon='command', extra=dict(recipe=True))
+                for title, detail, do in line_rows(text, getattr(sources, 'host', None))]
+    except Exception:  # noqa: BLE001 - no recipe read: no row
+        return []
+
+
 def ask_row(text):
     return Row('ask', '%s: %s' % (ASK, short(clean(text).lstrip('?').strip(), 44)), 'Your words go to her column; she proposes, you decide',
                ASK, clean(text).lstrip('?').strip(), icon='ask')
@@ -458,6 +470,7 @@ def rows(text, sources=None):
     first += operation_rows(words)      # an operation's own name (apps.list, /files.list path=Slate) before the line reading it
     if not first:first += line_rows(words, reading)
     first += dos_rows(words)
+    first += recipe_rows(words, sources)      # 1.1 KS1 (recipes): "Recipe: Free space in Home", Enter shows what it would do
     if lead == '/':
         place = Path(os.path.expanduser(words))
         if not first and place.exists():first.append(file_row(str(place), 'A place on this computer', 'folder' if place.is_dir() else 'file'))

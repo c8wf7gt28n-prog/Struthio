@@ -1,0 +1,40 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "merge-pdfs",
+ "name": "Merge PDFs",
+ "title": "Merge the PDFs in {folder} into one",
+ "words": [
+  "merge pdfs",
+  "combine pdfs",
+  "join pdfs",
+  "pdfs together",
+  "one pdf",
+  "merge pdf files",
+  "merge the pdf"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder holds the PDFs?"
+  },
+  "name": {
+   "type": "name",
+   "optional": true
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.pdf.merge",
+   "args": {
+    "folder": "{folder}",
+    "name": "{name}"
+   }
+  }
+ ],
+ "help": "One new PDF of every PDF in the folder, in name order; they stay as they are."
+}

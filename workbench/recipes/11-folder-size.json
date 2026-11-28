@@ -1,0 +1,34 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "folder-size",
+ "name": "How big is a folder",
+ "title": "How big {folder} is",
+ "words": [
+  "how big",
+  "how big is",
+  "size of folder",
+  "folder size",
+  "how much space does",
+  "how large is"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.space",
+   "args": {
+    "folder": "{folder}"
+   }
+  }
+ ],
+ "help": "The size of a folder and of its biggest parts."
+}

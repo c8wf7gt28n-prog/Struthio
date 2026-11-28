@@ -1,0 +1,24 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "processor",
+ "name": "What uses the processor",
+ "title": "What uses the processor",
+ "words": [
+  "cpu",
+  "processor",
+  "what is slowing",
+  "slow computer",
+  "cpu usage",
+  "busy computer",
+  "what is running hot"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.processor",
+   "args": {}
+  }
+ ],
+ "help": "What uses the processor now, by app, from two looks half a second apart."
+}

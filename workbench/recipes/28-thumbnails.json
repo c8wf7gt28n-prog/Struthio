@@ -1,0 +1,43 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "thumbnails",
+ "name": "Small copies of pictures",
+ "title": "Make small copies of the pictures in {folder}",
+ "words": [
+  "thumbnails",
+  "small copies",
+  "previews of pictures",
+  "tiny pictures"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder holds the pictures?"
+  },
+  "size": {
+   "type": "picture",
+   "default": "320",
+   "fixed": true
+  },
+  "kinds": {
+   "type": "kinds",
+   "optional": true
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.pictures.make",
+   "args": {
+    "folder": "{folder}",
+    "kinds": "{kinds}",
+    "size": "{size}"
+   }
+  }
+ ],
+ "help": "A copy of each picture 320 pixels at most; the originals stay."
+}

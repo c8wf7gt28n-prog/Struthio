@@ -1,0 +1,76 @@
+{
+ "item": "KS1",
+ "status": "built",
+ "summary": "Recipes: 40 verified, parameterised recipes as JSON data (workbench/recipes/, and yours from ~/.config/graphite/recipes/), run through 18 narrow box.* Kernel operations (reads, and changes with a dry run, a verifier and an Undo) and 7 recipes.* operations. Her dictionary picks with no model; with one, the RECIPE turn picks by number and fills slots only with the owner's numbered words. Shown in the line (\"Recipe: …, Enter shows what it would do\"), her talk (dry run, Run on your press, \"✓ Done and verified\" with Undo), NEXT STEPS (Run / Undo) and a \"recipes\" list.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1.patch",
+ "files_changed": [
+  "workbench/box_ops.py (new)",
+  "workbench/recipe_book.py (new)",
+  "workbench/recipe_book_qt.py (new)",
+  "workbench/recipes/01-find-big-files.json … 40-bin-old-files.json (40 new)",
+  "tests_integrated/test_recipes.py (new)",
+  "workbench/engineering_kernel.py (1.1 KS1 block: import, scopes, dispatch)",
+  "workbench/engineering_cli.py (1.1 KS1: FIELDS)",
+  "workbench/shell2.py (1.1 KS1: one hook in SlateFace.ask, before the objective planner)",
+  "workbench/her_column_qt.py (1.1 KS1: NEXT STEPS gets Run/Undo of a recipe; take_step)",
+  "workbench/line_finder.py (1.1 KS1: recipe_rows, verb Show, its Enter words)",
+  "workbench/kas_voice.py (1.1 KS1: her recipe lines)"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_recipes.py (15 tests: 3 acceptance, 7 rules, 4 window, 1 voice)",
+  "ran": [
+   "tests_integrated.test_recipes: 15 OK",
+   "tests_integrated.test_kas_voice + tests_integrated.test_start_line (touched): 24 OK"
+  ],
+  "output_tail": [
+   "KS1: 38 recipes ran and verified; not on this computer: [('network', \"ip is not on this computer. Debian's package “iproute2” has it; nothing was read\"), ('failed-services', 'systemctl could not ask the system: Failed to connect to bus: Host is down')]",
+   "----------------------------------------------------------------------",
+   "Ran 15 tests in 10.500s",
+   "OK",
+   "Ran 24 tests in 1.416s",
+   "OK"
+  ]
+ },
+ "existing_tests_changed": [],
+ "decisions": [
+  "Zip and unzip use Python's zipfile (no program; members with an absolute path, .. or a link are left out and named); PDFs use poppler-utils (pdfunite, pdfseparate, pdfinfo: present here, usual on a Debian desktop) instead of qpdf; pictures use ImageMagick (magick, else convert) with the input format named from its own first bytes (PNG:, JPEG:...). Every program is a fixed argv, found only in /usr/local/bin, /usr/bin, /bin, C locale, no shell.",
+  "Every change operation takes `expect`, the digest of its own dry run; it plans again at the press and refuses when the files changed since you saw it.",
+  "A change is never her own: box change operations and recipes.run refuse in her work (home_reach.in_her_work); in KS1 no standing grant runs a recipe change.",
+  "HALT refuses to start a recipe run and stops one between files (what was done is recorded and can be undone); reads still run (HALT stops her work and nothing else).",
+  "Emptying DELETE is approve scope; \"This cannot be undone.\" is said before the press and her talk asks once more.",
+  "Changes land only in your home (never Files, Graphite's own records, DELETE's folder) or, for a backup, a drive under /media, /run/media, /mnt; nothing is written over (free names; a program writes a fresh part file, linked to its name only while free).",
+  "Undo in your home puts what was made into DELETE; on a drive (no DELETE) it removes only the files it made that are unchanged since; renames and moves go back only when unchanged and the old place is free.",
+  "A recipe may carry a default slot (its own choice, basis recipe_default, said in the dry run): Home for reads, Downloads for sort/old files; recipes that bin, rename, convert, zip or back up ask the folder.",
+  "Her dictionary: a phrase's words in order with at most two between; a one-word phrase only alone in a short request; names, paths and numbers are not request words. Checked against 3,266 short strings in the existing tests: none sent to her ask chain is taken.",
+  "Hook in her ask chain after the make/set/run/review routes and before the objective planner; the model (RECIPE turn) is asked only when her dictionary already reads a recipe, so other words keep their route; a refused or late model answer gives the dictionary's pick.",
+  "RECIPE turn kind: switch choosing, grammar of menu numbers and W-numbers only, answer cap 40 tokens, deadline 20 s, no exam paper (as PLAN); registered on the first model pick, not at import.",
+  "Line rows are kind \"command\" with a new verb Show (added to line_finder.VERBS); start_qt is untouched (Enter calls the row's target, which shows the recipe in her talk).",
+  "\"Is the system up to date\" reads apt-get --simulate upgrade (no root, nothing sent) and says when the lists were last read; disk health is lsblk plus the kernel's counted errors, and says SMART needs the administrator (KS3).",
+  "Data says DELETE; it is shown through explorer's bin word, so a new profile reads \"Recycle Bin\"."
+ ],
+ "findings_for_the_coordinator": [
+  "Regenerate the registry/seed at merge: 25 new operations (box.files.find, box.space, box.memory, box.processor, box.system, box.pdf.info, box.zip.list, box.bin.list, box.pictures.make, box.pdf.merge, box.pdf.split, box.zip.make, box.zip.extract, box.folder.copy, box.files.rename, box.files.sort, box.files.bin, box.bin.empty; recipes.list, .pick, .dry_run, .look, .run, .undo, .runs). Check that the package carries workbench/recipes/*.json.",
+  "Her column at 1366x768: the exchange is about 90 px tall, so a dry run shows its last sentence and the press there, and NEXT STEPS shows \"1 ▸ Run\"; the file list scrolls. The column layout is K0/B3's.",
+  "In the line a recipe row sits under B2's COMMANDS heading; a RECIPES heading would need start_qt/B2's sections.",
+  "In this container `ip` (iproute2) is missing and systemctl has no bus: the network and failed-services recipes refuse in words here (38 of 40 ran and verified).",
+  "RECIPE is not primed at Ready (registered lazily), so the first model pick reads the whole menu (about 1,100 tokens)."
+ ],
+ "not_done": [
+  "Nothing ran on the owner's ThinkPad; no real model was loaded (the model path is tested with fake_worker).",
+  "Owner recipes are JSON only (no toml-like text form).",
+  "No standing grant for recipe changes; pictures to PDF (Debian's ImageMagick policy refuses PDF), HEIC/RAW, installing updates (KS3/C1) and SMART (KS3) are not offered.",
+  "The test tiers were not run (the coordinator runs them)."
+ ],
+ "release_note": "Kasandra has recipes: forty everyday tasks such as find big files, what takes the space, duplicates, what changed since yesterday, convert and resize pictures, merge and split PDFs, zip and unzip, back up a folder to a drive, rename many, sort Downloads by kind, what uses memory or the processor, is the system up to date and disk health. Type them in the line or ask her. A read runs at once; a change shows exactly what it would do first, runs only on your press, is checked on the disk, and has Undo (or says it cannot be undone and asks twice). Your own recipes go in ~/.config/graphite/recipes.",
+ "frames": [
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1/frames/1366x768_day_done_undo.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1/frames/1366x768_day_dry_run.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1/frames/1366x768_day_line_recipe.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1/frames/1920x1200_day_done_undo.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1/frames/1920x1200_day_dry_run.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1/frames/1920x1200_day_line_recipe.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1/frames/1920x1200_kasandra_done_undo.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1/frames/1920x1200_kasandra_dry_run.png",
+  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS1/frames/1920x1200_kasandra_line_recipe.png"
+ ]
+}

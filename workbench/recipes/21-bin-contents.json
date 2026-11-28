@@ -1,0 +1,23 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "bin-contents",
+ "name": "What is in DELETE",
+ "title": "What is in DELETE",
+ "words": [
+  "what is in the bin",
+  "recycle bin",
+  "bin contents",
+  "trash contents",
+  "what did i delete",
+  "deleted files"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.bin.list",
+   "args": {}
+  }
+ ],
+ "help": "What DELETE (your home's bin) holds, newest first."
+}

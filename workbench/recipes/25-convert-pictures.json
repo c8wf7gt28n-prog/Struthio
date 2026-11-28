@@ -1,0 +1,43 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "convert-pictures",
+ "name": "Convert pictures",
+ "title": "Convert the pictures in {folder} to {format}",
+ "words": [
+  "convert pictures",
+  "convert images",
+  "convert photos",
+  "change format",
+  "convert"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder holds the pictures?"
+  },
+  "format": {
+   "type": "format",
+   "ask": "Which format?"
+  },
+  "kinds": {
+   "type": "kinds",
+   "optional": true
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.pictures.make",
+   "args": {
+    "folder": "{folder}",
+    "kinds": "{kinds}",
+    "format": "{format}"
+   }
+  }
+ ],
+ "help": "A new picture beside each one, in the new format; the originals stay."
+}

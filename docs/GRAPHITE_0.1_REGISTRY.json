@@ -71,6 +71,24 @@
    "book.status": "workbench/orange_book.py#dispatch",
    "boot.first_stage.inspect": "workbench/boot_loading.py#dispatch",
    "boot.inspect": "workbench/boot_loading.py#dispatch",
+   "box.bin.empty": "workbench/box_ops.py#dispatch",
+   "box.bin.list": "workbench/box_ops.py#dispatch",
+   "box.files.bin": "workbench/box_ops.py#dispatch",
+   "box.files.find": "workbench/box_ops.py#dispatch",
+   "box.files.rename": "workbench/box_ops.py#dispatch",
+   "box.files.sort": "workbench/box_ops.py#dispatch",
+   "box.folder.copy": "workbench/box_ops.py#dispatch",
+   "box.memory": "workbench/box_ops.py#dispatch",
+   "box.pdf.info": "workbench/box_ops.py#dispatch",
+   "box.pdf.merge": "workbench/box_ops.py#dispatch",
+   "box.pdf.split": "workbench/box_ops.py#dispatch",
+   "box.pictures.make": "workbench/box_ops.py#dispatch",
+   "box.processor": "workbench/box_ops.py#dispatch",
+   "box.space": "workbench/box_ops.py#dispatch",
+   "box.system": "workbench/box_ops.py#dispatch",
+   "box.zip.extract": "workbench/box_ops.py#dispatch",
+   "box.zip.list": "workbench/box_ops.py#dispatch",
+   "box.zip.make": "workbench/box_ops.py#dispatch",
    "brain.acceleration": "workbench/local_brain.py#dispatch",
    "brain.acceleration.probe": "workbench/local_brain.py#dispatch",
    "brain.account": "workbench/model_account.py#dispatch",
@@ -692,6 +710,13 @@
    "receiving.receive": "workbench/receiving.py#dispatch",
    "receiving.status": "workbench/receiving.py#dispatch",
    "receiving.translate": "workbench/receiving.py#dispatch",
+   "recipes.dry_run": "workbench/recipe_book.py#dispatch",
+   "recipes.list": "workbench/recipe_book.py#dispatch",
+   "recipes.look": "workbench/recipe_book.py#dispatch",
+   "recipes.pick": "workbench/recipe_book.py#dispatch",
+   "recipes.run": "workbench/recipe_book.py#dispatch",
+   "recipes.runs": "workbench/recipe_book.py#dispatch",
+   "recipes.undo": "workbench/recipe_book.py#dispatch",
    "records.attach": "workbench/database_rom.py#dispatch",
    "records.clear_staging": "workbench/database_rom.py#dispatch",
    "records.hardware": "workbench/database_rom.py#dispatch",
@@ -1142,9 +1167,9 @@
   }
  },
  "counts": {
-  "adapters": 924,
+  "adapters": 949,
   "job_tools": 113,
-  "operations": 924,
+  "operations": 949,
   "settings": 53
  },
  "formulas": {
@@ -2179,6 +2204,153 @@
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
    "scope": "read"
+  },
+  "box.bin.empty": {
+   "arguments": "7ce41d4165d19eaa16d0a377d346c67c76ddf301048fc23ddc6149ffe773e49e",
+   "properties": {
+    "expect": "f4618f4ae4b25223"
+   },
+   "scope": "approve"
+  },
+  "box.bin.list": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "box.files.bin": {
+   "arguments": "761081e5a0137b4bd4857ab5a34e7116e2b63596ff3fdc01ed5aa02d4fe0dbdb",
+   "properties": {
+    "days": "0d3ac1e9e006c011",
+    "expect": "f4618f4ae4b25223",
+    "folder": "2b1e00f7cfc18abe",
+    "how": "08a6030b86e62364"
+   },
+   "scope": "execute"
+  },
+  "box.files.find": {
+   "arguments": "9f8ec11e96b50918305a7880bb2304155758d2f55d0f19f4a6ed7fcac1750299",
+   "properties": {
+    "days": "0d3ac1e9e006c011",
+    "folder": "2b1e00f7cfc18abe",
+    "how": "c7917a5ea025aedb",
+    "most": "dfbe8dfe1b8e5376",
+    "since": "0d3ac1e9e006c011",
+    "size": "0d3ac1e9e006c011",
+    "words": "603c6e9671b08d8c"
+   },
+   "scope": "read"
+  },
+  "box.files.rename": {
+   "arguments": "b2750d0e4bf1137477977eec90c23b2ddd9dd7349bb3e7b12c8dafd370fb392a",
+   "properties": {
+    "case": "c33f8217ce2d9a9b",
+    "expect": "f4618f4ae4b25223",
+    "find": "603c6e9671b08d8c",
+    "folder": "2b1e00f7cfc18abe",
+    "kinds": "603c6e9671b08d8c",
+    "replace": "603c6e9671b08d8c"
+   },
+   "scope": "execute"
+  },
+  "box.files.sort": {
+   "arguments": "47b4518087d1cc6e104148a341dc06df914000b6485675d57064f6390714179a",
+   "properties": {
+    "expect": "f4618f4ae4b25223",
+    "folder": "2b1e00f7cfc18abe"
+   },
+   "scope": "execute"
+  },
+  "box.folder.copy": {
+   "arguments": "509157964cc239dea0fb8a71cb81ecea351ad44a446d6174cbc749f593fc9179",
+   "properties": {
+    "expect": "f4618f4ae4b25223",
+    "folder": "2b1e00f7cfc18abe",
+    "to": "2b1e00f7cfc18abe"
+   },
+   "scope": "execute"
+  },
+  "box.memory": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "box.pdf.info": {
+   "arguments": "d555ea129e3f6928edc30b6cbc5646a0848a29d2b4285cd2281d8cb45cf6f4f3",
+   "properties": {
+    "path": "2b1e00f7cfc18abe"
+   },
+   "scope": "read"
+  },
+  "box.pdf.merge": {
+   "arguments": "bc77d0bc1968f3355de1d99a035313810b0b6a65eb37d1590af5f66409ccad32",
+   "properties": {
+    "expect": "f4618f4ae4b25223",
+    "folder": "2b1e00f7cfc18abe",
+    "name": "603c6e9671b08d8c",
+    "paths": "50a4f0884fbdb17f"
+   },
+   "scope": "execute"
+  },
+  "box.pdf.split": {
+   "arguments": "8b04f6ebebf72a6f4092bca2e6834f9958be88a6b7db5961edb091fb2f74426b",
+   "properties": {
+    "expect": "f4618f4ae4b25223",
+    "path": "2b1e00f7cfc18abe"
+   },
+   "scope": "execute"
+  },
+  "box.pictures.make": {
+   "arguments": "510490796acd97729b1228d7b1f1a840e79fdb2b1dc7dd25770219f346531e30",
+   "properties": {
+    "expect": "f4618f4ae4b25223",
+    "folder": "2b1e00f7cfc18abe",
+    "format": "1ad04f9f5b0c63aa",
+    "kinds": "603c6e9671b08d8c",
+    "size": "603c6e9671b08d8c"
+   },
+   "scope": "execute"
+  },
+  "box.processor": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "box.space": {
+   "arguments": "3e042cdb2096853190aa44fee8af6d5ad49505020f657cdb5327c237e7a3b285",
+   "properties": {
+    "folder": "2b1e00f7cfc18abe"
+   },
+   "scope": "read"
+  },
+  "box.system": {
+   "arguments": "89ba0db512f51273eaee269913517d8b23a0d5c4035f53a9dec46cfc31963075",
+   "properties": {
+    "what": "12eac11ac8900ad9"
+   },
+   "scope": "read"
+  },
+  "box.zip.extract": {
+   "arguments": "8b04f6ebebf72a6f4092bca2e6834f9958be88a6b7db5961edb091fb2f74426b",
+   "properties": {
+    "expect": "f4618f4ae4b25223",
+    "path": "2b1e00f7cfc18abe"
+   },
+   "scope": "execute"
+  },
+  "box.zip.list": {
+   "arguments": "d555ea129e3f6928edc30b6cbc5646a0848a29d2b4285cd2281d8cb45cf6f4f3",
+   "properties": {
+    "path": "2b1e00f7cfc18abe"
+   },
+   "scope": "read"
+  },
+  "box.zip.make": {
+   "arguments": "47b4518087d1cc6e104148a341dc06df914000b6485675d57064f6390714179a",
+   "properties": {
+    "expect": "f4618f4ae4b25223",
+    "folder": "2b1e00f7cfc18abe"
+   },
+   "scope": "execute"
   },
   "brain.acceleration": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
@@ -7167,6 +7339,57 @@
    },
    "scope": "read"
   },
+  "recipes.dry_run": {
+   "arguments": "f376b54ffa1be4316a1114dc1b40be145eef3cb07b8c5fa10ded332aa96406d1",
+   "properties": {
+    "recipe": "3ea040de4c9e48ed",
+    "slots": "a2c799262a3ce3c1"
+   },
+   "scope": "read"
+  },
+  "recipes.list": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "recipes.look": {
+   "arguments": "f376b54ffa1be4316a1114dc1b40be145eef3cb07b8c5fa10ded332aa96406d1",
+   "properties": {
+    "recipe": "3ea040de4c9e48ed",
+    "slots": "a2c799262a3ce3c1"
+   },
+   "scope": "read"
+  },
+  "recipes.pick": {
+   "arguments": "962e2e2e76b36f4a49e0f008da9be58298da50759d2a772d8a67f310b8076740",
+   "properties": {
+    "words": "dc5eec2f366b05a9"
+   },
+   "scope": "read"
+  },
+  "recipes.run": {
+   "arguments": "23676707af08617c147605e631622d2e621eeb3ec30011eaaa917e863c22910f",
+   "properties": {
+    "digest": "f4618f4ae4b25223",
+    "recipe": "3ea040de4c9e48ed",
+    "slots": "a2c799262a3ce3c1"
+   },
+   "scope": "execute"
+  },
+  "recipes.runs": {
+   "arguments": "fed9216815799f0ae4af7ca0b4561d44821f6f547c8d3ef4f17709059a699281",
+   "properties": {
+    "limit": "dfbe8dfe1b8e5376"
+   },
+   "scope": "read"
+  },
+  "recipes.undo": {
+   "arguments": "109af9aa8795ca6baf81d8210613947c72863d1695603be732fad7f0a2556e20",
+   "properties": {
+    "run": "d76a3cd568c70cee"
+   },
+   "scope": "approve"
+  },
   "records.attach": {
    "arguments": "624593ecddca359b148cdf07a4881ceb83b71228953ec68f5ab500aca2d262ba",
    "properties": {
@@ -9050,7 +9273,7 @@
  },
  "release": "Graphite 1.1~pre2",
  "schema": "graphite.registry-record/1",
- "schema_digest": "96900b6d0dd401f62e9d2ccfffa1f16be334f13af54a79d792807848688a1399",
+ "schema_digest": "a3456588889ee4b2c56096c78c0c7d5810f060ea750dc12b50e8692c928e9ee6",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

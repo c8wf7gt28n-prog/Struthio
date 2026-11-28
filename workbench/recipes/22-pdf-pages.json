@@ -1,0 +1,36 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "pdf-pages",
+ "name": "Pages of a PDF",
+ "title": "How many pages {file} has",
+ "words": [
+  "how many pages",
+  "page count"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "optional": true
+  },
+  "file": {
+   "type": "file",
+   "ask": "Which PDF?"
+  }
+ },
+ "pre": [
+  {
+   "file": "file",
+   "suffix": ".pdf"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.pdf.info",
+   "args": {
+    "path": "{file}"
+   }
+  }
+ ],
+ "help": "A PDF's pages, read with pdfinfo."
+}

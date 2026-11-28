@@ -1,0 +1,41 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "find-big-files",
+ "name": "Find big files",
+ "title": "Find big files in {folder}",
+ "words": [
+  "big files",
+  "large files",
+  "biggest files",
+  "huge files",
+  "files taking space"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~"
+  },
+  "size": {
+   "type": "size",
+   "default": "100 MB",
+   "ask": "From what size?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.find",
+   "args": {
+    "folder": "{folder}",
+    "how": "big",
+    "size": "{size}"
+   }
+  }
+ ],
+ "help": "Lists the files of a size or more, biggest first, hidden ones too."
+}

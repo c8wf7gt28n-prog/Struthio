@@ -1,0 +1,23 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "network",
+ "name": "My network",
+ "title": "My network address",
+ "words": [
+  "ip address",
+  "network address",
+  "am i connected",
+  "my ip address"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.system",
+   "args": {
+    "what": "network"
+   }
+  }
+ ],
+ "help": "Each network connection, up or down, and its addresses."
+}

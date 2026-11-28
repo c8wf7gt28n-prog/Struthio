@@ -1,0 +1,35 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "bin-duplicates",
+ "name": "Put duplicate copies in DELETE",
+ "title": "Put the duplicate copies in {folder} in DELETE",
+ "words": [
+  "delete duplicates",
+  "remove duplicates",
+  "bin duplicates",
+  "get rid of duplicates",
+  "clean duplicates",
+  "delete the copies"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.bin",
+   "args": {
+    "folder": "{folder}",
+    "how": "duplicates"
+   }
+  }
+ ],
+ "help": "Every copy but the oldest into DELETE, which gives them back."
+}

@@ -1,0 +1,26 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "disk-health",
+ "name": "Disk health",
+ "title": "Disk health",
+ "words": [
+  "disk health",
+  "drive health",
+  "disk errors",
+  "hard drive health",
+  "ssd health",
+  "is my disk ok",
+  "smart status"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.system",
+   "args": {
+    "what": "disks"
+   }
+  }
+ ],
+ "help": "Each disk, its size and kind, and the errors the kernel counted."
+}

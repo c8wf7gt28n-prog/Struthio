@@ -1,0 +1,42 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "remove-from-names",
+ "name": "Remove words from names",
+ "title": "Remove “{find}” from the names in {folder}",
+ "words": [
+  "remove from names",
+  "out of the names",
+  "strip from names",
+  "from file names"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?"
+  },
+  "find": {
+   "type": "find",
+   "ask": "Which words?"
+  },
+  "kinds": {
+   "type": "kinds",
+   "optional": true
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.rename",
+   "args": {
+    "folder": "{folder}",
+    "find": "{find}",
+    "kinds": "{kinds}"
+   }
+  }
+ ],
+ "help": "The words taken out of every name that holds them."
+}

@@ -1,0 +1,24 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "battery",
+ "name": "Battery",
+ "title": "Battery",
+ "words": [
+  "battery",
+  "battery level",
+  "how much battery",
+  "charge left",
+  "power left"
+ ],
+ "slots": {},
+ "pre": [],
+ "steps": [
+  {
+   "op": "box.system",
+   "args": {
+    "what": "battery"
+   }
+  }
+ ],
+ "help": "The battery's charge and whether it is charging."
+}

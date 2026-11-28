@@ -1,0 +1,43 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "backup-folder",
+ "name": "Back up a folder to a drive",
+ "title": "Back up {folder} to {drive}",
+ "words": [
+  "back up",
+  "backup",
+  "copy to the drive",
+  "save to usb",
+  "copy to stick",
+  "backup to drive",
+  "copy to usb"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?"
+  },
+  "drive": {
+   "type": "drive",
+   "ask": "Which drive?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  },
+  {
+   "folder": "drive"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.folder.copy",
+   "args": {
+    "folder": "{folder}",
+    "to": "{drive}"
+   }
+  }
+ ],
+ "help": "A dated copy of the folder on the drive, every file read back."
+}

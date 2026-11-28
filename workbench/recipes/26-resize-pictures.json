@@ -1,0 +1,48 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "resize-pictures",
+ "name": "Resize pictures",
+ "title": "Resize the pictures in {folder} to {size}",
+ "words": [
+  "resize pictures",
+  "resize photos",
+  "resize images",
+  "pictures smaller",
+  "photos smaller",
+  "shrink photos",
+  "shrink pictures",
+  "scale pictures",
+  "smaller pictures",
+  "resize"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder holds the pictures?"
+  },
+  "size": {
+   "type": "picture",
+   "ask": "How big?"
+  },
+  "kinds": {
+   "type": "kinds",
+   "optional": true
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.pictures.make",
+   "args": {
+    "folder": "{folder}",
+    "kinds": "{kinds}",
+    "size": "{size}"
+   }
+  }
+ ],
+ "help": "A smaller copy beside each picture (never larger than it was); the originals stay."
+}

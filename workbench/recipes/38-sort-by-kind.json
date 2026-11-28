@@ -1,0 +1,36 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "sort-by-kind",
+ "name": "Sort by kind",
+ "title": "Sort {folder} by kind",
+ "words": [
+  "sort downloads",
+  "sort by kind",
+  "sort by type",
+  "organise downloads",
+  "organize downloads",
+  "sort files into folders",
+  "sort into folders"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~/Downloads"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.sort",
+   "args": {
+    "folder": "{folder}"
+   }
+  }
+ ],
+ "help": "Pictures, documents, music, videos, archives and installers each into a folder of their kind."
+}

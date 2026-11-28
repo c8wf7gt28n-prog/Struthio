@@ -1,0 +1,44 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "changed-since",
+ "name": "What changed",
+ "title": "What changed in {folder} since {since}",
+ "words": [
+  "changed since",
+  "modified since",
+  "recently changed",
+  "files changed",
+  "what did i change",
+  "edited since",
+  "what have i changed",
+  "changed lately"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~"
+  },
+  "since": {
+   "type": "since",
+   "default": "yesterday",
+   "ask": "Since when?"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.find",
+   "args": {
+    "folder": "{folder}",
+    "how": "changed",
+    "since": "{since}"
+   }
+  }
+ ],
+ "help": "The files changed since a day, newest first."
+}

@@ -1,0 +1,35 @@
+{
+ "recipe": "graphite.recipe/1",
+ "id": "file-kinds",
+ "name": "Kinds of files",
+ "title": "What kinds of files are in {folder}",
+ "words": [
+  "kinds of files",
+  "types of files",
+  "file types",
+  "what sort of files",
+  "file kinds"
+ ],
+ "slots": {
+  "folder": {
+   "type": "folder",
+   "ask": "Which folder?",
+   "default": "~"
+  }
+ },
+ "pre": [
+  {
+   "folder": "folder"
+  }
+ ],
+ "steps": [
+  {
+   "op": "box.files.find",
+   "args": {
+    "folder": "{folder}",
+    "how": "kinds"
+   }
+  }
+ ],
+ "help": "How many pictures, documents, music, videos, archives and installers a folder holds, and their sizes."
+}
