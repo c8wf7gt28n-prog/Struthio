@@ -691,6 +691,9 @@ class TopBar(QWidget):
         font = mono_font(max(14, round(16 * scale)))
         if bt.DISPLAY != MONO:      # Kasandra: the menus across the head in her typewriter face, a little larger to read as well
             font = QFont(bt.DISPLAY);font.setPixelSize(max(15, round(18 * scale)))
+        from . import design_tokens as _tokens      # 1.1 K0: the 32 px head's words: Inter in Day and Night, each look's own face
+        if bt.LAUNCH:font = QFont(_tokens.FONT['ui'])      # 1.1 K0
+        font.setPixelSize(_tokens.head_px(bt.APPEARANCE, scale))      # 1.1 K0
         for widget in [self.path, self.more_menus, self.programs, self.nice] + list(getattr(self, 'bar_menus', [])):
             widget.setFont(font)
         self.pulse.restyle()
@@ -3570,6 +3573,8 @@ class Shell2(QObject):
             pass
         from .explorer_qt import install as install_explorer  # 1.1 E1
         install_explorer(host)  # 1.1 E1: the Files tree and the centre as an Explorer: Quick access, List, Icons, Board, the address
+        from .details_pane_qt import install as install_details  # 1.1 K0
+        install_details(host)  # 1.1 K0: View ▸ Details pane (Alt+P), off; the context row only over a code tab
         from .launch_look import install as install_launch_look
         install_launch_look(host)  # 1.0 P4: 1.0's one move to Day on a profile from before, said in one line, once
         try:  # 1.0 F3: every keyboard stop says a name; Tab walks into a scrolled page's presses

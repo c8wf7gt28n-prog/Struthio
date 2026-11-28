@@ -235,9 +235,9 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         self.assertEqual(host.strip(), ['office', 'readiness']);self.assertEqual(tabs.currentWidget().objectName(), 'office')
         self.assertEqual(tabs.deferred, rows('ManualTab', pinned=('ManualTab',)))
         self.assertIn('RuntimeError: this tab cannot be made', said.getvalue())
-        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in Arrange → Reopen deferred tabs')      # 0.8.3: "View", a menu the window does not have
+        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in View → Reopen deferred tabs')      # 0.8.3: "View", a menu the window does not have
         from workbench.tail_words import readable
-        self.assertEqual([readable(e) for e in told(host)], ['Not reopened at start · R10 Manual (it failed to open). Kept in Arrange → Reopen deferred tabs'],
+        self.assertEqual([readable(e) for e in told(host)], ['Not reopened at start · R10 Manual (it failed to open). Kept in View → Reopen deferred tabs'],
                          'and in the Activity, once, in words: until 0.8.4 the reason was on stderr only')
 
     def test_a_preview_left_of_a_room_does_not_set_the_room_aside(self):
@@ -273,8 +273,8 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         self.assertEqual(told(host), [])
         host.bridge();tabs.restore_waiting()
         self.assertEqual(host.strip(), ['office', 'readiness']);self.assertEqual(tabs.currentWidget().objectName(), 'office', 'what was in front is still known at the second turn')
-        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in Arrange → Reopen deferred tabs')
-        self.assertEqual([e['detail'] for e in told(host)], ['R10 Manual (it failed to open). Kept in Arrange → Reopen deferred tabs'])
+        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in View → Reopen deferred tabs')
+        self.assertEqual([e['detail'] for e in told(host)], ['R10 Manual (it failed to open). Kept in View → Reopen deferred tabs'])
         tabs.restore_waiting();self.assertEqual(len(told(host)), 1, 'said once')
 
     def test_what_a_start_sets_aside_is_said_once_with_each_reason_in_words(self):
@@ -286,7 +286,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         self.assertEqual((len(tabs.pinned()), tabs.preview().objectName()), (5, 'readiness'))
         self.assertEqual([row['kind'] for row in tabs.deferred], ['ReadinessTab', 'ToolInventoryTab', 'RetiredRoomTab', 'ManualTab', 'GoneRoomTab'])
         self.assertEqual([e['detail'] for e in told(host)], ['Console Readiness (five pins were already open); Tool Inventory (it is no longer there); Retired room (Graphite cannot '
-                                                             'reopen this kind of tab); R10 Manual (another tab was already in the Preview); 1 more. Kept in Arrange → Reopen deferred tabs'])
+                                                             'reopen this kind of tab); R10 Manual (another tab was already in the Preview); 1 more. Kept in View → Reopen deferred tabs'])
         self.assertEqual(stderr.getvalue(), '', 'none of them failed: nothing for stderr')
 
     def test_reopen_deferred_tabs_holds_each_tab_once_and_no_more_than_twenty(self):
@@ -298,7 +298,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         tabs.restore(state)      # the third start of a session left with a room restore cannot reopen
         self.assertEqual(tabs.deferred, [unknown], '0.8.3: three rows of it, and four at the next start')
         self.assertEqual(tabs.snapshot()['deferred'], [unknown])
-        self.assertEqual(told(host)[0]['detail'], 'Retired room (Graphite cannot reopen this kind of tab). Kept in Arrange → Reopen deferred tabs')
+        self.assertEqual(told(host)[0]['detail'], 'Retired room (Graphite cannot reopen this kind of tab). Kept in View → Reopen deferred tabs')
         many = [{'kind': 'RetiredRoomTab', 'pinned': False, 'device': 'bench-%d' % n} for n in range(27)]
         host = strip_host();host.bridge();tabs = host.tabs
         tabs.restore({'tabs': rows('ReadinessTab'), 'active': 0, 'deferred': many + [many[3]]})
@@ -311,7 +311,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         host = strip_host();host.bridge();tabs = host.tabs
         tabs.restore({'tabs': rows('RetiredRoomTab', 'RetiredRoomTab'), 'active': 0, 'deferred': []})
         self.assertEqual(tabs.deferred, rows('RetiredRoomTab'))
-        self.assertEqual([e['detail'] for e in told(host)], ['Retired room (Graphite cannot reopen this kind of tab). Kept in Arrange → Reopen deferred tabs'],
+        self.assertEqual([e['detail'] for e in told(host)], ['Retired room (Graphite cannot reopen this kind of tab). Kept in View → Reopen deferred tabs'],
                          'what the list keeps once is said once')
 
     def test_a_row_without_its_title_is_named_as_the_screen_names_its_kind(self):
@@ -325,7 +325,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         self.assertEqual(name({'kind': 'WorkTab', 'pinned': False, 'title': 'Night Shift · Rail Demo'}), 'Night Shift · Rail Demo', 'a title written down is said as it was')
         host = strip_host();host.bridge();tabs = host.tabs
         tabs.restore({'tabs': rows(*['ReadinessTab'] * 5, 'StacyFoundationTab', pinned=('ReadinessTab', 'StacyFoundationTab')), 'active': 0, 'deferred': []})
-        self.assertEqual([e['detail'] for e in told(host)], ['Graphite · knowledge (five pins were already open). Kept in Arrange → Reopen deferred tabs'])
+        self.assertEqual([e['detail'] for e in told(host)], ['Graphite · knowledge (five pins were already open). Kept in View → Reopen deferred tabs'])
         offered = []
         with patch('workbench.workspace_tabs.QInputDialog.getItem', side_effect=lambda *a:offered.extend(a[3]) or ('', False)):tabs.reopen_deferred()
         self.assertEqual(offered, ['1. Graphite · knowledge'])
@@ -531,11 +531,11 @@ class SecondStart(unittest.TestCase):
         self.assertIn('RuntimeError: the manual cannot be made', stderr.getvalue(), 'the trace is still there for whoever reads stderr')
         self.assertEqual(rooms(third), strip);self.assertEqual([row['kind'] for row in third.tabs.deferred], ['ManualTab', 'RetiredRoomTab'])
         new = said()[len(before):]
-        line = 'Not reopened at start · R10 Manual (it failed to open); Retired room (Graphite cannot reopen this kind of tab). Kept in Arrange → Reopen deferred tabs'
+        line = 'Not reopened at start · R10 Manual (it failed to open); Retired room (Graphite cannot reopen this kind of tab). Kept in View → Reopen deferred tabs'
         self.assertEqual([readable(e) for e in new], [line], 'said once, in words, where the desk says what happened')
         tail = third.ledger_bridge.tail;tail.refresh(True)
         self.assertTrue(any(tail.list.item(i).text().endswith(line) for i in range(tail.list.count())), 'in the Activity of the window, in this look')
-        arrange = [a.menu() for a in third.menuBar().actions() if a.menu() is not None and a.menu().title().replace('&', '') == 'Arrange']
+        arrange = [a.menu() for a in third.menuBar().actions() if a.menu() is not None and a.menu().title().replace('&', '') == 'View']      # 1.1 K0: View (1.0 Arrange)
         self.assertTrue(arrange and third.a_reopen in arrange[0].actions(), 'the menu it names is the one that holds the list')
         left = self.leave(third)
 

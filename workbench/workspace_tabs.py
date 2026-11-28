@@ -47,7 +47,7 @@ ROOMS=('OfficeBuildingTab','SlateRoomTab','ReturnTab','FilesTab','LibraryTab','H
 NOTHING_TO_REOPEN=('StartPage','FilesStart','EmptyWorkspaceTab',
                    'UtilityTab')      # 1.0 K6: a utility's tab is not reopened at the next start (its utility and runs are kept)
 KEPT=20      # Reopen deferred tabs keeps the twenty newest; until 0.8.4 it had no bound
-WHERE='Arrange → Reopen deferred tabs'      # the menu the item is in (menus2: the View group, under the title Arrange)
+WHERE='View → Reopen deferred tabs'      # the menu the item is in (menus2: the View group; 1.1 K0: under the title View, 1.0's Arrange)
 
 
 def destination(row):

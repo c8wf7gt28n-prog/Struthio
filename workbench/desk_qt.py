@@ -516,8 +516,11 @@ def apply(host, owner=None):
     art = getattr(getattr(host, 'session', None), 'state', {}).get('desk_art', 'illustrated')
     strip = scaled(116, s) if worksheet and art == 'illustrated' and d.width >= 1250 and host.height() >= 820 else 0
     wins = getattr(top, 'window_strip', None);rows = wins.room(s) if wins is not None else 0  # 1.0 S3: the program windows' row
+    from . import design_tokens as _tokens      # 1.1 K0
+    head, foot = _tokens.chrome(s, host.height())      # 1.1 K0: tokens 1.1, the head 32 px and the foot 48 (44 when short)
+    d = d._replace(band=head);host.foot_px = foot      # 1.1 K0: d.band is the head's; the foot keeps its own height
     for widget in (top, getattr(host, 'ribbon_dock', None)):_fixed(widget, height=d.band + strip + rows)  # 1.0 S3: + rows
-    for widget in (bar, getattr(host, 'type_dock', None)):_fixed(widget, height=d.band)
+    for widget in (bar, getattr(host, 'type_dock', None)):_fixed(widget, height=foot)  # 1.1 K0: foot (was d.band)
     if host.layout() is not None:host.layout().activate()
     host.desk = d
     if top is not None and hasattr(top, 'place'):

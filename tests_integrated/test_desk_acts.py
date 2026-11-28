@@ -660,7 +660,7 @@ class LiveActs(unittest.TestCase):
         out=act('head.open',{'menu':'Apps'});self.assertTrue(self.w.type_bar.hatch.programs.isVisible())
         self.assertNotIn('Programs',out['result']['rows'])
         act('menu.close')
-        out=act('head.row',{'menu':'Work','row':'Log out'});self.assertEqual(out['error']['code'],'NOT_ALLOWED_ROW')
+        out=act('head.row',{'menu':'File','row':'Log out'});self.assertEqual(out['error']['code'],'NOT_ALLOWED_ROW')
         top=self.w.shell2.top
         for menu,rows in desk_acts.HEAD_ROWS.items():
             word=next(b for b in top.menu_words() if b.text()==menu);words={desk_acts.row_words(a.text()) for a in word.menu().actions()}
@@ -726,7 +726,7 @@ class LiveActs(unittest.TestCase):
     def test_one_record_per_act(self):
         before=len(journal(origin='desk-script:test'))
         for name,args in (('go.field',{}),('point.zoom',{'to':'whole'}),('point.sheet',{'title':READINGS}),('read.desk',{}),
-                          ('point.move',{'way':'first'}),('go.files',{}),('head.open',{'menu':'Guide'}),('menu.close',{}),('go.today',{}),
+                          ('point.move',{'way':'first'}),('go.files',{}),('head.open',{'menu':'Help'}),('menu.close',{}),('go.today',{}),
                           ('go.open',{'tab':0})):
             out=act(name,args);self.assertTrue(out['ok'],(name,out['words']))
         self.assertEqual(len(journal(origin='desk-script:test'))-before,9)

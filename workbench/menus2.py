@@ -1,4 +1,4 @@
-"""Eight desktop menus over the original actions, shortcuts and menu objects.
+"""Eight desktop menus over the original actions, shortcuts and menu objects. (1.1 K0: six now, File Edit View Go Tools Help; head_menus.)
 
 File is files, Edit is text, View is the window, Tools is Ledger's tools, Help is help. Every command from the older
 engineering desktop (builds, cartridges, hardware workspaces, the phone link…) lives in one place, Tools › Engineering,
@@ -14,8 +14,7 @@ from PySide6.QtGui import QAction, QColor, QIcon, QImage, QPainter, QPixmap
 GRAPHITE = '#6c675e'
 # Display proposals from the Interface Companion; stable dictionary keys,
 # QMenu instances, QAction identities and keyboard commands are preserved.
-DISPLAY_TITLES={'File':'Work','Edit':'Revise','Tools':'Tools','Options':'Arrange',
-                'Commands':'Commands','Settings':'Rules','Properties':'Properties','Help':'Guide'}
+DISPLAY_TITLES={'File':'File','Edit':'Edit','View':'View','Go':'Go','Tools':'Tools','Help':'Help'}      # 1.1 K0: the six menus (1.0's eight were Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide; head_menus.MOVED)
 # File: getting files in and working on them. Edit: text. View: where you are and how the window looks.
 # Tools: who you type to, the chain menu, and Ledger's own tools. Help: how to begin, and what is new.
 FILE = ['new', '@new_idea', '@new_project', 'open', 'viewer', 'quick', '@recent', None, '@receive', '@import', '@export', '@work_copy', None, 'save', 'save_all', 'close', None, 'recovery',
@@ -75,7 +74,8 @@ def rebuild(host):
         # View is now the visible Options menu; its old dictionary alias still works.
         groups['Tools']=groups['Options'];groups['Options']=groups['View']
         for title in ('Commands','Settings','Properties'):groups[title]=QMenu(title,host)
-        order=('File','Edit','Tools','Options','Commands','Settings','Properties','Help')
+        from .head_menus import HEAD      # 1.1 K0: File, Edit, View, Go, Tools, Help across the head (Commands is Tools ▸ Commands;
+        groups['Go']=QMenu('Go',host);order=HEAD      # 1.1 K0: Settings and Properties stay as objects for callers, their rows moved)
         commands=getattr(host,'ribbon_commands',None)
         if commands is not None:
             for heading in host.command_menus.values():heading.parentWidget().hide()
@@ -216,9 +216,11 @@ def rebuild(host):
         host.a_guide_pages = __import__('workbench.guide_pages', fromlist=['actions']).actions(host, _Path(__file__).resolve().parents[1])
     extras.update(host.a_guide_pages)  # 1.0 X2
     placed = {service} if service is not None else set()
+    from . import head_menus      # 1.1 K0
 
     def add(menu, key):
         if key is None:menu.addSeparator();return
+        if head_menus.add(host, menu, key, placed, groups):return      # 1.1 K0: the details pane, the views, the old Rules rows
         if key == '@recent' and hasattr(host, 'recent_menu'):menu.addMenu(host.recent_menu);return
         if key in ('@type_to', '@console_sizes'):  # the bar's own words, as checkable choices
             sub = QMenu('Writing Line' if key == '@type_to' else 'Console', host)  # D3: the line's four modes
@@ -295,12 +297,7 @@ def rebuild(host):
 
     for menu in groups.values():  # detach, never delete: the actions belong to the window or are re-placed below
         for action in list(menu.actions()):menu.removeAction(action)
-    for group, keys in (
-        ('File',FILE),('Edit',EDIT),('Options',VIEW),('Help',HELP),
-        ('Commands',['ledger_commands','@run_operation','@chain','@chain_desk','@type_to','palette']),
-        ('Settings',['ledger_settings','@desk_art','@service']),
-        ('Properties',['inspector','@computer','@pills']),
-        ('Tools',['@explore','discovery','algorithms','atlas','@work_copy','@utility','doctor','master_stop',None,'@engineering'])):  # 1.0 K6: '@utility'
+    for group, keys in head_menus.layout(FILE, EDIT, HELP):      # 1.1 K0: the six menus (head_menus.layout)
         menu = groups.get(group)
         if menu is not None:
             for key in keys:add(menu, key)

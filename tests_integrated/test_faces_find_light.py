@@ -279,7 +279,7 @@ class DoorTests(unittest.TestCase):
 
     def test_leaving_is_the_last_group_of_the_first_menu(self):
         from workbench import menus2, session_power
-        self.assertEqual(menus2.FILE[-2:],[None,'@leave'],'a separator, then leaving');self.assertEqual(menus2.DISPLAY_TITLES['File'],'Work')
+        self.assertEqual(menus2.FILE[-2:],[None,'@leave'],'a separator, then leaving');self.assertEqual(menus2.DISPLAY_TITLES['File'],'File')      # 1.1 K0: File (1.0 Work)
         self.assertEqual([session_power.WORDS[k] for k in ('logout','restart','shutdown')],['Log out','Restart','Shut down'])
 
 

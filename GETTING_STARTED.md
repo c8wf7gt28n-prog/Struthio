@@ -21,8 +21,8 @@ yet. The first real proof is that evening.*
 
 ## The first ten minutes
 
-1. **The window.** HALT upper left; the menus across the head (Work, Revise, Tools, Arrange, Commands, Rules, Properties,
-   Guide); Apps ⊕ upper right. On the left the tabs Files, Machine and Settings, with DELETE at their foot; the board in the
+1. **The window.** HALT upper left; the menus across the head (File, Edit, View, Go, Tools, Help; View ▸ Details pane, or
+   Alt+P, shows the chosen thing at the right of the centre); Apps ⊕ upper right. On the left the tabs Files, Machine and Settings, with DELETE at their foot; the board in the
    centre; Kasandra's column on the right; at the foot Line · Terminal · Search · Web · Log, the writing line and the meters
    CPU GPU RAM TXT NET. In the dedicated session a slim dock across the top holds Graphite and your app windows.
 2. **Files** starts at "This computer /" with Home open. Select a file and it becomes the focus of the board, with what it
@@ -46,15 +46,15 @@ yet. The first real proof is that evening.*
 
 ## The older rooms, still there
 
-- Arrange ▸ Changes: a reviewed working copy of a project folder or ZIP; changes apply to the copy first, and updating the
+- Go ▸ Changes: a reviewed working copy of a project folder or ZIP; changes apply to the copy first, and updating the
   originals is a separate preview and your own action. ZIP originals are never overwritten.
-- Arrange ▸ Continuing work: an assignment delegated to Graphite on a profiled working copy, under a plan you review and
+- Go ▸ Continuing work: an assignment delegated to Graphite on a profiled working copy, under a plan you review and
   authorise once; pause and revoke are always there. After Stop all jobs, resume global work explicitly.
-- Arrange ▸ Exchange & deployment: paired requests and results, offline release preview and inert launch files
+- Go ▸ Exchange & deployment: paired requests and results, offline release preview and inert launch files
   (docs/STAGE6.md explains pairing, interruption, trust, clock rules and update recovery).
 - Project Desk ▸ Problem sheet: a durable question, explicit unknowns and the receipts of real source reads; Calculate
   there gives exact units and bounded symbolic and constraint tools (docs/INTEGRATED_I01.md and docs/INTEGRATED_I02.md).
-- Arrange ▸ Field: the whole desk as sheets with what feeds what (the board's Whole desk shows it too).
+- Go ▸ Field: the whole desk as sheets with what feeds what (the board's Whole desk shows it too).
 
 ## Checking the installation
 

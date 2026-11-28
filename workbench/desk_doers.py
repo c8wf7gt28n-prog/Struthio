@@ -827,7 +827,7 @@ def go_field(c):
         if surface(host) != 'field':
             if action is None or not sequence(c, host, action.shortcut()):raise Refusal('FAILED', REFUSALS['FAILED'] % 'the Field has no key here')
     elif surface(host) != 'field':
-        head_row(c, 'Arrange', 'Field', 'pointer')
+        head_row(c, 'Go', 'Field', 'pointer')      # 1.1 K0: Go (was Arrange)
     settle(host)
     page, view = the_field(host)
     if face and page.face != FACE_OF[face]:
@@ -846,14 +846,14 @@ def go_field(c):
 def go_today(c):
     host = c.host
     if c.by == 'keys' and getattr(host, 'a_home', None) is not None and sequence(c, host, host.a_home.shortcut()):pass
-    else:c.by = head_row(c, 'Arrange', 'Today', 'pointer')
+    else:c.by = head_row(c, 'Go', 'Today', 'pointer')      # 1.1 K0: Go (was Arrange)
     settle(host)
     return 'Today is in front.', {'surface': surface(host)}
 
 
 def go_files(c):
     host = c.host;folder = c.args.get('folder');wanted = c.args.get('view')
-    c.by = head_row(c, 'Arrange', 'Files', c.by)
+    c.by = head_row(c, 'Go', 'Files', c.by)      # 1.1 K0: Go (was Arrange)
     settle(host)
     tab = files_tab(host)
     if folder is not None and folder != tab.folder:tab.go(folder);settle(host)

@@ -83,6 +83,28 @@ MOTION = dict(hover=160, panel=220, tile=240)      # ms, ease-out; Reduce motion
 GLOW = 0                 # no glow in Day or Night: depth comes from elevation
 GLASS = ('#0c1322', '#16233a', '#3a74b8')      # Day's dark projector glass (P3's): its top, its foot, its edge; no picture stands on it since 1.0 P4 no avatar
 
+# ------------------------------------------------------------------------------------- 1.1 K0: tokens 1.1, the frame
+# DESIGN_DIRECTION_1.1.md section 4: chrome cut from about 188 px to about 116 at 1920x1200. 1.0's window spent 187 on it
+# (the head 60, the centre bar 34, the context row 33, the foot 60); 1.1 spends 114: the head 32 (File Edit View Go Tools
+# Help), the centre bar 34 (E1's, unchanged), the foot 48 (44 in a window under 900 px tall), and the context row stands only
+# over a code tab (details_pane_qt.ContextRow). The bar (B1, 44 px; 40 at 1366x768) is a window of its own below. Every look
+# (Day, Night, Graphite, Kasandra) stands on this frame; each keeps its own faces and colours on it.
+CHROME = dict(head=32, foot=48, foot_short=44, short_below=900)
+HEAD_PX = dict(day=14, night=14, graphite=14, kasandra=15)      # the head's menu words (never under LEAST_PX)
+DETAILS = dict(width=320, preview=180, pad=16)                  # the details pane: on call, at the right of the centre
+
+
+def chrome(scale=1.0, window_height=1200):
+    """(head, foot) in px for the interface scale (the window's, 14 pt = 1.0) and the window's height."""
+    s = max(1.0, min(float(scale), 1.4))
+    foot = CHROME['foot'] if int(window_height) >= CHROME['short_below'] else CHROME['foot_short']
+    return round(CHROME['head'] * s), round(foot * s)
+
+
+def head_px(look, scale=1.0):
+    """The head's menu words in px for a look (day, night, graphite, kasandra) at the interface scale."""
+    return max(LEAST_PX, round(HEAD_PX.get(str(look), HEAD_PX['day']) * max(1.0, min(float(scale), 1.4))))
+
 
 # ------------------------------------------------------------------------------------------------------- the maths
 def rgb(colour):

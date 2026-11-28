@@ -54,7 +54,7 @@ MENU_DEFINITIONS = {
             'Help':['orange_book','genesis','clip','database_rom',None,'setup_guide','manual','keys','readiness','about'],
         }
 
-GROUP_LABELS = dict(File="Work", Edit="Revise", View="Arrange", Options="Tools", Help="Guide")
+GROUP_LABELS = dict(File="File", Edit="Edit", View="View", Options="Tools", Help="Help")      # 1.1 K0: the head's words (1.0: Work, Revise, Arrange, Tools, Guide)
 FAVORITE_KEYS = {"favorites."+group.casefold():group for group in GROUPS}
 
 def allowed_groups():

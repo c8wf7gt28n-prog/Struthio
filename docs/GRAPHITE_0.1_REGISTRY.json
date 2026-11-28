@@ -9415,7 +9415,7 @@
    }
   },
   "favorites.edit": {
-   "definition": "b312e4fce93a3f1195a6d3d7e6626b3f2dbfff5095da2ecf7c852e559f412b53",
+   "definition": "a52cc08b4c41a69701cc182a515a91a2736f150e5aa99b14128b0639b5ef4e29",
    "fields": {
     "allowed_items": "b63a1ca9cc064cc7",
     "application": "60060042289e5269",
@@ -9428,7 +9428,7 @@
     "favorite_group": "f7e6729d30cf78fb",
     "group": "fe1f8148e322a164",
     "key": "c9d48b1d87bc1d65",
-    "label": "de1f83e8b8f5aaa7",
+    "label": "cdf2f74b167b93f5",
     "maxItems": "4e07408562bedb8b",
     "overrides": "4f53cda18c2baa0c",
     "root": "e41b7584e2350adb",
@@ -9441,7 +9441,7 @@
    }
   },
   "favorites.file": {
-   "definition": "98506d33e4f7caa1dc234a50b6e102e8af9c74eec9a1781b59fda61080d1b7d9",
+   "definition": "f83d490b4032bedbb52ea4b7007a22f69d7b97244fdaf55712f8d3800e99801b",
    "fields": {
     "allowed_items": "293224dde324aad1",
     "application": "60060042289e5269",
@@ -9454,7 +9454,7 @@
     "favorite_group": "f57a547dfed3b554",
     "group": "fe1f8148e322a164",
     "key": "62cf75814bf6802a",
-    "label": "b6c6651c50ff9af3",
+    "label": "dedb403caf896bcd",
     "maxItems": "4e07408562bedb8b",
     "overrides": "4f53cda18c2baa0c",
     "root": "e41b7584e2350adb",
@@ -9467,7 +9467,7 @@
    }
   },
   "favorites.help": {
-   "definition": "ac1f079232dfc632cdd37dcbd217d63223634d0eabeaef2e1e648d97d8ae631d",
+   "definition": "1afc5d06730ece6e14a845d881962ddd966fc1bbcb06d3b9b20d5a892e1c23f6",
    "fields": {
     "allowed_items": "8bcfaae2e90c408a",
     "application": "60060042289e5269",
@@ -9480,7 +9480,7 @@
     "favorite_group": "4ef51407b02e0ae1",
     "group": "fe1f8148e322a164",
     "key": "2c6706f3963889f3",
-    "label": "3710a346002c0bf9",
+    "label": "33b6f5fb6c53d2b3",
     "maxItems": "4e07408562bedb8b",
     "overrides": "4f53cda18c2baa0c",
     "root": "e41b7584e2350adb",
@@ -9519,7 +9519,7 @@
    }
   },
   "favorites.view": {
-   "definition": "2bfe34f776ad0fadc21810219fb90426c25a94cb6f9a1f95bd98edc56d47c043",
+   "definition": "045eeaf168bcd882b3510d6a88af8705aee1d360069a04459c0e9cabe265b3aa",
    "fields": {
     "allowed_items": "9dc408ce5a7d421e",
     "application": "60060042289e5269",
@@ -9532,7 +9532,7 @@
     "favorite_group": "a5a22c78e84a093d",
     "group": "fe1f8148e322a164",
     "key": "667cd3afee118731",
-    "label": "bed0492e826a4599",
+    "label": "3fbc2d7244240424",
     "maxItems": "4e07408562bedb8b",
     "overrides": "4f53cda18c2baa0c",
     "root": "e41b7584e2350adb",
@@ -10301,7 +10301,7 @@
    }
   }
  },
- "settings_digest": "bb5900f9fa5f578b9b7c93f3b5f16dc6325acfb901d5a4018b7297e726ae3bb4",
+ "settings_digest": "4b40d4280f3420aa473adadf74e7891f6177cf1ff2293598b91346200e97c09b",
  "settings_order": [
   "reading.family",
   "reading.prose_family",

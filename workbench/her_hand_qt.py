@@ -1276,7 +1276,7 @@ class HerHand(QObject):
         host = self.host
         try:
             if step.act == 'go.field':
-                word = D.head_word(host, 'Arrange');return word.mapToGlobal(word.rect().center())
+                word = D.head_word(host, 'Go');return word.mapToGlobal(word.rect().center())      # 1.1 K0: Go (was Arrange)
             page = getattr(host, 'field_page', None)
             if page is None:return None
             view = page.view

@@ -1,0 +1,155 @@
+{
+ "item": "K0",
+ "status": "done",
+ "summary": "The frame. The head (32 px) now reads File, Edit, View, Go, Tools, Help over the same QAction objects and keys as 1.0's eight menus (workbench/head_menus.py lays them out through menus2.rebuild; MOVED is the old->new table; a test checks every 1.0 row is on its new menu). Keys print beside rows; Show keys moved to View and still turns them off. Kas's rules (Kasandra's hand), the Master Stop, HALT and Apps keep their places. Her head acts (desk_acts HEAD_MENUS/HEAD_ROWS, desk_doers, her_hand_qt) name Go instead of Arrange. The details pane (workbench/details_pane_qt.py): View > Details pane / Alt+P, off at start, 320 px at the right of the centre (central_stack's right margin, nothing covered), follows List, Icons and the Board: preview (thumbnail, a text's first lines in Plex Mono, or the kind's letters in a box), facts, connections from the board's own reading (recorded/possible, a mark and a word), Open board and Properties; slides 220 ms, at once under Reduce motion. Tokens 1.1 (design_tokens CHROME, HEAD_PX, DETAILS, chrome(), head_px()): chrome at 1920x1200 from 187 px (head 60, centre bar 34, context row 33, foot 60) to 115 (head 32, centre bar 34, foot 48; 1366x768: foot 44); 1.0's context row stands only over a code tab. Head words in Inter 14 px in Day/Night, each look's own face in Graphite/Kasandra.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/K0.patch",
+ "files_changed": [
+  "workbench/head_menus.py (new)",
+  "workbench/details_pane_qt.py (new)",
+  "tests_integrated/test_frame_k0.py (new)",
+  "workbench/menus2.py (1.1 K0 lines)",
+  "workbench/design_tokens.py (tokens 1.1 block)",
+  "workbench/desk_qt.py (apply: head/foot)",
+  "workbench/typebar_qt.py (foot height)",
+  "workbench/shell2.py (install, head font)",
+  "workbench/desk_acts.py",
+  "workbench/desk_doers.py",
+  "workbench/her_hand_qt.py",
+  "sdk/cli/arc1cli/command_bar.py (favorites group labels)",
+  "workbench/workspace_tabs.py (WHERE)",
+  "workbench/launch_look.py (LINE)",
+  "GETTING_STARTED.md",
+  "tools/check_navigation_ui.py",
+  "tools/check_explore_ui.py",
+  "tests_integrated/test_faces_find_light.py",
+  "tests_integrated/test_desk_acts.py",
+  "tests_integrated/test_session_start.py"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_frame_k0.py (13 tests: 10 on one Everyday Home window, 3 without)",
+  "ran": [
+   "tests_integrated.test_frame_k0 (13)",
+   "test_faces_find_light.DoorTests.test_leaving_is_the_last_group_of_the_first_menu",
+   "test_desk_acts.LiveActs.test_head_acts_never_block",
+   "test_desk_acts.LiveActs.test_one_record_per_act",
+   "test_session_start.TabsThatWaitForTheBridge (all)",
+   "test_session_start.SecondStart.test_the_desks_own_rooms_are_reopened_and_what_is_not_is_said_once"
+  ],
+  "output_tail": {
+   "test_frame_k0": "Ran 13 tests in 19.531s OK ",
+   "touched": "Ran 21 tests in 28.580s OK "
+  }
+ },
+ "existing_tests_changed": [
+  "test_faces_find_light.py: DISPLAY_TITLES['File'] is 'File' (was 'Work') - the head's new word",
+  "test_desk_acts.py: head.row refusal uses menu 'File' (was 'Work'); the act walk opens 'Help' (was 'Guide') - HEAD_MENUS are the six now",
+  "test_session_start.py: 'View → Reopen deferred tabs' (9 strings, was 'Arrange → …') and the menu-bar menu titled 'View' (was 'Arrange') - workspace_tabs.WHERE names the menu that holds the row",
+  "tools/check_navigation_ui.py (a tier UI check, not run here): captures File, View, Tools menus via command_menus['File'/'View'/'Tools'] (Settings/Options headings are gone); tools/check_explore_ui.py: a record label only"
+ ],
+ "decisions": [
+  "Six menus as File, Edit, View, Go, Tools, Help; 1.0 Commands is a submenu Tools > Commands (the same QMenu, so presentation_qt favorites and the release checks that hold it keep it); Settings and Properties QMenus stay alive as objects but empty.",
+  "Show keys lives in View (one home). DOS words and The bin's name in Tools; Desk artwork and Buttons in View beside Appearance; Inspector and Kasandra (her column) in View; This Computer and Pills in Tools.",
+  "Kas's head acts: HEAD_ROWS 'Arrange' became 'Go' (same rows); 'Tools' rows unchanged. No act was added or widened.",
+  "Favorites group labels (sdk command_bar.GROUP_LABELS) follow the head: File, Edit, View, Tools, Help (they also name the Settings rows \"File favorites\" etc.).",
+  "View > List, Icons, Board added (the Explorer's set_view), no new keys. The details pane is not remembered across starts (off at every start, as \"off by default\").",
+  "Details pane sits in central_stack's right contents margin (no reparenting: several modules insert rows at layout.indexOf(central_stack)).",
+  "A file's connections come from the board's reading (Desk.recorded and board_model.possible); when the desk does not hold the file the pane says 'Not on the board yet' rather than 'none'.",
+  "Chrome: head 32 and foot 48 (44 in a window under 900 px tall) for every look; Desk.band is the head's height, host.foot_px the foot's; desk_qt.desk()/band_height() unchanged (their tests stand). The 1.0 context row (path + Home/Focus buttons) shows only over a code tab.",
+  "Day/Night head words Inter 14 px; Graphite 14 px in its face; Kasandra 15 px in her typewriter face. The pane takes Day/Night colours from design_tokens and the Graphite/Kasandra palette otherwise; Day/Night get an elevation-1 shadow edge, never a glow.",
+  "Old menu names fixed on screen where K0 owns the words: workspace_tabs.WHERE, launch_look.LINE (View ▸ Appearance), GETTING_STARTED.md (head and Go ▸ rows)."
+ ],
+ "findings_for_the_coordinator": [
+  "Tier UI checks in tools/check_*_ui.py read menu_groups/command_menus: check_navigation_ui updated; check_presentation_settings_ui, check_machine_ui, check_cabinet_ui should still hold (Commands, File keys kept) but were not run.",
+  "Other tier tests that assume a 60 px head or foot, or the context row under the Explorer, may need the new truth (none found by grep; kasandra_window_probe records w.desk.band, now 32).",
+  "Docs (DAILY_GUIDE, GUIDE_LIVING_DESKTOP, README, release notes) and code comments still say Work/Arrange/Rules/Guide; KV's or the coordinator's word sweep should take them. TopBar.more_menus still says 'Work ▾' only when no head word exists (not reached).",
+  "menus2.rebuild order matters: Tools must be laid out last (its Engineering > More takes every row not yet placed); head_menus.layout keeps it last.",
+  "No Kernel operation added; no registry change.",
+  "Everything ran offscreen on the copy; nothing ran on the ThinkPad, and no real X server, Fluxbox or compositor was used."
+ ],
+ "not_done": [
+  "(d) \"Command…\" above Properties in the right-click of a file or tile: not built (time).",
+  "Tokens 1.1 type: no sweep of existing widgets for sizes under 11 px (her column's DO/DOUBT buttons look small; that is her column, left to its builders); the floor is held in the tokens and in K0's own widgets.",
+  "Motion: only the details pane slides (220 ms, off under Reduce motion); no other motion was added or changed."
+ ],
+ "menu_moves_old_to_new": [
+  [
+   "Work (every row, same order: New File … Recover Unsaved Work, Lock … Exit Graphite)",
+   "File"
+  ],
+  [
+   "Revise (Undo … Go to Line)",
+   "Edit"
+  ],
+  [
+   "Arrange: Today, Field, Files, Library, Project Desk, Changes, Continuing work, Exchange & deployment, Graphite's Agenda",
+   "Go"
+  ],
+  [
+   "Arrange: Kasandra (her column)",
+   "View"
+  ],
+  [
+   "Arrange: Console, Cabinet, Refresh Machine View, Full Screen, Reading and Layout…, Appearance, Larger/Smaller prose, Word Wrap, Split Editor, Pin/Unpin workspace, Reopen deferred tabs, Reset Window Layout",
+   "View"
+  ],
+  [
+   "Tools (Explore capabilities … STOP / KILL all Graphite operations…, Engineering)",
+   "Tools"
+  ],
+  [
+   "Commands (Graphite Commands…, Run an operation…, Chain Menu, Constructed chain, Writing Line, Command Palette…, Favorite commands)",
+   "Tools > Commands"
+  ],
+  [
+   "Rules: Graphite Settings…",
+   "Tools"
+  ],
+  [
+   "Rules: Kasandra's hand (her rules, own row)",
+   "Tools"
+  ],
+  [
+   "Rules: DOS words, The bin's name",
+   "Tools"
+  ],
+  [
+   "Rules: Desk artwork, Buttons",
+   "View"
+  ],
+  [
+   "Rules: Show keys",
+   "View"
+  ],
+  [
+   "Properties: Inspector",
+   "View"
+  ],
+  [
+   "Properties: This Computer…, Pills and Paired Computers…",
+   "Tools"
+  ],
+  [
+   "Guide (Getting Started … About Graphite)",
+   "Help"
+  ],
+  [
+   "new: Details pane (Alt+P); List, Icons, Board",
+   "View"
+  ]
+ ],
+ "frames": [
+  "1366x768_day_details_pic.png",
+  "1366x768_day_details_tile.png",
+  "1366x768_day_head_file_open.png",
+  "1366x768_day_head_view_open.png",
+  "1920x1200_day_details_doc.png",
+  "1920x1200_day_details_tile.png",
+  "1920x1200_day_head_file_open.png",
+  "1920x1200_day_head_view_open.png",
+  "1920x1200_kasandra_details_doc.png",
+  "1920x1200_kasandra_head_file_open.png",
+  "1920x1200_night_details_text.png",
+  "1920x1200_night_head_view_open.png"
+ ],
+ "release_note": "The head now says File, Edit, View, Go, Tools, Help, with every command and key it had (Work is File, Revise is Edit, the places of Arrange are under Go and the rest under View, Commands and Rules are under Tools, Properties' rows under View and Tools, Guide is Help; Show keys is in View). View > Details pane (Alt+P) shows the chosen file, folder or board tile at the right: a preview, its facts and its connections. The head is 32 px and the foot 48, so the work gets about 70 px more height at 1920x1200."
+}

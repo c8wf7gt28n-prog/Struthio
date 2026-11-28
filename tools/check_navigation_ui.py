@@ -153,9 +153,9 @@ for size,points in (((1366,768),14),((1280,720),14),((1366,768),18),((1920,1200)
  assert fit['between_the_bands'] and fit['one_column'] and (fit['fills_the_room'] or not fit['scrolls']),fit  # it scrolls only once it has all the room
 assert list_fits[2]['scrolls'],list_fits[2]  # 18 pt on the laptop's screen: the rows are taller than the room
 check('The Apps list keeps in one column between the head band and the lower band at 1366 by 768 and 1280 by 720 at 14 pt, at 1366 by 768 at 18 pt and at 1920 by 1200; where its rows are taller than the room it takes the whole room and scrolls rather than cover a band (scrolling at %s)'%', '.join(fit['tag'] for fit in list_fits if fit['scrolls']))
-menu_capture(6,'Work_Menu','Work menu','Existing file, receiving, copy and recovery routes under the proposed Work heading.',w.menu_groups['File'],w.command_menus['File'])
-menu_capture(7,'Arrange_Menu','Arrange menu','Existing workspace, presentation and console choices under Arrange.',w.menu_groups['Options'],w.command_menus['Options'])
-menu_capture(8,'Rules_Menu','Rules menu','Shared Settings and retained configuration routes under Rules. The wording is ready for owner review.',w.menu_groups['Settings'],w.command_menus['Settings'])
+menu_capture(6,'File_Menu','File menu','Existing file, receiving, copy and recovery routes under File (1.1 K0; 1.0 Work).',w.menu_groups['File'],w.command_menus['File'])
+menu_capture(7,'View_Menu','View menu','Existing presentation, pane and console choices under View (1.1 K0; 1.0 Arrange).',w.menu_groups['View'],w.command_menus['View'])
+menu_capture(8,'Tools_Menu','Tools menu','Tools, Commands, Settings and her rules under Tools (1.1 K0; 1.0 Tools, Commands, Rules).',w.menu_groups['Tools'],w.command_menus['Tools'])
 from workbench.cabinet_actions_qt import menu
 popup=menu(w,room.current,page.tree)
 menu_capture(9,'Record_Actions','With this record','The live contextual menu uses the checked record captured when it opens. It does not execute an action during capture.',popup,page.tree)

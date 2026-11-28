@@ -1,0 +1,1312 @@
+diff --git a/GETTING_STARTED.md b/GETTING_STARTED.md
+index 9d9d6b8..e6f969d 100644
+--- a/GETTING_STARTED.md
++++ b/GETTING_STARTED.md
+@@ -21,8 +21,8 @@ yet. The first real proof is that evening.*
+ 
+ ## The first ten minutes
+ 
+-1. **The window.** HALT upper left; the menus across the head (Work, Revise, Tools, Arrange, Commands, Rules, Properties,
+-   Guide); Apps ⊕ upper right. On the left the tabs Files, Machine and Settings, with DELETE at their foot; the board in the
++1. **The window.** HALT upper left; the menus across the head (File, Edit, View, Go, Tools, Help; View ▸ Details pane, or
++   Alt+P, shows the chosen thing at the right of the centre); Apps ⊕ upper right. On the left the tabs Files, Machine and Settings, with DELETE at their foot; the board in the
+    centre; Kasandra's column on the right; at the foot Line · Terminal · Search · Web · Log, the writing line and the meters
+    CPU GPU RAM TXT NET. In the dedicated session a slim dock across the top holds Graphite and your app windows.
+ 2. **Files** starts at "This computer /" with Home open. Select a file and it becomes the focus of the board, with what it
+@@ -46,15 +46,15 @@ yet. The first real proof is that evening.*
+ 
+ ## The older rooms, still there
+ 
+-- Arrange ▸ Changes: a reviewed working copy of a project folder or ZIP; changes apply to the copy first, and updating the
++- Go ▸ Changes: a reviewed working copy of a project folder or ZIP; changes apply to the copy first, and updating the
+   originals is a separate preview and your own action. ZIP originals are never overwritten.
+-- Arrange ▸ Continuing work: an assignment delegated to Graphite on a profiled working copy, under a plan you review and
++- Go ▸ Continuing work: an assignment delegated to Graphite on a profiled working copy, under a plan you review and
+   authorise once; pause and revoke are always there. After Stop all jobs, resume global work explicitly.
+-- Arrange ▸ Exchange & deployment: paired requests and results, offline release preview and inert launch files
++- Go ▸ Exchange & deployment: paired requests and results, offline release preview and inert launch files
+   (docs/STAGE6.md explains pairing, interruption, trust, clock rules and update recovery).
+ - Project Desk ▸ Problem sheet: a durable question, explicit unknowns and the receipts of real source reads; Calculate
+   there gives exact units and bounded symbolic and constraint tools (docs/INTEGRATED_I01.md and docs/INTEGRATED_I02.md).
+-- Arrange ▸ Field: the whole desk as sheets with what feeds what (the board's Whole desk shows it too).
++- Go ▸ Field: the whole desk as sheets with what feeds what (the board's Whole desk shows it too).
+ 
+ ## Checking the installation
+ 
+diff --git a/sdk/cli/arc1cli/command_bar.py b/sdk/cli/arc1cli/command_bar.py
+index b4cb68d..24f1b43 100644
+--- a/sdk/cli/arc1cli/command_bar.py
++++ b/sdk/cli/arc1cli/command_bar.py
+@@ -54,7 +54,7 @@ MENU_DEFINITIONS = {
+             'Help':['orange_book','genesis','clip','database_rom',None,'setup_guide','manual','keys','readiness','about'],
+         }
+ 
+-GROUP_LABELS = dict(File="Work", Edit="Revise", View="Arrange", Options="Tools", Help="Guide")
++GROUP_LABELS = dict(File="File", Edit="Edit", View="View", Options="Tools", Help="Help")      # 1.1 K0: the head's words (1.0: Work, Revise, Arrange, Tools, Guide)
+ FAVORITE_KEYS = {"favorites."+group.casefold():group for group in GROUPS}
+ 
+ def allowed_groups():
+diff --git a/tests_integrated/test_desk_acts.py b/tests_integrated/test_desk_acts.py
+index 61d669c..d992259 100644
+--- a/tests_integrated/test_desk_acts.py
++++ b/tests_integrated/test_desk_acts.py
+@@ -660,7 +660,7 @@ class LiveActs(unittest.TestCase):
+         out=act('head.open',{'menu':'Apps'});self.assertTrue(self.w.type_bar.hatch.programs.isVisible())
+         self.assertNotIn('Programs',out['result']['rows'])
+         act('menu.close')
+-        out=act('head.row',{'menu':'Work','row':'Log out'});self.assertEqual(out['error']['code'],'NOT_ALLOWED_ROW')
++        out=act('head.row',{'menu':'File','row':'Log out'});self.assertEqual(out['error']['code'],'NOT_ALLOWED_ROW')
+         top=self.w.shell2.top
+         for menu,rows in desk_acts.HEAD_ROWS.items():
+             word=next(b for b in top.menu_words() if b.text()==menu);words={desk_acts.row_words(a.text()) for a in word.menu().actions()}
+@@ -726,7 +726,7 @@ class LiveActs(unittest.TestCase):
+     def test_one_record_per_act(self):
+         before=len(journal(origin='desk-script:test'))
+         for name,args in (('go.field',{}),('point.zoom',{'to':'whole'}),('point.sheet',{'title':READINGS}),('read.desk',{}),
+-                          ('point.move',{'way':'first'}),('go.files',{}),('head.open',{'menu':'Guide'}),('menu.close',{}),('go.today',{}),
++                          ('point.move',{'way':'first'}),('go.files',{}),('head.open',{'menu':'Help'}),('menu.close',{}),('go.today',{}),
+                           ('go.open',{'tab':0})):
+             out=act(name,args);self.assertTrue(out['ok'],(name,out['words']))
+         self.assertEqual(len(journal(origin='desk-script:test'))-before,9)
+diff --git a/tests_integrated/test_faces_find_light.py b/tests_integrated/test_faces_find_light.py
+index 404663b..6abd8c5 100644
+--- a/tests_integrated/test_faces_find_light.py
++++ b/tests_integrated/test_faces_find_light.py
+@@ -279,7 +279,7 @@ class DoorTests(unittest.TestCase):
+ 
+     def test_leaving_is_the_last_group_of_the_first_menu(self):
+         from workbench import menus2, session_power
+-        self.assertEqual(menus2.FILE[-2:],[None,'@leave'],'a separator, then leaving');self.assertEqual(menus2.DISPLAY_TITLES['File'],'Work')
++        self.assertEqual(menus2.FILE[-2:],[None,'@leave'],'a separator, then leaving');self.assertEqual(menus2.DISPLAY_TITLES['File'],'File')      # 1.1 K0: File (1.0 Work)
+         self.assertEqual([session_power.WORDS[k] for k in ('logout','restart','shutdown')],['Log out','Restart','Shut down'])
+ 
+ 
+diff --git a/tests_integrated/test_frame_k0.py b/tests_integrated/test_frame_k0.py
+new file mode 100644
+index 0000000..7012073
+--- /dev/null
++++ b/tests_integrated/test_frame_k0.py
+@@ -0,0 +1,244 @@
++"""1.1 K0, the frame (PLAN_1.1.md, K0; DESIGN_DIRECTION_1.1.md sections 2 and 4).
++
++Acceptance first, on the Everyday Home (invented: everyday_demo): the head reads File, Edit, View, Go, Tools, Help; every row
++the eight 1.0 menus carried is still on a head menu, with its key beside it; Kas's rules and the stop keep their rows and HALT
++and Apps stay in the head; the details pane is off, comes with Alt+P at the right of the centre, and shows a file (List,
++Icons) and a board tile with their preview, facts and connections; the chrome at 1920x1200 is about 116 px. Then the tokens
++and the tables without a window.
++
++Run alone:  python3 -B -m unittest -v tests_integrated.test_frame_k0
++"""
++import os, tempfile, time, unittest
++from pathlib import Path
++from unittest.mock import patch
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++
++HEAD = ['File', 'Edit', 'View', 'Go', 'Tools', 'Help']
++# Every row of the eight 1.0 menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide), as 1.0 showed them.
++ROWS_1_0 = {
++    'Work': ['New File…', 'New Idea…', 'New Project…', 'Open…', 'Open in Universal Viewer…', 'Find a File…', 'Open Recent', 'Receive Files…',
++             'Import (Ingress)…', 'Export (Egress)…', 'Work on a Copy of a File…', 'Save', 'Save All', 'Close', 'Recover Unsaved Work…',
++             'Lock', 'Suspend', 'Log out', 'Restart', 'Shut down', 'Exit Graphite'],
++    'Revise': ['Undo', 'Redo', 'Cut', 'Copy', 'Paste', 'Select All', 'Find…', 'Find Next', 'Replace…', 'Go to Line…'],
++    'Arrange': ['Today', 'Field', 'Files', 'Library', 'Project Desk', 'Changes', 'Continuing work', 'Exchange & deployment', "Graphite's Agenda",
++                'Kasandra', 'Console', 'Cabinet', 'Refresh Machine View', 'Full Screen', 'Reading and Layout…', 'Appearance', 'Larger prose',
++                'Smaller prose', 'Word Wrap', 'Split Editor / Close Split', 'Pin / Unpin workspace', 'Reopen deferred tabs', 'Reset Window Layout'],
++    'Tools': ['Explore capabilities…', 'Inquiries…', 'Algorithm & Theory Atlas…', 'Tool Atlas…', 'A Utility on Copies…', 'System Check',
++              'STOP / KILL all Graphite operations…', 'Engineering'],
++    'Commands': ['Graphite Commands…', 'Run an operation…', 'Chain Menu', 'Constructed chain', 'Writing Line', 'Command Palette…', 'Favorite commands'],
++    'Rules': ['Graphite Settings…', 'Desk artwork', 'Buttons', "Kasandra's hand", 'Show keys', 'DOS words', "The bin's name"],
++    'Properties': ['Inspector', 'This Computer…', 'Pills and Paired Computers…'],
++    'Guide': ['Getting Started', "What's New in", 'The Living Desktop', 'Kasandra, the Ghost in the Shell', 'Your First Evening with 1.0',
++              "An Evening with Kas's Mind", 'Try Rail Demo', 'Try Home Demo', 'Keyboard Shortcuts', 'Installation Guide', 'The Orange Book',
++              'About Graphite'],
++}
++WHERE = {'Work': ('File',), 'Revise': ('Edit',), 'Arrange': ('Go', 'View'), 'Tools': ('Tools',), 'Commands': ('Tools',),
++         'Rules': ('Tools', 'View'), 'Properties': ('View', 'Tools'), 'Guide': ('Help',)}      # head_menus.MOVED
++KEYS = {('File', 'Open…'): 'Ctrl+O', ('Edit', 'Undo'): 'Ctrl+Z', ('Go', 'Today'): 'Ctrl+Alt+1', ('Go', 'Field'): 'F9',
++        ('View', 'Full Screen'): 'F11', ('View', 'Details pane'): 'Alt+P', ('Tools', 'Graphite Settings…'): 'Ctrl+,',
++        ('Tools', 'STOP / KILL all Graphite operations…'): 'Ctrl+Shift+F12', ('Help', 'Keyboard Shortcuts'): 'F1'}
++
++
++class Window(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.temp = tempfile.TemporaryDirectory(prefix='k0-everyday-');base = Path(cls.temp.name)
++        from workbench import everyday_demo
++        everyday_demo.build(base);cls.home = base / 'home'
++        cls.env = patch.dict(os.environ, {'HOME': str(cls.home), 'XDG_CONFIG_HOME': str(cls.home / '.config'),
++                                          'XDG_CACHE_HOME': str(base / 'cache'), 'XDG_DATA_HOME': str(cls.home / '.local/share')})
++        cls.env.start()
++        from tests_integrated.test_desk_acts import build_window
++        cls.store = {};build_window(cls.store, 'k0-window-');cls.w = cls.store['w'];cls.ex = cls.w.explorer
++        cls.settle(400)
++
++    @classmethod
++    def tearDownClass(cls):
++        from tests_integrated.test_desk_acts import close_window
++        try:close_window(cls.store)
++        finally:
++            cls.env.stop();cls.temp.cleanup()
++
++    @classmethod
++    def settle(cls, ms=120):
++        from tests_integrated.test_desk_acts import settle
++        settle(cls.store, ms)
++
++    def wait(self, check, seconds=20):
++        deadline = time.monotonic() + seconds
++        while time.monotonic() < deadline:
++            if check():return True
++            self.settle(60)
++        return check()
++
++    def head_rows(self):
++        from workbench.head_menus import rows
++        return {word.text(): rows(word.menu()) for word in self.w.shell2.top.menu_words()}
++
++    def details(self, on):
++        a = self.w.a_details
++        if a.isChecked() != on:a.trigger()
++        pane = getattr(self.w, 'details_pane', None)
++        self.assertTrue(self.wait(lambda: (pane or self.w.details_pane).open_width == (320 if on else 0)), 'the pane finished its slide')
++        self.settle(150)
++        return self.w.details_pane
++
++    # ---- acceptance --------------------------------------------------------------------------------------------------------
++    def test_a_the_head_reads_file_edit_view_go_tools_help(self):
++        top = self.w.shell2.top;words = top.menu_words()
++        self.assertEqual([w.text() for w in words], HEAD)
++        self.assertTrue(all(w.isVisible() for w in words), 'all six in the open at 1920x1200')
++        self.assertEqual(top.height(), 32, 'the head is 32 px')
++        self.assertEqual([self.w.command_menus[k].text() for k in HEAD], HEAD, 'the old ribbon headings say the same')
++
++    def test_b_nothing_the_eight_menus_carried_is_lost(self):
++        head = self.head_rows()
++
++        def shown(menu):      # the rows in sight: Engineering (and its More) is out of sight without a project
++            out, hidden = set(), None
++            for depth, words, _ in head[menu]:
++                if hidden is not None and depth > hidden:continue
++                hidden = depth if words == 'Engineering' else None
++                out.add(words)
++            return out
++        for menu, rows in ROWS_1_0.items():
++            found = set().union(*(shown(m) for m in WHERE[menu]))
++            for row in rows:
++                ok = row in found or any(f.startswith(row) for f in found)
++                self.assertTrue(ok, '1.0 %s ▸ %s is on %s' % (menu, row, ' or '.join(WHERE[menu])))
++
++    def test_c_keys_are_shown_beside_rows_and_show_keys_lives_in_view(self):
++        from PySide6.QtCore import QCoreApplication, Qt
++        rows = self.head_rows()
++        for (menu, row), keys in KEYS.items():
++            action = next((a for _, words, a in rows[menu] if words == row), None)
++            self.assertIsNotNone(action, '%s ▸ %s in %s' % (menu, row, [words for _, words, _ in rows[menu]]))
++            self.assertEqual(action.shortcut().toString(), keys, '%s ▸ %s shows %s' % (menu, row, keys))
++            self.assertTrue(action.isShortcutVisibleInContextMenu(), 'keys shown by default (W1)')
++        show = next(a for d, words, a in rows['View'] if words == 'Show keys' and d == 0)
++        self.assertFalse(any(words == 'Show keys' for m in ('File', 'Edit', 'Go', 'Tools', 'Help') for _, words, _ in rows[m]), 'one home: View')
++        show.trigger();self.settle()
++        try:
++            self.assertTrue(QCoreApplication.testAttribute(Qt.AA_DontShowShortcutsInContextMenus))
++            self.assertFalse(self.w.a_details.isShortcutVisibleInContextMenu(), 'Show keys off: no key printed')
++        finally:
++            show.trigger();self.settle()
++        self.assertTrue(self.w.a_details.isShortcutVisibleInContextMenu())
++
++    def test_d_her_rules_the_stop_halt_and_apps_keep_their_places(self):
++        rows = self.head_rows();tools = [words for d, words, _ in rows['Tools'] if d == 0]
++        self.assertIn("Kasandra's hand", tools, 'her rules: a row of their own')
++        self.assertIn('STOP / KILL all Graphite operations…', tools)
++        top = self.w.shell2.top
++        halt = getattr(top, 'halt', None);self.assertIsNotNone(halt)
++        self.assertTrue(halt.isVisible() and halt.geometry().bottom() < 32, 'HALT in the head')
++        self.assertTrue(top.programs.isVisible() and top.programs.geometry().bottom() < 32, 'Apps in the head')
++
++    def test_e_her_head_acts_name_the_new_menus(self):
++        from workbench import desk_acts
++        self.assertEqual(list(desk_acts.HEAD_MENUS), HEAD)
++        rows = self.head_rows()
++        for menu, allowed in desk_acts.HEAD_ROWS.items():
++            self.assertIn(menu, HEAD)
++            shown = {desk_acts.row_words(a.text()) for d, _, a in rows[menu] if d == 0}
++            for row in allowed:self.assertIn(row, shown, '%s ▸ %s is where her act looks for it' % (menu, row))
++
++    def test_f_the_details_pane_is_off_then_comes_with_alt_p_at_the_right_of_the_centre(self):
++        self.ex.show(str(self.home / 'Documents'), via='tree');self.settle(300)
++        pane = getattr(self.w, 'details_pane', None)
++        self.assertTrue(pane is None or not pane.isVisible(), 'off by default')
++        self.assertEqual(self.w.a_details.shortcut().toString(), 'Alt+P')
++        pane = self.details(True);stack = self.w.central_stack
++        self.assertTrue(pane.isVisible());self.assertEqual(pane.width(), 320)
++        self.assertEqual(pane.geometry().right(), stack.width() - 1, 'at the right edge of the centre')
++        self.assertEqual(stack.contentsMargins().right(), 320, 'the centre makes room: nothing is covered')
++        self.assertLessEqual(self.ex.page.width(), stack.width() - 320)
++        self.details(False);self.assertFalse(self.w.details_pane.isVisible());self.assertEqual(stack.contentsMargins().right(), 0)
++
++    def test_g_the_details_pane_on_a_file_in_list_and_icons(self):
++        budget = self.home / 'Documents' / 'Household budget 2026.ods'
++        self.ex.show(str(budget.parent), via='tree', chosen=[str(budget)], view='list');self.settle(300)
++        pane = self.details(True)
++        try:
++            self.assertEqual(pane.title.text(), budget.name)
++            self.assertIn('Spreadsheet', pane.facts.text());self.assertIn('Size', pane.facts.text());self.assertIn('Modified', pane.facts.text())
++            self.assertIn('ODS', pane.preview.text(), 'the kind in a box: a shape and a word')
++            self.assertTrue(pane.links_note.text() or pane.links.count(), 'connections, or a line that says why there are none')
++            self.ex.set_view('icons');self.settle(300)
++            self.assertEqual(pane.title.text(), budget.name, 'the same thing in Icons')
++            listing = self.home / 'Desktop' / 'Shopping list.txt'
++            self.ex.show(str(listing.parent), via='tree', chosen=[str(listing)], view='list');self.settle(400)
++            self.assertEqual(pane.title.text(), listing.name);self.assertTrue(pane.preview.text().startswith('Shopping list'), 'its first lines')
++            pictures = sorted(p for p in (self.home / 'Pictures').iterdir() if p.suffix.lower() in ('.png', '.jpg'))
++            self.ex.show(str(pictures[0].parent), via='tree', chosen=[str(pictures[0])]);self.settle(400)
++            self.assertEqual(pane.title.text(), pictures[0].name);self.assertFalse(pane.preview.pixmap().isNull(), 'a picture shows itself')
++        finally:
++            self.details(False)
++
++    def test_h_the_details_pane_on_a_board_tile_lists_its_neighbours(self):
++        living = self.w.living_nav
++        sheets = [n for n in living.nodes.values() if n.get('provider') == 'living_nav' and n.get('role') == 'sheet']
++        self.ex.show(str(self.home), via='tree');self.settle()
++        living.go_node(sheets[0]['id'], via='tree');self.settle(400)
++        pane = self.details(True)
++        try:
++            board = self.w.field_page.board;focus = board.board.focus
++            self.assertIn('ON THE BOARD', pane.caption.text());self.assertEqual(pane.title.text(), focus.title)
++            shown = [t for t in board.board.tiles if t.id != '…' and not t.group]
++            self.assertEqual(pane.links.count(), min(len(shown), 12), "the board's neighbours as rows")
++            for i in range(pane.links.count()):
++                text = pane.links.item(i).text()
++                self.assertTrue(text[0] in '─┄' and ('recorded' in text or 'possible' in text), 'a mark and its word: %s' % text)
++        finally:
++            self.details(False)
++
++    def test_i_the_chrome_at_1920x1200_is_about_116(self):
++        self.ex.show(str(self.home), via='tree');self.settle(300)
++        top = self.w.shell2.top.height();foot = self.w.type_bar.height();bar = self.w.one_bar.bar.height()
++        self.assertEqual((top, foot), (32, 48))
++        self.assertFalse(self.w.context_bar.isVisible(), 'the context row is a code tab\'s, not the Explorer\'s')
++        self.assertLessEqual(top + bar + foot, 120, 'chrome %d + %d + %d' % (top, bar, foot))
++
++    def test_j_under_reduce_motion_the_pane_appears_at_once(self):
++        from workbench import details_pane_qt
++        with patch.object(details_pane_qt, 'reduce_motion', return_value=True):
++            self.w.a_details.trigger()
++            try:
++                self.assertEqual(self.w.details_pane.open_width, 320, 'no slide');self.assertIsNone(self.w.details_pane.anim)
++            finally:
++                self.w.a_details.trigger()
++            self.assertEqual(self.w.details_pane.open_width, 0)
++
++
++class Rules(unittest.TestCase):
++    """Tokens 1.1 and the tables, without a window."""
++
++    def test_tokens_1_1(self):
++        from workbench import design_tokens as t
++        self.assertEqual(t.chrome(1.0, 1200), (32, 48));self.assertEqual(t.chrome(1.0, 728), (32, 44))
++        head, foot = t.chrome(1.0, 1200);self.assertLessEqual(head + 34 + foot, 116, 'head + centre bar + foot')
++        for look in ('day', 'night', 'graphite', 'kasandra'):self.assertGreaterEqual(t.head_px(look), t.LEAST_PX)
++        self.assertGreaterEqual(min(px for px, *_ in t.TYPE.values()), 11, 'nothing under 11 px')
++        self.assertTrue(all(160 <= ms <= 240 for ms in t.MOTION.values()));self.assertEqual(t.GLOW, 0, 'elevation, not glow')
++        self.assertEqual(t.DETAILS['width'], 320);self.assertEqual(t.FONT['ui'], 'Inter');self.assertEqual(t.FONT['mono'], 'IBM Plex Mono')
++
++    def test_the_six_titles_and_the_table_of_moves(self):
++        from workbench import head_menus, menus2
++        from sdk.cli.arc1cli.command_bar import GROUP_LABELS
++        self.assertEqual(list(head_menus.HEAD), HEAD);self.assertEqual(list(menus2.DISPLAY_TITLES.values()), HEAD)
++        self.assertTrue(set(GROUP_LABELS.values()) <= set(HEAD), 'the favorites say the head\'s words')
++        olds = ' '.join(old for old, _ in head_menus.MOVED)
++        for menu in ROWS_1_0:self.assertIn(menu, olds, 'the table says where %s went' % menu)
++        self.assertTrue(all(new.split(' ')[0] in HEAD for _, new in head_menus.MOVED))
++
++    def test_link_words_carry_their_kind(self):
++        from workbench.details_pane_qt import said, kind_letters, text_lines
++        self.assertEqual(said(True, 'input'), 'recorded · input');self.assertEqual(said(False, 'possible: both name it'), 'possible: both name it')
++        self.assertEqual(kind_letters('a.ods'), 'ODS');self.assertEqual(kind_letters('x', folder=True), 'FOLDER')
++        with tempfile.TemporaryDirectory() as d:
++            p = Path(d) / 'n.txt';p.write_text('one\ntwo\n');self.assertEqual(text_lines(p), ['one', 'two'])
++            b = Path(d) / 'b.bin';b.write_bytes(b'\0\1\2');self.assertIsNone(text_lines(b))
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests_integrated/test_session_start.py b/tests_integrated/test_session_start.py
+index 0f269a4..7b7d015 100644
+--- a/tests_integrated/test_session_start.py
++++ b/tests_integrated/test_session_start.py
+@@ -235,9 +235,9 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
+         self.assertEqual(host.strip(), ['office', 'readiness']);self.assertEqual(tabs.currentWidget().objectName(), 'office')
+         self.assertEqual(tabs.deferred, rows('ManualTab', pinned=('ManualTab',)))
+         self.assertIn('RuntimeError: this tab cannot be made', said.getvalue())
+-        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in Arrange → Reopen deferred tabs')      # 0.8.3: "View", a menu the window does not have
++        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in View → Reopen deferred tabs')      # 0.8.3: "View", a menu the window does not have
+         from workbench.tail_words import readable
+-        self.assertEqual([readable(e) for e in told(host)], ['Not reopened at start · R10 Manual (it failed to open). Kept in Arrange → Reopen deferred tabs'],
++        self.assertEqual([readable(e) for e in told(host)], ['Not reopened at start · R10 Manual (it failed to open). Kept in View → Reopen deferred tabs'],
+                          'and in the Activity, once, in words: until 0.8.4 the reason was on stderr only')
+ 
+     def test_a_preview_left_of_a_room_does_not_set_the_room_aside(self):
+@@ -273,8 +273,8 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
+         self.assertEqual(told(host), [])
+         host.bridge();tabs.restore_waiting()
+         self.assertEqual(host.strip(), ['office', 'readiness']);self.assertEqual(tabs.currentWidget().objectName(), 'office', 'what was in front is still known at the second turn')
+-        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in Arrange → Reopen deferred tabs')
+-        self.assertEqual([e['detail'] for e in told(host)], ['R10 Manual (it failed to open). Kept in Arrange → Reopen deferred tabs'])
++        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in View → Reopen deferred tabs')
++        self.assertEqual([e['detail'] for e in told(host)], ['R10 Manual (it failed to open). Kept in View → Reopen deferred tabs'])
+         tabs.restore_waiting();self.assertEqual(len(told(host)), 1, 'said once')
+ 
+     def test_what_a_start_sets_aside_is_said_once_with_each_reason_in_words(self):
+@@ -286,7 +286,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
+         self.assertEqual((len(tabs.pinned()), tabs.preview().objectName()), (5, 'readiness'))
+         self.assertEqual([row['kind'] for row in tabs.deferred], ['ReadinessTab', 'ToolInventoryTab', 'RetiredRoomTab', 'ManualTab', 'GoneRoomTab'])
+         self.assertEqual([e['detail'] for e in told(host)], ['Console Readiness (five pins were already open); Tool Inventory (it is no longer there); Retired room (Graphite cannot '
+-                                                             'reopen this kind of tab); R10 Manual (another tab was already in the Preview); 1 more. Kept in Arrange → Reopen deferred tabs'])
++                                                             'reopen this kind of tab); R10 Manual (another tab was already in the Preview); 1 more. Kept in View → Reopen deferred tabs'])
+         self.assertEqual(stderr.getvalue(), '', 'none of them failed: nothing for stderr')
+ 
+     def test_reopen_deferred_tabs_holds_each_tab_once_and_no_more_than_twenty(self):
+@@ -298,7 +298,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
+         tabs.restore(state)      # the third start of a session left with a room restore cannot reopen
+         self.assertEqual(tabs.deferred, [unknown], '0.8.3: three rows of it, and four at the next start')
+         self.assertEqual(tabs.snapshot()['deferred'], [unknown])
+-        self.assertEqual(told(host)[0]['detail'], 'Retired room (Graphite cannot reopen this kind of tab). Kept in Arrange → Reopen deferred tabs')
++        self.assertEqual(told(host)[0]['detail'], 'Retired room (Graphite cannot reopen this kind of tab). Kept in View → Reopen deferred tabs')
+         many = [{'kind': 'RetiredRoomTab', 'pinned': False, 'device': 'bench-%d' % n} for n in range(27)]
+         host = strip_host();host.bridge();tabs = host.tabs
+         tabs.restore({'tabs': rows('ReadinessTab'), 'active': 0, 'deferred': many + [many[3]]})
+@@ -311,7 +311,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
+         host = strip_host();host.bridge();tabs = host.tabs
+         tabs.restore({'tabs': rows('RetiredRoomTab', 'RetiredRoomTab'), 'active': 0, 'deferred': []})
+         self.assertEqual(tabs.deferred, rows('RetiredRoomTab'))
+-        self.assertEqual([e['detail'] for e in told(host)], ['Retired room (Graphite cannot reopen this kind of tab). Kept in Arrange → Reopen deferred tabs'],
++        self.assertEqual([e['detail'] for e in told(host)], ['Retired room (Graphite cannot reopen this kind of tab). Kept in View → Reopen deferred tabs'],
+                          'what the list keeps once is said once')
+ 
+     def test_a_row_without_its_title_is_named_as_the_screen_names_its_kind(self):
+@@ -325,7 +325,7 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
+         self.assertEqual(name({'kind': 'WorkTab', 'pinned': False, 'title': 'Night Shift · Rail Demo'}), 'Night Shift · Rail Demo', 'a title written down is said as it was')
+         host = strip_host();host.bridge();tabs = host.tabs
+         tabs.restore({'tabs': rows(*['ReadinessTab'] * 5, 'StacyFoundationTab', pinned=('ReadinessTab', 'StacyFoundationTab')), 'active': 0, 'deferred': []})
+-        self.assertEqual([e['detail'] for e in told(host)], ['Graphite · knowledge (five pins were already open). Kept in Arrange → Reopen deferred tabs'])
++        self.assertEqual([e['detail'] for e in told(host)], ['Graphite · knowledge (five pins were already open). Kept in View → Reopen deferred tabs'])
+         offered = []
+         with patch('workbench.workspace_tabs.QInputDialog.getItem', side_effect=lambda *a:offered.extend(a[3]) or ('', False)):tabs.reopen_deferred()
+         self.assertEqual(offered, ['1. Graphite · knowledge'])
+@@ -531,11 +531,11 @@ class SecondStart(unittest.TestCase):
+         self.assertIn('RuntimeError: the manual cannot be made', stderr.getvalue(), 'the trace is still there for whoever reads stderr')
+         self.assertEqual(rooms(third), strip);self.assertEqual([row['kind'] for row in third.tabs.deferred], ['ManualTab', 'RetiredRoomTab'])
+         new = said()[len(before):]
+-        line = 'Not reopened at start · R10 Manual (it failed to open); Retired room (Graphite cannot reopen this kind of tab). Kept in Arrange → Reopen deferred tabs'
++        line = 'Not reopened at start · R10 Manual (it failed to open); Retired room (Graphite cannot reopen this kind of tab). Kept in View → Reopen deferred tabs'
+         self.assertEqual([readable(e) for e in new], [line], 'said once, in words, where the desk says what happened')
+         tail = third.ledger_bridge.tail;tail.refresh(True)
+         self.assertTrue(any(tail.list.item(i).text().endswith(line) for i in range(tail.list.count())), 'in the Activity of the window, in this look')
+-        arrange = [a.menu() for a in third.menuBar().actions() if a.menu() is not None and a.menu().title().replace('&', '') == 'Arrange']
++        arrange = [a.menu() for a in third.menuBar().actions() if a.menu() is not None and a.menu().title().replace('&', '') == 'View']      # 1.1 K0: View (1.0 Arrange)
+         self.assertTrue(arrange and third.a_reopen in arrange[0].actions(), 'the menu it names is the one that holds the list')
+         left = self.leave(third)
+ 
+diff --git a/tools/check_explore_ui.py b/tools/check_explore_ui.py
+index b5fc3b8..d94403a 100644
+--- a/tools/check_explore_ui.py
++++ b/tools/check_explore_ui.py
+@@ -91,7 +91,7 @@ assert all(w.menu_groups[key] is menu for key,menu in objects.items())
+ assert all(w.favorite_actions[key] is action and [s.toString() for s in action.shortcuts()]==shortcuts[key] for key,action in favorites.items())
+ assert {key:w.command_menus[key].text() for key in menus2.DISPLAY_TITLES}==menus2.DISPLAY_TITLES
+ assert sum(a is w.a_explore for a in w.menu_groups['Tools'].actions())==1
+-record('Proposed Work, Revise, Arrange, Rules and Guide labels retain menu objects, all original actions and keyboard shortcuts')
++record('File, Edit, View, Go, Tools and Help (1.1 K0) retain menu objects, all original actions and keyboard shortcuts')
+ page=w.cabinet_page;selected=page.tree.currentItem().data(0,Qt.UserRole)['id'];w.a_explore.trigger();settle()
+ assert w.tabs.currentWidget() is tab and page.tree.currentItem().data(0,Qt.UserRole)['id']==selected
+ record('Top Tools entry reuses Explore while preserving the cabinet selection')
+diff --git a/tools/check_navigation_ui.py b/tools/check_navigation_ui.py
+index 69e95a6..79e97d7 100644
+--- a/tools/check_navigation_ui.py
++++ b/tools/check_navigation_ui.py
+@@ -153,9 +153,9 @@ for size,points in (((1366,768),14),((1280,720),14),((1366,768),18),((1920,1200)
+  assert fit['between_the_bands'] and fit['one_column'] and (fit['fills_the_room'] or not fit['scrolls']),fit  # it scrolls only once it has all the room
+ assert list_fits[2]['scrolls'],list_fits[2]  # 18 pt on the laptop's screen: the rows are taller than the room
+ check('The Apps list keeps in one column between the head band and the lower band at 1366 by 768 and 1280 by 720 at 14 pt, at 1366 by 768 at 18 pt and at 1920 by 1200; where its rows are taller than the room it takes the whole room and scrolls rather than cover a band (scrolling at %s)'%', '.join(fit['tag'] for fit in list_fits if fit['scrolls']))
+-menu_capture(6,'Work_Menu','Work menu','Existing file, receiving, copy and recovery routes under the proposed Work heading.',w.menu_groups['File'],w.command_menus['File'])
+-menu_capture(7,'Arrange_Menu','Arrange menu','Existing workspace, presentation and console choices under Arrange.',w.menu_groups['Options'],w.command_menus['Options'])
+-menu_capture(8,'Rules_Menu','Rules menu','Shared Settings and retained configuration routes under Rules. The wording is ready for owner review.',w.menu_groups['Settings'],w.command_menus['Settings'])
++menu_capture(6,'File_Menu','File menu','Existing file, receiving, copy and recovery routes under File (1.1 K0; 1.0 Work).',w.menu_groups['File'],w.command_menus['File'])
++menu_capture(7,'View_Menu','View menu','Existing presentation, pane and console choices under View (1.1 K0; 1.0 Arrange).',w.menu_groups['View'],w.command_menus['View'])
++menu_capture(8,'Tools_Menu','Tools menu','Tools, Commands, Settings and her rules under Tools (1.1 K0; 1.0 Tools, Commands, Rules).',w.menu_groups['Tools'],w.command_menus['Tools'])
+ from workbench.cabinet_actions_qt import menu
+ popup=menu(w,room.current,page.tree)
+ menu_capture(9,'Record_Actions','With this record','The live contextual menu uses the checked record captured when it opens. It does not execute an action during capture.',popup,page.tree)
+diff --git a/workbench/design_tokens.py b/workbench/design_tokens.py
+index df700de..fa89bc6 100644
+--- a/workbench/design_tokens.py
++++ b/workbench/design_tokens.py
+@@ -83,6 +83,28 @@ MOTION = dict(hover=160, panel=220, tile=240)      # ms, ease-out; Reduce motion
+ GLOW = 0                 # no glow in Day or Night: depth comes from elevation
+ GLASS = ('#0c1322', '#16233a', '#3a74b8')      # Day's dark projector glass (P3's): its top, its foot, its edge; no picture stands on it since 1.0 P4 no avatar
+ 
++# ------------------------------------------------------------------------------------- 1.1 K0: tokens 1.1, the frame
++# DESIGN_DIRECTION_1.1.md section 4: chrome cut from about 188 px to about 116 at 1920x1200. 1.0's window spent 187 on it
++# (the head 60, the centre bar 34, the context row 33, the foot 60); 1.1 spends 114: the head 32 (File Edit View Go Tools
++# Help), the centre bar 34 (E1's, unchanged), the foot 48 (44 in a window under 900 px tall), and the context row stands only
++# over a code tab (details_pane_qt.ContextRow). The bar (B1, 44 px; 40 at 1366x768) is a window of its own below. Every look
++# (Day, Night, Graphite, Kasandra) stands on this frame; each keeps its own faces and colours on it.
++CHROME = dict(head=32, foot=48, foot_short=44, short_below=900)
++HEAD_PX = dict(day=14, night=14, graphite=14, kasandra=15)      # the head's menu words (never under LEAST_PX)
++DETAILS = dict(width=320, preview=180, pad=16)                  # the details pane: on call, at the right of the centre
++
++
++def chrome(scale=1.0, window_height=1200):
++    """(head, foot) in px for the interface scale (the window's, 14 pt = 1.0) and the window's height."""
++    s = max(1.0, min(float(scale), 1.4))
++    foot = CHROME['foot'] if int(window_height) >= CHROME['short_below'] else CHROME['foot_short']
++    return round(CHROME['head'] * s), round(foot * s)
++
++
++def head_px(look, scale=1.0):
++    """The head's menu words in px for a look (day, night, graphite, kasandra) at the interface scale."""
++    return max(LEAST_PX, round(HEAD_PX.get(str(look), HEAD_PX['day']) * max(1.0, min(float(scale), 1.4))))
++
+ 
+ # ------------------------------------------------------------------------------------------------------- the maths
+ def rgb(colour):
+diff --git a/workbench/desk_acts.py b/workbench/desk_acts.py
+index 8ee5fe5..af48210 100644
+--- a/workbench/desk_acts.py
++++ b/workbench/desk_acts.py
+@@ -33,10 +33,10 @@ from .assistant_identity import named
+ ACT_HEADS = ('go', 'point', 'head', 'menu', 'then', 'sheet', 'type', 'hand', 'look', 'read')
+ MARKS = ('navigates', 'changes')
+ OWNER_ONLY = ('hand.approve', 'hand.undo', 'hand.dial', 'look.set', 'type.send', 'hand.stop', 'hand.putback')
+-HEAD_MENUS = ('Work', 'Revise', 'Tools', 'Arrange', 'Commands', 'Rules', 'Properties', 'Guide')
++HEAD_MENUS = ('File', 'Edit', 'View', 'Go', 'Tools', 'Help')      # 1.1 K0: the six menus (1.0: Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide)
+ # The head's rows an act may choose: each goes somewhere and changes nothing. A row that asks, leaves, stops work or opens a
+ # window that asks stays the owner's (head.row refuses it). The words are the rows' own, as the menus print them.
+-HEAD_ROWS = {'Arrange': ('Today', 'Field', 'Files', 'Library', 'Project Desk', 'Changes', 'Continuing work', "Graphite's Agenda"),
++HEAD_ROWS = {'Go': ('Today', 'Field', 'Files', 'Library', 'Project Desk', 'Changes', 'Continuing work', "Graphite's Agenda"),
+              'Tools': ('Explore capabilities', 'Tool Atlas', 'Algorithm & Theory Atlas')}
+ # The right-click's rows an act may choose (menu.choose, and the acts that walk a menu for the owner: Then, trace, doubt,
+ # compare, the steps). Each goes somewhere in Graphite, shows, reads, selects or copies; none changes a record, leaves
+diff --git a/workbench/desk_doers.py b/workbench/desk_doers.py
+index 878ef6b..485fffd 100644
+--- a/workbench/desk_doers.py
++++ b/workbench/desk_doers.py
+@@ -827,7 +827,7 @@ def go_field(c):
+         if surface(host) != 'field':
+             if action is None or not sequence(c, host, action.shortcut()):raise Refusal('FAILED', REFUSALS['FAILED'] % 'the Field has no key here')
+     elif surface(host) != 'field':
+-        head_row(c, 'Arrange', 'Field', 'pointer')
++        head_row(c, 'Go', 'Field', 'pointer')      # 1.1 K0: Go (was Arrange)
+     settle(host)
+     page, view = the_field(host)
+     if face and page.face != FACE_OF[face]:
+@@ -846,14 +846,14 @@ def go_field(c):
+ def go_today(c):
+     host = c.host
+     if c.by == 'keys' and getattr(host, 'a_home', None) is not None and sequence(c, host, host.a_home.shortcut()):pass
+-    else:c.by = head_row(c, 'Arrange', 'Today', 'pointer')
++    else:c.by = head_row(c, 'Go', 'Today', 'pointer')      # 1.1 K0: Go (was Arrange)
+     settle(host)
+     return 'Today is in front.', {'surface': surface(host)}
+ 
+ 
+ def go_files(c):
+     host = c.host;folder = c.args.get('folder');wanted = c.args.get('view')
+-    c.by = head_row(c, 'Arrange', 'Files', c.by)
++    c.by = head_row(c, 'Go', 'Files', c.by)      # 1.1 K0: Go (was Arrange)
+     settle(host)
+     tab = files_tab(host)
+     if folder is not None and folder != tab.folder:tab.go(folder);settle(host)
+diff --git a/workbench/desk_qt.py b/workbench/desk_qt.py
+index f7c1b7f..6f0a5ad 100644
+--- a/workbench/desk_qt.py
++++ b/workbench/desk_qt.py
+@@ -516,8 +516,11 @@ def apply(host, owner=None):
+     art = getattr(getattr(host, 'session', None), 'state', {}).get('desk_art', 'illustrated')
+     strip = scaled(116, s) if worksheet and art == 'illustrated' and d.width >= 1250 and host.height() >= 820 else 0
+     wins = getattr(top, 'window_strip', None);rows = wins.room(s) if wins is not None else 0  # 1.0 S3: the program windows' row
++    from . import design_tokens as _tokens      # 1.1 K0
++    head, foot = _tokens.chrome(s, host.height())      # 1.1 K0: tokens 1.1, the head 32 px and the foot 48 (44 when short)
++    d = d._replace(band=head);host.foot_px = foot      # 1.1 K0: d.band is the head's; the foot keeps its own height
+     for widget in (top, getattr(host, 'ribbon_dock', None)):_fixed(widget, height=d.band + strip + rows)  # 1.0 S3: + rows
+-    for widget in (bar, getattr(host, 'type_dock', None)):_fixed(widget, height=d.band)
++    for widget in (bar, getattr(host, 'type_dock', None)):_fixed(widget, height=foot)  # 1.1 K0: foot (was d.band)
+     if host.layout() is not None:host.layout().activate()
+     host.desk = d
+     if top is not None and hasattr(top, 'place'):
+diff --git a/workbench/details_pane_qt.py b/workbench/details_pane_qt.py
+new file mode 100644
+index 0000000..0fbc616
+--- /dev/null
++++ b/workbench/details_pane_qt.py
+@@ -0,0 +1,465 @@
++"""1.1 K0 · the details pane: the selected thing, on call (View ▸ Details pane, Alt+P, as in Windows).
++
++DESIGN_DIRECTION_1.1.md section 2: "The details pane (on call, 320 px): the selected thing: preview, facts, connections."
++It stands at the right of the centre, beside whatever the centre shows, and follows the selection in every view: a file or
++folder chosen in List or Icons (the Explorer, E1), a tile chosen on the Board (1.0's board). Off at every start.
++
++  preview      a picture's thumbnail (E1's cache), the first lines of a text, else the kind's letters in a box (a shape and
++               a word: never colour alone)
++  facts        Type, Size, Modified, Where; on the Board, the tile's kind, state, basis and source
++  connections  the board's neighbours as rows: ─ recorded, ┄ possible, each with its word; a file's rows come from the
++               board's own reading of the desk (Desk.recorded, board_model.possible), never from a guess of the pane's own
++
++It reads; it changes nothing. Its two buttons go somewhere (Open board: the file in the middle of the board, 1.0's Ctrl+B)
++or show (Properties, W1's page). The pane sits in central_stack's right margin, so no page is moved or rebuilt. It slides in
++over 220 ms (design_tokens.MOTION['panel']) and appears at once under Reduce motion.
++"""
++from __future__ import annotations
++
++import os
++import time
++from pathlib import Path
++
++from PySide6.QtCore import QEvent, QObject, QSize, Qt, QTimer, QVariantAnimation, QEasingCurve
++from PySide6.QtGui import QAction, QColor, QFont, QPainter, QPalette, QPixmap, QLinearGradient
++from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton, QSizePolicy,
++                               QVBoxLayout, QWidget)
++
++from . import design_tokens as tokens
++
++WIDTH = tokens.DETAILS['width']
++TEXT_SUFFIXES = frozenset(('.txt', '.md', '.csv', '.tsv', '.json', '.log', '.ini', '.conf', '.cfg', '.py', '.sh', '.yaml', '.yml',
++                           '.toml', '.xml', '.html', '.css', '.js', '.c', '.h', '.rs', '.tex', '.srt', '.desktop', '.list'))
++MOST_ROWS = 12
++RECORDED, POSSIBLE = '─', '┄'      # the board's own marks for a recorded and a possible link (proposal_familiar section 4)
++EMPTY = 'Nothing is chosen.\n\nChoose a file or folder in List or Icons, or a tile on the Board: its preview, its facts and its connections show here.'
++
++
++def reduce_motion(host):
++    try:
++        from .document_qt import profile_of
++        return bool(profile_of(host).get('reduce_motion'))
++    except Exception:  # noqa: BLE001 - no profile: motion as the tokens say
++        return False
++
++
++def launch_look():
++    try:
++        from . import boss_theme as bt
++        return bt.APPEARANCE if bt.LAUNCH else ''
++    except Exception:  # noqa: BLE001
++        return ''
++
++
++def when(seconds):
++    t = time.localtime(seconds);now = time.localtime()
++    if t.tm_year == now.tm_year and t.tm_yday == now.tm_yday:return 'Today %s' % time.strftime('%H:%M', t)
++    return time.strftime('%d %b %Y %H:%M', t)
++
++
++def tilde(path):
++    try:return '~/' + Path(path).resolve().relative_to(Path.home().resolve()).as_posix()
++    except (ValueError, OSError):
++        return str(path)
++
++
++# ---- what is chosen, and what is known of it (no Qt widgets: the tests read these) ----------------------------------------------
++def chosen(host):
++    """('file', path, picked) for the Explorer in front (picked False when nothing is chosen: the folder itself), ('tile', tile,
++    board view) for the Board in front, else (None, None, None)."""
++    explorer = getattr(host, 'explorer', None)
++    if explorer is not None and explorer.in_front():
++        path = explorer.current_path() or (explorer.chosen_paths() or [''])[0]
++        return ('file', path, True) if path else ('file', explorer.folder, False)
++    board = board_view(host)
++    if board is not None:
++        pane = getattr(host, 'details_pane', None);ident = getattr(pane, 'tile_id', '') if pane is not None else ''
++        tile = board.board.get(ident) if ident else None
++        tile = tile if tile is not None and tile.id != '…' else board.board.focus
++        if tile is not None:return 'tile', tile, board
++    return None, None, None
++
++
++def board_view(host):
++    page = getattr(host, 'field_page', None);board = getattr(page, 'board', None)
++    try:
++        return board if board is not None and board.isVisible() else None
++    except RuntimeError:
++        return None
++
++
++def facts_of_file(path):
++    """[(word, value)] for a file or folder: Type, Size (or what a folder holds), Modified, Where."""
++    from .finder_qt import kind_word
++    from .explorer import bytes_words
++    p = Path(path)
++    try:st = p.stat()
++    except OSError as exc:
++        return [('Where', tilde(path)), ('Note', exc.strerror or 'not read')]
++    folder = p.is_dir()
++    rows = [('Type', kind_word({'name': p.name, 'kind': 'folder' if folder else 'file'}))]
++    if folder:
++        try:count = sum(1 for _ in os.scandir(path))
++        except OSError:
++            count = None
++        rows.append(('Holds', 'not read' if count is None else '%d thing%s' % (count, '' if count == 1 else 's')))
++    else:rows.append(('Size', bytes_words(st.st_size)))
++    rows.append(('Modified', when(st.st_mtime)));rows.append(('Where', tilde(p.parent) if str(p.parent) != str(p) else '/'))
++    return rows
++
++
++def facts_of_tile(tile):
++    rows = [('Kind', tile.kind_word or tile.kind or 'Thing')]
++    if tile.state_word:rows.append(('State', tile.state_word))
++    if tile.basis:rows.append(('Linked', tile.basis))
++    if tile.source:rows.append(('From', tile.source))
++    rows.append(('On the board', 'in the middle' if tile.distance == 0 else ('a neighbour' if tile.distance == 1 else 'two steps away')))
++    return rows
++
++
++def said(recorded, words):
++    """A link's words, always with its kind's word first (recorded or possible: the word beside the mark)."""
++    kind = 'recorded' if recorded else 'possible';words = str(words or '').strip()
++    return words if words.lower().startswith(kind) else (kind + (' · ' + words if words else ''))
++
++
++def connections_of_tile(board, tile):
++    """The board's neighbours as rows: (mark, title, words). For the tile in the middle, every neighbour; for a neighbour, its
++    wire to the middle."""
++    b = board.board;rows = []
++    if b.focus is not None and tile.id == b.focus.id:
++        for t in b.tiles:
++            if t.id == '…' or getattr(t, 'group', False):
++                rows.append(('+', t.title, 'grouped'));continue
++            rows.append((RECORDED if t.recorded else POSSIBLE, t.title, said(t.recorded, t.basis)))
++    elif b.focus is not None:
++        w = b.wire(tile.id, b.focus.id)
++        if w is not None:rows.append((POSSIBLE if w.dashed else RECORDED, b.focus.title, said(not w.dashed, w.label)))
++    return rows[:MOST_ROWS]
++
++
++def connections_of_file(host, path):
++    """(rows, known): a file's links on the board's reading of the desk. known is False when the desk does not hold it (or the
++    board has not read the desk), so the pane says so instead of 'none'."""
++    living = getattr(host, 'living_nav', None);known = (getattr(living, 'files_by_abs', None) or {}) if living is not None else {}
++    ident = known.get(str(path));page = getattr(host, 'field_page', None);board = getattr(page, 'board', None)
++    desk = getattr(board, 'desk', None)
++    if desk is None and board is not None and ident:
++        try:desk = board.make_desk()
++        except Exception:  # noqa: BLE001 - no reading: the pane says it is not known
++            desk = None
++    if not ident or desk is None or ident not in getattr(desk, 'objects', {}):return [], False
++    rows = [];seen = set()
++    for e in desk.recorded(ident):
++        other = e.target if e.source == ident else e.source
++        if other in seen:continue
++        seen.add(other);obj = desk.objects.get(other)
++        rows.append((RECORDED, getattr(obj, 'title', '') or other, 'recorded · ' + (e.label or e.relation)))
++    try:
++        from .board_model import possible
++        for other, e in possible(desk, ident, set(seen)).items():
++            if other in seen:continue
++            obj = desk.objects.get(other);rows.append((POSSIBLE, getattr(obj, 'title', '') or other, 'possible · ' + (e.label or e.relation)))
++    except Exception:  # noqa: BLE001 - the recorded rows stand alone
++        pass
++    return rows[:MOST_ROWS], True
++
++
++def text_lines(path, most=12, width=60):
++    """The first lines of a text file, or None when it does not read as text."""
++    p = Path(path)
++    try:
++        if p.suffix.lower() not in TEXT_SUFFIXES and p.stat().st_size > 64 * 1024:return None
++        with open(p, 'rb') as f:raw = f.read(4096)
++    except OSError:
++        return None
++    if b'\0' in raw:return None
++    try:text = raw.decode('utf-8')
++    except UnicodeDecodeError:
++        return None
++    if p.suffix.lower() not in TEXT_SUFFIXES and sum(ch.isprintable() or ch in '\n\t\r' for ch in text) < 0.95 * max(1, len(text)):return None
++    return [line.rstrip()[:width] for line in text.splitlines()[:most]]
++
++
++def kind_letters(name, folder=False):
++    if folder:return 'FOLDER'
++    suffix = Path(name).suffix[1:].upper()
++    return (suffix or 'FILE')[:6]
++
++
++# ---- the pane -------------------------------------------------------------------------------------------------------------------
++class DetailsPane(QFrame):
++    def __init__(self, host):
++        super().__init__(host.central_stack)
++        self.host = host;self.wanted = False;self.tile_id = '';self.shown_for = None;self.anim = None;self.open_width = 0
++        self.setObjectName('DetailsPane');self.setAccessibleName('Details: the chosen thing')
++        self.setAttribute(Qt.WA_StyledBackground, True);self.setAutoFillBackground(True)
++        pad = tokens.DETAILS['pad']
++        box = QVBoxLayout(self);box.setContentsMargins(pad, 12, pad - 4, 12);box.setSpacing(6)
++        self.caption = QLabel('DETAILS', self);self.caption.setObjectName('DetailsCaption')
++        self.title = QLabel(self);self.title.setObjectName('DetailsTitle');self.title.setWordWrap(True)
++        self.title.setTextInteractionFlags(Qt.TextSelectableByMouse)
++        self.preview = QLabel(self);self.preview.setObjectName('DetailsPreview');self.preview.setAlignment(Qt.AlignCenter)
++        self.preview.setFixedHeight(tokens.DETAILS['preview']);self.preview.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
++        self.facts = QLabel(self);self.facts.setObjectName('DetailsFacts');self.facts.setWordWrap(True);self.facts.setTextFormat(Qt.RichText)
++        self.facts.setTextInteractionFlags(Qt.TextSelectableByMouse)
++        self.links_caption = QLabel('CONNECTIONS', self);self.links_caption.setObjectName('DetailsCaption')
++        self.links = QListWidget(self);self.links.setObjectName('DetailsConnections');self.links.setAccessibleName('Connections')
++        self.links.setFrameShape(QFrame.NoFrame);self.links.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
++        self.links.setWordWrap(True);self.links.itemActivated.connect(self.go_link)
++        self.links_note = QLabel(self);self.links_note.setObjectName('DetailsNote');self.links_note.setWordWrap(True)
++        buttons = QHBoxLayout();buttons.setContentsMargins(0, 4, 0, 0);buttons.setSpacing(8)
++        self.board_button = QPushButton('Open board', self);self.board_button.setProperty('arcButton', 'tool')
++        self.board_button.setToolTip('This in the middle of the board, with its neighbours (Ctrl+B)');self.board_button.clicked.connect(self.open_board)
++        self.properties_button = QPushButton('Properties', self);self.properties_button.setProperty('arcButton', 'tool')
++        self.properties_button.setToolTip('Its properties (Alt+Enter)');self.properties_button.clicked.connect(self.open_properties)
++        buttons.addWidget(self.board_button);buttons.addWidget(self.properties_button);buttons.addStretch(1)
++        self.empty = QLabel(EMPTY, self);self.empty.setObjectName('DetailsEmpty');self.empty.setWordWrap(True);self.empty.setAlignment(Qt.AlignLeft | Qt.AlignTop)
++        for w in (self.caption, self.title, self.preview, self.facts, self.links_caption):box.addWidget(w)
++        box.addWidget(self.links);box.addWidget(self.links_note);box.addLayout(buttons);box.addWidget(self.empty);box.addStretch(1)
++        self.restyle();self.hide()
++        self.again = QTimer(self);self.again.setSingleShot(True);self.again.setInterval(80);self.again.timeout.connect(self.refresh)
++        host.central_stack.installEventFilter(self)
++        host.central_stack.currentChanged.connect(lambda *_: self.soon())
++        self.hooked = set();QTimer.singleShot(0, self.hook)
++
++    # ---- the look: the look's own palette (each look keeps its character); elevation, not glow ---------------------------------
++    def restyle(self):
++        look = launch_look()
++        if look:      # Day and Night: the tokens' own colours
++            c = tokens.colours(look);ground, text, quiet, line, plate = c['surface'], c['text'], c['secondary'], c['hairline'], c['window']
++        else:         # Graphite and Kasandra: the look's own palette, so each keeps its character
++            pal = self.host.palette();ground, text, line, plate = (pal.color(r).name() for r in (QPalette.Base, QPalette.Text, QPalette.Mid, QPalette.Window))
++            a, b = QColor(text), QColor(ground)
++            quiet = QColor(round(a.red() * .7 + b.red() * .3), round(a.green() * .7 + b.green() * .3), round(a.blue() * .7 + b.blue() * .3)).name()
++        self.quiet = quiet;floor = tokens.LEAST_PX
++        self.setStyleSheet(
++            'QFrame#DetailsPane {background: %(ground)s; color: %(text)s; border: 0; border-left: 1px solid %(line)s;}'
++            'QLabel#DetailsCaption {font-size: %(cap)dpx; font-weight: 600; letter-spacing: 0.4px; color: %(quiet)s;}'
++            'QLabel#DetailsTitle {font-size: 15px; font-weight: 600; color: %(text)s;}'
++            'QLabel#DetailsPreview {border: 1px solid %(line)s; border-radius: %(r)dpx; background: %(plate)s; color: %(text)s;}'
++            'QLabel#DetailsFacts, QLabel#DetailsNote, QLabel#DetailsEmpty {font-size: 13px; color: %(text)s;}'
++            'QLabel#DetailsNote, QLabel#DetailsEmpty {color: %(quiet)s;}'
++            'QListWidget#DetailsConnections {background: transparent; font-size: 13px; color: %(text)s;}'
++            'QListWidget#DetailsConnections::item {min-height: 24px; padding: 2px 0;}'
++            'QLabel#DetailsPreview[face="lines"] {font-family: "%(mono)s"; font-size: %(cap)dpx; padding: 6px 8px;}'
++            'QLabel#DetailsPreview[face="tag"] {font-family: "%(mono)s"; font-size: 22px; font-weight: 600;}'
++            % dict(ground=ground, text=text, quiet=quiet, line=line, plate=plate, cap=max(floor, 11), r=tokens.RADIUS['tile'],
++                   mono=tokens.FONT['mono']))
++        self.mono = QFont(tokens.FONT['mono']);self.mono.setPixelSize(max(floor, 11))
++
++    def paintEvent(self, event):
++        super().paintEvent(event)
++        if launch_look():      # Day and Night: depth from elevation (a soft shadow falling on the pane's left edge), never a glow
++            x, y, blur, alpha, _ = tokens.ELEVATION[1]
++            p = QPainter(self);g = QLinearGradient(1, 0, 1 + max(3, blur * 2), 0)
++            g.setColorAt(0, QColor(0, 0, 0, alpha));g.setColorAt(1, QColor(0, 0, 0, 0))
++            p.fillRect(1, 0, max(3, blur * 2), self.height(), g);p.end()
++
++    # ---- on call ---------------------------------------------------------------------------------------------------------------
++    def set_wanted(self, on):
++        on = bool(on)
++        if on == self.wanted and (self.isVisible() == on):return
++        self.wanted = on;a = getattr(self.host, 'a_details', None)
++        if a is not None and a.isChecked() != on:a.setChecked(on)
++        if self.anim is not None:self.anim.stop();self.anim = None
++        target = WIDTH if on else 0
++        ms = 0 if reduce_motion(self.host) else tokens.MOTION['panel']
++        if on:self.refresh(force=True);self.show();self.raise_()
++        if ms <= 0:
++            self.set_open(target)
++        else:
++            self.anim = QVariantAnimation(self);self.anim.setStartValue(self.open_width);self.anim.setEndValue(target)
++            self.anim.setDuration(ms);self.anim.setEasingCurve(QEasingCurve.OutCubic)
++            self.anim.valueChanged.connect(lambda v: self.set_open(int(v)));self.anim.finished.connect(lambda: self.set_open(target))
++            self.anim.start()
++
++    def set_open(self, width):
++        self.open_width = width;stack = self.host.central_stack
++        stack.setContentsMargins(0, 0, width, 0)
++        self.place()
++        if width <= 0 and not self.wanted:self.hide()
++
++    def place(self):
++        stack = self.host.central_stack;w = self.open_width
++        self.setGeometry(stack.width() - w, 0, WIDTH, stack.height())
++        if w > 0:self.raise_()
++
++    def eventFilter(self, obj, event):
++        if event.type() == QEvent.Resize and obj is self.host.central_stack and self.open_width:self.place()
++        return False
++
++    # ---- following the selection -------------------------------------------------------------------------------------------------
++    def hook(self):
++        """The Explorer's two views and the board say when the choice changes; hooked once each, again if they are made later."""
++        explorer = getattr(self.host, 'explorer', None)
++        if explorer is not None and 'explorer' not in self.hooked:
++            self.hooked.add('explorer')
++            for view in (explorer.page.list, explorer.page.icons):view.itemSelectionChanged.connect(self.soon)
++            told = explorer.say_foot      # the foot is said after every fill and every choice (a fill chooses with signals held)
++
++            def say_foot(*args, _told=told, **kwargs):
++                out = _told(*args, **kwargs);self.soon();return out
++            explorer.say_foot = say_foot
++        board = getattr(getattr(self.host, 'field_page', None), 'board', None)
++        if board is not None and id(board) not in self.hooked:
++            self.hooked.add(id(board));board.focused.connect(self.tile_chosen)
++            focus_on = board.focus_on      # a new middle by the tree, Back or a link (not only a click on a tile)
++
++            def focused(ident, *args, _focus_on=focus_on, **kwargs):
++                out = _focus_on(ident, *args, **kwargs);self.tile_id = '';self.soon();return out
++            board.focus_on = focused
++
++    def tile_chosen(self, obj):
++        self.tile_id = getattr(obj, 'id', '') or '';self.soon()
++
++    def soon(self):
++        if self.wanted:self.again.start()
++
++    def refresh(self, force=False):
++        if not self.wanted and not force:return
++        self.hook()
++        kind, thing, extra = chosen(self.host)
++        key = (kind, getattr(thing, 'id', thing), extra if kind == 'file' else None)
++        if key == self.shown_for and not force:return
++        self.shown_for = key
++        if kind == 'file':self.show_file(thing, extra)
++        elif kind == 'tile':self.show_tile(thing, extra)
++        else:self.show_empty()
++
++    def parts(self, on):
++        for w in (self.caption, self.title, self.preview, self.facts, self.links_caption, self.links, self.links_note,
++                  self.board_button, self.properties_button):w.setVisible(on)
++        self.empty.setVisible(not on)
++
++    def show_empty(self):
++        self.parts(False);self.path = ''
++
++    def fill_facts(self, rows):
++        from html import escape
++        self.facts.setText('<table cellspacing="0" cellpadding="1">%s</table>' % ''.join(
++            '<tr><td style="padding-right:10px; color:%s;">%s</td><td>%s</td></tr>' % (self.quiet, escape(k), escape(str(v)))
++            for k, v in rows))
++
++    def fill_links(self, rows, note=''):
++        self.links.clear()
++        for mark, title, words in rows:
++            item = QListWidgetItem('%s  %s\n     %s' % (mark, title, words));item.setData(Qt.UserRole, title);self.links.addItem(item)
++        self.links.setVisible(bool(rows));self.links_note.setText(note);self.links_note.setVisible(bool(note))
++        if rows:      # the rows' own height (no gap under them), up to a third of the pane
++            tall = sum(max(self.links.sizeHintForRow(i), 24) for i in range(self.links.count())) + 4
++            self.links.setFixedHeight(min(tall, max(120, self.height() // 3)))
++
++    def show_file(self, path, picked):
++        self.parts(True);self.path = path;p = Path(path);folder = p.is_dir()
++        self.caption.setText('DETAILS' if picked else 'DETAILS · THIS FOLDER')
++        self.title.setText(p.name or str(p))
++        self.set_preview_file(p, folder)
++        self.fill_facts(facts_of_file(path))
++        rows, known = connections_of_file(self.host, path)
++        if rows:self.fill_links(rows)
++        elif known:self.fill_links([], 'No connections are recorded or possible on the desk.')
++        else:self.fill_links([], 'Not on the board yet. Open board puts it in the middle, with whatever it is linked to.')
++        self.board_button.setVisible(getattr(self.host, 'explorer', None) is not None);self.properties_button.setVisible(True)
++
++    def show_tile(self, tile, board):
++        self.parts(True);self.path = '';self.tile = tile
++        self.caption.setText('DETAILS · ON THE BOARD')
++        self.title.setText(tile.title or tile.id)
++        self.set_preview_tag(tile.kind_word or tile.kind or 'THING', tile.state_word)
++        self.fill_facts(facts_of_tile(tile))
++        rows = connections_of_tile(board, tile)
++        self.fill_links(rows, '' if rows else 'Nothing is linked to it on the board.')
++        self.board_button.hide();self.properties_button.hide()
++
++    def face(self, which):
++        """The preview's face by its look's sheet: 'lines' (a text's first lines, in the mono), 'tag' (the kind's letters), ''."""
++        if self.preview.property('face') != which:
++            self.preview.setProperty('face', which);self.preview.style().unpolish(self.preview);self.preview.style().polish(self.preview)
++
++    def set_preview_file(self, p, folder):
++        self.preview.setPixmap(QPixmap());self.preview.setText('');self.face('')
++        from .explorer import is_picture
++        if not folder and is_picture(p.name):
++            from .explorer_qt import thumbnail
++            image = thumbnail(str(p), 256)
++            if image is not None:
++                self.face('')
++                room = QSize(WIDTH - 2 * tokens.DETAILS['pad'] - 6, tokens.DETAILS['preview'] - 6)
++                self.preview.setPixmap(QPixmap.fromImage(image).scaled(room, Qt.KeepAspectRatio, Qt.SmoothTransformation));return
++        lines = None if folder else text_lines(p)
++        if lines:
++            self.face('lines');self.preview.setAlignment(Qt.AlignLeft | Qt.AlignTop)
++            self.preview.setText('\n'.join(lines));return
++        self.set_preview_tag(kind_letters(p.name, folder), '')
++
++    def set_preview_tag(self, word, state):
++        """The kind's letters in a box: a shape and a word."""
++        self.preview.setPixmap(QPixmap());self.preview.setAlignment(Qt.AlignCenter);self.face('tag')
++        self.preview.setText('[ %s ]%s' % (str(word).upper()[:12], ('\n' + state) if state else ''))
++
++    # ---- the two buttons and a row -----------------------------------------------------------------------------------------------
++    def open_board(self):
++        explorer = getattr(self.host, 'explorer', None)
++        if explorer is not None and getattr(self, 'path', ''):return explorer.to_board(self.path, 'tree')
++        return False
++
++    def open_properties(self):
++        if getattr(self, 'path', ''):
++            from .windows_keys_qt import show_properties
++            return show_properties(self.host, self.path)
++        return None
++
++    def go_link(self, item):
++        """A row on the Board: that neighbour chosen (the board's own choose, as a click on its tile)."""
++        board = board_view(self.host);title = item.data(Qt.UserRole)
++        if board is None:return
++        tile = next((t for t in board.board.all() if t.title == title), None)
++        if tile is not None and tile.id != getattr(board.board.focus, 'id', None):board.choose(tile.id)
++
++
++class ContextRow(QObject):
++    """1.1 K0, chrome: 1.0's context row under the centre (a path and a few buttons, 33 px) is a code tab's; over the Explorer
++    or the Field it says nothing the centre bar does not, so it stands only while the tabs are in front."""
++
++    def __init__(self, host):
++        super().__init__(host);self.host = host
++        bar = getattr(host, 'context_bar', None)
++        if bar is not None:bar.installEventFilter(self)
++        host.central_stack.currentChanged.connect(lambda *_: self.check())
++
++    def eventFilter(self, obj, event):
++        if event.type() == QEvent.Show:QTimer.singleShot(0, self.check)
++        return False
++
++    def check(self):
++        host = self.host;bar = getattr(host, 'context_bar', None)
++        try:
++            if bar is not None and bar.isVisible() and host.central_stack.currentWidget() is not getattr(host, 'workspace_split', None):bar.hide()
++        except RuntimeError:
++            pass
++
++
++def action(host):
++    """View ▸ Details pane (Alt+P): made once per window; the pane itself is made the first time it is wanted."""
++    a = getattr(host, 'a_details', None)
++    if a is None:
++        a = host.a_details = QAction('Details pane', host);a.setCheckable(True);a.setShortcut('Alt+P')
++        a.setShortcutContext(Qt.WindowShortcut);a.setToolTip('The chosen thing at the right of the centre: preview, facts, connections')
++        a.setStatusTip(a.toolTip());host.addAction(a)
++        a.toggled.connect(lambda on: pane(host).set_wanted(on))
++    return a
++
++
++def pane(host):
++    p = getattr(host, 'details_pane', None)
++    if p is None:p = host.details_pane = DetailsPane(host)
++    return p
++
++
++def install(host):
++    """shell2's start, after the Explorer: the row in View, the key, the context row's rule. The pane is off."""
++    if getattr(host, 'central_stack', None) is None:return None
++    action(host)
++    if getattr(host, 'k0_context_row', None) is None:host.k0_context_row = ContextRow(host)
++    return host.a_details
+diff --git a/workbench/head_menus.py b/workbench/head_menus.py
+new file mode 100644
+index 0000000..8ce59f4
+--- /dev/null
++++ b/workbench/head_menus.py
+@@ -0,0 +1,167 @@
++"""1.1 K0 · the head's six menus: File, Edit, View, Go, Tools, Help, over the same actions as 1.0's eight.
++
++DESIGN_DIRECTION_1.1.md section 2: the head (32 px) says what can be done here, in the words a Windows hand looks for.
++1.0's eight menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide; menus2) carried every action; the six
++carry the same actions, the same QAction objects with the same keys, and nothing is lost (MOVED says where each went; the
++test checks every 1.0 row is still on a head menu). menus2.rebuild lays the rows out from LAYOUT and asks add() for the rows
++that are K0's own (the details pane, the views, and the old Rules rows split between View and Tools).
++
++Kas's rules (Kasandra's hand), HALT and the Master Stop keep their own rows (Tools); HALT and Apps stay in the head itself.
++Show keys (W1) lives in View now and still turns every printed key off.
++"""
++from __future__ import annotations
++
++HEAD = ('File', 'Edit', 'View', 'Go', 'Tools', 'Help')
++
++# View: the window and its panes; Go: the places (1.0's Arrange places); Tools: the tools, the commands, her rules and the stop.
++VIEW = ['@details', '@views', None, 'inspector', '@slate_panel', None,
++        'fullscreen', 'reading', '@appearance', '@artwork', '@buttons', 'prose_more', 'prose_less', None,
++        'wrap', 'split_editor', 'pin', 'reopen', None,
++        '@console_sizes', '@cabinet', '@machine_refresh', None,
++        '@show_keys', 'reset']
++GO = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda']
++TOOLS = ['@explore', 'discovery', 'algorithms', 'atlas', '@work_copy', '@utility', 'doctor', '@computer', '@pills', None,
++         '@commands', None,
++         '@hand', 'master_stop', None,
++         'ledger_settings', '@dos_words', '@bin_name', None,
++         '@engineering', '@service']
++COMMANDS = ['ledger_commands', '@run_operation', '@chain', '@chain_desk', '@type_to', 'palette']
++KEYS = frozenset(('@details', '@views', '@artwork', '@buttons', '@show_keys', '@commands', '@hand', '@dos_words', '@bin_name'))
++
++# Old place -> new place (the owner reads this table; the release notes carry it).
++MOVED = (
++    ('Work (every row, in its order: New File … Recover Unsaved Work, then Lock … Exit Graphite)', 'File'),
++    ('Revise (every row: Undo … Go to Line)', 'Edit'),
++    ("Arrange: Today, Field, Files, Library, Project Desk, Changes, Continuing work, Exchange & deployment, Graphite's Agenda", 'Go'),
++    ('Arrange: Kasandra (her column)', 'View'),
++    ('Arrange: Console, Cabinet, Refresh Machine View, Full Screen, Reading and Layout…, Appearance, Larger / Smaller prose, '
++     'Word Wrap, Split Editor, Pin / Unpin workspace, Reopen deferred tabs, Reset Window Layout', 'View'),
++    ('Tools (every row: Explore capabilities … STOP / KILL all Graphite operations…, Engineering)', 'Tools'),
++    ('Commands (every row: Graphite Commands…, Run an operation…, Chain Menu, Constructed chain, Writing Line, Command Palette…, '
++     'Favorite commands)', 'Tools ▸ Commands'),
++    ('Rules: Graphite Settings…', 'Tools'),
++    ("Rules: Kasandra's hand (her rules)", 'Tools'),
++    ("Rules: DOS words, The bin's name", 'Tools'),
++    ('Rules: Desk artwork, Buttons', 'View'),
++    ('Rules: Show keys', 'View'),
++    ('Properties: Inspector', 'View'),
++    ('Properties: This Computer…, Pills and Paired Computers…', 'Tools'),
++    ('Guide (every row: Getting Started … About Graphite)', 'Help'),
++    ('new: Details pane (Alt+P), List, Icons, Board', 'View'),
++)
++
++
++def layout(file_rows, edit_rows, help_rows):
++    """(group key, row keys) for menus2.rebuild: the six head menus (File, Edit and Help keep menus2's own lists) and the
++    Commands menu that Tools holds."""
++    return (('File', file_rows), ('Edit', edit_rows), ('View', VIEW), ('Go', GO), ('Commands', COMMANDS), ('Help', help_rows),
++            ('Tools', TOOLS))      # Tools last, as in 1.0: its Engineering ▸ More takes whatever no menu placed before it
++
++
++def _holder(host):
++    """A menu never shown that owns the rows W1 and E1 make for the old Rules menu, made once per window."""
++    held = getattr(host, '_k0_rule_rows', None)
++    if held is None:
++        from PySide6.QtWidgets import QMenu
++        from .windows_keys_qt import rules_lines
++        from .explorer_qt import rules_lines as bin_lines
++        holder = QMenu(host);line, words = rules_lines(host, holder);bin_name = bin_lines(host, holder)
++        held = host._k0_rule_rows = {'holder': holder, 'show_keys': line, 'dos_words': words, 'bin_name': bin_name}
++    return held
++
++
++def view_actions(host):
++    """View ▸ List, Icons, Board: the Explorer's three views (the same set_view as the centre bar's switch)."""
++    made = getattr(host, '_k0_views', None)
++    if made is None:
++        from PySide6.QtGui import QAction, QActionGroup
++        from .explorer import VIEWS, VIEW_WORDS
++        group = QActionGroup(host);group.setExclusive(True);made = {}
++        for view in VIEWS:
++            a = QAction(VIEW_WORDS[view], host);a.setCheckable(True);group.addAction(a);made[view] = a
++            a.setToolTip('Show the place in %s' % VIEW_WORDS[view]);a.setStatusTip(a.toolTip())
++            a.triggered.connect(lambda checked=False, view=view: set_view(host, view))
++        host._k0_views = made
++    return list(made.values())
++
++
++def set_view(host, view):
++    explorer = getattr(host, 'explorer', None)
++    return explorer.set_view(view) if explorer is not None else False
++
++
++def current_view(host):
++    explorer = getattr(host, 'explorer', None)
++    if explorer is None:return ''
++    if explorer.in_front():return explorer.view
++    board = getattr(getattr(host, 'field_page', None), 'board', None)
++    try:
++        return 'board' if board is not None and board.isVisible() else ''
++    except RuntimeError:
++        return ''
++
++
++def sync(host):
++    """The checks say what is true now (View opens)."""
++    view = current_view(host);has = getattr(host, 'explorer', None) is not None
++    for key, a in (getattr(host, '_k0_views', None) or {}).items():
++        a.setEnabled(has);a.setChecked(key == view)
++    pane = getattr(host, 'details_pane', None);a = getattr(host, 'a_details', None)
++    if a is not None:a.setChecked(bool(pane is not None and pane.wanted))
++
++
++def add(host, menu, key, placed, groups):
++    """menus2.rebuild's rows that are K0's own. True when key was one of them (placed or not)."""
++    if key not in KEYS:return False
++    sub = None
++    if key == '@details':
++        from .details_pane_qt import action
++        a = action(host);menu.addAction(a);placed.add(a)
++    elif key == '@views':
++        for a in view_actions(host):menu.addAction(a);placed.add(a)
++        if not menu.property('k0Synced'):
++            menu.setProperty('k0Synced', True);menu.aboutToShow.connect(lambda host=host:sync(host))
++    elif key == '@artwork':
++        from .boss_qt import appearance_menu
++        sub = appearance_menu(host)
++    elif key == '@buttons':
++        from .tool_faces import menu as buttons_menu
++        sub = buttons_menu(host)
++    elif key == '@hand':      # her rules: how far she acts by herself, a row of its own
++        from .shell2 import hand_menu
++        sub = hand_menu(host)
++    elif key == '@show_keys':
++        line = _holder(host)['show_keys'];menu.addAction(line);placed.add(line)
++    elif key == '@dos_words':
++        sub = _holder(host)['dos_words']
++    elif key == '@bin_name':
++        sub = _holder(host)['bin_name']
++    elif key == '@commands':
++        sub = groups.get('Commands')
++        if sub is not None:sub.setTitle('Commands')
++    if sub is not None:
++        menu.addMenu(sub);placed.add(sub.menuAction())
++    return True
++
++
++def words_of(action):
++    """A row's words as shown, without the key mark (&) or a key written after a tab."""
++    return action.text().replace('&&', '\0').replace('&', '').replace('\0', '&').split('\t')[0].strip()
++
++
++def rows(menu, depth=0, subs=None):
++    """Every row of a menu and its submenus as (depth, words, action), separators left out. (QAction.menu() is not used: in
++    PySide it can take ownership; submenus are found among the application's menus by their title row.)"""
++    from PySide6.QtWidgets import QApplication, QMenu
++    from shiboken6 import isValid
++    if subs is None:
++        subs = {}
++        for m in QApplication.allWidgets():
++            if isinstance(m, QMenu) and isValid(m):subs.setdefault(m.menuAction(), m)
++    out = []
++    for a in menu.actions():
++        if not isValid(a) or a.isSeparator():continue
++        out.append((depth, words_of(a), a))
++        sub = subs.get(a)
++        if sub is not None and sub is not menu and depth < 4:out.extend(rows(sub, depth + 1, subs))
++    return out
+diff --git a/workbench/her_hand_qt.py b/workbench/her_hand_qt.py
+index 7fcc91d..da61823 100644
+--- a/workbench/her_hand_qt.py
++++ b/workbench/her_hand_qt.py
+@@ -1276,7 +1276,7 @@ class HerHand(QObject):
+         host = self.host
+         try:
+             if step.act == 'go.field':
+-                word = D.head_word(host, 'Arrange');return word.mapToGlobal(word.rect().center())
++                word = D.head_word(host, 'Go');return word.mapToGlobal(word.rect().center())      # 1.1 K0: Go (was Arrange)
+             page = getattr(host, 'field_page', None)
+             if page is None:return None
+             view = page.view
+diff --git a/workbench/launch_look.py b/workbench/launch_look.py
+index e64f7bb..7f2135b 100644
+--- a/workbench/launch_look.py
++++ b/workbench/launch_look.py
+@@ -24,7 +24,7 @@ from . import boss_theme as bt
+ from . import design_tokens as dt
+ from .presentation_preferences import APPEARANCE_EARLIER, LAUNCH_MARK, LAUNCH_MARKED
+ 
+-LINE = 'Graphite 1.0 starts in Day. Your earlier look is in Arrange ▸ Appearance.'
++LINE = 'Graphite 1.0 starts in Day. Your earlier look is in View ▸ Appearance.'      # 1.1 K0: View (1.0's Arrange)
+ LINE_MS = 15000
+ 
+ 
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index 26a00d5..4a69a75 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -1,4 +1,4 @@
+-"""Eight desktop menus over the original actions, shortcuts and menu objects.
++"""Eight desktop menus over the original actions, shortcuts and menu objects. (1.1 K0: six now, File Edit View Go Tools Help; head_menus.)
+ 
+ File is files, Edit is text, View is the window, Tools is Ledger's tools, Help is help. Every command from the older
+ engineering desktop (builds, cartridges, hardware workspaces, the phone link…) lives in one place, Tools › Engineering,
+@@ -14,8 +14,7 @@ from PySide6.QtGui import QAction, QColor, QIcon, QImage, QPainter, QPixmap
+ GRAPHITE = '#6c675e'
+ # Display proposals from the Interface Companion; stable dictionary keys,
+ # QMenu instances, QAction identities and keyboard commands are preserved.
+-DISPLAY_TITLES={'File':'Work','Edit':'Revise','Tools':'Tools','Options':'Arrange',
+-                'Commands':'Commands','Settings':'Rules','Properties':'Properties','Help':'Guide'}
++DISPLAY_TITLES={'File':'File','Edit':'Edit','View':'View','Go':'Go','Tools':'Tools','Help':'Help'}      # 1.1 K0: the six menus (1.0's eight were Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide; head_menus.MOVED)
+ # File: getting files in and working on them. Edit: text. View: where you are and how the window looks.
+ # Tools: who you type to, the chain menu, and Ledger's own tools. Help: how to begin, and what is new.
+ FILE = ['new', '@new_idea', '@new_project', 'open', 'viewer', 'quick', '@recent', None, '@receive', '@import', '@export', '@work_copy', None, 'save', 'save_all', 'close', None, 'recovery',
+@@ -75,7 +74,8 @@ def rebuild(host):
+         # View is now the visible Options menu; its old dictionary alias still works.
+         groups['Tools']=groups['Options'];groups['Options']=groups['View']
+         for title in ('Commands','Settings','Properties'):groups[title]=QMenu(title,host)
+-        order=('File','Edit','Tools','Options','Commands','Settings','Properties','Help')
++        from .head_menus import HEAD      # 1.1 K0: File, Edit, View, Go, Tools, Help across the head (Commands is Tools ▸ Commands;
++        groups['Go']=QMenu('Go',host);order=HEAD      # 1.1 K0: Settings and Properties stay as objects for callers, their rows moved)
+         commands=getattr(host,'ribbon_commands',None)
+         if commands is not None:
+             for heading in host.command_menus.values():heading.parentWidget().hide()
+@@ -216,9 +216,11 @@ def rebuild(host):
+         host.a_guide_pages = __import__('workbench.guide_pages', fromlist=['actions']).actions(host, _Path(__file__).resolve().parents[1])
+     extras.update(host.a_guide_pages)  # 1.0 X2
+     placed = {service} if service is not None else set()
++    from . import head_menus      # 1.1 K0
+ 
+     def add(menu, key):
+         if key is None:menu.addSeparator();return
++        if head_menus.add(host, menu, key, placed, groups):return      # 1.1 K0: the details pane, the views, the old Rules rows
+         if key == '@recent' and hasattr(host, 'recent_menu'):menu.addMenu(host.recent_menu);return
+         if key in ('@type_to', '@console_sizes'):  # the bar's own words, as checkable choices
+             sub = QMenu('Writing Line' if key == '@type_to' else 'Console', host)  # D3: the line's four modes
+@@ -295,12 +297,7 @@ def rebuild(host):
+ 
+     for menu in groups.values():  # detach, never delete: the actions belong to the window or are re-placed below
+         for action in list(menu.actions()):menu.removeAction(action)
+-    for group, keys in (
+-        ('File',FILE),('Edit',EDIT),('Options',VIEW),('Help',HELP),
+-        ('Commands',['ledger_commands','@run_operation','@chain','@chain_desk','@type_to','palette']),
+-        ('Settings',['ledger_settings','@desk_art','@service']),
+-        ('Properties',['inspector','@computer','@pills']),
+-        ('Tools',['@explore','discovery','algorithms','atlas','@work_copy','@utility','doctor','master_stop',None,'@engineering'])):  # 1.0 K6: '@utility'
++    for group, keys in head_menus.layout(FILE, EDIT, HELP):      # 1.1 K0: the six menus (head_menus.layout)
+         menu = groups.get(group)
+         if menu is not None:
+             for key in keys:add(menu, key)
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 33f0c93..ce56236 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -690,6 +690,9 @@ class TopBar(QWidget):
+         font = mono_font(max(14, round(16 * scale)))
+         if bt.DISPLAY != MONO:      # Kasandra: the menus across the head in her typewriter face, a little larger to read as well
+             font = QFont(bt.DISPLAY);font.setPixelSize(max(15, round(18 * scale)))
++        from . import design_tokens as _tokens      # 1.1 K0: the 32 px head's words: Inter in Day and Night, each look's own face
++        if bt.LAUNCH:font = QFont(_tokens.FONT['ui'])      # 1.1 K0
++        font.setPixelSize(_tokens.head_px(bt.APPEARANCE, scale))      # 1.1 K0
+         for widget in [self.path, self.more_menus, self.programs, self.nice] + list(getattr(self, 'bar_menus', [])):
+             widget.setFont(font)
+         self.pulse.restyle()
+@@ -3570,6 +3573,8 @@ class Shell2(QObject):
+             pass
+         from .explorer_qt import install as install_explorer  # 1.1 E1
+         install_explorer(host)  # 1.1 E1: the Files tree and the centre as an Explorer: Quick access, List, Icons, Board, the address
++        from .details_pane_qt import install as install_details  # 1.1 K0
++        install_details(host)  # 1.1 K0: View ▸ Details pane (Alt+P), off; the context row only over a code tab
+         from .launch_look import install as install_launch_look
+         install_launch_look(host)  # 1.0 P4: 1.0's one move to Day on a profile from before, said in one line, once
+         try:  # 1.0 F3: every keyboard stop says a name; Tab walks into a scrolled page's presses
+diff --git a/workbench/typebar_qt.py b/workbench/typebar_qt.py
+index d38ed29..7e79757 100644
+--- a/workbench/typebar_qt.py
++++ b/workbench/typebar_qt.py
+@@ -592,7 +592,7 @@ class TypeBar(QWidget):
+         try:
+             from . import desk_qt
+             px = self.fit_px(d.pane, d.scale);self.band_style(d.scale, px)
+-            h, p, o = d.band, d.pane, d.inset
++            h, p, o = getattr(self.host, 'foot_px', None) or d.band, d.pane, d.inset      # 1.1 K0: the foot's own height (tokens 1.1)
+             wh = min(h - 12, self.word_height(), desk_qt.scaled(38, d.scale));y = (h - wh) // 2
+             # 0.8.6, the owner's footer (20 Nov 2026, "Yep, that's perfect"): the chooser stays under the left column; the
+             # prompt box starts at the middle column's left edge; then the room button (Line / Half / Tall: the room above
+diff --git a/workbench/workspace_tabs.py b/workbench/workspace_tabs.py
+index 2763934..0c685fb 100644
+--- a/workbench/workspace_tabs.py
++++ b/workbench/workspace_tabs.py
+@@ -47,7 +47,7 @@ ROOMS=('OfficeBuildingTab','SlateRoomTab','ReturnTab','FilesTab','LibraryTab','H
+ NOTHING_TO_REOPEN=('StartPage','FilesStart','EmptyWorkspaceTab',
+                    'UtilityTab')      # 1.0 K6: a utility's tab is not reopened at the next start (its utility and runs are kept)
+ KEPT=20      # Reopen deferred tabs keeps the twenty newest; until 0.8.4 it had no bound
+-WHERE='Arrange → Reopen deferred tabs'      # the menu the item is in (menus2: the View group, under the title Arrange)
++WHERE='View → Reopen deferred tabs'      # the menu the item is in (menus2: the View group; 1.1 K0: under the title View, 1.0's Arrange)
+ 
+ 
+ def destination(row):

@@ -91,7 +91,7 @@ assert all(w.menu_groups[key] is menu for key,menu in objects.items())
 assert all(w.favorite_actions[key] is action and [s.toString() for s in action.shortcuts()]==shortcuts[key] for key,action in favorites.items())
 assert {key:w.command_menus[key].text() for key in menus2.DISPLAY_TITLES}==menus2.DISPLAY_TITLES
 assert sum(a is w.a_explore for a in w.menu_groups['Tools'].actions())==1
-record('Proposed Work, Revise, Arrange, Rules and Guide labels retain menu objects, all original actions and keyboard shortcuts')
+record('File, Edit, View, Go, Tools and Help (1.1 K0) retain menu objects, all original actions and keyboard shortcuts')
 page=w.cabinet_page;selected=page.tree.currentItem().data(0,Qt.UserRole)['id'];w.a_explore.trigger();settle()
 assert w.tabs.currentWidget() is tab and page.tree.currentItem().data(0,Qt.UserRole)['id']==selected
 record('Top Tools entry reuses Explore while preserving the cabinet selection')

@@ -33,10 +33,10 @@ from .assistant_identity import named
 ACT_HEADS = ('go', 'point', 'head', 'menu', 'then', 'sheet', 'type', 'hand', 'look', 'read')
 MARKS = ('navigates', 'changes')
 OWNER_ONLY = ('hand.approve', 'hand.undo', 'hand.dial', 'look.set', 'type.send', 'hand.stop', 'hand.putback')
-HEAD_MENUS = ('Work', 'Revise', 'Tools', 'Arrange', 'Commands', 'Rules', 'Properties', 'Guide')
+HEAD_MENUS = ('File', 'Edit', 'View', 'Go', 'Tools', 'Help')      # 1.1 K0: the six menus (1.0: Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide)
 # The head's rows an act may choose: each goes somewhere and changes nothing. A row that asks, leaves, stops work or opens a
 # window that asks stays the owner's (head.row refuses it). The words are the rows' own, as the menus print them.
-HEAD_ROWS = {'Arrange': ('Today', 'Field', 'Files', 'Library', 'Project Desk', 'Changes', 'Continuing work', "Graphite's Agenda"),
+HEAD_ROWS = {'Go': ('Today', 'Field', 'Files', 'Library', 'Project Desk', 'Changes', 'Continuing work', "Graphite's Agenda"),
              'Tools': ('Explore capabilities', 'Tool Atlas', 'Algorithm & Theory Atlas')}
 # The right-click's rows an act may choose (menu.choose, and the acts that walk a menu for the owner: Then, trace, doubt,
 # compare, the steps). Each goes somewhere in Graphite, shows, reads, selects or copies; none changes a record, leaves

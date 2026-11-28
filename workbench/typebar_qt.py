@@ -592,7 +592,7 @@ class TypeBar(QWidget):
         try:
             from . import desk_qt
             px = self.fit_px(d.pane, d.scale);self.band_style(d.scale, px)
-            h, p, o = d.band, d.pane, d.inset
+            h, p, o = getattr(self.host, 'foot_px', None) or d.band, d.pane, d.inset      # 1.1 K0: the foot's own height (tokens 1.1)
             wh = min(h - 12, self.word_height(), desk_qt.scaled(38, d.scale));y = (h - wh) // 2
             # 0.8.6, the owner's footer (20 Nov 2026, "Yep, that's perfect"): the chooser stays under the left column; the
             # prompt box starts at the middle column's left edge; then the room button (Line / Half / Tall: the room above
