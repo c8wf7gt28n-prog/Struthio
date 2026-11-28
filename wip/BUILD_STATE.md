@@ -82,6 +82,13 @@ rules holding you back".
   resumed) and B5 (a quieter bar; agent a7e3d385b9ace247f) run lean for **1.1.2**. When both land: merge, rebuild the
   repository (C0 adds xterm as a Depends: tools/build_repo.sh as in `$S/work/r111/build.sh`), version 1.1.2, short notes,
   cut, release check, send the whole kit. If the limit stops them, their saves are in `$S/work/b110/` and partial/b110/.
+- **THE NAME (the owner, 28 Nov): "No more graphite. I hate that public name" / "No more anything it's kas. All of it.
+  kas only kas. The other thing if there must be something else is computer".** From now on every visible name is
+  **Kas** (and "computer" where the desktop is meant apart from her). New text, notes and frames say Kas. The rename
+  of what exists is slice **R1** (PLAN_1.1 §5): packages kas-computer, kas-session, kas-llama-runtime, kas-desktop
+  (never bare "kas": Debian 13 has an unrelated kas package with a higher version), commands kas-*, graphite-* kept one
+  release as symlinks; internal identifiers kept. R1 is launched in the next free slot; if the week ends, it is the
+  first thing next week.
 - **The owner, after 1.1.3: "But both the orange and green working together with grey (like screen burns)".** N1's
   builder could not be resumed (its worktree was cleaned), so a new builder (agent a1084a528dc49fde4) builds Night: Duo (green the computer, amber Kas and your word, grey the past
   and the burn-in), the new default; saves N1duo.patch. When it lands: merge (merge_one.sh with KEY N1duo), version

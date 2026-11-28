@@ -219,6 +219,23 @@ job: one place). If the owner says "move it", the tray goes to the head's upper 
 three app windows fit on the bar with Kas, HALT and the clock; one press opens network, sound, battery and the meters;
 nothing the tray or the meters did is lost.
 
+**R1 · kas, only kas.** The owner, 28 Nov: "No more graphite. I hate that public name", then: "No more anything it's
+kas. All of it. kas only kas. The other thing if there must be something else is computer". Every visible name becomes
+**Kas**. Where the desktop must be told apart from her, it is **"computer"**: the bar's Graphite button becomes
+Computer, and "Graphite's window" becomes "the computer's window". This covers window titles, About, Start, the bar,
+menus, her words, the Guide, the docs, the README, the release notes from now on, and the kit's START_HERE, JOIN.sh and
+install.sh. "Kasandra" as a visible name becomes "Kas" too. List the visible uses of "Kasandra" (the look named
+Kasandra, the Guide's page) with the builder's choice for each, for the owner to strike. The Debian packages become
+kas-computer, kas-session, kas-llama-runtime and kas-desktop. They are never a bare "kas": Debian 13 has an unrelated
+package of that name, with a higher version, that apt could pick instead. They Provide, Replace and Break graphite*,
+and transitional graphite* packages depend on them, so `apt upgrade` moves across. The commands become kas-startx,
+kas-session, kas-do, kas-doctor and kas-computer; graphite-* stay one release as symlinks that say the new name.
+Internal identifiers stay, as they did at the 0.1 rename, because that is compatibility, not a public name: module names,
+settings keys, ~/.config/graphite, /usr/lib/graphite and the workspace folders. The builder lists each one it keeps.
+*Acceptance:* a word sweep (a test) finds no visible "Graphite" or "Struthio", and no "Kasandra" where Kas is meant; an
+upgrade from the 1.1.3 packages in a chroot ends with kas-* installed and graphite* transitional; kas-startx starts the
+session.
+
 **N1 · Night is a phosphor monitor.** The owner, 28 Nov: "Remember night mode is to look like old computers that only
 had orange and black / green and black monitors....but updated to 2026 but still old school modern". Night becomes a
 monochrome phosphor look on a near-black ground, in two phosphors, **Amber** (the default) and **Green**, chosen under
