@@ -235,6 +235,7 @@
    "files.compare": "workbench/files_service.py#dispatch",
    "files.copy": "workbench/files_service.py#dispatch",
    "files.decide": "workbench/files_service.py#dispatch",
+   "files.delete_for_good": "workbench/windows_hand.py#dispatch",
    "files.export": "workbench/files_service.py#dispatch",
    "files.find": "workbench/files_service.py#dispatch",
    "files.get": "workbench/files_service.py#dispatch",
@@ -1141,9 +1142,9 @@
   }
  },
  "counts": {
-  "adapters": 923,
+  "adapters": 924,
   "job_tools": 113,
-  "operations": 923,
+  "operations": 924,
   "settings": 53
  },
  "formulas": {
@@ -3453,6 +3454,13 @@
    "properties": {
     "apply": "7cb541e84f226754",
     "id": "d76a3cd568c70cee"
+   },
+   "scope": "approve"
+  },
+  "files.delete_for_good": {
+   "arguments": "d555ea129e3f6928edc30b6cbc5646a0848a29d2b4285cd2281d8cb45cf6f4f3",
+   "properties": {
+    "path": "2b1e00f7cfc18abe"
    },
    "scope": "approve"
   },
@@ -9042,7 +9050,7 @@
  },
  "release": "Graphite 1.0",
  "schema": "graphite.registry-record/1",
- "schema_digest": "93cfd77ccfd4fb4227d71fbb93359dc96b4d6591b510304e9a19c3c9e5cb4066",
+ "schema_digest": "64fc49b8627eac7c6cdeffc7a7a3c79b23e0e2a79ca7516df98dc27be0ebecc6",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

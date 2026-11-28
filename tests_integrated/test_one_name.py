@@ -142,7 +142,9 @@ class TheSweepItself(unittest.TestCase):
         self.assertEqual(name_sweep.in_guides(ROOT),[])
         with tempfile.TemporaryDirectory() as temp:
             (Path(temp)/'GUIDE.md').write_text('Open the Field.\nSearch commands with Ctrl+Shift+P.\nThe Programs list is at the upper right.\n'+name_sweep.KEYS_KEPT[-1][0]+'\n',encoding='utf-8')
-            self.assertEqual([(page,number) for page,number,_ in name_sweep.in_guides(temp,('GUIDE.md',))],[('GUIDE.md',2),('GUIDE.md',3)])
+            # 1.1 W1: a Guide page may name a key now (keys are shown; "Show keys" hides them in menus and tips); Programs is still Apps
+            self.assertEqual([(page,number) for page,number,_ in name_sweep.in_guides(temp,('GUIDE.md',))],[('GUIDE.md',3)])
+            self.assertEqual([(page,number) for page,number,_ in name_sweep.in_guides(temp,('GUIDE.md',),keys=True)],[('GUIDE.md',2),('GUIDE.md',3)])
 
     def test_the_code_sweep_reads_sentences_and_not_documentation(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -197,11 +199,28 @@ class TheCode(unittest.TestCase):
         for (file,start),why in name_sweep.CODE_KEPT.items():
             self.assertTrue(any(f==file and words.startswith(start[:160]) for f,_,words in everything),(file,start));self.assertTrue(why.strip(),(file,start))
 
-    def test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed(self):
-        # 0.8.4's review: a dozen shown words still named a key where the walk does not go (a status line, a note, a tip on a
-        # page no desk act opens). Every sentence that names one is gone or kept in name_sweep.KEYS_CODE_KEPT with its reason.
-        left=name_sweep.keys_in_code(ROOT)
-        self.assertEqual(left,[],'these words name a key on screen: say what to click instead, or say in tools/name_sweep.KEYS_CODE_KEPT why the key stays')
+    def test_keys_are_shown_in_menus_and_tips_and_show_keys_hides_them(self):
+        # 1.1 W1 moves this test to the new truth (PLAN_1.1.md section 6, reversing the owner's rule of 13 Nov): a sentence in the
+        # code may name a key, menus print a line's key beside it, and the one setting "Show keys" turns every printed key off.
+        # The finder still finds them (keys_in_code: a list to read), and KEYS_CODE_KEPT's reviewed entries still stand.
+        from PySide6.QtGui import QAction
+        from PySide6.QtWidgets import QApplication,QMenu
+        from workbench import tool_faces,windows_hand
+        app=QApplication.instance() or QApplication([])
+        with tempfile.TemporaryDirectory() as temp:
+            env={'XDG_CONFIG_HOME':temp}
+            with patch.dict(os.environ,env):
+                for shown in (True,False):
+                    windows_hand.write(show_keys=shown)
+                    menu=QMenu();line=QAction('Copy',menu);line.setShortcut('Ctrl+C');menu.addAction(line);tab=menu.addAction('Run\tAlt+3')
+                    tool_faces.dress(menu)
+                    self.assertEqual(line.isShortcutVisibleInContextMenu(),shown)
+                    self.assertEqual(tab.text(),'Run\tAlt+3' if shown else 'Run')
+                    self.assertEqual(windows_hand.keyed('Rename','F2'),'Rename (F2)' if shown else 'Rename')
+                    self.assertEqual(name_sweep.named_in('Rename (F2)','toolTip',keys=not windows_hand.show_keys()),[] if shown else ['key'])
+                    menu.deleteLater()
+        app.processEvents()
+        self.assertTrue(name_sweep.keys_in_code(ROOT,kept={}),'the finder still finds the keys the code names')
         everything=name_sweep.keys_in_code(ROOT,kept={})
         for (file,start),why in name_sweep.KEYS_CODE_KEPT.items():
             self.assertTrue((ROOT/file).exists(),file);self.assertGreater(len(why),20,(file,start))

@@ -1,0 +1,40 @@
+{
+ "item": "W1",
+ "status": "done",
+ "summary": "A Windows hand's keys and DOS words. Files tree: Ctrl+C/X/V (a file clipboard; each paste is one files.batch with one Undo), F2, Delete (bin), Shift+Delete (asks, then the new files.delete_for_good, your press only), Enter opens a file, Alt+Enter Properties, F5, Backspace, Ctrl+A, Ctrl+Z. Keys from any app: tools/graphite-do speaks to the window over a user-only local socket (apps, files, show, lock, tasks, screenshot); the session writes Fluxbox keys/init into its own folder and starts fluxbox -rc. Menus show keys again; Rules > Show keys and Rules > DOS words (on, show me only, off). Dock clock with a month on a press. DOS words in the Terminal (workbench/dos_words.py): the Debian command shown above the output; del and rd /s go to the bin via files.batch with Undo; format/chkdsk/fdisk/diskpart are explained only.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/W1.patch",
+ "files_changed": ["LS_XSESSION.sh", "tests_integrated/test_one_name.py", "tests_integrated/test_windows_hand.py (new)", "tools/graphite-do (new, executable)", "tools/name_sweep.py", "workbench/console_qt.py", "workbench/dock_clock_qt.py (new)", "workbench/dos_words.py (new)", "workbench/engineering_cli.py", "workbench/engineering_kernel.py", "workbench/menus2.py", "workbench/shell2.py", "workbench/system_dock_qt.py", "workbench/tool_faces.py", "workbench/windows_hand.py (new)", "workbench/windows_keys_qt.py (new)"],
+ "tests": {
+  "added": "tests_integrated/test_windows_hand.py: 14 tests (67 DOS lines to their Debian command; Debian lines left as typed; nothing runs rm, format/chkdsk explained; drive letters from /proc/mounts; the Terminal shows then runs or only shows; 3 files cut and pasted with one Undo through a real Kernel; copy pastes twice, never over; delete_for_good owner-only and home-only; Properties words; the settings; Fluxbox keys file; graphite-do as a process against a Door; PrintScreen; the clock and month)",
+  "ran": "tests_integrated.test_windows_hand, tests_integrated.test_one_name.TheSweepItself, tests_integrated.test_one_name.TheCode, tests_integrated.test_startup_scripts (on a throwaway copy, in the wrapper, offscreen); tools/name_sweep.py main on the copy; an Xvfb smoke (xvfb_drive.py) at 1366x768 and 1920x1200 with the stand-in WM",
+  "output_tail": "Ran 41 tests in 26.685s\nOK\nNAME SWEEP, the code: 0 places"
+ },
+ "existing_tests_changed": [
+  "test_one_name.TheCode.test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed -> test_keys_are_shown_in_menus_and_tips_and_show_keys_hides_them: the new truth (PLAN 1.1 section 6): menus print keys while Show keys is on, none when off (tool_faces.dress checked both ways); keys_in_code still finds keys and KEYS_CODE_KEPT's entries are still checked, but a key named in code is no longer a failure.",
+  "test_one_name.TheSweepItself.test_the_guide_pages_shown_in_the_program_name_no_key_and_say_apps: in_guides now reports only 'Programs' by default (a Guide page may name a key); with keys=True it still finds the key line."
+ ],
+ "decisions": [
+  "Settings live in Graphite's own small file $XDG_CONFIG_HOME/graphite/windows_hand.json, not in settings_registry (kept the shared registry untouched); shown in Work > Rules as 'Show keys' and 'DOS words'.",
+  "Shift+Delete needs an operation that removes without the bin: files.delete_for_good (approve), refused for her work whatever her grants, and only where home_files_qt.changeable allows (never home itself, Files itself, Graphite's records).",
+  "Alt+Tab and Alt+F4 are Fluxbox's own NextWindow and Close; graphite-do carries apps, files, show, lock, tasks, screenshot. Fluxbox reads a session-private rc (fluxbox -rc) so ~/.fluxbox is never touched; without a session folder Fluxbox starts as before.",
+  "A word Debian also has (echo, find, set, type, more, tree, date, time, ping, cd, mkdir, rmdir, rename) is DOS only with a DOS mark (/switch, backslash, drive letter, %VAR%, > nul, quoted find text); 'tree' alone and 'cd folder' go to the shell. Bare DOS 'cd' (print the folder) is left to Linux 'cd' (home); the prompt already shows the folder.",
+  "copy/move/xcopy/ren never write over without /y (cp -n, mv -n); 'del *.*' without /q asks with a press; set NAME=x and path are kept for that Terminal's later commands; 'more' maps to Debian's more; 'copy a+b c' is explained, not run.",
+  "Enter on a file row opens it in its app (A1's door); on a folder or a record the tree's own Enter is kept. Backspace = the window's Back (living_nav.back), as Alt+Left already was. Ctrl+Z in the tree is the Files note's Undo.",
+  "Ctrl+Alt+Del opens the CPU meter's card (meter_cards 'CPU', Graphite's work) as 'the page of what runs'.",
+  "The clock is only on the dock (the dedicated session); Graphite's own window got no clock in this slice."
+ ],
+ "findings_for_the_coordinator": [
+  "files.delete_for_good is a new Kernel operation (approve): regenerate the registry at merge.",
+  "PK1: install tools/graphite-do as /usr/bin/graphite-do (the session script uses $ledger_program/tools/graphite-do first, then graphite-do on PATH); it needs only python3.",
+  "Only Fluxbox on the ThinkPad can show the global keys: no Fluxbox here, and the stand-in WM reads no keys file. Untested there: whether binding Super_L alone still lets Win+E/D/L through (Fluxbox may fire Apps on the Windows key's press before the chord); Ctrl+Alt+Del reaching Fluxbox; Win+L with a real locker (here lock says unavailable: no xsecurelock).",
+  "The Xvfb smoke needed the extracted xcb libraries from b100/S3/xcblibs (LD_LIBRARY_PATH) and a find_library shim because build_window holds subprocess.Popen; xvfb-run hung inside unshare, so Xvfb was started by hand.",
+  "tools/name_sweep.py main was run once on the copy without the unshare wrapper (it only reads files).",
+  "The walk test (test_one_name.TheWindow) and the tiers were not run here: the walk now checks keys only when Show keys is off."
+ ],
+ "not_done": [
+  "No exercise of the keys through real Fluxbox (not available here); graphite-do was called directly against the running window's door, as the key would call it.",
+  "Ctrl+Y has no file Redo (Ctrl+Y stays the editors' Redo); Esc closes Properties, popups and dialogs as Qt does, nothing more was added.",
+  "No Guide page was written for the keys or DOS words (KV and later slices)."
+ ],
+ "release_note": "Windows keys and DOS words. In Files: Ctrl+C, Ctrl+X and Ctrl+V copy and move files (one Undo per paste), F2 renames, Delete puts things in the bin, Shift+Delete asks and then deletes for good, Enter opens, Alt+Enter shows Properties, F5 reads again, Backspace goes back. From any app in the Graphite session: the Windows key opens Apps, Win+E Files, Win+D Graphite, Win+L locks, Ctrl+Alt+Del shows what runs, PrintScreen saves a picture into Pictures/Screenshots, Alt+Tab and Alt+F4 work. Menus show their keys again (Rules > Show keys turns them off). The dock has a clock; press it for the month. In the Terminal, DOS commands (dir, cd.., copy, del, ipconfig and more) work and show the Debian command they ran; del goes to the bin with Undo; format and chkdsk are explained, never run (Rules > DOS words: on, show me only, off)."
+}

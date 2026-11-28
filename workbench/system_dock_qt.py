@@ -216,6 +216,8 @@ class Dock(QWidget):
         self.entry = GraphiteEntry(self);self.entry.clicked.connect(self.bring_graphite)
         self.box = QWidget(self);self.strip = DockStrip(host, self, self.box)
         self.quiet = QLabel(self);self.quiet.setTextFormat(Qt.PlainText)
+        from .dock_clock_qt import attach as attach_clock  # 1.1 W1
+        self.clock = attach_clock(self)  # 1.1 W1: the time and the date at the right end; a press shows the month
         host.installEventFilter(self)
 
     # -- standing
@@ -275,7 +277,9 @@ class Dock(QWidget):
         h = self.height();s = min(max(getattr(getattr(self.host, 'desk', None), 'scale', 1.0) or 1.0, 1.0), 1.6)
         self.entry.ensurePolished();ew = self.entry.natural(h)
         self.entry.setGeometry(0, 0, ew, h)
-        x0 = ew + round(4 * s);w = max(0, self.width() - x0)
+        from .dock_clock_qt import place as place_clock  # 1.1 W1
+        cw = place_clock(getattr(self, 'clock', None), self, h)  # 1.1 W1: the clock's room at the right end
+        x0 = ew + round(4 * s);w = max(0, self.width() - x0 - cw)  # 1.1 W1: less the clock
         self.box.setGeometry(x0, 0, w, h)
         d = Desk(width=w, pane=0, workspace=w, band=h, inset=round(8 * s), gap=0, symbol=0, scale=s, left=0, right=w, line=0)
         self.strip.place(d, 0, h if self.strip.wanted else 0)

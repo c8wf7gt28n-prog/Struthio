@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""graphite-do (Graphite 1.1 W1): the keys that work whichever app is in front, said to the running Graphite window.
+
+  graphite-do WORD            WORD is one of: apps files show lock tasks screenshot ping. The running window does it
+                              (workbench/windows_keys_qt.Door) and answers in one line; the exit status is 0 when done.
+  graphite-do --write-keys D  writes Fluxbox's files for the session into the folder D: D/keys (the keys) and D/init
+                              (Fluxbox's settings, naming that keys file); prints D/init, for fluxbox -rc. LS_XSESSION.sh
+                              does this, so the owner's own ~/.fluxbox is never touched.
+
+The socket is the window's: GRAPHITE_DO_SOCKET, else $XDG_RUNTIME_DIR/graphite-do.sock, else /tmp/graphite-do-UID.sock,
+the window's own user only. Nothing here leaves the computer. Standard library only, so a key press starts it quickly.
+"""
+import json
+import os
+import socket
+import sys
+
+VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping')
+# Fluxbox's key lines (its own syntax): the key, then what it does. Mod4 is the Windows key, Mod1 is Alt.
+KEYS = (
+    ('Super_L', 'apps', 'the Windows key opens Apps'),
+    ('Super_R', 'apps', 'the right Windows key too'),
+    ('Mod4 e', 'files', 'Win+E opens Files'),
+    ('Mod4 d', 'show', 'Win+D shows Graphite'),
+    ('Mod4 l', 'lock', 'Win+L locks the screen'),
+    ('Control Mod1 Delete', 'tasks', "Ctrl+Alt+Del opens Graphite's page of what runs"),
+    ('Print', 'screenshot', 'PrintScreen saves a picture of the screen into ~/Pictures/Screenshots'),
+)
+FLUXBOX_OWN = (
+    ('Mod1 Tab', ':NextWindow {static groups} (workspace=[current])', 'Alt+Tab goes to the next window'),
+    ('Mod1 Shift Tab', ':PrevWindow {static groups} (workspace=[current])', 'Alt+Shift+Tab goes back'),
+    ('Mod1 F4', ':Close', 'Alt+F4 closes the window in front'),
+)
+
+
+def socket_path(environ=None):
+    environ = os.environ if environ is None else environ
+    if environ.get('GRAPHITE_DO_SOCKET'):return environ['GRAPHITE_DO_SOCKET']
+    run = environ.get('XDG_RUNTIME_DIR')
+    if run and os.path.isdir(run):return os.path.join(run, 'graphite-do.sock')
+    return '/tmp/graphite-do-%d.sock' % os.getuid()
+
+
+def ask(verb, path=None, timeout=10.0):
+    """Say one word to the window: its answer {ok, words}."""
+    if verb not in VERBS:return {'ok': False, 'words': 'graphite-do knows: ' + ', '.join(VERBS)}
+    path = path or socket_path()
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM);s.settimeout(timeout)
+    try:
+        s.connect(path)
+        s.sendall((verb + '\n').encode('utf-8'))
+        data = b''
+        while not data.endswith(b'\n'):
+            chunk = s.recv(4096)
+            if not chunk:break
+            data += chunk
+    except OSError as exc:
+        return {'ok': False, 'words': 'Graphite is not running here (%s).' % (exc.strerror or exc)}
+    finally:
+        s.close()
+    try:return json.loads(data.decode('utf-8', 'replace') or '{}')
+    except ValueError:
+        return {'ok': False, 'words': 'Graphite gave no answer.'}
+
+
+def quoted(text):
+    return '"%s"' % text.replace('\\', '\\\\').replace('"', '\\"')
+
+
+def keys_text(command):
+    """Fluxbox's keys file: each key, what it does, and why, in Fluxbox's own syntax."""
+    lines = ['# Graphite 1.1: the keys that work whichever app is in front. Written by the session (LS_XSESSION.sh);',
+             '# a new session writes it again, so a change here lasts one session.']
+    for key, verb, why in KEYS:
+        lines.append('# %s' % why);lines.append('%s :Exec %s %s' % (key, quoted(command), verb))
+    for key, does, why in FLUXBOX_OWN:
+        lines.append('# %s' % why);lines.append('%s %s' % (key, does))
+    return '\n'.join(lines) + '\n'
+
+
+def init_text(keys_file):
+    return ('session.keyFile:\t%s\n' % keys_file + 'session.screen0.toolbar.visible:\tfalse\n'
+            'session.screen0.slit.autoHide:\ttrue\nsession.screen0.workspaces:\t1\n')
+
+
+def write_keys(folder, command=None):
+    """D/keys and D/init for this session; returns D/init."""
+    command = command or os.path.abspath(sys.argv[0] if sys.argv and sys.argv[0].endswith('graphite-do') else __file__)
+    os.makedirs(folder, mode=0o700, exist_ok=True)
+    keys = os.path.join(folder, 'keys');init = os.path.join(folder, 'init')
+    for path, text in ((keys, keys_text(command)), (init, init_text(keys))):
+        temp = path + '.tmp'
+        with open(temp, 'w', encoding='utf-8') as out:out.write(text)
+        os.replace(temp, path)
+    return init
+
+
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    if len(argv) == 2 and argv[0] == '--write-keys':
+        print(write_keys(argv[1]));return 0
+    if len(argv) != 1 or argv[0] in ('-h', '--help'):
+        print('graphite-do WORD   (WORD: %s)\ngraphite-do --write-keys FOLDER' % ' '.join(VERBS));return 0 if argv[:1] in (['-h'], ['--help']) else 2
+    answer = ask(argv[0].lower())
+    print(answer.get('words') or ('done' if answer.get('ok') else 'not done'))
+    return 0 if answer.get('ok') else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

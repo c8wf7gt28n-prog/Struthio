@@ -71,8 +71,17 @@ fi
 # Fluxbox, hidden, for the whole session (started again if it ends, at most five times).
 ledger_window_manager_pid=''
 ledger_window_manager_starts=0
+ledger_fluxbox_rc=''  # 1.1 W1: Fluxbox's files for this session (the keys that work whichever app is in front), never ~/.fluxbox
+ledger_write_keys() {  # 1.1 W1: graphite-do writes keys and init into the session folder; Fluxbox reads them with -rc
+  local writer="$ledger_program/tools/graphite-do"
+  if [[ -z "$ledger_session_dir" ]]; then return 1; fi
+  if ! [[ -f "$writer" ]]; then writer="$(command -v graphite-do 2>/dev/null)" || return 1; fi
+  ledger_fluxbox_rc="$(python3 -B "$writer" --write-keys "$ledger_session_dir/fluxbox" 2>/dev/null)" || { ledger_fluxbox_rc=''; return 1; }
+  ledger_log_line "the keys from any app: $ledger_session_dir/fluxbox/keys"
+}
 ledger_start_window_manager() {
-  fluxbox -no-slit -no-toolbar &
+  if [[ -z "$ledger_fluxbox_rc" ]]; then ledger_write_keys || true; fi  # 1.1 W1
+  fluxbox -no-slit -no-toolbar ${ledger_fluxbox_rc:+-rc "$ledger_fluxbox_rc"} &  # 1.1 W1: -rc, the session's keys
   ledger_window_manager_pid=$!; ledger_window_manager_starts=$(( ledger_window_manager_starts + 1 ))
 }
 ledger_graphite_pid=''

@@ -245,7 +245,9 @@ def rebuild(host):
             from .boss_qt import appearance_menu
             from .tool_faces import menu as buttons_menu
             from .shell2 import hand_menu
-            menu.addMenu(appearance_menu(host));menu.addMenu(buttons_menu(host));menu.addMenu(hand_menu(host));return      # the desk's art, its buttons (words or glyphs), and how far Stacy acts by herself
+            menu.addMenu(appearance_menu(host));menu.addMenu(buttons_menu(host));menu.addMenu(hand_menu(host))
+            from .windows_keys_qt import rules_lines  # 1.1 W1
+            rules_lines(host, menu);return  # 1.1 W1: Show keys, and DOS words in the Terminal      # the desk's art, its buttons (words or glyphs), and how far Stacy acts by herself
         if key == '@targets' and hasattr(host, 'target_menu'):menu.addMenu(host.target_menu);return
         if key == '@appearance':      # 1.0 P4: Arrange ▸ Appearance, where 1.0's one line about the move to Day sends you
             from .boss_qt import looks_menu

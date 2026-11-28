@@ -6,6 +6,10 @@ until 0.8.3: she is Kasandra in every look (workbench/assistant_identity.py; the
 Otherwise we have too many people"). And two words more (0.8.4): "Programs", which on screen is "Apps"; and a key, since
 no keyboard shortcut is printed on screen (KEYS; in the program's own words, KEY_KINDS: its labels, tips, status tips,
 "what's this", names and descriptions for a reader, titles; KEYS_KEPT is the reviewed list of words that keep their key).
+1.1 W1 moves the key to a new truth (PLAN_1.1.md section 6, reversing the owner's rule of 13 Nov): menus and tips show their
+keys, and the setting "Show keys" (workbench/windows_hand) turns them off. So a key is looked for only where it is asked
+for (named_in(..., keys=True), the default, and sweep(..., keys=...)); the walk asks for it only with "Show keys" off, the
+Guide pages may name keys, and the code's sentences that name one (keys_in_code) are a list to read, not a failure.
 
   in_guides(root)        every line of the pages Guide opens in the program that names a key or says "Programs"
 
@@ -173,28 +177,30 @@ def words_of(widget):
     return [(kind, words) for kind, words in out if words]
 
 
-def named_in(words, kind=None):
+def named_in(words, kind=None, keys=True):
     """Which of NEVER these words say, an identity shown as it is stored set aside. A key is looked for when the words
     are the program's own (`kind` in KEY_KINDS, or not given), with the words of KEYS_KEPT set aside."""
+    look_for_keys = keys      # 1.1 W1: False where keys may be shown
     rest = KEPT.sub(' ', RECORD.sub(' ', words));out = []
     keys = words      # for a key, the words as they stand: an identity joins no key, and KEYS_KEPT is written in whole words
     for kept, _why in KEYS_KEPT:keys = keys.replace(kept, ' ')
     for name, (pattern, _) in NEVER.items():
-        if name == 'key' and kind is not None and kind not in KEY_KINDS:continue
+        if name == 'key' and (not look_for_keys or kind is not None and kind not in KEY_KINDS):continue      # 1.1 W1: keys=False, keys may be shown
         if pattern.search(keys if name == 'key' else rest):out.append(name)
     return out
 
 
-def in_guides(root=ROOT, pages=GUIDE_PAGES):
-    """Every line of the pages Guide opens in the program that names a key or says "Programs" -> [(page, line, words)]."""
+def in_guides(root=ROOT, pages=GUIDE_PAGES, keys=False):
+    """Every line of the pages Guide opens in the program that says "Programs" (or names a key, with keys=True: 1.1 W1, a
+    Guide page may name a key now, since a Windows hand learns keys from it) -> [(page, line, words)]."""
     out = []
     for page in pages:
         for number, line in enumerate((Path(root) / page).read_text(encoding='utf-8').splitlines(), 1):
-            if any(name in ('key', 'programs') for name in named_in(line, 'text')):out.append((page, number, line.strip()[:160]))
+            if any(name in ('key', 'programs') for name in named_in(line, 'text', keys=keys)):out.append((page, number, line.strip()[:160]))
     return out
 
 
-def sweep(window, where, found=None, read=None):
+def sweep(window, where, found=None, read=None, keys=True):
     """Read every widget of the program (the window's, and whatever stands beside it: a menu, a card, a page over the work)
     and every menu line. `found` gathers what names a NEVER; `read` gathers every word read, so that a caller can tell a
     sweep that found nothing from one that read nothing."""
@@ -204,7 +210,7 @@ def sweep(window, where, found=None, read=None):
     seen = {(f['name'], f['widget'], f['kind'], f['words']) for f in found}
     def note(owner, kind, words):
         if read is not None:read.add(words)
-        for name in named_in(words, kind):
+        for name in named_in(words, kind, keys=keys):      # 1.1 W1: keys=False where keys may be shown
             row = (name, owner, kind, words[:200])
             if row not in seen:
                 seen.add(row);found.append(dict(name=name, where=where, widget=owner, kind=kind, words=words[:200]))
@@ -241,9 +247,11 @@ def walk(window, settle, log=None):
     from workbench import desk_acts, local_brain, log_qt
     from workbench.desk_doers import run
     found, places, read = [], [], set()
+    from workbench.windows_hand import show_keys
+    keys = not show_keys()      # 1.1 W1: with "Show keys" on (the default), menus and tips may print a key
     def look(where, done=True, must=None):
         open_menus(window);settle();here = set()
-        sweep(window, where, found, here);read.update(here)
+        sweep(window, where, found, here, keys=keys);read.update(here)
         if must is not None and not any(must in words for words in here):done = False
         places.append(dict(where=where, done=bool(done)))
         if log:log('%s%s' % (where, '' if done else ' (the act was not done)'))
@@ -384,7 +392,7 @@ def keys_in_code(root=ROOT, folders=('workbench',), kept=None):
 
 
 if __name__ == '__main__':
-    left = in_code() + keys_in_code()
+    left = in_code()      # 1.1 W1: a sentence that names a key is no failure now (keys are shown; "Show keys" hides them)
     for file, line, words in left:print('%s:%d: %r' % (file, line, words))
     print('NAME SWEEP, the code: %d place%s' % (len(left), '' if len(left) == 1 else 's'))
     sys.exit(1 if left else 0)

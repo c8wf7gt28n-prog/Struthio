@@ -618,6 +618,9 @@ class Console(QWidget):
 
     def run_shell(self, text, extra_env=None):
         if self.process is not None:self.say(self.refused('a command is still running; stop it first'), echo=self.sign_text() + ' ' + text);return
+        if not getattr(self, '_dos_inner', False):  # 1.1 W1: DOS words: the Debian command shown above its output, then run
+            from .dos_words import in_terminal
+            if in_terminal(self, text):return
         if text == 'cd' or text.startswith('cd '):
             target = text[2:].strip() or '~'
             path = Path(target).expanduser();path = path if path.is_absolute() else self.working_dir() / path

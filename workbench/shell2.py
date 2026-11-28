@@ -3562,6 +3562,11 @@ class Shell2(QObject):
             pass
         from .app_files_qt import install as install_app_files
         install_app_files(host)  # 1.0 A1: files open in other programs: the window named on the board's tile, each save recorded, the close said
+        try:  # 1.1 W1: a Windows hand's keys in Files, graphite-do's door for the keys from any app, keys shown in menus
+            from .windows_keys_qt import install as install_windows_keys
+            install_windows_keys(host)  # 1.1 W1
+        except ImportError:  # 1.1 W1
+            pass
         from .launch_look import install as install_launch_look
         install_launch_look(host)  # 1.0 P4: 1.0's one move to Day on a profile from before, said in one line, once
         try:  # 1.0 F3: every keyboard stop says a name; Tab walks into a scrolled page's presses

@@ -165,7 +165,7 @@ def stage(package, folder, root=ROOT, version=None):
             _copy(root / ('debian/graphite.' + script), folder / 'DEBIAN' / script, 0o755)
         count += 5
     elif package == 'graphite-session':
-        for name in ('graphite-session', 'graphite-startx'):
+        for name in ('graphite-session', 'graphite-startx', 'graphite-do'):      # 1.1 W1: graphite-do
             _copy(root / 'debian/bin' / name, folder / 'usr/bin' / name, 0o755)
         _copy(root / 'debian/graphite-xsession.desktop', folder / 'usr/share/xsessions/graphite.desktop', 0o644)
         count += 3

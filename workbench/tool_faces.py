@@ -267,12 +267,14 @@ def dress(menu):
     on = STATE['mode'] == 'icons'
     if bool(menu.property('glyphs')) != on:      # the menu's own sheet makes room for a column of glyphs, or closes it
         menu.setProperty('glyphs', on);style = menu.style();style.unpolish(menu);style.polish(menu)
+    from .windows_hand import show_keys  # 1.1 W1
+    keys_shown = show_keys()  # 1.1 W1: menus show their keys again (PLAN_1.1.md section 6); the setting "Show keys" turns them off
     for line in menu.actions():
         if line.isSeparator():continue
         # 0.5.2 ("We don't need to display keyboard shortcuts anywhere ... keep it sleek and tidy"): a line shows its words.
-        # The key still does what it did; it is no longer printed beside them, nor written into the line after a tab.
-        if line.isShortcutVisibleInContextMenu():line.setShortcutVisibleInContextMenu(False)
-        if '\t' in line.text():line.setText(line.text().split('\t')[0])
+        # 1.1 W1 reverses it: with "Show keys" on (the default) a line shows its key beside its words; off, as 0.5.2 had it.
+        line.setShortcutVisibleInContextMenu(keys_shown)  # 1.1 W1
+        if '\t' in line.text() and not keys_shown:line.setText(line.text().split('\t')[0])  # 1.1 W1: cut only with keys hidden
         if '&' in line.text().replace('&&', ''):line.setText(line.text().replace('&&', '\0').replace('&', '').replace('\0', '&&'))      # nor an underlined letter
         inner = line.menu()
         if inner is not None and not inner.property('glyphDressed'):
@@ -292,9 +294,10 @@ def start(host):
     """Read the choice the session keeps. Called once, before the work pages are made."""
     chosen = getattr(getattr(host, 'session', None), 'state', {}).get(KEY, OPENS_WITH)
     STATE['mode'] = chosen if chosen in MODES else OPENS_WITH
-    try:        # no menu anywhere in the program prints a key beside a line (0.5.2); the keys work as they did
+    try:        # 1.1 W1: menus print a line's key beside it while "Show keys" is on (0.5.2 to 1.0 printed none); the keys work either way
         from PySide6.QtCore import QCoreApplication
-        QCoreApplication.setAttribute(Qt.AA_DontShowShortcutsInContextMenus, True)
+        from .windows_hand import show_keys  # 1.1 W1
+        QCoreApplication.setAttribute(Qt.AA_DontShowShortcutsInContextMenus, not show_keys())  # 1.1 W1
     except Exception:  # noqa: BLE001 - how a menu is printed is never worth an error
         pass
 
