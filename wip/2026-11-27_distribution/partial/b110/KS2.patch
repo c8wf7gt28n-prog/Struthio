@@ -1,6 +1,6 @@
 diff --git a/workbench/command_forms.py b/workbench/command_forms.py
 new file mode 100644
-index 0000000..ffb772e
+index 0000000..592361d
 --- /dev/null
 +++ b/workbench/command_forms.py
 @@ -0,0 +1,367 @@
@@ -272,7 +272,7 @@ index 0000000..ffb772e
 +               must=(('--spider',),), ops='U', sockets='network', seconds=90, says='ask {H} whether the page is there, without fetching it')],
 +    'rsync': [F(classes=(R,), check='rsync', opts='-n --dry-run -a -r -v -z -h -i -c --archive --recursive --verbose --compress --human-readable '
 +                '--itemize-changes --checksum --stats --delete --exclude=T', must=(('-n', '--dry-run'),), must_why='sends_files', ops='T T',
-+                refused={'-e': 'remote_shell', '--rsh': 'remote_shell', '--rsync-path': 'remote_shell'}, says='show what a copy of {T} would do, without copying')],
++                refused={'-e': 'remote_shell', '--rsh': 'remote_shell', '--rsync-path': 'remote_shell'}, says='show what the copy would do, without copying')],
 +    'ssh': [F(classes=(NET, C), refuse='session')], 'scp': [F(classes=(NET, C), refuse='sends_files')], 'sftp': [F(classes=(NET, C), refuse='sends_files')],
 +    'nc': [F(classes=(NET, C), refuse='session')], 'ncat': [F(classes=(NET, C), refuse='session')], 'netcat': [F(classes=(NET, C), refuse='session')],
 +    'telnet': [F(classes=(NET, C), refuse='session')], 'ftp': [F(classes=(NET, C), refuse='sends_files')], 'mosh': [F(classes=(NET, C), refuse='session')],
@@ -294,8 +294,8 @@ index 0000000..ffb772e
 +    'chmod': [F(classes=(C,), opts='-v -c --verbose --changes', ops='M P+', plan='chmod', says='set the mode of {P} to {M}',
 +                refused={'-R': 'recursive_mode', '--recursive': 'recursive_mode', '--reference': 'writes_file'})],
 +    'rename.ul': [F(classes=(R,), opts='-v -n -o -l --verbose --no-act --no-overwrite --last', must=(('-n', '--no-act'),), ops='T T P+',
-+                    says='show how {P} would be renamed, without renaming'),
-+                  F(classes=(C,), opts='-v -o -l --verbose --no-overwrite --last', ops='T T P+', plan='rename_ul', says='rename {P}, “{T}” becoming the new words',
++                    says='show how {P} would be renamed (“{A}” to “{B}”), without renaming'),
++                  F(classes=(C,), opts='-v -o -l --verbose --no-overwrite --last', ops='T T P+', plan='rename_ul', says='rename {P}: “{A}” becomes “{B}”',
 +                    refused={'-s': 'overwrites', '--symlink': 'overwrites', '-i': 'ask_tty', '--interactive': 'ask_tty'})],
 +    'rename': [F(classes=(R,), opts='-v -n --nono --verbose', must=(('-n', '--nono'),), ops='T P+', check='perl_subst',
 +                 says='show how {P} would be renamed, without renaming'),
@@ -353,7 +353,7 @@ index 0000000..ffb772e
 +    (r'(?:errors since boot|system errors|recent errors|errors in the (?:system )?log)', ['journalctl', '-b', '-p', 'err', '--no-pager', '-n', '50']),
 +    (r'(?:my log|my user log|my journal)', ['journalctl', '--user', '-b', '--no-pager', '-n', '50']),
 +    (r'(?:can i reach the internet|is the internet up|am i online|is the network up)', ['ping', '-c', '3', 'deb.debian.org']),
-+    (r'which package (?:has|owns|provides|installed) ' + NAME, ['dpkg', '-S', '{x}']),
++    (r'which package (?:has|owns|provides|installed) (?P<x>[a-z0-9/][a-z0-9/.+_@:-]{0,127})', ['dpkg', '-S', '{x}']),
 +    (r'what version of ' + NAME + r'(?: is installed| do i have)?', ['apt-cache', 'policy', '{x}']),
 +    (r'(?:where is|which) (?:the )?program ' + NAME, ['which', '-a', '{x}']),
 +    (r'is ' + NAME + r' running', ['pgrep', '-a', '{x}']),
@@ -596,10 +596,10 @@ index 0000000..8d249d1
 +    child(sys.argv[1])
 diff --git a/workbench/command_tool.py b/workbench/command_tool.py
 new file mode 100644
-index 0000000..d636362
+index 0000000..1b0c962
 --- /dev/null
 +++ b/workbench/command_tool.py
-@@ -0,0 +1,1272 @@
+@@ -0,0 +1,1298 @@
 +"""The command tool (Graphite 1.1 KS2): any command as an argv, never a shell string, through a classifier.
 +
 +PLAN_1.1.md, KS2: "Any command as argv, never a shell string, through a classifier that knows which forms only read,
@@ -790,8 +790,12 @@ index 0000000..d636362
 +
 +
 +def _mode_ok(value):
-+    if re.fullmatch(r'0?[0-7]{3}', value):return True
-+    return bool(re.fullmatch(r'[ugoa]*[-+=][rwxX]*(,[ugoa]*[-+=][rwxX]*)*', value))
++    if re.fullmatch(r'[0-7]?[0-7]{3}', value):return True
++    return bool(re.fullmatch(r'[ugoa]*[-+=][rwxXst]*(,[ugoa]*[-+=][rwxXst]*)*', value))
++
++
++def _special(mode):
++    return (len(mode) == 4 and mode[0] in '1234567') or bool(re.search(r'[st]', mode) and not mode.isdigit())
 +
 +
 +def _match_ops(pattern, operands):
@@ -920,14 +924,15 @@ index 0000000..d636362
 +    name, forms = _forms(program)
 +    if forms is None:
 +        out.update(why='I do not know %s, so I do not run it' % program, code='COMMAND_UNKNOWN');return out
-+    words = _bsd(name, argv[1:])
++    words = _bsd(name, [_tilde(w) for w in argv[1:]])
++    out['argv'] = argv = [program] + words;out['line'] = line_of(argv)
 +    best, catch = None, None
 +    for form in forms:
 +        if form.get('refuse'):
 +            catch = catch or form;continue
 +        try:
-+            got = parse(program, form, words)
 +            check = form.get('check')
++            got = {'opts': [], 'operands': []} if check in WHOLE_CHECKS else parse(program, form, words)
 +            if check:CHECKS[check](form, got, words)
 +        except _Fail as fail:
 +            if best is None or fail.depth > best[0].depth:best = (fail, form)
@@ -937,6 +942,16 @@ index 0000000..d636362
 +        out.update(classes=list(catch['classes']), why=cf.WHY[catch['refuse']], code='COMMAND_' + catch['refuse'].upper());return out
 +    fail, form = best
 +    out.update(classes=list(form['classes']), why=fail.why, code='COMMAND_FORM');return out
++
++
++def _tilde(word):
++    """~ and ~/… mean your home (no shell expands them: the tool does, the same for a typed line and a model's argv);
++    also after the = of a long option (--file=~/x)."""
++    w = str(word)
++    if w == '~' or w.startswith('~/'):return str(hr.home()) + w[1:]
++    m = re.match(r'^(--[A-Za-z0-9-]+=)(~(?:/.*)?)$', w)
++    if m:return m.group(1) + str(hr.home()) + m.group(2)[1:]
++    return w
 +
 +
 +def _bsd(name, words):
@@ -975,9 +990,11 @@ index 0000000..d636362
 +            if _private(p):
 +                out.update(classes=classes, why='%s is a private place (keys, passwords, a browser’s data); a model’s line never reads there' % hr.tilde(p),
 +                           code='COMMAND_PRIVATE');return out
++    if any(_special(m) for m in modes):
++        out.update(classes=classes, why=cf.WHY['special_bits'], code='COMMAND_SPECIAL');return out
 +    kind = 'network' if 'network' in classes else 'bin' if form.get('plan') == 'bin' else 'change' if 'change' in classes else 'read'
 +    fill = {'P': _list(reads), 'W': _list(writes), 'Q': _list(lands or ([hr.home()] if form.get('plan') == 'tar_x' else [])), 'H': host, 'T': ' '.join(texts),
-+            'N': ', '.join(names) or 'the services', 'M': ', '.join(modes)}
++            'N': ', '.join(names) or 'the services', 'M': ', '.join(modes), 'A': texts[0] if texts else '', 'B': texts[1] if len(texts) > 1 else ''}
 +    says = re.sub(r'\{(\w)\}', lambda m: fill.get(m.group(1), ''), form.get('says', 'run it'))
 +    out.update(ok=True, kind=kind, classes=classes, says=says, reads=[str(p) for p in reads], writes=[str(p) for p in writes],
 +               lands=[str(p) for p in lands], host=host, sockets=form.get('sockets', 'none'), plan=form.get('plan'), seconds=form.get('seconds', 30),
@@ -1033,7 +1050,15 @@ index 0000000..d636362
 +            if i >= len(words) or not _value_ok('C', words[i].lstrip('+-')):raise _Fail(2, '%s needs a list' % w)
 +            i += 1;continue
 +        if re.fullmatch(r'--(sort|format|pid|ppid|user|cols|columns|width|lines|rows)=[A-Za-z0-9_,%:+=.-]{1,200}', w):continue
-+        if re.fullmatch(r'-?o[A-Za-z0-9_,%:=.-]+', w) and w.startswith('-o'):continue
++        m = re.fullmatch(r'-([eAfFlyHwcLTadNjMZ]*)([oOpuUCGgtq])(.*)', w)
++        if m:
++            value = m.group(3)
++            if not value:
++                if i >= len(words):raise _Fail(2, '%s needs a list' % w)
++                value = words[i];i += 1
++            if not _value_ok('C', value.lstrip('+-')):raise _Fail(2, '“%s” is not a list ps takes' % value)
++            continue
++        if re.fullmatch(r'-[eAfFlyHwcLTadNjMZ]+', w):continue
 +        if not w.startswith('-') and set(w) <= PS_BSD:continue
 +        raise _Fail(2, 'the flag %s is not one I know for ps' % w)
 +    got['operands'] = []
@@ -1105,6 +1130,7 @@ index 0000000..d636362
 +                pass
 +
 +
++WHOLE_CHECKS = ('find', 'ps', 'ip')      # these read the words themselves (find's expression, ps's BSD words, ip's objects)
 +CHECKS = {'find': _check_find, 'ps': _check_ps, 'ip': _check_ip, 'date': _check_date, 'sysctl': _check_sysctl, 'dig': _check_dig,
 +          'rsync': _check_rsync, 'apt_get': _check_apt_get, 'perl_subst': _check_perl, 'empty_dirs': _check_empty}
 +
@@ -1124,8 +1150,8 @@ index 0000000..d636362
 +
 +
 +def _normal(text):
-+    t = ' '.join(re.sub(r'[?.!,;:“”"\'’]+', ' ', str(text or '').lower()).split())
-+    t = t.replace('what’s', 'whats').replace("what's", 'whats')
++    t = str(text or '').lower().replace('what’s', 'whats').replace("what's", 'whats')
++    t = ' '.join(re.sub(r'[?!,;“”"\'’]+|[.:]+(?=\s|$)', ' ', t).split())
 +    changed = True
 +    while changed:
 +        changed = False
@@ -1520,7 +1546,7 @@ index 0000000..d636362
 +
 +def new_mode(text, old, is_dir):
 +    """chmod's mode: octal, or symbolic (u+x,go-w; with no who, as chmod does: the umask's bits left alone)."""
-+    if re.fullmatch(r'0?[0-7]{3}', text):return int(text, 8)
++    if re.fullmatch(r'[0-7]?[0-7]{3}', text):return int(text, 8)
 +    mask = os.umask(0);os.umask(mask)
 +    mode = old
 +    for part in text.split(','):
@@ -1872,3 +1898,448 @@ index 0000000..d636362
 +        refused = '%s (%s)' % (checks.get('argv', ''), checks.get('why', ''))
 +    desk = got.value
 +    return (desk['argv'] if desk else None), refused, 'dictionary'
+diff --git a/workbench/command_tool_qt.py b/workbench/command_tool_qt.py
+new file mode 100644
+index 0000000..876f0a3
+--- /dev/null
++++ b/workbench/command_tool_qt.py
+@@ -0,0 +1,268 @@
++"""The command tool in her talk, NEXT STEPS and the bar's line (Graphite 1.1 KS2). The classifier and the runs are command_tool's.
++
++Where it shows (the coordinator's note): "her talk and NEXT STEPS; the bar's line (line_finder.py: a row "Run: df -h, only
++reads")". The Terminal is the owner's own shell and is not classified (it is theirs). Her words come from kas_voice.py.
++
++  her talk      "run: df -h" (the owner's line, in her line): read and classified (command_tool.from_line). A read runs at once,
++                sealed, and its output is shown as data (a line written to an assistant marked ▲, never a request); a network
++                read, a change or a bin shows "This will … / The command: …", what Undo does, and waits for your press; a
++                refusal is said in plain words with the exact line. With no model, her dictionary maps plain words to a known
++                form ("what is using my disk" -> du -xh --max-depth=1 ~); with one, "command: <words>" asks the model for an
++                argv (the COMMAND turn), which passes the classifier or is refused, and you always see the exact line.
++  NEXT STEPS    a change that waits gives "Run · <the line>"; a run with an Undo gives "Undo · <the line>".
++  the line      line_rows(): "Run: df -h, only reads" (and changes something, reaches the network, to the bin, refused);
++                Enter shows it in her talk (a read runs there, sealed; nothing else runs without your press).
++
++Every press here is the owner's: dispatched with the owner's principal; the Kernel checks the scope (command.run is execute,
++command.undo approve) and refuses a change in her work.
++"""
++from __future__ import annotations
++
++import re
++
++from . import command_tool as ct
++from . import kas_voice as kv
++from .recipe_book_qt import _add, _call, _column_soon, _lines_label, _model_request, _plain, _why
++
++SYNC = False                # tests: work on the window's thread instead of a worker
++STATE = {}                  # id(host) -> {'offer': {...}, 'done': {...}}: what NEXT STEPS offers
++RUN = re.compile(r'^\s*run:\s*(.+)$', re.IGNORECASE | re.DOTALL)
++ASK_MODEL = re.compile(r'^\s*(?:command:|(?:give me |propose )?a command (?:to|for|that))\s*(.+)$', re.IGNORECASE | re.DOTALL)
++
++
++def _state(host):
++    return STATE.setdefault(id(host), {})
++
++
++def _later(host, fn, done, name='graphite-command'):
++    if SYNC:
++        try:result, error = fn(), None
++        except Exception as exc:  # noqa: BLE001
++            result, error = None, exc
++        done(result, error);return
++    from .off_window import run_alone
++    run_alone(fn, done, name=name)
++
++
++def run_line(text):
++    """The line after "run:", or None."""
++    m = RUN.match(str(text or ''))
++    return m.group(1).strip() if m and m.group(1).strip() else None
++
++
++def _short(line, most=48):
++    return line if len(line) <= most else line[:most - 1] + '…'
++
++
++# ---- the ask chain ----------------------------------------------------------------------------------------------------------
++def asked(face, text, dictionary=False):
++    """shell2's ask chain. First (dictionary False): "run: …" and "command: …". After the recipes (dictionary True): her
++    dictionary's plain words. True when she has answered."""
++    words = ' '.join(str(text or '').split())
++    if not words:return False
++    if not dictionary:
++        line = run_line(text)
++        if line is not None:
++            face.thing = None;face.mine(text);show(face, ct.from_line(line, 'owner'));return True
++        m = ASK_MODEL.match(words)
++        if m is None:return False
++        face.thing = None;face.mine(text);ask_model(face, m.group(1));return True
++    try:got = ct.dictionary(words)
++    except Exception:  # noqa: BLE001 - a broken dictionary never stands in the way of the rest of her chain
++        return False
++    if got is None:return False
++    face.thing = None;face.mine(text)
++    show(face, ct.classify(got['argv'], 'dictionary'), kv.say('cmd_dictionary') + ' ')
++    return True
++
++
++def ask_model(face, words):
++    """The model proposes an argv for the words (COMMAND turn); with no model, her dictionary, or she says how to type it."""
++    host = face.host
++    request = _model_request(host)
++    if request is None:
++        got = ct.dictionary(words)
++        if got is None:face.say(kv.say('cmd_no_model'));return
++        show(face, ct.classify(got['argv'], 'dictionary'), kv.say('cmd_dictionary') + ' ');return
++
++    def proposed(value, error):
++        if getattr(host, '_closing', False):return
++        if error is not None or value is None:face.say(kv.say('cmd_read_failed', why=_why(None, error) if error else 'no answer'));return
++        argv, refused, by = value
++        if refused:face.say(kv.say('cmd_model_refused', line=refused.split(' (', 1)[0], why=refused.split(' (', 1)[-1].rstrip(')')))
++        if not argv:
++            if not refused:face.say(kv.say('cmd_no_model'))
++            return
++        lead = kv.say('cmd_model') if by == 'model' else kv.say('cmd_dictionary')
++        show(face, ct.classify(argv, by), lead + ' ')
++    _later(host, lambda: ct.propose(words, request), proposed, 'graphite-command-pick')
++
++
++# ---- one line, shown ----------------------------------------------------------------------------------------------------------
++def show(face, v, lead=''):
++    """One classified line in her talk: refused in words, a read run at once, or what it would do and the press."""
++    host = face.host
++    if not v['ok']:return refused(face, v, lead)
++    if v['kind'] == 'read':
++        def found(answer, error):
++            if getattr(host, '_closing', False):return
++            if error is not None or not (answer or {}).get('ok'):
++                face.say(lead + kv.say('cmd_read_failed', why=_why(answer, error)));return
++            result(face, answer['result'], lead)
++        _later(host, lambda: _call(host, 'command.read', {'argv': v['argv'], 'by': v['by']}), found)
++        return None
++
++    def planned(answer, error):
++        if getattr(host, '_closing', False):return
++        if error is not None or not (answer or {}).get('ok'):
++            face.say(lead + kv.say('cmd_refused', why=_why(answer, error)));return
++        offer(face, v, answer['result'], lead)
++    _later(host, lambda: _call(host, 'command.plan', {'argv': v['argv'], 'by': v['by']}), planned)
++    return None
++
++
++def refused(face, v, lead=''):
++    why = v['why'][:1].upper() + v['why'][1:]
++    if why[-1:] not in '.?':why += '.'
++    bubble = face.say(lead + kv.say('cmd_refused', why=why))
++    _add(bubble, _lines_label(face, [kv.say('cmd_the_line', line=v['line'])]))
++    return bubble
++
++
++def _output_lines(r):
++    lines = ['$ ' + r['line']]
++    for row in r['lines']:lines.append(('▲ ' if row['flagged'] else '') + row['text'])
++    if not r['lines'] and r.get('err'):lines += [l for l in r['err'].splitlines() if l.strip()][-4:]
++    return lines
++
++
++def result(face, r, lead=''):
++    """A read's output, as data: the line, what it printed, the flagged lines marked, and what was checked."""
++    host = face.host
++    said = kv.say('cmd_ran_network', host=r['host']) if r['kind'] == 'network' else kv.say('cmd_ran_read')
++    bubble = face.say(lead + said)
++    _add(bubble, _lines_label(face, _output_lines(r)))
++    if r['flagged']:_add(bubble, _plain(kv.say('cmd_flagged')))
++    mark = kv.say('cmd_verified', checked=r['checked']) if r['verified'] else '◆ ' + kv.say('not_verified', checked=r['checked'] or 'nothing')
++    _add(bubble, _plain(mark))
++    _state(host).pop('offer', None);_column_soon(host)
++    return bubble
++
++
++def offer(face, v, p, lead=''):
++    """"This will … / The command: …", exactly what it touches, what Undo does, and the press."""
++    from .shell2 import sentence
++    host = face.host
++    bubble = face.say(lead + kv.say('cmd_will', says=v['says']))
++    _add(bubble, _lines_label(face, [kv.say('cmd_line', line=v['line'])] + list(p['lines'])))
++    if v['kind'] == 'network':note = kv.say('cmd_waits_network', host=v['host'])
++    elif v['kind'] == 'bin':note = kv.say('cmd_bin_note') + ' ' + p['undo']
++    else:note = kv.say('cmd_waits') + ' ' + (p['undo'] if p['can_undo'] else kv.say('recipe_cannot'))
++    _add(bubble, _plain(note))
++    state = _state(host);state['offer'] = {'v': v, 'p': p, 'face': face};state.pop('done', None)
++    word = {'network': 'cmd_send_word', 'bin': 'cmd_bin_word'}.get(v['kind'], 'cmd_run_word')
++    _add(bubble, sentence('{run}  ·  {no}', {'run': (kv.say(word), lambda: run(face, v, p)), 'no': (kv.say('recipe_no_word'), lambda: cancel(face))}))
++    _column_soon(host)
++    return bubble
++
++
++def cancel(face):
++    host = face.host
++    if _state(host).pop('offer', None) is not None:face.say(kv.say('recipe_cancelled'))
++    _column_soon(host)
++
++
++def run(face, v, p):
++    """Your press: command.run with the digest of what you were shown."""
++    host = face.host
++    _state(host).pop('offer', None)
++
++    def ran(answer, error):
++        if getattr(host, '_closing', False):return
++        if error is not None or not (answer or {}).get('ok'):
++            why = _why(answer, error)
++            if 'not what you were shown' in why:face.say(kv.say('recipe_changed'));show(face, ct.classify(v['argv'], v['by']));return
++            face.say(kv.say('cmd_refused', why=why));_column_soon(host);return
++        done(face, v, answer['result'])
++    _later(host, lambda: _call(host, 'command.run', {'argv': v['argv'], 'expect': p['expect'], 'by': v['by']}), ran)
++
++
++def done(face, v, r):
++    """The end of a run: a network read's output; or done and verified with Undo; or stopped, or not verified."""
++    from .shell2 import sentence
++    host = face.host
++    if r['kind'] == 'network':return result(face, r)
++    if r['state'] == 'stopped':said = kv.say('cmd_stopped', why=r['checked'])
++    elif r['verified']:said = kv.say('cmd_done', checked=r['checked'])
++    else:said = '◆ ' + kv.say('not_verified', checked=r['checked'] or 'nothing')
++    bubble = face.say(said)
++    if r.get('can_undo'):
++        _state(host)['done'] = {'run': r['run'], 'line': r['line'], 'face': face}
++        _add(bubble, sentence('{undo}', {'undo': (kv.say('recipe_undo_word'), lambda: undo(face, r['run']))}))
++    _column_soon(host)
++    return bubble
++
++
++def undo(face, run_id):
++    host = face.host
++    _state(host).pop('done', None)
++
++    def back(answer, error):
++        if getattr(host, '_closing', False):return
++        if error is not None or not (answer or {}).get('ok'):
++            face.say(kv.say('undo_failed', why=_why(answer, error)));_column_soon(host);return
++        face.say(kv.say('cmd_undone', words=answer['result']['words']));_column_soon(host)
++    _later(host, lambda: _call(host, 'command.undo', {'run': run_id}), back)
++
++
++# ---- her column's NEXT STEPS ---------------------------------------------------------------------------------------------
++def next_steps(host):
++    state = STATE.get(id(host)) or {};out = []
++    o = state.get('offer')
++    if o:
++        line = _short(o['v']['line'])
++        out.append({'words': 'Run · %s' % line, 'verb': 'Run', 'object': line, 'kind': 'command', 'act': 'run', 'title': line,
++                    'tip': 'What it will do is in Talk, with the exact line. Your press runs that, and only that.'})
++    d = state.get('done')
++    if d:
++        line = _short(d['line'])
++        out.append({'words': 'Undo · %s' % line, 'verb': 'Undo', 'object': line, 'kind': 'command', 'act': 'undo', 'title': line,
++                    'tip': 'Puts back what the command changed; what changed since is named, never forced.'})
++    return out
++
++
++def take(host, step):
++    state = STATE.get(id(host)) or {}
++    if step.get('act') == 'run' and state.get('offer'):
++        o = state['offer'];run(o['face'], o['v'], o['p']);return True
++    if step.get('act') == 'undo' and state.get('done'):
++        d = state['done'];undo(d['face'], d['run']);return True
++    return False
++
++
++# ---- the bar's line --------------------------------------------------------------------------------------------------------
++DETAILS = {'read': 'cmd_line_read', 'network': 'cmd_line_network', 'change': 'cmd_line_change', 'bin': 'cmd_line_bin', 'refused': 'cmd_line_refused'}
++
++
++def line_rows(text, host=None):
++    """For line_finder: [(title, detail, verb, do)] for "run: …", or a line that starts with a program of the table and has an
++    option ("df -h"); do() shows it in her talk."""
++    words = ' '.join(str(text or '').split())
++    line = run_line(words)
++    if line is None:
++        first = words.split(' ', 1)[0] if words else ''
++        if first not in ct.cf.TABLE or not re.search(r'\s-', words):return []
++        line = words
++    v = ct.from_line(line, 'owner')
++
++    def do():
++        shell = getattr(host, 'shell2', None)
++        if shell is None:return False
++        try:shell.show_slate_face()
++        except Exception:  # noqa: BLE001
++            pass
++        face = getattr(shell, 'face', None)
++        if face is None:return False
++        face.mine('run: ' + line);show(face, ct.from_line(line, 'owner'));return True
++    title = 'Run: %s, %s' % (_short(line, 40), ct.CLASS_WORDS[v['kind']])      # the line as you typed it; her talk shows the exact argv
++    return [(title, kv.say(DETAILS[v['kind']]), 'Run' if v['kind'] == 'read' else 'Show', do)]
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 1dc9fbb..3d76f12 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -139,6 +139,7 @@ def schemas():
+     from .bulk_files import FIELDS as BULK_FILES_FIELDS  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
+     from .box_ops import FIELDS as BOX_FIELDS  # 1.1 KS1 (recipes): box.files.find, box.space, box.memory, box.processor, box.system, box.pdf.*, box.zip.*, box.bin.*, box.pictures.make, box.folder.copy, box.files.rename, .sort, .bin
+     from .recipe_book import FIELDS as RECIPE_FIELDS  # 1.1 KS1 (recipes): recipes.list, .pick, .dry_run, .look, .run, .undo, .runs
++    from .command_tool import FIELDS as COMMAND_FIELDS  # 1.1 KS2 (the command tool): command.classify, .read, .plan, .run, .undo, .runs, .output
+     from .stac_words import FIELDS as WORD_FIELDS
+     from .agent_operations import FIELDS
+     from .hardware_proof import FIELDS as PROOF_FIELDS
+@@ -278,6 +279,7 @@ def schemas():
+         **WINDOWS_HAND_FIELDS,  # 1.1 W1 (a Windows hand's keys): files.delete_for_good
+         **BULK_FILES_FIELDS,  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
+         **BOX_FIELDS, **RECIPE_FIELDS,  # 1.1 KS1 (recipes): the box's narrow operations and her recipes
++        **COMMAND_FIELDS,  # 1.1 KS2 (the command tool): any command through the classifier
+         **WORD_FIELDS,
+         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
+         **NATIVE_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index df4940c..d859f0b 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -103,6 +103,7 @@ from . import home_pages, home_plan  # 1.0 K10 (her reach in Home, finished): fi
+ from . import windows_hand  # 1.1 W1 (a Windows hand's keys): files.delete_for_good (approve: Shift+Delete asked first; your press only, never her work)
+ from . import bulk_files  # 1.0 L6c (bulk files): files.batch_plan, files.batches (read); files.batch (execute: many files moved, copied or deleted in one press); files.batch_undo (approve: the whole batch put back as one) (recorded additions)
+ from . import box_ops, recipe_book  # 1.1 KS1 (recipes): box.* (the box's narrow operations: reads, and changes on your press with a dry run, a verifier and an Undo); recipes.* (the library, the dry run, the run on your press, its Undo)
++from . import command_tool  # 1.1 KS2 (the command tool): command.* (any command as an argv through the classifier: reads run sealed, a change, a bin or a network read on your press, verified, with Undo)
+ 
+ PROGRAM_HANDLERS = {
+     op: service
+@@ -313,6 +314,7 @@ CAPABILITIES = {
+     **windows_hand.SCOPES,  # 1.1 W1 (a Windows hand's keys): deleting for good is approve, your press after the window asked
+     **bulk_files.SCOPES,  # 1.0 L6c (bulk files): the plan and the list are reads; a batch is execute, your press; its Undo is approve
+     **box_ops.SCOPES, **recipe_book.SCOPES,  # 1.1 KS1 (recipes): reads run on their own; a change is execute (your press, after its dry run); emptying DELETE and a recipe's Undo are approve
++    **command_tool.SCOPES,  # 1.1 KS2 (the command tool): classify, a sealed read, a plan, the runs and an output are reads; a run is execute (your press); its Undo is approve
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+     **{name:'read' for name in workspace_services.FIELDS},
+@@ -786,6 +788,7 @@ class Kernel:
+         if op in bulk_files.FIELDS:return bulk_files.dispatch(self,op,a,p)   # 1.0 L6c (bulk files): one press for many files, recorded as one change with every file's before and after, one Undo
+         if op in box_ops.FIELDS:return box_ops.dispatch(self,op,a,p)   # 1.1 KS1 (recipes): the box's narrow operations
+         if op in recipe_book.FIELDS:return recipe_book.dispatch(self,op,a,p)   # 1.1 KS1 (recipes): her recipes
++        if op in command_tool.FIELDS:return command_tool.dispatch(self,op,a,p)   # 1.1 KS2 (the command tool): any command through the classifier
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
+         if op in workspace_services.FIELDS:
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index 6a20a5a..314a115 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -1533,6 +1533,11 @@ class HerColumn(QObject):
+             out[0:0] = recipe_steps(self.host)
+         except Exception:  # noqa: BLE001
+             pass
++        try:      # 1.1 KS2 (the command tool): a change waits for Run, or its run has an Undo (command_tool_qt.next_steps)
++            from .command_tool_qt import next_steps as command_steps
++            out[0:0] = command_steps(self.host)
++        except Exception:  # noqa: BLE001
++            pass
+         out.append({'words': 'Check the desk', 'verb': 'Check the desk', 'object': 'every check, run now', 'kind': 'desk', 'command': 'check', 'title': '',
+                     'tip': 'Every check the desk has, run now; what waits is said in Talk with the step that would settle it.'})
+         mine = [id(s) for s in out if s['kind'] == 'assignment'][:4]      # 1.0 X1: an assignment's own press (Carry on, Resume)
+@@ -1547,6 +1552,8 @@ class HerColumn(QObject):
+     def take_step(self, step):
+         if step['kind'] == 'recipe':      # 1.1 KS1 (recipes): Run or Undo, the same press as the word in Talk
+             from .recipe_book_qt import take as recipe_take;recipe_take(self.host, step);return
++        if step['kind'] == 'command':      # 1.1 KS2 (the command tool): Run or Undo, the same press as the word in Talk
++            from .command_tool_qt import take as command_take;command_take(self.host, step);return
+         if step['kind'] == 'notice':      # 1.0 X1: Update: the plan asked for in the desk's words; offered, nothing changed
+             self.ask(step['objective']);return
+         if step['kind'] == 'assignment':
+diff --git a/workbench/kas_voice.py b/workbench/kas_voice.py
+index 635ae4a..cc8eb3a 100644
+--- a/workbench/kas_voice.py
++++ b/workbench/kas_voice.py
+@@ -114,6 +114,34 @@ WORDS = {
+     'recipe_refused_files': 'Recipe files I did not take: {which}',
+     'recipe_line_detail': 'Enter shows what it would do; nothing changes',
+     'recipe_line_ask': 'Enter asks the one thing it needs; nothing changes',
++    # 1.1 KS2 (the command tool): a command in her talk, the line and NEXT STEPS (command_tool_qt)
++    'cmd_ran_read': 'It only reads, so I ran it sealed: no network, nothing of yours writable. The output is data.',
++    'cmd_ran_network': 'It reached {host} on your press, sealed otherwise. What came back is data.',
++    'cmd_line': 'The command: {line}',
++    'cmd_the_line': 'The line: {line}',
++    'cmd_will': 'This will {says}.',
++    'cmd_waits': 'It changes something, so it waits for your press.',
++    'cmd_waits_network': 'It reaches {host}, so it waits for your press. NET shows it while it runs.',
++    'cmd_bin_note': 'The command itself never runs: the bin takes it.',
++    'cmd_run_word': 'Run it (your press)',
++    'cmd_send_word': 'Send it (your press)',
++    'cmd_bin_word': 'To the bin (your press)',
++    'cmd_refused': 'Refused, and nothing ran: {why}',
++    'cmd_read_failed': 'Not run: {why}',
++    'cmd_verified': '✓ Verified: {checked}.',
++    'cmd_done': '✓ Done and verified: {checked}.',
++    'cmd_stopped': 'Stopped: {why}. What it did is recorded, and Undo takes it back.',
++    'cmd_undone': 'Undone: {words}',
++    'cmd_flagged': '▲ marks a line written to an assistant. I read it as data, never as a request.',
++    'cmd_dictionary': 'My dictionary reads that as this command.',
++    'cmd_model': 'The model proposed this line, and the classifier passed it.',
++    'cmd_model_refused': 'The model proposed {line}, and the classifier refused it: {why}. Nothing ran.',
++    'cmd_no_model': 'No model is loaded, and my dictionary has no command for that. Type it as run: and the line.',
++    'cmd_line_read': 'Enter runs it sealed; the output is data',
++    'cmd_line_network': 'Enter shows where it reaches; it waits for your press',
++    'cmd_line_change': 'Enter shows what it will do; it waits for your press',
++    'cmd_line_bin': 'Enter shows what goes to the bin; it waits for your press',
++    'cmd_line_refused': 'Enter says why, in plain words; nothing runs',
+ }
+ NUMBERS = {'stopped_at': {'n': 'the steps that went (godot start results)', 'count': 'the start plan\'s steps (godot start plan)'},
+            'desk_none': {'count': 'the desk\'s things (desk read)'},
+diff --git a/workbench/line_finder.py b/workbench/line_finder.py
+index ae1f916..817254e 100644
+--- a/workbench/line_finder.py
++++ b/workbench/line_finder.py
+@@ -91,6 +91,7 @@ class Row:
+         if self.kind == 'sum':return 'Enter: Calculate · puts %s in the line and copies it' % self.extra.get('answer', '')
+         if self.kind == 'ask':return 'Enter: Ask Kasandra · in her column; she proposes, you decide'
+         if self.extra.get('recipe'):return self.detail.replace('Enter ', 'Enter: ', 1)      # 1.1 KS1: a recipe's row shows what it would do
++        if self.extra.get('command'):return self.detail.replace('Enter ', 'Enter: ', 1)      # 1.1 KS2: a command's row says what Enter does
+         return 'Enter: %s %s' % (self.verb, name)
+ 
+ 
+@@ -329,6 +330,17 @@ def recipe_rows(text, sources):
+         return []
+ 
+ 
++def command_rows(text, sources):
++    """1.1 KS2 (the command tool): a row for "run: …" (or a line that starts with a program she knows and has an option):
++    "Run: df -h, only reads"; Enter shows it in her talk, where a read runs sealed and anything else waits for your press."""
++    try:
++        from .command_tool_qt import line_rows
++        return [Row('command', title, detail, verb, do, section='COMMANDS', icon='command', extra=dict(command=True))
++                for title, detail, verb, do in line_rows(text, getattr(sources, 'host', None))]
++    except Exception:  # noqa: BLE001 - no command read: no row
++        return []
++
++
+ def ask_row(text):
+     return Row('ask', '%s: %s' % (ASK, short(clean(text).lstrip('?').strip(), 44)), 'Your words go to her column; she proposes, you decide',
+                ASK, clean(text).lstrip('?').strip(), icon='ask')
+@@ -471,6 +483,7 @@ def rows(text, sources=None):
+     if not first:first += line_rows(words, reading)
+     first += dos_rows(words)
+     first += recipe_rows(words, sources)      # 1.1 KS1 (recipes): "Recipe: Free space in Home", Enter shows what it would do
++    first += command_rows(words, sources)      # 1.1 KS2 (the command tool): "Run: df -h, only reads"
+     if lead == '/':
+         place = Path(os.path.expanduser(words))
+         if not first and place.exists():first.append(file_row(str(place), 'A place on this computer', 'folder' if place.is_dir() else 'file'))
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index ae37e18..30ff03d 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -2846,6 +2846,8 @@ class SlateFace(QWidget):
+         except Exception:  # noqa: BLE001 - noting the request never stands in the way of answering it
+             pass
+         chosen = isinstance(self.thing, dict) and bool(self.thing.get('explicit')) and bool(self.thing.get('title')) and self.thing['title'] in text  # 1.0 F3: a card chosen by its own press (TRACE, DOUBT) is that card, never "which of these?"
++        from .command_tool_qt import asked as command_asked      # 1.1 KS2 (the command tool): "run: df -h" is classified; a read runs sealed, a change waits for your press
++        if not chosen and command_asked(self, text):return
+         if not chosen and self.own_word(text):return
+         from .library_qt import asked as library_asked      # 0.8.7 W7: a question of the Library, answered by Ask the Library
+         if not chosen and library_asked(self, text):return
+@@ -2863,6 +2865,7 @@ class SlateFace(QWidget):
+         if not chosen and review_asked(self, text):return
+         from .recipe_book_qt import asked as recipe_asked      # 1.1 KS1 (recipes): a recipe's words: a read runs; a change shows its dry run and waits for your press
+         if not chosen and recipe_asked(self, text):return
++        if not chosen and command_asked(self, text, dictionary=True):return      # 1.1 KS2 (the command tool): her dictionary's plain words for a known command
+         if not chosen and self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
+         if not chosen and self.plan_asked(text):return
+         thing = None if chosen else self.what_if(text)      # 1.0 F3
