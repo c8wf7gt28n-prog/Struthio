@@ -539,6 +539,34 @@ index 6abd8c5..a17c9b4 100644
          self.assertFalse(save.isShortcutVisibleInContextMenu());self.assertEqual(save.shortcut().toString(),'Ctrl+S','the key still works; it is not printed')
          self.assertEqual(idea.text(),'New Idea…','a key written into a line after a tab is taken out of it')
          self.assertEqual(save.text(),'Save','and no letter is underlined');both=menu.addAction('Find && Replace');tool_faces.dress(menu);self.assertEqual(both.text(),'Find && Replace','a real ampersand stays')
+diff --git a/tests_integrated/test_kasandra_column.py b/tests_integrated/test_kasandra_column.py
+index 96d86f7..4d3a4f5 100644
+--- a/tests_integrated/test_kasandra_column.py
++++ b/tests_integrated/test_kasandra_column.py
+@@ -48,7 +48,7 @@ class Column(unittest.TestCase):
+             self.assertTrue(out['bubble_plain'].startswith('Ask about what is open.'))
+             self.assertNotIn('<p', out['read_last']);self.assertIn('its second line', out['read_last'])
+         # 1.0 P1: the exchange is the column's part that gives way; her sections are under it (it was the whole column)
+-        self.assertEqual(self.wide['scroll'][2], 322);self.assertEqual(self.small['scroll'][2], 322)
++        self.assertEqual(self.wide['scroll'][2], 285);self.assertEqual(self.small['scroll'][2], 285)      # 1.1 T2: the 317 px pane less its 16 px insets (322 was 1.0's 354 px pane)
+         # 1.0 P3: her hologram's tall slot (from her hat to below the hips at 1920 x 1200) takes about 200 px more of the wide
+         # column than P1's circle did; the exchange keeps the rest (measured on the probe's empty workspace: 358 px)
+         self.assertGreaterEqual(self.wide['scroll'][3], 320);self.assertGreaterEqual(self.small['scroll'][3], 120)
+@@ -71,11 +71,11 @@ class Column(unittest.TestCase):
+         for out, size in ((self.wide, 1920), (self.small, 1366)):
+             apps = out['apps']
+             self.assertEqual(apps['kind'], 'AppsButton');self.assertTrue(apps['logo'], size)
+-            self.assertEqual(apps['icon'], [38, 52], 'the head\'s height less 4 px above and below at 14 pt');self.assertEqual(apps['name'], 'Apps')
++            self.assertEqual(apps['icon'], [17, 24], 'the head\'s height less 4 px above and below (1.1 T2: K0\'s 32 px head; 38 x 52 on 1.0\'s 60)');self.assertEqual(apps['name'], 'Apps')
+             self.assertEqual(apps['text'], '');self.assertIn('apps', apps['tip'].lower())
+-            x, y, w, h = apps['rect'];self.assertEqual((w, h), (58, apps['band']));self.assertEqual(y, 0)
++            x, y, w, h = apps['rect'];self.assertEqual((w, h), (37, apps['band']));self.assertEqual(y, 0)      # 1.1 T2: 17 + 10 px each side (was 58)
+             self.assertLessEqual(x + w, size, 'in the head, at its right end');self.assertGreater(x + w, size - 80)      # 1.1 T1: 1.0 S2's ⊕ stands to its right
+-            lx, ly, lw, lh = apps['logo_rect'];self.assertEqual((lw, lh), (38.0, 52.0));self.assertGreaterEqual(ly, 4, 'clear of the band\'s rule')
++            lx, ly, lw, lh = apps['logo_rect'];self.assertEqual((lw, lh), (17.0, 24.0));self.assertGreaterEqual(ly, 4, 'clear of the band\'s rule')
+             self.assertEqual(out['apps_words'], '[#] Apps \u25be');self.assertFalse(out['apps_words_logo'], 'a logo whose bytes differ is not shown')
+             self.assertTrue(out['window_icon_graphite'], 'the window keeps Graphite\'s sharpened point')
+ 
 diff --git a/tests_integrated/test_one_name.py b/tests_integrated/test_one_name.py
 index 3cc70d3..e1c2255 100644
 --- a/tests_integrated/test_one_name.py

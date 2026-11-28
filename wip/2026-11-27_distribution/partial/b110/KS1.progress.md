@@ -11,7 +11,10 @@
 - box_ops.py, recipe_book.py, workbench/recipes/01..40 (written by scratchpad make_recipes.py), Kernel + CLI registration.
 - smoke.py in copy: 40 load, reads look verified, 7 change runs + undo verified (convert, resize, zip, sort, merge, ...).
 
-## Half done / next
-- fixed after smoke: file slot tails, rename spans; re-run smoke
-- recipe_book_qt.py (her talk), shell2 ask chain hook, her_column next steps, line_finder rows, kas_voice lines
-- tests_integrated/test_recipes.py, frames, result JSON
+- recipe_book_qt.py (her talk), shell2 ask chain hook, her_column next steps, line_finder rows (+Show verb), kas_voice lines
+- tests_integrated/test_recipes.py: 15 tests, all OK in copy (38 of 40 ran+verified; network: no `ip` here; failed: no systemd bus)
+
+## Next
+- run touched tests: test_kas_voice, test_start_line (line_finder), maybe test_kasandra_column
+- frames (1920x1200 Day + Kasandra; line offer, dry run, done+Undo), result JSON, patch check on clean checkout
+- scripts in scratchpad/work/b110/KS1: mkcopy.sh, sync.sh [seed], test.sh MODULE NAME, save.sh
