@@ -18,11 +18,11 @@ import json
 import os
 
 PHOSPHOR_KEY, CRT_KEY = 'phosphor', 'crt'
-PHOSPHORS = (('amber', 'Night: Amber'), ('green', 'Night: Green'))
-PHOSPHOR_DEFAULT = 'amber'
+PHOSPHORS = (('duo', 'Night: Duo'), ('amber', 'Night: Amber'), ('green', 'Night: Green'))      # 1.1 N1duo: Duo, green and amber with grey
+PHOSPHOR_DEFAULT = 'duo'      # 1.1 N1duo: the default Night (N1: amber); a phosphor the owner chose and saved is kept
 CRT_LEVELS = (('off', 'Off'), ('subtle', 'Subtle'), ('full', 'Full'))
 CRT_DEFAULT = 'subtle'
-ASKED_LOOKS = {'night-amber': 'amber', 'night-green': 'green'}      # GRAPHITE_APPEARANCE words that name a phosphor
+ASKED_LOOKS = {'night-duo': 'duo', 'night-amber': 'amber', 'night-green': 'green'}      # 1.1 N1duo: night-duo      # GRAPHITE_APPEARANCE words that name a phosphor
 
 
 def phosphor_value(value):
@@ -50,7 +50,7 @@ def _saved(key, environ=None, path=None):
 
 
 def chosen_phosphor(environ=None, path=None):
-    """'amber' or 'green': GRAPHITE_PHOSPHOR, else a phosphor named in GRAPHITE_APPEARANCE, else the session's, else Amber."""
+    """'duo', 'amber' or 'green': GRAPHITE_PHOSPHOR, else a phosphor named in GRAPHITE_APPEARANCE, else the session's, else Duo."""
     environ = os.environ if environ is None else environ
     wanted = str(environ.get('GRAPHITE_PHOSPHOR', '')).strip().lower()
     if phosphor_value(wanted):return wanted

@@ -61,6 +61,9 @@ from . import boss_theme as bt
 from . import mind_words
 from .assistant_identity import named
 from .equalizer_qt import GROUPS, Equalizer
+from .night_duo import her_theme as _her_theme      # 1.1 N1duo
+
+bt = _her_theme(bt)      # 1.1 N1duo: in Night: Duo her column is an amber tube (night_duo); in any other look, boss_theme itself
 
 # Her words here: fixed templates (mind_words.check: no exclamation mark, no sentence over 30 words, no digit in the fixed
 # words, every number through a slot that names its record). 1.1 KV: in her voice (kas_voice): short, dry, sure only of

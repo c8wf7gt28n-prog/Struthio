@@ -35,6 +35,13 @@ VIGNETTE_MAX = 16            # out of 255 at the very corner (6 %), Full only
 BURN = dict(off=0, subtle=8, full=13)            # the ghost: share of the phosphor out of 255 (3 %, 5 %)
 SCAN = dict(off=0, subtle=5, full=8)             # the scanlines: black out of 255 (2 %, 3 %)
 MOVING = ('afterglow', 'warm_up', 'blink')
+# 1.1 N1duo: the centre's burn is the public name, one constant (the owner, 28 Nov 2026: "it's kas. All of it."); with no
+# name it would be left out. An old directory listing (invented) is burnt into the lower left, where the tree's empty space is.
+BURN_NAME = 'kas'
+OLD_LISTING = (' Volume in drive C is DESK', ' Directory of C:\\DESK', '', 'LETTERS      <DIR>', 'ACCOUNTS     <DIR>',
+               'NOTES    TXT     1,204', 'PLAN     TXT       880', '        4 File(s)')
+KAS_TUBE_DELAY = 260         # ms: her amber tube warms up a beat after the green one
+CELL = (8, 16)               # Full, Night: Duo: a terminal's character cells, a faint grey grid on the empty ground
 
 
 def effects(level, reduce_motion=False, night=True):
@@ -77,7 +84,9 @@ class Screen(QWidget):
         self.setObjectName('CrtScreen');self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
         self.setAttribute(Qt.WA_NoSystemBackground, True);self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setFocusPolicy(Qt.NoFocus);self._burnt = None;self._vignette = None;self.warmth = 1.0;self.warming = None
-        c = tokens.colours('night');self.phosphor = QColor(c['text']);self.ground = QColor(c['surface'])      # the ghost lies over a panel's ground
+        c = tokens.colours('night');self.phosphor = QColor(c['burn']);self.ground = QColor(c['surface'])      # the ghost lies over a panel's ground
+        self.line = QColor(c['text'])      # 1.1 N1duo: the burn is the grey of the past in Duo; the warm-up line is the tube's own phosphor
+        if ghost == 'kas':self.ground = QColor(c['kas_ground']);self.line = QColor(c['kas_text'])      # 1.1 N1duo: her amber tube
         window.installEventFilter(self);self.setGeometry(window.rect());self.raise_()
         self.setVisible(self.drawn())
 
@@ -114,12 +123,23 @@ class Screen(QWidget):
             p.drawRect(QRectF(unit, unit, unit * 5, h - 2 * unit))
             for n in range(4):p.drawRect(QRectF(unit * (8 + n * 13), unit * 1.4, unit * 11, h - 2.8 * unit))
             p.drawRect(QRectF(w - unit * 9, unit, unit * 7, h - 2 * unit))
+        elif self.ghost == 'kas':      # 1.1 N1duo: her tube: her own old prompt and her name, burnt in over the years
+            mono.setPixelSize(max(13, h // 48));p.setFont(mono)
+            p.drawText(QRectF(w * 0.06, h * 0.05, w * 0.9, h * 0.04), Qt.AlignLeft | Qt.AlignVCenter, 'KAS READY.')
+            p.drawText(QRectF(w * 0.06, h * 0.88, w * 0.9, h * 0.04), Qt.AlignLeft | Qt.AlignVCenter, 'KAS> _')
         else:      # READY. at the top left, the Graphite mark large in the middle, a prompt under it
             mono.setPixelSize(max(14, h // 40));p.setFont(mono)
             p.drawText(QRectF(w * 0.03, h * 0.08, w * 0.5, h * 0.05), Qt.AlignLeft | Qt.AlignVCenter, 'READY.')
             big = QFont(mono);big.setPixelSize(max(28, h // 9));big.setBold(True);p.setFont(big)
-            p.drawText(QRectF(0, h * 0.36, w, h * 0.2), Qt.AlignCenter, 'GRAPHITE')
+            if BURN_NAME:p.drawText(QRectF(0, h * 0.36, w, h * 0.2), Qt.AlignCenter, BURN_NAME)      # 1.1 N1duo: the public name (was GRAPHITE)
+            old = QFont(mono);old.setPixelSize(max(12, h // 64));p.setFont(old);step = old.pixelSize() * 1.35      # 1.1 N1duo: the old listing
+            for n, row in enumerate(OLD_LISTING):p.drawText(QRectF(w * 0.02, h * 0.56 + n * step, w * 0.4, step), Qt.AlignLeft | Qt.AlignVCenter, row)
             p.setFont(mono);p.drawText(QRectF(w * 0.03, h * 0.84, w * 0.6, h * 0.05), Qt.AlignLeft | Qt.AlignVCenter, 'C:\\> _')
+        if self.fx['vignette'] and tokens.is_duo(tokens.colours('night')) and self.ghost != 'bar':      # 1.1 N1duo: Full: the cells
+            cell = QColor(self.ground);cell.setRgb(*((a * 5 + b * 3) // 8 for a, b in zip(ghost.getRgb()[:3], self.ground.getRgb()[:3])))
+            p.setPen(cell)
+            for x in range(0, w, CELL[0] * 4):p.drawLine(x, 0, x, h)
+            for y in range(0, h, CELL[1]):p.drawLine(0, y, w, y)
         p.end();self._burnt = pix
         return pix
 
@@ -145,7 +165,7 @@ class Screen(QWidget):
         if self.warming is not None:      # the warm-up: dark, with a line that opens from the middle
             h = self.height();open_ = self.warmth * h;top = (h - open_) / 2
             p.fillRect(QRectF(0, 0, self.width(), top), Qt.black);p.fillRect(QRectF(0, top + open_, self.width(), h), Qt.black)
-            line = QColor(self.phosphor);line.setAlpha(round(255 * (1.0 - self.warmth)))
+            line = QColor(self.line);line.setAlpha(round(255 * (1.0 - self.warmth)))      # 1.1 N1duo: the tube's phosphor
             p.fillRect(QRectF(0, top - 1, self.width(), 2), line);p.fillRect(QRectF(0, top + open_ - 1, self.width(), 2), line)
         p.end()
 
@@ -272,6 +292,18 @@ def attach_bar(host):
     except RuntimeError:
         return None
     return host.crt_bar_screen
+
+
+def attach_kas(panel):
+    """1.1 N1duo: her panel is a second tube, amber, beside the green one: its burn (her old prompt), its scanlines, and its
+    warm-up a beat after the window's (Night: Duo only; Off and Reduce motion as everywhere). Returns the screen, or None."""
+    host = getattr(getattr(panel, 'ctl', None), 'host', None);fx = getattr(host, 'crt_fx', None)
+    if not fx or not getattr(bt, 'PHOSPHOR', '') or not tokens.is_duo(tokens.colours('night')):return None
+    if getattr(panel, 'crt_screen', None) is not None:return panel.crt_screen
+    if not (fx['burn_in'] or fx['scanlines'] or fx['warm_up']):return None
+    panel.crt_screen = Screen(panel, 'kas', dict(fx, vignette=0))
+    QTimer.singleShot(KAS_TUBE_DELAY, panel.crt_screen.warm_up)
+    return panel.crt_screen
 
 
 def bloom(host):

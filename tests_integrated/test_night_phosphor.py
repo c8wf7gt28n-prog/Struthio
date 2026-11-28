@@ -1,4 +1,5 @@
-"""1.1 N1: Night is a phosphor monitor (Amber, Green), with CRT effects (Off, Subtle, Full).
+"""1.1 N1: Night is a phosphor monitor (Amber, Green), with CRT effects (Off, Subtle, Full). 1.1 N1duo: Night: Duo, green
+for the computer, amber for Kas and the owner's word, grey for the past, is the default Night (class Duo, the acceptance).
 
 The acceptance first: every text brightness of both phosphors is 4.5:1 or more on the ground it is laid on, and the setting
 switches. Then the rest of the slice's truth: one hue, inverse video, the fixed-width chrome, the xterm's colours, and each
@@ -67,7 +68,8 @@ class Acceptance(unittest.TestCase):
         code = ('from workbench import boss_theme as t, design_tokens as d;'
                 'print(t.APPEARANCE, t.PHOSPHOR, t.TEXT, t.GROUND, t.FACE, d.face(), t.CRT)')
         for env, said in (({'GRAPHITE_APPEARANCE': 'night-green'}, 'night green #33ff66 #0a0a08 IBM Plex Mono IBM Plex Mono subtle'),
-                          ({'GRAPHITE_APPEARANCE': 'night', 'GRAPHITE_CRT': 'off'}, 'night amber #ffb000 #0a0a08 IBM Plex Mono IBM Plex Mono off'),
+                          ({'GRAPHITE_APPEARANCE': 'night', 'GRAPHITE_CRT': 'off'}, 'night duo #33ff66 #0a0a08 IBM Plex Mono IBM Plex Mono off'),      # N1duo: Duo
+                          ({'GRAPHITE_APPEARANCE': 'night-amber'}, 'night amber #ffb000 #0a0a08 IBM Plex Mono IBM Plex Mono subtle'),
                           ({'GRAPHITE_APPEARANCE': 'day', 'GRAPHITE_PHOSPHOR': 'green'}, 'day  #1d1d1f #f5f5f7 Inter Inter subtle')):
             with tempfile.TemporaryDirectory() as home:
                 run = dict(os.environ, HOME=home, XDG_CONFIG_HOME=home, **env);run.pop('ARC1_WORKBENCH_CONFIG_HOME', None)
@@ -78,7 +80,7 @@ class Acceptance(unittest.TestCase):
 
 class OnePhosphor(unittest.TestCase):
     def test_hierarchy_is_the_brightness_of_one_hue(self):
-        for tone in dt.PHOSPHORS:
+        for tone in dt.MONO_PHOSPHORS:      # N1duo: Amber and Green; Duo has two phosphors and a grey (class Duo)
             c = dt.colours('night-' + tone);full = dt.PHOSPHOR_INK[tone][0]
             self.assertEqual(c['window'], dt.NIGHT_GROUND);self.assertEqual(c['text'], full)
             steps = [luminance(c[k]) for k in ('text', 'secondary', 'tertiary', 'disabled')]
@@ -89,7 +91,7 @@ class OnePhosphor(unittest.TestCase):
                 self.assertLess(share, 256, (tone, k))
 
     def test_selected_row_pressed_button_active_window_and_halt_are_inverse_video(self):
-        for tone in dt.PHOSPHORS:
+        for tone in dt.MONO_PHOSPHORS:      # N1duo: Duo's block is amber, not its words' green (class Duo)
             c = dt.colours('night-' + tone)
             self.assertEqual((c['active_plate'], c['on_active']), (c['text'], dt.NIGHT_GROUND))
             self.assertEqual(dt.marks('night-' + tone)['HALT'], c['text'])
@@ -112,11 +114,11 @@ class OnePhosphor(unittest.TestCase):
             self.assertEqual(len(sixteen), 16)
             for n, colour in enumerate(sixteen[1:], 1):self.assertGreaterEqual(ratio(colour, ground), 4.5, (tone, n))
 
-    def test_the_choice_is_read_from_the_session_and_a_damaged_one_is_amber_and_subtle(self):
+    def test_the_choice_is_read_from_the_session_and_a_damaged_one_is_duo_and_subtle(self):      # N1duo: Duo is the default
         with tempfile.TemporaryDirectory() as home:
             path = os.path.join(home, 'session.json');env = {}
-            self.assertEqual((np_.chosen_phosphor(env, path), np_.chosen_crt(env, path)), ('amber', 'subtle'), 'no file: the defaults')
-            for saved, said in (({'phosphor': 'green', 'crt': 'full'}, ('green', 'full')), ({'phosphor': ['green'], 'crt': 7}, ('amber', 'subtle'))):
+            self.assertEqual((np_.chosen_phosphor(env, path), np_.chosen_crt(env, path)), ('duo', 'subtle'), 'no file: the defaults')
+            for saved, said in (({'phosphor': 'green', 'crt': 'full'}, ('green', 'full')), ({'phosphor': ['green'], 'crt': 7}, ('duo', 'subtle')), ({'phosphor': 'amber'}, ('amber', 'subtle'))):
                 Path(path).write_text(json.dumps(saved), encoding='utf-8')
                 self.assertEqual((np_.chosen_phosphor(env, path), np_.chosen_crt(env, path)), said)
             self.assertEqual(np_.chosen_phosphor({'GRAPHITE_PHOSPHOR': 'amber'}, path), 'amber', 'the environment wins')
@@ -145,7 +147,7 @@ class CrtEffects(unittest.TestCase):
             for ink, ground, _ in dt.NIGHT_PAIRS:      # under the scanline and the vignette's very corner, both laid at once
                 shade = full['scanlines'] + full['vignette']
                 self.assertGreaterEqual(ratio(darker(c[ink], shade), darker(c[ground], shade)), 4.5, (tone, ink, ground))
-            ghost = dt.over(c['text'], c['surface'], crt_qt.BURN['full'])      # the burn-in lifts only what is darker than it
+            ghost = dt.over(c['burn'], c['surface'], crt_qt.BURN['full'])      # the burn-in lifts only what is darker than it (N1duo: its own colour)
             for ink in ('text', 'secondary', 'tertiary'):self.assertGreaterEqual(ratio(c[ink], ghost), 4.5, (tone, ink))
 
     def test_the_screen_and_the_line_switch_off(self):
@@ -163,6 +165,76 @@ class CrtEffects(unittest.TestCase):
         self.assertFalse(still.blink.isActive(), 'a steady cursor under Reduce motion')
         edit.setText('READY.');self.assertIsNone(still.ghost, 'no afterglow under Reduce motion')
         moving = crt_qt.Persistence(QLineEdit(window), crt_qt.effects('subtle'));self.assertTrue(moving.blink.isActive())
+        window.deleteLater();app.processEvents()
+
+
+class Duo(unittest.TestCase):
+    """1.1 N1duo, the acceptance: Duo is the default; Kas's chip and HALT read amber; a list row reads green; the burn-in reads
+    grey; and each of them 4.5:1 or more on its ground."""
+    GREEN, AMBER, GREY = dt.DUO_INK['computer'], dt.DUO_INK['kas'], dt.DUO_INK['past']
+
+    def test_duo_is_the_default_night_and_amber_and_green_stay_choices(self):
+        self.assertEqual((dt.PHOSPHOR_DEFAULT, np_.PHOSPHOR_DEFAULT), ('duo', 'duo'))
+        self.assertEqual(np_.PHOSPHORS, (('duo', 'Night: Duo'), ('amber', 'Night: Amber'), ('green', 'Night: Green')))
+        with tempfile.TemporaryDirectory() as home:
+            self.assertEqual(np_.chosen_phosphor({}, os.path.join(home, 'none.json')), 'duo')
+        self.assertEqual(np_.chosen_phosphor({'GRAPHITE_APPEARANCE': 'night-duo'}, '/nonexistent'), 'duo')
+        self.assertEqual(dt.look_of('night-duo'), 'night');self.assertEqual(dt.phosphor('night-duo'), 'duo')
+        from workbench import boss_qt
+        self.assertIn('night-duo', boss_qt.APPEARANCE_WORDS)
+
+    def test_kas_chip_her_cards_and_halt_read_amber(self):
+        from workbench import kas_panel_qt
+        c = dt.colours('night-duo')
+        self.assertEqual((c['kas_text'], c['waiting'], c['accent_fill'], c['active_plate'], c['on_accent']), (self.AMBER,) * 4 + (dt.NIGHT_GROUND,))
+        for state in ('working', 'awaiting_approval', 'completed', 'blocked', 'held'):
+            self.assertEqual(kas_panel_qt.shape_colour(state, c), self.AMBER, state)      # the shape, not the colour, says the state
+        self.assertEqual(dt.marks('night-duo')['HALT'], self.AMBER);self.assertEqual(dt.palette('night-duo')['AMBER_EDGE'], self.AMBER)
+        for ink in ('kas_text', 'kas_quiet'):
+            for ground in ('window', 'sidebar', 'kas_ground', 'waiting_tint'):self.assertGreaterEqual(ratio(c[ink], c[ground]), 4.5, (ink, ground))
+        self.assertGreaterEqual(ratio(c['on_accent'], c['accent_fill']), 4.5, 'HALT and the selected row: inverse video in amber')
+        from workbench import night_duo      # her column, through her tube: its words amber, the grey of the past its own
+        theme = type('Theme', (), dict(PHOSPHOR='duo', TEXT=self.GREEN, FAINT=self.GREY, LAUNCH=True))
+        tube = night_duo.her_theme(theme);self.assertEqual((tube.TEXT, tube.READY, tube.FAINT, tube.LAUNCH), (self.AMBER, self.AMBER, self.GREY, True))
+        day_theme = type('Theme', (), dict(PHOSPHOR=''));self.assertIs(night_duo.her_theme(day_theme), day_theme)
+        from PySide6.QtWidgets import QApplication, QLabel, QWidget
+        app = QApplication.instance() or QApplication([])
+        panel = QWidget();words = QLabel('ACTIVE WORK', panel);words.setStyleSheet('font-size:12px;color:%s;' % self.GREEN);words.setProperty('herInk', words.styleSheet())
+        self.assertEqual(night_duo.amber_words(panel, dt.colours('day')), 0, 'nothing outside Duo')
+        self.assertEqual(night_duo.amber_words(panel, c), 1);self.assertIn(self.AMBER, words.styleSheet());self.assertIn(self.AMBER, words.property('herInk'))
+        panel.deleteLater();app.processEvents()
+        day = dt.colours('day');self.assertEqual((day['kas_text'], day['halt']), (day['text'], day['live']), 'Day is unchanged')
+        self.assertEqual(kas_panel_qt.shape_colour('working', day), day['live'])
+
+    def test_a_list_row_the_terminal_and_the_meters_read_green(self):
+        from workbench import real_terminal_qt
+        c = dt.colours('night-duo');sheet = dt.sheet('night-duo')
+        self.assertEqual((c['text'], c['live']), (self.GREEN, self.GREEN));self.assertIn('QWidget {color:%s;}' % self.GREEN, sheet)
+        self.assertIn('QTreeView::item:selected, QListView::item:selected {background:%s; color:%s;}' % (self.AMBER, dt.NIGHT_GROUND), sheet)
+        self.assertIn('QProgressBar::chunk {background:%s;}' % self.GREEN, sheet)
+        marks = dt.marks('night-duo');self.assertEqual((marks['EQ_MID'], marks['EQ_HIGH'], marks['EQ_HOT']), (self.GREEN, self.GREEN, self.AMBER))
+        self.assertEqual(real_terminal_qt.phosphor_colours('night-duo')[7], self.GREEN)
+        self.assertGreaterEqual(ratio(c['text'], c['window']), 14.0);self.assertGreaterEqual(ratio(c['secondary'], c['surface']), 4.5)
+
+    def test_the_burn_in_disabled_tertiary_and_lines_read_grey_and_the_name_burnt_is_kas(self):
+        from PySide6.QtWidgets import QApplication, QWidget
+        from workbench import crt_qt
+        c = dt.colours('night-duo')
+        grey = lambda colour: max(dt.rgb(colour)) - min(dt.rgb(colour)) <= 12      # no hue: neither phosphor
+        for key in ('burn', 'tertiary', 'disabled', 'hairline', 'stroke', 'stroke_strong', 'surface', 'raised'):self.assertTrue(grey(c[key]), (key, c[key]))
+        self.assertEqual(c['burn'], self.GREY);self.assertGreaterEqual(ratio(c['tertiary'], c['pressed']), 4.5)
+        ghost = dt.over(c['burn'], c['surface'], crt_qt.BURN['full'])
+        for ink in ('text', 'secondary', 'tertiary', 'kas_text'):self.assertGreaterEqual(ratio(c[ink], ghost), 4.5, ink)
+        self.assertEqual(crt_qt.BURN_NAME, 'kas', 'the centre burns the public name, one constant')
+        self.assertFalse(any('GRAPHITE' in row.upper() for row in crt_qt.OLD_LISTING))
+        self.assertNotIn("'GRAPHITE'", (ROOT / 'workbench' / 'crt_qt.py').read_text(encoding='utf-8'), 'no old name burns')
+        app = QApplication.instance() or QApplication([])
+        window = QWidget();window.resize(640, 400)
+        screen = crt_qt.Screen(window, 'window', crt_qt.effects('full'));self.assertEqual(screen.phosphor.name(), self.GREY)
+        self.assertEqual(screen.line.name(), self.GREEN, 'the green tube warms up green');self.assertIsNotNone(screen.burnt())
+        tube = crt_qt.Screen(window, 'kas', crt_qt.effects('subtle'))
+        self.assertEqual((tube.line.name(), tube.ground.name()), (self.AMBER, c['kas_ground']), 'her tube: amber, its ground a shade warmer')
+        self.assertIsNotNone(tube.burnt());self.assertTrue(crt_qt.KAS_TUBE_DELAY > 0)
         window.deleteLater();app.processEvents()
 
 

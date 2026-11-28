@@ -1,0 +1,47 @@
+{
+ "item": "N1duo",
+ "status": "done",
+ "summary": "Night: Duo is the new default Night; Night: Amber and Night: Green stay as choices under View > Appearance. Green is the computer: words, lists, the tree, the terminal, the meters and the progress bars. Amber is Kas and the owner's word: her chip, her panel's words and cards, Waits for you, and HALT (both the head's and the bar's are amber inverse blocks). The selected row, pressed buttons, the bar's active window and focus are also amber. Grey is the past: burn-in, tertiary, disabled, lines and borders. Hero touches: her panel is a second, amber tube with a warmer ground, a bezel line, its own burn ('KAS READY.', 'KAS> _') and a warm-up 260 ms after the green tube. Her column is seen through amber (night_duo.HerTube). The burn-ins: 'kas' in the centre (crt_qt.BURN_NAME, which replaces GRAPHITE) and an invented old directory listing in the lower left. In Full, a faint grey character-cell grid. Every word is 4.5:1 or more (worst Duo pair 6.0:1).",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/N1duo.patch",
+ "files_changed": [
+  "workbench/design_tokens.py",
+  "workbench/night_phosphor.py",
+  "workbench/night_duo.py (new)",
+  "workbench/crt_qt.py",
+  "workbench/kas_panel_qt.py",
+  "workbench/halt_qt.py",
+  "workbench/her_column_qt.py (3 lines, marked)",
+  "workbench/boss_qt.py (menu word)",
+  "tools/colour_vision.py",
+  "tests_integrated/test_night_phosphor.py"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_night_phosphor.py class Duo: 4 tests (default; Kas chip/cards/HALT amber + her tube; list row/terminal/meters green; burn/grey + name burnt is kas)",
+  "ran": "test_night_phosphor (15) in a throwaway copy; test_colour_vision (7) under Duo, Amber and Green",
+  "output_tail": "night_phosphor: Ran 15 tests OK; colour_vision duo/amber/green: OK each"
+ },
+ "existing_tests_changed": [
+  "test_night_phosphor: the default Night is now duo (defaults test, look-in-force row for GRAPHITE_APPEARANCE=night; added an amber row)",
+  "test_night_phosphor OnePhosphor hierarchy and inverse tests now iterate MONO_PHOSPHORS (Duo has two hues by design)",
+  "test_night_phosphor CRT legibility: the ghost is measured in its own colour (burn), grey in Duo"
+ ],
+ "decisions": [
+  "A phosphor saved under 1.1.3 (amber or green) is kept: the owner chose it; Duo is the default for a profile with no saved phosphor (one menu press to switch).",
+  "danger is amber in Duo (HALT and stopped are hers); live/ready/cue are green (the computer).",
+  "Panel grounds are a faint grey, not a tint of either phosphor; her panel ground is amber 6 % (kas_ground).",
+  "Her column gets an amber view of boss_theme (night_duo.HerTube) and amber_words swaps green style sheets inside her panel when it opens; her meters stay green (the computer).",
+  "BURN_NAME = \"kas\" per the owner; the old GRAPHITE burn is gone. Her panel ghost says KAS, never Kasandra.",
+  "colour_vision REVIEWED night for Duo: amber and green are close to weak red/green sight, so every pair but bright-green/dim-green is listed, told by word and shape.",
+  "Line-edit block cursor and afterglow stay the computer green."
+ ],
+ "findings_for_the_coordinator": [
+  "Frames were taken offscreen (N1 found that xvfb hangs in the wrapper). The frames are subtle_panel, full_full and a bar close-up, in b110/N1duo/frames.",
+  "her_column_qt now rebinds its bt to night_duo.her_theme(bt). In Day, Amber and Green, this is boss_theme itself.",
+  "kas_panel_qt calls night_duo.amber_words when her column comes in and on slide_in."
+ ],
+ "not_done": [
+  "Seven-segment amber clock, typed-out amber cursor for her new lines, amber peak marks drawn on the equalizer (only the EQ_HOT token is amber): not built (budget).",
+  "Frames at 1366x768 not taken; nothing ran on the ThinkPad."
+ ],
+ "release_note": "Night: Duo is the new default Night. Green is the computer, amber is Kas and your word, and grey is the burn-in of the past. Her panel is a second, amber tube. Night: Amber and Night: Green are still under View > Appearance."
+}

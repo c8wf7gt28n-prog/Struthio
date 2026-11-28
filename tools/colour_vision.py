@@ -204,14 +204,22 @@ REVIEWED['day'] = {pair: _told(pair) for pair in _SHARED + (('fails', 'hers'), (
 # which every look draws (SIGNS), and what is chosen is also inverse video, a block of the phosphor with its words in the ground.
 _BRIGHT = ('chosen', 'cue', 'fails', 'hers', 'line', 'ready', 'stopped', 'waits', 'wire', 'words');_DIM = ('held', 'quiet', 'recheck')
 NIGHT_CLOSE = {'amber': tuple(combinations(_BRIGHT + _DIM, 2)), 'green': tuple(combinations(_BRIGHT, 2)) + tuple(combinations(_DIM, 2))}
+# 1.1 N1duo: Night: Duo has two phosphors, green for the computer (ready, cue, line, wire, words; held, quiet and recheck a
+# step under) and amber for Kas and the owner's word (chosen, waits, fails, stopped, hers). Weak red or green sight sees the
+# two as one, so every pair is close but a bright green and a dim one; each is told by its word or its shape (SIGNS).
+_DUO_GREEN = ('cue', 'line', 'ready', 'wire', 'words')
+NIGHT_CLOSE['duo'] = tuple(pair for pair in combinations(_BRIGHT + _DIM, 2)
+                           if not (set(pair) & set(_DUO_GREEN) and set(pair) & set(_DIM)))
 
 
 def _night_reviewed():
     from workbench import boss_theme, design_tokens      # the phosphor in force: Night's palette is made in it
     del boss_theme
     said = dict(SAID, words='plain words have no rule, no button and no mark')
-    return {pair: 'one phosphor for every meaning in this look, brightness its only step: ' + '; '.join(said[m] for m in pair)
-            for pair in NIGHT_CLOSE[design_tokens.phosphor()]}
+    tone = design_tokens.phosphor()
+    why = ('two phosphors in this look, green and amber, which weak red or green sight sees as one: ' if tone == 'duo' else      # 1.1 N1duo
+           'one phosphor for every meaning in this look, brightness its only step: ')
+    return {pair: why + '; '.join(said[m] for m in pair) for pair in NIGHT_CLOSE[tone]}
 
 
 REVIEWED['night'] = _night_reviewed()      # 1.1 N1 (1.1 T1's Night, Day's dark twin, was _SHARED)

@@ -112,6 +112,7 @@ def chip_state(column, waiting=0):
 
 def shape_colour(state, c):
     """The third cue only: the shape's colour in the bar's tokens."""
+    if tokens.is_duo(c):return c['kas_text'] if state != 'idle' else c['kas_quiet']      # 1.1 N1duo: her chip is amber, the shape says the state
     return {'working': c['live'], 'awaiting_approval': c['waiting'], 'completed': c['live'], 'blocked': c['danger'],
             'held': c['danger']}.get(state, c['secondary'])
 
@@ -161,11 +162,11 @@ class KasChip(bar_qt.BarButton):
         r = self.ground(p, c, active=self.slot.ctl.panel_open())
         if state == 'awaiting_approval':      # what waits: a tint of its colour under the chip, with the shape and the word
             bar_qt.plate(p, r, tokens.over(c['waiting'], c['sidebar'], tokens.TINT['waiting']))
-        x = pad;font = bar_qt.bar_font(h, QFont.DemiBold);p.setFont(font);p.setPen(QColor(c['text']))
+        x = pad;font = bar_qt.bar_font(h, QFont.DemiBold);p.setFont(font);p.setPen(QColor(c['kas_text']))      # 1.1 N1duo: amber in Duo
         p.drawText(QRect(x, 0, w, h), Qt.AlignLeft | Qt.AlignVCenter, 'Kas')
         x += QFontMetrics(font).horizontalAdvance('Kas') + gap
         paint_shape(p, QRectF(x, (h - side) / 2.0, side, side), state, shape_colour(state, c))
-        x += side + 5;p.setFont(word_font);p.setPen(QColor(c['text'] if state == 'awaiting_approval' else c['secondary']))
+        x += side + 5;p.setFont(word_font);p.setPen(QColor(c['kas_text'] if state == 'awaiting_approval' else c['kas_quiet']))      # 1.1 N1duo
         p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, word)
         if self.slot.ctl.panel_open():p.fillRect(QRectF(6, h - 5, w - 12, 2), QColor(c['accent']))      # open: the accent rule, as an active window's
         p.end()
@@ -212,7 +213,7 @@ class HaltOnBar(halt_qt.HaltButton):
         w, h = self.width(), self.height();r = QRectF(2.5, 6.5, w - 5, h - 13)
         fill = c['pressed'] if self.isDown() else (c['hover_side'] if self.underMouse() else c['sidebar'])
         inverse = bar_qt.inverse(c)      # 1.1 N1: Night: HALT is inverse video, a block of the phosphor with its sign and word in the ground
-        if inverse:fill = c['secondary'] if self.isDown() else c['accent_fill'];marks = dict(marks, HALT=c['on_accent'], HALT_HELD=c['on_accent'])
+        if inverse:fill = c['kas_quiet'] if self.isDown() else c['accent_fill'];marks = dict(marks, HALT=c['on_accent'], HALT_HELD=c['on_accent'])      # 1.1 N1duo: pressed, her quiet amber
         p.setPen(QPen(QColor(c['stroke_strong'] if self.underMouse() else c['stroke']), 1));p.setBrush(QColor(fill))
         p.drawRoundedRect(r, tokens.RADIUS['control'], tokens.RADIUS['control'])
         side = round(h * 0.34);x = self.pad(h);cy = h / 2.0;path = QPainterPath()
@@ -295,9 +296,16 @@ class KasPanel(QWidget):
         """Her column comes in: the window's own look (its style sheet, palette and type) comes with it."""
         host = self.ctl.host
         sheet = host.styleSheet()
+        c = bar_qt.ink()
+        if tokens.is_duo(c):sheet += '\nQWidget {color:%s;}\nQWidget:disabled {color:%s;}' % (c['kas_text'], c['disabled'])      # 1.1 N1duo: her words, amber
         if self.styleSheet() != sheet:self.setStyleSheet(sheet)
         self.setPalette(host.palette());self.setFont(host.font())
+        try:      # 1.1 N1duo: her panel is a second tube, amber (crt_qt)
+            from . import crt_qt;crt_qt.attach_kas(self)
+        except Exception:  # noqa: BLE001 - an effect, never a reason her column does not come in
+            pass
         pane.setParent(self);self.layout().addWidget(pane, 1);pane.show()
+        from .night_duo import amber_words;amber_words(self)      # 1.1 N1duo: her tube's words, amber
 
     def band(self):
         """(open rect, closed x): 380 px at the right edge of the screen, from its top to the bar."""
@@ -310,6 +318,7 @@ class KasPanel(QWidget):
 
     def slide_in(self):
         rect, off = self.band();self.opened = True;self.anim.stop()
+        from .night_duo import amber_words;amber_words(self)      # 1.1 N1duo: what came since, amber too
         self.setFixedSize(rect.size())
         if not self.marked:self.marked = mark_everywhere(self.winId())
         if reduce_motion(self.ctl.host):
@@ -336,8 +345,11 @@ class KasPanel(QWidget):
             rect, _ = self.band();self.setFixedSize(rect.size());self.move(rect.topLeft())
 
     def paintEvent(self, event):
-        c = bar_qt.ink();p = QPainter(self);p.fillRect(self.rect(), QColor(c['surface']))
-        p.fillRect(0, 0, 1, self.height(), QColor(c['stroke']));p.end()
+        c = bar_qt.ink();p = QPainter(self);p.fillRect(self.rect(), QColor(c['kas_ground'] if tokens.is_duo(c) else c['surface']))      # 1.1 N1duo
+        p.fillRect(0, 0, 1, self.height(), QColor(c['stroke']))
+        if tokens.is_duo(c):      # 1.1 N1duo: the bezel of her tube: a grey line, then a faint amber one inside it
+            glow = QColor(c['kas_text']);glow.setAlpha(70);p.fillRect(0, 0, 1, self.height(), QColor(c['stroke_strong']));p.fillRect(2, 0, 1, self.height(), glow)
+        p.end()
 
 
 # ---- her card -------------------------------------------------------------------------------------------------------------------
@@ -366,9 +378,9 @@ class CardRow(QFrame):
         self.mark.set(key, c['waiting']);self.word.setText(sw.word(key).upper() if key == 'held' else sw.word(key))
         self.word.setStyleSheet('color:%s;font-family:"%s";font-size:11px;font-weight:600;letter-spacing:1px;' % (c['waiting_text'], tokens.FONT['mono']))
         self.title.setText(title);self.title.setVisible(bool(title))
-        self.title.setStyleSheet('color:%s;font-size:12px;' % c['secondary'])
+        self.title.setStyleSheet('color:%s;font-size:12px;' % c['kas_quiet'])      # 1.1 N1duo: her card's words in amber
         fm = QFontMetrics(self.title.font());self.title.setText(fm.elidedText(title, Qt.ElideRight, 200));self.title.setToolTip(title)
-        self.words.setText(words);self.words.setVisible(bool(words));self.words.setStyleSheet('color:%s;font-size:13px;' % c['text'])
+        self.words.setText(words);self.words.setVisible(bool(words));self.words.setStyleSheet('color:%s;font-size:13px;' % c['kas_text'])      # 1.1 N1duo
         self.press.setText(press);self.press.setToolTip(tip)
         self.setAccessibleName('%s: %s. %s' % (sw.word(key), title, words))
 
@@ -418,7 +430,7 @@ class WaitCard(QFrame):
                 c['surface'], c['stroke_strong'], tokens.RADIUS['toast'], c['surface'], c['stroke'], c['waiting'],
                 c['accent_fill'], c['on_accent'], c['accent'], c['raised'], c['disabled'], c['accent_text']))
         self.head.setStyleSheet('color:%s;font-family:"%s";font-size:12px;font-weight:600;letter-spacing:1px;' % (c['waiting_text'], tokens.FONT['mono']))
-        self.more.setStyleSheet('color:%s;font-size:12px;' % c['secondary']);self.said.setStyleSheet('color:%s;font-size:13px;' % c['text'])
+        self.more.setStyleSheet('color:%s;font-size:12px;' % c['kas_quiet']);self.said.setStyleSheet('color:%s;font-size:13px;' % c['kas_text'])      # 1.1 N1duo
         self.mark.set('needs_word', c['waiting'])
 
     # -- hearing

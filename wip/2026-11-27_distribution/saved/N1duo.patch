@@ -1,0 +1,618 @@
+diff --git a/tests_integrated/test_night_phosphor.py b/tests_integrated/test_night_phosphor.py
+index 6ac4bee..70b8946 100644
+--- a/tests_integrated/test_night_phosphor.py
++++ b/tests_integrated/test_night_phosphor.py
+@@ -1,4 +1,5 @@
+-"""1.1 N1: Night is a phosphor monitor (Amber, Green), with CRT effects (Off, Subtle, Full).
++"""1.1 N1: Night is a phosphor monitor (Amber, Green), with CRT effects (Off, Subtle, Full). 1.1 N1duo: Night: Duo, green
++for the computer, amber for Kas and the owner's word, grey for the past, is the default Night (class Duo, the acceptance).
+ 
+ The acceptance first: every text brightness of both phosphors is 4.5:1 or more on the ground it is laid on, and the setting
+ switches. Then the rest of the slice's truth: one hue, inverse video, the fixed-width chrome, the xterm's colours, and each
+@@ -67,7 +68,8 @@ class Acceptance(unittest.TestCase):
+         code = ('from workbench import boss_theme as t, design_tokens as d;'
+                 'print(t.APPEARANCE, t.PHOSPHOR, t.TEXT, t.GROUND, t.FACE, d.face(), t.CRT)')
+         for env, said in (({'GRAPHITE_APPEARANCE': 'night-green'}, 'night green #33ff66 #0a0a08 IBM Plex Mono IBM Plex Mono subtle'),
+-                          ({'GRAPHITE_APPEARANCE': 'night', 'GRAPHITE_CRT': 'off'}, 'night amber #ffb000 #0a0a08 IBM Plex Mono IBM Plex Mono off'),
++                          ({'GRAPHITE_APPEARANCE': 'night', 'GRAPHITE_CRT': 'off'}, 'night duo #33ff66 #0a0a08 IBM Plex Mono IBM Plex Mono off'),      # N1duo: Duo
++                          ({'GRAPHITE_APPEARANCE': 'night-amber'}, 'night amber #ffb000 #0a0a08 IBM Plex Mono IBM Plex Mono subtle'),
+                           ({'GRAPHITE_APPEARANCE': 'day', 'GRAPHITE_PHOSPHOR': 'green'}, 'day  #1d1d1f #f5f5f7 Inter Inter subtle')):
+             with tempfile.TemporaryDirectory() as home:
+                 run = dict(os.environ, HOME=home, XDG_CONFIG_HOME=home, **env);run.pop('ARC1_WORKBENCH_CONFIG_HOME', None)
+@@ -78,7 +80,7 @@ class Acceptance(unittest.TestCase):
+ 
+ class OnePhosphor(unittest.TestCase):
+     def test_hierarchy_is_the_brightness_of_one_hue(self):
+-        for tone in dt.PHOSPHORS:
++        for tone in dt.MONO_PHOSPHORS:      # N1duo: Amber and Green; Duo has two phosphors and a grey (class Duo)
+             c = dt.colours('night-' + tone);full = dt.PHOSPHOR_INK[tone][0]
+             self.assertEqual(c['window'], dt.NIGHT_GROUND);self.assertEqual(c['text'], full)
+             steps = [luminance(c[k]) for k in ('text', 'secondary', 'tertiary', 'disabled')]
+@@ -89,7 +91,7 @@ class OnePhosphor(unittest.TestCase):
+                 self.assertLess(share, 256, (tone, k))
+ 
+     def test_selected_row_pressed_button_active_window_and_halt_are_inverse_video(self):
+-        for tone in dt.PHOSPHORS:
++        for tone in dt.MONO_PHOSPHORS:      # N1duo: Duo's block is amber, not its words' green (class Duo)
+             c = dt.colours('night-' + tone)
+             self.assertEqual((c['active_plate'], c['on_active']), (c['text'], dt.NIGHT_GROUND))
+             self.assertEqual(dt.marks('night-' + tone)['HALT'], c['text'])
+@@ -112,11 +114,11 @@ class OnePhosphor(unittest.TestCase):
+             self.assertEqual(len(sixteen), 16)
+             for n, colour in enumerate(sixteen[1:], 1):self.assertGreaterEqual(ratio(colour, ground), 4.5, (tone, n))
+ 
+-    def test_the_choice_is_read_from_the_session_and_a_damaged_one_is_amber_and_subtle(self):
++    def test_the_choice_is_read_from_the_session_and_a_damaged_one_is_duo_and_subtle(self):      # N1duo: Duo is the default
+         with tempfile.TemporaryDirectory() as home:
+             path = os.path.join(home, 'session.json');env = {}
+-            self.assertEqual((np_.chosen_phosphor(env, path), np_.chosen_crt(env, path)), ('amber', 'subtle'), 'no file: the defaults')
+-            for saved, said in (({'phosphor': 'green', 'crt': 'full'}, ('green', 'full')), ({'phosphor': ['green'], 'crt': 7}, ('amber', 'subtle'))):
++            self.assertEqual((np_.chosen_phosphor(env, path), np_.chosen_crt(env, path)), ('duo', 'subtle'), 'no file: the defaults')
++            for saved, said in (({'phosphor': 'green', 'crt': 'full'}, ('green', 'full')), ({'phosphor': ['green'], 'crt': 7}, ('duo', 'subtle')), ({'phosphor': 'amber'}, ('amber', 'subtle'))):
+                 Path(path).write_text(json.dumps(saved), encoding='utf-8')
+                 self.assertEqual((np_.chosen_phosphor(env, path), np_.chosen_crt(env, path)), said)
+             self.assertEqual(np_.chosen_phosphor({'GRAPHITE_PHOSPHOR': 'amber'}, path), 'amber', 'the environment wins')
+@@ -145,7 +147,7 @@ class CrtEffects(unittest.TestCase):
+             for ink, ground, _ in dt.NIGHT_PAIRS:      # under the scanline and the vignette's very corner, both laid at once
+                 shade = full['scanlines'] + full['vignette']
+                 self.assertGreaterEqual(ratio(darker(c[ink], shade), darker(c[ground], shade)), 4.5, (tone, ink, ground))
+-            ghost = dt.over(c['text'], c['surface'], crt_qt.BURN['full'])      # the burn-in lifts only what is darker than it
++            ghost = dt.over(c['burn'], c['surface'], crt_qt.BURN['full'])      # the burn-in lifts only what is darker than it (N1duo: its own colour)
+             for ink in ('text', 'secondary', 'tertiary'):self.assertGreaterEqual(ratio(c[ink], ghost), 4.5, (tone, ink))
+ 
+     def test_the_screen_and_the_line_switch_off(self):
+@@ -166,5 +168,75 @@ class CrtEffects(unittest.TestCase):
+         window.deleteLater();app.processEvents()
+ 
+ 
++class Duo(unittest.TestCase):
++    """1.1 N1duo, the acceptance: Duo is the default; Kas's chip and HALT read amber; a list row reads green; the burn-in reads
++    grey; and each of them 4.5:1 or more on its ground."""
++    GREEN, AMBER, GREY = dt.DUO_INK['computer'], dt.DUO_INK['kas'], dt.DUO_INK['past']
++
++    def test_duo_is_the_default_night_and_amber_and_green_stay_choices(self):
++        self.assertEqual((dt.PHOSPHOR_DEFAULT, np_.PHOSPHOR_DEFAULT), ('duo', 'duo'))
++        self.assertEqual(np_.PHOSPHORS, (('duo', 'Night: Duo'), ('amber', 'Night: Amber'), ('green', 'Night: Green')))
++        with tempfile.TemporaryDirectory() as home:
++            self.assertEqual(np_.chosen_phosphor({}, os.path.join(home, 'none.json')), 'duo')
++        self.assertEqual(np_.chosen_phosphor({'GRAPHITE_APPEARANCE': 'night-duo'}, '/nonexistent'), 'duo')
++        self.assertEqual(dt.look_of('night-duo'), 'night');self.assertEqual(dt.phosphor('night-duo'), 'duo')
++        from workbench import boss_qt
++        self.assertIn('night-duo', boss_qt.APPEARANCE_WORDS)
++
++    def test_kas_chip_her_cards_and_halt_read_amber(self):
++        from workbench import kas_panel_qt
++        c = dt.colours('night-duo')
++        self.assertEqual((c['kas_text'], c['waiting'], c['accent_fill'], c['active_plate'], c['on_accent']), (self.AMBER,) * 4 + (dt.NIGHT_GROUND,))
++        for state in ('working', 'awaiting_approval', 'completed', 'blocked', 'held'):
++            self.assertEqual(kas_panel_qt.shape_colour(state, c), self.AMBER, state)      # the shape, not the colour, says the state
++        self.assertEqual(dt.marks('night-duo')['HALT'], self.AMBER);self.assertEqual(dt.palette('night-duo')['AMBER_EDGE'], self.AMBER)
++        for ink in ('kas_text', 'kas_quiet'):
++            for ground in ('window', 'sidebar', 'kas_ground', 'waiting_tint'):self.assertGreaterEqual(ratio(c[ink], c[ground]), 4.5, (ink, ground))
++        self.assertGreaterEqual(ratio(c['on_accent'], c['accent_fill']), 4.5, 'HALT and the selected row: inverse video in amber')
++        from workbench import night_duo      # her column, through her tube: its words amber, the grey of the past its own
++        theme = type('Theme', (), dict(PHOSPHOR='duo', TEXT=self.GREEN, FAINT=self.GREY, LAUNCH=True))
++        tube = night_duo.her_theme(theme);self.assertEqual((tube.TEXT, tube.READY, tube.FAINT, tube.LAUNCH), (self.AMBER, self.AMBER, self.GREY, True))
++        day_theme = type('Theme', (), dict(PHOSPHOR=''));self.assertIs(night_duo.her_theme(day_theme), day_theme)
++        from PySide6.QtWidgets import QApplication, QLabel, QWidget
++        app = QApplication.instance() or QApplication([])
++        panel = QWidget();words = QLabel('ACTIVE WORK', panel);words.setStyleSheet('font-size:12px;color:%s;' % self.GREEN);words.setProperty('herInk', words.styleSheet())
++        self.assertEqual(night_duo.amber_words(panel, dt.colours('day')), 0, 'nothing outside Duo')
++        self.assertEqual(night_duo.amber_words(panel, c), 1);self.assertIn(self.AMBER, words.styleSheet());self.assertIn(self.AMBER, words.property('herInk'))
++        panel.deleteLater();app.processEvents()
++        day = dt.colours('day');self.assertEqual((day['kas_text'], day['halt']), (day['text'], day['live']), 'Day is unchanged')
++        self.assertEqual(kas_panel_qt.shape_colour('working', day), day['live'])
++
++    def test_a_list_row_the_terminal_and_the_meters_read_green(self):
++        from workbench import real_terminal_qt
++        c = dt.colours('night-duo');sheet = dt.sheet('night-duo')
++        self.assertEqual((c['text'], c['live']), (self.GREEN, self.GREEN));self.assertIn('QWidget {color:%s;}' % self.GREEN, sheet)
++        self.assertIn('QTreeView::item:selected, QListView::item:selected {background:%s; color:%s;}' % (self.AMBER, dt.NIGHT_GROUND), sheet)
++        self.assertIn('QProgressBar::chunk {background:%s;}' % self.GREEN, sheet)
++        marks = dt.marks('night-duo');self.assertEqual((marks['EQ_MID'], marks['EQ_HIGH'], marks['EQ_HOT']), (self.GREEN, self.GREEN, self.AMBER))
++        self.assertEqual(real_terminal_qt.phosphor_colours('night-duo')[7], self.GREEN)
++        self.assertGreaterEqual(ratio(c['text'], c['window']), 14.0);self.assertGreaterEqual(ratio(c['secondary'], c['surface']), 4.5)
++
++    def test_the_burn_in_disabled_tertiary_and_lines_read_grey_and_the_name_burnt_is_kas(self):
++        from PySide6.QtWidgets import QApplication, QWidget
++        from workbench import crt_qt
++        c = dt.colours('night-duo')
++        grey = lambda colour: max(dt.rgb(colour)) - min(dt.rgb(colour)) <= 12      # no hue: neither phosphor
++        for key in ('burn', 'tertiary', 'disabled', 'hairline', 'stroke', 'stroke_strong', 'surface', 'raised'):self.assertTrue(grey(c[key]), (key, c[key]))
++        self.assertEqual(c['burn'], self.GREY);self.assertGreaterEqual(ratio(c['tertiary'], c['pressed']), 4.5)
++        ghost = dt.over(c['burn'], c['surface'], crt_qt.BURN['full'])
++        for ink in ('text', 'secondary', 'tertiary', 'kas_text'):self.assertGreaterEqual(ratio(c[ink], ghost), 4.5, ink)
++        self.assertEqual(crt_qt.BURN_NAME, 'kas', 'the centre burns the public name, one constant')
++        self.assertFalse(any('GRAPHITE' in row.upper() for row in crt_qt.OLD_LISTING))
++        self.assertNotIn("'GRAPHITE'", (ROOT / 'workbench' / 'crt_qt.py').read_text(encoding='utf-8'), 'no old name burns')
++        app = QApplication.instance() or QApplication([])
++        window = QWidget();window.resize(640, 400)
++        screen = crt_qt.Screen(window, 'window', crt_qt.effects('full'));self.assertEqual(screen.phosphor.name(), self.GREY)
++        self.assertEqual(screen.line.name(), self.GREEN, 'the green tube warms up green');self.assertIsNotNone(screen.burnt())
++        tube = crt_qt.Screen(window, 'kas', crt_qt.effects('subtle'))
++        self.assertEqual((tube.line.name(), tube.ground.name()), (self.AMBER, c['kas_ground']), 'her tube: amber, its ground a shade warmer')
++        self.assertIsNotNone(tube.burnt());self.assertTrue(crt_qt.KAS_TUBE_DELAY > 0)
++        window.deleteLater();app.processEvents()
++
++
+ if __name__ == '__main__':
+     unittest.main()
+diff --git a/tools/colour_vision.py b/tools/colour_vision.py
+index 8488b1c..66697f8 100644
+--- a/tools/colour_vision.py
++++ b/tools/colour_vision.py
+@@ -204,14 +204,22 @@ REVIEWED['day'] = {pair: _told(pair) for pair in _SHARED + (('fails', 'hers'), (
+ # which every look draws (SIGNS), and what is chosen is also inverse video, a block of the phosphor with its words in the ground.
+ _BRIGHT = ('chosen', 'cue', 'fails', 'hers', 'line', 'ready', 'stopped', 'waits', 'wire', 'words');_DIM = ('held', 'quiet', 'recheck')
+ NIGHT_CLOSE = {'amber': tuple(combinations(_BRIGHT + _DIM, 2)), 'green': tuple(combinations(_BRIGHT, 2)) + tuple(combinations(_DIM, 2))}
++# 1.1 N1duo: Night: Duo has two phosphors, green for the computer (ready, cue, line, wire, words; held, quiet and recheck a
++# step under) and amber for Kas and the owner's word (chosen, waits, fails, stopped, hers). Weak red or green sight sees the
++# two as one, so every pair is close but a bright green and a dim one; each is told by its word or its shape (SIGNS).
++_DUO_GREEN = ('cue', 'line', 'ready', 'wire', 'words')
++NIGHT_CLOSE['duo'] = tuple(pair for pair in combinations(_BRIGHT + _DIM, 2)
++                           if not (set(pair) & set(_DUO_GREEN) and set(pair) & set(_DIM)))
+ 
+ 
+ def _night_reviewed():
+     from workbench import boss_theme, design_tokens      # the phosphor in force: Night's palette is made in it
+     del boss_theme
+     said = dict(SAID, words='plain words have no rule, no button and no mark')
+-    return {pair: 'one phosphor for every meaning in this look, brightness its only step: ' + '; '.join(said[m] for m in pair)
+-            for pair in NIGHT_CLOSE[design_tokens.phosphor()]}
++    tone = design_tokens.phosphor()
++    why = ('two phosphors in this look, green and amber, which weak red or green sight sees as one: ' if tone == 'duo' else      # 1.1 N1duo
++           'one phosphor for every meaning in this look, brightness its only step: ')
++    return {pair: why + '; '.join(said[m] for m in pair) for pair in NIGHT_CLOSE[tone]}
+ 
+ 
+ REVIEWED['night'] = _night_reviewed()      # 1.1 N1 (1.1 T1's Night, Day's dark twin, was _SHARED)
+diff --git a/workbench/boss_qt.py b/workbench/boss_qt.py
+index 5a32866..d704af7 100644
+--- a/workbench/boss_qt.py
++++ b/workbench/boss_qt.py
+@@ -394,6 +394,7 @@ APPEARANCE_WORDS = {'graphite': 'Graphite: pencil, paper and amber, as it has al
+                     'kasandra': 'Kasandra: indigo and a typewriter face for headings',      # 1.0 P4 no avatar: her art no longer follows the work
+                     'day': 'Day: the launch look, light and calm; green for what is live, blue for the board\'s wires and what is selected',      # 1.0 P2, P4
+                     'night': 'Night: a phosphor monitor, one colour on black',      # 1.0 P4; 1.1 N1
++                    'night-duo': 'Night: Duo: green for the computer, amber for Kasandra and your word, grey for the past; a block says what is selected',      # 1.1 N1duo
+                     'night-amber': 'Night: Amber: an amber phosphor monitor; brightness says what matters, a block says what is selected',      # 1.1 N1
+                     'night-green': 'Night: Green: a green phosphor monitor; brightness says what matters, a block says what is selected'}      # 1.1 N1
+ 
+diff --git a/workbench/crt_qt.py b/workbench/crt_qt.py
+index 82e73e4..34cc246 100644
+--- a/workbench/crt_qt.py
++++ b/workbench/crt_qt.py
+@@ -35,6 +35,13 @@ VIGNETTE_MAX = 16            # out of 255 at the very corner (6 %), Full only
+ BURN = dict(off=0, subtle=8, full=13)            # the ghost: share of the phosphor out of 255 (3 %, 5 %)
+ SCAN = dict(off=0, subtle=5, full=8)             # the scanlines: black out of 255 (2 %, 3 %)
+ MOVING = ('afterglow', 'warm_up', 'blink')
++# 1.1 N1duo: the centre's burn is the public name, one constant (the owner, 28 Nov 2026: "it's kas. All of it."); with no
++# name it would be left out. An old directory listing (invented) is burnt into the lower left, where the tree's empty space is.
++BURN_NAME = 'kas'
++OLD_LISTING = (' Volume in drive C is DESK', ' Directory of C:\\DESK', '', 'LETTERS      <DIR>', 'ACCOUNTS     <DIR>',
++               'NOTES    TXT     1,204', 'PLAN     TXT       880', '        4 File(s)')
++KAS_TUBE_DELAY = 260         # ms: her amber tube warms up a beat after the green one
++CELL = (8, 16)               # Full, Night: Duo: a terminal's character cells, a faint grey grid on the empty ground
+ 
+ 
+ def effects(level, reduce_motion=False, night=True):
+@@ -77,7 +84,9 @@ class Screen(QWidget):
+         self.setObjectName('CrtScreen');self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+         self.setAttribute(Qt.WA_NoSystemBackground, True);self.setAttribute(Qt.WA_TranslucentBackground, True)
+         self.setFocusPolicy(Qt.NoFocus);self._burnt = None;self._vignette = None;self.warmth = 1.0;self.warming = None
+-        c = tokens.colours('night');self.phosphor = QColor(c['text']);self.ground = QColor(c['surface'])      # the ghost lies over a panel's ground
++        c = tokens.colours('night');self.phosphor = QColor(c['burn']);self.ground = QColor(c['surface'])      # the ghost lies over a panel's ground
++        self.line = QColor(c['text'])      # 1.1 N1duo: the burn is the grey of the past in Duo; the warm-up line is the tube's own phosphor
++        if ghost == 'kas':self.ground = QColor(c['kas_ground']);self.line = QColor(c['kas_text'])      # 1.1 N1duo: her amber tube
+         window.installEventFilter(self);self.setGeometry(window.rect());self.raise_()
+         self.setVisible(self.drawn())
+ 
+@@ -114,12 +123,23 @@ class Screen(QWidget):
+             p.drawRect(QRectF(unit, unit, unit * 5, h - 2 * unit))
+             for n in range(4):p.drawRect(QRectF(unit * (8 + n * 13), unit * 1.4, unit * 11, h - 2.8 * unit))
+             p.drawRect(QRectF(w - unit * 9, unit, unit * 7, h - 2 * unit))
++        elif self.ghost == 'kas':      # 1.1 N1duo: her tube: her own old prompt and her name, burnt in over the years
++            mono.setPixelSize(max(13, h // 48));p.setFont(mono)
++            p.drawText(QRectF(w * 0.06, h * 0.05, w * 0.9, h * 0.04), Qt.AlignLeft | Qt.AlignVCenter, 'KAS READY.')
++            p.drawText(QRectF(w * 0.06, h * 0.88, w * 0.9, h * 0.04), Qt.AlignLeft | Qt.AlignVCenter, 'KAS> _')
+         else:      # READY. at the top left, the Graphite mark large in the middle, a prompt under it
+             mono.setPixelSize(max(14, h // 40));p.setFont(mono)
+             p.drawText(QRectF(w * 0.03, h * 0.08, w * 0.5, h * 0.05), Qt.AlignLeft | Qt.AlignVCenter, 'READY.')
+             big = QFont(mono);big.setPixelSize(max(28, h // 9));big.setBold(True);p.setFont(big)
+-            p.drawText(QRectF(0, h * 0.36, w, h * 0.2), Qt.AlignCenter, 'GRAPHITE')
++            if BURN_NAME:p.drawText(QRectF(0, h * 0.36, w, h * 0.2), Qt.AlignCenter, BURN_NAME)      # 1.1 N1duo: the public name (was GRAPHITE)
++            old = QFont(mono);old.setPixelSize(max(12, h // 64));p.setFont(old);step = old.pixelSize() * 1.35      # 1.1 N1duo: the old listing
++            for n, row in enumerate(OLD_LISTING):p.drawText(QRectF(w * 0.02, h * 0.56 + n * step, w * 0.4, step), Qt.AlignLeft | Qt.AlignVCenter, row)
+             p.setFont(mono);p.drawText(QRectF(w * 0.03, h * 0.84, w * 0.6, h * 0.05), Qt.AlignLeft | Qt.AlignVCenter, 'C:\\> _')
++        if self.fx['vignette'] and tokens.is_duo(tokens.colours('night')) and self.ghost != 'bar':      # 1.1 N1duo: Full: the cells
++            cell = QColor(self.ground);cell.setRgb(*((a * 5 + b * 3) // 8 for a, b in zip(ghost.getRgb()[:3], self.ground.getRgb()[:3])))
++            p.setPen(cell)
++            for x in range(0, w, CELL[0] * 4):p.drawLine(x, 0, x, h)
++            for y in range(0, h, CELL[1]):p.drawLine(0, y, w, y)
+         p.end();self._burnt = pix
+         return pix
+ 
+@@ -145,7 +165,7 @@ class Screen(QWidget):
+         if self.warming is not None:      # the warm-up: dark, with a line that opens from the middle
+             h = self.height();open_ = self.warmth * h;top = (h - open_) / 2
+             p.fillRect(QRectF(0, 0, self.width(), top), Qt.black);p.fillRect(QRectF(0, top + open_, self.width(), h), Qt.black)
+-            line = QColor(self.phosphor);line.setAlpha(round(255 * (1.0 - self.warmth)))
++            line = QColor(self.line);line.setAlpha(round(255 * (1.0 - self.warmth)))      # 1.1 N1duo: the tube's phosphor
+             p.fillRect(QRectF(0, top - 1, self.width(), 2), line);p.fillRect(QRectF(0, top + open_ - 1, self.width(), 2), line)
+         p.end()
+ 
+@@ -274,6 +294,18 @@ def attach_bar(host):
+     return host.crt_bar_screen
+ 
+ 
++def attach_kas(panel):
++    """1.1 N1duo: her panel is a second tube, amber, beside the green one: its burn (her old prompt), its scanlines, and its
++    warm-up a beat after the window's (Night: Duo only; Off and Reduce motion as everywhere). Returns the screen, or None."""
++    host = getattr(getattr(panel, 'ctl', None), 'host', None);fx = getattr(host, 'crt_fx', None)
++    if not fx or not getattr(bt, 'PHOSPHOR', '') or not tokens.is_duo(tokens.colours('night')):return None
++    if getattr(panel, 'crt_screen', None) is not None:return panel.crt_screen
++    if not (fx['burn_in'] or fx['scanlines'] or fx['warm_up']):return None
++    panel.crt_screen = Screen(panel, 'kas', dict(fx, vignette=0))
++    QTimer.singleShot(KAS_TUBE_DELAY, panel.crt_screen.warm_up)
++    return panel.crt_screen
++
++
+ def bloom(host):
+     """Full: a faint phosphor halo on the head's menu words (no blur on the words: a halo laid under them)."""
+     top = getattr(getattr(host, 'shell2', None), 'top', None)
+diff --git a/workbench/design_tokens.py b/workbench/design_tokens.py
+index 4334985..c7b6f86 100644
+--- a/workbench/design_tokens.py
++++ b/workbench/design_tokens.py
+@@ -50,11 +50,12 @@ COLOUR = {
+ #   (A step a little above the lowest that passes, so the CRT effects' scanline and vignette, crt_qt, never take a word under.)
+ # What is selected, the pressed button, the active window on the bar, HALT and anything destructive are inverse video: a
+ # block of the phosphor with words in the ground. State colours become the phosphor; every state keeps its word and shape.
+-PHOSPHORS = ('amber', 'green')
+-PHOSPHOR_DEFAULT = 'amber'
++PHOSPHORS = ('duo', 'amber', 'green')      # 1.1 N1duo: Duo first, the default
++MONO_PHOSPHORS = ('amber', 'green')        # 1.1 N1duo: the two one-hue monitors N1 built, kept as choices
++PHOSPHOR_DEFAULT = 'duo'      # 1.1 N1duo (N1: amber)
+ PHOSPHOR = [PHOSPHOR_DEFAULT]      # the phosphor in force: boss_theme sets it once, at its import, as it chooses the look
+ IN_FORCE = ['day']                 # the look in force (boss_theme sets it too): face() reads it
+-PHOSPHOR_WORDS = {'amber': 'Amber', 'green': 'Green'}
++PHOSPHOR_WORDS = {'duo': 'Duo', 'amber': 'Amber', 'green': 'Green'}      # 1.1 N1duo: Duo
+ NIGHT_GROUND = '#0a0a08'
+ # phosphor: (full, secondary share, tertiary share, disabled share)
+ PHOSPHOR_INK = {'amber': ('#ffb000', 220, 200, 130), 'green': ('#33ff66', 205, 180, 115)}
+@@ -76,6 +77,36 @@ def _phosphor_colours(name):
+     )
+ 
+ 
++# ------------------------------------------------------------- 1.1 N1duo: Night: Duo, two phosphors and the grey of the past
++# The owner, 28 Nov 2026: "But both the orange and green working together with grey (like screen burns)". One system:
++#   GREEN is the computer: files, text, lists, the tree, the board, the terminal, the system pages, the meters.
++#   AMBER is Kas and the owner's word: her chip, panel, words and cards, Waits for you, HALT, the selected row and the
++#         pressed button (inverse video in amber), the bar's active window, the focus.
++#   GREY  is the past: the burn-in ghosts, what is disabled, tertiary words, lines and borders.
++# The panels' grounds are the grey laid faintly over the near-black, so neither phosphor tints the other's words; her panel
++# is a second tube with a ground a shade warmer (kas_ground, amber 6 %). Measured by tests_integrated/test_night_phosphor.py:
++#   green words 14.8:1 on the ground, secondary 9.6:1; amber 10.8:1, her quiet 8.1:1; grey tertiary 7.6:1; 5 : 1 or more
++#   on every tint and under Full's scanline and vignette.
++DUO_INK = dict(computer='#33ff66', kas='#ffb000', past='#a3a39b')
++
++
++def _duo_colours():
++    g, green, amber, grey = NIGHT_GROUND, DUO_INK['computer'], DUO_INK['kas'], DUO_INK['past']
++    lay = lambda colour, share: over(colour, g, share);r, gg, b = rgb(grey)
++    return dict(
++        window=g, surface=lay(grey, 12), sidebar=lay(grey, 8), raised=lay(grey, 22), pressed=lay(amber, 40), terminal='#080806',
++        hairline=(r, gg, b, 46), stroke=(r, gg, b, 80), stroke_strong=(r, gg, b, 150),
++        text=green, secondary=lay(green, 205), tertiary=grey, disabled=lay(grey, 150),
++        accent=amber, accent_text=amber, accent_fill=amber, on_accent=g,
++        live=green, live_text=green, on_live=g,
++        waiting=amber, waiting_text=amber, on_waiting=g,
++        danger=amber, danger_text=amber, on_danger=g,
++        recheck=lay(green, 205), violet_text=lay(green, 205),
++        shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 160),
++        kas_text=amber, kas_quiet=lay(amber, 220), kas_ground=lay(amber, 15), burn=grey, halt=amber, peak=amber,
++    )
++
++
+ def phosphor(look=None):
+     """'amber' or 'green': the one a look name asks for ('night-green', 'night-amber'), else the one in force."""
+     look = str(look or '')
+@@ -190,11 +221,12 @@ def rgba(colour, alpha=None):
+     return 'rgba(%d, %d, %d, %d)' % (r, g, b, a if alpha is None else alpha)
+ 
+ 
+-COLOUR.update(('night-' + _name, _phosphor_colours(_name)) for _name in PHOSPHORS)      # 1.1 N1
++COLOUR.update(('night-' + _name, _phosphor_colours(_name)) for _name in MONO_PHOSPHORS)      # 1.1 N1
++COLOUR['night-duo'] = _duo_colours()      # 1.1 N1duo
+ 
+ 
+ def look_of(look):
+-    return 'night' if str(look) in ('night', 'night-amber', 'night-green') else 'day'      # 1.1 N1: a phosphor's name is Night
++    return 'night' if str(look) in ('night',) + tuple('night-' + n for n in PHOSPHORS) else 'day'      # 1.1 N1 (N1duo: night-duo): a phosphor's name is Night
+ 
+ 
+ def colours(look):
+@@ -220,9 +252,16 @@ def colours(look):
+     # (a block of the phosphor, the words in the ground) in Night; the selection's tint and the plain words in Day.
+     night = look_of(look) == 'night'
+     c.update(active_plate=c['accent_fill'] if night else c['selection_side'], on_active=c['on_accent'] if night else c['text'])
++    for key, same in (('kas_text', 'text'), ('kas_quiet', 'secondary'), ('kas_ground', 'sidebar'), ('burn', 'text'), ('halt', 'live'), ('peak', 'live')):
++        c.setdefault(key, c[same])      # 1.1 N1duo: her words, her ground, the burn's grey, HALT, a meter's peak: their own only in Duo
+     return c
+ 
+ 
++def is_duo(c):
++    """1.1 N1duo: whether a look's colours (colours()) are Night: Duo's, where Kas and the computer have phosphors of their own."""
++    return c.get('kas_text') != c.get('text')
++
++
+ # Every pair of words and the ground they are laid on, by token name: (words, ground, where). Measured by the builder
+ # (P4's smoke script): each must be 4.5:1 or more. 'disabled' words are an inactive control's and are listed apart
+ # (DISABLED_PAIRS: WCAG 1.4.3 asks no ratio of them; they read at 2.5:1 or more and always beside a word that says why).
+@@ -243,6 +282,7 @@ DISABLED_PAIRS = [('disabled', g, 'inactive control') for g in _GROUNDS]
+ # checked control in the style sheet, the active window on the bar, HALT). Measured by tests_integrated/test_night_phosphor.py
+ # for both phosphors. The bar's own buttons, pressed, lay a tint (pressed, 16 % of the phosphor) under their phosphor words.
+ NIGHT_PAIRS = TEXT_PAIRS + [('on_accent', g, 'inverse video') for g in ('accent_fill', 'active_plate', 'danger', 'live', 'waiting')]
++NIGHT_PAIRS += [(ink, g, 'her words, on her tube') for ink in ('kas_text', 'kas_quiet', 'tertiary') for g in _GROUNDS + ('kas_ground', 'waiting_tint')]      # 1.1 N1duo
+ 
+ 
+ # ------------------------------------------------------------------------------- the roles boss_theme draws with
+@@ -275,10 +315,10 @@ def marks(look):
+     and said "not verified"), the rings round the focus (RING_BLUE accent 9 %, RING_GREEN live 11 %), HALT's triangle (the
+     live green in both: red in Night would read as an error), the shadow under a tile (SHADOW, drawn with ELEVATION's alpha),
+     and the equalizer's colours (EQ_LOW, EQ_MID accent, EQ_HIGH live, EQ_HOT waiting)."""
+-    c = colours(look)
++    c = colours(look);meter = c['live'] if is_duo(c) else c['accent']      # 1.1 N1duo: Duo's meters are the computer's green
+     return dict(WIRE=c['wire'], WIRE_SOFT=c['wire_soft'], WIRE_WORDS=c['accent_text'], RING_BLUE=c['ring_accent'], RING_GREEN=c['ring_live'],
+-                HALT=c['live'], HALT_HELD=c['waiting'], SHADOW=c['text'] if look_of(look) == 'day' else '#000000',
+-                EQ_LOW=over(c['accent'], c['surface'], 120), EQ_MID=c['accent'], EQ_HIGH=c['live'], EQ_HOT=c['waiting'],
++                HALT=c['halt'], HALT_HELD=c['waiting'], SHADOW=c['text'] if look_of(look) == 'day' else '#000000',      # 1.1 N1duo: HALT amber in Duo
++                EQ_LOW=over(meter, c['surface'], 120), EQ_MID=meter, EQ_HIGH=c['live'], EQ_HOT=c['peak'],      # 1.1 N1duo: green bars, an amber peak
+                 SELECTION=c['selection'], HOVER=c['hover'], FOCUS_RING=c['focus_ring'])
+ 
+ 
+@@ -377,7 +417,7 @@ QScrollBar::add-line, QScrollBar::sub-line {width:0; height:0; border:0; backgro
+ QScrollBar::add-page, QScrollBar::sub-page {background:transparent;}
+ QCheckBox, QRadioButton {color:%(text)s; spacing:8px;}
+ QProgressBar {background:%(raised)s; border:0; border-radius:3px; color:%(text)s; text-align:center; max-height:6px;}
+-QProgressBar::chunk {background:%(live)s; border-radius:3px;}
++QProgressBar::chunk {background:%(accent)s; border-radius:3px;}
+ QSplitter::handle {background:%(hairline)s;}
+ QMainWindow::separator {background:%(hairline)s; width:1px; height:1px;}
+ QToolButton#MoreMenus, QToolButton#HeadMenu, QToolButton#BossPrograms, QToolButton#SystemMenu {
+@@ -401,6 +441,7 @@ QFrame#GraphiteToast {border-radius:%(RT)dpx;}
+ ''' % v + (PHOSPHOR_SHEET % v if night else '')      # 1.1 N1
+ 
+ 
++# 1.1 N1duo: the progress bar's chunk is a meter: the computer's (live) colour, the phosphor in Amber and Green.
+ # 1.1 N1: the phosphor Night's last word: inverse video for the selected row, the pressed and the checked button and the
+ # menu's row; the chrome in the fixed-width face, long prose (a page, her answers) in Inter.
+ PHOSPHOR_SHEET = '''
+@@ -413,6 +454,6 @@ QTreeView::item:selected, QListView::item:selected {background:%(accent_fill)s;
+ QTreeView, QTreeWidget, QListView, QListWidget, QTableView, QTableWidget {selection-background-color:%(accent_fill)s; selection-color:%(on_accent)s;}
+ QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateTimeEdit, QPlainTextEdit, QTextEdit, QTextBrowser {selection-background-color:%(accent_fill)s; selection-color:%(on_accent)s;}
+ QToolButton#MoreMenus:pressed, QToolButton#HeadMenu:pressed {background:%(accent_fill)s; color:%(on_accent)s;}
+-QProgressBar::chunk {background:%(accent)s;}
++QProgressBar::chunk {background:%(live)s;}
+ '''
+ 
+diff --git a/workbench/halt_qt.py b/workbench/halt_qt.py
+index 23b864f..54f60be 100644
+--- a/workbench/halt_qt.py
++++ b/workbench/halt_qt.py
+@@ -107,7 +107,7 @@ class HaltButton(QToolButton):
+             p.fillRect(self.rect(), QColor(t.AMBER_SOFT));p.fillRect(0, h - edge, w, edge, QColor(t.AMBER_EDGE))
+         shape, ink = self.colours()
+         if getattr(t, 'PHOSPHOR', ''):      # 1.1 N1: Night: HALT is inverse video, a block of the phosphor with its sign and word in the ground
+-            block = QRectF(1, 3, w - 2, h - 6);p.setPen(Qt.NoPen);p.setBrush(QColor(t.TEXT));p.drawRoundedRect(block, 3, 3)
++            block = QRectF(1, 3, w - 2, h - 6);p.setPen(Qt.NoPen);p.setBrush(QColor(t.AMBER_EDGE));p.drawRoundedRect(block, 3, 3)      # 1.1 N1duo: amber in Duo (the phosphor in Amber, Green)
+             if self.underMouse() or self.hasFocus() or self.isDown():p.fillRect(QRectF(4, h - 3 - edge * 2, w - 8, edge), QColor(t.GROUND))
+             shape = ink = t.GROUND
+         side = self.side(h);x = self.pad();cy = h / 2.0
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index 3b78d0c..d6f40ea 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -61,6 +61,9 @@ from . import boss_theme as bt
+ from . import mind_words
+ from .assistant_identity import named
+ from .equalizer_qt import GROUPS, Equalizer
++from .night_duo import her_theme as _her_theme      # 1.1 N1duo
++
++bt = _her_theme(bt)      # 1.1 N1duo: in Night: Duo her column is an amber tube (night_duo); in any other look, boss_theme itself
+ 
+ # Her words here: fixed templates (mind_words.check: no exclamation mark, no sentence over 30 words, no digit in the fixed
+ # words, every number through a slot that names its record). 1.1 KV: in her voice (kas_voice): short, dry, sure only of
+diff --git a/workbench/kas_panel_qt.py b/workbench/kas_panel_qt.py
+index 7b504e3..12cc6ca 100644
+--- a/workbench/kas_panel_qt.py
++++ b/workbench/kas_panel_qt.py
+@@ -112,6 +112,7 @@ def chip_state(column, waiting=0):
+ 
+ def shape_colour(state, c):
+     """The third cue only: the shape's colour in the bar's tokens."""
++    if tokens.is_duo(c):return c['kas_text'] if state != 'idle' else c['kas_quiet']      # 1.1 N1duo: her chip is amber, the shape says the state
+     return {'working': c['live'], 'awaiting_approval': c['waiting'], 'completed': c['live'], 'blocked': c['danger'],
+             'held': c['danger']}.get(state, c['secondary'])
+ 
+@@ -161,11 +162,11 @@ class KasChip(bar_qt.BarButton):
+         r = self.ground(p, c, active=self.slot.ctl.panel_open())
+         if state == 'awaiting_approval':      # what waits: a tint of its colour under the chip, with the shape and the word
+             bar_qt.plate(p, r, tokens.over(c['waiting'], c['sidebar'], tokens.TINT['waiting']))
+-        x = pad;font = bar_qt.bar_font(h, QFont.DemiBold);p.setFont(font);p.setPen(QColor(c['text']))
++        x = pad;font = bar_qt.bar_font(h, QFont.DemiBold);p.setFont(font);p.setPen(QColor(c['kas_text']))      # 1.1 N1duo: amber in Duo
+         p.drawText(QRect(x, 0, w, h), Qt.AlignLeft | Qt.AlignVCenter, 'Kas')
+         x += QFontMetrics(font).horizontalAdvance('Kas') + gap
+         paint_shape(p, QRectF(x, (h - side) / 2.0, side, side), state, shape_colour(state, c))
+-        x += side + 5;p.setFont(word_font);p.setPen(QColor(c['text'] if state == 'awaiting_approval' else c['secondary']))
++        x += side + 5;p.setFont(word_font);p.setPen(QColor(c['kas_text'] if state == 'awaiting_approval' else c['kas_quiet']))      # 1.1 N1duo
+         p.drawText(QRect(x, 0, w - x, h), Qt.AlignLeft | Qt.AlignVCenter, word)
+         if self.slot.ctl.panel_open():p.fillRect(QRectF(6, h - 5, w - 12, 2), QColor(c['accent']))      # open: the accent rule, as an active window's
+         p.end()
+@@ -212,7 +213,7 @@ class HaltOnBar(halt_qt.HaltButton):
+         w, h = self.width(), self.height();r = QRectF(2.5, 6.5, w - 5, h - 13)
+         fill = c['pressed'] if self.isDown() else (c['hover_side'] if self.underMouse() else c['sidebar'])
+         inverse = bar_qt.inverse(c)      # 1.1 N1: Night: HALT is inverse video, a block of the phosphor with its sign and word in the ground
+-        if inverse:fill = c['secondary'] if self.isDown() else c['accent_fill'];marks = dict(marks, HALT=c['on_accent'], HALT_HELD=c['on_accent'])
++        if inverse:fill = c['kas_quiet'] if self.isDown() else c['accent_fill'];marks = dict(marks, HALT=c['on_accent'], HALT_HELD=c['on_accent'])      # 1.1 N1duo: pressed, her quiet amber
+         p.setPen(QPen(QColor(c['stroke_strong'] if self.underMouse() else c['stroke']), 1));p.setBrush(QColor(fill))
+         p.drawRoundedRect(r, tokens.RADIUS['control'], tokens.RADIUS['control'])
+         side = round(h * 0.34);x = self.pad(h);cy = h / 2.0;path = QPainterPath()
+@@ -295,9 +296,16 @@ class KasPanel(QWidget):
+         """Her column comes in: the window's own look (its style sheet, palette and type) comes with it."""
+         host = self.ctl.host
+         sheet = host.styleSheet()
++        c = bar_qt.ink()
++        if tokens.is_duo(c):sheet += '\nQWidget {color:%s;}\nQWidget:disabled {color:%s;}' % (c['kas_text'], c['disabled'])      # 1.1 N1duo: her words, amber
+         if self.styleSheet() != sheet:self.setStyleSheet(sheet)
+         self.setPalette(host.palette());self.setFont(host.font())
++        try:      # 1.1 N1duo: her panel is a second tube, amber (crt_qt)
++            from . import crt_qt;crt_qt.attach_kas(self)
++        except Exception:  # noqa: BLE001 - an effect, never a reason her column does not come in
++            pass
+         pane.setParent(self);self.layout().addWidget(pane, 1);pane.show()
++        from .night_duo import amber_words;amber_words(self)      # 1.1 N1duo: her tube's words, amber
+ 
+     def band(self):
+         """(open rect, closed x): 380 px at the right edge of the screen, from its top to the bar."""
+@@ -310,6 +318,7 @@ class KasPanel(QWidget):
+ 
+     def slide_in(self):
+         rect, off = self.band();self.opened = True;self.anim.stop()
++        from .night_duo import amber_words;amber_words(self)      # 1.1 N1duo: what came since, amber too
+         self.setFixedSize(rect.size())
+         if not self.marked:self.marked = mark_everywhere(self.winId())
+         if reduce_motion(self.ctl.host):
+@@ -336,8 +345,11 @@ class KasPanel(QWidget):
+             rect, _ = self.band();self.setFixedSize(rect.size());self.move(rect.topLeft())
+ 
+     def paintEvent(self, event):
+-        c = bar_qt.ink();p = QPainter(self);p.fillRect(self.rect(), QColor(c['surface']))
+-        p.fillRect(0, 0, 1, self.height(), QColor(c['stroke']));p.end()
++        c = bar_qt.ink();p = QPainter(self);p.fillRect(self.rect(), QColor(c['kas_ground'] if tokens.is_duo(c) else c['surface']))      # 1.1 N1duo
++        p.fillRect(0, 0, 1, self.height(), QColor(c['stroke']))
++        if tokens.is_duo(c):      # 1.1 N1duo: the bezel of her tube: a grey line, then a faint amber one inside it
++            glow = QColor(c['kas_text']);glow.setAlpha(70);p.fillRect(0, 0, 1, self.height(), QColor(c['stroke_strong']));p.fillRect(2, 0, 1, self.height(), glow)
++        p.end()
+ 
+ 
+ # ---- her card -------------------------------------------------------------------------------------------------------------------
+@@ -366,9 +378,9 @@ class CardRow(QFrame):
+         self.mark.set(key, c['waiting']);self.word.setText(sw.word(key).upper() if key == 'held' else sw.word(key))
+         self.word.setStyleSheet('color:%s;font-family:"%s";font-size:11px;font-weight:600;letter-spacing:1px;' % (c['waiting_text'], tokens.FONT['mono']))
+         self.title.setText(title);self.title.setVisible(bool(title))
+-        self.title.setStyleSheet('color:%s;font-size:12px;' % c['secondary'])
++        self.title.setStyleSheet('color:%s;font-size:12px;' % c['kas_quiet'])      # 1.1 N1duo: her card's words in amber
+         fm = QFontMetrics(self.title.font());self.title.setText(fm.elidedText(title, Qt.ElideRight, 200));self.title.setToolTip(title)
+-        self.words.setText(words);self.words.setVisible(bool(words));self.words.setStyleSheet('color:%s;font-size:13px;' % c['text'])
++        self.words.setText(words);self.words.setVisible(bool(words));self.words.setStyleSheet('color:%s;font-size:13px;' % c['kas_text'])      # 1.1 N1duo
+         self.press.setText(press);self.press.setToolTip(tip)
+         self.setAccessibleName('%s: %s. %s' % (sw.word(key), title, words))
+ 
+@@ -418,7 +430,7 @@ class WaitCard(QFrame):
+                 c['surface'], c['stroke_strong'], tokens.RADIUS['toast'], c['surface'], c['stroke'], c['waiting'],
+                 c['accent_fill'], c['on_accent'], c['accent'], c['raised'], c['disabled'], c['accent_text']))
+         self.head.setStyleSheet('color:%s;font-family:"%s";font-size:12px;font-weight:600;letter-spacing:1px;' % (c['waiting_text'], tokens.FONT['mono']))
+-        self.more.setStyleSheet('color:%s;font-size:12px;' % c['secondary']);self.said.setStyleSheet('color:%s;font-size:13px;' % c['text'])
++        self.more.setStyleSheet('color:%s;font-size:12px;' % c['kas_quiet']);self.said.setStyleSheet('color:%s;font-size:13px;' % c['kas_text'])      # 1.1 N1duo
+         self.mark.set('needs_word', c['waiting'])
+ 
+     # -- hearing
+diff --git a/workbench/night_duo.py b/workbench/night_duo.py
+new file mode 100644
+index 0000000..36be42e
+--- /dev/null
++++ b/workbench/night_duo.py
+@@ -0,0 +1,64 @@
++"""Graphite 1.1 N1duo · Night: Duo, her tube: her column seen through amber.
++
++The owner, 28 Nov 2026: "both the orange and green working together with grey (like screen burns)". In Night: Duo green is
++the computer and amber is Kas and the owner's word (design_tokens._duo_colours). Her column draws itself from boss_theme's
++roles (TEXT, QUIET, READY, ...), which are the computer's green in Duo. Here her column is handed a view of boss_theme in
++which the roles of words and of her state are amber, so her panel reads as a second, amber tube beside the green one. The
++grey of the past (FAINT, the lines) and every other role are boss_theme's own, read at the moment they are asked for. In any
++other look her column gets boss_theme itself. Sections built from boss_theme directly are put in amber when her column
++comes into her panel (amber_words).
++"""
++from __future__ import annotations
++
++from . import design_tokens as tokens
++
++# role -> the token it is in her tube (Night: Duo only)
++HER_ROLES = dict(TEXT='kas_text', QUIET='kas_quiet', READY='kas_text', TEAL='kas_text', TEAL_EDGE='kas_text', TEAL_TEXT='kas_text',
++                 TEAL_SOFT='waiting_tint', CUE='waiting_tint', CUE_EDGE='kas_text', CUE_TEXT='kas_text', ROYAL='kas_text',
++                 ROYAL_INK='kas_text', ROYAL_TEXT='kas_text', ROYAL_SOFT='waiting_tint', PANEL='kas_ground', VIOLET='kas_quiet',
++                 VIOLET_PALE='kas_text', ERASED='kas_text', ERASED_QUIET='kas_quiet')
++
++
++class HerTube:
++    """boss_theme as her column sees it in Night: Duo: the roles in HER_ROLES amber, every other name boss_theme's own."""
++
++    def __init__(self, theme, colours):
++        self.__dict__['_theme'] = theme
++        self.__dict__['_over'] = {role: colours[key] for role, key in HER_ROLES.items()}
++
++    def __getattr__(self, name):
++        over = self.__dict__['_over']
++        return over[name] if name in over else getattr(self.__dict__['_theme'], name)
++
++    def __setattr__(self, name, value):
++        setattr(self.__dict__['_theme'], name, value)
++
++
++def her_theme(theme):
++    """Her column's boss_theme: HerTube in Night: Duo, else the theme itself."""
++    if not getattr(theme, 'PHOSPHOR', ''):return theme
++    c = tokens.colours('night')
++    return HerTube(theme, c) if tokens.is_duo(c) else theme
++
++
++def amber_words(panel, c=None):
++    """Night: Duo: what her panel holds that was styled in the computer's green (a section built from boss_theme itself) is
++    put in her amber: each style sheet's green words become her words, its green tint her tint. Called when her column comes
++    into the panel and each time the panel opens. Returns how many widgets changed; nothing outside Duo."""
++    c = c or tokens.colours('night')
++    if not tokens.is_duo(c):return 0
++    from PySide6.QtWidgets import QWidget
++    swaps = ((c['text'], c['kas_text']), (c['secondary'], c['kas_quiet']), (c['live_tint'], c['waiting_tint']))
++    changed = 0
++    for widget in [panel] + panel.findChildren(QWidget):
++        sheet = widget.styleSheet()
++        if not sheet:continue
++        new = sheet
++        for green, amber in swaps:new = new.replace(green, amber).replace(green.upper(), amber)
++        if new != sheet and widget is not panel:
++            widget.setStyleSheet(new);changed += 1
++            ink = widget.property('herInk')
++            if ink:
++                for green, amber in swaps:ink = str(ink).replace(green, amber).replace(green.upper(), amber)
++                widget.setProperty('herInk', ink)
++    return changed
+diff --git a/workbench/night_phosphor.py b/workbench/night_phosphor.py
+index 6cf0b08..a21fe15 100644
+--- a/workbench/night_phosphor.py
++++ b/workbench/night_phosphor.py
+@@ -18,11 +18,11 @@ import json
+ import os
+ 
+ PHOSPHOR_KEY, CRT_KEY = 'phosphor', 'crt'
+-PHOSPHORS = (('amber', 'Night: Amber'), ('green', 'Night: Green'))
+-PHOSPHOR_DEFAULT = 'amber'
++PHOSPHORS = (('duo', 'Night: Duo'), ('amber', 'Night: Amber'), ('green', 'Night: Green'))      # 1.1 N1duo: Duo, green and amber with grey
++PHOSPHOR_DEFAULT = 'duo'      # 1.1 N1duo: the default Night (N1: amber); a phosphor the owner chose and saved is kept
+ CRT_LEVELS = (('off', 'Off'), ('subtle', 'Subtle'), ('full', 'Full'))
+ CRT_DEFAULT = 'subtle'
+-ASKED_LOOKS = {'night-amber': 'amber', 'night-green': 'green'}      # GRAPHITE_APPEARANCE words that name a phosphor
++ASKED_LOOKS = {'night-duo': 'duo', 'night-amber': 'amber', 'night-green': 'green'}      # 1.1 N1duo: night-duo      # GRAPHITE_APPEARANCE words that name a phosphor
+ 
+ 
+ def phosphor_value(value):
+@@ -50,7 +50,7 @@ def _saved(key, environ=None, path=None):
+ 
+ 
+ def chosen_phosphor(environ=None, path=None):
+-    """'amber' or 'green': GRAPHITE_PHOSPHOR, else a phosphor named in GRAPHITE_APPEARANCE, else the session's, else Amber."""
++    """'duo', 'amber' or 'green': GRAPHITE_PHOSPHOR, else a phosphor named in GRAPHITE_APPEARANCE, else the session's, else Duo."""
+     environ = os.environ if environ is None else environ
+     wanted = str(environ.get('GRAPHITE_PHOSPHOR', '')).strip().lower()
+     if phosphor_value(wanted):return wanted

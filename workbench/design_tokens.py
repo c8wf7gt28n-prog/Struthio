@@ -50,11 +50,12 @@ COLOUR = {
 #   (A step a little above the lowest that passes, so the CRT effects' scanline and vignette, crt_qt, never take a word under.)
 # What is selected, the pressed button, the active window on the bar, HALT and anything destructive are inverse video: a
 # block of the phosphor with words in the ground. State colours become the phosphor; every state keeps its word and shape.
-PHOSPHORS = ('amber', 'green')
-PHOSPHOR_DEFAULT = 'amber'
+PHOSPHORS = ('duo', 'amber', 'green')      # 1.1 N1duo: Duo first, the default
+MONO_PHOSPHORS = ('amber', 'green')        # 1.1 N1duo: the two one-hue monitors N1 built, kept as choices
+PHOSPHOR_DEFAULT = 'duo'      # 1.1 N1duo (N1: amber)
 PHOSPHOR = [PHOSPHOR_DEFAULT]      # the phosphor in force: boss_theme sets it once, at its import, as it chooses the look
 IN_FORCE = ['day']                 # the look in force (boss_theme sets it too): face() reads it
-PHOSPHOR_WORDS = {'amber': 'Amber', 'green': 'Green'}
+PHOSPHOR_WORDS = {'duo': 'Duo', 'amber': 'Amber', 'green': 'Green'}      # 1.1 N1duo: Duo
 NIGHT_GROUND = '#0a0a08'
 # phosphor: (full, secondary share, tertiary share, disabled share)
 PHOSPHOR_INK = {'amber': ('#ffb000', 220, 200, 130), 'green': ('#33ff66', 205, 180, 115)}
@@ -73,6 +74,36 @@ def _phosphor_colours(name):
         danger=full, danger_text=full, on_danger=g,
         recheck=lay(second), violet_text=lay(second),
         shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 160),
+    )
+
+
+# ------------------------------------------------------------- 1.1 N1duo: Night: Duo, two phosphors and the grey of the past
+# The owner, 28 Nov 2026: "But both the orange and green working together with grey (like screen burns)". One system:
+#   GREEN is the computer: files, text, lists, the tree, the board, the terminal, the system pages, the meters.
+#   AMBER is Kas and the owner's word: her chip, panel, words and cards, Waits for you, HALT, the selected row and the
+#         pressed button (inverse video in amber), the bar's active window, the focus.
+#   GREY  is the past: the burn-in ghosts, what is disabled, tertiary words, lines and borders.
+# The panels' grounds are the grey laid faintly over the near-black, so neither phosphor tints the other's words; her panel
+# is a second tube with a ground a shade warmer (kas_ground, amber 6 %). Measured by tests_integrated/test_night_phosphor.py:
+#   green words 14.8:1 on the ground, secondary 9.6:1; amber 10.8:1, her quiet 8.1:1; grey tertiary 7.6:1; 5 : 1 or more
+#   on every tint and under Full's scanline and vignette.
+DUO_INK = dict(computer='#33ff66', kas='#ffb000', past='#a3a39b')
+
+
+def _duo_colours():
+    g, green, amber, grey = NIGHT_GROUND, DUO_INK['computer'], DUO_INK['kas'], DUO_INK['past']
+    lay = lambda colour, share: over(colour, g, share);r, gg, b = rgb(grey)
+    return dict(
+        window=g, surface=lay(grey, 12), sidebar=lay(grey, 8), raised=lay(grey, 22), pressed=lay(amber, 40), terminal='#080806',
+        hairline=(r, gg, b, 46), stroke=(r, gg, b, 80), stroke_strong=(r, gg, b, 150),
+        text=green, secondary=lay(green, 205), tertiary=grey, disabled=lay(grey, 150),
+        accent=amber, accent_text=amber, accent_fill=amber, on_accent=g,
+        live=green, live_text=green, on_live=g,
+        waiting=amber, waiting_text=amber, on_waiting=g,
+        danger=amber, danger_text=amber, on_danger=g,
+        recheck=lay(green, 205), violet_text=lay(green, 205),
+        shadow=(0, 0, 0, 255), scrim=(0, 0, 0, 160),
+        kas_text=amber, kas_quiet=lay(amber, 220), kas_ground=lay(amber, 15), burn=grey, halt=amber, peak=amber,
     )
 
 
@@ -190,11 +221,12 @@ def rgba(colour, alpha=None):
     return 'rgba(%d, %d, %d, %d)' % (r, g, b, a if alpha is None else alpha)
 
 
-COLOUR.update(('night-' + _name, _phosphor_colours(_name)) for _name in PHOSPHORS)      # 1.1 N1
+COLOUR.update(('night-' + _name, _phosphor_colours(_name)) for _name in MONO_PHOSPHORS)      # 1.1 N1
+COLOUR['night-duo'] = _duo_colours()      # 1.1 N1duo
 
 
 def look_of(look):
-    return 'night' if str(look) in ('night', 'night-amber', 'night-green') else 'day'      # 1.1 N1: a phosphor's name is Night
+    return 'night' if str(look) in ('night',) + tuple('night-' + n for n in PHOSPHORS) else 'day'      # 1.1 N1 (N1duo: night-duo): a phosphor's name is Night
 
 
 def colours(look):
@@ -220,7 +252,14 @@ def colours(look):
     # (a block of the phosphor, the words in the ground) in Night; the selection's tint and the plain words in Day.
     night = look_of(look) == 'night'
     c.update(active_plate=c['accent_fill'] if night else c['selection_side'], on_active=c['on_accent'] if night else c['text'])
+    for key, same in (('kas_text', 'text'), ('kas_quiet', 'secondary'), ('kas_ground', 'sidebar'), ('burn', 'text'), ('halt', 'live'), ('peak', 'live')):
+        c.setdefault(key, c[same])      # 1.1 N1duo: her words, her ground, the burn's grey, HALT, a meter's peak: their own only in Duo
     return c
+
+
+def is_duo(c):
+    """1.1 N1duo: whether a look's colours (colours()) are Night: Duo's, where Kas and the computer have phosphors of their own."""
+    return c.get('kas_text') != c.get('text')
 
 
 # Every pair of words and the ground they are laid on, by token name: (words, ground, where). Measured by the builder
@@ -243,6 +282,7 @@ DISABLED_PAIRS = [('disabled', g, 'inactive control') for g in _GROUNDS]
 # checked control in the style sheet, the active window on the bar, HALT). Measured by tests_integrated/test_night_phosphor.py
 # for both phosphors. The bar's own buttons, pressed, lay a tint (pressed, 16 % of the phosphor) under their phosphor words.
 NIGHT_PAIRS = TEXT_PAIRS + [('on_accent', g, 'inverse video') for g in ('accent_fill', 'active_plate', 'danger', 'live', 'waiting')]
+NIGHT_PAIRS += [(ink, g, 'her words, on her tube') for ink in ('kas_text', 'kas_quiet', 'tertiary') for g in _GROUNDS + ('kas_ground', 'waiting_tint')]      # 1.1 N1duo
 
 
 # ------------------------------------------------------------------------------- the roles boss_theme draws with
@@ -275,10 +315,10 @@ def marks(look):
     and said "not verified"), the rings round the focus (RING_BLUE accent 9 %, RING_GREEN live 11 %), HALT's triangle (the
     live green in both: red in Night would read as an error), the shadow under a tile (SHADOW, drawn with ELEVATION's alpha),
     and the equalizer's colours (EQ_LOW, EQ_MID accent, EQ_HIGH live, EQ_HOT waiting)."""
-    c = colours(look)
+    c = colours(look);meter = c['live'] if is_duo(c) else c['accent']      # 1.1 N1duo: Duo's meters are the computer's green
     return dict(WIRE=c['wire'], WIRE_SOFT=c['wire_soft'], WIRE_WORDS=c['accent_text'], RING_BLUE=c['ring_accent'], RING_GREEN=c['ring_live'],
-                HALT=c['live'], HALT_HELD=c['waiting'], SHADOW=c['text'] if look_of(look) == 'day' else '#000000',
-                EQ_LOW=over(c['accent'], c['surface'], 120), EQ_MID=c['accent'], EQ_HIGH=c['live'], EQ_HOT=c['waiting'],
+                HALT=c['halt'], HALT_HELD=c['waiting'], SHADOW=c['text'] if look_of(look) == 'day' else '#000000',      # 1.1 N1duo: HALT amber in Duo
+                EQ_LOW=over(meter, c['surface'], 120), EQ_MID=meter, EQ_HIGH=c['live'], EQ_HOT=c['peak'],      # 1.1 N1duo: green bars, an amber peak
                 SELECTION=c['selection'], HOVER=c['hover'], FOCUS_RING=c['focus_ring'])
 
 
@@ -377,7 +417,7 @@ QScrollBar::add-line, QScrollBar::sub-line {width:0; height:0; border:0; backgro
 QScrollBar::add-page, QScrollBar::sub-page {background:transparent;}
 QCheckBox, QRadioButton {color:%(text)s; spacing:8px;}
 QProgressBar {background:%(raised)s; border:0; border-radius:3px; color:%(text)s; text-align:center; max-height:6px;}
-QProgressBar::chunk {background:%(live)s; border-radius:3px;}
+QProgressBar::chunk {background:%(accent)s; border-radius:3px;}
 QSplitter::handle {background:%(hairline)s;}
 QMainWindow::separator {background:%(hairline)s; width:1px; height:1px;}
 QToolButton#MoreMenus, QToolButton#HeadMenu, QToolButton#BossPrograms, QToolButton#SystemMenu {
@@ -401,6 +441,7 @@ QFrame#GraphiteToast {border-radius:%(RT)dpx;}
 ''' % v + (PHOSPHOR_SHEET % v if night else '')      # 1.1 N1
 
 
+# 1.1 N1duo: the progress bar's chunk is a meter: the computer's (live) colour, the phosphor in Amber and Green.
 # 1.1 N1: the phosphor Night's last word: inverse video for the selected row, the pressed and the checked button and the
 # menu's row; the chrome in the fixed-width face, long prose (a page, her answers) in Inter.
 PHOSPHOR_SHEET = '''
@@ -413,6 +454,6 @@ QTreeView::item:selected, QListView::item:selected {background:%(accent_fill)s; 
 QTreeView, QTreeWidget, QListView, QListWidget, QTableView, QTableWidget {selection-background-color:%(accent_fill)s; selection-color:%(on_accent)s;}
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateTimeEdit, QPlainTextEdit, QTextEdit, QTextBrowser {selection-background-color:%(accent_fill)s; selection-color:%(on_accent)s;}
 QToolButton#MoreMenus:pressed, QToolButton#HeadMenu:pressed {background:%(accent_fill)s; color:%(on_accent)s;}
-QProgressBar::chunk {background:%(accent)s;}
+QProgressBar::chunk {background:%(live)s;}
 '''
 
