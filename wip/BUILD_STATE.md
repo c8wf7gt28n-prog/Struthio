@@ -78,6 +78,10 @@ rules holding you back".
     `bash wip/build_tools/merge_one.sh $S/work/b110 wip/2026-11-27_distribution/saved KEY AGENTID > log 2>&1; rc=$?`.
   * **Saving:** run the loop from a COPY so an edit of the script never breaks the running loop (it did at 04:00 on 28 Nov): `cp wip/build_tools/save_dist.sh $S/work/save_dist_running.sh; bash $S/work/save_dist_running.sh loop` every 5 minutes (it now carries the builders' patches, notes
     and results into `partial/b110/`); restart the loop whenever it ends; commit and push at every milestone.
+- **07:44 UTC: the owner: "We got 9% weekly left babe. Let's swing".** So: C0 (a real terminal; agent a814611a3d1e991ed,
+  resumed) and B5 (a quieter bar; agent a7e3d385b9ace247f) run lean for **1.1.2**. When both land: merge, rebuild the
+  repository (C0 adds xterm as a Depends: tools/build_repo.sh as in `$S/work/r111/build.sh`), version 1.1.2, short notes,
+  cut, release check, send the whole kit. If the limit stops them, their saves are in `$S/work/b110/` and partial/b110/.
 - **GRAPHITE 1.1.1 RELEASED (07:41 UTC, 28 Nov): the system door.** KS3 merged (a94a1fe); version 1.1.1 (6d0fcc4);
   the repository rebuilt with tools/build_repo.sh (425 packages, with packagekit, accountsservice, lxpolkit, polkitd);
   release check PASSED (1,650 files); the whole new kit (39 files) sent with `docs/RELEASE_NOTES_1.1.1.md`; record
