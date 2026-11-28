@@ -480,6 +480,14 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 28 Nov 02:45 UTC: **1.1 PK1 merged** (d094ade: four Debian packages from `tools/build_deb.sh`; a folder repository
+  and a kit in ZIPs under 15 MB with JOIN.sh and install.sh; a two-stage page, the login screen optional; the doctor
+  accepts Debian's versions. Acceptance passed in a Debian 13.8 chroot with the System set and no network; 14 new
+  tests). The kit PK1 built is at `$S/work/b110/PK1/kit/` (464 MB, 45 files) but predates two small fixes
+  (`Type=Application` in the xsession entry; firmware-misc-nonfree dropped): **rebuild it at the cut** with
+  `tools/build_deb.sh`, `tools/build_repo.sh`, `tools/build_kit.sh` from the merged commit (about 3 minutes plus
+  packing; needs deb.debian.org). Scratch cleaned to 75 %. Running: T1, W1. Next: KV after T1.
+
 - 28 Nov 02:25 UTC: **The 5-hour limit cut all three panels at about 22:45 on 27 Nov** (2.1 M tokens; 3 of 22 agents
   returned); reset 01:50. The owner asked for saves every 5 minutes and for releases as they are ready, within the
   weekly limit. Done: the saver at 5 minutes (and carrying builders' patches); **PLAN_1.1.md and
