@@ -143,6 +143,11 @@ rules holding you back".
   * **Preview 3 building:** KS1 (recipes; agent a0533732a4c03c9fd), T2 (the tiers; agent ad78ac2c39a175988) and B4 (one line, the drop-down Terminal, Command..., Win+K and Pause; agent aa1a6b783f2a3dbf4, launched 03:49; a new slice in PLAN_1.1 §5).
     Next: KS2 (the command tool), KS3 (the system door), KS4 (grounding and "teach me"); the foot folded into the bar's
     line with a drop-down Terminal; "Command..." (K0's (d)); Win+K and Pause from other apps (B3's not_done).
+  * **KS1 merged (30fa88d, 04:12):** 40 recipes, 25 Kernel operations; one conflict in kas_voice.py (both sides
+    added lines: kept both); the manifest carries the 40 recipe files; 52 tests (recipes, voice, Kas on the bar, the
+    line) pass on a copy. Frames sent. KS1's open items for later: a RECIPES heading in the line, RECIPE primed at
+    Ready, her talk area at 1366 is about 90 px. **KS2 launched 04:14** (agent a88c9be1a1b3a34f3: the command tool,
+    its brief carries the full scope). Running: T2, B4, KS2.
   * **Preview 2 building (done):** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
     agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
