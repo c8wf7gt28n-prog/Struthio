@@ -86,6 +86,12 @@ rules holding you back".
   then B5 (a quieter bar); wire KS2's root refusals to KS3's system_door.offer and restore its words; **rebuild the
   repository with tools/build_repo.sh** (KS3: polkit, an agent, PackageKit; C0: xterm or pyte); cut with cut_pre.sh
   (base `$S/work/rel11/kit/`) or build_kit.sh for the rebuilt repository; send.
+- **07:33 UTC: the owner, delighted with 1.1 ("Grrr baby, very grrr!!!"), says about 10 % of the week is left.** So only
+  KS3 (the system door, nearly done: 12/13 of its tests) keeps running, asked to finish lean; C0 and KS4 (barely begun;
+  their designs are in their progress notes: C0 embeds xterm -into the drop-down with a Graphite bash rc for DOS words;
+  KS4 plans man_index.py, teach_me.py) were STOPPED and wait for next week. When KS3 lands: merge, wire nothing else,
+  rebuild the repository (tools/build_repo.sh, as PK1 did; KS3's result lists the new packages), cut 1.1.1, send it.
+  If the limit stops KS3 first: next week, SendMessage it (or a new builder from partial/b110/KS3.*).
 - **THE OWNER, 28 NOV ~07:16: "You have complete freedom. Just do a full release before I'm cut off for the week".**
   So, now: **cut Graphite 1.1 from what is merged** (previews 1-3 and KS2), version '1.1', full release notes, the
   whole kit (45 files) and the finished talk sent. KS3 (agent ae5e42fdc7d044a11), C0 (a814611a3d1e991ed) and KS4
