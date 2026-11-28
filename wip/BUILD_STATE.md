@@ -89,6 +89,11 @@ rules holding you back".
   own repository on the 1.0 System set; every kas-* command present; kas-computer --version says Kas 1.1.6;
   graphite-startx names kas-startx; kas-doctor accepts Debian's PySide6). Log in `wip/2026-11-28_release_116/`.
   When HX lands: merge, 1.1.7, cut_pre.sh, send.
+- **KAS 1.1.7 RELEASED (09:46 UTC): Night's hero touches** (HX, 6596be4: the seven-segment clock, her lines typed out,
+  amber peak marks, Night: Paper). Cut from 7d12b32; release check PASSED (1,667 files); 18 files sent with a frame;
+  record `wip/2026-11-28_release_117/`; base kit `$S/work/r117/kit/`. The hour-long talk on Kas was written and sent
+  (`wip/2026-11-28_TALK_kas_hour.md`). Open for next week, first in the look: in Night Duo her answer bubbles' words
+  draw green, not amber (theme2.QSS2's QFrame#SlateTheirs and night_hero's typing colour).
 - **KAS 1.1.6 RELEASED (09:32 UTC): paper-white grey joins amber and green** (the owner: "And possibly greys in
   addition to orange and green if it fits the theme"; design_tokens.DUO_INK['paper'] #c9d1d3 as Duo's secondary: the
   machine's labels). Cut from 99a297f; release check PASSED (1,665 files); 18 files sent with a swatch of the four

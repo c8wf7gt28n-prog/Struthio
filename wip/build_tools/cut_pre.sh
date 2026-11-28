@@ -1,12 +1,12 @@
 #!/bin/bash
 # cut_pre.sh COMMIT OUT [BASE_KIT]: cut a Graphite 1.1 preview kit from COMMIT.
-# It reuses the Debian 13 packages of an earlier kit (default: the last kit sent, $S/work/r116/kit), so no chroot and no
+# It reuses the Debian 13 packages of an earlier kit (default: the last kit sent, $S/work/r117/kit), so no chroot and no
 # network are needed: the earlier kit is joined, Graphite's own four packages in it are replaced by ones built from
 # COMMIT, the folder repository is indexed again, and the kit is packed (every file under 15,000,000 bytes).
 # Use a fresh chroot build (tools/build_repo.sh) instead when a slice changes what Graphite's packages depend on.
 set -euo pipefail
 S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad
-PY=$S/work/venv/bin/python; COMMIT=$1; OUT=$2; BASE=${3:-$S/work/r116/kit}          # the last kit sent (Kas 1.1.6)
+PY=$S/work/venv/bin/python; COMMIT=$1; OUT=$2; BASE=${3:-$S/work/r117/kit}          # the last kit sent (Kas 1.1.7)
 [ -f "$BASE/PIECES.sha256" ] || { echo "no earlier kit in $BASE"; exit 2; }
 case "$BASE/" in "$OUT"/*) echo "OUT ($OUT) holds the base kit ($BASE): choose another OUT"; exit 2;; esac
 rm -rf "$OUT"; mkdir -p "$OUT/src" "$OUT/debs"
