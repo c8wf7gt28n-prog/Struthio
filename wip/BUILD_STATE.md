@@ -82,6 +82,13 @@ rules holding you back".
   resumed) and B5 (a quieter bar; agent a7e3d385b9ace247f) run lean for **1.1.2**. When both land: merge, rebuild the
   repository (C0 adds xterm as a Depends: tools/build_repo.sh as in `$S/work/r111/build.sh`), version 1.1.2, short notes,
   cut, release check, send the whole kit. If the limit stops them, their saves are in `$S/work/b110/` and partial/b110/.
+- **KAS 1.1.4 RELEASED (09:21 UTC): Kas, only Kas (R1, d32c590) and Night Duo (ea4d2cf).** Cut from 491f2fa; release
+  check PASSED (1,663 files); the whole kit (39 files, KAS_NNN.zip) sent with `docs/RELEASE_NOTES_1.1.4.md` and the
+  bar's frame; record `wip/2026-11-28_release_114/`; base kit `$S/work/r114/kit/` (cut_pre.sh now replaces kas-* and
+  graphite* packages). Fixed on the way: Night Duo's chooser said Kasandra; the kit tool joins pre-rename kits.
+  Untested: a real chroot install of the rename (apt's resolver only) and kas-startx. Next week, in order: the owner's
+  ThinkPad results; a chroot install of kas-*; the Night Duo hero extras (seven-segment clock, her typed lines, peak
+  marks); KS4 grounding; then C1-C3, Z1-Z4; next release drops the graphite-* command links.
 - **THE NAME (the owner, 28 Nov): "No more graphite. I hate that public name" / "No more anything it's kas. All of it.
   kas only kas. The other thing if there must be something else is computer".** From now on every visible name is
   **Kas** (and "computer" where the desktop is meant apart from her). New text, notes and frames say Kas. The rename

@@ -1,12 +1,12 @@
 #!/bin/bash
 # cut_pre.sh COMMIT OUT [BASE_KIT]: cut a Graphite 1.1 preview kit from COMMIT.
-# It reuses the Debian 13 packages of an earlier kit (default: the last kit sent, $S/work/r113/kit), so no chroot and no
+# It reuses the Debian 13 packages of an earlier kit (default: the last kit sent, $S/work/r114/kit), so no chroot and no
 # network are needed: the earlier kit is joined, Graphite's own four packages in it are replaced by ones built from
 # COMMIT, the folder repository is indexed again, and the kit is packed (every file under 15,000,000 bytes).
 # Use a fresh chroot build (tools/build_repo.sh) instead when a slice changes what Graphite's packages depend on.
 set -euo pipefail
 S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad
-PY=$S/work/venv/bin/python; COMMIT=$1; OUT=$2; BASE=${3:-$S/work/r113/kit}          # the last kit sent (Graphite 1.1.3)
+PY=$S/work/venv/bin/python; COMMIT=$1; OUT=$2; BASE=${3:-$S/work/r114/kit}          # the last kit sent (Kas 1.1.4)
 [ -f "$BASE/PIECES.sha256" ] || { echo "no earlier kit in $BASE"; exit 2; }
 case "$BASE/" in "$OUT"/*) echo "OUT ($OUT) holds the base kit ($BASE): choose another OUT"; exit 2;; esac
 rm -rf "$OUT"; mkdir -p "$OUT/src" "$OUT/debs"
@@ -26,10 +26,10 @@ print('earlier kit joined and checked')
 PY
 R=$OUT/base/repo
 gone=0; dest=""
-for p in graphite graphite-llama-runtime graphite-session graphite-desktop; do
+for p in kas-computer kas-llama-runtime kas-session kas-desktop graphite graphite-llama-runtime graphite-session graphite-desktop; do
   for old in $(find "$R" -name "${p}_*.deb"); do echo "replacing $(basename "$old")"; dest=$(dirname "$old"); rm -f "$old"; gone=$((gone+1)); done
 done
-[ "$gone" -eq 4 ] || { echo "expected 4 Graphite packages in the earlier kit, found $gone"; exit 4; }
+[ "$gone" -ge 4 ] || { echo "expected at least 4 of our packages in the earlier kit, found $gone"; exit 4; }
 cp "$OUT"/debs/*.deb "$dest/"
 n=$($PY -B "$OUT/src/tools/debian_pkg.py" index "$R" --label 'Graphite kit')
 { echo; echo "Preview cut $(date -u +%F): Graphite's four packages rebuilt as $V from commit $COMMIT; the Debian 13 packages are the earlier kit's."; } >> "$R/CLOSURE.txt"
