@@ -483,9 +483,22 @@ def rows(text, sources=None):
     found += command_rows(sources.commands(words))
     found = windows_rows(words) + in_sections(found)      # a Windows word's own place first, then the sections
     last = [] if any(r.kind in ('dos', 'terminal') for r in first) else terminal_rows(words, sources.which)
+    last += more_rows(words)  # 1.1 B4: rows a window adds (the folded foot's Search inside files and Search the web)
     ask = ask_row(words)
     if reads_as_hers(words, reading) and not first:return [ask] + found + last
     out = first + found + last + [ask]
+    return out
+
+
+MORE = []  # 1.1 B4: callables (words) -> [Row]: rows a window adds after the found ones (foot_fold_qt, once the foot folds)
+
+
+def more_rows(words):  # 1.1 B4
+    out = []
+    for fn in list(MORE):
+        try:out += list(fn(words) or [])
+        except Exception:  # noqa: BLE001 - 1.1 B4: a window's own rows never cost the line its rows
+            continue
     return out
 
 

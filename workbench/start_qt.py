@@ -629,6 +629,10 @@ def do(host, row, panel=None):
             return {'done': bool(QDesktopServices.openUrl(QUrl(url))), 'words': 'Opened in your browser.'}
         if kind == 'file':
             return open_file(host, target, row.extra.get('how', 'file'))
+        if getattr(host, 'foot_folded', False) and (kind in ('dos', 'terminal') or (kind == 'place' and target[0] == 'terminal')):  # 1.1 B4
+            from .drop_terminal_qt import run as run_in_terminal, terminal  # 1.1 B4: the Terminal drops over the app in front
+            if kind == 'place':terminal(host).drop();return {'done': True, 'words': 'The Terminal.'}  # 1.1 B4
+            run_in_terminal(host, target);return {'done': True, 'words': 'In the Terminal: %s' % target}  # 1.1 B4
         bring_forward(host)
         if kind == 'setting':
             host.ledger_bridge.show_settings(key=target);return {'done': True, 'words': 'Settings · %s' % row.title}

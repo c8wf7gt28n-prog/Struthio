@@ -1322,6 +1322,9 @@ def to_console(host, page, text):
     """Hand a typed line from the box to the console page it belongs to, and run it there. Only the page's own lead character
     is dropped (D3: in Shell a path such as /usr/bin/env or a pattern such as ?.txt is the shell's)."""
     console = getattr(host, 'console', None)
+    if page == 'shell' and getattr(host, 'foot_folded', False):  # 1.1 B4: the Terminal is the drop-down once the foot has folded
+        from .drop_terminal_qt import run as run_in_terminal  # 1.1 B4
+        return run_in_terminal(host, text)  # 1.1 B4
     if console is None:return host.shell2.run_stac(text) if page == 'stac' else None
     if console.mode != page:console.set_mode(page)  # changing page would forget an approval waiting for its second Enter
     console.open(focus=False)
@@ -3566,6 +3569,8 @@ class Shell2(QObject):
             install_kas_bar(host)  # 1.1 B3
             from .bar_qt import install as install_bar  # 1.1 B1: the bar at the bottom of the screen replaces 1.0's dock at the top
             install_bar(host)  # 1.1 B1
+            from .foot_fold_qt import install as install_one_line  # 1.1 B4: the drop-down Terminal's keys; the foot folds once the bar stands
+            install_one_line(host)  # 1.1 B4
         except ImportError:  # 1.0 S5
             pass
         from .app_files_qt import install as install_app_files

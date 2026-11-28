@@ -204,6 +204,7 @@ KEYS = {
     (Qt.Key_Backspace, Qt.NoModifier): 'back', (Qt.Key_A, Qt.ControlModifier): 'all', (Qt.Key_Z, Qt.ControlModifier): 'undo',
     (Qt.Key_Up, Qt.AltModifier): 'up', (Qt.Key_L, Qt.ControlModifier): 'address', (Qt.Key_D, Qt.AltModifier): 'address',
     (Qt.Key_B, Qt.ControlModifier): 'board',
+    (Qt.Key_Period, Qt.ControlModifier): 'command',  # 1.1 B4: Command… (the exact line it is or runs)
 }
 
 
@@ -610,6 +611,9 @@ class Explorer(QObject):
         if what == 'properties':
             from .windows_keys_qt import show_properties
             return show_properties(host, self.current_path() or (paths[0] if paths else self.folder))
+        if what == 'command':  # 1.1 B4: Command…, the exact line it is or runs (command_card_qt)
+            from .command_card_qt import show as show_command  # 1.1 B4
+            return show_command(host, self.current_path() or (paths[0] if paths else self.folder))  # 1.1 B4
         if what == 'read_again':self.reload();return say(host, 'Read again.')
         if what == 'back':return self.living.back()
         if what == 'up':
@@ -640,6 +644,7 @@ class Explorer(QObject):
             menu.addSeparator();add('Rename', 'F2', 'rename', len(paths) == 1);add('Delete', 'Delete', 'delete')
             add('Delete for good…', 'Shift+Delete', 'for_good');menu.addSeparator()
             copy_path = menu.addAction('Copy the path');copy_path.triggered.connect(lambda: QApplication.clipboard().setText('\n'.join(paths)))
+            add('Command…', 'Ctrl+.', 'command', len(paths) == 1)  # 1.1 B4: above Properties, the line it is or runs
             add('Properties', 'Alt+Enter', 'properties', len(paths) == 1)
         else:
             add('Paste', 'Ctrl+V', 'paste', bool(self.clipboard().paths))
@@ -650,7 +655,8 @@ class Explorer(QObject):
             for v in ex.VIEWS:
                 a = views.addAction(ex.VIEW_WORDS[v]);a.setCheckable(True);a.setChecked(v == self.view)
                 a.triggered.connect(lambda checked=False, v=v: self.set_view(v))
-            add('Read again', 'F5', 'read_again');add('Properties', 'Alt+Enter', 'properties')
+            add('Read again', 'F5', 'read_again');add('Command…', 'Ctrl+.', 'command')  # 1.1 B4: the folder's own line
+            add('Properties', 'Alt+Enter', 'properties')
         menu.exec(view.viewport().mapToGlobal(point))
         return menu
 

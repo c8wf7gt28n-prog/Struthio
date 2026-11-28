@@ -224,7 +224,7 @@ def rebuild(host):
         if key == '@recent' and hasattr(host, 'recent_menu'):menu.addMenu(host.recent_menu);return
         if key in ('@type_to', '@console_sizes'):  # the bar's own words, as checkable choices
             sub = QMenu('Writing Line' if key == '@type_to' else 'Console', host)  # D3: the line's four modes
-            for a in ([host.a_talk[k] for k in ('slate', 'shell', 'find', 'log')] if key == '@type_to' else host.a_sizes.values()):sub.addAction(a);placed.add(a)
+            for a in ([host.a_talk[k] for k in ('slate', 'shell', 'find')] if key == '@type_to' else host.a_sizes.values()):sub.addAction(a);placed.add(a)      # 1.1 B4: Log is View's (head_menus '@log')
             sub.aboutToShow.connect(host._menus_sync);menu.addMenu(sub);return
         if key == '@leave':
             from . import session_power as power

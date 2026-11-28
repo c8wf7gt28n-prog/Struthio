@@ -17,7 +17,7 @@ HEAD = ('File', 'Edit', 'View', 'Go', 'Tools', 'Help')
 VIEW = ['@details', '@views', None, 'inspector', '@slate_panel', None,
         'fullscreen', 'reading', '@appearance', '@artwork', '@buttons', 'prose_more', 'prose_less', None,
         'wrap', 'split_editor', 'pin', 'reopen', None,
-        '@console_sizes', '@cabinet', '@machine_refresh', None,
+        '@log', '@console_sizes', '@cabinet', '@machine_refresh', None,      # 1.1 B4: Log, the foot's Log mode, has its home in View
         '@show_keys', 'reset']
 GO = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda']
 TOOLS = ['@explore', 'discovery', 'algorithms', 'atlas', '@work_copy', '@utility', 'doctor', '@computer', '@pills', None,
@@ -26,7 +26,8 @@ TOOLS = ['@explore', 'discovery', 'algorithms', 'atlas', '@work_copy', '@utility
          'ledger_settings', '@dos_words', '@bin_name', None,
          '@engineering', '@service']
 COMMANDS = ['ledger_commands', '@run_operation', '@chain', '@chain_desk', '@type_to', 'palette']
-KEYS = frozenset(('@details', '@views', '@artwork', '@buttons', '@show_keys', '@commands', '@hand', '@dos_words', '@bin_name'))
+KEYS = frozenset(('@details', '@views', '@artwork', '@buttons', '@show_keys', '@commands', '@hand', '@dos_words', '@bin_name',
+                  '@log'))      # 1.1 B4: '@log'
 
 # Old place -> new place (the owner reads this table; the release notes carry it).
 MOVED = (
@@ -48,6 +49,7 @@ MOVED = (
     ('Properties: This Computer…, Pills and Paired Computers…', 'Tools'),
     ('Guide (every row: Getting Started … About Graphite)', 'Help'),
     ('new: Details pane (Alt+P), List, Icons, Board', 'View'),
+    ('Commands: Writing Line ▸ Log (Alt+6)', 'View ▸ Log'),      # 1.1 B4
 )
 
 
@@ -136,6 +138,9 @@ def add(host, menu, key, placed, groups):
         sub = _holder(host)['dos_words']
     elif key == '@bin_name':
         sub = _holder(host)['bin_name']
+    elif key == '@log':      # 1.1 B4: View ▸ Log (Alt+6), the same action as the foot's Log word; the Log in the working area once the foot folds
+        a = (getattr(host, 'a_talk', None) or {}).get('log')
+        if a is not None:menu.addAction(a);placed.add(a)
     elif key == '@commands':
         sub = groups.get('Commands')
         if sub is not None:sub.setTitle('Commands')

@@ -9,7 +9,8 @@ PLAN_1.1.md, W1 (a) to (c). windows_hand holds the settings, the file clipboard 
                    folders again; Backspace goes back; Ctrl+A chooses every row; Ctrl+Z takes the last change back.
   Properties       a small page: name, kind, size, dates, where it is, who may read and change it, what opens it. Esc closes.
   from any app     graphite-do (tools/graphite-do) speaks to the running window over a local socket of this user's
-                   ($XDG_RUNTIME_DIR/graphite-do.sock): apps, files, show, lock, tasks, screenshot, start, line. Fluxbox's
+                   ($XDG_RUNTIME_DIR/graphite-do.sock): apps, files, show, lock, tasks, screenshot, start, line (1.1 B4:
+                   terminal on Win+` and Ctrl+Alt+T, kas on Win+K, halt on Pause, none bringing Graphite forward). Fluxbox's
                    keys file, written by the session (LS_XSESSION.sh, graphite-do --write-keys), puts them on the Windows key
                    (Start, 1.1 B2), Win+R and Win+S (the line), Win+E, Win+D, Win+L, Ctrl+Alt+Del and PrintScreen; Alt+Tab
                    and Alt+F4 are Fluxbox's own NextWindow and Close.
@@ -31,7 +32,8 @@ from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLabel, QM
 
 from . import windows_hand as wh
 
-VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping', 'start', 'line')  # 1.1 B2: start (the Windows key), line (Win+R)
+VERBS = ('apps', 'files', 'show', 'lock', 'tasks', 'screenshot', 'ping', 'start', 'line',  # 1.1 B2: start (the Windows key), line (Win+R)
+         'terminal', 'kas', 'halt')  # 1.1 B4: the drop-down Terminal (Win+`, Ctrl+Alt+T), her panel (Win+K), HALT (Pause)
 SOCKET_NAME = 'graphite-do.sock'
 
 
@@ -259,6 +261,9 @@ def act(host, verb):
     if verb in ('start', 'line'):  # 1.1 B2: Start rises above the bar, over whichever app is in front (start_qt)
         from .start_qt import open_start
         return open_start(host, verb)
+    if verb in ('terminal', 'kas', 'halt'):  # 1.1 B4: over whichever app is in front; Graphite is not brought forward
+        from .foot_fold_qt import key_verb  # 1.1 B4
+        return key_verb(host, verb)  # 1.1 B4
     bring(host)
     if verb == 'show':return {'ok': True, 'words': 'Graphite is in front.'}
     if verb == 'apps':
