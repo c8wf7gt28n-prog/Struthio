@@ -9,9 +9,10 @@ are unchanged.
   python3 -m workbench.version
 """
 NAME = 'Kas'      # 1.1 R1: the public name (the owner, 28 Nov: "kas only kas"); identifiers keep graphite
-VERSION = '1.1.3'
-SHORT = '1.1.3'
-LINEAGE = ('1.1.3: Night as a phosphor monitor (Amber or Green on near-black, brightness the only hierarchy, inverse video, IBM Plex Mono for the chrome) with CRT effects (burn-in, afterglow, a warm-up line, scanlines, a vignette, a block cursor; Off, Subtle, Full); a quieter bar (one Quick Settings button with the meters; the menus at the left edge).',
+VERSION = '1.1.4'
+SHORT = '1.1.4'
+LINEAGE = ('1.1.4: Kas, only Kas (the owner: "No more graphite"): every visible name is Kas, "computer" where the desktop is meant apart from her; packages and commands kas-*; and Night Duo, the new default Night: green the computer, amber Kas and the owner\'s word, grey the burn, her panel a second amber tube.',
+           '1.1.3: Night as a phosphor monitor (Amber or Green on near-black, brightness the only hierarchy, inverse video, IBM Plex Mono for the chrome) with CRT effects (burn-in, afterglow, a warm-up line, scanlines, a vignette, a block cursor; Off, Subtle, Full); a quieter bar (one Quick Settings button with the meters; the menus at the left edge).',
            '1.1.2: a real terminal: the drop-down Terminal is xterm embedded, running the owner\'s shell (vim, top, less and sudo\'s prompt work), DOS words kept through a Graphite rc that reads ~/.bashrc first and never edits it.',
            '1.1.1: the system door: fifteen fixed system actions (software, services, the clock, the computer\'s name, standard accounts) through Debian\'s own services and polkit prompt, each shown first, started by the owner\'s press, read back before done, with Undo where the system allows; never her own step, never under a grant, never while HALT holds; packagekit and accountsservice in the kit.',
            '1.1: your desktop for Debian, released before the owner\'s weekly cut-off ("You have complete freedom. Just do a full release"): Debian packages in a folder repository; one bar above every app (Start, the line, the windows, Kas with HALT, the tray, the clock); the Explorer; File, Edit, View, Go, Tools, Help with keys shown; the details pane; one line and a drop-down Terminal; Windows keys and DOS words; her voice; her forty recipes and her classified command tool, each change shown first and done only on the owner\'s press; the test tiers green again. Not in it yet (1.1.1): the system door, a real terminal, grounding in the manual pages, a quieter bar.',

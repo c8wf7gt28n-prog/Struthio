@@ -39,7 +39,7 @@ NOT_SHIPPED = ('tools/planted_bugs/', 'tools/i05_kit/', 'debian/')  # 1.1 PK1: d
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
 # Fields of earlier checkpoints' manifests that no reader uses any more (the release check reads graphite_release).
 RETIRED_FIELDS = ('hatch_checkpoint', 'integrated_pass', 'delivery_stage')
-NOTE = ('Graphite 1.1.3: Night as a phosphor monitor (Amber or Green) with CRT effects, and a quieter bar (one Quick Settings button). Still in it: 1.1.2\'s real terminal, 1.1.1\'s system door and Graphite 1.1, your desktop for Debian. Minimal tests, by the owner\'s rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.3.md and the earlier 1.1 notes.')
+NOTE = ('Kas 1.1.4: Kas, only Kas (the public name, packages kas-*, commands kas-*), and Night Duo (amber and green together, grey for the burn). Still in it: the phosphor Night and the quieter bar (1.1.3), the real terminal (1.1.2), the system door (1.1.1) and Kas 1.1, your desktop for Debian. Minimal tests, by the owner\'s rule. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/RELEASE_NOTES_1.1.4.md.')
 
 
 
