@@ -183,6 +183,15 @@ with its cause; no doc names a menu that no longer exists.
 
 ### Preview 3 — Kas reaches the box (outline)
 
+**B4 · One line, a drop-down Terminal, and Command….** The window's foot (Line, Terminal, Search, Web, Log and the
+meters) and the bar's line now do one job twice; one place for each thing. The foot folds away: the bar's line takes
+Line, Search and Web; the Terminal becomes a real shell that drops from the top edge of the screen on one key (Win+`,
+and Ctrl+Alt+T) over any app, understands DOS words (W1) and leaves when done; Log and the meters find one home each
+(an old -> new table, as K0's). "Command…" above Properties on the right-click of a file or a tile shows the exact line
+it is or runs, with Copy and "Put it in the line". Win+K opens her panel and Pause presses HALT from any app
+(graphite-do verbs). *Acceptance:* no foot in Graphite's window; everything the foot did is reachable, each in one
+place; the Terminal drops over an xterm and back; Command… on a file shows its line; Win+K and Pause work from an app.
+
 **KS1 · Recipes.** A library of verified, parameterised recipes (preconditions, steps through registered tools, a dry
 run, a verifier, an undo), forty to start: find big files, free space, convert and resize pictures, merge and split
 PDFs, zip and unzip, back up a folder, what changed since yesterday, rename many, what uses memory, is the system up to

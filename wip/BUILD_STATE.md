@@ -140,7 +140,7 @@ rules holding you back".
     owner's "release what you can"); the notes say the tiers were not re-run. Only the 17 files that differ from
     preview 1 were sent, with how to drop them into the preview 1 folder (JOIN.sh checks every file). Record:
     `wip/2026-11-28_preview_2/`. The kit stays in `$S/work/pre2/kit/` as the base of the next cut.
-  * **Preview 3 building:** KS1 (recipes; agent a0533732a4c03c9fd) and T2 (the tiers; agent ad78ac2c39a175988).
+  * **Preview 3 building:** KS1 (recipes; agent a0533732a4c03c9fd), T2 (the tiers; agent ad78ac2c39a175988) and B4 (one line, the drop-down Terminal, Command..., Win+K and Pause; agent aa1a6b783f2a3dbf4, launched 03:49; a new slice in PLAN_1.1 §5).
     Next: KS2 (the command tool), KS3 (the system door), KS4 (grounding and "teach me"); the foot folded into the bar's
     line with a drop-down Terminal; "Command..." (K0's (d)); Win+K and Pause from other apps (B3's not_done).
   * **Preview 2 building (done):** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
