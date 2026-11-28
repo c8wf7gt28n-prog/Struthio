@@ -89,6 +89,9 @@ rules holding you back".
   (never bare "kas": Debian 13 has an unrelated kas package with a higher version), commands kas-*, graphite-* kept one
   release as symlinks; internal identifiers kept. R1 is launched in the next free slot; if the week ends, it is the
   first thing next week.
+- **Night Duo merged (ea4d2cf, 08:52):** frames sent. Not built from the hero ideas: the seven-segment clock, her
+  typed-out lines, amber peak marks on the meters (next week). **Cut the next release only with R1 (the rename) in:**
+  the owner hates the old name, so it ships as "Kas 1.1.4", never "Graphite". R1 agent a4b8623462b40471b.
 - **The owner, after 1.1.3: "But both the orange and green working together with grey (like screen burns)".** N1's
   builder could not be resumed (its worktree was cleaned), so a new builder (agent a1084a528dc49fde4) builds Night: Duo (green the computer, amber Kas and your word, grey the past
   and the burn-in), the new default; saves N1duo.patch. When it lands: merge (merge_one.sh with KEY N1duo), version
