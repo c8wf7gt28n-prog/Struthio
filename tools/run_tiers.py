@@ -1,6 +1,6 @@
 """Graphite's checks in tiers: one command for a change, a commit and a release (docs/CHECKS.md).
 
-  python3 tools/run_tiers.py 0 [--look graphite|kasandra|both] [--out DIR]
+  python3 tools/run_tiers.py 0 [--look graphite|kasandra|day|night|both|all|LOOK,LOOK] [--out DIR] [--only NAME,...]
   python3 tools/run_tiers.py 1 [--changed REF] [--look ...] [--out DIR]
   python3 tools/run_tiers.py 2 [--look ...] [--out DIR] [--against EARLIER.json]
 
@@ -9,7 +9,9 @@ owner (the Kernel's scopes, her hand's rules, the memory rules, release integrit
 Tier 1, before a commit: tier 0, and every test module that imports a file changed since REF (default HEAD; files not
 yet added to git count as changed), with the window checks that do. Tier 2, at a release: every test module, the window
 checks (tools/check_hatch.py UI_CHECKS, read when the run starts), the playable scene on Rail Demo four ways
-(tools/campaign.py), the name sweep over the code and the release check's integrity sections, in both looks.
+(tools/campaign.py), the name sweep over the code and the release check's integrity sections, in every look (1.1 T1:
+Graphite, Kasandra, Day and Night; 'both' is still Graphite and Kasandra). --only runs just the named modules, checks or
+scenes of the tier (a module by its name, a check by its file name), to run again what failed.
 
 The lists are in tools/tiers.json; tier 2's modules are tools/check_hatch.py's FOCUSED_MODULES and ON_DEMAND_MODULES,
 the list every new test module joins. Each module, check or scene runs in a process of its own with its own empty HOME
@@ -41,7 +43,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 sys.dont_write_bytecode = True
 TIERS = 'tools/tiers.json'
-LOOKS = ('graphite', 'kasandra')
+LOOKS = ('graphite', 'kasandra', 'day', 'night')      # 1.1 T1: Day and Night (1.0 P2, P4) join the looks
+BOTH = ('graphite', 'kasandra')      # what --look both has always meant
 # Where the program's Python lives (wip/ is development notes, never run), and the folders a bare import is found in:
 # the program folder, tools/ (the tools put it on sys.path) and sdk/cli (the line's language, arc1cli).
 SOURCES = ('workbench', 'tools', 'tests_integrated', 'sdk', 'pillkit', 'examples')
@@ -347,12 +350,12 @@ class Stop:
 
 def child_environment(look, scratch, extra=None):
     """The child's variables: the shell's, without the program's own and the folders of its state; its own HOME and
-    temporary folder, offscreen. Graphite's look is the default one, the variable unset, as the owner starts it."""
+    temporary folder, offscreen. The look is always named in GRAPHITE_APPEARANCE (1.1 T1): since 1.0 D1 a fresh profile with
+    the variable unset starts in Day, so an unset variable in a child's empty HOME was a Day run labelled Graphite."""
     env = {k: v for k, v in os.environ.items() if k not in DROPPED and not k.startswith(DROPPED_PREFIXES)}
     env.update(HOME=str(Path(scratch) / 'home'), TMPDIR=str(Path(scratch) / 'tmp'), QT_QPA_PLATFORM='offscreen', PYTHONDONTWRITEBYTECODE='1',
                **(extra or {}))
-    if look != LOOKS[0]:
-        env['GRAPHITE_APPEARANCE'] = look
+    env['GRAPHITE_APPEARANCE'] = look      # 1.1 T1: named for every look, Graphite too
     return env
 
 
@@ -590,10 +593,31 @@ def differences(before, after):
     return lines
 
 
+def looks_of(text):
+    """--look's value as a list of looks (1.1 T1): one look, 'both', 'all' or several with commas."""
+    words = [w.strip().lower() for w in str(text).split(',') if w.strip()]
+    looks = []
+    for word in words:
+        for look in (BOTH if word == 'both' else LOOKS if word == 'all' else (word,)):
+            if look not in LOOKS:raise argparse.ArgumentTypeError('%r is not a look: %s, both or all' % (word, ', '.join(LOOKS)))
+            if look not in looks:looks.append(look)
+    if not looks:raise argparse.ArgumentTypeError('no look named')
+    return looks
+
+
+def only(units, names):
+    """The units --only names (1.1 T1): a module by its name ('test_x'), a check by its path or file name, a scene by its cases."""
+    wanted = set(names)
+    return [u for u in units if u['name'] in wanted or Path(u['name']).name in wanted or Path(u['name']).stem in wanted]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog='run_tiers.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('tier', type=int, choices=(0, 1, 2), help='0 at every change, 1 before a commit, 2 at a release')
-    parser.add_argument('--look', choices=(*LOOKS, 'both'), help='the look the tests run in (tiers 0 and 1: the look in force; tier 2: both)')
+    parser.add_argument('--look', type=looks_of, help='the look the tests run in: %s, both (Graphite and Kasandra), all, or '
+                        'several with commas (tiers 0 and 1: the look in force; tier 2: all)' % ', '.join(LOOKS))
+    parser.add_argument('--only', type=lambda text: [n.strip() for n in text.split(',') if n.strip()], metavar='NAME,...',
+                        help='run only these modules, checks or scenes of the tier (1.1 T1: to run again what failed)')
     parser.add_argument('--changed', metavar='REF', help='tier 1: the commit the change is measured from (default HEAD)')
     parser.add_argument('--out', type=Path, help='the folder for tier<N>.json and the logs (default: a new temporary folder)')
     parser.add_argument('--against', type=Path, metavar='EARLIER', help='an earlier tier<N>.json: say what changed since')
@@ -607,10 +631,12 @@ def main(argv=None):
         parser.error('choose an --out folder outside the program folder (%s): a run writes nothing into the program' % ROOT)
     out.mkdir(parents=True, exist_ok=True)
     cfg = config(); in_force = os.environ.get('GRAPHITE_APPEARANCE', '').strip().lower()
-    look = args.look or ('both' if args.tier == 2 else (in_force if in_force in LOOKS else LOOKS[0]))
-    looks = list(LOOKS) if look == 'both' else [look]
+    looks = args.look or (list(LOOKS) if args.tier == 2 else [in_force if in_force in LOOKS else LOOKS[0]])
     changed = changed_files(args.changed or 'HEAD') if args.tier == 1 else None
     units, chosen = plan(args.tier, looks, cfg, changed)
+    if args.only:
+        units = only(units, args.only)
+        if not units:parser.error('--only names nothing this tier runs: %s' % ', '.join(args.only))
     _, kind = isolation(); began = time.monotonic(); started = time.strftime('%Y-%m-%dT%H:%M:%S')
     print('tier %d: %d runs in %s, %d at a time (%s); logs under %s' % (args.tier, len(units), ' and '.join(looks), args.workers, kind, out),
           file=sys.stderr, flush=True)

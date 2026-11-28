@@ -19,7 +19,7 @@ her next press is refused (check(), the stop between presses: never halfway thro
 a replace). A paused hand holds the window exactly as it is, and waits for your word:
   Continue  (carry_on(), your press: her column's Continue, a press of yours that carries her work on) — she goes on from
             where the window is now; nothing she did is repeated without being looked at first (K1's resume does that).
-  Stop      (stop(), your press: her card's or her column's Stop, hand.door.stop) — the window is put back as it was when she
+  Stop      (stop(), your press: her card's or her column's Stop, door.stop) — the window is put back as it was when she
             began: what she opened over it is closed, the focus, the tab, the selection, the text cursor and the scroll are
             back. What she changed stays changed (a change is taken back by its own Undo, below); the words say what came back
             and what could not.
@@ -53,9 +53,9 @@ changes" takes back all of that turn's changes at once, the latest first, each b
 undo_lines): one Undo.
 
 Kernel operations (registered in engineering_kernel and engineering_cli under "1.0 F1"):
-  hand.door           {}   read     where her hand drives, whether it is paused and why, what it did, what came back
-  hand.door.continue  {}   approve  your Continue: a paused hand may go on
-  hand.door.stop      {}   approve  your Stop: the window put back as it was
+  door.state           {}   read     where her hand drives, whether it is paused and why, what it did, what came back
+  door.continue  {}   approve  your Continue: a paused hand may go on
+  door.stop      {}   approve  your Stop: the window put back as it was
 
 No floating point in anything checked: times are whole milliseconds, places and scrolls whole pixels and whole steps.
 """
@@ -607,19 +607,19 @@ def undo_words(n_back, n_left, said=()):
 
 # ================================================================== the Kernel's operations (1.0 F1)
 
-FIELDS = {'hand.door': ({}, []), 'hand.door.continue': ({}, []), 'hand.door.stop': ({}, [])}
-SCOPES = {'hand.door': 'read', 'hand.door.continue': 'approve', 'hand.door.stop': 'approve'}
-OBSERVERS = ('hand.door',)
+FIELDS = {'door.state': ({}, []), 'door.continue': ({}, []), 'door.stop': ({}, [])}
+SCOPES = {'door.state': 'read', 'door.continue': 'approve', 'door.stop': 'approve'}
+OBSERVERS = ('door.state',)
 
 
 def dispatch(kernel, op, args, principal):
     _KERNEL['kernel'] = kernel
-    if op == 'hand.door':return DOOR.view()
-    if op == 'hand.door.continue':
+    if op == 'door.state':return DOOR.view()
+    if op == 'door.continue':
         out = DOOR.carry_on()
         _tell_program(kernel, out)
         return dict(out, door=DOOR.view())
-    if op == 'hand.door.stop':
+    if op == 'door.stop':
         out = DOOR.stop()
         _tell_program(kernel, out, stopped=True)
         return dict(out, door=DOOR.view())

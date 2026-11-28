@@ -22,11 +22,25 @@ def renderer(root,mtime,name,variant,small):
     return QSvgRenderer(QByteArray(pack(root,mtime).svg(name,variant,16 if small else 24)))
 
 
+# 1.1 T1: an engine made here is held by Python. QIcon(engine) and clone() hand it to Qt, but PySide6 does not pass its
+# ownership on, so when the Python object went, Qt kept a pointer to freed memory and the next paint of a tab with this
+# icon crashed the program (exit -11 in test_desk_acts, a QTabBar painted after a meter card closed). Each engine is kept
+# here while Qt holds it; one Qt has deleted is no longer valid and is let go at the next engine made.
+_HELD=[]
+
+
+def _held(engine):
+    if len(_HELD)>=256:
+        from shiboken6 import Shiboken
+        _HELD[:]=[e for e in _HELD if Shiboken.isValid(e)]
+    _HELD.append(engine);return engine
+
+
 class PackedIcon(QIconEngine):
     def __init__(self,root,name):
         super().__init__();self.root=str(Path(root).resolve());self.name=name
         self.mtime=(locations.program(root)/'branding/ux17/catalog.json').stat().st_mtime_ns
-    def clone(self):return PackedIcon(self.root,self.name)
+    def clone(self):return _held(PackedIcon(self.root,self.name))      # 1.1 T1: kept while Qt holds it
     def paint(self,painter,rect,mode,state):
         if rect.isEmpty():return  # an empty rectangle would make the renderer draw the artwork at its own size
         variant='disabled' if mode==QIcon.Disabled else 'active' if mode in (QIcon.Selected,QIcon.Active) or state==QIcon.On else 'dark'
@@ -52,7 +66,7 @@ def icon(root,name):
     try:
         data=assets(root);ident=data.meta['aliases'].get(name,name)
         if ident not in data.icons:return QIcon()
-        return QIcon(PackedIcon(root,ident))
+        return QIcon(_held(PackedIcon(root,ident)))      # 1.1 T1: kept while Qt holds it
     except (OSError,ValueError,KeyError):return QIcon()
 
 

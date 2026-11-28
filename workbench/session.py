@@ -143,6 +143,11 @@ class Session:
         if isinstance(navigation,dict):
             from .settings_registry import nodes
             allowed={r['id'] for r in nodes()}
+            try:  # 1.1 T1: 1.0 S5's rows of this computer are in the tree too; a view that named one was dropped whole at the next start
+                from .system_settings_qt import nodes as system_nodes
+                allowed|={r['id'] for r in system_nodes()}
+            except ImportError:
+                pass
             if (navigation.get('mode') in NAVIGATION_MODES and isinstance(navigation.get('selected'),str) and navigation['selected'] in allowed  # only text is looked up (0.8.4)
                     and isinstance(navigation.get('expanded'),list) and len(navigation['expanded'])<=len(allowed)
                     and all(isinstance(x,str) and x in allowed for x in navigation['expanded'])):

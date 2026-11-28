@@ -164,9 +164,10 @@ class Margins(Workspace):
         r = self.use(self.model, 'auto-39', {'backend': 'CPU'})
         self.assertTrue(r['ok'], r)
         job = r['result']
-        self.assertEqual((job['brain_launch']['options']['memory_mb'], job['brain_launch']['auto_headroom_mb']), (27397, 4096))
-        config = {'memory_mb': 27397, 'headroom_mb': 4096}
-        for available_mib, fits in ((33540, False), (33541, True)):      # 27,397 + 4,096 headroom + 2,048 reserve (0.8.7 A2)
+        # 1.1 T1: 1.0 M1 sizes the prompt cache from every kept prompt, so Auto's estimate here is 31,930 MiB (was 27,397)
+        self.assertEqual((job['brain_launch']['options']['memory_mb'], job['brain_launch']['auto_headroom_mb']), (31930, 4096))
+        config = {'memory_mb': 31930, 'headroom_mb': 4096}
+        for available_mib, fits in ((38073, False), (38074, True)):      # 31,930 + 4,096 headroom + 2,048 reserve (0.8.7 A2)
             self.host.available = available_mib / 1024
             with self.kernel.db() as db:
                 admitted = resource_control.decision(self.kernel, job, db, brain_runtime.host())['allowed']
@@ -178,7 +179,8 @@ class Margins(Workspace):
             self.assertEqual((admitted, launches), (fits, fits), available_mib)
         self.host.available = 60                                          # the ceiling leaves room above the estimate already
         r = self.use(self.model, 'auto-60', {'backend': 'CPU'})
-        self.assertEqual((r['result']['brain_launch']['options']['memory_mb'], r['result']['brain_launch']['auto_headroom_mb']), (32768, 0))
+        # 1.1 T1: since 1.0 M1's larger estimate (31,930 MiB) the ceiling's budget keeps 3,258 MiB of Auto's headroom (was 0)
+        self.assertEqual((r['result']['brain_launch']['options']['memory_mb'], r['result']['brain_launch']['auto_headroom_mb']), (32768, 3258))
 
     def test_a_handover_waits_for_the_stopped_models_memory_and_a_cancel_ends_the_wait(self):
         tries = []

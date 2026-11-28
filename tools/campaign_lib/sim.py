@@ -240,6 +240,19 @@ class Bench:
 
         return FakePopen
 
+    def _model_popen(self):
+        """1.1 T1: only a model worker's start is scripted. subprocess.Popen is the one module's, so every other program the
+        code starts meanwhile (LibreOffice's --version, read since 1.0 when a tool schema is described) took a scripted worker
+        and left the scenario's own workers alive or unlaunched (R19's '--backend' is not in list, Ready's live workers)."""
+        fake, real = self._popen_class(), subprocess.Popen
+
+        def popen(argv, *args, **kwargs):
+            words = [str(word) for word in (argv if isinstance(argv, (list, tuple)) else [argv])]
+            if any('brain_worker' in word or 'llama' in word for word in words):
+                return fake(argv, *args, **kwargs)
+            return real(argv, *args, **kwargs)
+        return popen
+
     def _request(self, worker, path, payload=None, timeout=90):
         self.requests.append(path)
         pid = worker.get('pid')
@@ -295,7 +308,7 @@ class Bench:
         s.enter_context(patch.object(operation_stop, 'process_identity', side_effect=self.procs.identity))
         s.enter_context(patch.object(resource_control, 'process_identity', side_effect=self.procs.identity))
         s.enter_context(patch.object(resource_control, 'process_memory', side_effect=self.procs.process_memory))
-        s.enter_context(patch.object(local_brain.subprocess, 'Popen', self._popen_class()))
+        s.enter_context(patch.object(local_brain.subprocess, 'Popen', self._model_popen()))
         s.enter_context(patch.object(local_brain, 'request', side_effect=self._request))
         s.enter_context(patch.object(local_brain, 'seal_check', side_effect=self._seal))
         s.enter_context(patch.object(local_brain, 'time', self.clock))

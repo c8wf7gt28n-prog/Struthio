@@ -324,9 +324,12 @@ def walk(window, settle, log=None):
         window.show_about();settle()
     look('Guide: About Graphite', bool(opened), 'kept back (RIGHTS.md)')
     for dialog in opened:dialog.close();dialog.deleteLater()
+    # 1.1 T1: since 1.0 P4 (no picture of her) no plate of hers is offered: the place is the Art plates menu, read, with no row
+    # that names her; the plates there are opened and read as before.
     plates = next((menu for menu in window.findChildren(QMenu) if menu.title() == 'Art plates'), None);before = window.tabs.count()
-    for row in ([a for a in plates.actions() if a.isEnabled() and SHOWN_NAME in a.text()] if plates is not None else []):row.trigger();settle()
-    look('Rules: her art plate opened', window.tabs.count() > before, 'Preview · ' + SHOWN_NAME)      # the other plates' names are their rows
+    rows = [a for a in plates.actions() if a.isEnabled()] if plates is not None else []
+    for row in rows:row.trigger();settle()
+    look('Rules: the art plates, none of her', plates is not None and not any(SHOWN_NAME in a.text() for a in plates.actions()))
     for index in range(window.tabs.count() - 1, before - 1, -1):window.close_tab(index)
     settle()
     visit('Today, at the end', 'go.today')

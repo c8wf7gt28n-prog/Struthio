@@ -257,7 +257,9 @@ sysmenu.hide();w.statusBar().clearMessage();settle()  # the next captures carry 
 
 # 06 the cabinet tree's empty place ----------------------------------------------------------------------------------------------
 nav=w.settings_navigator;nav.show_view('cabinet');settle(60);page=w.cabinet_page;page.refresh(force=True);settle()
-tree=page.tree;menu=right_click(tree.viewport(),QPoint(12,tree.viewport().height()-6));assert menu is not None and menu.target.kind=='tree',menu
+tree=page.tree;tree.collapseAll();settle()  # 1.1 T1: since 1.0 L6 the computer's folders ("This computer /") fill the tree: its empty place is below the rows, folded
+assert tree.itemAt(12,tree.viewport().height()-6) is None,'no empty place left under the folded rows'
+menu=right_click(tree.viewport(),QPoint(12,tree.viewport().height()-6));assert menu is not None and menu.target.kind=='tree',(menu,getattr(getattr(menu,'target',None),'kind',None))
 assert menu.keys()==['refresh','view','new:idea','new:project','import','export'],menu.keys()
 sub=menu.open_child(menu.row('view'));settle()
 assert [(r.word,r.entry.checked) for r in sub.rows_by_key.values()]==[('Logical cabinet',not page.using_legacy),('Existing views',page.using_legacy)]

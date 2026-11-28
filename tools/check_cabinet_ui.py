@@ -100,11 +100,12 @@ with tempfile.TemporaryDirectory(prefix='ledger-cabinet-master-',dir=Path.home()
  from workbench.clip_workspace import ClipWorkspaceTab
  conversation=bridge.add_tab(ClipWorkspaceTab,lambda:ClipWorkspaceTab(w));settle();assert conversation.input.placeholderText()=='prompt'
  record('Project Desk, Discovery and Slate conversation use poem with their semantic field names preserved')
+ from workbench import typebar_qt  # 1.1 T1
  bar=w.type_bar
  for target in ('slate','shell','find','log','stac','kernel'):  # D3: the four modes, then the old targets that map to them
-  bar.set_target(target,focus=False);assert bar.box.placeholderText()=='prompt';assert bar.box.text()==''
+  bar.set_target(target,focus=False);assert bar.box.placeholderText()==typebar_qt.PLACEHOLDERS[typebar_qt.MAPPED[target]],(target,bar.box.placeholderText());assert bar.box.text()==''  # 1.1 T1: 1.0 D2 says what each mode takes, never "prompt"
  bar.set_target('slate',focus=False);record('Changing among the four modes and the old targets keeps poem without inserting or submitting text')
- bar.note('Saved review copy');settle();assert bar.box.placeholderText()=='prompt' and w.console.hint.isVisible()
+ bar.note('Saved review copy');settle();assert bar.box.placeholderText()==typebar_qt.PLACEHOLDERS['line'] and w.console.hint.isVisible()  # 1.1 T1: 1.0 D2
  assert w.console.hint.text()=='Saved review copy';bar.note('');settle();assert not w.console.hint.isVisible()
  record('Status feedback stays visible in the console while poem remains the writing placeholder')
  for transfer,entry in zip(cabinet.TRANSFERS,(w.a_import,w.a_export)):  # D1b: Work ▸ Import (Ingress)… and Export (Egress)…
@@ -113,8 +114,10 @@ with tempfile.TemporaryDirectory(prefix='ledger-cabinet-master-',dir=Path.home()
  record('Import and Export (Work menu entries) open the existing receiving and outgoing-file controls without performing a transfer')
  room=select('project:'+first['id']);capture('Ledger_Slate_HATCH_Cabinet_01_Poem_Desktop.png')
  fields=[field for kind in (QLineEdit,QPlainTextEdit,QTextEdit) for field in w.findChildren(kind) if not field.isReadOnly() and field.placeholderText() and field.objectName()!='CentreFindWords']  # Find's own line (0.5.0) says what it finds
- assert fields and all(f.placeholderText()=='prompt' for f in fields),[(f.objectName(),f.placeholderText()) for f in fields if f.placeholderText()!='prompt']
- record('Every instantiated editable field with a placeholder says exactly poem')
+ # 1.1 T1: 1.0's own lines say what they take (D2: the writing line by its mode; P1: her column's ask; S2: the Apps search)
+ said={'OneBox':typebar_qt.PLACEHOLDERS[bar.target],'HerAsk':'ask Kasandra…','AppsSearchLine':'Find an app'}
+ assert fields and all(f.placeholderText()==said.get(f.objectName(),'prompt') for f in fields),[(f.objectName(),f.placeholderText()) for f in fields if f.placeholderText()!=said.get(f.objectName(),'prompt')]
+ record('Every instantiated editable field with a placeholder says exactly poem, but 1.0\'s own lines, which say what they take')
  # The written passages are in the prose family at the prose size and follow a change of it; the record's own data stays in the
  # code face (kept from the paper theme's window check, retired in 0.8.4; docs/WINDOW_CHECKS.md says why)
  from workbench import reading_preferences

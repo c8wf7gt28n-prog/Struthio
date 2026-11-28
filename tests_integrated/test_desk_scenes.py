@@ -80,8 +80,9 @@ class PlayableScene(unittest.TestCase):
         out=self.play('mouse_still')
         trace=next(s for s in out['steps'] if s['act']=='sheet.trace')
         self.assertIs(trace['result']['route']['animating'],False)
-        from workbench import menu_catch
-        self.assertIs(menu_catch.calm(WINDOW['w']),False,'the motion is put back as the scene found it')
+        from workbench import menu_catch,boss_theme
+        # 1.1 T1: Day and Night draw no glow (1.0 P4), so a menu there is calm whatever the motion
+        self.assertIs(menu_catch.calm(WINDOW['w']),boss_theme.glow()<=0,'the motion is put back as the scene found it')
 
 
 if __name__=='__main__':

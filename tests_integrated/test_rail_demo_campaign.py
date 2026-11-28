@@ -67,8 +67,7 @@ def run(out, cases, look=None, first_on_path=None):
     """One campaign run into `out` with no fixtures folder, started in the given look (None: the first look, Graphite),
     with a folder put first on the PATH when one is given."""
     environment = {k: v for k, v in os.environ.items() if k != 'GRAPHITE_APPEARANCE'}
-    if look:
-        environment['GRAPHITE_APPEARANCE'] = look
+    environment['GRAPHITE_APPEARANCE'] = look or 'graphite'      # 1.1 T1: unset, a fresh profile starts in Day (1.0 D1)
     if first_on_path:
         environment['PATH'] = '%s%s%s' % (first_on_path, os.pathsep, environment.get('PATH', ''))
     with mock.patch.dict(os.environ, environment, clear=True), contextlib.redirect_stdout(io.StringIO()):

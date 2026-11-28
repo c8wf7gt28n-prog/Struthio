@@ -100,7 +100,10 @@ FOCUSED_MODULES=(
  'test_math_money_dates',
 
  # backup and restore, the Project Desk, slate reasoning, change sets, continuing work, exchange and updates
- 'test_workspace_backup','test_project_desk','test_slate_reasoning','test_change_sets','test_continuing_work','test_deployment')
+ 'test_workspace_backup','test_project_desk','test_slate_reasoning','test_change_sets','test_continuing_work','test_deployment',
+
+ # 1.1 T1: the tiers green: the real faults the 27 November tier runs found, and the tier runner's looks
+ 'test_tiers_green')
 # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.
 ON_DEMAND_MODULES={
  'test_exact_math_solvers':'the SymPy and Z3 solvers in a child worker; needs requirements-math.txt'}

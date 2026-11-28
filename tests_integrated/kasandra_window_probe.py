@@ -358,6 +358,9 @@ def case_review(p):
     out['column_state'] = kasandra_art.column_state(w);out['current_state'] = kasandra_art.current_state(w)
     if stage is not None:stage.follow(force=True)
     out['masthead_word'] = face.masthead.word.text()
+    column = getattr(w, 'her_column', None)      # 1.1 T1: since 1.0 P1 and P4 her column's head says her state (the masthead is out of sight)
+    if column is not None:column.show_state()
+    out['her_word'] = column.head.word.text() if column is not None else None
     face.agenda_waiting = 0
     face.refresh();out['model_tip'] = face.model.toolTip()
     # her cursor: it breathes only while something waits and it may move

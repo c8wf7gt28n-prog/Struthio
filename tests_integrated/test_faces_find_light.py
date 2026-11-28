@@ -173,8 +173,14 @@ class DeskLightTests(unittest.TestCase):
             return 0.2126*linear[0]+0.7152*linear[1]+0.0722*linear[2]
         def lightness(colour):
             y=light(colour);return 116*y**(1/3)-16 if y>216/24389 else y*24389/27
-        self.assertLess(lightness(page_light.DESK_LIGHT),65,'the tone is well below white')
+        # 1.1 T1: since 1.0 P4, Day and Night show a page in its own light (their DESK_LIGHT is the page's surface, white in
+        # Night); the desk's dimmer light is Graphite's and Kasandra's.
+        own_light=('day','night')
+        if boss_theme.APPEARANCE in own_light:self.assertGreater(lightness(page_light.DESK_LIGHT),90,'Day and Night: a page in its own light')
+        else:self.assertLess(lightness(page_light.DESK_LIGHT),65,'the tone is well below white')
         for look,palette in boss_theme.PALETTES.items():
+            if look in own_light:
+                self.assertGreater(lightness(palette['DESK_LIGHT']),90,look+': a page in its own light');continue
             self.assertLess(lightness(palette['DESK_LIGHT']),65,look+': well below white')
             self.assertGreater(light(palette['DESK_LIGHT']),4*light(palette['GROUND']),look+': and a page still stands clear of the desk')
 
@@ -284,7 +290,9 @@ class GlowDialTests(unittest.TestCase):
         levels=dict((k,v) for k,_,v in boss_theme.GLOW_LEVELS);self.assertEqual(boss_theme.GLOW_OPENS,'neon','0.5.2: the owner, having seen the three, likes Neon')
         self.assertLess(levels['soft'],levels['bright']);self.assertLess(levels['bright'],levels['neon']);self.assertEqual(levels['soft'],1.0,'Soft is what 0.5.0 had')
         host=type('Host',(),{})();host.session=type('S',(),{'state':{}})()
-        self.assertEqual(boss_qt.set_glow(host),levels['neon']);self.assertEqual(boss_theme.glow(),levels['neon'])
+        # 1.1 T1: the dial is kept in every look, but Day and Night draw no glow whatever it says (1.0 P2, P4: DAY_GLOW)
+        shown=min(levels['neon'],boss_theme.DAY_GLOW) if boss_theme.LAUNCH else levels['neon']
+        self.assertEqual(boss_qt.set_glow(host),levels['neon']);self.assertEqual(boss_theme.glow(),shown)
         host.session.state['glow']='soft';self.assertEqual(boss_qt.set_glow(host),levels['soft'])
         host.session.state['glow']='nonsense';self.assertEqual(boss_qt.set_glow(host),levels['neon'])
         self.assertEqual(boss_qt.set_glow(object()),levels['neon'],'a host with no session gets what the desk opens with')

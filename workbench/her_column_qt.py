@@ -633,7 +633,7 @@ class WorkLine(QWidget):
         """1.0 F1: your Continue: the door lets her hand go on, and the step your touch stopped is authorised again and carried on."""
         from . import hand_door
         host = self.column.host
-        done, why = press(host, 'hand.door.continue', {})
+        done, why = press(host, 'door.continue', {})      # 1.1 T1: the door's operations are door.*, not hand.* (a desk act's head)
         words = (done or {}).get('words') or why
         if done is not None and done.get('carried'):
             more = hand_door.carry_assignment(lambda op, args: press(host, op, args), (done.get('door') or {}).get('assignment') or '')
@@ -642,7 +642,7 @@ class WorkLine(QWidget):
 
     def door_put_back(self):
         """1.0 F1: your Stop: her hand stops for good and your program window goes back as it was."""
-        done, why = press(self.column.host, 'hand.door.stop', {})
+        done, why = press(self.column.host, 'door.stop', {})      # 1.1 T1: the door's operations are door.*, not hand.* (a desk act's head)
         self.column.say_words((done or {}).get('words') or why);self.column.refresh(force=True)
 
     def _checks(self, rows):
@@ -886,10 +886,10 @@ class CommandRow(QWidget):
             b.setObjectName('HerCommand');b.setAccessibleName(words.title() + ': ' + tip);b.setFocusPolicy(Qt.TabFocus)
             b.setStyleSheet('QPushButton {font-size:%dpx;font-family:"%s";font-weight:600;color:%s;background:transparent;min-height:0px;min-width:0px;'
                             'border:1px solid %s;border-radius:3px;padding:%dpx %dpx;} QPushButton:hover {background:%s;border-color:%s;color:%s;}' % (
-                                px(host, 11), bt.MONO, bt.QUIET, bt.LINE, px(host, 2), px(host, 2), bt.RAISED, bt.LINE_STRONG, bt.TEXT))      # 1.0 D2: 2 px each side (was 3)
+                                px(host, 11), bt.MONO, bt.QUIET, bt.LINE, px(host, 2), px(host, 1), bt.RAISED, bt.LINE_STRONG, bt.TEXT))      # 1.0 D2: 2 px each side (was 3); 1.1 T1: 1 px, CHECK ALL was 2 px short at 1920 x 1200
             b.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
             face = QFont(bt.MONO);face.setPixelSize(px(host, 11));face.setWeight(QFont.DemiBold)      # 1.0 D2: never narrower than its word ("CHECK ALI" at 1366x768)
-            b.setMinimumWidth(QFontMetrics(face).horizontalAdvance(words) + 2 * px(host, 2) + 3)
+            b.setMinimumWidth(QFontMetrics(face).horizontalAdvance(words) + 2 * px(host, 1) + 3)      # 1.1 T1: the padding is 1 px
             b.clicked.connect(lambda checked=False, key=key: self.column.command(key))
             row.addWidget(b, len(words) + 2);self.buttons[key] = b
 

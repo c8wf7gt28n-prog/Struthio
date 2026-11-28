@@ -133,8 +133,9 @@ class MarkAndTileTests(unittest.TestCase):
             ink=word.ink_rect();self.assertEqual(ink.left(),0.0);self.assertAlmostEqual(ink.center().y(),30.0,9)
             self.assertEqual(hint.width(),math.ceil(max(ink.width(),word.fontMetrics().horizontalAdvance('Graphite'))))
             img=holder.grab().toImage();ground=QColor('#4a4741').lightness()
-            cols=sorted({x for x in range(img.width()) for y in range(60) if img.pixelColor(x,y).lightness()>ground+8})
-            rows=sorted({y for x in range(img.width()) for y in range(60) if img.pixelColor(x,y).lightness()>ground+8})
+            # 1.1 T1: the ink is whatever differs from the ground: light on Graphite's, dark in Day's (1.0 D1, P2), not only lighter
+            cols=sorted({x for x in range(img.width()) for y in range(60) if abs(img.pixelColor(x,y).lightness()-ground)>8})
+            rows=sorted({y for x in range(img.width()) for y in range(60) if abs(img.pixelColor(x,y).lightness()-ground)>8})
             self.assertEqual(cols[0],16,(family,'the ink starts at the widget\'s left edge'));self.assertLessEqual(cols[-1],15+hint.width())
             self.assertAlmostEqual((rows[0]+rows[-1]+1)/2.0,30.0,delta=.5,msg=(family,'the ink centred in the band\'s height'))
             self.assertEqual(word.text(),'Graphite');self.assertEqual(word.accessibleName(),'Graphite')
@@ -302,7 +303,7 @@ class RenameGuardTests(unittest.TestCase):
     def test_public_name_and_internal_identities(self):
         from workbench import version,hatch_qt,typebar_qt,desktop_header_qt
         self.assertEqual((version.NAME,version.title()),('Graphite','Graphite '+version.SHORT))  # the number is test_release_check's
-        self.assertEqual(typebar_qt.TARGETS[0][0],'slate','the first mode is hers (Kasandra, in every look); its key stays slate')
+        self.assertEqual(typebar_qt.TARGETS[0][0],'line','the first mode is Line (1.0 D1 renamed it; 1.1 T1: the test follows), its old key slate maps to it')
         self.assertEqual((hatch_qt.HatchButton.NAME,hatch_qt.SERVICES_MENU),('Open apps','Graphite services'))  # HATCH DESK D2: the cat opens the programs list
         self.assertEqual(desktop_header_qt.SlateSwitch.__name__,'SlateSwitch','class names are internal and stay')
 

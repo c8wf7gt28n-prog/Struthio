@@ -135,7 +135,7 @@ capture(4,'Conflict','A newer profile preserves the draft','A direct legacy prof
 check('Navigation retains the original memory revision guard; a later legacy edit still refuses stale Apply and preserves writing')
 room=select_record('project:'+first['id']);settle()
 hatch=w.type_bar.hatch;hm=hatch.programs;assert hatch.prepare() and all(r.isVisible() or not hm.isVisible() for r in hm.rows())  # D2: the cat's programs list
-hatch.open_list(False);settle();assert hm.isVisible() and len(hm.rows())==len(hatch.entries)+2  # 0.7.0: the list ends with Explore the workshop and Game
+hatch.open_list(False);settle();assert hm.isVisible() and len([r for r in hm.graphite_rows() if r.isVisibleTo(hm)])==len(hatch.entries)+2,(hm.isVisible(),len(hm.rows()),len(hatch.entries))  # 0.7.0: the list ends with Explore the workshop and Game; 1.1 T1: since 1.0 S2 the Apps panel also lists this computer's apps, so Graphite's own rows are counted
 capture(5,'Menu','The programs list beside a selected project','The cat\'s programs list (HATCH DESK D2) renders as a real popup while a project is selected; its order and rows are checked by tests_integrated/test_launcher.py. Nothing is triggered.',hm);hm.close_menu();settle()
 # The Apps list keeps between the two bands, in one column; where its rows are taller than the room it takes the whole room and
 # scrolls, and never covers a band (kept from the Apps list's own window check, retired in 0.8.4; docs/WINDOW_CHECKS.md says why)

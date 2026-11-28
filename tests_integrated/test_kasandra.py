@@ -174,20 +174,22 @@ class CatalogTests(unittest.TestCase):
 
 
 class StateTests(unittest.TestCase):
-    def host(self, pending=None, job=None, busy=False, would=None):
+    def host(self, pending=None, job=None, busy=False, would=None, hers=False):
         face = None if job is None else SimpleNamespace(job=job, findChildren=lambda kind:[])
-        top = SimpleNamespace(equalizer=SimpleNamespace(busy=busy))
+        top = SimpleNamespace(equalizer=SimpleNamespace(busy=busy, hers=hers))      # 1.1 T1: K10's 'hers', a job of her own
         return SimpleNamespace(shell2=SimpleNamespace(face=face, top=top), field_page=SimpleNamespace(pending=pending, view=SimpleNamespace(would=would or {})))
 
     def test_the_state_of_the_work_in_order_of_what_matters(self):
         self.assertEqual(art.current_state(self.host()), 'idle')
-        self.assertEqual(art.current_state(self.host(busy=True)), 'working')
+        # 1.1 T1: since 1.0 K10 the equalizer's busy flag (any job of Graphite's own) is not her work; a job of hers is
+        self.assertEqual(art.current_state(self.host(busy=True)), 'idle', "Graphite's own work is not hers")
+        self.assertEqual(art.current_state(self.host(hers=True)), 'working')
         self.assertEqual(art.current_state(self.host(job='j1')), 'working')
         self.assertEqual(art.current_state(self.host(would={'x': 'y'})), 'working')
         self.assertEqual(art.current_state(self.host(pending=object(), busy=True)), 'awaiting_approval', 'what waits for you comes first')
         h = self.host(busy=True);art.note_outcome(h, False)
         self.assertEqual(art.current_state(h), 'blocked', 'a fresh refusal before work that runs')
-        h = self.host(busy=True);art.note_outcome(h, True)
+        h = self.host(hers=True);art.note_outcome(h, True)
         self.assertEqual(art.current_state(h), 'working', 'work that runs before a fresh success')
         h = self.host();art.note_outcome(h, True)
         self.assertEqual(art.current_state(h), 'completed')

@@ -272,7 +272,7 @@ class TheWindow(unittest.TestCase):
                 self.assertEqual((value['look'],value['name']),(look,'Kasandra'))
                 self.assertEqual([p['where'] for p in value['places'] if not p['done']],[],'every place of the walk was reached')
                 self.assertGreaterEqual(len(value['places']),50);self.assertGreater(value['words'],800,'the sweep read the window')
-                for place in ('the right pane: activity','the Log: a brain event pinned','Search: a brain event in its timeline','Guide: About Graphite','Rules: her art plate opened'):
+                for place in ('the right pane: activity','the Log: a brain event pinned','Search: a brain event in its timeline','Guide: About Graphite','Rules: the art plates, none of her'):      # 1.1 T1: no plate of her since 1.0 P4
                     self.assertIn(place,[p['where'] for p in value['places']])
                 self.assertGreater(value['named'],20,'her name is read on the desk')
                 self.assertEqual(['%s · %s · %s %s: %s'%(f['name'],f['where'],f['widget'],f['kind'],f['words']) for f in value['found']],[])

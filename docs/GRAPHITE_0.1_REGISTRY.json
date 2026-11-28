@@ -188,6 +188,9 @@
    "documents.list": "workbench/documents.py#dispatch",
    "documents.render": "workbench/documents.py#dispatch",
    "documents.save": "workbench/documents.py#dispatch",
+   "door.continue": "workbench/hand_door.py#dispatch",
+   "door.state": "workbench/hand_door.py#dispatch",
+   "door.stop": "workbench/hand_door.py#dispatch",
    "evidence.compare": "workbench/agent_operations.py#dispatch",
    "evidence.list": "workbench/engineering_kernel.py#Kernel._dispatch",
    "evidence.read": "workbench/engineering_kernel.py#Kernel._dispatch",
@@ -271,9 +274,6 @@
    "halt.press": "workbench/halt_gate.py#dispatch",
    "halt.release": "workbench/halt_gate.py#dispatch",
    "halt.status": "workbench/halt_gate.py#dispatch",
-   "hand.door": "workbench/hand_door.py#dispatch",
-   "hand.door.continue": "workbench/hand_door.py#dispatch",
-   "hand.door.stop": "workbench/hand_door.py#dispatch",
    "hardware.checks.inspect": "workbench/hardware_coverage.py#dispatch",
    "hardware.component_nets": "workbench/agent_operations.py#dispatch",
    "hardware.coverage.inspect": "workbench/hardware_coverage.py#dispatch",
@@ -3082,6 +3082,21 @@
    },
    "scope": "execute"
   },
+  "door.continue": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "approve"
+  },
+  "door.state": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "door.stop": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "approve"
+  },
   "evidence.compare": {
    "arguments": "96be48bcc48f7ce3d6b8ee07402ee8481c750f40808bda60f243e17281098b2c",
    "properties": {
@@ -3740,21 +3755,6 @@
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
    "scope": "read"
-  },
-  "hand.door": {
-   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
-   "properties": {},
-   "scope": "read"
-  },
-  "hand.door.continue": {
-   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
-   "properties": {},
-   "scope": "approve"
-  },
-  "hand.door.stop": {
-   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
-   "properties": {},
-   "scope": "approve"
   },
   "hardware.checks.inspect": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
@@ -9050,7 +9050,7 @@
  },
  "release": "Graphite 1.0",
  "schema": "graphite.registry-record/1",
- "schema_digest": "64fc49b8627eac7c6cdeffc7a7a3c79b23e0e2a79ca7516df98dc27be0ebecc6",
+ "schema_digest": "96900b6d0dd401f62e9d2ccfffa1f16be334f13af54a79d792807848688a1399",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

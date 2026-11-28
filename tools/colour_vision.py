@@ -164,6 +164,42 @@ REVIEWED = {
     },
 }
 
+# 1.1 T1: Day and Night (1.0 P2, P4) were never put through this check. Their tokens give one green to what is ready, a cue,
+# a line and a wire, one red to what fails and what is stopped, and one grey to the desk's quiet and what is held; their
+# amber (waits) and her honey (hers) are close in every sight. Each close pair is told apart by the same words and shapes as
+# in the other looks (SIGNS, drawn whatever the look): said here per meaning, and the pairs looked at listed per look.
+SAID = {
+    'chosen': 'what is chosen has its ground filled and an edge',
+    'ready': 'what is ready says "current" or "at work" and has a filled square',
+    'cue': CUE_IS,
+    'waits': 'what waits says "waits for you" and has a dotted square',
+    'fails': 'what fails says "does not hold" and has a cross',
+    'recheck': 'a recheck says "recheck" and has a half-filled square',
+    'stopped': 'DELETE, Forget and "stopped" are words',
+    'hers': 'hers has her name over it and a bar on the card\'s left edge',
+    'quiet': 'the quiet is a heading in capitals with a rule after it, or the words "cannot tell"',
+    'line': 'a line is its own words in the fixed-pitch face',
+    'wire': 'a wire is a curve between sheets, never a mark or a word',
+    'held': 'what is held says "held" and has a crossed square',
+}
+ONE_OF = {('ready', 'cue', 'line', 'wire'): 'one green for both in this look: ', ('fails', 'stopped'): 'one red for both in this look: ',
+          ('quiet', 'held'): 'one grey for both in this look: '}
+
+
+def _told(pair):
+    one = next((words for group, words in ONE_OF.items() if set(pair) <= set(group)), '')
+    return one + '; '.join(SAID[meaning] for meaning in pair)
+
+
+_GREEN = (('ready', 'cue'), ('ready', 'line'), ('ready', 'wire'), ('cue', 'line'), ('cue', 'wire'), ('line', 'wire'))
+_RED_GREEN = tuple((a, b) for a in ('ready', 'cue') for b in ('fails', 'stopped')) + tuple((a, b) for a in ('fails', 'stopped') for b in ('line', 'wire'))
+_AMBER_GREEN = (('ready', 'waits'), ('cue', 'waits'), ('waits', 'line'), ('waits', 'wire'))
+_HONEY_GREEN = (('ready', 'hers'), ('cue', 'hers'), ('hers', 'line'), ('hers', 'wire'))
+_SHARED = _GREEN + _RED_GREEN + _AMBER_GREEN + _HONEY_GREEN + (('fails', 'stopped'), ('quiet', 'held'), ('waits', 'hers'), ('chosen', 'recheck'),
+                                                               ('waits', 'fails'), ('waits', 'stopped'))
+REVIEWED['day'] = {pair: _told(pair) for pair in _SHARED + (('fails', 'hers'), ('stopped', 'hers'))}
+REVIEWED['night'] = {pair: _told(pair) for pair in _SHARED}
+
 
 def rgb(colour):
     """'#rrggbb' -> (r, g, b), each 0 to 1."""

@@ -721,7 +721,7 @@ class LiveActs(unittest.TestCase):
         out=act('look.set',{'appearance':'kasandra'},door='owner',origin='desktop-owner')
         self.assertEqual(out['result']['next'],'kasandra');self.assertEqual(out['result']['in_force'],boss_theme.APPEARANCE)
         act('look.set',{'appearance':'graphite','motion':'normal'},door='owner',origin='desktop-owner')
-        self.assertIs(menu_catch.calm(self.w),False)
+        self.assertIs(menu_catch.calm(self.w),boss_theme.glow()<=0)      # 1.1 T1: Day and Night draw no glow (1.0 P4), so they are calm
 
     def test_one_record_per_act(self):
         before=len(journal(origin='desk-script:test'))

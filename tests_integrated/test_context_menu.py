@@ -369,7 +369,7 @@ class Window(unittest.TestCase):
         more=menu.open_child(menu.row('more'));settle()
         self.assertEqual(more.row('inspect').word,'Put this change in the writing line','under More, as a line')
         with patch.object(cm,'dispatch',rec):more.row('inspect').click();settle()
-        bar=self.w.type_bar;self.assertEqual(bar.target,'slate');text=bar.box.text()
+        bar=self.w.type_bar;self.assertEqual(bar.target,'line');text=bar.box.text()      # 1.1 T1: 1.0 D1 named the mode Line
         self.assertTrue(text.startswith('/documents.edit {'),text);self.assertIn('"expected_revision": %d'%d.revision,text);self.assertIn('"text": "Alpha"',text)
         self.assertEqual(rec.calls,[],'inspecting runs nothing');bar.box.clear()
 
@@ -508,7 +508,7 @@ class Window(unittest.TestCase):
         from PySide6.QtGui import QGuiApplication
         self.assertEqual(QGuiApplication.clipboard().text(),'93.184.216.34:443')
         menu=right_click(view.connections.viewport(),r.center());menu.row('ask').click();settle()
-        self.assertEqual(self.w.type_bar.target,'slate');self.assertTrue(self.w.type_bar.box.text().startswith('About this network connection (tcp 192.168.1.5:51544 → 93.184.216.34:443'))
+        self.assertEqual(self.w.type_bar.target,'line');self.assertTrue(self.w.type_bar.box.text().startswith('About this network connection (tcp 192.168.1.5:51544 → 93.184.216.34:443'))
         self.w.type_bar.box.clear();self.log();view.choose('network',remember=False,read=False);settle()
         view.add_packets([dict(at=time.time(),iface='wlan0',proto='tcp',src='93.184.216.34',sport=443,dst='192.168.1.5',dport=51544,length=1500,seq=2)]);settle()
         r=view.packets.visualItemRect(view.packets.item(view.packets.count()-1));menu=right_click(view.packets.viewport(),r.center())

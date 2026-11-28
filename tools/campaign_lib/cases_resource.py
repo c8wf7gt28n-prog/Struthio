@@ -22,7 +22,7 @@ Numbers used throughout: the owner's file is 20,542,732,576 bytes; the foregroun
 estimate, the reserve and 4,096 MiB headroom fit. Since 0.8.7 (slice A2) the estimate is the memory sum, exact for this
 hybrid model (10 attention layers of 40, read from its header): weights x 1.3 + 384 MiB + KV 83,886,080 (20 KiB a token
 at 4,096) + one recurrent state 65,863,680, plus the reuse rung the rule admits, best first: six checkpoints of one
-state and a 1,024 MiB RAM prompt cache, 28,726,879,197 bytes (27,397 MiB; admitted from 33,541 MiB available); two and
+state and a 1,024 MiB RAM prompt cache, 33,480,074,205 bytes (31,930 MiB; admitted from 38,074 MiB available; 1.1 T1: 1.0 M1, was 28,726,879,197); two and
 256 MiB (26,378 MiB; from 32,522); reuse off, today's launch, 27,257,955,293 bytes (25,996 MiB; from 32,140 MiB, 17 MiB
 below the 32,157 of 0.8.1's estimate, which counted KV on all 40 layers).
 """
@@ -836,7 +836,7 @@ def _case(ident, number, title, fn, expect, spec_question=None, faults=(), input
 SPEC = 'spec.txt (35B Simulation Specification, draft 0.2), Resource control'
 
 
-ESTIMATE = 28_726_879_197          # 0.8.7 A2: the memory sum with six checkpoints and the 1,024 MiB prompt cache
+ESTIMATE = 33_480_074_205          # 1.1 T1: 1.0 M1 sizes the prompt cache from every kept prompt (0.8.7 A2's sum was 28,726,879,197)
 CASES = [
     _case('R01', 1, 'Valid qwen35moe fixture registers and is accepted', r01, {
         'registered': True, 'architecture': 'qwen35moe', 'architecture_profile': 'SUPPORTED_FOR_TRIAL',
@@ -864,13 +864,13 @@ CASES = [
     _case('R05', 5, '60 GiB available: Auto cap 32,768 MiB (the ceiling), admitted', r05, {
         'estimate_bytes': ESTIMATE, 'cap_mb': 32768, 'submit': 'ACCEPTED', 'frozen_memory_mb': 32768, 'admitted': True,
         'headroom_gib': 58.0, 'requested_mib': 32768, 'reserve_mib': 2048}, inputs={'available_gib': 60}),
-    _case('R06', 6, '40 GiB available: Auto cap 27,397 MiB (the estimate, above 65% of available), admitted; admission '
-                    'asks for 31,493 MiB, the estimate with Auto\'s 4,096 MiB headroom, which stays with the budget after '
+    _case('R06', 6, '40 GiB available: Auto cap 31,930 MiB (the estimate, above 65% of available), admitted; admission '
+                    'asks for 36,026 MiB, the estimate with Auto\'s 4,096 MiB headroom, which stays with the budget after '
                     'submit', r06, {
-        'estimate_bytes': ESTIMATE, 'cap_mb': 27397, 'submit': 'ACCEPTED', 'frozen_memory_mb': 27397, 'admitted': True,
-        'headroom_gib': 38.0, 'requested_mib': 31493, 'reserve_mib': 2048}, inputs={'available_gib': 40}),
-    _case('R07', 7, '39 GiB available: Auto accepts at the estimate (27,397 MiB), and a manual cap is admitted', r07, {
-        'estimate_bytes': ESTIMATE, 'auto_cap_mb': 27397, 'auto_submit': 'ACCEPTED', 'auto_frozen_memory_mb': 27397,
+        'estimate_bytes': ESTIMATE, 'cap_mb': 31930, 'submit': 'ACCEPTED', 'frozen_memory_mb': 31930, 'admitted': True,
+        'headroom_gib': 38.0, 'requested_mib': 36026, 'reserve_mib': 2048}, inputs={'available_gib': 40}),
+    _case('R07', 7, '39 GiB available: Auto accepts at the estimate (31,930 MiB), and a manual cap is admitted', r07, {
+        'estimate_bytes': ESTIMATE, 'auto_cap_mb': 31930, 'auto_submit': 'ACCEPTED', 'auto_frozen_memory_mb': 31930,
         'auto_admitted': True, 'auto_headroom_gib': 37.0,
         'manual_26100_submit': 'ACCEPTED', 'manual_admitted': True, 'manual_headroom_gib': 37.0},
         inputs={'available_gib': 39, 'manual_memory_mb': 26100}),

@@ -154,6 +154,8 @@ def open_on_work(host):
         return None
     import time
     host.launch_top_until = time.monotonic() + 5.0      # 1.0 D2: the launch's first focus is revealed with the tree kept at "This computer /"
+    if not reading[0].objects and (getattr(host, '_home_active', False) or getattr(getattr(host, 'tabs', None), 'count', lambda:0)()):
+        return None      # 1.1 T1: D2's board is for a blank centre; Home or a room left in front is where the owner left off
     page = show_field(host, reading=reading)
     from . import board_qt
     if not reading[0].objects:      # 1.0 D2 (X3): a fresh desk never opens on a blank centre: the board's Home and its one line
@@ -422,7 +424,7 @@ def trace(host, obj):
     line = 'field.trace %s | pick rows | select way,steps,kind,title,state,by' % js(id=obj.id)
     shell.face.thing = {**thing_of(host, obj), 'stac': line, 'explicit': True,
                         'intro': 'Where “%s” comes from, farthest first, then what rests on it:' % obj.title}
-    shell.ask('Where does “%s” come from, and what rests on it?' % obj.title)
+    shell.ask('Where does “%s” come from, and what rests on it?' % obj.title, request=False)      # 1.1 T1: Graphite's words, not the owner's request (L3)
     if getattr(host, '_field_active', False):host.field_page.view.setFocus(Qt.OtherFocusReason)
 
 
@@ -436,7 +438,7 @@ def doubt(host, obj):
     line = 'field.doubt %s | pick rows | select verdict,about,why' % js(id=obj.id)
     name = obj.title if len(obj.title) <= 44 else obj.title[:43].rstrip() + '…'
     shell.face.thing = {**thing_of(host, obj), 'stac': line, 'explicit': True, 'whole': True, 'intro': 'Doubting “%s”, worst first:' % name}
-    shell.ask('What could be wrong with “%s”?' % obj.title)
+    shell.ask('What could be wrong with “%s”?' % obj.title, request=False)      # 1.1 T1: Graphite's words, not the owner's request (L3)
     page = getattr(host, 'field_page', None)
     if page is not None and getattr(host, '_field_active', False):
         show_doubt(host, obj, line);page.view.setFocus(Qt.OtherFocusReason)

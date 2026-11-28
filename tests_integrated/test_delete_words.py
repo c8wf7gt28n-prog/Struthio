@@ -39,7 +39,7 @@ class TheCan(unittest.TestCase):
 
     def test_the_can_says_DELETE_in_kasandra(self):
         out = probe('kasandra', 1920, 1200, 'delete')
-        self.check(out, 1.0);self.assertEqual(out['size'], [120, 29]);self.assertEqual(out['rect'], [218, 1094, 120, 29])
+        self.check(out, 1.0);self.assertEqual(out['size'], [120, 29]);self.assertEqual(out['rect'], [181, 1094, 120, 29])      # 1.1 T1: the pane is 317 px since 1.0 P1 (was 354)
 
     def test_the_can_says_DELETE_in_graphite(self):
         self.check(probe('graphite', 1366, 768, 'delete'), 0.8)

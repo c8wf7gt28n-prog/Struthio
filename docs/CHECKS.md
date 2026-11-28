@@ -5,7 +5,8 @@ One command runs the checks at the size the moment needs:
 ```
 python3 tools/run_tiers.py 0                      # at every change: under a minute
 python3 tools/run_tiers.py 1 [--changed REF]      # before a commit: tier 0 and what imports a changed file
-python3 tools/run_tiers.py 2                      # at a release: everything, in both looks
+python3 tools/run_tiers.py 2                      # at a release: everything, in every look (1.1: Graphite, Kasandra, Day, Night)
+python3 tools/run_tiers.py 2 --look graphite,day --only test_x,check_y_ui.py   # again, only what failed
 ```
 
 `--look graphite|kasandra|both` chooses the look (tiers 0 and 1: the look in force; tier 2: both). `--out DIR` is where

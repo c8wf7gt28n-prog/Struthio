@@ -48,7 +48,7 @@ class _Qt:
 
 
 Q = _Qt()
-WHO = {'her': 'slate', 'terminal': 'shell', 'search': 'find', 'web': 'web', 'log': 'log'}      # the line's modes by whom they go to
+WHO = {'her': 'line', 'terminal': 'shell', 'search': 'find', 'web': 'web', 'log': 'log'}      # the line's modes by whom they go to      # 1.1 T1: D1 named her mode Line ('slate' was refused)
 WHO_OF = {mode: who for who, mode in WHO.items()}
 ROOMS = ('line', 'half', 'tall')
 HAND_ACTS = {'files.trash': 'hand.trash', 'files.rename': 'hand.rename', 'files.write': 'hand.write', 'field.set': 'hand.cell'}

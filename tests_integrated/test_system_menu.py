@@ -21,7 +21,7 @@ class FakeLogind:
     """Answers session_power.system as logind would and records every request; starts nothing. `missing` names programs not
     installed; `at_run` is called at the moment a command would start (what was already done then)."""
     def __init__(self,session='7',reboot='yes',poweroff='yes',ok=True,reason='',events=None,missing=(),at_run=None):
-        self.session=session;self.answers={'CanReboot':reboot,'CanPowerOff':poweroff,'CanSuspend':'yes'};self.ok=ok  # 1.0 S1: CanSuspend;self.reason=reason
+        self.session=session;self.answers={'CanReboot':reboot,'CanPowerOff':poweroff,'CanSuspend':'yes'};self.ok=ok;self.reason=reason  # 1.0 S1: CanSuspend (1.1 T1: S1's comment had swallowed ;self.reason=reason)
         self.requests=[];self.runs=[];self.events=events if events is not None else [];self.missing=set(missing);self.at_run=at_run;self.seen=None
 
     def __call__(self,request):

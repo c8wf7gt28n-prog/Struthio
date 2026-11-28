@@ -763,6 +763,7 @@ PAGE_RELEVANT_TOOLS=2;PAGE_TOOL_LIMIT=1000  # chosen tools beside the page's own
 PAGE_MATRIX_LIMIT=800  # characters of learned examples a page request carries (the live trial: worked examples grew past the default context)
 PROGRAM_RELEVANT_TOOLS=3
 PROGRAM_TOOL_LIMIT=2200  # total characters of Programs contracts beside discovery
+PLAN_TOOL_LIMIT=5000  # 1.1 T1: characters of the direct set for one message, under the smallest model's context (test_tool_selection)
 PICK_PROMPT=1200;PICK_OUTPUT=32;PICK_SECONDS=60  # her hand's GOAL turn: its prompt, its answer and its time, at most
 PROGRAM_HANDOFFS={'.png':('print','delivery'),'.pdf':('delivery',),'.step':('delivery',),
                   '.stp':('delivery',),'.wav':('delivery',),'.mp4':('delivery',),'.zip':('delivery',)}
@@ -891,6 +892,11 @@ def proposal_profile(message=None, program=None, receipt=None):
         else:
             chosen=relevant(message,CAPABILITIES,definitions,RELEVANT_TOOLS,exclude=DIRECT_OPERATIONS,
                             review_actions=PROGRAM_REVIEW_ACTIONS)
+            # 1.1 T1: the plan for one message stays under PLAN_TOOL_LIMIT (the smallest model's 2,048-token context must hold
+            # the plan prompt and the answer): the chosen ones least relevant are left out first. 1.0's larger schemas had
+            # carried it to 5,161 characters for 'plot the voltage against time from the csv'.
+            while chosen and len(json.dumps({op:definitions[op] for op in CORE_OPERATIONS+tuple(row['operation'] for row in chosen)},separators=(',',':')))>=PLAN_TOOL_LIMIT:
+                chosen=chosen[:-1]
             names=CORE_OPERATIONS+tuple(row['operation'] for row in chosen)
     variants=[];reference={}
     for op in names:

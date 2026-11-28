@@ -56,8 +56,14 @@ def _icon_room(button):
     return button.iconSize().width() + 4
 
 
+# 1.1 T1: buttons that paint a mark in place of their words (their text is only for readers): apps_qt.PlusButton draws its
+# circled plus (paint_plus) and never the '⊕' it holds, so there is no word of it to cut.
+DRAWS = ('PlusButton',)
+
+
 def _shows_words(widget):
     if isinstance(widget, QToolButton) and widget.toolButtonStyle() == Qt.ToolButtonIconOnly and not widget.icon().isNull():return False
+    if type(widget).__name__ in DRAWS:return False      # 1.1 T1
     return True
 
 

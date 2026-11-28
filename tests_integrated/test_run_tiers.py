@@ -85,8 +85,11 @@ class TheLists(unittest.TestCase):
         self.assertEqual((same, chosen), (zero, {}))
         imports = tiers.import_map(ROOT, cache=False)
         units, chosen = tiers.plan(1, ['graphite'], self.cfg, ['tools/run_tiers.py', 'MANIFEST.json'], imports=imports)
-        self.assertEqual(chosen, {'tests_integrated/test_run_tiers.py': ['tools/run_tiers.py']}, 'MANIFEST.json follows the source: tier 0 reads it')
-        self.assertEqual(units[:len(zero)], zero); self.assertEqual(units[len(zero):], [{'kind': 'module', 'name': 'test_run_tiers', 'classes': [], 'look': 'graphite'}])
+        # 1.1 T1: test_tiers_green holds the runner's looks too
+        self.assertEqual(chosen, {'tests_integrated/test_run_tiers.py': ['tools/run_tiers.py'], 'tests_integrated/test_tiers_green.py': ['tools/run_tiers.py']},
+                         'MANIFEST.json follows the source: tier 0 reads it')
+        self.assertEqual(units[:len(zero)], zero)
+        self.assertEqual(sorted(u['name'] for u in units[len(zero):]), ['test_run_tiers', 'test_tiers_green'])
         # a module tier 0 runs a part of runs whole when a change imports it
         units, _ = tiers.plan(1, ['graphite'], self.cfg, ['tests_integrated/test_one_name.py'], imports=imports)
         self.assertEqual([u for u in units if u['name'] == 'test_one_name'], [{'kind': 'module', 'name': 'test_one_name', 'classes': [], 'look': 'graphite'}])
@@ -190,8 +193,8 @@ FAKE = {
             def test_the_look_it_was_given(self):
                 self.assertEqual(os.environ.get('GRAPHITE_APPEARANCE'), 'kasandra')
         class Default(unittest.TestCase):
-            def test_graphite_is_the_default_look_with_nothing_set(self):
-                self.assertNotIn('GRAPHITE_APPEARANCE', os.environ)
+            def test_graphite_is_named_too(self):      # 1.1 T1: unset, a fresh profile starts in Day (1.0 D1), so Graphite is named
+                self.assertEqual(os.environ.get('GRAPHITE_APPEARANCE'), 'graphite')
         ''',
     'tests_integrated/test_fail.py': '''
         import unittest

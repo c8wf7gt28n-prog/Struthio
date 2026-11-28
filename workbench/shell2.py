@@ -786,6 +786,7 @@ class TopBar(QWidget):
             else:
                 width = widget.fontMetrics().horizontalAdvance(widget.text()) + round(26 * min(d.scale, 1.4)) if widget.text() else round(18 * min(d.scale, 1.4))
                 if not widget.icon().isNull():width += widget.iconSize().width() + (round(8 * min(d.scale, 1.4)) if widget.text() else 0)
+                width = max(width, widget.sizeHint().width())      # 1.1 T1: the word Apps (Day, Night) gets the room its style asks
             x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
             from .network_qt import place_head as place_net; x = place_net(self, x, h, gap, d)      # 1.0 K8: the network's word, left of Apps
             # The familiar menus from the middle column's left edge. In a window too narrow for all of them the rightmost
@@ -2836,10 +2837,10 @@ class SlateFace(QWidget):
         stage_set(self.host, chosen, cell, tokens[at], word=text.strip())
         return True
 
-    def ask(self, text, about=None):
+    def ask(self, text, about=None, request=True):      # 1.1 T1: request=False for words Graphite made (a trace, a doubt)
         try:  # 1.0 L3: the owner's last request is the board's task when no assignment is active (relevance.note_request)
             from .engine import engineering as _l3_kernel
-            from .relevance import note_request;note_request(_l3_kernel(self.host.root), text)
+            if request:from .relevance import note_request;note_request(_l3_kernel(self.host.root), text)
         except Exception:  # noqa: BLE001 - noting the request never stands in the way of answering it
             pass
         chosen = isinstance(self.thing, dict) and bool(self.thing.get('explicit')) and bool(self.thing.get('title')) and self.thing['title'] in text  # 1.0 F3: a card chosen by its own press (TRACE, DOUBT) is that card, never "which of these?"
@@ -3922,8 +3923,8 @@ class Shell2(QObject):
     def show_operations_face(self):
         self.host.sim_dock.show();self.host.console_pages.setCurrentWidget(self.host.operations_panel);self.host.operations_panel.refresh()
 
-    def ask(self, text, about=None):
-        self.show_slate_face();self.face.ask(text, about)
+    def ask(self, text, about=None, request=True):
+        self.show_slate_face();self.face.ask(text, about, request=request)      # 1.1 T1: request, see SlateFace.ask
 
     def run_stac(self, text):
         self.show_slate_face();self.face.run_stac(text)

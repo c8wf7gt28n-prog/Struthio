@@ -66,7 +66,7 @@ OBSERVER_OPERATIONS=frozenset({
  # 1.0 K9: her hand's state and her window read inside, read when her column or a step looks; reading is not an event
  'program.status','program.look','program.find',
  # 1.0 F1: where her hand drives and whether it waits for your word, read when her column looks; reading is not an event
- 'hand.door',
+ 'door.state',      # 1.1 T1: was hand.door, a desk act's head
  # 1.0 K2: the registry of her tools, receipts, and a look at the windows, read when her column or a step is shown; reading is not an event
  'tools.list','tools.receipts','windows.observe',
  # 1.0 K3: the grants in force and a grant's words, read when her column or the Grants page is shown; HALT's state, read by its button

@@ -131,7 +131,7 @@ def schemas():
     from .network_governed import FIELDS as WEB_FIELDS  # 1.0 K8 (the network, governed): web.*
     from .app_files import FIELDS as APP_FILES_FIELDS  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
     from .a11y_hand import FIELDS as A11Y_HAND_FIELDS  # 1.0 K9 (her hand in other programs): program.status, .look, .find, .open, .type, .press, .save, .answer, .shown
-    from .hand_door import FIELDS as HAND_DOOR_FIELDS  # 1.0 F1 (the door's mechanics): hand.door, hand.door.continue, hand.door.stop
+    from .hand_door import FIELDS as HAND_DOOR_FIELDS  # 1.0 F1 (the door's mechanics): door.state, door.continue, door.stop
     from .quick_model import FIELDS as QUICK_MODEL_FIELDS  # 1.0 M2 (a quick model beside hers): brain.quick.status, .use, .stop, .split
     from .home_pages import FIELDS as HOME_PAGES_FIELDS  # 1.0 K10 (her reach in Home, finished): file.pages
     from .home_plan import FIELDS as HOME_PLAN_FIELDS  # 1.0 K10 (her reach in Home, finished): grant.give.set
@@ -269,7 +269,7 @@ def schemas():
         **WEB_FIELDS,  # 1.0 K8 (the network, governed): web.*
         **APP_FILES_FIELDS,  # 1.0 A1 (programs by window and file): appfile.open, appfile.look, appfile.list
         **A11Y_HAND_FIELDS,  # 1.0 K9 (her hand in other programs): program.status, .look, .find, .open, .type, .press, .save, .answer, .shown
-        **HAND_DOOR_FIELDS,  # 1.0 F1 (the door's mechanics): hand.door, hand.door.continue, hand.door.stop
+        **HAND_DOOR_FIELDS,  # 1.0 F1 (the door's mechanics): door.state, door.continue, door.stop
         **QUICK_MODEL_FIELDS,  # 1.0 M2 (a quick model beside hers): brain.quick.status, .use, .stop, .split
         **HOME_PAGES_FIELDS,  # 1.0 K10 (her reach in Home, finished): file.pages
         **HOME_PLAN_FIELDS,  # 1.0 K10 (her reach in Home, finished): grant.give.set
