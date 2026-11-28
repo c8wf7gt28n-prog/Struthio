@@ -1,20 +1,9 @@
 # KS1 progress (builder notes)
 
-## Design (decided)
-- workbench/box_ops.py: narrow box.* Kernel ops (reads: box.files.find, box.space, box.memory, box.processor, box.system, box.pdf.info, box.zip.list, box.bin.list; changes execute: box.pictures.make, box.pdf.merge, box.pdf.split, box.zip.make, box.zip.extract, box.folder.copy, box.files.rename, box.files.sort, box.files.bin; approve: box.bin.empty). Each: plan() pure, act, verify, undo record in table box_changes.
-- workbench/recipe_book.py: recipes from workbench/recipes/*.json + ~/.config/graphite/recipes/*.json; slot types; dictionary pick; RECIPE turn kind (model picks by number, slots only from W-numbered spans of the owner's words); dry run digest; run (execute, refuses her work / HALT); undo (approve). Ops recipes.list/pick/dry_run/look/runs (read), recipes.run (execute), recipes.undo (approve).
-- workbench/recipe_book_qt.py: her talk bubbles (offer, dry run + Run, done-and-verified + Undo, Recipes list, one question).
-- Edits (marked 1.1 KS1): engineering_kernel.py, engineering_cli.py, shell2.py ask chain (before objective_asked), her_column_qt.py next_steps/take_step, line_finder.py rows/VERBS, kas_voice.py lines.
-- Zip via stdlib zipfile; PDFs via poppler-utils (pdfunite/pdfseparate/pdfinfo); pictures via ImageMagick (magick or convert).
-
-## Done
-- box_ops.py, recipe_book.py, workbench/recipes/01..40 (written by scratchpad make_recipes.py), Kernel + CLI registration.
-- smoke.py in copy: 40 load, reads look verified, 7 change runs + undo verified (convert, resize, zip, sort, merge, ...).
-
-- recipe_book_qt.py (her talk), shell2 ask chain hook, her_column next steps, line_finder rows (+Show verb), kas_voice lines
-- tests_integrated/test_recipes.py: 15 tests, all OK in copy (38 of 40 ran+verified; network: no `ip` here; failed: no systemd bus)
-
-## Next
-- run touched tests: test_kas_voice, test_start_line (line_finder), maybe test_kasandra_column
-- frames (1920x1200 Day + Kasandra; line offer, dry run, done+Undo), result JSON, patch check on clean checkout
-- scripts in scratchpad/work/b110/KS1: mkcopy.sh, sync.sh [seed], test.sh MODULE NAME, save.sh
+## Status: DONE (result file written: KS1.build.result.json)
+- box_ops.py, recipe_book.py, recipe_book_qt.py, workbench/recipes/01..40 JSON, test_recipes.py (15 OK)
+- hooks marked 1.1 KS1: engineering_kernel.py, engineering_cli.py, shell2.py (ask chain), her_column_qt.py (NEXT STEPS), line_finder.py (rows, Show), kas_voice.py
+- touched tests OK: test_kas_voice, test_start_line (24 OK)
+- frames: b110/KS1/frames/ (1920x1200 day+kasandra, 1366x768 day: line_recipe, dry_run, done_undo)
+- patch checked: applies to a clean archive of d304bdd
+- copy and areas deleted
