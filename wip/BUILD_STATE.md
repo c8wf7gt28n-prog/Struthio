@@ -103,8 +103,11 @@ rules holding you back".
   * **PREVIEW 1 SENT (28 Nov 02:57 UTC):** T1 merged (81469e6); version 1.1~pre1; cut from 436f770 with
     `cut_pre.sh` (release check PASSED; 45 kit files, the largest 14.4 MB); sent with the notes. Record:
     `wip/2026-11-28_preview_1/`. The kit stays in `$S/work/pre1/kit/` as the base of the next cuts (cut_pre's default).
+  * **The owner, 28 Nov 03:00: "Send screenshots when available".** So: at every merge, send that slice's frames
+    (each builder saves whole-window PNGs in `$S/work/b110/KEY/frames/`, invented content only); preview 1's frames
+    (W1's: the window, the dock's clock, keys in the Edit menu, Properties, the month) were sent at 03:02.
   * **Preview 2 building:** B1 (the bar; agent a17badf4fadba75e4), E1 (Explorer; agent aa4ef2c59a1f3ccb3), KV (her voice;
-    agent a7bb451de53b60995, launched 28 Nov ~02:45). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
+    agent a7bb451de53b60995, launched 28 Nov 02:53). Then B2, B3, K0, and the rest of the tiers (T2, from T1's not_done). The brief maker now finds slices that start mid-paragraph (4dc4563).
 
 ## Before: Graphite 1.0 is released, untested (27 Nov 2026)
 
