@@ -6,7 +6,7 @@ Kasandra's column saying what she can do without one. Use the ordinary Debian ac
 workspace.
 
 **Built, not tested.** Nothing in 1.0 has run on this ThinkPad yet. The acceptance evening, `docs/ACCEPTANCE_1.0.md`
-(Guide ▸ Your First Evening with 1.0), walks through the install, your paper's test, her model and the day on Rail Demo,
+(Help ▸ Your First Evening with 1.0), walks through the install, your paper's test, her model and the day on Rail Demo,
 and says what to send back; this page holds the details it points to.
 
 ## Observed hardware
@@ -64,7 +64,7 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
 
 ## First work in the desk
 
-Since 1.0 the centre's home is the board: select the workshop's sheet in Files or in the Desk drawer and it stands in the middle with its source, report and findings around it; a double-click opens it, and Save and Return to the board brings you back. Kasandra is spoken to in her ask line at the foot of her column; the line at the window's foot is the computer's (Line, Terminal, Search, Web, Log). Guide ▸ The Living Desktop is the tour. The Field below is the whole desk as sheets (the board's Whole desk, or Arrange ▸ Field).
+Since 1.0 the centre's home is the board: select the workshop's sheet in Files or in the Desk drawer and it stands in the middle with its source, report and findings around it; a double-click opens it, and Save and Return to the board brings you back. Kasandra is spoken to in her ask line at the foot of her column; the line at the window's foot is the computer's (Line, Terminal, Search, Web, Log). Help ▸ The Living Desktop is the tour. The Field below is the whole desk as sheets (the board's Whole desk, or Go ▸ Field).
 
 - Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the line that reads the selected sheet in Line at the foot and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
 
@@ -136,10 +136,10 @@ Graphite checks current RAM headroom and the owner's foreground turn before appl
 
 ## Desk artwork
 
-Since 1.0 no picture of Kasandra appears anywhere, in any look (the owner, 26 November 2026: "No kas avatar anymore"): her column opens with the equalizer, her name, her model and her state word. The look itself is chosen in **Arrange → Appearance**: Day (the launch look), Night, Graphite or Kasandra. **Rules → Desk artwork** keeps the workshop's art plates (**Art plates**), the glow, and the Illustrated, ASCII and Clean modes.
+Since 1.0 no picture of Kasandra appears anywhere, in any look (the owner, 26 November 2026: "No kas avatar anymore"): her column opens with the equalizer, her name, her model and her state word. The look itself is chosen in **View → Appearance**: Day (the launch look), Night, Graphite or Kasandra. **View → Desk artwork** keeps the workshop's art plates (**Art plates**), the glow, and the Illustrated, ASCII and Clean modes.
 
 ## Fast-forward screensaver
 
-Open **Rules → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The workshop scene shows, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Graphite controls.
+Open **View → Desk artwork → Fast-forward screensaver → Preview now**. Amber traces, a green crossbar, and a hex window advance like a CRT recording on fast-forward. The workshop scene shows, with a brief *Brain on Disk* VHS cutaway about 24 seconds into each loop. The **SIMULATION** badge identifies the fictional operations. Real jobs continue through their usual Graphite controls.
 
 Automatic start is off by default. The same menu offers five, fifteen, and thirty minutes of idle time while Graphite is active. Move the pointer, click, or press a key to return to the same desk. **Reduce optional motion** shows a still frame. For a password-protected lock, use the system's lock screen.

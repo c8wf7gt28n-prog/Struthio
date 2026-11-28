@@ -22,7 +22,7 @@ stick with a few ordinary files on it (not the kit's drive).
 
 **Where the details are.** `docs/THINKPAD_FIRST_INSTALL.md` (the ThinkPad page: the install, the model file, the console
 route if the screen stops answering) and `docs/MINIMAL_DEBIAN_INSTALL_01.md` (the dedicated session). This page points to
-them rather than repeating them. In Graphite, Guide ▸ The Living Desktop and Guide ▸ Kasandra, the Ghost in the Shell say
+them rather than repeating them. In Graphite, Help ▸ The Living Desktop and Help ▸ Kasandra, the Ghost in the Shell say
 what each part of the window is.
 
 ---
@@ -89,10 +89,10 @@ bash "$HOME/Applications/Graphite-1.0/START_MINIMAL_DEBIAN.sh"
 ```
 
 You should see: the window in **Day** (light, calm), with one line saying that Graphite 1.0 starts in Day and that your
-earlier look is in Arrange ▸ Appearance; HALT upper left; Apps ⊕ upper right; Files on the left, starting at "This
-computer /" with Home open and chosen; the board in the centre; Kasandra's column on the right with the equalizer across
+earlier look is in View ▸ Appearance; HALT upper left; the menus File, Edit, View, Go, Tools, Help; Apps ⊕ at the head's
+right; Files on the left, Quick access first, with Home chosen and open as a List in the centre; Kasandra's column on the right with the equalizer across
 its top and no picture of her; at the foot Line · Terminal · Search · Web · Log and the meters CPU GPU RAM TXT NET; and the
-slim dock across the very top.
+bar along the very bottom (Start, the line, the windows, Kas, the tray, the clock).
 
 **No model.** Her column must show ○ beside her name and say that no model is loaded and what she can still do. If it
 shows ● with a model ready, stop the model in the Brain room (the GPU meter's card at the foot) before you go on.
@@ -101,11 +101,12 @@ shows ● with a model ready, stop the model in the Brain room (the GPU meter's 
 
 ### 2.2 Two apps, and material between them
 
-1. Open **Apps** (upper right). It lists what is installed on this computer by kind, with a search line. **Photo 3.**
+1. Open **Start** on the bar (or press the Windows key). It lists what is installed on this computer by kind; type to find
+   one. (**Apps** at the head's right lists the same, with a search line.) **Photo 3.**
 2. Open LibreOffice Writer, then a second app that is not LibreOffice (a text editor, Firefox, an image viewer: whatever
    Apps lists). If only LibreOffice is installed, use Writer and Calc, and say so.
-3. The dock shows both windows with their titles, the active one marked. Press each in the dock: it comes forward. Press
-   the dock's Graphite entry: Graphite comes back. **Photo 4:** the dock with both apps.
+3. The bar shows both windows with their titles, the active one marked. Press each on the bar: it comes forward. Press
+   the bar's Graphite entry: Graphite comes back. **Photo 4:** the bar with both apps.
 4. Exchange material: copy a passage from one app and paste it into the other (each app's own Edit menu); then save a
    file in one and open the saved file in the other. Say whether both ways worked.
 5. In Graphite, find the saved file in Files (under Home), right-click it, Open with: the apps that take that kind of file
@@ -121,7 +122,7 @@ pkill --oldest --signal KILL --full workbench.launch
 
 This ends Graphite's window the hard way, as a crash would. You should see: Graphite's window gone for a few seconds, then
 back, with a line saying it was started again; both apps still open, their windows untouched. **Photo 5:** Graphite back,
-with the line, and the dock with both apps.
+with the line, and the bar with both apps.
 
 ### 2.4 A USB drive
 
@@ -133,8 +134,8 @@ with the line, and the dock with both apps.
 
 ### 2.5 Suspend and resume
 
-1. From the foot of the **Work** menu: the session group reads Lock, Suspend, Log out, Restart, Shut down, Return to
-   Debian. **Photo 8:** the Work menu open.
+1. From the foot of the **File** menu: the session group reads Lock, Suspend, Log out, Restart, Shut down, Return to
+   Debian. **Photo 8:** the File menu open.
 2. Choose **Lock** first: the screen locker shows; type your password into it (never into Graphite); you are back.
 3. Choose **Suspend**: the screen locks first, then the computer sleeps. Wake it, type your password into the locker.
    You should see Graphite and your open apps exactly as they were. **Photo 9:** after the wake.
@@ -154,7 +155,7 @@ Each is optional; take a photo of whatever reads wrong.
 
 ### 2.7 Return to the console
 
-Choose **Return to Debian** at the foot of the Work menu with an app still open. You should see Graphite name the apps
+Choose **Return to Debian** at the foot of the File menu with an app still open. You should see Graphite name the apps
 still open and ask each to close politely (an app may ask you to save; nothing is killed). **Photo 10:** that question.
 Then the text console, with `Graphite ended with status 0` and a line saying how many times Graphite was started again in
 this session (one, from 2.3). **Photo 11:** the console.
@@ -221,7 +222,7 @@ worksheet, and the summary page and the report play the previous report.
 Her model should be ready (Part 3). Where a step says what she should answer, the words will differ; what matters is what
 the answer claims.
 
-1. **Guide ▸ Try Rail Demo**, then **Build it** on her card. It is built in a new folder of its own under
+1. **Help ▸ Try Rail Demo**, then **Build it** on her card. It is built in a new folder of its own under
    `~/Graphite demos`, never in your workspace, and opens in a window of its own. Her card names the folder: write it down.
    **Photo 15:** Rail Demo's window.
 
@@ -302,7 +303,7 @@ the desktop and your apps keep running; HALT reads RESUME. Press RESUME: nothing
 
 ## Part 5 · Leave, and what to send back
 
-Choose **Return to Debian** (or Shut down) from the foot of the Work menu.
+Choose **Return to Debian** (or Shut down) from the foot of the File menu.
 
 **Send back:**
 

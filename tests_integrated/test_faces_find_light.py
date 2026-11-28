@@ -53,11 +53,14 @@ class GlyphSetTests(unittest.TestCase):
     def test_a_menu_line_is_looked_up_without_its_mnemonic_its_key_or_its_dots(self):
         self.assertEqual([tool_faces.named(w) for w in ('&Undo','Find…\tCtrl+F','New &File…','Pin / Unpin workspace\tCtrl+Shift+K')],['Undo','Find','New File','Pin / Unpin workspace'])
 
-    def test_a_menu_line_shows_its_words_and_never_its_key(self):
+    def test_a_menu_line_shows_its_words_and_its_key_while_keys_are_shown(self):
         from PySide6.QtGui import QKeySequence
         from PySide6.QtWidgets import QMenu
+        from unittest import mock
         menu=QMenu();save=menu.addAction('&Save');save.setShortcut(QKeySequence('Ctrl+S'));idea=menu.addAction('New Idea…\tCtrl+Shift+N')
-        tool_faces.dress(menu)
+        tool_faces.dress(menu)  # 1.1 T2: W1 reversed 0.5.2: with "Show keys" on (the default) a line shows its key beside its words
+        self.assertTrue(save.isShortcutVisibleInContextMenu());self.assertEqual(idea.text(),'New Idea…\tCtrl+Shift+N','a key after a tab is kept')
+        with mock.patch('workbench.windows_hand.show_keys',return_value=False):tool_faces.dress(menu)  # "Show keys" off: as 0.5.2 had it
         self.assertFalse(save.isShortcutVisibleInContextMenu());self.assertEqual(save.shortcut().toString(),'Ctrl+S','the key still works; it is not printed')
         self.assertEqual(idea.text(),'New Idea…','a key written into a line after a tab is taken out of it')
         self.assertEqual(save.text(),'Save','and no letter is underlined');both=menu.addAction('Find && Replace');tool_faces.dress(menu);self.assertEqual(both.text(),'Find && Replace','a real ampersand stays')

@@ -3,22 +3,24 @@
 *Graphite 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
 the ThinkPad yet. Where this page says what you see, it says what was built and seen working on the build machine, with
 no screen and with stand-ins for the USB drive, the sound, the Wi-Fi and the battery. The first real proof is your first
-evening (Guide ▸ Your First Evening with 1.0).*
+evening (Help ▸ Your First Evening with 1.0).*
 
 Graphite is the whole desktop: the session, your files, your apps, the machine, and Kasandra (Kas), on one screen. With
-no model loaded, everything on this page works. Her own page is Guide ▸ Kasandra, the Ghost in the Shell.
+no model loaded, everything on this page works. Her own page is Help ▸ Kasandra, the Ghost in the Shell.
 
 ## The screen at a glance
 
-- **The head**, the session and the authority: HALT upper left; the menus Work, Revise, Tools, Arrange, Commands, Rules,
-  Properties and Guide; Apps ⊕ upper right.
-- **The left**, where things are: the tabs Files, Machine and Settings; the Desk drawer of records; DELETE at the foot.
-- **The centre**, the thing, what it is connected to, and working on it: the board, the working view, tabs and the split.
+- **The head**, the session and the authority: HALT upper left; the menus File, Edit, View, Go, Tools and Help (1.1; the
+  rows of 1.0's eight menus are all there, each under its new name); Apps ⊕ at the head's right.
+- **The left**, where things are: the tabs Files, Machine and Settings; the Desk drawer of records; the Recycle Bin at the foot (DELETE on a
+  profile from 1.0).
+- **The centre**, the thing, what it is connected to, and working on it: the Explorer (List, Icons, Board), the working
+  view, tabs and the split.
 - **The right**, who works with you: Kasandra's column.
 - **The foot**, the computer's own line and its vital signs: Line · Terminal · Search · Web · Log, the writing line, and
   the meters CPU GPU RAM TXT NET.
-- **The dock**, in the dedicated session: a slim band above everything, with a Graphite entry and the windows of your
-  apps.
+- **The bar**, in the dedicated session: one bar along the bottom of the screen, above every app: Start, the line,
+  Graphite and the windows of your apps, Kas, the tray and the clock.
 
 Nothing lives in two places. Kas is spoken to in her column; the foot is the computer's line.
 
@@ -28,11 +30,14 @@ Nothing lives in two places. Kas is spoken to in her column; the foot is the com
   Graphite's window ends unexpectedly, the session starts it again after a short wait (2 seconds, then 4, then 8, at most
   30), up to three times in a row; after that it returns to the text console with a plain message. Your apps stay open
   meanwhile, because each app starts in a session of its own.
-- **The dock.** A slim band across the top of the screen, above every app: the Graphite entry always brings Graphite back;
-  each open app window stands there with its icon and title, the active one marked. One press brings a window forward; a
+- **The bar.** One bar along the bottom of the screen, above every app. **Start** (or the Windows key) holds your apps by
+  kind, your recent files and the session group; type at once and **the line** finds and does apps, files, settings,
+  commands, DOS words and sums, or asks Kasandra. The Graphite entry always brings Graphite back; each open app window
+  stands there with its title, the active one marked. The tray holds the network, sound and power, and the clock shows
+  the month on a press. One press brings a window forward; a
   right-click minimises it or asks it to close (the app may ask to save; nothing is forced). Where there is no window list,
   the strip stays away and says so.
-- **The session group**, at the foot of the Work menu: Lock, Suspend, Log out, Restart, Shut down, Return to Debian. Lock
+- **The session group**, at the foot of the File menu and of Start: Lock, Suspend, Log out, Restart, Shut down, Return to Debian. Lock
   starts the system's screen locker; your password is typed into it, never into Graphite. Suspend always locks first, then
   puts the computer to sleep, and waits until a file Kas is writing is finished. Before Log out, Restart, Shut down or
   Return to Debian, Graphite names the apps still open and asks each to close politely; it never kills one.
@@ -43,7 +48,7 @@ Nothing lives in two places. Kas is spoken to in her column; the foot is the com
 
 ## Apps ⊕
 
-- **Apps** (upper right) lists what is installed on this computer, from the apps' own desktop entries, by kind, with their
+- **Apps** (at the head's right; Start on the bar shows the same apps) lists what is installed on this computer, from the apps' own desktop entries, by kind, with their
   own icons and a search line. Graphite's own rooms stand under their own heading. **⊕** beside it puts any app, or a
   command of your own, on your list.
 - Every app starts in a session of its own, never through a shell, so it stays open if Graphite starts again.
@@ -54,19 +59,21 @@ Nothing lives in two places. Kas is spoken to in her column; the foot is the com
 
 ## Files: the whole computer
 
-- The Files tab starts at **This computer /**. **Home** (your home folder) is open and chosen when Graphite starts;
-  **Drives** stands right under it (USB sticks, cards and discs). Every other folder your account can read is one press
+- The Files tab reads **Quick access** first (Home, Desktop, Documents, Downloads, Pictures, Music), then the **Desk**,
+  then **This computer**: System (C:) is /, and each drive (USB sticks, cards and discs) has its letter and its free space.
+  Graphite starts with **Home** chosen, as a List in the centre. Every other folder your account can read is one press
   away. The system's own pseudo-folders (/proc, /sys, /dev, /run) are shown but never read. Names that start with a dot
   appear when you turn on **Show hidden** in the tab's header.
 - Graphite's own workspace is a folder in Home like any other, marked with Graphite's sign. Its records stand in the
   **Desk** drawer: the concern, its sources, sheets, calculations, findings and questions.
 - In Home you can open a file in its app (its saves are recorded as revisions), rename it, move it (also by dragging it
   onto a folder), make a new folder beside it, and delete it, each with Undo.
-- **DELETE**, at the foot of the left column, is the system's own bin, shared with your other apps: a file deleted from
-  your home goes there with where it was and when, DELETE lists it under *From your home*, and restore puts it back, never
+- The **Recycle Bin** (DELETE on a profile from 1.0; Tools ▸ The bin's name), at the foot of the left column, is the
+  system's own bin, shared with your other apps: a file deleted from your home goes there with where it was and when, the
+  bin lists it under *From your home*, and restore puts it back, never
   over another file.
 - A file renamed or moved, by Graphite or by another app, stays the same object: its new name shows in the tree, on the
-  board and in the breadcrumb.
+  board and in the address.
 
 ## The Machine and Settings
 
@@ -86,8 +93,10 @@ this computer" and why.
 **Settings ▸ This computer** reaches the same things as settings: default apps, sound, screens, network, power, the
 session and notifications, beside Graphite's own settings.
 
-## The centre: the bulletin board
+## The centre: the Explorer and the bulletin board
 
+- **A folder** chosen in the tree opens in the centre as a **List** (Name, Modified, Type, Size, Links; a press on a
+  heading sorts, again reverses), as **Icons** with picture thumbnails, or on the **Board**, the bulletin board below.
 - **Select something** in Files, in the Desk drawer or in a search result, and it becomes the focus of the board: the large
   tile in the middle, with what is connected to it around it on rings (its sources, the revisions of a limit, the
   calculations made from it, the findings about it, open questions, pages that quote it). Select a tile and the tree opens
@@ -103,7 +112,8 @@ session and notifications, beside Graphite's own settings.
   as "and 12 more", which opens. Right-click a tile for **Why am I shown?** (the reasons in words), **Pin** ("pinned by
   you": drawn large, first), **Turn down** (put with the group at the edge, its link kept; Turn up again undoes it) and
   **Open beside**. Truth, confidence and authority keep their own marks: a large tile is relevant, not true.
-- **The centre bar**, one bar at every depth: Back, Forward and the breadcrumb (where you are); on the board, its counts
+- **The centre bar**, one bar at every depth: Back, Forward and the address (where you are; type a path, ~ or C:\ to go
+  there), and List, Icons and Board; on the board, its counts
   ("7 recorded · 3 possible, not verified") and **Whole desk**, the whole desk as sheets with what feeds what.
 - An empty board says what to do: "Select something on the left; what it is connected to appears here." A tile with no
   links says why.
@@ -153,13 +163,13 @@ and restarts nothing by itself.
 
 **Day** is the launch look: light and calm, green for what is live, blue for the wires, the rings and what is selected.
 **Night** is Day's dark twin. **Graphite** and **Kasandra** stay as characterful alternatives in the same layout.
-Choose in Arrange ▸ Appearance. In every look each state keeps its word and its shape, so no colour has to be told
+Choose in View ▸ Appearance. In every look each state keeps its word and its shape, so no colour has to be told
 apart. No picture of Kasandra appears in any look.
 
 ## What 1.0 does not do, said plainly
 
-- Nothing is tested (the owner's rule). Only the ThinkPad can show the dock on a real screen, real USB drives, Wi-Fi,
+- Nothing is tested (the owner's rule). Only the ThinkPad can show the bar on a real screen, real USB drives, Wi-Fi,
   sound, suspend and lock, the system's permission prompts, the Radeon and the 35B's speed.
 - The split is not restored at the next start (its tabs are). No encrypted drives; no enterprise or hidden Wi-Fi.
 - The older rooms (Changes, Continuing work, Exchange & deployment, the Project Desk, the Field) are still there, under
-  Arrange; the board is the centre's home.
+  Go; the Explorer is the centre's home, with the board one press away.

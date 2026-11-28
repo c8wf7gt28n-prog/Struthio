@@ -127,10 +127,10 @@ assert w.a_import in w.menu_groups['File'].actions() and w.a_export in w.menu_gr
 trash=w.trash_can;parent=trash.parentWidget()
 while parent is not None:
  assert not isinstance(parent,QAbstractScrollArea),'Trash must stay outside the scrolling tree';parent=parent.parentWidget()
-def trash_pinned(view):
+def trash_pinned(view):      # 1.1 T2: E1's can says Recycle Bin, wider than DELETE: its middle, not its left edge, is right of the dock's middle
  dock=w.nav_dock.geometry();pos=trash.mapTo(w,trash.rect().topLeft());stack_bottom=nav.stack.mapTo(w,nav.stack.rect().bottomLeft()).y()
  assert trash.isVisible() and not strip.isVisible(),view
- assert pos.x()>dock.center().x() and pos.x()+trash.width()<=dock.right()+1 and pos.y()>=stack_bottom-1 and pos.y()+trash.height()<=dock.bottom()+1,(view,pos,dock,stack_bottom)
+ assert pos.x()+trash.width()/2>dock.center().x() and pos.x()+trash.width()<=dock.right()+1 and pos.y()>=stack_bottom-1 and pos.y()+trash.height()<=dock.bottom()+1,(view,pos,dock,stack_bottom)
  strip_samples.append(dict(view=view,text=strip.label.full,sampled_at=strip.sample['sampled_at']))
 for view in VIEWS:
  nav.show_view(view);settle();assert nav.current_view()==view;trash_pinned(view);assert STRIP.match(strip.label.full),strip.label.full

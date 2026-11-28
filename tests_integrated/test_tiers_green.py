@@ -90,10 +90,10 @@ class TheLooks(unittest.TestCase):
         with self.assertRaises(Exception):tiers.looks_of('noir')
 
     def test_only_runs_what_it_names(self):
-        units, _ = tiers.plan(2, ['graphite', 'day'], tiers.config(), modules=['test_a', 'test_b'], checks=['tools/check_x_ui.py'])
-        kept = tiers.only(units, ['test_b', 'check_x_ui.py'])
+        units, _ = tiers.plan(2, ['graphite', 'day'], tiers.config(), modules=['test_a', 'test_b'], checks=['tools/check_x_window.py'])
+        kept = tiers.only(units, ['test_b', 'check_x_window.py'])
         self.assertEqual(sorted((u['name'], u['look']) for u in kept),
-                         [('test_b', 'day'), ('test_b', 'graphite'), ('tools/check_x_ui.py', 'day'), ('tools/check_x_ui.py', 'graphite')])
+                         [('test_b', 'day'), ('test_b', 'graphite'), ('tools/check_x_window.py', 'day'), ('tools/check_x_window.py', 'graphite')])
 
 
 class Remembered(unittest.TestCase):

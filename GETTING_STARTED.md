@@ -1,8 +1,8 @@
 # Getting started with Graphite 1.0
 
 Graphite is the whole desktop and its assistant, Kasandra (Kas), under one name (before November 6, 2026: Ledger & Slate;
-folders, scripts and settings keys keep the earlier names). This page is the first ten minutes. Guide ▸ The Living Desktop
-is the tour of the window, Guide ▸ Kasandra, the Ghost in the Shell is hers, and Guide ▸ Your First Evening with 1.0 is the
+folders, scripts and settings keys keep the earlier names). This page is the first ten minutes. Help ▸ The Living Desktop
+is the tour of the window, Help ▸ Kasandra, the Ghost in the Shell is hers, and Help ▸ Your First Evening with 1.0 is the
 acceptance evening on the ThinkPad.
 
 *Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on the ThinkPad
@@ -22,27 +22,30 @@ yet. The first real proof is that evening.*
 ## The first ten minutes
 
 1. **The window.** HALT upper left; the menus across the head (File, Edit, View, Go, Tools, Help; View ▸ Details pane, or
-   Alt+P, shows the chosen thing at the right of the centre); Apps ⊕ upper right. On the left the tabs Files, Machine and Settings, with DELETE at their foot; the board in the
+   Alt+P, shows the chosen thing at the right of the centre); Apps at the head's right. On the left the tabs Files, Machine and
+   Settings, with the Recycle Bin at their foot (DELETE on a profile from 1.0; Tools ▸ The bin's name); the Explorer in the
    centre; Kasandra's column on the right; at the foot Line · Terminal · Search · Web · Log, the writing line and the meters
-   CPU GPU RAM TXT NET. In the dedicated session a slim dock across the top holds Graphite and your app windows.
-2. **Files** starts at "This computer /" with Home open. Select a file and it becomes the focus of the board, with what it
-   is connected to around it: solid wires are recorded, dashed ones only possible and "not verified". A double-click opens
+   CPU GPU RAM TXT NET. In the dedicated session one bar along the bottom of the screen, above every app, holds Start, the
+   line, Graphite and your app windows, Kas, the tray and the clock.
+2. **Files** is an Explorer: Quick access (Home, Desktop, Documents, Downloads, Pictures, Music), the Desk and This
+   computer in the tree, and the window starts with Home as a List in the centre (List, Icons or Board; type a path in the
+   bar to go there). Show a file on the Board and it becomes the focus, with what it is connected to around it: solid wires are recorded, dashed ones only possible and "not verified". A double-click opens
    it in the centre; use Save and Return to come back to the same board.
-3. **Apps** lists what is installed on this computer. Open one: its window appears in the dock, and one press there brings
-   it forward. Right-click a file for Open with.
+3. **Start** (the Windows key, or Start on the bar) lists the apps installed on this computer, by kind; type to find one.
+   Open one: its window appears on the bar, and one press there brings it forward. Right-click a file for Open with.
 4. **The Machine tab** reads the computer itself: USB drives (eject safely), the battery, the network and Wi-Fi, sound and
    screens. Where a service is missing it says so, and why.
 5. **Ask Kasandra in her column**: the ask line at the foot of her column, with its send arrow. With no model she answers
    what your records can answer and plans from them; words typed in Line at the foot are offered to her with Ask
    Kasandra →. Every change of hers waits for your word or a grant you gave, and is done only when it is verified.
-6. **Try Rail Demo** (Guide ▸ Try Rail Demo): an invented 12 V rail, built in a new folder of its own and opened in a
+6. **Try Rail Demo** (Help ▸ Try Rail Demo): an invented 12 V rail, built in a new folder of its own and opened in a
    window of its own. Nothing of it reaches your workspace.
 7. **Her model is optional.** The Brain room (the GPU meter's card at the foot) ▸ Add file. The ThinkPad page names the
    file and its checksum.
 8. **HALT** stops all of her work at once and nothing else; it reads RESUME while held, and RESUME restarts nothing by
    itself.
-9. **Leaving:** the session group at the foot of the Work menu reads Lock, Suspend, Log out, Restart, Shut down, Return to
-   Debian. Before you leave, Graphite names the apps still open and asks each to close politely.
+9. **Leaving:** the session group at the foot of the File menu (and Start's foot) reads Lock, Suspend, Log out, Restart,
+   Shut down, Return to Debian. Before you leave, Graphite names the apps still open and asks each to close politely.
 
 ## The older rooms, still there
 

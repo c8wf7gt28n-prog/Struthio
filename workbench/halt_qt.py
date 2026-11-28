@@ -94,7 +94,9 @@ class HaltButton(QToolButton):
         return round(8 * min(max(self.scale, 0.8), 1.4))
 
     def sizeHint(self):
-        h = max(28, round(40 * self.scale));return QSize(self.need(h), h)
+        h = max(28, round(40 * self.scale))
+        if self.testAttribute(Qt.WA_Resized) and self.height() > 0:h = self.height()      # 1.1 T2: placed, the face at the height it was given (K0's 32 px head gives 24, not 40)
+        return QSize(self.need(h), h)
 
     def paintEvent(self, event):
         p = QPainter(self);p.setRenderHint(QPainter.Antialiasing)

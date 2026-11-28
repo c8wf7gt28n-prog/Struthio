@@ -1,7 +1,7 @@
 # Kasandra, the Ghost in the Shell
 
 *Graphite 1.0. Built, not tested: by the owner's rule nothing in 1.0 has been through a test, and nothing of it has run on
-the ThinkPad yet. The first real proof is your first evening (Guide ▸ Your First Evening with 1.0).*
+the ThinkPad yet. The first real proof is your first evening (Help ▸ Your First Evening with 1.0).*
 
 Kasandra (Kas) works beside you on the same material, through the same doors you use. Her rule is the desk's rule:
 **the model proposes; the desk disposes.** Nothing a model writes becomes a fact, a decision or a change without the desk's
@@ -9,7 +9,7 @@ check; a change only the model chose is never done, at any place of her dial; se
 done only when its effect is verified. With no model loaded she is still there: her dictionary reads most requests, the
 maths and the checks are the desk's, and she plans from your records.
 
-The window around her is Guide ▸ The Living Desktop.
+The window around her is Help ▸ The Living Desktop.
 
 ## Her voice
 
@@ -58,7 +58,7 @@ folds.
 
 ## How she does a task
 
-Say you ask: *"Recheck the startup power and update the summary page"* (on Rail Demo: Guide ▸ Try Rail Demo).
+Say you ask: *"Recheck the startup power and update the summary page"* (on Rail Demo: Help ▸ Try Rail Demo).
 
 1. **She reads your words.** Her dictionary reads most requests with no model. When it cannot, the model may read them,
    only into the desk's verbs and only from words you typed: "I took it as: …", with **Do** and **Not that**.
@@ -92,7 +92,7 @@ accessibility, replace it, save with the app's own Save, and count the save only
 - **A touch stops her.** Any key or press of yours pauses her at once, between two of her acts: ▮▮ stopped by you.
   **Continue** lets her go on; **Stop** puts your window back as it was (the menus she opened closed, your focus, cursor,
   selection, tabs and scroll), each part checked and said. When she finishes she gives your keyboard and pointer back.
-- Her changes on the desk follow her dial (Rules ▸ Kasandra's hand), and one Undo on her card takes back all of one
+- Her changes on the desk follow her dial (Tools ▸ Kasandra's hand), and one Undo on her card takes back all of one
   request's changes.
 - This needs the desktop's accessibility service and LibreOffice's GTK plugin, both in the 1.0 System set.
 

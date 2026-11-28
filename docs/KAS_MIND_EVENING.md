@@ -6,12 +6,12 @@ you the same choices as buttons when no model is loaded. Everything here works w
 
 *Since 1.0:* you speak to her in her ask line, at the foot of her column ("ask Kasandra…", with its send arrow); words
 typed in Line at the foot of the window are offered to her with Ask Kasandra →. Her column has no picture of her in any
-look. The rest of the window is Guide ▸ The Living Desktop; what she does beyond these ten things is Guide ▸ Kasandra, the
+look. The rest of the window is Help ▸ The Living Desktop; what she does beyond these ten things is Help ▸ Kasandra, the
 Ghost in the Shell.
 
 Two invented desks carry the examples. **Rail Demo** (a 12 V rail: bench readings, and limits in Rev A, archived, and
-Rev B, current) is built by Guide ▸ Try Rail Demo. **Home Demo** is an invented household: a tenancy under the *Demoland
-Tenancy Act (invented)*, a bank sheet and two typed money sheets, built by Guide ▸ Try Home Demo. Each is built through the
+Rev B, current) is built by Help ▸ Try Rail Demo. **Home Demo** is an invented household: a tenancy under the *Demoland
+Tenancy Act (invented)*, a bank sheet and two typed money sheets, built by Help ▸ Try Home Demo. Each is built through the
 Kernel's own doors in a new folder of its own, never in your workspace; her card says so before anything is built, and the
 demo opens on the Field in a window of its own. Every Home Demo legal page says INVENTED: NOT THE LAW OF ANY PLACE.
 "Today" in every example is Friday 20 November 2026.
@@ -20,7 +20,7 @@ Ten things to try, one for each thing she can do.
 
 ## 1. Why, with the wires lit
 
-Open Rail Demo (Guide ▸ Try Rail Demo), right-click the finding "Startup is inside the Rev B limit of 40 ms" and choose
+Open Rail Demo (Help ▸ Try Rail Demo), right-click the finding "Startup is inside the Rev B limit of 40 ms" and choose
 Why. Her column shows a short proof: 45 ms is at most 40 ms does not hold, 5 ms over; each line says its state and where
 it came from, and clicking a line selects that card and lights the proof's wires in the Field while the rest of the desk
 steps back. Next and Back walk the proof card by card from the source end; the last line says what would change it.

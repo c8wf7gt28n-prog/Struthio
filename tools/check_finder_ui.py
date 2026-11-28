@@ -236,7 +236,7 @@ capture('Ledger_Slate_AGENT_01_Finder_06_Compact_1366.png','The Finder’s List 
 page.set_view('columns');settle();whole('1366 Columns');capture('Ledger_Slate_AGENT_01_Finder_07_Columns_1366.png','Columns at 1366 by 768 (the Columns view scrolls sideways by design)')
 page.set_view('list');page.go(TODAY);settle();continue_whole('1366 Today')
 page.go(str(LONG));settle();whole('1366 long folder name');last=[b for b in page.path_bar.findChildren(QPushButton) if b.isVisible()][-1]
-elided=last.text();assert page.path_words()[-1]==LONG.name and '…' in elided and last.toolTip()==str(LONG),(elided,page.path_words()[-1:])
+elided=last.text();assert page.path_words()[-1]==LONG.name and ('…' in elided or elided==LONG.name) and last.toolTip()==str(LONG),(elided,page.path_words()[-1:])      # 1.1 T2: whole where the 1.1 centre has the room (whole() above holds it uncut), else elided
 page.go(TODAY);settle()
 check('11 1366×768: the list, the preview and the five parts stay visible; every word whole and nothing in the centre scrolls sideways at 1920×1200 and 1366×768: the toolbar folds %s into ⋯ (whose Show hidden files row changed the count 5 → 6 and back), the List folds %s; Today’s Continue row keeps a document five folders deep a whole link; a %d-character folder name elides in the middle at the foot (“%s”, whole in its tooltip)'%(' · '.join(FOLD_WORDS[f] for f in compact['folded']),' · '.join(compact['list_hidden']) or 'nothing',len(LONG.name),elided))
 # 11b · 18 pt at 1366×768: the toolbar folds further, a deep path folds its leading folders into …
@@ -275,13 +275,19 @@ for points in (14,18):
  for width in range(least_width,1401,10):
   w.resize(width,720);settle(20);align(2);sweep[(points,w.width())]=head_row('%d pt at %d px'%(points,w.width()))
  kept=[len(sweep[(points,width)][0]) for width in range(least_width,1401,10)];assert kept==sorted(kept),(points,kept)  # a wider window never folds more
-folded_at=sorted(key for key,(shown,folded) in sweep.items() if folded);assert folded_at,'no width folded a word: the sweep proved nothing about the fold'
-points,width=folded_at[-1];ui_pt(points);w.resize(least_width,720);settle(40);align(2);kept_words,folded_words=head_row('the least width at %d pt'%points)
-top.more_menus.menu().aboutToShow.emit();assert folded_words and [a.menu() for a in top.more_menus.menu().actions()]==[h.menu() for h in top.headings()],folded_words  # ⋯ opens the same menus, every one
-capture('Ledger_Slate_GRAPHITE_01_Finder_11_Head_Folds_%dpt_%d.png'%(points,least_width),'The window at its least width (%d px) and %d pt: the head keeps %s whole and folds %s into ⋯, whose rows are the same menus; no word is cut.'%(least_width,points,' · '.join(kept_words) or 'no word',' · '.join(folded_words)))
+folded_at=sorted(key for key,(shown,folded) in sweep.items() if folded)
+# 1.1 T2: K0's six head words (File, Edit, View, Go, Tools, Help) fit at every width from the least, at 14 and 18 pt: no word
+# folds and ⋯ never stands (head_row holds that at every step). The fold and ⋯'s menus are proved where a word does fold.
+if folded_at:
+ points,width=folded_at[-1];ui_pt(points);w.resize(least_width,720);settle(40);align(2);kept_words,folded_words=head_row('the least width at %d pt'%points)
+ top.more_menus.menu().aboutToShow.emit();assert folded_words and [a.menu() for a in top.more_menus.menu().actions()]==[h.menu() for h in top.headings()],folded_words  # ⋯ opens the same menus, every one
+ capture('Ledger_Slate_GRAPHITE_01_Finder_11_Head_Folds_%dpt_%d.png'%(points,least_width),'The window at its least width (%d px) and %d pt: the head keeps %s whole and folds %s into ⋯, whose rows are the same menus; no word is cut.'%(least_width,points,' · '.join(kept_words) or 'no word',' · '.join(folded_words)))
+else:
+ assert not any(folded for shown,folded in sweep.values()) and not top.more_menus.isVisible(),'the six head words are whole at every width'
 ui_pt(14);w.resize(1920,1200);settle(60);align(3);unfolded=head_row('1920 by 1200 at 14 pt');assert not unfolded[1],unfolded
 fits['head sweep']=dict(widths=len(sweep),least=least_width,folded_at={'%d pt %d px'%key:sweep[key][1] for key in folded_at})
-check('13 At each of %d window widths from %d to 1400 px, at 14 and at 18 pt, the head\'s menu words are whole, side by side and left of Apps: the ones that do not fit fold into ⋯ (first at %d pt and %d px and narrower), never cut and never scrolled, a wider window never folds more, and ⋯ lists every menu; at 1920 px every word is back'%((len(sweep)//2,least_width)+folded_at[-1]))
+if folded_at:check('13 At each of %d window widths from %d to 1400 px, at 14 and at 18 pt, the head\'s menu words are whole, side by side and left of Apps: the ones that do not fit fold into ⋯ (first at %d pt and %d px and narrower), never cut and never scrolled, a wider window never folds more, and ⋯ lists every menu; at 1920 px every word is back'%((len(sweep)//2,least_width)+folded_at[-1]))
+else:check('13 At each of %d window widths from %d to 1400 px, at 14 and at 18 pt, the head\'s six menu words (1.1 K0) are whole, side by side and left of Apps; none folds and ⋯ never stands'%(len(sweep)//2,least_width))      # 1.1 T2
 # 14 · both panes are one width: through the interface sizes, and under the owner's hand on either edge (kept from the frame's check)
 bar=w.type_bar
 def panes():return [w.nav_dock.width(),w.sim_dock.width()]

@@ -115,7 +115,8 @@ with tempfile.TemporaryDirectory(prefix='ledger-cabinet-master-',dir=Path.home()
  room=select('project:'+first['id']);capture('Ledger_Slate_HATCH_Cabinet_01_Poem_Desktop.png')
  fields=[field for kind in (QLineEdit,QPlainTextEdit,QTextEdit) for field in w.findChildren(kind) if not field.isReadOnly() and field.placeholderText() and field.objectName()!='CentreFindWords']  # Find's own line (0.5.0) says what it finds
  # 1.1 T1: 1.0's own lines say what they take (D2: the writing line by its mode; P1: her column's ask; S2: the Apps search)
- said={'OneBox':typebar_qt.PLACEHOLDERS[bar.target],'HerAsk':'ask Kasandra…','AppsSearchLine':'Find an app'}
+ said={'OneBox':typebar_qt.PLACEHOLDERS[bar.target],'HerAsk':'ask Kasandra…','AppsSearchLine':'Find an app',
+       'ExplorerAddress':'a folder or a file: ~/Documents, /etc, C:\\'}      # 1.1 T2: E1's address line says what it takes
  assert fields and all(f.placeholderText()==said.get(f.objectName(),'prompt') for f in fields),[(f.objectName(),f.placeholderText()) for f in fields if f.placeholderText()!=said.get(f.objectName(),'prompt')]
  record('Every instantiated editable field with a placeholder says exactly poem, but 1.0\'s own lines, which say what they take')
  # The written passages are in the prose family at the prose size and follow a change of it; the record's own data stays in the

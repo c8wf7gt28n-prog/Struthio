@@ -218,7 +218,7 @@ class TheCode(unittest.TestCase):
                     self.assertEqual(tab.text(),'Run\tAlt+3' if shown else 'Run')
                     self.assertEqual(windows_hand.keyed('Rename','F2'),'Rename (F2)' if shown else 'Rename')
                     self.assertEqual(name_sweep.named_in('Rename (F2)','toolTip',keys=not windows_hand.show_keys()),[] if shown else ['key'])
-                    menu.deleteLater()
+                    import shiboken6;shiboken6.delete(menu)      # 1.1 T2: deleteLater outside an event loop left this menu standing, and TheSweepItself's sweep read its 'Run\tAlt+3'
         app.processEvents()
         self.assertTrue(name_sweep.keys_in_code(ROOT,kept={}),'the finder still finds the keys the code names')
         everything=name_sweep.keys_in_code(ROOT,kept={})

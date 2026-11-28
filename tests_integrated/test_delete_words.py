@@ -43,7 +43,7 @@ class TheCan(unittest.TestCase):
 
     def test_the_can_says_the_bins_word_in_kasandra(self):
         out = probe('kasandra', 1920, 1200, 'delete')
-        self.check(out, 1.0);self.assertEqual(out['size'], [162, 29]);self.assertEqual(out['rect'], [139, 1094, 162, 29])      # 1.1 E1: Recycle Bin is wider than DELETE (right edge 301, as T1 measured in the 317 px pane)
+        self.check(out, 1.0);self.assertEqual(out['size'], [162, 29]);self.assertEqual(out['rect'], [139, 1106, 162, 29])      # 1.1 E1: Recycle Bin is wider than DELETE (right edge 301, as T1 measured in the 317 px pane); 1.1 T2: 12 px lower on K0's 48 px foot (was 60)
 
     def test_the_can_says_the_bins_word_in_graphite(self):
         self.check(probe('graphite', 1366, 768, 'delete'), 0.8)

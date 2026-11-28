@@ -1,0 +1,47 @@
+{
+ "item": "T2",
+ "status": "done, acceptance met by naming: tier 0 is 0 failing in Day and Graphite; tier 2 in Day and Graphite leaves 3 named failures (4 units), each with its cause",
+ "summary": "Tier 0 in Day and Graphite: 52 runs, 870 tests, 0 failing. A whole tier 2 in Day and Graphite (224 runs, 2759 tests, before the fixes) had 13 failing units. After the fixes, re-runs of those units leave three causes: test_kasandra_column Review (both looks), and check_finder_ui and check_machine_ui in Day only. A whole tier 2 in Night and Kasandra (226 runs, 2783 tests, after the fixes) has the same causes only: 5 units. One program fault was fixed (HALT's size hint at K0's 32 px head). Tests and checks were moved to the 1.1 truths, each listed. The eight current guides were swept for the old menu names, the dock, 'Apps upper right', DELETE and 'This computer /'. New: tests_integrated/test_words_match.py (12 tests).",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/T2.patch",
+ "files_changed": ["GETTING_STARTED.md", "README.md", "docs/ACCEPTANCE_1.0.md", "docs/DAILY_GUIDE.md", "docs/GUIDE_KASANDRA.md", "docs/GUIDE_LIVING_DESKTOP.md", "docs/KAS_MIND_EVENING.md", "docs/THINKPAD_FIRST_INSTALL.md", "tests_integrated/test_delete_words.py", "tests_integrated/test_faces_find_light.py", "tests_integrated/test_kasandra_column.py", "tests_integrated/test_one_name.py", "tests_integrated/test_rail_demo.py", "tests_integrated/test_tiers_green.py", "tests_integrated/test_words_match.py (new)", "tools/check_cabinet_ui.py", "tools/check_finder_ui.py", "tools/check_hatch.py", "tools/check_machine_ui.py", "workbench/halt_qt.py"],
+ "tests": {
+  "added": "tests_integrated/test_words_match.py: 12 tests. No guide names a removed menu (read from head_menus.MOVED). Every 'Menu ▸ Row' a guide names is a label in the program. No dock. No 'Apps upper right'. DELETE always comes with Recycle Bin. Files start at Quick access. Start is on the Windows key. The six menus are listed. The launch line's menu exists. The 1.1 modules are in tier 2.",
+  "ran": "Everything ran on the copy, wrapped. tier 0 --look day (first run). tier 2 --look day,graphite (whole, before the fixes). --only re-runs t2b and t2c. tier 0 --look day,graphite (after the fixes). tier 2 --look night,kasandra (whole, after the fixes). A few probe diagnostics.",
+  "output_tail": "tier 0: 52 runs, 870 tests, 1m 33s wall, day and graphite / 0 failing || tier 2 (day, graphite; whole, before the fixes): 224 runs, 2759 tests, 13 units failing || re-run after the fixes: test_words_match 12 passed in day and graphite; failing still: day+graphite test_kasandra_column (Review), day check_finder_ui, day check_machine_ui || tier 2 (night, kasandra; whole, after the fixes): 226 runs, 2783 tests, 5 failing: night+kasandra test_kasandra_column; night check_finder_ui; night check_machine_ui (10 skipped: test_startup_scripts)"
+ },
+ "existing_tests_changed": [
+  {"test": "tests_integrated/test_faces_find_light GlyphSetTests (renamed ..._and_its_key_while_keys_are_shown)", "old": "a menu line never prints its key", "new": "With Show keys on (the default), the key is printed and kept after a tab. With it off, the line is as it was in 0.5.2.", "slice": "W1"},
+  {"test": "tests_integrated/test_tiers_green test_only_runs_what_it_names", "old": "planted check name 'check_x_ui'", "new": "'check_x_window'. The release check's sweep for retired window checks read the old name as a real one.", "slice": "T1 test bug"},
+  {"test": "tests_integrated/test_rail_demo test_p01_by_mouse_reduced_motion", "old": "after the scene, menu_catch.calm is False", "new": "calm is True exactly when the look draws no glow, which is the case in Day and Night", "slice": "1.0 P4 (Day, the launch look)"},
+  {"test": "tests_integrated/test_one_name TheCode keys test", "old": "menu.deleteLater()", "new": "shiboken6.delete(menu). Outside an event loop the menu stayed alive, and TheSweepItself then read its 'Run\\tAlt+3'. This only fails in a whole-module run.", "slice": "W1 test bug"},
+  {"test": "tests_integrated/test_delete_words TheCan kasandra 1920", "old": "rect [139,1094,162,29]", "new": "[139,1106,162,29]: 12 px lower on the 48 px foot", "slice": "K0"},
+  {"test": "tests_integrated/test_kasandra_column test_apps_is_the_struthio_then_words", "old": "icon 38x52, button 58 wide", "new": "icon 17x24, button 37 wide, on the 32 px head", "slice": "K0"},
+  {"test": "tests_integrated/test_kasandra_column test_her_words_have_the_room", "old": "exchange width 322 (1.0's 354 px pane less its insets)", "new": "285: the 317 px pane less its 16 px insets. T1 moved the pane but missed this number.", "slice": "P1"},
+  {"test": "tools/check_finder_ui step 13", "old": "some window width must fold a head word into ⋯", "new": "The six head words fit at every width from the least, at 14 and 18 pt, so none folds and ⋯ never stands. The fold is still proved where a word does fold.", "slice": "K0"},
+  {"test": "tools/check_finder_ui long folder name at 1366", "old": "the last path segment must be elided", "new": "It is whole where the centre has room (whole() already holds it uncut), else elided. The tip is unchanged.", "slice": "K0/E1 (a wider centre)"},
+  {"test": "tools/check_cabinet_ui placeholders", "old": "OneBox, HerAsk, AppsSearchLine", "new": "+ ExplorerAddress 'a folder or a file: ~/Documents, /etc, C:\\'", "slice": "E1"},
+  {"test": "tools/check_machine_ui trash_pinned", "old": "the can's left edge is right of the dock's middle", "new": "The can's middle is right of the dock's middle. 'Recycle Bin' is wider than DELETE.", "slice": "E1"},
+  {"test": "tools/check_hatch FOCUSED_MODULES", "old": "no 1.1 modules", "new": "+ test_windows_hand, test_bar, test_explorer, test_start_line, test_frame_k0, test_words_match. Without them test_release_check failed in tier 0.", "slice": "W1, B1, E1, B2, K0"}
+ ],
+ "decisions": [
+  "Program fault fixed: halt_qt.HaltButton.sizeHint gave its size at a 40 px height, while K0's head places HALT 24 px tall. ui_fit read that as HALT cut (41 px needed, 38 given). Once placed, the hint now uses the height HALT was given. This is outside place_head and does not touch B3's HaltOnBar, which has its own sizeHint.",
+  "Which docs are swept: the current guides only (README, GETTING_STARTED, DAILY_GUIDE, GUIDE_LIVING_DESKTOP, GUIDE_KASANDRA, ACCEPTANCE_1.0, KAS_MIND_EVENING, THINKPAD_FIRST_INSTALL). RELEASE_NOTES_*, HATCH_*, BOSS_*, INTEGRATED_*, *_01 and GRAPHITE_DESK are dated records and were left as written. Code comments and docstrings were not swept.",
+  "'Apps upper right' became 'Apps at the head's right', because K0 kept the Apps button in the head. Start on the bar and the Windows key are named as the main way in.",
+  "The pages keep their 1.0 titles and version lines ('Getting started with Graphite 1.0', 'Your First Evening with 1.0'). The brief keeps version numbers out of the patch.",
+  "test_words_match reads a label written through assistant_identity.named() ('Stacy's hand' becomes 'Kasandra's hand') as a label of the program."
+ ],
+ "findings_for_the_coordinator": [
+  "Still failing (1), test_kasandra_column Review in every look (the probe is always Kasandra at 1366). The fold room is 249 against 255. The viewer panes go 317, then 312, then 312, against 1 px allowed; this is flaky and failed in 3 of 4 runs. In a fresh window the centre bar on a note needs 710 of the 730 px. In the review probe's state the panes give 5 px, and the room drops 10 px. The cause is not proven. It is her column's room, so I left it to B3.",
+  "Still failing (2), Day and Night only: check_finder_ui step 14 (the panes stay at 396 instead of coming back to 338) and check_machine_ui step 07 (the centre is 574 against the 600 floor at 1366). The foot's slot need (typebar_qt.slot_needs, which desk_qt.needs uses as 'least') is 396 px at 1920x1200 and 338 at 1366x768; Graphite is 288 at both. Once the window has been large, the panes keep 396 until the next change of interface size. I did not find what in slot_need depends on the window size.",
+  "Flaky, Day: test_explorer test_h_w1s_keys (Ctrl+Z after a paste) failed once under the full tier load and passed when re-run.",
+  "The HALT tests that depend on where HALT stands in the head are left to B3. The sizeHint fix holds only while HALT stands in the head.",
+  "T1's open list is closed: test_session_start, check_navigation_ui, test_rail_demo_campaign and the scene all passed in tier 2, in all four looks. check_finder_ui and test_kasandra_column are named above. W1's key test passes.",
+  "No frames: this slice changes no window. No Kernel operation and no registry change. Nothing ran on the ThinkPad, on a real X server or under Fluxbox."
+ ],
+ "not_done": [
+  "The three named causes above are not fixed: her column's room (B3's), and Day/Night panes that do not come back after a larger size.",
+  "Code comments and docstrings that still say Rules ▸ / Arrange ▸ were not swept. Nothing on screen says them.",
+  "No frames were taken."
+ ],
+ "release_note": "The guides now speak 1.1: the menus File, Edit, View, Go, Tools and Help (Help ▸ Try Rail Demo, Tools ▸ Kasandra's hand, View ▸ Appearance); the bar along the bottom with Start; Files from Quick access; and the Recycle Bin."
+}

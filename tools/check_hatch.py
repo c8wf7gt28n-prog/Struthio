@@ -104,7 +104,11 @@ FOCUSED_MODULES=(
  'test_workspace_backup','test_project_desk','test_slate_reasoning','test_change_sets','test_continuing_work','test_deployment',
 
  # 1.1 T1: the tiers green: the real faults the 27 November tier runs found, and the tier runner's looks
- 'test_tiers_green')
+ 'test_tiers_green',
+ # 1.1 T2: the modules the 1.1 slices added (W1 the Windows hand, B1 the bar, E1 the Explorer, B2 Start and the line, K0 the frame)
+ 'test_windows_hand','test_bar','test_explorer','test_start_line','test_frame_k0',
+ # 1.1 T2: the words to match: the guides name the six head menus, the bar, Start and the Recycle Bin
+ 'test_words_match')
 # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.
 ON_DEMAND_MODULES={
  'test_exact_math_solvers':'the SymPy and Z3 solvers in a child worker; needs requirements-math.txt'}

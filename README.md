@@ -5,10 +5,10 @@ Kasandra (Kas for short), is an agent user of the system who works beside you un
 that computer unless you turn a service on. Before November 6, 2026 the program was called Ledger & Slate; folders,
 scripts, settings keys and internal names keep those earlier names for compatibility.
 
-- **Graphite is the session.** A supervisor keeps it alive; your apps outlive a crash of its window; a dock across the
-  top brings any window forward; Lock, Suspend, Log out, Restart, Shut down and Return to Debian are plain actions that
+- **Graphite is the session.** A supervisor keeps it alive; your apps outlive a crash of its window; one bar along the
+  bottom of the screen holds Start, the line and every open window, and brings any window forward; Lock, Suspend, Log out, Restart, Shut down and Return to Debian are plain actions that
   close apps politely.
-- **The whole computer.** Files from "This computer /" with Home open (rename, move, copy, delete to the bin, many at
+- **The whole computer.** Files as an Explorer, from Quick access to This computer, Home open as a List (rename, move, copy, delete to the bin, many at
   once, each batch with one Undo); Apps from what is installed; the Machine for real (USB drives, sound, screens,
   network and Wi-Fi, the battery); Settings that change real settings; notifications kept in Log.
 - **The Living Desktop.** The bulletin board: what you select sits in the middle with its neighbours around it, sized by
@@ -26,7 +26,7 @@ scripts, settings keys and internal names keep those earlier names for compatibi
 
 **Start here:** [Your first evening with 1.0](docs/ACCEPTANCE_1.0.md) (the install, your paper's §2 test, the model, the
 §18 day, what to send back), [the ThinkPad page](docs/THINKPAD_FIRST_INSTALL.md), and
-[What's new in 1.0](docs/RELEASE_NOTES_1.0.md). In Graphite: Guide ▸ The Living Desktop, and Guide ▸ Kasandra, the Ghost
+[What's new in 1.0](docs/RELEASE_NOTES_1.0.md). In Graphite: Help ▸ The Living Desktop, and Help ▸ Kasandra, the Ghost
 in the Shell.
 
 **Not tested.** By the owner's rule ("No testing") nothing in 1.0 has been through the test suite, the tiers or the
@@ -69,7 +69,7 @@ bash START_MINIMAL_DEBIAN.sh   # from a Debian text login: the dedicated fullscr
 bash START_OFFICE.sh           # from an existing desktop: the ordinary window on the Office workspace (~/Concern/Office)
 ```
 
-Leave through the Work menu's last group → Return to Debian, or Exit Graphite on an
+Leave through the File menu's last group (or the foot of Start) → Return to Debian, or Exit Graphite on an
 existing desktop. The same group's Log out, Restart and Shut down first save or set aside your work as leaving does, ask you
 to confirm, and then ask the system's own logind (never sudo); without a login session they say they are unavailable. On Windows, `START_OFFICE.cmd` starts the same program after Python
 and `requirements-qt.txt` are installed.
@@ -121,7 +121,7 @@ check is integrity, not readiness or acceptance. Tests run one module at a time:
 
 ## Paired exchange, signed releases and deployment
 
-Arrange → Exchange & deployment holds recipient-bound request and result pills, pinned mutual TLS 1.3, replay protection,
+Go ▸ Exchange & deployment holds recipient-bound request and result pills, pinned mutual TLS 1.3, replay protection,
 explicit signed offline release verification and recovery, reviewable launch files and optional read-only phone progress.
 A received pill stays in quarantine until explicitly accepted; returned edits become a frozen working-copy proposal, and
 originals still need separate owner publication. Nothing starts merely by opening the panel. Read docs/STAGE6.md before
