@@ -1,0 +1,2474 @@
+diff --git a/debian/control b/debian/control
+index cd8114b..753c4e0 100644
+--- a/debian/control
++++ b/debian/control
+@@ -44,7 +44,7 @@ Depends: graphite (= @VERSION@), xserver-xorg, xinit, fluxbox, x11-xserver-utils
+  dbus-user-session | dbus-x11, libpam-systemd, network-manager, wpasupplicant, wireless-regdb, libgl1-mesa-dri,
+  udisks2, eject, upower, pipewire, pipewire-pulse, wireplumber, alsa-ucm-conf, alsa-topology-conf, xsecurelock,
+  lxpolkit, polkitd, x11-utils, at-spi2-core, python3-pyatspi, librsvg2-common, xterm
+-Recommends: xdg-user-dirs
++Recommends: xdg-user-dirs, packagekit, accountsservice
+ Description: Graphite as the whole session
+  The X session entry a display manager shows as "Graphite"
+  (/usr/share/xsessions/graphite.desktop, running graphite-session, the
+diff --git a/tests_integrated/test_system_door.py b/tests_integrated/test_system_door.py
+new file mode 100644
+index 0000000..5fd5c9c
+--- /dev/null
++++ b/tests_integrated/test_system_door.py
+@@ -0,0 +1,489 @@
++"""1.1 KS3, the system door (PLAN_1.1.md, KS3; the coordinator's note of 28 Nov).
++
++Acceptance first: an install is shown before anything is asked (what it pulls in, its size, "The system will ask for your
++password", what Undo does); the owner's press asks the system through its own prompt (the interactive flag on the call)
++and the install is verified by reading it back; Undo removes what it pulled in; a service restarted is verified by its new
++start; the time zone, network time, the computer's name and a new standard account are each verified and undone.
++
++Then the rules: names are validated before anything is asked (a package, a unit, a zone, a login); the door never runs as
++her step, never under a standing grant, and HALT holds it (and cancels a PackageKit transaction still waiting); the
++prompt's no changes nothing and is said; a plan that changed since it was shown is not asked; with no prompt agent nothing
++is asked; offer(argv) maps root command lines for the command tool; her talk, NEXT STEPS and the line show it.
++
++There is no system bus here, no systemd, no PackageKit and no polkit: every service is a fake on a private dbus-daemon
++(FakeSystem below) that keeps invented state and answers on the wire as the real services do; its "prompt" says yes, no,
++or cannot open. What a real polkit agent, PackageKit's apt backend and systemd do on Debian 13 is not exercised here.
++
++Run alone:  python3 -B -m unittest -v tests_integrated.test_system_door
++"""
++import os, re, subprocess, sys, tempfile, threading, time, unittest
++from pathlib import Path
++from types import SimpleNamespace
++from unittest.mock import patch
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT))
++from workbench import system_bus as sb  # noqa: E402
++from workbench import system_door as sd  # noqa: E402
++
++PK_PATH, SD_PATH, TD_PATH, HN_PATH, AC_PATH = sd.PK_PATH, sd.SD_PATH, sd.TD_PATH, sd.HN_PATH, sd.AC_PATH
++NAMES = (sd.PK, sd.SD, sd.TD, sd.HN, sd.AC)
++FLAG = sb.INTERACTIVE
++
++
++def unit_path(name):
++    return SD_PATH + '/unit/' + re.sub(r'[^A-Za-z0-9]', lambda c: '_%02x' % ord(c.group()), name)
++
++
++class FakeSystem:
++    """Invented services on a private bus: PackageKit, systemd, timedated, hostnamed, accountsservice. `answer` is what the
++    system's prompt says (yes, no, none: no prompt could open); `delay` is how long the owner takes at it. `asked` lists
++    every call that needed the prompt, with whether it carried the interactive flag."""
++
++    def __init__(self):
++        self.dir = tempfile.mkdtemp()
++        self.daemon = subprocess.Popen(['dbus-daemon', '--session', '--nofork', '--print-address=1', '--address=unix:path=%s/bus' % self.dir],
++                                       stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
++        self.addr = self.daemon.stdout.readline().strip()
++        self.answer, self.delay, self.asked, self.pending, self.stop, self.tx = 'yes', 0.0, [], [], False, 0
++        self.archive = {'gimp': ('3.0.4-1', 'GNU Image Manipulation Program', ['gimp-data', 'libgimp3.0-0', 'libbabl-0.1-0'], 9_000_000, 30_000_000),
++                        'gimp-data': ('3.0.4-1', 'data files for GIMP', [], 11_000_000, 40_000_000),
++                        'libgimp3.0-0': ('3.0.4-1', 'libraries for GIMP', [], 1_000_000, 4_000_000),
++                        'libbabl-0.1-0': ('1:0.1.112-1', 'dynamic pixel format library', [], 1_000_000, 3_000_000),
++                        'nano': ('8.4-2', 'small editor', [], 700_000, 2_800_000), 'tern-tools': ('1.2-1', 'invented field tools', ['nano'], 50_000, 200_000)}
++        self.installed = {'nano': '8.4-1', 'tern-tools': '1.2-1'}
++        self.units = {'cups.service': dict(desc='CUPS Scheduler', active='active', sub='running', file='enabled', entered=1_000),
++                      'tern-sync.service': dict(desc='Tern sync (invented)', active='inactive', sub='dead', file='disabled', entered=0),
++                      'dbus.service': dict(desc='D-Bus System Message Bus', active='active', sub='running', file='static', entered=5)}
++        self.time = dict(Timezone='Europe/Berlin', NTP=True, CanNTP=True, NTPSynchronized=True)
++        self.host = 'harbour-desk'
++        self.users = {'kit': [1000, 'Kit Tern', 0]}
++        ready = threading.Event()
++        self.thread = threading.Thread(target=self.serve, args=(ready,), daemon=True);self.thread.start();ready.wait(10)
++
++    def close(self):
++        self.stop = True;self.thread.join(5);self.daemon.terminate();self.daemon.wait(5)
++
++    def passwd(self, login):
++        u = self.users.get(login)
++        return SimpleNamespace(pw_uid=u[0], pw_dir='/home/' + login) if u else None
++
++    # -- the loop
++    def serve(self, ready):
++        b = self.bus = sb.Bus(self.addr)
++        for name in NAMES:b.own(name)
++        ready.set()
++        while not self.stop:
++            due = min([p[0] for p in self.pending], default=time.monotonic() + 0.05)
++            try:m = b.next_call(min(due, time.monotonic() + 0.05))
++            except TimeoutError:
++                m = None
++            now = time.monotonic()
++            for p in [p for p in self.pending if p[0] <= now]:
++                self.pending.remove(p);p[1]()
++            if m is None:continue
++            try:self.handle(m)
++            except Exception as exc:  # noqa: BLE001 - a fake's own fault, said on the wire
++                b.fail(m, 'org.freedesktop.DBus.Error.Failed', repr(exc))
++
++    def prompt(self, m, then, no='org.freedesktop.DBus.Error.AccessDenied', sig='', args=()):
++        """The system's own prompt (polkit) in front of a method that answers after it."""
++        self.asked.append((m.member, bool(m.flags & FLAG)))
++        if self.answer == 'none' or not m.flags & FLAG:
++            return self.bus.fail(m, 'org.freedesktop.DBus.Error.InteractiveAuthorizationRequired', 'Interactive authentication required.')
++
++        def answer():
++            if self.answer == 'no':return self.bus.fail(m, no, 'Access denied')
++            got = then();self.bus.reply(m, sig, got if got is not None else args)
++        self.pending.append((time.monotonic() + self.delay, answer))
++
++    def handle(self, m):
++        b = self.bus
++        if m.interface == 'org.freedesktop.DBus.Properties':
++            props = self.props(m.path, m.body[0])
++            if m.member == 'GetAll':return b.reply(m, 'a{sv}', (props,))
++            if m.body[1] not in props:return b.fail(m, 'org.freedesktop.DBus.Error.UnknownProperty', m.body[1])
++            return b.reply(m, 'v', (props[m.body[1]],))
++        if m.destination == sd.PK or m.interface in (sd.PK, sd.PK_TX):return self.packagekit(m)
++        if m.interface == sd.SD_MGR:return self.systemd(m)
++        if m.interface == sd.TD:return self.timedate(m)
++        if m.interface == sd.HN:
++            return self.prompt(m, lambda: setattr(self, 'host', m.body[0])) if m.member == 'SetStaticHostname' else b.fail(m, 'org.freedesktop.DBus.Error.UnknownMethod')
++        if m.interface in (sd.AC, sd.AC_USER):return self.accounts(m)
++        b.fail(m, 'org.freedesktop.DBus.Error.UnknownMethod', m.member or '')
++
++    def props(self, path, iface):
++        if path == PK_PATH:return {'VersionMajor': ('u', 1)}
++        if path == SD_PATH:return {'Version': ('s', '257.9-1')}
++        if path.startswith(SD_PATH + '/unit/'):
++            name = next((n for n in list(self.units) + [getattr(self, 'loaded', '')] if unit_path(n) == path), '')
++            u = self.units.get(name)
++            if u is None:return {'Id': ('s', name), 'LoadState': ('s', 'not-found'), 'ActiveState': ('s', 'inactive'), 'SubState': ('s', 'dead'),
++                                 'Description': ('s', name), 'UnitFileState': ('s', ''), 'ActiveEnterTimestamp': ('t', 0)}
++            return {'Id': ('s', name), 'LoadState': ('s', 'loaded'), 'ActiveState': ('s', u['active']), 'SubState': ('s', u['sub']),
++                    'Description': ('s', u['desc']), 'UnitFileState': ('s', u['file']), 'ActiveEnterTimestamp': ('t', u['entered'])}
++        if path == TD_PATH:return {k: ('s' if k == 'Timezone' else 'b', v) for k, v in self.time.items()} | {'TimeUSec': ('t', int(time.time() * 1e6))}
++        if path == HN_PATH:return {'Hostname': ('s', self.host), 'StaticHostname': ('s', self.host), 'PrettyHostname': ('s', '')}
++        if path == AC_PATH:return {'DaemonVersion': ('s', '23.13.9')}
++        login = next((n for n, u in self.users.items() if path == AC_PATH + '/User%d' % u[0]), None)
++        if login:
++            u = self.users[login]
++            return {'UserName': ('s', login), 'RealName': ('s', u[1]), 'AccountType': ('i', u[2]), 'Uid': ('t', u[0])}
++        return {}
++
++    # -- PackageKit: transactions answer by signals
++    def pid(self, name, installed=False):
++        version = self.installed[name] if installed else self.archive[name][0]
++        return '%s;%s;amd64;%s' % (name, version, 'installed:debian-trixie-main' if installed else 'debian-trixie-main')
++
++    def emit(self, path, member, sig, *args):
++        self.bus.emit(path, sd.PK_TX, member, sig, args)
++
++    def finish(self, path, exit=1):
++        self.emit(path, 'Finished', 'uu', exit, 10)
++
++    def packagekit(self, m):
++        b, path, body = self.bus, m.path, m.body
++        if m.member == 'CreateTransaction':
++            self.tx += 1;return b.reply(m, 'o', ('/%d_tern' % self.tx,))
++        if m.member in ('SetHints',):return b.reply(m)
++        if m.member == 'Cancel':
++            for p in [p for p in self.pending if getattr(p[1], 'tx', None) == path]:self.pending.remove(p)
++            b.reply(m);self.emit(path, 'ErrorCode', 'us', 17, 'The task was stopped successfully');return self.finish(path, sd.EXIT_CANCELLED)
++        b.reply(m)
++        simulate = bool(body and isinstance(body[0], int) and body[0] & sd.SIMULATE) if m.member != 'RefreshCache' else False
++        names = [i.split(';')[0] for i in (body[1] if m.member in ('InstallPackages', 'RemovePackages', 'UpdatePackages') else [])]
++        if m.member == 'Resolve':
++            for n in body[1]:
++                if n in self.installed and body[0] & (sd.FILTER_NONE | sd.FILTER_INSTALLED):self.emit(path, 'Package', 'uss', sd.INSTALLED, self.pid(n, True), self.archive[n][1])
++                elif n in self.archive and n not in self.installed and body[0] & (sd.FILTER_NONE | sd.FILTER_NOT_INSTALLED):
++                    self.emit(path, 'Package', 'uss', sd.AVAILABLE, self.pid(n), self.archive[n][1])
++            return self.finish(path)
++        if m.member == 'GetDetails':
++            for i in body[0]:
++                a = self.archive[i.split(';')[0]]
++                self.emit(path, 'Details', 'a{sv}', {'package-id': ('s', i), 'summary': ('s', a[1]), 'size': ('t', a[4]), 'download-size': ('t', a[3])})
++            return self.finish(path)
++        if m.member == 'GetUpdates':
++            for n, v in self.installed.items():
++                if self.archive[n][0] != v:self.emit(path, 'Package', 'uss', 5, self.pid(n), self.archive[n][1])
++            return self.finish(path)
++        if m.member == 'RemovePackages':
++            needed = [o for o in self.installed if o not in names and any(n in self.archive[o][2] for n in names)]
++            if needed and not body[2]:
++                self.emit(path, 'ErrorCode', 'us', sd.PK_DEPS, '%s is needed by %s' % (names[0], needed[0]));return self.finish(path, 2)
++        if simulate:
++            if m.member == 'InstallPackages':
++                for n in names + [d for d in self.archive[names[0]][2] if d not in self.installed]:self.emit(path, 'Package', 'uss', sd.INSTALLING, self.pid(n), self.archive[n][1])
++            elif m.member == 'RemovePackages':self.emit(path, 'Package', 'uss', sd.REMOVING, self.pid(names[0], True), '')
++            else:self.emit(path, 'Package', 'uss', sd.UPDATING, self.pid(names[0]), '')
++            return self.finish(path)
++        self.asked.append((m.member, bool(m.flags & FLAG)))
++
++        def done():
++            if self.answer in ('no', 'none'):
++                self.emit(path, 'ErrorCode', 'us', sd.PK_NOT_AUTHORIZED, 'Failed to obtain authentication.');return self.finish(path, 2)
++            if m.member == 'InstallPackages':
++                for n in names + list(self.archive[names[0]][2]):self.installed.setdefault(n, self.archive[n][0])
++            elif m.member == 'RemovePackages':
++                for n in names:self.installed.pop(n, None)
++            elif m.member == 'UpdatePackages':
++                self.installed[names[0]] = self.archive[names[0]][0]
++            self.finish(path)
++        done.tx = path
++        self.pending.append((time.monotonic() + self.delay, done))
++
++    # -- systemd, timedated, accountsservice: the prompt in front of the answer
++    def systemd(self, m):
++        b, name = self.bus, (m.body[0] if m.body else '')
++        if m.member == 'LoadUnit':self.loaded = name;return b.reply(m, 'o', (unit_path(name),))
++        if m.member == 'GetUnitFileState':
++            if name not in self.units:return b.fail(m, 'org.freedesktop.systemd1.NoSuchUnit', 'No such file')
++            return b.reply(m, 's', (self.units[name]['file'],))
++        u = self.units.get(name if isinstance(name, str) else name[0])
++        if m.member in ('StartUnit', 'RestartUnit'):
++            return self.prompt(m, lambda: u.update(active='active', sub='running', entered=u['entered'] + 1_000_000), sig='o', args=(SD_PATH + '/job/7',))
++        if m.member == 'StopUnit':return self.prompt(m, lambda: u.update(active='inactive', sub='dead'), sig='o', args=(SD_PATH + '/job/8',))
++        if m.member == 'EnableUnitFiles':return self.prompt(m, lambda: u.update(file='enabled'), sig='ba(sss)', args=(True, [('symlink', '/etc/x', '/usr/lib/x')]))
++        if m.member == 'DisableUnitFiles':return self.prompt(m, lambda: u.update(file='disabled'), sig='a(sss)', args=([('unlink', '/etc/x', '')],))
++        b.fail(m, 'org.freedesktop.DBus.Error.UnknownMethod', m.member)
++
++    def timedate(self, m):
++        if m.member == 'SetTimezone':return self.prompt(m, lambda: self.time.update(Timezone=m.body[0]))
++        if m.member == 'SetNTP':return self.prompt(m, lambda: self.time.update(NTP=m.body[0]))
++        if m.member == 'SetTime':
++            if self.time['NTP']:return self.bus.fail(m, 'org.freedesktop.timedate1.AutomaticTimeSyncEnabled', 'Automatic time synchronization is enabled')
++            return self.prompt(m, lambda: None)
++        self.bus.fail(m, 'org.freedesktop.DBus.Error.UnknownMethod', m.member)
++
++    def accounts(self, m):
++        b, no = self.bus, 'org.freedesktop.Accounts.Error.PermissionDenied'
++        if m.member == 'ListCachedUsers':return b.reply(m, 'ao', ([AC_PATH + '/User%d' % u[0] for u in self.users.values()],))
++        if m.member == 'FindUserByName':
++            u = self.users.get(m.body[0])
++            return b.reply(m, 'o', (AC_PATH + '/User%d' % u[0],)) if u else b.fail(m, 'org.freedesktop.Accounts.Error.Failed', 'Failed to look up user')
++        if m.member == 'CreateUser':
++            def add():
++                uid = 1000 + len(self.users);self.users[m.body[0]] = [uid, m.body[1], m.body[2]];return (AC_PATH + '/User%d' % uid,)
++            return self.prompt(m, add, no, sig='o')
++        if m.member == 'DeleteUser':
++            return self.prompt(m, lambda: [self.users.pop(n) for n, u in list(self.users.items()) if u[0] == m.body[0]] and None, no)
++        if m.member == 'SetRealName':
++            login = next(n for n, u in self.users.items() if m.path == AC_PATH + '/User%d' % u[0])
++            return self.prompt(m, lambda: self.users[login].__setitem__(1, m.body[0]), no)
++        b.fail(m, 'org.freedesktop.DBus.Error.UnknownMethod', m.member)
++
++
++AGENT = dict(running=True, name='lxpolkit', pid=4242, words='Permission prompts are answered by lxpolkit (process 4242), started with this session.')
++
++
++class Door(unittest.TestCase):
++    """A throwaway HOME, a workspace, a Kernel, the owner's principal, and the fake system on DBUS_SYSTEM_BUS_ADDRESS."""
++
++    def setUp(self):
++        self.temp = tempfile.TemporaryDirectory();base = Path(self.temp.name)
++        (base / 'home').mkdir();(base / 'ws').mkdir();units = base / 'units';units.mkdir()
++        for name in ('cups.service', 'tern-sync.service', 'dbus.service'):(units / name).write_text('[Unit]\n')
++        self.fake = FakeSystem()
++        self.env = patch.dict(os.environ, {'HOME': str(base / 'home'), 'DBUS_SYSTEM_BUS_ADDRESS': self.fake.addr});self.env.start()
++        self.patches = [patch.object(sd, 'prompt_agent', lambda: dict(AGENT)), patch.object(sd, '_passwd', self.fake.passwd),
++                        patch.object(sd, 'UNIT_DIRS', (str(units),)), patch.object(sd, 'UNIT_SECONDS', 3)]
++        for p in self.patches:p.start()
++        from workbench.engineering_kernel import Kernel, operator
++        self.kernel = Kernel(base / 'ws');self.owner = operator()
++
++    def tearDown(self):
++        for p in self.patches:p.stop()
++        self.env.stop();self.fake.close();self.temp.cleanup()
++
++    def call(self, op, args, who=None):
++        return self.kernel.dispatch(op, args, who or self.owner)
++
++    def plan(self, action, target='', value=''):
++        answer = self.call('system.door.plan', {'action': action, 'target': target, 'value': value})
++        self.assertTrue(answer['ok'], answer);return answer['result']
++
++    def press(self, action, target='', value='', p=None, who=None):
++        p = p or self.plan(action, target, value)
++        return self.call('system.door.run', {'action': action, 'target': target, 'value': value, 'digest': p['digest']}, who)
++
++
++class Acceptance(Door):
++    def test_an_install_is_shown_first_with_what_it_pulls_in_and_its_size_and_nothing_is_asked(self):
++        p = self.plan('package.install', 'gimp')
++        self.assertEqual((p['title'], p['ok'], p['nothing'], p['can_undo']), ('Install GIMP', True, False, True))
++        self.assertEqual(p['words'], 'This will install gimp 3.0.4-1 (GNU Image Manipulation Program) and 3 packages it needs: gimp-data, '
++                                     'libgimp3.0-0, libbabl-0.1-0. Download 21.0 MB. About 73.4 MB on disk.')
++        self.assertEqual(p['asks'], 'The system will ask for your password.')
++        self.assertEqual(p['undo'], 'Undo removes it and the packages it pulled in.')
++        self.assertIn('gimp-data 3.0.4-1 · data files for GIMP', p['lines'])
++        self.assertEqual(self.fake.asked, [], 'a plan asks the system for nothing')
++        self.assertNotIn('gimp', self.fake.installed)
++
++    def test_the_press_installs_through_the_system_prompt_is_verified_and_undo_removes_what_it_pulled_in(self):
++        v = self.press('package.install', 'gimp')['result']
++        self.assertEqual((v['state'], v['verified'], v['can_undo']), ('done', True, True), v)
++        self.assertEqual(v['checked'], 'gimp 3.0.4-1 is installed (PackageKit read it back)')
++        self.assertEqual(self.fake.asked, [('InstallPackages', True)], 'one fixed action, asked once, with the interactive flag')
++        self.assertEqual(sorted(self.fake.installed), ['gimp', 'gimp-data', 'libbabl-0.1-0', 'libgimp3.0-0', 'nano', 'tern-tools'])
++        back = self.call('system.door.undo', {'run': v['run']})['result']
++        self.assertEqual((back['state'], back['verified']), ('done', True), back)
++        self.assertEqual(sorted(self.fake.installed), ['nano', 'tern-tools'])
++        self.assertEqual(self.fake.asked[-1], ('RemovePackages', True))
++        self.assertIn('already taken back', self.call('system.door.undo', {'run': v['run']})['error']['message'])
++        runs = self.call('system.door.runs', {})['result']['runs']
++        self.assertEqual([(r['title'], r['state'], bool(r['undone'])) for r in runs], [('Install GIMP', 'done', True)])
++
++    def test_a_service_restarted_is_verified_by_its_new_start_and_start_stop_enable_disable_undo(self):
++        v = self.press('service.restart', 'cups')['result']
++        self.assertEqual((v['title'], v['state'], v['verified'], v['can_undo']), ('Restart cups.service', 'done', True, False), v)
++        self.assertEqual(v['checked'], 'cups.service is active (running), started again')
++        self.assertEqual(self.plan('service.restart', 'cups')['undo'], 'A restart cannot be undone; it only restarted.')
++        for action, after, undone in (('service.start', 'active', 'inactive'), ('service.enable', 'enabled', 'disabled')):
++            v = self.press(action, 'tern-sync')['result'];self.assertTrue(v['verified'], v)
++            key = 'active' if action == 'service.start' else 'file'
++            self.assertEqual(self.fake.units['tern-sync.service'][key], after)
++            self.assertTrue(self.call('system.door.undo', {'run': v['run']})['result']['verified'])
++            self.assertEqual(self.fake.units['tern-sync.service'][key], undone)
++        self.assertTrue(self.plan('service.stop', 'tern-sync')['nothing'], 'stopping what is not running asks nothing')
++        self.assertTrue(all(flag for _, flag in self.fake.asked))
++
++    def test_the_time_zone_network_time_the_name_and_an_account_are_each_verified_and_undone(self):
++        p = self.plan('time.zone', 'europe/lisbon')
++        self.assertEqual(p['target'], 'Europe/Lisbon');self.assertTrue(p['words'].startswith('This will set the time zone to Europe/Lisbon (it is Europe/Berlin now).'))
++        cases = (('time.zone', 'Europe/Lisbon', '', lambda: self.fake.time['Timezone'], 'Europe/Lisbon', 'Europe/Berlin'),
++                 ('time.ntp', 'off', '', lambda: self.fake.time['NTP'], False, True),
++                 ('host.name', 'tern-lab', '', lambda: self.fake.host, 'tern-lab', 'harbour-desk'),
++                 ('user.add', 'ana', 'Ana Plover', lambda: 'ana' in self.fake.users, True, False),
++                 ('user.realname', 'kit', 'Kit Plover', lambda: self.fake.users['kit'][1], 'Kit Plover', 'Kit Tern'))
++        for action, target, value, read, after, before in cases:
++            v = self.press(action, target, value)['result']
++            self.assertEqual((v['state'], v['verified']), ('done', True), (action, v));self.assertEqual(read(), after, action)
++            back = self.call('system.door.undo', {'run': v['run']})['result']
++            self.assertEqual((back['state'], back['verified']), ('done', True), (action, back));self.assertEqual(read(), before, action)
++        self.assertEqual(self.fake.users.get('ana'), None)
++        self.assertIn('It has no password yet', self.plan('user.add', 'ana')['words'])
++
++
++class Rules(Door):
++    def test_names_are_validated_before_anything_is_asked(self):
++        refused = {('package.install', 'Gimp!'): 'is not a Debian package name', ('service.start', 'cu ps'): 'is not a service name',
++                   ('time.zone', 'Mars/Olympus'): 'there is no time zone “Mars/Olympus”', ('service.stop', 'dbus'): 'keeps this session',
++                   ('package.remove', 'packagekit'): 'keeps this session', ('host.name', '-tern'): 'cannot be a computer’s name',
++                   ('user.add', 'Ana Plover'): 'cannot be an account name'}
++        for (action, target), words in refused.items():
++            answer = self.call('system.door.plan', {'action': action, 'target': target})
++            self.assertFalse(answer['ok'], (action, target));self.assertIn(words, answer['error']['message'])
++        nope = {('package.install', 'gimpp'): 'Debian’s archive here has no package called “gimpp”', ('service.start', 'plover'): 'there is no service called plover.service',
++                ('user.add', 'kit'): 'the name “kit” is taken', ('package.remove', 'nano'): 'other installed software needs nano'}
++        for (action, target), words in nope.items():
++            p = self.plan(action, target);self.assertFalse(p['ok'], p);self.assertIn(words, p['why'])
++        self.assertEqual(self.plan('package.install', 'nano')['words'], 'nano is installed already (version 8.4-1).')
++        self.assertEqual(self.fake.asked, [])
++
++    def test_never_her_step_never_under_a_grant_and_halt_holds_it_and_cancels_a_waiting_transaction(self):
++        from workbench.engineering_kernel import Principal
++        from workbench.grants import _PERMIT
++        p = self.plan('package.install', 'gimp')
++        hers = Principal('kasandra', frozenset({'read', 'execute'}))
++        self.assertIn('outside the authorized', self.press('package.install', 'gimp', p=p, who=hers)['error']['message'])
++        token = _PERMIT.set(object())
++        try:said = self.press('package.install', 'gimp', p=p)['error']['message']
++        finally:_PERMIT.reset(token)
++        self.assertIn('never under a standing grant', said)
++        self.assertTrue(self.call('halt.press', {})['ok'])
++        self.assertIn('HALT holds my work', self.press('package.install', 'gimp', p=p)['error']['message'])
++        self.assertTrue(self.call('system.door.plan', {'action': 'package.install', 'target': 'gimp'})['ok'], 'HALT stops her work and nothing else')
++        self.assertTrue(self.call('halt.release', {})['ok'])
++        self.assertEqual(self.fake.asked, []);self.assertNotIn('gimp', self.fake.installed)
++        p = sd.plan('package.install', 'gimp');self.fake.delay = 5.0;t0 = time.monotonic()
++        s = sd.System(halt=lambda: time.monotonic() - t0 > 0.4)
++        try:
++            with self.assertRaises(sd.Refused) as caught:sd.do(s, p)
++        finally:s.close()
++        self.assertIn('DOOR_CANCELLED', str(caught.exception));self.assertLess(time.monotonic() - t0, 4)
++        self.assertNotIn('gimp', self.fake.installed)
++
++    def test_the_prompt_saying_no_changes_nothing_and_says_so_and_a_changed_plan_is_not_asked(self):
++        self.fake.answer = 'no'
++        v = self.press('package.install', 'gimp')['result']
++        self.assertEqual((v['state'], v['verified'], v['can_undo'], v['checked']), ('refused at the prompt', False, False, 'gimp is not installed'))
++        v = self.press('time.zone', 'Europe/Lisbon')['result']
++        self.assertEqual((v['state'], self.fake.time['Timezone']), ('refused at the prompt', 'Europe/Berlin'))
++        self.fake.answer = 'none'
++        self.assertEqual(self.press('service.start', 'tern-sync')['result']['state'], 'no prompt')
++        self.fake.answer = 'yes'
++        p = self.plan('package.install', 'gimp');self.fake.archive['gimp'] = ('3.0.4-2',) + self.fake.archive['gimp'][1:]
++        said = self.press('package.install', 'gimp', p=p)['error']['message']
++        self.assertIn('changed since you saw it', said);self.assertNotIn('gimp', self.fake.installed)
++
++    def test_with_no_prompt_agent_nothing_is_asked(self):
++        with patch.object(sd, 'prompt_agent', lambda: dict(running=False, words='No permission prompt agent is running in this session.')):
++            p = self.plan('service.restart', 'cups')
++            self.assertEqual((p['ok'], p['why']), (False, 'No permission prompt agent is running in this session.'))
++            self.assertIn('No permission prompt agent is running', self.press('service.restart', 'cups', p=p)['error']['message'])
++        self.assertEqual(self.fake.asked, [])
++
++    def test_offer_maps_root_command_lines_to_one_fixed_action_for_the_command_tool(self):
++        o = sd.offer(['sudo', 'apt', 'install', 'gimp'])
++        self.assertEqual((o['action'], o['target'], o['title'], o['asks']), ('package.install', 'gimp', 'Install GIMP', 'asks for your password'))
++        self.assertTrue(o['words'].startswith('That is the system door: Install GIMP'))
++        cases = {('systemctl', 'restart', 'cups'): ('service.restart', 'cups.service'), ('apt-get', 'install', '-y', 'vlc'): ('package.install', 'vlc'),
++                 ('sudo', 'apt', 'update'): ('packages.refresh', ''), ('apt', 'remove', 'gimp'): ('package.remove', 'gimp'),
++                 ('apt', 'install', '--only-upgrade', 'nano'): ('package.update', 'nano'), ('service', 'cups', 'stop'): ('service.stop', 'cups.service'),
++                 ('timedatectl', 'set-timezone', 'Europe/Lisbon'): ('time.zone', 'Europe/Lisbon'), ('timedatectl', 'set-ntp', 'false'): ('time.ntp', 'off'),
++                 ('hostnamectl', 'set-hostname', 'tern-lab'): ('host.name', 'tern-lab'), ('sudo', 'adduser', 'ana'): ('user.add', 'ana')}
++        for argv, (action, target) in cases.items():
++            o = sd.offer(list(argv));self.assertEqual((o['action'], o['target']), (action, target), argv)
++        for argv in (('apt', 'install', 'gimp', 'vlc'), ('sudo', '-u', 'kit', 'apt', 'install', 'gimp'), ('apt', 'purge', 'gimp'), ('passwd', 'ana'),
++                     ('sudo', 'sh', '-c', 'apt install gimp'), ('systemctl', 'enable', '--now', 'cups'), ('apt', 'upgrade'), ('dpkg', '-i', 'x.deb'), ()):
++            self.assertIsNone(sd.offer(list(argv)), argv)
++
++    def test_her_words_name_the_action_and_a_service_only_when_its_unit_is_on_this_computer(self):
++        words = {'install gimp': ('package.install', 'gimp', ''), 'please uninstall VLC': ('package.remove', 'vlc', ''),
++                 'restart cups': ('service.restart', 'cups.service', ''), 'enable the tern-sync service at boot': ('service.enable', 'tern-sync.service', ''),
++                 'set the time zone to europe/lisbon': ('time.zone', 'europe/lisbon', ''), 'turn off network time': ('time.ntp', 'off', ''),
++                 'rename this computer to tern-lab': ('host.name', 'tern-lab', ''), 'add a user called ana named Ana Plover': ('user.add', 'ana', 'Ana Plover'),
++                 'refresh the software lists': ('packages.refresh', '', ''), 'sudo apt install gimp': ('package.install', 'gimp', '')}
++        for text, want in words.items():
++            got = sd.read_words(text);self.assertEqual((got['action'], got['target'], got['value']), want, text)
++        for text in ('start the model', 'restart godot', 'stop it', 'install', 'what is on the desk today', 'remove the file notes.txt', 'start a Godot project called Tern'):
++            self.assertIsNone(sd.read_words(text), text)
++
++
++class Window(Door):
++    """Her talk, NEXT STEPS, the line and the Settings page, on a stand-in for Graphite's window (offscreen)."""
++
++    def setUp(self):
++        super().setUp()
++        from PySide6.QtWidgets import QApplication, QFrame, QVBoxLayout
++        self.app = QApplication.instance() or QApplication([])
++        from workbench import system_door_qt as q
++        self.q = q;q.SYNC = True;q.STATE.clear()
++        test = self
++
++        class Face:
++            def __init__(self):self.said = [];self.host = test.host;self.thing = None
++
++            def mine(self, text):self.said.append(('you', text))
++
++            def say(self, text):
++                bubble = QFrame();bubble.box = QVBoxLayout(bubble);self.said.append(('her', text, bubble));return bubble
++        self.host = type('Host', (), {'root': self.kernel.root, 'her_column': None})()
++        self.face = Face()
++
++    def tearDown(self):
++        self.q.SYNC = False;super().tearDown()
++
++    def links(self, bubble):
++        from PySide6.QtWidgets import QLabel
++        return {w: fn for label in bubble.findChildren(QLabel) for k, (w, fn) in (getattr(label, '_actions', None) or {}).items()}
++
++    def test_her_talk_shows_the_plan_then_asks_the_system_then_done_and_verified_with_undo_and_next_steps_follow(self):
++        from PySide6.QtWidgets import QLabel
++        self.assertTrue(self.q.asked(self.face, 'install gimp'))
++        said = self.face.said[-1];self.assertEqual(said[1], 'Install GIMP. This is what the system will do; nothing has changed yet.')
++        shown = ' '.join(l.text() for l in said[2].findChildren(QLabel))
++        self.assertIn('3 packages it needs: gimp-data', shown);self.assertIn('Undo removes it and the packages it pulled in.', shown)
++        self.assertIn('The system will ask for your password. Type it into the system’s own prompt, never here.', shown)
++        self.assertEqual(sorted(self.links(said[2])), ['Install (the system asks)', 'Not now'])
++        self.assertEqual([s['words'] for s in self.q.next_steps(self.host)], ['Install GIMP · asks for your password'])
++        self.assertEqual(self.fake.asked, [])
++        self.assertTrue(self.q.take(self.host, self.q.next_steps(self.host)[0]))
++        self.assertEqual(self.face.said[-2][1], 'Asking the system now: “Install GIMP”. Its own prompt is on your screen; I never see the password.')
++        done = self.face.said[-1]
++        self.assertEqual(done[1], '✓ Done and verified, “Install GIMP”: gimp 3.0.4-1 is installed (PackageKit read it back).')
++        self.assertEqual([s['words'] for s in self.q.next_steps(self.host)], ['Undo · Install GIMP · asks for your password'])
++        self.links(done[2])['Undo (the system asks)']()
++        self.assertEqual(self.face.said[-1][1], 'Undone and verified, “Install GIMP”: gimp is no longer installed (PackageKit read it back).')
++        self.assertEqual(self.q.next_steps(self.host), [])
++        self.assertTrue(self.q.asked(self.face, 'restart cups'));self.links(self.face.said[-1][2])['Restart (the system asks)']()
++        self.assertEqual(self.face.said[-1][1], '✓ Done and verified, “Restart cups.service”: cups.service is active (running), started again.')
++        self.fake.answer = 'no';self.q.asked(self.face, 'set the time zone to Europe/Lisbon');self.links(self.face.said[-1][2])['Set it (the system asks)']()
++        self.assertEqual(self.face.said[-1][1], 'The system’s prompt was cancelled or refused, so nothing changed: the time zone is Europe/Berlin (timedated read it back).')
++        self.assertFalse(self.q.asked(self.face, 'what is on the desk today'), 'not the door: the rest of her chain answers')
++
++    def test_the_line_offers_install_gimp_asks_for_your_password_and_the_settings_page_draws(self):
++        from workbench import line_finder as lf
++        rows = lf.rows('install gimp', lf.Sources(None));door = [r for r in rows if r.extra.get('door')]
++        self.assertEqual((door[0].title, door[0].verb, door[0].enter_words()), ('Install GIMP, asks for your password', 'Show', 'Enter: shows what the system will do; nothing changes'))
++        self.assertTrue(all(r.verb in lf.VERBS for r in rows))
++        self.assertFalse(any(r.extra.get('door') for r in lf.rows('tern', lf.Sources(None))))
++        self.assertEqual(self.q.line_rows('install gimp', None)[0][2](), False, 'no window: nothing is done')
++        from PySide6.QtWidgets import QLabel, QTabWidget
++        self.host.tabs = QTabWidget()
++        page = self.q.show_page(self.host)
++        text = ' '.join(l.text() for l in page.findChildren(QLabel))
++        for words in ('READY', 'Permission prompts are answered by lxpolkit', 'PackageKit answers', 'Time zone Europe/Berlin', 'NETWORK TIME ON', 'harbour-desk', 'kit · Kit Tern'):
++            self.assertIn(words, text)
++        from workbench import system_settings_qt as ss
++        self.assertIn(('system:door', 'System changes'), [(n['id'], n['label']) for n in ss.nodes()])
++
++    def test_her_new_lines_pass_the_voice_sweep(self):
++        from workbench import mind_words
++        self.assertEqual([p for p in mind_words.check() if p[0] == 'kas_voice'], [])
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 1dc9fbb..a9491d7 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -137,6 +137,7 @@ def schemas():
+     from .home_plan import FIELDS as HOME_PLAN_FIELDS  # 1.0 K10 (her reach in Home, finished): grant.give.set
+     from .windows_hand import FIELDS as WINDOWS_HAND_FIELDS  # 1.1 W1 (a Windows hand's keys): files.delete_for_good
+     from .bulk_files import FIELDS as BULK_FILES_FIELDS  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
++    from .system_door import FIELDS as DOOR_FIELDS  # 1.1 KS3 (the system door): system.door.plan, system.door.run, system.door.undo, system.door.runs, system.door.read, system.door.state
+     from .box_ops import FIELDS as BOX_FIELDS  # 1.1 KS1 (recipes): box.files.find, box.space, box.memory, box.processor, box.system, box.pdf.*, box.zip.*, box.bin.*, box.pictures.make, box.folder.copy, box.files.rename, .sort, .bin
+     from .recipe_book import FIELDS as RECIPE_FIELDS  # 1.1 KS1 (recipes): recipes.list, .pick, .dry_run, .look, .run, .undo, .runs
+     from .stac_words import FIELDS as WORD_FIELDS
+@@ -277,6 +278,7 @@ def schemas():
+         **HOME_PLAN_FIELDS,  # 1.0 K10 (her reach in Home, finished): grant.give.set
+         **WINDOWS_HAND_FIELDS,  # 1.1 W1 (a Windows hand's keys): files.delete_for_good
+         **BULK_FILES_FIELDS,  # 1.0 L6c (bulk files): files.batch_plan, files.batch, files.batch_undo, files.batches
++        **DOOR_FIELDS,  # 1.1 KS3 (the system door)
+         **BOX_FIELDS, **RECIPE_FIELDS,  # 1.1 KS1 (recipes): the box's narrow operations and her recipes
+         **WORD_FIELDS,
+         **{op: service.FIELDS[op] for op, service in PROGRAM_HANDLERS.items()},
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index df4940c..a716fd2 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -102,6 +102,7 @@ from . import everyday_desk  # noqa: F401  1.0 X3 (everyday sessions): the desk'
+ from . import home_pages, home_plan  # 1.0 K10 (her reach in Home, finished): file.pages (read: a document's pages as data, through the doorway); grant.give.set (approve: one press, a grant per operation); registry tools 24 to 27 (recorded additions)
+ from . import windows_hand  # 1.1 W1 (a Windows hand's keys): files.delete_for_good (approve: Shift+Delete asked first; your press only, never her work)
+ from . import bulk_files  # 1.0 L6c (bulk files): files.batch_plan, files.batches (read); files.batch (execute: many files moved, copied or deleted in one press); files.batch_undo (approve: the whole batch put back as one) (recorded additions)
++from . import system_door  # 1.1 KS3 (the system door): system.door.plan, system.door.read, system.door.runs, system.door.state (read); system.door.run and system.door.undo (approve: your press only, never her work, never under a grant, held by HALT; the system's own prompt asks after)
+ from . import box_ops, recipe_book  # 1.1 KS1 (recipes): box.* (the box's narrow operations: reads, and changes on your press with a dry run, a verifier and an Undo); recipes.* (the library, the dry run, the run on your press, its Undo)
+ 
+ PROGRAM_HANDLERS = {
+@@ -312,6 +313,7 @@ CAPABILITIES = {
+     **home_plan.SCOPES,  # 1.0 K10 (her reach in Home, finished): several grants in one press are your press (approve), each its own record
+     **windows_hand.SCOPES,  # 1.1 W1 (a Windows hand's keys): deleting for good is approve, your press after the window asked
+     **bulk_files.SCOPES,  # 1.0 L6c (bulk files): the plan and the list are reads; a batch is execute, your press; its Undo is approve
++    **system_door.SCOPES,  # 1.1 KS3 (the system door): plans and reads are reads; a system change and its Undo are approve, your press
+     **box_ops.SCOPES, **recipe_book.SCOPES,  # 1.1 KS1 (recipes): reads run on their own; a change is execute (your press, after its dry run); emptying DELETE and a recipe's Undo are approve
+     **stac_words.SCOPES,
+     **native_projects.SCOPES,
+@@ -784,6 +786,7 @@ class Kernel:
+         if op in home_plan.FIELDS:return home_plan.dispatch(self,op,a,p)   # 1.0 K10 (her reach in Home, finished): a folder's grants in one press, the Kernel still checking each step's own operation
+         if op in windows_hand.FIELDS:return windows_hand.dispatch(self,op,a,p)   # 1.1 W1 (a Windows hand's keys): Shift+Delete, removed without the bin, your press only
+         if op in bulk_files.FIELDS:return bulk_files.dispatch(self,op,a,p)   # 1.0 L6c (bulk files): one press for many files, recorded as one change with every file's before and after, one Undo
++        if op in system_door.FIELDS:return system_door.dispatch(self,op,a,p)   # 1.1 KS3 (the system door): one fixed action through the system's own prompt
+         if op in box_ops.FIELDS:return box_ops.dispatch(self,op,a,p)   # 1.1 KS1 (recipes): the box's narrow operations
+         if op in recipe_book.FIELDS:return recipe_book.dispatch(self,op,a,p)   # 1.1 KS1 (recipes): her recipes
+         if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
+diff --git a/workbench/her_column_qt.py b/workbench/her_column_qt.py
+index 6a20a5a..13df34d 100644
+--- a/workbench/her_column_qt.py
++++ b/workbench/her_column_qt.py
+@@ -1533,6 +1533,11 @@ class HerColumn(QObject):
+             out[0:0] = recipe_steps(self.host)
+         except Exception:  # noqa: BLE001
+             pass
++        try:      # 1.1 KS3 (the system door): a plan waits for your press, or a change has an Undo (system_door_qt.next_steps)
++            from .system_door_qt import next_steps as door_steps
++            out[0:0] = door_steps(self.host)
++        except Exception:  # noqa: BLE001
++            pass
+         out.append({'words': 'Check the desk', 'verb': 'Check the desk', 'object': 'every check, run now', 'kind': 'desk', 'command': 'check', 'title': '',
+                     'tip': 'Every check the desk has, run now; what waits is said in Talk with the step that would settle it.'})
+         mine = [id(s) for s in out if s['kind'] == 'assignment'][:4]      # 1.0 X1: an assignment's own press (Carry on, Resume)
+@@ -1545,6 +1550,8 @@ class HerColumn(QObject):
+         return out
+ 
+     def take_step(self, step):
++        if step['kind'] == 'system_door':      # 1.1 KS3 (the system door): the same press as the word in Talk; the system asks after
++            from .system_door_qt import take as door_take;door_take(self.host, step);return
+         if step['kind'] == 'recipe':      # 1.1 KS1 (recipes): Run or Undo, the same press as the word in Talk
+             from .recipe_book_qt import take as recipe_take;recipe_take(self.host, step);return
+         if step['kind'] == 'notice':      # 1.0 X1: Update: the plan asked for in the desk's words; offered, nothing changed
+diff --git a/workbench/kas_voice.py b/workbench/kas_voice.py
+index 635ae4a..40a6b5a 100644
+--- a/workbench/kas_voice.py
++++ b/workbench/kas_voice.py
+@@ -114,6 +114,28 @@ WORDS = {
+     'recipe_refused_files': 'Recipe files I did not take: {which}',
+     'recipe_line_detail': 'Enter shows what it would do; nothing changes',
+     'recipe_line_ask': 'Enter asks the one thing it needs; nothing changes',
++    # 1.1 KS3 (the system door): system changes through the system's own prompt (system_door_qt); plain words, no wit
++    'door_plan': '{title}. This is what the system will do; nothing has changed yet.',
++    'door_asks': '{asks} Type it into the system’s own prompt, never here.',
++    'door_go_word': '{verb} (the system asks)',
++    'door_no_word': 'Not now',
++    'door_cancelled': 'Not asked. Nothing changed.',
++    'door_asking': 'Asking the system now: “{title}”. Its own prompt is on your screen; I never see the password.',
++    'door_one_at_a_time': 'One system change at a time. The system is still answering the last one.',
++    'door_done': '✓ Done and verified, “{title}”: {checked}.',
++    'door_said_no': 'The system’s prompt was cancelled or refused, so nothing changed: {checked}.',
++    'door_no_prompt': 'No permission prompt could open, so the system could not ask you. Nothing changed: {checked}.',
++    'door_halted': 'HALT stopped “{title}” before the system began. I read it back: {checked}.',
++    'door_failed': 'Not done, “{title}”. {why} I read it back: {checked}.',
++    'door_nothing': 'Nothing to ask the system for: {words}',
++    'door_not_ready': 'I cannot ask the system for “{title}”: {why}. Nothing was asked.',
++    'door_refused': 'Refused, and nothing was asked. {why}',
++    'door_changed': 'What the system would do changed since you saw it, so nothing was asked. Here it is again.',
++    'door_undo_word': 'Undo (the system asks)',
++    'door_undoing': 'Asking the system to undo “{title}”. Its own prompt is on your screen.',
++    'door_undone': 'Undone and verified, “{title}”: {checked}.',
++    'door_undo_failed': 'Not undone, “{title}”. {why}',
++    'door_line_detail': 'Enter shows what the system will do; nothing changes',
+ }
+ NUMBERS = {'stopped_at': {'n': 'the steps that went (godot start results)', 'count': 'the start plan\'s steps (godot start plan)'},
+            'desk_none': {'count': 'the desk\'s things (desk read)'},
+diff --git a/workbench/line_finder.py b/workbench/line_finder.py
+index 0b6e189..27aa602 100644
+--- a/workbench/line_finder.py
++++ b/workbench/line_finder.py
+@@ -329,6 +329,17 @@ def recipe_rows(text, sources):
+         return []
+ 
+ 
++def door_rows(text, sources):
++    """1.1 KS3 (the system door): "Install GIMP, asks for your password" for the words of one of the door's fixed actions
++    (system_door_qt.line_rows); Enter shows what the system will do in her talk, and nothing changes."""
++    try:
++        from .system_door_qt import line_rows as door_line
++        return [Row('command', title, detail, 'Show', do, section='COMMANDS', icon='command', extra=dict(recipe=True, door=True))
++                for title, detail, do in door_line(text, getattr(sources, 'host', None))]
++    except Exception:  # noqa: BLE001 - no reading: no row
++        return []
++
++
+ def ask_row(text):
+     return Row('ask', '%s: %s' % (ASK, short(clean(text).lstrip('?').strip(), 44)), 'Your words go to her column; she proposes, you decide',
+                ASK, clean(text).lstrip('?').strip(), icon='ask')
+@@ -470,6 +481,7 @@ def rows(text, sources=None):
+     first += operation_rows(words)      # an operation's own name (apps.list, /files.list path=Slate) before the line reading it
+     if not first:first += line_rows(words, reading)
+     first += dos_rows(words)
++    first += door_rows(words, sources)      # 1.1 KS3 (the system door): "Install GIMP, asks for your password", Enter shows the plan
+     first += recipe_rows(words, sources)      # 1.1 KS1 (recipes): "Recipe: Free space in Home", Enter shows what it would do
+     if lead == '/':
+         place = Path(os.path.expanduser(words))
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index f9b5cb9..83a999f 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -2864,6 +2864,8 @@ class SlateFace(QWidget):
+         if not chosen and self.run_asked(text):return
+         from .desk_review import asked as review_asked      # 1.0 X1: "review this assembly … sufficient?": the desk's findings say it
+         if not chosen and review_asked(self, text):return
++        from .system_door_qt import asked as door_asked      # 1.1 KS3 (the system door): "install gimp", "restart cups": the plan is shown, your press starts it, the system asks
++        if not chosen and door_asked(self, text):return
+         from .recipe_book_qt import asked as recipe_asked      # 1.1 KS1 (recipes): a recipe's words: a read runs; a change shows its dry run and waits for your press
+         if not chosen and recipe_asked(self, text):return
+         if not chosen and self.objective_asked(text):return      # 1.0 K4: an objective becomes a plan of registered steps, offered in her column
+diff --git a/workbench/system_bus.py b/workbench/system_bus.py
+new file mode 100644
+index 0000000..0252b7e
+--- /dev/null
++++ b/workbench/system_bus.py
+@@ -0,0 +1,288 @@
++"""The system's own services on the system D-Bus, for the system door (Graphite 1.1 KS3). Pure Python: sockets, no Qt.
++
++Why a client of its own: the door speaks to PackageKit, systemd, timedated, hostnamed and accountsservice, which take typed
++arguments (PackageKit's filters and flags are 64-bit unsigned numbers, which PySide6's QtDBus cannot send from Python, the
++reason a11y_hand goes through dbus-send) and PackageKit answers through signals (Package, Details, ErrorCode, Finished),
++which a one-shot program such as busctl or dbus-send cannot wait for. So this module speaks the D-Bus wire protocol itself
++(the specification's marshalling, little-endian, AUTH EXTERNAL): one connection per action, no shell, no program run.
++
++  Bus(address)            connects (DBUS_SYSTEM_BUS_ADDRESS when set, else /run/dbus/system_bus_socket) and says Hello.
++  bus.call(...)           one method call with an exact signature; interactive=True sets the flag that lets the service
++                          ask the owner through polkit (the session's permission prompt agent shows the system's own
++                          prompt; the password never passes through Graphite). Raises BusError with the service's words.
++  bus.get / get_all       properties.
++  bus.listen(rule) and bus.signals(...)  signals (PackageKit's answers).
++  bus.own(name), next_call, reply, fail, emit   a service's side: the tests' fake services use them.
++"""
++from __future__ import annotations
++
++import os
++import socket
++import struct
++import time
++
++SYSTEM = 'unix:path=/run/dbus/system_bus_socket'
++INTERACTIVE = 0x4            # ALLOW_INTERACTIVE_AUTHORIZATION: the service may ask the owner (polkit) before it answers
++CALL, RETURN, ERROR, SIGNAL = 1, 2, 3, 4
++TIMEOUT = 25.0               # seconds for a call that asks nothing of the owner
++FIELDS = {1: ('path', 'o'), 2: ('interface', 's'), 3: ('member', 's'), 4: ('error', 's'), 5: ('reply_serial', 'u'),
++          6: ('destination', 's'), 7: ('sender', 's'), 8: ('signature', 'g')}
++CODES = {name: (code, sig) for code, (name, sig) in FIELDS.items()}
++ALIGN = {'y': 1, 'b': 4, 'n': 2, 'q': 2, 'i': 4, 'u': 4, 'x': 8, 't': 8, 'd': 8, 's': 4, 'o': 4, 'g': 1, 'a': 4, '(': 8, '{': 8,
++         'v': 1, 'h': 4}
++FIXED = {'y': 'B', 'b': 'I', 'n': 'h', 'q': 'H', 'i': 'i', 'u': 'I', 'x': 'q', 't': 'Q', 'd': 'd', 'h': 'I'}
++MOST = 1 << 26               # the largest message read (64 MiB: the specification's limit is 128)
++
++
++class BusError(OSError):
++    """A refusal or failure on the bus: `name` is the D-Bus error name (org.freedesktop.DBus.Error.AccessDenied ...)."""
++
++    def __init__(self, name, text=''):
++        super().__init__(text or name);self.name = str(name or '');self.text = str(text or '')
++
++
++def address(environ=None):
++    environ = os.environ if environ is None else environ
++    return str(environ.get('DBUS_SYSTEM_BUS_ADDRESS') or SYSTEM)
++
++
++def _socket_path(addr):
++    for part in str(addr).split(';'):
++        if not part.startswith('unix:'):continue
++        keys = dict(kv.split('=', 1) for kv in part[5:].split(',') if '=' in kv)
++        if 'path' in keys:return keys['path']
++        if 'abstract' in keys:return '\0' + keys['abstract']
++    raise BusError('org.freedesktop.DBus.Error.BadAddress', 'not a unix bus address: %s' % addr)
++
++
++# ---- signatures -----------------------------------------------------------------------------------------------------------
++def _end(sig, i):
++    """The index just past the single complete type that starts at sig[i]."""
++    c = sig[i]
++    if c == 'a':return _end(sig, i + 1)
++    if c in '({':
++        close = ')' if c == '(' else '}';i += 1
++        while sig[i] != close:i = _end(sig, i)
++        return i + 1
++    if c not in ALIGN:raise BusError('org.freedesktop.DBus.Error.InvalidSignature', 'bad signature %r' % sig)
++    return i + 1
++
++
++def split(sig):
++    out, i = [], 0
++    while i < len(sig):
++        j = _end(sig, i);out.append(sig[i:j]);i = j
++    return out
++
++
++# ---- marshalling ----------------------------------------------------------------------------------------------------------
++class _Writer:
++    def __init__(self):self.buf = bytearray()
++
++    def pad(self, n):
++        self.buf += b'\0' * ((-len(self.buf)) % n)
++
++    def put(self, t, v):
++        c = t[0]
++        if c in FIXED:
++            self.pad(ALIGN[c]);self.buf += struct.pack('<' + FIXED[c], (1 if v else 0) if c == 'b' else v);return
++        if c in 'so':
++            raw = str(v).encode('utf-8');self.pad(4);self.buf += struct.pack('<I', len(raw)) + raw + b'\0';return
++        if c == 'g':
++            raw = str(v).encode('ascii');self.buf += struct.pack('<B', len(raw)) + raw + b'\0';return
++        if c == 'v':
++            sig, value = v;self.put('g', sig);self.put(sig, value);return
++        if c == '(':
++            self.pad(8)
++            for sub, item in zip(split(t[1:-1]), v):self.put(sub, item)
++            return
++        if c == 'a':
++            elem = t[1:];self.pad(4);at = len(self.buf);self.buf += b'\0\0\0\0';self.pad(ALIGN[elem[0]]);start = len(self.buf)
++            if elem[0] == '{':
++                key, value = split(elem[1:-1])
++                for k, item in (v.items() if isinstance(v, dict) else v):self.pad(8);self.put(key, k);self.put(value, item)
++            else:
++                for item in v:self.put(elem, item)
++            self.buf[at:at + 4] = struct.pack('<I', len(self.buf) - start);return
++        raise BusError('org.freedesktop.DBus.Error.InvalidSignature', 'cannot write %r' % t)
++
++
++class _Reader:
++    def __init__(self, data, endian='<'):self.data = data;self.pos = 0;self.e = endian
++
++    def pad(self, n):
++        self.pos += (-self.pos) % n
++
++    def get(self, t):
++        c = t[0]
++        if c in FIXED:
++            self.pad(ALIGN[c]);size = struct.calcsize(FIXED[c])
++            value = struct.unpack_from(self.e + FIXED[c], self.data, self.pos)[0];self.pos += size
++            return bool(value) if c == 'b' else value
++        if c in 'so':
++            self.pad(4);n = struct.unpack_from(self.e + 'I', self.data, self.pos)[0];self.pos += 4
++            value = bytes(self.data[self.pos:self.pos + n]).decode('utf-8', 'replace');self.pos += n + 1;return value
++        if c == 'g':
++            n = self.data[self.pos];self.pos += 1;value = bytes(self.data[self.pos:self.pos + n]).decode('ascii');self.pos += n + 1;return value
++        if c == 'v':
++            sig = self.get('g');return self.get(sig)
++        if c == '(':
++            self.pad(8);return tuple(self.get(sub) for sub in split(t[1:-1]))
++        if c == '{':
++            self.pad(8);key, value = split(t[1:-1]);return (self.get(key), self.get(value))
++        if c == 'a':
++            elem = t[1:];self.pad(4);n = struct.unpack_from(self.e + 'I', self.data, self.pos)[0];self.pos += 4
++            self.pad(ALIGN[elem[0]]);end = self.pos + n;out = []
++            while self.pos < end:out.append(self.get(elem))
++            if elem == 'y':return bytes(out)
++            return dict(out) if elem[0] == '{' else out
++        raise BusError('org.freedesktop.DBus.Error.InvalidSignature', 'cannot read %r' % t)
++
++
++def encode(kind, serial, fields, sig='', args=(), flags=0):
++    """One message: the fixed header, the header fields, the body."""
++    body = _Writer()
++    for t, v in zip(split(sig), args):body.put(t, v)
++    head = _Writer()
++    for t, v in (('y', ord('l')), ('y', kind), ('y', flags), ('y', 1), ('u', len(body.buf)), ('u', serial)):head.put(t, v)
++    items = [(CODES[k][0], (CODES[k][1], v)) for k, v in fields.items() if v not in (None, '')]
++    if sig:items.append((8, ('g', sig)))
++    head.put('a(yv)', items);head.pad(8)
++    return bytes(head.buf + body.buf)
++
++
++class Message(dict):
++    """A message read off the bus: kind, serial, flags, path, interface, member, error, reply_serial, sender, destination,
++    signature, body (a list)."""
++    __getattr__ = dict.get
++
++
++def decode(head, body):
++    e = '<' if head[:1] == b'l' else '>'
++    r = _Reader(head, e)
++    _, kind, flags, _version, _length, serial = (r.get(t) for t in 'yyyyuu')
++    fields = r.get('a(yv)')
++    m = Message(kind=kind, flags=flags, serial=serial, signature='', body=[])
++    for code, value in fields:
++        if code in FIELDS:m[FIELDS[code][0]] = value
++    sig = m.get('signature') or ''
++    if sig:
++        rb = _Reader(body, e);m['body'] = [rb.get(t) for t in split(sig)]
++    return m
++
++
++# ---- the connection -------------------------------------------------------------------------------------------------------
++class Bus:
++    """One connection to a bus (the system bus unless `addr` says otherwise). Not shared between threads."""
++
++    def __init__(self, addr=None, timeout=TIMEOUT):
++        self.addr = addr or address();self.timeout = timeout;self.serial = 0;self.buf = bytearray();self.waiting = []
++        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM);self.sock.settimeout(timeout)
++        try:
++            self.sock.connect(_socket_path(self.addr))
++            self.sock.sendall(b'\0AUTH EXTERNAL ' + str(os.getuid()).encode().hex().encode() + b'\r\n')
++            line = self._line()
++            if not line.startswith(b'OK '):raise BusError('org.freedesktop.DBus.Error.AuthFailed', 'the bus refused this connection')
++            self.sock.sendall(b'BEGIN\r\n')
++            self.name = self.call('org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus', 'Hello')[0]
++        except OSError as exc:
++            self.close()
++            if isinstance(exc, BusError):raise
++            raise BusError('org.freedesktop.DBus.Error.NoServer', 'no system bus here (%s)' % (exc.strerror or exc)) from exc
++
++    def __enter__(self):return self
++
++    def __exit__(self, *exc):self.close()
++
++    def close(self):
++        try:self.sock.close()
++        except OSError:
++            pass
++
++    def _line(self):
++        while b'\r\n' not in self.buf:
++            got = self.sock.recv(4096)
++            if not got:raise BusError('org.freedesktop.DBus.Error.Disconnected', 'the bus closed the connection')
++            self.buf += got
++        line, _, rest = bytes(self.buf).partition(b'\r\n');self.buf = bytearray(rest);return line
++
++    def _need(self, n, deadline):
++        while len(self.buf) < n:
++            left = deadline - time.monotonic()
++            if left <= 0:raise TimeoutError('no answer in time')
++            self.sock.settimeout(min(left, 1.0))
++            try:got = self.sock.recv(65536)
++            except socket.timeout:
++                continue
++            if not got:raise BusError('org.freedesktop.DBus.Error.Disconnected', 'the bus closed the connection')
++            self.buf += got
++
++    def read(self, deadline):
++        """The next message, or TimeoutError at the deadline (monotonic seconds)."""
++        self._need(16, deadline)
++        e = '<' if self.buf[:1] == b'l' else '>'
++        body_len, _serial, fields_len = struct.unpack_from(e + 'III', self.buf, 4)
++        head_len = 16 + fields_len + ((-(16 + fields_len)) % 8)
++        if head_len + body_len > MOST:raise BusError('org.freedesktop.DBus.Error.LimitsExceeded', 'a message too large')
++        self._need(head_len + body_len, deadline)
++        head = bytes(self.buf[:head_len]);body = bytes(self.buf[head_len:head_len + body_len]);del self.buf[:head_len + body_len]
++        return decode(head, body)
++
++    def send(self, kind, fields, sig='', args=(), flags=0):
++        self.serial += 1
++        self.sock.sendall(encode(kind, self.serial, fields, sig, args, flags))
++        return self.serial
++
++    def call(self, dest, path, iface, member, sig='', args=(), interactive=False, timeout=None):
++        """One method call; its answer's values (a list). BusError with the service's own words when it refuses."""
++        serial = self.send(CALL, dict(path=path, interface=iface, member=member, destination=dest), sig, args,
++                           INTERACTIVE if interactive else 0)
++        deadline = time.monotonic() + (timeout or self.timeout)
++        while True:
++            m = self.read(deadline)
++            if m.kind in (RETURN, ERROR) and m.reply_serial == serial:
++                if m.kind == ERROR:raise BusError(m.error, (m.body[0] if m.body and isinstance(m.body[0], str) else ''))
++                return m.body
++            if m.kind == SIGNAL:self.waiting.append(m)
++            elif m.kind == CALL and not (m.flags & 1):
++                self.fail(m, 'org.freedesktop.DBus.Error.UnknownMethod', 'this connection serves nothing')
++
++    def get(self, dest, path, iface, prop):
++        return self.call(dest, path, 'org.freedesktop.DBus.Properties', 'Get', 'ss', (iface, prop))[0]
++
++    def get_all(self, dest, path, iface):
++        return self.call(dest, path, 'org.freedesktop.DBus.Properties', 'GetAll', 's', (iface,))[0]
++
++    def listen(self, **rule):
++        text = ','.join("%s='%s'" % (k, v) for k, v in [('type', 'signal')] + sorted(rule.items()))
++        self.call('org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus', 'AddMatch', 's', (text,))
++
++    def signals(self, deadline, path=None):
++        """Signals (those met while waiting for a reply first), one at a time, until the deadline (TimeoutError)."""
++        while True:
++            while self.waiting:
++                m = self.waiting.pop(0)
++                if path is None or m.path == path:yield m
++            m = self.read(deadline)
++            if m.kind == SIGNAL and (path is None or m.path == path):yield m
++
++    # -- a service's side (the tests' fake services)
++    def own(self, name):
++        got = self.call('org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus', 'RequestName', 'su', (name, 4))[0]
++        if got not in (1, 4):raise BusError('org.freedesktop.DBus.Error.AddressInUse', '%s is owned already' % name)
++
++    def next_call(self, deadline):
++        while True:
++            m = self.read(deadline)
++            if m.kind == CALL:return m
++
++    def reply(self, m, sig='', args=()):
++        if m.flags & 1:return
++        self.send(RETURN, dict(reply_serial=m.serial, destination=m.sender), sig, args)
++
++    def fail(self, m, name, text=''):
++        if m.flags & 1:return
++        self.send(ERROR, dict(reply_serial=m.serial, destination=m.sender, error=name), 's', (text or name,))
++
++    def emit(self, path, iface, member, sig='', args=()):
++        self.send(SIGNAL, dict(path=path, interface=iface, member=member), sig, args)
+diff --git a/workbench/system_door.py b/workbench/system_door.py
+new file mode 100644
+index 0000000..6c8b872
+--- /dev/null
++++ b/workbench/system_door.py
+@@ -0,0 +1,1075 @@
++"""The system door (Graphite 1.1 KS3): software, services, time, the computer's name and users, changed through the
++system's own services and their own permission prompt, with the owner present. One fixed action per prompt; never under a
++standing grant; never as her own step.
++
++The owner's reversal 8 (PLAN_1.1.md section 6): "Outside your home: never" for Kas becomes "system changes through the
++system's own prompt, the owner present". Her rules do not move: the model proposes, the desk disposes. Every action here is
++one of the fixed ACTIONS below, validated first, shown first (what the system will do, what it pulls in and its size, that
++the system will ask for your password, and what Undo does or that it cannot be undone), started only by the owner's press
++(system.door.run, approve scope, with the digest of what was shown), then asked again by the system's own prompt (polkit, through
++the session's permission prompt agent: lxpolkit in the dedicated session; the password is typed there, never into Graphite),
++and verified after by reading the system's own state back. HALT refuses to start one and cancels a PackageKit transaction
++that is still waiting (when PackageKit lets it).
++
++Each action goes to the service Debian 13 has for it, which asks through polkit by itself; there is no shell, no sudo, no
++pkexec and no helper of Graphite's:
++
++  software   PackageKit (org.freedesktop.PackageKit): install, remove or update one named package, refresh the lists, list
++             updates. Validated by Resolve; shown by a SIMULATE transaction (what it pulls in) and GetDetails (sizes).
++  services   systemd (org.freedesktop.systemd1): start, stop, restart, enable, disable one named unit; its state; its journal
++             (journalctl, a fixed argv: the journal has no D-Bus reader). Validated by LoadUnit (LoadState).
++  time       timedated (org.freedesktop.timedate1): the time zone (validated against /usr/share/zoneinfo), network time on or
++             off, the clock (only with network time off).
++  name       hostnamed (org.freedesktop.hostname1): the computer's name.
++  users      accountsservice (org.freedesktop.Accounts): add a standard account, set an account's real name. Never a
++             password: the door has no action for one.
++
++The bus is system_bus's own client (DBUS_SYSTEM_BUS_ADDRESS when set). offer(argv) maps a root command line (sudo apt install
++gimp, systemctl restart cups, timedatectl set-timezone ...) to its fixed action, for the command tool (KS2) to hand over:
++"that is the system door".
++
++Kernel operations (one block in engineering_kernel.py and engineering_cli.py, commented 1.1 KS3):
++  system.door.plan   read      what the action will do, validated and simulated; nothing changes, nothing is asked
++  system.door.run    approve   the owner's press: the plan again, the same digest, then the service (its own prompt), then verified
++  system.door.undo   approve   the owner's press on Undo: the inverse fixed action, through the same prompt, verified
++  system.door.runs   read      the door's record, newest first
++  system.door.read   read      a read the door offers: the updates, a unit's state and journal, the time, the name, the accounts
++  system.door.state  read      which services answer here, whether a prompt can open, and the readings Settings shows
++"""
++from __future__ import annotations
++
++import datetime
++import hashlib
++import json
++import os
++import pwd
++import re
++import shlex
++import subprocess
++import time
++import uuid
++
++from . import system_bus as sb
++
++# ---- the services ---------------------------------------------------------------------------------------------------------
++PK, PK_PATH, PK_TX = 'org.freedesktop.PackageKit', '/org/freedesktop/PackageKit', 'org.freedesktop.PackageKit.Transaction'
++SD, SD_PATH, SD_MGR, SD_UNIT = 'org.freedesktop.systemd1', '/org/freedesktop/systemd1', 'org.freedesktop.systemd1.Manager', 'org.freedesktop.systemd1.Unit'
++TD, TD_PATH = 'org.freedesktop.timedate1', '/org/freedesktop/timedate1'
++HN, HN_PATH = 'org.freedesktop.hostname1', '/org/freedesktop/hostname1'
++AC, AC_PATH, AC_USER = 'org.freedesktop.Accounts', '/org/freedesktop/Accounts', 'org.freedesktop.Accounts.User'
++SERVICES = {'software': (PK, 'PackageKit', 'packagekit'), 'services': (SD, 'systemd', 'systemd'), 'time': (TD, 'timedated', 'systemd'),
++            'name': (HN, 'hostnamed', 'systemd'), 'users': (AC, 'the accounts service', 'accountsservice')}
++
++# PackageKit's enums (pk-enum.h): bitfields are 1 << value
++FILTER_NONE, FILTER_INSTALLED, FILTER_NOT_INSTALLED, FILTER_NEWEST, FILTER_ARCH = 1 << 1, 1 << 2, 1 << 3, 1 << 16, 1 << 18
++ONLY_TRUSTED, SIMULATE = 1 << 1, 1 << 2
++INSTALLED, AVAILABLE, UPDATING, INSTALLING, REMOVING, OBSOLETING, REINSTALLING, DOWNGRADING = 1, 2, 11, 12, 13, 15, 19, 20
++EXIT_SUCCESS, EXIT_CANCELLED = 1, 3
++PK_NOT_AUTHORIZED, PK_DEPS, PK_SYSTEM_PACKAGE = 48, 13, 20
++SAID_NO = ('org.freedesktop.DBus.Error.AccessDenied', 'org.freedesktop.PolicyKit1.Error.NotAuthorized',
++           'org.freedesktop.PolicyKit1.Error.Cancelled', 'org.freedesktop.Accounts.Error.PermissionDenied',
++           'org.freedesktop.DBus.Error.AuthFailed')
++NO_PROMPT = ('org.freedesktop.DBus.Error.InteractiveAuthorizationRequired',)
++GONE = ('org.freedesktop.DBus.Error.ServiceUnknown', 'org.freedesktop.DBus.Error.NameHasNoOwner', 'org.freedesktop.DBus.Error.NoServer',
++        'org.freedesktop.DBus.Error.Spawn.ServiceNotFound', 'org.freedesktop.DBus.Error.Disconnected')
++
++PROMPT_SECONDS = 300         # a call that may show the system's prompt waits this long for the owner
++INSTALL_SECONDS = 3600       # a PackageKit transaction (a download and an install) may take this long
++UNIT_SECONDS = 90            # a unit's job is followed this long
++ZONEINFO = '/usr/share/zoneinfo'
++UNIT_DIRS = ('/etc/systemd/system', '/run/systemd/system', '/usr/lib/systemd/system', '/lib/systemd/system')
++RUNS_MOST = 50
++
++PACKAGE = re.compile(r'^[a-z0-9][a-z0-9+.-]{1,99}$')
++UNIT = re.compile(r'^[A-Za-z0-9][A-Za-z0-9:_.\\@-]{0,120}\.(service|socket|timer|path)$')
++ZONE = re.compile(r'^(?:[A-Za-z][A-Za-z0-9_+-]*/){0,2}[A-Za-z0-9][A-Za-z0-9_+-]*$')
++HOST = re.compile(r'^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$')
++LOGIN = re.compile(r'^[a-z][a-z0-9_-]{0,30}$')
++REAL = re.compile(r'^[^\x00-\x1f:,=\\]{1,64}$')
++# What the door never stops, restarts or disables (it would end the session, the door itself or the computer's start), and
++# packages it never removes (the session and the door); the services say no to most of these themselves, the door first.
++KEPT_UNITS = re.compile(r'^(dbus|dbus-broker|polkit|systemd-[a-z-]+|display-manager|lightdm|gdm3?|sddm|getty@.*|user@.*|'
++                        r'user-runtime-dir@.*|packagekit|accounts-daemon|graphite.*)\.(service|socket)$')
++KEPT_PACKAGES = frozenset(('graphite', 'graphite-session', 'graphite-desktop', 'packagekit', 'polkitd', 'lxpolkit', 'dbus', 'dbus-daemon',
++                           'dbus-bin', 'systemd', 'systemd-sysv', 'apt', 'dpkg', 'libc6', 'sudo', 'fluxbox', 'xserver-xorg', 'xserver-xorg-core',
++                           'python3', 'base-files', 'init', 'login', 'passwd', 'accountsservice', 'network-manager'))
++RESERVED_LOGINS = frozenset(('root', 'admin', 'administrator', 'daemon', 'bin', 'sys', 'sync', 'games', 'man', 'lp', 'mail', 'news', 'uucp',
++                             'proxy', 'www-data', 'backup', 'list', 'irc', 'nobody', 'systemd', 'messagebus', 'polkitd', 'sudo', 'adm',
++                             'staff', 'users', 'kasandra', 'graphite'))
++# How a package reads on screen (invented examples of a Windows hand's apps); any other package by its own name
++PRETTY = {'gimp': 'GIMP', 'vlc': 'VLC', 'inkscape': 'Inkscape', 'libreoffice': 'LibreOffice', 'firefox-esr': 'Firefox ESR',
++          'thunderbird': 'Thunderbird', 'gparted': 'GParted', 'audacity': 'Audacity', 'krita': 'Krita', 'blender': 'Blender',
++          'git': 'Git', 'cups': 'CUPS', 'htop': 'htop', 'gnome-disk-utility': 'Disks', 'transmission-gtk': 'Transmission',
++          'keepassxc': 'KeePassXC', 'shotwell': 'Shotwell', 'evince': 'Evince', 'mpv': 'mpv', 'ffmpeg': 'FFmpeg', '7zip': '7-Zip'}
++
++# One fixed action each: (verb, what the target is, the service, whether it changes)
++ACTIONS = {
++    'package.install': ('Install', 'package', 'software'), 'package.remove': ('Remove', 'package', 'software'),
++    'package.update': ('Update', 'package', 'software'), 'packages.refresh': ('Refresh', None, 'software'),
++    'service.start': ('Start', 'unit', 'services'), 'service.stop': ('Stop', 'unit', 'services'),
++    'service.restart': ('Restart', 'unit', 'services'), 'service.enable': ('Enable', 'unit', 'services'),
++    'service.disable': ('Disable', 'unit', 'services'), 'time.zone': ('Set the time zone', 'zone', 'time'),
++    'time.ntp': ('Turn network time', 'switch', 'time'), 'time.set': ('Set the clock', 'clock', 'time'),
++    'host.name': ('Name this computer', 'host', 'name'), 'user.add': ('Add the account', 'login', 'users'),
++    'user.realname': ('Set the real name', 'login', 'users')}
++READS = ('updates', 'service', 'time', 'name', 'users')
++
++
++class Refused(ValueError):
++    """A refusal in words: CODE: what and why. Nothing was asked and nothing changed."""
++
++
++class SaidNo(Exception):
++    """The system's own prompt was cancelled or refused (or no prompt could open)."""
++
++    def __init__(self, why, prompt=True):
++        super().__init__(why);self.prompt = prompt
++
++
++# ---- small words ----------------------------------------------------------------------------------------------------------
++def pretty(name):
++    return PRETTY.get(str(name), str(name))
++
++
++def size_words(n):
++    n = int(n or 0)
++    if n >= 1 << 30:return '%.1f GB' % (n / (1 << 30))
++    if n >= 1 << 20:return '%.1f MB' % (n / (1 << 20))
++    if n >= 1 << 10:return '%d KB' % (n // (1 << 10))
++    return '%d bytes' % n
++
++
++def listing(names, most=6):
++    names = list(names)
++    if len(names) <= most:return ', '.join(names)
++    return '%s and %d more' % (', '.join(names[:most]), len(names) - most)
++
++
++def plural(n, one, many=None):
++    return '%d %s' % (n, one if n == 1 else (many or one + 's'))
++
++
++def title(action, target='', value=''):
++    """The action's name as she says it: Install GIMP, Restart cups.service, Set the time zone to Europe/Lisbon."""
++    verb, kind, _ = ACTIONS[action]
++    if kind == 'package':return '%s %s' % (verb, pretty(target))
++    if kind == 'unit':return '%s %s' % (verb, target)
++    if action == 'packages.refresh':return 'Refresh the software lists'
++    if action == 'time.zone':return 'Set the time zone to %s' % target
++    if action == 'time.ntp':return 'Turn network time %s' % target
++    if action == 'time.set':return 'Set the clock to %s' % target
++    if action == 'host.name':return 'Name this computer “%s”' % target
++    if action == 'user.add':return 'Add the account “%s”' % target
++    return 'Set the real name of “%s” to “%s”' % (target, value)
++
++
++def asks_words(action):
++    """What the row in the line says about the prompt."""
++    return 'asks for your password'
++
++
++# ---- the bus, and what the services answer -------------------------------------------------------------------------------
++class System:
++    """One action's talk with the system's services: one connection, opened when first needed."""
++
++    def __init__(self, halt=None, addr=None):
++        self.halt = halt;self.addr = addr;self._bus = None
++
++    @property
++    def bus(self):
++        if self._bus is None:self._bus = sb.Bus(self.addr)
++        return self._bus
++
++    def close(self):
++        if self._bus is not None:self._bus.close();self._bus = None
++
++    def call(self, dest, path, iface, member, sig='', args=(), interactive=False, timeout=None):
++        return self.bus.call(dest, path, iface, member, sig, args, interactive=interactive,
++                             timeout=timeout or (PROMPT_SECONDS if interactive else sb.TIMEOUT))
++
++    def prop(self, dest, path, iface, name):
++        return self.bus.get(dest, path, iface, name)
++
++    def props(self, dest, path, iface):
++        return self.bus.get_all(dest, path, iface)
++
++    # -- PackageKit
++    def transaction(self, method, sig='', args=(), interactive=False, seconds=None):
++        """One PackageKit transaction: its Package, Details and ErrorCode signals and its exit, gathered until Finished.
++        HALT (self.halt) cancels it while PackageKit allows."""
++        path = self.call(PK, PK_PATH, PK, 'CreateTransaction')[0]
++        self.bus.listen(path=path)
++        self.call(PK, path, PK_TX, 'SetHints', 'as', (['locale=C.UTF-8', 'interactive=%s' % ('true' if interactive else 'false'),
++                                                        'background=false'],))
++        self.call(PK, path, PK_TX, method, sig, args, interactive=interactive)
++        out = dict(packages=[], details=[], errors=[], exit=None, cancelled=False, path=path)
++        deadline = time.monotonic() + (seconds or (INSTALL_SECONDS if interactive else 120))
++        while True:
++            if self.halt is not None and not out['cancelled'] and self.halt():
++                try:self.call(PK, path, PK_TX, 'Cancel')
++                except sb.BusError:
++                    pass
++                out['cancelled'] = True
++            try:m = self._signal(path, min(deadline, time.monotonic() + 1.0))
++            except TimeoutError:
++                if time.monotonic() >= deadline:raise
++                continue
++            if m.member == 'Package':out['packages'].append(dict(info=m.body[0], id=m.body[1], summary=m.body[2]))
++            elif m.member == 'Details':out['details'].append(dict(m.body[0]))
++            elif m.member == 'ErrorCode':out['errors'].append(dict(code=m.body[0], text=m.body[1]))
++            elif m.member == 'Finished':
++                out['exit'] = m.body[0];return out
++
++    def _signal(self, path, deadline):
++        bus = self.bus
++        for i, m in enumerate(bus.waiting):
++            if m.path == path:return bus.waiting.pop(i)
++        while True:
++            m = bus.read(deadline)
++            if m.kind == sb.SIGNAL and m.path == path:return m
++            if m.kind == sb.SIGNAL:bus.waiting.append(m)
++
++    def resolve(self, name, flags=FILTER_NONE):
++        got = self.transaction('Resolve', 'tas', (flags, [name]))
++        _pk_failed(got)
++        return [dict(p, **split_id(p['id'])) for p in got['packages'] if split_id(p['id'])['name'] == name]
++
++    def details(self, ids):
++        if not ids:return {}
++        got = self.transaction('GetDetails', 'as', (list(ids),))
++        return {d.get('package-id'): d for d in got['details']}
++
++    # -- systemd
++    def unit(self, name):
++        path = self.call(SD, SD_PATH, SD_MGR, 'LoadUnit', 's', (name,))[0]
++        p = self.props(SD, path, SD_UNIT)
++        try:file_state = self.call(SD, SD_PATH, SD_MGR, 'GetUnitFileState', 's', (name,))[0]
++        except sb.BusError:
++            file_state = p.get('UnitFileState') or ''
++        return dict(path=path, id=p.get('Id') or name, description=p.get('Description') or '', load=p.get('LoadState') or '',
++                    active=p.get('ActiveState') or '', sub=p.get('SubState') or '', file=file_state or '',
++                    entered=int(p.get('ActiveEnterTimestamp') or 0))
++
++
++def split_id(package_id):
++    parts = (str(package_id).split(';') + ['', '', '', ''])[:4]
++    return dict(name=parts[0], version=parts[1], arch=parts[2], data=parts[3])
++
++
++def _pk_failed(got, doing=''):
++    """A transaction that did not end in success, in words (SaidNo for the prompt's no)."""
++    if got['exit'] == EXIT_SUCCESS:return
++    errors = got['errors']
++    if any(e['code'] == PK_NOT_AUTHORIZED or 'authenticat' in e['text'].lower() or 'authoriz' in e['text'].lower() for e in errors):
++        raise SaidNo('the system’s prompt was cancelled or refused')
++    if got['cancelled'] or got['exit'] == EXIT_CANCELLED:raise Refused('DOOR_CANCELLED: HALT cancelled it before PackageKit began')
++    why = '; '.join(e['text'].strip().rstrip('.') for e in errors if e['text'].strip()) or 'PackageKit gave no reason'
++    raise Refused('DOOR_SOFTWARE: %s%s' % (doing, why[:300]))
++
++
++def _bus_words(exc, service='software'):
++    """A bus failure as a refusal in words."""
++    _, name, package = SERVICES[service]
++    if isinstance(exc, TimeoutError):return 'DOOR_TIMEOUT: %s did not answer in time' % name
++    if exc.name in GONE:
++        if exc.name == 'org.freedesktop.DBus.Error.NoServer':return 'DOOR_NO_BUS: there is no system bus here, so the system cannot be asked'
++        return 'DOOR_NO_SERVICE: %s is not answering on this computer (Debian’s package “%s” has it)' % (name, package)
++    return 'DOOR_REFUSED: %s said: %s' % (name, (exc.text or exc.name)[:300])
++
++
++# ---- the permission prompt ------------------------------------------------------------------------------------------------
++def prompt_agent():
++    try:
++        from . import polkit_agent
++        return polkit_agent.agent()
++    except Exception as exc:  # noqa: BLE001
++        return dict(running=False, name=None, pid=None, words='Could not tell whether a permission prompt can open: %s' % exc)
++
++
++# ---- validating and planning ----------------------------------------------------------------------------------------------
++def unit_name(text):
++    name = str(text or '').strip()
++    if name and '.' not in name.rsplit('@', 1)[-1]:name += '.service'
++    return name
++
++
++def unit_known(text, dirs=None):
++    """Whether a unit file of that name is on this computer (a look at the unit folders; the line and her words use it)."""
++    name = unit_name(text)
++    if not UNIT.match(name):return False
++    base = name.split('@', 1)[0] + '@.' + name.rsplit('.', 1)[1] if '@' in name else name
++    return any(os.path.exists(os.path.join(d, n)) for d in (dirs or UNIT_DIRS) for n in {name, base})
++
++
++def zone_file(zone, base=None):
++    """The zone's own file in /usr/share/zoneinfo when it is a real zone (a TZif file), else None."""
++    base = base or ZONEINFO;zone = str(zone)
++    if not ZONE.match(zone) or zone.split('/')[0] in ('posix', 'right'):return None
++    path = os.path.join(base, zone)
++    try:
++        if not os.path.isfile(path):return None
++        with open(path, 'rb') as f:return path if f.read(4) == b'TZif' else None
++    except OSError:
++        return None
++
++
++def zone_spelled(text, base=None):
++    """A zone as the owner wrote it, in its own spelling (europe/lisbon -> Europe/Lisbon), or the text when none matches."""
++    base = base or ZONEINFO;parts = str(text or '').strip().split('/');where = base;out = []
++    for part in parts:
++        try:names = os.listdir(where)
++        except OSError:
++            return str(text).strip()
++        hit = next((n for n in names if n.lower() == part.lower()), None)
++        if hit is None:return str(text).strip()
++        out.append(hit);where = os.path.join(where, hit)
++    return '/'.join(out)
++
++
++def _validate(action, target, value):
++    if action not in ACTIONS:raise Refused('DOOR_UNKNOWN: the door has no action “%s”' % action)
++    kind = ACTIONS[action][1];target = str(target or '').strip();value = str(value or '').strip()
++    if kind == 'package':
++        target = target.lower()
++        if not PACKAGE.match(target):raise Refused('DOOR_NAME: “%s” is not a Debian package name' % target)
++        if action == 'package.remove' and target in KEPT_PACKAGES:
++            raise Refused('DOOR_KEPT: “%s” keeps this session or the door itself working, so the door does not remove it' % target)
++    elif kind == 'unit':
++        target = unit_name(target)
++        if not UNIT.match(target):raise Refused('DOOR_NAME: “%s” is not a service name' % target)
++        if action in ('service.stop', 'service.restart', 'service.disable') and KEPT_UNITS.match(target):
++            raise Refused('DOOR_KEPT: %s keeps this session or the door itself working, so the door does not %s it'
++                          % (target, ACTIONS[action][0].lower()))
++    elif kind == 'zone':
++        target = zone_spelled(target)
++        if not zone_file(target):raise Refused('DOOR_ZONE: there is no time zone “%s” in %s' % (target, ZONEINFO))
++    elif kind == 'switch':
++        target = {'true': 'on', 'yes': 'on', '1': 'on', 'false': 'off', 'no': 'off', '0': 'off'}.get(target.lower(), target.lower())
++        if target not in ('on', 'off'):raise Refused('DOOR_SWITCH: network time is turned on or off')
++    elif kind == 'clock':
++        _clock(target)
++    elif kind == 'host':
++        target = target.lower()
++        if not HOST.match(target) or target in ('localhost',):
++            raise Refused('DOOR_NAME: “%s” cannot be a computer’s name: letters, digits and hyphens, at most sixty-three' % target)
++    elif kind == 'login':
++        if not LOGIN.match(target):raise Refused('DOOR_NAME: “%s” cannot be an account name: small letters, digits, - and _' % target)
++        if value and not REAL.match(value):raise Refused('DOOR_NAME: a real name has no colon, comma or control character')
++        if action == 'user.realname' and not value:raise Refused('DOOR_NAME: say the real name')
++    return target, value
++
++
++def _clock(text):
++    """A time the owner gave (HH:MM today, or YYYY-MM-DD HH:MM), as microseconds since the epoch in local time."""
++    text = str(text or '').strip()
++    for fmt in ('%H:%M', '%Y-%m-%d %H:%M'):
++        try:got = datetime.datetime.strptime(text, fmt)
++        except ValueError:
++            continue
++        if fmt == '%H:%M':got = datetime.datetime.combine(datetime.date.today(), got.time())
++        if not 2020 <= got.year <= 2100:break
++        return int(time.mktime(got.timetuple())) * 1_000_000
++    raise Refused('DOOR_CLOCK: “%s” is not a time: say 14:30, or 2026-11-28 14:30' % text)
++
++
++def _digest(plan):
++    shown = {k: plan.get(k) for k in ('action', 'target', 'value', 'words', 'lines', 'basis')}
++    return hashlib.sha256(json.dumps(shown, sort_keys=True, default=str).encode()).hexdigest()
++
++
++def plan(action, target='', value='', system=None):
++    """system.door.plan: the action validated and shown, nothing changed and nothing asked: dict(ok, nothing, title, words, lines,
++    asks, can_undo, undo, digest, basis). ok False with `why` when it cannot be asked (no such package, no service, no prompt)."""
++    target, value = _validate(action, target, value)
++    own = system is None;system = system or System()
++    base = dict(action=action, target=target, value=value, title=title(action, target, value), ok=True, nothing=False, lines=[],
++                asks='The system will ask for your password.', can_undo=False, undo='', basis={})
++    try:
++        out = PLANS[ACTIONS[action][2]](system, action, target, value, base)
++    except sb.BusError as exc:
++        out = dict(base, ok=False, why=_bus_words(exc, ACTIONS[action][2]).split(': ', 1)[1])
++    except TimeoutError as exc:
++        out = dict(base, ok=False, why=_bus_words(exc, ACTIONS[action][2]).split(': ', 1)[1])
++    except OSError as exc:
++        out = dict(base, ok=False, why='the system bus failed: %s' % (exc.strerror or exc))
++    except Refused as exc:
++        out = dict(base, ok=False, why=str(exc).split(': ', 1)[-1])
++    finally:
++        if own:system.close()
++    if out['ok'] and not out['nothing']:
++        agent = prompt_agent()
++        out['prompt'] = agent.get('words', '')
++        if not agent.get('running'):out.update(ok=False, why=agent.get('words') or 'no permission prompt can open here', no_prompt=True)
++    out['digest'] = _digest(out)
++    return out
++
++
++def _plan_software(s, action, target, value, base):
++    if action == 'packages.refresh':
++        return dict(base, words='This will fetch the newest lists of software from Debian’s archive. Nothing is installed or removed.',
++                    undo='Nothing to take back: only the lists change.', lines=[], asks='The system may ask for your password.')
++    name = target
++    found = s.resolve(name)
++    installed = [p for p in found if p['info'] == INSTALLED]
++    available = [p for p in found if p['info'] == AVAILABLE]
++    if action == 'package.install':
++        if installed:
++            return dict(base, nothing=True, words='%s is installed already (version %s).' % (pretty(name), installed[0]['version']))
++        if not available:raise Refused('DOOR_NO_PACKAGE: Debian’s archive here has no package called “%s”. Check the name' % name)
++        pick = available[-1]
++        sim = s.transaction('InstallPackages', 'tas', (SIMULATE, [pick['id']]))
++        _pk_failed(sim, 'PackageKit could not plan it: ')
++        return _shown(s, base, pick, sim, 'install')
++    if action == 'package.remove':
++        if not installed:return dict(base, nothing=True, words='%s is not installed, so there is nothing to remove.' % pretty(name))
++        pick = installed[0]
++        sim = s.transaction('RemovePackages', 'tasbb', (SIMULATE, [pick['id']], False, False))
++        if sim['exit'] != EXIT_SUCCESS and any(e['code'] in (PK_DEPS, PK_SYSTEM_PACKAGE) for e in sim['errors']):
++            raise Refused('DOOR_NEEDED: other installed software needs %s, so removing it alone is refused' % pretty(name))
++        _pk_failed(sim, 'PackageKit could not plan it: ')
++        return _shown(s, base, pick, sim, 'remove')
++    # update
++    if not installed:raise Refused('DOOR_NOT_INSTALLED: %s is not installed. Install it instead' % pretty(name))
++    ups = s.transaction('GetUpdates', 't', (FILTER_NONE,))
++    _pk_failed(ups)
++    mine = [p for p in ups['packages'] if split_id(p['id'])['name'] == name]
++    if not mine:
++        return dict(base, nothing=True, words='%s is up to date (version %s), as far as the last refresh of the lists says.'
++                    % (pretty(name), installed[0]['version']))
++    pick = dict(mine[0], **split_id(mine[0]['id']));pick['from'] = installed[0]['version']
++    sim = s.transaction('UpdatePackages', 'tas', (SIMULATE, [pick['id']]))
++    _pk_failed(sim, 'PackageKit could not plan it: ')
++    return _shown(s, base, pick, sim, 'update')
++
++
++def _shown(s, base, pick, sim, how):
++    """What the simulate said, in lines and a sentence: what it pulls in, what else changes, the sizes; and Undo's words."""
++    name = pick['name']
++    adds = [dict(p, **split_id(p['id'])) for p in sim['packages'] if p['info'] in (INSTALLING, REINSTALLING) and split_id(p['id'])['name'] != name]
++    ups = [dict(p, **split_id(p['id'])) for p in sim['packages'] if p['info'] in (UPDATING, DOWNGRADING) and split_id(p['id'])['name'] != name]
++    gone = [dict(p, **split_id(p['id'])) for p in sim['packages'] if p['info'] in (REMOVING, OBSOLETING) and split_id(p['id'])['name'] != name]
++    details = s.details([pick['id']] + [p['id'] for p in adds + ups]) if how != 'remove' else s.details([pick['id']])
++    download = sum(int(d.get('download-size') or 0) for d in details.values())
++    disk = sum(int(d.get('size') or 0) for i, d in details.items() if i in [pick['id']] + [p['id'] for p in adds])
++    lines = ['%s %s · %s' % (p['name'], p['version'], p.get('summary') or '') for p in [pick] + adds]
++    lines += ['%s → %s (updated with it)' % (p['name'], p['version']) for p in ups]
++    lines += ['%s %s (removed with it)' % (p['name'], p['version']) for p in gone]
++    summary = (details.get(pick['id']) or {}).get('summary') or pick.get('summary') or ''
++    if how == 'install':
++        words = 'This will install %s %s%s' % (name, pick['version'], (' (%s)' % summary) if summary else '')
++        words += (' and %s it needs: %s.' % (plural(len(adds), 'package'), listing(p['name'] for p in adds))) if adds else ', which needs nothing more.'
++        undo = 'Undo removes it%s.' % (' and the packages it pulled in' if adds else '')
++    elif how == 'remove':
++        words = 'This will remove %s %s from this computer. Your own files and settings in your home stay.' % (name, pick['version'])
++        undo = 'Undo installs it again from Debian’s archive.'
++    else:
++        words = 'This will update %s from %s to %s' % (name, pick.get('from', ''), pick['version'])
++        words += (', with %s: %s.' % (plural(len(adds), 'new package'), listing(p['name'] for p in adds))) if adds else '.'
++    if ups:words += ' It also updates %s.' % listing(p['name'] for p in ups)
++    if gone:words += ' It also removes %s.' % listing(p['name'] for p in gone)
++    if download:words += ' Download %s.' % size_words(download)
++    if disk and how == 'install':words += ' About %s on disk.' % size_words(disk)
++    out = dict(base, words=words, lines=lines, can_undo=how in ('install', 'remove'), undo=undo if how != 'update' else '',
++               basis=dict(id=pick['id'], name=name, version=pick['version'], adds=[p['id'] for p in adds], ups=[p['id'] for p in ups],
++                          gone=[p['id'] for p in gone], download=download, disk=disk))
++    if how == 'update':out['undo'] = 'This cannot be undone: Debian does not offer the old version back.'
++    return out
++
++
++def _plan_services(s, action, target, value, base):
++    u = s.unit(target)
++    if u['load'] == 'not-found':raise Refused('DOOR_NO_UNIT: there is no service called %s on this computer' % target)
++    if u['load'] == 'masked' and action in ('service.start', 'service.restart', 'service.enable'):
++        raise Refused('DOOR_MASKED: %s is masked: the system keeps it from starting' % target)
++    name = u['id'];desc = (' (%s)' % u['description']) if u['description'] else ''
++    now = '%s, %s' % (u['active'], u['sub']) if u['sub'] and u['sub'] != u['active'] else u['active']
++    running = u['active'] in ('active', 'reloading', 'activating')
++    basis = dict(unit=name, active=u['active'], file=u['file'], entered=u['entered'])
++    verb = action.split('.')[1]
++    if verb == 'start' and running:return dict(base, nothing=True, words='%s%s is running already (%s).' % (name, desc, now), basis=basis)
++    if verb == 'stop' and not running:return dict(base, nothing=True, words='%s%s is not running (%s).' % (name, desc, now), basis=basis)
++    if verb == 'enable' and u['file'] in ('enabled', 'enabled-runtime', 'alias'):
++        return dict(base, nothing=True, words='%s starts with the computer already.' % name, basis=basis)
++    if verb == 'enable' and u['file'] in ('static', 'indirect', 'generated', 'transient'):
++        raise Refused('DOOR_STATIC: %s is %s: it starts when another part of the system wants it, so it cannot be enabled on its own' % (name, u['file']))
++    if verb == 'disable' and u['file'] in ('disabled', ''):
++        return dict(base, nothing=True, words='%s does not start with the computer already.' % name, basis=basis)
++    if verb == 'disable' and u['file'] in ('static', 'indirect', 'generated', 'transient', 'masked'):
++        raise Refused('DOOR_STATIC: %s is %s, so it cannot be disabled on its own' % (name, u['file']))
++    words = {'start': 'This will start %s%s. It is %s now.' % (name, desc, now),
++             'stop': 'This will stop %s%s. It is %s now; what uses it stops working until it starts again.' % (name, desc, now),
++             'restart': 'This will restart %s%s: stop it, then start it again. It is %s now.' % (name, desc, now),
++             'enable': 'This will make %s%s start with the computer from the next start. It is %s now; enabling does not start it.' % (name, desc, now),
++             'disable': 'This will stop %s%s starting with the computer. It keeps running until it is stopped.' % (name, desc)}[verb]
++    undo = {'start': 'Undo stops it again.', 'stop': 'Undo starts it again.', 'enable': 'Undo disables it again.',
++            'disable': 'Undo enables it again.', 'restart': 'A restart cannot be undone; it only restarted.'}[verb]
++    return dict(base, title=title(action, name), target=name, words=words, can_undo=verb != 'restart', undo=undo, basis=basis,
++                lines=['%s · %s · %s' % (name, now, 'starts with the computer' if u['file'] in ('enabled', 'enabled-runtime') else (u['file'] or 'no unit file'))])
++
++
++def _plan_time(s, action, target, value, base):
++    p = s.props(TD, TD_PATH, TD)
++    zone, ntp, can_ntp = p.get('Timezone') or '', bool(p.get('NTP')), bool(p.get('CanNTP'))
++    basis = dict(zone=zone, ntp=ntp)
++    if action == 'time.zone':
++        if target == zone:return dict(base, nothing=True, words='The time zone is %s already.' % zone, basis=basis)
++        words = 'This will set the time zone to %s (it is %s now).' % (target, zone or 'not set')
++        try:
++            from zoneinfo import ZoneInfo
++            words += ' The clock will read %s instead of %s.' % (datetime.datetime.now(ZoneInfo(target)).strftime('%H:%M'),
++                                                                  datetime.datetime.now(ZoneInfo(zone)).strftime('%H:%M') if zone else '…')
++        except Exception:  # noqa: BLE001 - the zone's clock is a courtesy; the zone file itself was checked
++            pass
++        return dict(base, words=words, can_undo=True, undo='Undo sets it back to %s.' % zone, basis=basis)
++    if action == 'time.ntp':
++        if not can_ntp:raise Refused('DOOR_NO_NTP: this computer has no network time service (Debian’s package “systemd-timesyncd” has it)')
++        if (target == 'on') == ntp:return dict(base, nothing=True, words='Network time is %s already.' % target, basis=basis)
++        words = ('This will keep the clock right from the network (systemd-timesyncd).' if target == 'on'
++                 else 'This will stop setting the clock from the network; it keeps the time you or the hardware give it.')
++        return dict(base, words=words, can_undo=True, undo='Undo turns it %s again.' % ('off' if target == 'on' else 'on'), basis=basis)
++    if ntp:raise Refused('DOOR_NTP_ON: network time is on, so the system sets the clock itself. Turn network time off first')
++    when = _clock(target)
++    basis['to'] = when
++    return dict(base, words='This will set the clock to %s.' % target, basis=basis,
++                undo='This cannot be undone: the clock runs on from the time you give.')
++
++
++def _plan_name(s, action, target, value, base):
++    p = s.props(HN, HN_PATH, HN)
++    old = p.get('StaticHostname') or p.get('Hostname') or ''
++    if target == old:return dict(base, nothing=True, words='This computer is called “%s” already.' % old, basis=dict(old=old))
++    return dict(base, words='This will name this computer “%s” (it is “%s” now). Apps already open keep the old name until they '
++                            'start again; /etc/hosts still names the old one.' % (target, old), can_undo=True,
++                undo='Undo names it “%s” again.' % old, basis=dict(old=old))
++
++
++def _account(s, login):
++    try:path = s.call(AC, AC_PATH, AC, 'FindUserByName', 's', (login,))[0]
++    except sb.BusError as exc:
++        if exc.name in GONE:raise
++        return None
++    p = s.props(AC, path, AC_USER)
++    return dict(path=path, login=p.get('UserName') or login, real=p.get('RealName') or '', uid=int(p.get('Uid') or 0),
++                standard=int(p.get('AccountType') or 0) == 0)
++
++
++def _passwd(login):
++    try:return pwd.getpwnam(login)
++    except KeyError:
++        return None
++
++
++def own_login():
++    return pwd.getpwuid(os.getuid()).pw_name
++
++
++def _plan_users(s, action, target, value, base):
++    s.prop(AC, AC_PATH, AC, 'DaemonVersion')      # the service answers (else: not installed)
++    have = _account(s, target)
++    if action == 'user.add':
++        if target in RESERVED_LOGINS or have is not None or _passwd(target) is not None:
++            raise Refused('DOOR_TAKEN: the name “%s” is taken on this computer. Pick another' % target)
++        real = (' (%s)' % value) if value else ''
++        return dict(base, words='This will add a standard account “%s”%s with its own home folder. It has no password yet, so nobody '
++                                'can log in to it until its owner sets one. I never set another person’s password.' % (target, real),
++                    can_undo=True, undo='Undo removes the account again; its home folder stays.', basis=dict(login=target, real=value))
++    if have is None:raise Refused('DOOR_NO_ACCOUNT: there is no account “%s” on this computer' % target)
++    if have['real'] == value:return dict(base, nothing=True, words='The real name of “%s” is “%s” already.' % (target, value))
++    return dict(base, words='This will set the real name of “%s” to “%s” (it is “%s” now).' % (target, value, have['real'] or 'empty'),
++                can_undo=True, undo='Undo sets it back to “%s”.' % have['real'], basis=dict(login=target, old=have['real']),
++                asks='The system may ask for your password.' if target == own_login() else 'The system will ask for your password.')
++
++
++PLANS = {'software': _plan_software, 'services': _plan_services, 'time': _plan_time, 'name': _plan_name, 'users': _plan_users}
++
++
++# ---- doing, verifying, undoing --------------------------------------------------------------------------------------------
++def _ask(fn):
++    """A service call that may show the system's prompt: its no as SaidNo."""
++    try:return fn()
++    except sb.BusError as exc:
++        if exc.name in SAID_NO:raise SaidNo('the system’s prompt was cancelled or refused') from exc
++        if exc.name in NO_PROMPT:raise SaidNo('no permission prompt could open, so the system could not ask you', prompt=False) from exc
++        raise
++
++
++def _installed(s, name):
++    return {p['version']: p for p in s.resolve(name, FILTER_INSTALLED) if p['info'] == INSTALLED}
++
++
++def _settle(s, unit, want, before=0, seconds=None):
++    """A unit followed until its job settles (or the time is up): its last reading."""
++    deadline = time.monotonic() + (seconds or UNIT_SECONDS)
++    while True:
++        u = s.unit(unit)
++        busy = u['active'] in ('activating', 'deactivating', 'reloading') or (want == 'restart' and u['entered'] <= before and u['active'] == 'active')
++        if not busy or time.monotonic() >= deadline:return u
++        time.sleep(0.5)
++
++
++def do(s, p):
++    """The fixed action itself (the system's own prompt shows here). Raises SaidNo, Refused or BusError."""
++    action, target, b = p['action'], p['target'], p['basis']
++    if action == 'packages.refresh':
++        _pk_failed(_ask(lambda: s.transaction('RefreshCache', 'b', (False,), interactive=True)));p['refreshed'] = True
++    elif action == 'package.install':
++        _pk_failed(_ask(lambda: s.transaction('InstallPackages', 'tas', (ONLY_TRUSTED, [b['id']]), interactive=True)))
++    elif action == 'package.remove':
++        _pk_failed(_ask(lambda: s.transaction('RemovePackages', 'tasbb', (0, [b['id']], False, False), interactive=True)))
++    elif action == 'package.update':
++        _pk_failed(_ask(lambda: s.transaction('UpdatePackages', 'tas', (ONLY_TRUSTED, [b['id']]), interactive=True)))
++    elif action in ('service.start', 'service.stop', 'service.restart'):
++        member = {'service.start': 'StartUnit', 'service.stop': 'StopUnit', 'service.restart': 'RestartUnit'}[action]
++        _ask(lambda: s.call(SD, SD_PATH, SD_MGR, member, 'ss', (target, 'replace'), interactive=True))
++    elif action == 'service.enable':
++        _ask(lambda: s.call(SD, SD_PATH, SD_MGR, 'EnableUnitFiles', 'asbb', ([target], False, False), interactive=True))
++    elif action == 'service.disable':
++        _ask(lambda: s.call(SD, SD_PATH, SD_MGR, 'DisableUnitFiles', 'asb', ([target], False), interactive=True))
++    elif action == 'time.zone':
++        _ask(lambda: s.call(TD, TD_PATH, TD, 'SetTimezone', 'sb', (target, True), interactive=True))
++    elif action == 'time.ntp':
++        _ask(lambda: s.call(TD, TD_PATH, TD, 'SetNTP', 'bb', (target == 'on', True), interactive=True))
++    elif action == 'time.set':
++        _ask(lambda: s.call(TD, TD_PATH, TD, 'SetTime', 'xbb', (_clock(target), False, True), interactive=True))
++    elif action == 'host.name':
++        _ask(lambda: s.call(HN, HN_PATH, HN, 'SetStaticHostname', 'sb', (target, True), interactive=True))
++    elif action == 'user.add':
++        _ask(lambda: s.call(AC, AC_PATH, AC, 'CreateUser', 'ssi', (target, p.get('value') or '', 0), interactive=True))
++    elif action == 'user.realname':
++        acct = _account(s, target)
++        if acct is None:raise Refused('DOOR_NO_ACCOUNT: there is no account “%s” on this computer' % target)
++        _ask(lambda: s.call(AC, acct['path'], AC_USER, 'SetRealName', 's', (p.get('value') or '',), interactive=True))
++
++
++def verify(s, p, when=None, quick=False):
++    """Whether the effect is there, read back from the system itself: (verified, what was checked)."""
++    action, target, b = p['action'], p['target'], p['basis']
++    if action == 'packages.refresh':
++        done = bool(p.get('refreshed'))
++        return done, 'PackageKit finished the refresh and said success' if done else 'the lists were not refreshed'
++    if action in ('package.install', 'package.update'):
++        have = _installed(s, b['name'])
++        if b['version'] in have:return True, '%s %s is installed (PackageKit read it back)' % (b['name'], b['version'])
++        return False, '%s is %s' % (b['name'], ('at %s' % ', '.join(have)) if have else 'not installed')
++    if action == 'package.remove':
++        have = _installed(s, b['name'])
++        return (not have), ('%s is no longer installed (PackageKit read it back)' % b['name']) if not have else '%s is still installed' % b['name']
++    if action.startswith('service.'):
++        verb = action.split('.')[1]
++        u = _settle(s, target, verb, b.get('entered', 0), 2 if quick else None)
++        if verb in ('start', 'restart'):
++            ok = u['active'] == 'active' and (verb == 'start' or u['entered'] > b.get('entered', 0))
++            return ok, '%s is %s%s' % (u['id'], u['active'], (' (%s)' % u['sub']) if u['sub'] else '') + (', started again' if ok and verb == 'restart' else '')
++        if verb == 'stop':return u['active'] in ('inactive',), '%s is %s' % (u['id'], u['active'])
++        want = 'enabled' if verb == 'enable' else 'disabled'
++        return u['file'] == want, '%s is %s (its unit file state)' % (u['id'], u['file'] or 'without a unit file')
++    if action == 'time.zone':
++        zone = s.prop(TD, TD_PATH, TD, 'Timezone')
++        return zone == target, 'the time zone is %s (timedated read it back)' % zone
++    if action == 'time.ntp':
++        deadline = time.monotonic() + 5
++        while True:
++            ntp = bool(s.prop(TD, TD_PATH, TD, 'NTP'))
++            if ntp == (target == 'on') or time.monotonic() >= deadline:break
++            time.sleep(0.5)
++        return ntp == (target == 'on'), 'network time is %s (timedated read it back)' % ('on' if ntp else 'off')
++    if action == 'time.set':
++        now = int(s.prop(TD, TD_PATH, TD, 'TimeUSec'));want = _clock(target) + int(((time.time() - (when or time.time()))) * 1e6)
++        ok = abs(now - want) < 120_000_000
++        return ok, 'the clock reads %s' % time.strftime('%H:%M', time.localtime(now / 1e6))
++    if action == 'host.name':
++        name = s.prop(HN, HN_PATH, HN, 'StaticHostname')
++        return name == target, 'this computer is called “%s” (hostnamed read it back)' % name
++    if action == 'user.add':
++        acct = _account(s, target);entry = _passwd(target)
++        ok = acct is not None and acct['standard'] and entry is not None
++        if ok:return True, 'the account “%s” is there, standard, number %d, home %s' % (target, entry.pw_uid, entry.pw_dir)
++        return False, 'the account “%s” is %s' % (target, 'not there' if acct is None else ('not a standard account' if not acct['standard'] else 'not in the system’s list of users'))
++    if action == 'user.realname':
++        acct = _account(s, target)
++        real = acct['real'] if acct else ''
++        return real == p.get('value'), 'the real name of “%s” is “%s” (the accounts service read it back)' % (target, real)
++    return False, 'nothing checked'
++
++
++def inverse(p):
++    """Undo's own fixed action: (action, target, value, basis) put back from what the run recorded."""
++    action, target, b = p['action'], p['target'], p['basis']
++    if action == 'package.install':return 'package.uninstall', target, '', b
++    if action == 'package.remove':return 'package.reinstall', target, '', b
++    pairs = {'service.start': 'service.stop', 'service.stop': 'service.start', 'service.enable': 'service.disable', 'service.disable': 'service.enable'}
++    if action in pairs:return pairs[action], target, '', b
++    if action == 'time.zone':return 'time.zone', b['zone'], '', b
++    if action == 'time.ntp':return 'time.ntp', 'off' if target == 'on' else 'on', '', b
++    if action == 'host.name':return 'host.name', b['old'], '', b
++    if action == 'user.add':return 'user.delete', target, '', b
++    if action == 'user.realname':return 'user.realname', target, b['old'], b
++    raise Refused('DOOR_NO_UNDO: this one cannot be undone')
++
++
++def undo_do(s, back):
++    """Undo's action through the same prompt; returns the plan-shaped dict that verify() reads."""
++    action, target, value, b = back
++    if action == 'package.uninstall':
++        ids = []
++        for pid in [b['id']] + list(b.get('adds') or []):
++            name = split_id(pid)['name']
++            ids += [p['id'] for p in s.resolve(name, FILTER_INSTALLED) if p['info'] == INSTALLED]
++        if not ids:raise Refused('DOOR_NOTHING: %s is not installed any more' % b['name'])
++        _pk_failed(_ask(lambda: s.transaction('RemovePackages', 'tasbb', (0, ids, False, False), interactive=True)), 'not removed: ')
++        return dict(action='package.remove', target=target, basis=dict(b, name=b['name']))
++    if action == 'package.reinstall':
++        found = [p for p in s.resolve(b['name']) if p['info'] == AVAILABLE]
++        if not found:raise Refused('DOOR_NO_PACKAGE: Debian’s archive here no longer offers %s' % b['name'])
++        _pk_failed(_ask(lambda: s.transaction('InstallPackages', 'tas', (ONLY_TRUSTED, [found[-1]['id']]), interactive=True)))
++        return dict(action='package.install', target=target, basis=dict(b, id=found[-1]['id'], version=found[-1]['version']))
++    if action == 'user.delete':
++        acct = _account(s, target)
++        if acct is None:raise Refused('DOOR_NOTHING: the account “%s” is not there any more' % target)
++        _ask(lambda: s.call(AC, AC_PATH, AC, 'DeleteUser', 'xb', (acct['uid'], False), interactive=True))
++        return dict(action='user.delete', target=target, basis=b)
++    p = dict(action=action, target=target, value=value, basis=dict(b, entered=s.unit(target)['entered'] if action.startswith('service.') else 0))
++    do(s, p)
++    return p
++
++
++def undo_verify(s, p):
++    if p['action'] == 'user.delete':
++        acct = _account(s, p['target']);gone = acct is None and _passwd(p['target']) is None
++        return gone, ('the account “%s” is gone; its home folder stays' % p['target']) if gone else 'the account “%s” is still there' % p['target']
++    return verify(s, p)
++
++
++# ---- the Kernel's operations ----------------------------------------------------------------------------------------------
++def ensure(db):
++    db.execute('''CREATE TABLE IF NOT EXISTS door_runs(id TEXT PRIMARY KEY, owner TEXT, action TEXT, target TEXT, value TEXT, title TEXT,
++                  at INTEGER, state TEXT, verified INTEGER, checked TEXT, plan TEXT, undone INTEGER, undo_state TEXT)''')
++
++
++def _record(kernel, principal, p, state, verified, checked):
++    from . import files_service
++    ident = uuid.uuid4().hex
++    with files_service.opened(kernel) as db:
++        ensure(db)
++        db.execute('INSERT INTO door_runs VALUES(?,?,?,?,?,?,?,?,?,?,?,NULL,NULL)', (ident, principal.identity, p['action'], p['target'], p.get('value', ''),
++                   p['title'], time.time_ns() // 1_000_000, state, 1 if verified else 0, checked, json.dumps(p, default=str)))
++    return ident
++
++
++def _gate(kernel, principal, what):
++    from . import halt_gate, home_reach as hr
++    if hr.in_her_work(principal):
++        raise Refused('DOOR_YOUR_PRESS: “%s” changes the system, so it runs on your press only: never as a step of mine and never '
++                      'under a standing grant' % what)
++    if halt_gate.held(kernel):raise Refused('DOOR_HALT: HALT holds my work. Press RESUME first; nothing was asked')
++
++
++def run(kernel, action, target, value, digest, principal, system=None):
++    """system.door.run: your press. The plan is made again and must be the one you saw; then the service asks you through its own
++    prompt; then the effect is read back. Recorded either way."""
++    from . import halt_gate
++    target_v, value_v = _validate(action, target, value)
++    _gate(kernel, principal, title(action, target_v, value_v))
++    own = system is None;system = system or System(halt=lambda: halt_gate.held(kernel))
++    try:
++        p = plan(action, target, value, system)
++        if p['digest'] != digest:raise Refused('DOOR_PLAN_CHANGED: what the system would do changed since you saw it, so nothing was asked. Look at it again')
++        if not p['ok']:raise Refused('DOOR_NOT_READY: %s' % p.get('why', 'it cannot be asked now'))
++        if p['nothing']:raise Refused('DOOR_NOTHING: %s' % p['words'])
++        at = time.time();state = 'done';why = ''
++        try:do(system, p)
++        except SaidNo as exc:
++            state = 'refused at the prompt' if exc.prompt else 'no prompt';why = str(exc)
++        except Refused as exc:
++            state = 'stopped by HALT' if str(exc).startswith('DOOR_CANCELLED') else 'failed';why = str(exc).split(': ', 1)[-1]
++        except (sb.BusError, TimeoutError) as exc:
++            state = 'failed';why = _bus_words(exc, ACTIONS[action][2]).split(': ', 1)[1]
++        try:verified, checked = verify(system, p, at, quick=state != 'done')
++        except (sb.BusError, TimeoutError, Refused) as exc:
++            verified, checked = False, 'could not read it back: %s' % str(exc).split(': ', 1)[-1]
++        if state != 'done' and verified:state = 'done'      # the effect is there after all: said as it is
++        if state == 'done' and not verified:state = 'not verified'
++        if state not in ('done', 'not verified'):verified = False
++        ident = _record(kernel, principal, p, state, verified, checked)
++        return dict(run=ident, action=action, target=p['target'], value=p.get('value', ''), title=p['title'], state=state, verified=verified,
++                    checked=checked, why=why, can_undo=bool(p['can_undo'] and state == 'done'), undo=p['undo'])
++    finally:
++        if own:system.close()
++
++
++def load_run(kernel, ident):
++    from . import files_service
++    with files_service.opened(kernel) as db:
++        ensure(db);row = db.execute('SELECT * FROM door_runs WHERE id=?', (ident,)).fetchone()
++    if row is None:raise Refused('DOOR_UNKNOWN_RUN: no such change')
++    return {k: row[k] for k in row.keys()}
++
++
++def undo(kernel, ident, principal, system=None):
++    """system.door.undo: your press on Undo: the inverse fixed action, through the same prompt, read back."""
++    from . import files_service, halt_gate
++    row = load_run(kernel, ident)
++    if row['undone']:raise Refused('DOOR_UNDONE: already taken back')
++    p = json.loads(row['plan'])
++    if row['state'] != 'done' or not p.get('can_undo'):raise Refused('DOOR_NO_UNDO: “%s” cannot be undone' % row['title'])
++    _gate(kernel, principal, 'Undo ' + row['title'])
++    own = system is None;system = system or System(halt=lambda: halt_gate.held(kernel))
++    try:
++        state = 'done';why = ''
++        try:
++            back = undo_do(system, inverse(p))
++            verified, checked = undo_verify(system, back)
++        except SaidNo as exc:
++            state, why, verified, checked = 'refused at the prompt', str(exc), False, 'nothing changed'
++        except Refused as exc:
++            state, why, verified, checked = 'failed', str(exc).split(': ', 1)[-1], False, ''
++        except (sb.BusError, TimeoutError) as exc:
++            state, why, verified, checked = 'failed', _bus_words(exc, ACTIONS[p['action']][2]).split(': ', 1)[1], False, ''
++        if state == 'done' and not verified:state = 'not verified'
++        if state == 'done':
++            with files_service.opened(kernel) as db:
++                ensure(db);db.execute('UPDATE door_runs SET undone=?, undo_state=? WHERE id=?', (time.time_ns() // 1_000_000, state, ident))
++        return dict(run=ident, title=row['title'], state=state, verified=verified, checked=checked, why=why)
++    finally:
++        if own:system.close()
++
++
++def runs(kernel, limit=20):
++    from . import files_service
++    with files_service.opened(kernel) as db:
++        ensure(db)
++        rows = db.execute('SELECT id, action, target, value, title, at, state, verified, checked, undone, plan FROM door_runs ORDER BY at DESC LIMIT ?',
++                          (int(limit),)).fetchall()
++    out = []
++    for r in rows:
++        d = {k: r[k] for k in r.keys() if k != 'plan'}
++        d['can_undo'] = bool(json.loads(r['plan']).get('can_undo') and r['state'] == 'done' and not r['undone'])
++        out.append(d)
++    return {'runs': out}
++
++
++def journal(unit, lines=12):
++    """A unit's last journal lines (journalctl, a fixed argv, no shell): the journal has no reader on the bus."""
++    import shutil
++    program = shutil.which('journalctl', path='/usr/bin:/bin')
++    if program is None:return dict(lines=[], words='journalctl is not on this computer')
++    try:
++        done = subprocess.run([program, '--unit=' + unit, '--lines=%d' % int(lines), '--no-pager', '--output=short-iso', '--quiet'],
++                              stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=15, env={'LC_ALL': 'C', 'PATH': '/usr/bin:/bin'})
++    except (OSError, subprocess.SubprocessError) as exc:
++        return dict(lines=[], words='journalctl did not answer: %s' % exc)
++    got = [l for l in done.stdout.splitlines() if l.strip()][-int(lines):]
++    return dict(lines=got, words='' if got else 'The journal shows you nothing of it; your account may not read the system’s journal.')
++
++
++def read(what, target='', system=None):
++    """system.door.read: what the door can tell without asking anything."""
++    if what not in READS:raise Refused('DOOR_UNKNOWN: the door reads updates, a service, the time, the name or the accounts')
++    own = system is None;s = system or System()
++    try:
++        if what == 'updates':
++            got = s.transaction('GetUpdates', 't', (FILTER_NONE,));_pk_failed(got)
++            rows = [dict(split_id(p['id']), kind=p['info'], summary=p['summary']) for p in got['packages']]
++            return dict(updates=rows, words='%s waiting, as far as the last refresh of the lists says.' % plural(len(rows), 'update'))
++        if what == 'service':
++            name = unit_name(target)
++            if not UNIT.match(name):raise Refused('DOOR_NAME: “%s” is not a service name' % name)
++            u = s.unit(name);u.pop('path', None)
++            return dict(unit=u, journal=journal(u['id']))
++        if what == 'time':
++            p = s.props(TD, TD_PATH, TD)
++            return dict(zone=p.get('Timezone') or '', ntp=bool(p.get('NTP')), can_ntp=bool(p.get('CanNTP')), synced=bool(p.get('NTPSynchronized')))
++        if what == 'name':
++            p = s.props(HN, HN_PATH, HN)
++            return dict(name=p.get('StaticHostname') or p.get('Hostname') or '', pretty=p.get('PrettyHostname') or '')
++        return dict(accounts=accounts())
++    except (sb.BusError, TimeoutError) as exc:
++        raise Refused(_bus_words(exc, {'updates': 'software', 'service': 'services', 'time': 'time', 'name': 'name', 'users': 'users'}[what])) from exc
++    finally:
++        if own:s.close()
++
++
++def accounts(s=None):
++    """The people's accounts on this computer: the accounts service's own list when it answers, else /etc/passwd (numbers
++    1000 to 59999 with a login shell)."""
++    if s is not None:
++        try:
++            out = []
++            for path in s.call(AC, AC_PATH, AC, 'ListCachedUsers')[0]:
++                p = s.props(AC, path, AC_USER)
++                out.append(dict(login=p.get('UserName') or '', real=p.get('RealName') or '', uid=int(p.get('Uid') or 0), home='',
++                                standard=int(p.get('AccountType') or 0) == 0))
++            return sorted(out, key=lambda a: a['uid'])
++        except (sb.BusError, TimeoutError):
++            pass
++    out = []
++    for e in pwd.getpwall():
++        if 1000 <= e.pw_uid < 60000 and not e.pw_shell.endswith(('nologin', 'false')):
++            out.append(dict(login=e.pw_name, real=e.pw_gecos.split(',')[0], uid=e.pw_uid, home=e.pw_dir))
++    return sorted(out, key=lambda a: a['uid'])
++
++
++def state(system=None):
++    """system.door.state: which of the services answer here, whether the system's prompt can open, and what Settings shows."""
++    own = system is None;s = system or System();out = dict(agent=prompt_agent(), services={})
++    try:
++        for key, (dest, name, package) in SERVICES.items():
++            try:
++                if key == 'software':s.prop(PK, PK_PATH, PK, 'VersionMajor')
++                elif key == 'services':s.prop(SD, SD_PATH, SD_MGR, 'Version')
++                elif key == 'time':out['time'] = read('time', system=s)
++                elif key == 'name':out['name'] = read('name', system=s)
++                else:s.prop(AC, AC_PATH, AC, 'DaemonVersion')
++                out['services'][key] = dict(answers=True, name=name, words='%s answers' % name)
++            except (sb.BusError, TimeoutError, Refused) as exc:
++                why = str(exc) if isinstance(exc, Refused) else _bus_words(exc, key)
++                out['services'][key] = dict(answers=False, name=name, words=why.split(': ', 1)[-1])
++                if isinstance(exc, sb.BusError) and exc.name == 'org.freedesktop.DBus.Error.NoServer':
++                    for rest in SERVICES:out['services'].setdefault(rest, dict(answers=False, name=SERVICES[rest][1], words=out['services'][key]['words']))
++                    break
++        out['accounts'] = accounts(s if out['services'].get('users', {}).get('answers') else None)
++        return out
++    finally:
++        if own:s.close()
++
++
++ACTION_ARG = {'type': 'string', 'enum': sorted(ACTIONS)}
++TARGET = {'type': 'string', 'maxLength': 200}
++VALUE = {'type': 'string', 'maxLength': 200}
++DIGEST = {'type': 'string', 'pattern': '^[0-9a-f]{64}$', 'maxLength': 64}
++RUN_ID = {'type': 'string', 'pattern': '^[0-9a-f]{32}$', 'maxLength': 32}
++FIELDS = {
++    'system.door.plan': ({'action': ACTION_ARG, 'target': TARGET, 'value': VALUE}, ['action']),
++    'system.door.run': ({'action': ACTION_ARG, 'target': TARGET, 'value': VALUE, 'digest': DIGEST}, ['action', 'digest']),
++    'system.door.undo': ({'run': RUN_ID}, ['run']),
++    'system.door.runs': ({'limit': {'type': 'integer', 'minimum': 1, 'maximum': RUNS_MOST}}, []),
++    'system.door.read': ({'what': {'type': 'string', 'enum': list(READS)}, 'target': TARGET}, ['what']),
++    'system.door.state': ({}, []),
++}
++SCOPES = {'system.door.plan': 'read', 'system.door.run': 'approve', 'system.door.undo': 'approve', 'system.door.runs': 'read', 'system.door.read': 'read', 'system.door.state': 'read'}
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'system.door.plan':return plan(args['action'], args.get('target', ''), args.get('value', ''))
++    if op == 'system.door.run':return run(kernel, args['action'], args.get('target', ''), args.get('value', ''), args['digest'], principal)
++    if op == 'system.door.undo':return undo(kernel, args['run'], principal)
++    if op == 'system.door.runs':return runs(kernel, args.get('limit') or 20)
++    if op == 'system.door.read':return read(args['what'], args.get('target', ''))
++    if op == 'system.door.state':return state()
++    raise ValueError('DOOR_UNKNOWN_OPERATION')
++
++
++# ---- the owner's words and command lines: which fixed action they ask for ------------------------------------------------
++_N = r'([A-Za-z0-9][A-Za-z0-9+.-]+)'
++_U = r'([A-Za-z0-9][A-Za-z0-9:_.@-]*)'
++_P = r'(?:please\s+)?'
++_Q = r'["“”\']?'
++_END = r'(?:\s+please)?\s*[.]?$'
++NOT_THINGS = frozenset(('it', 'this', 'that', 'them', 'everything', 'all', 'updates', 'computer', 'the', 'a', 'an', 'my', 'system',
++                        'session', 'graphite', 'kas', 'kasandra', 'model', 'terminal', 'line', 'recipe', 'work', 'over', 'again'))
++WORDS = (
++    (re.compile(_P + r'install\s+(?:the\s+)?(?:package\s+|app\s+)?' + _N + r'(?:\s+(?:package|app))?' + _END, re.I), 'package.install'),
++    (re.compile(_P + r'(?:uninstall|remove\s+(?:the\s+)?(?:package|app))\s+(?:the\s+)?' + _N + r'(?:\s+(?:package|app))?' + _END, re.I), 'package.remove'),
++    (re.compile(_P + r'remove\s+(?:the\s+)?' + _N + r'\s+(?:package|app)' + _END, re.I), 'package.remove'),
++    (re.compile(_P + r'(?:update|upgrade)\s+(?:the\s+)?(?:package\s+|app\s+)?' + _N + r'(?:\s+(?:package|app))?' + _END, re.I), 'package.update'),
++    (re.compile(_P + r'(?:refresh|update|reload)\s+the\s+(?:software|package)\s+lists?' + _END, re.I), 'packages.refresh'),
++    (re.compile(_P + r'(start|stop|restart|enable|disable)\s+(?:the\s+)?(?:service\s+)?' + _U + r'(?:\s+service)?(?:\s+(?:at|on)\s+(?:boot|startup))?' + _END, re.I), 'service'),
++    (re.compile(_P + r'(?:set|change|switch)\s+(?:the\s+|my\s+)?(?:time\s*zone|timezone)\s+to\s+([A-Za-z_]+(?:/[A-Za-z0-9_+-]+){0,2})' + _END, re.I), 'time.zone'),
++    (re.compile(_P + r'turn\s+(on|off)\s+(?:the\s+)?(?:network\s+time|ntp|automatic\s+time|time\s+sync\w*)' + _END, re.I), 'time.ntp'),
++    (re.compile(_P + r'turn\s+(?:the\s+)?(?:network\s+time|ntp|automatic\s+time)\s+(on|off)' + _END, re.I), 'time.ntp'),
++    (re.compile(_P + r'set\s+the\s+(?:time|clock)\s+to\s+(\d{1,2}:\d{2}|\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2})' + _END, re.I), 'time.set'),
++    (re.compile(_P + r'(?:rename\s+(?:this\s+|the\s+|my\s+)?computer|(?:set|change)\s+(?:the\s+|this\s+|my\s+)?(?:computer(?:’s|\'s)?\s+name|'
++                r'computer\s+name|host\s*name)|name\s+(?:this|the|my)\s+computer)\s+(?:to\s+)?' + _Q + r'([A-Za-z0-9-]+)' + _Q + _END, re.I), 'host.name'),
++    (re.compile(_P + r'(?:add|create|make)\s+(?:a\s+|an\s+)?(?:new\s+)?(?:standard\s+)?(?:user|account|user\s+account)\s+(?:called\s+|named\s+|for\s+)?'
++                + _Q + r'([a-z][a-z0-9_-]*)' + _Q + r'(?:\s+(?:called|named|for|with\s+the\s+(?:real|full)\s+name)\s+' + _Q + r'([^"“”\']+?)' + _Q + r')?' + _END, re.I), 'user.add'),
++    (re.compile(_P + r'(?:set|change)\s+my\s+(?:real|full)\s+name\s+to\s+' + _Q + r'([^"“”\']+?)' + _Q + _END, re.I), 'user.realname.mine'),
++    (re.compile(_P + r'(?:set|change)\s+the\s+(?:real|full)\s+name\s+of\s+([a-z][a-z0-9_-]*)\s+to\s+' + _Q + r'([^"“”\']+?)' + _Q + _END, re.I), 'user.realname'),
++)
++ROOT_PROGRAMS = ('sudo', 'pkexec', 'doas', 'apt', 'apt-get', 'aptitude', 'systemctl', 'service', 'timedatectl', 'hostnamectl', 'adduser',
++                 'useradd', 'chfn')
++
++
++def read_words(text, units=None):
++    """The owner's words (or a root command line) as one fixed action: dict(action, target, value) or None. A service is
++    read from words only when a unit file of that name is on this computer ("restart cups"), so "start the model" is not."""
++    words = ' '.join(str(text or '').split())
++    if not words:return None
++    first = words.split(' ', 1)[0]
++    if first in ROOT_PROGRAMS:
++        try:return offer(shlex.split(words))
++        except ValueError:
++            return None
++    for pattern, action in WORDS:
++        m = pattern.match(words)
++        if not m:continue
++        if action == 'service':
++            verb, name = m.group(1).lower(), m.group(2)
++            if name.lower() in NOT_THINGS or not unit_known(name, units):return None
++            return dict(action='service.' + verb, target=unit_name(name), value='')
++        if action in ('package.install', 'package.remove', 'package.update'):
++            if m.group(1).lower() in NOT_THINGS:return None
++            return dict(action=action, target=m.group(1).lower(), value='')
++        if action == 'user.realname.mine':return dict(action='user.realname', target=own_login(), value=m.group(1).strip())
++        if action in ('user.add', 'user.realname'):
++            return dict(action=action, target=m.group(1).lower(), value=(m.group(2) or '').strip())
++        if action == 'time.ntp':return dict(action=action, target=m.group(1).lower(), value='')
++        if action == 'packages.refresh':return dict(action=action, target='', value='')
++        return dict(action=action, target=m.group(1), value='')
++    return None
++
++
++def _offered(action, target='', value='', line=None):
++    out = dict(action=action, target=target, value=value, title=title(action, target, value), asks=asks_words(action))
++    out['words'] = 'That is the system door: %s, through the system’s own prompt. It shows what it will do first.' % out['title']
++    if line is not None:out['line'] = line
++    return out
++
++
++def offer(argv):
++    """For the command tool (KS2): a root command line, as argv, mapped to the door's fixed action (an offer: action, target,
++    value, title, asks, words, line), or None when it is not one of them. One package or one unit only: one action per prompt."""
++    argv = [str(a) for a in (argv or ())]
++    line = ' '.join(shlex.quote(a) for a in argv)
++    while argv and argv[0] in ('sudo', 'pkexec', 'doas'):
++        argv = argv[1:]
++        while argv and argv[0].startswith('-'):
++            if argv[0] in ('-u', '--user', '-g', '--group', '-s', '--shell', '-i', '--login', '-c'):return None      # another user, or a shell
++            argv = argv[1:]
++    if not argv:return None
++    prog, rest = os.path.basename(argv[0]), argv[1:]
++    plain = [a for a in rest if not a.startswith('-')]
++    flags = [a for a in rest if a.startswith('-')]
++    if prog in ('apt', 'apt-get', 'aptitude'):
++        if any(f not in ('-y', '--yes', '-q', '--quiet', '--assume-yes', '--only-upgrade', '--no-install-recommends') for f in flags):return None
++        if not plain:return None
++        verb, names = plain[0], plain[1:]
++        if verb == 'update' and not names:return _offered('packages.refresh', line=line)
++        if len(names) != 1 or not PACKAGE.match(names[0].lower()):return None
++        name = names[0].lower()
++        if verb == 'install':return _offered('package.update' if '--only-upgrade' in flags else 'package.install', name, line=line)
++        if verb == 'remove':return _offered('package.remove', name, line=line)
++        if verb in ('upgrade', 'full-upgrade', 'dist-upgrade') and '--no-install-recommends' not in flags:return _offered('package.update', name, line=line)
++        return None
++    if prog in ('systemctl', 'service'):
++        if prog == 'service' and len(plain) == 2:plain = [plain[1], plain[0]]
++        if any(f not in ('-q', '--quiet', '--no-block') for f in flags) or len(plain) != 2:return None
++        verb, unit = plain
++        if verb not in ('start', 'stop', 'restart', 'enable', 'disable') or not UNIT.match(unit_name(unit)):return None
++        return _offered('service.' + verb, unit_name(unit), line=line)
++    if prog == 'timedatectl' and not flags and plain:
++        if plain[0] == 'set-timezone' and len(plain) == 2:return _offered('time.zone', plain[1], line=line)
++        if plain[0] == 'set-ntp' and len(plain) == 2 and plain[1].lower() in ('true', 'false', 'yes', 'no', 'on', 'off', '1', '0'):
++            return _offered('time.ntp', 'on' if plain[1].lower() in ('true', 'yes', 'on', '1') else 'off', line=line)
++        if plain[0] == 'set-time' and len(plain) == 2:return _offered('time.set', plain[1], line=line)
++        return None
++    if prog == 'hostnamectl' and not flags and len(plain) == 2 and plain[0] in ('set-hostname', 'hostname'):
++        return _offered('host.name', plain[1].lower(), line=line)
++    if prog == 'adduser' and len(plain) == 1 and all(f in ('--disabled-password',) for f in flags):
++        return _offered('user.add', plain[0], line=line)
++    if prog == 'adduser' and len(rest) == 3 and rest[0] in ('--comment', '--gecos'):
++        return _offered('user.add', rest[2], rest[1], line=line)
++    if prog == 'useradd' and len(plain) == 1 and all(f in ('-m', '--create-home') for f in flags):
++        return _offered('user.add', plain[0], line=line)
++    if prog == 'chfn' and len(rest) in (2, 3) and rest[0] == '-f':
++        return _offered('user.realname', rest[2] if len(rest) == 3 else own_login(), rest[1], line=line)
++    return None
+diff --git a/workbench/system_door_qt.py b/workbench/system_door_qt.py
+new file mode 100644
+index 0000000..3a94e75
+--- /dev/null
++++ b/workbench/system_door_qt.py
+@@ -0,0 +1,412 @@
++"""The system door in her talk, her column, the line and Settings (Graphite 1.1 KS3). The door itself is system_door's.
++
++Where it shows (the coordinator's note of 28 Nov):
++  her talk      the ask line's words (shell2.SlateFace.ask calls asked() before her recipes): "install gimp", "restart cups",
++                "set the time zone to Europe/Lisbon", "sudo apt install gimp" ... become one fixed action. She shows what the
++                system will do (system.door.plan: what it pulls in, its size, what Undo does or that it cannot be undone, and "The
++                system will ask for your password"), and waits. The press is yours; she says "Asking the system now" (the
++                moment before the system's own prompt), the system asks you itself, and she says "Done and verified" only
++                when the effect was read back; Undo is the inverse fixed action, through the same prompt.
++  NEXT STEPS    "Install GIMP · asks for your password" while a plan waits; "Undo · Install GIMP · asks for your password".
++  the line      line_rows(): "Install GIMP, asks for your password"; Enter shows what the system will do (nothing changes).
++  Settings      This computer > System changes (show_page): whether the system's prompt can open, which services answer,
++                the time zone, network time, the computer's name, the accounts, the door's record; each press there shows
++                the plan in her talk, where the press that starts it is.
++
++Every press is the owner's: dispatched with the owner's principal; the Kernel checks system.door.run's approve scope, refuses it in
++her work, under a grant and under HALT. Nothing here starts a change on its own.
++"""
++from __future__ import annotations
++
++from . import kas_voice as kv
++from . import system_door as sd
++
++SYNC = False                # tests: work on the window's thread instead of a worker
++STATE = {}                  # id(host) -> {'offer': {...}, 'done': {...}, 'asking': title}
++GO = {'package.install': 'Install', 'package.remove': 'Remove', 'package.update': 'Update', 'packages.refresh': 'Refresh',
++      'service.start': 'Start', 'service.stop': 'Stop', 'service.restart': 'Restart', 'service.enable': 'Enable', 'service.disable': 'Disable',
++      'time.zone': 'Set it', 'time.ntp': 'Turn it', 'time.set': 'Set it', 'host.name': 'Name it', 'user.add': 'Add it', 'user.realname': 'Set it'}
++
++
++def _state(host):
++    return STATE.setdefault(id(host), {})
++
++
++def _later(host, fn, done, name='graphite-door'):
++    """fn() off the window's thread, then done(result, error) on it (SYNC: at once)."""
++    if SYNC:
++        try:result, error = fn(), None
++        except Exception as exc:  # noqa: BLE001
++            result, error = None, exc
++        done(result, error);return
++    from .off_window import run_alone
++    run_alone(fn, done, name=name)
++
++
++def _call(host, op, args):
++    """The owner's press or read, through the Kernel: a fresh Kernel on the workspace, the owner's principal."""
++    from .engineering_kernel import Kernel, operator
++    from .off_window import kernel_root
++    root = kernel_root(host)
++    if root is None:
++        from .engine import engineering
++        kernel = engineering(host.root)
++    else:
++        kernel = Kernel(root)
++    return kernel.dispatch(op, args, operator())
++
++
++def _why(answer, error=None):
++    if error is not None:return str(error)[:300]
++    answer = answer if isinstance(answer, dict) else {}
++    return str((answer.get('error') or {}).get('message', 'refused')).split(': ', 1)[-1][:300]
++
++
++def _column_soon(host):
++    column = getattr(host, 'her_column', None)
++    if column is None:return
++    try:
++        from . import floor
++        floor.column_soon(column)
++    except Exception:  # noqa: BLE001
++        pass
++
++
++def _add(bubble, widget):
++    try:bubble.box.addWidget(widget)
++    except Exception:  # noqa: BLE001 - a bubble without a box still says it
++        pass
++
++
++def _plain(text, name='DoorWords'):
++    from PySide6.QtWidgets import QLabel
++    label = QLabel(text);label.setWordWrap(True);label.setObjectName(name)
++    return label
++
++
++def _lines(lines, most=10):
++    from html import escape
++    from PySide6.QtCore import Qt
++    from PySide6.QtWidgets import QLabel
++    from . import boss_theme as bt
++    label = QLabel();label.setObjectName('DoorLines');label.setWordWrap(True);label.setTextFormat(Qt.RichText)
++    body = '<br>'.join(escape(l) for l in lines[:most])
++    if len(lines) > most:body += '<br>… and %d more' % (len(lines) - most)
++    label.setText('<span style="font-family:\'%s\';font-size:12px;color:%s;">%s</span>' % (bt.MONO, bt.QUIET, body))
++    return label
++
++
++def _args(got):
++    return {'action': got['action'], 'target': got.get('target') or '', 'value': got.get('value') or ''}
++
++
++# ---- the ask chain ----------------------------------------------------------------------------------------------------------
++def asked(face, text):
++    """shell2's ask chain: True when the words ask for one of the door's fixed actions, and she has answered."""
++    try:got = sd.read_words(text)
++    except Exception:  # noqa: BLE001 - a broken reading never stands in the way of the rest of her chain
++        return False
++    if got is None:return False
++    face.thing = None;face.mine(text);show(face, got)
++    return True
++
++
++def show(face, got):
++    """The plan, in her talk: what the system will do, and the press; or why it cannot be asked; or that nothing is to do."""
++    host = face.host
++
++    def planned(answer, error):
++        if getattr(host, '_closing', False):return
++        if error is not None or not (answer or {}).get('ok'):
++            face.say(kv.say('door_refused', why=_sentence(_why(answer, error))));_column_soon(host);return
++        p = answer['result']
++        if p['nothing']:
++            _state(host).pop('offer', None);face.say(kv.say('door_nothing', words=p['words']));_column_soon(host);return
++        if not p['ok']:
++            face.say(kv.say('door_not_ready', title=p['title'], why=p.get('why', '')));_column_soon(host);return
++        offer(face, got, p)
++    _later(host, lambda: _call(host, 'system.door.plan', _args(got)), planned, 'graphite-door-plan')
++
++
++def _sentence(text):
++    text = str(text or '').strip()
++    text = (text[:1].upper() + text[1:]) if text else 'The door gave no reason'
++    return text if text[-1:] in '.?' else text + '.'
++
++
++def offer(face, got, p):
++    """What the system will do, exactly, then the press. Nothing is asked of the system until the press."""
++    from .shell2 import sentence
++    host = face.host
++    bubble = face.say(kv.say('door_plan', title=p['title']))
++    if p.get('lines'):_add(bubble, _lines(p['lines']))
++    _add(bubble, _plain(' '.join(x for x in (p['words'], p.get('undo') or '') if x)))
++    _add(bubble, _plain(kv.say('door_asks', asks=p['asks']), 'DoorAsks'))
++    state = _state(host);state['offer'] = {'got': got, 'plan': p, 'face': face};state.pop('done', None)
++    verb = GO.get(p['action'], 'Do it') + ((' ' + p['target']) if p['action'] == 'time.ntp' else '')
++    actions = {'go': (kv.say('door_go_word', verb=verb), lambda: run(face, got, p)), 'no': (kv.say('door_no_word'), lambda: cancel(face))}
++    _add(bubble, sentence('{go}  ·  {no}', actions))
++    _column_soon(host)
++    return bubble
++
++
++def cancel(face):
++    host = face.host
++    if _state(host).pop('offer', None) is not None:face.say(kv.say('door_cancelled'))
++    _column_soon(host)
++
++
++def run(face, got, p):
++    """Your press: she says she is asking the system (its own prompt opens next), then system.door.run with the digest you saw."""
++    host = face.host;state = _state(host)
++    if state.get('asking'):face.say(kv.say('door_one_at_a_time'));return None
++    state.pop('offer', None);state['asking'] = p['title']
++    bubble = face.say(kv.say('door_asking', title=p['title']))
++    _column_soon(host)
++
++    def ran(answer, error):
++        state.pop('asking', None)
++        if getattr(host, '_closing', False):return
++        if error is not None or not (answer or {}).get('ok'):
++            why = _why(answer, error)
++            if 'changed since you saw it' in why:
++                face.say(kv.say('door_changed'));show(face, got);return
++            face.say(kv.say('door_refused', why=_sentence(why)));_column_soon(host);return
++        done(face, answer['result'])
++    _later(host, lambda: _call(host, 'system.door.run', dict(_args(got), digest=p['digest'])), ran, 'graphite-door-run')
++    return bubble
++
++
++def done(face, v):
++    """The end, in her voice: done and verified (with Undo where the system allows), the prompt's no, HALT, a failure, or
++    not verified. Every one says what was read back."""
++    from .shell2 import sentence
++    host = face.host;state = _state(host)
++    checked = v.get('checked') or 'nothing'
++    if v['state'] == 'done':said = kv.say('door_done', title=v['title'], checked=checked)
++    elif v['state'] == 'refused at the prompt':said = kv.say('door_said_no', checked=checked)
++    elif v['state'] == 'no prompt':said = kv.say('door_no_prompt', checked=checked)
++    elif v['state'] == 'stopped by HALT':said = kv.say('door_halted', title=v['title'], checked=checked)
++    elif v['state'] == 'failed':said = kv.say('door_failed', title=v['title'], why=_sentence(v.get('why')), checked=checked)
++    else:said = '◆ ' + kv.say('not_verified', checked=checked)
++    bubble = face.say(said)
++    if v.get('can_undo'):
++        state['done'] = {'run': v['run'], 'title': v['title'], 'face': face}
++        _add(bubble, sentence('{undo}', {'undo': (kv.say('door_undo_word'), lambda: undo(face, v['run'], v['title']))}))
++    _column_soon(host)
++    return bubble
++
++
++def undo(face, run_id, title):
++    host = face.host;state = _state(host)
++    if state.get('asking'):face.say(kv.say('door_one_at_a_time'));return
++    state.pop('done', None);state['asking'] = 'Undo ' + title
++    face.say(kv.say('door_undoing', title=title))
++
++    def back(answer, error):
++        state.pop('asking', None)
++        if getattr(host, '_closing', False):return
++        if error is not None or not (answer or {}).get('ok'):
++            face.say(kv.say('door_undo_failed', title=title, why=_sentence(_why(answer, error))));_column_soon(host);return
++        v = answer['result']
++        if v['state'] == 'done':face.say(kv.say('door_undone', title=title, checked=v['checked']))
++        elif v['state'] == 'refused at the prompt':face.say(kv.say('door_said_no', checked=v['checked'] or 'nothing'))
++        else:face.say(kv.say('door_undo_failed', title=title, why=_sentence(v.get('why') or v.get('checked'))))
++        _column_soon(host)
++    _later(host, lambda: _call(host, 'system.door.undo', {'run': run_id}), back, 'graphite-door-undo')
++
++
++# ---- her column's NEXT STEPS ---------------------------------------------------------------------------------------------
++def next_steps(host):
++    """What NEXT STEPS offers for the door: the plan that waits for your press; Undo of the last change."""
++    state = STATE.get(id(host)) or {};out = []
++    waiting = state.get('offer')
++    if waiting:
++        t = waiting['plan']['title']
++        out.append({'words': '%s · %s' % (t, sd.asks_words(waiting['plan']['action'])), 'verb': t, 'object': sd.asks_words(waiting['plan']['action']),
++                    'kind': 'system_door', 'act': 'run', 'title': t,
++                    'tip': 'What the system will do is in Talk. Your press starts it; then the system asks for your password itself.'})
++    finished = state.get('done')
++    if finished:
++        out.append({'words': 'Undo · %s · asks for your password' % finished['title'], 'verb': 'Undo', 'object': finished['title'],
++                    'kind': 'system_door', 'act': 'undo', 'title': finished['title'],
++                    'tip': 'The inverse fixed action, through the system’s own prompt, read back afterwards.'})
++    return out
++
++
++def take(host, step):
++    """A press on a door's NEXT STEP: the same press as the word in her talk."""
++    state = STATE.get(id(host)) or {}
++    if step.get('act') == 'run' and state.get('offer'):
++        o = state['offer'];run(o['face'], o['got'], o['plan']);return True
++    if step.get('act') == 'undo' and state.get('done'):
++        d = state['done'];undo(d['face'], d['run'], d['title']);return True
++    return False
++
++
++# ---- the line on the bar, and a press anywhere that proposes -------------------------------------------------------------
++def _face(host):
++    shell = getattr(host, 'shell2', None)
++    if shell is None:return None
++    try:shell.show_slate_face()
++    except Exception:  # noqa: BLE001
++        pass
++    return getattr(shell, 'face', None)
++
++
++def propose(host, got, words=None):
++    """Her talk shows the plan of one fixed action (from the line, Settings or the command tool); nothing changes."""
++    face = _face(host)
++    if face is None:return False
++    face.mine(words or sd.title(got['action'], got.get('target', ''), got.get('value', '')));show(face, got)
++    return True
++
++
++def line_rows(text, host=None):
++    """For line_finder: [(title, detail, do)] when the words ask for one of the door's actions; do() shows its plan."""
++    try:got = sd.read_words(text)
++    except Exception:  # noqa: BLE001
++        return []
++    if got is None:return []
++    shown = '%s, %s' % (sd.title(got['action'], got.get('target', ''), got.get('value', '')), sd.asks_words(got['action']))
++    return [(shown, kv.say('door_line_detail'), lambda: propose(host, got, ' '.join(str(text).split())))]
++
++
++# ---- Settings > This computer > System changes ----------------------------------------------------------------------------
++TITLE = 'System changes'
++
++
++def _zones():
++    try:
++        with open(sd.ZONEINFO + '/zone1970.tab', encoding='utf-8') as f:
++            return sorted({line.split('\t')[2].strip() for line in f if line.strip() and not line.startswith('#') and len(line.split('\t')) > 2} | {'UTC'})
++    except OSError:
++        return ['UTC']
++
++
++def show_page(host):
++    """Open (or bring forward) This computer's System changes page in the centre."""
++    close = getattr(host, '_close_start', None)
++    if callable(close):close()
++    tabs = host.tabs
++    for i in range(tabs.count()):
++        widget = tabs.widget(i)
++        if isinstance(widget, _room_class()):
++            tabs.setCurrentIndex(i);widget.reload();return widget
++    tab = _room_class()(host);tabs.addTab(tab, TITLE);tabs.setCurrentWidget(tab)
++    return tab
++
++
++_ROOM = None
++
++
++def _room_class():
++    global _ROOM
++    if _ROOM is not None:return _ROOM
++    from PySide6.QtWidgets import QComboBox, QFrame, QLineEdit, QScrollArea, QVBoxLayout, QWidget
++    from .machine_room_qt import card, press, row, word, words
++
++    class DoorRoom(QWidget):
++        """The page: read off the window's thread (system.door.state, system.door.runs); each press shows a plan in her talk."""
++
++        def __init__(self, host):
++            super().__init__();self.host = host;self.key = 'door';self.data = None;self.fields = {}      # key: navigation_qt keeps Settings on this row
++            self.setObjectName('LibraryTab');self.setProperty('ledgerRoom', True);self.setAccessibleName('Settings: ' + TITLE)
++            outer = QVBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0)
++            self.scroll = QScrollArea();self.scroll.setWidgetResizable(True);self.scroll.setFrameShape(QFrame.NoFrame);outer.addWidget(self.scroll)
++            self.draw();self.reload()
++
++        def title(self):return TITLE
++
++        def settings_row(self):return 'system:door'
++
++        def inspector(self):
++            return TITLE, [(TITLE, 'through the system’s own prompt')]
++
++        def reload(self):
++            def read():
++                return dict(state=_call(self.host, 'system.door.state', {}), runs=_call(self.host, 'system.door.runs', {'limit': 8}))
++
++            def landed(value, error):
++                if getattr(self.host, '_closing', False):return
++                self.data = value if error is None else dict(error=str(error));self.draw()
++            _later(self.host, read, landed, 'graphite-door-page')
++
++        def ask(self, action, key=None, target='', value=''):
++            if key:target = self.fields[key].currentText() if isinstance(self.fields[key], QComboBox) else self.fields[key].text()
++            if key == 'login':value = self.fields['real'].text()
++            got = dict(action=action, target=str(target).strip(), value=str(value).strip())
++            if action != 'packages.refresh' and not got['target']:return
++            propose(self.host, got)
++
++        def field(self, key, hint, text=''):
++            edit = QLineEdit(text);edit.setPlaceholderText(hint);edit.setAccessibleName(hint);self.fields[key] = edit
++            return edit
++
++        def draw(self):
++            data = self.data or {};self.fields = {}
++            page = QWidget();box = QVBoxLayout(page);box.setContentsMargins(40, 26, 40, 20);box.setSpacing(14)
++            box.addWidget(words(TITLE, 'title'))
++            box.addWidget(words('SETTINGS / THIS COMPUTER / ' + TITLE.upper(), 'quiet'))
++            box.addWidget(words('Software, services, date and time, this computer’s name and accounts. Each change is one fixed action: '
++                                'Kas shows what the system will do, your press starts it, and the system asks for your password '
++                                'in its own prompt. It is read back before it is called done.', 'quiet'))
++            st = (data.get('state') or {}).get('result') or {}
++            if data.get('error') or (data.get('state') and not data['state'].get('ok')):
++                frame, inner = card();inner.addWidget(word('not read', 'stop'))
++                inner.addWidget(words(data.get('error') or _why(data.get('state'))));box.addWidget(frame)
++            agent = st.get('agent') or {}
++            frame, inner = card();inner.addWidget(words('Permission prompts', 'section'))
++            inner.addLayout(row(word('ready' if agent.get('running') else 'none', 'live' if agent.get('running') else 'stop'),
++                                words(agent.get('words') or ('Reading…' if not st else '')), stretch_at=1))
++            for key, s in (st.get('services') or {}).items():
++                inner.addLayout(row(word('answers' if s['answers'] else 'absent', 'live' if s['answers'] else 'wait'), words(s['words']), stretch_at=1))
++            box.addWidget(frame)
++            frame, inner = card();inner.addWidget(words('Software', 'section'))
++            inner.addLayout(row(self.field('package', 'A Debian package, for example gimp'),
++                                press('Install…', lambda: self.ask('package.install', 'package')), press('Remove…', lambda: self.ask('package.remove', 'package')),
++                                press('Update…', lambda: self.ask('package.update', 'package')), press('Refresh the lists…', lambda: self.ask('packages.refresh')),
++                                stretch_at=0))
++            box.addWidget(frame)
++            frame, inner = card();inner.addWidget(words('Services', 'section'))
++            inner.addLayout(row(self.field('unit', 'A service, for example cups'),
++                                *[press(v + '…', lambda a='service.' + v.lower(): self.ask(a, 'unit')) for v in ('Start', 'Stop', 'Restart', 'Enable', 'Disable')],
++                                stretch_at=0))
++            box.addWidget(frame)
++            t = st.get('time') or {}
++            frame, inner = card();inner.addWidget(words('Date and time', 'section'))
++            zones = QComboBox();zones.setEditable(True);zones.addItems(_zones());zones.setCurrentText(t.get('zone') or '');self.fields['zone'] = zones
++            zones.setAccessibleName('Time zone')
++            inner.addLayout(row(words('Time zone ' + (t.get('zone') or 'not read')), zones, press('Set the time zone…', lambda: self.ask('time.zone', 'zone')), stretch_at=1))
++            ntp = t.get('ntp');switch = 'off' if ntp else 'on'
++            inner.addLayout(row(word('network time on' if ntp else 'network time off', 'live' if ntp else 'quiet'),
++                                words(('Synchronised' if t.get('synced') else 'Not synchronised yet') if ntp else 'The clock keeps its own time.'),
++                                press('Turn it %s…' % switch, lambda: self.ask('time.ntp', target=switch), enabled=bool(t)), stretch_at=1))
++            box.addWidget(frame)
++            n = st.get('name') or {}
++            frame, inner = card();inner.addWidget(words('This computer’s name', 'section'))
++            inner.addLayout(row(words(n.get('name') or 'not read'), self.field('host', 'A new name, for example tern-lab'),
++                                press('Rename…', lambda: self.ask('host.name', 'host')), stretch_at=1))
++            box.addWidget(frame)
++            frame, inner = card();inner.addWidget(words('Accounts', 'section'))
++            for a in st.get('accounts') or []:
++                inner.addLayout(row(word('account'), words('%s · %s' % (a['login'], a['real'] or 'no real name')), stretch_at=1))
++            login = self.field('login', 'Account name, for example ana');login.setMinimumWidth(260)
++            inner.addLayout(row(login, self.field('real', 'Real name, for example Ana Tern'),
++                                press('Add a standard account…', lambda: self.ask('user.add', 'login')), stretch_at=1))
++            inner.addWidget(words('The door never sets another person’s password.', 'quiet'))
++            box.addWidget(frame)
++            runs = ((data.get('runs') or {}).get('result') or {}).get('runs') or []
++            frame, inner = card();inner.addWidget(words('What the door did, newest first', 'section'))
++            if not runs:inner.addWidget(words('Nothing yet.', 'quiet'))
++            for r in runs:
++                tone = 'live' if r['state'] == 'done' and r['verified'] else ('quiet' if r['undone'] else 'stop')
++                state = 'undone' if r['undone'] else ('done' if r['state'] == 'done' else r['state'])
++                inner.addLayout(row(word(state, tone), words('%s · %s' % (r['title'], r['checked'] or '')), stretch_at=1))
++            box.addWidget(frame)
++            box.addStretch(1)
++            old = self.scroll.takeWidget();self.scroll.setWidget(page)
++            if old is not None:old.deleteLater()
++
++    _ROOM = DoorRoom
++    return _ROOM
+diff --git a/workbench/system_settings_qt.py b/workbench/system_settings_qt.py
+index b57c017..dd16a1f 100644
+--- a/workbench/system_settings_qt.py
++++ b/workbench/system_settings_qt.py
+@@ -40,7 +40,8 @@ ROWS = (('apps', 'Default apps', 'Which app opens each kind of file and address.
+         ('network', 'Network', 'Networking and Wi-Fi on or off, the networks heard, Join (NetworkManager keeps the password).'),
+         ('power', 'Power', 'The battery and the mains (UPower).'),
+         ('session', 'Session', 'Lock, Suspend, Log out, Restart, Shut down, Return to Debian; permission prompts; the app strip.'),
+-        ('notifications', 'Notifications', 'What apps tell you: shown as a toast at the foot of her column, and kept in Log.'))
++        ('notifications', 'Notifications', 'What apps tell you: shown as a toast at the foot of her column, and kept in Log.'),
++        ('door', 'System changes', 'Software, services, date and time, the computer’s name and accounts, through the system’s own prompt.'))  # 1.1 KS3
+ TITLES = {key: label for key, label, _ in ROWS}
+ PAGE_SECONDS = 3
+ SESSION_SECONDS = 10     # the session page asks logind again this often while it shows
+@@ -79,6 +80,9 @@ def open_page(host, key):
+     if key in MACHINE:
+         from . import machine_room_qt
+         return machine_room_qt.show(host, key)
++    if key == 'door':      # 1.1 KS3 (the system door): its own page (system_door_qt)
++        from . import system_door_qt
++        return system_door_qt.show_page(host)
+     return show(host, key)
+ 
+ 

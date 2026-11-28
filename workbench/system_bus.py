@@ -1,0 +1,288 @@
+"""The system's own services on the system D-Bus, for the system door (Graphite 1.1 KS3). Pure Python: sockets, no Qt.
+
+Why a client of its own: the door speaks to PackageKit, systemd, timedated, hostnamed and accountsservice, which take typed
+arguments (PackageKit's filters and flags are 64-bit unsigned numbers, which PySide6's QtDBus cannot send from Python, the
+reason a11y_hand goes through dbus-send) and PackageKit answers through signals (Package, Details, ErrorCode, Finished),
+which a one-shot program such as busctl or dbus-send cannot wait for. So this module speaks the D-Bus wire protocol itself
+(the specification's marshalling, little-endian, AUTH EXTERNAL): one connection per action, no shell, no program run.
+
+  Bus(address)            connects (DBUS_SYSTEM_BUS_ADDRESS when set, else /run/dbus/system_bus_socket) and says Hello.
+  bus.call(...)           one method call with an exact signature; interactive=True sets the flag that lets the service
+                          ask the owner through polkit (the session's permission prompt agent shows the system's own
+                          prompt; the password never passes through Graphite). Raises BusError with the service's words.
+  bus.get / get_all       properties.
+  bus.listen(rule) and bus.signals(...)  signals (PackageKit's answers).
+  bus.own(name), next_call, reply, fail, emit   a service's side: the tests' fake services use them.
+"""
+from __future__ import annotations
+
+import os
+import socket
+import struct
+import time
+
+SYSTEM = 'unix:path=/run/dbus/system_bus_socket'
+INTERACTIVE = 0x4            # ALLOW_INTERACTIVE_AUTHORIZATION: the service may ask the owner (polkit) before it answers
+CALL, RETURN, ERROR, SIGNAL = 1, 2, 3, 4
+TIMEOUT = 25.0               # seconds for a call that asks nothing of the owner
+FIELDS = {1: ('path', 'o'), 2: ('interface', 's'), 3: ('member', 's'), 4: ('error', 's'), 5: ('reply_serial', 'u'),
+          6: ('destination', 's'), 7: ('sender', 's'), 8: ('signature', 'g')}
+CODES = {name: (code, sig) for code, (name, sig) in FIELDS.items()}
+ALIGN = {'y': 1, 'b': 4, 'n': 2, 'q': 2, 'i': 4, 'u': 4, 'x': 8, 't': 8, 'd': 8, 's': 4, 'o': 4, 'g': 1, 'a': 4, '(': 8, '{': 8,
+         'v': 1, 'h': 4}
+FIXED = {'y': 'B', 'b': 'I', 'n': 'h', 'q': 'H', 'i': 'i', 'u': 'I', 'x': 'q', 't': 'Q', 'd': 'd', 'h': 'I'}
+MOST = 1 << 26               # the largest message read (64 MiB: the specification's limit is 128)
+
+
+class BusError(OSError):
+    """A refusal or failure on the bus: `name` is the D-Bus error name (org.freedesktop.DBus.Error.AccessDenied ...)."""
+
+    def __init__(self, name, text=''):
+        super().__init__(text or name);self.name = str(name or '');self.text = str(text or '')
+
+
+def address(environ=None):
+    environ = os.environ if environ is None else environ
+    return str(environ.get('DBUS_SYSTEM_BUS_ADDRESS') or SYSTEM)
+
+
+def _socket_path(addr):
+    for part in str(addr).split(';'):
+        if not part.startswith('unix:'):continue
+        keys = dict(kv.split('=', 1) for kv in part[5:].split(',') if '=' in kv)
+        if 'path' in keys:return keys['path']
+        if 'abstract' in keys:return '\0' + keys['abstract']
+    raise BusError('org.freedesktop.DBus.Error.BadAddress', 'not a unix bus address: %s' % addr)
+
+
+# ---- signatures -----------------------------------------------------------------------------------------------------------
+def _end(sig, i):
+    """The index just past the single complete type that starts at sig[i]."""
+    c = sig[i]
+    if c == 'a':return _end(sig, i + 1)
+    if c in '({':
+        close = ')' if c == '(' else '}';i += 1
+        while sig[i] != close:i = _end(sig, i)
+        return i + 1
+    if c not in ALIGN:raise BusError('org.freedesktop.DBus.Error.InvalidSignature', 'bad signature %r' % sig)
+    return i + 1
+
+
+def split(sig):
+    out, i = [], 0
+    while i < len(sig):
+        j = _end(sig, i);out.append(sig[i:j]);i = j
+    return out
+
+
+# ---- marshalling ----------------------------------------------------------------------------------------------------------
+class _Writer:
+    def __init__(self):self.buf = bytearray()
+
+    def pad(self, n):
+        self.buf += b'\0' * ((-len(self.buf)) % n)
+
+    def put(self, t, v):
+        c = t[0]
+        if c in FIXED:
+            self.pad(ALIGN[c]);self.buf += struct.pack('<' + FIXED[c], (1 if v else 0) if c == 'b' else v);return
+        if c in 'so':
+            raw = str(v).encode('utf-8');self.pad(4);self.buf += struct.pack('<I', len(raw)) + raw + b'\0';return
+        if c == 'g':
+            raw = str(v).encode('ascii');self.buf += struct.pack('<B', len(raw)) + raw + b'\0';return
+        if c == 'v':
+            sig, value = v;self.put('g', sig);self.put(sig, value);return
+        if c == '(':
+            self.pad(8)
+            for sub, item in zip(split(t[1:-1]), v):self.put(sub, item)
+            return
+        if c == 'a':
+            elem = t[1:];self.pad(4);at = len(self.buf);self.buf += b'\0\0\0\0';self.pad(ALIGN[elem[0]]);start = len(self.buf)
+            if elem[0] == '{':
+                key, value = split(elem[1:-1])
+                for k, item in (v.items() if isinstance(v, dict) else v):self.pad(8);self.put(key, k);self.put(value, item)
+            else:
+                for item in v:self.put(elem, item)
+            self.buf[at:at + 4] = struct.pack('<I', len(self.buf) - start);return
+        raise BusError('org.freedesktop.DBus.Error.InvalidSignature', 'cannot write %r' % t)
+
+
+class _Reader:
+    def __init__(self, data, endian='<'):self.data = data;self.pos = 0;self.e = endian
+
+    def pad(self, n):
+        self.pos += (-self.pos) % n
+
+    def get(self, t):
+        c = t[0]
+        if c in FIXED:
+            self.pad(ALIGN[c]);size = struct.calcsize(FIXED[c])
+            value = struct.unpack_from(self.e + FIXED[c], self.data, self.pos)[0];self.pos += size
+            return bool(value) if c == 'b' else value
+        if c in 'so':
+            self.pad(4);n = struct.unpack_from(self.e + 'I', self.data, self.pos)[0];self.pos += 4
+            value = bytes(self.data[self.pos:self.pos + n]).decode('utf-8', 'replace');self.pos += n + 1;return value
+        if c == 'g':
+            n = self.data[self.pos];self.pos += 1;value = bytes(self.data[self.pos:self.pos + n]).decode('ascii');self.pos += n + 1;return value
+        if c == 'v':
+            sig = self.get('g');return self.get(sig)
+        if c == '(':
+            self.pad(8);return tuple(self.get(sub) for sub in split(t[1:-1]))
+        if c == '{':
+            self.pad(8);key, value = split(t[1:-1]);return (self.get(key), self.get(value))
+        if c == 'a':
+            elem = t[1:];self.pad(4);n = struct.unpack_from(self.e + 'I', self.data, self.pos)[0];self.pos += 4
+            self.pad(ALIGN[elem[0]]);end = self.pos + n;out = []
+            while self.pos < end:out.append(self.get(elem))
+            if elem == 'y':return bytes(out)
+            return dict(out) if elem[0] == '{' else out
+        raise BusError('org.freedesktop.DBus.Error.InvalidSignature', 'cannot read %r' % t)
+
+
+def encode(kind, serial, fields, sig='', args=(), flags=0):
+    """One message: the fixed header, the header fields, the body."""
+    body = _Writer()
+    for t, v in zip(split(sig), args):body.put(t, v)
+    head = _Writer()
+    for t, v in (('y', ord('l')), ('y', kind), ('y', flags), ('y', 1), ('u', len(body.buf)), ('u', serial)):head.put(t, v)
+    items = [(CODES[k][0], (CODES[k][1], v)) for k, v in fields.items() if v not in (None, '')]
+    if sig:items.append((8, ('g', sig)))
+    head.put('a(yv)', items);head.pad(8)
+    return bytes(head.buf + body.buf)
+
+
+class Message(dict):
+    """A message read off the bus: kind, serial, flags, path, interface, member, error, reply_serial, sender, destination,
+    signature, body (a list)."""
+    __getattr__ = dict.get
+
+
+def decode(head, body):
+    e = '<' if head[:1] == b'l' else '>'
+    r = _Reader(head, e)
+    _, kind, flags, _version, _length, serial = (r.get(t) for t in 'yyyyuu')
+    fields = r.get('a(yv)')
+    m = Message(kind=kind, flags=flags, serial=serial, signature='', body=[])
+    for code, value in fields:
+        if code in FIELDS:m[FIELDS[code][0]] = value
+    sig = m.get('signature') or ''
+    if sig:
+        rb = _Reader(body, e);m['body'] = [rb.get(t) for t in split(sig)]
+    return m
+
+
+# ---- the connection -------------------------------------------------------------------------------------------------------
+class Bus:
+    """One connection to a bus (the system bus unless `addr` says otherwise). Not shared between threads."""
+
+    def __init__(self, addr=None, timeout=TIMEOUT):
+        self.addr = addr or address();self.timeout = timeout;self.serial = 0;self.buf = bytearray();self.waiting = []
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM);self.sock.settimeout(timeout)
+        try:
+            self.sock.connect(_socket_path(self.addr))
+            self.sock.sendall(b'\0AUTH EXTERNAL ' + str(os.getuid()).encode().hex().encode() + b'\r\n')
+            line = self._line()
+            if not line.startswith(b'OK '):raise BusError('org.freedesktop.DBus.Error.AuthFailed', 'the bus refused this connection')
+            self.sock.sendall(b'BEGIN\r\n')
+            self.name = self.call('org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus', 'Hello')[0]
+        except OSError as exc:
+            self.close()
+            if isinstance(exc, BusError):raise
+            raise BusError('org.freedesktop.DBus.Error.NoServer', 'no system bus here (%s)' % (exc.strerror or exc)) from exc
+
+    def __enter__(self):return self
+
+    def __exit__(self, *exc):self.close()
+
+    def close(self):
+        try:self.sock.close()
+        except OSError:
+            pass
+
+    def _line(self):
+        while b'\r\n' not in self.buf:
+            got = self.sock.recv(4096)
+            if not got:raise BusError('org.freedesktop.DBus.Error.Disconnected', 'the bus closed the connection')
+            self.buf += got
+        line, _, rest = bytes(self.buf).partition(b'\r\n');self.buf = bytearray(rest);return line
+
+    def _need(self, n, deadline):
+        while len(self.buf) < n:
+            left = deadline - time.monotonic()
+            if left <= 0:raise TimeoutError('no answer in time')
+            self.sock.settimeout(min(left, 1.0))
+            try:got = self.sock.recv(65536)
+            except socket.timeout:
+                continue
+            if not got:raise BusError('org.freedesktop.DBus.Error.Disconnected', 'the bus closed the connection')
+            self.buf += got
+
+    def read(self, deadline):
+        """The next message, or TimeoutError at the deadline (monotonic seconds)."""
+        self._need(16, deadline)
+        e = '<' if self.buf[:1] == b'l' else '>'
+        body_len, _serial, fields_len = struct.unpack_from(e + 'III', self.buf, 4)
+        head_len = 16 + fields_len + ((-(16 + fields_len)) % 8)
+        if head_len + body_len > MOST:raise BusError('org.freedesktop.DBus.Error.LimitsExceeded', 'a message too large')
+        self._need(head_len + body_len, deadline)
+        head = bytes(self.buf[:head_len]);body = bytes(self.buf[head_len:head_len + body_len]);del self.buf[:head_len + body_len]
+        return decode(head, body)
+
+    def send(self, kind, fields, sig='', args=(), flags=0):
+        self.serial += 1
+        self.sock.sendall(encode(kind, self.serial, fields, sig, args, flags))
+        return self.serial
+
+    def call(self, dest, path, iface, member, sig='', args=(), interactive=False, timeout=None):
+        """One method call; its answer's values (a list). BusError with the service's own words when it refuses."""
+        serial = self.send(CALL, dict(path=path, interface=iface, member=member, destination=dest), sig, args,
+                           INTERACTIVE if interactive else 0)
+        deadline = time.monotonic() + (timeout or self.timeout)
+        while True:
+            m = self.read(deadline)
+            if m.kind in (RETURN, ERROR) and m.reply_serial == serial:
+                if m.kind == ERROR:raise BusError(m.error, (m.body[0] if m.body and isinstance(m.body[0], str) else ''))
+                return m.body
+            if m.kind == SIGNAL:self.waiting.append(m)
+            elif m.kind == CALL and not (m.flags & 1):
+                self.fail(m, 'org.freedesktop.DBus.Error.UnknownMethod', 'this connection serves nothing')
+
+    def get(self, dest, path, iface, prop):
+        return self.call(dest, path, 'org.freedesktop.DBus.Properties', 'Get', 'ss', (iface, prop))[0]
+
+    def get_all(self, dest, path, iface):
+        return self.call(dest, path, 'org.freedesktop.DBus.Properties', 'GetAll', 's', (iface,))[0]
+
+    def listen(self, **rule):
+        text = ','.join("%s='%s'" % (k, v) for k, v in [('type', 'signal')] + sorted(rule.items()))
+        self.call('org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus', 'AddMatch', 's', (text,))
+
+    def signals(self, deadline, path=None):
+        """Signals (those met while waiting for a reply first), one at a time, until the deadline (TimeoutError)."""
+        while True:
+            while self.waiting:
+                m = self.waiting.pop(0)
+                if path is None or m.path == path:yield m
+            m = self.read(deadline)
+            if m.kind == SIGNAL and (path is None or m.path == path):yield m
+
+    # -- a service's side (the tests' fake services)
+    def own(self, name):
+        got = self.call('org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus', 'RequestName', 'su', (name, 4))[0]
+        if got not in (1, 4):raise BusError('org.freedesktop.DBus.Error.AddressInUse', '%s is owned already' % name)
+
+    def next_call(self, deadline):
+        while True:
+            m = self.read(deadline)
+            if m.kind == CALL:return m
+
+    def reply(self, m, sig='', args=()):
+        if m.flags & 1:return
+        self.send(RETURN, dict(reply_serial=m.serial, destination=m.sender), sig, args)
+
+    def fail(self, m, name, text=''):
+        if m.flags & 1:return
+        self.send(ERROR, dict(reply_serial=m.serial, destination=m.sender, error=name), 's', (text or name,))
+
+    def emit(self, path, iface, member, sig='', args=()):
+        self.send(SIGNAL, dict(path=path, interface=iface, member=member), sig, args)

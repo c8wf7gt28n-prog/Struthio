@@ -1,0 +1,51 @@
+{
+ "item": "KS3",
+ "status": "done",
+ "summary": "The system door: 15 fixed actions (install, remove or update one package and refresh the lists through PackageKit; start, stop, restart, enable or disable one unit through systemd; time zone, network time and the clock through timedated; the computer's name through hostnamed; add a standard account and set a real name through accountsservice). Kas checks each one first and shows it before anything happens: for a package, what it pulls in and its size, plus 'The system will ask for your password' and what Undo does or that it cannot be undone. Only the owner's press starts it, and then the system's own polkit prompt asks (the interactive flag). The effect is read back before she says it is done. It refuses to run as her step or under a grant, and HALT holds it. It shows in her talk, NEXT STEPS, the bar's line and a new Settings > This computer > System changes page. system_door.offer(argv) maps root command lines for KS2. Goes into 1.1.1.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b110/KS3.patch",
+ "files_changed": [
+  "workbench/system_bus.py (new)",
+  "workbench/system_door.py (new)",
+  "workbench/system_door_qt.py (new)",
+  "tests_integrated/test_system_door.py (new)",
+  "workbench/engineering_kernel.py (1.1 KS3 block)",
+  "workbench/engineering_cli.py (1.1 KS3 block)",
+  "workbench/shell2.py (ask chain, 2 lines)",
+  "workbench/her_column_qt.py (NEXT STEPS and take_step)",
+  "workbench/line_finder.py (door_rows)",
+  "workbench/system_settings_qt.py (row and open_page)",
+  "workbench/kas_voice.py (door_* lines)",
+  "debian/control (graphite-session Recommends)"
+ ],
+ "tests": {
+  "added": "tests_integrated/test_system_door.py: 13 tests. The fake services run on a private dbus-daemon and answer on the D-Bus wire.",
+  "ran": "test_system_door + test_kas_voice (final run); touched earlier: test_start_line, test_recipes, test_one_line_b4, test_kas_bar",
+  "output_tail": "final: Ran 25 tests in 3.895s OK; touched: Ran 63 tests in 27.439s OK"
+ },
+ "existing_tests_changed": [],
+ "decisions": [
+  "Transport: a small pure-Python D-Bus client of Graphite's own (system_bus.py: wire protocol, AUTH EXTERNAL, exact signatures, signals). PySide6's QtDBus cannot send uint64, which PackageKit's flags need, and PackageKit answers by signals, which busctl and dbus-send cannot wait for. There is no shell, no pkexec and no root helper: every action goes to the service's own D-Bus API, and that service asks polkit itself.",
+  "Polkit agent: lxpolkit, which is already a Depends of graphite-session and already started by LS_XSESSION.sh since 1.0 S5. LS_XSESSION.sh is unchanged. Without a running agent the plan says so and nothing is asked.",
+  "Kernel operations are system.door.plan/read/runs/state (read) and system.door.run/undo (approve). The plain door.* names are taken by the hand door (hand_door.py).",
+  "door.run plans again and needs the same digest. It refuses in her work and under a grant (home_reach.in_her_work, which covers the grant's _PERMIT) and while HALT holds. HALT also cancels a PackageKit transaction that is still waiting.",
+  "Undo is the inverse fixed action through the same prompt. Install -> remove the package and what it pulled in (allow_deps false). Remove -> install again. Start/stop and enable/disable swap. Zone, network time, name and real name are set back. A new account is removed and its home folder stays. Update, restart, refresh and setting the clock are said to be impossible to undo before the press.",
+  "Enable/disable do not call systemd's Reload, so the owner sees one prompt. They are checked with GetUnitFileState.",
+  "Her words name a service only when its unit file is on this computer, so 'start the model' is not a service. The model never picks a door action: only her dictionary or a command line does.",
+  "Kept: the door never stops, restarts or disables dbus, polkit, systemd-*, the display manager, getty, user@, packagekit, accounts-daemon or graphite*. It never removes the session's or the door's own packages. It has no action that sets any password."
+ ],
+ "findings_for_the_coordinator": [
+  "NEW DEBIAN PACKAGES: packagekit and accountsservice, both added to the Recommends field of graphite-session in debian/control. Neither is in debian/kit/system-set-1.0.status. lxpolkit and polkitd are already Depends of graphite-session. timedated, hostnamed and journalctl come with systemd. Rebuild the kit's repository with tools/build_repo.sh.",
+  "Regenerate the registry and seed at merge: 6 new operations (system.door.plan, system.door.run, system.door.undo, system.door.runs, system.door.read, system.door.state).",
+  "Wiring for KS2: system_door.offer(argv) returns a dict (action, target, value, title, asks, words, line) or None. It replaces the root refusal in command_forms.py later ('I make no system changes in 1.1 ...'). command_forms.py was not edited. system_door_qt.propose(host, offer) shows the plan in her talk.",
+  "The note's premise was off: 1.0's Settings > This computer had no services, time or users pages. KS3 adds one page, 'System changes', which C1/C2 can grow from.",
+  "/etc/hosts is not changed by a rename (hostnamed does not touch it). Her plan says so; sudo may warn until the file is changed."
+ ],
+ "not_done": [
+  "Nothing ran on the owner's ThinkPad. There is no system bus, systemd, PackageKit or polkit here, so the real lxpolkit prompt, PackageKit's apt backend (its enum values, its Details keys, its simulate output), systemd, timedated, hostnamed and accountsservice were not exercised. Fakes on a private dbus-daemon stand in for them.",
+  "Listing updates is a read the door offers (system.door.read updates) but has no words in her talk, because KS1's 'is the system up to date' recipe answers those words.",
+  "Frames: 18 whole-window PNGs in b110/KS3/frames/ (1920x1200 Day and Kasandra, 1366x768 Day: the line, the offer, the moment before the prompt, done and verified, a service restarted, the Settings page). All three runs finished with no tracebacks, but I looked only at three of the 1920x1200 Day frames (the offer, the service restarted, the Settings page). There is no picture of her.",
+  "The test tiers were not run."
+ ],
+ "release_note": "Kas can now change the system for you, one fixed action at a time: install, remove or update a program, refresh the software lists, start, stop, restart, enable or disable a service, set the time zone, network time or the clock, rename the computer, add a standard account. She shows what will happen first, including what an install pulls in and its size. Your press starts it, then the system asks for your password in its own prompt, and Kas reads the result back before she calls it done. Undo works where the system allows it. Say it to Kas ('install gimp', 'restart cups') or type it in the line, or use Settings > This computer > System changes.",
+ "frames": "b110/KS3/frames/"
+}

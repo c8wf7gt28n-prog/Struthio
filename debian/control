@@ -44,7 +44,7 @@ Depends: graphite (= @VERSION@), xserver-xorg, xinit, fluxbox, x11-xserver-utils
  dbus-user-session | dbus-x11, libpam-systemd, network-manager, wpasupplicant, wireless-regdb, libgl1-mesa-dri,
  udisks2, eject, upower, pipewire, pipewire-pulse, wireplumber, alsa-ucm-conf, alsa-topology-conf, xsecurelock,
  lxpolkit, polkitd, x11-utils, at-spi2-core, python3-pyatspi, librsvg2-common, xterm
-Recommends: xdg-user-dirs
+Recommends: xdg-user-dirs, packagekit, accountsservice
 Description: Graphite as the whole session
  The X session entry a display manager shows as "Graphite"
  (/usr/share/xsessions/graphite.desktop, running graphite-session, the

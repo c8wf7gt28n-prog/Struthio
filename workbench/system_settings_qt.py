@@ -40,7 +40,8 @@ ROWS = (('apps', 'Default apps', 'Which app opens each kind of file and address.
         ('network', 'Network', 'Networking and Wi-Fi on or off, the networks heard, Join (NetworkManager keeps the password).'),
         ('power', 'Power', 'The battery and the mains (UPower).'),
         ('session', 'Session', 'Lock, Suspend, Log out, Restart, Shut down, Return to Debian; permission prompts; the app strip.'),
-        ('notifications', 'Notifications', 'What apps tell you: shown as a toast at the foot of her column, and kept in Log.'))
+        ('notifications', 'Notifications', 'What apps tell you: shown as a toast at the foot of her column, and kept in Log.'),
+        ('door', 'System changes', 'Software, services, date and time, the computer’s name and accounts, through the system’s own prompt.'))  # 1.1 KS3
 TITLES = {key: label for key, label, _ in ROWS}
 PAGE_SECONDS = 3
 SESSION_SECONDS = 10     # the session page asks logind again this often while it shows
@@ -79,6 +80,9 @@ def open_page(host, key):
     if key in MACHINE:
         from . import machine_room_qt
         return machine_room_qt.show(host, key)
+    if key == 'door':      # 1.1 KS3 (the system door): its own page (system_door_qt)
+        from . import system_door_qt
+        return system_door_qt.show_page(host)
     return show(host, key)
 
 

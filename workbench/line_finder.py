@@ -341,6 +341,17 @@ def tool_rows(text, sources):
         return []
 
 
+def door_rows(text, sources):
+    """1.1 KS3 (the system door): "Install GIMP, asks for your password" for the words of one of the door's fixed actions
+    (system_door_qt.line_rows); Enter shows what the system will do in her talk, and nothing changes."""
+    try:
+        from .system_door_qt import line_rows as door_line
+        return [Row('command', title, detail, 'Show', do, section='COMMANDS', icon='command', extra=dict(recipe=True, door=True))
+                for title, detail, do in door_line(text, getattr(sources, 'host', None))]
+    except Exception:  # noqa: BLE001 - no reading: no row
+        return []
+
+
 def ask_row(text):
     return Row('ask', '%s: %s' % (ASK, short(clean(text).lstrip('?').strip(), 44)), 'Your words go to her column; she proposes, you decide',
                ASK, clean(text).lstrip('?').strip(), icon='ask')
@@ -482,6 +493,7 @@ def rows(text, sources=None):
     first += operation_rows(words)      # an operation's own name (apps.list, /files.list path=Slate) before the line reading it
     if not first:first += line_rows(words, reading)
     first += dos_rows(words)
+    first += door_rows(words, sources)      # 1.1 KS3 (the system door): "Install GIMP, asks for your password", Enter shows the plan
     first += recipe_rows(words, sources)      # 1.1 KS1 (recipes): "Recipe: Free space in Home", Enter shows what it would do
     first += tool_rows(words, sources)      # 1.1 KS2 (the command tool): "Run: df -h, only reads"
     if lead == '/':

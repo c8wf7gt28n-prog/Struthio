@@ -1538,6 +1538,11 @@ class HerColumn(QObject):
             out[0:0] = command_steps(self.host)
         except Exception:  # noqa: BLE001
             pass
+        try:      # 1.1 KS3 (the system door): a plan waits for your press, or a change has an Undo (system_door_qt.next_steps)
+            from .system_door_qt import next_steps as door_steps
+            out[0:0] = door_steps(self.host)
+        except Exception:  # noqa: BLE001
+            pass
         out.append({'words': 'Check the desk', 'verb': 'Check the desk', 'object': 'every check, run now', 'kind': 'desk', 'command': 'check', 'title': '',
                     'tip': 'Every check the desk has, run now; what waits is said in Talk with the step that would settle it.'})
         mine = [id(s) for s in out if s['kind'] == 'assignment'][:4]      # 1.0 X1: an assignment's own press (Carry on, Resume)
@@ -1550,6 +1555,8 @@ class HerColumn(QObject):
         return out
 
     def take_step(self, step):
+        if step['kind'] == 'system_door':      # 1.1 KS3 (the system door): the same press as the word in Talk; the system asks after
+            from .system_door_qt import take as door_take;door_take(self.host, step);return
         if step['kind'] == 'recipe':      # 1.1 KS1 (recipes): Run or Undo, the same press as the word in Talk
             from .recipe_book_qt import take as recipe_take;recipe_take(self.host, step);return
         if step['kind'] == 'command':      # 1.1 KS2 (the command tool): Run or Undo, the same press as the word in Talk

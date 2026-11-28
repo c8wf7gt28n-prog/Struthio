@@ -42,7 +42,7 @@ NEEDS = {'proc': ('/proc',), 'sys': ('/sys', '/run/udev'), 'journal': ('/var/log
 
 # Why a form or an option is refused, in plain words (her talk says "Refused, and nothing ran: " first).
 WHY = {
-    'root': 'it needs root, the administrator, and I make no system changes in 1.1. Run it yourself with sudo at a text console (Ctrl+Alt+F2), where the system asks for your password.',
+    'root': 'it needs root, the administrator. For software, services, the clock or an account, say it in words ("install gimp"): I take it through the system door, where the system asks for your password. Anything else, run it yourself with sudo at a text console (Ctrl+Alt+F2).',
     'destroy': 'it removes for good, with no way back. I do not run it here.',
     'never_ends': 'it never ends by itself, so it would hold the run. Give it an end (a count) or use your Terminal.',
     'session': 'it opens a session on another computer, and what runs there I cannot classify. It is yours, in your Terminal.',
